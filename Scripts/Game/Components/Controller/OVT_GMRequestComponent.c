@@ -134,6 +134,14 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	{
 		if(playerId <= 0) return false;
 
+#ifdef WORKBENCH
+		// Workbench Play mode is a debug context (user decision 2026-08-15: the GM panel is a debug
+		// tool and must light up there), and Play mode offers no admin login or role grant to satisfy
+		// the gate. WORKBENCH is defined only by addon.gproj's workbench script configuration - never
+		// in a shipping client or dedicated-server build - so this authorizes nobody in real MP.
+		return true;
+#endif
+
 		// Local play-testing only, and server-side, so a client cannot grant itself anything.
 		if(System.IsCLIParam(DEV_CLI_PARAM)) return true;
 
@@ -202,6 +210,24 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		// Remove-then-Insert: a second init must never leave two subscriptions behind.
 		core.Event_OnEditorManagerInitOwner.Remove(OnEditorManagerInitOwner);
 		core.Event_OnEditorManagerInitOwner.Insert(OnEditorManagerInitOwner);
+
+		// The owner's editor manager may ALREADY exist by the time this component initialises - the
+		// init event fired before the subscription above and will not fire again. Observed 2026-08-15
+		// as a permanent "Waiting for campaign data" (Workbench Play mode and dedicated server): the
+		// open/close invokers were never wired, so polling never started. Catch up explicitly -
+		// GetInstance() returns the LOCAL player's manager, which is the only one this machine may
+		// poll for; remote controller instances that also run this attach the same local manager, and
+		// OnEditorOpened()'s IsLocalControllerOwner() check keeps them silent as it always did.
+		SCR_EditorManagerEntity existing = SCR_EditorManagerEntity.GetInstance();
+		if (existing)
+		{
+			OnEditorManagerInitOwner(existing);
+
+			// The editor can also already be OPEN (component re-init mid-session) - the opened
+			// invoker we just wired has already fired for this session, so start polling directly.
+			if (existing.IsOpened())
+				OnEditorOpened();
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

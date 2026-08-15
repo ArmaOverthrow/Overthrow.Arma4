@@ -13920,5 +13920,213 @@ StringTable {
    Modified 1786759417
    Author "Aaron Static"
   }
+  CustomStringTableItem "{6B08D3A17C4B1001}" {
+   Id "OVT-GMPanel_Threat"
+   Target_en_us "Threat"
+   Comment "GM panel row label - the occupying faction's current threat level, one decimal place"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1002}" {
+   Id "OVT-GMPanel_OFResources"
+   Target_en_us "OF Resources"
+   Comment "GM panel row label - the occupying faction's reserve resource pool"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1003}" {
+   Id "OVT-GMPanel_OFDeployment"
+   Target_en_us "Deployment Pool"
+   Comment "GM panel row label - the occupying faction's resources set aside for deploying new units"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1004}" {
+   Id "OVT-GMPanel_NextDistribution"
+   Target_en_us "Next Distribution"
+   Comment "GM panel row label - the next occupying-faction resource distribution: amount and countdown"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1005}" {
+   Id "OVT-GMPanel_NextPayout"
+   Target_en_us "Next Payout"
+   Comment "GM panel row label - the next player payout: amount and countdown"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1006}" {
+   Id "OVT-GMPanel_Funds"
+   Target_en_us "Resistance Funds"
+   Comment "GM panel row label - money currently held by the resistance"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1007}" {
+   Id "OVT-GMPanel_QRF"
+   Target_en_us "QRF"
+   Comment "GM panel row label - status of the occupying faction's quick reaction force"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1008}" {
+   Id "OVT-GMPanel_NoData"
+   Target_en_us "Waiting for campaign data..."
+   Comment "GM panel - shown in place of the campaign numbers until the first data snapshot arrives. Reads as waiting, not as broken"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1009}" {
+   Id "OVT-GMPanel_QRFNone"
+   Target_en_us "None"
+   Comment "GM panel QRF row value - no quick reaction force is currently active"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100A}" {
+   Id "OVT-GMPanel_SuppressedQRF"
+   Target_en_us "paused - QRF active"
+   Comment "GM panel countdown status - the distribution countdown will not fire because a QRF is running. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100B}" {
+   Id "OVT-GMPanel_SuppressedNoPlayers"
+   Target_en_us "paused - no players"
+   Comment "GM panel countdown status - the payout countdown will not fire because no players are connected. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100C}" {
+   Id "OVT-GMPanel_QRFActive"
+   Target_en_us "%1 pts - %2"
+   Comment "GM panel QRF row value - an active quick reaction force with no named target. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss). Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100D}" {
+   Id "OVT-GMPanel_QRFActiveTown"
+   Target_en_us "%1 pts - %2 - %3"
+   Comment "GM panel QRF row value - an active quick reaction force attacking a town. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss), %3 is the town name. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }

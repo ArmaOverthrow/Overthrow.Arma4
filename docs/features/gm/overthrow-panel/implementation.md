@@ -1,10 +1,10 @@
 # Overthrow Panel — Implementation Plan
 
-**Status:** Planning
+**Status:** Ready for Review
 **Epic:** gm (feature 2 of 5 — Phase 1 of the 3-phase epic)
-**Started:** 2026-08-14
-**Target Completion:** TBD
-**Last Updated:** 2026-08-14 18:19 AEST
+**Started:** 2026-08-15
+**Target Completion:** 2026-08-15 (built + user-verified same day)
+**Last Updated:** 2026-08-15 15:20 AEST
 
 > All `file:line` citations are load-bearing. Overthrow-side citations were verified against the working
 > tree at **`462308f5`** (`feat: gm/gm-state`, the commit that built the seam this feature consumes);

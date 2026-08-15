@@ -23,8 +23,15 @@
 - ✅ Phase 6: sibling consumption contract (below), epic-overview findings + help-docs hand-off, grep gates recorded
 
 **What's Next:**
-- ⏸️ **Phase 5 MP play-test — deferred by the user (2026-08-14) until `overthrow-panel` exists**, so verification reads a real panel instead of debug prints. Run the combined checklist ("Needs Human Verification" below) after the panel is built; record measured per-class record counts + build ms, and which auth path (admin login vs `-ovtGmDev`) was exercised
-- 📋 Next: `/autorun-feature gm/overthrow-panel` (consumes this contract; carries the help-docs phase)
+- 🟡 **Phase 5 MP play-test — PARTIALLY discharged 2026-08-15 via `overthrow-panel`:** the panel rendered
+  live campaign state on the user's own server (panel-provable items 1 and "state populates / countdowns
+  tick" confirmed; all overthrow-panel Step 2 checks passed). **Still owed (log-based, no panel can prove
+  them):** per-class record counts + build ms (`m_bDebugSnapshotTiming`), non-admin negative path (zero
+  `RpcDo_*`), JIP second-client first snapshot, stale-discard under fast poll. **Auth-path detail was not
+  captured** during the user's test — which of admin login / `-ovtGmDev` / GM role gated access remains
+  unrecorded. Note: a local `--mode dedicated` join attempt wedged twice at backend auth
+  (`authentication timeout`, reason=3) — use `--mode local` for future local GM MP tests.
+- 📋 Next: `gm/hud-icons` (consumes overthrow-panel's detail seam contract)
 
 **Blockers:**
 - None
@@ -84,6 +91,17 @@
 - **Both countdowns currently share one `SecondsToNextMark()` value** (both loops fire on the same 6-hour marks) but ship as two independent wire fields so future divergence costs no wire change.
 - **Owner scoping:** `Event_OnEditorManagerInitOwner` only fires on the owner's machine, but a client holds a replicated component instance per connected player — so `OnEditorOpened()`/`RequestSnapshot()` re-assert `IsLocalControllerOwner()` (compares `OVT_Global.GetController()` vs `GetOwner()`; works on a listen-server host, which never receives the owner-assignment RPC).
 
+### Post-build fix (2026-08-15, via overthrow-panel)
+- **Polling could never start — `Event_OnEditorManagerInitOwner` races component init.** The event fires
+  once at player connect; the editor manager initialized before `OVT_GMRequestComponent.OnPostInit`
+  subscribed, so the open/close invokers were never wired and no snapshot was ever requested (symptom:
+  permanent empty store on every topology; found when the panel showed "Waiting for campaign data..."
+  forever). Fixed in `OnPostInit`: after subscribing, catch up via `SCR_EditorManagerEntity.GetInstance()`
+  + `IsOpened()`. **Lesson: a subscribe-only lifecycle hook needs an "already happened" catch-up when the
+  event is once-per-session.** Also added: `#ifdef WORKBENCH` authorize-all in `IsAuthorizedGM` (user
+  decision — the GM panel is a Workbench debug tool; the define never exists in shipping builds).
+  End-to-end data path user-confirmed live in Workbench Play mode; Fast 139/139 after the fix.
+
 ### Phase 3 findings (2026-08-14)
 - **Tagging as applied:** 17 sites across 11 files (12 files touched — `OVT_BaseUpgrade.c` gained a shared guarded `GetBaseOriginIndex()` helper so no unguarded deref chain sits inside a spawn path; a throw there would be a behaviour change). Full site table in the Phase 3 agent report; origins: BASE_PATROL/DEFENCE/SNIPER/TOWER_GUARD via `ClassName()` reasons, TOWN_PATROL by townID, QRF, RADIO_TOWER_GARRISON by tower.id, BASE/CAMP/FOB_GARRISON (live + "Restored" boot paths), DEPLOYMENT ×3 by deployment name, JOB via guarded `GetJobOriginReason()`.
 - **Camp/FOB index uses `m_Camps.Find(fob)` / `m_FOBs.Find(fob)`**, not `fob.id` — `.id` is only re-derived on the load path and six insert sites never set it.
@@ -112,7 +130,10 @@ OVT_GMCampaignState state = gm.GetState();      // the store; never null, check 
 
 - No `OVT_Global` accessor exists or may be added (project rule, `OVT_ControllerComponent.c:10-14`).
 - The store is populated **only while the local player has the Game Master editor open** and only if the
-  server authorized them (`GAME_MASTER` role OR admin). Renderers should show "no data" until `HasData()`.
+  server authorized them (`GAME_MASTER` role OR admin OR `-ovtGmDev` OR **any Workbench build** — a
+  `#ifdef WORKBENCH` clause added 2026-08-15 authorizes everyone in Workbench Play mode, user decision:
+  the GM panel is a debug tool; `WORKBENCH` is never defined in shipping builds). Renderers should show
+  "no data" until `HasData()`.
 - Polling is invisible to consumers: subscribe to `GetOnSnapshotUpdated()`, re-read the store, redraw.
 
 ### Campaign scalars (on `OVT_GMCampaignState`)
@@ -137,7 +158,7 @@ OVT_GMCampaignState state = gm.GetState();      // the store; never null, check 
   `m_iResourcesInvested`, `m_bActive`
 - `m_aGroups` (`array<ref OVT_GMGroupRecord>`) — `m_RplId`, `m_iOriginType` (`OVT_EGroupOrigin`),
   `m_iOriginIndex`, `m_sReason`
-- Convenience: `IsDistributionSuppressedByQRF()`, `IsPayoutSuppressedByNoPlayers()`; arrays are never null
+- Convenience: `IsDistributionSuppressed()`, `IsPayoutSuppressed()` (`OVT_GMCampaignState.c:98/:106`); arrays are never null
 - Lookups: `FindGroup(RplId)`, `FindBase(int baseIndex)`. `m_iReportedRecordCount` is the server's own count
   for sanity checks.
 

@@ -1,8 +1,8 @@
 # GM - Epic Overview
 
 **Epic:** gm
-**Status:** 🟡 In Progress (1/5 features built)
-**Last Updated:** 2026-08-14
+**Status:** 🟡 In Progress (2/5 features built)
+**Last Updated:** 2026-08-15
 
 > **This file is the epic marker.** Its presence in `docs/features/gm/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -22,8 +22,8 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | gm-state | ✅ Built (MP verify owed) | 24/26 | Shared read-only replication seam streaming Overthrow campaign state (threat, OF resources, countdowns, funds, per-entity detail) to authorized GM clients |
-| 2 | overthrow-panel | Planned | — | New GM UI panel (above the settings panel, bottom-left, Overthrow logo) showing campaign-wide info and selected-icon detail |
+| 1 | gm-state | ✅ Built (MP partially verified; log-based checks owed) | 25/26 | Shared read-only replication seam streaming Overthrow campaign state (threat, OF resources, countdowns, funds, per-entity detail) to authorized GM clients |
+| 2 | overthrow-panel | ✅ Built (user-verified in Workbench + own server) | 25/26 | GM UI panel (top-left at 22,90 — moved off the bottom-left stack because contextual help overlapped it) showing campaign-wide info, with an empty detail seam for hud-icons |
 | 3 | hud-icons | Planned | — | Extend/add GM HUD icons for towns, bases, groups and players; clicking shows Overthrow detail (support/stability, garrison/resources, group origin & purpose, player money/level) |
 | 4 | waypoint-viz | Planned | — | Read-only visualization of Overthrow-generated AI waypoints in GM view (own implementation; not the E_ waypoint set) |
 | 5 | gm-map | Planned | — | MapOverthrow_GM.conf work: canvas-based threat grid layer, deployment + base-upgrade icon layers with hover info, GM-only info panel extensions, "Move Camera Here" action |
@@ -81,8 +81,8 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 ## Master Overview Rollup
 
-- **Rollup status:** In Progress (1/5 features — gm-state built, MP verify owed)
-- **One-line summary for master:** Game Master tooling for server owners — Phase 1 gives GMs read-only campaign inspection (Overthrow panel, HUD icons, waypoint viz, GM map layers) ahead of later management and cleanup phases; the gm-state data seam is built and awaiting MP play-test.
+- **Rollup status:** In Progress (2/5 features — gm-state + overthrow-panel built and user-verified; gm-state's log-based MP checks still owed)
+- **One-line summary for master:** Game Master tooling for server owners — Phase 1 gives GMs read-only campaign inspection (Overthrow panel, HUD icons, waypoint viz, GM map layers) ahead of later management and cleanup phases; the gm-state seam and the Overthrow panel are built, live-verified by the user in Workbench and on their own server.
 
 ---
 
