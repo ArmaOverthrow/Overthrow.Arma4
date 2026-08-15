@@ -659,8 +659,10 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}else if(m_iWantedLevel == 1 && m_bTempSeen && !m_bIsDisguised) {
 			// Re-seen during the level-1 decay tail: escalate through the notification path
-			// and restart the decay timer instead of silently inheriting it (BUG-076)
-			string reason = "WantedHostileFaction";
+			// and restart the decay timer instead of silently inheriting it (BUG-076).
+			// Level 1 escalates on ANY sighting, so the generic reason is "you were seen" -
+			// blaming a uniform or weapon the player may not have reads as a bug (BUG-171)
+			string reason = "WantedSeen";
 			if(IsVisiblyArmed())
 				reason = "WantedWeapon";
 			SetBaseWantedLevel(2, reason);

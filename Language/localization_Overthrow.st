@@ -7770,6 +7770,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
+   Id "OVT-Msg-WantedSeen"
+   Target_en_us "You have been spotted!"
+   Comment "Broadcast notification for the level-1 re-escalation (OVT_PlayerWantedComponent decay tail, BUG-171): level 1 is the transitionary decay state and ANY sighting bumps it back to 2, so the reason is simply being seen - no uniform or weapon is implied. The visibly-armed case still uses OVT-Msg-WantedWeapon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755216000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{599B1780E41380D7}" {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
