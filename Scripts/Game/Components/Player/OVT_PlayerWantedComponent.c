@@ -689,11 +689,17 @@ class OVT_PlayerWantedComponent: OVT_Component
 			
 			if (isDisguised && m_iWantedLevel < 2)
 			{
-				// When disguised and not wanted, make AI perceive us as occupying faction
-				Faction occupyingFaction = factionMgr.GetFactionByKey(OVT_Global.GetConfig().m_sOccupyingFaction);
-				if (occupyingFaction)
+				// Present as CIVILIAN while disguised, never as the occupying faction. The override
+				// feeds native perception bucketing for EVERY observer, so presenting OF puts the
+				// disguised player in their own recruits' (FIA) ENEMY bucket and the native weapon
+				// target selector opens fire on them - no script gate sits on that path (BUG-170).
+				// Nothing is lost: OF AI already treat CIV as non-hostile, and the actual disguise
+				// mechanics (base-proximity immunity, the close-range blow check) key off
+				// m_bIsDisguised in this component, not off the override.
+				Faction civilianFaction = factionMgr.GetFactionByKey("CIV");
+				if (civilianFaction)
 				{
-					m_Percieve.SetPerceivedFactionOverride(occupyingFaction);
+					m_Percieve.SetPerceivedFactionOverride(civilianFaction);
 				}
 			}
 			else if(m_iWantedLevel > 1)
