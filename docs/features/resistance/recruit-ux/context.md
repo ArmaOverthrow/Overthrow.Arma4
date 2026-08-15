@@ -1,7 +1,7 @@
 # Recruit UX - Context & Decisions
 
-**Last Updated:** 2026-08-14 22:07
-**Current Phase:** Complete (all 8 phases) — awaiting deferred test run + human play-test
+**Last Updated:** 2026-08-15 00:35
+**Current Phase:** Complete (all 9 phases, 73/73) — **all automated gates green** (final All 165/165); play-test checklists owed
 **Status:** 🟢 Ready for Review
 
 ---
@@ -26,6 +26,7 @@
 - ✅ **Phase 7** (T7.1-T7.7, ADVANCED) — `OVT_LoadoutSwap` (server-only entity-transfer swap, Q9 grep empty), `RpcAsk_SwapLoadout` + 7 new `RESULT_` codes + rich 5-arg owner reply, `OVT_SwapLoadoutWithRecruitAction` on the 3 prefabs (`Duration 5`), 7 `.st` keys, 7 Logic cases pinning the outcome classification. Compile clean. **Gate: run before/with the deferred Fast/All run.**
 
 - ✅ **Phase 8** (T8.1-T8.4) — 2 tutorial popups (registered on the game-mode prefab), 3 Field Manual sections + 1 corrected claim, wiki updates (recruits p29, player-groups p55, loadout-manager p30 — verified by content, not search pageIds), full `file:line` citation ledger in the agent report. Docs/config-only — no test gate applicable.
+- ✅ **Phase 9** (T9.1-T9.16, post-ship extension) — buy equipped recruits at the tent: quote/buy RPCs, pure pricing rules, shared tent-spawn internals with placement hardening, loadouts-screen purchase mode (`KC_B`/LT), tutorial tip on `PLAYER_BUILD "Recruitment Tent"`, Field Manual + wiki synced with full citation ledger. **Note:** difficulty presets carry scaled fee multipliers (Easy 1.3 / Normal 1.4 / Hard+Extreme+TestWorld 1.5 / Insane 1.7; code default 1.5) — flatten to 1.5 everywhere if per-difficulty scaling is unwanted. Play-test rider fixes: BUG-170 (defend→wait waypoint), hold durations 1.5/1/2.5 s.
 
 **What's Next:**
 - ✅ **Deferred regression gate DISCHARGED** (2026-08-14, after the user's game session ended): All group **159/159 green, exit 0** — covers every phase's script changes. All four gates for this feature are now green.
@@ -111,6 +112,22 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 ---
 
 ## Session Notes
+
+### 2026-08-15 — Play-test PASSED (all green, user-attested); Buy action made instant
+- User play-tested the full feature: **all green, works well.** One tweak requested and applied: `OVT_BuyEquippedRecruitAction` on the tent had `Duration 1.5` (held); the sibling Recruit Civilian action is instant, so the Duration line was removed — both tent actions now instant. (The action only opens the picker; the money step is the explicit Buy button, so a hold added nothing.)
+- **Localization re-export DONE by the user** — verified: `OVT-Recruit_BuyButton`, `OVT-Tutorial_RecruitsEquipped_Title`, `OVT-FieldManual_Recruits_Head8` all present in `localization_Overthrow.en-us.conf`. Every owed item except git is now discharged. **Follow-up polish available:** the D14 literal-English strings in scripts/layouts/prefab UIInfo (marked `// TODO localize: <key>`) can now be swapped to their exported keys — grep the TODOs when wanted.
+
+### 2026-08-14 — Phase 9 built (server + UI halves); BUG-170 fixed
+- **Server half (ADVANCED):** `OVT_RecruitPurchaseRules` (pure charge/outcome arithmetic, Logic-pinned), `OVT_RecruitLoadoutPricing` (recursive price walk, `IsRegisteredResource` gate — unpriceable refuses naming the item; `GetPrice` returns 500 for unknown ids and `GetInventoryId` resolves unregistered prefabs to id 0, so the gate is the only safe path), quote/buy RPCs + 11 result codes (14–24) on `OVT_RecruitCommandComponent` (Rpc ledger now 9/9 arity-checked), `recruitLoadoutFeeMultiplier` in all six difficulty confs (default 1.5; `<= 0` → default; NOT in the config JIP stream — quotes carry prices, `CONFIG_STREAM_VERSION` still 2), shared `SpawnTentRecruit` internals (legacy `RpcAsk_RecruitFromTent` now delegates; placement hardening: tent forward +4 m, ground clamp — `FindSafeSpawnPosition` ignores its own ground var — `skipSpawnPointSearch=true`). 7 fault-injection can-fail proofs, all compiled clean. Funds check runs LAST so refused quotes still carry a price.
+- **UI half:** loadouts screen purchase mode — `PurchaseButton` (`KC_B` / `gamepad0:left_trigger`; checker 0/0; `OverthrowLoadoutsContext` is Flags 4 non-exclusive so LT-vs-ADS needs pad eyes), stale quotes dropped by loadout-name comparison + no-buy-while-pending guard, `MenuSelect` deliberately does NOT buy (money only on the labelled action), success closes via deferred `CallLater`, `OnClose` teardown proven by the reopen-five-times test item. Box mode unchanged.
+- **BUG-170 fixed (main thread):** defend waypoint → `SpawnWaitWaypoint(pos, INACTIVE_HOLD_WAIT_SECONDS=86400)`; town patrols prove wait-AI still returns fire (`OVT_TownController.c:175`). Closed in tracker; play-test confirm owed (no barks + returns fire).
+- **GUID ledger:** 70–7E (server: action/UIInfo/13 `.st`), 7F–84 (UI: input action + button). **Next free: 85+** (help-sync agent told to use 85+).
+- Concurrent tree note: the user re-exported the six runtime localization `.conf`s mid-session (Phase 1–8 keys now render; Phase 9's 13+ keys are NOT in that export yet — another re-export owed) and dropped real atlas art into `overthrow_mapicons.imageset` region row 4.
+- Gate: compile clean throughout; **All-group run covering Phase 9 + BUG-170 + duration tweaks still owed** (user at the machine — Workbench open; defer until clear).
+
+### 2026-08-14 — Play-test feedback (Phases 1–8) + live tweaks
+- **BUG-170 filed:** parked recruits bark repeatedly / glitch — defend waypoint re-order loop suspected; user wants a plain hold. Fix queued to land right after the Phase 9 server agent releases the manager file. Must verify return-fire behaviour survives (F2) — if a wait waypoint makes them ignore attackers, tune the defend preset instead.
+- **Hold durations shortened** per user ("a few secs is enough"): park 3→**1.5 s**, recall 2→**1 s**, swap 5→**2.5 s**, applied to all three character prefabs (per-instance `Duration`).
 
 ### 2026-08-14 22:07 — Phase 8 complete; FEATURE BUILD COMPLETE
 - Help/docs sync landed: `recruitsHoldPosition.conf` + `recruitsSwapGear.conf` tutorials (GUIDs 61/65, registered in `OVT_TutorialManagerComponent.m_aEntries` — an unregistered conf never loads), 3 Field Manual sections (69–6E), 10 new + 1 revised `.st` items (57–60). **Deviation from D14 (justified):** tutorial/FM configs use `#OVT-…` keys, not literals — every shipped tutorial/FM entry does, and the popup title doubles as the manual deep-link. They render raw until the user re-exports localization in Workbench.

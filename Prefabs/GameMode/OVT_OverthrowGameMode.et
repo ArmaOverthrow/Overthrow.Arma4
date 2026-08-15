@@ -237,6 +237,8 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B4C000000000068}" : "{6B4C000000000065}Configs/Tutorials/recruitsSwapGear.conf" {
     }
+    OVT_TutorialEntryConfig "{6B4C000000000088}" : "{6B4C000000000085}Configs/Tutorials/recruitsEquippedTent.conf" {
+    }
     OVT_TutorialEntryConfig "{6B3C000000000073}" : "{6B3C000000000070}Configs/Tutorials/placeFirstPlaceable.conf" {
     }
     OVT_TutorialEntryConfig "{6B3C000000000083}" : "{6B3C000000000080}Configs/Tutorials/buildFirstStructure.conf" {

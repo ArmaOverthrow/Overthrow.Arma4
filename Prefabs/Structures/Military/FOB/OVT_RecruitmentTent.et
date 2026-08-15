@@ -84,6 +84,15 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
         Description "#OVT-RecruitedFromTent"
        }
       }
+      OVT_BuyEquippedRecruitAction "{6B4C000000000070}" {
+       ParentContextList {
+        "tabletop"
+       }
+       UIInfo UIInfo "{6B4C000000000071}" {
+        Name "Buy Equipped Recruit"
+       }
+       ActionTitle "Buy Equipped Recruit"
+      }
      }
     }
     Hierarchy "{65AAD8EF8332C263}" {

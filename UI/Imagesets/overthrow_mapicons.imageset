@@ -3,7 +3,7 @@ ImageSetClass {
  Textures {
   ImageSetTextureClass "{6A12E8AE457B3F72}" {
    screenSize FHD
-   size 784 522
+   size 1 1
    path "{B2EDB8AD2EA10AD3}UI/Textures/Map/overthrow_mapicons_atlas.edds"
   }
  }
@@ -104,22 +104,22 @@ ImageSetClass {
    Flags 0 0
   }
   ImageSetDefClass recruit {
-   Pos 652 2
+   Pos 132 392
    Size 128 128
    Flags 0 0
   }
   ImageSetDefClass recruit_ammo {
-   Pos 262 132
+   Pos 262 392
    Size 128 128
    Flags 0 0
   }
   ImageSetDefClass recruit_ammo_empty {
-   Pos 132 262
+   Pos 392 392
    Size 128 128
    Flags 0 0
   }
   ImageSetDefClass recruit_wounded {
-   Pos 522 2
+   Pos 522 392
    Size 128 128
    Flags 0 0
   }

@@ -108,7 +108,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      UIInfo UIInfo "{6B4C000000000019}" {
       Name "Tell to Hold Position"
      }
-     Duration 3
+     Duration 1.5
     }
     OVT_SetRecruitActiveAction "{6B4C00000000001A}" {
      ParentContextList {
@@ -117,7 +117,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      UIInfo UIInfo "{6B4C00000000001B}" {
       Name "Tell to Follow Me"
      }
-     Duration 2
+     Duration 1
     }
     OVT_SwapLoadoutWithRecruitAction "{6B4C000000000008}" {
      ParentContextList {
@@ -126,7 +126,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      UIInfo UIInfo "{6B4C000000000009}" {
       Name "Swap Gear"
      }
-     Duration 5
+     Duration 2.5
     }
    }
   }

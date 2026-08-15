@@ -1,9 +1,10 @@
 # Recruit UX - Task Checklist
 
 **Last Updated:** 2026-08-14 22:07
-**Progress:** 57/57 tasks complete (100%)
+**Progress:** 73/73 tasks complete (100%)
 
-> Phases 2 and 7 are **ADVANCED** (`component-developer-advanced`). Task numbering matches `implementation.md` §4.
+> Phases 2, 7 and 9 are **ADVANCED** (`component-developer-advanced`). Task numbering matches `implementation.md` §4.
+> Phases 1-8 shipped 2026-08-14 (57/57). **Phase 9 is a post-ship extension** and is the only outstanding work.
 
 ---
 
@@ -324,6 +325,92 @@
 
 ---
 
+## Phase 9: Buy equipped recruits at the tent (0/16 complete) — `component-developer-advanced` ⚠️ ADVANCED
+
+> Post-ship extension. T9.12 → `ui-developer`, T9.16 → `help-docs-sync`. GUID series continues at `{6B4C00000000007X}` (01-6E consumed).
+
+- [x] ✅ **T9.1 OVT_RecruitPurchaseRules (pure)**
+  - Description: `DEFAULT_LOADOUT_FEE_MULTIPLIER = 1.5`, `ResolveFeeMultiplier` (**`<= 0` → default** — a zero fee is deliberately unreachable; free gear on a money path is the failure this phase guards against), `GearFee`, `TotalPrice`, `OutcomeFor`. Pure — no manager lookup, no entity deref. Header states the rule like `OVT_ShopSellRules.c:1-11`.
+  - File(s): `Scripts/Game/Data/OVT_RecruitPurchaseRules.c`
+  - Estimate: 🟢
+
+- [x] ✅ **T9.2 Fee multiplier config (NOT replicated)**
+  - Description: field on `OVT_DifficultySettings` (beside `baseRecruitCost` :73), on `OVT_OverthrowConfigStruct` + `SetDefaults()`, applied in `OVT_OverthrowGameMode.c:377-384`, written explicitly into all four `Configs/Difficulty/*.conf`. ❌ Do NOT touch `OVT_OverthrowConfigComponent.RplSave/RplLoad` or bump `CONFIG_STREAM_VERSION` (:558) — server-only value (D18).
+  - File(s): `Scripts/Game/Configuration/OVT_DifficultySettings.c`, `Scripts/Game/GameMode/Managers/OVT_OverthrowConfigComponent.c`, `Scripts/Game/GameMode/OVT_OverthrowGameMode.c`, `Configs/Difficulty/Difficulty_{Easy,Hard,Extreme,Insane}.conf`
+  - Estimate: 🟢
+
+- [x] ✅ **T9.3 Shared tent spawn entry point (+ placement fix)**
+  - Description: `TENT_MAX_DISTANCE`, `ValidateTentRecruit(vector, int)`, `SpawnTentRecruit(IEntity tent, int playerId)` — validation + placement + spawn + `RecruitCivilian` + orphan cleanup. **No money, no supporters** (the caller owns its transaction). Placement per implementation.md §P9.7.
+  - File(s): `Scripts/Game/GameMode/Managers/OVT_RecruitManagerComponent.c`
+  - Estimate: 🔴
+
+- [x] ✅ **T9.4 Refactor legacy RpcAsk_RecruitFromTent onto T9.3**
+  - Description: `OVT_PlayerCommsComponent.c:1486-1531` calls the new entry points; behaviour unchanged except placement. A refactor of a legacy handler, NOT a new op on it — no new parameters, no new features.
+  - File(s): `Scripts/Game/Components/Player/OVT_PlayerCommsComponent.c`
+  - Estimate: 🟡
+
+- [x] ✅ **T9.5 OVT_RecruitLoadoutPricing (server)**
+  - Description: recursive price walk over items → `m_aAttachments` → `m_aChildItems`; `IsRegisteredResource` gate before every `GetInventoryId`; `GetBuyPrice(id, tentPos, playerId)`. Result class carries subtotal / item count / unpriceable resource name. Do NOT price `m_aQuickSlotItems`. Same file shape as `OVT_LoadoutSwap.c`.
+  - File(s): `Scripts/Game/GameMode/Managers/OVT_RecruitLoadoutPricing.c`
+  - Estimate: 🔴
+
+- [x] ✅ **T9.6 Apply counters in the spawn path**
+  - Description: set `m_iLastApplySuccessCount`/`m_iLastApplyTotalCount` in `ApplyEquipmentToEntity` (:440-478) as the box path already does (:517-519) + public accessor. Symmetry fix only.
+  - File(s): `Scripts/Game/GameMode/Managers/OVT_LoadoutManagerComponent.c`
+  - Estimate: 🟢
+
+- [x] ✅ **T9.7 Result codes 14-24 + reason keys**
+  - Description: `BUY_OK` 14 / `BUY_PARTIAL` 15 / `NO_TENT` 16 / `NO_LOADOUT` 17 / `LOADOUT_EMPTY` 18 / `UNPRICEABLE` 19 / `CANNOT_AFFORD` 20 / `AT_CAP` 21 / `NO_SUPPORTERS` 22 / `GEAR_FAILED` 23 / `SPAWN_FAILED` 24. Appended, never renumbered. `ReasonKeyFor` (:648-669) extended for refusals only — the three count-bearing codes assemble sentences in their own handler.
+  - File(s): `Scripts/Game/Components/Controller/OVT_RecruitCommandComponent.c`
+  - Estimate: 🟡
+
+- [x] ✅ **T9.8 Quote ask + owner reply**
+  - Description: `RequestRecruitLoadoutQuote` / `RpcAsk_QuoteEquippedRecruit(RplId, string)` / `RpcDo_RecruitQuote(string, int, int, int)`. Runs the SAME `ValidateTentPurchase` the purchase runs. Never mutates, never charges. Listen-server short-circuit both directions.
+  - File(s): `OVT_RecruitCommandComponent.c`
+  - Estimate: 🟡
+
+- [x] ✅ **T9.9 Purchase ask + the transaction**
+  - Description: the eight-step flow of §P9.2. Explicit `PlayerHasMoney` before spawning (`DoTakePlayerMoney` clamps at zero, `OVT_EconomyManagerComponent.c:1206-1216`). Charge via `TakePlayerMoneyPersistentId` — a direct server-side call, never `TakePlayerMoney(playerId, …)` (BUG-161: never `Rpc()` out of a server handler). Apply target is the body this handler just spawned and nothing else (R13).
+  - File(s): `OVT_RecruitCommandComponent.c`
+  - Estimate: 🔴
+
+- [x] ✅ **T9.10 Rpc ledger 5 → 9**
+  - Description: update the class-header ledger (:24-35) with all nine call sites and their arities; hand-check each against its handler (BUG-090 — wrong arity compiles clean and dies at the wire).
+  - File(s): `OVT_RecruitCommandComponent.c`
+  - Estimate: 🟢
+
+- [x] ✅ **T9.11 Buy Equipped Recruit user action**
+  - Description: new action into the tent's existing `additionalActions` block (`OVT_RecruitmentTent.et:65-87`), `ParentContextList { "tabletop" }`, local-effect-only. Must resolve the tent **root** (the action is authored on the table child :52-94) — the root carries the `RplComponent` and `OVT_BuildableComponent`. GUIDs from `{6B4C00000000007X}`.
+  - File(s): `Scripts/Game/UserActions/OVT_BuyEquippedRecruitAction.c`, `Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et`
+  - Estimate: 🟡
+
+- [x] **T9.12 Purchase mode on the loadouts screen** — `ui-developer`
+  - Description: `SetRecruitmentTent(IEntity)` beside `SetEquipmentBox` (:326-329); hide Apply/Delete (:287-295), the recruit buttons (:593-601) and `RecruitSection`; new `PurchaseButton` in `ActionButtons`; price + item count in `SelectedStatus`; quote-on-selection with the button disabled until the reply lands. New `Action OverthrowLoadoutsBuyRecruit` (`gamepad0:left_trigger` + hand-checked free keyboard key) **and** the `ActionRefs` entry in `ActionContext OverthrowLoadoutsContext` (`chimeraInputCommon.conf:1134-1146`). Run `check-input-conflicts.py` (blind to inline `ActionContext` actions — cross-check by hand). ⚠️ `gamepad0:shoulder_left` is VON.
+  - File(s): `Scripts/Game/UI/Context/OVT_LoadoutsContext.c`, `UI/Layouts/Menu/LoadoutsMenu.layout`, `Configs/System/chimeraInputCommon.conf`
+  - Estimate: 🔴
+
+- [x] ✅ **T9.13 Localization (.st only)**
+  - Description: action name, buy-button label with price, price/item-count line, one sentence per refusal code. Literal English in layout/prefab until the user regenerates exports (D14).
+  - File(s): `Language/localization_Overthrow.st`
+  - Estimate: 🟢
+
+- [x] ✅ **T9.14 Logic-tier pricing tests**
+  - Description: `GearFee` at 1.0 / 1.5, `ResolveFeeMultiplier` at 0 and negative (both → default, proving free gear is unreachable), half-rounding, `TotalPrice` composition, `OutcomeFor` full grid, zero-item loadout. Can-fail proofs recorded. ⚠️ No manager-accessor or game-mode-getter identifiers anywhere under `TestSuites/Logic/`, including comments.
+  - File(s): `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_RecruitPurchase.c`
+  - Estimate: 🟡
+
+- [x] ✅ **T9.15 Init-tier pricing case**
+  - Description: beside the existing loadout round-trip case (`OVT_TEST_InitSuite.c:1173-1224`) — `OVT_RecruitLoadoutPricing.Price` on a saved loadout returns subtotal > 0 and the record's item count; an unregistered resource reports unpriceable.
+  - File(s): `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_InitSuite.c`
+  - Estimate: 🟡
+
+- [x] ✅ **T9.16 Help + docs sync** — `help-docs-sync`
+  - Description: tutorial popup for the new tent purchase; Field Manual paragraph (two tent actions, how the price is made, supporter cost, 16-cap); wiki update. Every factual sentence cites a `file:line` or is cut.
+  - File(s): `Configs/Tutorials/`, `Configs/FieldManual/`, wiki
+  - Estimate: 🟡
+
+---
+
 ## Bugs & Issues
 
 **Active Bugs:**
@@ -333,7 +420,9 @@
 - BUG-107 (recruit XP hardcodes US/USSR) — fixed by T1.6
 - `FindRecruitEntity` mid-iteration mutation — fixed by T1.7
 
-**To file (R11, out of scope):** `RpcAsk_DismissRecruit` has zero ownership validation — file next BUG id, linked to `resistance/recruits`.
+**To file (R11, out of scope):** `RpcAsk_DismissRecruit` has zero ownership validation — file next BUG id, linked to `resistance/recruits`. *(Filed as BUG-166.)*
+
+**To file (Phase 9 planning discovery, out of scope):** **New recruits run away from where they were created.** Reported as "tent recruits spawn ~100 m from the tent"; the spawn is provably correct (implementation.md §P9.7) and the body then *runs* to its formation slot, which is anchored on the slave group's index-0 agent rather than on the player (`SCR_AIUtilityComponent.c:288`, `:296-320`) because Overthrow never calls `SetFormationDisplacement` — while `Idle.bt:71` → `Idle_ReturnToFormation.bt` moves an idle AI to that slot at RUN speed from any distance. Vanilla's own `SCR_FollowGroupCommand.c:38-42` carries a hotfix for exactly this ("*bots will try to regroup somewhere in the middle, far away*") which `AddAIToSlaveGroup` does not. Affects **every** recruit, not just tent ones. File the next BUG id linked to `resistance/recruits`, with the falsifiable check: it should only occur when the player already has active recruits out.
 
 ---
 
@@ -354,6 +443,10 @@
 - [ ] **Workbench localization re-export** (user) — 24 new `.st` items; tutorials/Field Manual/reasons render raw `#OVT-…` keys until then.
 - [ ] **Manual play-test pass** — per-phase checklists in context.md session notes + implementation.md §6 steps 1–22 (groups, roster pad-nav, map layer, swap invariant, MP/JIP, save/continue).
 - [ ] *(follow-up, optional)* Live status-icon refresh in roster rows (invoker on `OVT_RecruitCommandComponent`); BUG-167 dialog count fix.
+
+### Planned (2026-08-14) — Phase 9, post-ship extension
+- [ ] **Phase 9 (T9.1–T9.16)** — buy a recruit at the tent with one of your own saved loadouts already applied, priced from the shop catalog × a server-configurable convenience fee (default 1.5). Plan: implementation.md §P9.1–P9.9, D17–D23, R12–R17, DoD F13–F18 / Q10–Q14 / play-test steps 23–29.
+- [ ] **File the AI-regroup bug** discovered while planning it (see Bugs & Issues above) — not fixed by Phase 9.
 
 ---
 

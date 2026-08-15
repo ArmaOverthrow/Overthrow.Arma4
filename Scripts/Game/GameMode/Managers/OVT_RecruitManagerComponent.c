@@ -9,7 +9,42 @@ class OVT_RecruitManagerComponent : OVT_Component
 {
 	//! Maximum number of recruits per player
 	static const int MAX_RECRUITS_PER_PLAYER = 16;
-	
+
+	//! How far the requesting player may be from a recruitment tent, in metres.
+	//!
+	//! The magic 20 both tent paths used before it had a name. It is not a precision instrument: the
+	//! tent's own action radius is under a metre, so this only has to make a forged request from
+	//! across the map fail.
+	static const float TENT_MAX_DISTANCE = 20;
+
+	//! How far in front of a recruitment tent a recruit is put down, in metres.
+	//!
+	//! Along the TENT'S forward axis, not a world direction - see ResolveTentSpawnPosition(). Far
+	//! enough to clear the tent's own footprint, close enough that "at the tent" is the honest
+	//! description of where the recruit appears.
+	static const float TENT_SPAWN_FORWARD_OFFSET = 4;
+
+	//! The shipped fixed offset, kept for the caller that has no tent entity to take a facing from.
+	static const vector TENT_SPAWN_FALLBACK_OFFSET = "2 0 2";
+
+	//! ValidateTentRecruit(): the request may proceed.
+	static const int TENT_RECRUIT_OK = 0;
+
+	//! ValidateTentRecruit(): a manager the check needs is missing. Not reachable in a live campaign.
+	static const int TENT_RECRUIT_UNAVAILABLE = 1;
+
+	//! ValidateTentRecruit(): the requester has no persistent id, or no body in the world.
+	static const int TENT_RECRUIT_NO_IDENTITY = 2;
+
+	//! ValidateTentRecruit(): the requester is already at MAX_RECRUITS_PER_PLAYER.
+	static const int TENT_RECRUIT_AT_CAP = 3;
+
+	//! ValidateTentRecruit(): the nearest town has no supporter to give.
+	static const int TENT_RECRUIT_NO_SUPPORTERS = 4;
+
+	//! ValidateTentRecruit(): the requester is further than TENT_MAX_DISTANCE from the tent.
+	static const int TENT_RECRUIT_TOO_FAR = 5;
+
 	//! Prefab to use for spawning recruit bodies (both new recruits and restored ones)
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Recruit Character Prefab", params: "et")]
 	ResourceName m_sRecruitPrefab;
@@ -87,6 +122,10 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! "does this recruit have a gun and bullets", which changes on the scale of a firefight, not a
 	//! frame.
 	static const int STATUS_SYNC_INTERVAL_MS = 10000;
+
+	//! Hold timer for a parked recruit's wait waypoint (BUG-170). One day of continuous session,
+	//! i.e. never in practice - the inactive groups are session-scoped and rebuilt on every boot.
+	static const float INACTIVE_HOLD_WAIT_SECONDS = 86400;
 
 	//! Event fired when a recruit is added
 	ref ScriptInvoker m_OnRecruitAdded = new ScriptInvoker();
@@ -982,6 +1021,149 @@ class OVT_RecruitManagerComponent : OVT_Component
 		AddRecruitToPlayerGroup(persId, civilian);
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this player may recruit at a tent standing where they are standing.
+	//!
+	//! THE WHOLE VALIDATION FOR A TENT RECRUIT, MINUS MONEY. Every caller has its own price - the
+	//! plain action charges half the base recruit cost, the equipped purchase charges that plus a
+	//! gear fee - so funds are deliberately NOT checked here: a shared check would have to be told
+	//! the amount, and a caller that forgot to tell it would silently pass. Supporters and money are
+	//! taken by the caller, AFTER SpawnTentRecruit() has proven a recruit exists.
+	//!
+	//! Order is the shipped one (cap, then supporters, then distance) so that a refactor of the
+	//! legacy handler cannot change which refusal a player sees first.
+	//! \param[in] tentPos Where the tent is.
+	//! \param[in] playerId Runtime id of the requesting player.
+	//! \return TENT_RECRUIT_OK, or the first rule that refused.
+	int ValidateTentRecruit(vector tentPos, int playerId)
+	{
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players) return TENT_RECRUIT_UNAVAILABLE;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns) return TENT_RECRUIT_UNAVAILABLE;
+
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (!playerManager) return TENT_RECRUIT_UNAVAILABLE;
+
+		string persId = players.GetPersistentIDFromPlayerID(playerId);
+		if (persId.IsEmpty()) return TENT_RECRUIT_NO_IDENTITY;
+
+		// At the cap RecruitCivilian() bails, which would orphan a freshly spawned civilian.
+		if (!CanRecruit(persId)) return TENT_RECRUIT_AT_CAP;
+
+		// TakeSupportersFromNearestTown() silently no-ops when the town has none, so asking first is
+		// the only way the transaction can refuse instead of quietly skipping its cost.
+		if (!towns.NearestTownHasSupporters(tentPos)) return TENT_RECRUIT_NO_SUPPORTERS;
+
+		IEntity playerEntity = playerManager.GetPlayerControlledEntity(playerId);
+		if (!playerEntity) return TENT_RECRUIT_NO_IDENTITY;
+
+		if (vector.Distance(playerEntity.GetOrigin(), tentPos) > TENT_MAX_DISTANCE) return TENT_RECRUIT_TOO_FAR;
+
+		return TENT_RECRUIT_OK;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawn a recruit at a recruitment tent and give it to a player. THE ONLY tent spawn.
+	//!
+	//! ! NO MONEY AND NO SUPPORTERS ARE TAKEN HERE. The caller owns its own transaction and must take
+	//! them AFTER this returns non-null - the shipped ordering, and the only one that cannot charge a
+	//! player for a recruit that failed to appear (OVT_PlayerCommsComponent.c:1528).
+	//!
+	//! ! ON FAILURE TO OWN THE RECRUIT, THE BODY IS DELETED. RecruitCivilian() can still refuse after
+	//! the character exists (the cap is re-checked inside it), and an unowned civilian left standing
+	//! at the tent is a bug players find before we do.
+	//!
+	//! THE TENT ENTITY IS OPTIONAL, and that is the one asymmetry between the two callers. The
+	//! equipped purchase names the tent by RplId and validates it, so it always has the entity and
+	//! gets the full placement treatment: in front of the tent, whichever way the tent was built. The
+	//! legacy action only ever sent a bare position, and giving it an entity would mean changing its
+	//! RPC signature - which would make its refactor a redesign. It passes null, keeps the shipped
+	//! fixed offset as its anchor, and still gains the half of the hardening that matters most: the
+	//! ground clamp and a collision-checked position.
+	//! \param[in] tent The tent's ROOT entity, or null when the caller only knows a position.
+	//! \param[in] tentPos Where the tent is. Used as the anchor when tent is null.
+	//! \param[in] playerId Runtime id of the recruiting player.
+	//! \return The recruit's body, or null when nothing was spawned or nothing was owned.
+	SCR_ChimeraCharacter SpawnTentRecruit(IEntity tent, vector tentPos, int playerId)
+	{
+		vector spawnPos = ResolveTentSpawnPosition(tent, tentPos);
+		vector spawnAngles = ResolveTentSpawnAngles(tent);
+
+		SCR_ChimeraCharacter recruit = SpawnRecruit(spawnPos, spawnAngles);
+		if (!recruit) return null;
+
+		if (!RecruitCivilian(recruit, playerId))
+		{
+			// Never leave an unowned civilian standing at the tent
+			SCR_EntityHelper.DeleteEntityAndChildren(recruit);
+			return null;
+		}
+
+		return recruit;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where a tent recruit is put down.
+	//!
+	//! Three steps, and the third one has a trap in it:
+	//!
+	//!  1. ANCHOR. With a tent entity, the tent's own forward axis from its world transform, so the
+	//!     recruit appears in front of the tent however the tent was rotated when it was built - the
+	//!     shipped fixed world-space "2 0 2" put it in a different place relative to the tent for
+	//!     every orientation. Without one, that shipped offset, unchanged.
+	//!  2. GROUND CLAMP. The anchor inherits the tent's Y, which on a slope is not the ground three
+	//!     metres away. FindSafeSpawnPosition() reads its own GetSurfaceY() and then never uses it -
+	//!     it searches within +0..2 m of the Y IT WAS GIVEN - so clamping before the call is the only
+	//!     thing that puts the search at ground level.
+	//!  3. ! skipSpawnPointSearch MUST STAY TRUE. With the search enabled the function returns the
+	//!     closest OVT_SpawnPointComponent within 15 m and returns BEFORE the TraceBox is built,
+	//!     ignoring the box entirely (OVT_Global.c:406-440). Tents are built at bases and FOBs, and
+	//!     both OVT_BaseController.et and OverthrowMobileFOBDeployed.et carry that component - so a
+	//!     tent built near one would drop every recruit on the respawn marker instead of at the tent.
+	//! \param[in] tent The tent's root entity, or null.
+	//! \param[in] fallbackPos Anchor used when there is no tent entity.
+	//! \return A world position with a collision-checked box at it.
+	vector ResolveTentSpawnPosition(IEntity tent, vector fallbackPos)
+	{
+		vector anchor = fallbackPos + TENT_SPAWN_FALLBACK_OFFSET;
+
+		if (tent)
+		{
+			vector forward = tent.GetWorldTransformAxis(2);
+			forward[1] = 0;
+
+			if (forward.Length() > 0.01)
+				anchor = tent.GetOrigin() + (forward.Normalized() * TENT_SPAWN_FORWARD_OFFSET);
+			else
+				anchor = tent.GetOrigin() + TENT_SPAWN_FALLBACK_OFFSET;
+		}
+
+		BaseWorld world = GetGame().GetWorld();
+		if (world)
+			anchor[1] = world.GetSurfaceY(anchor[0], anchor[2]);
+
+		return OVT_Global.FindSafeSpawnPosition(anchor, "-0.5 0 -0.5", "0.5 2 0.5", true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which way a tent recruit faces.
+	//!
+	//! The tent's own yaw, so the recruit is looking the same way the tent is - out of it, given the
+	//! spawn point is on the tent's forward axis. Pitch and roll are dropped: a character standing on
+	//! sloped ground is upright, and a tent placed on a slope is not.
+	//! \param[in] tent The tent's root entity, or null.
+	//! \return Yaw/pitch/roll angles for the spawn, or zero when there is no tent entity.
+	vector ResolveTentSpawnAngles(IEntity tent)
+	{
+		if (!tent) return "0 0 0";
+
+		vector angles = tent.GetYawPitchRoll();
+
+		return Vector(angles[0], 0, 0);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2411,9 +2593,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 					group.SetFaction(playerFaction);
 			}
 
-			// Defend in place (decision D9) - the mod's own garrison precedent, verbatim
-			// (OVT_ResistanceFactionManager.c:1036-1049).
-			AIWaypoint waypoint = config.SpawnDefendWaypoint(position);
+			// Hold in place with a plain wait waypoint (BUG-170, revising decision D9). The garrison-style
+			// defend waypoint continuously re-manages the group - cover picks, stance changes, order
+			// barks - which on a parked roadside recruit is an audible, visible re-order loop. A waiting
+			// group still engages perceived threats (the town patrols wait at points via the same
+			// waypoint and return fire, OVT_TownController.c:175). The timer is effectively infinite for
+			// a session-scoped group: it is rebuilt from the records on every boot (D7/D8), so the
+			// wait never expires in practice.
+			AIWaypoint waypoint = config.SpawnWaitWaypoint(position, INACTIVE_HOLD_WAIT_SECONDS);
 			if (waypoint)
 			{
 				group.AddWaypoint(waypoint);

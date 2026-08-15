@@ -2,6 +2,60 @@
 class OVT_RecruitCommandComponentClass : OVT_ComponentClass {};
 
 //------------------------------------------------------------------------------------------------
+//! Everything the server worked out about one equipped-recruit purchase request, in one object.
+//!
+//! WHY A HOLDER AND NOT A PILE OF out PARAMETERS. The quote and the purchase run the SAME validation
+//! - that is the point of it, and it is what makes the price a player is shown the price they are
+//! charged - so the validation has to hand back the tent, the loadout, the persistent id, the two
+//! halves of the price and the refusal code together. As out parameters that is seven, in an order
+//! nobody would remember; as one object it is a value the caller reads by name.
+//!
+//! ! IT IS SERVER-SIDE AND SHORT-LIVED. It holds two weak pointers - an entity and a loadout, both
+//! owned by something that outlives the handler - and it is built, read and dropped inside a single
+//! synchronous RPC handler. Nothing caches one; a stored quote would be a price that can go stale.
+//!
+//! m_iRefusalCode is the first thing to read. Anything other than OVT_RecruitCommandComponent's
+//! RESULT_OK means the rest of the object is partial, and the price in it (when there is one) is for
+//! DISPLAY ONLY - a refused quote still carries its number so the picker can show a price next to
+//! the reason it cannot be bought.
+//------------------------------------------------------------------------------------------------
+class OVT_EquippedRecruitQuote : Managed
+{
+	//! RESULT_OK, or the first rule that refused.
+	int m_iRefusalCode;
+
+	//! The tent's root entity. Weak: the world owns it.
+	IEntity m_Tent;
+
+	//! Where the tent is. Read once, so every later step uses the same position.
+	vector m_vTentPosition;
+
+	//! The buyer's persistent id, resolved server-side from the controller entity.
+	string m_sPersistentId;
+
+	//! The loadout being bought. Weak: the loadout manager owns it.
+	OVT_PlayerLoadout m_Loadout;
+
+	//! What the plain Recruit Civilian action would charge for the recruit alone.
+	int m_iRecruitCost;
+
+	//! The kit at local shop buy price, before the fee multiplier.
+	int m_iGearSubtotal;
+
+	//! How many resources went into that subtotal, nesting and attachments included.
+	int m_iItemCount;
+
+	//! How many entries the loadout's own item array has - the denominator the apply grades against.
+	int m_iTopLevelCount;
+
+	//! The whole quoted price: recruit cost plus the gear fee.
+	int m_iTotalPrice;
+
+	//! The item with no catalog price, when that is why this was refused.
+	string m_sUnpriceableResource;
+}
+
+//------------------------------------------------------------------------------------------------
 //! Client->server relay for recruit squad commands, on the per-player OVT_OverthrowController
 //! entity (project rule: no new client->server RPCs on OVT_PlayerCommsComponent, which is
 //! deprecated).
@@ -25,14 +79,48 @@ class OVT_RecruitCommandComponentClass : OVT_ComponentClass {};
 //! silently at the wire (BUG-090). compile-check.sh cannot see it and no test in this project can:
 //! the autotest world has no second machine, so no RPC in it ever crosses a wire. The practical
 //! defence is to have as few signatures as possible and to read every call against its handler by
-//! hand. There are exactly FIVE RPCs here and exactly five Rpc() call sites, one per RPC:
+//! hand. There are exactly NINE RPCs here and exactly nine Rpc() call sites, one per RPC:
 //!   Rpc(RpcAsk_SetRecruitInactive, recruitId, inactive)          -> (string, bool)      2 args
 //!   Rpc(RpcDo_RecruitCommandResult, resultCode)                  -> (int)               1 arg
 //!   Rpc(RpcDo_RecruitStatus, recruitId, position, statusFlags)   -> (string, vector, int) 3 args
 //!   Rpc(RpcAsk_SwapLoadout, recruitEntityRplId)                  -> (RplId)             1 arg
 //!   Rpc(RpcDo_SwapLoadoutResult, code, exchanged, misplaced,
 //!       failed, dropped)                                         -> (int x5)            5 args
+//!   Rpc(RpcAsk_QuoteEquippedRecruit, tentRplId, loadoutName)     -> (RplId, string)     2 args
+//!   Rpc(RpcDo_RecruitQuote, loadoutName, price, itemCount,
+//!       refusalCode, unpriceableResource)                        -> (string, int, int,
+//!                                                                    int, string)       5 args
+//!   Rpc(RpcAsk_BuyEquippedRecruit, tentRplId, loadoutName)       -> (RplId, string)     2 args
+//!   Rpc(RpcDo_EquippedRecruitResult, code, charged, applied,
+//!       total)                                                   -> (int x4)            4 args
 //! If that list and the handler signatures below ever stop matching, the symptom is silence.
+//!
+//! THE EQUIPPED-RECRUIT PURCHASE IS THE ONE REQUEST THAT MOVES MONEY, and it is the reason four of
+//! those nine exist. A player standing at a recruitment tent picks one of their own saved loadouts
+//! and buys a recruit already wearing it. Everything about that transaction happens HERE, on the
+//! server, in one handler:
+//!
+//!   - THE CLIENT NEVER COMPUTES A PRICE, and cannot: loadout JIP replicates metadata only, so every
+//!     client's copy of a loadout has an empty item array (OVT_LoadoutManagerComponent.c:40). The
+//!     server quotes, the client displays the number it was handed, and the quote and the charge come
+//!     out of the same routine on the same machine - so they cannot drift (decisions D18/D19).
+//!   - THE QUOTE AND THE PURCHASE RUN THE SAME VALIDATION, ValidateTentPurchase(), which is why the
+//!     picker can never offer something the server would then refuse.
+//!   - THE APPLY TARGET IS NEVER NAMED BY A CLIENT. ApplyLoadoutToEntity() CLEARS the target first
+//!     (OVT_LoadoutManagerComponent.c:450, :1278-1303 delete every item on it), so pointed at an
+//!     existing recruit it would destroy gear the player paid for. It is only ever pointed at the
+//!     body this handler spawned two lines earlier, which is a local variable no payload can reach
+//!     (risk R13).
+//!   - NOTHING SPAWNS BEFORE THE FUNDS CHECK PASSES, and the charge is taken by a direct server-side
+//!     call - never through OVT_Global.GetServer(), which would be an Rpc() out of a server handler
+//!     and simply be dropped (BUG-161).
+//!
+//! The purchase re-opens a network route to the loadout engine's SPAWNING apply, which was once
+//! deleted as a free-item hole (BUG-043). Five independent gates replace it: identity from
+//! ResolveOwningPlayerId(); the loadout fetched by that RESOLVED persistent id, so another player's
+//! kit is unreachable; the apply target derived, never named; the price computed server-side from the
+//! same record that is applied; and the transaction costing a town supporter and a slot against the
+//! 16-recruit cap, so the campaign itself rate-limits it.
 //!
 //! ! LISTEN SERVER. The authority never loops an RplRcver.Server RPC back to itself, and a listen
 //! host never receives its own RplRcver.Owner RPCs (BUG-164). Both directions therefore short-
@@ -122,6 +210,59 @@ class OVT_RecruitCommandComponent : OVT_Component
 	//! Overthrow's own UI - you cannot hold an action without a body.
 	static const int RESULT_NO_ACTOR = 13;
 
+	// ---------------------------------------------------------------------------------------------
+	// EQUIPPED TENT RECRUIT CODES. Appended, never renumbered and never reused, for the same reason
+	// the swap codes are: these values only exist to pick a sentence, and a client built against an
+	// older numbering would pick the wrong one for every outcome.
+	//
+	// Three of them CARRY COUNTS (14, 15, 23) and assemble their own sentences in
+	// RpcDo_EquippedRecruitResult; ReasonKeyFor() is never asked about those three. The rest are
+	// ordinary refusals with a key each.
+	// ---------------------------------------------------------------------------------------------
+
+	//! Recruit bought and the whole kit arrived.
+	static const int RESULT_BUY_OK = 14;
+
+	//! Recruit bought, but some of the kit did not arrive. The counts in the reply say how much.
+	static const int RESULT_BUY_PARTIAL = 15;
+
+	//! Refused: the named entity is not a recruitment tent, or the buyer is not standing at it.
+	static const int RESULT_NO_TENT = 16;
+
+	//! Refused: no loadout of that name belongs to the sender. Named loadouts are looked up under the
+	//! persistent id THIS component resolved, so another player's kit answers here rather than being
+	//! quoted.
+	static const int RESULT_NO_LOADOUT = 17;
+
+	//! Refused: the loadout records no items, so there is nothing to sell.
+	static const int RESULT_LOADOUT_EMPTY = 18;
+
+	//! Refused: something in the loadout has no catalog price. The reply names it. Never priced at
+	//! zero and never guessed - see OVT_RecruitLoadoutPricing (decision D20).
+	static const int RESULT_UNPRICEABLE = 19;
+
+	//! Refused: the quote is more than the player has. Checked explicitly and BEFORE anything spawns,
+	//! because the charge itself clamps at zero and can never report a shortfall.
+	static const int RESULT_CANNOT_AFFORD = 20;
+
+	//! Refused: the buyer is already at MAX_RECRUITS_PER_PLAYER.
+	static const int RESULT_AT_CAP = 21;
+
+	//! Refused: the nearest town has no supporter to give. An equipped recruit is a tent recruit that
+	//! arrives dressed, so it costs a supporter like any other (decision D23).
+	static const int RESULT_NO_SUPPORTERS = 22;
+
+	//! The recruit spawned but NOT ONE PIECE of the kit arrived. Only the recruit cost is charged -
+	//! the gear fee is not (decision D19).
+	static const int RESULT_GEAR_FAILED = 23;
+
+	//! Nothing spawned, so nothing was charged and no supporter was taken.
+	static const int RESULT_SPAWN_FAILED = 24;
+
+	//! The buildable type a recruitment tent declares (Prefabs/Structures/Military/FOB/
+	//! OVT_RecruitmentTent.et:4-6). An RplId that resolves to anything else is refused.
+	static const string RECRUITMENT_TENT_TYPE = "RecruitmentTent";
+
 	//! CLIENT: the last status mask the server pushed for each of this owner's recruits, keyed by
 	//! recruit id. Server-side this map stays empty on a dedicated server and is incidentally
 	//! populated on a listen host (whose sends short-circuit into the handler); nothing reads it
@@ -132,6 +273,39 @@ class OVT_RecruitCommandComponent : OVT_Component
 	//! component initialises (JIP order is not guaranteed), so the subscription is made on the first
 	//! use that proves a manager exists, and this flag keeps that from happening twice.
 	protected bool m_bSubscribedToRemoval;
+
+	//! CLIENT: fires when a tent purchase quote arrives.
+	//! Args: (string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	//!
+	//! For the picker: a quote is asked for when the highlighted loadout changes, and it arrives one
+	//! round trip later. A screen that only polls would show the previous loadout's price for a frame
+	//! or two; subscribing means the button and the price line update the moment the answer lands.
+	//! The cached getters below exist for a screen that would rather poll.
+	ref ScriptInvoker m_OnRecruitQuote = new ScriptInvoker();
+
+	//! CLIENT: fires when a tent purchase completes or is refused.
+	//! Args: (int resultCode, int charged, int applied, int total)
+	ref ScriptInvoker m_OnEquippedRecruitResult = new ScriptInvoker();
+
+	//! CLIENT: the loadout the last quote was for. Empty until one arrives.
+	//!
+	//! ! A CONSUMER MUST COMPARE THIS AGAINST THE LOADOUT IT IS SHOWING. Quotes are per-selection and
+	//! answers can arrive out of order after a fast scroll, so a price is only this row's price if
+	//! the name matches - which is why the name is carried in the reply at all.
+	protected string m_sLastQuoteLoadout;
+
+	//! CLIENT: the price the last quote reported. Meaningful only with m_iLastQuoteRefusal == RESULT_OK
+	//! or RESULT_CANNOT_AFFORD; other refusals never got as far as computing one.
+	protected int m_iLastQuotePrice;
+
+	//! CLIENT: how many items the last quote priced.
+	protected int m_iLastQuoteItemCount;
+
+	//! CLIENT: RESULT_OK when the last quote may be bought, otherwise why not.
+	protected int m_iLastQuoteRefusal = RESULT_NO_LOADOUT;
+
+	//! CLIENT: the unpriceable item named by the last quote, when that was the refusal.
+	protected string m_sLastQuoteUnpriceable;
 
 	//------------------------------------------------------------------------------------------------
 	//! \param src Component source.
@@ -580,6 +754,515 @@ class OVT_RecruitCommandComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Ask the server what a recruit wearing this loadout would cost at this tent.
+	//!
+	//! Called by the picker whenever the highlighted loadout changes. A quote NEVER mutates anything
+	//! and never charges - it is the same validation the purchase runs, stopped one step short of
+	//! doing it.
+	//! \param[in] tentRplId The recruitment tent the player is standing at.
+	//! \param[in] loadoutName One of the player's own saved loadouts.
+	void RequestRecruitLoadoutQuote(RplId tentRplId, string loadoutName)
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_QuoteEquippedRecruit(tentRplId, loadoutName);
+		}else{
+			Rpc(RpcAsk_QuoteEquippedRecruit, tentRplId, loadoutName);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: price a purchase without performing it.
+	//!
+	//! ! READ-ONLY, AND THAT IS A RULE RATHER THAN AN OBSERVATION. Nothing below this line may spawn,
+	//! charge, take a supporter or write a record: a picker asks for a quote every time the selection
+	//! moves, so anything with a side effect here would fire on scrolling.
+	//! \param[in] tentRplId The tent the client named.
+	//! \param[in] loadoutName The loadout the client named.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_QuoteEquippedRecruit(RplId tentRplId, string loadoutName)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0)
+		{
+			Print("[Overthrow] Equipped recruit quote refused: could not resolve the requesting player", LogLevel.WARNING);
+			return;
+		}
+
+		OVT_EquippedRecruitQuote quote = ValidateTentPurchase(playerId, tentRplId, loadoutName);
+
+		SendRecruitQuote(loadoutName, quote.m_iTotalPrice, quote.m_iItemCount, quote.m_iRefusalCode, quote.m_sUnpriceableResource);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server to buy a recruit already wearing one of your saved loadouts.
+	//!
+	//! The client names a tent and a loadout. It does not name itself, it does not name a body, and it
+	//! does not send a price - all three are derived server-side.
+	//! \param[in] tentRplId The recruitment tent the player is standing at.
+	//! \param[in] loadoutName One of the player's own saved loadouts.
+	void RequestBuyEquippedRecruit(RplId tentRplId, string loadoutName)
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_BuyEquippedRecruit(tentRplId, loadoutName);
+		}else{
+			Rpc(RpcAsk_BuyEquippedRecruit, tentRplId, loadoutName);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: the whole transaction, in the one order that cannot take a player's money for nothing.
+	//!
+	//!  1. resolve who is asking, from the controller entity this component sits on
+	//!  2. RE-VALIDATE EVERYTHING with the same routine the quote ran: the tent resolves and is a
+	//!     recruitment tent, the buyer is at it, is under the cap, the town has a supporter, the
+	//!     loadout is theirs and is priceable, and they can afford the price it produces
+	//!  3. spawn and own the recruit. Nothing has been charged yet
+	//!  4. equip it from prefabs - the ONE ApplyLoadoutToEntity call in this file, and its target is
+	//!     the local body from step 3, never anything a client named (risk R13)
+	//!  5. take the town supporter, but only if a recruit actually exists
+	//!  6. charge, server-side and directly. A failed spawn charges nothing; a kit that landed nothing
+	//!     charges only the recruit cost (decision D19)
+	//!  7. report, with the amount actually taken so the client can compare it against the quote
+	//!
+	//! Steps 3-6 are in this order because the shipped tent handler is: costs are taken only once the
+	//! recruit exists (OVT_PlayerCommsComponent.c:1528). Charging first and failing to spawn is the
+	//! one ordering that can take money for nothing.
+	//! \param[in] tentRplId The tent the client named.
+	//! \param[in] loadoutName The loadout the client named.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_BuyEquippedRecruit(RplId tentRplId, string loadoutName)
+	{
+		if(!Replication.IsServer()) return;
+
+		// BUG-090 diagnostic, same role as its two siblings: this line firing proves the request left
+		// the client, arrived here and decoded with the right arity.
+		Print("[Overthrow] Equipped recruit purchase received: loadout=" + loadoutName, LogLevel.NORMAL);
+
+		// 1
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0)
+		{
+			Print("[Overthrow] Equipped recruit purchase refused: could not resolve the requesting player", LogLevel.WARNING);
+			return;
+		}
+
+		// 2
+		OVT_EquippedRecruitQuote quote = ValidateTentPurchase(playerId, tentRplId, loadoutName);
+		if(quote.m_iRefusalCode != RESULT_OK)
+		{
+			SendPurchaseResult(quote.m_iRefusalCode, 0, 0, 0);
+			return;
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+		if(!recruits)
+		{
+			SendPurchaseResult(RESULT_FAILED, 0, 0, 0);
+			return;
+		}
+
+		// 3 - nothing has been charged at this point, and nothing will be if this returns null
+		SCR_ChimeraCharacter body = recruits.SpawnTentRecruit(quote.m_Tent, quote.m_vTentPosition, playerId);
+
+		int applied = 0;
+		int total = quote.m_iTopLevelCount;
+
+		// 4
+		if(body)
+		{
+			OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+			if(loadouts)
+			{
+				// The bool is deliberately ignored: it only says "at least one item landed", and the
+				// counters behind it say how many - which is what grades the outcome. They are written
+				// by the apply itself immediately before it returns, so they describe this apply.
+				loadouts.ApplyLoadoutToEntity(quote.m_Loadout, body);
+
+				applied = loadouts.GetLastApplySuccessCount();
+				total = loadouts.GetLastApplyTotalCount();
+			}
+		}
+
+		int outcome = OVT_RecruitPurchaseRules.OutcomeFor(body != null, applied, total);
+		int charge = OVT_RecruitPurchaseRules.ChargeFor(outcome, quote.m_iRecruitCost, quote.m_iTotalPrice);
+
+		// 5 - a supporter is a cost, so it follows the same rule the money does: only once the recruit
+		// is real. A failed spawn must leave the town exactly as it found it.
+		if(body)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if(towns)
+				towns.TakeSupportersFromNearestTown(quote.m_vTentPosition, 1);
+		}
+
+		// 6 - TakePlayerMoneyPersistentId is the DIRECT server-side call, and the runtime-player-id
+		// variant of it must never appear in this file: that one forwards through
+		// OVT_Global.GetServer(), which off the server is an Rpc() out of a server handler - dropped in
+		// silence (BUG-161). A grep for it over this file is one of the phase's acceptance checks.
+		if(charge > 0)
+		{
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			if(economy)
+				economy.TakePlayerMoneyPersistentId(quote.m_sPersistentId, charge);
+		}
+
+		// 7
+		SendPurchaseResult(outcome, charge, applied, total);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE ROUTINE BOTH THE QUOTE AND THE PURCHASE RUN. Every rule, re-derived on this machine.
+	//!
+	//! Nothing in the payload is trusted except an RplId and a string, and both are validated. In
+	//! order, and the order matters:
+	//!
+	//!  1. the requester has a persistent identity;
+	//!  2. the RplId resolves to a live entity, and that entity carries an OVT_BuildableComponent
+	//!     declaring itself a recruitment tent. This is strictly stronger than the legacy tent handler,
+	//!     which trusts a bare vector and never checks that a tent is there at all;
+	//!  3. the ordinary tent rules - under the cap, the nearest town has a supporter, and the buyer is
+	//!     within TENT_MAX_DISTANCE of the tent - asked of the recruit manager, so an equipped purchase
+	//!     obeys exactly the same rules as the plain action;
+	//!  4. the loadout, fetched by the RESOLVED persistent id. Naming another player's loadout finds
+	//!     nothing, because the store is keyed by owner;
+	//!  5. it records at least one item;
+	//!  6. every resource in it has a catalog price. One that does not refuses the whole purchase and
+	//!     names itself - never priced at zero, never guessed (decision D20);
+	//!  7. LAST, the funds check. Last on purpose: by then the price exists, so a player who cannot
+	//!     afford it is still shown what it would have cost instead of a bare "no".
+	//!
+	//! \param[in] playerId Runtime id of the requesting player, resolved from the controller entity.
+	//! \param[in] tentRplId The tent the client named.
+	//! \param[in] loadoutName The loadout the client named.
+	//! \return A quote. Check m_iRefusalCode before spending anything in it.
+	protected OVT_EquippedRecruitQuote ValidateTentPurchase(int playerId, RplId tentRplId, string loadoutName)
+	{
+		OVT_EquippedRecruitQuote quote = new OVT_EquippedRecruitQuote();
+		quote.m_iRefusalCode = RESULT_FAILED;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if(!players) return quote;
+
+		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+		if(!recruits) return quote;
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if(!loadouts) return quote;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy) return quote;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(!config || !config.m_Difficulty) return quote;
+
+		// 1
+		string persId = players.GetPersistentIDFromPlayerID(playerId);
+		if(persId.IsEmpty()) return quote;
+
+		quote.m_sPersistentId = persId;
+
+		// 2 - the tent is treated as hostile, exactly as the swap treats the recruit body it is given
+		IEntity tent = ResolveEntity(tentRplId);
+		if(!tent)
+		{
+			quote.m_iRefusalCode = RESULT_NO_TENT;
+			return quote;
+		}
+
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(tent.FindComponent(OVT_BuildableComponent));
+		if(!buildable || buildable.GetBuildableType() != RECRUITMENT_TENT_TYPE)
+		{
+			quote.m_iRefusalCode = RESULT_NO_TENT;
+			return quote;
+		}
+
+		quote.m_Tent = tent;
+		quote.m_vTentPosition = tent.GetOrigin();
+
+		// 3
+		int tentRefusal = recruits.ValidateTentRecruit(quote.m_vTentPosition, playerId);
+		if(tentRefusal != OVT_RecruitManagerComponent.TENT_RECRUIT_OK)
+		{
+			quote.m_iRefusalCode = TentRefusalToResult(tentRefusal);
+			return quote;
+		}
+
+		// 4 - THE ANTI-SPOOFING CHECK for the loadout half. The store is keyed playerId_loadoutName
+		// (OVT_LoadoutManagerComponent.c:868), and the playerId here is the one this controller
+		// resolved, never one the client sent.
+		OVT_PlayerLoadout loadout = loadouts.GetLoadout(persId, loadoutName);
+		if(!loadout)
+		{
+			quote.m_iRefusalCode = RESULT_NO_LOADOUT;
+			return quote;
+		}
+
+		quote.m_Loadout = loadout;
+		quote.m_iTopLevelCount = loadout.GetItemCount();
+
+		// 5
+		if(quote.m_iTopLevelCount <= 0)
+		{
+			quote.m_iRefusalCode = RESULT_LOADOUT_EMPTY;
+			return quote;
+		}
+
+		// 6
+		OVT_RecruitLoadoutPrice price = OVT_RecruitLoadoutPricing.Price(loadout, quote.m_vTentPosition, playerId);
+		if(!price.IsPriceable())
+		{
+			quote.m_sUnpriceableResource = price.m_sUnpriceableResource;
+
+			// An empty name means the walk never ran at all (no economy, no server), which is a broken
+			// machine rather than a broken loadout - and the two want different sentences.
+			if(!quote.m_sUnpriceableResource.IsEmpty())
+				quote.m_iRefusalCode = RESULT_UNPRICEABLE;
+
+			return quote;
+		}
+
+		quote.m_iGearSubtotal = price.m_iSubtotal;
+		quote.m_iItemCount = price.m_iItemCount;
+
+		// The SAME half-price the plain tent action charges (OVT_PlayerCommsComponent.c:1510), because
+		// an equipped recruit is a tent recruit that arrives dressed (decision D23).
+		quote.m_iRecruitCost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.5);
+		quote.m_iTotalPrice = OVT_RecruitPurchaseRules.TotalPrice(quote.m_iRecruitCost, quote.m_iGearSubtotal, config.m_Difficulty.recruitLoadoutFeeMultiplier);
+
+		// 7 - explicit, because the charge itself clamps at zero and can never report a shortfall
+		// (OVT_EconomyManagerComponent.DoTakePlayerMoney :1206-1216).
+		if(!economy.PlayerHasMoney(persId, quote.m_iTotalPrice))
+		{
+			quote.m_iRefusalCode = RESULT_CANNOT_AFFORD;
+			return quote;
+		}
+
+		quote.m_iRefusalCode = RESULT_OK;
+		return quote;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Translate the recruit manager's tent-validation vocabulary into this component's wire codes.
+	//!
+	//! Two vocabularies rather than one because the manager has no business knowing what a client is
+	//! told: its codes describe rules, these describe sentences. TOO_FAR becomes NO_TENT deliberately -
+	//! to a player "you are not at a tent" and "you walked away from the tent" are the same fact, and
+	//! neither reveals anything about a tent they cannot see.
+	//! \param[in] tentRefusal One of OVT_RecruitManagerComponent's TENT_RECRUIT_ codes.
+	//! \return One of the RESULT_ codes.
+	protected int TentRefusalToResult(int tentRefusal)
+	{
+		if(tentRefusal == OVT_RecruitManagerComponent.TENT_RECRUIT_AT_CAP) return RESULT_AT_CAP;
+		if(tentRefusal == OVT_RecruitManagerComponent.TENT_RECRUIT_NO_SUPPORTERS) return RESULT_NO_SUPPORTERS;
+		if(tentRefusal == OVT_RecruitManagerComponent.TENT_RECRUIT_TOO_FAR) return RESULT_NO_TENT;
+		if(tentRefusal == OVT_RecruitManagerComponent.TENT_RECRUIT_NO_IDENTITY) return RESULT_NO_ACTOR;
+
+		return RESULT_FAILED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Delivers a purchase quote to the asking client.
+	//!
+	//! Listen-server shape is SendResult()'s, verbatim and for the same reason (BUG-164).
+	//!
+	//! Deliberately quiet - no Print. A picker asks for a quote every time the selection moves, and on
+	//! a pad that is once per row of a scroll.
+	//! \param[in] loadoutName The loadout this quote is for. Carried so a consumer can tell a stale
+	//!        answer from the current one.
+	//! \param[in] price The whole quoted price, or 0 when it never got that far.
+	//! \param[in] itemCount How many items were priced.
+	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
+	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
+	void SendRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+
+		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			RpcDo_RecruitQuote(loadoutName, price, itemCount, refusalCode, unpriceableResource);
+			return;
+		}
+
+		Rpc(RpcDo_RecruitQuote, loadoutName, price, itemCount, refusalCode, unpriceableResource);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: adopt a purchase quote.
+	//!
+	//! ! THIS RPC NEVER MUTATES GAME STATE. It writes a display cache and fires an invoker; the price
+	//! it carries is the SERVER'S number and is never recomputed here, because a client cannot compute
+	//! one (its copy of the loadout has no items).
+	//! \param[in] loadoutName The loadout this quote is for.
+	//! \param[in] price The whole quoted price.
+	//! \param[in] itemCount How many items were priced.
+	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
+	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_RecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	{
+		m_sLastQuoteLoadout = loadoutName;
+		m_iLastQuotePrice = price;
+		m_iLastQuoteItemCount = itemCount;
+		m_iLastQuoteRefusal = refusalCode;
+		m_sLastQuoteUnpriceable = unpriceableResource;
+
+		if(m_OnRecruitQuote)
+			m_OnRecruitQuote.Invoke(loadoutName, price, itemCount, refusalCode, unpriceableResource);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Delivers the outcome of an equipped-recruit purchase to the buying client.
+	//!
+	//! Its own RPC rather than SendResult()'s, for the same reason the swap has one: the answer is not
+	//! a single fact. "Partial" without counts, or a charge without a number, tells a player nothing
+	//! they can check against the price they were shown.
+	//! \param[in] resultCode One of the RESULT_ codes.
+	//! \param[in] charged What was actually taken.
+	//! \param[in] applied Top-level items that landed on the recruit.
+	//! \param[in] total Top-level items the loadout recorded.
+	void SendPurchaseResult(int resultCode, int charged, int applied, int total)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+
+		Print(string.Format("[Overthrow] Equipped recruit purchase result %1 for player %2 (charged %3, %4/%5 items applied)",
+			resultCode, playerId, charged, applied, total), LogLevel.NORMAL);
+
+		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			RpcDo_EquippedRecruitResult(resultCode, charged, applied, total);
+			return;
+		}
+
+		Rpc(RpcDo_EquippedRecruitResult, resultCode, charged, applied, total);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: the outcome of an equipped-recruit purchase, for display only.
+	//!
+	//! ! THIS RPC NEVER MUTATES STATE. The recruit, its gear and the player's balance all arrive
+	//! through their own replicated channels; this only names what the player cannot see - how much
+	//! was taken, and how much of the kit made it.
+	//!
+	//! The three count-bearing sentences are LITERAL ENGLISH with their keys named in comments,
+	//! following the Phase 7 precedent: a key with a %1 in it that has not been exported yet renders
+	//! as the raw key with the numbers missing, which is strictly worse than plain English. The keys
+	//! exist in Language/localization_Overthrow.st (decision D14) and this switches over in one edit.
+	//! \param[in] resultCode One of the RESULT_ codes.
+	//! \param[in] charged What was actually taken.
+	//! \param[in] applied Top-level items that landed on the recruit.
+	//! \param[in] total Top-level items the loadout recorded.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_EquippedRecruitResult(int resultCode, int charged, int applied, int total)
+	{
+		if(m_OnEquippedRecruitResult)
+			m_OnEquippedRecruitResult.Invoke(resultCode, charged, applied, total);
+
+		if(resultCode == RESULT_BUY_OK)
+		{
+			// TODO localization: #OVT-Recruit_BuyComplete
+			OVT_Global.ShowHint(string.Format("Recruit hired and equipped ($%1)", charged));
+			return;
+		}
+
+		if(resultCode == RESULT_BUY_PARTIAL)
+		{
+			// TODO localization: #OVT-Recruit_BuyPartial
+			OVT_Global.ShowHint(string.Format("Recruit hired for $%1, but only %2 of %3 items arrived", charged, applied, total));
+			return;
+		}
+
+		if(resultCode == RESULT_GEAR_FAILED)
+		{
+			// TODO localization: #OVT-Recruit_BuyGearFailed
+			OVT_Global.ShowHint(string.Format("Recruit hired for $%1 - none of the kit could be issued, so the gear was not charged for", charged));
+			return;
+		}
+
+		// Everything else is an ordinary refusal and shares the toggle's hint table.
+		string reason = ReasonKeyFor(resultCode);
+		if(reason.IsEmpty()) return;
+
+		OVT_Global.ShowHint(reason);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the loadout the most recent quote was for.
+	//!
+	//! ! COMPARE THIS AGAINST THE ROW YOU ARE SHOWING before trusting the price. Quotes are asked
+	//! per-selection and answered a round trip later, so during a fast scroll the cached price belongs
+	//! to whichever answer arrived last - which is not necessarily the row now highlighted.
+	//! \return The loadout name, or empty when no quote has arrived.
+	string GetLastQuoteLoadout()
+	{
+		return m_sLastQuoteLoadout;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the price the most recent quote reported.
+	//! \return The price, or 0 when the quote never got as far as computing one.
+	int GetLastQuotePrice()
+	{
+		return m_iLastQuotePrice;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: how many items the most recent quote priced, nesting and attachments included.
+	//! \return The item count.
+	int GetLastQuoteItemCount()
+	{
+		return m_iLastQuoteItemCount;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: whether the most recent quote may be bought.
+	//! \return RESULT_OK, or the refusal code.
+	int GetLastQuoteRefusal()
+	{
+		return m_iLastQuoteRefusal;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the unpriceable item the most recent quote named, if any.
+	//! \return A resource name, or empty.
+	string GetLastQuoteUnpriceable()
+	{
+		return m_sLastQuoteUnpriceable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A prefab resource reduced to something a player can read.
+	//!
+	//! "{GUID}Prefabs/Weapons/Rifles/AK74/Rifle_AK74.et" is not a sentence, and the only part of it a
+	//! player can act on is the last component. Static so the picker can use the same shortening the
+	//! hints do - one appearance of a resource name should look the same everywhere.
+	//! \param[in] resourceName A full resource name, possibly with a GUID prefix.
+	//! \return The file name without its path, GUID or .et suffix; the input unchanged if it has none.
+	static string ShortResourceName(string resourceName)
+	{
+		if(resourceName.IsEmpty()) return resourceName;
+
+		string name = resourceName;
+
+		int slash = name.LastIndexOf("/");
+		if(slash > -1 && slash < name.Length() - 1)
+			name = name.Substring(slash + 1, name.Length() - slash - 1);
+
+		int dot = name.LastIndexOf(".");
+		if(dot > 0)
+			name = name.Substring(0, dot);
+
+		return name;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Delivers the outcome of a recruit command to the requesting client.
 	//!
 	//! The requester is this controller's owner by construction, so the player id is resolved here
@@ -641,8 +1324,10 @@ class OVT_RecruitCommandComponent : OVT_Component
 	//! An if/else chain rather than a lookup table because EnforceScript has no ternary and a
 	//! ten-entry map would have to be built and kept alive for a value read once per request.
 	//!
-	//! The three RESULT_SWAP_ codes are absent on purpose: their sentences carry counts and are
-	//! assembled in RpcDo_SwapLoadoutResult, which never asks this method about them.
+	//! Six codes are absent on purpose, and they are the six whose sentences carry NUMBERS: the three
+	//! RESULT_SWAP_ ones, assembled in RpcDo_SwapLoadoutResult, and RESULT_BUY_OK / RESULT_BUY_PARTIAL
+	//! / RESULT_GEAR_FAILED, assembled in RpcDo_EquippedRecruitResult. Neither handler asks this method
+	//! about them, so a key returned for one of them would silently never be shown.
 	//! \param[in] resultCode One of the RESULT_ codes.
 	//! \return A localization key, or an empty string when the outcome needs no hint.
 	static string ReasonKeyFor(int resultCode)
@@ -664,6 +1349,18 @@ class OVT_RecruitCommandComponent : OVT_Component
 		if(resultCode == RESULT_RECRUIT_INACTIVE) return "#OVT-Recruit_CannotSwapParked";
 		if(resultCode == RESULT_RECRUIT_DOWN) return "#OVT-Recruit_CannotSwapDown";
 		if(resultCode == RESULT_TOO_FAR) return "#OVT-Recruit_TooFarAway";
+
+		// EQUIPPED TENT PURCHASE. Three of these reuse keys the plain tent action already shows for
+		// the same three rules - a player who is at the cap should read the same sentence whichever
+		// action they tried, and those keys are already in the runtime exports.
+		if(resultCode == RESULT_NO_TENT) return "#OVT-Recruit_NotAtTent";
+		if(resultCode == RESULT_NO_LOADOUT) return "#OVT-Recruit_NoSuchLoadout";
+		if(resultCode == RESULT_LOADOUT_EMPTY) return "#OVT-Recruit_LoadoutEmpty";
+		if(resultCode == RESULT_UNPRICEABLE) return "#OVT-Recruit_LoadoutUnpriceable";
+		if(resultCode == RESULT_CANNOT_AFFORD) return "#OVT-CannotAfford";
+		if(resultCode == RESULT_AT_CAP) return "#OVT-RecruitLimitReached";
+		if(resultCode == RESULT_NO_SUPPORTERS) return "#OVT-NoSupportersAvailable";
+		if(resultCode == RESULT_SPAWN_FAILED) return "#OVT-Recruit_BuyFailed";
 
 		return "#OVT-Recruit_CommandFailed";
 	}

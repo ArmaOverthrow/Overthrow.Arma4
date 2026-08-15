@@ -1482,6 +1482,19 @@ class OVT_PlayerCommsComponent: OVT_Component
 			Rpc(RpcAsk_RecruitFromTent, tentPos, playerId);
 	}	
 	
+	//! LEGACY, and deliberately unchanged in behaviour. The validation and the spawn moved onto
+	//! OVT_RecruitManagerComponent (ValidateTentRecruit / SpawnTentRecruit) so that the equipped-recruit
+	//! purchase on OVT_RecruitCommandComponent shares ONE implementation with this one - which is what
+	//! makes a placement change land in both places at once instead of having to be made twice and
+	//! stay made twice (decision D22).
+	//!
+	//! What did NOT change: this handler still trusts a bare position from the client, still resolves
+	//! the sender the legacy way, still charges half the base recruit cost, and still takes the
+	//! supporter and the money only after a recruit exists. Adding checks here would be a redesign of
+	//! a shipped path, and this is a refactor.
+	//!
+	//! The one visible difference is WHERE the recruit lands: the shared spawn ground-clamps its
+	//! position and runs it through a collision-checked box instead of using a raw fixed offset.
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_RecruitFromTent(vector tentPos, int playerId)
 	{
@@ -1495,15 +1508,8 @@ class OVT_PlayerCommsComponent: OVT_Component
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		if (persId.IsEmpty()) return;
 
-		// Validate the whole transaction before spawning anything: at the cap RecruitCivilian()
-		// would bail and orphan the freshly spawned civilian, and TakeSupportersFromNearestTown
-		// silently no-ops when the town has no supporters
-		if (!recruitManager.CanRecruit(persId)) return;
-		if (!townManager.NearestTownHasSupporters(tentPos)) return;
-
-		// The tent action is used standing at the tent - reject far-away positions
-		IEntity playerEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if (!playerEntity || vector.Distance(playerEntity.GetOrigin(), tentPos) > 20) return;
+		// Cap, supporters and distance-to-tent, in the shipped order - see ValidateTentRecruit()
+		if (recruitManager.ValidateTentRecruit(tentPos, playerId) != OVT_RecruitManagerComponent.TENT_RECRUIT_OK) return;
 
 		// DoTakePlayerMoney clamps at zero, so an explicit funds check is required
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
@@ -1514,16 +1520,10 @@ class OVT_PlayerCommsComponent: OVT_Component
 			return;
 		}
 
-		// Spawn recruit at tent location
-		SCR_ChimeraCharacter recruit = recruitManager.SpawnRecruit(tentPos + "2 0 2"); // Offset from tent
+		// Spawn recruit at the tent. This action only ever knew a position, so it passes no entity
+		// and keeps the shipped offset as its anchor.
+		SCR_ChimeraCharacter recruit = recruitManager.SpawnTentRecruit(null, tentPos, playerId);
 		if (!recruit) return;
-
-		if (!recruitManager.RecruitCivilian(recruit, playerId))
-		{
-			// Never leave an unowned civilian standing at the tent
-			SCR_EntityHelper.DeleteEntityAndChildren(recruit);
-			return;
-		}
 
 		// Costs are taken only after the recruit actually exists
 		townManager.TakeSupportersFromNearestTown(tentPos, 1);

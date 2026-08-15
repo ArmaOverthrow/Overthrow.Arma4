@@ -71,6 +71,15 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int busTicketPrice;
 	[Attribute(defvalue: "250", desc: "Base price for AI recruit", category: "Economy")]
 	int baseRecruitCost;
+	//! Convenience fee on the gear when buying an already-equipped recruit at a recruitment tent.
+	//! The kit is priced item-by-item at the local shop buy price and multiplied by this; the ordinary
+	//! tent recruit cost is then added on top. SERVER-SIDE ONLY - it is never replicated, because a
+	//! client cannot price a loadout in the first place (its copy has no items) and the server quotes.
+	//! A value of 0 or less is treated as UNSET and resolves to 1.5 - see
+	//! OVT_RecruitPurchaseRules.ResolveFeeMultiplier: free gear on a money path is not a supported
+	//! setting, and 0.01 is available for anyone who wants it to be nearly free.
+	[Attribute(defvalue: "1.5", desc: "Gear price multiplier when buying an equipped recruit at a tent (0 = use default 1.5)", category: "Economy")]
+	float recruitLoadoutFeeMultiplier;
 	[Attribute(defvalue: "0.5", desc: "Multiplier when selling to a gun dealer", category: "Economy")]
 	float gunDealerSellPriceMultiplier;
 	[Attribute(defvalue: "0.8", desc: "Multiplier when buying vehicles at an owned base", category: "Economy")]

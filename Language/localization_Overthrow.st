@@ -13404,7 +13404,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000058}" {
    Id "OVT-Tutorial_RecruitsHoldPosition_Body"
    Target_en_us "Recruits you own can be told to hold position, from this screen or with a held action on the recruit itself. One that is holding position leaves your group and stays where it stands, still yours and still using one of your sixteen recruit slots."
-   Comment "Body of the 'recruits-hold-position' tutorial tip (single page, HUD popup over the recruits screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Roster toggle: OVT_RecruitsContext ToggleActiveButton with Configs/System/chimeraInputCommon.conf:612 OverthrowRecruitsToggleActive. Held action on the body: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:22-30 OVT_SetRecruitInactiveAction, Duration 3. Leaves the group and holds: OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2416 (SpawnDefendWaypoint). Still owned and still counted: OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208 CanRecruit, which counts every owned record regardless of state."
+   Comment "Body of the 'recruits-hold-position' tutorial tip (single page, HUD popup over the recruits screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Roster toggle: OVT_RecruitsContext ToggleActiveButton with Configs/System/chimeraInputCommon.conf:612 OverthrowRecruitsToggleActive. Held action on the body: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:29 OVT_SetRecruitInactiveAction, Duration 1.5 (shortened from 3 by the 2026-08-14 play-test). Leaves the group and holds: OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2596-2613 (SpawnWaitWaypoint, BUG-170 - a plain wait, not a defend waypoint). Still owned and still counted: OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208 CanRecruit, which counts every owned record regardless of state."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -13438,7 +13438,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005A}" {
    Id "OVT-Tutorial_RecruitsSwapGear_Body"
    Target_en_us "A recruit that is following you carries a Swap Gear action: holding it from close by exchanges your whole kit with theirs, clothing and weapons alike. The real items change hands, so nothing is created or lost; anything that will not fit is stowed instead, or at worst left on the ground."
-   Comment "Body of the 'recruits-swap-gear' tutorial tip (single page, HUD popup over the loadouts screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Action and name: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:40-48 OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 5. Active-only: OVT_SwapLoadoutWithRecruitAction.c:43-46. Close by: OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5. What moves: OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 (backpack, vest, armoured vest, jacket, pants, boots, headcover, handwear) plus the weapon slots. Nothing created or destroyed: plan decision D13 with the Q9 grep proof over OVT_LoadoutSwap.c. Stowed or dropped: OVT_LoadoutSwapResult m_iRelocated and m_iDropped (OVT_LoadoutSwap.c:19-35)."
+   Comment "Body of the 'recruits-swap-gear' tutorial tip (single page, HUD popup over the loadouts screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Action and name: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:47 OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 2.5 (shortened from 5 by the 2026-08-14 play-test). Active-only: OVT_SwapLoadoutWithRecruitAction.c:43-46. Close by: OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5. What moves: OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 (backpack, vest, armoured vest, jacket, pants, boots, headcover, handwear) plus the weapon slots. Nothing created or destroyed: plan decision D13 with the Q9 grep proof over OVT_LoadoutSwap.c. Stowed or dropped: OVT_LoadoutSwapResult m_iRelocated and m_iDropped (OVT_LoadoutSwap.c:19-35)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -13471,8 +13471,8 @@ StringTable {
   }
   CustomStringTableItem "{6B4C00000000005C}" {
    Id "OVT-FieldManual_Recruits_Text6"
-   Target_en_us "A recruit you own can be told to hold position, with a held action on the recruit itself or with the toggle on the Manage Recruits screen. One that is holding position leaves your group and stays where it stands, defending the spot rather than wandering, and recruits left holding position within fifty metres of each other share a single group. They are still yours and still use one of your sixteen slots, they are not taken along when you fast travel, and they stay behind when you join another player's group. A recruit that is inside a vehicle cannot be told to hold position. After a save is loaded they are back where they were left, still holding position."
-   Comment "Field Manual - Recruits page, body paragraph under the 'Holding Position' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:22-38 (the two held actions, Duration 3 and 2), OVT_RecruitsContext ToggleActiveButton, OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2416 (SpawnDefendWaypoint) and :2473 (OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS), OVT_RecruitInactiveGrouping.c:42 = 50.0, OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208, OVT_TravelRequestComponent.c:289 and OVT_FastTravelService.c:440 (both pass excludeInactive true), OVT_GroupRecruitTransfer.c:84 (inactive recruits are not transferable), OVT_SetRecruitInactiveAction.c:38-42 with OVT_RecruitCommandComponent RESULT_IN_VEHICLE:85, and OVT_RecruitManagerSerializer.c:44/108/203 (version 3 carries the flag) with OVT_RecruitManagerComponent.PlaceRecruitInWorld:2125 (a restored recruit goes back to an inactive group). Positions come from m_vLastKnownPosition."
+   Target_en_us "A recruit you own can be told to hold position, with a held action on the recruit itself or with the toggle on the Manage Recruits screen. One that is holding position leaves your group and stays where it stands, waiting there rather than wandering and returning fire if it is attacked, and recruits left holding position within fifty metres of each other share a single group. They are still yours and still use one of your sixteen slots, they are not taken along when you fast travel, and they stay behind when you join another player's group. A recruit that is inside a vehicle cannot be told to hold position. After a save is loaded they are back where they were left, still holding position."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Holding Position' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8, REVISED 2026-08-14 for Phase 9 play-test feedback (BUG-170: the parked group now holds on a PLAIN WAIT waypoint, not a defend waypoint - 'defending the spot' overstated it, and the honest claim is 'waits there and returns fire'). Cited against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:29,38 (the two held actions, Duration 1.5 and 1), OVT_RecruitsContext ToggleActiveButton, OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2596-2613 (SpawnWaitWaypoint at INACTIVE_HOLD_WAIT_SECONDS:128, with the return-fire precedent cited there as OVT_TownController.c:175) and :2473 (OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS), OVT_RecruitInactiveGrouping.c:42 = 50.0, OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208, OVT_TravelRequestComponent.c:289 and OVT_FastTravelService.c:440 (both pass excludeInactive true), OVT_GroupRecruitTransfer.c:84 (inactive recruits are not transferable), OVT_SetRecruitInactiveAction.c:38-42 with OVT_RecruitCommandComponent RESULT_IN_VEHICLE:85, and OVT_RecruitManagerSerializer.c:44/108/203 (version 3 carries the flag) with OVT_RecruitManagerComponent.PlaceRecruitInWorld:2125 (a restored recruit goes back to an inactive group). Positions come from m_vLastKnownPosition."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -13506,7 +13506,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005E}" {
    Id "OVT-FieldManual_Recruits_Text7"
    Target_en_us "A recruit that is following you carries a Swap Gear action, usable from close by, which exchanges your whole kit with theirs: clothing, armour, rucksack and weapons, together with whatever is inside them. The exchange moves the real items rather than copying them, so nothing can be created or destroyed by it. Where a piece will not fit the place it belongs, it is stowed elsewhere or, at worst, left on the ground, and the message afterwards says the swap was only partial. A recruit that is holding position does not offer the action."
-   Comment "Field Manual - Recruits page, body paragraph under the 'Swapping Kit' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:40-48 (OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 5), OVT_SwapLoadoutWithRecruitAction.c:43-46 (active recruits only) and OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5 with RESULT_TOO_FAR:115, OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 for the clothing areas and the weapon-slot pass for weapons, plan decision D13 with the Q9 grep proof (no SpawnEntityPrefab / TryDeleteItem / DeleteEntityAndChildren / TrySpawnPrefabToStorage in OVT_LoadoutSwap.c), and OVT_LoadoutSwapResult:19-35 plus OVT-Recruit_SwapPartial for the partial-outcome message. The five-metre figure is deliberately not quoted."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Swapping Kit' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:47 (OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 2.5 - shortened from 5 by the 2026-08-14 play-test), OVT_SwapLoadoutWithRecruitAction.c:43-46 (active recruits only) and OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5 with RESULT_TOO_FAR:115, OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 for the clothing areas and the weapon-slot pass for weapons, plan decision D13 with the Q9 grep proof (no SpawnEntityPrefab / TryDeleteItem / DeleteEntityAndChildren / TrySpawnPrefabToStorage in OVT_LoadoutSwap.c), and OVT_LoadoutSwapResult:19-35 plus OVT-Recruit_SwapPartial for the partial-outcome message. The five-metre figure is deliberately not quoted."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -13541,6 +13541,295 @@ StringTable {
    Id "OVT-FieldManual_Recruits_Text8"
    Target_en_us "The map has a Recruits layer that draws a marker for each of your own recruits, at full strength for the ones following you and dimmed for the ones holding position, with a badge that shows whether a recruit is armed and whether it still has ammunition. That layer can be switched off from the map's layer panel, and the choice is remembered between sessions. The Manage Recruits screen shows the same split as Active and Holding Position sections, with a status icon on each row and a count of how many of your sixteen slots are in use."
    Comment "Field Manual - Recruits page, body paragraph under the 'Finding Your Recruits' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against OVT_MapRecruitLocation.c (one widget per owned recruit; :24 and :295 INACTIVE_MARKER_OPACITY = 0.45 for the dimming), OVT_RecruitStatus.TagIcon:95-104 (no badge when unarmed, armed-with-ammo and armed-dry otherwise), OVT_MapLayersUI.c:65/72/763/993-1002 (the Recruits filter row and its stored preference) with OVT_MapLayerSettingsAccessor.Load/Save through EnsurePrefsLoaded:907 and FlushPrefs:925 (profile-stored, so it survives a restart), and OVT-Recruits_SectionActive / OVT-Recruits_SectionInactive / OVT-Recruits_Capacity for the roster sections and the X / 16 header. The ten-second status refresh interval is deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000008D}" {
+   Id "OVT-FieldManual_Recruits_Head8"
+   Target_en_us "Equipped Recruits"
+   Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about buying a recruit that arrives already wearing one of your saved loadouts. Two to four words, no markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000008E}" {
+   Id "OVT-FieldManual_Recruits_Text9"
+   Target_en_us "A recruitment tent carries a second action, Buy Equipped Recruit, which opens your loadouts with a price beside each one. Selecting a loadout shows how many items it holds and what the whole thing would cost: what that gear would fetch at a shop near the tent, plus a convenience fee the difficulty settings carry, plus the ordinary tent recruit cost. Buying spawns the recruit beside the tent already wearing the kit, and it takes a town supporter and a roster slot like any other tent recruit. A loadout holding something the shops do not stock cannot be priced and is refused by name, and if the recruit arrives with none of its kit only the recruit itself is charged for."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Equipped Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9 against Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:86-95 (OVT_BuyEquippedRecruitAction on the 'tabletop' context beside OVT_RecruitFromTentAction, ActionTitle 'Buy Equipped Recruit'), OVT_BuyEquippedRecruitAction.c:44-57 (opens OVT_LoadoutsContext through SetRecruitmentTent - it buys nothing itself), OVT_LoadoutsContext.c:700-703 IsPurchaseMode with :395-397 (the per-selection line reads '%1 items - $%2 equipped' and the button 'Buy Recruit ($%1)'), OVT_RecruitLoadoutPricing.c:208-217 (IsRegisteredResource gate, then GetBuyPrice at the tent position for the acting player, so town stock and the trader perk are already in the number), OVT_RecruitPurchaseRules.TotalPrice:83-91 with GearFee:63-69 and OVT_RecruitCommandComponent.c:1033-1034 (recruit cost = baseRecruitCost * 0.5, fee multiplier = m_Difficulty.recruitLoadoutFeeMultiplier, 1.3 to 1.7 across Configs/Difficulty/*.conf, so no number is quoted), OVT_RecruitManagerComponent.SpawnTentRecruit:1093-1106 with ResolveTentSpawnPosition (tent forward offset, ground clamp, safe-position box), OVT_RecruitCommandComponent.c:891-910 (supporter taken and money charged only once a body exists) and ValidateTentPurchase:942 (cap, supporters, distance via ValidateTentRecruit), and OVT_RecruitPurchaseRules.ChargeFor:143-160 (RESULT_SPAWN_FAILED charges nothing, RESULT_GEAR_FAILED charges the recruit cost only; a PARTIAL apply pays the quoted total and is deliberately not described as a discount)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000089}" {
+   Id "OVT-Tutorial_RecruitsEquipped_Title"
+   Target_en_us "Equipped Recruits"
+   Comment "Title of the 'recruits-equipped-tent' tutorial tip, shown the first time the player finishes building a recruitment tent. Heading of a small HUD popup, so keep it to two or three words. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000008A}" {
+   Id "OVT-Tutorial_RecruitsEquipped_Body"
+   Target_en_us "A recruitment tent hires an unequipped civilian from the nearest town, or, with Buy Equipped Recruit, one that arrives already wearing a loadout you saved. The price of an equipped one is its gear at local shop prices plus a convenience fee, on top of the usual recruit cost, and it is shown before you commit to it."
+   Comment "Body of the 'recruits-equipped-tent' tutorial tip (single page, HUD popup - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9. The tent's two actions: Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:64-95. Unequipped civilian from the nearest town at half cost: OVT_PlayerCommsComponent.c:1511-1529. Equipped flow: OVT_BuyEquippedRecruitAction.c:44-57 opens OVT_LoadoutsContext in purchase mode, OVT_LoadoutsContext.c:395-397 shows the price on the button before the purchase press. Price composition: OVT_RecruitLoadoutPricing.c:216 (GetBuyPrice at the tent), OVT_RecruitPurchaseRules.TotalPrice:83-91, OVT_RecruitCommandComponent.c:1033-1034. No number is quoted because the fee multiplier is a difficulty setting (Configs/Difficulty/*.conf, 1.3 to 1.7)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000072}" {
+   Id "OVT-BuyEquippedRecruit"
+   Target_en_us "Buy Equipped Recruit"
+   Comment "Name of the second held action on a recruitment tent - opens the loadouts screen in purchase mode. The prefab carries the literal English until the runtime exports are regenerated (decision D14)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000073}" {
+   Id "OVT-Recruit_BuyButton"
+   Target_en_us "Buy Recruit ($%1)"
+   Comment "Label of the purchase button on the loadouts screen in tent purchase mode. %1 is the whole quoted price - recruit cost plus the gear fee - as computed by the server. Carries a number, so it stays literal English in script until the runtime exports are regenerated"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000074}" {
+   Id "OVT-Recruit_QuotePrice"
+   Target_en_us "%1 items, $%2 equipped"
+   Comment "Per-selection price line in the loadouts screen details pane while buying a recruit at a tent. %1 is how many items were priced (nesting and attachments included), %2 the whole quoted price"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000075}" {
+   Id "OVT-Recruit_QuoteChecking"
+   Target_en_us "Checking price..."
+   Comment "Shown on the purchase button between selecting a loadout and the server quote arriving. The button is DISABLED while this shows, so a pad user can never fire an unpriced purchase"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000076}" {
+   Id "OVT-Recruit_BuyComplete"
+   Target_en_us "Recruit hired and equipped ($%1)"
+   Comment "Hint after buying an equipped recruit at a tent with the whole kit arriving. %1 is the amount actually charged, carried back from the server so the player can check it against the price they were shown. Assembled with a count in script, so it stays literal English until the runtime exports are regenerated"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000077}" {
+   Id "OVT-Recruit_BuyPartial"
+   Target_en_us "Recruit hired for $%1, but only %2 of %3 items arrived"
+   Comment "Hint after buying an equipped recruit where part of the kit did not land. A partial apply is charged in full - the player was shown the price before committing and per-item refunds cannot be computed correctly for container contents (decision D19)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000078}" {
+   Id "OVT-Recruit_BuyGearFailed"
+   Target_en_us "Recruit hired for $%1 - none of the kit could be issued, so the gear was not charged for"
+   Comment "Hint when an equipped purchase spawned a recruit but not one piece of the loadout landed. Only the ordinary recruit cost is taken; the gear fee is not (decision D19)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C000000000079}" {
+   Id "OVT-Recruit_NotAtTent"
+   Target_en_us "You are not at a recruitment tent"
+   Comment "Refusal for an equipped recruit purchase whose named tent did not resolve, is not a recruitment tent, or is further away than the tent action allows. One sentence for all three on purpose - none of them should confirm anything about a tent the player cannot see"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000007A}" {
+   Id "OVT-Recruit_NoSuchLoadout"
+   Target_en_us "That loadout no longer exists"
+   Comment "Refusal when the named loadout is not found under the buyer's own persistent id. Loadouts are looked up by the id the server resolved, so naming another player's loadout lands here too"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000007B}" {
+   Id "OVT-Recruit_LoadoutEmpty"
+   Target_en_us "That loadout has nothing in it"
+   Comment "Refusal when the selected loadout records no items, so there is no kit to sell with the recruit"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000007C}" {
+   Id "OVT-Recruit_LoadoutUnpriceable"
+   Target_en_us "Something in that loadout has no price and cannot be supplied"
+   Comment "Refusal when an item in the loadout is not a registered resource. It is never priced at zero and never guessed - an unregistered prefab resolves to another item's price and the price lookup cannot report unknown (decision D20). The server logs and returns the item name; the picker names it"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000007D}" {
+   Id "OVT-Recruit_BuyFailed"
+   Target_en_us "The recruit could not be hired - you were not charged"
+   Comment "Refusal when nothing spawned at all. Nothing is charged and no town supporter is taken, which is what the second half of the sentence promises"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755129600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4C00000000007E}" {
+   Id "OVT-Recruit_NoLoadouts"
+   Target_en_us "Save a loadout first"
+   Comment "Cannot-perform reason on the tent Buy Equipped Recruit action for a player with no saved loadouts. The action stays visible with this reason rather than vanishing, so the feature is discoverable"
    DevNote ""
    Repro ""
    ActorGender NONE
