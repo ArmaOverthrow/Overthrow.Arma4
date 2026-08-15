@@ -183,19 +183,37 @@ class OVT_TravelRequestComponent : OVT_Component
 		// OVT_RespawnService.MATCH_TOLERANCE of the one the panel priced - far below one fare unit.
 		int cost = OVT_FastTravelService.CalculateTravelCost(verb, targetPos, actor, recruitCount);
 
-		// 9
-		if(!SCR_Global.TeleportPlayer(playerId, dest))
+		// 9 - THE TELEPORT.
+		//
+		// On a dedicated server, player characters are CLIENT-AUTHORITATIVE for movement: the client runs
+		// its own physics locally and the server corrects drift. Calling TeleportPlayer server-side on an
+		// on-foot character sets the server's position but the client's local physics immediately overrides
+		// it, so the player never moves. Vanilla's own editor teleport (SCR_PlayersManagerEditorComponent.
+		// RPC_TeleportPlayerToPositionServer) handles this exact split: on-foot → Owner RPC to the client;
+		// in-vehicle → server call (vehicles are server-authoritative). Overthrow must do the same.
+		//
+		// For vehicles, TeleportPlayer is still the right server-side call (it moves the vehicle entity,
+		// which is authoritative, and all clients see the change). For characters, TeleportCharacter sends
+		// the resolved position to the owning client, which applies it from its own physics context.
+		if(OVT_FastTravelService.IsVehicleDriver(actor))
 		{
-			SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
-			return;
-		}
+			if(!SCR_Global.TeleportPlayer(playerId, dest))
+			{
+				SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
+				return;
+			}
 
-		// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
-		// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
-		// pointing whichever way it was pointing when the player opened the map. Turning it to face the
-		// way the arrival spot expects has to be a second, separate step (BUG-165).
-		if(destOriented)
-			OrientVehicle(actor, destAngles);
+			// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
+			// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
+			// pointing whichever way it was pointing when the player opened the map. Turning it to face the
+			// way the arrival spot expects has to be a second, separate step (BUG-165).
+			if(destOriented)
+				OrientVehicle(actor, destAngles);
+		}
+		else
+		{
+			TeleportCharacter(playerId, dest);
+		}
 
 		// 10 - only now, and only what was actually taken is reported. The debit is deliberately NOT
 		// folded into the condition of an && : a side effect inside a boolean expression is the kind of
@@ -466,6 +484,44 @@ class OVT_TravelRequestComponent : OVT_Component
 		if(!players) return "";
 
 		return players.GetPersistentIDFromPlayerID(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends the resolved arrival position to the travelling player so they can apply it locally.
+	//!
+	//! Player characters are CLIENT-AUTHORITATIVE for movement on dedicated servers: the server cannot
+	//! write a new world position onto a character and expect the client to accept it, because the
+	//! client's own physics loop will override the server's position on the very next frame. The
+	//! solution — and the one vanilla uses in SCR_PlayersManagerEditorComponent.
+	//! RPC_TeleportPlayerToPositionServer — is to send an Owner-targeted RPC so the client calls
+	//! TeleportPlayer from WITHIN its own physics context, where the position change is authoritative.
+	//! The same listen-server guard pattern used by SendTravelResult prevents the
+	//! "authority-sends-owner-RPC-to-itself → dropped packet" failure.
+	//! \param[in] playerId Runtime id of the travelling player.
+	//! \param[in] position The server's resolved arrival position.
+	protected void TeleportCharacter(int playerId, vector position)
+	{
+		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			RpcDo_TeleportCharacter(position);
+			return;
+		}
+
+		Rpc(RpcDo_TeleportCharacter, position);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Owner: apply the server-authorised arrival position to the local character.
+	//!
+	//! Runs on the travelling player's machine only. The destination was chosen and validated by the
+	//! server — this handler cannot change it. It intentionally does nothing on failure (out-of-bounds
+	//! position or no controlled entity): the fare has already been charged and the server has already
+	//! moved the recruits, so there is no clean rollback; silence is the same outcome TeleportPlayer
+	//! produces when it returns false on the server path.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_TeleportCharacter(vector position)
+	{
+		SCR_Global.TeleportPlayer(SCR_PlayerController.GetLocalPlayerId(), position);
 	}
 
 	//------------------------------------------------------------------------------------------------
