@@ -233,6 +233,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Whether a vehicle may be stocked by a civilian vehicle shop.
+	//! \param[in] id The resource ID of the vehicle.
+	//! \return True if the vehicle is legal, false if it is illegal or is not a registered vehicle.
+	bool IsLegalVehicle(int id)
+	{
+		return m_aLegalVehicles.Contains(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Calculates and distributes rent payments for all rented properties at midnight.
 	//! Owners receive rent, renters pay rent (from player or resistance funds).
 	protected void UpdateRents()
@@ -1433,19 +1442,26 @@ class OVT_EconomyManagerComponent: OVT_Component
 					bool hidden = false;
 					int cost = 500000;
 					OVT_ParkingType parkingType = OVT_ParkingType.PARKING_CAR;
+					//! The most specific match wins, i.e. the longest m_sFind. Plain last-match-wins let a
+					//! broad entry silently overwrite a variant listed above it - "M151A2" would take over
+					//! "M151A2_M2HB" and hand the armed jeep a civilian price and legal status. Ties still
+					//! fall through to the later entry, so equally specific rules keep their old ordering.
+					int bestMatch = -1;
 					//Set it's price
 					foreach(OVT_VehiclePriceConfig cfg : m_VehiclePriceConfig.m_aPrices)
 					{
 						if(cfg.prefab != "") continue;
 						if(cfg.m_sFind == "" || res.IndexOf(cfg.m_sFind) > -1)
-						{							
+						{
 							if(cfg.hidden) {
 								hidden = true;
 								break;
 							}
+							if(cfg.m_sFind.Length() < bestMatch) continue;
+							bestMatch = cfg.m_sFind.Length();
 							cost = cfg.cost;
 							illegal = cfg.illegal;
-							parkingType = cfg.parking;							
+							parkingType = cfg.parking;
 						}
 					}
 					
@@ -1595,6 +1611,23 @@ class OVT_EconomyManagerComponent: OVT_Component
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Finds every registered vehicle whose prefab path contains a search string, regardless of faction
+	//! ownership or legality. The faction-blind counterpart to GetAllNonOccupyingFactionVehicles.
+	//! \param[in] search A string to search within the prefab name (case-sensitive). Blank matches all.
+	//! \param[out] vehicles An array to populate with the ResourceNames of the matching vehicles.
+	//! \return True if the search was performed (doesn't guarantee vehicles were found).
+	bool FindVehicles(string search, out array<ResourceName> vehicles)
+	{
+		foreach(int id : m_aAllVehicles)
+		{
+			ResourceName res = GetResource(id);
+			if(search != "" && res.IndexOf(search) == -1) continue;
+			vehicles.Insert(res);
+		}
+		return true;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Retrieves all vehicles that do not belong to the occupying faction.
 	//! \param[out] resources An array to populate with the ResourceNames of the matching vehicles.
