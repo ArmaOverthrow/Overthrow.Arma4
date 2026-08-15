@@ -13,7 +13,7 @@ enum OVT_ShopSellResult
 	VEHICLE_OCCUPIED	//!< Somebody is still in the driver's seat.
 }
 
-[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative shop selling for one player")]
+[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative shop selling and vehicle re-arm for one player")]
 class OVT_ShopTransactionComponentClass : OVT_ComponentClass {};
 
 //------------------------------------------------------------------------------------------------
@@ -30,6 +30,10 @@ class OVT_ShopTransactionComponentClass : OVT_ComponentClass {};
 //! Two entry points - the shop menu and the vehicle trunk action - feed ONE server routine
 //! (ExecuteSell) different candidate lists. Implementing them separately would guarantee that one of
 //! them eventually forgot the gun-dealer multiplier or the IsSoldAtShop check (D2).
+//!
+//! Also carries the stop-gap helicopter re-arm purchase (RearmVehicle): money for ammunition is a
+//! shop transaction even though no shop entity is involved, and the alternative was a whole new
+//! controller component for one RPC pair that the logistics epic intends to replace anyway.
 //------------------------------------------------------------------------------------------------
 class OVT_ShopTransactionComponent : OVT_Component
 {
@@ -240,6 +244,75 @@ class OVT_ShopTransactionComponent : OVT_Component
 		int earned = ExecuteSell(playerId, shop, candidates, vehicleStorage, -1, -1, soldCount, skippedCount);
 
 		SendSellResult(playerId, soldCount, earned, skippedCount, ResultFor(soldCount));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Fully re-arm an armed vehicle for money, from the helicopter Re-arm user action. A purchase
+	//! like any other here, except the goods are ammunition already bolted to the buyer's aircraft.
+	//! \param[in] vehicle The vehicle to re-arm.
+	void RearmVehicle(IEntity vehicle)
+	{
+		if(!vehicle) return;
+
+		RplComponent vehicleRpl = GetEntityRpl(vehicle);
+		if(!vehicleRpl) return;
+
+		// The authority never loops an RplRcver.Server RPC back to itself (BUG-164), so a listen
+		// host / SP player runs the handler in place.
+		if(Replication.IsServer())
+		{
+			RpcAsk_RearmVehicle(vehicleRpl.Id());
+		}else{
+			Rpc(RpcAsk_RearmVehicle, vehicleRpl.Id());
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: restock every weapon on a vehicle and charge the difficulty-scaled price.
+	//!
+	//! Validation order (the client named only the vehicle, nothing else is trusted): server ->
+	//! requesting player -> character -> vehicle -> player near vehicle -> vehicle on a built
+	//! helipad at a resistance-held base -> something actually missing -> funds. The helipad, need
+	//! and price rules are the same OVT_VehicleRearmUtils code the user action's gates run, so a
+	//! request the action offered is one this handler accepts. Charged only after the restock, and
+	//! only refused-with-a-toast for the one failure a player can do something about (money).
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RearmVehicle(RplId vehicleId)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character) return;
+
+		IEntity vehicle = ResolveEntity(vehicleId);
+		if(!vehicle) return;
+
+		if(vector.Distance(character.GetOrigin(), vehicle.GetOrigin()) > VEHICLE_MAX_DISTANCE) return;
+
+		OVT_VehicleRearmUtils rearmUtils = new OVT_VehicleRearmUtils();
+		if(!rearmUtils.IsOnHelipadAtFriendlyBase(vehicle.GetOrigin())) return;
+
+		if(!OVT_VehicleRearmUtils.NeedsRearm(vehicle)) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy) return;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if(!players) return;
+
+		int cost = OVT_VehicleRearmUtils.GetRearmCost();
+		string persId = players.GetPersistentIDFromPlayerID(playerId);
+		if(!economy.PlayerHasMoney(persId, cost))
+		{
+			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+			return;
+		}
+
+		OVT_VehicleRearmUtils.PerformRearm(vehicle);
+		economy.TakePlayerMoney(playerId, cost);
 	}
 
 	//------------------------------------------------------------------------------------------------

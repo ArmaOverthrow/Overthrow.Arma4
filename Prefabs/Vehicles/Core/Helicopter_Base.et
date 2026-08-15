@@ -3,6 +3,22 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
  components {
   OVT_PlayerOwnerComponent "{5F1EC253F0A9CC36}" {
   }
+  ActionsManagerComponent "{C97BE5489221AE18}" {
+   additionalActions {
+    OVT_RearmVehicleAction "{6A9F4C2DB1E07A31}" {
+     ParentContextList {
+      "heli_repair_point"
+     }
+     UIInfo UIInfo "{6A9F4C2DB1E07A32}" {
+      Name "#OVT-RearmVehicle"
+     }
+     VisibilityRange -1
+     Duration 5
+     CanAggregate 1
+     "Sort Priority" 100
+    }
+   }
+  }
   BaseVehicleNodeComponent "{57DA667544C3090A}" {
    components {
     BaseHUDComponent "{50F09A38B4352300}" {

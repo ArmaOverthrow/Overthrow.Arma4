@@ -13902,5 +13902,23 @@ StringTable {
    Author "Aaron Static"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{6A9F4C2DB1E07A33}" {
+   Id "OVT-RearmVehicle"
+   Target_en_us "Re-arm"
+   Modified 1786759417
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A34}" {
+   Id "OVT-MustBeOnHelipad"
+   Target_en_us "Must be on a helipad at a friendly base"
+   Modified 1786759417
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A35}" {
+   Id "OVT-NothingToRearm"
+   Target_en_us "Weapons are fully armed"
+   Modified 1786759417
+   Author "Aaron Static"
+  }
  }
 }
