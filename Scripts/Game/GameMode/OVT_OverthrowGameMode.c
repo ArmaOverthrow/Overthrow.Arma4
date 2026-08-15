@@ -208,9 +208,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! Reads configuration for factions and sets initial ownership.
 	void DoStartNewGame()
 	{
-		bool isDedicated = RplSession.Mode() == RplMode.Dedicated || RplSession.Mode() == RplMode.Listen;
+		// Dedicated ONLY. A listen host went through the same start menu as single player and has
+		// already picked both factions there - treating Listen as dedicated made Overthrow_Config.json
+		// (or the USSR default) overwrite the host's menu selections on every hosted game.
+		bool isDedicated = RplSession.Mode() == RplMode.Dedicated;
 #ifdef WORKBENCH
-		// Only treat as dedicated if actually running as dedicated/listen server
 		// isDedicated = true; //To test dedicated server config
 #endif
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -356,9 +358,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_TutorialManager.PostGameStart();
 		}
 		
+		// Overthrow_Config.json is a dedicated-server config: SP and listen hosts pick their
+		// difficulty on the start menu, and the file must not override that choice.
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(config.m_ConfigFile)
-		{			
+		if(config.m_ConfigFile && RplSession.Mode() == RplMode.Dedicated)
+		{
 			if(config.m_ConfigFile.difficulty != "")
 			{
 				Print("[Overthrow] Overthrow_Config.json - setting difficulty to " + config.m_ConfigFile.difficulty);
