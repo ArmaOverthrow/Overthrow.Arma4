@@ -121,7 +121,7 @@ FrameWidgetClass {
                  Slot LayoutSlot "{6B4C000000000027}" {
                   Padding 10 0 10 5
                  }
-                 Text "0 / 16 recruits"
+                 Text "#OVT-Recruits_Capacity"
                  "Font Size" 14
                  "Min Font Size" 12
                  Color 0.761 0.392 0.08 1
@@ -145,7 +145,7 @@ FrameWidgetClass {
                      Slot LayoutSlot "{6B4C000000000029}" {
                       Padding 0 0 0 4
                      }
-                     Text "Active"
+                     Text "#OVT-Recruits_SectionActive"
                      "Font Size" 14
                      "Min Font Size" 12
                      Color 0.761 0.392 0.08 1
@@ -160,7 +160,7 @@ FrameWidgetClass {
                      Slot LayoutSlot "{6B4C00000000002D}" {
                       Padding 0 12 0 4
                      }
-                     Text "Holding Position"
+                     Text "#OVT-Recruits_SectionInactive"
                      "Font Size" 14
                      "Min Font Size" 12
                      Color 0.761 0.392 0.08 1
@@ -302,7 +302,7 @@ FrameWidgetClass {
                      components {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowRecruitsToggleActive"
-                       m_sLabel "Hold Position"
+                       m_sLabel "#OVT-Recruits_ToggleHold"
                       }
                      }
                     }

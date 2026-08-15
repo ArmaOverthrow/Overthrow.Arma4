@@ -89,7 +89,7 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
         "tabletop"
        }
        UIInfo UIInfo "{6B4C000000000071}" {
-        Name "Buy Equipped Recruit"
+        Name "#OVT-BuyEquippedRecruit"
        }
        ActionTitle "Buy Equipped Recruit"
       }

@@ -208,9 +208,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		m_ConfigFile = new OVT_OverthrowConfigStruct();
 		m_ConfigFile.SetDefaults();
 
-#ifdef PLATFORM_CONSOLE		
+#ifdef PLATFORM_CONSOLE
 		return true;
 #endif
+
+		// Overthrow_Config.json is a dedicated-server config. Single player and listen hosts are
+		// configured through the start menu, so the file is neither read nor created there - a
+		// leftover json from running a dedicated server must not leak into a hosted game.
+		if (RplSession.Mode() != RplMode.Dedicated)
+			return true;
 
 		JsonLoadContext configLoadContext = new JsonLoadContext();
 

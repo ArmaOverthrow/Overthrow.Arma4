@@ -253,7 +253,7 @@ FrameWidgetClass {
                      components {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
                        m_sActionName "OverthrowLoadoutsBuyRecruit"
-                       m_sLabel "Buy Recruit"
+                       m_sLabel "#OVT-Recruit_BuyButtonPlain"
                       }
                      }
                     }

@@ -332,7 +332,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 
 		if (loadoutName.IsEmpty())
 		{
-			ShowPurchaseState("", "Buy Recruit", false);
+			ShowPurchaseState("", "#OVT-Recruit_BuyButtonPlain", false);
 			return;
 		}
 
@@ -343,15 +343,13 @@ class OVT_LoadoutsContext : OVT_UIContext
 
 		if (!m_RecruitCommands || !tentId.IsValid())
 		{
-			// TODO localize: #OVT-Recruit_NotAtTent
-			ShowPurchaseState("This tent cannot be reached", "Buy Recruit", false);
+			ShowPurchaseState("#OVT-Recruit_NotAtTent", "#OVT-Recruit_BuyButtonPlain", false);
 			return;
 		}
 
 		m_sQuotePendingFor = loadoutName;
 
-		// TODO localize: #OVT-Recruit_QuoteChecking
-		ShowPurchaseState("Checking price...", "Checking price...", false);
+		ShowPurchaseState("#OVT-Recruit_QuoteChecking", "#OVT-Recruit_QuoteChecking", false);
 
 		m_RecruitCommands.RequestRecruitLoadoutQuote(tentId, loadoutName);
 	}
@@ -392,9 +390,12 @@ class OVT_LoadoutsContext : OVT_UIContext
 
 		if (refusalCode == OVT_RecruitCommandComponent.RESULT_OK)
 		{
-			// TODO localize: #OVT-Recruit_QuotePrice / #OVT-Recruit_BuyButton
-			ShowPurchaseState(string.Format("%1 items - $%2 equipped", itemCount, price),
-				string.Format("Buy Recruit ($%1)", price), true);
+			// SCR_InputButtonComponent.SetLabel is a bare TextWidget.SetText, so a parameterised label has
+			// to be resolved before it gets there - WidgetManager.Translate is the vanilla way (the same
+			// thing OVT_OverthrowMapUI does for the fast-travel fare). The details line goes through the
+			// same sink, so it is resolved the same way.
+			ShowPurchaseState(WidgetManager.Translate("#OVT-Recruit_QuotePrice", itemCount.ToString(), price.ToString()),
+				WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), true);
 			return;
 		}
 
@@ -402,21 +403,22 @@ class OVT_LoadoutsContext : OVT_UIContext
 		// short they are - so it is shown beside the reason rather than instead of it.
 		if (refusalCode == OVT_RecruitCommandComponent.RESULT_CANNOT_AFFORD)
 		{
-			// TODO localize: #OVT-CannotAfford
-			ShowPurchaseState(string.Format("$%1 - you cannot afford this", price),
-				string.Format("Buy Recruit ($%1)", price), false);
+			ShowPurchaseState(string.Format("$%1 - %2", price, WidgetManager.Translate("#OVT-CannotAfford")),
+				WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), false);
 			return;
 		}
 
 		if (refusalCode == OVT_RecruitCommandComponent.RESULT_UNPRICEABLE)
 		{
-			// TODO localize: #OVT-Recruit_LoadoutUnpriceable
-			ShowPurchaseState(string.Format("No price for %1 - this loadout cannot be bought",
-				OVT_RecruitCommandComponent.ShortResourceName(unpriceableResource)), "Buy Recruit", false);
+			// The refusal sentence is whole in the string table; only the item name - a prefab name, which
+			// is not translatable - is appended to it, the way OVT_SellVehicleCargoAction appends its
+			// counts to a translated sentence.
+			ShowPurchaseState(WidgetManager.Translate("#OVT-Recruit_LoadoutUnpriceable") + " ("
+				+ OVT_RecruitCommandComponent.ShortResourceName(unpriceableResource) + ")", "#OVT-Recruit_BuyButtonPlain", false);
 			return;
 		}
 
-		ShowPurchaseState(OVT_RecruitCommandComponent.ReasonKeyFor(refusalCode), "Buy Recruit", false);
+		ShowPurchaseState(OVT_RecruitCommandComponent.ReasonKeyFor(refusalCode), "#OVT-Recruit_BuyButtonPlain", false);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -474,8 +476,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 
 		m_bPurchaseInFlight = true;
 
-		// TODO localize: #OVT-Recruit_QuoteChecking
-		ShowPurchaseState("Buying...", "Buying...", false);
+		ShowPurchaseState("#OVT-Recruit_Buying", "#OVT-Recruit_Buying", false);
 
 		m_RecruitCommands.RequestBuyEquippedRecruit(tentId, m_SelectedLoadoutName);
 	}

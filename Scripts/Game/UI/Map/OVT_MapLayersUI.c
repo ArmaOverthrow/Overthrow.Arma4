@@ -59,10 +59,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 	protected const string LABEL_MARKERS_HEADER = "#OVT-Map_Layers_Markers";
 	protected const string LABEL_PLAYERS = "#OVT-Map_Layer_Players";
 
-	//! TODO: switch to "#OVT-Map_Layer_Recruits" once the runtime localization exports have been
-	//! regenerated in Workbench. The string item exists in Language/localization_Overthrow.st; until
-	//! the .conf exports carry it, the key would render on screen as its own raw text (D14).
-	protected const string LABEL_RECRUITS = "Recruits";
+	protected const string LABEL_RECRUITS = "#OVT-Map_Layer_Recruits";
 
 	//! Layer-namespaced ids of the two hand-built rows. OVT_MapPlayerLocation and
 	//! OVT_MapRecruitLocation are SCR_MapUIBaseComponents rather than OVT_MapCanvasLayers, so

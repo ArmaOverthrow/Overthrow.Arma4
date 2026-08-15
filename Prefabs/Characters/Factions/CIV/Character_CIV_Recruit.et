@@ -24,7 +24,7 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
       "default"
      }
      UIInfo UIInfo "{6B4C000000000011}" {
-      Name "Tell to Hold Position"
+      Name "#OVT-Recruit_SetInactive"
      }
      Duration 1.5
     }
@@ -33,7 +33,7 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
       "default"
      }
      UIInfo UIInfo "{6B4C000000000013}" {
-      Name "Tell to Follow Me"
+      Name "#OVT-Recruit_SetActive"
      }
      Duration 1
     }
@@ -42,7 +42,7 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
       "default"
      }
      UIInfo UIInfo "{6B4C000000000005}" {
-      Name "Swap Gear"
+      Name "#OVT-Recruit_SwapLoadout"
      }
      Duration 2.5
     }

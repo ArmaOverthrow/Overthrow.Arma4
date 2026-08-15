@@ -356,8 +356,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!m_RecruitManager)
 			return;
 
-		// TODO localize: OVT-Recruits_Capacity ("%1 / %2 recruits") once the runtime exports are regenerated.
-		capacityText.SetTextFormat("%1 / %2 recruits", m_RecruitManager.GetRecruitCount(m_sPlayerID), OVT_RecruitManagerComponent.MAX_RECRUITS_PER_PLAYER);
+		capacityText.SetTextFormat("#OVT-Recruits_Capacity", m_RecruitManager.GetRecruitCount(m_sPlayerID), OVT_RecruitManagerComponent.MAX_RECRUITS_PER_PLAYER);
 	}
 	
 	protected void OnRecruitItemClicked(SCR_ButtonBaseComponent button)
@@ -440,8 +439,7 @@ class OVT_RecruitsContext : OVT_UIContext
 				float distance = vector.Distance(m_Owner.GetOrigin(), recruitEntity.GetOrigin());
 				if (inactive)
 				{
-					// TODO localize: OVT-Recruits_StatusHolding ("Holding position (%1m)")
-					statusText.SetTextFormat("Holding position (%1m)", Math.Round(distance));
+					statusText.SetTextFormat("#OVT-Recruits_StatusHolding", Math.Round(distance));
 					statusText.SetColor(Color.Orange);
 				}
 				else
@@ -483,11 +481,10 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!comp)
 			return;
 
-		// TODO localize: OVT-Recruits_ToggleFollow / OVT-Recruits_ToggleHold
 		if (inactive)
-			comp.SetLabel("Follow Me");
+			comp.SetLabel("#OVT-Recruits_ToggleFollow");
 		else
-			comp.SetLabel("Hold Position");
+			comp.SetLabel("#OVT-Recruits_ToggleHold");
 
 		comp.SetEnabled(hasBody);
 	}
@@ -517,8 +514,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		IEntity recruitEntity = m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId);
 		if (!recruitEntity)
 		{
-			// TODO localize: OVT-Recruit_NoBody (literal until the runtime exports are regenerated)
-			ShowHint("That recruit is not here right now");
+			ShowHint("#OVT-Recruit_NoBody");
 			return;
 		}
 
@@ -526,8 +522,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!commands)
 		{
 			// Null until the controller has been assigned to this client; nothing to do but say so.
-			// TODO localize: OVT-Recruit_CommandFailed (literal until the runtime exports are regenerated)
-			ShowHint("Could not change that recruit's orders");
+			ShowHint("#OVT-Recruit_CommandFailed");
 			return;
 		}
 

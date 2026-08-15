@@ -80,8 +80,7 @@ class OVT_RecruitListEntryHandler : SCR_ButtonBaseComponent
 					statusWidget.SetText("#OVT-Recruit_Unconscious");
 					statusWidget.SetColor(Color.Red);
 				}else if (inactive){
-					// TODO localize: OVT-Recruits_StatusHolding
-					statusWidget.SetText("Holding");
+					statusWidget.SetText("#OVT-Recruits_StatusHoldingShort");
 					statusWidget.SetColor(Color.Orange);
 				}else{
 					statusWidget.SetText("#OVT-Recruit_Active");
