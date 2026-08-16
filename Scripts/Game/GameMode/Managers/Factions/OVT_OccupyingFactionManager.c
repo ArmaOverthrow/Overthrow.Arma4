@@ -231,7 +231,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		// Find the base data for this location
 		OVT_BaseData baseData = GetNearestBase(entity.GetOrigin());
 		if (!baseData) return true;
-		
+
+		// entId is [NonSerialized] and otherwise only assigned by the server's world query -
+		// without this a client record never resolves its entity (BUG-172: no base name on the map)
+		baseData.entId = entity.GetID();
+
 		// Set the faction affiliation
 		SCR_FactionAffiliationComponent affiliation = OVT_ComponentFinder<SCR_FactionAffiliationComponent>.Find(entity);
 		if (affiliation)

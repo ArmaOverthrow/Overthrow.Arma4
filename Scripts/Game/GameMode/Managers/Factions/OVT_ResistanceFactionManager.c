@@ -1107,7 +1107,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		fob.location = pos;
 		m_Camps.Insert(fob);
 				
-		Rpc(RpcDo_RegisterCamp, pos, fob.name, playerId, fob.persistentId);
+		Rpc(RpcDo_RegisterCamp, pos, fob.name, fob.persistentId, persId, fob.isPrivate);
 		OVT_Global.GetNotify().SendTextNotification("PlacedCamp",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 	
@@ -1311,18 +1311,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return true;
 	}
 	
+	// The owner arrives as the persistent id string resolved ONCE on the server, exactly as the JIP
+	// stream sends it. Re-deriving it here from the runtime playerId raced the player-id table's own
+	// replication and could permanently record owner "" - which the map's private-camp filter then
+	// hid from everyone, the owner included (BUG-173)
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterCamp(vector pos, string name, int playerId, string persistentId)
-	{		
+	protected void RpcDo_RegisterCamp(vector pos, string name, string persistentId, string ownerPersistentId, bool isPrivate)
+	{
 		OVT_CampData fob = new OVT_CampData;
 		fob.location = pos;
 		fob.name = name;
 		fob.persistentId = persistentId;
+		fob.owner = ownerPersistentId;
+		fob.isPrivate = isPrivate;
 		m_Camps.Insert(fob);
-		
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		fob.owner = persId;
-		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(persId);
+
+		OVT_PlayerData player = OVT_Global.GetPlayers().GetPlayer(ownerPersistentId);
 		if(player)
 		{
 			player.camp = pos;

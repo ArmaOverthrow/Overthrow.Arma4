@@ -18,8 +18,11 @@ class OVT_MapLocationCamp : OVT_MapLocationType
 			if (!camp)
 				continue;
 			
-			// Only show public camps or camps owned by the current player
-			if (camp.isPrivate && camp.owner != currentPlayerID)
+			// Only show public camps or camps owned by the current player. An empty owner or an
+			// unresolved local id means the identity is UNKNOWN on this machine (replication
+			// timing), not "someone else" - show the camp rather than hide it; the server enforces
+			// real eligibility against its own records for travel and respawn (BUG-173)
+			if (camp.isPrivate && !camp.owner.IsEmpty() && !currentPlayerID.IsEmpty() && camp.owner != currentPlayerID)
 				continue;
 			
 			// Create location data for this camp
@@ -72,11 +75,13 @@ class OVT_MapLocationCamp : OVT_MapLocationType
 			return false;
 		}
 		
-		// Check if it's the player's own camp or if it's public
+		// Check if it's the player's own camp or if it's public. Either id being empty means the
+		// identity is unknown on this machine, not a mismatch - allow, and let the server's own
+		// destination resolution refuse a camp this player genuinely may not use (BUG-173)
 		string owner = location.GetDataString("owner", "");
 		bool isPrivate = location.GetDataBool("isPrivate", false);
-		
-		if (isPrivate && owner != playerID)
+
+		if (isPrivate && !owner.IsEmpty() && !playerID.IsEmpty() && owner != playerID)
 		{
 			reason = "#OVT-CannotFastTravelPrivateCamp";
 			return false;
