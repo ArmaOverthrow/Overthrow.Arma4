@@ -270,9 +270,11 @@ class OVT_RespawnService
 					if (!IsFobEligible())
 						continue;
 
-					if (excludeActiveQrf && IsPositionInActiveQRF(fob.location))
-						continue;
-
+					// FOBs are DELIBERATELY exempt from the excludeActiveQrf filter that drops every
+					// other type: a deployed FOB is the forward spawn for exactly the battle a QRF
+					// represents, and it is needed most by players who died defending it without
+					// having set it as home. OVT_MapLocationFOB.CanRespawn carries the matching
+					// client-side exemption; the two must stay in agreement.
 					positions.Insert(fob.location);
 				}
 			}

@@ -111,8 +111,13 @@ class OVT_FastTravelService
 				if (config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 					return OVT_TravelResult.QRF_ACTIVE;
 
+				// A deployed FOB inside the QRF ring stays travellable - it is the resistance's
+				// forward spawn for exactly this battle, and refusing it strands players who forgot
+				// to set it as home. Runs identically on both machines (m_FOBs is replicated), so the
+				// panel's enable state and the server's refusal cannot disagree. DISABLED above still
+				// refuses everything: that mode is an explicit difficulty choice, not a proximity rule.
 				float qrfDist = vector.Distance(occupyingFaction.m_vQRFLocation, targetPos);
-				if (qrfDist < OVT_QRFControllerComponent.QRF_RANGE)
+				if (qrfDist < OVT_QRFControllerComponent.QRF_RANGE && !IsFobPosition(targetPos))
 					return OVT_TravelResult.QRF_TOO_CLOSE;
 			}
 		}
@@ -443,6 +448,35 @@ class OVT_FastTravelService
 				continue;
 
 			if (OVT_RespawnService.PositionsMatch(camp.location, pos))
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a position is a deployed FOB's recorded location.
+	//!
+	//! SAFE ON BOTH MACHINES - m_FOBs reaches clients through the resistance manager's JIP stream and
+	//! registration broadcasts - and it must stay that way: ValidateTravel consults it for the QRF
+	//! exemption, and ValidateTravel is the shared rule table that keeps the panel's enable state and
+	//! the server's refusal in agreement. Uses the same PositionsMatch tolerance as the destination
+	//! resolution, so "is a FOB" and "resolved to this FOB" cannot drift apart.
+	//! \param[in] pos The position to test.
+	//! \return True when pos names a deployed FOB; false otherwise, or when the resistance manager is
+	//! unavailable.
+	static bool IsFobPosition(vector pos)
+	{
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance || !resistance.m_FOBs)
+			return false;
+
+		foreach (OVT_FOBData fob : resistance.m_FOBs)
+		{
+			if (!fob)
+				continue;
+
+			if (OVT_RespawnService.PositionsMatch(fob.location, pos))
 				return true;
 		}
 
