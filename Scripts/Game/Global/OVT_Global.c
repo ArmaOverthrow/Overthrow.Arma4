@@ -480,10 +480,15 @@ class OVT_Global : Managed
 	}
 	
 	//! Find safe vehicle spawn position with rotation
-	static bool FindSafeVehicleSpawnPosition(vector pos, out vector position, out vector angles, bool skipSpawnPointSearch = false)
+	//! skipAuthoredSpots skips ONLY the parking/vehicle-point query and keeps the road search: the
+	//! 15 m sphere answers "whose parking is nearest", not "whose parking is this", so a destination
+	//! that merely sits NEAR somebody's authored parking (a player-placed camp beside a house) would
+	//! inherit a spot that belongs to the neighbour. Callers who know the destination authors no
+	//! vehicle arrival pass true and go straight to the nearest road.
+	static bool FindSafeVehicleSpawnPosition(vector pos, out vector position, out vector angles, bool skipSpawnPointSearch = false, bool skipAuthoredSpots = false)
 	{
 		// First check for nearby entities with parking or vehicle spawn point components (unless skipped for performance)
-		if (!skipSpawnPointSearch)
+		if (!skipSpawnPointSearch && !skipAuthoredSpots)
 		{
 			if (!s_SpawnPointSearchResults)
 				s_SpawnPointSearchResults = {};

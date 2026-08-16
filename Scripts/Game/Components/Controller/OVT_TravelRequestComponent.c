@@ -158,6 +158,7 @@ class OVT_TravelRequestComponent : OVT_Component
 		// FAST_TRAVEL only: the BUS verb's destination rule is already inside ValidateTravel
 		// (IsAtBusStop refuses anything not within BUS_STOP_RADIUS of a real marker), so a bus request
 		// cannot name an arbitrary coordinate either and re-resolving it here would buy nothing.
+		bool destIsCamp = false;
 		if(verb == OVT_TravelVerb.FAST_TRAVEL)
 		{
 			vector authorisedPos;
@@ -170,12 +171,18 @@ class OVT_TravelRequestComponent : OVT_Component
 			}
 
 			targetPos = authorisedPos;
+
+			// Camps author character spawn points and no vehicle arrival at all, but they are
+			// player-placed and can sit within the authored-spot query's 15 m of somebody else's
+			// parking - which would park the travelled vehicle in the neighbour's spot. A camp
+			// arrival therefore skips the authored query and takes the nearest road.
+			destIsCamp = OVT_FastTravelService.IsCampPosition(targetPos);
 		}
 
 		// 7
 		vector destAngles;
 		bool destOriented;
-		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented);
+		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented, destIsCamp);
 
 		// 8 - while the actor is still standing at originPos. Measured to targetPos, not to dest, so
 		// the charged fare is the one the panel displayed rather than one nudged by the safe-spawn
@@ -332,8 +339,10 @@ class OVT_TravelRequestComponent : OVT_Component
 	//! \param[in] targetPos The requested destination.
 	//! \param[out] angles Yaw/pitch/roll the vehicle should end up at. Meaningless unless oriented is true.
 	//! \param[out] oriented True when the arrival spot named a facing worth applying.
+	//! \param[in] destIsCamp True when the destination is a camp: the vehicle skips the authored
+	//! parking/vehicle-point query (which would grab a neighbour's spot) and takes the nearest road.
 	//! \return A safe arrival position.
-	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented)
+	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented, bool destIsCamp = false)
 	{
 		angles = "0 0 0";
 		oriented = false;
@@ -342,7 +351,7 @@ class OVT_TravelRequestComponent : OVT_Component
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			oriented = OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			oriented = OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles, false, destIsCamp);
 			angles = vehicleAngles;
 			return vehiclePos;
 		}

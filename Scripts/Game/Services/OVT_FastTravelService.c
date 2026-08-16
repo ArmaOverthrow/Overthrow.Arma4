@@ -420,6 +420,36 @@ class OVT_FastTravelService
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether a position is a camp's recorded location.
+	//!
+	//! SERVER-SIDE, and meaningful only AFTER ResolveFastTravelDestination has reassigned the request
+	//! to the server's own vector - it compares against camp.location with the same tolerance the
+	//! destination match used, so the answer agrees with the resolution by construction. Camps are
+	//! player-placed and sit wherever the player stood, which is routinely within the 15 m authored-spot
+	//! query of somebody's parking - the reason a camp arrival must NOT inherit whatever parking or
+	//! vehicle point happens to be nearby (a camp authors character points and no vehicle points), and
+	//! must go straight to the road search instead.
+	//! \param[in] pos The position to test - after 6b, the server's vector for the destination.
+	//! \return True when pos names a camp; false otherwise, or when the resistance manager is unavailable.
+	static bool IsCampPosition(vector pos)
+	{
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance || !resistance.m_Camps)
+			return false;
+
+		foreach (OVT_CampData camp : resistance.m_Camps)
+		{
+			if (!camp)
+				continue;
+
+			if (OVT_RespawnService.PositionsMatch(camp.location, pos))
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! How many of a player's recruits are close enough to travel with them.
 	//!
 	//! PARKED (INACTIVE) RECRUITS ARE NOT COUNTED, and the exclusion has to be here as well as on the
