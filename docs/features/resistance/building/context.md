@@ -1,7 +1,7 @@
 # Resistance Building - Context & Decisions
 
-**Last Updated:** 2026-08-02
-**Current Phase:** Retrospective Documentation
+**Last Updated:** 2026-08-16
+**Current Phase:** Maintenance / bug fixing
 **Status:** ✅ Documented (Existing Feature)
 
 ---
@@ -12,8 +12,12 @@
 - ✅ Feature fully implemented (existing code)
 - ✅ Retrospective documentation created (thorough code investigation, 2026-08-02)
 
+- ✅ The four "High Priority" future enhancements have since landed (BUG-048/049/050, closed 2026-08-02): RPCs derive the actor via `ResolveSenderPlayerId`, `BuildItem` charges + limit-checks server-side, removal sends an `RplId`, pagination fixed. The "Gotchas" below that describe those as live are historical.
+- ✅ BUG-174 fixed 2026-08-16 — listen-host duplicate UI contexts (see Gotchas).
+
 **What's Next:**
-- 📋 Review for potential improvements — server-side validation (indices/rules/limits/funds), the missing server-side buildable charge, and multiplayer removal mode (EntityID over the wire + unreplicated ownership) are the highest-value fixes
+- 📋 Open bugs: **BUG-106** (camp's `m_bAwayFromBases` rule unreachable — the dead duplicate block below) and **BUG-160** (place-menu focus highlight too faint on gamepad)
+- 📋 Remaining medium enhancements: cap `FindNearestBase` by per-type radius, null-guard `GetNearestBase` in `CanPlace`, rewrite the stale `Placeables/README.md`
 
 **Blockers:**
 - None
@@ -55,6 +59,7 @@
 - Item limits are enforced only client-side; `BuildItem` ignores its handler's return value (contrast `PlaceItem`).
 - `RemoveCamp` in the same manager already solves delete-by-network-reference correctly with `RplId` — the fix pattern for `RemovePlacedItem` is local.
 - `m_aFurniturePrefabs` is dead config; `Placeables/README.md` documents a nonexistent `OVT_PlaceableFOBHandler` and claims EPF persistence.
+- **A listen host used to build a whole UI-context set per joined player** (BUG-174, fixed 2026-08-16). `OVT_UIManagerComponent` is on `Character_Player.et`, so the host owns an instance for every player character in the world, and `SCR_CharacterControllerComponent.m_OnControlledByPlayer` fires there with `controlled=true` for *remote* characters (vanilla says so out loud in `SCR_GadgetManagerComponent.c:666-672`). The host therefore got N+1 stacked main menus per press of U; Place closed only the clicked one, and each survivor kept calling `ActivateContext("OverthrowMenuContext")` every frame, which is what stole the placement rotate keys. Guard is now `if (controlled && owner != SCR_PlayerController.GetLocalControlledEntity()) controlled = false;` in `AfterControlledByPlayer` — **any new `m_OnControlledByPlayer` subscriber needs the same discard**, and the null local controller on a dedicated server means the one line covers the DS misfire too.
 
 ---
 
