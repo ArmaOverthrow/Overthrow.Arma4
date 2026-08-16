@@ -279,7 +279,7 @@ because a swept or stale group simply vanishes from `m_aGroups` (known epic debt
 | `m_EntityType` | SYSTEM | SYSTEM | SYSTEM |
 | `m_bAutoRegister` | ALWAYS | ALWAYS | ALWAYS |
 | `m_Flags` | **2052** = `NON_DELETABLE` (2048) + `HAS_FACTION` (4) | **2052** | ~~2060~~ **2052 as built** — towers are same-GUID deltas inheriting vanilla `RplComponent`; LOCAL is fatal (§1 fact 4 correction) |
-| `m_fMaxDrawDistance` | 20000 | 20000 | 20000 |
+| `m_fMaxDrawDistance` | ~~20000~~ **2000 as built** (2026-08-16 user feedback: full-map icons too busy; 2000 = vanilla GROUP/VEHICLE distance, F-2 revised) | **2000** | **2000** |
 | `m_vIconPos` | `0 10 0` | `0 8 0` | `0 40 0` / `0 25 0` / `0 6 0` (per height) |
 | Icon | imageset `village` / `town` / `city` by `m_Size` | `{DD5F23CBB1731598}UI/Textures/Editor/EditableEntities/Systems/EditableEntity_System_Base.edds` | imageset `tower` |
 | Faction source | `OVT_TownData` (override `GetFaction()`) | `SCR_FactionAffiliationComponent` (`OVT_BaseController.et:32`, vanilla path) | `OVT_RadioTowerData` (override) |
@@ -297,6 +297,12 @@ default is **1000 m** (no `m_fMaxDrawDistance` line for SYSTEM in `Configs/Core/
 so `SCR_EditableEntityCoreTypeSetting.c:7-8`'s `[Attribute("1000")]` applies). At 1000 m a strategic GM sees
 **nothing**: the altitude coefficient shrinks the radius to 316 m at ground level. `20000` yields 6.3 km at
 ground level and 20 km above 150 m — the whole of Everon either way.
+
+> ⚠️ **REVISED 2026-08-16 after user testing: 20000 was wrong in the other direction.** Every icon on the
+> map rendering at once made the GM view too busy — vanilla icons all fade with camera distance, and these
+> should too. **As built: `m_fMaxDrawDistance 2000`** on all five prefabs (= the vanilla GROUP/VEHICLE
+> distance; ~632 m radius at ground altitude, 2 km above 150 m). One number per prefab to tune if the feel
+> is off. F-2 in §6 revised to match.
 
 ### 3.5 What is *not* touched
 
@@ -714,8 +720,10 @@ Criteria an independent evaluator with no implementation context can verify.
 
 - **F-1** With Game Master open, an icon is visible above **every town, every occupying-faction base and
   every radio tower** in the world.
-- **F-2** Those icons are still visible with the camera at 300 m altitude and 3 km away — the strategic
-  overview case, and the one the vanilla default silently fails.
+- **F-2** ~~Those icons are still visible with the camera at 300 m altitude and 3 km away~~ **REVISED
+  2026-08-16 (user):** icons fade out beyond ~2 km from the camera like vanilla group/vehicle icons —
+  the original whole-map visibility (20000 m) made the UI too busy. New criterion: icons within ~2 km
+  are visible; the full map is deliberately **not** covered.
 - **F-3** Base and tower icons are tinted by their controlling faction, and a town icon retints when the town
   flips.
 - **F-4** Clicking a **town** icon fills the Overthrow panel's detail section with its name, controlling

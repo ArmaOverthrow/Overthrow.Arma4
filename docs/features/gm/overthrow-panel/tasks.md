@@ -1,8 +1,8 @@
 # Overthrow Panel — Task Checklist
 
 **Feature:** gm/overthrow-panel (epic `gm`, feature 2 of 5)
-**Last Updated:** 2026-08-15 15:20
-**Progress:** 25/26 tasks complete (96%) — the one open task is the deferred gm-state log-based MP checklist
+**Last Updated:** 2026-08-16
+**Progress:** 26/26 tasks complete (100%) — ✅ closed 2026-08-16; the absorbed gm-state MP checklist confirmed by user (batched epic test session)
 
 > Agent tiers per `implementation.md` §4: **no phase needs an advanced agent.** Phases 1–3 →
 > `ui-developer`; Phase 0 → orchestrator (no agent); Phase 4 → user-driven; Phase 5 →
@@ -138,7 +138,7 @@
   - File(s): results → `docs/features/gm/overthrow-panel/context.md`
   - Estimate: 🔴 (user)
 
-- [ ] ⏸️ 🖐️ **USER: absorbed gm-state Phase 5 checklist** — DEFERRED: log-based items (record counts/build ms, non-admin negative path, JIP, stale-discard) still owed; panel-provable items covered by the user's own-server test
+- [x] ✅ 🖐️ **USER: absorbed gm-state Phase 5 checklist** - Completed: user confirmed 2026-08-16 the remaining items were covered in the epic's batched MP/JIP test session (with hud-icons); all tests green. Log measurements not recorded separately
   - Description: 8-row split table (plan §7 step 5) — what the panel proves vs what needs a log (`m_bDebugSnapshotTiming`); record counts + build ms; non-admin negative path; JIP; listen-server host
   - File(s): results → `docs/features/gm/gm-state/context.md`
   - Estimate: 🔴 (user)

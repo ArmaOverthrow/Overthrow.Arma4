@@ -1,8 +1,8 @@
 # HUD Icons — Task Checklist
 
 **Feature:** gm/hud-icons (epic `gm`, feature 3 of 5)
-**Last Updated:** 2026-08-15 19:05
-**Progress:** 30/30 tasks complete (100%) — ✅ user-verified 2026-08-15 (incl. MP/JIP + tower variants); descoped to tooltips-only same day (see context.md)
+**Last Updated:** 2026-08-16
+**Progress:** 30/30 tasks complete (100%) — ✅ user-verified 2026-08-15 (incl. MP/JIP + tower variants); descoped to tooltips-only same day; draw distance lowered 20000 → 2000 on 2026-08-16 and user-verified (see context.md)
 
 > Agent tiers per `implementation.md` §4: **Phase 1 is ADVANCED** (`component-developer-advanced`) — the
 > epic's riskiest base-game integration with four silent failure modes. Phase 0 → orchestrator (no agent);

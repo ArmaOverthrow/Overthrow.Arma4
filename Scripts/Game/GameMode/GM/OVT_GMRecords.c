@@ -17,6 +17,10 @@
 //!
 //! They are plain Managed data with no behaviour on purpose: anything that looks like a query belongs
 //! on OVT_GMCampaignState (which owns the arrays) or on the consumer.
+//!
+//! WAYPOINT ROUTES ARE NOT HERE. The GM waypoint visualization has its own fan under the same
+//! seq/version framing; its records live in OVT_GMWaypointRecords.c (OVT_GMWaypointRecord and
+//! OVT_GMWaypointRoute) and are stored on OVT_GMRequestComponent separately from the snapshot.
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------

@@ -1,10 +1,10 @@
 # Waypoint Viz — Implementation Plan
 
-**Status:** Planning
+**Status:** Ready for Review (code-complete; Phase 4 Steps 1–2 human verification deferred)
 **Epic:** gm (feature 4 of 5 — Phase 1 of the 3-phase epic)
 **Started:** 2026-08-15
 **Target Completion:** TBD
-**Last Updated:** 2026-08-15 20:55 AEST
+**Last Updated:** 2026-08-15 23:20 AEST
 
 > All `file:line` citations are load-bearing and were **verified during planning**. Overthrow-side citations
 > against the working tree at **`b01782c3`** (`feat: gm/overthrow-panel`); base-game citations against the

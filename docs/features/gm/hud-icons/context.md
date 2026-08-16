@@ -1,7 +1,7 @@
 # HUD Icons — Context & Decisions
 
 **Feature:** gm/hud-icons (epic `gm`, feature 3 of 5)
-**Last Updated:** 2026-08-15 (verified + closed)
+**Last Updated:** 2026-08-16 (draw-distance tweak 20000 → 2000, user-verified; feature closed)
 **Current Phase:** Complete
 **Status:** ✅ Built — user-verified 2026-08-15 (tooltips, delete/drag refusal, altitude visibility,
 MP/JIP, and both big tower variants all confirmed by the user after the tooltips-only descope).
@@ -74,7 +74,9 @@ with one ERROR per tower (`SCR_EditableEntityComponent.c:2243`) → zero tower i
 - Phase 6 must correct `implementation.md` §1/§3.4/§5 D3. (Project memory "same-GUID prefabs are deltas" strikes again.)
 
 **Shipped values (all five prefabs):** `m_EntityType SYSTEM`, `m_bAutoRegister ALWAYS`,
-`m_fMaxDrawDistance 20000`, `m_Flags 2052`; `m_vIconPos` town `0 10 0`, base `0 8 0`,
+`m_fMaxDrawDistance 2000` (**lowered from 20000 on 2026-08-16** — user: whole-map icons made the UI too
+busy; 2000 = vanilla GROUP/VEHICLE distance, so icons fade like base-game ones; F-2 revised in the plan),
+`m_Flags 2052`; `m_vIconPos` town `0 10 0`, base `0 8 0`,
 towers `0 40 0` / `0 25 0` / `0 6 0`; kinds TOWN/BASE/RADIO_TOWER.
 
 **GUIDs minted (`{6B09…}`):** `{6B09A1C0E4D50001}`/`0002` town, `0003`/`0004` base, `0005`/`0006` tower,
@@ -192,7 +194,7 @@ duplicated between the info class and the widget component (promote to a static 
 
 ### Modified
 - `Prefabs/Controllers/OVT_TownController.et`, `OVT_BaseController.et` — component block, flags 2052
-- `TransmitterTower_01{,_medium,_small}_base.et` — component block, flags 2060 (+LOCAL, no RplComponent)
+- `TransmitterTower_01{,_medium,_small}_base.et` — component block, flags 2052 (no LOCAL — same-GUID deltas inherit vanilla RplComponent; see Phase 1 correction)
 - `Scripts/Game/UI/Modded/SCR_EditModeEditorUIComponent.c` — +~6 lines (detail layout injection)
 - `Language/localization_Overthrow.st`
 
@@ -216,7 +218,7 @@ _(from plan; append implementation findings)_
 
 1. **Four silent failure modes in prefab blocks** — wrong flag arithmetic, `WHEN_SPAWNED` auto-register, LOCAL/RplComponent mismatch, unset draw distance. The Init test is the only gate; Q-9 reads the world-load log.
 2. **`SetInfoInstance()` stores a weak ref** — component must hold `ref OVT_GMCampaignUIInfo`.
-3. **SYSTEM draw-distance default is 1000 m** → 316 m radius at ground altitude coefficient. All prefabs author `m_fMaxDrawDistance 20000`.
+3. **SYSTEM draw-distance default is 1000 m** → 316 m radius at ground altitude coefficient. All prefabs author `m_fMaxDrawDistance 2000` (was 20000 at first ship — whole-map icons were too busy; 2000 matches vanilla GROUP/VEHICLE fade).
 4. **Logic-tier grep guard reads comments** — no `GetGame()`/`OVT_Global` anywhere in `OVT_GMIconFormat.c` or its test, including prose.
 5. **`{6B09` grep needs the brace** — bare `6B09` false-hits inside unrelated GUIDs.
 
@@ -249,8 +251,9 @@ _(from plan; append implementation findings)_
 3. World-load log: any `flagged as LOCAL, but contains RplComponent` / `missing RplComponent` line
    (`SCR_EditableEntityComponent.c:2243/:2252`)? Either **nulls the component silently** — zero icons for
    that family, nothing else says why.
-4. Icons visible near ground but not at altitude? → `m_fMaxDrawDistance` didn't take (must be 20000 in the
-   prefab; the type default 1000 m shrinks to a 316 m radius at low altitude coefficient).
+4. Icons visible near ground but not at altitude? → `m_fMaxDrawDistance` didn't take (must be 2000 in the
+   prefab; the type default 1000 m shrinks to a 316 m radius at low altitude coefficient). Note icons
+   fading out beyond ~2 km is **by design** (2026-08-16 revision) — vanilla-like fade, not a bug.
 5. All present but no detail on click? → gm-state triage in `docs/features/gm/gm-state/context.md`
    (seam null / no snapshot / unauthorized client).
 
@@ -278,3 +281,11 @@ _(from plan; append implementation findings)_
   environmental.
 - Phase 1 smoke check and Phase 5 batched to one user session (user opted to keep building).
 - `run-tests.sh` learning: a bare *case* class is not a valid `-autotest` target — use the suite class.
+
+### 2026-08-16
+- **Post-ship tweak (user report):** all icons across the entire map rendered at once — too busy; vanilla
+  icons fade with camera distance. `m_fMaxDrawDistance` lowered 20000 → **2000** in all five prefabs
+  (vanilla GROUP/VEHICLE distance; Conflict bases use the 1000 m SYSTEM default). Plan §3.4/F-2 annotated.
+  Also fixed the stale "flags 2060" line in Key Files (as-built is 2052 everywhere).
+- ✅ **User verified the fix same day** ("fixed") — icons now fade with camera distance; all tests green.
+  Feature closed at 100%.

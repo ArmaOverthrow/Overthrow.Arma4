@@ -1,8 +1,8 @@
 # GM State - Task Checklist
 
 **Feature:** gm/gm-state (epic `gm`, feature 1 of 5)
-**Last Updated:** 2026-08-14 17:55
-**Progress:** 27/28 tasks complete (96%) — only the Phase 5 MP play-test remains (user's desktop)
+**Last Updated:** 2026-08-16
+**Progress:** 28/28 tasks complete (100%) — ✅ closed 2026-08-16; MP play-test confirmed by user (batched with overthrow-panel + hud-icons testing)
 
 > ⚠️ **Advanced phases:** Phase 3 routes to `component-developer-advanced` (spawn-path insertions across
 > four subsystems; behaviour must not change). All other implementation phases use standard agents.
@@ -132,9 +132,9 @@
 
 ---
 
-## Phase 5: Verification gate (0/1 complete) ⏸️ — user-driven (MP play-test owed; automated gates + greps all green)
+## Phase 5: Verification gate (1/1 complete) — user-driven
 
-- [ ] ⏸️ **Run §7 Verification Method end-to-end** (compile/suites/greps done by orchestrator — MP play-test **deferred by user until `overthrow-panel` ships UI**; combined checklist in context.md "Needs Human Verification")
+- [x] ✅ 🖐️ **Run §7 Verification Method end-to-end** - Completed: user confirmed 2026-08-16 that the full combined checklist was exercised in the epic's batched MP/JIP test session (with overthrow-panel + hud-icons); all tests green. Individual log measurements (record counts/build ms) were not recorded separately.
   - Description: MP play-test (server `-ovtGmDev`, admin positive path, negative path WITHOUT the flag, host path, JIP, lifecycle); grep gates Q-5/Q-6/F-7/I-3 pasted into context.md; measured record counts + build time on a populated campaign
   - File(s): `docs/features/gm/gm-state/context.md`
   - Estimate: 🔴 Large (user desktop required for client launches)

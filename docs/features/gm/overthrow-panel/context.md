@@ -1,9 +1,9 @@
 # Overthrow Panel — Context & Decisions
 
 **Feature:** gm/overthrow-panel (epic `gm`, feature 2 of 5 — first renderer over the gm-state seam)
-**Last Updated:** 2026-08-15 15:20
-**Current Phase:** Complete (all phases; gm-state's log-based MP checklist deferred)
-**Status:** 🟢 Ready for Review
+**Last Updated:** 2026-08-16
+**Current Phase:** Complete
+**Status:** ✅ Complete — user-verified; absorbed gm-state MP checklist discharged 2026-08-16 (batched epic test session)
 
 ---
 
@@ -241,9 +241,9 @@ different arrangement parents its own container widget in.
   `--mode local` (which skips real auth) was not retried because the user verified on their own server
   instead. Worth knowing for future local MP tests of GM features: **dedicated-mode local join can wedge on
   Steam backend auth.**
-- ⏸️ **Absorbed gm-state Phase 5 log-based items still owed:** per-class record counts + build ms
-  (`m_bDebugSnapshotTiming`), non-admin negative path (zero `RpcDo_*`), JIP second-client snapshot,
-  stale-discard under fast poll. gm-state's context.md updated accordingly.
+- ✅ **Absorbed gm-state Phase 5 log-based items — discharged 2026-08-16:** user confirmed the whole
+  checklist (negative path, JIP, stale-discard, record counts) was exercised in the epic's batched MP/JIP
+  test session alongside hud-icons; all tests green. Individual log measurements were not recorded.
 
 ## Triage: "the panel shows nothing"
 

@@ -8,7 +8,12 @@ class OVT_GMRequestComponentClass : OVT_ControllerRequestComponentClass {};
 //------------------------------------------------------------------------------------------------
 enum OVT_EGMRequestType
 {
-	CAMPAIGN_SNAPSHOT
+	CAMPAIGN_SNAPSHOT,
+
+	//! One AI group's waypoint route, asked for by RplId when a GM's selection changes. APPENDED, and
+	//! every future value must be too: the ordinal is what crosses the wire, so inserting above an
+	//! existing name would re-point every older client's request type at a different handler.
+	GROUP_WAYPOINTS
 }
 
 //------------------------------------------------------------------------------------------------
@@ -39,6 +44,20 @@ enum OVT_EGMRequestType
 //! lives in OVT_GMCampaignState rather than in fields here, which also honours the base class's rule
 //! that a request component carries no domain state.
 //!
+//! THE SECOND FAN: GROUP WAYPOINT ROUTES. Waypoint entities carry no RplComponent at all, so they
+//! exist only on the server and a GM client can only learn a route by being told. RequestGroupWaypoints()
+//! asks for ONE group's route by RplId; the server answers with WaypointsBegin ... Waypoint x n ...
+//! WaypointsEnd, and the client commits it into GetRoute() and fires GetOnRouteUpdated(). It is the
+//! same framing as the snapshot with ONE deliberate difference: the route runs on its OWN sequence
+//! counter (m_iRouteSeq / m_iRouteStagingSeq). Sharing the snapshot's m_iSeq would let the 8-second
+//! poll silently invalidate a route fan that was still in flight.
+//!
+//! AN EMPTY ANSWER IS STILL AN ANSWER on that fan. A group with no waypoints, an RplId that resolves
+//! to nothing and an RplId that resolves to something that is not a group all receive
+//! Begin(count 0, currentIndex -1) + End(0). ONLY an authorization failure produces silence - the
+//! consumer fetches once per selection, so a silent "found nothing" would leave the previous group's
+//! route drawn forever.
+//!
 //! LISTEN-SERVER CORRECTNESS. Every RpcDo_* send site uses the ShouldRespondLocally short-circuit
 //! (the BUG-090 family: the engine never loops an Rpc back to the sender, so a host's owner-targeted
 //! response to its own controller is silently dropped) and the public request entry point branches on
@@ -54,6 +73,15 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//! Minimum real seconds between two refusal log lines from this player. The component is
 	//! per-player, so one field rate-limits per player and a spamming client cannot flood the log.
 	static const float REFUSAL_LOG_INTERVAL = 10;
+
+	//! How far the truncation warning re-walks a pathological group to name its TRUE waypoint count.
+	//! Bounded rather than unlimited: the point is a useful number in a log line, not a complete walk
+	//! of a route that is already known to be broken.
+	static const int TRUNCATION_PROBE_CAP = 4096;
+
+	//! Minimum real seconds between two route-truncation warnings from this player. Same throttle
+	//! shape as REFUSAL_LOG_INTERVAL: a GM click-spamming a pathological group must not flood the log.
+	static const float TRUNCATION_LOG_INTERVAL = 10;
 
 	//! CLI switch that authorises everyone. Read SERVER-SIDE ONLY, so a client cannot set it.
 	//! Follows the existing -ovtDevUid precedent (OVT_Global.c:4).
@@ -72,6 +100,9 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 
 	[Attribute(defvalue: "0", uiwidget: UIWidgets.CheckBox, desc: "Print snapshot build info server-side and staging commits client-side")]
 	protected bool m_bDebugSnapshotTiming;
+
+	[Attribute(defvalue: "32", desc: "Safety valve: most waypoints one group's route fan may carry (real Overthrow routes are 9 or fewer)")]
+	protected int m_iMaxWaypointsPerGroup;
 
 	//! CLIENT: the store siblings read. Never null - a sibling may ask for it before the first
 	//! snapshot lands and gets an empty store rather than a null check it will forget to write.
@@ -103,8 +134,33 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//! CLIENT: the editor manager this machine's player owns, delivered by the editor core.
 	protected SCR_EditorManagerEntity m_EditorManager;
 
+	//! CLIENT: the one live waypoint route - the GM's current selection and nothing else (plan 5 D10).
+	//! Never null; a consumer that asks before any route lands gets an empty, incomplete route.
+	protected ref OVT_GMWaypointRoute m_Route = new OVT_GMWaypointRoute();
+
+	//! CLIENT: the half-assembled route. Committed into m_Route in one step on WaypointsEnd.
+	protected ref OVT_GMWaypointRoute m_RouteStaging = new OVT_GMWaypointRoute();
+
+	//! CLIENT: fired when a complete route - possibly an empty one - has been committed.
+	protected ref ScriptInvoker m_OnRouteUpdated;
+
+	//! CLIENT: the route request currently in flight. SEPARATE from m_iSeq on purpose: the snapshot
+	//! poll and the route fan supersede only their own requests.
+	protected int m_iRouteSeq;
+
+	//! CLIENT: the sequence a WaypointsBegin opened route staging for. A record whose seq differs is
+	//! dropped.
+	protected int m_iRouteStagingSeq = -1;
+
+	//! CLIENT: whether a WaypointsBegin has opened route staging that a WaypointsEnd has not committed.
+	protected bool m_bRouteStaging;
+
 	//! SERVER: world time (ms) of the last refusal log line for this player. See REFUSAL_LOG_INTERVAL.
 	protected float m_fLastRefusalLog;
+
+	//! SERVER: world time (ms) of the last truncation warning for this player, throttled exactly like
+	//! the refusal line and for the same reason.
+	protected float m_fLastTruncationLog;
 
 	//! SERVER: the read-only manager walk. Created on the first authorized request and reused, so a
 	//! poll every m_fPollIntervalMs does not churn four arrays per GM. It stays null forever on a
@@ -184,6 +240,29 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		if(!m_OnStateCleared) m_OnStateCleared = new ScriptInvoker();
 
 		return m_OnStateCleared;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The client-side waypoint route of the group most recently asked about. Never null.
+	//!
+	//! Check m_bComplete (or HasRoute()) rather than the array count for "has an answer arrived": a
+	//! COMPLETE ROUTE WITH ZERO WAYPOINTS is a real answer meaning "that group has none", and it is
+	//! what clears a previous group's drawing.
+	//! \return The route store.
+	OVT_GMWaypointRoute GetRoute()
+	{
+		return m_Route;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Fired after a complete route fan has been committed into GetRoute(), empty ones included. No
+	//! arguments: the store is the payload.
+	//! \return The invoker.
+	ScriptInvoker GetOnRouteUpdated()
+	{
+		if(!m_OnRouteUpdated) m_OnRouteUpdated = new ScriptInvoker();
+
+		return m_OnRouteUpdated;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -284,6 +363,14 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		m_iStagingSeq = -1;
 		m_Staging.Clear();
 
+		// ABOVE the early return, deliberately: a session that received a waypoint route but never a
+		// campaign snapshot would otherwise keep that route forever. No separate "route cleared"
+		// invoker - consumers of both stores already subscribe to GetOnStateCleared().
+		m_bRouteStaging = false;
+		m_iRouteStagingSeq = -1;
+		m_RouteStaging.Clear();
+		m_Route.Clear();
+
 		if(!m_State.HasData()) return;
 
 		m_State.Clear();
@@ -310,6 +397,38 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_Snapshot(requestType, m_iSeq);
 		}else{
 			Rpc(RpcAsk_Snapshot, requestType, m_iSeq);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server for one AI group's waypoint route. Public: the GM waypoint renderer calls it when
+	//! the editor selection changes to a group, and nothing else does.
+	//!
+	//! The live route is CLEARED IMMEDIATELY rather than on arrival, so a consumer never draws the
+	//! previous group's route against the new selection while the fan is in flight. The route sequence
+	//! is this component's second, independent counter - see the class header for why it is not m_iSeq.
+	//!
+	//! Same listen-server branch as RequestSnapshot(): an RplRcver.Server RPC marshalled BY the server
+	//! is delivered to nobody, so a host calls its own handler directly.
+	//! \param[in] groupRplId The group entity's RplId, read from its RplComponent by the caller.
+	void RequestGroupWaypoints(RplId groupRplId)
+	{
+		if(!IsLocalControllerOwner()) return;
+
+		m_iRouteSeq += 1;
+
+		m_bRouteStaging = false;
+		m_iRouteStagingSeq = -1;
+		m_RouteStaging.Clear();
+		m_Route.Clear();
+
+		int requestType = OVT_EGMRequestType.GROUP_WAYPOINTS;
+
+		if(Replication.IsServer())
+		{
+			RpcAsk_GroupWaypoints(requestType, m_iRouteSeq, groupRplId);
+		}else{
+			Rpc(RpcAsk_GroupWaypoints, requestType, m_iRouteSeq, groupRplId);
 		}
 	}
 
@@ -358,6 +477,42 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		if(requestType != OVT_EGMRequestType.CAMPAIGN_SNAPSHOT) return;
 
 		SendCampaignSnapshot(playerId, seq);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: a GM client wants one group's waypoint route.
+	//!
+	//! IDENTITY IS NEVER A PARAMETER - the same rule as RpcAsk_Snapshot, and THE GATE IS AGAIN THE
+	//! LINE AFTER IT, before the RplId is resolved to anything at all. An unauthorized caller gets no
+	//! reply of any kind, not even an empty one: a reply would confirm the handler exists.
+	//!
+	//! Past the gate, every outcome answers. An RplId that resolves to nothing, or to an entity that
+	//! is not an AIGroup, is answered with an EMPTY ROUTE rather than silence - see the class header.
+	//! \param[in] requestType An OVT_EGMRequestType value.
+	//! \param[in] seq The client's route sequence id, echoed untouched into every response.
+	//! \param[in] groupRplId The group entity's RplId. RplId, never EntityID: an EntityID from a client
+	//! names a different entity (or nothing) on the server.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_GroupWaypoints(int requestType, int seq, RplId groupRplId)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		if(!IsAuthorizedGM(playerId))
+		{
+			LogRefusal(playerId);
+			return;
+		}
+
+		if(requestType != OVT_EGMRequestType.GROUP_WAYPOINTS) return;
+
+		IEntity entity = ResolveEntity(groupRplId);
+
+		AIGroup group = AIGroup.Cast(entity);
+
+		SendGroupWaypoints(playerId, seq, groupRplId, group);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -476,6 +631,93 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		{
 			SendGroup(playerId, seq, groupRecord.m_RplId, groupRecord.m_iOriginType, groupRecord.m_iOriginIndex, groupRecord.m_sReason);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: read one group's route and fan it to one player, Begin ... Waypoint x n ... End.
+	//!
+	//! STRICTLY READ-ONLY - OVT_GMWaypointWalk touches no mutating waypoint or group API, and this
+	//! method adds only GetOrigin() and a prefab-name read on top of it.
+	//!
+	//! A NULL GROUP IS NOT A REASON TO STAY SILENT. Collect() answers 0 for it, and the client gets a
+	//! complete, empty route: the consumer fetches once per selection, so silence here would leave the
+	//! previously selected group's route drawn until the editor closed.
+	//! \param[in] playerId The GM to answer.
+	//! \param[in] seq The client's route sequence id.
+	//! \param[in] groupRplId The RplId that was asked about, echoed back so the client can confirm the
+	//! answer belongs to the selection it still has.
+	//! \param[in] group The resolved group, or null when the RplId named nothing or a non-group.
+	protected void SendGroupWaypoints(int playerId, int seq, RplId groupRplId, AIGroup group)
+	{
+		array<AIWaypoint> waypoints = new array<AIWaypoint>();
+		int currentIndex = -1;
+		bool cyclic = false;
+		bool truncated = false;
+
+		int count = OVT_GMWaypointWalk.Collect(group, m_iMaxWaypointsPerGroup, waypoints, currentIndex, cyclic, truncated);
+
+		int flags = 0;
+		if(cyclic) flags |= OVT_GMWaypointRoute.FLAG_CYCLIC;
+
+		if(truncated)
+		{
+			flags |= OVT_GMWaypointRoute.FLAG_TRUNCATED;
+			LogRouteTruncation(groupRplId, group, count);
+		}
+
+		vector groupPos = vector.Zero;
+		if(group) groupPos = group.GetOrigin();
+
+		SendWaypointsBegin(playerId, seq, groupRplId, count, currentIndex, flags);
+
+		int sent = 0;
+
+		foreach(int i, AIWaypoint waypoint : waypoints)
+		{
+			if(!waypoint) continue;
+
+			// The kind is a pure function of the prefab resource name - there is no runtime API for it
+			// (see OVT_GMWaypointFormat's header) - and an unrecognised name classifies UNKNOWN.
+			int type = OVT_GMWaypointFormat.ClassifyPrefab(OVT_Global.GetPrefabName(waypoint));
+
+			SendWaypoint(playerId, seq, i, waypoint.GetOrigin(), type);
+
+			sent += 1;
+		}
+
+		SendWaypointsEnd(playerId, seq, sent);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: one throttled warning that a group's route was cut off by m_iMaxWaypointsPerGroup.
+	//!
+	//! Real Overthrow routes are nine waypoints or fewer (a perimeter patrol is 4 patrol + 4 wait), so
+	//! this should NEVER fire - which is exactly why it must be loud when it does. The true count is
+	//! re-read with a deliberately generous probe cap so the line says how far over the group actually
+	//! was; the probe runs only on this cold path.
+	//! \param[in] groupRplId The group's RplId, so a triage session can name the same entity the client
+	//! asked about.
+	//! \param[in] group The group, re-walked for its true waypoint count.
+	//! \param[in] sentCount How many waypoints the capped walk emitted.
+	protected void LogRouteTruncation(RplId groupRplId, AIGroup group, int sentCount)
+	{
+		float now = 0;
+		BaseWorld world = GetGame().GetWorld();
+		if(world) now = world.GetWorldTime();
+
+		if(m_fLastTruncationLog > 0 && (now - m_fLastTruncationLog) < (TRUNCATION_LOG_INTERVAL * 1000)) return;
+
+		m_fLastTruncationLog = now;
+
+		array<AIWaypoint> probe = new array<AIWaypoint>();
+		int probeCurrent = -1;
+		bool probeCyclic = false;
+		bool probeTruncated = false;
+
+		int trueCount = OVT_GMWaypointWalk.Collect(group, TRUNCATION_PROBE_CAP, probe, probeCurrent, probeCyclic, probeTruncated);
+
+		Print(string.Format("[Overthrow.GMRequest] GM waypoint route for group RplId %1 was TRUNCATED: %2 waypoint(s) sent of %3 (cap %4). Real Overthrow routes are 9 or fewer - this group is pathological or the cap is wrong.",
+			groupRplId, sentCount, trueCount, m_iMaxWaypointsPerGroup), LogLevel.WARNING);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -652,6 +894,63 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		}
 
 		Rpc(RpcDo_SnapshotEnd, seq, recordCount);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: open a route fan. Sent for EVERY authorized request, including the ones that found no
+	//! group and no waypoints - count 0 with currentIndex -1 is the answer "that group has no route".
+	//! \param[in] playerId Recipient.
+	//! \param[in] seq The client's route sequence id.
+	//! \param[in] groupRplId The group's RplId, echoed back.
+	//! \param[in] count How many waypoint records follow.
+	//! \param[in] currentIndex Index of the current waypoint, or -1 (a first-class answer).
+	//! \param[in] flags OVT_GMWaypointRoute.FLAG_* bitfield.
+	protected void SendWaypointsBegin(int playerId, int seq, RplId groupRplId, int count, int currentIndex, int flags)
+	{
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_WaypointsBegin(seq, WIRE_VERSION, groupRplId, count, currentIndex, flags);
+			return;
+		}
+
+		Rpc(RpcDo_WaypointsBegin, seq, WIRE_VERSION, groupRplId, count, currentIndex, flags);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: one waypoint of the route.
+	//!
+	//! POSITION IS SENT because a waypoint entity has no RplComponent and therefore does not exist on
+	//! the client at all - it is the one GM record whose position cannot be resolved from an RplId.
+	//! \param[in] playerId Recipient.
+	//! \param[in] seq The client's route sequence id.
+	//! \param[in] index Position in the route, 0-based, in walking order.
+	//! \param[in] pos The waypoint entity's origin.
+	//! \param[in] type An OVT_EGMWaypointType value.
+	protected void SendWaypoint(int playerId, int seq, int index, vector pos, int type)
+	{
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_Waypoint(seq, index, pos, type);
+			return;
+		}
+
+		Rpc(RpcDo_Waypoint, seq, index, pos, type);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: close the route fan. The sent count is what makes a fan that lost records visible.
+	//! \param[in] playerId Recipient.
+	//! \param[in] seq The client's route sequence id.
+	//! \param[in] sent How many waypoint records were sent between Begin and End.
+	protected void SendWaypointsEnd(int playerId, int seq, int sent)
+	{
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_WaypointsEnd(seq, sent);
+			return;
+		}
+
+		Rpc(RpcDo_WaypointsEnd, seq, sent);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -848,5 +1147,89 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	protected bool IsStagingRecord(int seq)
 	{
 		return m_bStaging && seq == m_iStagingSeq;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: a route fan begins. A version this build does not know REFUSES TO STAGE, exactly as the
+	//! snapshot does, and shares m_bLoggedVersionMismatch so a mismatched build logs ONCE for the whole
+	//! component rather than once per surface.
+	//! \param[in] seq The route sequence id this fan belongs to.
+	//! \param[in] wireVersion The server's WIRE_VERSION.
+	//! \param[in] groupRplId The group this route describes.
+	//! \param[in] count How many waypoint records follow.
+	//! \param[in] currentIndex Index of the current waypoint, or -1 for none.
+	//! \param[in] flags OVT_GMWaypointRoute.FLAG_* bitfield.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_WaypointsBegin(int seq, int wireVersion, RplId groupRplId, int count, int currentIndex, int flags)
+	{
+		if(wireVersion != WIRE_VERSION)
+		{
+			m_bRouteStaging = false;
+
+			if(!m_bLoggedVersionMismatch)
+			{
+				m_bLoggedVersionMismatch = true;
+				Print(string.Format("[Overthrow.GMRequest] GM snapshot wire version mismatch: server sent %1, this build speaks %2. No GM campaign state will be shown until client and server builds match.", wireVersion, WIRE_VERSION), LogLevel.WARNING);
+			}
+
+			return;
+		}
+
+		m_iRouteStagingSeq = seq;
+		m_bRouteStaging = true;
+
+		m_RouteStaging.Clear();
+		m_RouteStaging.m_GroupRplId = groupRplId;
+		m_RouteStaging.m_iCurrentIndex = currentIndex;
+		m_RouteStaging.m_iFlags = flags;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: one waypoint of the staging route. A record whose seq is not the staging one is DROPPED
+	//! silently - it belongs to a request this client has already superseded.
+	//! \param[in] seq Route sequence id; anything but the staging sequence is dropped.
+	//! \param[in] index Position in the route, 0-based.
+	//! \param[in] pos The waypoint's world position.
+	//! \param[in] type An OVT_EGMWaypointType value.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_Waypoint(int seq, int index, vector pos, int type)
+	{
+		if(!IsStagingRouteRecord(seq)) return;
+
+		OVT_GMWaypointRecord record = new OVT_GMWaypointRecord();
+		record.m_iIndex = index;
+		record.m_vPos = pos;
+		record.m_iType = type;
+		m_RouteStaging.m_aWaypoints.Insert(record);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: the route fan is complete - commit staging into the live route in ONE step and tell
+	//! consumers. An empty route commits and fires like any other: that is how a consumer learns the
+	//! selected group has no waypoints and stops drawing the previous one.
+	//! \param[in] seq Route sequence id; anything but the staging sequence is dropped.
+	//! \param[in] sent How many waypoint records the server said it sent.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_WaypointsEnd(int seq, int sent)
+	{
+		if(!IsStagingRouteRecord(seq)) return;
+
+		m_bRouteStaging = false;
+
+		m_RouteStaging.m_bComplete = true;
+
+		m_Route.CopyFrom(m_RouteStaging);
+
+		if(m_OnRouteUpdated) m_OnRouteUpdated.Invoke();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: whether a record belongs to the route fan currently being staged. The stale-discard rule
+	//! again, on the ROUTE's own sequence - the snapshot poll's m_iSeq must never invalidate a route.
+	//! \param[in] seq The record's route sequence id.
+	//! \return True when the record may be staged.
+	protected bool IsStagingRouteRecord(int seq)
+	{
+		return m_bRouteStaging && seq == m_iRouteStagingSeq;
 	}
 }

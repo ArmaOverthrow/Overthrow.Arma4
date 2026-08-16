@@ -27,6 +27,11 @@ modded class SCR_EditModeEditorUIComponent
 	// instead (OVT_GMCampaignUIInfo.GetDescription). The panel's empty detail seam remains for the
 	// gm epic's Phase 2 popup actions.
 
+	//! Draws the selected AI group's waypoint route in the 3D view. Owned here because this class is a
+	//! MenuRootSubComponent and therefore has GetMenu(), i.e. the per-frame GetOnMenuUpdate() invoker -
+	//! it owns no widget and needs no layout of its own.
+	protected ref OVT_GMWaypointRenderer m_WaypointRenderer;
+
 	//------------------------------------------------------------------------------------------------
 	//! Fires once per EDIT-mode activation, one frame after the mode root is built
 	//! (MenuRootSubComponent.c:82 defers it), so the full tree exists when the panel is created.
@@ -42,5 +47,28 @@ modded class SCR_EditModeEditorUIComponent
 		Widget panel = GetGame().GetWorkspace().CreateWidgets(PANEL_LAYOUT, w);
 		if (!panel)
 			Print("OVT: could not create " + PANEL_LAYOUT + " - the GM panel will be absent this session (missing .layout.meta?)", LogLevel.WARNING);
+
+		MenuRootBase menu = GetMenu();
+		if (!menu)
+			return;
+
+		m_WaypointRenderer = new OVT_GMWaypointRenderer();
+		m_WaypointRenderer.Attach(menu);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! EDIT mode is going away. The renderer's subscriptions outlive it otherwise - the SELECTED filter
+	//! and the gm-state seam both survive a mode switch - so it is torn down BEFORE super, which
+	//! unregisters this component from the menu root.
+	//! \param[in] w Mode_Edit layout root.
+	override void HandlerDeattached(Widget w)
+	{
+		if (m_WaypointRenderer)
+		{
+			m_WaypointRenderer.Detach();
+			m_WaypointRenderer = null;
+		}
+
+		super.HandlerDeattached(w);
 	}
 }

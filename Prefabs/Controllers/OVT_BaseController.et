@@ -11,7 +11,7 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
    }
    m_bAutoRegister ALWAYS
    m_vIconPos 0 8 0
-   m_fMaxDrawDistance 20000
+   m_fMaxDrawDistance 2000
    m_Flags 2052
    m_eKind BASE
   }

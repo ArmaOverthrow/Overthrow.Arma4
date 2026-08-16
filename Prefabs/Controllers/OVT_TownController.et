@@ -10,7 +10,7 @@ GenericEntity {
    }
    m_bAutoRegister ALWAYS
    m_vIconPos 0 10 0
-   m_fMaxDrawDistance 20000
+   m_fMaxDrawDistance 2000
    m_Flags 2052
    m_eKind TOWN
   }

@@ -1,9 +1,9 @@
 # GM State - Context & Decisions
 
 **Feature:** gm/gm-state (epic `gm`, feature 1 of 5 — the data spine for overthrow-panel, hud-icons, waypoint-viz, gm-map)
-**Last Updated:** 2026-08-14 17:55
-**Current Phase:** Built — Phase 5 MP play-test owed
-**Status:** 🟢 Ready for Review
+**Last Updated:** 2026-08-16
+**Current Phase:** Complete
+**Status:** ✅ Complete — MP play-test confirmed by user 2026-08-16 (exercised in the epic's batched test session with overthrow-panel + hud-icons; all tests green; log measurements not recorded separately)
 
 ---
 
@@ -222,6 +222,10 @@ OVT_GMCampaignState state = gm.GetState();      // the store; never null, check 
   (I-3); Q-6 mutation grep hits are only doc-comments and assignments to the feature's own record objects.
 
 ## Needs Human Verification (Phase 5 — the MP gate, §7 Verification Method)
+
+> ✅ **DISCHARGED 2026-08-16:** user confirmed the checklist below was exercised in the epic's batched
+> MP/JIP test session (together with overthrow-panel and hud-icons); all tests green. Individual log
+> measurements (record counts / build ms) were not recorded. Kept below as the reference method.
 
 Everything below is MP-only and covered by no suite. Steps for the user (⚠️ client launches open windows on
 your desktop):
