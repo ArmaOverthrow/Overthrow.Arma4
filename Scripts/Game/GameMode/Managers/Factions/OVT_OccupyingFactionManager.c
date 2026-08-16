@@ -170,6 +170,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
+	//! Town support percentage required before players can start an uprising at the town flag
+	static const int UPRISING_SUPPORT_THRESHOLD = 75;
+
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
 	ref ScriptInvoker<IEntity> m_OnPlayerLoot = new ScriptInvoker<IEntity>;
@@ -1263,20 +1266,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 				if(town.size == 1) continue;
 				if(!OVT_Global.PlayerInRange(town.location, 300)) continue;
 
-				int support = town.SupportPercentage();
-				if(town.IsOccupyingFaction())
+				// Uprisings in occupied towns are player-initiated via the town flag action
+				if(town.IsOccupyingFaction()) continue;
+
+				if(town.SupportPercentage() < 25)
 				{
-					if(support > 75)
-					{
-						StartTownQRF(town);
-						break;
-					}
-				}else{
-					if(support < 25)
-					{
-						StartTownQRF(town);
-						break;
-					}
+					StartTownQRF(town);
+					break;
 				}
 			}
 		}

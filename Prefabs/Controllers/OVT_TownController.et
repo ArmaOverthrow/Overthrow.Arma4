@@ -1,4 +1,4 @@
-GenericEntity {
+GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02/FlagPole_02_V1_FIA.et" {
  ID "59908365F7966578"
  components {
   AIPathfindingComponent "{59908365908A92AD}" {
@@ -9,6 +9,35 @@ GenericEntity {
   RplComponent "{599AA7491CA2D761}" {
   }
   Hierarchy "{65BD30BC85438596}" {
+  }
+  SlotManagerComponent "{55DAE04E55ECE7FA}" {
+   Slots {
+    EntitySlotInfo Flag {
+     Prefab "{CB81BF6576E682D3}Prefabs/Props/Fabric/Flags/Flag_1_2_USSR_01.et"
+    }
+   }
+  }
+  ActionsManagerComponent "{68A0C7D24B913A55}" {
+   ActionContexts {
+    UserActionContext "{68A0C7D24B913A56}" {
+     ContextName "default"
+     Position PointInfo "{68A0C7D24B913A57}" {
+      Offset 0 1.8 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_StartUprisingAction "{68A0C7D24B913A58}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{68A0C7D24B913A59}" {
+      Name "#OVT-StartUprising"
+     }
+     Duration 15
+    }
+   }
   }
  }
  Flags 1027

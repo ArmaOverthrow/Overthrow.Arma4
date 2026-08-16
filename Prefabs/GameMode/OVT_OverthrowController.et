@@ -17,6 +17,8 @@ OVT_OverthrowController {
   }
   OVT_RecruitCommandComponent "{6B4C000000000003}" {
   }
+  OVT_UprisingRequestComponent "{68A0C7D24B913A60}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

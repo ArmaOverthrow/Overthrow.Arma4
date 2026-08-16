@@ -189,6 +189,17 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the server-authoritative town uprising request component
+	//! \return Uprising request component or null
+	static OVT_UprisingRequestComponent GetUprisingRequests()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_UprisingRequestComponent.Cast(controller.FindComponent(OVT_UprisingRequestComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method to get the recruit command relay component
 	//!
 	//! CLIENT-ONLY, like every other accessor built on GetController(), and null until

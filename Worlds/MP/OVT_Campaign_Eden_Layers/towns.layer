@@ -10,8 +10,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iAttackDirectionVariance 80
    }
   }
-  coords 4442.495 10.965 10761.012
-  angleY -26.483
+  coords 4439.794 12.81 10754.501
+  angles 0 -26.483 0
  }
  Town_Meaux {
   components {
@@ -22,7 +22,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 140
    }
   }
-  coords 4520.712 14.228 9471.291
+  coords 4520.712 14.228 9467.58
  }
  Town_Tyrone {
   components {
@@ -32,8 +32,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 100
    }
   }
-  coords 4927.087 36.393 9083.621
-  angleY -58.507
+  coords 4930.087 36.393 9086.702
+  angles 0 -58.507 0
  }
  Town_Gravette {
   components {
@@ -43,8 +43,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 120
    }
   }
-  coords 4127 35.563 7799.027
-  angleY 164.443
+  coords 4119.979 35.563 7787.129
+  angles 0 120.545 0
  }
  Town_Montignac {
   components {
@@ -55,8 +55,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 300
    }
   }
-  coords 4788.69 163.389 7113.211
-  angleY 62.909
+  coords 4756.564 163.389 7102.171
+  angles 0 62.909 0
  }
  Town_Villeneuve {
   components {
@@ -66,8 +66,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 110
    }
   }
-  coords 2858.224 86.734 6345.545
-  angleY -102.087
+  coords 2852.107 86.734 6340.786
+  angles 0 -102.087 0
  }
  Town_LeMoule {
   components {
@@ -78,7 +78,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 2604.95 92.264 5387.095
-  angleY 127.35
+  angles 0 127.35 0
  }
  Town_Morton {
   components {
@@ -91,8 +91,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iAttackDirectionVariance 65
    }
   }
-  coords 5135.043 14.586 4028.731
-  angleY -19.967
+  coords 5137.9 14.586 4020.867
+  angles 0 -19.967 0
  }
  Town_Lamentin {
   components {
@@ -105,7 +105,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 1272.44 37.449 5926.417
-  angleY 50.923
+  angles 0 50.923 0
  }
  Town_Figari {
   components {
@@ -115,8 +115,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 150
    }
   }
-  coords 5256.276 64.281 5322.948
-  angleY -152.175
+  coords 5276 64.281 5346.537
+  angles 0 -152.175 0
  }
  Town_Provins {
   components {
@@ -127,7 +127,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 5502.828 95.612 6076.546
-  angleY 29.327
+  angles 0 29.327 0
  }
  Town_EntreDeux {
   components {
@@ -138,7 +138,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 5754.916 217.74 7062.12
-  angleY 8.632
+  angles 0 8.632 0
  }
  Town_Chotain {
   components {
@@ -152,7 +152,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 7076.712 118.796 6023.646
-  angleY -30.718
+  angles 0 -30.718 0
  }
  Town_Laruns {
   components {
@@ -162,8 +162,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 105
    }
   }
-  coords 7562.082 82.706 5536.986
-  angleY -42.484
+  coords 7576.328 82.706 5521.431
+  angles 0 -42.484 0
  }
  Town_Levie {
   components {
@@ -174,8 +174,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 180
    }
   }
-  coords 7490.123 137.56 4729.356
-  angleY -87.587
+  coords 7458.542 137.56 4737.1
+  angles 0 -87.587 0
  }
  Town_Durras {
   components {
@@ -186,7 +186,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 8826.591 94.724 2756.529
-  angleY -109.02
+  angles 0 -109.02 0
  }
  Town_Vernon {
   components {
@@ -197,7 +197,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 9252.985 58.555 2071.683
-  angleY 22.94
+  angles 0 22.94 0
  }
  Town_StPierre {
   components {
@@ -209,8 +209,8 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iAttackPreferredDirection 224
    }
   }
-  coords 9697.526 12.78 1548.97
-  angleY 45.41
+  coords 9696.476 12.78 1547.934
+  angles 0 45.41 0
  }
  Town_Erquy {
   components {
@@ -221,7 +221,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 10925.94 24.889 11703.107
-  angleY -126.918
+  angles 0 -126.918 0
  }
  Town_Regina {
   components {
@@ -232,6 +232,6 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
    }
   }
   coords 7189.877 137.254 2344.089
-  angleY -103.743
+  angles 0 -103.743 0
  }
 }
