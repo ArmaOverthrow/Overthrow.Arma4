@@ -103,6 +103,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	
 	[Attribute(defvalue: "100", desc: "QRF Points needed to win a battle (lower = shorter battles)", category: "QRF")]
 	int QRFPointsToWin;
+
+	[Attribute(defvalue: "1", desc: "Deployed FOBs stay valid respawn and fast-travel destinations during an active QRF, overriding QRF Fast Travel Mode (a FOB is the forward spawn for exactly that battle). Turn off to make FOBs obey the QRF restrictions like every other location", category: "QRF")]
+	bool allowFOBDuringQRF;
 	
 	[Attribute(defvalue: "1000", desc: "Max size of QRF in resources", category: "QRF")]
 	int maxQRF;

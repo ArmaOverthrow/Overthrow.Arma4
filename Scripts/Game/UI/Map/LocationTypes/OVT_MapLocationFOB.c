@@ -100,12 +100,13 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 	//! no per-FOB access rule to consult. No global fast-travel tail: its rules are measured from a
 	//! living player's position.
 	//!
-	//! DELIBERATELY NOT QRF-FILTERED (unlike every other respawnable type): a deployed FOB is the
+	//! NOT QRF-FILTERED BY DEFAULT (unlike every other respawnable type): a deployed FOB is the
 	//! resistance's forward spawn for exactly the battle a QRF represents, and players routinely die
 	//! defending one they forgot to set as home - dropping it from the respawn screen at that moment
-	//! is when it is needed most. The server-side enumeration
-	//! (OVT_RespawnService.CollectEligiblePositions) carries the matching exemption; the two must
-	//! stay in agreement or the marker and the spawn will disagree.
+	//! is when it is needed most. The allowFOBDuringQRF difficulty setting (JIP-streamed) lets a
+	//! server owner restore the filter. The server-side enumeration
+	//! (OVT_RespawnService.CollectEligiblePositions) reads the same setting through the same
+	//! predicate; the two must stay in agreement or the marker and the spawn will disagree.
 	//! \param[in] location The record being tested
 	//! \param[in] playerID Persistent id of the local player
 	//! \param[out] reason Localization key explaining a refusal
@@ -121,6 +122,12 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 		if (!OVT_RespawnService.IsFobEligible())
 		{
 			reason = "#OVT-Respawn_NotEligible";
+			return false;
+		}
+
+		if (!OVT_RespawnService.AllowFobDuringQrf() && OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		{
+			reason = "#OVT-Respawn_QRF";
 			return false;
 		}
 

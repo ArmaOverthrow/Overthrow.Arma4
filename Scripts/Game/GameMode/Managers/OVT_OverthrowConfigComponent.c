@@ -567,7 +567,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! which locations are in range of it. Without them a client falls back to whatever difficulty
 	//! preset its game-mode prefab instantiated m_Difficulty from, which agrees with the server at
 	//! exactly one difficulty and silently invents or omits influence edges at every other.
-	protected const int CONFIG_STREAM_VERSION = 2;
+	//!
+	//! Version 3 appended allowFOBDuringQRF to the difficulty block. It is read client-side by
+	//! ValidateTravel (the travel button's enable state) and OVT_MapLocationFOB.CanRespawn (the
+	//! respawn marker) — without it a client whose server disabled the FOB exemption would show an
+	//! enabled button the server then refuses.
+	protected const int CONFIG_STREAM_VERSION = 3;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -595,6 +600,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.disguiseDetectionDistance);
 		writer.WriteFloat(m_Difficulty.radioTowerRange);
 		writer.WriteFloat(m_Difficulty.baseSupportRange);
+		writer.WriteBool(m_Difficulty.allowFOBDuringQRF);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -683,6 +689,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.baseSupportRange = f;
+
+		if (!reader.ReadBool(b)) return false;
+		m_Difficulty.allowFOBDuringQRF = b;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

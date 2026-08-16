@@ -108,17 +108,22 @@ class OVT_FastTravelService
 			if (occupyingFaction && occupyingFaction.m_bQRFActive &&
 				config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
 			{
-				if (config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
-					return OVT_TravelResult.QRF_ACTIVE;
+				// A deployed FOB stays travellable through EVERY QRF restriction, DISABLED included -
+				// it is the resistance's forward spawn for exactly this battle, and refusing it
+				// strands players who forgot to set it as home. allowFOBDuringQRF (default on, JIP-
+				// streamed) lets a server owner switch the exemption off. Runs identically on both
+				// machines (m_FOBs is replicated), so the panel's enable state and the server's
+				// refusal cannot disagree.
+				bool fobExempt = config.m_Difficulty.allowFOBDuringQRF && IsFobPosition(targetPos);
+				if (!fobExempt)
+				{
+					if (config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
+						return OVT_TravelResult.QRF_ACTIVE;
 
-				// A deployed FOB inside the QRF ring stays travellable - it is the resistance's
-				// forward spawn for exactly this battle, and refusing it strands players who forgot
-				// to set it as home. Runs identically on both machines (m_FOBs is replicated), so the
-				// panel's enable state and the server's refusal cannot disagree. DISABLED above still
-				// refuses everything: that mode is an explicit difficulty choice, not a proximity rule.
-				float qrfDist = vector.Distance(occupyingFaction.m_vQRFLocation, targetPos);
-				if (qrfDist < OVT_QRFControllerComponent.QRF_RANGE && !IsFobPosition(targetPos))
-					return OVT_TravelResult.QRF_TOO_CLOSE;
+					float qrfDist = vector.Distance(occupyingFaction.m_vQRFLocation, targetPos);
+					if (qrfDist < OVT_QRFControllerComponent.QRF_RANGE)
+						return OVT_TravelResult.QRF_TOO_CLOSE;
+				}
 			}
 		}
 
