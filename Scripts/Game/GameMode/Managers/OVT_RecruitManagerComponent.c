@@ -728,9 +728,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 		int oldLevel = recruit.GetLevel();
 		recruit.AddXP(xp);
 		int newLevel = recruit.GetLevel();
-		
+
 		m_OnRecruitXPGained.Invoke(recruit, xp);
-		
+
+		// XP and kills live only in the server's record; without this broadcast a dedicated-server
+		// (or listen-host) client's roster shows 0 kills / 0 XP forever, since RpcDo_RecruitUpdated
+		// is the only thing that writes them client-side outside the JIP snapshot.
+		BroadcastRecruitUpdate(recruit);
+
 		// Notify if leveled up
 		if (newLevel > oldLevel)
 		{
