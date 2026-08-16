@@ -356,7 +356,53 @@ class OVT_TravelRequestComponent : OVT_Component
 			return vehiclePos;
 		}
 
-		return OVT_Global.FindSafeSpawnPosition(targetPos);
+		// On foot. The safe-search has two ways to hand back a position inside something at a built-up
+		// destination: total failure returns the input unchanged (a deployed FOB's record vector IS the
+		// truck's origin - the player materialised inside the truck bed), and the authored-spawn-point
+		// branch returns its point UNTRACED, so a point an obstruction has since covered comes back
+		// looking clear. Verify whichever answer arrives, and fall back to the nearest road - the same
+		// answer the recruits and a travelled vehicle already use. Only when there is no road within
+		// reach does the original position stand, as the least-bad last resort.
+		vector dest;
+		bool clear = OVT_Global.TryFindSafeSpawnPosition(targetPos, dest);
+		if(clear && !IsPositionClear(dest))
+		{
+			// A blocked AUTHORED point usually has clear floor right beside it (something was built or
+			// parked over it since it was authored) - a scatter around the point keeps the arrival in
+			// the same room rather than on the street.
+			vector scattered;
+			clear = OVT_Global.TryFindSafeSpawnPosition(dest, scattered, "-0.5 0 -0.5", "0.5 2 0.5", true);
+			if(clear)
+				dest = scattered;
+		}
+
+		if(!clear)
+		{
+			vector roadPos;
+			vector roadAngles;
+			if(OVT_Global.FindNearestRoadSpawn(targetPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles))
+				dest = roadPos;
+		}
+
+		return dest;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a person-sized box at pos is free of geometry - the same test the spawn search's own
+	//! probes apply, for positions that arrive from branches that never traced them.
+	protected bool IsPositionClear(vector pos)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if(!world)
+			return true;
+
+		TraceBox trace = new TraceBox;
+		trace.Flags = TraceFlags.ENTS;
+		trace.Start = pos;
+		trace.Mins = "-0.5 0 -0.5";
+		trace.Maxs = "0.5 2 0.5";
+
+		return world.TracePosition(trace, null) >= 0;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -391,11 +437,12 @@ class OVT_TravelRequestComponent : OVT_Component
 		}
 	}
 
-	//! How far to reach for a road to line the arriving recruits up on. Tighter than the vehicle's
-	//! ROAD_SPAWN_MAX_DISTANCE (200 m): a car on a road 200 m away can be driven back, a squad 200 m
-	//! away has to be walked back. Past this, the ring fallback runs - and anywhere WITHOUT a road
-	//! within 100 m is open ground, which is exactly where the ring works.
-	static const float RECRUIT_ROAD_MAX_DISTANCE = 100.0;
+	//! How far to reach for a road when an on-foot arrival point cannot be cleared - both for the
+	//! recruit line-up and for the player's own arrival fallback. Tighter than the vehicle's
+	//! ROAD_SPAWN_MAX_DISTANCE (200 m): a car on a road 200 m away can be driven back, a person 200 m
+	//! away has to walk. Past this, the local fallbacks run - and anywhere WITHOUT a road within
+	//! 100 m is open ground, where the local search rarely fails in the first place.
+	static const float ROAD_FALLBACK_MAX_DISTANCE = 100.0;
 
 	//! Gap between recruits lined up along the road.
 	static const float RECRUIT_ROAD_SPACING = 1.5;
@@ -424,7 +471,7 @@ class OVT_TravelRequestComponent : OVT_Component
 
 		// One road query for the whole squad, and the direction it runs so the line follows it.
 		vector roadPos, roadAngles;
-		bool haveRoad = OVT_Global.FindNearestRoadSpawn(destPos, RECRUIT_ROAD_MAX_DISTANCE, roadPos, roadAngles);
+		bool haveRoad = OVT_Global.FindNearestRoadSpawn(destPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles);
 		vector roadDir = vector.Zero;
 		if (haveRoad)
 		{
