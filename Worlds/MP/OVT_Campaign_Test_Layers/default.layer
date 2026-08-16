@@ -70,16 +70,6 @@ OVT_OverthrowFactionManager "6490CD9767C0A45B" : "{51EBC0CFD56DA130}Prefabs/Game
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {
  coords 54.102 1 133.598
 }
-GenericEntity Town {
- components {
-  SCR_MapDescriptorComponent "{5D8680D15B3CF38E}" {
-   DisplayName "Town"
-   MainType "Name Village"
-  }
- }
- Flags 0x403 0
- coords 221.182 1.001 107.325
-}
 OVT_VehiclePatrolSpawn {
  coords 82.991 1 107.357
  angles 0 85.773 0
@@ -298,16 +288,17 @@ OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition.et" 
 GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et" {
  components {
   OVT_TownControllerComponent "{59908365ED5E1344}" {
-   m_sName "Town"
+   m_sName "Test Town"
    m_Size TOWN
    m_iPopulation 50
    m_iTownRange 80
-   m_iAttackDistanceMin 125
-   m_iAttackDistanceMax 175
-   m_iAttackPreferredDirection 256
+   m_iAttackDistanceMin 100
+   m_iAttackDistanceMax 150
+   m_iAttackPreferredDirection 270
+   m_iAttackDirectionVariance 35
   }
  }
- coords 208.237 1 102.173
+ coords 168.378 1 146.334
 }
 Tree : "{7BAA3CF64495B691}Prefabs/Vegetation/Bush/b_rubus_idaeus_0s.et" {
  coords 179.619 0.001 124.94

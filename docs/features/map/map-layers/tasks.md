@@ -200,6 +200,7 @@
 - [ ] **I-2** 🔴 Client A hides Houses and Territory; **B's map is unchanged.** B then hides Bases; **A's map is unchanged and A's houses/territory stay hidden.** Two profiles is also what proves preferences are **per profile**
 - [ ] **I-3** **JIP** — B joins _after_ A has accumulated state and toggled filters. B's map is complete and unfiltered; A's filters persist across B's join
 - [ ] **I-4** With every row on, the map is **indistinguishable from the pre-feature map** — markers, info panels, fast travel, bus travel, territory shading and restriction rings all behave as before
+- [ ] **I-5** *(added 2026-08-16 — BUG-176/BUG-177 fix verification, player-reported MP-only defects fixed blind)* On a **client**: base markers exist for **both** factions, a captured base shows the resistance icon/colour and its real name, and fast travel to a captured base works. Camps: A places a camp while B is connected → both see it; A toggles it private → A keeps it, B loses it; A relogs → still on A's map (JIP)
 
 **Phase 1's spike questions, folded in**
 

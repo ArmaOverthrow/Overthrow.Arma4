@@ -35,6 +35,8 @@ class OVT_TownControllerComponent: OVT_Component
 
 	protected bool m_bCiviliansSpawned;
 
+	protected int m_iFlagFactionIndex = -1;
+
 	protected ref array<ref EntityID> m_aCivilians;
 
 	protected ref array<ref EntityID> m_Houses;
@@ -92,7 +94,28 @@ class OVT_TownControllerComponent: OVT_Component
 		m_Economy = OVT_Global.GetEconomy();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
 		m_aCivilians = new array<ref EntityID>;
-		
+
+		// Runs on server and clients alike: the flag material is a local visual,
+		// each machine derives it from the replicated town faction
+		GetGame().GetCallqueue().CallLater(CheckUpdateFlag, 10000, true);
+		GetGame().GetCallqueue().CallLater(CheckUpdateFlag, 0);
+	}
+
+	protected void CheckUpdateFlag()
+	{
+		if(!m_Town)
+			m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
+		if(!m_Town) return;
+		if(m_Town.faction == m_iFlagFactionIndex) return;
+
+		SCR_Faction scrFaction = SCR_Faction.Cast(GetGame().GetFactionManager().GetFactionByIndex(m_Town.faction));
+		if(!scrFaction) return;
+
+		SCR_FlagComponent flag = OVT_ComponentFinder<SCR_FlagComponent>.Find(GetOwner());
+		if(!flag) return;
+
+		flag.ChangeMaterial(scrFaction.GetFactionFlagMaterial());
+		m_iFlagFactionIndex = m_Town.faction;
 	}
 	
 	void ActivateTown()

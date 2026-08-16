@@ -42,6 +42,22 @@ class OVT_WorldUtils : Managed
 	static ref array<IEntity> s_SpawnPointSearchResults;
 	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
 	{
+		vector foundPos;
+		TryFindSafeSpawnPosition(pos, foundPos, mins, maxs, skipSpawnPointSearch);
+		return foundPos;
+	}
+
+	//! As FindSafeSpawnPosition, but the failure is REPORTED instead of hidden: when neither an
+	//! authored spawn point nor the random search finds a clear spot, foundPos is the input position
+	//! unchanged and the return is false, so the caller chooses its own fallback rather than
+	//! inheriting a position that is known to collide. FindSafeSpawnPosition's silent return of the
+	//! original position is what embedded fast-travelled recruits inside starter-house walls - the
+	//! 30 probes all collide inside a wall cavity and the colliding input came back looking like an
+	//! answer.
+	static bool TryFindSafeSpawnPosition(vector pos, out vector foundPos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
+	{
+		foundPos = pos;
+
 		// First check for nearby entities with spawn point components (unless skipped for performance)
 		if (!skipSpawnPointSearch)
 		{
@@ -73,14 +89,14 @@ class OVT_WorldUtils : Managed
 					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestEntity.FindComponent(OVT_SpawnPointComponent));
 					if (spawnComp)
 					{
-						return spawnComp.GetSpawnPoint();
+						foundPos = spawnComp.GetSpawnPoint();
+						return true;
 					}
 				}
 			}
 		}
-		
+
 		//a crude and brute-force way to find a spawn position, try to improve this later
-		vector foundpos = pos;
 		int i = 0;
 		
 		BaseWorld world = GetGame().GetWorld();
@@ -111,18 +127,24 @@ class OVT_WorldUtils : Managed
 				continue;
 			}else{
 				//no collision, this pos is safe
-				foundpos = checkpos;
-				break;
+				foundPos = checkpos;
+				return true;
 			}
 		}
-		
-		return foundpos;
+
+		// Every probe collided - foundPos is still the (colliding) input position
+		return false;
 	}
 	//! Find safe vehicle spawn position with rotation
-	static bool FindSafeVehicleSpawnPosition(vector pos, out vector position, out vector angles, bool skipSpawnPointSearch = false)
+	//! skipAuthoredSpots skips ONLY the parking/vehicle-point query and keeps the road search: the
+	//! 15 m sphere answers "whose parking is nearest", not "whose parking is this", so a destination
+	//! that merely sits NEAR somebody's authored parking (a player-placed camp beside a house) would
+	//! inherit a spot that belongs to the neighbour. Callers who know the destination authors no
+	//! vehicle arrival pass true and go straight to the nearest road.
+	static bool FindSafeVehicleSpawnPosition(vector pos, out vector position, out vector angles, bool skipSpawnPointSearch = false, bool skipAuthoredSpots = false)
 	{
 		// First check for nearby entities with parking or vehicle spawn point components (unless skipped for performance)
-		if (!skipSpawnPointSearch)
+		if (!skipSpawnPointSearch && !skipAuthoredSpots)
 		{
 			if (!s_SpawnPointSearchResults)
 				s_SpawnPointSearchResults = {};

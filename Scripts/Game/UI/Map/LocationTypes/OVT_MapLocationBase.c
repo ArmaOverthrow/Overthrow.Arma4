@@ -33,20 +33,19 @@ class OVT_MapLocationBase : OVT_MapLocationType
 			OVT_BaseData base = bases[i];
 			if (!base)
 				continue;
-			
-			// Get base controller to get the name
+
+			// The entity is only the source of the display name and is OPTIONAL: entId is
+			// [NonSerialized] and assigned by the server's world query, so on a client it can be
+			// unset (BUG-176 - skipping here left clients with no base markers at all). The marker
+			// itself needs only the replicated record
+			string baseName = "Military Base";
 			IEntity baseEntity = GetGame().GetWorld().FindEntityByID(base.entId);
-			if (!baseEntity)
-				continue;
-				
-			OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
-			if (!controller)
-				continue;
-			
-			// Create location data for this base
-			string baseName = controller.m_sName;
-			if (baseName.IsEmpty())
-				baseName = "Military Base";
+			if (baseEntity)
+			{
+				OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(baseEntity.FindComponent(OVT_BaseControllerComponent));
+				if (controller && !controller.m_sName.IsEmpty())
+					baseName = controller.m_sName;
+			}
 				
 			OVT_MapLocationData locationData = new OVT_MapLocationData(base.location, baseName, ClassName());
 			

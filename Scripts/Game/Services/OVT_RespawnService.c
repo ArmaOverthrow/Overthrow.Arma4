@@ -99,6 +99,21 @@ class OVT_RespawnService
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether deployed FOBs are exempt from the active-QRF filters (respawn AND fast travel).
+	//! Reads the allowFOBDuringQRF difficulty setting, which defaults on and is JIP-streamed, so
+	//! client markers and the server's enumeration answer identically. Fails toward the DEFAULT
+	//! (exempt) when the config is unavailable, matching the attribute default.
+	//! \return True when a FOB inside an active QRF stays a valid destination.
+	static bool AllowFobDuringQrf()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_Difficulty)
+			return true;
+
+		return config.m_Difficulty.allowFOBDuringQRF;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Whether a camp may be respawned at.
 	//! Public camps are shared; a private camp belongs to its owner alone. Mirrors the rule the map's
 	//! camp type has always applied to fast travel.
@@ -262,6 +277,14 @@ class OVT_RespawnService
 		{
 			if (resistance.m_FOBs)
 			{
+				// FOBs are exempt (by default) from the excludeActiveQrf filter that drops every
+				// other type: a deployed FOB is the forward spawn for exactly the battle a QRF
+				// represents, and it is needed most by players who died defending it without having
+				// set it as home. allowFOBDuringQRF (difficulty setting, JIP-streamed) lets a server
+				// owner switch the exemption off. OVT_MapLocationFOB.CanRespawn carries the matching
+				// client-side rule; the two must stay in agreement.
+				bool fobQrfExempt = AllowFobDuringQrf();
+
 				foreach (OVT_FOBData fob : resistance.m_FOBs)
 				{
 					if (!fob)
@@ -270,7 +293,7 @@ class OVT_RespawnService
 					if (!IsFobEligible())
 						continue;
 
-					if (excludeActiveQrf && IsPositionInActiveQRF(fob.location))
+					if (excludeActiveQrf && !fobQrfExempt && IsPositionInActiveQRF(fob.location))
 						continue;
 
 					positions.Insert(fob.location);

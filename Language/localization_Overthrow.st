@@ -14271,6 +14271,17 @@ StringTable {
    Author "Aaron Static"
    ImageLink ""
    Hidden 0
+  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
+   Id "OVT-StartUprising"
+   Target_en_us "Start Uprising"
+   Modified 1786861251
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
+   Id "OVT-SupportTooLow"
+   Target_en_us "Not enough support in this town"
+   Modified 1786861251
+   Author "Aaron Static"
   }
  }
 }

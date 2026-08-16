@@ -3,7 +3,7 @@
 **Status:** Implemented (Documented Retrospectively)
 **Originally Implemented:** Unknown (inherited from early Overthrow Reforger development)
 **Documented:** 2026-08-02
-**Last Updated:** 2026-08-02
+**Last Updated:** 2026-08-16
 
 ---
 
@@ -72,7 +72,9 @@ Four server-side triggers:
 1. **Player base assault** — `OVT_CaptureBaseAction` → `OVT_PlayerCommsComponent.RpcAsk_StartBaseCapture` → `StartBaseQRF`. No cost/cooldown/distance validation server-side.
 2. **AI counter-attack** — once per in-game minute: `m_iResources > 2000` && no counter-attack timeout && 10% roll → random base; aborts if the pick is already OF-held (making counter-attacks rarer than the roll suggests).
 3. **Specops recapture** — `OVT_BaseUpgradeSpecops` targets a resistance-held base.
-4. **Town battles** — every quarter-hour: OF town with support > 75% (uprising) or resistance town with support < 25% (suppression), only if a player is within 300 m.
+4. **Town battles** — split 2026-08-16:
+   - **Uprising (player-initiated):** `OVT_StartUprisingAction` on the town controller flag → `OVT_UprisingRequestComponent` (on `OVT_OverthrowController`) → `StartTownQRF`. Server validates: occupied non-village town, support > `UPRISING_SUPPORT_THRESHOLD` (75), requester alive and inside the town range; the client sends a town id, never a coordinate. The old auto-trigger (support > 75% + player within 300 m) is removed — it surprised new players.
+   - **Suppression (still automatic):** every quarter-hour, resistance town with support < 25% and a player within 300 m.
 
 ### Phase 3: Replication & UI (COMPLETED)
 - Manager-side broadcast RPCs are the live channel: `RpcDo_SetQRFTimer` (1/s), `RpcDo_SetQRFPoints` (1/10 s), `SetQRFActive`/`Base`/`Town`/`Inactive`, `SetBaseFaction`.

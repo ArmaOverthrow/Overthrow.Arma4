@@ -159,6 +159,21 @@ class OVT_UIManagerComponent: OVT_Component
 	
 	protected void AfterControlledByPlayer(IEntity owner, bool controlled)
 	{
+		// LISTEN HOST: this component sits on Character_Player, so the host owns an instance for EVERY
+		// player character in the world - not just its own. m_OnControlledByPlayer fires on the host
+		// with controlled=true for remote players too, and the base game says so out loud:
+		// SCR_GadgetManagerComponent.OnControlledByPlayer carries the same discard ("for hosted server,
+		// if we get controlled=true for entity which isnt ours"). Without this guard the host registered
+		// a SECOND (third, fourth...) full set of UI contexts per joined player, so one press of U built
+		// one main menu per player stacked on top of each other, only the clicked one closed, and the
+		// survivors kept activating their menu action context every frame - which is what took the
+		// place/build rotate keys away from the host and no one else.
+		//
+		// Only the controlled=true branch is discarded, exactly as vanilla does. Unpossess must still
+		// run for our own character, and by then GetLocalControlledEntity() is no longer it.
+		if (controlled && owner != SCR_PlayerController.GetLocalControlledEntity())
+			controlled = false;
+
 		if (!controlled)
 		{
 			ClearEventMask(owner, EntityEvent.FRAME);

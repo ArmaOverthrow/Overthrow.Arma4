@@ -159,6 +159,7 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 		// FAST_TRAVEL only: the BUS verb's destination rule is already inside ValidateTravel
 		// (IsAtBusStop refuses anything not within BUS_STOP_RADIUS of a real marker), so a bus request
 		// cannot name an arbitrary coordinate either and re-resolving it here would buy nothing.
+		bool destIsCamp = false;
 		if(verb == OVT_TravelVerb.FAST_TRAVEL)
 		{
 			vector authorisedPos;
@@ -171,12 +172,18 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 			}
 
 			targetPos = authorisedPos;
+
+			// Camps author character spawn points and no vehicle arrival at all, but they are
+			// player-placed and can sit within the authored-spot query's 15 m of somebody else's
+			// parking - which would park the travelled vehicle in the neighbour's spot. A camp
+			// arrival therefore skips the authored query and takes the nearest road.
+			destIsCamp = OVT_FastTravelService.IsCampPosition(targetPos);
 		}
 
 		// 7
 		vector destAngles;
 		bool destOriented;
-		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented);
+		vector dest = ResolveDestination(actor, targetPos, destAngles, destOriented, destIsCamp);
 
 		// 8 - while the actor is still standing at originPos. Measured to targetPos, not to dest, so
 		// the charged fare is the one the panel displayed rather than one nudged by the safe-spawn
@@ -184,19 +191,37 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 		// OVT_RespawnService.MATCH_TOLERANCE of the one the panel priced - far below one fare unit.
 		int cost = OVT_FastTravelService.CalculateTravelCost(verb, targetPos, actor, recruitCount);
 
-		// 9
-		if(!SCR_Global.TeleportPlayer(playerId, dest))
+		// 9 - THE TELEPORT.
+		//
+		// On a dedicated server, player characters are CLIENT-AUTHORITATIVE for movement: the client runs
+		// its own physics locally and the server corrects drift. Calling TeleportPlayer server-side on an
+		// on-foot character sets the server's position but the client's local physics immediately overrides
+		// it, so the player never moves. Vanilla's own editor teleport (SCR_PlayersManagerEditorComponent.
+		// RPC_TeleportPlayerToPositionServer) handles this exact split: on-foot → Owner RPC to the client;
+		// in-vehicle → server call (vehicles are server-authoritative). Overthrow must do the same.
+		//
+		// For vehicles, TeleportPlayer is still the right server-side call (it moves the vehicle entity,
+		// which is authoritative, and all clients see the change). For characters, TeleportCharacter sends
+		// the resolved position to the owning client, which applies it from its own physics context.
+		if(OVT_FastTravelService.IsVehicleDriver(actor))
 		{
-			SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
-			return;
-		}
+			if(!SCR_Global.TeleportPlayer(playerId, dest))
+			{
+				SendTravelResult(playerId, OVT_TravelResult.TELEPORT_FAILED, 0);
+				return;
+			}
 
-		// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
-		// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
-		// pointing whichever way it was pointing when the player opened the map. Turning it to face the
-		// way the arrival spot expects has to be a second, separate step (BUG-165).
-		if(destOriented)
-			OrientVehicle(actor, destAngles);
+			// 9b - TeleportPlayer sets POSITION only: it copies the vehicle's existing world transform and
+			// overwrites the translation (Functions.c:1658-1661), so a car that arrives on a road arrives
+			// pointing whichever way it was pointing when the player opened the map. Turning it to face the
+			// way the arrival spot expects has to be a second, separate step (BUG-165).
+			if(destOriented)
+				OrientVehicle(actor, destAngles);
+		}
+		else
+		{
+			TeleportCharacter(playerId, dest);
+		}
 
 		// 10 - only now, and only what was actually taken is reported. The debit is deliberately NOT
 		// folded into the condition of an && : a side effect inside a boolean expression is the kind of
@@ -315,8 +340,10 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 	//! \param[in] targetPos The requested destination.
 	//! \param[out] angles Yaw/pitch/roll the vehicle should end up at. Meaningless unless oriented is true.
 	//! \param[out] oriented True when the arrival spot named a facing worth applying.
+	//! \param[in] destIsCamp True when the destination is a camp: the vehicle skips the authored
+	//! parking/vehicle-point query (which would grab a neighbour's spot) and takes the nearest road.
 	//! \return A safe arrival position.
-	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented)
+	protected vector ResolveDestination(IEntity actor, vector targetPos, out vector angles, out bool oriented, bool destIsCamp = false)
 	{
 		angles = "0 0 0";
 		oriented = false;
@@ -325,12 +352,58 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			oriented = OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles);
+			oriented = OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles, false, destIsCamp);
 			angles = vehicleAngles;
 			return vehiclePos;
 		}
 
-		return OVT_WorldUtils.FindSafeSpawnPosition(targetPos);
+		// On foot. The safe-search has two ways to hand back a position inside something at a built-up
+		// destination: total failure returns the input unchanged (a deployed FOB's record vector IS the
+		// truck's origin - the player materialised inside the truck bed), and the authored-spawn-point
+		// branch returns its point UNTRACED, so a point an obstruction has since covered comes back
+		// looking clear. Verify whichever answer arrives, and fall back to the nearest road - the same
+		// answer the recruits and a travelled vehicle already use. Only when there is no road within
+		// reach does the original position stand, as the least-bad last resort.
+		vector dest;
+		bool clear = OVT_WorldUtils.TryFindSafeSpawnPosition(targetPos, dest);
+		if(clear && !IsPositionClear(dest))
+		{
+			// A blocked AUTHORED point usually has clear floor right beside it (something was built or
+			// parked over it since it was authored) - a scatter around the point keeps the arrival in
+			// the same room rather than on the street.
+			vector scattered;
+			clear = OVT_WorldUtils.TryFindSafeSpawnPosition(dest, scattered, "-0.5 0 -0.5", "0.5 2 0.5", true);
+			if(clear)
+				dest = scattered;
+		}
+
+		if(!clear)
+		{
+			vector roadPos;
+			vector roadAngles;
+			if(OVT_WorldUtils.FindNearestRoadSpawn(targetPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles))
+				dest = roadPos;
+		}
+
+		return dest;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a person-sized box at pos is free of geometry - the same test the spawn search's own
+	//! probes apply, for positions that arrive from branches that never traced them.
+	protected bool IsPositionClear(vector pos)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if(!world)
+			return true;
+
+		TraceBox trace = new TraceBox;
+		trace.Flags = TraceFlags.ENTS;
+		trace.Start = pos;
+		trace.Mins = "-0.5 0 -0.5";
+		trace.Maxs = "0.5 2 0.5";
+
+		return world.TracePosition(trace, null) >= 0;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -365,20 +438,50 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 		}
 	}
 
+	//! How far to reach for a road when an on-foot arrival point cannot be cleared - both for the
+	//! recruit line-up and for the player's own arrival fallback. Tighter than the vehicle's
+	//! ROAD_SPAWN_MAX_DISTANCE (200 m): a car on a road 200 m away can be driven back, a person 200 m
+	//! away has to walk. Past this, the local fallbacks run - and anywhere WITHOUT a road within
+	//! 100 m is open ground, where the local search rarely fails in the first place.
+	static const float ROAD_FALLBACK_MAX_DISTANCE = 100.0;
+
+	//! Gap between recruits lined up along the road.
+	static const float RECRUIT_ROAD_SPACING = 1.5;
+
 	//------------------------------------------------------------------------------------------------
-	//! Places the travelling recruits in a ring around the arrival point.
+	//! Places the travelling recruits on the nearest road to the arrival point.
 	//!
-	//! Lifted verbatim from the legacy comms monolith's RpcAsk_RequestFastTravelWithRecruits
-	//! (deleted in map/legacy-retirement), which was the only implementation of this that had ever run
-	//! before this one, and whose behaviour this reproduces exactly: angle i x 360/count, radius 3 m
-	//! growing 0.5 m per recruit, and FindSafeSpawnPosition with skipSpawnPointSearch = true (the
-	//! spawn-point query is a sphere query per recruit, and the ring is already spread out on purpose).
+	//! ON THE ROAD, NOT IN A RING - the ring the legacy comms RPC used (3 m + 0.5 m per recruit around
+	//! the player) put recruits inside walls and furniture whenever the player's own arrival point was
+	//! an authored INDOOR spawn point: a house interior has no clear spot 3 m out, the 2 m-sphere
+	//! random search then fails on every probe, and FindSafeSpawnPosition handed back the colliding
+	//! ring position as if it were an answer. A road is open by construction, and there is one near
+	//! almost every destination - so the squad waits on the street while the player arrives inside.
+	//!
+	//! The ring survives only as the no-road fallback (wilderness camps and FOBs, where the ground is
+	//! open and the ring was never the problem), and a ring position that cannot be cleared now falls
+	//! back to the player's own arrival point - overlapping entities shove apart on open floor;
+	//! a wall does not.
+	//!
 	//! SetOrigin rather than TeleportPlayer because recruits are AI, not players.
 	//! \param[in] recruits The entities from step 5. Not re-queried - that is the point.
 	//! \param[in] destPos The player's arrival point.
 	protected void TeleportRecruits(array<IEntity> recruits, vector destPos)
 	{
 		if(!recruits || recruits.IsEmpty()) return;
+
+		// One road query for the whole squad, and the direction it runs so the line follows it.
+		vector roadPos, roadAngles;
+		bool haveRoad = OVT_WorldUtils.FindNearestRoadSpawn(destPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles);
+		vector roadDir = vector.Zero;
+		if (haveRoad)
+		{
+			vector roadMat[4];
+			Math3D.AnglesToMatrix(roadAngles, roadMat);
+			roadDir = roadMat[2];
+		}
+
+		BaseWorld world = GetGame().GetWorld();
 
 		int recruitIndex = 0;
 		foreach (IEntity recruitEntity : recruits)
@@ -396,14 +499,41 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 			if (IsInCompartment(recruitEntity))
 				continue;
 
-			// Calculate offset position in a circle around the player destination
-			float angle = (recruitIndex * 360.0 / recruits.Count()) * Math.DEG2RAD;
-			float radius = 3.0 + (recruitIndex * 0.5); // Start at 3m and expand outward
-			vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
-			vector recruitPos = destPos + offset;
+			vector recruitPos;
+			vector clearPos;
+			if (haveRoad)
+			{
+				// Alternate sides of the road point: 0, +1.5, -1.5, +3, -3 ... metres along the road.
+				int stepIndex = (recruitIndex + 1) / 2;
+				float step = stepIndex * RECRUIT_ROAD_SPACING;
+				if (recruitIndex % 2 == 0)
+					step = -step;
 
-			// Find a safe position near the calculated spot (skip spawn point search for performance with multiple recruits)
-			recruitPos = OVT_WorldUtils.FindSafeSpawnPosition(recruitPos, "-0.5 0 -0.5", "0.5 2 0.5", true);
+				recruitPos = roadPos + (roadDir * step);
+				recruitPos[1] = world.GetSurfaceY(recruitPos[0], recruitPos[2]);
+
+				// Declutter (a parked car, a fence). On failure keep the unadjusted road point: it is
+				// on a road at ground height, which is never inside a building - unlike the ring, the
+				// raw position is an acceptable answer here.
+				if (OVT_WorldUtils.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+					recruitPos = clearPos;
+			}
+			else
+			{
+				// No road near - open ground. The legacy ring: angle i x 360/count, radius 3 m growing
+				// 0.5 m per recruit.
+				float angle = (recruitIndex * 360.0 / recruits.Count()) * Math.DEG2RAD;
+				float radius = 3.0 + (recruitIndex * 0.5);
+				vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+				recruitPos = destPos + offset;
+
+				// A ring position that cannot be cleared is a KNOWN collision - fall back to the
+				// player's own arrival point rather than embed the recruit where the probe failed.
+				if (OVT_WorldUtils.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+					recruitPos = clearPos;
+				else
+					recruitPos = destPos;
+			}
 
 			// Teleport the recruit
 			recruitEntity.SetOrigin(recruitPos);
@@ -467,6 +597,44 @@ class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 		if(!players) return "";
 
 		return players.GetPersistentIDFromPlayerID(playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends the resolved arrival position to the travelling player so they can apply it locally.
+	//!
+	//! Player characters are CLIENT-AUTHORITATIVE for movement on dedicated servers: the server cannot
+	//! write a new world position onto a character and expect the client to accept it, because the
+	//! client's own physics loop will override the server's position on the very next frame. The
+	//! solution — and the one vanilla uses in SCR_PlayersManagerEditorComponent.
+	//! RPC_TeleportPlayerToPositionServer — is to send an Owner-targeted RPC so the client calls
+	//! TeleportPlayer from WITHIN its own physics context, where the position change is authoritative.
+	//! The same listen-server guard pattern used by SendTravelResult prevents the
+	//! "authority-sends-owner-RPC-to-itself → dropped packet" failure.
+	//! \param[in] playerId Runtime id of the travelling player.
+	//! \param[in] position The server's resolved arrival position.
+	protected void TeleportCharacter(int playerId, vector position)
+	{
+		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			RpcDo_TeleportCharacter(position);
+			return;
+		}
+
+		Rpc(RpcDo_TeleportCharacter, position);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Owner: apply the server-authorised arrival position to the local character.
+	//!
+	//! Runs on the travelling player's machine only. The destination was chosen and validated by the
+	//! server — this handler cannot change it. It intentionally does nothing on failure (out-of-bounds
+	//! position or no controlled entity): the fare has already been charged and the server has already
+	//! moved the recruits, so there is no clean rollback; silence is the same outcome TeleportPlayer
+	//! produces when it returns false on the server path.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_TeleportCharacter(vector position)
+	{
+		SCR_Global.TeleportPlayer(SCR_PlayerController.GetLocalPlayerId(), position);
 	}
 
 	//------------------------------------------------------------------------------------------------
