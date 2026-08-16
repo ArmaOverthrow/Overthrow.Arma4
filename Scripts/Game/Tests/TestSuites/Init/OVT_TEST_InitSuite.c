@@ -78,6 +78,7 @@ class OVT_TEST_Init_Globals_ManagersResolve : SCR_AutotestCaseBase
 		if (!OVT_Global.GetLoadouts()) return "GetLoadouts()";
 		if (!OVT_Global.GetMapMarkers()) return "GetMapMarkers()";
 		if (!OVT_Global.GetTutorialManager()) return "GetTutorialManager()";
+		if (!OVT_Global.GetVirtualization()) return "GetVirtualization()";
 
 		return "";
 	}
@@ -3371,3 +3372,1525 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 	}
 }
 
+
+//------------------------------------------------------------------------------------------------
+//! The virtualization manager is on the game-mode prefab, initialised, and empty before anything
+//! registers.
+//!
+//! Two separate claims, and both matter for a manager nothing consumes yet. Resolution pins the
+//! prefab wiring: until OVT_VirtualizationManagerComponent is actually on
+//! Prefabs/GameMode/OVT_OverthrowGameMode.et, every OVT_Global.GetVirtualization() in the tree
+//! returns null and four downstream features would be programming against a hole. The empty-registry
+//! claim pins the SERVER GUARD's ordering: OnPostInit allocates the record map only after
+//! Replication.IsServer(), so a count of 0 (rather than a null-map crash or a stale count) is the
+//! evidence that the collection exists and starts clean.
+//!
+//! Init tier, not campaign tier: both facts are true at world load - registration is not part of
+//! campaign start, and core deliberately ships with no consumers (implementation.md R10).
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove
+//! the OVT_VirtualizationManagerComponent block from the game-mode prefab and this case fails on
+//! the first assertion - which is exactly the T2.8 fail-proof the plan asks for.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_ManagerResolvesEmpty : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - OVT_VirtualizationManagerComponent is missing from the game-mode prefab, so the whole virtualization epic has no entry point");
+			return true;
+		}
+
+		int count = virtualization.GetGroupCount();
+		if (count != 0)
+		{
+			SetFailure("The virtualization registry holds %1 group(s) before anything registered - core ships with no consumers, so this must be 0", count.ToString());
+			return true;
+		}
+
+		// An unknown handle answers "unknown" rather than dereferencing anything.
+		if (virtualization.IsRegistered(1))
+		{
+			SetFailure("IsRegistered(1) is true on an empty registry");
+			return true;
+		}
+
+		if (virtualization.GetRecord(1))
+		{
+			SetFailure("GetRecord(1) returned a record on an empty registry");
+			return true;
+		}
+
+		array<int> ownedHandles = virtualization.FindGroupsByOwner("test", "nothing");
+		if (!ownedHandles || !ownedHandles.IsEmpty())
+		{
+			SetFailure("FindGroupsByOwner on an empty registry did not return an empty array");
+			return true;
+		}
+
+		Print("Virtualization manager resolved and its registry is empty");
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! virtualizationSpawnDistance exists in the config struct and defaults to 1750 m.
+//!
+//! This is issue #100's operator-facing knob (D5): a server owner edits it in
+//! $profile:Overthrow_Config.json and every registered group's proximity ring moves with no code
+//! change. The default is asserted because it is the value every un-overridden registration
+//! inherits, and because a field silently missing from SetDefaults() would read back 0 - which is
+//! the legitimate "never materialise" value, so nothing would look broken until an entire campaign's
+//! AI failed to appear.
+//!
+//! The manager's own resolution is asserted alongside it: GetGlobalSpawnDistance() must agree with
+//! the config, so a mis-wired accessor cannot pass by falling back to its attribute default.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): delete the `virtualizationSpawnDistance = 1750;` line
+//! from OVT_OverthrowConfigStruct.SetDefaults() and this case fails with 0.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_SpawnDistanceDefault : SCR_AutotestCaseBase
+{
+	//! The default written by OVT_OverthrowConfigStruct.SetDefaults().
+	protected const int EXPECTED_DEFAULT = 1750;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		if (!config.m_ConfigFile)
+		{
+			SetFailure("The config component has no loaded config struct");
+			return true;
+		}
+
+		if (config.m_ConfigFile.virtualizationSpawnDistance != EXPECTED_DEFAULT)
+		{
+			SetFailure("virtualizationSpawnDistance read back %1, expected the %2 m default - a 0 here would mean 'never materialise' for every registered group",
+				config.m_ConfigFile.virtualizationSpawnDistance.ToString(), EXPECTED_DEFAULT.ToString());
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		if (virtualization.GetGlobalSpawnDistance() != EXPECTED_DEFAULT)
+		{
+			SetFailure("The manager resolved a global spawn distance of %1 while the config says %2",
+				virtualization.GetGlobalSpawnDistance().ToString(), EXPECTED_DEFAULT.ToString());
+			return true;
+		}
+
+		Print("virtualizationSpawnDistance defaults to 1750 m and the manager reads it back");
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! RegisterGroup refuses a composition it cannot resolve, and books nothing when it does.
+//!
+//! Composition is (factionKey, groupName) - never a faction index, which is positional across saves
+//! (D3). Both halves can fail independently: a faction mod removed from a server produces an
+//! unknown KEY, and a renamed registry entry produces an unknown GROUP NAME under a faction that
+//! still exists. Both must return -1 with a WARNING rather than booking a record that can never be
+//! built, because a booked-but-unbuildable record would be persisted in Phase 5 and dropped again on
+//! every subsequent load.
+//!
+//! The known-faction half deliberately discovers a REAL faction key from the faction manager rather
+//! than hard-coding "USSR": the test world's factions are not this case's subject, and a hard-coded
+//! key would turn a faction rename into a false red here instead of where it belongs.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): move the record allocation in RegisterGroup above the
+//! faction/prefab resolution guards and the "the registry grew" assertion goes red for both halves.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_RegisterRefusesUnknownComposition : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		int before = virtualization.GetGroupCount();
+
+		// A faction key nothing defines - the "a faction mod was removed" shape (R3).
+		int handle = virtualization.RegisterGroup("test", "unknown_faction", "OVT_NO_SUCH_FACTION", "light_patrol", vector.Zero);
+		if (handle != -1)
+		{
+			SetFailure("RegisterGroup with an unknown faction key returned handle %1, expected -1", handle.ToString());
+			return true;
+		}
+
+		if (virtualization.GetGroupCount() != before)
+		{
+			SetFailure("A refused registration still booked a record: the registry went from %1 to %2",
+				before.ToString(), virtualization.GetGroupCount().ToString());
+			return true;
+		}
+
+		// A real faction, discovered rather than assumed, with a group name it does not define.
+		string knownKey = FindKnownFactionKey();
+		if (knownKey == "")
+		{
+			SetFailure("No faction in the test world has Overthrow faction data, so the unknown-group-name half cannot be exercised");
+			return true;
+		}
+
+		handle = virtualization.RegisterGroup("test", "unknown_group", knownKey, "OVT_NO_SUCH_GROUP_NAME", vector.Zero);
+		if (handle != -1)
+		{
+			SetFailure("RegisterGroup on faction '%1' with an unknown group name returned handle %2, expected -1", knownKey, handle.ToString());
+			return true;
+		}
+
+		if (virtualization.GetGroupCount() != before)
+		{
+			SetFailure("An unresolvable group name still booked a record: the registry went from %1 to %2",
+				before.ToString(), virtualization.GetGroupCount().ToString());
+			return true;
+		}
+
+		PrintFormat("RegisterGroup refused an unknown faction key and an unknown group name on real faction '%1'", knownKey);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds a faction key that resolves to Overthrow faction data in this world.
+	//! \return The first such key, or an empty string when there is none.
+	protected string FindKnownFactionKey()
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return "";
+
+		int count = factions.GetFactionsCount();
+		for (int i = 0; i < count; i++)
+		{
+			Faction faction = factions.GetFactionByIndex(i);
+			if (!faction)
+				continue;
+
+			string key = faction.GetFactionKey();
+			if (factions.GetOverthrowFactionByKey(key))
+				return key;
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared discovery helpers for the Phase 3 virtualization cases.
+//!
+//! Every case below needs a composition the CURRENT world can actually resolve, and hard-coding
+//! "USSR"/"light_patrol" would turn a faction-config rename into a false red in the virtualization
+//! cases instead of in the faction tests where it belongs. These helpers ask the live registries
+//! instead, exactly as OVT_TEST_Init_Virtualization_RegisterRefusesUnknownComposition already does
+//! for its known-faction half.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_VirtualizationFixture
+{
+	//! Owner system tag used by every case here, so a leaked record is obvious in a log.
+	static const string OWNER_SYSTEM = "test_virtualization";
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds a (factionKey, groupName) pair that resolves to a real group prefab in this world.
+	//! \param[out] factionKey The faction key found, or unchanged when there is none.
+	//! \param[out] groupName The group registry name found, or unchanged when there is none.
+	//! \return True when a resolvable composition was found.
+	static bool FindComposition(out string factionKey, out string groupName)
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return false;
+
+		int count = factions.GetFactionsCount();
+		for (int i = 0; i < count; i++)
+		{
+			Faction faction = factions.GetFactionByIndex(i);
+			if (!faction)
+				continue;
+
+			string key = faction.GetFactionKey();
+			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(key);
+			if (!overthrowFaction)
+				continue;
+
+			array<string> names = overthrowFaction.GetAvailableGroupNames();
+			if (!names)
+				continue;
+
+			foreach (string name : names)
+			{
+				if (overthrowFaction.GetGroupPrefabByName(name) == ResourceName.Empty)
+					continue;
+
+				factionKey = key;
+				groupName = name;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every group registry name a faction defines, so a case that needs a roster of a given size can
+	//! look for one instead of assuming.
+	//! \param[in] factionKey Faction to ask.
+	//! \return The names, never null.
+	static array<string> ListGroupNames(string factionKey)
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return new array<string>();
+
+		OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(factionKey);
+		if (!overthrowFaction)
+			return new array<string>();
+
+		array<string> names = overthrowFaction.GetAvailableGroupNames();
+		if (!names)
+			return new array<string>();
+
+		return names;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A world position with terrain under it. The first registered town, because a group registered
+	//! at the world origin may sit on nothing at all - and one case tries to materialise a member.
+	//! \return A usable registration position.
+	static vector PickPosition()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (towns && towns.m_Towns && !towns.m_Towns.IsEmpty())
+			return towns.m_Towns[0].location;
+
+		return vector.Zero;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! RegisterGroup builds a real, DORMANT group entity carrying the engine lifecycle stamps.
+//!
+//! This is the whole point of Phase 3 and the claim every consumer depends on: a registration is not
+//! a booking, it is a group entity that exists in the world with ZERO member characters and hands
+//! its own spawn/despawn decisions to the engine. Six independent facts are asserted because six
+//! separate things can silently go wrong:
+//!   - the entity exists at all (IgnoreSpawning + prefab spawn),
+//!   - it has NO members (a failed IgnoreSpawning would materialise a squad at registration time,
+//!     far from any player, and nothing else would ever notice),
+//!   - the policy is ProximityDriven (Manual would mean the group never appears),
+//!   - the distances read back the resolved ring, and despawn > spawn (the engine's anti-thrash band;
+//!     equal values would flap at the boundary),
+//!   - the importance is the tier asked for, never vanilla's silent LOW default (D4/F14),
+//!   - the roster was captured into an all-alive mask (an empty mask means D2 is inert - deaths
+//!     would be dropped and the group would be immortal).
+//!
+//! Safe at Init tier per the Phase 1 T1.4 verdict: the autotest world runs the real ChimeraAIWorld
+//! queue and ObserversSystem, and an unobserved ProximityDriven group stays memberless (measured over
+//! 240 frames), so nothing materialises while the case runs.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): drop the ApplyLifecyclePolicy(record, group) call from
+//! RegisterGroup and the policy assertion goes red (the group keeps the Manual default); drop the
+//! roster-capture loop and the mask assertions go red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_RegisterBuildsDormantGroup : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so registration cannot be exercised");
+			return true;
+		}
+
+		int before = virtualization.GetGroupCount();
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		int handle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "dormant_case",
+			factionKey, groupName, position, null, -1, SCR_EAISpawnImportance.HIGH);
+
+		string failure = Verify(virtualization, handle, before, position);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a record into the cases after it.
+		if (handle != -1)
+			virtualization.UnregisterGroup(handle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		if (virtualization.GetGroupCount() != before)
+		{
+			SetFailure("UnregisterGroup left the registry at %1 records, expected %2",
+				virtualization.GetGroupCount().ToString(), before.ToString());
+			return true;
+		}
+
+		if (virtualization.IsRegistered(handle) || virtualization.GetGroup(handle))
+		{
+			SetFailure("Handle %1 still resolves after UnregisterGroup", handle.ToString());
+			return true;
+		}
+
+		PrintFormat("RegisterGroup built a dormant %1 '%2' group with the engine lifecycle stamped, and UnregisterGroup dropped it", factionKey, groupName);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int handle, int before, vector position)
+	{
+		if (handle == -1)
+			return "RegisterGroup returned -1 for a composition the faction registry resolves";
+
+		if (virtualization.GetGroupCount() != before + 1)
+			return string.Format("The registry holds %1 records after one registration, expected %2",
+				virtualization.GetGroupCount().ToString(), (before + 1).ToString());
+
+		if (!virtualization.IsRegistered(handle))
+			return "IsRegistered() is false for the handle RegisterGroup just returned";
+
+		SCR_AIGroup group = virtualization.GetGroup(handle);
+		if (!group)
+			return "GetGroup() is null - RegisterGroup booked a record without building the group entity";
+
+		if (group.GetAgentsCount() != 0)
+			return string.Format("The freshly registered group already has %1 member(s) - IgnoreSpawning did not take",
+				group.GetAgentsCount().ToString());
+
+		if (virtualization.IsSpawned(handle))
+			return "IsSpawned() is true for a group with no members";
+
+		if (group.GetLifecyclePolicy() != SCR_EAIGroupLifecyclePolicy.ProximityDriven)
+			return string.Format("The group's lifecycle policy is %1, expected ProximityDriven (%2) - a Manual group never materialises on approach",
+				group.GetLifecyclePolicy().ToString(), SCR_EAIGroupLifecyclePolicy.ProximityDriven.ToString());
+
+		int expectedSpawn = virtualization.GetSpawnDistance(handle);
+		if (Math.AbsFloat(group.GetSpawnDistance() - expectedSpawn) > 1)
+			return string.Format("The group's spawn distance is %1 m, expected the resolved %2 m",
+				group.GetSpawnDistance().ToString(), expectedSpawn.ToString());
+
+		if (group.GetDespawnDistance() <= group.GetSpawnDistance())
+			return string.Format("Despawn distance %1 m is not beyond spawn distance %2 m - without that band the group flaps at the boundary",
+				group.GetDespawnDistance().ToString(), group.GetSpawnDistance().ToString());
+
+		if (group.GetImportance() != SCR_EAISpawnImportance.HIGH)
+			return string.Format("The group reports importance %1, expected the HIGH (%2) it was registered with - an unstamped group sits at vanilla's LOW tier and is evicted first",
+				group.GetImportance().ToString(), SCR_EAISpawnImportance.HIGH.ToString());
+
+		if (virtualization.GetImportance(handle) != SCR_EAISpawnImportance.HIGH)
+			return string.Format("The record reports importance %1, expected HIGH", virtualization.GetImportance(handle).ToString());
+
+		int roster = virtualization.GetMemberCount(handle);
+		if (roster < 1)
+			return "GetMemberCount() is 0 - the roster was never captured, so the survivor mask is inert and every death would be dropped";
+
+		for (int slot = 0; slot < roster; slot++)
+		{
+			if (!virtualization.GetMemberAlive(handle, slot))
+				return string.Format("Slot %1 of a freshly registered group is already dead", slot.ToString());
+		}
+
+		if (virtualization.GetAliveMemberCount(handle) != roster)
+			return string.Format("GetAliveMemberCount() is %1 for a %2-slot group nobody has shot at",
+				virtualization.GetAliveMemberCount(handle).ToString(), roster.ToString());
+
+		if (vector.Distance(virtualization.GetPosition(handle), position) > 1)
+			return string.Format("The group is at %1, registered at %2",
+				virtualization.GetPosition(handle).ToString(), position.ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A waypoint plan becomes real AIWaypoint entities the record OWNS - and unregistering deletes
+//! every one of them along with the group entity.
+//!
+//! D6, the defect present in every other spawner in this tree: OVT_EntitySpawningAPI.CleanupGroup()
+//! detaches waypoints without deleting them, so a spawn/despawn cycle leaks one entity per waypoint
+//! forever. In 1.8 waypoints are also persistence-tracked, so a leak is save bloat as well as entity
+//! growth. This case is the automated half of Q5 (the other half is a 20-cycle play-test).
+//!
+//! The deletion assertions poll rather than reading the same frame: entity deletion is committed by
+//! the engine at end of frame, so "gone immediately" would be asserting something that is not true
+//! of any Enfusion deletion. The bound is a diagnostic ceiling, not a retry budget.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): comment out the DeleteOwnedWaypoints call in
+//! UnregisterGroup and the poll times out naming the surviving waypoints; drop the
+//! record.m_aOwnedWaypoints.Insert() in BuildOwnedWaypoints and the ownership count goes red first.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_WaypointsAreOwnedAndDeleted : SCR_AutotestCaseBase
+{
+	//! Diagnostic ceiling for the end-of-frame deletion, in real milliseconds.
+	static const float MAX_WAIT_MS = 5000;
+
+	protected bool m_bRegistered;
+	protected float m_fFirstPollMs;
+	protected ref array<EntityID> m_aExpectGone = new array<EntityID>();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+		{
+			SetFailure("GetGame().GetWorld() is null");
+			return true;
+		}
+
+		if (!m_bRegistered)
+			return RegisterAndTearDown(world);
+
+		return PollDeleted(world);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! First tick: register with a plan, assert ownership, then unregister and remember what must go.
+	//! \param[in] world The world, for entity-id lookups.
+	//! \return True when the case is finished (always a failure here); false to start polling.
+	protected bool RegisterAndTearDown(notnull BaseWorld world)
+	{
+		m_bRegistered = true;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		// Two legs plus the cycle that replays them: three waypoint entities, all core's to delete.
+		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
+		plan.m_aPositions.Insert(position);
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
+		plan.m_aParams.Insert(25);
+		plan.m_aPositions.Insert(position + Vector(120, 0, 0));
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.MOVE);
+		plan.m_aParams.Insert(0);
+		plan.m_bCycle = true;
+
+		int handle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "waypoint_case",
+			factionKey, groupName, position, plan);
+
+		if (handle == -1)
+		{
+			SetFailure("RegisterGroup refused a valid two-leg cycling plan");
+			return true;
+		}
+
+		OVT_VirtualGroupRecord record = virtualization.GetRecord(handle);
+		SCR_AIGroup group = virtualization.GetGroup(handle);
+
+		string failure = VerifyOwnership(record, group);
+
+		if (record && record.m_aOwnedWaypoints)
+		{
+			foreach (AIWaypoint waypoint : record.m_aOwnedWaypoints)
+			{
+				if (waypoint)
+					m_aExpectGone.Insert(waypoint.GetID());
+			}
+		}
+
+		if (group)
+			m_aExpectGone.Insert(group.GetID());
+
+		virtualization.UnregisterGroup(handle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		m_fFirstPollMs = world.GetWorldTime();
+		return false; // start polling for the deletions
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the plan produced owned, attached waypoints.
+	protected string VerifyOwnership(OVT_VirtualGroupRecord record, SCR_AIGroup group)
+	{
+		if (!record)
+			return "GetRecord() is null for the handle RegisterGroup just returned";
+
+		if (!group)
+			return "GetGroup() is null - no group entity to attach waypoints to";
+
+		if (!record.m_aOwnedWaypoints || record.m_aOwnedWaypoints.Count() != 3)
+		{
+			// NB: `owned` is a RESERVED EnforceScript keyword - never name a local that.
+			int ownedCount = 0;
+			if (record.m_aOwnedWaypoints)
+				ownedCount = record.m_aOwnedWaypoints.Count();
+
+			return string.Format("The record owns %1 waypoint(s), expected 3 (two legs plus the cycle) - an unowned waypoint is a leaked entity and a leaked save record",
+				ownedCount.ToString());
+		}
+
+		foreach (int i, AIWaypoint waypoint : record.m_aOwnedWaypoints)
+		{
+			if (!waypoint)
+				return string.Format("Owned waypoint %1 is null", i.ToString());
+		}
+
+		array<AIWaypoint> attached = new array<AIWaypoint>();
+		group.GetWaypoints(attached);
+		if (attached.Count() < 3)
+			return string.Format("The group carries %1 waypoint(s), expected at least the 3 core built - a waypoint that is not attached does nothing",
+				attached.Count().ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Later ticks: every remembered entity must be gone.
+	//! \param[in] world The world, for entity-id lookups.
+	//! \return True when finished; false to keep polling.
+	protected bool PollDeleted(notnull BaseWorld world)
+	{
+		int surviving = 0;
+		foreach (EntityID entityId : m_aExpectGone)
+		{
+			if (world.FindEntityByID(entityId))
+				surviving++;
+		}
+
+		if (surviving == 0)
+		{
+			PrintFormat("The plan built 3 owned waypoints and UnregisterGroup deleted them with the group entity (%1 entities)", m_aExpectGone.Count().ToString());
+			return true;
+		}
+
+		float waited = world.GetWorldTime() - m_fFirstPollMs;
+		if (waited < MAX_WAIT_MS)
+			return false; // keep polling
+
+		SetFailure("%1 of %2 entities (waypoints + group) survived UnregisterGroup after %3 ms - core leaked them",
+			surviving.ToString(), m_aExpectGone.Count().ToString(), waited.ToString());
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Deaths flip the per-slot mask, and killing the last living slot wipes the record.
+//!
+//! D2 in one case. ReportMemberKilled is the public death seam (the internal kill hook calls exactly
+//! this), so the whole survivor-truth contract is assertable with no world combat: a reported death
+//! must reduce the alive count by one AND mark that specific slot, re-reporting the same slot must
+//! change nothing (a double-report would wipe a live group early), and the last death must fire
+//! OnGroupWiped BEFORE the record disappears - subscribers are documented as able to read the record
+//! they are being told about.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): make ReportMemberKilled skip its
+//! `if (record.m_aSlotAlive[slotIndex] == 0) return;` guard and the idempotence assertion goes red;
+//! move the m_OnGroupWiped.Invoke() call to after m_mRecords.Remove() and the "record still readable
+//! when the invoker fires" assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_DeathsFlipMaskAndWipeRecord : SCR_AutotestCaseBase
+{
+	protected int m_iWipedHandle = -1;
+	protected bool m_bRecordReadableAtWipe;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry");
+			return true;
+		}
+
+		int before = virtualization.GetGroupCount();
+
+		int handle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "death_case",
+			factionKey, groupName, OVT_TEST_VirtualizationFixture.PickPosition());
+
+		if (handle == -1)
+		{
+			SetFailure("RegisterGroup returned -1 for a resolvable composition");
+			return true;
+		}
+
+		virtualization.GetOnGroupWiped().Insert(OnGroupWiped);
+
+		string failure = Verify(virtualization, handle, before);
+
+		virtualization.GetOnGroupWiped().Remove(OnGroupWiped);
+
+		// A failure before the wipe leaves the record behind - drop it so later cases see a clean
+		// registry (a wipe removes it already, and UnregisterGroup is idempotent).
+		virtualization.UnregisterGroup(handle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Slot deaths flipped the mask one at a time and the last one wiped handle %1", handle.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the whole D2 death contract holds.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int handle, int before)
+	{
+		int roster = virtualization.GetMemberCount(handle);
+		if (roster < 1)
+			return "GetMemberCount() is 0 - the mask is empty, so nothing below can mean anything";
+
+		virtualization.ReportMemberKilled(handle, 0);
+
+		if (virtualization.GetMemberAlive(handle, 0))
+			return "Slot 0 is still alive after ReportMemberKilled(handle, 0)";
+
+		if (virtualization.GetAliveMemberCount(handle) != roster - 1)
+			return string.Format("GetAliveMemberCount() is %1 after one death in a %2-slot group, expected %3",
+				virtualization.GetAliveMemberCount(handle).ToString(), roster.ToString(), (roster - 1).ToString());
+
+		// Idempotence: the kill hook can legitimately see the same slot twice (a corpse taking more
+		// damage), and a second decrement would wipe a group that still has members.
+		virtualization.ReportMemberKilled(handle, 0);
+		if (virtualization.GetAliveMemberCount(handle) != roster - 1)
+			return string.Format("Re-reporting slot 0 changed the alive count to %1 - deaths are not idempotent per slot",
+				virtualization.GetAliveMemberCount(handle).ToString());
+
+		// An out-of-range slot must be refused, not clamped onto a live one.
+		virtualization.ReportMemberKilled(handle, roster + 5);
+		if (virtualization.GetAliveMemberCount(handle) != roster - 1)
+			return "An out-of-range slot report changed the alive count";
+
+		if (roster > 1 && !virtualization.IsRegistered(handle))
+			return "The record was wiped after a single death in a multi-slot group";
+
+		for (int slot = 1; slot < roster; slot++)
+		{
+			virtualization.ReportMemberKilled(handle, slot);
+		}
+
+		if (m_iWipedHandle != handle)
+			return string.Format("OnGroupWiped fired with handle %1, expected %2 (0 deaths reported means it never fired)",
+				m_iWipedHandle.ToString(), handle.ToString());
+
+		if (!m_bRecordReadableAtWipe)
+			return "OnGroupWiped fired AFTER the record was removed - a subscriber cannot read what it is being told about";
+
+		if (virtualization.IsRegistered(handle))
+			return "The record survived a full wipe";
+
+		if (virtualization.GetRecord(handle))
+			return "GetRecord() still answers for a wiped handle";
+
+		array<int> byOwner = virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "death_case");
+		if (!byOwner.IsEmpty())
+			return string.Format("FindGroupsByOwner still returns %1 handle(s) for a wiped group", byOwner.Count().ToString());
+
+		if (virtualization.GetGroupCount() != before)
+			return string.Format("The registry holds %1 records after the wipe, expected %2",
+				virtualization.GetGroupCount().ToString(), before.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] handle The wiped handle, as reported by the manager.
+	protected void OnGroupWiped(int handle)
+	{
+		m_iWipedHandle = handle;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization)
+			m_bRecordReadableAtWipe = virtualization.GetRecord(handle) != null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The survivor mask - not the agent count - decides which roster slot the engine refills.
+//!
+//! Vanilla's ExpandOneMember always spawns `slotIndex == current agent count` (SCR_AIGroup.c:2731),
+//! a first-N refill that structurally destroys identity: a group that lost only its slot-0
+//! machinegunner comes back with the MG alive and a tail rifleman missing instead. Core overrides
+//! that seam. Two claims, at two strengths:
+//!
+//!   1. UNCONDITIONAL - the group carries the record's LIVE mask (they share one array, so a death
+//!      recorded through the manager is visible to the refill seam with no push), the refill
+//!      selector applied to that mask picks the surviving slot rather than slot 0, and the group does
+//!      not consider itself fully expanded while a survivor is unmaterialised.
+//!   2. CONDITIONAL - if this world will actually materialise a member (the navmesh tile under the
+//!      test position has to be available), the member that appears must occupy the SURVIVING slot.
+//!      That is the runtime proof that SpawnGroupMember accepts an arbitrary slot index, which the
+//!      Phase 1 spike never obtained. It is conditional because a world that cannot spawn anyone
+//!      proves nothing either way - but it can only ever fail loudly, never pass falsely.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): make ExpandOneMember's override fall through to
+//! super.ExpandOneMember() unconditionally and claim 2 goes red with "slot 0"; make PushSlotMask copy
+//! the array instead of sharing it and claim 1's "the group sees the death" assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_MaskDrivesSlotSelection : SCR_AutotestCaseBase
+{
+	//! Upper bound on ExpandOneMember calls. Vanilla's SpawnGroupMember answers false while a navmesh
+	//! tile is loading and gives up waiting after NAVMESH_STALL_LIMIT (30) attempts, so this is that
+	//! limit plus headroom - one bounded loop in one frame, not a retry budget across frames.
+	static const int MAX_EXPAND_CALLS = 40;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry");
+			return true;
+		}
+
+		// The claim needs a roster with a slot 1 to survive into, so find a composition that has one.
+		int handle = RegisterMultiSlotGroup(virtualization, factionKey);
+		if (handle == -1)
+		{
+			SetFailure("Faction '%1' defines no group with 2 or more roster slots, so slot-accurate refill cannot be exercised in this world", factionKey);
+			return true;
+		}
+
+		string failure = Verify(virtualization, handle);
+
+		// Claim 2 may have materialised a real character. Hand it back to the engine's own teardown
+		// before unregistering, so the case cannot leave a soldier standing in the test world for
+		// every case after it.
+		virtualization.ForceDespawn(handle);
+		virtualization.UnregisterGroup(handle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers the first group registry entry of a faction whose roster has at least two slots,
+	//! dropping the ones that do not qualify.
+	//! \param[in] virtualization The manager.
+	//! \param[in] factionKey The faction to walk.
+	//! \return The handle of a registered multi-slot group, or -1.
+	protected int RegisterMultiSlotGroup(notnull OVT_VirtualizationManagerComponent virtualization, string factionKey)
+	{
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		foreach (string name : OVT_TEST_VirtualizationFixture.ListGroupNames(factionKey))
+		{
+			int handle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "slot_case",
+				factionKey, name, position);
+
+			if (handle == -1)
+				continue;
+
+			if (virtualization.GetMemberCount(handle) >= 2)
+				return handle;
+
+			virtualization.UnregisterGroup(handle);
+		}
+
+		return -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the refill seam is mask-driven.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int handle)
+	{
+		SCR_AIGroup group = virtualization.GetGroup(handle);
+		if (!group)
+			return "GetGroup() is null";
+
+		if (!group.HasOVTSlotMask())
+			return "The group carries no survivor mask - the ExpandOneMember override would fall through to vanilla's first-N refill";
+
+		// Kill slot 0 through the manager. The group must see it, because they share one array.
+		virtualization.ReportMemberKilled(handle, 0);
+
+		array<int> mask = group.GetOVTSlotMask();
+		if (!mask || mask.IsEmpty())
+			return "The group's mask is empty after a death was recorded on the record";
+
+		if (mask[0] != 0)
+			return "The group's mask still shows slot 0 alive after ReportMemberKilled(handle, 0) - the record and the group are not sharing one array";
+
+		int next = OVT_VirtualizationMath.NextSlotToSpawn(mask, group.GetOVTSpawnedSlots());
+		if (next != 1)
+			return string.Format("The refill selector picked slot %1 with slot 0 dead and nothing materialised, expected slot 1", next.ToString());
+
+		if (group.IsExpandComplete())
+			return "IsExpandComplete() is true while a surviving slot has not been materialised - the queue would drop the group's spawn requests";
+
+		// Claim 2: the runtime proof, when this world can give it.
+		int expandCalls = 0;
+		while (expandCalls < MAX_EXPAND_CALLS)
+		{
+			expandCalls++;
+			if (group.ExpandOneMember())
+				break;
+		}
+
+		array<int> spawnedSlots = group.GetOVTSpawnedSlots();
+		if (!spawnedSlots || spawnedSlots.IsEmpty())
+		{
+			PrintFormat("Mask-driven refill: this world materialised no member in %1 attempts (navmesh unavailable at the test position) - the selector assertions above still hold", expandCalls.ToString());
+			return "";
+		}
+
+		if (spawnedSlots.Count() != 1)
+			return string.Format("%1 slots materialised from a single ExpandOneMember call", spawnedSlots.Count().ToString());
+
+		if (spawnedSlots[0] != 1)
+			return string.Format("ExpandOneMember materialised slot %1 with slot 0 dead - vanilla's first-N refill is still in charge and identity is lost",
+				spawnedSlots[0].ToString());
+
+		if (group.GetAgentsCount() != 1)
+			return string.Format("The group reports %1 agents after materialising exactly one slot", group.GetAgentsCount().ToString());
+
+		PrintFormat("Mask-driven refill materialised roster slot 1 (slot 0 dead) - SpawnGroupMember accepts an arbitrary slot index");
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A SAVED RECORD WHOSE FACTION KEY NO LONGER RESOLVES IS DROPPED - AND ONE THAT STILL CARRIES A
+//! VALID PREFAB SURVIVES ON IT (R3 / D3, implementation.md T6.3).
+//!
+//! WHY THIS CASE EXISTS. A faction mod is removed, or a registry entry is renamed, and a campaign's
+//! save still names it. Three outcomes are possible and only one is acceptable: the load CRASHES, the
+//! record is RESURRECTED as something else (a Soviet garrison coming back as whatever prefab happened
+//! to answer), or the record is DROPPED with a warning naming the key. Core promises the third, through
+//! the three-step resolution in ResolvePersistedComposition:
+//!   1. faction KEY -> Overthrow faction -> group registry NAME -> prefab,
+//!   2. the prefab that was resolved when the group was first registered, stored for exactly this case,
+//!   3. neither: drop, with a WARNING naming the faction key and the group name.
+//! Steps 2 and 3 are the ones a live campaign never exercises, so they are the ones that rot silently.
+//!
+//! BOTH BRANCHES IN ONE PASS, because they are one decision. A payload naming a dead faction key is
+//! applied twice over: once with NO stored prefab (must be dropped) and once WITH a stored prefab that
+//! this world can still load (must survive, on the prefab). Asserting only the drop would pass just as
+//! happily if resolution had been reduced to "faction key or nothing", which would silently delete every
+//! record of any renamed registry entry.
+//!
+//! HOW IT DRIVES THE RESTORE WITHOUT A SAVE. ApplyPersistedRegistry() is the manager's public write
+//! seam - the serializer is a pure codec over it - so a hand-built payload exercises the exact code a
+//! load runs, at Init tier, in one frame (the restore is synchronous by design; only the announcement is
+//! deferred). The live registry is SNAPSHOTTED into that payload first, because a restore drops
+//! everything the payload does not claim: without the snapshot this case would unregister any group a
+//! neighbouring case is holding, and the count assertion below is what proves it did not.
+//!
+//! The WARNING text itself is not asserted (no test tier can read the log); what is asserted is the
+//! behaviour it accompanies. The dropped record must leave NOTHING behind - no record, no group entity,
+//! no FindGroupsByOwner hit - because a half-dropped record is a group in the world that nothing owns.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - delete the `if (entry.resolvedPrefab != ResourceName.Empty)` fallback branch from
+//!     ResolvePersistedComposition and the second record is dropped too: the "survives on the stored
+//!     prefab" assertion goes red;
+//!   - make that method's final `return ResourceName.Empty` return the fixture prefab instead (i.e.
+//!     resurrect anything, rather than dropping it) and the first record comes back: the "dropped"
+//!     assertion goes red;
+//!   - drop the `m_mRecords.Remove(record.m_iHandle)` from the build-failure path and the registry count
+//!     assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_MissingFactionRecordIsDropped : SCR_AutotestCaseBase
+{
+	//! A faction key and group name no config in this tree defines - the "the mod is gone" payload.
+	static const string DEAD_FACTION_KEY = "OVT_TEST_NO_SUCH_FACTION";
+	static const string DEAD_GROUP_NAME = "no_such_group";
+
+	//! Owner keys, distinct so each half can be looked up on its own.
+	static const string LOST_KEY = "missing_faction_lost";
+	static const string FALLBACK_KEY = "missing_faction_fallback";
+
+	//! Tiny spawn ring, for the reason every virtualization case uses one: the engine's 1 Hz lifecycle
+	//! tick must not materialise members of the re-created group while the case runs.
+	static const int SPAWN_DISTANCE_OVERRIDE = 23;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so no stored prefab can be exercised");
+			return true;
+		}
+
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+		{
+			SetFailure("OVT_Global.GetFactions() is null");
+			return true;
+		}
+
+		OVT_Faction faction = factions.GetOverthrowFactionByKey(factionKey);
+		if (!faction)
+		{
+			SetFailure("The faction key %1 the fixture just found no longer resolves", factionKey);
+			return true;
+		}
+
+		ResourceName prefab = faction.GetGroupPrefabByName(groupName);
+		if (prefab == ResourceName.Empty)
+		{
+			SetFailure("The composition %1 '%2' the fixture just found resolves to no prefab", factionKey, groupName);
+			return true;
+		}
+
+		int baseHandle = virtualization.GetNextHandle();
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		// The live registry goes into the payload FIRST: a restore removes every record the payload does
+		// not claim, and this case is about two synthetic records, not about evicting anyone else's.
+		array<ref OVT_PersistedVirtualGroup> payload = new array<ref OVT_PersistedVirtualGroup>();
+		virtualization.SnapshotRegistry(payload);
+		int carried = payload.Count();
+
+		payload.Insert(BuildEntry(baseHandle, LOST_KEY, ResourceName.Empty, position));
+		payload.Insert(BuildEntry(baseHandle + 1, FALLBACK_KEY, prefab, position));
+
+		virtualization.ApplyPersistedRegistry(payload, baseHandle + 2);
+
+		string failure = Verify(virtualization, baseHandle, carried);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a group into the cases after it.
+		if (virtualization.IsRegistered(baseHandle))
+			virtualization.UnregisterGroup(baseHandle);
+
+		if (virtualization.IsRegistered(baseHandle + 1))
+			virtualization.UnregisterGroup(baseHandle + 1);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A saved record naming the dead faction key '%1' was dropped, and the sibling record carrying a stored prefab survived on it", DEAD_FACTION_KEY);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One synthetic payload entry naming a composition this world cannot resolve.
+	//! \param[in] handle Handle to claim - always above the manager's next handle, so it can collide
+	//!            with nothing live.
+	//! \param[in] ownerKey Owner key to register under.
+	//! \param[in] storedPrefab The registration-time prefab, or Empty to exercise the drop path.
+	//! \param[in] position Where the group would be re-created.
+	//! \return The entry.
+	protected OVT_PersistedVirtualGroup BuildEntry(int handle, string ownerKey, ResourceName storedPrefab, vector position)
+	{
+		OVT_PersistedVirtualGroup entry = new OVT_PersistedVirtualGroup();
+		entry.handle = handle;
+		entry.ownerSystem = OVT_TEST_VirtualizationFixture.OWNER_SYSTEM;
+		entry.ownerKey = ownerKey;
+		entry.factionKey = DEAD_FACTION_KEY;
+		entry.groupRegistryName = DEAD_GROUP_NAME;
+		entry.resolvedPrefab = storedPrefab;
+		entry.spawnDistanceOverride = SPAWN_DISTANCE_OVERRIDE;
+		entry.importance = SCR_EAISpawnImportance.NORMAL;
+		entry.position = position;
+
+		// Two living slots. The roster is reconciled against whatever the prefab declares, so this only
+		// has to be "not wiped" - a mask with no living slot is dropped for an unrelated reason.
+		entry.slotAlive.Insert(1);
+		entry.slotAlive.Insert(1);
+
+		return entry;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int baseHandle, int carried)
+	{
+		if (virtualization.IsRegistered(baseHandle))
+			return string.Format("Handle %1 named the faction key '%2', which nothing in this world defines, and carried no stored prefab - it was restored anyway, so a removed faction mod resurrects its groups as something else",
+				baseHandle.ToString(), DEAD_FACTION_KEY);
+
+		if (virtualization.GetGroup(baseHandle))
+			return string.Format("Handle %1 was dropped but still hands out a group entity - a dropped record left a group in the world that nothing owns", baseHandle.ToString());
+
+		if (!virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, LOST_KEY).IsEmpty())
+			return "FindGroupsByOwner still resolves the dropped record's owner key, so a consumer reclaiming after a load would adopt a group that was never re-created";
+
+		if (!virtualization.IsRegistered(baseHandle + 1))
+			return string.Format("Handle %1 named the same dead faction key but carried the prefab it was registered with - it was dropped instead of falling back to that prefab, so every record of a RENAMED registry entry is silently deleted on load",
+				(baseHandle + 1).ToString());
+
+		if (!virtualization.GetGroup(baseHandle + 1))
+			return string.Format("Handle %1 survived the restore as a record but has no group entity - the fallback resolved a prefab and then never built it", (baseHandle + 1).ToString());
+
+		int roster = virtualization.GetMemberCount(baseHandle + 1);
+		if (roster < 1)
+			return "The record restored on its stored prefab has no roster slots, so its survivor mask is inert and every later death would be dropped";
+
+		array<int> byOwner = virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, FALLBACK_KEY);
+		if (byOwner.Count() != 1 || byOwner[0] != baseHandle + 1)
+			return string.Format("FindGroupsByOwner returned %1 handle(s) for the record that survived, expected exactly handle %2 - the reclaim seam disagrees with the registry",
+				byOwner.Count().ToString(), (baseHandle + 1).ToString());
+
+		if (virtualization.GetGroupCount() != carried + 1)
+			return string.Format("The registry holds %1 records after the restore, expected %2 (the %3 live record(s) the payload carried, plus the one synthetic record that resolved) - a drop took more than the record it was about",
+				virtualization.GetGroupCount().ToString(), (carried + 1).ToString(), carried.ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Test-only ambient source config (Phase 4, T4.8).
+//!
+//! Exists to answer one question the manager cannot be asked directly: when core needs a roll, does
+//! it call the CONFIG's overridable method, or does it reach past it to the arithmetic helper? The
+//! two answers are distinguishable because this subclass deliberately DISAGREES with its own
+//! authored min/max: the attributes say 1, the override says ROLLED_COUNT (2). Core calling
+//! RollCount() therefore produces exactly ROLLED_COUNT prefab rolls; core calling
+//! OVT_VirtualizationMath.RollCountSafe(m_iMinCount, m_iMaxCount) behind its back produces 1.
+//!
+//! RollPrefab() deliberately returns ResourceName.Empty: this case is about the rolls, not about the
+//! world, so nothing is ever spawned, nothing has to be cleaned up out of the world, and the case
+//! cannot be made red by a prefab that will not fit on the test terrain.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_AmbientCountingConfig : OVT_AmbientSpawnSourceConfig
+{
+	//! What the override returns - deliberately NOT what m_iMinCount / m_iMaxCount say.
+	static const int ROLLED_COUNT = 2;
+
+	int m_iRollCountCalls;
+	int m_iRollPrefabCalls;
+
+	//------------------------------------------------------------------------------------------------
+	override int RollCount()
+	{
+		m_iRollCountCalls++;
+		return ROLLED_COUNT;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override ResourceName RollPrefab()
+	{
+		m_iRollPrefabCalls++;
+		return ResourceName.Empty;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A registered ambient source resolves, is counted, and takes nothing with it when it goes.
+//!
+//! Registration is the seam `civilians` is being written against, and three separate things about it
+//! have to be true before any consumer can rely on it:
+//!   - registration SPAWNS NOTHING (the source is dormant until an observer arrives, which is what
+//!     makes it safe to register a whole town's worth of sources at campaign start),
+//!   - the source is counted, so a consumer can tell "registered" from "silently refused",
+//!   - unregistering removes exactly one source and is idempotent - a second call must answer false
+//!     rather than corrupting the round-robin order behind it.
+//!
+//! The config is built in code with NO prefabs, deliberately: core ships zero authored ambient
+//! content (the Definition of Done greps Configs/ to prove it), so a test that needed authored
+//! content would be testing something core does not have.
+//!
+//! Init tier: registration is a pure registry operation with no campaign state behind it.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! RegisterAmbientSource return its handle without inserting into m_aAmbientOrder and the
+//! "unregister returned false" assertion goes red (the order array and the map disagree); make
+//! UnregisterAmbientSource return true unconditionally and the idempotence assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_AmbientSourceRegisters : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		int before = virtualization.GetAmbientSourceCount();
+
+		OVT_AmbientSpawnSourceConfig config = new OVT_AmbientSpawnSourceConfig();
+		config.m_sSourceName = "test_ambient_source";
+		config.m_fRadius = 25;
+
+		int handle = virtualization.RegisterAmbientSource(config, OVT_TEST_VirtualizationFixture.PickPosition(), "ambient_case");
+
+		string failure = Verify(virtualization, handle, before);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a source into the cases after it.
+		bool removed = false;
+		if (handle != -1)
+			removed = virtualization.UnregisterAmbientSource(handle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		if (!removed)
+		{
+			SetFailure("UnregisterAmbientSource(%1) returned false for a source that had just registered", handle.ToString());
+			return true;
+		}
+
+		if (virtualization.GetAmbientSourceCount() != before)
+		{
+			SetFailure("UnregisterAmbientSource left %1 sources registered, expected %2",
+				virtualization.GetAmbientSourceCount().ToString(), before.ToString());
+			return true;
+		}
+
+		// Idempotence: the second removal is a no-op that answers honestly.
+		if (virtualization.UnregisterAmbientSource(handle))
+		{
+			SetFailure("UnregisterAmbientSource(%1) returned true a second time - an unknown handle must answer false", handle.ToString());
+			return true;
+		}
+
+		Print("An ambient source registers, is counted, spawns nothing at registration, and unregisters idempotently");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the registration behaved, or the failure to report.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int handle, int before)
+	{
+		if (handle == -1)
+			return "RegisterAmbientSource refused a valid config - ambient registration is the seam `civilians` is written against";
+
+		if (virtualization.GetAmbientSourceCount() != before + 1)
+			return string.Format("The ambient registry holds %1 source(s) after one registration, expected %2",
+				virtualization.GetAmbientSourceCount().ToString(), (before + 1).ToString());
+
+		array<IEntity> entities = virtualization.GetAmbientEntities(handle);
+		if (!entities)
+			return "GetAmbientEntities() returned null rather than an empty array";
+
+		if (!entities.IsEmpty())
+			return string.Format("A freshly registered source already owns %1 entities - registration must spawn nothing until an observer arrives",
+				entities.Count().ToString());
+
+		// An unknown ambient handle answers empty, not null and not somebody else's list.
+		array<IEntity> unknown = virtualization.GetAmbientEntities(handle + 10000);
+		if (!unknown || !unknown.IsEmpty())
+			return "GetAmbientEntities() on an unknown handle did not return an empty array";
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The CONFIG's overridden RollCount() is the one core calls - not the arithmetic behind it.
+//!
+//! This is the modder seam the whole ambient design rests on (G6): a subclass overrides a roll, a
+//! .conf names the subclass, and no core code changes. If core ever "optimised" that into a direct
+//! RollCountSafe(m_iMinCount, m_iMaxCount) call, every subclass in every consumer mod would silently
+//! stop being consulted and nothing else in the tree would notice - the source would still spawn, it
+//! would just spawn the authored numbers instead of the overridden ones.
+//!
+//! HOW IT IS PROVEN. OVT_TEST_AmbientCountingConfig authors min == max == 1 but overrides RollCount()
+//! to return 2, so the two implementations are distinguishable by counting how many times core asks
+//! for a prefab in one activation: 2 means the override was consulted, 1 means it was bypassed.
+//!
+//! To make an activation happen at all, the case parks a LOCAL OBSERVER on the source position
+//! through the engine's own ObserversSystem - the same set core asks (D11) - and then waits out the
+//! 2 s ambient tick. Nothing is spawned into the world: the subclass's RollPrefab() returns
+//! ResourceName.Empty on purpose.
+//!
+//! WHEN THIS WORLD CANNOT ACTIVATE (no ObserversSystem, or a fixed observer this build does not
+//! honour) the case falls back to asserting virtual dispatch through a BASE-TYPED reference - the
+//! same shape the manager holds - and says so in the log, exactly as the Phase 3 refill case does
+//! when the test terrain cannot materialise a member. It never passes silently on the weaker claim.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): replace
+//! `instance.BeginActivation(config.RollCount())` in EvaluateAmbientSource with
+//! `instance.BeginActivation(OVT_VirtualizationMath.RollCountSafe(config.m_iMinCount, config.m_iMaxCount))`
+//! and the prefab-roll assertion goes red with 1 instead of 2.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Virtualization_AmbientRollCountOverrideIsCalled : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the 2 s ambient tick to come round (generous: the tick is wall-clock,
+	//! the test world's frame rate is not this case's subject). Bounded, and NOT a retry budget -
+	//! the case asserts once, when the activation has happened or the budget is spent.
+	static const int MAX_POLLS = 1200;
+
+	protected int m_iPhase;
+	protected int m_iPolls;
+	protected int m_iHandle = -1;
+	protected ref OVT_TEST_AmbientCountingConfig m_Config;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		return AwaitActivation();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers the counting source and parks an observer on it.
+	//! \return True when the case is already finished (always a named failure at this phase).
+	protected bool Arrange()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		m_Config = new OVT_TEST_AmbientCountingConfig();
+		m_Config.m_sSourceName = "test_ambient_rollcount";
+		m_Config.m_iMinCount = 1;      // deliberately disagrees with the override
+		m_Config.m_iMaxCount = 1;
+		m_Config.m_fRadius = 10;
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		m_iHandle = virtualization.RegisterAmbientSource(m_Config, position, "rollcount_case");
+		if (m_iHandle == -1)
+		{
+			SetFailure("RegisterAmbientSource refused the test config");
+			return true;
+		}
+
+		// NO parked observer. InsertObserverSP with a null entity has ZERO vanilla callers (the only
+		// null-entity insert in the 1.8 tree is the MP variant, SCR_SpawnRequestComponent.c:541), and
+		// the one All-group run that parked one here froze the main thread the moment this case began
+		// (2026-08-17, logs_2026-08-17_02-09-05: script silence from the case's first frame, harness
+		// per-case timeout never fired). In a world with real observers (the All group's player) the
+		// source activates off them; in a world with none, the documented fallback assertion runs.
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the source has activated, or the budget is spent.
+	//! \return True when the case is finished.
+	protected bool AwaitActivation()
+	{
+		m_iPolls++;
+
+		if (m_Config.m_iRollCountCalls == 0 && m_iPolls < MAX_POLLS)
+			return false;
+
+		string failure = Verify();
+		CleanUp();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the override is the implementation core consulted.
+	protected string Verify()
+	{
+		if (m_Config.m_iRollCountCalls == 0)
+		{
+			// This world never activated the source. Fall back to the weaker, world-free claim and
+			// SAY SO - a silent pass here would hide a real regression.
+			OVT_AmbientSpawnSourceConfig asBase = m_Config;
+			int dispatched = asBase.RollCount();
+
+			if (dispatched != OVT_TEST_AmbientCountingConfig.ROLLED_COUNT)
+				return string.Format("RollCount() through a base-typed reference returned %1, expected the override's %2 - the modder seam is not virtual at all",
+					dispatched.ToString(), OVT_TEST_AmbientCountingConfig.ROLLED_COUNT.ToString());
+
+			PrintFormat("Ambient activation did not happen in this world within %1 polls (no honoured observer) - asserted virtual dispatch of the RollCount() override instead",
+				m_iPolls.ToString());
+			return "";
+		}
+
+		if (m_Config.m_iRollCountCalls != 1)
+			return string.Format("RollCount() was called %1 times for one activation - the count must be rolled ONCE and then spent across ticks, never re-rolled per tick",
+				m_Config.m_iRollCountCalls.ToString());
+
+		if (m_Config.m_iRollPrefabCalls != OVT_TEST_AmbientCountingConfig.ROLLED_COUNT)
+			return string.Format("The activation asked for %1 prefab(s); the override said %2 and the authored min/max said 1, so core consulted the wrong one",
+				m_Config.m_iRollPrefabCalls.ToString(), OVT_TEST_AmbientCountingConfig.ROLLED_COUNT.ToString());
+
+		PrintFormat("Ambient activation consulted the config subclass: RollCount() once, %1 prefab rolls (authored min/max would have given 1)",
+			m_Config.m_iRollPrefabCalls.ToString());
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the observer and the source on EVERY exit path - a leaked source would keep ticking
+	//! for the rest of the suite, and a leaked observer would keep whatever is near it awake.
+	protected void CleanUp()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization && m_iHandle != -1)
+			virtualization.UnregisterAmbientSource(m_iHandle);
+
+		m_iHandle = -1;
+	}
+
+}
+
+//------------------------------------------------------------------------------------------------
+//! ReleaseAmbientEntity() answers false for an entity that was never ambient.
+//!
+//! Release is an OWNERSHIP TRANSFER, and the honest "no" matters as much as the yes: `civilians`
+//! calls it on whatever the player just recruited, which is very often a character some other
+//! Overthrow system spawned. If an unknown entity answered true, the caller would believe it had
+//! taken ownership of something no source is tracking - and a future vehicle-theft path would think
+//! it had un-ambient'd a vehicle that was never ambient in the first place.
+//!
+//! The subject is the game-mode entity: unambiguously not ambient, guaranteed to exist, and
+//! guaranteed not to be deleted by a wrong answer.
+//!
+//! Init tier: a pure registry lookup with no campaign state behind it.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! ReleaseAmbientEntity return true when the reverse-map lookup misses and this case goes red
+//! immediately.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_ReleaseUnknownAmbientEntity : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		BaseGameMode gameMode = GetGame().GetGameMode();
+		if (!gameMode)
+		{
+			SetFailure("There is no game-mode entity to use as a definitely-not-ambient subject");
+			return true;
+		}
+
+		if (virtualization.ReleaseAmbientEntity(gameMode))
+		{
+			SetFailure("ReleaseAmbientEntity() claimed the game-mode entity was ambient - a caller would believe it had taken ownership of something no source tracks");
+			return true;
+		}
+
+		// The same must hold while a source exists: "unknown" is about the reverse map, not about
+		// whether anything is registered at all.
+		OVT_AmbientSpawnSourceConfig config = new OVT_AmbientSpawnSourceConfig();
+		config.m_sSourceName = "test_release_unknown";
+
+		int handle = virtualization.RegisterAmbientSource(config, OVT_TEST_VirtualizationFixture.PickPosition(), "release_case");
+
+		bool claimed = virtualization.ReleaseAmbientEntity(gameMode);
+
+		if (handle != -1)
+			virtualization.UnregisterAmbientSource(handle);
+
+		if (claimed)
+		{
+			SetFailure("ReleaseAmbientEntity() claimed a non-ambient entity while one source was registered");
+			return true;
+		}
+
+		Print("ReleaseAmbientEntity() answers false for an entity no source owns, with and without a registered source");
+		return true;
+	}
+}

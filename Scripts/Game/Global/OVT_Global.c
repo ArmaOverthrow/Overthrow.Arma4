@@ -244,6 +244,16 @@ class OVT_Global : Managed
 		return OVT_DeploymentManagerComponent.GetInstance();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! The server-side registry of virtualized AI groups and ambient spawn sources.
+	//! Present on clients too (the game mode entity exists there), but every entry point on it is
+	//! server-gated - nothing in virtualization has a client half.
+	//! \return The virtualization manager, or null before the game mode exists.
+	static OVT_VirtualizationManagerComponent GetVirtualization()
+	{
+		return OVT_VirtualizationManagerComponent.GetInstance();
+	}
+
 	static OVT_RecruitManagerComponent GetRecruits()
 	{
 		return OVT_RecruitManagerComponent.GetInstance();

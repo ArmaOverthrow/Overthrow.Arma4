@@ -18,6 +18,8 @@ The vertical slice that proves the layer: the deployments framework's three ship
 - Deployments' lifecycle bugs that this migration would otherwise inherit — BUG-028 (`m_mFactionDeployments` leak, the long-campaign kill switch) and the world-time unit mismatches — are verified fixed (in 1.4.x) or fixed here as a prerequisite task.
 - Persistence-tier coverage extends to a migrated deployment round trip (config-name resolution, eliminated-flag ordering, member survival).
 
+- **AI observers (epic requirement added 2026-08-17):** an additive core API to register a tracked group as an **observer** (engine `ObserversSystem` entity-following temporary observer keyed per group — never the null-entity SP insert, which freezes the client per core `context.md` gotcha 0), so designated resistance groups (recruit slave groups, future high-command groups) pull enemy AI awake without a player nearby, and a self-observing "mission-active" group pins itself spawned. Verify server-side SP-insert semantics in the autotest world before building on it; observers must be removed on wipe/unregister/despawn-of-last-member per the chosen follow target.
+
 ## Dependencies
 
 - `virtualization/core` and `virtualization/movement` complete.

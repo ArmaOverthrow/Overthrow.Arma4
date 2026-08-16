@@ -141,6 +141,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	void EvaluateDeployments()
 	{
+		if (OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return; // [OVT-VIRT-PLAYTEST-ONLY]
 		if (!m_bInitialized || !Replication.IsServer())
 			return;
 		

@@ -46,6 +46,7 @@ class OVT_EntitySpawningAPI : Managed
 	//------------------------------------------------------------------------------------------------
 	static SCR_AIGroup SpawnInfantryGroup(ResourceName groupPrefab, vector position, vector orientation = "0 0 0", int factionIndex = -1)
 	{
+		if (OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return null; // [OVT-VIRT-PLAYTEST-ONLY]
 		if (!groupPrefab || groupPrefab.IsEmpty())
 			return null;
 			

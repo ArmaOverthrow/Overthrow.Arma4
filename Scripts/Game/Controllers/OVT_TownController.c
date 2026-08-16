@@ -162,6 +162,7 @@ class OVT_TownControllerComponent: OVT_Component
 
 	protected void SpawnCivilians()
 	{
+		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return; // [OVT-VIRT-PLAYTEST-ONLY]
 		if(m_bCiviliansSpawned) return;
 		m_bCiviliansSpawned = true;
 		int numciv = Math.Round((float)m_Town.population * OVT_Global.GetConfig().m_fCivilianSpawnRate);

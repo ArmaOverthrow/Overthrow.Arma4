@@ -52,6 +52,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	//! Reference to the deployment manager component.
 	protected OVT_DeploymentManagerComponent m_Deployment;
+	//! Reference to the virtualization manager component.
+	protected OVT_VirtualizationManagerComponent m_Virtualization;
 	//! Reference to the tutorial manager component.
 	protected OVT_TutorialManagerComponent m_TutorialManager;
 	//! Reference to the perceived faction manager component.
@@ -349,6 +351,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Deployment");
 
 			m_Deployment.PostGameStart();
+		}
+
+		if(m_Virtualization)
+		{
+			Print("[Overthrow] Starting Virtualization");
+
+			m_Virtualization.PostGameStart();
 		}
 
 		if(m_TutorialManager)
@@ -1443,6 +1452,14 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Deployment");
 
 			m_Deployment.Init(this);
+		}
+
+		m_Virtualization = OVT_VirtualizationManagerComponent.Cast(FindComponent(OVT_VirtualizationManagerComponent));
+		if(m_Virtualization)
+		{
+			Print("[Overthrow] Initializing Virtualization");
+
+			m_Virtualization.Init(this);
 		}
 
 		m_TutorialManager = OVT_TutorialManagerComponent.Cast(FindComponent(OVT_TutorialManagerComponent));

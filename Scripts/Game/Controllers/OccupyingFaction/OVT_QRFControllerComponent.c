@@ -366,6 +366,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	//----------------------------------------------------
 	protected void SpawnFromQueue()
 	{
+		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return; // [OVT-VIRT-PLAYTEST-ONLY]
 		if(m_aSpawnQueue.Count() == 0) return;
 		
 		ResourceName res = m_aSpawnQueue[0];

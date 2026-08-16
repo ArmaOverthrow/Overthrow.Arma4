@@ -548,6 +548,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 			{
 				if(tower.garrison.Count() == 0)
 				{
+					if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) continue; // [OVT-VIRT-PLAYTEST-ONLY]
+
 					//Spawn in radio defense
 
 					vector pos = tower.location + "5 0 0";

@@ -1,8 +1,8 @@
 # Virtualization - Epic Overview
 
 **Epic:** virtualization
-**Status:** 📋 Planned
-**Last Updated:** 2026-08-14
+**Status:** 🟡 In Progress (1/5 features complete)
+**Last Updated:** 2026-08-17
 
 > **2026-08-14 — Replanned on Reforger 1.8.** The 1.8 update shipped engine-native group virtualization (`ProximityDriven` lifecycle, importance-tiered budgeted spawn queue, dormancy with survivor counts, vanilla group persistence). Decision (user-approved): **adopt as a hybrid** — core becomes a thin Overthrow registry/config/API layer over the engine lifecycle, with **slot-accurate** dead-member truth (a core-owned per-slot mask enforced via an `ExpandOneMember` override on the already-modded `SCR_AIGroup`; revised from an initial count-based acceptance the same day). See `core/implementation.md` Revision 2 and `docs/reforger/1.8.0.10-changes.md`.
 
@@ -24,7 +24,7 @@ The constituent features of this epic, in build order. Each feature is a subfold
 
 | # | Feature | Status | Tasks | Description |
 |---|---------|--------|-------|-------------|
-| 1 | core | Planned | — | `OVT_VirtualizationManagerComponent` — thin registry/config/API layer over the 1.8 engine lifecycle: composition resolution, owner tagging/reclaim, server-configurable spawn distance, importance stamping, wipe bookkeeping, registry persistence (group state persists via vanilla's `SCR_AIGroupSerializer`), plus the **ambient spawn-source seam** (config-declared one-off/non-persisted spawning via `ObserversSystem`). |
+| 1 | core | ✅ Complete (Ready for Review) | 50/50 (100%) | `OVT_VirtualizationManagerComponent` — thin registry/config/API layer over the 1.8 engine lifecycle: composition resolution, owner tagging/reclaim, server-configurable spawn distance, importance stamping, slot-accurate survivor masks, wipe bookkeeping, **Route B registry persistence** (the manager's serializer persists full re-creation state and rebuilds group entities on load — vanilla's `SCR_AIGroupSerializer` proved unusable for runtime groups, see core `context.md`), plus the **ambient spawn-source seam**. `api.md` frozen 2026-08-17; user play-tests tracked in core `context.md`. |
 | 2 | civilians | Planned | — | Town civilians migrate off `OVT_TownControllerComponent` onto the ambient spawn-source class: config-driven density with runtime operator tuning, prefab variety, behavior archetypes, believable placement; stretch: ambient parked civilian vehicles. |
 | 3 | movement | Planned | — | Virtual movement while despawned — straight-line fixed speed for infantry, road-network-following for vehicle groups — advancing dormant group entities' origins along their (persistent) waypoint entities; valid spawn placement. Handoff is largely native: waypoints never leave the group across dormancy. |
 | 4 | integration | Planned | — | First tracked-group consumers: deployments' group lifecycle (town patrol + both vehicle patrols) and radio-tower garrisons migrate onto the layer; ad-hoc proximity code retired; dead members stay dead in the live game. |
@@ -59,7 +59,7 @@ The constituent features of this epic, in build order. Each feature is a subfold
 - **Key architectural decisions for the epic as a whole:**
   - **Engine-native lifecycle (1.8):** proximity spawn/despawn, budget arbitration, frame-spread spawning, dormancy and group persistence are the engine's (`ProximityDriven` + `SCR_EAISpawnImportance` + `SCR_AIGroupSerializer`); Overthrow builds the registry, config, ambient seam and consumer API on top. The dormant `SCR_AIGroup` entity *is* the durable group record.
   - **Rebuild, don't rebase:** the old `virtualization` branch is reference material only. Its salvaged lessons are now largely engine-provided (held-member protection supersedes the 40 m stolen-vehicle rule; the spawn queue supersedes hand-rolled frame-spreading; eliminated-before-init ordering survives as the wipe-bookkeeping contract).
-  - **Vanilla persistence native:** group state via vanilla's own AI serializers (connected through `Common.conf`); Overthrow serializers carry only registry bookkeeping. No EPF concepts anywhere.
+  - **Vanilla persistence native — revised to Route B (2026-08-17, core Phase 5):** vanilla's own AI serializers proved unusable for runtime-spawned groups (no safe self-spawn path; Overthrow's BUG-118 untrack + `SelfSpawn 0`; class-wide opt-in would duplicate lazily-registered orphans on every load). Core's own `OVT_VirtualizationManagerSerializer` persists **full re-creation state** (composition, live position, waypoint plan, slot mask) and the manager rebuilds group entities on load. Still vanilla persistence infrastructure (`ScriptedComponentSerializer`), still no EPF concepts — but the registry payload, not the group entity, is the durable record.
   - **Server-only, no client surface:** nothing Overthrow adds replicates; map/UI presence for virtual units is explicitly out of scope. (Group entities replicate as vanilla always has.)
   - **Slot-accurate survivor truth:** groups respawn with exactly their surviving *slots* (roles and loadouts preserved) and are removed when wiped. Core owns a per-slot alive mask, records deaths by slot, and enforces refill via an `ExpandOneMember` override on the already-modded `SCR_AIGroup` (user decision 2026-08-14, revising an initial count-based acceptance). The mask also corrects an engine hazard: budget-under-filled groups would otherwise have missing members counted dead at despawn.
   - **No virtual combat:** despawned groups never fight, take damage, or resolve engagements virtually.
@@ -78,8 +78,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** Planned (0/5 features)
-- **One-line summary for master:** The unified AI virtualization layer (issue #100, built as a thin registry over Reforger 1.8's engine-native group lifecycle + vanilla persistence): durable group records with slot-accurate survivor truth, config-driven ambient civilians with operator-tunable density, road-aware virtual movement, proximity spawn/despawn — converging four ad-hoc implementations (occupying's three + towns' civilian spawner) and scoping the stalled base-upgrades→deployments migration as a deferrable final feature.
+- **Rollup status:** In Progress (1/5 features complete — core ✅ 50/50)
+- **One-line summary for master:** The unified AI virtualization layer (issue #100, a thin registry over Reforger 1.8's engine-native group lifecycle): **core is COMPLETE** — registry/API + slot-accurate survivor masks (fixing an engine count-corruption ratchet proven live), ambient spawn-source seam, Route B registry persistence (manager re-creates groups on load), frozen consumer contract (`api.md`) — unblocking `civilians` and `movement`; then `integration` and the deferrable base-upgrades→deployments migration.
 
 ---
 

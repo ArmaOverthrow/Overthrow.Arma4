@@ -194,6 +194,8 @@
 //!   9. TownSupport_SurvivesSaveAndReload
 //!  10. VehicleRegistry_SurvivesSaveAndReload
 //!  11. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
+//!  12. VirtualGroupsWiped_DoNotComeBack           - the terminal half of the D2 promise
+//!  13. VirtualGroups_SurviveSaveAndReload         - the partially wiped group, re-CREATED on load
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -3815,5 +3817,787 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	protected vector MarkerLocation(int marker)
 	{
 		return Vector(424200, 0, marker);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A WIPED VIRTUAL GROUP DOES NOT COME BACK - not from the save, and not from anything the session
+//! did afterwards.
+//!
+//! WHY THIS CASE EXISTS, AND WHY IT IS THE FIRST OF THE TWO. "Dead members stay dead" (G3) has a
+//! terminal case: a group whose whole roster died is REMOVED, and the campaign must never hand it
+//! back. Under Route B that promise is entirely Overthrow's to keep - core re-creates its own group
+//! entities from its own payload on every load, so a record that reached the payload by accident, or
+//! that the restore refused to remove, IS a resurrected garrison standing in a base the player
+//! already cleared.
+//!
+//! THE RECORD IS ALREADY GONE BEFORE THE SAVE, and the case asserts that before saving - otherwise it
+//! would be proving something about a payload entry that was never written. What the round trip then
+//! proves is the other half: the payload keeps it gone.
+//!
+//! ANTI-VACUOUS-PASS (suite header closures 2 and 3). The dirty step RE-REGISTERS a group under the
+//! same owner key - a deliberate resurrection, and exactly the shape a stale record would have. A
+//! reload that restores nothing leaves that group registered and the case fails by name; a reload that
+//! restores campaign-start defaults produces no virtual groups at all and also fails, because the
+//! resurrection would still be sitting there. The assertion is "the owner key resolves to nothing",
+//! which neither a no-op nor a reset can satisfy.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): make ApplyPersistedRegistry() skip its
+//! "unregister everything the payload does not claim" pass - the resurrected group survives the
+//! reload and the case reports the owner key still resolving. Independently: make
+//! ApplyPersistedRecord() re-create all-dead records instead of returning false, seed a wiped record
+//! into the payload, and the wiped handle comes back registered.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_VirtualGroupsWiped_DoNotComeBack : SCR_AutotestCaseBase
+{
+	//! Distinctive owner key - nothing else in the session registers under it.
+	static const string OWNER_KEY = "roundtrip_wiped_group";
+
+	//! A tiny spawn ring, for the same reason the sibling case uses one: the engine must not
+	//! materialise members of either group while the case's bounded waits run.
+	static const int SPAWN_DISTANCE_OVERRIDE = 23;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	//! The handle of the group that was wiped before the save.
+	protected int m_iWipedHandle = -1;
+
+	//! The handle of the group registered under the same owner key AFTER the save - the resurrection
+	//! the restore has to undo.
+	protected int m_iResurrectedHandle = -1;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a group, kills every one of its roster slots, checks the wipe already removed it, and
+	//! saves that state.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a virtual group cannot be registered");
+			return true;
+		}
+
+		m_iWipedHandle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY,
+			factionKey, groupName, OVT_TEST_VirtualizationFixture.PickPosition(), null, SPAWN_DISTANCE_OVERRIDE);
+
+		if (m_iWipedHandle == -1)
+		{
+			SetFailure("RegisterGroup returned -1 for the composition %1 '%2', which the faction registry resolves", factionKey, groupName);
+			return true;
+		}
+
+		int roster = virtualization.GetMemberCount(m_iWipedHandle);
+		if (roster < 1)
+		{
+			virtualization.UnregisterGroup(m_iWipedHandle);
+			SetFailure("The registered group has no roster slots, so it cannot be wiped by reporting deaths");
+			return true;
+		}
+
+		// Kill the whole roster. ReportMemberKilled is the public death seam, so no world combat is
+		// needed - and killing the last living slot is what removes the record.
+		for (int slot = 0; slot < roster; slot++)
+		{
+			virtualization.ReportMemberKilled(m_iWipedHandle, slot);
+		}
+
+		if (virtualization.IsRegistered(m_iWipedHandle))
+		{
+			virtualization.UnregisterGroup(m_iWipedHandle);
+			SetFailure("Killing all %1 roster slots left handle %2 registered - the wipe never happened, so this case cannot say anything about the save",
+				roster.ToString(), m_iWipedHandle.ToString());
+			return true;
+		}
+
+		if (!virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY).IsEmpty())
+		{
+			SetFailure("The wiped group still resolves through FindGroupsByOwner before the save was even taken");
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resurrects the group under the same owner key, then asks for the persisted state back.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null before the reload");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("The faction registry stopped resolving a composition before the reload");
+			return true;
+		}
+
+		m_iResurrectedHandle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY,
+			factionKey, groupName, OVT_TEST_VirtualizationFixture.PickPosition(), null, SPAWN_DISTANCE_OVERRIDE);
+
+		if (m_iResurrectedHandle == -1)
+		{
+			SetFailure("Could not register the resurrection group, so the dirty step did nothing and the assertion would be vacuous");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null after the reload");
+			return true;
+		}
+
+		string failure = Verify(virtualization);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a live group into the cases after it
+		// or into the next save this suite takes.
+		if (virtualization.IsRegistered(m_iResurrectedHandle))
+			virtualization.UnregisterGroup(m_iResurrectedHandle);
+
+		if (virtualization.IsRegistered(m_iWipedHandle))
+			virtualization.UnregisterGroup(m_iWipedHandle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A wiped virtual group stayed wiped across the round trip, and the group registered under its owner key afterwards was removed with it");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization)
+	{
+		if (virtualization.IsRegistered(m_iWipedHandle))
+			return string.Format("Handle %1 was wiped before the save and is registered again after the reload - a destroyed group came back", m_iWipedHandle.ToString());
+
+		if (virtualization.IsRegistered(m_iResurrectedHandle))
+			return string.Format("Handle %1 was registered AFTER the save and survived the reload - the restore does not remove records the payload does not claim, so a live session's groups silently outlive the state that is supposed to define them",
+				m_iResurrectedHandle.ToString());
+
+		array<int> byOwner = virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY);
+		if (!byOwner.IsEmpty())
+			return string.Format("FindGroupsByOwner still resolves %1 handle(s) for the wiped owner key - a consumer reclaiming after a load would adopt a group the player destroyed",
+				byOwner.Count().ToString());
+
+		if (virtualization.GetGroup(m_iResurrectedHandle))
+			return "The resurrected handle no longer resolves to a record but still hands out a group entity";
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A PARTIALLY WIPED VIRTUAL GROUP SURVIVES A SAVE AND A RELOAD - handle, owner key, position,
+//! composition, engine stamps, waypoint plan, and the IDENTITY of the slot that died.
+//!
+//! WHY THIS CASE EXISTS. This is the epic's persistence promise (G3/F8) and, under Route B, it is
+//! entirely Overthrow's own machinery: vanilla persists nothing about these groups. The registry
+//! serializer writes complete re-creation state and the manager rebuilds the group entity itself on
+//! load, so every field that is missing from the payload is a field the campaign silently loses - a
+//! garrison that comes back at full strength after the player fought it down to two men, or comes back
+//! at the wrong place, or comes back with the wrong men alive.
+//!
+//! WHAT THE DIRTY STEP DOES, AND WHY IT IS THAT AND NOT A SMALL EDIT (suite header closures 2 and 3).
+//! It kills every remaining slot, which WIPES the record: the registry entry is removed and the group
+//! entity is deleted. The restore therefore cannot pass by leaving anything alone - it has to
+//! re-create the group entity from the payload, put it back at the saved position with the saved
+//! stamps, and rebuild the survivor mask with the right slot still dead. It also registers a second,
+//! BOGUS group that the save knows nothing about, so "records the payload does not claim are dropped"
+//! is asserted in the same pass. A reload that restores nothing leaves no record at all and the case
+//! fails on its first assertion; a reload that restores campaign-start defaults produces no virtual
+//! groups either, and none of the asserted values (a 1234 m spawn ring, a HIGH tier, a 37 m patrol
+//! radius, one specific dead slot) is one a campaign start would ever produce.
+//!
+//! IT USES THE PUBLIC MANAGER API ONLY, per the suite's assertion rule: RegisterGroup /
+//! ReportMemberKilled to make the state, and IsRegistered / GetRecord / GetMemberCount /
+//! GetAliveMemberCount / GetMemberAlive / GetPosition / GetSpawnDistance / GetImportance /
+//! FindGroupsByOwner / GetGroup to read it back. No storage type, no persisted record class and no
+//! persistence-framework type is named anywhere in it; the only persistence-layer calls are the gate
+//! class's two annotated seams, shared with every other case here.
+//!
+//! THE COMPOSITION IS DISCOVERED, NOT HARD-CODED (OVT_TEST_VirtualizationFixture, shared with the Init
+//! tier): a faction-config rename must go red in the faction tests, not here. A roster of at least two
+//! slots is required, because "the specific dead slot is still dead" has to be distinguishable from
+//! "the count came back", and the shipped registries are small enough that the first resolvable entry
+//! may be a two-man patrol - so every entry the faction defines is tried until one is big enough.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, one per claim that could rot independently):
+//!   - drop the `entry.position = GetPosition(handle)` write in SnapshotRegistry() (or the
+//!     `record.m_vPosition = entry.position` read in ApplyPersistedRecord) and the group is re-created
+//!     at the world origin: the position assertion goes red;
+//!   - drop the slotAlive write in SnapshotRegistry(), or the ApplyPersistedMask() call, and the mask
+//!     comes back all-alive: the dead-slot assertion goes red before the count assertion does;
+//!   - drop the PushSlotMask() call in BuildRegisteredGroup and the record's mask survives while the
+//!     group refills from vanilla's first-N rule - nothing here catches that, which is why the Init
+//!     tier owns the runtime slot-selection proof;
+//!   - unbind OVT_VirtualizationManagerSerializer from the game-mode configuration in Overthrow.conf
+//!     and the reload restores nothing: the case reports the handle missing.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_AutotestCaseBase
+{
+	//! Distinctive owner key - nothing else in the session registers under it.
+	static const string OWNER_KEY = "roundtrip_virtual_group";
+
+	//! Owner key of the group registered AFTER the save, which the restore has to drop.
+	static const string BOGUS_KEY = "roundtrip_bogus_group";
+
+	//! A spawn ring no configured default produces (the global is 1750), so the assertion proves the
+	//! per-registration override round-tripped and not merely that a global was re-read.
+	//!
+	//! DELIBERATELY TINY. The case lives across many frames - two bounded waits - and the engine's own
+	//! 1 Hz lifecycle tick would materialise members of any group an observer stands inside, which would
+	//! turn "it came back dormant" into a coin flip. A 23 m ring keeps the group virtual for the whole
+	//! case without changing anything the case asserts (the despawn ring stays strictly larger, so the
+	//! registration is still a normal ProximityDriven one).
+	static const int SPAWN_DISTANCE_OVERRIDE = 23;
+
+	//! Patrol completion radius carried in the plan's float array - the one float in the payload.
+	static const float WAYPOINT_RADIUS = 37;
+
+	//! Tier stamped on the registration. Never the default, so a restore that forgot importance and
+	//! fell back to NORMAL is visible.
+	static const int IMPORTANCE = SCR_EAISpawnImportance.HIGH;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected int m_iHandle = -1;
+	protected int m_iBogusHandle = -1;
+	protected int m_iRoster;
+	protected int m_iDeadSlot = -1;
+	protected vector m_vSavedPosition;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a patrolling group, kills ONE named slot, and saves that state.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a virtual group cannot be registered");
+			return true;
+		}
+
+		string diagnostic;
+		m_iHandle = RegisterMultiSlotGroup(virtualization, factionKey, groupName,
+			OVT_TEST_VirtualizationFixture.PickPosition(), diagnostic);
+
+		if (m_iHandle == -1)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_iRoster = virtualization.GetMemberCount(m_iHandle);
+		m_vSavedPosition = virtualization.GetPosition(m_iHandle);
+
+		// The LAST slot, so the survivor mask is not simply "the first N are alive" - which is exactly
+		// what vanilla's own count-based refill would produce, and what D2 exists to beat.
+		m_iDeadSlot = m_iRoster - 1;
+		virtualization.ReportMemberKilled(m_iHandle, m_iDeadSlot);
+
+		if (!virtualization.IsRegistered(m_iHandle))
+		{
+			SetFailure("Reporting one death on a %1-slot group removed the record - the case needs a partially wiped group, not a wiped one", m_iRoster.ToString());
+			return true;
+		}
+
+		if (virtualization.GetAliveMemberCount(m_iHandle) != m_iRoster - 1)
+		{
+			int alive = virtualization.GetAliveMemberCount(m_iHandle);
+			virtualization.UnregisterGroup(m_iHandle);
+			SetFailure("The group reports %1 alive after one death out of %2 - the state being saved is already wrong", alive.ToString(), m_iRoster.ToString());
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Destroys the saved group outright and invents one the save never knew about, then asks for the
+	//! persisted state back.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null before the reload");
+			return true;
+		}
+
+		// Kill what is left. This wipes the record AND deletes the group entity, so the restore has to
+		// build a new one rather than tidy up an existing one - which is the whole of Route B.
+		for (int slot = 0; slot < m_iRoster; slot++)
+		{
+			if (virtualization.GetMemberAlive(m_iHandle, slot))
+				virtualization.ReportMemberKilled(m_iHandle, slot);
+		}
+
+		if (virtualization.IsRegistered(m_iHandle))
+		{
+			SetFailure("Killing every remaining slot left handle %1 registered - the dirty step did not dirty anything", m_iHandle.ToString());
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("The faction registry stopped resolving a composition before the reload");
+			return true;
+		}
+
+		m_iBogusHandle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, BOGUS_KEY,
+			factionKey, groupName, OVT_TEST_VirtualizationFixture.PickPosition(), null, SPAWN_DISTANCE_OVERRIDE);
+
+		if (m_iBogusHandle == -1)
+		{
+			SetFailure("Could not register the bogus group, so 'records the save does not claim are dropped' would be asserted against nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null after the reload");
+			return true;
+		}
+
+		string failure = Verify(virtualization);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a live group into the cases after it
+		// or into the next save this suite takes.
+		if (virtualization.IsRegistered(m_iHandle))
+			virtualization.UnregisterGroup(m_iHandle);
+
+		if (virtualization.IsRegistered(m_iBogusHandle))
+			virtualization.UnregisterGroup(m_iBogusHandle);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		// SCR_AutotestCaseBase.PrintFormat takes three substitutions, not the global's nine.
+		PrintFormat("A partially wiped virtual group came back from the save: handle %1, %2-slot roster, slot %3 still dead",
+			m_iHandle.ToString(), m_iRoster.ToString(), m_iDeadSlot.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization)
+	{
+		if (!virtualization.IsRegistered(m_iHandle))
+			return string.Format("Handle %1 did not come back from the save - the registry was destroyed before the reload and the restore re-created nothing, so a continued campaign would lose every virtual group it had",
+				m_iHandle.ToString());
+
+		OVT_VirtualGroupRecord record = virtualization.GetRecord(m_iHandle);
+		if (!record)
+			return string.Format("Handle %1 is registered but hands out no record", m_iHandle.ToString());
+
+		if (record.m_sOwnerSystem != OVT_TEST_VirtualizationFixture.OWNER_SYSTEM || record.m_sOwnerKey != OWNER_KEY)
+			return string.Format("The restored record is owned by %1/%2, expected %3/%4 - a consumer would reclaim someone else's group",
+				record.m_sOwnerSystem, record.m_sOwnerKey, OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY);
+
+		if (virtualization.GetMemberCount(m_iHandle) != m_iRoster)
+			return string.Format("The restored group has a roster of %1 slots, expected %2",
+				virtualization.GetMemberCount(m_iHandle).ToString(), m_iRoster.ToString());
+
+		if (virtualization.GetAliveMemberCount(m_iHandle) != m_iRoster - 1)
+			return string.Format("The restored group reports %1 living members, expected %2 - the casualty was forgotten across the save",
+				virtualization.GetAliveMemberCount(m_iHandle).ToString(), (m_iRoster - 1).ToString());
+
+		// THE D2 CLAIM. A count-accurate restore that got the identity wrong passes everything above
+		// this line and fails here, which is exactly the failure mode vanilla's count-only dormancy has.
+		if (virtualization.GetMemberAlive(m_iHandle, m_iDeadSlot))
+			return string.Format("Slot %1 was killed before the save and is alive again after the reload - the group came back at the right STRENGTH with the wrong men in it (D2)",
+				m_iDeadSlot.ToString());
+
+		for (int slot = 0; slot < m_iRoster; slot++)
+		{
+			if (slot == m_iDeadSlot)
+				continue;
+
+			if (!virtualization.GetMemberAlive(m_iHandle, slot))
+				return string.Format("Slot %1 was alive when the save was taken and is dead after the reload - the survivor mask came back shifted",
+					slot.ToString());
+		}
+
+		if (vector.Distance(virtualization.GetPosition(m_iHandle), m_vSavedPosition) > 1)
+			return string.Format("The restored group is at %1, saved at %2 - a re-created group that ignores the saved position moves every garrison in the campaign",
+				virtualization.GetPosition(m_iHandle).ToString(), m_vSavedPosition.ToString());
+
+		array<int> byOwner = virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY);
+		if (byOwner.Find(m_iHandle) == -1)
+			return string.Format("FindGroupsByOwner does not resolve the restored handle %1 - the reclaim seam every consumer uses after a load is broken even though the record exists",
+				m_iHandle.ToString());
+
+		if (virtualization.IsRegistered(m_iBogusHandle))
+			return string.Format("Handle %1 was registered AFTER the save and survived the reload - the restore does not drop records the payload has no entry for",
+				m_iBogusHandle.ToString());
+
+		if (!virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, BOGUS_KEY).IsEmpty())
+			return "The bogus owner key still resolves to a handle after the reload";
+
+		return VerifyEntity(virtualization, record);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The half that says the record is not just bookkeeping: a real, dormant, correctly stamped group
+	//! entity exists again, with the waypoint plan it was registered with.
+	//! \param[in] virtualization The manager.
+	//! \param[in] record The restored record.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyEntity(notnull OVT_VirtualizationManagerComponent virtualization, notnull OVT_VirtualGroupRecord record)
+	{
+		SCR_AIGroup group = virtualization.GetGroup(m_iHandle);
+		if (!group)
+			return "The record came back without a group entity - the registry remembers the group but nothing in the world is it, so it can never materialise";
+
+		if (group.GetAgentsCount() != 0 || virtualization.IsSpawned(m_iHandle))
+			return string.Format("The re-created group already has %1 member(s) - it must come back DORMANT and let the engine materialise it on approach",
+				group.GetAgentsCount().ToString());
+
+		if (group.GetLifecyclePolicy() != SCR_EAIGroupLifecyclePolicy.ProximityDriven)
+			return string.Format("The re-created group's lifecycle policy is %1, expected ProximityDriven (%2) - a restored group without the policy never appears again",
+				group.GetLifecyclePolicy().ToString(), SCR_EAIGroupLifecyclePolicy.ProximityDriven.ToString());
+
+		if (virtualization.GetSpawnDistance(m_iHandle) != SPAWN_DISTANCE_OVERRIDE)
+			return string.Format("The restored spawn ring is %1 m, expected the registered override of %2 m",
+				virtualization.GetSpawnDistance(m_iHandle).ToString(), SPAWN_DISTANCE_OVERRIDE.ToString());
+
+		if (Math.AbsFloat(group.GetSpawnDistance() - SPAWN_DISTANCE_OVERRIDE) > 1)
+			return string.Format("The re-created group entity carries a %1 m spawn ring, expected the restored %2 m",
+				group.GetSpawnDistance().ToString(), SPAWN_DISTANCE_OVERRIDE.ToString());
+
+		if (virtualization.GetImportance(m_iHandle) != IMPORTANCE || group.GetImportance() != IMPORTANCE)
+			return string.Format("The restored group sits at importance %1 (entity %2), expected the registered %3 - an unstamped group is budget-starved at vanilla's LOW tier",
+				virtualization.GetImportance(m_iHandle).ToString(), group.GetImportance().ToString(), IMPORTANCE.ToString());
+
+		if (!record.m_Plan)
+			return "The restored record has no waypoint plan - a patrol comes back as a garrison, and nothing would rebuild its waypoints on the next load either";
+
+		if (record.m_Plan.m_aPositions.Count() != 2)
+			return string.Format("The restored waypoint plan has %1 leg(s), expected 2", record.m_Plan.m_aPositions.Count().ToString());
+
+		if (!record.m_Plan.m_bCycle)
+			return "The restored waypoint plan is not cycling - the patrol would run its legs once and stop";
+
+		if (record.m_Plan.m_aTypes[0] != OVT_EVirtualWaypointType.PATROL)
+			return string.Format("The restored waypoint type is %1, expected PATROL (%2)",
+				record.m_Plan.m_aTypes[0].ToString(), OVT_EVirtualWaypointType.PATROL.ToString());
+
+		if (Math.AbsFloat(record.m_Plan.m_aParams[0] - WAYPOINT_RADIUS) > 0.01)
+			return string.Format("The restored waypoint parameter is %1, expected %2",
+				record.m_Plan.m_aParams[0].ToString(), WAYPOINT_RADIUS.ToString());
+
+		if (record.m_aOwnedWaypoints.IsEmpty())
+			return "The re-created group owns no waypoint entities - the plan survived but nothing was built from it, so the patrol stands still";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a group with at least two roster slots.
+	//!
+	//! The roster size is only knowable once the entity exists, so this registers, checks, and drops
+	//! anything too small before trying the next registry entry the faction defines. The composition
+	//! FindComposition() already resolved is tried first.
+	//! \param[in] virtualization The manager.
+	//! \param[in] factionKey Faction to register from.
+	//! \param[in] groupName The registry entry to try first.
+	//! \param[in] position Where to register.
+	//! \param[out] diagnostic Why no composition was usable; untouched on success.
+	//! \return The handle, or -1.
+	protected int RegisterMultiSlotGroup(notnull OVT_VirtualizationManagerComponent virtualization,
+		string factionKey, string groupName, vector position, out string diagnostic)
+	{
+		array<string> candidates = new array<string>();
+		candidates.Insert(groupName);
+
+		foreach (string name : OVT_TEST_VirtualizationFixture.ListGroupNames(factionKey))
+		{
+			if (name != groupName)
+				candidates.Insert(name);
+		}
+
+		foreach (string candidate : candidates)
+		{
+			int handle = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY,
+				factionKey, candidate, position, BuildPlan(position), SPAWN_DISTANCE_OVERRIDE, IMPORTANCE);
+
+			if (handle == -1)
+				continue;
+
+			if (virtualization.GetMemberCount(handle) >= 2)
+				return handle;
+
+			virtualization.UnregisterGroup(handle);
+		}
+
+		diagnostic = string.Format("Faction '%1' defines no group registry entry with two or more roster slots, so 'the specific dead slot is still dead' cannot be told apart from 'the count came back'",
+			factionKey);
+
+		return -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A two-leg cycling patrol, so the payload's vector, int and float parallel arrays and its cycle
+	//! flag are all exercised by the round trip.
+	//! \param[in] position Where the group is registered.
+	//! \return The plan.
+	protected OVT_VirtualWaypointPlan BuildPlan(vector position)
+	{
+		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
+
+		plan.m_aPositions.Insert(position);
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
+		plan.m_aParams.Insert(WAYPOINT_RADIUS);
+
+		plan.m_aPositions.Insert(position + Vector(0, 0, 150));
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
+		plan.m_aParams.Insert(WAYPOINT_RADIUS);
+
+		plan.m_bCycle = true;
+
+		return plan;
 	}
 }

@@ -254,6 +254,8 @@ OVT_OverthrowGameMode {
    m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
   }
+  OVT_VirtualizationManagerComponent "{6B4A1D3E00000010}" {
+  }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
   }
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {

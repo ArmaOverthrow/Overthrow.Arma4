@@ -1,9 +1,9 @@
 # Virtualization Core — Implementation Plan
 
-**Status:** Planning
-**Started:** 2026-08-07
-**Target Completion:** TBD
-**Last Updated:** 2026-08-14
+**Status:** Ready for Review
+**Started:** 2026-08-16
+**Completed:** 2026-08-17 (all 6 phases; user play-tests tracked in context.md)
+**Last Updated:** 2026-08-17
 
 **Epic:** `virtualization` (feature #1 of 5 — see `docs/features/virtualization/epic-overview.md`)
 **Requirements:** `docs/features/virtualization/core/requirements.md` (authoritative for scope)
@@ -21,6 +21,14 @@
 > accepted vanilla's count-based semantics, then revised to slot-accurate the same day).
 > Revision 1's hand-rolled tick/queue/serializer design is in git history; see
 > `docs/reforger/1.8.0.10-changes.md` for the full 1.8 findings.
+
+> **Phase 1 verdict amendments (2026-08-16 — spike + play-test + engine-source investigation; evidence in `context.md`):**
+> 1. **Persistence tracking (§3.3 step 6, §3.6, D8):** vanilla's `AIGroup` class rule WOULD auto-track runtime-spawned groups, but Overthrow's BUG-118 fix untracks every group unconditionally (`Modded/SCR_AIGroup.c:30-35`) and `Overthrow.conf:77-88` stamps `SelfSpawn 0` on AIGroup/AIUnit/AIWaypoint. Runtime-confirmed (`IsTracked=no` after retry-queue drain). Phase 3 must build BOTH a per-group untrack exemption AND a self-spawn path for registered groups only; `OVT_PersistenceTracking.MarkForSelfSpawn` is banned (save-corrupting, BUG-116).
+> 2. **D2(b) broadened:** the count-corruption vector is not just budget under-fill — **any despawn during an in-progress refill records not-yet-spawned slots as dead** (`SCR_AIGroup.c:2876`), the ratchet is permanent (refill capacity `totalSlots - dormantDead`, `:2726-2729`; nothing engine-side re-corrects), and refill kills the roster TAIL first (`slotIndex = aliveCount`, `:2731`). Observed live: 6→2 with zero kills. The mask + post-despawn `SetDormantCounts` re-assertion is mandatory for correctness, not defensive.
+> 3. **Eliminate-when-reached deferred:** `SetEliminateWhenReached(true)` + `veryNearBlockDist` (default 150 m) can delete a dormant group entity outright when any observer closes within 150 m (`SCR_AIGroup.c:3038-3059`) — and observers include **non-players** (deploy-point preload MP observer `SCR_SpawnRequestComponent.c:541`, cameras, optics far-observer). Registration must NOT stamp it unconditionally; enable it only once the mask reports the group wiped (or subscribe + re-verify against the mask before honouring the signal).
+> 4. **Observer semantics:** "nearby" = `HasObserverInRange` from the group entity origin, linear metres, covering cameras + fixed MP inserts — core must never mix this with player-distance loops, and consumers must know campaign-start surroundings may never go dormant (parked deploy-point observer).
+> 5. **Engine purge hole:** dormant groups never purge queued spawn requests when their observer leaves (`:2869-2870` early-out precedes the purge; LifecycleTick re-enqueues 1/s with no already-queued guard) — mid-fill despawns WILL happen in the wild; core's re-assertion (2) is the correction.
+> 6. **Test-world green light (T1.4):** the autotest world runs the real `ChimeraAIWorld` queue + ObserversSystem; unobserved ProximityDriven groups stay memberless → Init-tier registration cases are safe, including queue-semantics assertions.
 
 ---
 
@@ -236,10 +244,10 @@ bool ReleaseAmbientEntity(notnull IEntity entity);
 
 1. Resolve `(factionKey, groupName)` → prefab via `OVT_Global.GetFactions().GetOverthrowFactionByKey()` → `OVT_Faction.GetGroupPrefabByName()`; bail `-1` + WARNING on miss.
 2. `SCR_AIGroup.IgnoreSpawning(true)` (static one-shot, `SCR_AIGroup.c:2217`, consumed `:2579`) → spawn the group prefab at `position` → **zero members exist**.
-3. `SetFaction`, `SetLifecyclePolicy(ProximityDriven, ResolveSpawnDistance(override, global), spawn × hysteresis, -1)`, `SetImportance(importance)`, `SetEliminateWhenReached(true)`.
+3. `SetFaction`, `SetLifecyclePolicy(ProximityDriven, ResolveSpawnDistance(override, global), spawn × hysteresis, -1)`, `SetImportance(importance)`. **Do NOT stamp `SetEliminateWhenReached(true)` at registration** (Phase 1 amendment 3: with non-player observers a dormant group inside the very-near ring gets deleted outright) — core enables it only after the mask reports the group wiped, as the cleanup mechanism for the eliminated record.
 4. Build `AIWaypoint` entities from the plan (waypoint helpers on `OVT_OverthrowConfigComponent` :401-543), attach to the group, record in `m_aOwnedWaypoints`.
 5. Capture the roster size from the prefab's slot list, initialise `m_aSlotAlive` all-alive, and hand the mask to the modded group (`SetOVTSlotMask` — D2) so the engine's refill spawns exactly the surviving slots.
-6. Ensure the group entity (and its waypoints) are persistence-tracked — mechanics per the Phase 1 spike verdict (vanilla may already track runtime-spawned `AIGroup`-class entities through `Common.conf`'s class rule; if not, `OVT_PersistenceTracking.Track()` — this is the **inverse** of Revision 1, which forbade tracking).
+6. Ensure the group entity (and its waypoints) are persistence-tracked — **Phase 1 verdict:** vanilla's class rule is defeated by Overthrow's unconditional untrack (`Modded/SCR_AIGroup.c:30-35`, BUG-118) and `SelfSpawn 0` (`Overthrow.conf:77-88`). Phase 3 builds a per-registered-group untrack exemption + a registered-groups-only self-spawn path (likely a dedicated higher-priority `EntityPersistenceConfig` with an Overthrow rule class; `MarkForSelfSpawn` is banned — BUG-116 save corruption).
 7. Subscribe the group's wipe-relevant signals and build the death-hook mapping; store the record; return the handle.
 
 A freshly registered group is dormant-by-construction (never spawned, `GetDormantAliveCount() == -1` sentinel = "never despawned" — `SCR_AIGroupSerializer.c:352`); the engine's own `LifecycleTick` materialises it when an observer arrives. Core never polls proximity for tracked groups.

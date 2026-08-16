@@ -81,6 +81,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	protected void UpdateUpgrades()
 	{
+		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return; // [OVT-VIRT-PLAYTEST-ONLY]
 		if(!m_aBaseUpgrades) return;
 		if(!IsOccupyingFaction()) return;
 
@@ -294,6 +295,7 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	int SpendResources(int resources, float threat = 0)
 	{
+		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return 0; // [OVT-VIRT-PLAYTEST-ONLY]
 		if(!m_aBaseUpgrades) return 0;
 		int spent = 0;
 

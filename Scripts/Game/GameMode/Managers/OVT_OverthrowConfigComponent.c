@@ -48,6 +48,14 @@ class OVT_OverthrowConfigStruct
 	//! CONFIG_STREAM_VERSION did not have to move for the equipped-recruit purchase (decision D18).
 	float recruitLoadoutFeeMultiplier;
 
+	//! Global spawn distance (metres) for virtualized AI groups - the distance at which a registered
+	//! group's members materialise (implementation.md D5, issue #100). Each registration may override
+	//! it; a very large value keeps every registered group spawned permanently.
+	//! SERVER-ONLY, exactly like recruitLoadoutFeeMultiplier: it is deliberately absent from
+	//! RplSave/RplLoad below, so CONFIG_STREAM_VERSION does not move for it. Separate from
+	//! m_iMilitarySpawnDistance / m_iCivilianSpawnDistance, which the un-migrated spawn paths use.
+	int virtualizationSpawnDistance;
+
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
@@ -68,6 +76,7 @@ class OVT_OverthrowConfigStruct
 		procurementMultiplier = 0.8;
 		vehiclePriceMultiplier = 1.0;
 		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
+		virtualizationSpawnDistance = 1750;
 	}
 }
 
