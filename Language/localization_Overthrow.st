@@ -12605,6 +12605,14 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
+   Id "OVT-StartUprising"
+   Target_en_us "Start Uprising"
+   Target_uk_ua "Розпочати повстання"
+   Modified 1780541494
+   Author "Aaron Static"
+   LastChanged "CrioUA"
+  }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
@@ -12862,6 +12870,14 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
+   Id "OVT-SupportTooLow"
+   Target_en_us "Not enough support in this town"
+   Target_uk_ua "Недостатньо підтримки в цьому місті"
+   Modified 1780541460
+   Author "Aaron Static"
+   LastChanged "CrioUA"
   }
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
@@ -14328,18 +14344,6 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "CrioUA"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
-   Id "OVT-StartUprising"
-   Target_en_us "Start Uprising"
-   Modified 1786861251
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
-   Id "OVT-SupportTooLow"
-   Target_en_us "Not enough support in this town"
-   Modified 1786861251
-   Author "Aaron Static"
   }
  }
 }
