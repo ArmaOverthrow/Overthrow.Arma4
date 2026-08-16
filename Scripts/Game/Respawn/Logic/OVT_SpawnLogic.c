@@ -875,7 +875,11 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			// Check if the home location is safe to spawn at
 			else if(IsSpawnLocationSafe(homePos))
 			{
-				position = homePos;
+				// The stored vector, HEALED IF IT COLLIDES. Homes written before FindSafeOwnedHouse
+				// stopped returning raw building origins can be a point inside the house shell, and a
+				// save carries that vector forever - so the collision is tested at spawn time, not
+				// trusted from the record. A clear home spawns exactly where it always has.
+				position = EnsureClearSpawnPosition(homePos);
 				yawPitchRoll = "0 0 0";
 			}
 			else
@@ -886,6 +890,34 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 				yawPitchRoll = "0 0 0";
 			}
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A spawn position, cleared of geometry if the stored one collides.
+	//!
+	//! Guards against home vectors recorded as a raw building origin (the pre-fix FindSafeOwnedHouse
+	//! behaviour, which a save file preserves indefinitely): a person-sized box is traced at the stored
+	//! position, and only a colliding one is re-resolved. The re-resolution goes through
+	//! FindSafeSpawnPosition WITH its spawn-point query, so a bad vector inside a house heals to that
+	//! house's own authored spawn point - the same point a correctly recorded home would have held.
+	//! A clear position is returned untouched, so correctly stored homes (including free-placed
+	//! "set home here" positions) spawn exactly where they always have.
+	protected vector EnsureClearSpawnPosition(vector pos)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if(!world)
+			return pos;
+
+		TraceBox trace = new TraceBox;
+		trace.Flags = TraceFlags.ENTS;
+		trace.Start = pos;
+		trace.Mins = "-0.5 0 -0.5";
+		trace.Maxs = "0.5 2 0.5";
+
+		if(world.TracePosition(trace, null) >= 0)
+			return pos;
+
+		return OVT_Global.FindSafeSpawnPosition(pos);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1165,6 +1197,13 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 	//------------------------------------------------------------------------------------------------
 	//! Find a safe house that the player owns
+	//!
+	//! Returns the house's AUTHORED spawn point, never its raw origin. A building's origin is a point
+	//! inside the model shell - returning it (and storing it as the new home via SetHomePos) is what
+	//! respawned players inside starter-house walls and furniture. The same resolution SetHome(building)
+	//! uses applies here: the OVT_SpawnPointComponent's point when the house has one, else a searched
+	//! clear spot near the building - and a house where no clear spot exists is skipped rather than
+	//! returned.
 	protected vector FindSafeOwnedHouse(int playerId, OVT_RealEstateManagerComponent realEstate)
 	{
 		// Get player's persistent ID
@@ -1185,10 +1224,18 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			if(!building) continue;
 
 			vector housePos = building.GetOrigin();
-			if(IsSpawnLocationSafe(housePos))
-			{
-				return housePos;
-			}
+			if(!IsSpawnLocationSafe(housePos))
+				continue;
+
+			OVT_SpawnPointComponent spawn = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
+			if(spawn)
+				return spawn.GetSpawnPoint();
+
+			// No authored point - search for a clear spot near the building, and skip the house
+			// entirely when there is none rather than hand back a position inside its shell.
+			vector clearPos;
+			if(OVT_Global.TryFindSafeSpawnPosition(housePos, clearPos))
+				return clearPos;
 		}
 		return vector.Zero;
 	}

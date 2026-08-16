@@ -391,20 +391,49 @@ class OVT_TravelRequestComponent : OVT_Component
 		}
 	}
 
+	//! How far to reach for a road to line the arriving recruits up on. Tighter than the vehicle's
+	//! ROAD_SPAWN_MAX_DISTANCE (200 m): a car on a road 200 m away can be driven back, a squad 200 m
+	//! away has to be walked back. Past this, the ring fallback runs - and anywhere WITHOUT a road
+	//! within 100 m is open ground, which is exactly where the ring works.
+	static const float RECRUIT_ROAD_MAX_DISTANCE = 100.0;
+
+	//! Gap between recruits lined up along the road.
+	static const float RECRUIT_ROAD_SPACING = 1.5;
+
 	//------------------------------------------------------------------------------------------------
-	//! Places the travelling recruits in a ring around the arrival point.
+	//! Places the travelling recruits on the nearest road to the arrival point.
 	//!
-	//! Lifted verbatim from the legacy OVT_PlayerCommsComponent.RpcAsk_RequestFastTravelWithRecruits
-	//! (deleted in map/legacy-retirement), which was the only implementation of this that had ever run
-	//! before this one, and whose behaviour this reproduces exactly: angle i x 360/count, radius 3 m
-	//! growing 0.5 m per recruit, and FindSafeSpawnPosition with skipSpawnPointSearch = true (the
-	//! spawn-point query is a sphere query per recruit, and the ring is already spread out on purpose).
+	//! ON THE ROAD, NOT IN A RING - the ring the legacy comms RPC used (3 m + 0.5 m per recruit around
+	//! the player) put recruits inside walls and furniture whenever the player's own arrival point was
+	//! an authored INDOOR spawn point: a house interior has no clear spot 3 m out, the 2 m-sphere
+	//! random search then fails on every probe, and FindSafeSpawnPosition handed back the colliding
+	//! ring position as if it were an answer. A road is open by construction, and there is one near
+	//! almost every destination - so the squad waits on the street while the player arrives inside.
+	//!
+	//! The ring survives only as the no-road fallback (wilderness camps and FOBs, where the ground is
+	//! open and the ring was never the problem), and a ring position that cannot be cleared now falls
+	//! back to the player's own arrival point - overlapping entities shove apart on open floor;
+	//! a wall does not.
+	//!
 	//! SetOrigin rather than TeleportPlayer because recruits are AI, not players.
 	//! \param[in] recruits The entities from step 5. Not re-queried - that is the point.
 	//! \param[in] destPos The player's arrival point.
 	protected void TeleportRecruits(array<IEntity> recruits, vector destPos)
 	{
 		if(!recruits || recruits.IsEmpty()) return;
+
+		// One road query for the whole squad, and the direction it runs so the line follows it.
+		vector roadPos, roadAngles;
+		bool haveRoad = OVT_Global.FindNearestRoadSpawn(destPos, RECRUIT_ROAD_MAX_DISTANCE, roadPos, roadAngles);
+		vector roadDir = vector.Zero;
+		if (haveRoad)
+		{
+			vector roadMat[4];
+			Math3D.AnglesToMatrix(roadAngles, roadMat);
+			roadDir = roadMat[2];
+		}
+
+		BaseWorld world = GetGame().GetWorld();
 
 		int recruitIndex = 0;
 		foreach (IEntity recruitEntity : recruits)
@@ -422,14 +451,41 @@ class OVT_TravelRequestComponent : OVT_Component
 			if (IsInCompartment(recruitEntity))
 				continue;
 
-			// Calculate offset position in a circle around the player destination
-			float angle = (recruitIndex * 360.0 / recruits.Count()) * Math.DEG2RAD;
-			float radius = 3.0 + (recruitIndex * 0.5); // Start at 3m and expand outward
-			vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
-			vector recruitPos = destPos + offset;
+			vector recruitPos;
+			vector clearPos;
+			if (haveRoad)
+			{
+				// Alternate sides of the road point: 0, +1.5, -1.5, +3, -3 ... metres along the road.
+				int stepIndex = (recruitIndex + 1) / 2;
+				float step = stepIndex * RECRUIT_ROAD_SPACING;
+				if (recruitIndex % 2 == 0)
+					step = -step;
 
-			// Find a safe position near the calculated spot (skip spawn point search for performance with multiple recruits)
-			recruitPos = OVT_Global.FindSafeSpawnPosition(recruitPos, "-0.5 0 -0.5", "0.5 2 0.5", true);
+				recruitPos = roadPos + (roadDir * step);
+				recruitPos[1] = world.GetSurfaceY(recruitPos[0], recruitPos[2]);
+
+				// Declutter (a parked car, a fence). On failure keep the unadjusted road point: it is
+				// on a road at ground height, which is never inside a building - unlike the ring, the
+				// raw position is an acceptable answer here.
+				if (OVT_Global.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+					recruitPos = clearPos;
+			}
+			else
+			{
+				// No road near - open ground. The legacy ring: angle i x 360/count, radius 3 m growing
+				// 0.5 m per recruit.
+				float angle = (recruitIndex * 360.0 / recruits.Count()) * Math.DEG2RAD;
+				float radius = 3.0 + (recruitIndex * 0.5);
+				vector offset = Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+				recruitPos = destPos + offset;
+
+				// A ring position that cannot be cleared is a KNOWN collision - fall back to the
+				// player's own arrival point rather than embed the recruit where the probe failed.
+				if (OVT_Global.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+					recruitPos = clearPos;
+				else
+					recruitPos = destPos;
+			}
 
 			// Teleport the recruit
 			recruitEntity.SetOrigin(recruitPos);

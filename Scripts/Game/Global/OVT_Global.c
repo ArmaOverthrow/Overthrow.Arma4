@@ -402,6 +402,22 @@ class OVT_Global : Managed
 	
 	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
 	{
+		vector foundPos;
+		TryFindSafeSpawnPosition(pos, foundPos, mins, maxs, skipSpawnPointSearch);
+		return foundPos;
+	}
+
+	//! As FindSafeSpawnPosition, but the failure is REPORTED instead of hidden: when neither an
+	//! authored spawn point nor the random search finds a clear spot, foundPos is the input position
+	//! unchanged and the return is false, so the caller chooses its own fallback rather than
+	//! inheriting a position that is known to collide. FindSafeSpawnPosition's silent return of the
+	//! original position is what embedded fast-travelled recruits inside starter-house walls - the
+	//! 30 probes all collide inside a wall cavity and the colliding input came back looking like an
+	//! answer.
+	static bool TryFindSafeSpawnPosition(vector pos, out vector foundPos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
+	{
+		foundPos = pos;
+
 		// First check for nearby entities with spawn point components (unless skipped for performance)
 		if (!skipSpawnPointSearch)
 		{
@@ -433,14 +449,14 @@ class OVT_Global : Managed
 					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestEntity.FindComponent(OVT_SpawnPointComponent));
 					if (spawnComp)
 					{
-						return spawnComp.GetSpawnPoint();
+						foundPos = spawnComp.GetSpawnPoint();
+						return true;
 					}
 				}
 			}
 		}
-		
+
 		//a crude and brute-force way to find a spawn position, try to improve this later
-		vector foundpos = pos;
 		int i = 0;
 		
 		BaseWorld world = GetGame().GetWorld();
@@ -471,12 +487,13 @@ class OVT_Global : Managed
 				continue;
 			}else{
 				//no collision, this pos is safe
-				foundpos = checkpos;
-				break;
+				foundPos = checkpos;
+				return true;
 			}
 		}
-		
-		return foundpos;
+
+		// Every probe collided - foundPos is still the (colliding) input position
+		return false;
 	}
 	
 	//! Find safe vehicle spawn position with rotation
