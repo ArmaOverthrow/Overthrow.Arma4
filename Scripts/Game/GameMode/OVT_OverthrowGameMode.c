@@ -54,6 +54,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_DeploymentManagerComponent m_Deployment;
 	//! Reference to the virtualization manager component.
 	protected OVT_VirtualizationManagerComponent m_Virtualization;
+	//! Reference to the town civilian ambience manager component.
+	protected OVT_CivilianAmbienceManagerComponent m_CivilianAmbience;
 	//! Reference to the tutorial manager component.
 	protected OVT_TutorialManagerComponent m_TutorialManager;
 	//! Reference to the perceived faction manager component.
@@ -358,6 +360,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Virtualization");
 
 			m_Virtualization.PostGameStart();
+		}
+
+		if(m_CivilianAmbience)
+		{
+			Print("[Overthrow] Starting Civilian Ambience");
+
+			m_CivilianAmbience.PostGameStart();
 		}
 
 		if(m_TutorialManager)
@@ -1460,6 +1469,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Virtualization");
 
 			m_Virtualization.Init(this);
+		}
+
+		// AFTER Virtualization: town civilians are registered on its ambient seam, so the registry it
+		// carries has to exist before anything can look a source config up in it.
+		m_CivilianAmbience = OVT_CivilianAmbienceManagerComponent.Cast(FindComponent(OVT_CivilianAmbienceManagerComponent));
+		if(m_CivilianAmbience)
+		{
+			Print("[Overthrow] Initializing Civilian Ambience");
+
+			m_CivilianAmbience.Init(this);
 		}
 
 		m_TutorialManager = OVT_TutorialManagerComponent.Cast(FindComponent(OVT_TutorialManagerComponent));

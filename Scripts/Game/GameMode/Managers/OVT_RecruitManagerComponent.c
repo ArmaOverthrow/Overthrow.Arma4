@@ -1013,10 +1013,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 
 		// Set recruit faction to match player faction
 		SetRecruitFaction(persId, civilian);
-		
+
+		// TAKE THIS CIVILIAN OUT OF AMBIENT OWNERSHIP - HERE, AND NOWHERE ELSE.
+		//
+		// The position is the whole point. It is AFTER the recruit record exists, so a recruit this
+		// method refused (no identity, at the cap) never releases a civilian the town's crowd would
+		// then stop managing - an unowned civilian nothing will ever despawn. And it is BEFORE
+		// AddRecruitToPlayerGroup() below, because that reparents the agent into the owner's slave
+		// group: once it has run, the civilian's ambient group is no longer its parent and the
+		// resolution here (character -> agent -> parent group) finds nothing to release.
+		//
+		// Safe for a tent recruit and for any other non-ambient character: the ambient seam
+		// re-verifies the claim against the source's own entity list, so a character no source owns
+		// simply answers false and nothing happens. Null-safe when the manager is absent entirely.
+		OVT_CivilianAmbienceManagerComponent civilianAmbience = OVT_Global.GetCivilianAmbience();
+		if (civilianAmbience)
+			civilianAmbience.ReleaseRecruitedCivilian(civilian);
+
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
-		
+
 		// Add to the player's group through the slave-group path (RequestAddAIAgent) - the same
 		// route the respawn flow uses. Slave-group membership is commanded by player id, so it
 		// survives the owner dying; forcing the agent into the MASTER group's array only worked

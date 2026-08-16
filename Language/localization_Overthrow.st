@@ -3357,6 +3357,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B4E000000000001}" {
+   Id "OVT-FieldManual_Welcome_Head3"
+   Target_en_us "Life in the Towns"
+   Comment "Field Manual - section header inside the Welcome to Overthrow page, above the two paragraphs describing a town's ambient civilians and its parked civilian cars. Two to four words, title case. No rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755388800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E000000000002}" {
+   Id "OVT-FieldManual_Welcome_Text4"
+   Target_en_us "Towns are inhabited. People come out as you approach a town and are gone once you are well away from it, and the crowd is put together again from scratch on your next visit, so it is never quite the same gathering twice. How many are about follows the town's population, and which sorts of people appear differs from place to place, so a port city and an inland hamlet are not populated alike. Some walk a route between two points, some drift around several spots, and some stand in one place for minutes at a time. They can be hired as recruits, won over as supporters or sold to as before, and a civilian you have hired leaves the crowd for good and stays with you."
+   Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'Life in the Towns' header. Reference voice: describes, never instructs, and implies no order of play. Four to five sentences, no rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6. FACT-CHECKED against the shipped code: crowds are spawned and despawned by proximity through the virtualization ambient tick, with the count rolled per approach from the town's LIVE population (OVT_TownCivilianSourceConfig.c:259-281 RollCount, which reads town.population and the operator multiplier/cap) and each civilian's type re-rolled per spawn (RollPrefab, :297); despawn removes the members and their waypoints (OnEntityDespawning, :412). Which types a town may show is the type's minimum town size combined with the town's own authored list (OVT_CivilianAmbienceManagerComponent.c:520-560 ResolveAllowedTypes, OVT_TownController.c:30 m_aCivilianTypes). The three behaviours are PINGPONG/WANDER/LOITER (OVT_CivilianAmbienceConfig.c:10-20), authored 50/30/20 with loiter pauses of 90-240 s in Configs/Civilians/CivilianAmbience.conf. The three player interactions are the user actions on Prefabs/Characters/Factions/CIV/Character_CIV.et:15 (sell drugs), :24 (recruit), :32 (convert supporter); a hired civilian is handed out of ambient ownership at OVT_RecruitManagerComponent.c:1031 -> OVT_CivilianAmbienceManagerComponent.c:787 ReleaseRecruitedCivilian -> OVT_TownCivilianSourceConfig.c:489-505 ReleaseCivilian. NOTHING is said about QRFs: with the shipped default (despawnCiviliansDuringQRF false, OVT_OverthrowConfigComponent.c:113) a crowd stays put during a QRF, and the opt-in is a server setting, not a player-facing rule."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755388800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E000000000003}" {
+   Id "OVT-FieldManual_Welcome_Text5"
+   Target_en_us "Civilian cars stand parked along the kerbs and roadsides of a town, in ones and twos in a village and rather more in a city. One nobody has touched is scenery like the crowd, and a later visit finds a different set of them. One somebody gets into stops being scenery: it stays where it is left and is kept with the rest of the campaign between sessions."
+   Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'Life in the Towns' header, following OVT-FieldManual_Welcome_Text4. Reference voice: describes, never instructs. Three sentences, no rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6. FACT-CHECKED against the shipped code: placement is kerb-first with a road-derived fallback (OVT_TownVehicleSourceConfig.c:276 RollPosition, :590-615 the kerb path through OVT_VehicleManagerComponent.FindNearestKerbParking); counts are scaled by town size and authored 0-1 village / 2-4 town / 4-8 city in Configs/Civilians/CivilianAmbience.conf (RollCount, :229). An untouched car is untracked for persistence the moment it spawns and is deleted with the rest of the ambient set on despawn (:344 UntrackTransient), so it writes no save record and the next approach re-rolls; an occupied car is claimed instead of deleted (:369-380 OnEntityDespawning -> ClaimVehicle, :458) and is re-tracked for persistence and handed to the vehicle manager (:483-505 AdoptClaimedVehicle). The text deliberately says 'kept with the campaign' and not 'becomes yours': ownership is stamped by the separate claim user action, not by sitting in the seat."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755388800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B000000000117}" {
    Id "OVT-FieldManual_Welcome_Title"
    Target_en_us "Welcome to Overthrow"

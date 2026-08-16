@@ -3056,11 +3056,17 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	//! A dead body is deliberately pruned rather than deleted: deleting corpses out from under a
 	//! player who is looting one is a worse bug than a body that outlives its source. The source stops
 	//! owning it, exactly as a release would.
+	//!
+	//! TWO CONFIG HOOKS RUN FROM HERE (`civilians` T1.1/T1.2, additive 2026-08-17): IsEntityDead() is
+	//! the predicate, and OnEntityPruned() fires AFTER both removals so a consumer can delete the
+	//! pruned entity's companions - waypoints, an emptied group husk - while the body itself stays.
 	//! \param[in] instance The source to prune.
 	protected void PruneAmbientEntities(notnull OVT_AmbientSpawnSourceInstance instance)
 	{
 		if (!instance.m_aEntities || instance.m_aEntities.IsEmpty())
 			return;
+
+		OVT_AmbientSpawnSourceConfig config = instance.m_Config;
 
 		// Backwards, because removing shifts everything after the removed index down one.
 		for (int i = instance.m_aEntities.Count() - 1; i >= 0; i--)
@@ -3073,17 +3079,44 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 				continue;
 			}
 
-			if (!IsAmbientEntityDead(entity))
+			// T1.1 (`civilians`): the CONFIG owns the predicate. The base class's default IS this
+			// method's body, moved there unchanged, so a source that does not override it prunes
+			// exactly as it did before the hook existed. IsAmbientEntityDead stays as the fallback for
+			// the one state that has no config to ask - an instance whose config went away.
+			bool dead;
+			if (config)
+				dead = config.IsEntityDead(entity);
+			else
+				dead = IsAmbientEntityDead(entity);
+
+			if (!dead)
 				continue;
 
 			if (m_mAmbientByEntity)
 				m_mAmbientByEntity.Remove(entity.GetID());
 
 			instance.m_aEntities.Remove(i);
+
+			// T1.2 (`civilians`): AFTER both removals, never before - the hook may not be handed an
+			// entity core still believes it owns, because a consumer's first move is usually to delete
+			// the entity's companions and a half-owned entity would then be walked by the next despawn.
+			if (!config)
+				continue;
+
+			config.OnEntityPruned(entity);
+
+			// A hook is allowed to touch the world, and touching the world can touch this list (a
+			// companion of its own that is itself ambient, or a ReleaseAmbientEntity call). The
+			// backwards walk only survives a shrink if the cursor is pulled back inside the array.
+			if (i > instance.m_aEntities.Count())
+				i = instance.m_aEntities.Count();
 		}
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The FALLBACK dead-check, kept for the one state that has no config to ask (an instance whose
+	//! config reference went away). The overridable copy of this exact body lives on
+	//! OVT_AmbientSpawnSourceConfig.IsEntityDead() and is what PruneAmbientEntities normally calls.
 	//! \param[in] entity An ambient entity.
 	//! \return True when the entity is destroyed (a body, a wreck) and should stop being counted as
 	//!         one of its source's live spawns.

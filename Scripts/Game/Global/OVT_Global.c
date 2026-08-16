@@ -254,6 +254,16 @@ class OVT_Global : Managed
 		return OVT_VirtualizationManagerComponent.GetInstance();
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Town civilian ambience - one ambient spawn source per town, on top of the virtualization seam.
+	//! Present on clients too (the game mode entity exists there), but every entry point on it is
+	//! server-gated: nothing about an ambient civilian replicates or is persisted.
+	//! \return The civilian ambience manager, or null before the game mode exists.
+	static OVT_CivilianAmbienceManagerComponent GetCivilianAmbience()
+	{
+		return OVT_CivilianAmbienceManagerComponent.GetInstance();
+	}
+
 	static OVT_RecruitManagerComponent GetRecruits()
 	{
 		return OVT_RecruitManagerComponent.GetInstance();

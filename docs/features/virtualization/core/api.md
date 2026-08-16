@@ -4,6 +4,10 @@
 **As built:** Phase 6 (2026-08-17) — tracked groups, ambient spawn sources and registry persistence
 are all wired. Persistence is **Route B**: core re-creates its own group entities on load
 (see [§8](#8-persistence--what-is-and-is-not-in-a-save))
+**Additively extended:** 2026-08-17 — two new methods on `OVT_AmbientSpawnSourceConfig`
+(`IsEntityDead`, `OnEntityPruned`), requested by `virtualization/civilians` Phase 1 and recorded in
+`context.md`. See [§4](#the-config-classes-the-modder-seam). Nothing was renamed, re-signed or
+re-meant, and every source written against the original five methods behaves identically.
 **Owner:** `virtualization/core`
 **Consumers:** `civilians`, `movement`, `integration`, `base-defense-migration` — see
 [§10](#10-entry-points-per-sibling-feature) for the exact surface each of them programs against
@@ -374,6 +378,10 @@ class OVT_AmbientSpawnSourceConfig : ScriptAndConfig
     vector RollPosition(vector origin, float radius);            //!< random non-ocean point near origin
     void OnEntitySpawned(IEntity entity, vector sourcePosition); //!< no-op — clothes, loadouts, waypoints
     void OnEntityDespawning(IEntity entity);                     //!< no-op
+
+    // -- added 2026-08-17 for `civilians` (additive; existing sources unaffected) --
+    bool IsEntityDead(IEntity entity);   //!< default: SCR_DamageManagerComponent state == DESTROYED
+    void OnEntityPruned(IEntity entity); //!< no-op; fires AFTER the list AND reverse-map removals
 }
 
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sRegistryName")]
@@ -395,6 +403,51 @@ several ticks, never 20 in one frame.
 **max-exclusive** and `RandInt(n, n)` raises an engine error — a source authored with `min == max`
 would otherwise error on every activation. Override it if you like, but keep that guard.
 
+#### The two prune hooks (added 2026-08-17 for `civilians`, additive)
+
+Both are called from the manager's prune pass, once per entity, and **only for entities that source
+owns**. Neither existed before Phase 1 of `civilians`, and neither changes anything for a source that
+does not override it.
+
+```c
+//! Is this entity finished — a corpse, a wreck — and no longer part of the live crowd?
+//! DEFAULT: the damage-state check the manager used to do inline
+//! (SCR_DamageManagerComponent.GetState() == DESTROYED), unchanged for every existing source.
+bool IsEntityDead(IEntity entity);
+
+//! Called after a pruned entity has been removed from the source's list AND its reverse-map entry.
+void OnEntityPruned(IEntity entity);
+```
+
+**Why `IsEntityDead` has to be overridable.** The default can only see an entity that carries an
+`SCR_DamageManagerComponent`. A source whose *tracked* entity is an `SCR_AIGroup` — which is what
+`civilians` registers, because waypoints and `GetOnAgentAdded` attach to groups — has no damage
+manager on the thing being tracked, so the default answers `false` forever and a dead civilian would
+never be pruned. Such a source overrides it with its own predicate (for a group: *I have seen an
+agent* **and** *the agent count is now 0*; the seen-an-agent half is mandatory, because member
+spawning goes through the engine's queue and a freshly built group is legitimately memberless for one
+or more frames). The manager keeps its own copy of the default as the fallback for the one state that
+has no config to ask.
+
+**The ordering of `OnEntityPruned` is load-bearing and is part of the contract.** Both removals — out
+of the source's entity list *and* out of the manager's entity→source reverse map — happen **before**
+the hook runs, so a hook can never be handed an entity core still thinks it owns. Two consequences:
+
+- **The entity is no longer owned.** The source will never delete it, `GetAmbientEntities()` no longer
+  counts it, and the next despawn will not touch it.
+- **`ReleaseAmbientEntity()` on it is a no-op** and answers `false`. There is nothing left to release;
+  do not read that `false` as a failure.
+
+> **Leave the body, delete the companions.** `OnEntityPruned` is where a consumer deletes the things
+> that only existed to serve the pruned entity — its waypoints, an emptied group husk — while
+> deliberately leaving **the entity itself** in the world. Core prunes a dead ambient entity instead
+> of deleting it because a corpse a player may be looting is worth more than a tidy entity count, and
+> a consumer's cleanup must not undo that.
+
+A hook that mutates the source's own entity list (deleting a companion that is itself ambient, or
+calling `ReleaseAmbientEntity`) is tolerated — the prune walk pulls its cursor back inside the array —
+but an entity displaced that way is simply re-examined on the next pass, not lost.
+
 ### How the tick behaves
 
 - One `CallLater` at `m_iAmbientTickIntervalMs` (2000 ms), started on the server in `PostGameStart`
@@ -410,7 +463,9 @@ would otherwise error on every activation. Override it if you like, but keep tha
   source never materialises by proximity.
 - An activated source builds at most `m_iAmbientSpawnsPerTick` (3) entities **per tick**.
 - Each evaluation first **prunes** dead/deleted entities out of the source's list (a shot civilian
-  stops being counted and its body is left alone, not deleted).
+  stops being counted and its body is left alone, not deleted). "Dead" is the config's
+  `IsEntityDead()`; each pruned entity then gets one `OnEntityPruned()` call, after both removals —
+  see [the two prune hooks](#the-two-prune-hooks-added-2026-08-17-for-civilians-additive).
 - `ReleaseAmbientEntity` re-verifies the hit against the source's own entity list before honouring
   it, so a recycled `EntityID` can never release an entity that was never ambient.
 - Releasing from **inside** `OnEntityDespawning` is supported and is the "save this one" escape
@@ -458,8 +513,10 @@ it and `CONFIG_STREAM_VERSION` did not move. Takes effect on the next campaign s
 A very large value keeps every registered group spawned permanently (issue #100's ask); a small one
 despawns everything not adjacent. Per-registration overrides always beat it.
 
-It is **separate** from `m_iMilitarySpawnDistance` / `m_iCivilianSpawnDistance`, which the
-un-migrated legacy spawn paths still use. Those are `integration`'s problem, not core's.
+It is **separate** from `m_iMilitarySpawnDistance`, which the un-migrated legacy spawn paths still
+use. That one is `integration`'s problem, not core's. (Its civilian counterpart was retired on
+2026-08-17 by `civilians` Phase 2 along with the town-civilian spawner — ambient civilians ride this
+value through their source's `m_iSpawnDistanceOverride`, authored as `-1`.)
 
 ---
 
@@ -789,6 +846,7 @@ your contract — if you need it, that is a core change request, recorded in `co
 | `int GetAmbientSourceCount()` / `array<IEntity> GetAmbientEntities(handle)` | Counts and a **pruned copy** of the live crowd (corpses are already out of it). |
 | `bool ReleaseAmbientEntity(entity)` | **The recruitment path.** The civilian stops being ambient and survives the next despawn. O(1). Also valid from *inside* `OnEntityDespawning` as the "save this one" hatch. |
 | `OVT_AmbientSpawnSourceConfig` subclass — `RollPrefab` / `RollCount` / `RollPosition` / `OnEntitySpawned` / `OnEntityDespawning` | Where all your content lives. Core ships the classes and **zero** authored sources. |
+| …plus `IsEntityDead` / `OnEntityPruned` (added 2026-08-17 at your request) | Your tracked entity is a **group**, which carries no damage manager — override the predicate, or your dead civilians are never pruned. `OnEntityPruned` is where you delete the pruned civilian's waypoints and its emptied husk and **leave the body**. |
 | `GetAmbientRegistry()` / `FindAmbientSourceConfig(name)` | Read authored sources out of a `.conf` you point `m_AmbientRegistry` at. |
 
 Rules that bind you: ambient state is **never persisted** and a despawn **re-rolls** — do not build
@@ -875,6 +933,14 @@ added **no** consumer-facing signature either: it hardened the restart path (`Ge
 across a world, the ambient tick and the restore latch self-cancel for a manager the static no longer
 names), extended the debug affordance with `m_iDebugTestGroupCount`, moved lifecycle chatter to
 `VERBOSE`, and froze this page.
+
+**Post-freeze, 2026-08-17 — the one additive change so far.** `virtualization/civilians` Phase 1 added
+`IsEntityDead(IEntity)` and `OnEntityPruned(IEntity)` to `OVT_AmbientSpawnSourceConfig` and called both
+from `PruneAmbientEntities`. The first one's default **is** the damage-state check the manager
+previously did inline, moved unchanged, so no existing source's behaviour moved; the second defaults to
+a no-op. Nothing was renamed, re-signed or re-meant, no payload field was touched, and
+`CONFIG_STREAM_VERSION` did not move. Recorded in `context.md` under "Additive changes after the
+freeze".
 
 **Debug affordances.** `OVT_VirtualizationManagerComponent` carries `m_bDebugRegisterTestGroup`
 (default **false**) on the game-mode prefab. With it on, `PostGameStart` registers a cycling patrol

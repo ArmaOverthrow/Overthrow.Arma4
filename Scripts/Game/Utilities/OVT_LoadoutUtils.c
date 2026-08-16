@@ -13,13 +13,38 @@ class OVT_LoadoutUtils : Managed
 		ApplyCivilianLoadout(civ);
 	}
 	
-	//! Apply civilian loadout to any character entity
+	//! Apply the GLOBAL civilian loadout (Configs/Civilians/CivilianClothes.conf) to any character entity.
+	//! The one-argument form every pre-existing caller uses; it delegates so there is exactly one
+	//! implementation to keep correct.
 	static void ApplyCivilianLoadout(IEntity character)
 	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return;
+
+		ApplyCivilianLoadout(character, config.m_CivilianLoadout);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Apply a SPECIFIC loadout config to any character entity.
+	//!
+	//! ⚠ THIS OVERWRITES THE CHARACTER'S CLOTHING, which is why per-type configs exist at all - AND why
+	//! there are no per-type civilian prefabs: every ambient civilian is built from the one shared
+	//! Group_CIV.et and a type's whole look is the per-type loadout applied here, because anything the
+	//! prefab authored in these slots would have been re-dressed out of the global pool anyway. A slot
+	//! the config does NOT author is left alone, so a per-type file that omits (say) Shoes keeps
+	//! whatever the base prefab authored there.
+	//! \param[in] character The character to dress. Safe when it has no inventory.
+	//! \param[in] config The loadout to apply; null or slot-less is a no-op.
+	static void ApplyCivilianLoadout(IEntity character, OVT_LoadoutConfig config)
+	{
+		if (!config || !config.m_aSlots)
+			return;
+
 		InventoryStorageManagerComponent storageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(character);
 		if (!storageManager)
 			return;
-		foreach (OVT_LoadoutSlot loadoutItem : OVT_Global.GetConfig().m_CivilianLoadout.m_aSlots)
+		foreach (OVT_LoadoutSlot loadoutItem : config.m_aSlots)
 		{
 			if (loadoutItem.m_bPlayerOnly) continue;
 			
@@ -54,6 +79,11 @@ class OVT_LoadoutUtils : Managed
 	
 	static IEntity SpawnDefaultCharacterItem(InventoryStorageManagerComponent storageManager, OVT_LoadoutSlot loadoutItem)
 	{
+		// RandInt is max-EXCLUSIVE and RandInt(0, 0) raises an engine error, so a slot a modder authored
+		// with no choices at all has to be refused before the draw rather than after it.
+		if (!loadoutItem.m_aChoices || loadoutItem.m_aChoices.IsEmpty())
+			return null;
+
 		int selection = s_AIRandomGenerator.RandInt(0, loadoutItem.m_aChoices.Count());
 		ResourceName prefab = loadoutItem.m_aChoices[selection];
 		

@@ -4894,3 +4894,1163 @@ class OVT_TEST_Init_Virtualization_ReleaseUnknownAmbientEntity : SCR_AutotestCas
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Test-only ambient source config for the two hooks `civilians` added to the seam (T1.7).
+//!
+//! Both overrides deliberately DISAGREE with the base class, and both count their calls, so a call
+//! made through a base-typed reference - the shape the manager holds - is distinguishable from a
+//! call that reached the base implementation instead:
+//!   - IsEntityDead() answers whatever m_bAnswer says, where the base would answer false for any
+//!     entity that carries no damage manager;
+//!   - OnEntityPruned() bumps a counter, where the base does nothing observable at all.
+//!
+//! This is the shape a group-tracking source (one civilian = one one-man group) is forced into: a
+//! group entity has no SCR_DamageManagerComponent, so the base predicate answers false forever and a
+//! dead civilian would never be pruned.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_AmbientDeadCheckConfig : OVT_AmbientSpawnSourceConfig
+{
+	//! What the override answers - set by the case, never derived from the entity.
+	bool m_bAnswer;
+
+	int m_iIsEntityDeadCalls;
+	int m_iOnEntityPrunedCalls;
+
+	//------------------------------------------------------------------------------------------------
+	override bool IsEntityDead(IEntity entity)
+	{
+		m_iIsEntityDeadCalls++;
+		return m_bAnswer;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void OnEntityPruned(IEntity entity)
+	{
+		m_iOnEntityPrunedCalls++;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The config's IsEntityDead() / OnEntityPruned() are overridable, and the default of the first one
+//! is the manager's old inline damage-state check.
+//!
+//! Two claims, and the second is the one that keeps the additive change additive:
+//!
+//!  1. VIRTUAL DISPATCH THROUGH A BASE-TYPED REFERENCE. The manager holds its config as an
+//!     OVT_AmbientSpawnSourceConfig (OVT_AmbientSpawnSourceInstance.m_Config), so a subclass's
+//!     override is only reachable if the seam is virtual through exactly that type. `civilians`
+//!     cannot work at all without it: its tracked entity is a GROUP, which carries no damage
+//!     manager, so the base predicate would answer false forever and its dead civilians would never
+//!     be pruned - the crowd would accumulate corpse groups and their waypoints for the whole
+//!     session.
+//!  2. THE DEFAULT DID NOT CHANGE. Every ambient source written before these hooks existed relies on
+//!     "destroyed means dead, and an entity with no damage manager is not dead". That is asserted
+//!     directly on a stock config, because the whole justification for moving the check onto the
+//!     config class was that nothing else would notice.
+//!
+//! The subject entity is the game-mode entity: it is guaranteed to exist, no answer this case gets
+//! can delete it, and the default's verdict on it is `false` either way - it carries no damage
+//! manager, and it would have to be DESTROYED for the answer to change if it ever grew one.
+//!
+//! WHAT THIS CASE DELIBERATELY DOES NOT DO. It does not wait for a real prune. Getting the manager
+//! to call the hook needs a source that has ACTIVATED and SPAWNED, which needs an observer this
+//! world may not have (the precedent case above documents the same limitation for RollCount) - and
+//! then needs that spawned entity to actually die. The base-typed call here is the same call the
+//! manager makes, one frame later and with the same reference type.
+//!
+//! Init tier: no campaign state, and the registration half is a pure registry operation.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! OVT_AmbientSpawnSourceConfig.IsEntityDead() `return true;` unconditionally and the
+//! "the default keeps a live entity" assertion goes red - that edit is exactly the regression that
+//! would make every existing source prune its entire crowd on its first tick. Delete the base's
+//! `if (!entity) return false;` guard and the null assertion faults instead of answering false.
+//! The call counters are what a non-virtual seam would show: they stay 0 while the assertions on the
+//! ANSWERS still pass, which is why both are asserted and not just the answers.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_AmbientDeadCheckOverrideIsCalled : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		BaseGameMode gameMode = GetGame().GetGameMode();
+		if (!gameMode)
+		{
+			SetFailure("There is no game-mode entity to use as a guaranteed-live, damage-manager-free subject");
+			return true;
+		}
+
+		// -- claim 2 first: the stock default is the manager's old inline check --------------------
+
+		OVT_AmbientSpawnSourceConfig stock = new OVT_AmbientSpawnSourceConfig();
+		stock.m_sSourceName = "test_ambient_deadcheck_stock";
+
+		if (stock.IsEntityDead(gameMode))
+		{
+			SetFailure("The stock config called a live entity with no damage manager DEAD - every ambient source that does not override this would prune its whole crowd on the first tick");
+			return true;
+		}
+
+		if (stock.IsEntityDead(null))
+		{
+			SetFailure("The stock config called a null entity dead");
+			return true;
+		}
+
+		// The stock OnEntityPruned is a no-op that must survive being called with anything.
+		stock.OnEntityPruned(gameMode);
+		stock.OnEntityPruned(null);
+
+		// -- claim 1: the override is reachable through the reference type the manager holds -------
+
+		OVT_TEST_AmbientDeadCheckConfig subclass = new OVT_TEST_AmbientDeadCheckConfig();
+		subclass.m_sSourceName = "test_ambient_deadcheck";
+		subclass.m_bAnswer = true;
+
+		// EXACTLY the manager's shape: OVT_AmbientSpawnSourceInstance.m_Config is a base-typed ref.
+		OVT_AmbientSpawnSourceConfig asBase = subclass;
+
+		if (!asBase.IsEntityDead(gameMode))
+		{
+			SetFailure("IsEntityDead() through a base-typed reference answered false where the override answers true - the base implementation ran, so the hook is not overridable and a group-shaped source could never prune a dead civilian");
+			return true;
+		}
+
+		if (subclass.m_iIsEntityDeadCalls != 1)
+		{
+			SetFailure("The override's call counter reads %1 after one base-typed call, expected 1", subclass.m_iIsEntityDeadCalls.ToString());
+			return true;
+		}
+
+		// The answer follows the override, not the entity: flipping it flips the verdict.
+		subclass.m_bAnswer = false;
+		if (asBase.IsEntityDead(gameMode))
+		{
+			SetFailure("IsEntityDead() through a base-typed reference answered true after the override was told to answer false");
+			return true;
+		}
+
+		asBase.OnEntityPruned(gameMode);
+		if (subclass.m_iOnEntityPrunedCalls != 1)
+		{
+			SetFailure("OnEntityPruned() through a base-typed reference bumped the override's counter %1 times, expected 1 - the prune hook is not overridable, so a consumer could never delete a pruned civilian's waypoints or its emptied group husk",
+				subclass.m_iOnEntityPrunedCalls.ToString());
+			return true;
+		}
+
+		// -- and the manager accepts a source carrying the overrides ------------------------------
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		int handle = virtualization.RegisterAmbientSource(subclass, OVT_TEST_VirtualizationFixture.PickPosition(), "deadcheck_case");
+		if (handle == -1)
+		{
+			SetFailure("RegisterAmbientSource refused a config subclass that overrides the two prune hooks");
+			return true;
+		}
+
+		// A source with no entities prunes to nothing and must not consult either hook for entities it
+		// does not own - GetAmbientEntities() prunes first, which is the cheapest way to run that path.
+		int deadCallsBefore = subclass.m_iIsEntityDeadCalls;
+		array<IEntity> entities = virtualization.GetAmbientEntities(handle);
+		int deadCallsAfter = subclass.m_iIsEntityDeadCalls;
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak a source into the cases after it.
+		virtualization.UnregisterAmbientSource(handle);
+
+		if (!entities || !entities.IsEmpty())
+		{
+			SetFailure("A freshly registered source reported live entities before any activation");
+			return true;
+		}
+
+		if (deadCallsAfter != deadCallsBefore)
+		{
+			SetFailure("Pruning an empty source called IsEntityDead() %1 extra time(s) - the predicate must only ever be asked about entities the source owns",
+				(deadCallsAfter - deadCallsBefore).ToString());
+			return true;
+		}
+
+		Print("IsEntityDead() and OnEntityPruned() dispatch to a config subclass through a base-typed reference, and the stock default still calls a damage-manager-free entity alive");
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! civilianDensityMultiplier, maxCiviliansPerTown and despawnCiviliansDuringQRF exist in the config
+//! struct and read back their defaults.
+//!
+//! These are the operator-facing knobs for town ambience: a server owner edits them in
+//! $profile:Overthrow_Config.json and every town's crowd size moves with no code change. Both are
+//! asserted for the same reason the virtualization distance above is - a field silently missing from
+//! SetDefaults() reads back 0, and 0 is a MEANINGFUL value for both of them:
+//!
+//!  - a multiplier of 0 is the documented "no civilians on this server" switch, so a missing default
+//!    would empty every town on every server and look exactly like a deliberate setting;
+//!  - a cap of 0 means UNCAPPED, so a missing default would silently remove the per-town ceiling
+//!    that bounds how many civilians one town may spawn.
+//!
+//! The third knob is a BEHAVIOUR DEFAULT, not a magnitude, and it is asserted for a different reason:
+//! despawnCiviliansDuringQRF must default to FALSE, i.e. a town keeps its crowd while its QRF is
+//! fought. That is a deliberate change from the pre-migration game (civilians D13, user amendment
+//! 2026-08-17) - players recruit civilians specifically to help fight the QRF, and the old
+//! always-despawn was a performance shortcut. A bool missing from SetDefaults() reads back false too,
+//! so this assertion is a statement of intent that survives somebody "tidying" the default away.
+//!
+//! No field here is in the JIP config bitstream (RplSave/RplLoad), which is why CONFIG_STREAM_VERSION
+//! did not move for them - that is asserted by the stream version being untouched at 3, not here.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
+//! `civilianDensityMultiplier = 1.0;` line from OVT_OverthrowConfigStruct.SetDefaults() and this case
+//! fails with 0; delete `maxCiviliansPerTown = 30;` and it fails with 0 for the cap; change
+//! `despawnCiviliansDuringQRF = false;` to `= true;` and the QRF assertion fails.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_AmbienceConfigDefaults : SCR_AutotestCaseBase
+{
+	//! The defaults written by OVT_OverthrowConfigStruct.SetDefaults().
+	protected const float EXPECTED_MULTIPLIER = 1.0;
+	protected const int EXPECTED_CAP = 30;
+
+	//! Floats are never compared with == - 1.0 read back through a JSON round trip is not bit-equal.
+	protected const float EPSILON = 0.0001;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		if (!config.m_ConfigFile)
+		{
+			SetFailure("The config component has no loaded config struct");
+			return true;
+		}
+
+		if (Math.AbsFloat(config.m_ConfigFile.civilianDensityMultiplier - EXPECTED_MULTIPLIER) > EPSILON)
+		{
+			SetFailure("civilianDensityMultiplier read back %1, expected the %2 default - a 0 here is the documented 'turn civilians off' value, so a missing default would empty every town and look deliberate",
+				config.m_ConfigFile.civilianDensityMultiplier.ToString(), EXPECTED_MULTIPLIER.ToString());
+			return true;
+		}
+
+		if (config.m_ConfigFile.maxCiviliansPerTown != EXPECTED_CAP)
+		{
+			SetFailure("maxCiviliansPerTown read back %1, expected the %2 default - a 0 here means UNCAPPED, so a missing default would quietly remove the per-town ceiling",
+				config.m_ConfigFile.maxCiviliansPerTown.ToString(), EXPECTED_CAP.ToString());
+			return true;
+		}
+
+		if (config.m_ConfigFile.despawnCiviliansDuringQRF)
+		{
+			SetFailure("despawnCiviliansDuringQRF read back true, expected the false default - a town under QRF keeps its civilians unless an operator opts out, because players recruit them to fight that very battle");
+			return true;
+		}
+
+		// The defaults are the numbers the density formula is authored around: a city of 283 at the
+		// parity rate resolves to 28, comfortably under the cap, and the multiplier leaves it alone.
+		int resolved = OVT_CivilianAmbienceMath.ResolveTownCivilianCount(283, 0.1,
+			config.m_ConfigFile.civilianDensityMultiplier, 2, 40, config.m_ConfigFile.maxCiviliansPerTown);
+
+		if (resolved != 28)
+		{
+			SetFailure("A 283-population town resolved to %1 civilians under the shipped defaults, expected 28 - the defaults and the formula disagree",
+				resolved.ToString());
+			return true;
+		}
+
+		Print("civilianDensityMultiplier defaults to 1.0, maxCiviliansPerTown to 30 and despawnCiviliansDuringQRF to false, and the shipped pair reproduces the parity crowd size");
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared lookups for the civilian-ambience cases, so each of them fails on its OWN claim rather
+//! than on somebody else's plumbing.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_CivilianAmbienceFixture
+{
+	//------------------------------------------------------------------------------------------------
+	//! The authored town-crowd template, resolved the way the manager resolves it.
+	//! \return The template, or null when the registry is not wired or carries no such source.
+	static OVT_CivilianAmbienceConfig FindTemplate()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return null;
+
+		return OVT_CivilianAmbienceConfig.Cast(
+			virtualization.FindAmbientSourceConfig(OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The controller of town 0, which the town manager keeps index-aligned with its town list.
+	//! \return The controller component, or null when this world places no town controllers.
+	static OVT_TownControllerComponent FindFirstTownController()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || !towns.m_TownControllers || towns.m_TownControllers.IsEmpty())
+			return null;
+
+		IEntity controllerEntity = GetGame().GetWorld().FindEntityByID(towns.m_TownControllers[0]);
+		if (!controllerEntity)
+			return null;
+
+		return OVT_TownControllerComponent.Cast(controllerEntity.FindComponent(OVT_TownControllerComponent));
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The authored ambient registry is wired, and it carries a town crowd of the right CLASS.
+//!
+//! WHY THE CLASS MATTERS AND NOT JUST THE NAME. The manager casts what the registry hands it to
+//! OVT_CivilianAmbienceConfig and refuses anything else, because everything a per-town instance
+//! reads - the civilian type pool, the archetypes, the population rate - lives on the subclass. A
+//! `.conf` that named the source correctly but authored it as the base class would resolve, cast to
+//! null, log a warning nobody reads, and leave every town in the campaign empty. That failure is
+//! silent in play (an empty town looks like an unlucky roll) and it is exactly what this asserts.
+//!
+//! It also pins the PARITY NUMBERS, because they are the whole claim of the migration phase: the
+//! authored rate, the two density clamps and "ride the global spawn distance" are what make the new
+//! crowd the same size as the crowd the retired spawner built. A `.conf` edit that changed one of
+//! them by accident would be invisible until somebody counted civilians in a city.
+//!
+//! Init tier: reading an authored registry off the game-mode prefab needs no campaign state.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
+//! m_AmbientRegistry line from Prefabs/GameMode/OVT_OverthrowGameMode.et and this reports "the
+//! virtualization manager has no ambient registry"; change m_sSourceName in
+//! Configs/Civilians/CivilianAmbience.conf and it reports the name miss; author the entry as
+//! OVT_AmbientSpawnSourceConfig instead of OVT_CivilianAmbienceConfig and it reports the class miss;
+//! change m_fPopulationRate to 0.2 and the parity assertion goes red; point any type's
+//! m_rGroupPrefab at a prefab other than the shared Group_CIV.et and the pool assertion names that
+//! type.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_AmbienceRegistryResolves : SCR_AutotestCaseBase
+{
+	//! The authored parity settings (implementation.md §3.6).
+	protected const float EXPECTED_RATE = 0.1;
+	protected const int EXPECTED_MIN = 2;
+	protected const int EXPECTED_MAX = 40;
+
+	//! The one group prefab EVERY civilian type spawns. The per-type prefab pairs were dropped: they
+	//! were byte-identical deltas whose inherited look the type's own loadout overwrote anyway.
+	protected const ResourceName SHARED_GROUP_PREFAB = "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et";
+
+	//! Floats are never compared with ==.
+	protected const float EPSILON = 0.0001;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		if (!virtualization.GetAmbientRegistry())
+		{
+			SetFailure("The virtualization manager has no ambient registry - the m_AmbientRegistry binding to Configs/Civilians/CivilianAmbience.conf is missing from the game-mode prefab, so no town can ever have civilians");
+			return true;
+		}
+
+		OVT_AmbientSpawnSourceConfig named = virtualization.FindAmbientSourceConfig(OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME);
+		if (!named)
+		{
+			SetFailure("The ambient registry carries no source called '%1' - the lookup is exact and case-sensitive",
+				OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME);
+			return true;
+		}
+
+		OVT_CivilianAmbienceConfig template = OVT_CivilianAmbienceConfig.Cast(named);
+		if (!template)
+		{
+			SetFailure("The '%1' source is a %2, not an OVT_CivilianAmbienceConfig - the manager refuses it and every town stays empty",
+				OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME, named.Type().ToString());
+			return true;
+		}
+
+		if (Math.AbsFloat(template.m_fPopulationRate - EXPECTED_RATE) > EPSILON)
+		{
+			SetFailure("The authored population rate is %1, expected the %2 parity value - a city's crowd is no longer the size the retired spawner built",
+				template.m_fPopulationRate.ToString(), EXPECTED_RATE.ToString());
+			return true;
+		}
+
+		if (template.m_iMinCount != EXPECTED_MIN || template.m_iMaxCount != EXPECTED_MAX)
+		{
+			SetFailure(string.Format("The authored density clamps are [%1, %2], expected [%3, %4]",
+				template.m_iMinCount.ToString(), template.m_iMaxCount.ToString(),
+				EXPECTED_MIN.ToString(), EXPECTED_MAX.ToString()));
+			return true;
+		}
+
+		if (template.m_iSpawnDistanceOverride != -1)
+		{
+			SetFailure("The authored spawn-distance override is %1, expected -1 (ride virtualizationSpawnDistance) - a town crowd with its own ring stops following the operator's setting",
+				template.m_iSpawnDistanceOverride.ToString());
+			return true;
+		}
+
+		string poolFailure = VerifyPool(template);
+		if (poolFailure != "")
+		{
+			SetFailure(poolFailure);
+			return true;
+		}
+
+		PrintFormat("The authored town crowd resolves as an OVT_CivilianAmbienceConfig with %1 civilian type(s), %2 archetype(s) and the parity density settings",
+			template.m_aTypes.Count().ToString(), template.m_aArchetypes.Count().ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] template The resolved template.
+	//! \return An empty string when the authored content can actually produce a civilian.
+	protected string VerifyPool(notnull OVT_CivilianAmbienceConfig template)
+	{
+		if (!template.m_aTypes || template.m_aTypes.IsEmpty())
+			return "The town crowd authors no civilian types at all, so every roll answers Empty and the crowd is never built";
+
+		bool rollable = false;
+		foreach (OVT_CivilianTypeConfig type : template.m_aTypes)
+		{
+			if (!type)
+				continue;
+
+			if (type.m_rGroupPrefab == ResourceName.Empty)
+				return string.Format("Civilian type '%1' names no group prefab", type.m_sTypeName);
+
+			// EVERY TYPE SHARES ONE PREFAB, ON PURPOSE. The per-type civilian prefabs were deleted
+			// because ApplyCivilianLoadout overwrites every slot they could have authored - a type's
+			// look is now entirely its loadout. This pins that: a type left pointing at a prefab that
+			// no longer exists deserialises to a resource nothing can spawn, and core would stop that
+			// town's activation on every roll that picked it.
+			if (type.m_rGroupPrefab != SHARED_GROUP_PREFAB)
+				return string.Format("Civilian type '%1' names group prefab '%2', expected the shared '%3' - every type spawns the one civilian group and gets its look from its loadout, so a different (or deleted) prefab here is either a stale reference or a variant the clothing pass would overwrite anyway",
+					type.m_sTypeName, type.m_rGroupPrefab, SHARED_GROUP_PREFAB);
+
+			if (type.m_iWeight > 0)
+				rollable = true;
+		}
+
+		if (!rollable)
+			return "Every authored civilian type has a weight of 0 or below, so nothing is ever eligible and no town gets a crowd";
+
+		if (!template.m_aArchetypes || template.m_aArchetypes.IsEmpty())
+			return "The town crowd authors no behaviour archetypes, so every civilian would fall back to the hard-coded wait bounds";
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A per-town instance built from the authored template is bound to ONE town, reads the template BY
+//! REFERENCE, and reads that town's population LIVE.
+//!
+//! THE THREE CLAIMS, and each one is a different way the migration could be quietly wrong:
+//!
+//!  1. THE TEMPLATE IS SHARED, NOT COPIED (decision D5). The instance must hand back the very object
+//!     the registry holds. A builder that copied fields would compile, work today, and silently drop
+//!     every attribute added to the template afterwards - the classic drift bug this design exists to
+//!     make impossible.
+//!  2. THE RADIUS IS THE TOWN'S, NOT THE TEMPLATE'S. One authored radius shared by a city and a
+//!     hamlet would scatter a village's civilians into the next valley. The controller's authored
+//!     range is what has to win.
+//!  3. THE POPULATION IS NEVER BAKED. RollCount() is asked once per activation, and the number it
+//!     answers has to follow the town's CURRENT population - a town that was depopulated (or grew)
+//!     since the last visit must get the new figure with no re-registration. This is asserted by
+//!     moving the town's population to 0 and re-rolling: 0 population beats the authored minimum
+//!     clamp, so an instance that had cached the population at build time answers the old figure and
+//!     the case goes red.
+//!
+//! NOTHING IS REGISTERED. The instance is built and asked directly, so this case cannot leave an
+//! ambient source behind for the cases after it, and it needs no observer to activate.
+//!
+//! THE TOWN'S POPULATION IS RESTORED BEFORE THE VERDICT IS REPORTED, on every path, so a red
+//! assertion here cannot corrupt the campaign state the town cases assert.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! BuildTownSource() copy the template's fields into a fresh OVT_CivilianAmbienceConfig instead of
+//! binding the object and claim 1 goes red; drop the controller argument so the radius falls back to
+//! the template and claim 2 goes red; cache the population in Bind() and read the cached copy in
+//! RollCount() and claim 3 goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_PerTownSourceBinds : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if (!civilians)
+		{
+			SetFailure("OVT_Global.GetCivilianAmbience() is null - see OVT_TEST_Init_Civilians_ManagerResolves");
+			return true;
+		}
+
+		OVT_CivilianAmbienceConfig template = OVT_TEST_CivilianAmbienceFixture.FindTemplate();
+		if (!template)
+		{
+			SetFailure("The authored town crowd did not resolve - see OVT_TEST_Init_Civilians_AmbienceRegistryResolves");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || !towns.m_Towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("No towns are registered, so there is nothing to bind a crowd to");
+			return true;
+		}
+
+		OVT_TownControllerComponent controller = OVT_TEST_CivilianAmbienceFixture.FindFirstTownController();
+		if (!controller)
+		{
+			SetFailure("Town 0 has no controller component, so the town's authored range cannot be read");
+			return true;
+		}
+
+		OVT_TownData town = towns.m_Towns[0];
+		OVT_TownCivilianSourceConfig source = civilians.BuildTownSource(template, controller, town, 0);
+		if (!source)
+		{
+			SetFailure("BuildTownSource() produced no per-town instance");
+			return true;
+		}
+
+		// -- claims 1 and 2, which need no campaign state at all ------------------------------------
+
+		string failure = VerifyBinding(source, template, controller);
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		// -- claim 3: the population is read live, every roll ---------------------------------------
+
+		int originalPopulation = town.population;
+
+		int liveRoll = source.RollCount();
+
+		town.population = 0;
+		int emptyRoll = source.RollCount();
+
+		// Restored BEFORE anything is reported, so a red assertion below cannot leave the campaign's
+		// only town depopulated for the cases after this one.
+		town.population = originalPopulation;
+
+		if (liveRoll <= 0)
+		{
+			SetFailure("A town of %1 people rolled %2 civilians - a populated town must produce a crowd at the authored rate and floor",
+				originalPopulation.ToString(), liveRoll.ToString());
+			return true;
+		}
+
+		if (emptyRoll != 0)
+		{
+			SetFailure("A town with 0 population rolled %1 civilians - either the population was baked at build time (so a depopulated town keeps its old crowd) or the minimum clamp is resurrecting one",
+				emptyRoll.ToString());
+			return true;
+		}
+
+		PrintFormat("A per-town instance shares the authored template, takes town 0's %1 m range as its radius, and rolls %2 civilians from its LIVE population of %3 (0 when the town is emptied)",
+			controller.m_iTownRange.ToString(), liveRoll.ToString(), originalPopulation.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] source The instance under test.
+	//! \param[in] template The template it was built from.
+	//! \param[in] controller The town's controller.
+	//! \return An empty string when the binding holds, or the first broken claim.
+	protected string VerifyBinding(notnull OVT_TownCivilianSourceConfig source, notnull OVT_CivilianAmbienceConfig template, notnull OVT_TownControllerComponent controller)
+	{
+		if (source.GetTemplate() != template)
+			return "The per-town instance does not hand back the registry's own template object - it was copied rather than bound, so every attribute the template gains later will be missing from every town";
+
+		if (source.GetTownId() != 0)
+			return string.Format("The instance reports town id %1, expected 0", source.GetTownId().ToString());
+
+		if (Math.AbsFloat(source.m_fRadius - controller.m_iTownRange) > 0.5)
+			return string.Format("The instance scatters over %1 m, expected town 0's authored range of %2 m - a shared radius puts a village's civilians in the next valley",
+				source.m_fRadius.ToString(), controller.m_iTownRange.ToString());
+
+		if (source.m_iMinCount != template.m_iMinCount || source.m_iMaxCount != template.m_iMaxCount)
+			return "The instance's density clamps do not match the template's, so core would spend a different number of spawns than the crowd was authored for";
+
+		if (source.m_iSpawnDistanceOverride != template.m_iSpawnDistanceOverride)
+			return "The instance's spawn-distance override does not match the template's";
+
+		if (source.m_sSourceName != template.m_sSourceName)
+			return "The instance lost the template's source name, so it cannot be recognised in a log";
+
+		array<ref OVT_CivilianTypeConfig> allowed = source.GetAllowedTypes();
+		if (!allowed || allowed.IsEmpty())
+			return "The instance resolved NO allowed civilian types for a town the authored 'generic' type is supposed to be valid in - RollPrefab() would answer Empty and the town would stay empty";
+
+		if (allowed.Count() > template.m_aTypes.Count())
+			return "The instance allows more civilian types than the template authors";
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The civilian ambience manager is on the game mode and resolves through OVT_Global.
+//!
+//! WHY IT IS WORTH A CASE OF ITS OWN. Everything this feature does hangs off one component entry in
+//! Prefabs/GameMode/OVT_OverthrowGameMode.et, and a prefab entry that is dropped or re-saved without
+//! it fails SILENTLY: the scripts still compile, ActivateTown() finds a null manager and returns, and
+//! every town in the campaign simply has no civilians - which looks like content, not like a bug.
+//!
+//! It also pins the accessor to the component ON THE GAME MODE ENTITY, because the static is
+//! deliberately re-resolved across a world: a manager left over from a previous campaign in the same
+//! session must be dropped rather than handed out, and "the instance belongs to the game mode that
+//! exists now" is exactly that guarantee.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
+//! OVT_CivilianAmbienceManagerComponent entry from the game-mode prefab and this reports the null
+//! accessor; make GetInstance() return the cached static without re-checking its owner and the
+//! "belongs to the current game mode" assertion stops being meaningful (it is asserted directly).
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_ManagerResolves : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if (!civilians)
+		{
+			SetFailure("OVT_Global.GetCivilianAmbience() is null - Prefabs/GameMode/OVT_OverthrowGameMode.et has lost its OVT_CivilianAmbienceManagerComponent entry, so every town in the campaign silently has no civilians");
+			return true;
+		}
+
+		if (OVT_CivilianAmbienceManagerComponent.GetInstance() != civilians)
+		{
+			SetFailure("OVT_Global.GetCivilianAmbience() and GetInstance() answered with different components");
+			return true;
+		}
+
+		BaseGameMode gameMode = GetGame().GetGameMode();
+		if (!gameMode)
+		{
+			SetFailure("There is no game mode to check the manager's owner against");
+			return true;
+		}
+
+		IEntity gameModeEntity = gameMode;
+		if (civilians.GetOwner() != gameModeEntity)
+		{
+			SetFailure("The civilian ambience manager is not on the game-mode entity - a static left over from a previous campaign is being handed out");
+			return true;
+		}
+
+		if (civilians.GetTownHandle(-1) != -1)
+		{
+			SetFailure("GetTownHandle() answered a handle for a town id that does not exist");
+			return true;
+		}
+
+		if (civilians.GetTownSource(-1))
+		{
+			SetFailure("GetTownSource() answered a source for a town id that does not exist");
+			return true;
+		}
+
+		PrintFormat("The civilian ambience manager resolves through OVT_Global, belongs to the current game mode, and holds %1 town source(s)",
+			civilians.GetActiveTownCount().ToString());
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Releasing a civilian that was never ambient does nothing at all - and above all does not destroy
+//! anything.
+//!
+//! WHY THIS IS THE MOST IMPORTANT SAFETY CASE IN THE PHASE. The release runs inside
+//! OVT_RecruitManagerComponent.RecruitCivilian(), which is the single chokepoint BOTH recruit paths
+//! funnel through - the civilian a player walks up to AND the recruit spawned at a tent. The tent
+//! recruit was never ambient, so it arrives here every single time somebody recruits at a tent. A
+//! release path that reached for a group, a husk or a waypoint set that was not its own would delete
+//! part of a player's recruit at the moment they paid for it.
+//!
+//! THE ASSERTIONS ARE THEREFORE ABOUT ABSENCE: the call answers false, the character is still in the
+//! world afterwards, and no town's source count moved. Null is asserted first because it is the
+//! cheapest way for the whole path to fault.
+//!
+//! THE SUBJECT IS A REAL CHARACTER, spawned from the recruit prefab - the same idiom the reservation
+//! case uses - because the resolution being exercised (character -> AI control -> agent -> parent
+//! group) has nothing to walk on a bare entity. Its AI is activated so the deeper half of that walk
+//! is reached where the world allows it; whether an agent materialises inside the poll budget is
+//! reported, not asserted, because member spawning goes through the engine's queue and the answer
+//! must be `false` either way.
+//!
+//! Init tier: no campaign state is read, and the subject is created and destroyed by the case.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! ReleaseRecruitedCivilian() return true without consulting the ambient seam and the "claimed a
+//! character no source owns" assertion goes red; make it delete the resolved group before checking
+//! the seam's answer and the "the character survived" assertion goes red; remove the null guard and
+//! the first step faults.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Civilians_ReleaseOfNonAmbientIsSafe : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the spawned subject's agent to materialise. Not a correctness bound -
+	//! the verdict is the same with or without an agent.
+	static const int MAX_AGENT_POLLS = 60;
+
+	protected int m_iPhase;
+	protected int m_iAgentPolls;
+	protected IEntity m_Character;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return SpawnSubject();
+
+		return AwaitAgentThenRelease();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the null path, then spawns the live subject.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubject()
+	{
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if (!civilians)
+		{
+			SetFailure("OVT_Global.GetCivilianAmbience() is null - see OVT_TEST_Init_Civilians_ManagerResolves");
+			return true;
+		}
+
+		// The cheapest way for the whole resolution to fault, asserted before anything is built.
+		if (civilians.ReleaseRecruitedCivilian(null))
+		{
+			SetFailure("ReleaseRecruitedCivilian(null) answered true");
+			return true;
+		}
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetFailure("The recruit manager has no character prefab to spawn a subject from");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || !towns.m_Towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject character");
+			return true;
+		}
+
+		m_Character = OVT_Global.SpawnEntityPrefab(recruits.m_sRecruitPrefab, towns.m_Towns[0].location);
+		if (!m_Character)
+		{
+			SetFailure("SpawnEntityPrefab() produced no character from the recruit prefab");
+			return true;
+		}
+
+		AIControlComponent aiControl = AIControlComponent.Cast(m_Character.FindComponent(AIControlComponent));
+		if (aiControl)
+			aiControl.ActivateAI();
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits (briefly) for an agent, then asserts the release is a no-op whichever way that went.
+	//! \return True when the case is finished.
+	protected bool AwaitAgentThenRelease()
+	{
+		if (!m_Character)
+		{
+			SetFailure("The subject character disappeared before it could be released");
+			return FinishAndCleanUp();
+		}
+
+		bool hasAgent = false;
+		AIControlComponent aiControl = AIControlComponent.Cast(m_Character.FindComponent(AIControlComponent));
+		if (aiControl && aiControl.GetAIAgent())
+			hasAgent = true;
+
+		if (!hasAgent && m_iAgentPolls < MAX_AGENT_POLLS)
+		{
+			m_iAgentPolls += 1;
+			return false;
+		}
+
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if (!civilians)
+		{
+			SetFailure("The civilian ambience manager went away mid-case");
+			return FinishAndCleanUp();
+		}
+
+		int townsBefore = civilians.GetActiveTownCount();
+
+		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(m_Character);
+		if (!character)
+		{
+			SetFailure("The recruit prefab did not spawn an SCR_ChimeraCharacter, so the release path cannot be exercised on it");
+			return FinishAndCleanUp();
+		}
+
+		bool claimed = civilians.ReleaseRecruitedCivilian(character);
+
+		if (claimed)
+		{
+			SetFailure("ReleaseRecruitedCivilian() claimed a character no ambient source owns - a tent recruit would be treated as somebody's town crowd");
+			return FinishAndCleanUp();
+		}
+
+		if (!m_Character)
+		{
+			SetFailure("The subject character was DESTROYED by a release that should have been a no-op - this is the shape of deleting part of a player's recruit at the moment they pay for it");
+			return FinishAndCleanUp();
+		}
+
+		if (civilians.GetActiveTownCount() != townsBefore)
+		{
+			SetFailure("A no-op release changed the number of registered town sources from %1 to %2",
+				townsBefore.ToString(), civilians.GetActiveTownCount().ToString());
+			return FinishAndCleanUp();
+		}
+
+		PrintFormat("Releasing a non-ambient character is a safe no-op (agent present: %1, after %2 poll(s)) and null is refused before anything is touched",
+			hasAgent.ToString(), m_iAgentPolls.ToString());
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Character)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Character);
+
+		m_Character = null;
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! PER-TOWN CURATION IS REAL: a city and a village resolve DIFFERENT civilian type sets out of the
+//! same authored template, and a town's own allow-list narrows the set further.
+//!
+//! WHY THIS NEEDS THE INIT TIER RATHER THAN THE LOGIC ONE. The Logic tier already asserts the filter
+//! RULE and the shipped table as literal data. What it cannot reach is the thing that actually breaks
+//! in practice: the wiring from the authored `.conf` through the manager's resolver. A type entry that
+//! failed to deserialise, a `m_eMinTownSize` left at its default, or a resolver that quietly stopped
+//! passing the allow-list all compile clean, keep every Logic case green, and show up in play only as
+//! "the towns all look the same" - which nobody reports as a bug.
+//!
+//! THE THREE CLAIMS:
+//!  1. A CITY ALLOWS STRICTLY MORE THAN A VILLAGE. With the shipped table a city gets every type and a
+//!     village only the unrestricted ones, so the two counts must differ. Equal counts mean the size
+//!     filter is not being applied at resolve time at all.
+//!  2. THE CITY-ONLY TYPE IS EXACTLY WHERE IT BELONGS - present in the city set, absent from the
+//!     village set. This is the user-visible half of the claim ("a village shows none of the city-only
+//!     types").
+//!  3. AN AUTHORED ALLOW-LIST NARROWS THE SET, and an empty list does not. Both readings of an empty
+//!     list compile; the wrong one empties every un-authored town in the world.
+//!
+//! It also checks that at least one shipped type carries a per-type LOADOUT with slots in it. That is
+//! the one thing about the `.conf` no compiler can see (an inline object inheriting from a per-type
+//! file is authored text), and without it every prefab variant is re-dressed out of the global pool
+//! and the whole variety phase is invisible in play.
+//!
+//! NOTHING IS REGISTERED and no town is modified: the resolver is a pure function of the template plus
+//! two arguments, so this case cannot disturb the campaign state the cases around it assert.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set the
+//! businessman entry's m_eMinTownSize to VILLAGE in Configs/Civilians/CivilianAmbience.conf and claims
+//! 1 and 2 go red; make BuildTownSource pass null instead of the controller's list and claim 3's
+//! narrowing assertion goes red; delete the m_Loadout line from every type entry and the loadout
+//! assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_TypeCurationBySize : SCR_AutotestCaseBase
+{
+	//! The shipped type that is authored for cities only.
+	protected const string CITY_ONLY_TYPE = "businessman";
+
+	//! The shipped type that is authored for every settlement size.
+	protected const string UNRESTRICTED_TYPE = "generic";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if (!civilians)
+		{
+			SetFailure("OVT_Global.GetCivilianAmbience() is null - see OVT_TEST_Init_Civilians_ManagerResolves");
+			return true;
+		}
+
+		OVT_CivilianAmbienceConfig template = OVT_TEST_CivilianAmbienceFixture.FindTemplate();
+		if (!template)
+		{
+			SetFailure("The authored town crowd did not resolve - see OVT_TEST_Init_Civilians_AmbienceRegistryResolves");
+			return true;
+		}
+
+		if (template.m_aTypes.Count() < 2)
+		{
+			SetFailure("The authored template carries %1 civilian type(s) - per-town curation cannot mean anything until there is more than one kind of civilian to curate",
+				template.m_aTypes.Count().ToString());
+			return true;
+		}
+
+		// -- claim 1: the two sizes disagree ---------------------------------------------------------
+
+		array<ref OVT_CivilianTypeConfig> cityTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, null);
+		array<ref OVT_CivilianTypeConfig> villageTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.VILLAGE, null);
+
+		if (villageTypes.IsEmpty())
+		{
+			SetFailure("A VILLAGE resolved no civilian types at all - the unrestricted type must survive every size, or every hamlet on the map is silently empty");
+			return true;
+		}
+
+		if (cityTypes.Count() <= villageTypes.Count())
+		{
+			SetFailure("A CITY resolved %1 civilian types and a VILLAGE resolved %2 - a city must allow strictly more, or the minimum-size filter is not being applied when a town's set is resolved",
+				cityTypes.Count().ToString(), villageTypes.Count().ToString());
+			return true;
+		}
+
+		// -- claim 2: the city-only type is where it belongs -----------------------------------------
+
+		if (!ContainsType(cityTypes, CITY_ONLY_TYPE))
+		{
+			SetFailure("The '%1' type is missing from a CITY's set - it is authored for cities, so a city is the one place it must appear",
+				CITY_ONLY_TYPE);
+			return true;
+		}
+
+		if (ContainsType(villageTypes, CITY_ONLY_TYPE))
+		{
+			SetFailure("The '%1' type was allowed in a VILLAGE - the whole point of its authored minimum size is to keep it out of hamlets",
+				CITY_ONLY_TYPE);
+			return true;
+		}
+
+		// -- claim 3: an authored allow-list narrows, an empty one does not --------------------------
+
+		array<string> curated = {UNRESTRICTED_TYPE};
+		array<ref OVT_CivilianTypeConfig> curatedTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, curated);
+
+		if (curatedTypes.Count() != 1 || !ContainsType(curatedTypes, UNRESTRICTED_TYPE))
+		{
+			SetFailure("A CITY curated down to one type resolved %1 type(s) - a town's authored list is an allow-list and must be honoured on top of the size filter",
+				curatedTypes.Count().ToString());
+			return true;
+		}
+
+		array<string> notAuthored = {};
+		array<ref OVT_CivilianTypeConfig> emptyListTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, notAuthored);
+
+		if (emptyListTypes.Count() != cityTypes.Count())
+		{
+			SetFailure("A CITY with an EMPTY allow-list resolved %1 types instead of the %2 its size permits - every un-authored town carries an empty list, so reading it as 'nothing allowed' empties the map",
+				emptyListTypes.Count().ToString(), cityTypes.Count().ToString());
+			return true;
+		}
+
+		// -- the authored per-type clothing actually deserialised ------------------------------------
+
+		int withLoadout = 0;
+		foreach (OVT_CivilianTypeConfig type : cityTypes)
+		{
+			if (type && type.m_Loadout && type.m_Loadout.m_aSlots && !type.m_Loadout.m_aSlots.IsEmpty())
+				withLoadout++;
+		}
+
+		if (withLoadout == 0)
+		{
+			SetFailure("Not one of the %1 authored civilian types carries a per-type loadout with slots in it - the visible clothing is overwritten on every civilian regardless of its prefab, so without per-type clothing every variant in the crowd looks identical",
+				cityTypes.Count().ToString());
+			return true;
+		}
+
+		PrintFormat("Per-town curation resolves as authored: a CITY allows %1 civilian types and a VILLAGE %2, the city-only type is refused in the village, an authored list narrows a city to exactly what it names, and %3 type(s) carry their own clothing",
+			cityTypes.Count().ToString(), villageTypes.Count().ToString(), withLoadout.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] types A resolved type set.
+	//! \param[in] typeName The name to look for.
+	//! \return True when the set carries a type of that exact name.
+	protected bool ContainsType(array<ref OVT_CivilianTypeConfig> types, string typeName)
+	{
+		if (!types)
+			return false;
+
+		foreach (OVT_CivilianTypeConfig type : types)
+		{
+			if (type && type.m_sTypeName == typeName)
+				return true;
+		}
+
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The authored PARKED VEHICLE source resolves, is of the right class, and can roll a car (T5.6).
+//!
+//! FOUR CLAIMS, each one a different way Phase 5 could ship as a town with no cars in it:
+//!
+//!  1. THE REGISTRY CARRIES `town_vehicles`. The lookup is exact and case-sensitive, and the manager
+//!     is deliberately SILENT when it misses (the phase is droppable, so a registry that predates it
+//!     must not warn on every town). A name typo would therefore produce no cars and no log line at
+//!     all - the single most likely way for this phase to be quietly absent.
+//!  2. IT IS AN OVT_TownVehicleAmbienceConfig. The manager casts and refuses anything else, for the
+//!     same reason the civilian source does: every number a bound instance reads - the three
+//!     size-scaled count pairs, the search ranges - lives on the subclass.
+//!  3. THE POOL IS AUTHORED AND ROLLS. m_aPrefabs is the base-class array by design (T5.2, "no new
+//!     plumbing"), and a bound instance ALIASES the template's array rather than copying it, so this
+//!     asserts the alias as well as the authoring: a Bind() that forgot the alias leaves an instance
+//!     rolling out of its own empty array and core stops the activation every time.
+//!  4. THE SIZE-SCALED COUNTS ARE ORDERED AND NON-NEGATIVE. RollCountSafe would swap an inverted pair
+//!     silently, so a mis-authored max-below-min never fails loudly in play - it just quietly changes
+//!     how many cars a town gets.
+//!
+//! ⚠ THIS CASE DELIBERATELY DOES NOT ROLL A POSITION. RollPosition() runs kerb and road-network
+//! queries against the live world, and the autotest world's one settlement is not a placement fixture:
+//! asserting on it would be asserting on the terrain, not on this feature. Placement quality is the
+//! play-test (§6 step 13), and it is named as such in the plan.
+//!
+//! Init tier: reading an authored registry off the game-mode prefab needs no campaign state.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
+//! m_sSourceName in Configs/Civilians/CivilianAmbience.conf to "town_vehicle" and claim 1 goes red;
+//! author the entry as OVT_AmbientSpawnSourceConfig and claim 2 goes red; empty the m_aPrefabs block
+//! (or delete the `m_aPrefabs = template.m_aPrefabs` alias in
+//! OVT_TownVehicleSourceConfig.Bind) and claim 3 goes red; author m_iCityMax below m_iCityMin and
+//! claim 4 goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Civilians_VehicleSourceResolvesAndRolls : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		// -- claim 1 --------------------------------------------------------------------------------
+
+		OVT_AmbientSpawnSourceConfig named = virtualization.FindAmbientSourceConfig(OVT_CivilianAmbienceManagerComponent.TOWN_VEHICLE_SOURCE_NAME);
+		if (!named)
+		{
+			SetFailure("The ambient registry carries no source called '%1' - the lookup is exact and case-sensitive, and the manager is silent when it misses, so a town would simply never have a parked car",
+				OVT_CivilianAmbienceManagerComponent.TOWN_VEHICLE_SOURCE_NAME);
+			return true;
+		}
+
+		// -- claim 2 --------------------------------------------------------------------------------
+
+		OVT_TownVehicleAmbienceConfig template = OVT_TownVehicleAmbienceConfig.Cast(named);
+		if (!template)
+		{
+			SetFailure("The '%1' source is a %2, not an OVT_TownVehicleAmbienceConfig - the manager refuses it and no town gets parked cars",
+				OVT_CivilianAmbienceManagerComponent.TOWN_VEHICLE_SOURCE_NAME, named.Type().ToString());
+			return true;
+		}
+
+		if (!template.m_aPrefabs || template.m_aPrefabs.IsEmpty())
+		{
+			SetFailure("The '%1' source authors no vehicle prefabs, so every roll answers Empty and core stops the activation",
+				OVT_CivilianAmbienceManagerComponent.TOWN_VEHICLE_SOURCE_NAME);
+			return true;
+		}
+
+		// -- claims 3 and 4, through a bound instance ------------------------------------------------
+
+		OVT_TownVehicleSourceConfig source = new OVT_TownVehicleSourceConfig();
+		source.Bind(template, 0, OVT_TownSize.CITY);
+
+		ResourceName rolled = source.RollPrefab();
+		if (rolled == ResourceName.Empty)
+		{
+			SetFailure("A bound vehicle source rolled no prefab even though the template authors %1 - the instance is not reading the template's pool (Bind() aliases m_aPrefabs)",
+				template.m_aPrefabs.Count().ToString());
+			return true;
+		}
+
+		if (template.m_aPrefabs.Find(rolled) == -1)
+		{
+			SetFailure("A bound vehicle source rolled '%1', which is not in the authored pool", rolled);
+			return true;
+		}
+
+		string boundsFailure = CheckBounds(template);
+		if (boundsFailure != "")
+		{
+			SetFailure(boundsFailure);
+			return true;
+		}
+
+		// No SetFailure() is the pass, exactly as every other case in this suite reports one.
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The three size-scaled count pairs, in order and non-negative.
+	//! \param[in] template The authored declaration.
+	//! \return An empty string when the counts are sane, else the reason they are not.
+	protected string CheckBounds(notnull OVT_TownVehicleAmbienceConfig template)
+	{
+		if (template.m_iVillageMin < 0 || template.m_iTownMin < 0 || template.m_iCityMin < 0)
+			return "A size-scaled parked-car minimum is negative";
+
+		if (template.m_iVillageMax < template.m_iVillageMin)
+			return string.Format("The VILLAGE parked-car pair is inverted: [%1, %2]", template.m_iVillageMin.ToString(), template.m_iVillageMax.ToString());
+
+		if (template.m_iTownMax < template.m_iTownMin)
+			return string.Format("The TOWN parked-car pair is inverted: [%1, %2]", template.m_iTownMin.ToString(), template.m_iTownMax.ToString());
+
+		if (template.m_iCityMax < template.m_iCityMin)
+			return string.Format("The CITY parked-car pair is inverted: [%1, %2]", template.m_iCityMin.ToString(), template.m_iCityMax.ToString());
+
+		if (template.m_iPlacementAttempts < 1)
+			return "m_iPlacementAttempts is below 1, so no car would ever be given a spot";
+
+		return "";
+	}
+}

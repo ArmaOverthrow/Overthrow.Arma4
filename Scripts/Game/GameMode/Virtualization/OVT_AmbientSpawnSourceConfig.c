@@ -14,9 +14,10 @@
 //! OVT_VirtualizationManagerComponent.ReleaseAmbientEntity() first, which is exactly what a
 //! civilian-recruitment or vehicle-theft path does.
 //!
-//! THE MODDER SEAM. The five methods at the bottom are the extension point: subclass this, override
+//! THE MODDER SEAM. The seven methods at the bottom are the extension point: subclass this, override
 //! what you need, reference the subclass from a .conf, and no core code changes. Core ships ZERO
-//! authored sources - `civilians` authors the content.
+//! authored sources - `civilians` authors the content. (IsEntityDead / OnEntityPruned were added for
+//! `civilians` on 2026-08-17 - additively; every source written against the first five is unchanged.)
 //!
 //! SERVER ONLY. Only the authority ever constructs entities from one of these; the manager's server
 //! guard is the gate, so nothing here re-checks it.
@@ -120,6 +121,63 @@ class OVT_AmbientSpawnSourceConfig : ScriptAndConfig
 	//! detach anything that points at it.
 	//! \param[in] entity The entity about to be deleted.
 	void OnEntityDespawning(IEntity entity)
+	{
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Is this entity finished - a corpse, a wreck - and no longer part of the live crowd?
+	//!
+	//! ADDITIVE, `civilians` T1.1 (2026-08-17). The DEFAULT is the damage-state check the manager used
+	//! to do inline, moved here unchanged: every source that does not override this behaves exactly as
+	//! it did before the hook existed, and the manager keeps its own copy as the fallback for a source
+	//! with no config at all.
+	//!
+	//! WHY IT IS OVERRIDABLE. The default can only see an entity that carries an
+	//! SCR_DamageManagerComponent. A source whose tracked entity is a GROUP (one civilian = one
+	//! one-man group, so that waypoints and the agent-added hook have something to attach to) has no
+	//! damage manager on the thing being tracked, so the default answers false forever and a dead
+	//! civilian would never be pruned. Such a source overrides this with its own predicate - for a
+	//! group, "I have seen an agent AND the agent count is now 0". The seen-an-agent half is not
+	//! optional: member spawning goes through the engine's queue, so a freshly built group is
+	//! legitimately memberless for one or more frames.
+	//!
+	//! Called once per entity per prune pass, and ONLY for entities this source owns. True means the
+	//! source stops owning it - the entity itself is deliberately NOT deleted (see OnEntityPruned).
+	//! \param[in] entity The entity to judge. Never null when core calls it; the guard is for a
+	//!        consumer calling it directly.
+	//! \return True when the entity should stop being counted as one of this source's live spawns.
+	bool IsEntityDead(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		SCR_DamageManagerComponent damage = SCR_DamageManagerComponent.Cast(entity.FindComponent(SCR_DamageManagerComponent));
+		if (!damage)
+			return false;
+
+		return damage.GetState() == EDamageState.DESTROYED;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Called after a pruned entity has been removed from the source's entity list AND from the
+	//! manager's entity -> source reverse map.
+	//!
+	//! ADDITIVE, `civilians` T1.2 (2026-08-17). Default: no-op.
+	//!
+	//! THE ORDERING IS LOAD-BEARING AND IS PART OF THE CONTRACT. Both removals happen BEFORE this
+	//! runs, so a hook can never be handed an entity core still thinks it owns. Two consequences a
+	//! consumer must plan for:
+	//!   - THE ENTITY IS NO LONGER OWNED. The source will never delete it, it is not counted by
+	//!     GetAmbientEntities(), and it will not be touched by the next despawn.
+	//!   - ReleaseAmbientEntity() ON IT IS A NO-OP and answers false. There is nothing left to
+	//!     release; do not read that false as a failure.
+	//!
+	//! LEAVE THE BODY, DELETE THE COMPANIONS. This is where a consumer deletes the things that only
+	//! existed to serve the pruned entity - its waypoints, an emptied group husk - while deliberately
+	//! leaving the entity itself in the world. A corpse a player may be looting is worth more than a
+	//! tidy entity count, which is why core prunes a dead ambient entity instead of deleting it.
+	//! \param[in] entity The entity that has just stopped being ambient.
+	void OnEntityPruned(IEntity entity)
 	{
 	}
 }

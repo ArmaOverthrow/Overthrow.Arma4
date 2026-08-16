@@ -3,6 +3,8 @@ OVT_OverthrowGameMode {
  components {
   Persistence "{6B0E7A12A7B14C58}" {
   }
+  OVT_CivilianAmbienceManagerComponent "{6B4B2C5F00000003}" {
+  }
   OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
    m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
    }
@@ -65,7 +67,6 @@ OVT_OverthrowGameMode {
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
-   m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pDefendBaseWaypointPrefab "{06B1B14B6DE3C983}Prefabs/AI/Waypoints/AIWaypoint_Defend_ConflictBaseTeamPatrol.et"
@@ -255,6 +256,8 @@ OVT_OverthrowGameMode {
    }
   }
   OVT_VirtualizationManagerComponent "{6B4A1D3E00000010}" {
+   m_AmbientRegistry OVT_AmbientSpawnSourceRegistry "{6B4B2C5F00000002}" : "{6B4B2C5F00000001}Configs/Civilians/CivilianAmbience.conf" {
+   }
   }
   SCR_CallsignManagerComponent "{59724C8C935D8E23}" {
   }

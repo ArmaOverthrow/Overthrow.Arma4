@@ -8,6 +8,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 300
     m_iAttackPreferredDirection 75
     m_iAttackDirectionVariance 80
+    m_aCivilianTypes {
+     "generic" "townsfolk" "dockworker" "businessman" "worker"
+    }
    }
   }
   coords 4439.794 12.81 10754.501
@@ -20,6 +23,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size TOWN
     m_iPopulation 64
     m_iTownRange 140
+    m_aCivilianTypes {
+     "generic" "townsfolk" "villager" "worker"
+    }
    }
   }
   coords 4520.712 14.228 9467.58
@@ -30,6 +36,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Tyrone"
     m_iPopulation 38
     m_iTownRange 100
+    m_aCivilianTypes {
+     "generic" "villager"
+    }
    }
   }
   coords 4930.087 36.393 9086.702
@@ -41,6 +50,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Gravette"
     m_iPopulation 27
     m_iTownRange 120
+    m_aCivilianTypes {
+     "generic" "villager"
+    }
    }
   }
   coords 4119.979 35.563 7787.129
@@ -53,6 +65,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size CITY
     m_iPopulation 147
     m_iTownRange 300
+    m_aCivilianTypes {
+     "generic" "townsfolk" "businessman" "worker"
+    }
    }
   }
   coords 4756.564 163.389 7102.171
@@ -89,6 +104,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iTownRange 230
     m_iAttackPreferredDirection 182
     m_iAttackDirectionVariance 65
+    m_aCivilianTypes {
+     "generic" "townsfolk" "dockworker" "worker"
+    }
    }
   }
   coords 5137.9 14.586 4020.867
@@ -102,6 +120,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iPopulation 104
     m_iTownRange 220
     m_iAttackPreferredDirection 66
+    m_aCivilianTypes {
+     "generic" "townsfolk" "dockworker" "villager"
+    }
    }
   }
   coords 1272.44 37.449 5926.417
@@ -149,6 +170,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iAttackDistanceMin 500
     m_iAttackPreferredDirection 294
     m_iAttackDirectionVariance 95
+    m_aCivilianTypes {
+     "generic" "villager"
+    }
    }
   }
   coords 7076.712 118.796 6023.646
@@ -160,6 +184,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Laruns"
     m_iPopulation 43
     m_iTownRange 105
+    m_aCivilianTypes {
+     "generic" "villager"
+    }
    }
   }
   coords 7576.328 82.706 5521.431
@@ -172,6 +199,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_Size TOWN
     m_iPopulation 62
     m_iTownRange 180
+    m_aCivilianTypes {
+     "generic" "townsfolk" "villager"
+    }
    }
   }
   coords 7458.542 137.56 4737.1
@@ -207,6 +237,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_iPopulation 174
     m_iTownRange 350
     m_iAttackPreferredDirection 224
+    m_aCivilianTypes {
+     "generic" "townsfolk" "dockworker" "businessman"
+    }
    }
   }
   coords 9696.476 12.78 1547.934
@@ -218,6 +251,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Erquy"
     m_iPopulation 38
     m_iTownRange 130
+    m_aCivilianTypes {
+     "generic" "townsfolk" "villager"
+    }
    }
   }
   coords 10925.94 24.889 11703.107
@@ -229,6 +265,9 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
     m_sName "#AR-MapLocation_Regina"
     m_iPopulation 34
     m_iTownRange 140
+    m_aCivilianTypes {
+     "generic" "worker" "villager"
+    }
    }
   }
   coords 7189.877 137.254 2344.089

@@ -177,6 +177,19 @@ class OVT_OccupyingFactionManager: OVT_Component
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
 	ref ScriptInvoker<IEntity> m_OnPlayerLoot = new ScriptInvoker<IEntity>;
 
+	//! Which TOWN is currently under QRF attack, published the moment it changes: the town's id when a
+	//! town QRF starts, -1 when it finishes.
+	//!
+	//! Exists so town-local systems (the ambient civilian crowd) can suppress themselves for ONE town
+	//! instead of polling m_iCurrentQRFTown, and so the old "any QRF anywhere despawns every town's
+	//! civilians" shortcut never has to come back.
+	//!
+	//! ⚠ BASE QRFs DELIBERATELY DO NOT PUBLISH HERE (decision D6). A base QRF happens at a base, not in
+	//! a town, and has no town id to name; m_vQRFLocation is what a future distance-based consumer
+	//! would use. Server-side only - m_bQRFActive / m_iCurrentQRFTown remain the replicated truth and
+	//! are unchanged by this invoker.
+	ref ScriptInvoker<int> m_OnQRFTownChanged = new ScriptInvoker<int>;
+
 	static OVT_OccupyingFactionManager s_Instance;
 
 	static OVT_OccupyingFactionManager GetInstance()
@@ -935,6 +948,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+
+		// Town-local suppression (D6): only THIS town's ambient crowd goes away.
+		m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
 	void OnQRFFinishedBase()
@@ -1019,6 +1035,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
+
+		// No town is under attack any more - whatever suppressed itself for this battle comes back.
+		m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
 	void WinBattle()

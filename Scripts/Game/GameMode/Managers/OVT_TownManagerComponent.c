@@ -137,6 +137,10 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Civilians a conversion has already been attempted on this session (server-side, BUG-063)
 	protected ref set<RplId> m_ConvertedCivilians = new set<RplId>;
 
+	//! How large the conversion-mark set may grow before the dead ids in it are swept
+	//! (TryMarkCivilianConvertAttempted). Not persisted and not load-bearing - purely a memory bound.
+	protected const int CONVERTED_CIVILIAN_PRUNE_THRESHOLD = 512;
+
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	//! Invoked when a town's controlling faction changes
@@ -1248,8 +1252,44 @@ class OVT_TownManagerComponent: OVT_Component
 	bool TryMarkCivilianConvertAttempted(RplId civilianId)
 	{
 		if(m_ConvertedCivilians.Contains(civilianId)) return false;
+
+		// The set is never persisted and never read back for a civilian that no longer exists, but it
+		// used to have no upper bound at all: every re-rolled ambient crowd (a town's crowd is
+		// re-rolled on every approach now, not spawned once per session) can add more ids, and an id
+		// belonging to a civilian that has been despawned can never be asked about again. Pruning the
+		// dead ones past a threshold keeps a long session's memory flat. Only done on the insert that
+		// crosses the threshold, so the normal path stays a single set lookup.
+		if(m_ConvertedCivilians.Count() >= CONVERTED_CIVILIAN_PRUNE_THRESHOLD)
+			PruneConvertedCivilians();
+
 		m_ConvertedCivilians.Insert(civilianId);
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops conversion marks whose civilian no longer resolves.
+	//!
+	//! An RplId that no longer resolves to an RplComponent belongs to an entity that has been deleted -
+	//! a despawned ambient civilian, or one that was killed - and nothing will ever ask about it again.
+	//! Ids that still resolve are kept, because THOSE are the marks that are still load-bearing.
+	protected void PruneConvertedCivilians()
+	{
+		array<RplId> live = new array<RplId>;
+
+		for(int i = 0; i < m_ConvertedCivilians.Count(); i++)
+		{
+			RplId id = m_ConvertedCivilians[i];
+			if(RplComponent.Cast(Replication.FindItem(id)))
+				live.Insert(id);
+		}
+
+		if(live.Count() == m_ConvertedCivilians.Count()) return;
+
+		m_ConvertedCivilians.Clear();
+		foreach(RplId id : live)
+		{
+			m_ConvertedCivilians.Insert(id);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------

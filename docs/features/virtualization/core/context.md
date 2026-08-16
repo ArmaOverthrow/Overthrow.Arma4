@@ -62,6 +62,54 @@
 
 ---
 
+## Additive changes after the freeze
+
+`api.md` froze on 2026-08-17 (Phase 6). The freeze permits **additive** change — a new method, a new
+appended payload field behind a version bump — and forbids renaming, re-signing or re-meaning
+anything already on the page. Every additive change lands here, dated, with the requester named.
+**Breaking** changes would get their own recorded note; there have been none.
+
+### 2026-08-17 — two prune hooks on `OVT_AmbientSpawnSourceConfig`
+
+**Requested by:** `virtualization/civilians` (feature #2 of the epic), Phase 1 — its implementation
+plan §3.4 and tasks T1.1/T1.2. Built by that feature, in core's files.
+
+**What was added** (`Scripts/Game/GameMode/Virtualization/OVT_AmbientSpawnSourceConfig.c`):
+
+```c
+bool IsEntityDead(IEntity entity);   //!< default: SCR_DamageManagerComponent state == DESTROYED
+void OnEntityPruned(IEntity entity); //!< no-op; fires AFTER the list AND reverse-map removals
+```
+
+Both are called from `OVT_VirtualizationManagerComponent.PruneAmbientEntities` — the only two call
+sites, and the only lines of existing core code the change touched.
+
+**Why.** `civilians` tracks a **group** entity per civilian (one civilian = one one-man `SCR_AIGroup`,
+because waypoints and `GetOnAgentAdded` attach to groups, D3 of that feature's plan). A group carries
+no `SCR_DamageManagerComponent`, so core's stock dead-check answers `false` forever and a dead
+civilian would never be pruned — its husk and its waypoints would accumulate for the whole session.
+The alternative considered and **rejected** was a `GetOnCharacterKilled()` subscription: it needs a
+global subscription, a character→agent→group→source resolution and its own death-vs-teardown
+disambiguation, all to reach a conclusion core already reaches inside its own ownership window. Only
+one of the two was built.
+
+**Why it is not a breaking change.**
+
+- `IsEntityDead`'s body **is** the manager's previous inline check, moved unchanged. Every existing
+  source keeps pruning exactly what it pruned before; the manager's own `IsAmbientEntityDead` stays
+  in place as the fallback for an instance with no config to ask.
+- `OnEntityPruned` defaults to a no-op, so a source that ignores it is unaffected.
+- No signature changed, nothing was removed, no persisted payload field moved, and
+  `CONFIG_STREAM_VERSION` did not move.
+
+**The one contract this adds:** `OnEntityPruned` fires **after** the entity has left both the source's
+entity list and the manager's entity→source reverse map. The entity is therefore no longer owned when
+a consumer sees it, and `ReleaseAmbientEntity()` on it is a no-op. That ordering is what makes the
+rule *leave the body, delete the companions* safe: a consumer deletes the pruned entity's waypoints
+and its emptied husk there, and deliberately leaves the corpse in the world.
+
+---
+
 ## Gotchas & Learnings
 
 ### 0a. Live-session observer findings (user play-test + VIRT-DIAG console dump, 2026-08-17)

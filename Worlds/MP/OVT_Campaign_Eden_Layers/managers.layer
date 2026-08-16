@@ -49,7 +49,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
-   m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pDefendBaseWaypointPrefab "{06B1B14B6DE3C983}Prefabs/AI/Waypoints/AIWaypoint_Defend_ConflictBaseTeamPatrol.et"

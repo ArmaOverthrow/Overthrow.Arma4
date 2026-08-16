@@ -216,7 +216,9 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])
 	{
-		m_aParkingSearch.Clear();
+		// Allocate rather than Clear: this can be the first search of the session
+		// (ambient vehicle placement), when GetNearestParkingSpot has never run
+		m_aParkingSearch = new array<EntityID>();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterKerbAddToArray, EQueryEntitiesFlags.STATIC);
 		
 		if(m_aParkingSearch.Count() == 0) return false;

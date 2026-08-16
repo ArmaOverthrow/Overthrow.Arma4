@@ -53,8 +53,39 @@ class OVT_OverthrowConfigStruct
 	//! it; a very large value keeps every registered group spawned permanently.
 	//! SERVER-ONLY, exactly like recruitLoadoutFeeMultiplier: it is deliberately absent from
 	//! RplSave/RplLoad below, so CONFIG_STREAM_VERSION does not move for it. Separate from
-	//! m_iMilitarySpawnDistance / m_iCivilianSpawnDistance, which the un-migrated spawn paths use.
+	//! m_iMilitarySpawnDistance, which the un-migrated military spawn paths still use. (The civilian
+	//! spawn distance it used to be listed beside was retired with the town-civilian spawner - ambient
+	//! civilians ride this value through their source's m_iSpawnDistanceOverride.)
 	int virtualizationSpawnDistance;
+
+	//! Operator multiplier on town civilian ambience density (civilians implementation.md §3.6). The
+	//! per-town crowd is population x the authored rate x THIS, so 0 is the documented "no civilians
+	//! on this server" switch and 2.0 doubles every town. The per-town hard cap below still applies
+	//! on top of it.
+	//! SERVER-ONLY, exactly like virtualizationSpawnDistance: it is deliberately absent from
+	//! RplSave/RplLoad below, so no client ever reads it and CONFIG_STREAM_VERSION does not move.
+	float civilianDensityMultiplier;
+
+	//! Absolute per-town ceiling on ambient civilians, applied after the source's own min/max clamps.
+	//! 0 or below means NO CAP, and that asymmetry is deliberate: LoadConfig() runs SetDefaults()
+	//! before ReadValue, so a config file written before this key existed keeps the 30 below - but a
+	//! file that explicitly carries 0 is an operator saying "uncapped", never "no civilians". Turning
+	//! civilians off is civilianDensityMultiplier's job.
+	//! SERVER-ONLY, same as the two fields above - not in RplSave/RplLoad, CONFIG_STREAM_VERSION
+	//! unchanged.
+	int maxCiviliansPerTown;
+
+	//! Should a town's ambient crowd be DESPAWNED while a QRF is being fought in that town?
+	//!
+	//! DEFAULT FALSE, and that is a deliberate change from the pre-migration game (civilians decision
+	//! D13, user amendment 2026-08-17). The old spawner despawned every town's civilians during any
+	//! QRF anywhere, which was a performance shortcut from when Reforger AI was expensive - and it
+	//! actively fights the way people play, because players recruit civilians specifically to help
+	//! defend a town against the QRF and then watch them vanish as the battle starts. Heavy servers
+	//! that want the AI budget back turn this on; when they do, only the town actually under attack
+	//! loses its crowd (never the whole map), and that town re-rolls a fresh one after the battle.
+	//! SERVER-ONLY, same as the fields above - not in RplSave/RplLoad, CONFIG_STREAM_VERSION unchanged.
+	bool despawnCiviliansDuringQRF;
 
 	void SetDefaults()
 	{
@@ -77,6 +108,9 @@ class OVT_OverthrowConfigStruct
 		vehiclePriceMultiplier = 1.0;
 		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
 		virtualizationSpawnDistance = 1750;
+		civilianDensityMultiplier = 1.0;
+		maxCiviliansPerTown = 30;
+		despawnCiviliansDuringQRF = false;
 	}
 }
 
@@ -115,8 +149,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Gun Dealer Prefab", params: "et")]
 	ResourceName m_pGunDealerPrefab;
 
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Civilian Prefab", params: "et")]
-	ResourceName m_pCivilianPrefab;
+	// RETIRED 2026-08-17 (virtualization/civilians Phase 2): the civilian group prefab moved into
+	// Configs/Civilians/CivilianAmbience.conf, where each authored civilian TYPE names its own
+	// one-man group - one global prefab could never describe a pool.
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
@@ -167,11 +202,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(desc: "Real estate configs to set prices and rents for building types", category: "Real Estate", UIWidgets.Object)]
 	ref array<ref OVT_RealEstateConfig> m_aBuildingTypes;
 
-	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "Civilians to spawn per population")]
-	float m_fCivilianSpawnRate;
-
-	[Attribute(defvalue: "1000", UIWidgets.EditBox, desc: "Civilian spawn distance")]
-	int m_iCivilianSpawnDistance;
+	// RETIRED 2026-08-17 (virtualization/civilians Phase 2): the civilian density rate and the civilian
+	// spawn distance both moved off this component. Density is authored per source in
+	// Configs/Civilians/CivilianAmbience.conf (m_fPopulationRate) and scaled at runtime by the
+	// operator's civilianDensityMultiplier / maxCiviliansPerTown; the spawn distance is now the
+	// ambient source's own m_iSpawnDistanceOverride, which rides virtualizationSpawnDistance by
+	// default. Nothing read either of them once the town-controller spawner was retired.
 
 	[Attribute(defvalue: "1750", UIWidgets.EditBox, desc: "Military spawn distance")]
 	int m_iMilitarySpawnDistance;
@@ -503,9 +539,28 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return wp;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a wait waypoint that actually waits for the duration asked for.
+	//!
+	//! ⚠ THE DURATION USED TO BE DROPPED ON THE FLOOR (defect F-C). Every caller since this method was
+	//! written has passed a time that was never applied, so every "wait" waypoint in Overthrow held for
+	//! whatever AIWaypoint_Wait.et authors (60 s) instead. SetHoldingTime() is the missing call.
+	//!
+	//! SetHoldingTime() itself silently does nothing when the prefab does not author
+	//! m_TimedWaypointParameters (SCR_TimedWaypoint.SetHoldingTime guards on it). The vanilla
+	//! Prefabs/AI/Waypoints/AIWaypoint_Wait.et this component is bound to DOES author that object
+	//! (m_holdingTime 60), verified 2026-08-17 against the 1.8.0.10 reference tree - so if a future
+	//! edit points m_pWaitWaypointPrefab at a different prefab, check that prefab before trusting the
+	//! duration.
+	//! \param[in] pos Where the waypoint goes.
+	//! \param[in] time Seconds to hold there.
+	//! \return The waypoint, or null when the prefab failed to spawn or is not a timed waypoint.
 	SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
 	{
 		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
+
+		if (wp)
+			wp.SetHoldingTime(time);
 
 		return wp;
 	}
