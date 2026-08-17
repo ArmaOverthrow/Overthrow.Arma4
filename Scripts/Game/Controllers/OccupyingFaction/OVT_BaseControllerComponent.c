@@ -44,6 +44,30 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute("30", UIWidgets.Slider, "Direction variance in degrees (QRF can spawn within +/- this many degrees from preferred direction)", "0 180 5")]
 	int m_iAttackDirectionVariance;
 
+	//! ================== THE AUTHORED PATROL SQUARE (amendment A1, 2026-08-18) ==================
+	//! Every deployment at this base whose behaviour module authors OVT_PatrolType.PERIMETER_BASE walks
+	//! THIS square: four corners at m_fPerimeterRadius from the base marker, the first at
+	//! m_fPerimeterRotation degrees and the others at +90/+180/+270, each patrol's rotation jittered by
+	//! up to OVT_PatrolBehaviorDeploymentModule.PERIMETER_ROTATION_JITTER_DEG so successive garrisons
+	//! do not tread one line.
+	//!
+	//! WHY IT IS AUTHORED RATHER THAN ROLLED. The road-snapped ring (plain PERIMETER) is right for a
+	//! town, whose roads run AROUND it, and wrong for a base, whose roads run THROUGH it - a snapped
+	//! base "perimeter" collapses onto the access road. From the play-test: "the garrison waypoints
+	//! aren't great... I'd actually like to make them a little authored".
+	//!
+	//! ⚠ SELECT THIS COMPONENT'S ENTITY IN WORKBENCH TO SEE THE SQUARE. _WB_AfterWorldUpdate draws it
+	//! in cyan, edge arrowheads showing the walk direction (the runtime ±jitter is NOT drawn - one
+	//! square, by request). A corner over water or inside a building is a designer problem: nothing
+	//! moves a corner at runtime, because moving one would stop the square being the square that was
+	//! authored.
+	//! ===========================================================================================
+	[Attribute("280", UIWidgets.Slider, "Radius of the authored patrol square for PERIMETER deployments at this base, in metres (280 = baseRange, the legacy patrol radius)", "10 600 5")]
+	float m_fPerimeterRadius;
+
+	[Attribute("0", UIWidgets.Slider, "Rotation of the authored patrol square for PERIMETER deployments at this base, in degrees. 0 puts the first corner due north; each patrol jitters this by a few degrees", "0 359 1")]
+	float m_fPerimeterRotation;
+
 	ref array<ref EntityID> m_AllSlots;
 	ref array<ref EntityID> m_AllCloseSlots;
 	ref array<ref EntityID> m_SmallSlots;
@@ -259,6 +283,64 @@ class OVT_BaseControllerComponent: OVT_Component
 		return false;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! The base controller nearest a position, if it is close enough to be that position's own base.
+	//!
+	//! THE ONE LOOKUP TWO CONSUMERS OUTSIDE THIS FILE NEED, and it lives here because the answer is a
+	//! base controller: the PERIMETER_BASE patrol branch reads the authored square off it, and
+	//! OVT_RoadSlotOverwatchPlacementProvider reads the road slots off it. Both are asked at 250 m -
+	//! OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS, the same radius within which the
+	//! evaluator considers a position to BE a base.
+	//!
+	//! EVERY DEREFERENCE IS GUARDED. This is legal to call off a config template in a world with no
+	//! occupying faction manager at all (which is exactly what the Init tier does), and "no base here"
+	//! is an ordinary answer rather than an error.
+	//!
+	//! (OVT_BaseDefendPositionPlacementProvider carries its own protected copy of this walk, written
+	//! before this static existed. It is left alone on purpose - it is shipped, working Phase 4 code
+	//! and the duplication costs nothing but four lines.)
+	//! \param[in] position The position to search around.
+	//! \param[in] radius How far the base marker may be, in metres.
+	//! \return The controller, or null when there is no base in range.
+	static OVT_BaseControllerComponent FindNearestBaseControllerWithin(vector position, float radius)
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return null;
+
+		OVT_BaseData nearest = occupying.GetNearestBase(position);
+		if (!nearest)
+			return null;
+
+		if (vector.Distance(nearest.location, position) > radius)
+			return null;
+
+		IEntity marker = GetGame().GetWorld().FindEntityByID(nearest.entId);
+		if (!marker)
+			return null;
+
+		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One corner of this base's authored patrol square, in world space, at the base marker's own Y.
+	//!
+	//! PURE, so the Workbench viz and the runtime plan cannot disagree about where the square is:
+	//! _WB_AfterWorldUpdate draws these points and OVT_VirtualPlanFactory.BuildSquarePerimeterPlan
+	//! builds the same ones from the same two numbers.
+	//! \param[in] centre The base marker position.
+	//! \param[in] radius Distance from the centre to each corner.
+	//! \param[in] rotationDeg Yaw of corner 0, in degrees.
+	//! \param[in] corner 0..3; the corners run clockwise at +90 degrees each.
+	//! \return The corner position.
+	static vector PerimeterCorner(vector centre, float radius, float rotationDeg, int corner)
+	{
+		vector position = centre + (vector.FromYaw(rotationDeg + (corner * 90)) * radius);
+		position[1] = centre[1];
+
+		return position;
+	}
+
 	IEntity GetNearestSlot(vector pos)
 	{
 		IEntity nearest;
@@ -280,7 +362,29 @@ class OVT_BaseControllerComponent: OVT_Component
 	protected ref Shape m_aDirectionArrowCenter;
 	protected ref Shape m_aDirectionArrowMin;
 	protected ref Shape m_aDirectionArrowMax;
-	
+
+	//! ==========================================================================================
+	//! ⚠⚠ THIS VIZ USES Shape.CreateArrow ONLY. DO NOT REWRITE IT WITH THE CreateLines FAMILY. ⚠⚠
+	//!
+	//! CreateArrow COPIES its two vectors by value - which is why the QRF attack-direction arrows
+	//! above have always been safe built from locals, and why every edge below is one. The
+	//! CreateLines/CreateLinesLoop/CreateTris family instead REFERENCES the caller's vertex array,
+	//! and this viz crashed Workbench TWICE (2026-08-18, amendment A1) when built on it: first with
+	//! local buffers (render thread read a dead stack frame - jittering vertices, then an access
+	//! violation), then STILL crashed with member buffers sized and filled per the vanilla
+	//! SCR_PowerLineJointEntity precedent. Root cause of the second crash was never symbolised;
+	//! rather than keep gambling on that family's exact contract, the viz was rebuilt on the one
+	//! primitive with years of proven per-frame use three methods above. Bonus: the edge arrowheads
+	//! show the patrol's walk direction.
+	//! ==========================================================================================
+
+	//! How high above the marker's own Y the square is drawn, so it is not buried in the terrain the
+	//! base sits on. The runtime plan is ground-snapped per corner; this is a drawing offset only.
+	protected const float PERIMETER_DRAW_LIFT = 2;
+
+	//! Length of the little arrow marking corner 0, in metres.
+	protected const float PERIMETER_START_ARROW = 25;
+
 	//Draw attack preferred direction as arrows showing variance
 	override int _WB_GetAfterWorldUpdateSpecs(IEntity owner, IEntitySource src)
 	{
@@ -310,8 +414,72 @@ class OVT_BaseControllerComponent: OVT_Component
 			vector toMax = basePos + Vector(Math.Sin(maxRad) * m_iAttackDistanceMin, 0, -Math.Cos(maxRad) * m_iAttackDistanceMin);
 			m_aDirectionArrowMax = Shape.CreateArrow(fromMax, toMax, 6, Color.FromRGBA(255, 0, 0, 128).PackToInt(), ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE);
 		}
-		
+
+		DrawPerimeterSquare(owner);
+
 		super._WB_AfterWorldUpdate(owner, timeSlice);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Draws the authored PERIMETER_BASE patrol square, in CYAN so it never reads as an attack arrow.
+	//!
+	//! ONE SQUARE, the authored rotation, edge arrowheads showing the walk direction. The runtime's
+	//! per-patrol ±jitter is deliberately NOT drawn (user request, 2026-08-18): a garrison's real
+	//! corners land within a few degrees of what is shown.
+	//!
+	//! The little arrow points from the base marker at CORNER 0, which is where m_fPerimeterRotation
+	//! puts the square's "start" - the corner every walk is measured from.
+	//!
+	//! Corner geometry comes from PerimeterCorner(), the same static
+	//! OVT_VirtualPlanFactory.BuildSquarePerimeterPlan agrees with, so the picture cannot drift away
+	//! from the plan.
+	//!
+	//! ⚠ NOTHING HERE IS ROLLED - PerimeterCorner() is pure, so the drawn square is identical every
+	//! frame. A shimmering or jittering square therefore always means native memory corruption, which
+	//! is how the 2026-08-18 crashes were recognised (see the hard rule above).
+	//! \param[in] owner The base marker entity.
+	protected void DrawPerimeterSquare(IEntity owner)
+	{
+		if (!owner || m_fPerimeterRadius <= 0)
+			return;
+
+		vector centre = owner.GetOrigin();
+		centre[1] = centre[1] + PERIMETER_DRAW_LIFT;
+
+		int flags = ShapeFlags.ONCE | ShapeFlags.NOZBUFFER | ShapeFlags.TRANSP | ShapeFlags.DOUBLESIDE | ShapeFlags.NOOUTLINE;
+		int solid = Color.FromRGBA(0, 200, 255, 255).PackToInt();
+
+		// One arrow per edge, corner N -> corner N+1, so the arrowheads read as the walk direction.
+		// ONCE shapes drawn as bare calls, no handle kept: the engine owns a ONCE shape for the frame
+		// (vanilla precedent: SCR_PowerLineJointEntity.c:163 does exactly this per frame).
+		// The runtime's ±jitter band is deliberately NOT drawn - one square only, by request.
+		DrawSquareEdges(centre, m_fPerimeterRotation, 8, solid, flags);
+
+		// Where the square starts: an arrow from the marker towards corner 0.
+		vector towardsStart = vector.Direction(centre, PerimeterCorner(centre, m_fPerimeterRadius, m_fPerimeterRotation, 0));
+		towardsStart[1] = 0;
+		if (towardsStart.Length() < 0.001)
+			return;
+
+		towardsStart.Normalize();
+		Shape.CreateArrow(centre, centre + (towardsStart * PERIMETER_START_ARROW), 8, solid, flags);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Draws one square as four CreateArrow edges (copy-safe - see the hard rule above).
+	//! \param[in] centre The (already lifted) square centre.
+	//! \param[in] rotationDeg Yaw of corner 0.
+	//! \param[in] headSize Arrowhead size in metres; also what tells solid and faint squares apart at a glance.
+	//! \param[in] color Packed RGBA.
+	//! \param[in] flags Shape flags shared with the attack arrows.
+	protected void DrawSquareEdges(vector centre, float rotationDeg, float headSize, int color, int flags)
+	{
+		for (int corner = 0; corner < 4; corner++)
+		{
+			vector from = PerimeterCorner(centre, m_fPerimeterRadius, rotationDeg, corner);
+			vector to = PerimeterCorner(centre, m_fPerimeterRadius, rotationDeg, (corner + 1) % 4);
+			Shape.CreateArrow(from, to, headSize, color, flags);
+		}
 	}
 #endif
 

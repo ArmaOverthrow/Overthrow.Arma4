@@ -18,6 +18,16 @@
 //! cycles, so a dormant patrol keeps walking its corners with nobody watching. That difference is the
 //! whole reason this class serves both a town patrol and (from Phase 4) a tower garrison without a
 //! flag anywhere.
+//!
+//! THREE TYPES, TWO OF THEM MOVABLE (amendment A1, 2026-08-18):
+//!   DEFEND         - one post, never walked.
+//!   PERIMETER      - a ring around the centre, EACH CORNER ROAD-SNAPPED. The town patrol.
+//!   PERIMETER_BASE - the nearest base controller's AUTHORED square (m_fPerimeterRadius /
+//!                    m_fPerimeterRotation ± a few degrees of jitter), ground-snapped and NOT
+//!                    road-snapped. The base garrison.
+//! PERIMETER and PERIMETER_BASE produce plans of the SAME KIND - 4 PATROL corners, 4 WAITs, cycling -
+//! so everything downstream (the movement tick, core's waypoint builder, the GM waypoint walk) treats
+//! them identically and nothing outside this file has to know which one built a plan.
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sModuleName")]
 class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
@@ -25,10 +35,10 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
-	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior. DEFEND holds one post and is never walked; PERIMETER circles the centre and IS walked while dormant")]
+	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior. DEFEND holds one post and is never walked; PERIMETER walks a ROAD-SNAPPED ring around the centre (towns); PERIMETER_BASE walks the nearest base controller's AUTHORED square, un-snapped (bases). The last two are both walked while dormant")]
 	OVT_PatrolType m_ePatrolType;
 
-	[Attribute(defvalue: "200", desc: "Patrol radius for perimeter patrols")]
+	[Attribute(defvalue: "200", desc: "Patrol radius for PERIMETER patrols. PERIMETER_BASE ignores this and uses the base controller's own m_fPerimeterRadius, falling back to this only when there is no base in range")]
 	float m_fPatrolRadius;
 
 	//! RETAINED BUT INERT. There is no poll left to interval: waypoints are built once, at
@@ -52,6 +62,13 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	//! Longest pause rolled for a perimeter corner, in seconds.
 	static const float WAIT_SECONDS_MAX = 75;
 
+	//! How far, in degrees, one PERIMETER_BASE patrol's square may be rotated off the base's authored
+	//! rotation. Rolled FRESH every time a plan is built, so successive garrisons - and the same
+	//! garrison after a rebuy - do not tread one line. Small on purpose: the point of an authored
+	//! square is that a designer decided where it goes, and this is the wobble around that decision,
+	//! not a second decision. The Workbench viz draws this band as two faint squares.
+	static const float PERIMETER_ROTATION_JITTER_DEG = 10;
+
 	//------------------------------------------------------------------------------------------------
 	//! The plan a group registered at groupPosition should carry.
 	//!
@@ -59,22 +76,23 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	//! patrols around one town centre set off in different directions and pause for different lengths,
 	//! exactly as the four hand-authored waypoint sets did.
 	//!
-	//! ROAD SNAPPING IS APPLIED HERE, not in the factory - the factory is world-free geometry and
-	//! cannot ask where the roads are. Each PATROL corner is pulled onto the nearest road and the WAIT
-	//! that follows it copies the snapped position, so a patrol pauses where it actually arrived
-	//! instead of at the point the geometry asked for.
+	//! WORLD CONTACT IS APPLIED HERE, not in the factory - the factory is world-free geometry and cannot
+	//! ask where the roads or the hillsides are. PERIMETER pulls each PATROL corner onto the nearest
+	//! road and the WAIT that follows it copies the snapped position, so a patrol pauses where it
+	//! actually arrived; PERIMETER_BASE snaps every point onto the terrain surface instead and touches
+	//! no road at all (see BuildAuthoredSquarePlan for why a base must not be road-snapped).
 	//!
-	//! ⚠ THE TWO TYPES ANCHOR ON DIFFERENT THINGS, DELIBERATELY. PERIMETER circles GetPatrolCenter()
-	//! (the deployment marker, or the town centre when m_bUseNearestTownCenter is set) because circling
-	//! the PLACE is what a patrol is for. DEFEND holds groupPosition, because a garrison holds where it
+	//! ⚠ THE TYPES ANCHOR ON DIFFERENT THINGS, DELIBERATELY. Both PERIMETER types circle
+	//! GetPatrolCenter() (the deployment marker, or the town centre when m_bUseNearestTownCenter is
+	//! set) because circling the PLACE is what a patrol is for. DEFEND holds groupPosition, because a garrison holds where it
 	//! was stationed - see the branch's own comment for what anchoring it on the marker instead does to
 	//! every config that places its groups away from that marker.
 	//! \param[in] groupPosition Where the group is about to be registered.
 	//! \return The plan, or null when this module's patrol type has nothing to say.
 	override OVT_VirtualWaypointPlan BuildVirtualPlan(vector groupPosition)
 	{
-		// Resolved before the type split so the call order is unchanged for every type; only PERIMETER
-		// reads it.
+		// Resolved before the type split so the call order is unchanged for every type; only the two
+		// PERIMETER types read it.
 		vector centre = GetPatrolCenter();
 
 		// The same fallback the hand-authored helper carried: an unset centre means "circle where you
@@ -104,9 +122,9 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 			// it is a rolled-and-snapped artefact. Deployment_TowerGarrison.conf therefore keeps exactly
 			// today's behaviour.
 			//
-			// PERIMETER keeps GetPatrolCenter()'s answer unconditionally, and must: circling the TOWN is
-			// the entire point of a town patrol, and it is the one type where the centre is deliberately
-			// not where the group stands.
+			// Both PERIMETER types keep GetPatrolCenter()'s answer unconditionally, and must: circling the
+			// TOWN (or the BASE) is the entire point of a patrol, and they are the types where the centre
+			// is deliberately not where the group stands.
 			//
 			// Radius 0 leaves the defend waypoint prefab's own completion radius alone - parity with
 			// SpawnDefendWaypoint(pos), which is all the old DEFEND branch did.
@@ -116,6 +134,9 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 
 			return OVT_VirtualPlanFactory.BuildDefendPlan(holdPoint, 0);
 		}
+
+		if (m_ePatrolType == OVT_PatrolType.PERIMETER_BASE)
+			return BuildAuthoredSquarePlan(centre, groupPosition);
 
 		if (m_ePatrolType != OVT_PatrolType.PERIMETER)
 			return null;
@@ -127,16 +148,130 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 			radius = vector.Distance(groupPosition, centre);
 		}
 
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildPerimeterPlan(centre, groupPosition, radius, RollCornerWaits());
+		SnapPatrolPointsToRoads(plan);
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The PERIMETER_BASE plan: the nearest base's AUTHORED square, jittered a little, NOT road-snapped.
+	//!
+	//! ================== WHY BASES DO NOT GET THE ROAD-SNAPPED RING (amendment A1) ==============
+	//! From the play-test, verbatim: "the garrison waypoints aren't great. the road positions make
+	//! sense for town patrols but not the base garrisons. i'd actually like to make them a little
+	//! authored". A town's roads run AROUND it, so snapping a ring's corners onto them produces a real
+	//! patrol route; a base's roads run THROUGH it, so the same snap collapses the "perimeter" onto the
+	//! access road and every garrison walks the same strip of tarmac. So this branch takes its geometry
+	//! from two numbers a designer authored on the base controller and snaps nothing to a road.
+	//!
+	//! Plain PERIMETER is untouched and still means the town patrol's road-snapped ring - the two are
+	//! separate enum members precisely so neither can drift into the other.
+	//! ==========================================================================================
+	//!
+	//! THE JITTER IS ROLLED HERE, ONCE PER PLAN. Every deployment at a base would otherwise walk the
+	//! identical four points; ±PERIMETER_ROTATION_JITTER_DEG spreads successive garrisons (and a
+	//! garrison rebought after a wipe) around the authored square without moving it.
+	//!
+	//! NO BASE IN RANGE IS A CONFIG ERROR, AND IT WARNS RATHER THAN FAILING SILENT. The plan is still
+	//! built - an un-snapped square at rotation 0 around the deployment - because a mis-authored config
+	//! that patrols the wrong shape is far easier to notice than one whose groups stand still forever.
+	//! \param[in] centre What is being circled - GetPatrolCenter()'s answer.
+	//! \param[in] groupPosition Where the group is about to be registered.
+	//! \return An 8-entry cycling plan, ground-snapped.
+	protected OVT_VirtualWaypointPlan BuildAuthoredSquarePlan(vector centre, vector groupPosition)
+	{
+		float radius = m_fPatrolRadius;
+		float rotation = 0;
+
+		OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.FindNearestBaseControllerWithin(centre, OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS);
+		if (controller)
+		{
+			// A base that authors a radius of 0 keeps the module's own - the same "an unauthored value
+			// means fall through to the next opinion" rule the PERIMETER branch uses.
+			if (controller.m_fPerimeterRadius > 0)
+				radius = controller.m_fPerimeterRadius;
+
+			rotation = controller.m_fPerimeterRotation;
+		}
+		else
+		{
+			Print(string.Format("[Overthrow] Deployment '%1' authors PERIMETER_BASE but no base controller is within %2 m of its patrol centre - falling back to an un-snapped square at rotation 0. Either the config is authored at the wrong location type, or the base marker is missing",
+				DescribeOwner(), OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS.ToString()), LogLevel.WARNING);
+		}
+
+		if (radius <= 0)
+		{
+			// Last resort, and the same parity fallback the PERIMETER branch carries: circle at
+			// whatever distance the group already stands at.
+			radius = vector.Distance(groupPosition, centre);
+		}
+
+		rotation += s_AIRandomGenerator.RandFloatXY(-PERIMETER_ROTATION_JITTER_DEG, PERIMETER_ROTATION_JITTER_DEG);
+
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, groupPosition, radius, rotation, RollCornerWaits());
+		SnapPlanPointsToGround(plan);
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One rolled pause per corner.
+	//!
+	//! ROLLED PER GROUP, which is why it is not shared or cached: two patrols around one centre pause
+	//! for different lengths, exactly as the four hand-authored waypoint sets did.
+	//! \return PERIMETER_POINTS durations, in seconds.
+	protected array<float> RollCornerWaits()
+	{
 		array<float> waitSeconds = new array<float>();
 		for (int i = 0; i < OVT_VirtualPlanFactory.PERIMETER_POINTS; i++)
 		{
 			waitSeconds.Insert(s_AIRandomGenerator.RandFloatXY(WAIT_SECONDS_MIN, WAIT_SECONDS_MAX));
 		}
 
-		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildPerimeterPlan(centre, groupPosition, radius, waitSeconds);
-		SnapPatrolPointsToRoads(plan);
+		return waitSeconds;
+	}
 
-		return plan;
+	//------------------------------------------------------------------------------------------------
+	//! Puts every point of a plan on the terrain surface, in place.
+	//!
+	//! WHY THE AUTHORED SQUARE NEEDS THIS AND THE ROAD-SNAPPED RING DOES NOT: FindNearestRoad() answers
+	//! a real road position, which is already on the ground. A square corner is raw geometry at the
+	//! CENTRE'S Y, so on any base that is not perfectly flat it arrives buried in a hillside or hanging
+	//! in the air - and a completion radius smaller than that Y error can never be reached by live AI.
+	//! This is the same GetSurfaceY() clamp the virtualization core applies when it spawns the waypoint
+	//! entity, done here as well so the PERSISTED plan carries positions a person could stand on too.
+	//!
+	//! ⚠ IT DOES NOT AVOID WATER. A coastal base with a large authored radius can put a corner in the
+	//! sea, and nothing moves it: relocating one corner would stop the square being the square that was
+	//! authored. The Workbench viz is the mitigation - the designer sees the square where they set it.
+	//! \param[in] plan The plan to snap in place. Null is a no-op.
+	protected void SnapPlanPointsToGround(OVT_VirtualWaypointPlan plan)
+	{
+		if (!plan || !plan.m_aPositions)
+			return;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return;
+
+		for (int i = 0; i < plan.m_aPositions.Count(); i++)
+		{
+			vector position = plan.m_aPositions[i];
+			position[1] = world.GetSurfaceY(position[0], position[2]);
+			plan.m_aPositions.Set(i, position);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Something a warning can name this module by, whether or not there is a deployment behind it.
+	//! \return The deployment name, or this module's own name.
+	protected string DescribeOwner()
+	{
+		if (m_ParentDeployment)
+			return m_ParentDeployment.GetDeploymentName();
+
+		return m_sModuleName;
 	}
 
 	//------------------------------------------------------------------------------------------------

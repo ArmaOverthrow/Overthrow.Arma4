@@ -1,7 +1,7 @@
 # Base Defense Migration - Task Checklist
 
-**Last Updated:** 2026-08-18 (Phase 7 code complete - the retirement sweep, EPIC END)
-**Progress:** 69/69 tasks complete (100%)
+**Last Updated:** 2026-08-18 (Phase 8 complete; post-completion amendment A1 built)
+**Progress:** 69/69 + A1 tasks complete (100%)
 
 > Agent routing: phases 1, 2, 4, 5, 6, 7 are **ADVANCED** (`component-developer-advanced`); phase 3 is STANDARD (`component-developer`); phase 8 is `help-docs-sync`. Suite per phase: 1–7 → **All** `{6A6E2A002F53A581}`, 8 → skipped (docs-only). Source of truth: `implementation.md` §4 and the Agent Routing Summary. Core is FROZEN — `git diff Scripts/Game/GameMode/Virtualization/` must stay empty every phase (Phase 7's kill-switch file deletion is the sole sanctioned exception).
 
@@ -367,6 +367,56 @@
 
 ---
 
+## Amendment A1: authored base perimeters, free garrisons, AT road overwatch (8/8 complete) ✅ — post-completion, 2026-08-18 — ADVANCED
+
+> Raised by the user from the §6 play-test (all groups spawned in the right places; the *waypoints*
+> were the problem). Listed separately from the 69: the feature was already Ready for Review when this
+> landed. Suite run owed to the orchestrator. **Superseded mid-task by a user design change**: the
+> original "gate PERIMETER on base proximity" became two explicit enum members.
+
+- [x] **A1.1 Garrison patrol and tower guards are free at game start**
+  - Description: `m_bFreeAtGameStart 0` → `1`. Verdict recorded in context.md: the free-seed pass DOES ask `NoPlayersNearby`'s static gate, which passes with nobody connected (dedicated server) and otherwise defers that one base to the evaluator, which asks the same gate.
+  - File(s): `Configs/Deployment/Deployment_BaseGarrisonPatrol.conf`, `Configs/Deployment/Deployment_BaseTowerGuards.conf`
+  - Estimate: 0.25 h
+
+- [x] **A1.2 Authored patrol square on the base controller**
+  - Description: `m_fPerimeterRadius` (280 = `baseRange`) and `m_fPerimeterRotation` (0°) beside the QRF attack-direction attributes, plus a shared `FindNearestBaseControllerWithin()` and a pure `PerimeterCorner()` the viz and the plan both use.
+  - File(s): `Scripts/Game/Controllers/OccupyingFaction/OVT_BaseControllerComponent.c`
+  - Estimate: 0.5 h
+
+- [x] **A1.3 `BuildSquarePerimeterPlan()` on the plan factory**
+  - Description: world-free; 4 corners at `rotationDeg + k*90`, the START corner still following the walker's bearing; `StartCornerIndex` + `NormalizeDegrees` as pure protected helpers.
+  - File(s): `Scripts/Game/GameMode/Deployments/OVT_VirtualPlanFactory.c`
+  - Estimate: 1 h
+
+- [x] **A1.4 `OVT_PatrolType.PERIMETER_BASE` (APPENDED) walks the authored square**
+  - Description: new enum member; `BuildAuthoredSquarePlan()` looks the base up at `BASE_CLASSIFICATION_RADIUS`, applies `PERIMETER_ROTATION_JITTER_DEG = 10` fresh per plan, ground-snaps and **never road-snaps**; WARNING + un-authored fallback when no base is in range. Plain `PERIMETER` untouched. Every `OVT_PatrolType.` comparison site given a verdict in context.md.
+  - File(s): `Scripts/Game/GameMode/Managers/OVT_OverthrowConfigComponent.c`, `Scripts/Game/GameMode/Deployments/Modules/OVT_PatrolBehaviorDeploymentModule.c`, `Configs/Deployment/Deployment_BaseGarrisonPatrol.conf`, `Configs/Deployment/Deployment_BaseHeavyPatrol.conf`
+  - Estimate: 2 h
+
+- [x] **A1.5 Workbench debug viz for the square**
+  - Description: cyan `CreateLinesLoop` square at the authored rotation + two faint ±10° squares + a start arrow at corner 0, inside the existing `#ifdef WORKBENCH` block and on the same `CALL_WHEN_ENTITY_SELECTED` condition as the QRF arrows.
+  - File(s): `Scripts/Game/Controllers/OccupyingFaction/OVT_BaseControllerComponent.c`
+  - Estimate: 1 h
+  - 🔧 **CRASHED WORKBENCH ON FIRST TEST, FIXED SAME DAY.** The vertex buffers were method LOCALS and the `Shape.CreateLines` family REFERENCES the caller's array rather than copying it, so the render thread read a dead stack frame (jittering vertices, then a crash). Now class members sized exactly to `num`, drawn with plain `CreateLines` + a 5-point closed strip, copying `SCR_PowerLineJointEntity.c:22,163`. Full record + the standing rule in context.md.
+  - 🔴 **NEEDS A SECOND WORKBENCH LOOK after the fix — not automatable.** See "Needs Human Verification" below.
+
+- [x] **A1.6 AT sections become placed road overwatch**
+  - Description: new `OVT_RoadSlotOverwatchPlacementProvider` (large + medium road slots, `m_fSideOffset` 15 m across the slot's own right vector, side a pure parity of the slot position, post faces back at the slot, `m_aSlotsFilled` deliberately not consulted); `Deployment_BaseATSection.conf` rewritten to placed + DEFEND. No `CloneModule` on the provider — `m_Placement` is shared by reference, by design.
+  - File(s): `Scripts/Game/GameMode/Deployments/Modules/OVT_RoadSlotOverwatchPlacementProvider.c` (new), `Configs/Deployment/Deployment_BaseATSection.conf`
+  - Estimate: 2 h
+
+- [x] **A1.7 Tests: 1 new Logic case, 1 new Init case, 3 Init cases extended**
+  - Description: Logic `..._SquarePerimeterPlan` (corner maths, rotation obeyed, negative rotations fold, only the start corner follows the walker); Init `..._RoadSlotOverwatchIsOffsetAndStable` (offset across the slot, facing, order-independent side, authored 15, repeatable live resolve); Init `..._BasePatrolConfigsCyclePerimeter` rewritten (PERIMETER_BASE by name + live authored-square geometry + the AT section's new shape); `..._TownPatrolPlanCycles`, `..._PlacementProvidersAnswerEmptyNotNull`, `..._FreeAtGameStartIsAuthored` extended. **Persistence suite untouched.**
+  - File(s): `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_DeploymentVirtualization.c`, `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_InitSuite.c`
+  - Estimate: 2 h
+
+- [x] **A1.8 Docs: the A1 record in context.md and this section**
+  - File(s): `docs/features/virtualization/base-defense-migration/context.md`, `docs/features/virtualization/base-defense-migration/tasks.md`
+  - Estimate: 0.5 h
+
+---
+
 ## Bugs & Issues
 
 **Active Bugs:**
@@ -390,6 +440,10 @@
 - [ ] §6 Manual play-test steps 1–14 (fortification pacing, walkway placement, legacy-save load, two campaigns, QRF, GM panel) — keep a **pre-migration save before Phase 6**
 - [ ] Dedicated-server / MP pass (uncovered by the automated spine)
 - [ ] Play-test check replacing `ReleaseAction()` housekeeping: leaked `IsActionAccessible() == false` posts
+- [ ] 🔴 **A1.5 — RE-TEST the Workbench perimeter viz after the crash fix.** It is `#ifdef WORKBENCH` and draws only while the entity is selected, so no suite can reach it. Open a world layer in Workbench, select a base marker, and confirm: one solid cyan square at `m_fPerimeterRadius`, two fainter cyan squares at ±10°, a short cyan arrow to corner 0 — **and no crash, and no vertex jitter**. Jitter returning would mean a buffer is being copied on the way to the call; an open "C" instead of a square would mean the closing repeat point was lost.
+- [ ] 🟡 **Pre-existing, found by the A1 crash sweep, deliberately not touched:** `Scripts/Game/Entities/OVT_StartCameraPos.c:32,54` passes a method-LOCAL `vector points[12]` to `Shape.CreateTris` from `_WB_AfterWorldUpdate` — the same buffer-lifetime hazard that crashed the perimeter viz. Three-line fix (move to a member). ⚠ Selecting a start-camera-pos entity during the A1 re-test could crash for this reason and look like the perimeter fix failing.
+- [ ] A1 — authoring pass: set `m_fPerimeterRadius` / `m_fPerimeterRotation` per base. Every base ships at the class defaults (280 m / 0°), which is parity with the old `baseRange` patrol radius, so nothing regresses if this is never done.
+- [ ] A1 — play-test the AT posts: beside a road slot rather than in it, looking at the road, and back on the same side after a despawn/re-materialise cycle.
 
 ---
 

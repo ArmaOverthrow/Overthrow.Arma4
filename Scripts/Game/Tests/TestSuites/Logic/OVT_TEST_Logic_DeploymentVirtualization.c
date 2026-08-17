@@ -612,6 +612,248 @@ class OVT_TEST_Logic_DeploymentVirtualization_PerimeterPlan : SCR_AutotestCaseBa
 }
 
 //------------------------------------------------------------------------------------------------
+//! THE AUTHORED SQUARE: four corners at an authored ROTATION rather than on the walker's own bearing.
+//!
+//! Added by amendment A1 (2026-08-18). The plan this builds is what a base garrison walks, and it is
+//! the ONE thing about that garrison a designer controls directly - two numbers authored on the base,
+//! a radius and a rotation. Everything that can go wrong with it is silent in play: a rotation that is
+//! quietly ignored looks exactly like a rotation that was never authored, and corners that stop being
+//! 90 degrees apart look like a patrol that is merely wandering.
+//!
+//! FIVE CLAIMS:
+//!   1. THE SHAPE. Eight entries, PATROL and WAIT alternating, the pause sitting on its own corner and
+//!      carrying its own duration, no completion radius on the corners, and it CYCLES - identical to
+//!      the ring builder, because everything downstream has to treat the two the same.
+//!   2. THE ROTATION IS OBEYED. At rotation 0 the corners are due north/east/south/west of the centre;
+//!      at rotation 45 they are on the diagonals. Same centre, same radius, different points.
+//!   3. THE SQUARE IS A SQUARE. Every corner is exactly `radius` from the centre, adjacent corners are
+//!      radius*sqrt(2) apart and opposite corners a full diameter - which is what stops a broken
+//!      rotation term collapsing four corners into a fan.
+//!   4. WHICH CORNER COMES FIRST STILL FOLLOWS THE WALKER. The square does not move, but a group
+//!      approaching from the west starts at the western corner rather than always at corner 0, so two
+//!      garrisons on one square do not walk it in lockstep.
+//!   5. A NEGATIVE ROTATION IS THE SAME AS ITS POSITIVE TWIN. -90 and 270 must answer the same four
+//!      points, or an authored negative angle folds to a corner index off the end of the square.
+//!
+//! Every distance below is 200-400 m, well away from the 1000 m and 2000 m magnitudes where
+//! vector.Distance is a ULP out, and every comparison carries a tolerance.
+//!
+//! FAIL PROOF (edits recorded, execution belongs to the phase's suite run): drop `rotationDeg` from
+//! the corner expression in BuildSquarePerimeterPlan and claim 2 goes red (rotation 45 answers
+//! rotation 0's points); drop the `* PERIMETER_STEP_DEGREES` term and claim 3 goes red (all four
+//! corners land on top of each other); make StartCornerIndex return a constant 0 and claim 4 goes red;
+//! delete the `if (wrapped < 0)` fold in NormalizeDegrees and claim 5 goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_DeploymentVirtualization_SquarePerimeterPlan : SCR_AutotestCaseBase
+{
+	protected const float TOLERANCE_M = 0.5;
+	protected const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector centre = Vector(500, 12, 500);
+		vector fromSouth = Vector(500, 4, 300);	// bearing 0 towards the centre
+		float radius = 200;
+
+		array<float> waits = {45, 50, 55, 60};
+
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromSouth, radius, 0, waits);
+		if (!plan)
+		{
+			SetFailure("BuildSquarePerimeterPlan answered nothing at all");
+			return true;
+		}
+
+		// CLAIM 1 - the shape, and it must be the ring builder's shape exactly.
+		if (plan.m_aPositions.Count() != 8 || plan.m_aTypes.Count() != 8 || plan.m_aParams.Count() != 8)
+		{
+			string counts = plan.m_aPositions.Count().ToString() + "/" + plan.m_aTypes.Count().ToString() + "/" + plan.m_aParams.Count().ToString();
+			SetFailure("A square perimeter plan's three arrays are (positions/types/parameters) %1, expected 8/8/8 - a ragged plan is refused outright and 4 corners + 4 pauses is 8", counts);
+			return true;
+		}
+
+		// CLAIM 2, first half - rotation 0 puts corner 0 due north of the centre, and the rest follow
+		// clockwise, which is the same four points the bearing-anchored ring builds for this walker.
+		array<vector> expected = {};
+		expected.Insert(Vector(500, 12, 700));
+		expected.Insert(Vector(700, 12, 500));
+		expected.Insert(Vector(500, 12, 300));
+		expected.Insert(Vector(300, 12, 500));
+
+		string shapeFailure = VerifyCorners(plan, centre, radius, expected, waits, "rotation 0");
+		if (shapeFailure != "")
+		{
+			SetFailure(shapeFailure);
+			return true;
+		}
+
+		if (!plan.m_bCycle)
+		{
+			SetFailure("A square perimeter plan does not cycle - the garrison would stop at its fourth corner and guard that quarter of the base for the rest of the campaign");
+			return true;
+		}
+
+		// CLAIM 2, second half - 45 degrees puts the same square on the diagonals. sin(45)*200 = 141.42.
+		//
+		// ⚠ THE WALKER IS MOVED ONTO THE DIAGONAL TOO, and that is not decoration. A walker whose bearing
+		// falls exactly HALFWAY between two corners (which bearing 0 does against a square rotated 45) is
+		// the one input where the start-corner rounding is on a knife edge, and pinning a walk ORDER
+		// against it would be pinning a tie-break rather than the geometry. Approaching from the
+		// south-west puts the bearing ON corner 0, which answers 0 whichever way the rounding leans.
+		float diagonal = 141.42;
+		vector fromSouthWest = Vector(500 - 212.13, 4, 500 - 212.13);	// bearing 45 towards the centre
+		OVT_VirtualWaypointPlan turned = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromSouthWest, radius, 45, waits);
+
+		array<vector> expectedTurned = {};
+		expectedTurned.Insert(Vector(500 + diagonal, 12, 500 + diagonal));
+		expectedTurned.Insert(Vector(500 + diagonal, 12, 500 - diagonal));
+		expectedTurned.Insert(Vector(500 - diagonal, 12, 500 - diagonal));
+		expectedTurned.Insert(Vector(500 - diagonal, 12, 500 + diagonal));
+
+		string turnedFailure = VerifyCorners(turned, centre, radius, expectedTurned, waits, "rotation 45");
+		if (turnedFailure != "")
+		{
+			SetFailure(turnedFailure);
+			return true;
+		}
+
+		// ...and the two really are different points, which is the assertion a silently-ignored rotation
+		// argument would break while every other claim above still passed.
+		float moved = vector.Distance(plan.m_aPositions[0], turned.m_aPositions[0]);
+		if (moved < TOLERANCE_M)
+		{
+			SetFailure("Rotating the authored square by 45 degrees moved its first corner %1 m - the rotation argument is being ignored", moved.ToString());
+			return true;
+		}
+
+		// CLAIM 4 - the square stays put; only the corner the walker starts at moves. A group standing
+		// due west starts on the western corner (index 1 of the rotation-0 square), not on corner 0.
+		vector fromWest = Vector(300, 4, 500);
+		OVT_VirtualWaypointPlan westward = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromWest, radius, 0, waits);
+
+		float startOffBy = vector.Distance(westward.m_aPositions[0], Vector(700, 12, 500));
+		if (startOffBy > TOLERANCE_M)
+		{
+			string detail = westward.m_aPositions[0].ToString() + ", expected (700, 12, 500)";
+			SetFailure("A group approaching the authored square from the west started at %1 (out by %2 m) - the start corner no longer follows the walker", detail, startOffBy.ToString());
+			return true;
+		}
+
+		// It walks the SAME four points, only beginning one corner along: its second point is the
+		// rotation-0 square's third corner.
+		float secondOffBy = vector.Distance(westward.m_aPositions[2], Vector(500, 12, 300));
+		if (secondOffBy > TOLERANCE_M)
+		{
+			SetFailure("The westward walk's second corner is %1 m from the authored square's third corner - the square itself moved with the walker, which is exactly what an AUTHORED square must not do", secondOffBy.ToString());
+			return true;
+		}
+
+		// CLAIM 5 - a negative authored rotation folds, rather than reading off the end of the square.
+		OVT_VirtualWaypointPlan negative = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromSouth, radius, -90, waits);
+		OVT_VirtualWaypointPlan positive = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromSouth, radius, 270, waits);
+
+		for (int i = 0; i < 8; i++)
+		{
+			float foldOffBy = vector.Distance(negative.m_aPositions[i], positive.m_aPositions[i]);
+			if (foldOffBy > TOLERANCE_M)
+			{
+				SetFailure("Point %1 of a square authored at -90 degrees is %2 m from the same point authored at 270 - a negative rotation is not folding into the square's four corners", i.ToString(), foldOffBy.ToString());
+				return true;
+			}
+		}
+
+		// Defensive inputs, both of which a live caller can produce: a walker standing exactly on the
+		// centre has no bearing at all, and a caller that does not care about pausing passes nothing.
+		OVT_VirtualWaypointPlan degenerate = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, centre, radius, 30, waits);
+		if (!degenerate || degenerate.m_aPositions.Count() != 8 || degenerate.m_aTypes.Count() != 8 || degenerate.m_aParams.Count() != 8)
+		{
+			SetFailure("A walker standing on its own square's centre did not produce a legal 8-entry plan");
+			return true;
+		}
+
+		OVT_VirtualWaypointPlan unpaused = OVT_VirtualPlanFactory.BuildSquarePerimeterPlan(centre, fromSouth, radius, 0, null);
+		if (!unpaused || unpaused.m_aParams.Count() != 8)
+		{
+			SetFailure("A square perimeter plan with no durations supplied did not produce 8 parameters");
+			return true;
+		}
+
+		if (Math.AbsFloat(unpaused.m_aParams[1]) > EPSILON)
+		{
+			SetFailure("A square perimeter plan with no durations supplied paused for %1 s, expected 0", unpaused.m_aParams[1].ToString());
+			return true;
+		}
+
+		Print("The authored square is 4 corners at the authored rotation and radius, 90 degrees apart, each followed by its own pause; the rotation is obeyed, negative rotations fold, and only the START corner follows the walker");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claims 1 and 3 on one plan, plus the expected corner positions.
+	//! \param[in] plan The plan to check.
+	//! \param[in] centre What it circles.
+	//! \param[in] radius The requested radius.
+	//! \param[in] expected The four corner positions, in walk order.
+	//! \param[in] waits The durations that were requested, in walk order.
+	//! \param[in] label What to call this plan in a message.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyCorners(notnull OVT_VirtualWaypointPlan plan, vector centre, float radius, notnull array<vector> expected, notnull array<float> waits, string label)
+	{
+		for (int corner = 0; corner < 4; corner++)
+		{
+			int pointIndex = corner * 2;
+			int waitIndex = pointIndex + 1;
+
+			if (plan.m_aTypes[pointIndex] != OVT_EVirtualWaypointType.PATROL)
+				return string.Format("%1: entry %2 is type %3, expected PATROL", label, pointIndex.ToString(), plan.m_aTypes[pointIndex].ToString());
+
+			if (plan.m_aTypes[waitIndex] != OVT_EVirtualWaypointType.WAIT)
+				return string.Format("%1: entry %2 is type %3, expected WAIT", label, waitIndex.ToString(), plan.m_aTypes[waitIndex].ToString());
+
+			float offBy = vector.Distance(plan.m_aPositions[pointIndex], expected[corner]);
+			if (offBy > TOLERANCE_M)
+			{
+				string detail = plan.m_aPositions[pointIndex].ToString() + ", expected " + expected[corner].ToString() + ", out by " + offBy.ToString() + " m";
+				return string.Format("%1: corner %2 landed at %3", label, corner.ToString(), detail);
+			}
+
+			float fromCentre = vector.Distance(plan.m_aPositions[pointIndex], centre);
+			if (Math.AbsFloat(fromCentre - radius) > TOLERANCE_M)
+				return string.Format("%1: corner %2 is %3 m from the centre, expected the authored radius", label, corner.ToString(), fromCentre.ToString());
+
+			float pauseOffset = vector.Distance(plan.m_aPositions[waitIndex], plan.m_aPositions[pointIndex]);
+			if (pauseOffset > EPSILON)
+				return string.Format("%1: the pause after corner %2 is %3 m away from it, expected the same position", label, corner.ToString(), pauseOffset.ToString());
+
+			if (Math.AbsFloat(plan.m_aParams[waitIndex] - waits[corner]) > EPSILON)
+			{
+				string durations = plan.m_aParams[waitIndex].ToString() + ", expected " + waits[corner].ToString();
+				return string.Format("%1: the pause after corner %2 lasts %3 s", label, corner.ToString(), durations);
+			}
+
+			if (Math.AbsFloat(plan.m_aParams[pointIndex]) > EPSILON)
+				return string.Format("%1: corner %2 carries a parameter of %3, expected 0 - a corner takes the waypoint prefab's own completion radius", label, corner.ToString(), plan.m_aParams[pointIndex].ToString());
+		}
+
+		// CLAIM 3 - adjacent corners are radius*sqrt(2) apart and opposite corners a full diameter, so a
+		// broken rotation term cannot collapse the square into a fan and still pass.
+		float adjacent = vector.Distance(plan.m_aPositions[0], plan.m_aPositions[2]);
+		float expectedAdjacent = radius * Math.Sqrt(2);
+		if (Math.AbsFloat(adjacent - expectedAdjacent) > TOLERANCE_M)
+			return string.Format("%1: two adjacent corners are %2 m apart, expected %3 - the corners are not 90 degrees apart", label, adjacent.ToString(), expectedAdjacent.ToString());
+
+		float across = vector.Distance(plan.m_aPositions[0], plan.m_aPositions[4]);
+		if (Math.AbsFloat(across - (radius * 2)) > TOLERANCE_M)
+			return string.Format("%1: opposite corners are %2 m apart, expected a full diameter of %3", label, across.ToString(), (radius * 2).ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! The route plan: a stop and a pause per town, and exactly one way to avoid ending in a dead stop.
 //!
 //! Returning to the start and cycling are mutually exclusive by construction, which is the claim

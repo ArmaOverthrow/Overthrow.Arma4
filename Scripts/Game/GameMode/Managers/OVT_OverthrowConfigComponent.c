@@ -16,9 +16,20 @@ enum OVT_FactionTypeFlag {
 	SUPPORTING_FACTION = 4
 }
 
+//! How a group patrols. ⚠ APPEND ONLY, NEVER RENUMBER: the members' integer values are what
+//! Configs/Deployment/*.conf and every authored job stage carry, so inserting a member in the middle
+//! silently re-points every existing authored value at the wrong behaviour.
 enum OVT_PatrolType {
+	//! Hold one post. Nothing movable, so a dormant group holding this plan is never walked.
 	DEFEND,
-	PERIMETER
+	//! Circle the centre on a ROAD-SNAPPED ring - the town patrol's geometry. Each corner is pulled
+	//! onto the nearest road, which is right for a town and wrong for a base (a base's roads run
+	//! through it, not around it), which is what PERIMETER_BASE exists for.
+	PERIMETER,
+	//! Circle the nearest base's AUTHORED PERIMETER SQUARE (OVT_BaseControllerComponent's
+	//! m_fPerimeterRadius / m_fPerimeterRotation, jittered a little per patrol), NOT road-snapped.
+	//! Appended 2026-08-18 by amendment A1 of virtualization/base-defense-migration.
+	PERIMETER_BASE
 }
 
 class OVT_OverthrowConfigStruct
@@ -587,7 +598,14 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			return;
 		}
 
-		if(type == OVT_PatrolType.PERIMETER)
+		// PERIMETER_BASE is handled HERE AS AN ORDINARY PERIMETER, deliberately. This is the LEGACY
+		// hand-authored waypoint path and its only caller is OVT_SpawnGroupJobStage, which spawns a
+		// group at a JOB location - there is no base controller to read an authored perimeter square
+		// off, so the road-snapped ring is the only thing this path can build. Falling through instead
+		// would give a job group NO waypoints at all and it would stand still, which is worse than the
+		// wrong shape. No shipped job authors PERIMETER_BASE (the member did not exist until 2026-08-18),
+		// so nothing's behaviour changes today.
+		if(type == OVT_PatrolType.PERIMETER || type == OVT_PatrolType.PERIMETER_BASE)
 		{
 			float dist = radius;
 			if(radius == 0)

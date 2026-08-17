@@ -9,7 +9,7 @@
 //! group owns, and a group's plan is also the ONLY opt-in there is for being walked while dormant.
 //! A plan with nothing movable in it is a garrison that holds its post; a plan with patrol or move
 //! points in it is a patrol that keeps patrolling with nobody watching. That is the whole contract,
-//! and it is why these three builders are worth pinning in the cheapest tier in the tree.
+//! and it is why these four builders are worth pinning in the cheapest tier in the tree.
 //!
 //! GEOMETRY ONLY. Every position handed back is a raw offset from the arguments: no road snapping,
 //! no surface clamp, no reachability check. The CALLER snaps what it wants snapped (the shipped
@@ -91,6 +91,100 @@ class OVT_VirtualPlanFactory
 		plan.m_bCycle = true;
 
 		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The same four corners, but on an AUTHORED square rather than on the group's own bearing.
+	//!
+	//! WHY THIS EXISTS AND WHAT IT IS FOR. BuildPerimeterPlan's ring is anchored on whoever is walking
+	//! it, and the shipped consumer then pulls each corner onto the nearest road - which is right for a
+	//! town (roads ring a town) and wrong for a base (roads run THROUGH a base, so the "perimeter"
+	//! collapses onto the access road). A base designer instead authors ONE square on the base
+	//! controller - a radius and a rotation - and every PERIMETER_BASE deployment at that base walks
+	//! that square. Amendment A1, 2026-08-18, from the play-test: "the road positions make sense for
+	//! town patrols but not the base garrisons... I'd actually like to make them a little authored".
+	//!
+	//! THE SQUARE'S ORIENTATION IS AUTHORED; WHICH CORNER YOU START AT IS NOT. The four corners are at
+	//! rotationDeg + k*90 and nowhere else, so every group at one base walks the same four points. But
+	//! the corner a group walks to FIRST is the one nearest the bearing from fromPosition towards the
+	//! centre - the same convention BuildPerimeterPlan uses, and for the same reason: a group sets off
+	//! across the area rather than turning on the spot, and two garrisons approaching from different
+	//! sides do not walk the square in lockstep.
+	//!
+	//! Everything else is BuildPerimeterPlan verbatim: a WAIT at each corner's own position, no
+	//! completion radius on the corners, and the plan CYCLES.
+	//!
+	//! GEOMETRY ONLY, like everything else here - the caller ground-snaps (a base's square crosses real
+	//! terrain and the corners arrive at the centre's Y).
+	//! \param[in] centre What is being circled - the base.
+	//! \param[in] fromPosition Where the group is now; only its bearing to the centre is used, and only
+	//!            to choose which authored corner comes first.
+	//! \param[in] radius Distance from the centre to each corner, in metres.
+	//! \param[in] rotationDeg Yaw of the FIRST authored corner, in degrees. The other three follow at
+	//!            +90, +180 and +270.
+	//! \param[in] waitSeconds One duration per corner, in walk order; missing or short entries pause 0.
+	//! \return An 8-entry cycling plan: PATROL, WAIT, PATROL, WAIT, PATROL, WAIT, PATROL, WAIT.
+	static OVT_VirtualWaypointPlan BuildSquarePerimeterPlan(vector centre, vector fromPosition, float radius, float rotationDeg, array<float> waitSeconds)
+	{
+		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
+
+		int start = StartCornerIndex(BearingBetween(fromPosition, centre), rotationDeg);
+
+		for (int i = 0; i < PERIMETER_POINTS; i++)
+		{
+			// The wrap is taken into its OWN int local on purpose: inlined into the float expression
+			// below, EnforceScript promotes both operands and refuses % outright ("Unknown operator").
+			int cornerIndex = (start + i) % PERIMETER_POINTS;
+
+			float corner = rotationDeg + (cornerIndex * PERIMETER_STEP_DEGREES);
+			vector position = centre + (vector.FromYaw(corner) * radius);
+			position[1] = centre[1];
+
+			AddPoint(plan, position, OVT_EVirtualWaypointType.PATROL, 0);
+			AddPoint(plan, position, OVT_EVirtualWaypointType.WAIT, WaitAt(waitSeconds, i));
+		}
+
+		plan.m_bCycle = true;
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which of an authored square's four corners lies nearest a bearing.
+	//!
+	//! The +0.5 truncation is a deliberate rounding-to-nearest without Math.Round: normalised, the
+	//! quotient is in [0, 4), so the shifted value truncates to 0..4 and the wrap brings 4 home to 0.
+	//! A bearing exactly between two corners answers the higher one, which is arbitrary and stable.
+	//! \param[in] bearing Yaw the group is coming from, in degrees.
+	//! \param[in] rotationDeg Yaw of the square's first corner, in degrees.
+	//! \return 0..3.
+	protected static int StartCornerIndex(float bearing, float rotationDeg)
+	{
+		float delta = NormalizeDegrees(bearing - rotationDeg);
+		int index = (delta / PERIMETER_STEP_DEGREES) + 0.5;
+
+		return index % PERIMETER_POINTS;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! An angle folded into [0, 360).
+	//!
+	//! Written out rather than done with a modulo because EnforceScript's % is integer-only and keeps
+	//! the sign of its left operand: a negative authored rotation would otherwise fold to a negative
+	//! corner index and read off the end of the square.
+	//! \param[in] degrees Any angle.
+	//! \return The same angle in [0, 360).
+	protected static float NormalizeDegrees(float degrees)
+	{
+		float wrapped = degrees - (Math.Floor(degrees / 360) * 360);
+
+		if (wrapped < 0)
+			wrapped += 360;
+
+		if (wrapped >= 360)
+			wrapped -= 360;
+
+		return wrapped;
 	}
 
 	//------------------------------------------------------------------------------------------------

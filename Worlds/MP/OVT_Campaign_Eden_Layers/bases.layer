@@ -7,9 +7,11 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 750
     m_iAttackPreferredDirection 201
     m_iAttackDirectionVariance 55
+    m_fPerimeterRadius 70
+    m_fPerimeterRotation 57
    }
   }
-  coords 7456.763 164.562 4276.977
+  coords 7463.372 164.562 4306.762
   angles 0 -78.33 0
  }
  OVT_Base_StPierre {
@@ -21,9 +23,12 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 550
     m_iAttackPreferredDirection 266
     m_iAttackDirectionVariance 20
+    m_fPerimeterRadius 85
+    m_fPerimeterRotation 107
    }
   }
-  coords 9398.637 196.296 1170.662
+  coords 9294.644 190.828 1142.981
+  angles 0 -51.408 0
  }
  OVT_Base_Lamentin {
   components {
@@ -32,6 +37,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMin 450
     m_iAttackPreferredDirection 75
     m_iAttackDirectionVariance 20
+    m_fPerimeterRadius 25
    }
   }
   coords 924.679 2.75 6059.404
@@ -44,6 +50,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 725
     m_iAttackPreferredDirection 272
     m_iAttackDirectionVariance 60
+    m_fPerimeterRadius 50
+    m_fPerimeterRotation 79
    }
   }
   coords 7462.8 7.814 6727.422
@@ -54,6 +62,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_sName "#OVT-Base_StPhillipe"
     m_iAttackDistanceMin 350
     m_iAttackDistanceMax 500
+    m_fPerimeterRadius 80
+    m_fPerimeterRotation 38
    }
   }
   coords 5343.506 43.617 10535.197
@@ -67,6 +77,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 700
     m_iAttackPreferredDirection 1
     m_iAttackDirectionVariance 35
+    m_fPerimeterRadius 70
+    m_fPerimeterRotation 48
    }
   }
   coords 4961.688 28.343 11878.047
@@ -77,9 +89,11 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_sName "#OVT-Base_TrainingGrounds"
     m_fStartingResourcesMultiplier 0.8
     m_iAttackPreferredDirection 240
+    m_fPerimeterRadius 140
    }
   }
-  coords 7729.433 13.656 8154.407
+  coords 7731.999 13.656 8152.145
+  angles 0 -48.59 0
  }
  Base_PowerPlant {
   components {
@@ -92,6 +106,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_fStartingResourcesMultiplier 1.5
     m_iAttackPreferredDirection 246
     m_iAttackDirectionVariance 60
+    m_fPerimeterRadius 100
+    m_fPerimeterRotation 48
    }
   }
   Flags 0x403 0
@@ -104,6 +120,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_fStartingResourcesMultiplier 0.8
     m_iAttackDistanceMax 700
     m_iAttackPreferredDirection 75
+    m_fPerimeterRadius 20
    }
   }
   coords 10633.771 2.343 11841.762
@@ -116,6 +133,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMin 375
     m_iAttackPreferredDirection 108
     m_iAttackDirectionVariance 55
+    m_fPerimeterRadius 55
+    m_fPerimeterRotation 48
    }
   }
   coords 3895.992 15.301 8438.691

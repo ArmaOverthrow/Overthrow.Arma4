@@ -1,7 +1,7 @@
 # Base Defense Migration - Context & Decisions
 
-**Last Updated:** 2026-08-18 (Phase 8 complete: help & docs sync. **THE FEATURE AND THE EPIC ARE CODE-COMPLETE.** Wiki sync OWED, see T8.3 below; loc re-export OWED)
-**Current Phase:** ALL 8 PHASES COMPLETE — Ready for Review (built 2026-08-18 via /autorun-feature)
+**Last Updated:** 2026-08-18 (**post-completion amendment A1** built: authored base perimeters, free garrisons, AT road overwatch — full record at the bottom of this file. Phase 8 complete before it. Wiki sync OWED, see T8.3 below; loc re-export OWED)
+**Current Phase:** ALL 8 PHASES COMPLETE + AMENDMENT A1 — Ready for Review (built 2026-08-18 via /autorun-feature; A1 2026-08-18 from the user's play-test)
 
 > **Phase 4 gate note (orchestrator):** first run failed 1/272 — the new Persistence case was named `..._BaseDefenseDeployment_...`, and the suite runs **alphabetically**, so its real save landed before `..._Capability_SaveGameProducesASave`'s "no save yet" precondition. Renamed to `..._DeploymentBaseDefense_...` (sorts with the other Deployment cases, after the Capability gate) and added the naming rule to the suite's case-list comment. Re-run: **272/272 green**.
 **Status:** ✅ Complete (Ready for Review)
@@ -46,6 +46,8 @@
   ledger recorded. Full record at the bottom of this file.
 
 **What's Next:**
+- ✅ **Amendment A1 (2026-08-18) built** — `PERIMETER_BASE` walks the base controller's authored square (`m_fPerimeterRadius` / `m_fPerimeterRotation` ± 10°, no road snap), garrison patrol + tower guards are free at game start, the AT section became a placed road overwatch, and the base marker draws its square in Workbench. Compile `0`; **suite run owed to the orchestrator**. Full record at the bottom of this file.
+- 🔴 **The Workbench perimeter viz has never been looked at** (it is `#ifdef WORKBENCH` + selected-only, so no suite can reach it) — see the A1 record's "what still needs a human".
 - 🔴 **The wiki sync (T8.3) is OWED** — the `mcp__wikijs__*` tools were not available to the Phase 8
   agent. The exact content to publish is written out in the Phase 8 record below.
 - 🔴 **A Workbench localization re-export is OWED** (3 new keys, 6 edited).
@@ -180,6 +182,12 @@
 ---
 
 ## Session Notes
+
+### 2026-08-18 (orchestrator) — WB viz crash #2 and the CreateArrow rewrite
+- The member-buffer fix did NOT hold: Workbench crashed again on base selection (native illegal-write AV ~11 s after Eden load, no script frames, minidump unsymbolised — log `logs_2026-08-18_03-42-14`).
+- **The viz no longer uses the CreateLines family at all.** `DrawPerimeterSquare` now draws each square as four `Shape.CreateArrow` edges (copy-safe — the attack arrows' proven primitive; bare `ONCE` calls, vanilla precedent `SCR_PowerLineJointEntity.c:163`), heads showing walk direction: solid cyan authored square (head 8), two faint ±10° squares (head 4), start arrow kept. The three member vertex buffers and the perimeter Shape handles are deleted. Compile 0.
+- Standing rule (also in orchestrator memory): **per-frame `_WB_` viz in this repo uses copy-safe Shape calls only** — CreateLines crashed twice (locals AND member buffers) and is banned here until someone symbolises the second crash.
+- User re-test owed: select a base in WB — expect 3 arrow-edged squares + start arrow, no jitter, no crash. Note `OVT_StartCameraPos.c:32,54` (pre-existing, unrelated) still passes a LOCAL buffer to `CreateTris` — selecting a start-camera entity may crash WB for that separate reason.
 
 ### 2026-08-17 23:20 (orchestrator)
 - **Phase 1 gate: All suite green — 262/262.** First run had 2 reds (`OVT_TEST_Campaign_GMWaypointWalk`, `OVT_TEST_Campaign_ShopCivilianStock`), both the documented vanilla `Setup_Checkpoint` 500 ms I/O flake (error-type `TestResultTimeout` in Setup, no assertion text — the movement feature's known signature); single policy re-run was fully green. Compile 0.
@@ -1781,3 +1789,265 @@ defence (candidates seen in earlier features' notes: a patrols-or-garrisons page
   spawners as `m_iMilitarySpawnDistance`'s last reader is corrected to "**no system reads it any
   more; the attribute was deleted in Phase 7**", grep-proven. **No signature or contract text was
   touched** — api.md stays frozen.
+
+---
+
+## 2026-08-18 — AMENDMENT A1 (post-completion): authored base perimeters, free garrisons, AT road overwatch. Compile `0`. Suite run owed.
+
+**The feature was already Ready for Review and the user had play-tested it** (all groups spawn in the
+right places, tower guards and snipers included). A1 is the tuning pass that came back from that
+play-test. The request, verbatim-summarised:
+
+> Make the initial garrison groups and tower guards free at game start. The garrison waypoints aren't
+> great — the road positions make sense for town patrols but not the base garrisons. Make them a
+> little authored: two options on base controller prefabs for perimeter radius and rotation, giving a
+> square at that radius rotated by the rotation with some randomness to increase/decrease the rotation
+> a little, plus a debug viz in the editor (same as the arrows for attack direction) to see the square
+> with rotation. Any deployments with patrol type = perimeter use this perimeter. **The AT sections
+> should NOT patrol the perimeter** — they should be placed where checkpoints would be (whether or not
+> there is one) but off to the side with an offset.
+
+**MID-TASK DESIGN CHANGE (user, before implementation got far).** The original brief gated on
+"PERIMETER within 250 m of a base". That was **superseded**: the two behaviours are now two explicit
+enum members, so a config says which one it wants and neither can drift into the other.
+
+| Sub-task | What landed |
+|---|---|
+| A1.1 | `m_bFreeAtGameStart 1` on `Deployment_BaseGarrisonPatrol.conf` and `Deployment_BaseTowerGuards.conf`. Free-seed verdict below |
+| A1.2 | `m_fPerimeterRadius` (280, = `baseRange`) and `m_fPerimeterRotation` (0) on `OVT_BaseControllerComponent`, beside the QRF attack-direction attributes |
+| A1.3 | `OVT_VirtualPlanFactory.BuildSquarePerimeterPlan()` + two protected pure helpers (`StartCornerIndex`, `NormalizeDegrees`) |
+| A1.4 | `OVT_PatrolType.PERIMETER_BASE` **appended** to the enum; `OVT_PatrolBehaviorDeploymentModule.BuildAuthoredSquarePlan()`; `PERIMETER_ROTATION_JITTER_DEG = 10`; ground snap, no road snap; WARNING + un-authored fallback when no base is in range |
+| A1.5 | `DrawPerimeterSquare()` inside the existing `#ifdef WORKBENCH` block — cyan square + two faint ±10° squares + a start arrow at corner 0 |
+| A1.6 | `OVT_RoadSlotOverwatchPlacementProvider` (new) + `Deployment_BaseATSection.conf` rewritten to placed + DEFEND |
+| A1.7 | 1 Logic case (new), 1 Init case (new), 3 Init cases extended |
+| A1.8 | This record + the tasks.md section |
+
+---
+
+### A1.1 — the free-seed / NoPlayersNearby verdict
+
+**BOTH are true, and which one applies depends on whether anybody is connected yet.**
+
+`SeedFreeDeployments()` fires at **+9 s after `PostGameStart()`** and it **does** ask every condition
+module the creation-time question (`SeedFreeConfig` → `PassesSeedConditions` →
+`EvaluateStaticCondition`), so `OVT_NoPlayersNearbyConditionDeploymentModule`'s 320 m gate **is
+consulted during seeding**. There is no bypass and none was added.
+
+- **Dedicated server, nobody joined yet** (`OVT_DeploymentManager.c:332-337`, and the condition
+  module's own header): `GetPlayerProximity()` answers `float.MAX` with no players connected, so the
+  gate passes for every base and the whole baseline lands before the first join. This is the intended
+  and normal path.
+- **Single-player / hosted, player already spawned at +9 s**: if the player happens to be within
+  320 m of a base centre, that base's garrison and tower guards simply **do not seed**, and are bought
+  later by the ordinary evaluator — which asks the *same* static condition, so they arrive as soon as
+  he leaves. Nothing is lost, nothing double-spawns (the 250 m same-name dedup covers both paths), and
+  the rule the module exists for is preserved: **a player never watches a garrison appear.**
+
+Overthrow's player start is a random town house, so a base within 320 m of the start position is
+possible but uncommon; the failure mode is "this one base fortifies a few minutes later", which is
+exactly the behaviour the config would have had before A1 anyway.
+
+---
+
+### A1.4 — the two perimeter types, and the verdict at every comparison site
+
+`OVT_PatrolType` is now `{ DEFEND, PERIMETER, PERIMETER_BASE }`. **PERIMETER_BASE is APPENDED**, and
+the enum carries an append-only warning: the members' integer values are what the `.conf` files carry,
+so inserting one in the middle would silently re-point every authored value.
+
+`grep -rn "OVT_PatrolType\." Scripts/` — every site, with its verdict:
+
+| Site | Verdict |
+|---|---|
+| `OVT_PatrolBehaviorDeploymentModule.c` DEFEND / PERIMETER_BASE / PERIMETER branches | **EXTENDED.** The new branch runs before the `!= PERIMETER` bail-out, so plain PERIMETER is byte-for-byte today's code |
+| `OVT_OverthrowConfigComponent.GivePatrolWaypoints()` | **EXTENDED** to treat PERIMETER_BASE as an ordinary PERIMETER. This is the LEGACY hand-authored waypoint path and its only caller is `OVT_SpawnGroupJobStage`, which spawns at a JOB location — there is no base controller to read a square off, and falling through would give the group **no waypoints at all**. No shipped job authors PERIMETER_BASE (the member did not exist), so nothing's behaviour changes today |
+| `OVT_TEST_InitSuite` `..._TownPatrolPlanCycles` | **EXTENDED** — it now asserts Town Patrol is still plain `PERIMETER`. It never asserted the type before, so flipping the town config would have been silent |
+| `OVT_TEST_InitSuite` `..._BasePatrolConfigsCyclePerimeter` | **REWRITTEN** — asserts `PERIMETER_BASE` on garrison + heavy, plus the authored-square geometry, plus the AT section's new placed shape |
+| `OVT_TEST_InitSuite` `..._DefendPlansHoldTheStation` probes (`:12940`, `:12995`) | **LEFT.** Those probes assert the DEFEND *anchor* rule, which A1 does not touch |
+| `OVT_TEST_Campaign_GMWaypointWalk` (comment only) | **LEFT.** It walks a hand-built vanilla cycle and never reads the enum |
+| The movement tick / `CreatePlannedWaypoint` / the GM waypoint walk | **LEFT, and nothing to extend.** They switch on `OVT_EVirtualWaypointType`, not on the patrol type. A PERIMETER_BASE plan is 4 `PATROL` + 4 `WAIT` + `m_bCycle` — the *same kind* of plan PERIMETER builds — so every downstream consumer treats them identically by construction. That equivalence is deliberate and is stated in the module's class header |
+
+**Design decisions recorded:**
+
+- **±10° jitter, `PERIMETER_ROTATION_JITTER_DEG`**, rolled **fresh on every plan build** — so two
+  garrisons at one base, and the same garrison rebought after a wipe, do not tread one line. Small on
+  purpose: the point of an authored square is that a designer decided where it goes.
+- **250 m lookup radius is `OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS`, referenced
+  and not re-declared** — the same constant decision S1 pinned. Raising it to "fix" a distant base
+  would re-open the force-doubling hole S1 closed.
+- **The square's ORIENTATION is authored; the START CORNER is not.** `BuildSquarePerimeterPlan` walks
+  the four authored corners but begins at the one nearest the bearing from the group to the centre —
+  the same convention `BuildPerimeterPlan` uses, and for the same reason (a group sets off across the
+  area rather than turning on the spot, and two garrisons approaching from different sides do not walk
+  in lockstep). The Logic case asserts both halves: the corners do not move, the start does.
+- **No base in range warns and still builds a plan** (un-snapped square, rotation 0). A mis-authored
+  config that patrols the wrong shape is far easier to notice than one whose groups stand still.
+- 🔴 **GROUND SNAP, NOT WATER AVOIDANCE.** Corners are clamped with `GetSurfaceY()` — the same clamp
+  core applies when it spawns the waypoint entity — done at authoring time as well so the *persisted*
+  plan carries standable positions. **A coastal base with a large authored radius can still put a
+  corner in the sea and nothing moves it**, because relocating one corner would stop the square being
+  the square that was authored. The Workbench viz is the mitigation.
+
+---
+
+### A1.6 — the AT provider's side-pick, and why it is not an index
+
+`OVT_RoadSlotOverwatchPlacementProvider` reads the **same two slot sets the checkpoint modules use** —
+`m_LargeRoadSlots` and `m_MediumRoadSlots` — and **deliberately ignores `m_aSlotsFilled`**: the ask is
+"where checkpoints *would* be, whether or not there is one", so a base that has not bought its
+checkpoints yet and one that has bought them all offer the AT section the same posts. Nothing here
+claims a slot, so the provider can never stop a checkpoint being built later.
+
+**THE SIDE IS A PURE FUNCTION OF THE SLOT'S OWN POSITION** (`SideForSlot()` folds the rounded world
+X+Z to a parity, ±1). The alternative — alternate by list index — was **rejected**: the provider is
+re-asked on every convergence pass, after every load and after every re-discovery of a base's slots,
+so a destroyed slot or a differently-ordered query would flip a team across the road for no reason a
+player could see, and placement stability across materialisations is a promise of the placed module.
+Rounding to the metre first is what stops a float wobble flipping a team between two passes.
+Neighbouring slots rarely share a parity, so in practice this *is* the "alternate sides" that was
+asked for — bought without an ordering dependency.
+
+Two more properties, both asserted: the offset is taken along the **slot's own right vector** (a slot
+carries the road's rotation, so its local +X is "across the road" — a world-X step would put a team in
+the middle of any north-south road), and the post **faces back at the slot**, so the team overwatches
+the approach from the first frame. This is the second shipped provider to answer a real heading.
+
+⚠ **THE PROVIDER NEEDS NO `CloneModule` AND MUST NOT GET ONE.**
+`OVT_PlacedInfantrySpawningDeploymentModule.CloneModule()` copies `m_Placement` **by reference**,
+deliberately (its own comment says why: a provider holds no state between calls, and cloning a
+polymorphic config object by hand would need a copy method per provider that a mod's provider would
+not have). So `m_fSideOffset` survives cloning because the clone shares the same object. Adding a
+clone method here would be dead code that implies the opposite contract.
+
+`Deployment_BaseATSection.conf` is now: `OVT_PlacedInfantrySpawningDeploymentModule` +
+`OVT_RoadSlotOverwatchPlacementProvider` (`m_fSideOffset 15`, `m_fSearchRadius 280`) + `at_team`,
+behaviour **DEFEND** (the Phase 5 stationed-group anchor holds them on their posts), Reinforcement +
+BaseControl + NoPlayersNearby unchanged, `m_iMinimumThreatLevel 50`, priority 6, cost unchanged.
+`m_fSpawnRadius` went 50 → 0 for parity with the other three placed configs (a placed module never
+reads it). GUID prefix `6AB6A7B4`, grep-verified unused repo-wide before use.
+
+---
+
+### A1.7 — coverage
+
+- **Logic:** `OVT_TEST_Logic_DeploymentVirtualization_SquarePerimeterPlan` (new, same file as the
+  other three plan builders). Five claims: shape, the rotation is obeyed (0 vs 45 are different
+  points), the square is a square (radius, adjacent = r√2, opposite = 2r), only the START corner
+  follows the walker, and a negative rotation folds to the same square as its positive twin. ⚠ For the
+  rotation-45 half the walker is moved **onto the diagonal too**: a bearing exactly halfway between
+  two corners is the one input where the start-corner rounding is on a knife edge, and pinning a walk
+  order against it would pin a tie-break rather than the geometry.
+- **Init, rewritten:** `..._BasePatrolConfigsCyclePerimeter` — garrison + heavy assert
+  `PERIMETER_BASE` **by name** and then measure the plan **against the live base controller**: every
+  corner within 1 m of the authored radius (a road-snapped corner would miss by tens or hundreds of
+  metres — that assertion *is* the "no road snap" proof) and within ±11° of an authored corner
+  bearing. The AT section asserts placed module + the new provider by type + `m_fSideOffset > 0` +
+  one-point non-cycling DEFEND + threat 50 + priority 6.
+- **Init, new:** `..._RoadSlotOverwatchIsOffsetAndStable` — the offset is the authored distance and is
+  perpendicular to the slot's facing (two headings, one of them 37° so a world-X bug cannot hide), the
+  post looks back at the slot, the side follows the slot and not the order (three slots resolved
+  forwards then backwards), the shipped config really authors 15, and two consecutive live resolves
+  are identical. The transforms are hand-built because **the Init tier never runs
+  `InitBaseControllers()`, so a live road-slot list does not exist there at all** — the live half is
+  the never-null + repeatability contract, with the count printed rather than asserted.
+- **Init, extended:** `..._TownPatrolPlanCycles` (+ plain `PERIMETER` assertion),
+  `..._PlacementProvidersAnswerEmptyNotNull` (+ the fourth provider),
+  `..._FreeAtGameStartIsAuthored` (+ the two newly-free base configs).
+- **Persistence: untouched**, as instructed. No serializer, RPC or save-payload change — the new
+  attributes live on a level-authored component and the plan payload's shape is unchanged.
+
+**Compile verified by negative control, not by trust:** a deliberate undefined type was appended to
+`OVT_RoadSlotOverwatchPlacementProvider.c`; `compile-check.sh` reported it at that exact file and line
+and exited 1. Removed, re-run, exit **0**.
+
+---
+
+### 🔴 A1 CRASH FIX (2026-08-18, same day) — the viz killed Workbench, and the rule that came out of it
+
+**REPORTED:** the debug square rendered with jittering geometry for a moment and then Workbench died.
+
+**ROOT CAUSE, CONFIRMED BY READING THE CODE:** `DrawPerimeterSquare()` built its three vertex buffers
+as **method-LOCAL fixed arrays** (`vector authored[4]; vector jitterMin[4]; vector jitterMax[4];`) and
+handed them straight to `Shape.CreateLinesLoop`. **The `Shape.CreateLines` family REFERENCES the
+caller's array; it does not copy it.** The shape is rendered after `_WB_AfterWorldUpdate` has already
+returned, so the render thread was reading vertices out of a dead stack frame — reused memory, hence
+the jitter, then the crash.
+
+**The jitter is the proof, not just a symptom.** Nothing in the viz is rolled: `PERIMETER_ROTATION_
+JITTER_DEG` is a `static const` and `PerimeterCorner()` is pure, so the fifteen points are identical on
+every frame by construction. Deterministic geometry that visibly moves can *only* be memory
+corruption. (Re-verified while fixing: no randomness anywhere in the viz, and the shape handles were
+already stored in members exactly like `m_aDirectionArrowCenter`.)
+
+**Why the QRF attack arrows beside it were always fine:** `Shape.CreateArrow` takes two `vector`s **by
+value and copies them**. There is no buffer. The three arrow calls in the same method are not a
+licence to use locals for a line strip, and the code now says so where somebody would look.
+
+**THE FIX** (`OVT_BaseControllerComponent.c`):
+1. The three vertex buffers are now **class members** — `m_aPerimeterAuthored`,
+   `m_aPerimeterJitterMin`, `m_aPerimeterJitterMax`, each `vector[PERIMETER_VIZ_POINTS]` — carrying a
+   loud hard-rule comment on the declaration.
+2. `CreateLinesLoop` → plain **`CreateLines`** with a **5-point closed strip** (corner 0 repeated at
+   index 4). `CreateLinesLoop` would close the square for us, but the only vanilla *per-frame `_WB_`*
+   precedent uses plain `CreateLines`, and after a crash the closest thing to the proven idiom is
+   worth more than one saved line. It also removes `CreateLinesLoop` from the equation entirely.
+3. The start arrow stays a `CreateArrow` built from locals — safe, and now commented as to why.
+
+**VANILLA PRECEDENT THIS IS COPIED FROM:** `SCR_PowerLineJointEntity` declares
+`protected vector m_aDebugLine[POINTS];` as a **member** (`:22`) and passes it straight to
+`Shape.CreateLines(..., m_aDebugLine, POINTS)` (`:163`) from its own per-frame `_WB_AfterWorldUpdate`.
+Exact same problem, exact same answer. (`grep -rl CreateLines` ∩ `grep -l _WB_` over
+`/mnt/n/Projects/Arma 4/ArmaReforger/scripts/` gives 7 files; this is the only per-frame one.)
+
+---
+
+### ⚠ THE STANDING RULE, and it reconciles a contradiction already in this repo
+
+> **A buffer passed to the `Shape.CreateLines` / `CreateLinesLoop` / `CreateSeparateLines` /
+> `CreateTris` family must (a) OUTLIVE THE FRAME and (b) be EXACTLY `num` long.**
+> Member storage, sized exactly to what you pass. Locals are for the copy-safe calls only
+> (`CreateArrow`, `CreateLine`, `CreateCircle`, `CreateSphere`, `Create`).
+
+`OVT_GMWaypointRenderer.c:353-357` carries a comment from the 2026-08-16 play-test saying the
+opposite — *"a CreateLines strip fed from a member fixed array … did not render at all … vanilla only
+ever passes a LOCAL array sized exactly to num"*. **Both observations are real and they are not in
+conflict; the generalisation in that comment is what is wrong.** Read the whole sentence: what failed
+there was a member array with **`num` SMALLER THAN THE DECLARED SIZE** — a partially-filled buffer,
+which renders nothing. The renderer's own fix (per-leg `CreateLine`) is still right for its case, for
+its own second reason (z-fighting on the highlighted leg). What does not follow is "therefore use a
+local": `SCR_PowerLineJointEntity` passes a member array per frame and works, because it passes the
+**whole** array. This viz does the same — 5 declared, 5 passed.
+
+So the two data points combine into the one rule above, and neither file should be "corrected"
+towards the other.
+
+---
+
+### 🟡 A PRE-EXISTING INSTANCE OF THE SAME HAZARD, FOUND BY THE SWEEP — NOT TOUCHED
+
+`Scripts/Game/Entities/OVT_StartCameraPos.c:32,54` declares `vector points[12];` as a **method local**
+inside `_WB_AfterWorldUpdate` and passes it to `Shape.CreateTris(..., points, 4)`. Same family, same
+buffer-lifetime hazard, same per-frame `_WB_` context. Its sizing is correct (4 triangles = 12
+vertices), so only the storage is wrong.
+
+**Deliberately NOT changed here** — it predates amendment A1, it is in an unrelated file, and a
+crash-fix is the wrong place for unscoped edits. It is a three-line change (move `points` to a member)
+whenever somebody wants it. ⚠ Worth knowing during the A1 re-test: selecting a start-camera-pos entity
+in Workbench could crash for this reason and look like the perimeter fix having failed.
+
+---
+
+### 🔴 A1 — what still needs a human
+
+- **THE WORKBENCH VIZ NEEDS A SECOND LOOK AFTER THE CRASH FIX.** `DrawPerimeterSquare()` lives inside
+  `#ifdef WORKBENCH` and draws only when the entity is selected (`CALL_WHEN_ENTITY_SELECTED`, the same
+  condition the QRF arrows use), so **no suite can ever reach it**. **Open a world layer in Workbench,
+  select the base marker entity, and confirm:** one solid cyan square at `m_fPerimeterRadius`, two
+  fainter cyan squares rotated ±10°, a short cyan arrow from the marker to corner 0 — and **no crash,
+  and no vertex jitter**. Jitter returning would mean the buffers are being copied somewhere on the
+  way to the call; a square that renders as an open "C" would mean the closing repeat point was lost.
+- **Authoring the squares per base is a design pass, not a code task.** Every base ships at the class
+  defaults (280 m, 0°) until somebody sets them, which is exactly parity with the old `baseRange`
+  patrol radius — so nothing regresses if nobody ever touches them.
+- **Play-test the AT posts.** Confirm the teams stand beside a road slot rather than in it, look at
+  the road, and come back to the same side after a despawn/re-materialise cycle.

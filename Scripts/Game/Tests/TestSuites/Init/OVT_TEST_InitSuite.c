@@ -7730,6 +7730,18 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 			return true;
 		}
 
+		// ⚠ PLAIN PERIMETER, NOT PERIMETER_BASE. Amendment A1 (2026-08-18) split the two: PERIMETER is
+		// the ROAD-SNAPPED ring and is what a town patrol wants (a town's roads run around it), while
+		// PERIMETER_BASE walks a base's authored square and looks for a base controller within 250 m -
+		// which a town centre does not have. Authoring the wrong one here would log a warning per plan
+		// and put every town patrol on a square around the town centre instead of on its roads.
+		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER)
+		{
+			SetFailure("Config '%1' authors patrol type %2, not PERIMETER - the town patrol's corners would stop being pulled onto the town's roads", CONFIG_NAME,
+				typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
+			return true;
+		}
+
 		vector groupPosition = OVT_TEST_VirtualizationFixture.PickPosition();
 		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(groupPosition);
 
@@ -8779,16 +8791,23 @@ class OVT_TEST_Init_Deployments_VehiclePatrolCrewsResolve : SCR_AutotestCaseBase
 //!
 //! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
 //! `m_bFreeAtGameStart 1` line from `Configs/Deployment/Deployment_TowerGarrison.conf` and the tower
-//! assertion goes red naming it; do the same to `Deployment_TownPatrol.conf` and the town assertion
-//! goes red; change the attribute's defvalue in `OVT_DeploymentConfig` to `"1"` and the opt-in
-//! assertion goes red instead, because nothing in the registry answers false any more.
+//! assertion goes red naming it; do the same to `Deployment_TownPatrol.conf`,
+//! `Deployment_BaseGarrisonPatrol.conf` or `Deployment_BaseTowerGuards.conf` and that config's
+//! assertion goes red; change the attribute's defvalue in `OVT_DeploymentConfig` to `"1"` and the
+//! opt-in assertion goes red instead, because nothing in the registry answers false any more.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
 {
-	//! The two shipped configs the amendment marks free.
+	//! The two shipped configs the 2026-08-17 amendment marks free.
 	static const string TOWN_CONFIG = "Town Patrol";
 	static const string TOWER_CONFIG = "Tower Garrison";
+
+	//! The two the 2026-08-18 amendment (A1) adds: a base's opening garrison and its tower guards are
+	//! the world's baseline state, not an opportunistic purchase - a player who drives past a base in
+	//! the first minutes of a campaign must not find it empty because the pool had not filled yet.
+	static const string BASE_GARRISON_CONFIG = "Base Garrison Patrol";
+	static const string BASE_TOWER_GUARDS_CONFIG = "Base Tower Guards";
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -8812,6 +8831,12 @@ class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
 			failure = VerifyMarkedFree(manager, TOWER_CONFIG);
 
 		if (failure == "")
+			failure = VerifyMarkedFree(manager, BASE_GARRISON_CONFIG);
+
+		if (failure == "")
+			failure = VerifyMarkedFree(manager, BASE_TOWER_GUARDS_CONFIG);
+
+		if (failure == "")
 			failure = VerifyFlagIsOptIn(manager);
 
 		if (failure != "")
@@ -8820,8 +8845,9 @@ class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
 			return true;
 		}
 
-		PrintFormat("'%1' and '%2' are marked free at game start; %3 other shipped config(s) are not",
-			TOWN_CONFIG, TOWER_CONFIG, CountNotFree(manager).ToString());
+		PrintFormat("'%1' and '%2' are marked free at game start", TOWN_CONFIG, TOWER_CONFIG);
+		PrintFormat("So are '%1' and '%2'; %3 other shipped config(s) are not",
+			BASE_GARRISON_CONFIG, BASE_TOWER_GUARDS_CONFIG, CountNotFree(manager).ToString());
 		return true;
 	}
 
@@ -10104,11 +10130,12 @@ class OVT_TEST_Init_Deployments_SnapToRoadOptOutStaysInRadius : SCR_AutotestCase
 //! world; they build no entity and touch no registry.
 //!
 //! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): make any
-//! one of the three providers `return null` before its query and the case goes red naming that
+//! one of the four providers `return null` before its query and the case goes red naming that
 //! provider; make the base OVT_DeploymentPlacementProvider.ResolvePlacements return null and the
 //! contract assertion goes red; drop the range check from
 //! OVT_BaseDefendPositionPlacementProvider.FindNearestBaseController and it answers the far-away
-//! base's posts, so the non-empty assertion goes red naming the count.
+//! base's posts, so the non-empty assertion goes red naming the count; drop the radius argument from
+//! OVT_RoadSlotOverwatchPlacementProvider's base lookup and the same happens to it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_PlacementProvidersAnswerEmptyNotNull : SCR_AutotestCaseBase
@@ -10136,13 +10163,16 @@ class OVT_TEST_Init_Deployments_PlacementProvidersAnswerEmptyNotNull : SCR_Autot
 		if (failure == "")
 			failure = VerifyProvider(new OVT_BaseDefendPositionPlacementProvider(), "the base defend position provider", probe);
 
+		if (failure == "")
+			failure = VerifyProvider(new OVT_RoadSlotOverwatchPlacementProvider(), "the road slot overwatch provider", probe);
+
 		if (failure != "")
 		{
 			SetFailure(failure);
 			return true;
 		}
 
-		PrintFormat("All three shipped placement providers, and the base contract, answered an empty non-null list at a position %1 m clear of every town, base and tower",
+		PrintFormat("All four shipped placement providers, and the base contract, answered an empty non-null list at a position %1 m clear of every town, base and tower",
 			CLEARANCE.ToString());
 		return true;
 	}
@@ -10497,46 +10527,82 @@ class OVT_TEST_Init_Deployments_NewModuleClonesCarryEveryAttribute : SCR_Autotes
 }
 
 //------------------------------------------------------------------------------------------------
-//! The three base-defense patrol configs resolve, validate, and are the ONLY base configs that build
-//! a movable plan - a non-empty CYCLING PERIMETER one.
+//! THE THREE BASE-DEFENSE CONFIGS THAT USED TO BE PATROLS: two still are, on the base's OWN AUTHORED
+//! SQUARE, and the third is now a placed road overwatch that never moves.
 //!
 //! THIS IS THE "GARRISONS NEVER WANDER, PATROLS ALWAYS DO" CLAIM AT ITS ROOT. A plan is the only
 //! opt-in there is for being walked while dormant (core's movement tick advances a dormant group only
-//! along a plan with a movable point in it). These three configs replace the legacy base defense
-//! patrol upgrade, whose whole job was a four-corner cycle around the base, so they MUST produce a
-//! cycling plan; the
-//! six static base configs that follow in Phases 4-5 must NOT, and their own case asserts that half.
-//! Getting this backwards is invisible in play until a base's entire garrison has walked off into the
-//! countryside - or until a "patrol" stands in one spot for a whole campaign.
+//! along a plan with a movable point in it). Getting it backwards is invisible in play until a base's
+//! entire garrison has walked off into the countryside - or until a "patrol" stands in one spot for a
+//! whole campaign.
 //!
-//! PERIMETER IS ASSERTED BY NAME, not merely inferred from the plan shape, because
-//! OVT_PatrolBehaviorDeploymentModule's DEFEND branch also answers with a plan - a one-point,
-//! non-cycling one - and a config that lost its m_ePatrolType line would fall back to the enum's
-//! zero value and read as an ordinary authoring value rather than as a mistake.
+//! ================== WHAT AMENDMENT A1 (2026-08-18) CHANGED, AND WHY ======================
+//! From the play-test, verbatim: "the garrison waypoints aren't great. the road positions make sense
+//! for town patrols but not the base garrisons... the AT sections should NOT patrol the perimeter
+//! though, they should be placed where checkpoints would be".
+//!
+//!   - Base Garrison Patrol and Base Heavy Patrol author OVT_PatrolType.PERIMETER_BASE, which walks
+//!     the nearest base controller's AUTHORED square (m_fPerimeterRadius / m_fPerimeterRotation ± a
+//!     few degrees of jitter) and ROAD-SNAPS NOTHING. Plain PERIMETER is still the town patrol's
+//!     road-snapped ring and OVT_TEST_Init_Deployments_TownPatrolPlanCycles asserts that half.
+//!   - Base AT Section is no longer a patrol at all: a placed-infantry module with the road-slot
+//!     overwatch provider and a one-point DEFEND plan.
+//! =========================================================================================
+//!
+//! THE GEOMETRY IS ASSERTED AGAINST THE LIVE BASE, and that is the point of doing it here rather than
+//! in the Logic tier. The Logic tier owns BuildSquarePerimeterPlan's maths; what this tier can prove
+//! and that tier cannot is that the numbers reaching it are the ones a designer AUTHORED ON THE BASE,
+//! and that nothing between here and there pulled a corner onto a road. Both halves are asserted as
+//! numbers: every corner sits at the authored radius (a road-snapped corner would be tens or hundreds
+//! of metres off it) and within the jitter band of an authored corner bearing.
+//!
+//! PERIMETER_BASE IS ASSERTED BY NAME, not merely inferred from the plan shape, because the DEFEND
+//! branch also answers with a plan - a one-point, non-cycling one - and a config that lost its
+//! m_ePatrolType line would fall back to the enum's zero value and read as an ordinary authoring value
+//! rather than as a mistake.
 //!
 //! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it - the same shape (and the same reason)
 //! as OVT_TEST_Init_Deployments_TownPatrolPlanCycles: creating a marker leaks a repeating 10 s
-//! UpdateDeployment into the shared test world.
+//! UpdateDeployment into the shared test world. With no parent deployment the patrol module falls back
+//! to "circle where you are", so handing it the BASE's own position is what puts the base controller
+//! inside its 250 m lookup.
 //!
 //! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED.
 //!
-//! ⚠ The plan's positions are NOT asserted - they are rolled against live terrain. The Logic tier
-//! owns the geometry.
-//!
 //! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
-//! `m_ePatrolType PERIMETER` to DEFEND in any one of the three .conf files and that config's patrol-
-//! type assertion goes red naming it; delete the OVT_PatrolBehaviorDeploymentModule block from one
-//! and the "no patrol module" assertion goes red first; rename a config's m_sDeploymentName, or drop
-//! its entry from overthrowDeployments.conf, and the resolution assertion goes red before either;
-//! set plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildPerimeterPlan and all three go red.
+//! `m_ePatrolType PERIMETER_BASE` to PERIMETER in either patrol .conf and that config's patrol-type
+//! assertion goes red naming it - and if the type check were removed too, the road snap would move a
+//! corner off the authored radius and the geometry assertion would go red next; call
+//! SnapPatrolPointsToRoads() from BuildAuthoredSquarePlan and the radius assertion goes red; raise
+//! PERIMETER_ROTATION_JITTER_DEG above ANGLE_TOLERANCE_DEG and the bearing assertion goes red; put
+//! the OVT_InfantrySpawningDeploymentModule back in Deployment_BaseATSection.conf and the placed-module
+//! assertion goes red; swap its provider for any other and the provider assertion goes red naming the
+//! one it found; set plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildSquarePerimeterPlan and both
+//! patrol configs go red.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCaseBase
 {
-	//! The three shipped base-defense configs that are allowed to move.
+	//! The two shipped base-defense configs that are allowed to move.
 	static const string GARRISON_CONFIG = "Base Garrison Patrol";
 	static const string HEAVY_CONFIG = "Base Heavy Patrol";
+
+	//! The one that used to be a third patrol and is now a placed overwatch.
 	static const string AT_CONFIG = "Base AT Section";
+
+	//! How far a corner may sit off the authored radius, in metres. The square's XZ is exact - only Y
+	//! moves under the ground snap - and every distance below is taken horizontally, so this is slop
+	//! and not a real allowance. A road-snapped corner would miss by tens or hundreds of metres.
+	static const float RADIUS_TOLERANCE_M = 1;
+
+	//! How far a corner's bearing may sit off the nearest authored one: the jitter band plus a degree
+	//! for float slop.
+	static const float ANGLE_TOLERANCE_DEG = 11;
+
+	//! The threat floor and acquisition priority the AT section is authored with. Both are behaviour a
+	//! player feels (when the base buys it, and in what order) and neither logs anything if it drifts.
+	static const int AT_MINIMUM_THREAT = 50;
+	static const int AT_PRIORITY = 6;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -10555,11 +10621,20 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			return true;
 		}
 
-		array<string> configNames = {GARRISON_CONFIG, HEAVY_CONFIG, AT_CONFIG};
+		vector basePosition;
+		OVT_BaseControllerComponent controller = FindTestWorldBase(basePosition);
+		if (!controller)
+		{
+			SetFailure("No OVT_BaseControllerComponent resolved within %1 m of this world's first base centre - PERIMETER_BASE reads its square off that component, so without one every base garrison would fall back to an un-authored ring and log a warning per plan",
+				OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS.ToString());
+			return true;
+		}
+
+		array<string> configNames = {GARRISON_CONFIG, HEAVY_CONFIG};
 
 		foreach (string configName : configNames)
 		{
-			string failure = VerifyConfig(manager, configName);
+			string failure = VerifyPatrolConfig(manager, configName, controller, basePosition);
 			if (failure != "")
 			{
 				SetFailure(failure);
@@ -10567,16 +10642,46 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			}
 		}
 
-		PrintFormat("All three base patrol configs resolve, validate and build cycling PERIMETER plans: '%1', '%2', '%3'",
-			GARRISON_CONFIG, HEAVY_CONFIG, AT_CONFIG);
+		string atFailure = VerifyATSection(manager);
+		if (atFailure != "")
+		{
+			SetFailure(atFailure);
+			return true;
+		}
+
+		PrintFormat("'%1' and '%2' build cycling PERIMETER_BASE plans on the base's own authored square", GARRISON_CONFIG, HEAVY_CONFIG);
+		PrintFormat("The square is %1 m at %2 degrees; every corner landed on it, un-snapped, within the +/-%3 degree jitter band",
+			controller.m_fPerimeterRadius.ToString(), controller.m_fPerimeterRotation.ToString(),
+			OVT_PatrolBehaviorDeploymentModule.PERIMETER_ROTATION_JITTER_DEG.ToString());
+		PrintFormat("'%1' is a placed road overwatch: one-point non-cycling DEFEND, provider '%2'", AT_CONFIG, "road slot overwatch");
 		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! This world's first base, and the controller component that carries its authored square.
+	//! \param[out] position The base centre.
+	//! \return The controller, or null when there is no base or it carries no controller.
+	protected OVT_BaseControllerComponent FindTestWorldBase(out vector position)
+	{
+		position = vector.Zero;
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
+			return null;
+
+		position = occupying.m_Bases[0].location;
+
+		return OVT_BaseControllerComponent.FindNearestBaseControllerWithin(position, OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One of the two configs that walk the authored square.
 	//! \param[in] manager The deployment manager, for its registry.
 	//! \param[in] configName The shipped config name to check.
+	//! \param[in] controller The base controller carrying the authored square.
+	//! \param[in] basePosition The base centre, which is also the position the plan is asked for.
 	//! \return An empty string when every claim holds for it, or the first broken one.
-	protected string VerifyConfig(notnull OVT_DeploymentManagerComponent manager, string configName)
+	protected string VerifyPatrolConfig(notnull OVT_DeploymentManagerComponent manager, string configName, notnull OVT_BaseControllerComponent controller, vector basePosition)
 	{
 		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
 		if (!config)
@@ -10589,12 +10694,26 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 		if (!patrol)
 			return string.Format("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - every group it registers would get a null plan and hold the spawn point, which is a garrison and not a patrol", configName);
 
-		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER)
-			return string.Format("Config '%1' authors patrol type %2, not PERIMETER - it would hold one post instead of circling the base, which is the behaviour of the six STATIC base configs and not of this one",
+		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER_BASE)
+			return string.Format("Config '%1' authors patrol type %2, not PERIMETER_BASE - it would either hold one post or walk a ROAD-SNAPPED ring, and a base's roads run through it rather than around it",
 				configName, typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
 
-		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
+		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(basePosition);
 
+		string shape = VerifyPlanShape(plan, configName);
+		if (shape != "")
+			return shape;
+
+		return VerifySquareGeometry(plan, configName, controller, basePosition);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Everything a movable plan has to be, whatever built it.
+	//! \param[in] plan The plan the patrol module answered with.
+	//! \param[in] configName Its config's name, for the messages.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyPlanShape(OVT_VirtualWaypointPlan plan, string configName)
+	{
 		if (!plan)
 			return string.Format("The patrol module of '%1' answered with no plan at all - its groups would register with no waypoints", configName);
 
@@ -10613,6 +10732,184 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			return string.Format("'%1' builds a plan with no movable point - a plan is the ONLY opt-in for being walked while dormant, so this patrol would stand still", configName);
 
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE AMENDMENT'S HEADLINE CLAIM: the corners are on the square the DESIGNER authored, and none of
+	//! them was pulled onto a road.
+	//! \param[in] plan The plan to measure.
+	//! \param[in] configName Its config's name, for the messages.
+	//! \param[in] controller The base controller carrying the authored square.
+	//! \param[in] basePosition The base centre.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifySquareGeometry(notnull OVT_VirtualWaypointPlan plan, string configName, notnull OVT_BaseControllerComponent controller, vector basePosition)
+	{
+		float radius = controller.m_fPerimeterRadius;
+		if (radius <= 0)
+			return string.Format("The base controller authors a perimeter radius of %1 - a square with no size cannot be asserted, and at runtime the patrol would silently fall back to the module's own radius", radius.ToString());
+
+		int corners = 0;
+
+		for (int i = 0; i < plan.m_aTypes.Count(); i++)
+		{
+			if (plan.m_aTypes[i] != OVT_EVirtualWaypointType.PATROL)
+				continue;
+
+			corners++;
+
+			vector corner = plan.m_aPositions[i];
+
+			float distance = HorizontalDistance(corner, basePosition);
+			if (Math.AbsFloat(distance - radius) > RADIUS_TOLERANCE_M)
+				return string.Format("'%1': a corner is %2 m from the base centre, expected the authored %3 m - either the authored square is being ignored, or the corner was ROAD-SNAPPED off it, which is the one thing a base perimeter must never be",
+					configName, distance.ToString(), radius.ToString());
+
+			float bearingOff = BearingOffAuthored(basePosition, corner, controller.m_fPerimeterRotation);
+			if (bearingOff > ANGLE_TOLERANCE_DEG)
+				return string.Format("'%1': a corner sits %2 degrees off the nearest authored corner of the square, and the whole jitter band is only +/-%3 degrees",
+					configName, bearingOff.ToString(), OVT_PatrolBehaviorDeploymentModule.PERIMETER_ROTATION_JITTER_DEG.ToString());
+		}
+
+		if (corners != OVT_VirtualPlanFactory.PERIMETER_POINTS)
+			return string.Format("'%1' builds %2 movable corner(s), expected %3 - a base perimeter is a four-corner square",
+				configName, corners.ToString(), OVT_VirtualPlanFactory.PERIMETER_POINTS.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The AT section: placed, not patrolling, and standing beside the road slots.
+	//! \param[in] manager The deployment manager, for its registry.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyATSection(notnull OVT_DeploymentManagerComponent manager)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(AT_CONFIG);
+		if (!config)
+			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf", AT_CONFIG);
+
+		if (!config.IsValidConfig())
+			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", AT_CONFIG);
+
+		if (config.m_iMinimumThreatLevel != AT_MINIMUM_THREAT)
+			return string.Format("Config '%1' authors a minimum threat of %2, expected %3 - an AT section is a late-campaign answer to armour and this is when a base starts buying one",
+				AT_CONFIG, config.m_iMinimumThreatLevel.ToString(), AT_MINIMUM_THREAT.ToString());
+
+		if (config.m_iPriority != AT_PRIORITY)
+			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place, so a base would buy this concern at the wrong point in its escalation",
+				AT_CONFIG, config.m_iPriority.ToString(), AT_PRIORITY.ToString());
+
+		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
+		if (!placed)
+			return string.Format("Config '%1' carries no OVT_PlacedInfantrySpawningDeploymentModule - its AT teams would be rolled onto a ring around the marker instead of standing beside the road slots", AT_CONFIG);
+
+		if (!placed.m_Placement)
+			return string.Format("Config '%1' authors no m_Placement provider - the module has nowhere to stand anybody, wants 0 groups and registers NOTHING, logging nothing", AT_CONFIG);
+
+		OVT_RoadSlotOverwatchPlacementProvider overwatch = OVT_RoadSlotOverwatchPlacementProvider.Cast(placed.m_Placement);
+		if (!overwatch)
+			return string.Format("Config '%1' authors the '%2' placement provider - it must be the road-slot overwatch one, which is what puts the team where a checkpoint would be",
+				AT_CONFIG, placed.m_Placement.GetProviderName());
+
+		if (overwatch.m_fSideOffset <= 0)
+			return string.Format("Config '%1' authors a side offset of %2 - at zero the AT team stands in the middle of the road slot, inside whatever checkpoint the base builds there later",
+				AT_CONFIG, overwatch.m_fSideOffset.ToString());
+
+		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
+		if (!plan)
+			return string.Format("'%1' builds NO plan - a stationed AT team holds its post through a DEFEND waypoint, exactly as the defense positions do", AT_CONFIG);
+
+		int count = plan.m_aPositions.Count();
+		if (count != 1)
+			return string.Format("'%1' builds a %2-point plan, expected exactly one - an overwatch post is one place held by one team", AT_CONFIG, count.ToString());
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types) - RegisterGroup refuses a ragged plan outright", AT_CONFIG, count.ToString(), plan.m_aTypes.Count().ToString());
+
+		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
+			return string.Format("'%1' builds a plan whose only point is type %2, expected DEFEND - any movable type here hands the movement tick an AT team to walk off its overwatch",
+				AT_CONFIG, plan.m_aTypes[0].ToString());
+
+		if (plan.m_bCycle)
+			return string.Format("'%1' builds a CYCLING plan - a one-point cycle is still a cycle, and the point of an overwatch is that it is never left", AT_CONFIG);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How far a corner's bearing is from the NEAREST corner of the authored square.
+	//!
+	//! Folded to a quarter turn rather than matched corner-by-corner, because which authored corner a
+	//! walk starts on follows the walker's own approach - the square does not move, but the walk order
+	//! rotates, and pinning the order here would pin a tie-break instead of the geometry.
+	//! \param[in] centre The base centre.
+	//! \param[in] corner The plan point.
+	//! \param[in] rotationDeg The authored rotation of the square.
+	//! \return Degrees off the nearest authored corner, 0..45.
+	protected float BearingOffAuthored(vector centre, vector corner, float rotationDeg)
+	{
+		vector direction = corner - centre;
+		direction[1] = 0;
+
+		if (direction.Length() < 0.01)
+			return 180;
+
+		float delta = direction.ToYaw() - rotationDeg;
+
+		// Math.Floor folds negatives correctly, which a modulo would not: EnforceScript's % is integer
+		// only and keeps the sign of its left operand.
+		delta = delta - (Math.Floor(delta / 90) * 90);
+
+		if (delta > 45)
+			delta = 90 - delta;
+
+		return Math.AbsFloat(delta);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] a First position.
+	//! \param[in] b Second position.
+	//! \return The distance between them in the XZ plane, ignoring the ground snap's Y.
+	protected float HorizontalDistance(vector a, vector b)
+	{
+		return vector.Distance(Vector(a[0], 0, a[2]), Vector(b[0], 0, b[2]));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The plan a group of this config would be registered with, resolved the way
+	//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() does it: ask every BEHAVIOUR module in
+	//! authored order, take the first non-null answer.
+	//! \param[in] config The config to ask.
+	//! \return The plan, or null when no behaviour module has an opinion.
+	protected OVT_VirtualWaypointPlan ResolvePlanLikeProduction(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
+		{
+			if (!behaviorModule)
+				continue;
+
+			OVT_VirtualWaypointPlan plan = behaviorModule.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
+			if (plan)
+				return plan;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first placed-infantry spawning module, or null.
+	protected OVT_PlacedInfantrySpawningDeploymentModule FindPlacedModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
+			if (placed)
+				return placed;
+		}
+
+		return null;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -11359,6 +11656,309 @@ class OVT_TEST_ThreatPinnedSniperProvider : OVT_SniperMarkerPlacementProvider
 	override protected float GetOccupyingThreat()
 	{
 		return m_fPinnedThreat;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE AT SECTION'S POSTS: exactly one side-offset ACROSS the road slot, looking back at it, and the
+//! same answer however the slots arrive.
+//!
+//! WHY THIS IS A CASE. Amendment A1 (2026-08-18) moved the base AT section off the perimeter patrol
+//! and onto the base's road slots - "where checkpoints would be (whether or not there is one) but off
+//! to the side with an offset". Three things about that are silent when they break:
+//!   1. THE OFFSET IS ACROSS THE ROAD, NOT ALONG IT. The step is taken along the slot's OWN right
+//!      vector, because a slot carries the road's rotation. Stepping along world X instead would put
+//!      the team in the middle of any road running north-south - which looks like a placement bug
+//!      rather than an axis bug, and only at some bases.
+//!   2. THE TEAM LOOKS AT THE ROAD. An AT team facing away from the approach it was placed to cover
+//!      engages several seconds late, which in play reads as "the AT team is useless" and never as a
+//!      heading bug.
+//!   3. THE SIDE IS A FUNCTION OF THE SLOT, NOT OF THE ORDER THE SLOTS CAME BACK IN. Placement
+//!      stability across re-materialisations is a promise of the placed-infantry module; the provider
+//!      is re-asked on every convergence pass, after every load and after every re-discovery of a
+//!      base's slots. If the left/right pick came from a list index, a destroyed slot or a query
+//!      returning in a different order would teleport a team across the road for no reason anyone
+//!      could see.
+//!
+//! ASSERTED THROUGH THE PRODUCTION STATICS, not a copy of them: OVT_RoadSlotOverwatchPlacementProvider
+//! .PostBesideSlot() and .SideForSlot() are what the live resolve calls, so a second implementation
+//! that agreed on the day it was written cannot drift away from this. The transforms are hand-built
+//! precisely so the claim does not depend on this world having a base with road slots - the Init tier
+//! never runs InitBaseControllers(), so a live slot list does not exist here at all.
+//!
+//! THE LIVE HALF IS STILL EXERCISED, because "the provider is safe to call and answers the same thing
+//! twice" is a contract claim that hand-built transforms cannot make. It is asserted as a comparison
+//! between two consecutive resolves (which is meaningful whether the answer is empty or not) plus the
+//! never-null contract, and the count is PRINTED rather than asserted - the Phase 2 snap-case
+//! discipline.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED. Bare objects, static calls, and read-only queries.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): replace
+//! `across = slotMat[0]` with a world-X constant in PostBesideSlot and the perpendicular assertion
+//! goes red; drop the `* SideForSlot(...)` term and the two-sides assertion goes red; make SideForSlot
+//! take a list index instead of the slot position and the order-independence assertion goes red;
+//! reverse FacingTowards' direction and the heading assertion goes red; change the shipped
+//! m_fSideOffset away from 15 in Deployment_BaseATSection.conf and the authored-offset assertion goes
+//! red naming both numbers.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_RoadSlotOverwatchIsOffsetAndStable : SCR_AutotestCaseBase
+{
+	//! The offset Deployment_BaseATSection.conf authors, asserted against the shipped config below.
+	static const float AUTHORED_SIDE_OFFSET = 15;
+
+	//! The shipped config that carries the provider.
+	static const string AT_CONFIG = "Base AT Section";
+
+	//! Metres of slop allowed on a position claim, and the same for a dot product treated as a ratio.
+	static const float EPSILON = 0.05;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string failure = VerifyOffsetIsAcrossTheSlot();
+
+		if (failure == "")
+			failure = VerifyPostLooksBackAtTheSlot();
+
+		if (failure == "")
+			failure = VerifySideFollowsTheSlotAndNotTheOrder();
+
+		if (failure == "")
+			failure = VerifyShippedConfigAuthorsTheOffset();
+
+		if (failure == "")
+			failure = VerifyLiveResolveIsRepeatable();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Every AT post is exactly %1 m ACROSS its road slot, looking back at it, and the side follows the slot rather than the order the slots arrived in",
+			AUTHORED_SIDE_OFFSET.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 1 - the step is the authored distance, and it is perpendicular to the slot's facing.
+	//! \return An empty string when the claim holds, or the broken half.
+	protected string VerifyOffsetIsAcrossTheSlot()
+	{
+		// Two slots on deliberately awkward headings: a road running north-south, and one on no round
+		// number at all. A world-X step would pass the first and fail nothing, which is why the second
+		// is here.
+		array<float> headings = {0, 37};
+
+		foreach (float heading : headings)
+		{
+			vector slotMat[4];
+			BuildSlotTransform(Vector(1200, 30, 1200), heading, slotMat);
+
+			OVT_DeploymentPlacement post = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(slotMat, AUTHORED_SIDE_OFFSET);
+			if (!post)
+				return string.Format("PostBesideSlot answered nothing for a slot on heading %1", heading.ToString());
+
+			float distance = vector.Distance(post.m_vPosition, slotMat[3]);
+			if (Math.AbsFloat(distance - AUTHORED_SIDE_OFFSET) > EPSILON)
+				return string.Format("A post beside a slot on heading %1 is %2 m from it, expected the authored %3 m",
+					heading.ToString(), distance.ToString(), AUTHORED_SIDE_OFFSET.ToString());
+
+			vector step = post.m_vPosition - slotMat[3];
+			step.Normalize();
+
+			// ALONG the road is the slot's forward vector: the step must have no component on it.
+			float alongRoad = Math.AbsFloat(vector.Dot(step, slotMat[2]));
+			if (alongRoad > EPSILON)
+				return string.Format("A post beside a slot on heading %1 is %2 of the way ALONG the road rather than across it - the offset is not being taken on the slot's own right vector",
+					heading.ToString(), alongRoad.ToString());
+
+			// ACROSS the road is the slot's right vector: the step must be entirely on it.
+			float acrossRoad = Math.AbsFloat(vector.Dot(step, slotMat[0]));
+			if (Math.AbsFloat(acrossRoad - 1) > EPSILON)
+				return string.Format("A post beside a slot on heading %1 lies %2 of the way across the slot's right vector, expected 1",
+					heading.ToString(), acrossRoad.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 2 - the occupant faces the slot it is covering.
+	//! \return An empty string when the claim holds, or the broken half.
+	protected string VerifyPostLooksBackAtTheSlot()
+	{
+		vector slotMat[4];
+		BuildSlotTransform(Vector(1200, 30, 1200), 37, slotMat);
+
+		OVT_DeploymentPlacement post = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(slotMat, AUTHORED_SIDE_OFFSET);
+
+		vector postMat[4];
+		post.GetTransform(postMat);
+
+		vector towardsSlot = slotMat[3] - post.m_vPosition;
+		towardsSlot[1] = 0;
+		towardsSlot.Normalize();
+
+		float facing = vector.Dot(postMat[2], towardsSlot);
+		if (Math.AbsFloat(facing - 1) > EPSILON)
+			return string.Format("An AT post's forward vector is %1 of the way towards the slot it covers, expected 1 - the team would start the fight looking the wrong way", facing.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 3 - the side is a property of the slot, so the same slots answer the same posts however
+	//! they are ordered, and two different slots really can take different sides.
+	//! \return An empty string when the claim holds, or the broken half.
+	protected string VerifySideFollowsTheSlotAndNotTheOrder()
+	{
+		// One metre apart flips the parity, which is what makes neighbouring slots alternate.
+		array<vector> slots = {Vector(1200, 30, 1200), Vector(1201, 30, 1200), Vector(1200, 30, 1207)};
+
+		int first = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(slots[0]);
+		int second = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(slots[1]);
+
+		if (first == 0 || second == 0)
+			return "SideForSlot answered 0 - a post with no side would land on the slot itself";
+
+		if (first == second)
+			return string.Format("Two slots one metre apart both answered side %1 - neighbouring road slots would put every AT team on the same side of the road", first.ToString());
+
+		// ORDER INDEPENDENCE, demonstrated rather than argued from the signature. The same three slots
+		// are resolved FORWARDS and then BACKWARDS; each slot must answer the same post both times,
+		// which is only true if the side never looks at a position in a list.
+		array<ref OVT_DeploymentPlacement> forwards = new array<ref OVT_DeploymentPlacement>();
+
+		for (int i = 0; i < slots.Count(); i++)
+		{
+			vector forwardMat[4];
+			BuildSlotTransform(slots[i], 37, forwardMat);
+
+			forwards.Insert(OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(forwardMat, AUTHORED_SIDE_OFFSET));
+		}
+
+		for (int j = slots.Count() - 1; j >= 0; j--)
+		{
+			vector backwardMat[4];
+			BuildSlotTransform(slots[j], 37, backwardMat);
+
+			OVT_DeploymentPlacement backward = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(backwardMat, AUTHORED_SIDE_OFFSET);
+
+			float moved = vector.Distance(forwards[j].m_vPosition, backward.m_vPosition);
+			if (moved > EPSILON)
+				return string.Format("Slot %1 answered posts %2 m apart when the same three slots were resolved in the opposite order - an AT team would cross the road whenever a slot list was rebuilt",
+					j.ToString(), moved.ToString());
+
+			float turned = vector.Distance(forwards[j].m_vAngles, backward.m_vAngles);
+			if (turned > EPSILON)
+				return string.Format("Slot %1 answered a different heading (%2 apart) when the same three slots were resolved in the opposite order", j.ToString(), turned.ToString());
+		}
+
+		// And a negative coordinate is an ordinary position, not a third answer: EnforceScript's % keeps
+		// the sign of its left operand, so an unguarded parity would read as neither side.
+		int negative = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(Vector(-1201, 30, -1200));
+		if (negative != 1 && negative != -1)
+			return string.Format("A slot at a negative coordinate answered side %1, expected +1 or -1", negative.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The shipped config really authors the offset this case asserts against.
+	//! \return An empty string when the claim holds, or the broken half.
+	protected string VerifyShippedConfigAuthorsTheOffset()
+	{
+		OVT_RoadSlotOverwatchPlacementProvider provider = FindShippedProvider();
+		if (!provider)
+			return string.Format("Could not reach the road-slot overwatch provider through '%1' - either the config does not resolve, it has no placed module, or its m_Placement is a different provider", AT_CONFIG);
+
+		if (Math.AbsFloat(provider.m_fSideOffset - AUTHORED_SIDE_OFFSET) > EPSILON)
+			return string.Format("'%1' authors a side offset of %2, and this case asserts %3 - one of the two moved",
+				AT_CONFIG, provider.m_fSideOffset.ToString(), AUTHORED_SIDE_OFFSET.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The live contract: never null, and the same answer twice in a row.
+	//! \return An empty string when the claim holds, or the broken half.
+	protected string VerifyLiveResolveIsRepeatable()
+	{
+		OVT_RoadSlotOverwatchPlacementProvider provider = FindShippedProvider();
+		if (!provider)
+			return "";
+
+		vector probe = FindBasePosition();
+
+		array<ref OVT_DeploymentPlacement> first = provider.ResolvePlacements(probe, 280, 0);
+		array<ref OVT_DeploymentPlacement> second = provider.ResolvePlacements(probe, 280, 0);
+
+		if (!first || !second)
+			return "The road-slot overwatch provider answered NULL - 'nothing here' is the ordinary answer for a placement provider and every caller would have to guard against it";
+
+		if (first.Count() != second.Count())
+			return string.Format("Two consecutive resolves answered %1 and %2 posts - the AT section would gain or lose a team on a convergence pass that changed nothing",
+				first.Count().ToString(), second.Count().ToString());
+
+		for (int i = 0; i < first.Count(); i++)
+		{
+			float moved = vector.Distance(first[i].m_vPosition, second[i].m_vPosition);
+			if (moved > EPSILON)
+				return string.Format("Post %1 moved %2 m between two consecutive resolves of the same base", i.ToString(), moved.ToString());
+		}
+
+		PrintFormat("The live road-slot overwatch resolve answered %1 post(s) at this world's base, twice, identically", first.Count().ToString());
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The provider instance the shipped AT config carries.
+	//! \return It, or null when anything in the chain does not resolve.
+	protected OVT_RoadSlotOverwatchPlacementProvider FindShippedProvider()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager || !manager.m_DeploymentRegistry)
+			return null;
+
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(AT_CONFIG);
+		if (!config)
+			return null;
+
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
+			if (placed)
+				return OVT_RoadSlotOverwatchPlacementProvider.Cast(placed.m_Placement);
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return This world's first base centre, or the origin when there is none.
+	protected vector FindBasePosition()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
+			return "0 0 0";
+
+		return occupying.m_Bases[0].location;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A slot transform on a given heading - what a road slot's GetWorldTransform() answers.
+	//! \param[in] position Where the slot is.
+	//! \param[in] headingDeg Which way the road runs, in degrees.
+	//! \param[out] outMat The transform.
+	protected void BuildSlotTransform(vector position, float headingDeg, out vector outMat[4])
+	{
+		Math3D.AnglesToMatrix(Vector(headingDeg, 0, 0), outMat);
+		outMat[3] = position;
 	}
 }
 
