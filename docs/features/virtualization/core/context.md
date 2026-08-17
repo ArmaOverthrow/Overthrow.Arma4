@@ -69,6 +69,32 @@ appended payload field behind a version bump — and forbids renaming, re-signin
 anything already on the page. Every additive change lands here, dated, with the requester named.
 **Breaking** changes would get their own recorded note; there have been none.
 
+### 2026-08-17 — Manual-policy spawn guard on the modded `SCR_AIGroup` (behaviour bugfix)
+
+**Found by** `virtualization/movement`'s Init cases (the first tests ever to watch a registered group across seconds): a group registered with `spawnDistanceOverride = 0` (the documented "never materialise by proximity" Manual policy) **still materialised its members a few seconds after registration**. Vanilla enqueues a FULL spawn at entity init when the group prefab sets `m_bSpawnImmediately` (`SCR_AIGroup.c:2595-2601`), and the queue re-validates only OBSERVER presence at dispatch — a GM camera or the autotest camera qualifies — so the policy core stamped was ignored. The refusal cannot happen at init (the request is queued before core stamps mask/policy), so it lands at DISPATCH.
+
+**What changed** (`Scripts/Game/Modded/SCR_AIGroup.c` + `ForceSpawn`): masked (core-owned) groups whose policy is `Manual` refuse `ExpandOneMember`/`SpawnMembers` dispatches unless core armed the new `ArmOVTManualSpawn()` latch (armed by `ForceSpawn` before its `RequestSpawn`, cleared on `DespawnMembers` so every force spawn re-arms). `IsExpandComplete` answers **true** for the guarded condition so the queue books the request complete and drops it instead of retrying forever. Groups without a mask, and masked ProximityDriven groups, are byte-for-byte untouched.
+
+**Consequence:** `spawnDistanceOverride == 0` now means what api.md always said it means. Movement's three Init cases register with override 0 and rely on it (dormant by construction — the autotest camera can no longer materialise them mid-case).
+
+### 2026-08-17 — `GetCurrentPlanIndex(handle)` on the manager (play-test fix: live-handoff direction)
+
+**Requested by:** `virtualization/movement` (user-approved option A on Discord, during the §6 play-test). Play-test showed despawned groups resuming AWAY from their live waypoint: on a two-point cycling patrol both legs are the same line, so movement's position-only projection cannot recover direction and its tie-break always answers the outbound leg.
+
+**What was added** (`OVT_VirtualizationManagerComponent.c`, beside `GetAllHandles`): `int GetCurrentPlanIndex(int handle)` — matches `AIGroup.GetCurrentWaypoint()` by identity against `record.m_aOwnedWaypoints` and answers the plan index; the cycle entity (appended last when the plan cycles) answers 0; `-1` whenever the answer would be a guess (no record/entity/current waypoint, or an owned list that does not match the plan 1:1 because a point failed to build). Uses `ResolveGroup` (the safe entity path), never dereferences `m_Group` raw.
+
+**Why movement cannot do this itself:** its own acceptance bans waypoint/group identifiers in its directory (`AIWaypoint|SCR_AIGroup|m_aOwnedWaypoints` grep = 0) — the entity read had to live in core. Projection remains movement's fallback for loads, teleports and off-route deliveries.
+
+**Why it is not a breaking change:** pure read, nothing renamed or re-signed, no payload field, `CONFIG_STREAM_VERSION` unmoved, no existing call path changed.
+
+### 2026-08-17 — play-test bugfix: waypoint entities and the debug plan are now surface-snapped
+
+**Not an API change — a behaviour bugfix** (recorded here so the post-freeze core diff stays accounted for). User play-test report during `virtualization/movement` §6: "test group waypoints are always either inside the terrain or flying in the air."
+
+**What changed** (`OVT_VirtualizationManagerComponent.c`): `CreatePlannedWaypoint` snaps the spawned waypoint **entity**'s Y to `GetSurfaceY` (plans are authored in XZ with an arbitrary Y — a completion radius smaller than the Y error would make live AI unable to complete the waypoint); `RegisterDebugTestGroupAt` snaps the debug anchor and its 150 m far point at authoring time. The **plan payload is untouched** — positions still round-trip verbatim, no persistence claim moves, no signature changed, `CONFIG_STREAM_VERSION` unmoved.
+
+**Consequence for consumers:** author plans in XZ freely; the entity spawn corrects Y. A deliberately elevated waypoint (e.g. a tower post) is NOT supported through the plan path — if one is ever needed, that is a new additive ask, not a revert of this fix.
+
 ### 2026-08-17 — two prune hooks on `OVT_AmbientSpawnSourceConfig`
 
 **Requested by:** `virtualization/civilians` (feature #2 of the epic), Phase 1 — its implementation
@@ -107,6 +133,46 @@ entity list and the manager's entity→source reverse map. The entity is therefo
 a consumer sees it, and `ReleaseAmbientEntity()` on it is a no-op. That ordering is what makes the
 rule *leave the body, delete the companions* safe: a consumer deletes the pruned entity's waypoints
 and its emptied husk there, and deliberately leaves the corpse in the world.
+
+### 2026-08-17 — `GetAllHandles()` on the manager
+
+**Requested by:** `virtualization/movement` (feature #3 of the epic), Phase 2 — its implementation
+plan §3.7 and task T2.1. Built by that feature, in core's file.
+
+**What was added** (`Scripts/Game/GameMode/Virtualization/OVT_VirtualizationManagerComponent.c`,
+beside `FindGroupsBySystem` in the TRACKED GROUPS - QUERIES section):
+
+```c
+array<int> GetAllHandles();  //!< every registered handle; map order, NOT stable
+```
+
+Same shape as the two finders above it: allocate the result array, null-guard `m_mRecords` (so a
+client or a call before initialisation gets an empty array, never null), iterate, return. It has
+**no call site in core** and none anywhere else yet — `movement`'s tick, which is the requester, lands
+in that feature's Phase 3.
+
+**Why `FindGroupsBySystem` is not sufficient.** `movement` advances *every* registered dormant group
+whose plan has something to advance, whoever registered it. `ownerSystem` is a deliberately free-form,
+mod-extensible string (`api.md` §3) — there is no enumerable set of system names, and any list
+`movement` hard-coded would silently skip a consumer or a third-party mod's groups the moment one
+registered under a tag it had never heard of. Per-owner and per-system finders answer "which of *mine*
+are registered"; nothing on the frozen surface answered "what is registered".
+
+**Why it is not a breaking change.**
+
+- Nothing was renamed, no signature changed, no existing line of core was touched — the diff is the
+  method and its doc comment, 23 added lines and zero removed.
+- No persisted payload field was added, moved or re-meant, and `CONFIG_STREAM_VERSION` did not move.
+  The registry serializer neither reads nor writes anything new.
+- No behaviour changed anywhere: the method is a pure read over `m_mRecords` with no side effects, and
+  at the time it was added nothing called it.
+
+**The one contract this adds:** the returned order is the registry map's own and is **not stable** — a
+map has no ordering guarantee, and core's own ambient tick keeps a separate order array for exactly
+this reason (a round-robin over an unstable order can starve an entry forever). Ordering was
+deliberately left out of core: `movement` sorts the handles ascending in its own world-free maths,
+which works because handles come from a monotonic counter, so ascending order *is* registration order.
+A consumer that needs stability must do the same.
 
 ---
 

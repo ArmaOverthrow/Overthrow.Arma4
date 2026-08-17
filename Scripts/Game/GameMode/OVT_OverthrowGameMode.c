@@ -54,6 +54,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_DeploymentManagerComponent m_Deployment;
 	//! Reference to the virtualization manager component.
 	protected OVT_VirtualizationManagerComponent m_Virtualization;
+	//! Reference to the virtual movement manager component.
+	protected OVT_VirtualMovementManagerComponent m_VirtualMovement;
 	//! Reference to the town civilian ambience manager component.
 	protected OVT_CivilianAmbienceManagerComponent m_CivilianAmbience;
 	//! Reference to the tutorial manager component.
@@ -360,6 +362,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Virtualization");
 
 			m_Virtualization.PostGameStart();
+		}
+
+		// AFTER Virtualization: its own PostGameStart is what registers anything present at game start
+		// (core's debug test group today, a consumer's groups later), so the first movement pass already
+		// sees a populated registry.
+		if(m_VirtualMovement)
+		{
+			Print("[Overthrow] Starting Virtual Movement");
+
+			m_VirtualMovement.PostGameStart();
 		}
 
 		if(m_CivilianAmbience)
@@ -1469,6 +1481,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Virtualization");
 
 			m_Virtualization.Init(this);
+		}
+
+		// AFTER Virtualization: virtual movement reads that registry on every tick and must never be the
+		// thing that brings it into existence.
+		m_VirtualMovement = OVT_VirtualMovementManagerComponent.Cast(FindComponent(OVT_VirtualMovementManagerComponent));
+		if(m_VirtualMovement)
+		{
+			Print("[Overthrow] Initializing Virtual Movement");
+
+			m_VirtualMovement.Init(this);
 		}
 
 		// AFTER Virtualization: town civilians are registered on its ambient seam, so the registry it

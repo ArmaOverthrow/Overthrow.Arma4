@@ -166,6 +166,12 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
   }
+  OVT_VirtualizationManagerComponent "{6B4A1D3E00000010}" {
+   m_bDebugRegisterTestGroup 1
+   m_fDebugTestGroupOffset 200
+   m_sDebugTestGroupName "light_patrol"
+   m_iDebugTestGroupSpawnDistance 80
+  }
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
   }

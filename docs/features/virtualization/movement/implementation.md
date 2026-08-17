@@ -1,9 +1,9 @@
 # Virtualization Movement — Implementation Plan
 
-**Status:** Planning
+**Status:** Ready for Review (user play-test PASSED)
 **Started:** 2026-08-17
-**Target Completion:** TBD
-**Last Updated:** 2026-08-17 (planning session)
+**Target Completion:** 2026-08-17
+**Last Updated:** 2026-08-17 15:30 (all 4 phases + 3 play-test fixes; final gates Fast 190 / All 236; Workbench prefab check and the full §6 play-test incl. T4.5 confirmed green by the user — see context.md)
 
 **Epic:** `virtualization` (feature #3 of 5 — see `docs/features/virtualization/epic-overview.md`)
 **Requirements:** `docs/features/virtualization/movement/requirements.md` — authoritative, **amended 2026-08-17** (user decision: vehicle groups are never virtually moved; progress resume is stateless). Both amendments are recorded as [D2](#d2--infantry-only-by-construction-no-vehicle-flag-no-road-routing-user-amendment-2026-08-17) and [D3](#d3--progress-is-transient-and-re-derivable-no-serializer-user-amendment-2026-08-17).

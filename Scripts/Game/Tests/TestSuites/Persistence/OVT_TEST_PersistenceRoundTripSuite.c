@@ -4145,7 +4145,46 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroupsWiped_DoNotComeBack : SCR_Autot
 //! "the count came back", and the shipped registries are small enough that the first resolvable entry
 //! may be a two-man patrol - so every entry the faction defines is tried until one is big enough.
 //!
+//! ⚠ THE FIXTURE'S PLAN IS DELIBERATELY STATIONARY (`virtualization/movement` T3.1, finding F-A).
+//! THIS CASE ASSERTS PERSISTENCE, NOT MOTION - and virtual movement advances ANY dormant registered
+//! group whose plan has something to advance, including one a test registered. The plan below was two
+//! MOVE-class (PATROL) points 150 m apart, so the movement tick would walk this fixture across the
+//! multi-second save/reload window and turn the ±1 m position claim into a timing lottery. The points
+//! are therefore DEFEND, which is core's "this group belongs here" plan and is never advanced (D10:
+//! the plan IS the opt-in). Every payload claim is unchanged in number and strength - two distinct
+//! positions, two types, two params and m_bCycle all still round-trip - and the fixture's stillness is
+//! now a property of what it registers rather than of what happens to be ticking.
+//! If a future feature needs a MOVING fixture, register a second group for it; do not make this one
+//! move. Widening the tolerance was rejected: it would turn a precise claim into a timing lottery.
+//!
+//! EVERY OTHER RegisterGroup( SITE UNDER Scripts/Game/Tests/ WAS SWEPT AND IS SAFE (T3.1), and the two
+//! properties that make a fixture safe are worth knowing when writing a new one:
+//!   (a) it registers a null / empty / DEFEND-only plan - there is nothing for movement to advance; or
+//!   (b) it registers and unregisters inside ONE frame - a CallLater tick cannot interleave.
+//! Init tier: RegisterRefusesUnknownComposition (both registrations are REFUSED, nothing is booked),
+//! RegisterBuildsDormantGroup, GetAllHandlesEnumeratesRegistry, DeathsFlipMaskAndWipeRecord and the
+//! mask-driven-refill case all pass (a) AND (b); the waypoint-ownership case registers a REAL movable
+//! plan (PATROL + MOVE, 120 m, cycling) but tears it down in the same frame, so it passes (b) and
+//! asserts nothing about position. Persistence tier: the wiped-group case, its resurrection group and
+//! this case's BOGUS group all register a null plan. This fixture was the only unsafe site in the tree.
+//!
+//! THE MOVED-POSITION CLAIM (`virtualization/movement` T3.2). Before the save, the group is deliberately
+//! relocated with SetPosition() and the case asserts it comes back at the MOVED position and NOT at the
+//! registration one. That is the epic-level property movement depends on - core's SnapshotRegistry reads
+//! the LIVE group origin, so whatever moved a group is what a save keeps - asserted here without a single
+//! movement-specific line, and timing-free: a direct write, not a tick.
+//!
 //! PROVEN ABLE TO FAIL (fail proofs recorded, one per claim that could rot independently):
+//!   - THE MOVED-POSITION PAIR. Delete the `virtualization.SetPosition(...)` call in MutateAndSave()
+//!     and the pre-save guard goes red ("the group never moved") - the fixture cannot silently stop
+//!     being a moved one. Keep the move and snapshot a registration-time value instead - change
+//!     `entry.position = GetPosition(handle)` in SnapshotRegistry() (`:984`) to
+//!     `entry.position = record.m_Plan.m_aPositions[0]`, which for this fixture IS the registration
+//!     position - and the group comes back 42 m from where the save should have put it: the
+//!     saved-position claim goes red and the registration-position claim goes red with it, naming
+//!     exactly which of the two the restore fell back to. (The second claim is deliberately implied by
+//!     the first while the fixture really moves; its job is to make that "really moves" self-enforcing,
+//!     so nobody can quietly delete the move and leave a claim that asserts a coincidence.);
 //!   - drop the `entry.position = GetPosition(handle)` write in SnapshotRegistry() (or the
 //!     `record.m_vPosition = entry.position` read in ApplyPersistedRecord) and the group is re-created
 //!     at the world origin: the position assertion goes red;
@@ -4176,8 +4215,15 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 	//! registration is still a normal ProximityDriven one).
 	static const int SPAWN_DISTANCE_OVERRIDE = 23;
 
-	//! Patrol completion radius carried in the plan's float array - the one float in the payload.
+	//! The per-waypoint float parameter carried in the plan's float array - the one float in the payload.
+	//! A DEFEND waypoint's param is its completion radius, so this still round-trips as a real value.
 	static const float WAYPOINT_RADIUS = 37;
+
+	//! How far the group is deliberately moved before the save (T3.2). Big enough that the ±1 m claim
+	//! below cannot confuse "came back moved" with "came back where it was registered", and applied on
+	//! Z only so the assertion reads as a plain offset. Nothing ground-snaps a dormant group's origin,
+	//! so the value that goes in is the value that must come back.
+	static const vector MOVE_OFFSET = "0 0 42";
 
 	//! Tier stamped on the registration. Never the default, so a restore that forgot importance and
 	//! fell back to NORMAL is visible.
@@ -4192,6 +4238,11 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 	protected int m_iBogusHandle = -1;
 	protected int m_iRoster;
 	protected int m_iDeadSlot = -1;
+
+	//! Where the group was REGISTERED - the position the save must NOT come back with (T3.2).
+	protected vector m_vRegisteredPosition;
+
+	//! Where the group actually was when the save was taken: the registration position plus MOVE_OFFSET.
 	protected vector m_vSavedPosition;
 
 	//------------------------------------------------------------------------------------------------
@@ -4244,7 +4295,23 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 		}
 
 		m_iRoster = virtualization.GetMemberCount(m_iHandle);
+		m_vRegisteredPosition = virtualization.GetPosition(m_iHandle);
+
+		// T3.2 - MOVE THE GROUP BEFORE THE SAVE. A registered group's origin does not stay where a
+		// consumer first put it: `virtualization/movement` walks dormant groups, and core's snapshot
+		// reads the LIVE origin, so what a save keeps is wherever the group has got to. Written
+		// DIRECTLY rather than by waiting for a tick, so the claim is timing-free and holds whether or
+		// not any movement code is running.
+		virtualization.SetPosition(m_iHandle, m_vRegisteredPosition + MOVE_OFFSET);
 		m_vSavedPosition = virtualization.GetPosition(m_iHandle);
+
+		if (vector.Distance(m_vSavedPosition, m_vRegisteredPosition) <= 1)
+		{
+			virtualization.UnregisterGroup(m_iHandle);
+			SetFailure("SetPosition left the group at %1 (registered at %2) - the group never moved, so 'the MOVED position is what round-trips' would be asserted against nothing",
+				m_vSavedPosition.ToString(), m_vRegisteredPosition.ToString());
+			return true;
+		}
 
 		// The LAST slot, so the survivor mask is not simply "the first N are alive" - which is exactly
 		// what vanilla's own count-based refill would produce, and what D2 exists to beat.
@@ -4465,6 +4532,14 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 			return string.Format("The restored group is at %1, saved at %2 - a re-created group that ignores the saved position moves every garrison in the campaign",
 				virtualization.GetPosition(m_iHandle).ToString(), m_vSavedPosition.ToString());
 
+		// T3.2 - AND IT IS THE MOVED POSITION, NOT THE REGISTRATION ONE. A snapshot that read the
+		// registration position instead of the live origin would satisfy nothing above this line only by
+		// luck; this says so outright, and it is the property `virtualization/movement` rests on - the
+		// tick's writes are what a save keeps.
+		if (vector.Distance(virtualization.GetPosition(m_iHandle), m_vRegisteredPosition) <= 1)
+			return string.Format("The restored group came back at its REGISTRATION position %1 rather than the %2 it was moved to before the save - a save that keeps where a group was first put, not where it actually is, freezes every moved group back to its origin on load",
+				m_vRegisteredPosition.ToString(), m_vSavedPosition.ToString());
+
 		array<int> byOwner = virtualization.FindGroupsByOwner(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, OWNER_KEY);
 		if (byOwner.Find(m_iHandle) == -1)
 			return string.Format("FindGroupsByOwner does not resolve the restored handle %1 - the reclaim seam every consumer uses after a load is broken even though the record exists",
@@ -4521,9 +4596,9 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 		if (!record.m_Plan.m_bCycle)
 			return "The restored waypoint plan is not cycling - the patrol would run its legs once and stop";
 
-		if (record.m_Plan.m_aTypes[0] != OVT_EVirtualWaypointType.PATROL)
-			return string.Format("The restored waypoint type is %1, expected PATROL (%2)",
-				record.m_Plan.m_aTypes[0].ToString(), OVT_EVirtualWaypointType.PATROL.ToString());
+		if (record.m_Plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
+			return string.Format("The restored waypoint type is %1, expected DEFEND (%2)",
+				record.m_Plan.m_aTypes[0].ToString(), OVT_EVirtualWaypointType.DEFEND.ToString());
 
 		if (Math.AbsFloat(record.m_Plan.m_aParams[0] - WAYPOINT_RADIUS) > 0.01)
 			return string.Format("The restored waypoint parameter is %1, expected %2",
@@ -4580,8 +4655,21 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! A two-leg cycling patrol, so the payload's vector, int and float parallel arrays and its cycle
-	//! flag are all exercised by the round trip.
+	//! A two-point cycling DEFEND plan, so the payload's vector, int and float parallel arrays and its
+	//! cycle flag are all exercised by the round trip.
+	//!
+	//! ⚠ THE TYPES ARE DEFEND ON PURPOSE (`virtualization/movement` T3.1 / D12, finding F-A). They were
+	//! PATROL, which is a movable type: the movement tick advances every dormant registered group whose
+	//! plan has something to advance, so this fixture would drift along its own 150 m leg while the case
+	//! waited out a save and a reload, and the ±1 m position claim in Verify() would go red for reasons
+	//! that have nothing to do with persistence. DEFEND is core's "this group belongs here" plan and is
+	//! never advanced, which makes this fixture's stillness a property of the fixture rather than of
+	//! whatever else happens to be ticking in the world.
+	//!
+	//! The payload claims are UNCHANGED in number and strength: still two distinct positions 150 m
+	//! apart, still two types, still two float params, still m_bCycle - and still three real waypoint
+	//! entities on the re-created group (two legs plus the cycle), because core builds a DEFEND
+	//! waypoint from a DEFEND plan entry exactly as it builds a patrol one from a PATROL entry.
 	//! \param[in] position Where the group is registered.
 	//! \return The plan.
 	protected OVT_VirtualWaypointPlan BuildPlan(vector position)
@@ -4589,11 +4677,11 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
 
 		plan.m_aPositions.Insert(position);
-		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.DEFEND);
 		plan.m_aParams.Insert(WAYPOINT_RADIUS);
 
 		plan.m_aPositions.Insert(position + Vector(0, 0, 150));
-		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
+		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.DEFEND);
 		plan.m_aParams.Insert(WAYPOINT_RADIUS);
 
 		plan.m_bCycle = true;

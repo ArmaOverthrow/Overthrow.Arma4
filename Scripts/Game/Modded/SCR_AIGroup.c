@@ -72,6 +72,11 @@ modded class SCR_AIGroup
 	//! bool, not the entity).
 	protected int m_iOVT_PendingSlot = -1;
 
+	//! Latch: core's ForceSpawn explicitly asked this MANUAL-policy group to materialise. Armed by
+	//! ArmOVTManualSpawn() before the RequestSpawn, honoured at queue-dispatch time (the request sits
+	//! in the engine queue for seconds), cleared on DespawnMembers so every force spawn re-arms.
+	protected bool m_bOVT_ManualSpawnArmed;
+
 	//------------------------------------------------------------------------------------------------
 	//! Arms the persistence exemption for the NEXT group entity that runs EOnInit.
 	//!
@@ -165,10 +170,42 @@ modded class SCR_AIGroup
 	//! Falls through to vanilla for every group core does not own, so unregistered groups (garrisons,
 	//! QRFs, deployments, recruit squads, other mods) are untouched.
 	//! \return True when a member was created; false at capacity or on a transient spawn failure.
+	//------------------------------------------------------------------------------------------------
+	//! Core's ForceSpawn calls this before RequestSpawn so the dispatch is let through. Inert for
+	//! ProximityDriven groups (the guard below never engages for them).
+	void ArmOVTManualSpawn()
+	{
+		m_bOVT_ManualSpawnArmed = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! True when every spawn dispatch must be refused: this group is core-owned (masked), stamped
+	//! "never materialise by proximity" (Manual policy, spawnDistanceOverride 0), and core has not
+	//! armed a force spawn.
+	//!
+	//! WHY THIS EXISTS. Vanilla enqueues a FULL spawn at entity init when the group prefab sets
+	//! m_bSpawnImmediately (SCR_AIGroup.c:2595-2601), and the queue re-validates only OBSERVER
+	//! presence at dispatch time - so any observer (a GM camera, the autotest camera) materialises
+	//! the group seconds after registration regardless of the policy core stamped. The refusal has
+	//! to happen at DISPATCH, not at init: the init-time request is queued before core has stamped
+	//! the mask or the policy.
+	protected bool RefusesUnrequestedManualSpawn()
+	{
+		return HasOVTSlotMask()
+			&& GetLifecyclePolicy() == SCR_EAIGroupLifecyclePolicy.Manual
+			&& !m_bOVT_ManualSpawnArmed;
+	}
+
 	override bool ExpandOneMember()
 	{
 		if (!HasOVTSlotMask())
 			return super.ExpandOneMember();
+
+		// Manual-policy guard: refuse the dispatch outright. IsExpandComplete answers TRUE for the
+		// same condition so the dispatcher books the request as complete and drops it, rather than
+		// retrying a group that will never accept.
+		if (RefusesUnrequestedManualSpawn())
+			return false;
 
 		if (!m_aUnitPrefabSlots || m_aUnitPrefabSlots.IsEmpty())
 			return false;
@@ -221,6 +258,11 @@ modded class SCR_AIGroup
 		if (!HasOVTSlotMask())
 			return super.IsExpandComplete();
 
+		// The other half of the Manual-policy guard (see ExpandOneMember): "complete" makes the
+		// queue drop the request instead of retrying it every dispatch forever.
+		if (RefusesUnrequestedManualSpawn())
+			return true;
+
 		return OVT_VirtualizationMath.NextSlotToSpawn(m_aOVT_SlotAlive, m_aOVT_SpawnedSlots) < 0;
 	}
 
@@ -236,6 +278,10 @@ modded class SCR_AIGroup
 			super.SpawnMembers();
 			return;
 		}
+
+		// Manual-policy guard - the synchronous fallback path (non-Chimera worlds) refuses too.
+		if (RefusesUnrequestedManualSpawn())
+			return;
 
 		if (GetAgentsCount() > 0)
 			return;
@@ -263,6 +309,10 @@ modded class SCR_AIGroup
 		m_iOVT_PendingSlot = -1;
 		if (m_aOVT_SpawnedSlots)
 			m_aOVT_SpawnedSlots.Clear();
+
+		// A force-spawned Manual group goes back to refusing dispatches the moment it despawns -
+		// every ForceSpawn re-arms.
+		m_bOVT_ManualSpawnArmed = false;
 
 		ReassertOVTDormantCounts();
 	}

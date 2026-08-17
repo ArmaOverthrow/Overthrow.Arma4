@@ -8,6 +8,16 @@ are all wired. Persistence is **Route B**: core re-creates its own group entitie
 (`IsEntityDead`, `OnEntityPruned`), requested by `virtualization/civilians` Phase 1 and recorded in
 `context.md`. See [§4](#the-config-classes-the-modder-seam). Nothing was renamed, re-signed or
 re-meant, and every source written against the original five methods behaves identically.
+**Additively extended again:** 2026-08-17 — the second additive change since the freeze: one new
+query on the manager, `array<int> GetAllHandles()`, requested by `virtualization/movement` Phase 2
+and recorded in `context.md`. See [§3](#queries-and-reclaim) and
+[§10](#10-entry-points-per-sibling-feature). Nothing was renamed, re-signed or re-meant, no payload
+field moved, and no existing call path changed behaviour — the method had no caller at all when it
+landed.
+**Additively extended a third time:** 2026-08-17 — `int GetCurrentPlanIndex(handle)`, requested by
+`virtualization/movement` for the live→dormant adoption-direction play-test fix (coincident-leg routes) and
+recorded in `context.md`. Same discipline: nothing renamed, re-signed or re-meant, no payload field
+moved, pure read.
 **Owner:** `virtualization/core`
 **Consumers:** `civilians`, `movement`, `integration`, `base-defense-migration` — see
 [§10](#10-entry-points-per-sibling-feature) for the exact surface each of them programs against
@@ -42,7 +52,10 @@ allowed; renaming, re-signing or re-meaning anything here is not.
    [→ D2 finding 3](#d2--slot-accurate-survivor-truth-the-contract-that-matters)
 5. **`spawnDistanceOverride == 0` is the `Manual` policy** (never materialise by proximity), and
    **force is a nudge, not a pin** — `ForceSpawn` can materialise nobody and the next lifecycle tick
-   can despawn what it did. [→ §3](#3-tracked-groups--persisted-engine-lifecycle)
+   can despawn what it did. Since 2026-08-17 the policy is enforced at spawn-queue dispatch too: a
+   masked Manual group refuses every dispatch core did not arm (a prefab's `m_bSpawnImmediately`
+   init request would otherwise materialise it for any observer). `ForceSpawn` arms the exception.
+   [→ §3](#3-tracked-groups--persisted-engine-lifecycle)
 
 ---
 
@@ -192,6 +205,8 @@ OVT_VirtualGroupRecord GetRecord(int handle);   //!< server-side read access; do
 
 array<int> FindGroupsByOwner(string ownerSystem, string ownerKey);
 array<int> FindGroupsBySystem(string ownerSystem);
+array<int> GetAllHandles();   //!< every registered handle; MAP order — not stable, sort if you need one
+int GetCurrentPlanIndex(int handle);   //!< plan index of the group's LIVE current waypoint; -1 when unknowable (see context.md 2026-08-17)
 ```
 
 ### State (safe while dormant, and safe when there is no entity at all)
@@ -865,6 +880,8 @@ namespace from group handles. A source near campaign start may stay permanently 
 | `bool IsSpawned(handle)` | Gate your tick: advance dormant groups, leave materialised ones to their waypoints and their AI. |
 | `OVT_VirtualGroupRecord.m_aOwnedWaypoints` (via `GetRecord`) | The waypoint entities core owns for that group. **Read them; do not delete them** — core's unregister/wipe path is what deletes them (D6). |
 | `array<int> FindGroupsBySystem(ownerSystem)` | Iterate the set you are advancing without holding your own list. |
+| `array<int> GetAllHandles()` (added 2026-08-17 at your request) | Iterate every registered group — owner systems are free-form strings, so `FindGroupsBySystem` cannot enumerate them. The order is the registry map's and is **not stable**: a round-robin over it can starve a handle, so sort what you get back. |
+| `int GetCurrentPlanIndex(handle)` (added 2026-08-17, play-test fix) | The plan index of the group's **live** current waypoint, matched by entity identity against the owned waypoints (cycle entity → 0). Use it on live→dormant adoption: on a route whose legs coincide, position-only projection cannot recover direction. `-1` = unknowable — fall back to your own heuristic. |
 
 Plan semantics you must respect: a `OVT_VirtualWaypointPlan` is **registration-time input only** —
 the `AIWaypoint` entities built from it are the persistent truth, and the plan is re-saved verbatim.

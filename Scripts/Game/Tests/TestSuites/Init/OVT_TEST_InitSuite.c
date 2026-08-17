@@ -3843,6 +3843,845 @@ class OVT_TEST_Init_Virtualization_RegisterBuildsDormantGroup : SCR_AutotestCase
 }
 
 //------------------------------------------------------------------------------------------------
+//! GetAllHandles() enumerates the WHOLE registry, and stops returning a handle the moment it is
+//! unregistered.
+//!
+//! The one additive seam `virtualization/movement` asked core for (its plan §3.7, core's dated note
+//! in context.md). A tick that advances EVERY dormant registered group cannot be built on
+//! FindGroupsByOwner/FindGroupsBySystem, because ownerSystem is a deliberately free-form,
+//! mod-extensible string: there is no set of system names a consumer could enumerate. Three things
+//! can go silently wrong, so each gets its own assertion:
+//!   - the enumeration misses a registered handle (some groups would simply never be advanced, and
+//!     nothing else in the tree would notice - a frozen patrol looks like no patrol),
+//!   - the count disagrees with GetGroupCount() (both read the same map, so a disagreement means one
+//!     of the two is lying about what is registered),
+//!   - an unregistered handle keeps coming back (a consumer's tick would keep working a record that
+//!     no longer exists, for the rest of the session).
+//!
+//! TWO groups are registered, not one, because a single-element answer cannot tell "returns the whole
+//! registry" apart from "returns the newest record". Nothing here asserts the array is exactly two
+//! elements long or that the two handles arrive in any particular order: the claims are containment
+//! and the delta against GetGroupCount(), so a world that already holds registered groups (or a future
+//! consumer that registers some) cannot make this case flap. The order genuinely is not stable - it is
+//! a map's - and that is the documented contract, so asserting an order would assert a lie.
+//!
+//! Safe at Init tier for the same reason the registration case above it is (the Phase 1 T1.4 verdict):
+//! an unobserved ProximityDriven group stays memberless, so nothing materialises while the case runs.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): return the
+//! empty array from GetAllHandles() before its foreach and the containment assertion goes red naming
+//! the missing handle; add a SECOND `handles.Insert(handle)` inside that foreach and containment
+//! still passes while the GetGroupCount() agreement assertion goes red on the doubled count; delete
+//! the `m_mRecords.Remove(handle)` line from UnregisterGroup (`:1493`) and the post-cleanup
+//! assertion goes red instead, naming the handle that outlived its record.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_GetAllHandlesEnumeratesRegistry : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so the registry cannot be enumerated");
+			return true;
+		}
+
+		int before = virtualization.GetGroupCount();
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		int first = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "handles_case_a",
+			factionKey, groupName, position);
+		int second = virtualization.RegisterGroup(OVT_TEST_VirtualizationFixture.OWNER_SYSTEM, "handles_case_b",
+			factionKey, groupName, position);
+
+		string failure = Verify(virtualization, first, second, before);
+
+		// Cleanup BEFORE reporting, so a red assertion cannot leak two records into the cases after it.
+		if (first != -1)
+			virtualization.UnregisterGroup(first);
+
+		if (second != -1)
+			virtualization.UnregisterGroup(second);
+
+		// Only worth asking once the registered half held - otherwise the first broken claim is the
+		// one worth reporting.
+		if (failure == "")
+			failure = VerifyGone(virtualization, first, second, before);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("GetAllHandles() enumerated the whole registry including handles %1 and %2, and dropped both on unregister",
+			first.ToString(), second.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when the enumeration holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization, int first, int second, int before)
+	{
+		if (first == -1 || second == -1)
+			return string.Format("RegisterGroup returned %1 / %2 for a composition the faction registry resolves - there is nothing to enumerate",
+				first.ToString(), second.ToString());
+
+		if (first == second)
+			return string.Format("Both registrations returned handle %1 - handles come from a monotonic counter and are never reused",
+				first.ToString());
+
+		array<int> handles = virtualization.GetAllHandles();
+		if (!handles)
+			return "GetAllHandles() returned null - every finder on this manager answers with an empty array instead, so a caller may not have to null-check";
+
+		if (handles.Find(first) == -1)
+			return string.Format("GetAllHandles() returned %1 handle(s) and handle %2 is not among them, although IsRegistered() answers %3 for it",
+				handles.Count().ToString(), first.ToString(), virtualization.IsRegistered(first).ToString());
+
+		if (handles.Find(second) == -1)
+			return string.Format("GetAllHandles() returned %1 handle(s) and handle %2 is not among them, although IsRegistered() answers %3 for it",
+				handles.Count().ToString(), second.ToString(), virtualization.IsRegistered(second).ToString());
+
+		if (handles.Count() != virtualization.GetGroupCount())
+			return string.Format("GetAllHandles() returned %1 handle(s) but GetGroupCount() says %2 - the two read the same registry, so one of them is wrong",
+				handles.Count().ToString(), virtualization.GetGroupCount().ToString());
+
+		if (handles.Count() != before + 2)
+			return string.Format("GetAllHandles() returned %1 handle(s) after two registrations, expected the %2 this case started with plus 2",
+				handles.Count().ToString(), before.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when both handles have really left the enumeration.
+	protected string VerifyGone(notnull OVT_VirtualizationManagerComponent virtualization, int first, int second, int before)
+	{
+		array<int> handles = virtualization.GetAllHandles();
+		if (!handles)
+			return "GetAllHandles() returned null after both records were unregistered";
+
+		if (handles.Find(first) != -1)
+			return string.Format("GetAllHandles() still returns handle %1 after UnregisterGroup - a consumer's tick would keep working a record that no longer exists",
+				first.ToString());
+
+		if (handles.Find(second) != -1)
+			return string.Format("GetAllHandles() still returns handle %1 after UnregisterGroup - a consumer's tick would keep working a record that no longer exists",
+				second.ToString());
+
+		if (handles.Count() != before)
+			return string.Format("GetAllHandles() returned %1 handle(s) after unregistering both, expected the %2 this case started with",
+				handles.Count().ToString(), before.ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared fixture for the three virtual-MOVEMENT cases below (`virtualization/movement` Phase 4).
+//!
+//! Separate from OVT_TEST_VirtualizationFixture on purpose: these cases are consumers of core rather
+//! than of the movement manager's internals, and they need two things the registration cases never do
+//! - a leg that is entirely on LAND, and a plan whose types decide whether the group may walk at all.
+//!
+//! ⚠ WHY THE LEG HAS TO BE PICKED, NOT ASSUMED. Movement's water rule (D6) advances the virtual
+//! accumulator through water but WRITES NOTHING while the accumulator is over it, so a leg pointed
+//! into a bay would leave the group's origin exactly where it started - a false red for "the tick
+//! never advanced". IsOceanAtPosition is the same predicate the manager uses, so a leg this fixture
+//! accepts is one the manager will write along.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_VirtualMovementFixture
+{
+	//! Owner system tag, so a leaked record is obvious in a log and cannot be confused with the
+	//! registration cases' own.
+	static const string OWNER_SYSTEM = "test_virtual_movement";
+
+	//! Leg length in metres. Far enough that ~10 s of walking at the default 1.5 m/s cannot arrive
+	//! (ARRIVAL_RADIUS_M is 10 m), so "moved less than the whole leg" stays a real claim.
+	static const float LEG_LENGTH_M = 200;
+
+	//! Wall-clock observation window in ms. At the default 2000 ms cadence that is ~5 passes, and the
+	//! FIRST pass over a handle only derives its state (its dt is 0 by construction), so at the default
+	//! 1.5 m/s the group has ~4 advances - around 12 m - to be seen moving. Bounded, and NOT a retry
+	//! budget: each case asserts exactly once, when it has its answer or the window is spent.
+	static const float OBSERVE_WINDOW_MS = 10000;
+
+	//------------------------------------------------------------------------------------------------
+	//! A point LEG_LENGTH_M away from origin whose whole leg is on land.
+	//!
+	//! Eight compass directions are tried in turn and each candidate leg is sampled at five points; the
+	//! first leg with no ocean sample wins.
+	//! \param[in] origin Where the group is registered.
+	//! \return The target point, or vector.Zero when this world offers no all-land leg from here.
+	static vector PickLandTarget(vector origin)
+	{
+		array<vector> directions = new array<vector>();
+		directions.Insert(Vector(1, 0, 0));
+		directions.Insert(Vector(0, 0, 1));
+		directions.Insert(Vector(-1, 0, 0));
+		directions.Insert(Vector(0, 0, -1));
+		directions.Insert(Vector(0.7071, 0, 0.7071));
+		directions.Insert(Vector(-0.7071, 0, 0.7071));
+		directions.Insert(Vector(0.7071, 0, -0.7071));
+		directions.Insert(Vector(-0.7071, 0, -0.7071));
+
+		foreach (vector direction : directions)
+		{
+			vector candidate = origin;
+			candidate[0] = origin[0] + direction[0] * LEG_LENGTH_M;
+			candidate[2] = origin[2] + direction[2] * LEG_LENGTH_M;
+
+			if (LegIsOnLand(origin, candidate))
+				return candidate;
+		}
+
+		return vector.Zero;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] from Leg start.
+	//! \param[in] to Leg end.
+	//! \return True when five evenly spaced samples along the leg are all on land.
+	static bool LegIsOnLand(vector from, vector to)
+	{
+		for (int sample = 0; sample <= 4; sample++)
+		{
+			float fraction = sample / 4.0;
+
+			vector point = from;
+			point[0] = from[0] + (to[0] - from[0]) * fraction;
+			point[2] = from[2] + (to[2] - from[2]) * fraction;
+
+			if (OVT_WorldUtils.IsOceanAtPosition(point))
+				return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A two-point plan of one waypoint type.
+	//!
+	//! The TYPE is the whole experiment: PATROL/MOVE make the plan movable and DEFEND makes it
+	//! stationary, which is the D10 opt-in contract the two cases below assert from either side. The
+	//! plan is deliberately NOT cycling - two points and a ping-pong are all the route these cases
+	//! need, and a cycling plan would add a third (closing) leg to reason about.
+	//! \param[in] first Where the group is registered.
+	//! \param[in] second The far point.
+	//! \param[in] type OVT_EVirtualWaypointType applied to both points.
+	//! \return A fresh plan.
+	static OVT_VirtualWaypointPlan BuildPlan(vector first, vector second, int type)
+	{
+		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
+
+		plan.m_aPositions.Insert(first);
+		plan.m_aTypes.Insert(type);
+		plan.m_aParams.Insert(25);
+
+		plan.m_aPositions.Insert(second);
+		plan.m_aTypes.Insert(type);
+		plan.m_aParams.Insert(25);
+
+		plan.m_bCycle = false;
+
+		return plan;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE MOVEMENT TICK ACTUALLY ADVANCES A DORMANT GROUP, TOWARD ITS PLAN.
+//!
+//! The one end-to-end claim of `virtualization/movement`: it proves the enumeration (GetAllHandles),
+//! the round-robin slice, the lazy state derivation, the per-group dt, the arrival maths and the
+//! ground-snapped write are all wired together and installed on the game mode. Every other automated
+//! case in the feature asserts one of those pieces in isolation, and a feature whose pieces all work
+//! while nothing moves is exactly the frozen-world defect it exists to remove.
+//!
+//! WHAT IS ASSERTED, AND WHY IT IS TOLERANCE-BASED. A group is registered with a two-point PATROL/MOVE
+//! plan whose far point is 200 m away, and the case then polls for up to 10 s of wall clock:
+//!   - the XZ displacement from the registered position exceeds 1 m (it MOVED - and 1 m is comfortably
+//!     above the ground snap, which only ever changes Y, and above floating-point noise),
+//!   - the displacement is LESS than the whole leg (it did not teleport to the target, which is what a
+//!     broken step clamp or an unclamped dt would look like),
+//!   - it ends up CLOSER to the target than it started (it moved TOWARD the plan, not merely somewhere
+//!     - a projection that picked the wrong leg would still show displacement).
+//! No exact distance boundary is asserted anywhere: vector.Distance is +1 ULP off at 1000 m and 2000 m,
+//! and the step size depends on how many passes the window happened to contain.
+//!
+//! ⚠ THE FIRST PASS OVER A HANDLE CANNOT MOVE IT. State is derived on the first touch and stamped with
+//! the current world time, so its dt - and therefore its step - is 0 by construction. The window is
+//! sized for several passes after that one.
+//!
+//! The leg is picked to be entirely on LAND (see the fixture): movement's water rule writes nothing
+//! while its accumulator is over water, so a leg into a bay would look exactly like a dead tick.
+//!
+//! CLEANUP BEFORE REPORTING, the suite's own rule and doubly important here: this is the one case in
+//! the tree that deliberately registers a group that MOVES, and a red assertion must not leak it into
+//! the cases after it.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): comment out
+//! the `EnsureMovementTick()` call in OVT_VirtualMovementManagerComponent.PostGameStart() and the
+//! displacement assertion goes red naming the window and the tracked count; return early from
+//! WriteAdvance() before its SetPosition and it goes red the same way while the state map still fills;
+//! replace the AdvanceTowardsXZ target with `plan.m_aPositions[0]` and the "closer to its target"
+//! assertion goes red while the displacement one still passes.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup : SCR_AutotestCaseBase
+{
+	//! XZ metres the group must cover to count as advanced.
+	static const float MIN_DISPLACEMENT_M = 1;
+
+	protected int m_iPhase;
+	protected int m_iHandle = -1;
+	protected float m_fDeadlineMs;
+
+	//! Where the group actually was once registered (NOT the requested position - core ground-snaps).
+	protected vector m_vStart;
+
+	//! The far point of the plan; the direction "toward" is measured against.
+	protected vector m_vTarget;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		return AwaitAdvance();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers the walking group and opens the observation window.
+	//! \return True when the case is already finished (always a named failure at this phase).
+	protected bool Arrange()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		if (!OVT_Global.GetVirtualMovement())
+		{
+			SetFailure("OVT_Global.GetVirtualMovement() is null - the movement manager is missing from the game-mode prefab, so no registered group can ever advance");
+			return true;
+		}
+
+		// Init-tier worlds never press Start (RequiresStartedCampaign() is false for this suite), so
+		// DoStartGame()/PostGameStart() never ran here and the movement CallLater was never installed.
+		// PostGameStart() is public and idempotent (m_bTickRunning latch), so the case installs the
+		// exact tick it is about to assert against - without it the group sits still and this case
+		// reds with "the tick is not advancing registered groups at all".
+		OVT_Global.GetVirtualMovement().PostGameStart();
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+		{
+			SetFailure("There is no world to walk a group across");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a walking group cannot be registered");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+		m_vTarget = OVT_TEST_VirtualMovementFixture.PickLandTarget(position);
+
+		if (m_vTarget == vector.Zero)
+		{
+			SetFailure(string.Format("No %1 m leg out of %2 is entirely on land in this world, so movement's water rule would veto every write and 'the group moved' could not be asserted",
+				OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M.ToString(), position.ToString()));
+			return true;
+		}
+
+		// spawnDistanceOverride 0 = the MANUAL lifecycle policy: the engine never materialises the
+		// group by proximity. DORMANT BY CONSTRUCTION - the autotest camera is an observer (core's
+		// Phase 1 spike: observers are not just players) and at the global ring it can spawn a test
+		// group's members whenever it happens to sit close enough, at which point the IsSpawned gate
+		// correctly refuses to advance it and this case reds with "not advancing at all". That race
+		// was real: it was won by luck until 2026-08-17 and then lost deterministically.
+		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_walks",
+			factionKey, groupName, position,
+			OVT_TEST_VirtualMovementFixture.BuildPlan(position, m_vTarget, OVT_EVirtualWaypointType.PATROL), 0);
+
+		if (m_iHandle == -1)
+		{
+			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so there is nothing to advance");
+			return true;
+		}
+
+		m_vStart = virtualization.GetPosition(m_iHandle);
+		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the group has visibly moved, or the window is spent.
+	//! \return True when the case is finished.
+	protected bool AwaitAdvance()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		BaseWorld world = GetGame().GetWorld();
+
+		if (!virtualization || !world)
+		{
+			CleanUp();
+			SetFailure("The virtualization manager or the world went away while the case was watching a group walk");
+			return true;
+		}
+
+		vector current = virtualization.GetPosition(m_iHandle);
+		float moved = OVT_VirtualMovementMath.DistanceXZ(current, m_vStart);
+		bool expired = world.GetWorldTime() >= m_fDeadlineMs;
+
+		if (moved <= MIN_DISPLACEMENT_M && !expired)
+			return false;
+
+		string failure = Verify(current, moved);
+
+		// Cleanup BEFORE reporting: this case registers the one group in the tree that deliberately
+		// MOVES, and a red assertion must not leak it into the cases after it.
+		CleanUp();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("The movement tick walked a dormant group %1 m of its %2 m leg within the observation window",
+			moved.ToString(), OVT_VirtualMovementMath.DistanceXZ(m_vStart, m_vTarget).ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] current Where the group is now.
+	//! \param[in] moved XZ metres covered since registration.
+	//! \return An empty string when the group walked toward its plan, or the first broken claim.
+	protected string Verify(vector current, float moved)
+	{
+		float leg = OVT_VirtualMovementMath.DistanceXZ(m_vStart, m_vTarget);
+
+		if (moved <= MIN_DISPLACEMENT_M)
+		{
+			int tracked = 0;
+			OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
+			if (movement)
+				tracked = movement.GetTrackedCount();
+
+			return string.Format("A dormant group with a movable %1 m plan moved %2 m in %3 ms (%4 handle(s) tracked) - the tick is not advancing registered groups at all",
+				leg.ToString(), moved.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString(), tracked.ToString());
+		}
+
+		if (moved >= leg)
+			return string.Format("The group covered %1 m of a %2 m leg - a single pass may never cover the whole route, which is what an unclamped dt or a broken step clamp would do",
+				moved.ToString(), leg.ToString());
+
+		if (OVT_VirtualMovementMath.DistanceXZ(current, m_vTarget) >= leg)
+			return string.Format("The group moved %1 m but is %2 m from its target, no closer than the %3 m it started at - it is walking somewhere, just not toward its plan",
+				moved.ToString(), OVT_VirtualMovementMath.DistanceXZ(current, m_vTarget).ToString(), leg.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters the walking group on every exit path.
+	protected void CleanUp()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization && m_iHandle != -1)
+			virtualization.UnregisterGroup(m_iHandle);
+
+		m_iHandle = -1;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A DEFEND-ONLY PLAN IS NEVER ADVANCED - the D10 opt-in contract, asserted from the other side.
+//!
+//! "The plan IS the opt-in" is the promise `integration` programs against (implementation.md §3.8):
+//! register a garrison with an empty or DEFEND-only plan and movement will never touch it; register a
+//! patrol with MOVE/PATROL points and it walks the moment it goes dormant. There is no flag to set and
+//! no core field to check, which means the ONLY thing standing between a tower garrison and a stroll
+//! across the map is this classification - so it gets its own case rather than being implied by the
+//! walking one.
+//!
+//! Deliberately the same shape as the case above (same 200 m leg, same all-land pick, same 10 s
+//! window, same fixture) with ONE variable changed: the waypoint type. The pair is therefore a
+//! controlled experiment - if both went red the tick is dead, if only this one goes red the
+//! classification is.
+//!
+//! Tolerance: 0.5 m of XZ. The ground snap moves only Y and is not measured; 0.5 m is below the
+//! smallest step the tick could take at the default speed in a single pass (1.5 m/s x 2 s = 3 m) and
+//! above floating-point noise. No exact boundary is asserted (vector.Distance is +1 ULP off at 1000 m
+//! and 2000 m).
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! OVT_VirtualMovementMath.IsStationaryPlan() return false unconditionally and this case goes red with
+//! the metres a DEFEND garrison walked, while the case above stays green.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_VirtualMovement_StationaryPlanIsNeverAdvanced : SCR_AutotestCaseBase
+{
+	//! XZ metres a DEFEND group is allowed to drift over the whole window.
+	static const float MAX_DRIFT_M = 0.5;
+
+	protected int m_iPhase;
+	protected int m_iHandle = -1;
+	protected float m_fDeadlineMs;
+	protected vector m_vStart;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		return AwaitWindow();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers the garrison and opens the observation window.
+	//! \return True when the case is already finished (always a named failure at this phase).
+	protected bool Arrange()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		if (!OVT_Global.GetVirtualMovement())
+		{
+			SetFailure("OVT_Global.GetVirtualMovement() is null - with no movement manager 'a DEFEND plan is never advanced' would be asserted against nothing that could advance it");
+			return true;
+		}
+
+		// Same tick-install as the walking case (Init-tier worlds never run PostGameStart themselves):
+		// without a LIVE tick this case would pass vacuously - "never advanced" by a tick that never ran.
+		// PostGameStart() is idempotent, so installing it here is safe whatever ran before.
+		OVT_Global.GetVirtualMovement().PostGameStart();
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+		{
+			SetFailure("There is no world to hold a garrison still in");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a garrison cannot be registered");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		// The SAME all-land leg the walking case uses: the only variable between the two cases must be
+		// the waypoint type, so a red here can never be blamed on a leg pointed into a bay.
+		vector target = OVT_TEST_VirtualMovementFixture.PickLandTarget(position);
+		if (target == vector.Zero)
+		{
+			SetFailure(string.Format("No %1 m leg out of %2 is entirely on land in this world, so this case would not be the same experiment as the walking one",
+				OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M.ToString(), position.ToString()));
+			return true;
+		}
+
+		// spawnDistanceOverride 0 = Manual policy, dormant by construction - same reasoning and same
+		// controlled-pair discipline as the walking case: the only variable between the two is the type.
+		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_garrison",
+			factionKey, groupName, position,
+			OVT_TEST_VirtualMovementFixture.BuildPlan(position, target, OVT_EVirtualWaypointType.DEFEND), 0);
+
+		if (m_iHandle == -1)
+		{
+			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so there is nothing to hold still");
+			return true;
+		}
+
+		m_vStart = virtualization.GetPosition(m_iHandle);
+		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
+
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits out the WHOLE window - a garrison that leaves late is still a garrison that leaves.
+	//! \return True when the case is finished.
+	protected bool AwaitWindow()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		BaseWorld world = GetGame().GetWorld();
+
+		if (!virtualization || !world)
+		{
+			CleanUp();
+			SetFailure("The virtualization manager or the world went away while the case was watching a garrison stand still");
+			return true;
+		}
+
+		if (world.GetWorldTime() < m_fDeadlineMs)
+			return false;
+
+		float drift = OVT_VirtualMovementMath.DistanceXZ(virtualization.GetPosition(m_iHandle), m_vStart);
+
+		// Cleanup BEFORE reporting, the suite's rule.
+		CleanUp();
+
+		if (drift > MAX_DRIFT_M)
+		{
+			SetFailure(string.Format("A DEFEND-only group drifted %1 m in %2 ms - the plan is the ONLY opt-in movement has, so a garrison with a classification bug walks off its post and nothing else in the tree notices",
+				drift.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString()));
+			return true;
+		}
+
+		PrintFormat("A DEFEND-only group held its position (%1 m of drift) across the whole %2 ms window",
+			drift.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters the garrison on every exit path.
+	protected void CleanUp()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization && m_iHandle != -1)
+			virtualization.UnregisterGroup(m_iHandle);
+
+		m_iHandle = -1;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE MOVEMENT MANAGER RESOLVES, AND ITS TRANSIENT STATE DOES NOT LEAK.
+//!
+//! Two claims, both of them cheap to break and impossible to see:
+//!   - OVT_Global.GetVirtualMovement() answers, which is the only proof in the suites that the manager
+//!     is actually ON the game-mode prefab (it was text-wired, not added in Workbench) and that its
+//!     accessor re-resolves. Every other movement claim in the tree is silently vacuous without it.
+//!   - the tracked count returns to 0 once nothing is registered, and a group whose PLAN cannot move
+//!     never contributes to it at all.
+//!
+//! ⚠ WHY "A GARRISON CONTRIBUTES 0" IS THE RIGHT CLAIM. Progress is tracked per handle in a transient
+//! map, and the manager deliberately keeps NO entry for a group whose plan is empty, null or
+//! DEFEND-only: such a group is re-classified cheaply on each pass instead. That is what keeps the map
+//! empty in a campaign full of garrisons - the realistic shape of a real deployment - so a registered
+//! DEFEND group leaving the count at 0 is the property worth asserting. (A group that latches
+//! stationary at RUNTIME, having reached a DEFEND point, KEEPS its entry on purpose: dropping it would
+//! let the next pass re-derive a movable plan and walk the group straight off the post it just took
+//! up. This case does not exercise that path, and must not be "fixed" to expect 0 for it.)
+//!
+//! The count is settled first, with a bounded poll: the cases above register groups that DO track, and
+//! the map is emptied by the tick rather than by UnregisterGroup, so "0" is a state this case waits
+//! for rather than assumes. That wait IS the no-leak assertion.
+//!
+//! GetTrackedCount() is a read-only diagnostic on the manager, not part of any API: nothing in the
+//! feature calls it and no consumer should.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
+//! `if (state.m_bStationary) return;` guard that follows DeriveState() in AdvanceHandle() - so a
+//! plan-stationary group is inserted into the map like any other - and the garrison assertion goes red
+//! with a tracked count of 1; delete the `m_mState.Clear()` in the tick's empty-registry branch and the
+//! settle poll goes red naming the handles left behind.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_VirtualMovement_ManagerResolvesAndDoesNotLeak : SCR_AutotestCaseBase
+{
+	//! Wall-clock ms allowed for the tick to drop the previous cases' progress. Several passes at the
+	//! 2000 ms default; bounded, and not a retry budget.
+	static const float SETTLE_WINDOW_MS = 10000;
+
+	protected int m_iPhase;
+	protected int m_iHandle = -1;
+	protected float m_fDeadlineMs;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Begin();
+
+		if (m_iPhase == 1)
+			return AwaitEmptyState();
+
+		return AwaitGarrisonWindow();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the manager and opens the settle window.
+	//! \return True when the case is already finished (always a named failure at this phase).
+	protected bool Begin()
+	{
+		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
+		if (!movement)
+		{
+			SetFailure("OVT_Global.GetVirtualMovement() is null - the movement manager is not on the game-mode prefab, so every other movement claim in these suites is vacuous");
+			return true;
+		}
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+		{
+			SetFailure("There is no world, so the movement tick has nothing to run against");
+			return true;
+		}
+
+		// Init-tier worlds never run PostGameStart; install the tick (idempotent) so the no-leak claim
+		// is made against a manager whose tick is actually running and purging.
+		movement.PostGameStart();
+
+		m_fDeadlineMs = world.GetWorldTime() + SETTLE_WINDOW_MS;
+		m_iPhase = 1;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the tracked count to return to 0 now that the cases above have unregistered their
+	//! groups - the no-leak claim (Q7).
+	//! \return True when the case is finished.
+	protected bool AwaitEmptyState()
+	{
+		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
+		BaseWorld world = GetGame().GetWorld();
+
+		if (!movement || !world)
+		{
+			SetFailure("The movement manager or the world went away while the case was waiting for its state map to empty");
+			return true;
+		}
+
+		int tracked = movement.GetTrackedCount();
+		if (tracked > 0 && world.GetWorldTime() < m_fDeadlineMs)
+			return false;
+
+		if (tracked > 0)
+		{
+			SetFailure(string.Format("The movement manager still tracks %1 handle(s) %2 ms after every group was unregistered - transient progress is leaking, and in a long campaign it would grow for the rest of the session",
+				tracked.ToString(), SETTLE_WINDOW_MS.ToString()));
+			return true;
+		}
+
+		return RegisterGarrison();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a DEFEND-only group and opens the observation window for it.
+	//! \return True when the case is finished (a named failure); false to keep going.
+	protected bool RegisterGarrison()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a garrison cannot be registered");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+		vector target = position;
+		target[2] = position[2] + OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M;
+
+		// A DEFEND plan is never walked, so this leg does not have to be on land - only distinct.
+		// spawnDistanceOverride 0 = Manual policy, dormant by construction (see the walking case).
+		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_no_leak",
+			factionKey, groupName, position,
+			OVT_TEST_VirtualMovementFixture.BuildPlan(position, target, OVT_EVirtualWaypointType.DEFEND), 0);
+
+		if (m_iHandle == -1)
+		{
+			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so 'a garrison is not tracked' would be asserted against nothing");
+			return true;
+		}
+
+		BaseWorld world = GetGame().GetWorld();
+		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
+
+		m_iPhase = 2;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gives the tick several passes over the garrison, then asserts it is still tracking nothing.
+	//! \return True when the case is finished.
+	protected bool AwaitGarrisonWindow()
+	{
+		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
+		BaseWorld world = GetGame().GetWorld();
+
+		if (!movement || !world)
+		{
+			CleanUp();
+			SetFailure("The movement manager or the world went away while the case was watching a garrison");
+			return true;
+		}
+
+		if (world.GetWorldTime() < m_fDeadlineMs)
+			return false;
+
+		int tracked = movement.GetTrackedCount();
+
+		// Cleanup BEFORE reporting, the suite's rule.
+		CleanUp();
+
+		if (tracked != 0)
+		{
+			SetFailure(string.Format("The movement manager tracks %1 handle(s) while the only registered group has a DEFEND-only plan - a plan that cannot move must hold no transient state at all, or a campaign of garrisons pays for progress none of them can make",
+				tracked.ToString()));
+			return true;
+		}
+
+		PrintFormat("OVT_Global.GetVirtualMovement() resolves, its tracked count returned to 0 after the walking cases, and a registered DEFEND-only group contributed nothing to it");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters the garrison on every exit path.
+	protected void CleanUp()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization && m_iHandle != -1)
+			virtualization.UnregisterGroup(m_iHandle);
+
+		m_iHandle = -1;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! A waypoint plan becomes real AIWaypoint entities the record OWNS - and unregistering deletes
 //! every one of them along with the group entity.
 //!

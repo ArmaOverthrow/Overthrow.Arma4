@@ -255,6 +255,17 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Walks dormant virtualized groups along their own waypoint plans, on top of the virtualization
+	//! registry. Present on clients too (the game mode entity exists there), but it is server-only:
+	//! nothing about virtual movement replicates or is persisted, and a client's state map is never
+	//! even allocated.
+	//! \return The virtual movement manager, or null before the game mode exists.
+	static OVT_VirtualMovementManagerComponent GetVirtualMovement()
+	{
+		return OVT_VirtualMovementManagerComponent.GetInstance();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Town civilian ambience - one ambient spawn source per town, on top of the virtualization seam.
 	//! Present on clients too (the game mode entity exists there), but every entry point on it is
 	//! server-gated: nothing about an ambient civilian replicates or is persisted.

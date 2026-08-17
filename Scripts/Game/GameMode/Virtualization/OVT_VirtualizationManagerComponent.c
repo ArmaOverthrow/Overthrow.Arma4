@@ -779,6 +779,15 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	//! \return The waypoint, or null when the type has no prefab.
 	protected AIWaypoint CreatePlannedWaypoint(notnull OVT_OverthrowConfigComponent config, int type, vector position, float waypointParam)
 	{
+		// Play-test fix (2026-08-17): plans are authored in XZ - the Y is whatever the consumer had to hand (a town
+		// anchor's, a flat offset's), so a waypoint spawned at it verbatim sits under a slope or in the
+		// air, and a completion radius smaller than that Y error can never be reached by live AI. The
+		// ENTITY is snapped to the surface; the plan payload is untouched (positions round-trip
+		// verbatim, so no persistence claim moves).
+		BaseWorld snapWorld = GetOwner().GetWorld();
+		if (snapWorld)
+			position[1] = snapWorld.GetSurfaceY(position[0], position[2]);
+
 		AIWaypoint waypoint;
 
 		switch (type)
@@ -1591,6 +1600,82 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Every registered handle, whoever owns it. Added 2026-08-17 for `virtualization/movement`, which
+	//! advances EVERY registered group: owner systems are free-form strings, so FindGroupsBySystem
+	//! cannot enumerate them.
+	//!
+	//! The order is the registry map's own and is NOT stable - a caller that needs a stable order (a
+	//! round-robin, for instance) must sort what it gets back. Server-only like every other entry
+	//! point here: a client, or a call before initialisation, gets an empty array.
+	//! \return Every live handle; an empty array when there are none.
+	array<int> GetAllHandles()
+	{
+		array<int> handles = new array<int>();
+		if (!m_mRecords)
+			return handles;
+
+		foreach (int handle, OVT_VirtualGroupRecord record : m_mRecords)
+		{
+			handles.Insert(handle);
+		}
+
+		return handles;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which plan waypoint is the group's LIVE current target? (additive 2026-08-17, play-test fix)
+	//!
+	//! Position-only projection cannot recover DIRECTION on a route whose legs coincide (a two-point
+	//! cycling patrol walks the same line both ways), so a group that despawned walking home would be
+	//! resumed walking out again. The group entity knows the truth: its current waypoint. This matches
+	//! that entity against the record's owned, plan-built waypoints by identity and answers the plan
+	//! index. The cycle entity (appended last when the plan cycles) answers 0 - a group running it is
+	//! wrapping back to the first point.
+	//!
+	//! -1 when it cannot answer truthfully: no record, no group entity, no current waypoint, or an
+	//! owned-waypoint list that does not match the plan 1:1 (a plan point that failed to build shifts
+	//! every index after it - refuse rather than guess). Callers fall back to their own heuristic
+	//! (movement: polyline projection).
+	//! \param[in] handle Handle from RegisterGroup.
+	//! \return Plan index of the group's current waypoint, or -1 when unknowable.
+	int GetCurrentPlanIndex(int handle)
+	{
+		OVT_VirtualGroupRecord record = GetRecord(handle);
+		if (!record || !record.m_Plan || !record.m_Plan.m_aPositions)
+			return -1;
+
+		SCR_AIGroup group = ResolveGroup(record);
+		if (!group)
+			return -1;
+
+		array<AIWaypoint> ownedWaypoints = record.m_aOwnedWaypoints;
+		if (!ownedWaypoints || ownedWaypoints.IsEmpty())
+			return -1;
+
+		int planCount = record.m_Plan.m_aPositions.Count();
+		bool hasCycleEntity = record.m_Plan.m_bCycle && planCount >= 2;
+		int expected = planCount;
+		if (hasCycleEntity)
+			expected = planCount + 1;
+
+		if (ownedWaypoints.Count() != expected)
+			return -1;
+
+		AIWaypoint current = group.GetCurrentWaypoint();
+		if (!current)
+			return -1;
+
+		int index = ownedWaypoints.Find(current);
+		if (index == -1)
+			return -1;
+
+		if (hasCycleEntity && index == planCount)
+			return 0;
+
+		return index;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// TRACKED GROUPS - STATE
 	//
 	// Thin wrappers over the group entity, safe while dormant AND safe while the entity does not
@@ -2039,6 +2124,9 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 			return;
 		}
 
+		// A Manual-policy ("never materialise by proximity") group refuses every dispatch core did
+		// not ask for - this IS core asking. Inert for ProximityDriven groups.
+		group.ArmOVTManualSpawn();
 		group.RequestSpawn();
 	}
 
@@ -2204,11 +2292,24 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	//! \return The handle, or -1 when the registration was refused.
 	protected int RegisterDebugTestGroupAt(notnull OVT_OverthrowConfigComponent config, string ownerKey, string groupName, vector position)
 	{
+		// Play-test fix (2026-08-17): the anchor position arrives with a flat Y (a town anchor's, spread over a disc for
+		// the scale probe), and the far leg is 150 m away on whatever slope is there. Snap both plan
+		// points at authoring time so the registered record, the save and the debug log all carry
+		// positions a person could stand on. (CreatePlannedWaypoint snaps the spawned ENTITY for every
+		// consumer; this fixes the debug affordance's own authored data.)
+		BaseWorld snapWorld = GetOwner().GetWorld();
+		if (snapWorld)
+			position[1] = snapWorld.GetSurfaceY(position[0], position[2]);
+
+		vector farPoint = position + Vector(0, 0, 150);
+		if (snapWorld)
+			farPoint[1] = snapWorld.GetSurfaceY(farPoint[0], farPoint[2]);
+
 		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
 		plan.m_aPositions.Insert(position);
 		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
 		plan.m_aParams.Insert(30);
-		plan.m_aPositions.Insert(position + Vector(0, 0, 150));
+		plan.m_aPositions.Insert(farPoint);
 		plan.m_aTypes.Insert(OVT_EVirtualWaypointType.PATROL);
 		plan.m_aParams.Insert(30);
 		plan.m_bCycle = true;
