@@ -2,6 +2,22 @@
 class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 {
 	//------------------------------------------------------------------------------------------------
+	//! The waypoint plan this behavior wants a group registered with, or null for "I have no opinion".
+	//!
+	//! ASKED BEFORE THE GROUP EXISTS. The virtualization core builds a group's waypoints from its plan
+	//! at registration and owns them from then on, so a behavior that wants to shape where a group
+	//! goes has to say so up front rather than bolting waypoints on after it spawns. Null is the
+	//! honest answer for a behavior that is about something else entirely (reinforcement, capture),
+	//! and the spawning module simply asks the next one.
+	//! \param[in] groupPosition Where the group is about to be registered. A plan may be built around
+	//!            it - a perimeter patrol starts on the group's own bearing to its centre.
+	//! \return The plan, or null.
+	OVT_VirtualWaypointPlan BuildVirtualPlan(vector groupPosition)
+	{
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// Common behavior functionality
 	//------------------------------------------------------------------------------------------------
 	protected array<SCR_AIGroup> GetManagedGroups()
@@ -103,41 +119,15 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected void ClearGroupWaypoints(SCR_AIGroup group)
-	{
-		if (!group)
-			return;
-			
-		// Remove all existing waypoints
-		array<AIWaypoint> waypoints = new array<AIWaypoint>;
-		group.GetWaypoints(waypoints);
-		
-		foreach (AIWaypoint waypoint : waypoints)
-		{
-			group.RemoveWaypoint(waypoint);
-		}
-	}
-	
+	// NO WAYPOINT HELPERS LIVE HERE ANY MORE.
+	//
+	// There used to be four - one that stripped a group's waypoints and three that built new ones - and
+	// all four had zero callers by the time the virtualization core took ownership of waypoints. A
+	// behavior module says what plan a group should be REGISTERED with (BuildVirtualPlan above); the
+	// core turns that into waypoint entities, records them, and deletes them again on unregister. A
+	// consumer that creates or removes a waypoint on a registered group corrupts the record the core
+	// persists, so the helpers that made that easy to do are gone rather than merely unused.
 	//------------------------------------------------------------------------------------------------
-	protected AIWaypoint CreateMoveWaypoint(vector position)
-	{
-		AIWaypoint waypoint = OVT_Global.GetConfig().SpawnPatrolWaypoint(position);
-		return waypoint;
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected AIWaypoint CreateDefendWaypoint(vector position)
-	{
-		AIWaypoint waypoint = OVT_Global.GetConfig().SpawnDefendWaypoint(position);
-		return waypoint;
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected AIWaypoint CreatePatrolWaypoint(vector position)
-	{
-		// Create a move waypoint for patrol purposes
-		return CreateMoveWaypoint(position);
-	}
 	
 	//------------------------------------------------------------------------------------------------
 	// Utility methods for position finding

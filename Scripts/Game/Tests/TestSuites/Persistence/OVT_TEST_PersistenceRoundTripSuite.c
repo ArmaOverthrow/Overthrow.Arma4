@@ -182,7 +182,12 @@
 //!
 //! CASE LIST (execution order is alphabetical by class name):
 //!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload
-//!   1a. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
+//!   1a. DeploymentEliminated_RegistersNoGroups          )
+//!   1b. DeploymentOwnedGroups_ReclaimAfterReload        ) the four DEPLOYMENT cases; read
+//!   1c. DeploymentRecord_SurvivesSaveAndReapply         ) OVT_TEST_DeploymentRoundTripFixture's
+//!   1d. DeploymentVersion1Payload_StillLoads            ) header FIRST - three of them assert the
+//!                                                         RESTORE half only, and it says why
+//!   1e. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
 //!                                                idempotency is part of what it asserts
 //!   2. PlayerMoney_SurvivesSaveAndReload
 //!   3. PlayerSkills_SurvivesSaveAndReload
@@ -4167,6 +4172,10 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroupsWiped_DoNotComeBack : SCR_Autot
 //! plan (PATROL + MOVE, 120 m, cycling) but tears it down in the same frame, so it passes (b) and
 //! asserts nothing about position. Persistence tier: the wiped-group case, its resurrection group and
 //! this case's BOGUS group all register a null plan. This fixture was the only unsafe site in the tree.
+//! RE-SWEPT 2026-08-17 (virtualization/integration T7.1): the deployment reclaim case adds three more
+//! null-plan registrations at spawn distance 0, and the three deployment-marker fixtures register
+//! nothing at all because they are marked eliminated before anything can converge them. The verdict
+//! table per site is in docs/features/virtualization/integration/context.md.
 //!
 //! THE MOVED-POSITION CLAIM (`virtualization/movement` T3.2). Before the save, the group is deliberately
 //! relocated with SetPosition() and the case asserts it comes back at the MOVED position and NOT at the
@@ -4687,5 +4696,1793 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 		plan.m_bCycle = true;
 
 		return plan;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared machinery for the four DEPLOYMENT cases below (virtualization/integration Phase 7), so
+//! each case reads as its own claim instead of as 60 lines of setup.
+//!
+//! ===========================================================================================
+//! THE HONEST LIMIT OF THESE FOUR CASES, STATED ONCE AND NOT REPEATED IN EVERY HEADER.
+//!
+//! A deployment is a MARKER ENTITY in the world, and its state is written by a component
+//! serializer bound to that entity's own configuration - NOT to the game mode's. The suite's
+//! reload seam (OVT_TEST_PersistenceRoundTripGate.RequestSessionReload) asks for exactly one
+//! instance back, the game mode entity, and its own header says so in as many words: "WHAT IT
+//! DOES NOT COVER. Anything outside the game mode entity's record - world entities, characters,
+//! vehicles, placeables." So the seam CANNOT hand a deployment marker its stored payload back.
+//!
+//! What these cases therefore do is split the round trip in two and assert both halves honestly:
+//!
+//!   WRITE HALF - real. The T7.2 fixture is created through the deployment manager's own public
+//!   creation path, which is what makes a marker part of a save point, and the case then takes a
+//!   real save. A serializer that cannot write the state under test fails there.
+//!
+//!   READ HALF - the public apply, not a re-read. OVT_DeploymentComponent.ApplyPersistedDeployment()
+//!   is the method the marker's Deserialize calls with the values it read, and its own header calls
+//!   itself the place "every side effect of restoring a deployment lives". Handing it the payload
+//!   the save was taken of is the closest a case in this harness can get to a marker coming back.
+//!
+//! What is consequently NOT asserted here, and is not asserted anywhere automated: that the bytes
+//! on disk read back as the values that went in. That is a real-restart claim, in the same bucket
+//! as the continue flow this suite's header already parks as manual, and it is covered by
+//! inspection instead - Phase 7's T7.7 decoded a real save point and read the deployment records
+//! field by field (docs/features/virtualization/integration/context.md).
+//! ===========================================================================================
+//!
+//! ⚠ FIXTURE DISCIPLINE, AND WHY EVERY DEPLOYMENT FIXTURE HERE IS MARKED ELIMINATED.
+//! A live deployment starts a repeating 8-12 s update whose first tick activates it, and activation
+//! is what converges its spawning modules - which registers real groups at the GLOBAL 1750 m spawn
+//! ring, inside which the autotest camera is an observer. A fixture that did that would materialise
+//! soldiers next to the test camera, hand the movement tick a cycling perimeter plan to walk, and
+//! leave records behind in a shared world. Marking the deployment and its spawning modules
+//! eliminated makes the fixture inert BY CONSTRUCTION rather than by finishing before a timer, so
+//! it stays safe through a host stall. That is also why no case here clears the deployment-level
+//! flag as its dirty step: see T7.3's header.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_DeploymentRoundTripFixture
+{
+	//! The shipped config every deployment case runs on.
+	//!
+	//! CHOSEN, NOT ARBITRARY: "Town Patrol" is the one shipped config whose registry entry authors
+	//! m_bDeleteOnConditionFail 0, so its condition module cannot delete the fixture's own marker out
+	//! from under a case mid-run - which "Tower Garrison" (m_bDeleteOnConditionFail 1) can.
+	static const string CONFIG_NAME = "Town Patrol";
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the deployment manager and its registry together, because a case needs both or
+	//! neither.
+	//! \param[out] diagnostic Reason it could not be resolved; untouched on success.
+	//! \return The manager, or null.
+	static OVT_DeploymentManagerComponent ResolveManager(out string diagnostic)
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			diagnostic = "OVT_Global.GetDeploymentManager() is null - the deployment manager is missing from the game-mode prefab";
+			return null;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			diagnostic = "The deployment manager has no registry, so no shipped deployment config can be resolved at all";
+			return null;
+		}
+
+		return manager;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The shipped config these cases run on.
+	//! \param[in] manager A resolved deployment manager.
+	//! \param[out] diagnostic Reason it could not be resolved; untouched on success.
+	//! \return The config, or null.
+	static OVT_DeploymentConfig ResolveConfig(notnull OVT_DeploymentManagerComponent manager, out string diagnostic)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
+		if (!config)
+		{
+			diagnostic = string.Format("The deployment registry does not resolve '%1' - a saved deployment naming it would be dropped on load rather than restored", CONFIG_NAME);
+			return null;
+		}
+
+		if (!config.IsValidConfig())
+		{
+			diagnostic = string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
+			return null;
+		}
+
+		return config;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A marker position with terrain under it, offset so two cases running in one session cannot
+	//! derive the same key and collide on the manager's disambiguation ordinal.
+	//! \param[in] offset Per-case offset from the shared fixture position.
+	//! \return A world position.
+	static vector MarkerPosition(vector offset)
+	{
+		return OVT_TEST_VirtualizationFixture.PickPosition() + offset;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a marker carrying an UNINITIALIZED deployment component - the state the persistence
+	//! system hands a self-spawned marker before its Deserialize runs.
+	//!
+	//! This is what makes the fresh-restore branch of ApplyPersistedDeployment() reachable: the
+	//! component's config is the "already built" flag, so a marker that has one takes the idempotent
+	//! branch and InitializeDeployment() - the method that reads the wipe-out flag - never runs.
+	//! The shipped prefab authors no config, which is asserted rather than assumed below.
+	//!
+	//! Deliberately NOT part of any save point: nothing here asks the persistence layer to track it.
+	//! A fixture that is never stored cannot leave a stray deployment record behind in the CI save
+	//! for the cases that follow, and the payload these cases exercise is handed over directly
+	//! anyway (see the class header).
+	//! \param[in] position Where to put the marker.
+	//! \param[out] diagnostic Reason it could not be built; untouched on success.
+	//! \return The uninitialized deployment component, or null.
+	static OVT_DeploymentComponent SpawnRestorableMarker(vector position, out string diagnostic)
+	{
+		OVT_DeploymentManagerComponent manager = ResolveManager(diagnostic);
+		if (!manager)
+			return null;
+
+		if (!manager.m_DeploymentPrefab || manager.m_DeploymentPrefab.IsEmpty())
+		{
+			diagnostic = "The deployment manager has no marker prefab configured, so no deployment can be restored or created at all";
+			return null;
+		}
+
+		vector mat[4];
+		Math3D.MatrixIdentity4(mat);
+		mat[3] = position;
+
+		IEntity marker = OVT_WorldUtils.SpawnEntityPrefabMatrix(manager.m_DeploymentPrefab, mat);
+		if (!marker)
+		{
+			diagnostic = string.Format("The deployment marker prefab '%1' did not spawn", manager.m_DeploymentPrefab);
+			return null;
+		}
+
+		// ⚠ AN ENTITY THAT IS NOT WORLD-REGISTERED ANSWERS EntityID.INVALID, AND EVERY SUCH ENTITY
+		// ANSWERS THE SAME ONE (found by this epic's Phase 6 suite run - a marker spawned 3 km out in
+		// this small world came back unkeyable). The deployment manager keys its active list on this
+		// id, so a fixture with an invalid one would silently share a slot with the next fixture.
+		// Every marker offset here is deliberately inside the test world's own extent; this says so
+		// out loud rather than trusting it.
+		if (marker.GetID() == EntityID.INVALID)
+		{
+			delete marker;
+			diagnostic = string.Format("A deployment marker spawned at %1 has no valid EntityID - it is outside this world's registered extent, and the deployment manager would key its active list on an id shared with every other unregistered entity", position.ToString());
+			return null;
+		}
+
+		OVT_DeploymentComponent deployment = OVT_DeploymentComponent.Cast(marker.FindComponent(OVT_DeploymentComponent));
+		if (!deployment)
+		{
+			delete marker;
+			diagnostic = "The deployment marker prefab carries no OVT_DeploymentComponent";
+			return null;
+		}
+
+		if (deployment.GetConfig())
+		{
+			delete marker;
+			diagnostic = "A freshly spawned deployment marker already carries a config, so the restore path that reads the wipe-out flag can never be reached by a test - the prefab has been given an authored OVT_DeploymentConfig";
+			return null;
+		}
+
+		return deployment;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes a deployment unable to register anything, at both gates its convergence checks.
+	//! See the class header for why every fixture here is built this way.
+	//! \param[in] deployment The fixture's deployment.
+	static void MakeInert(notnull OVT_DeploymentComponent deployment)
+	{
+		deployment.SetSpawnedUnitsEliminated(true);
+
+		array<OVT_BaseSpawningDeploymentModule> modules = deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (module)
+				module.SetSpawnedUnitsEliminated(true);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The owner key the deployment's FIRST spawning module registers its groups under, composed the
+	//! same way the module composes it.
+	//!
+	//! The module's authored name is read off the LIVE cloned module rather than hard-coded, so a
+	//! retuned config renames the key here too instead of silently making the assertions look at an
+	//! owner nobody uses.
+	//! \param[in] deployment The fixture's deployment.
+	//! \return The owner key, or an empty string when there is no spawning module or no key.
+	static string FirstModuleOwnerKey(notnull OVT_DeploymentComponent deployment)
+	{
+		array<OVT_BaseSpawningDeploymentModule> modules = deployment.GetSpawningModules();
+		if (modules.IsEmpty())
+			return "";
+
+		string deploymentKey = deployment.EnsureVirtualKey();
+		if (deploymentKey.IsEmpty())
+			return "";
+
+		string moduleName;
+		OVT_InfantrySpawningDeploymentModule infantry = OVT_InfantrySpawningDeploymentModule.Cast(modules[0]);
+		if (infantry)
+			moduleName = infantry.m_sModuleName;
+
+		return OVT_DeploymentVirtualKey.OwnerKey(deploymentKey, OVT_DeploymentVirtualKey.ModuleTag(moduleName, 0));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many registered groups an owner key currently answers for.
+	//! \param[in] ownerKey The owner key to ask about.
+	//! \return The count, or -1 when there is no virtualization manager.
+	static int CountOwnedGroups(string ownerKey)
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return -1;
+
+		return virtualization.FindGroupsByOwner(OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey).Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters everything an owner key answers for. Called on every path, including the red ones:
+	//! a case that goes red because a wiped deployment DID register a force must not then leave that
+	//! force standing in the shared world.
+	//! \param[in] ownerKey The owner key to empty.
+	static void ReleaseOwnedGroups(string ownerKey)
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization || ownerKey.IsEmpty())
+			return;
+
+		array<int> handles = virtualization.FindGroupsByOwner(OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey);
+		foreach (int handle : handles)
+		{
+			virtualization.UnregisterGroup(handle);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tears the fixture down: stops the deployment's update loop, cleans its modules up (which
+	//! unregisters anything they still hold) and deletes the marker.
+	//! \param[in] deployment The fixture's deployment, or null.
+	static void Destroy(OVT_DeploymentComponent deployment)
+	{
+		if (!deployment)
+			return;
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (manager)
+		{
+			manager.DeleteDeployment(deployment);
+			return;
+		}
+
+		deployment.DestroyDeployment();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a derived key is the given base key, with or without a collision ordinal.
+	//!
+	//! The ordinal exists because two deployments can share one rounded spot, and a live campaign
+	//! evaluating deployments alongside a case can legitimately be holding the base key already - so
+	//! an exact-equality assertion would be a race, and this is the claim that is actually true:
+	//! whatever the ordinal, the key is derived from THIS config name and THIS marker position.
+	//! \param[in] key The key that was derived.
+	//! \param[in] baseKey The base key expected from the marker's own position.
+	//! \return True when the key is the base key or the base key plus an ordinal suffix.
+	static bool KeyMatchesBase(string key, string baseKey)
+	{
+		if (key == baseKey)
+			return true;
+
+		return key.IndexOf(baseKey + OVT_DeploymentVirtualKey.PART_MARK) == 0;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A MIGRATED DEPLOYMENT'S FIVE PERSISTED VALUES AND ITS VIRTUALIZATION KEY COME BACK - and the key
+//! comes back as the SAME STRING rather than as a fresh derivation. (T7.2)
+//!
+//! WHY THE KEY IS THE PART THAT MATTERS. The other four values are bookkeeping; the key is identity.
+//! It is the string this deployment's registered AI groups are tagged with in the virtualization
+//! registry, and reclaiming them after a load is a lookup by exactly that string. A restore that
+//! re-derived it instead of reading it would agree in every ordinary case and disagree the moment a
+//! marker came back a metre off - and the disagreement is SILENT: the reclaim finds nothing, the
+//! module converges from zero, and the deployment quietly registers a second force on top of the one
+//! already standing there. That is the failure the serializer's version 2 append exists to prevent.
+//!
+//! THE KEY PLANTED HERE IS ONE DERIVATION COULD NOT PRODUCE - coordinates no marker in any world is
+//! at - and the case ASSERTS that precondition before it asserts anything else. Without it "the key
+//! came back" would be satisfied by a re-derivation that happened to agree, and the case would be
+//! measuring a coincidence. With it, a single re-derivation anywhere in the restore path is visible.
+//!
+//! THE FIXTURE IS CREATED THROUGH THE MANAGER'S OWN CREATION PATH, which is what puts a marker into
+//! a save point at all, so the save this case takes really does run the deployment serializer's
+//! write half over a live deployment carrying a version 2 key. Nothing else in the tree does.
+//!
+//! Read the fixture class header above for what the reload seam can and cannot reach, and for why
+//! the fixture is marked eliminated.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - delete the `if (!virtualKey.IsEmpty()) m_sVirtualKey = virtualKey;` write in
+//!     ApplyPersistedDeployment and the key assertion goes red naming the derived string it fell
+//!     back to;
+//!   - make EnsureVirtualKey() re-derive instead of returning the stored key (drop its
+//!     `if (!m_sVirtualKey.IsEmpty()) return m_sVirtualKey;` guard) and the SECOND key assertion
+//!     goes red while the first still passes, which is exactly the split worth having: the field
+//!     survived, the method that every registration actually calls did not;
+//!   - drop any one of the four scalar writes and that scalar's assertion goes red with the dirty
+//!     value still in place;
+//!   - rename the shipped config and the config-resolution assertion goes red first of all.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SCR_AutotestCaseBase
+{
+	//! Offset from the shared fixture position, so this case's derived key cannot collide with the
+	//! other deployment cases' or with a live campaign deployment's.
+	static const vector MARKER_OFFSET = "57 0 -43";
+
+	//! The key planted before the save. SHAPED like a real key and IMPOSSIBLE as one: no marker
+	//! stands at (-987654, -987654), so a restore that re-derived would produce something else.
+	static const string SAVED_KEY = "TownPatrol@-987654_-987654";
+
+	//! The key written over it before the reload, so "the saved key came back" is not "the key never
+	//! changed".
+	static const string DIRTY_KEY = "DirtiedByTheCase@1_1";
+
+	//! Threat and invested resources written before the save. Neither is a value a campaign start or
+	//! a default-constructed component would produce.
+	static const float SAVED_THREAT = 417.5;
+	static const int SAVED_RESOURCES = 1373;
+
+	//! ...and the values written over them.
+	static const float DIRTY_THREAT = 3.25;
+	static const int DIRTY_RESOURCES = 7;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected OVT_DeploymentComponent m_Deployment;
+
+	//! Faction the deployment was created for, and the different one written over it.
+	protected int m_iSavedFaction = -1;
+	protected int m_iDirtyFaction = -1;
+
+	//! The key this marker's own position WOULD derive, kept so the failure text can name it.
+	protected string m_sDerivableKey;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Creates a deployment, stamps the state under test onto it, and saves.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_DeploymentConfig config = OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic);
+		if (!config)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
+		if (!overthrowConfig)
+		{
+			SetFailure("OVT_Global.GetConfig() is null, so no faction index can be resolved to save one");
+			return true;
+		}
+
+		m_iSavedFaction = overthrowConfig.GetOccupyingFactionIndex();
+		m_iDirtyFaction = overthrowConfig.GetPlayerFactionIndex();
+
+		if (m_iSavedFaction == m_iDirtyFaction)
+		{
+			SetFailure("The occupying and player faction indices are both %1, so overwriting one with the other would not dirty anything", m_iSavedFaction.ToString());
+			return true;
+		}
+
+		vector position = OVT_TEST_DeploymentRoundTripFixture.MarkerPosition(MARKER_OFFSET);
+
+		m_Deployment = manager.CreateDeployment(config, position, m_iSavedFaction, SAVED_RESOURCES, SAVED_THREAT);
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+			return true;
+		}
+
+		// Inert BEFORE anything can tick - see the fixture class header.
+		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
+
+		// Plant the payload, exactly as the marker's own Deserialize would hand it over.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+			SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+
+		string precondition = VerifyPreconditions();
+		if (precondition != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(precondition);
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The state being saved really is the state this case thinks it is - including that the planted
+	//! key is one the marker's own position could NOT produce.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyPreconditions()
+	{
+		vector origin = m_Deployment.GetPosition();
+		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, origin[0], origin[2]);
+
+		if (m_sDerivableKey == SAVED_KEY)
+			return string.Format("The planted key '%1' is exactly what this marker's position derives, so 'the key was not re-derived' would be asserted against a coincidence", SAVED_KEY);
+
+		if (m_Deployment.GetVirtualKey() != SAVED_KEY)
+			return string.Format("The deployment holds key '%1' after being handed '%2' - the payload's key was refused before the save was even taken",
+				m_Deployment.GetVirtualKey(), SAVED_KEY);
+
+		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
+			return string.Format("The deployment reports faction %1, expected the %2 it was handed", m_Deployment.GetControllingFaction().ToString(), m_iSavedFaction.ToString());
+
+		if (Math.AbsFloat(m_Deployment.GetThreatLevel() - SAVED_THREAT) > 0.01)
+			return string.Format("The deployment reports threat %1, expected %2", m_Deployment.GetThreatLevel().ToString(), SAVED_THREAT.ToString());
+
+		if (m_Deployment.GetResourcesInvested() != SAVED_RESOURCES)
+			return string.Format("The deployment reports %1 invested resources, expected %2", m_Deployment.GetResourcesInvested().ToString(), SAVED_RESOURCES.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a different value over every one of the five, then asks for the persisted state back.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared between the save and the dirty step");
+			return true;
+		}
+
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iDirtyFaction,
+			DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
+
+		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetControllingFaction() != m_iDirtyFaction
+			|| m_Deployment.GetResourcesInvested() != DIRTY_RESOURCES)
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure("The dirty step did not change the deployment's state, so the assertion after the reload would pass against a value that was never wrong");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(restored);
+			return true;
+		}
+
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared across the reload");
+			return true;
+		}
+
+		// The payload the save was taken of, handed back through the method the marker's own
+		// Deserialize calls. See the fixture class header for why this is not a re-read.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+			SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+
+		string failure = Verify();
+
+		// Cleanup BEFORE reporting, on every path.
+		OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+		m_Deployment = null;
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A migrated deployment came back with its four scalars and its virtualization key '%1', which its own position (%2) could not have derived",
+			SAVED_KEY, m_sDerivableKey);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify()
+	{
+		OVT_DeploymentConfig config = m_Deployment.GetConfig();
+		if (!config)
+			return "The restored deployment has no config at all - a deployment that cannot name what it is runs no modules and is collected on the manager's next sweep";
+
+		if (config.m_sDeploymentName != OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME)
+			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+			return diagnostic;
+
+		if (!manager.m_DeploymentRegistry.FindConfigByName(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME))
+			return string.Format("The registry no longer resolves '%1' by name - the save stores the NAME, so a deployment restored in a later session would be dropped instead of restored",
+				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+
+		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
+			return string.Format("The restored deployment belongs to faction %1, saved as %2 (dirtied to %3) - a deployment that changes sides on a load fights for the wrong army",
+				m_Deployment.GetControllingFaction().ToString(), m_iSavedFaction.ToString(), m_iDirtyFaction.ToString());
+
+		if (Math.AbsFloat(m_Deployment.GetThreatLevel() - SAVED_THREAT) > 0.01)
+			return string.Format("The restored threat level is %1, saved as %2", m_Deployment.GetThreatLevel().ToString(), SAVED_THREAT.ToString());
+
+		if (m_Deployment.GetResourcesInvested() != SAVED_RESOURCES)
+			return string.Format("The restored deployment reports %1 invested resources, saved as %2 - RecoverResources() refunds this number and the Game Master snapshot shows it",
+				m_Deployment.GetResourcesInvested().ToString(), SAVED_RESOURCES.ToString());
+
+		if (m_Deployment.GetVirtualKey() != SAVED_KEY)
+			return string.Format("The restored virtualization key is '%1', saved as '%2' (this marker's position derives '%3') - if it fell back to the derivation, every group this deployment registered is unreachable and the next convergence registers a second force on top of them",
+				m_Deployment.GetVirtualKey(), SAVED_KEY, m_sDerivableKey);
+
+		// The field is right; now the METHOD every registration actually goes through.
+		string ensured = m_Deployment.EnsureVirtualKey();
+		if (ensured != SAVED_KEY)
+			return string.Format("EnsureVirtualKey() answered '%1' after the restore, expected the persisted '%2' - the stored field survived but the accessor re-derives, so reclaim still looks under the wrong owner",
+				ensured, SAVED_KEY);
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A DEPLOYMENT RESTORED WITH ITS FORCE ALREADY WIPED OUT REGISTERS NOTHING - not on the restore
+//! itself, and not on the convergence that follows it. (T7.3 - G4's teeth.)
+//!
+//! WHAT THIS IS ACTUALLY GUARDING. A deployment's wipe-out flag is written BEFORE
+//! InitializeDeployment() in ApplyPersistedDeployment(), and that ordering is the entire mechanism:
+//! InitializeDeployment reads the flag to decide whether the spawning modules it has just cloned
+//! start out eliminated. Overthrow's previous persistence layer set the flag AFTERWARDS, and the
+//! consequence was that a patrol the player had wiped out came back at full strength on the next
+//! load - every time, in silence, because nothing about a fresh force looks wrong. The ordering has
+//! been documented in the serializer's header since; this is the first thing that asserts it.
+//!
+//! THREE SEPARATE CLAIMS, IN THE ORDER THEY CAN BREAK:
+//!   1. the restore marks the deployment eliminated;
+//!   2. it marks every SPAWNING MODULE eliminated too - this is the ordering claim, because nothing
+//!      but InitializeDeployment's flag-before block does that on a fresh restore;
+//!   3. EnsureGroups() - the one method activation, the records-restored fan-out and the rebuy all
+//!      funnel through - registers ZERO groups under the module's owner key.
+//! Then, after the reload, a fourth: re-applying the same payload to a LIVE deployment whose modules
+//! have been un-marked puts the marks back, which is what makes the in-session re-application safe.
+//!
+//! ⚠ THE DIRTY STEP CLEARS THE MODULE FLAGS AND DELIBERATELY LEAVES THE DEPLOYMENT'S OWN FLAG SET.
+//! Convergence refuses on either, so this fixture cannot register anything at any point in its life
+//! - which matters because a deployment's own 8-12 s activation tick calls EnsureGroups() on its own
+//! schedule, and a case that cleared both flags would be betting that the tick does not fire in the
+//! ~100 ms window before the assert phase puts them back. This project has already measured a 105 s
+//! main-thread stall in this harness. The claim asserted after the reload is therefore "the modules
+//! were re-marked", not "convergence was refused by the deployment gate", and the module-level claim
+//! is the one that would actually rot.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - move the `m_bSpawnedUnitsEliminated = spawnedUnitsEliminated;` write in
+//!     ApplyPersistedDeployment to AFTER the InitializeDeployment(config, factionIndex) call - i.e.
+//!     re-introduce the old ordering - and claim 2 goes red, followed by claim 3 registering a full
+//!     patrol;
+//!   - drop the `m_bSpawnedUnitsEliminated || m_ParentDeployment.GetSpawnedUnitsEliminated()` guard
+//!     from OVT_InfantrySpawningDeploymentModule.ConvergeGroups and claim 3 goes red on its own;
+//!   - drop the re-marking loop from ApplyPersistedDeployment's already-running branch and the
+//!     post-reload claim goes red while all three pre-save claims still pass.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR_AutotestCaseBase
+{
+	//! Offset from the shared fixture position - far enough from the other deployment cases that the
+	//! rounded keys cannot meet.
+	static const vector MARKER_OFFSET = "-61 0 39";
+
+	//! Planted rather than derived, so the owner key this case asserts on is deterministic and cannot
+	//! be handed a collision ordinal by a live campaign deployment standing on the same rounded spot.
+	static const string ELIMINATED_KEY = "TownPatrol@-654321_-654321";
+
+	static const float SAVED_THREAT = 88.5;
+	static const int SAVED_RESOURCES = 220;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected OVT_DeploymentComponent m_Deployment;
+
+	//! The owner key the deployment's first spawning module registers under.
+	protected string m_sOwnerKey;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores a wiped-out deployment onto a fresh marker and proves it registers nothing.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (!OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic))
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (!OVT_Global.GetVirtualization())
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - 'it registered nothing' would be true for the wrong reason");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
+		if (!overthrowConfig)
+		{
+			SetFailure("OVT_Global.GetConfig() is null, so no faction index can be resolved");
+			return true;
+		}
+
+		m_Deployment = OVT_TEST_DeploymentRoundTripFixture.SpawnRestorableMarker(
+			OVT_TEST_DeploymentRoundTripFixture.MarkerPosition(MARKER_OFFSET), diagnostic);
+
+		if (!m_Deployment)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// THE RESTORE. Wipe-out flag true, config still unset, so InitializeDeployment runs from here.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME,
+			overthrowConfig.GetOccupyingFactionIndex(), SAVED_THREAT, SAVED_RESOURCES, true, ELIMINATED_KEY);
+
+		string failure = VerifyRestoreRegisteredNothing();
+
+		if (failure != "")
+		{
+			Cleanup();
+			SetFailure(failure);
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			Cleanup();
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claims 1 to 3 of the header.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyRestoreRegisteredNothing()
+	{
+		if (!m_Deployment.GetConfig())
+			return string.Format("The restore left the deployment with no config, so it never initialized and nothing below is being tested (config name '%1')",
+				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+
+		if (!m_Deployment.GetSpawnedUnitsEliminated())
+			return "The restored deployment does not report its units eliminated, although the payload said they were - the flag was dropped somewhere in the apply";
+
+		array<OVT_BaseSpawningDeploymentModule> modules = m_Deployment.GetSpawningModules();
+		if (modules.IsEmpty())
+			return "The restored deployment holds no spawning modules at all, so 'it registered nothing' is vacuous";
+
+		foreach (int index, OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (!module)
+				return string.Format("Spawning module %1 of the restored deployment is null", index.ToString());
+
+			if (!module.AreSpawnedUnitsEliminated())
+				return string.Format("Spawning module %1 came back NOT eliminated although the deployment did - the wipe-out flag is being written after InitializeDeployment() instead of before it, and a force the player destroyed will be rebuilt from the config on the next convergence",
+					index.ToString());
+		}
+
+		m_sOwnerKey = OVT_TEST_DeploymentRoundTripFixture.FirstModuleOwnerKey(m_Deployment);
+		if (m_sOwnerKey.IsEmpty())
+			return "The restored deployment's first spawning module composes no owner key, so a registration could not be seen even if one happened";
+
+		int afterRestore = OVT_TEST_DeploymentRoundTripFixture.CountOwnedGroups(m_sOwnerKey);
+		if (afterRestore != 0)
+			return string.Format("Owner key '%1' already answers for %2 group(s) straight after the restore", m_sOwnerKey, afterRestore.ToString());
+
+		// THE CLAIM. The one method activation, the records-restored fan-out and the rebuy all use.
+		m_Deployment.EnsureGroups();
+
+		int afterConverge = OVT_TEST_DeploymentRoundTripFixture.CountOwnedGroups(m_sOwnerKey);
+		if (afterConverge != 0)
+			return string.Format("EnsureGroups() registered %1 group(s) under '%2' for a deployment whose force had already been wiped out - a patrol the player destroyed comes back at full strength on every load",
+				afterConverge.ToString(), m_sOwnerKey);
+
+		OVT_InfantrySpawningDeploymentModule infantry = OVT_InfantrySpawningDeploymentModule.Cast(modules[0]);
+		if (infantry && infantry.GetSpawnedEntities().Count() != 0)
+			return string.Format("The eliminated spawning module holds %1 group entities after converging", infantry.GetSpawnedEntities().Count().ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			Cleanup();
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				Cleanup();
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Un-marks the spawning modules - see the header for why the deployment's own flag stays set.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared between the save and the dirty step");
+			return true;
+		}
+
+		array<OVT_BaseSpawningDeploymentModule> modules = m_Deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (module)
+				module.SetSpawnedUnitsEliminated(false);
+		}
+
+		foreach (OVT_BaseSpawningDeploymentModule dirtied : modules)
+		{
+			if (dirtied && dirtied.AreSpawnedUnitsEliminated())
+			{
+				Cleanup();
+				SetFailure("A spawning module still reports itself eliminated after the dirty step, so the re-application would be asserted against a value that was never wrong");
+				return true;
+			}
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			Cleanup();
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				Cleanup();
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			Cleanup();
+			SetFailure(restored);
+			return true;
+		}
+
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared across the reload");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
+		if (!overthrowConfig)
+		{
+			Cleanup();
+			SetFailure("OVT_Global.GetConfig() is null after the reload");
+			return true;
+		}
+
+		// The same payload again, this time onto a LIVE deployment - the in-session re-application
+		// shape. Its job here is to put the module marks back.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME,
+			overthrowConfig.GetOccupyingFactionIndex(), SAVED_THREAT, SAVED_RESOURCES, true, ELIMINATED_KEY);
+
+		string failure = VerifyReapplyRestoredTheMarks();
+
+		Cleanup();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A deployment restored with its force already wiped out registered nothing under '%1', and re-applying the same payload re-marked its spawning modules", m_sOwnerKey);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyReapplyRestoredTheMarks()
+	{
+		if (!m_Deployment.GetSpawnedUnitsEliminated())
+			return "The re-applied deployment no longer reports its units eliminated";
+
+		array<OVT_BaseSpawningDeploymentModule> modules = m_Deployment.GetSpawningModules();
+		if (modules.IsEmpty())
+			return "The deployment holds no spawning modules after the re-application";
+
+		foreach (int index, OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (module && !module.AreSpawnedUnitsEliminated())
+				return string.Format("Spawning module %1 was left un-marked by the re-application - an in-session re-apply of a wiped-out deployment leaves its modules willing to buy a new force",
+					index.ToString());
+		}
+
+		m_Deployment.EnsureGroups();
+
+		// `owned` is a reserved EnforceScript keyword - a local of that name fails to compile with a
+		// "Broken expression" error that names the line and nothing else.
+		int stillHeld = OVT_TEST_DeploymentRoundTripFixture.CountOwnedGroups(m_sOwnerKey);
+		if (stillHeld != 0)
+			return string.Format("EnsureGroups() registered %1 group(s) under '%2' after the re-application", stillHeld.ToString(), m_sOwnerKey);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Releases anything the fixture registered and deletes the marker. Safe to call twice.
+	protected void Cleanup()
+	{
+		OVT_TEST_DeploymentRoundTripFixture.ReleaseOwnedGroups(m_sOwnerKey);
+		OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+		m_Deployment = null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A VERSION 1 DEPLOYMENT PAYLOAD - one written before deployments carried a virtualization key -
+//! still restores, and the deployment mints its key from its own marker on first use. (T7.4)
+//!
+//! THIS IS THE PRE-FEATURE-SAVE MIGRATION PATH, and it is not hypothetical: a decoded save point
+//! from before this epic carries 23 deployment records whose fields stop at the wipe-out flag, with
+//! no key field written at all (Phase 7 T7.7, context.md). Every one of them has to come back.
+//!
+//! WHAT A VERSION 1 PAYLOAD LOOKS LIKE FROM HERE. The serializer reads the key only when the stored
+//! version says one was written, so a version 1 record reaches ApplyPersistedDeployment with an
+//! EMPTY key string - which is exactly what this case hands it. Nothing about the fixture pretends
+//! to be old; it is the same call the codec makes.
+//!
+//! TWO CLAIMS, AND THE SECOND IS THE ONE NOBODY WOULD THINK TO MAKE:
+//!   1. an empty key restores cleanly and EnsureVirtualKey() then derives one from the marker's own
+//!      position - once, and the same string on every later call;
+//!   2. re-applying that same version 1 payload later does NOT wipe the key the session has since
+//!      derived. Deployment payloads are re-applied to live instances, and a blind write would empty
+//!      the key of a deployment whose groups are already tagged with it - orphaning the whole force
+//!      to a reclaim that will never find it again. The guard that prevents it is one `if`.
+//!
+//! The fixture is deliberately not part of any save point and is marked eliminated; both are
+//! explained in the fixture class header.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - make ApplyPersistedDeployment write the key unconditionally (`m_sVirtualKey = virtualKey;`
+//!     with no emptiness guard) and claim 2 goes red with an empty key;
+//!   - make the serializer read the key regardless of version and a version 1 payload consumes the
+//!     bytes of whatever follows it - which this case cannot see, and is why T7.7 read the records
+//!     off a real save point by hand as well;
+//!   - drop the `if (!m_sVirtualKey.IsEmpty()) return m_sVirtualKey;` guard in EnsureVirtualKey and
+//!     the derive-once claim goes red as soon as a live deployment takes the base key's ordinal.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_AutotestCaseBase
+{
+	//! Offset from the shared fixture position, clear of the other two marker fixtures.
+	static const vector MARKER_OFFSET = "44 0 63";
+
+	//! Written over the derived key before the reload, so the "a v1 payload does not clobber it"
+	//! claim has something visible to preserve.
+	static const string DIRTY_KEY = "DirtiedByTheCase@2_2";
+
+	static const float SAVED_THREAT = 55.25;
+	static const int SAVED_RESOURCES = 640;
+
+	static const float DIRTY_THREAT = 1.5;
+	static const int DIRTY_RESOURCES = 3;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected OVT_DeploymentComponent m_Deployment;
+
+	protected int m_iSavedFaction = -1;
+	protected int m_iDirtyFaction = -1;
+
+	//! The key the deployment minted for itself on first use.
+	protected string m_sDerivedKey;
+
+	//! The base key the marker's own position produces, without any collision ordinal.
+	protected string m_sBaseKey;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Restores a keyless deployment and watches it mint its key.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (!OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic))
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
+		if (!overthrowConfig)
+		{
+			SetFailure("OVT_Global.GetConfig() is null, so no faction index can be resolved");
+			return true;
+		}
+
+		m_iSavedFaction = overthrowConfig.GetOccupyingFactionIndex();
+		m_iDirtyFaction = overthrowConfig.GetPlayerFactionIndex();
+
+		if (m_iSavedFaction == m_iDirtyFaction)
+		{
+			SetFailure("The occupying and player faction indices are both %1, so overwriting one with the other would not dirty anything", m_iSavedFaction.ToString());
+			return true;
+		}
+
+		m_Deployment = OVT_TEST_DeploymentRoundTripFixture.SpawnRestorableMarker(
+			OVT_TEST_DeploymentRoundTripFixture.MarkerPosition(MARKER_OFFSET), diagnostic);
+
+		if (!m_Deployment)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// THE VERSION 1 PAYLOAD: five fields and an empty key, which is what the codec passes when the
+		// stored version predates the key.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+			SAVED_THREAT, SAVED_RESOURCES, true, "");
+
+		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
+
+		string failure = VerifyDerivedOnFirstUse();
+		if (failure != "")
+		{
+			Cleanup();
+			SetFailure(failure);
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			Cleanup();
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 1 of the header.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyDerivedOnFirstUse()
+	{
+		OVT_DeploymentConfig config = m_Deployment.GetConfig();
+		if (!config)
+			return string.Format("A version 1 payload naming '%1' restored no config at all - every pre-feature deployment in an existing save would be dropped",
+				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+
+		if (config.m_sDeploymentName != OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME)
+			return string.Format("The restored deployment is running '%1', expected '%2'", config.m_sDeploymentName, OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+
+		if (m_Deployment.GetVirtualKey() != "")
+			return string.Format("A version 1 payload left the deployment holding key '%1' - the apply invented a key instead of leaving the field empty for the first caller that needs one",
+				m_Deployment.GetVirtualKey());
+
+		vector origin = m_Deployment.GetPosition();
+		m_sBaseKey = OVT_DeploymentVirtualKey.DeriveKey(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, origin[0], origin[2]);
+
+		m_sDerivedKey = m_Deployment.EnsureVirtualKey();
+		if (m_sDerivedKey.IsEmpty())
+			return "EnsureVirtualKey() answered an empty key for a restored version 1 deployment - its modules would compose no owner key at all and it could never register or reclaim anything";
+
+		if (!OVT_TEST_DeploymentRoundTripFixture.KeyMatchesBase(m_sDerivedKey, m_sBaseKey))
+			return string.Format("The derived key '%1' is not built from this marker's own position, which derives '%2' - a key that does not follow the marker cannot be re-derived by anything else either",
+				m_sDerivedKey, m_sBaseKey);
+
+		if (m_Deployment.GetVirtualKey() != m_sDerivedKey)
+			return string.Format("The derived key '%1' was not stored on the deployment (the field reads '%2') - it would be re-derived on every call and drift the moment the marker moved",
+				m_sDerivedKey, m_Deployment.GetVirtualKey());
+
+		string again = m_Deployment.EnsureVirtualKey();
+		if (again != m_sDerivedKey)
+			return string.Format("A second EnsureVirtualKey() answered '%1', the first answered '%2' - derive-once is what makes the key an identity", again, m_sDerivedKey);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			Cleanup();
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				Cleanup();
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a different key and different scalars over the restored ones.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared between the save and the dirty step");
+			return true;
+		}
+
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iDirtyFaction,
+			DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
+
+		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetResourcesInvested() != DIRTY_RESOURCES)
+		{
+			Cleanup();
+			SetFailure("The dirty step did not change the deployment's key or scalars, so the claims after the reload would be asserted against values that were never wrong");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			Cleanup();
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				Cleanup();
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			Cleanup();
+			SetFailure(restored);
+			return true;
+		}
+
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment fixture disappeared across the reload");
+			return true;
+		}
+
+		// The version 1 payload again - still keyless, because a version 1 record never gains one.
+		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+			SAVED_THREAT, SAVED_RESOURCES, true, "");
+
+		string failure = VerifyKeylessPayloadKeptTheKey();
+
+		Cleanup();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A version 1 deployment payload restored and minted the key '%1' from its own marker, and re-applying it later left the session's key alone",
+			m_sDerivedKey);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 2 of the header, plus the scalars.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyKeylessPayloadKeptTheKey()
+	{
+		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
+			return string.Format("The re-applied version 1 payload left the deployment on faction %1, expected %2",
+				m_Deployment.GetControllingFaction().ToString(), m_iSavedFaction.ToString());
+
+		if (m_Deployment.GetResourcesInvested() != SAVED_RESOURCES)
+			return string.Format("The re-applied version 1 payload left %1 invested resources, expected %2",
+				m_Deployment.GetResourcesInvested().ToString(), SAVED_RESOURCES.ToString());
+
+		if (Math.AbsFloat(m_Deployment.GetThreatLevel() - SAVED_THREAT) > 0.01)
+			return string.Format("The re-applied version 1 payload left threat %1, expected %2",
+				m_Deployment.GetThreatLevel().ToString(), SAVED_THREAT.ToString());
+
+		if (m_Deployment.GetVirtualKey() != DIRTY_KEY)
+			return string.Format("A keyless version 1 payload overwrote the deployment's key: it now reads '%1', and held '%2' before the apply. A blind write empties the key of a live deployment whose groups are already tagged with it, and the reclaim that follows finds nothing",
+				m_Deployment.GetVirtualKey(), DIRTY_KEY);
+
+		if (m_Deployment.EnsureVirtualKey() != DIRTY_KEY)
+			return string.Format("EnsureVirtualKey() answered '%1' after the keyless re-apply, expected the key the deployment was already holding ('%2')",
+				m_Deployment.EnsureVirtualKey(), DIRTY_KEY);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Releases anything the fixture registered and deletes the marker. Safe to call twice.
+	protected void Cleanup()
+	{
+		if (m_Deployment)
+			OVT_TEST_DeploymentRoundTripFixture.ReleaseOwnedGroups(OVT_TEST_DeploymentRoundTripFixture.FirstModuleOwnerKey(m_Deployment));
+
+		OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+		m_Deployment = null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! GROUPS REGISTERED UNDER A DEPLOYMENT OWNER KEY ARE RECLAIMABLE BY THAT KEY AFTER A SAVE AND A
+//! RESTORE - verbatim, including the two structural characters the key scheme is built out of. (T7.5)
+//!
+//! WHAT IS NEW HERE, AND WHAT IS DELIBERATELY NOT. That virtual groups survive a save at all, and
+//! that a wiped one does not come back, are asserted by the two cases below this one; they are not
+//! repeated. This case asserts the seam the whole deployments migration rests on instead: after a
+//! restore, a spawning module reclaims its own groups by asking FindGroupsByOwner for the composed
+//! key `<deployment key>#<module tag>` - and nothing else in the tree checks that a key of that
+//! SHAPE survives storage.
+//!
+//! WHY THE SHAPE IS THE RISK. A deployment owner key carries an '@' (name from coordinates) and a '#'
+//! (deployment from module, and base key from collision ordinal). It is the only owner key in the
+//! epic that does. A payload that truncated, trimmed or normalised either character would leave every
+//! record present and correct and every reclaim silently empty - and an empty reclaim is not an
+//! error: the module concludes it holds nothing and converges a second force on top of the one the
+//! restore just rebuilt. Two keys are therefore registered, differing ONLY in their module tag, and
+//! each is required to answer for exactly its own groups.
+//!
+//! IT ALSO EXERCISES THE POSITIONAL FALLBACK TAG. One of the two module tags is "m1" - what a module
+//! with no authored name gets. No shipped config produces it today, so this is the only place it is
+//! ever composed, stored and read back.
+//!
+//! FIXTURE FOOTPRINT (T7.1): three registrations, null plans, spawn distance 0 - the documented
+//! "never materialise by proximity" registration, so the movement tick has nothing to advance and the
+//! autotest camera cannot pull them into the world. All three are unregistered before the case
+//! reports, on every path.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - drop the `entry.ownerKey = record.m_sOwnerKey` write in the registry snapshot (or its read)
+//!     and the first reclaim assertion goes red with the right number of records restored under the
+//!     wrong owner;
+//!   - restore the records but skip re-indexing them by owner and the counts come back 0 while
+//!     IsRegistered still answers true, which the second assertion names;
+//!   - sanitise the '#' out of a stored owner key and the two keys collapse into one: the first
+//!     assertion sees 3 where it wants 2.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : SCR_AutotestCaseBase
+{
+	//! Stands in for a config name. Carries a space AND a '#' on purpose: both are stripped by the
+	//! key arithmetic, and a payload that round-trips the stripped form is what is being asserted.
+	static const string CONFIG_NAME = "Phase7 Reclaim #Fixture";
+
+	//! The authored module tag of the first module, and the positional fallback of the second.
+	static const string NAMED_MODULE = "Spawn Infantry";
+	static const int UNNAMED_MODULE_INDEX = 1;
+
+	//! Manual lifecycle policy: never materialise by proximity.
+	static const int SPAWN_DISTANCE_NEVER = 0;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	//! The two composed owner keys.
+	protected string m_sNamedKey;
+	protected string m_sUnnamedKey;
+
+	//! Handles registered under each, remembered so the restore can be checked handle by handle.
+	protected ref array<int> m_aNamedHandles = new array<int>();
+	protected ref array<int> m_aUnnamedHandles = new array<int>();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers two groups under one module's key and one under another's, then saves.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so a virtual group cannot be registered");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		string deploymentKey = OVT_DeploymentVirtualKey.Disambiguate(
+			OVT_DeploymentVirtualKey.DeriveKey(CONFIG_NAME, position[0], position[2]), 0);
+
+		m_sNamedKey = OVT_DeploymentVirtualKey.OwnerKey(deploymentKey, OVT_DeploymentVirtualKey.ModuleTag(NAMED_MODULE, 0));
+		m_sUnnamedKey = OVT_DeploymentVirtualKey.OwnerKey(deploymentKey, OVT_DeploymentVirtualKey.ModuleTag("", UNNAMED_MODULE_INDEX));
+
+		if (m_sNamedKey == m_sUnnamedKey)
+		{
+			SetFailure("The two module tags composed the same owner key ('%1'), so 'each key answers for its own groups' would be asserted against one owner", m_sNamedKey);
+			return true;
+		}
+
+		if (Count(virtualization, m_sNamedKey) != 0 || Count(virtualization, m_sUnnamedKey) != 0)
+		{
+			SetFailure("Owner key '%1' or '%2' already has registered groups before this case ran - a previous case leaked, or the key arithmetic collides", m_sNamedKey, m_sUnnamedKey);
+			return true;
+		}
+
+		string failure = RegisterUnder(virtualization, m_sNamedKey, factionKey, groupName, position, 2, m_aNamedHandles);
+		if (failure == "")
+			failure = RegisterUnder(virtualization, m_sUnnamedKey, factionKey, groupName, position, 1, m_aUnnamedHandles);
+
+		if (failure != "")
+		{
+			Cleanup();
+			SetFailure(failure);
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			Cleanup();
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers `count` groups under one owner key, checking each one as it goes.
+	//! \param[in] virtualization The manager.
+	//! \param[in] ownerKey The composed key to register under.
+	//! \param[in] factionKey A faction this world resolves.
+	//! \param[in] groupName A composition that faction resolves.
+	//! \param[in] position Where to register.
+	//! \param[in] count How many to register.
+	//! \param[out] handles Filled with every handle registered, for the restore check and cleanup.
+	//! \return An empty string on success, or the broken claim.
+	protected string RegisterUnder(notnull OVT_VirtualizationManagerComponent virtualization, string ownerKey,
+		string factionKey, string groupName, vector position, int count, notnull array<int> handles)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			int handle = virtualization.RegisterGroup(OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey,
+				factionKey, groupName, position, null, SPAWN_DISTANCE_NEVER);
+
+			if (handle == -1)
+				return string.Format("RegisterGroup refused group %1 of %2 under '%3' for a composition the faction registry resolves (%4 '%5')",
+					(i + 1).ToString(), count.ToString(), ownerKey, factionKey, groupName);
+
+			handles.Insert(handle);
+
+			if (virtualization.GetSpawnDistance(handle) != 0)
+				return string.Format("Handle %1 resolved a spawn distance of %2 m from an override of 0 - this fixture would materialise real soldiers next to the autotest camera",
+					handle.ToString(), virtualization.GetSpawnDistance(handle).ToString());
+		}
+
+		int registered = Count(virtualization, ownerKey);
+		if (registered != count)
+			return string.Format("Owner key '%1' answers for %2 group(s) straight after registering %3", ownerKey, registered.ToString(), count.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			Cleanup();
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				Cleanup();
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters all three, so both owner keys answer for nothing at all, and asks for the persisted
+	//! registry back.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null before the reload");
+			return true;
+		}
+
+		foreach (int named : m_aNamedHandles)
+		{
+			virtualization.UnregisterGroup(named);
+		}
+
+		foreach (int unnamed : m_aUnnamedHandles)
+		{
+			virtualization.UnregisterGroup(unnamed);
+		}
+
+		if (Count(virtualization, m_sNamedKey) != 0 || Count(virtualization, m_sUnnamedKey) != 0)
+		{
+			Cleanup();
+			SetFailure("The dirty step left groups registered under '%1' or '%2', so the reclaim after the reload would find what was never removed", m_sNamedKey, m_sUnnamedKey);
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			Cleanup();
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				Cleanup();
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			Cleanup();
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null after the reload");
+			return true;
+		}
+
+		string failure = Verify(virtualization);
+
+		// Cleanup BEFORE reporting, on every path.
+		Cleanup();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Deployment owner keys survived the round trip verbatim: '%1' reclaimed %2 group(s), and the positional-fallback key reclaimed its own",
+			m_sNamedKey, m_aNamedHandles.Count().ToString());
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization)
+	{
+		string failure = VerifyOwner(virtualization, m_sNamedKey, m_aNamedHandles);
+		if (failure != "")
+			return failure;
+
+		return VerifyOwner(virtualization, m_sUnnamedKey, m_aUnnamedHandles);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One owner key answers for exactly the handles that were registered under it, and the restored
+	//! records agree about who owns them.
+	//! \param[in] virtualization The manager.
+	//! \param[in] ownerKey The composed key.
+	//! \param[in] expected The handles registered under it before the save.
+	//! \return An empty string when everything holds, or the broken claim.
+	protected string VerifyOwner(notnull OVT_VirtualizationManagerComponent virtualization, string ownerKey, notnull array<int> expected)
+	{
+		array<int> reclaimed = virtualization.FindGroupsByOwner(OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey);
+
+		if (reclaimed.Count() != expected.Count())
+			return string.Format("FindGroupsByOwner('%1', '%2') reclaimed %3 handle(s) after the restore, expected %4 - a spawning module that cannot find its own groups after a load registers a second force on top of them",
+				OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey, reclaimed.Count().ToString(), expected.Count().ToString());
+
+		foreach (int handle : expected)
+		{
+			if (!virtualization.IsRegistered(handle))
+				return string.Format("Handle %1 did not come back from the save at all", handle.ToString());
+
+			if (!reclaimed.Contains(handle))
+				return string.Format("Handle %1 is registered again but '%2' does not resolve it - the record survived and its owner index did not",
+					handle.ToString(), ownerKey);
+
+			OVT_VirtualGroupRecord record = virtualization.GetRecord(handle);
+			if (!record)
+				return string.Format("Handle %1 is registered but hands out no record", handle.ToString());
+
+			if (record.m_sOwnerSystem != OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM)
+				return string.Format("Handle %1 came back owned by system '%2', expected '%3'",
+					handle.ToString(), record.m_sOwnerSystem, OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM);
+
+			if (record.m_sOwnerKey != ownerKey)
+				return string.Format("Handle %1 came back under owner key '%2', expected '%3' - the '@' and '#' a deployment key is built out of did not survive storage verbatim",
+					handle.ToString(), record.m_sOwnerKey, ownerKey);
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many groups an owner key answers for.
+	//! \param[in] virtualization The manager.
+	//! \param[in] ownerKey The key to ask about.
+	//! \return The count.
+	protected int Count(notnull OVT_VirtualizationManagerComponent virtualization, string ownerKey)
+	{
+		return virtualization.FindGroupsByOwner(OVT_BaseSpawningDeploymentModule.OWNER_SYSTEM, ownerKey).Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Unregisters everything either key answers for, plus every handle this case ever took. Safe to
+	//! call twice, and called on every path including the red ones.
+	protected void Cleanup()
+	{
+		OVT_TEST_DeploymentRoundTripFixture.ReleaseOwnedGroups(m_sNamedKey);
+		OVT_TEST_DeploymentRoundTripFixture.ReleaseOwnedGroups(m_sUnnamedKey);
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		foreach (int named : m_aNamedHandles)
+		{
+			if (virtualization.IsRegistered(named))
+				virtualization.UnregisterGroup(named);
+		}
+
+		foreach (int unnamed : m_aUnnamedHandles)
+		{
+			if (virtualization.IsRegistered(unnamed))
+				virtualization.UnregisterGroup(unnamed);
+		}
 	}
 }

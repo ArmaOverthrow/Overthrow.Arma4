@@ -18,6 +18,14 @@ landed.
 `virtualization/movement` for the live→dormant adoption-direction play-test fix (coincident-leg routes) and
 recorded in `context.md`. Same discipline: nothing renamed, re-signed or re-meant, no payload field
 moved, pure read.
+**Additively extended a fourth time:** 2026-08-17 — the **AI observer** API:
+`AddEntityObserver` / `RemoveEntityObserver` / `HasEntityObserver` / `GetEntityObserverCount`,
+requested by `virtualization/integration` Phase 6 (its D14/D16) so a parked recruit squad can pull
+dormant registered groups awake with no player nearby. See [§3](#ai-observers) and
+[§10](#integration--tracked-group-lifecycle-and-reclaim), and the dated entry in `context.md`. Same
+discipline: four new methods and one new manager attribute, nothing renamed, re-signed or re-meant,
+no payload field added or moved, `CONFIG_STREAM_VERSION` unmoved, and no existing call path changed
+behaviour — the methods had no caller in core at all when they landed.
 **Owner:** `virtualization/core`
 **Consumers:** `civilians`, `movement`, `integration`, `base-defense-migration` — see
 [§10](#10-entry-points-per-sibling-feature) for the exact surface each of them programs against
@@ -265,6 +273,59 @@ refuses the request anyway (dormant alive 0 → `RequestSpawn` returns immediate
 `ForceDespawn` reports a held member (in a vehicle, player-engaged) and despawns anyway — an explicit
 despawn request is honoured. `UnregisterGroup` is the call that *respects* held members, by retiring
 the group in place instead of deleting it out from under whatever is using it.
+
+### AI observers
+
+*(added 2026-08-17 at `virtualization/integration`'s request — the fourth additive change since the
+freeze.)*
+
+```c
+//! Parks an engine observer that FOLLOWS an entity, so registered groups near it materialise with no
+//! player anywhere near. Server-only, idempotent per entity, keyed internally by EntityID.
+//! REFUSES a null entity with a WARNING and false — a null-entity InsertObserverSP hard-freezes the
+//! client (context.md gotcha 0) and has zero vanilla script callers.
+//! REFUSES an entity whose GetID() is EntityID.INVALID with a WARNING and false — see below.
+bool AddEntityObserver(IEntity entity);
+bool RemoveEntityObserver(IEntity entity);   //!< false for null / invalid id / unknown / client
+bool HasEntityObserver(IEntity entity);      //!< core's map, NEVER the engine (see below)
+int  GetEntityObserverCount();               //!< core's observers only, not GetObserversSP()
+```
+
+⚠️ **The entity you pass must exist in the world — an entity with `EntityID.INVALID` is refused.**
+The map is keyed on `EntityID`, and an entity that is not world-registered answers `GetID()` with
+`EntityID.INVALID` — a value **every** such entity shares. Keying on it would make two unrelated
+entities share one map entry: the second add hijacks the first's key, `HasEntityObserver` answers
+true for something nobody added, and removing either removes the other's observer. Measured, not
+theorised (`integration` Phase 6's own Init case caught it). Practical consequence for a consumer:
+**do not add the observer from inside the entity's own initialisation** — an `OnPostInit` on a
+component of the entity being spawned runs one call deep inside the spawn that created it. Defer it
+by one call-queue hop (`CallLater(..., 0, false)`) and cancel that hop in your `OnDelete`, which is
+what the shipped recruit-group consumer does. The same registration is what makes the stale-entity
+sweep work at all: it drops any observer whose id no longer resolves through `FindEntityByID`.
+
+⚠️ **Engine application is deferred by exactly one frame, insert *and* remove** — measured by
+`integration`'s Phase 1 gate case: *"server-side `InsertObserverSP(key, 0, 0, entity)` is HONOURED,
+application DEFERRED (invisible same-frame, visible within the settling budget) | settled after 1
+frame(s), removal settled after 1"*. So `HasEntityObserver` and `GetEntityObserverCount` answer from
+core's own `map<EntityID, int>`, never by asking `ObserversSystem`: they are correct the instant the
+add/remove returns, while the engine's own proximity queries lag a frame. **Never verify this API by
+querying the engine** — right after an add you read a false negative, right after a remove a false
+leak.
+
+⚠️ **An observer is the most expensive call on this page.** It holds *every* registered group inside
+its ring materialised, with its AI running, for as long as it exists — a squad parked in a town keeps
+that town's tower garrison and its patrols awake whether or not anybody is watching. Give it an
+off-switch. The one shipped consumer (parked recruit groups) is gated by the manager attribute
+`m_bRecruitGroupsAreObservers` (default **true**), readable as `GetRecruitGroupsAreObservers()`;
+that gate is deliberately consulted **by the consumer**, not inside `AddEntityObserver`, so one
+consumer's knob cannot silently disable another's.
+
+Keys are a namespaced monotonic counter, **never persisted and never replicated** (a key names an
+entry in one machine's local observer table and nothing else). Stale entries — an entity destroyed
+without its owner removing the observer — are swept by core's existing 2 s ambient tick, but that is
+a backstop: **remove your own observer**, from the same place you clean up everything else about the
+thing it was following. Core removes all of them at world teardown, because an SP observer left
+behind survives a quit-to-menu and pins content awake for the rest of the process.
 
 ### Events
 
@@ -528,8 +589,14 @@ it and `CONFIG_STREAM_VERSION` did not move. Takes effect on the next campaign s
 A very large value keeps every registered group spawned permanently (issue #100's ask); a small one
 despawns everything not adjacent. Per-registration overrides always beat it.
 
-It is **separate** from `m_iMilitarySpawnDistance`, which the un-migrated legacy spawn paths still
-use. That one is `integration`'s problem, not core's. (Its civilian counterpart was retired on
+It is **separate** from `m_iMilitarySpawnDistance`, which after `integration` (2026-08-17) has exactly
+**one** production reader left: the base-upgrade spawners, through
+`OVT_BasePatrolUpgrade.PlayerInRange()` (`OVT_BasePatrolUpgrade.c:96-99`), which the defence-position,
+sniper-position and tower-guard upgrades all call. Deployments (town patrols, vehicle patrols) and
+radio-tower garrisons no longer read it at all — they ride this value instead, or a per-registration
+override. The other un-migrated system, the **QRF spawn queue**, reads neither: it spawns off its own
+trigger and its own ranges (`OVT_QRFControllerComponent.c`). Both of those are
+`base-defense-migration`'s problem, not core's. (Its civilian counterpart was retired on
 2026-08-17 by `civilians` Phase 2 along with the town-civilian spawner — ambient civilians ride this
 value through their source's `m_iSpawnDistanceOverride`, authored as `-1`.)
 
@@ -704,8 +771,15 @@ You do not have to do anything here beyond reclaiming from
 
 > **ROUTE B (Phase 5, shipped).** Core persists **complete re-creation state** for every registered
 > group and **rebuilds the group entities itself** on load. Vanilla persists *nothing* about them.
-> There is no group UUID, no `WhenAvailable` relink, and no vanilla `AIGroup` / `AIUnit` / `AIWaypoint`
-> record for anything core owns.
+> There is no group UUID and no `WhenAvailable` relink, and **no core-owned AI record is ever
+> self-spawned back**: vanilla `AIGroup` / `AIUnit` / `AIWaypoint` records *are* written into the save
+> (`Overthrow.conf` stamps them `SelfSpawn 0`), and nothing ever rebuilds an entity from one.
+>
+> *(Corrected 2026-08-17 by `integration` Phase 8 from the earlier wording "no vanilla `AIGroup` /
+> `AIUnit` / `AIWaypoint` record for anything core owns", which a hand-decoded save disproved:
+> `savepoint016` carries 27 `AIWaypoint` records and a pre-feature Eden save carries 342. Records
+> existing is expected and required; a record being re-instantiated is what never happens. See
+> `integration/context.md` T7.7 finding 5.)*
 
 ### Why it is done this way (the Phase 1 + Phase 3 findings, kept because they still bind)
 
@@ -903,6 +977,11 @@ origin, not the registration position), so a moved group loads back where you le
 | `void ReportMemberKilled(handle, slot)` | Only if you observe a death core did not (core already hooks the game-mode kill invoker). |
 | `void ForceSpawn(handle)` / `ForceDespawn(handle)` | Escape hatches. **Nudge, not pin** — see [§3](#lifecycle-overrides). |
 | `int GetSpawnDistance(handle)` / `GetImportance(handle)` / `GetGlobalSpawnDistance()` | Diagnostics and UI/debug readouts. |
+| `bool AddEntityObserver(entity)` (added 2026-08-17 at your request) | Park an observer that **follows that entity**, so registered groups near it materialise with no player present. Idempotent per entity; a re-add reuses the key. **Refuses null** (a null-entity insert hard-freezes the client) and **refuses an entity with `EntityID.INVALID`** (unkeyable — every unregistered entity shares that id), both with a WARNING. So add it a frame after the entity is spawned, not from inside its own init. Pass `GetGroup(handle)` to make a registered group observe for itself. |
+| `bool RemoveEntityObserver(entity)` (added 2026-08-17 at your request) | **Do this yourself, from wherever you clean the entity up.** Core's 2 s sweep only catches entities that are already gone; until then a forgotten observer holds everything near it spawned. Null / invalid id / unknown / client are safe `false`s. |
+| `bool HasEntityObserver(entity)` (added 2026-08-17 at your request) | Your bookkeeping question, answered from **core's map**, correct on the frame you ask. Engine application lags a frame in both directions — never verify this by querying `ObserversSystem`. False for an entity with an invalid id, for the same reason Add refuses one. |
+| `int GetEntityObserverCount()` (added 2026-08-17 at your request) | How many *core* is holding. Not `GetObserversSP()`, which also contains cameras, the deploy-point MP preload insert and everything else the session parked. |
+| `bool GetRecruitGroupsAreObservers()` | The operator's off-switch for the one shipped consumer (parked recruit groups, D16). Read it **in your consumer**; `AddEntityObserver` deliberately does not, because it serves everybody. |
 
 **Importance guidance is yours to apply** ([§5](#5-importance-tiers)): base and tower garrisons and
 anything the player travelled to fight → `HIGH`; scripted patrols, town garrisons and remnants →

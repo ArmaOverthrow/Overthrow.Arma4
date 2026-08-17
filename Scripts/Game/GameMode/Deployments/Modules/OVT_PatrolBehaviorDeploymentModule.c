@@ -1,193 +1,176 @@
-//! Patrol behavior module for deployments
-//! Assigns patrol waypoints to spawned AI groups
+//------------------------------------------------------------------------------------------------
+//! Patrol behavior for deployments: supplies the waypoint PLAN its groups are registered with.
+//!
+//! THE ORDER INVERTED HERE. This module used to spawn nothing and bolt waypoints onto whatever groups
+//! it found afterwards, on a 60 s poll, remembering which ones it had already processed. The
+//! virtualization core now builds a group's waypoints from a plan AT REGISTRATION and owns them for
+//! the group's whole life - a consumer that creates or deletes a waypoint on a registered group
+//! corrupts the record core persists. So the question this module answers moved from "what waypoints
+//! does this group need now?" to "what plan should this group be registered with?", and it has to
+//! answer BEFORE the group exists.
+//!
+//! Everything the old shape needed is therefore gone: the processed-group list, the poll, the
+//! reapply-on-new-groups path and the waypoint authoring itself. What is left is one pure function of
+//! the module's authored attributes and the position the group is about to be registered at.
+//!
+//! THE PLAN IS THE OPT-IN FOR BEING WALKED WHILE DORMANT. A DEFEND plan has nothing movable in it, so
+//! a group holding one holds its post whatever the movement tick does around it; a PERIMETER plan
+//! cycles, so a dormant patrol keeps walking its corners with nobody watching. That difference is the
+//! whole reason this class serves both a town patrol and (from Phase 4) a tower garrison without a
+//! flag anywhere.
+//------------------------------------------------------------------------------------------------
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sModuleName")]
 class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 {
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
-	
-	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior")]
+
+	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior. DEFEND holds one post and is never walked; PERIMETER circles the centre and IS walked while dormant")]
 	OVT_PatrolType m_ePatrolType;
-	
+
 	[Attribute(defvalue: "200", desc: "Patrol radius for perimeter patrols")]
 	float m_fPatrolRadius;
-	
-	[Attribute(defvalue: "60", desc: "Check interval for applying patrol behavior to new groups (seconds)")]
+
+	//! RETAINED BUT INERT. There is no poll left to interval: waypoints are built once, at
+	//! registration, by the virtualization core. Kept declared so an authored config that still sets it
+	//! parses cleanly (the shipped config surface is frozen, D1).
+	[Attribute(defvalue: "60", desc: "NO LONGER USED - patrol waypoints are built once at group registration, not applied on a poll")]
 	float m_fCheckInterval;
-	
-	[Attribute(defvalue: "true", desc: "Apply patrol behavior to groups spawned after activation")]
+
+	//! RETAINED BUT INERT, for the same reason. Every group this deployment registers gets its plan at
+	//! registration, so "new groups" are covered by construction and there is nothing to opt out of.
+	[Attribute(defvalue: "true", desc: "NO LONGER USED - every registered group gets its plan at registration")]
 	bool m_bApplyToNewGroups;
-	
+
 	[Attribute(defvalue: "false", desc: "Use town center as patrol center instead of deployment position")]
 	bool m_bUseNearestTownCenter;
-	
-	protected float m_fLastCheckTime;
-	protected ref array<SCR_AIGroup> m_aProcessedGroups;
-	
+
+	//! Shortest pause rolled for a perimeter corner, in seconds. The band is inherited verbatim from the
+	//! hand-authored perimeter helper on OVT_OverthrowConfigComponent that this replaces.
+	static const float WAIT_SECONDS_MIN = 45;
+
+	//! Longest pause rolled for a perimeter corner, in seconds.
+	static const float WAIT_SECONDS_MAX = 75;
+
 	//------------------------------------------------------------------------------------------------
-	void OVT_PatrolBehaviorDeploymentModule()
+	//! The plan a group registered at groupPosition should carry.
+	//!
+	//! ROLLED PER GROUP, which is why the wait durations and the starting bearing are not shared: two
+	//! patrols around one town centre set off in different directions and pause for different lengths,
+	//! exactly as the four hand-authored waypoint sets did.
+	//!
+	//! ROAD SNAPPING IS APPLIED HERE, not in the factory - the factory is world-free geometry and
+	//! cannot ask where the roads are. Each PATROL corner is pulled onto the nearest road and the WAIT
+	//! that follows it copies the snapped position, so a patrol pauses where it actually arrived
+	//! instead of at the point the geometry asked for.
+	//! \param[in] groupPosition Where the group is about to be registered.
+	//! \return The plan, or null when this module's patrol type has nothing to say.
+	override OVT_VirtualWaypointPlan BuildVirtualPlan(vector groupPosition)
 	{
-		m_fLastCheckTime = 0;
-		m_aProcessedGroups = new array<SCR_AIGroup>;
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	override void OnActivate()
-	{
-		super.OnActivate();
-		m_fLastCheckTime = GetGame().GetWorld().GetWorldTime();
-		
-		// Apply patrol behavior to existing groups
-		ApplyPatrolBehaviorToExistingGroups();
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	override void OnDeactivate()
-	{
-		super.OnDeactivate();
-		m_aProcessedGroups.Clear();
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	override void OnUpdate(int deltaTime)
-	{
-		super.OnUpdate(deltaTime);
-		
-		if (!m_bApplyToNewGroups)
-			return;
-		
-		float currentTime = GetGame().GetWorld().GetWorldTime();
-		
-		// Check for new groups periodically
-		if (currentTime - m_fLastCheckTime >= m_fCheckInterval)
+		vector centre = GetPatrolCenter();
+
+		// The same fallback the hand-authored helper carried: an unset centre means "circle where you
+		// are". It is also what makes this method answerable off a config template with no deployment
+		// behind it, which is how the Init tier asserts the shipped Town Patrol's plan shape.
+		if (centre == vector.Zero)
+			centre = groupPosition;
+
+		if (m_ePatrolType == OVT_PatrolType.DEFEND)
 		{
-			m_fLastCheckTime = currentTime;
-			CheckForNewGroups();
+			// Radius 0 leaves the defend waypoint prefab's own completion radius alone - parity with
+			// SpawnDefendWaypoint(centre), which is all the old DEFEND branch did.
+			return OVT_VirtualPlanFactory.BuildDefendPlan(centre, 0);
+		}
+
+		if (m_ePatrolType != OVT_PatrolType.PERIMETER)
+			return null;
+
+		float radius = m_fPatrolRadius;
+		if (radius <= 0)
+		{
+			// Parity again: an unauthored radius meant "circle at whatever distance you already are".
+			radius = vector.Distance(groupPosition, centre);
+		}
+
+		array<float> waitSeconds = new array<float>();
+		for (int i = 0; i < OVT_VirtualPlanFactory.PERIMETER_POINTS; i++)
+		{
+			waitSeconds.Insert(s_AIRandomGenerator.RandFloatXY(WAIT_SECONDS_MIN, WAIT_SECONDS_MAX));
+		}
+
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildPerimeterPlan(centre, groupPosition, radius, waitSeconds);
+		SnapPatrolPointsToRoads(plan);
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pulls every patrol corner onto the nearest road, taking its pause with it.
+	//!
+	//! Walks the plan by TYPE rather than by index arithmetic, so it keeps working if the factory's
+	//! interleaving ever changes: a PATROL point is snapped, and a WAIT copies whatever point came
+	//! before it. Only the positions move - the three parallel arrays keep their lengths, so the plan
+	//! stays registrable.
+	//! \param[in] plan The plan to snap in place. Null is a no-op.
+	protected void SnapPatrolPointsToRoads(OVT_VirtualWaypointPlan plan)
+	{
+		if (!plan || !plan.m_aPositions || !plan.m_aTypes)
+			return;
+
+		int count = plan.m_aPositions.Count();
+		if (plan.m_aTypes.Count() < count)
+			return;
+
+		for (int i = 0; i < count; i++)
+		{
+			if (plan.m_aTypes[i] == OVT_EVirtualWaypointType.PATROL)
+			{
+				plan.m_aPositions.Set(i, OVT_WorldUtils.FindNearestRoad(plan.m_aPositions[i]));
+				continue;
+			}
+
+			if (plan.m_aTypes[i] == OVT_EVirtualWaypointType.WAIT && i > 0)
+				plan.m_aPositions.Set(i, plan.m_aPositions[i - 1]);
 		}
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	override OVT_BaseDeploymentModule CloneModule()
 	{
 		OVT_PatrolBehaviorDeploymentModule clone = new OVT_PatrolBehaviorDeploymentModule();
-		
-		// Copy configuration
+
+		// Copy configuration. EVERY attribute has to appear here - a forgotten one silently ships the
+		// class default instead of the authored value, which is how m_fMaxCruiseSpeed was lost on the
+		// vehicle module for a whole release (D1's standing trap).
 		clone.m_sModuleName = m_sModuleName;
 		clone.m_ePatrolType = m_ePatrolType;
 		clone.m_fPatrolRadius = m_fPatrolRadius;
 		clone.m_fCheckInterval = m_fCheckInterval;
 		clone.m_bApplyToNewGroups = m_bApplyToNewGroups;
 		clone.m_bUseNearestTownCenter = m_bUseNearestTownCenter;
-		
+
 		return clone;
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void ApplyPatrolBehaviorToExistingGroups()
-	{
-		if (!m_ParentDeployment)
-			return;
-		
-		// Get all spawning modules and their spawned entities
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = m_ParentDeployment.GetSpawningModules();
-				
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			array<IEntity> spawnedEntities = spawningModule.GetSpawnedEntities();
-			foreach (IEntity entity : spawnedEntities)
-			{
-				SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-				if (group && !IsGroupProcessed(group))
-				{
-					ApplyPatrolBehaviorToGroup(group);
-					m_aProcessedGroups.Insert(group);
-				}
-			}
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void CheckForNewGroups()
-	{
-		if (!m_ParentDeployment)
-			return;
-		
-		// Get all spawning modules and check for new groups
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = m_ParentDeployment.GetSpawningModules();
 
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			array<IEntity> spawnedEntities = spawningModule.GetSpawnedEntities();
-			foreach (IEntity entity : spawnedEntities)
-			{
-				SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-				if (group && !IsGroupProcessed(group))
-				{
-					ApplyPatrolBehaviorToGroup(group);
-					m_aProcessedGroups.Insert(group);
-					Print(string.Format("Applied patrol behavior to new group at %1", group.GetOrigin().ToString()), LogLevel.VERBOSE);
-				}
-			}
-		}
-		
-		// Clean up destroyed groups from processed list
-		for (int i = m_aProcessedGroups.Count() - 1; i >= 0; i--)
-		{
-			SCR_AIGroup group = m_aProcessedGroups[i];
-			if (!group)
-			{
-				m_aProcessedGroups.Remove(i);
-			}
-		}
-	}
-	
 	//------------------------------------------------------------------------------------------------
-	protected void ApplyPatrolBehaviorToGroup(SCR_AIGroup group)
-	{
-		if (!group || !m_ParentDeployment)
-			return;
-		
-		vector patrolCenter = GetPatrolCenter();
-		
-		// Clear any existing waypoints first
-		array<AIWaypoint> waypoints = {};
-		group.GetWaypoints(waypoints);
-		
-		foreach(AIWaypoint wp : waypoints)
-		{
-			group.RemoveWaypoint(wp);
-		}
-		
-		// Get the config component for waypoint creation
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-		{
-			Print("Patrol behavior: Cannot get config component", LogLevel.ERROR);
-			return;
-		}
-		
-		// Apply patrol behavior based on type
-		config.GivePatrolWaypoints(group, m_ePatrolType, patrolCenter, m_fPatrolRadius);
-		
-		string patrolTypeName = typename.EnumToString(OVT_PatrolType, m_ePatrolType);
-		string groupPos = group.GetOrigin().ToString();
-		string centerPos = patrolCenter.ToString();
-		Print(string.Format("Applied %1 patrol to group at %2, center: %3", patrolTypeName, groupPos, centerPos), LogLevel.VERBOSE);
-	}
-	
-	//------------------------------------------------------------------------------------------------
+	//! What the patrol circles: the nearest town centre when this module is authored to use one, and
+	//! the deployment's own position otherwise.
+	//!
+	//! Kept public-facing behaviour unchanged from the waypoint-authoring version, because it is also
+	//! what makes the DEFEND branch usable as a garrison's "hold this post".
+	//! \return The centre, or vector.Zero when there is no deployment to ask.
 	protected vector GetPatrolCenter()
 	{
 		if (!m_ParentDeployment)
 			return vector.Zero;
-		
+
 		if (m_bUseNearestTownCenter)
 		{
 			// Try to get town center from town conditional module
 			OVT_TownConditionalDeploymentModule townCondition = OVT_TownConditionalDeploymentModule.Cast(
 				m_ParentDeployment.GetModule(OVT_TownConditionalDeploymentModule)
 			);
-			
+
 			if (townCondition)
 			{
 				OVT_TownData nearestTown = townCondition.GetNearestTown();
@@ -196,26 +179,20 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 					return nearestTown.location;
 				}
 			}
-			
+
 			// Fallback to deployment position if no town found
 			Print("Patrol behavior: No town found, using deployment position as patrol center", LogLevel.VERBOSE);
 		}
-		
+
 		return m_ParentDeployment.GetPosition();
 	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected bool IsGroupProcessed(SCR_AIGroup group)
-	{
-		return m_aProcessedGroups.Contains(group);
-	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	string GetPatrolTypeString()
 	{
 		return typename.EnumToString(OVT_PatrolType, m_ePatrolType);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	// Debug methods
 	//------------------------------------------------------------------------------------------------
@@ -228,31 +205,20 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		if (m_bUseNearestTownCenter)
 			useTownCenter = "Yes";
 		Print(string.Format("  Use Town Center: %1", useTownCenter));
-		
-		string applyToNew = "No";
-		if (m_bApplyToNewGroups)
-			applyToNew = "Yes";
-		Print(string.Format("  Apply to New Groups: %1", applyToNew));
-		Print(string.Format("  Processed Groups: %1", m_aProcessedGroups.Count()));
-		
+
 		vector patrolCenter = GetPatrolCenter();
 		Print(string.Format("  Patrol Center: %1", patrolCenter.ToString()));
-		
-		// List processed groups
-		foreach (SCR_AIGroup group : m_aProcessedGroups)
+
+		OVT_VirtualWaypointPlan plan = BuildVirtualPlan(patrolCenter);
+		if (!plan)
 		{
-			if (group)
-			{
-				Print(string.Format("    Group at: %1", group.GetOrigin().ToString()));
-			}
+			Print("  Plan: none (this patrol type has no opinion)");
+			return;
 		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	void ForceReapplyPatrolBehavior()
-	{
-		m_aProcessedGroups.Clear();
-		ApplyPatrolBehaviorToExistingGroups();
-		Print("Patrol behavior: Force reapplied to all groups", LogLevel.NORMAL);
+
+		string cycles = "No";
+		if (plan.m_bCycle)
+			cycles = "Yes";
+		Print(string.Format("  Plan: %1 point(s), cycles: %2", plan.m_aPositions.Count(), cycles));
 	}
 }

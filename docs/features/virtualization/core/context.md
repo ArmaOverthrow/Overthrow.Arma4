@@ -174,6 +174,93 @@ deliberately left out of core: `movement` sorts the handles ascending in its own
 which works because handles come from a monotonic counter, so ascending order *is* registration order.
 A consumer that needs stability must do the same.
 
+### 2026-08-17 — the AI observer API on the manager
+
+**Requested by:** `virtualization/integration` (feature #4 of the epic), **Phase 6** — its
+implementation plan §3.10 and decisions D14/D15/D16, tasks T6.1/T6.4. Built by that feature, in core's
+file. It is that feature's **only** core change.
+
+**What was added** (`Scripts/Game/GameMode/Virtualization/OVT_VirtualizationManagerComponent.c`, a new
+"AI OBSERVERS" section at the bottom of the class, beside the ambient half):
+
+```c
+bool AddEntityObserver(IEntity entity);      //!< park an SP observer that FOLLOWS the entity
+bool RemoveEntityObserver(IEntity entity);
+bool HasEntityObserver(IEntity entity);      //!< from core's map, NEVER from the engine
+int  GetEntityObserverCount();
+bool GetRecruitGroupsAreObservers();         //!< reader for the new operator attribute below
+```
+
+plus `map<EntityID, int> m_mEntityObservers`, a namespaced key counter
+(`ENTITY_OBSERVER_KEY_BASE = 771000` — clear of the Phase 1 gate case's 770019), one attribute
+(`m_bRecruitGroupsAreObservers`, default **true**, D16's off-switch), a stale-entity sweep folded into
+the existing 2 s ambient tick, and a teardown call in `OnDelete`.
+
+**⚠ Two refusals, and the second one was found by the suite, not by planning.** `AddEntityObserver`
+refuses a **null** entity (the known client freeze) *and* an entity whose `GetID()` is
+`EntityID.INVALID`. The map is keyed on `EntityID`, and an entity that is not world-registered answers
+`GetID()` with `EntityID.INVALID` — **a value every such entity shares**. The Phase 6 Init round-trip
+case went red on exactly that: two markers spawned in one frame collided on one map entry, so
+`HasEntityObserver` answered true for an entity nobody had added an observer for. Storing an unkeyable
+entity is a wrong-answer bug *and* a leak (removing either entity removes the other's observer), so it
+is refused loudly instead. `HasEntityObserver`/`RemoveEntityObserver` answer a quiet `false` for the
+same input. **Consumer rule that follows:** do not add an observer from inside the entity's own
+initialisation — an `OnPostInit` on a component of the entity being spawned runs one call deep inside
+that spawn. Defer by one call-queue hop and cancel the hop in `OnDelete`; the shipped recruit-group
+consumer does exactly that. The same world-registration is what the stale sweep depends on — it drops
+any observer whose id no longer resolves through `FindEntityByID`.
+
+**Why.** The engine only materialises a dormant registered group for an **observer**, and observers are
+not players. Nothing in Overthrow could park one, so a player's parked recruit squad — the case the
+requirement names, "a recruit group left in a town alone causes the enemy patrol to materialise" —
+could not wake anything. `AddEntityObserver(IEntity)` rather than `AddGroupObserver(int handle)`
+because the first consumer is a parked-recruit group, which is **not** a registered group at all (D14);
+an entity-keyed API also serves a self-observing registered group (`AddEntityObserver(GetGroup(h))`)
+with the same signature.
+
+**The gate that had to be answered first (D15).** `InsertObserverSP` is documented as a *local*
+observer, has zero vanilla script callers in the 1.8 tree, and nothing in script says whether an insert
+made on the authority is honoured by the query the group lifecycle actually uses. `integration`'s Phase
+1 answered it five phases early, with an Init-tier case (All 237 green, 2026-08-17):
+
+> `T1.9 VERDICT: server-side InsertObserverSP(key, 0, 0, entity) is HONOURED, application DEFERRED (invisible same-frame, visible within the settling budget) | settled after 1 frame(s), removal settled after 1 | has(probe): before=false sameFrame=false settled=true afterRemove=false | GetObserversSP(): before=1 sameFrame=1 settled=2 (two inserts, one key) afterRemove=1`
+
+Three things in that line are load-bearing and are built into the API rather than left to consumers:
+**the SP key is an identity** ("insert or update" — two inserts on one key settle at +1, which is what
+makes an idempotent `AddEntityObserver` safe); **application is deferred by one frame both ways**, so
+`HasEntityObserver`/`GetEntityObserverCount` answer from core's own map and never from the engine (an
+engine query right after an add reads a false negative, right after a remove a false leak — the first
+version of the gate case went red on exactly that); and **the SP key space has no vanilla script user**,
+so namespacing only has to avoid Overthrow's own keys.
+
+**Why it is not a breaking change.**
+
+- Pure addition. Nothing was renamed, re-signed or re-meant; the only existing lines touched are two
+  call-sites' worth of insertion — one line in `AmbientTick` (the sweep, deliberately placed *above*
+  the "no ambient sources" early-out so a manager with observers and no sources still sweeps) and one
+  in `OnDelete`. The rest is new. Every removed line in the diff belongs to **one reworded comment**
+  (the waypoint-ownership header, which still cited `OVT_EntitySpawningAPI` — a file `integration`
+  Phase 5 deleted; that citation was explicitly handed to this phase, since Phase 5's own acceptance
+  forbade it from touching core).
+- No persisted payload field was added, moved or re-meant, and `CONFIG_STREAM_VERSION` did not move.
+  The registry serializer neither reads nor writes anything new. **Observer keys are session-local by
+  construction and are never persisted or replicated** — a saved key would name nothing on load, and a
+  replicated one would name a different machine's observer table.
+- No behaviour changed anywhere. At landing the four methods had **no caller inside core**, and the
+  one caller outside it is the consumer's own component.
+- The new attribute defaults to the shipped behaviour (`true`), and it is read **by the consumer**, not
+  inside `AddEntityObserver` — so no other consumer's observer can be switched off by it.
+
+**⚠ The one hazard this adds, stated plainly:** an observer holds **every registered group inside its
+ring materialised, with its AI running, for as long as it exists**. A squad parked near a radio tower
+keeps that tower's garrison awake indefinitely. That is the feature and it is the budget risk in one
+sentence, which is why it has an off-switch, why core sweeps entities that vanished without their
+observer being removed, and why `OnDelete` removes **every** observer — core's teardown is otherwise
+detach-don't-destroy (records and their entities may still be wanted), but an SP observer is engine
+state keyed by an integer only this component holds, so one left behind survives the world, survives a
+Continue, and pins content awake for the rest of the **process** with nothing left able to name the key
+that would remove it.
+
 ---
 
 ## Gotchas & Learnings

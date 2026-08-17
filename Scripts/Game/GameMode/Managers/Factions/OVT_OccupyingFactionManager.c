@@ -69,8 +69,10 @@ class OVT_RadioTowerData : Managed
 	[NonSerialized()]
 	float disabledStamp;
 
-	[NonSerialized()]
-	ref array<ref EntityID> garrison = {};
+	//! THERE IS NO GARRISON LIST ON A TOWER ANY MORE. A tower's garrison is an ordinary deployment
+	//! (Configs/Deployment/Deployment_TowerGarrison.conf) whose groups the virtualization core owns.
+	//! Nothing here may rebuild one: the old list held whatever was materialised right now, and
+	//! "the list is empty this tick" is precisely what used to make walking away capture a tower.
 
 	bool IsOccupyingFaction()
 	{
@@ -539,9 +541,26 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Ticks every radio tower's sabotage countdown on the 9 s timer installed by PostGameStart, and
+	//! puts a tower back on the air when its downtime runs out.
+	//!
+	//! GARRISONS ARE NOT HERE ANY MORE, AND MUST NOT COME BACK. This loop used to fuse four unrelated
+	//! concerns into one foreach: the sabotage countdown below, spawning a tower's defence groups,
+	//! deleting them again, and capturing the tower when the list of them happened to be empty. All
+	//! three garrison halves are gone - a radio tower garrison is now an ordinary DEPLOYMENT
+	//! (Configs/Deployment/Deployment_TowerGarrison.conf), so:
+	//!   - the groups are registered with the virtualization core and the ENGINE decides when to put
+	//!     men on the ground, remembering which of them died across every despawn and every save;
+	//!   - capture is driven by that deployment's eliminated flag, which is set only by a real wipe,
+	//!     so driving away from a tower can no longer take it;
+	//!   - the map-wide "delete every tower garrison for the whole duration of any QRF anywhere" side
+	//!     effect went with the despawn branch that carried it.
+	//!
+	//! What is left is the one concern this method was ever named for. Re-adding a spawn here would
+	//! double every garrison, because the deployment config is already producing one.
 	void CheckRadioTowers()
 	{
-		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(tower.disabledRemaining > 0)
@@ -553,76 +572,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 					Rpc(RpcDo_SetRadioTowerDisabled, tower.location, 0);
 					string townName = OVT_Global.GetTowns().GetTownName(tower.location);
 					OVT_Global.GetNotify().SendTextNotification("RadioTowerRepaired", -1, townName);
-				}
-			}
-			if(!tower.IsOccupyingFaction()) continue;
-			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
-			if(inrange)
-			{
-				if(tower.garrison.Count() == 0)
-				{
-					if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) continue; // [OVT-VIRT-PLAYTEST-ONLY]
-
-					//Spawn in radio defense
-
-					vector pos = tower.location + "5 0 0";
-
-					float surfaceY = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-					if (pos[1] < surfaceY)
-					{
-						pos[1] = surfaceY;
-					}
-					
-					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-					
-					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.patrolGroupsMin,config.m_Difficulty.patrolGroupsMax);
-
-					for(int t = 0; t < numGroups; t++)
-					{
-						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
-						tower.garrison.Insert(group.GetID());
-						// GM group registry: keyed on the tower that produced it.
-						OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.RADIO_TOWER_GARRISON, tower.id, "RadioTower");
-						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-						AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
-						aigroup.AddWaypoint(wp);
-					}
-				}else{
-					//Check if dead
-					array<EntityID> remove = {};
-					foreach(EntityID id : tower.garrison)
-					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_AIGroup group = SCR_AIGroup.Cast(ent);
-						if(!group)
-						{
-							remove.Insert(id);
-						}else if(group.GetAgentsCount() == 0)
-						{
-							SCR_EntityHelper.DeleteEntityAndChildren(group);
-							remove.Insert(id);
-						}
-					}
-					foreach(EntityID id : remove)
-					{
-						tower.garrison.RemoveItem(id);
-					}
-					if(tower.garrison.Count() == 0)
-					{
-						//radio tower changes hands
-						ChangeRadioTowerControl(tower, OVT_Global.GetConfig().GetPlayerFactionIndex());
-					}
-				}
-			}else{
-				if(tower.garrison.Count() > 0)
-				{
-					//Despawn defense
-					foreach(EntityID id : tower.garrison)
-					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_EntityHelper.DeleteEntityAndChildren(ent);
-					}
-					tower.garrison.Clear();
 				}
 			}
 		}

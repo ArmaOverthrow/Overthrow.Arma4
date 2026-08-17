@@ -1079,7 +1079,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010A}" {
    Id "OVT-Difficulty_Easy_Desc"
    Target_en_us "Recommended for solo players. Occupying garrisons and patrols are at their smallest."
-   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Easy is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Easy.conf as a stringtable key: TextWidget.SetText translates #-prefixed keys, so the config carries the key and the read site in OVT_StartGameContext needs no change. LENGTH BUDGET: ONE line, about 105 characters. All five difficulty descriptions are held to one line on purpose - the block above the Start button has roughly 180 units of vertical room for four description widgets, and the two faction descriptions already take two lines each. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. The recommendation is the shipped authored text of Difficulty_Easy.conf:3 and carries itself. Smallest garrisons and patrols: Difficulty_Easy.conf:9-11 (patrolGroupsMin 1, patrolGroupsMax 2, defenseGroupsBaseMax 2 - the lowest of the five presets), read at OVT_OccupyingFactionManager.c:508, halved at OVT_InfantrySpawningDeploymentModule.c:224, and OVT_BaseUpgradeDefensePosition.c:48. The claim is deliberately RELATIVE ('smallest') and names no location: the two patrol read sites use different arithmetic, so any single quoted number would be false at one of them, but both scale monotonically with the same fields so the ordering is true at both. FORBIDDEN in every difficulty description: real-estate prices scaling with difficulty (realEstateCostMultiplier is declared and replicated but read by nobody - GetBuyPrice and GetRentPrice at OVT_RealEstateManagerComponent.c:712,730 ignore it) and a flat respawn cost (ChargeRespawn only charges above a hardcoded money > 500 gate, OVT_EconomyManagerComponent.c:1874)."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Easy is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Easy.conf as a stringtable key: TextWidget.SetText translates #-prefixed keys, so the config carries the key and the read site in OVT_StartGameContext needs no change. LENGTH BUDGET: ONE line, about 105 characters. All five difficulty descriptions are held to one line on purpose - the block above the Start button has roughly 180 units of vertical room for four description widgets, and the two faction descriptions already take two lines each. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. The recommendation is the shipped authored text of Difficulty_Easy.conf:3 and carries itself. Smallest garrisons and patrols: Difficulty_Easy.conf:9-11 (patrolGroupsMin 1, patrolGroupsMax 2, defenseGroupsBaseMax 2 - the lowest of the five presets), halved at OVT_InfantrySpawningDeploymentModule.c:416 and read for base defences at OVT_BaseUpgradeDefensePosition.c:47. RE-CITED 2026-08-17 by virtualization/integration Phase 8: the old OVT_OccupyingFactionManager.c:508 read site went with the deleted legacy tower-garrison spawn block, and the halved roll at :416 now sizes town patrols AND tower garrisons alike; the claim itself is unchanged and still true. The claim is deliberately RELATIVE ('smallest') and names no location: the patrol and defence read sites use different arithmetic, so any single quoted number would be false at one of them, but both scale monotonically with the same fields so the ordering is true at both. FORBIDDEN in every difficulty description: real-estate prices scaling with difficulty (realEstateCostMultiplier is declared and replicated but read by nobody - GetBuyPrice and GetRentPrice at OVT_RealEstateManagerComponent.c:712,730 ignore it) and a flat respawn cost (ChargeRespawn only charges above a hardcoded money > 500 gate, OVT_EconomyManagerComponent.c:1874)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1113,7 +1113,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010C}" {
    Id "OVT-Difficulty_Hard_Desc"
    Target_en_us "Recommended for busy servers. Garrisons and patrols are larger, and building costs more."
-   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Hard is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Hard.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Hard.conf:3. Larger garrisons and patrols: Difficulty_Hard.conf:12-14 (patrolGroupsMin 4, patrolGroupsMax 6, defenseGroupsBaseMax 10, against Easy's 1/2/2 and Normal's default 2/4/5), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Building costs more: Difficulty_Hard.conf placeableCostMultiplier 1.5 and buildableCostMultiplier 1.5 against Easy's 0.8 and Normal's default 1, read at OVT_OverthrowConfigComponent.c:252 and :257. Real-estate prices are NOT mentioned and must not be: realEstateCostMultiplier is a dead field."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Hard is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Hard.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Hard.conf:3. Larger garrisons and patrols: Difficulty_Hard.conf:12-14 (patrolGroupsMin 4, patrolGroupsMax 6, defenseGroupsBaseMax 10, against Easy's 1/2/2 and Normal's default 2/4/5), read at OVT_InfantrySpawningDeploymentModule.c:416 and OVT_BaseUpgradeDefensePosition.c:47 (RE-CITED 2026-08-17, Phase 8 of virtualization/integration: the OVT_OccupyingFactionManager.c:508 read site went with the deleted legacy tower-garrison spawn block); stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Building costs more: Difficulty_Hard.conf placeableCostMultiplier 1.5 and buildableCostMultiplier 1.5 against Easy's 0.8 and Normal's default 1, read at OVT_OverthrowConfigComponent.c:252 and :257. Real-estate prices are NOT mentioned and must not be: realEstateCostMultiplier is a dead field."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1130,7 +1130,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010E}" {
    Id "OVT-Difficulty_Insane_Desc"
    Target_en_us "Recommended for highly experienced servers. Occupying garrisons and patrols are at their largest."
-   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Insane is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Insane.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Insane.conf:3. Largest garrisons and patrols: Difficulty_Insane.conf:11-13 (patrolGroupsMin 8, patrolGroupsMax 12, defenseGroupsBaseMax 30 - the highest of the five presets), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Also true of Insane but cut for length: its startingItems is the R148 radio alone, exactly as Extreme's (OVT_SpawnLogic.c:1177), and fast travel is refused while a QRF is active (QRFFastTravelMode DISABLED, OVT_MapContext.c:78-84). The garrison clause was chosen over the radio clause because it is what distinguishes Insane from Extreme."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Insane is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Insane.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Insane.conf:3. Largest garrisons and patrols: Difficulty_Insane.conf:11-13 (patrolGroupsMin 8, patrolGroupsMax 12, defenseGroupsBaseMax 30 - the highest of the five presets), read at OVT_InfantrySpawningDeploymentModule.c:416 and OVT_BaseUpgradeDefensePosition.c:47 (RE-CITED 2026-08-17, Phase 8 of virtualization/integration: the OVT_OccupyingFactionManager.c:508 read site went with the deleted legacy tower-garrison spawn block); stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Also true of Insane but cut for length: its startingItems is the R148 radio alone, exactly as Extreme's (OVT_SpawnLogic.c:1177), and fast travel is refused while a QRF is active (QRFFastTravelMode DISABLED, OVT_MapContext.c:78-84). The garrison clause was chosen over the radio clause because it is what distinguishes Insane from Extreme."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1247,7 +1247,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000106}" {
    Id "OVT-Faction_US_Occupying"
    Target_en_us "US forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
-   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when US is selected. Resolved by faction KEY, not by spinner index, in OVT_StartGameContext.ResolveOccupyingFactionDescription. LENGTH BUDGET: this widget is right-aligned, wrapped, font 18 in an 880px column and must not exceed TWO lines (about 210 characters) or the description block starts eating the gap above the Start button. TONE: informs, never instructs; no imperative and no implied order of play. FACT-CHECKED 2026-08-09. 'US forces hold the island': the occupying faction is what OVT_StartGameContext.OnSpinOccupyingFaction sets through OVT_OverthrowConfigComponent.SetOccupyingFaction:275, and US is one of the two spinner options (OVT_OverthrowFactionManager.et:24-31 registers USSR, US, FIA and CIV; OVT_StartGameContext.c:98 drops FIA because FIA_OverthrowData.conf:3 is m_bIsPlayable 1, and :99 drops CIV). Garrisons and patrols: OVT_OccupyingFactionManager.c:508 (defence groups sized by patrolGroupsMin/Max), OVT_BaseUpgradeDefensePosition.c:48 (defenseGroupsBaseMax) and Configs/Deployment/Deployment_TownPatrol.conf:26 (m_iAllowedFactionTypes OCCUPYING_FACTION - only the occupier patrols towns). Disguise: OVT_PlayerWantedComponent.c:111 IsDisguisedAsOccupying, with 7 live consumers including SCR_CharacterDamageManagerComponent.c:27,69,121. This string and OVT-Faction_USSR_Occupying differ ONLY in the faction name, and that is correct rather than lazy: US_OverthrowData.conf and USSR_OverthrowData.conf differ only in which prefabs the generic slot names resolve to, so no mechanical per-faction claim survives a fact-check (cut C6)."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when US is selected. Resolved by faction KEY, not by spinner index, in OVT_StartGameContext.ResolveOccupyingFactionDescription. LENGTH BUDGET: this widget is right-aligned, wrapped, font 18 in an 880px column and must not exceed TWO lines (about 210 characters) or the description block starts eating the gap above the Start button. TONE: informs, never instructs; no imperative and no implied order of play. FACT-CHECKED 2026-08-09. 'US forces hold the island': the occupying faction is what OVT_StartGameContext.OnSpinOccupyingFaction sets through OVT_OverthrowConfigComponent.SetOccupyingFaction:275, and US is one of the two spinner options (OVT_OverthrowFactionManager.et:24-31 registers USSR, US, FIA and CIV; OVT_StartGameContext.c:98 drops FIA because FIA_OverthrowData.conf:3 is m_bIsPlayable 1, and :99 drops CIV). Garrisons and patrols: OVT_InfantrySpawningDeploymentModule.c:416 (patrol/garrison groups sized by patrolGroupsMin/Max), OVT_BaseUpgradeDefensePosition.c:47 (defenseGroupsBaseMax), Configs/Deployment/Deployment_TownPatrol.conf:26 (m_iAllowedFactionTypes OCCUPYING_FACTION - only the occupier patrols towns) and Configs/Deployment/Deployment_TowerGarrison.conf (m_iAllowedFactionTypes OCCUPYING_FACTION, m_iAllowedLocationTypes RADIO_TOWER - radio towers are garrisoned by the same deployment system as of 2026-08-17). Disguise: OVT_PlayerWantedComponent.c:111 IsDisguisedAsOccupying, with 7 live consumers including SCR_CharacterDamageManagerComponent.c:27,69,121. This string and OVT-Faction_USSR_Occupying differ ONLY in the faction name, and that is correct rather than lazy: US_OverthrowData.conf and USSR_OverthrowData.conf differ only in which prefabs the generic slot names resolve to, so no mechanical per-faction claim survives a fact-check (cut C6)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1281,7 +1281,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000107}" {
    Id "OVT-Faction_USSR_Occupying"
    Target_en_us "Soviet forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
-   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters - see OVT-Faction_US_Occupying. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Occupying: OVT_OverthrowFactionManager.et:24-31 (USSR is one of the two spinner factions), OVT_OccupyingFactionManager.c:508 and OVT_BaseUpgradeDefensePosition.c:48 (garrison sizes), Configs/Deployment/Deployment_TownPatrol.conf:26 (town patrols are OCCUPYING_FACTION only), OVT_PlayerWantedComponent.c:111 (the occupier's uniform is the disguise that works). DELIBERATELY IDENTICAL to the US string except for the faction name (cut C6): the two faction data files differ only in which prefabs their generic slot names resolve to, so any mechanical difference between them would be invented. Translators: 'Soviet' here is the USSR faction, matching the spinner label."
+   Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters - see OVT-Faction_US_Occupying. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Occupying: OVT_OverthrowFactionManager.et:24-31 (USSR is one of the two spinner factions), OVT_InfantrySpawningDeploymentModule.c:416 and OVT_BaseUpgradeDefensePosition.c:47 (garrison sizes; re-cited 2026-08-17), Configs/Deployment/Deployment_TownPatrol.conf:26 (town patrols are OCCUPYING_FACTION only), OVT_PlayerWantedComponent.c:111 (the occupier's uniform is the disguise that works). DELIBERATELY IDENTICAL to the US string except for the faction name (cut C6): the two faction data files differ only in which prefabs their generic slot names resolve to, so any mechanical difference between them would be invented. Translators: 'Soviet' here is the USSR faction, matching the spinner label."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1458,8 +1458,8 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000166}" {
    Id "OVT-FieldManual_BaseCapture_Text5"
-   Target_en_us "Nothing taken is held for good. The occupying faction keeps reserves, spends them on the bases it still has, and when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again. Towns and radio towers are fought over in much the same way, and a place can change hands more than once in a campaign."
-   Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:37-70 (radio towers are retaken by a specops team). The surplus threshold, the random roll and the timeout are deliberately not quoted."
+   Target_en_us "Nothing taken is held for good. The occupying faction keeps reserves, spends them on the bases it still has, and when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again. Towns are fought over in much the same way. A radio tower is a quieter business: it is taken by clearing the garrison standing at it, and it is taken back by a specialist team sent out from an occupied base. A place can change hands more than once in a campaign."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:38-65 (radio towers are retaken by a specops team, ChangeRadioTowerControl at :65). The surplus threshold, the random roll and the timeout are deliberately not quoted. CORRECTED 2026-08-17 by virtualization/integration Phase 8: the sentence used to read 'Towns and radio towers are fought over in much the same way', which is no longer true of towers - a tower is not a QRF battle and has no ticking control counter, it flips the moment its garrison is wiped (OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 and :122-124). Towers now have their own Field Manual page, 'Patrols and Garrisons'."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2429,6 +2429,159 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1786320000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000101}" {
+   Id "OVT-FieldManual_OccupyingForces_Title"
+   Target_en_us "Patrols and Garrisons"
+   Comment "Field Manual - title of the Patrols and Garrisons page, shown on its tile in The Resistance category grid and as the heading at the top of the page. Two to four words. Also usable as a deep-link id from a tutorial popup, so it must never be renamed. Added 2026-08-17 by virtualization/integration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000102}" {
+   Id "OVT-FieldManual_OccupyingForces_Text"
+   Target_en_us "The occupying faction keeps standing forces in the field: foot patrols working the towns it still controls, vehicle patrols on the roads, and a garrison at each radio tower it holds. Vehicle patrols and tower garrisons are bought out of the same reserves it spends on its bases, so a faction that is short of them fields fewer; foot patrols in a town cost it nothing."
+   Comment "Field Manual - Patrols and Garrisons page, opening paragraph. Two sentences, no rich-text markup. Reference voice: describes, never instructs. FACT-CHECKED 2026-08-17 against Configs/Deployment/Deployment_TownPatrol.conf (m_iAllowedLocationTypes TOWN, m_iBaseCost 0, m_iCostPerGroup 0), Deployment_VehiclePatrol_Light.conf:21 (m_iBaseCost 25) and Deployment_VehiclePatrol_Heavy.conf:20 (m_iBaseCost 50), Deployment_TowerGarrison.conf (m_iAllowedLocationTypes RADIO_TOWER, m_iBaseCost 20, m_iCostPerGroup 10), and the affordability gate in OVT_DeploymentManager.c:386-391 with FindBestDeploymentConfig:750-752. Deliberately quotes no resource numbers - the authored costs are a starting point per the feature's T4.5 note and are expected to be tuned."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000103}" {
+   Id "OVT-FieldManual_OccupyingForces_Head"
+   Target_en_us "Losses Stay Lost"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the paragraph about casualties persisting. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000104}" {
+   Id "OVT-FieldManual_OccupyingForces_Text2"
+   Target_en_us "Soldiers killed out of a patrol or a tower garrison are gone for good. When that group stops being watched and later comes back into view it returns with only the men who lived through the last fight, and a campaign saved and loaded again brings back the same survivors rather than a fresh full-strength unit. A patrol wiped out to the last man can be replaced later, at a cost to the faction that fielded it."
+   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Losses Stay Lost' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against the virtualization core survivor mask: OVT_VirtualizationManagerComponent.c:1813-1828 GetMemberAlive and :1886-1900 ReportMemberKilled (per-slot death, idempotent), :731 SetOVTSlotMask (the mask decides which roster slots materialise), :1029-1033 (the mask is written into the save payload) and :1180 ApplyPersistedMask (it is read back on restore). Replacement: OVT_ReinforcementBehaviorDeploymentModule.c:123-128 ShouldReinforceModule/TryReinforceModule, which fires only for a FULLY eliminated module, spending m_iReinforcementCost through OVT_InfantrySpawningDeploymentModule.Reinforce:479-495. NOTE the last sentence deliberately says 'a patrol' and not 'a garrison': a fully wiped TOWER garrison is not rebought, because the tower has already changed hands by then (see OccupyingForces_Text4)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000105}" {
+   Id "OVT-FieldManual_OccupyingForces_Head2"
+   Target_en_us "Patrols Keep Moving"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the paragraph about patrols walking their route unobserved. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000106}" {
+   Id "OVT-FieldManual_OccupyingForces_Text3"
+   Target_en_us "A town patrol walks its round whether or not anybody is there to see it. With nobody nearby it keeps covering the same circuit, so it will not be waiting on the corner it was last seen standing on; it turns up wherever along that route it had got to. A garrison posted at a radio tower is a different matter and holds the ground it was put on."
+   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Patrols Keep Moving' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_VirtualMovementManagerComponent.c:355 (the tick advances a handle ONLY while it is not spawned) and :658 (SetPosition is the only mutation), plus OVT_PatrolBehaviorDeploymentModule.c:16-18 and :28 (a PERIMETER plan cycles and IS walked while dormant, a DEFEND plan is never walked) and :78-85. Deployment_TownPatrol.conf authors no m_ePatrolType, so it takes the attribute default of PERIMETER; Deployment_TowerGarrison.conf authors m_ePatrolType DEFEND, which is the last sentence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000107}" {
+   Id "OVT-FieldManual_OccupyingForces_Head3"
+   Target_en_us "Radio Towers"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a radio tower changes hands. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000108}" {
+   Id "OVT-FieldManual_OccupyingForces_Text4"
+   Target_en_us "A radio tower the occupying faction holds changes hands when the men garrisoning it are all dead, and only then. Standing next to a tower does nothing on its own, and walking away and coming back neither resets the fight nor finishes it: the garrison is still short by everyone who fell, and the tower stays occupied until the last of them does."
+   Comment "Field Manual - Patrols and Garrisons page, first body paragraph under the 'Radio Towers' header. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 (no eliminated flag, no capture - the gate a proximity despawn can never satisfy), :91 (the fired-once latch), :103-114 (nearest tower within m_fMaxDistance, authored 300 in Deployment_TowerGarrison.conf, and the tower must still belong to the deployment's faction) and :122-124 (ChangeRadioTowerControl). The eliminated flag is set only from the virtualization core's group-wiped bookkeeping, which requires every roster slot dead (OVT_VirtualizationManagerComponent.c:1886-1900). Survivors persisting across a despawn is the same survivor mask cited in OccupyingForces_Text2."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000109}" {
+   Id "OVT-FieldManual_OccupyingForces_Text5"
+   Target_en_us "A tower may also be found with nobody on it. The garrison is paid for out of the faction's reserves, so a faction that is stretched leaves towers bare, and one that recovers can post a garrison at a tower you walked past unguarded days earlier. While a battle is running anywhere on the island, and while nobody at all is connected, no new force of any kind is put out; the ones already in the field carry on as they were."
+   Comment "Field Manual - Patrols and Garrisons page, second body paragraph under the 'Radio Towers' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_DeploymentManager.c:386-391 (a deployment is created only when the faction pool covers GetTotalResourceCost) and :750-752 (a config too expensive is filtered out of the candidate list entirely), with the evaluator's two early returns at :309 (GetPlayerCount() == 0) and :313 (m_CurrentQRF) - both deliberately kept, see the feature's D9. 'A battle' is the player-facing word this manual already uses for a QRF (see BaseCapture_Text2); m_CurrentQRF covers base and town QRFs alike. The last clause is the D9 consequence: existing deployments' groups live on the engine lifecycle and neither guard touches them."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -12789,7 +12942,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000112}" {
    Id "OVT-Tutorial_BasesFirstCapture_Body"
    Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction keeps reserves and spends a surplus of them on retaking a base the resistance holds."
-   Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1178-1194 spends a reserve surplus on a QRF against a base the resistance holds. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
+   Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1217-1226 spends a reserve surplus on a QRF against a base the resistance holds (RE-CITED 2026-08-17, Phase 8 of virtualization/integration; the branch was at :1178-1194). ALSO CORRECTED 2026-08-17: the DELIVERY CONSTRAINT above describes BASE_CONTROL_CHANGE, but Configs/Tutorials/basesFirstCapture.conf now binds this entry to PLAYER_ENTER_BASE (OVT_TutorialTrigger.c:44), which is a per-player crossing into a base's restricted radius and carries no payload - the 'never say you captured' rule still holds, for the different reason that the reader has captured nothing yet. NOTE FOR FUTURE EDITS: nothing in this string is affected by the virtualization migration - base garrisons and the QRF are NOT migrated (their legacy spawners are the systems the kill switch still guards), so patrol/garrison persistence claims belong on #OVT-FieldManual_OccupyingForces_Text2, not here. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
    DevNote ""
    Repro ""
    ActorGender NONE

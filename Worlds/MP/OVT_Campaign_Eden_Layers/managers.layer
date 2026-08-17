@@ -167,7 +167,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    }
   }
   OVT_VirtualizationManagerComponent "{6B4A1D3E00000010}" {
-   m_bDebugRegisterTestGroup 1
    m_fDebugTestGroupOffset 200
    m_sDebugTestGroupName "light_patrol"
    m_iDebugTestGroupSpawnDistance 80

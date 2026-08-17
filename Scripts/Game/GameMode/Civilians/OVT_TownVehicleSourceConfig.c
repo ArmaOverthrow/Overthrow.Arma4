@@ -269,7 +269,8 @@ class OVT_TownVehicleSourceConfig : OVT_AmbientSpawnSourceConfig
 	//! EVERY CANDIDATE IS TRACE-TESTED (T5.5) with the vehicle-sized box, rejecting on
 	//! TracePosition() < 0 - the OVT_ParkingComponent idiom, NOT the inverted >= 0 predicate BUG-031
 	//! caught. FindSafeSpawnPosition is deliberately not used (a 2 m probe is a known trap for a
-	//! vehicle-sized caller) and neither is OVT_EntitySpawningAPI.ValidateSpawnPosition (sticky state).
+	//! vehicle-sized caller); the deployments framework's old shared position validator, which carried
+	//! sticky state, was deleted with its file when vehicle patrols were migrated to virtualization.
 	//! \param[in] origin The town's location.
 	//! \param[in] radius The town's range.
 	//! \return A clear roadside spot, or the origin with the failure flag set.

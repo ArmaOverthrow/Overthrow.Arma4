@@ -3,7 +3,8 @@
 //!
 //! THE ONLY ENTRY POINT IS A GROUP, AND THAT IS A CORRECTNESS PROPERTY, NOT A STYLE CHOICE.
 //! Overthrow leaks detached waypoint entities in several places - QRF group lists are never drained,
-//! and OVT_EntitySpawningAPI.CleanupGroup deletes a group's soldiers but not the group - so a world
+//! and until virtualization/integration Phase 5 the deployments framework's shared group cleanup
+//! deleted a group's soldiers but not the group - so a world
 //! scan for AIWaypoint entities would happily surface orphans belonging to nothing and draw a route
 //! nobody is walking. Asking the GROUP for its waypoints can only ever return waypoints that group
 //! actually holds. Do not add a scan, a cache keyed on anything but a group, or a lookup by position.

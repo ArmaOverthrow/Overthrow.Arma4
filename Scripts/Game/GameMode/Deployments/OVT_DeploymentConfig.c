@@ -34,10 +34,10 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(defvalue: "5", desc: "Priority (1-20, lower = higher priority)")]
 	int m_iPriority;
 	
-	[Attribute(defvalue: "1000", desc: "Range for proximity-based activation")]
+	[Attribute(defvalue: "1000", desc: "NO LONGER DRIVES GROUP LIFECYCLE - a deployment's groups are registered with the virtualization core and the engine materialises them by observer proximity. Retained so authored configs keep parsing")]
 	float m_fActivationRange;
-	
-	[Attribute(defvalue: "1", desc: "When false, will always be activated/spawned regardless of player proximity")]
+
+	[Attribute(defvalue: "1", desc: "NO LONGER DRIVES GROUP LIFECYCLE - every deployment activates once and stays active; its groups are spawned and despawned by the engine's observer proximity, never by this flag. Retained so authored configs keep parsing")]
 	bool m_bEnableProximityActivation;
 	
 	[Attribute(defvalue: "-1", desc: "Resource allocation limit (-1 = no limit)")]
@@ -48,7 +48,10 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	
 	[Attribute(defvalue: "-1", desc: "Maximum number of active instances of this deployment type (-1 = no limit)")]
 	int m_iMaxInstances;
-	
+
+	[Attribute(defvalue: "0", desc: "Seeded free of charge at campaign start at every eligible location (bypasses the resource pool, the player-count guard and the QRF guard; dedup and MaxInstances still apply)")]
+	bool m_bFreeAtGameStart;
+
 	//------------------------------------------------------------------------------------------------
 	void OVT_DeploymentConfig()
 	{
@@ -203,6 +206,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 		Print(string.Format("  Priority: %1", m_iPriority));
 		Print(string.Format("  Min Threat: %1", m_iMinimumThreatLevel));
 		Print(string.Format("  Modules: %1", m_aModules.Count()));
+
+		if (m_bFreeAtGameStart)
+			Print("  Free at game start: yes (seeded at every eligible location, nothing charged)");
 		
 		foreach (OVT_BaseDeploymentModule module : m_aModules)
 		{

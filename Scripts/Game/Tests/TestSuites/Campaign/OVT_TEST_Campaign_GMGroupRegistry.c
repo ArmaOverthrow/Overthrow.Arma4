@@ -23,16 +23,28 @@
 //! assertions test each other: a Sweep() that removed everything would fail claim 1, a Sweep() that
 //! removed nothing dangling would leave stale entries that claim 2 would still have to survive.
 //!
-//! WHY IT WAITS, AND WHY THE WAIT IS LONG FOR THIS SUITE. Nothing is tagged at campaign start. The
-//! first tagged group in the test world arrives on the base-patrol upgrade's own timer:
-//! DistributeInitialResources() runs ~6.5 s after the start and BANKS groups into m_ProxiedGroups
-//! (OVT_BaseUpgradeDefensePatrol.Spend never spawns), and OVT_BasePatrolUpgrade.CheckUpdate - a
-//! ~9-11 s repeating CallLater armed at base init - is what turns a banked group into a spawned one
-//! through BuyPatrol(), where the tag lives. So the observable is ~9-11 s after the campaign start,
-//! and the deployment wave that also tags is ~12 s. The budget below covers both with room to spare.
-//! It is a bound on the EXPLANATION, not a retry budget: when it expires the failure prints the whole
-//! base-upgrade ledger and the player-proximity state, because "registry empty" has exactly two
-//! interesting causes and this tells them apart.
+//! WHY IT WAITS, AND WHERE THE OBSERVABLE COMES FROM NOW (re-derived 2026-08-17,
+//! virtualization/integration T7.6). Nothing is tagged at campaign start. The producer this case used
+//! to rely on - OVT_BasePatrolUpgrade.BuyPatrol() on a ~9-11 s base-upgrade timer - is still silenced
+//! by the virtualization epic's legacy-spawn kill switch, which does not leave until the epic does.
+//! The producer that IS live again is the DEPLOYMENT wave, and its chain is longer:
+//!
+//!   NewGameStart()  allocates baseResourcesPerTick (250) to the deployment manager, so the first
+//!                   evaluation can already afford something;
+//!   +10 s           OVT_DeploymentManagerComponent's first EvaluateDeployments() - the shipped
+//!                   "Town Patrol" config costs 0 and the test world's one town is occupying-held
+//!                   with no support, so it is created there;
+//!   +8-12 s more    the new deployment's own jittered UpdateDeployment tick activates it, which
+//!                   converges its infantry module - RegisterGroup, then the Tag() call in
+//!                   OVT_BaseSpawningDeploymentModule.TagForGameMaster().
+//!
+//! So the observable lands ~18-22 s after the campaign start on the first evaluation, and ~48-52 s if
+//! the first evaluation produces nothing and the 30 s one after it does. The budget below covers the
+//! second cycle deliberately: it is a bound on the EXPLANATION, not a retry budget, and a green run
+//! exits the moment the registry is non-empty, so the longer budget costs nothing except on a run
+//! that was going to be red anyway. When it expires the failure prints the base-upgrade ledger, the
+//! deployment ledger and the player-proximity state, because "registry empty" has three interesting
+//! causes now and this tells them apart.
 //!
 //! THE PROXIMITY DIAGNOSTIC IS NOT DECORATION. Every base-upgrade spawn is gated on PlayerInRange()
 //! at m_iMilitarySpawnDistance (1750 m). The test world is roughly 250 m across and the autotest
@@ -49,17 +61,20 @@
 //! READ-ONLY. Sweep() is the only registry method called that mutates anything, and it only drops
 //! entries whose entity is already gone. No campaign state is touched, so no restore step is needed.
 //!
-//! PROVEN ABLE TO FAIL (static): commenting out the single Tag() call in
-//! OVT_BasePatrolUpgrade.BuyPatrol() removes the only origin the test world reliably produces, and the
-//! case then goes red on claim 1 with the base-upgrade ledger showing non-zero group counts and an
-//! empty registry - the exact "groups exist, nothing tagged them" signature.
+//! PROVEN ABLE TO FAIL (static): commenting out the Tag() call in
+//! OVT_BaseSpawningDeploymentModule.TagForGameMaster() removes the only origin the test world
+//! produces while the kill switch is on, and the case then goes red on claim 1 with the deployment
+//! ledger showing live deployments and an empty registry - the exact "groups exist, nothing tagged
+//! them" signature. (The same used to be true of OVT_BasePatrolUpgrade.BuyPatrol(); that producer is
+//! kill-switched until the virtualization epic ends and is no longer what this case measures.)
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_CampaignSuite, timeoutS: 60)]
+[Test(suite: OVT_TEST_CampaignSuite, timeoutS: 90)]
 class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 {
-	//! Real milliseconds to wait for the first tagged group. The observable lands ~9-12 s after the
-	//! campaign start (see the header); this is the diagnostic bound, not a retry budget.
-	static const float MAX_WAIT_MS = 25000;
+	//! Real milliseconds to wait for the first tagged group. The observable lands ~18-22 s after the
+	//! campaign start, or ~48-52 s if the first deployment evaluation produces nothing (see the
+	//! header); this is the diagnostic bound, not a retry budget.
+	static const float MAX_WAIT_MS = 55000;
 
 	//! World time of this case's first tick, so the wait is measured in real time rather than frames.
 	protected float m_fFirstTickMs;
@@ -71,16 +86,12 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
-		// [OVT-VIRT-PLAYTEST-ONLY] While the virtualization epic's legacy-spawn kill switch is on,
-		// the only producers this case can observe (BuyPatrol via the base-upgrade tick, the
-		// deployment wave) are deliberately silenced, so an empty registry is the EXPECTED state,
-		// not a broken tag. Trivially pass - loudly - rather than hold every epic gate red.
-		// This guard leaves with the kill switch (same grep tag).
-		if (OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS)
-		{
-			Print("OVT_TEST_Campaign_GMGroupRegistry: SKIPPED-AS-PASS - legacy AI spawning is disabled by OVT_VirtPlaytestKillSwitch (virtualization epic build-out); this case asserts nothing while the switch is on", LogLevel.WARNING);
-			return true;
-		}
+		// The kill-switch trivial-pass guard that stood here from the start of the virtualization epic
+		// until 2026-08-17 is GONE (integration T7.6). It was correct while the epic had silenced every
+		// producer this case can see; deployments - including radio-tower garrisons, which are now an
+		// ordinary deployment config - register and TAG their groups again, so an empty registry is a
+		// broken tag once more and this case asserts for real. The base-upgrade producers are still
+		// silenced and are not what it measures; see the header.
 
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
@@ -112,8 +123,15 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 			if (waited < MAX_WAIT_MS)
 				return false; // keep polling
 
-			SetFailure("No AI group was tagged in the GM group registry within %1 ms (%2 ticks). Base upgrade ledger: %3",
-				waited.ToString(), m_iPolls.ToString(), DescribeSpawnState());
+			// Both ledgers, because the live producer moved: deployments tag now, base upgrades are
+			// kill-switched. "No deployment exists" and "deployments exist but nothing tagged them"
+			// are completely different faults and only the deployment ledger tells them apart.
+			string report = string.Format("No AI group was tagged in the GM group registry within %1 ms (%2 ticks).",
+				waited.ToString(), m_iPolls.ToString());
+			report += " Deployment ledger: " + DescribeDeploymentState();
+			report += " Base upgrade ledger (kill-switched during the virtualization epic): " + DescribeSpawnState();
+
+			SetFailure(report);
 			return true;
 		}
 
@@ -227,6 +245,60 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 		}
 
 		return dump + "]";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the deployment framework - the producer this case actually measures since the tagging
+	//! moved there - has managed to do so far.
+	//!
+	//! THREE FAULTS, TOLD APART BY ONE LINE. "No deployment exists" means the evaluator never ran, was
+	//! refused (0 players, an active QRF) or could not afford anything, and the tags are innocent.
+	//! "Deployments exist, none has registered a group" means their update ticks have not fired yet or
+	//! their convergence refused. "Deployments exist and hold groups, registry empty" is the one that
+	//! is a real broken tag.
+	//! \return A single-line diagnostic.
+	protected string DescribeDeploymentState()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+			return "OVT_Global.GetDeploymentManager() is null";
+
+		array<OVT_DeploymentComponent> deployments = manager.GetAllDeployments();
+		if (!deployments || deployments.IsEmpty())
+		{
+			int resources = 0;
+			if (OVT_Global.GetConfig())
+				resources = manager.GetFactionResources(OVT_Global.GetConfig().GetOccupyingFactionIndex());
+
+			return "no deployment exists yet (occupying faction deployment budget " + resources.ToString() + ")";
+		}
+
+		string report = deployments.Count().ToString() + " deployment(s) {";
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+
+		foreach (int i, OVT_DeploymentComponent deployment : deployments)
+		{
+			if (i > 0)
+				report += ", ";
+
+			if (!deployment)
+			{
+				report += "null";
+				continue;
+			}
+
+			report += deployment.GetDeploymentName() + " key='" + deployment.GetVirtualKey() + "'";
+			report += " active=" + deployment.IsDeploymentActive().ToString();
+			report += " wiped=" + deployment.GetSpawnedUnitsEliminated().ToString();
+		}
+
+		report += "}";
+
+		if (virtualization)
+			report += " registry holds " + virtualization.GetGroupCount().ToString() + " virtual group(s)";
+
+		return report;
 	}
 
 	//------------------------------------------------------------------------------------------------

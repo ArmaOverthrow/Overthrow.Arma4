@@ -67,9 +67,11 @@ class OVT_GMGroupOrigin : Managed
 //! IT TAGS AND IT SWEEPS. IT NEVER UNTAGS, AND THERE MUST BE NO UNTAG METHOD ON IT.
 //! The alternative was surveyed and rejected on evidence: there are 27 delete/drop sites for these
 //! groups and the existing cleanup already leaks in at least three documented ways - QRF groups are
-//! never deleted at all (OVT_QRFControllerComponent.m_Groups is filled and drained nowhere),
-//! OVT_EntitySpawningAPI.CleanupGroup deletes a group's soldiers but not the group entity, and
-//! camp/FOB removal never touches garrisonEntities. Mirroring that with 27 untag calls would inherit
+//! never deleted at all (OVT_QRFControllerComponent.m_Groups is filled and drained nowhere), the
+//! deployments framework's old shared group cleanup deleted a group's soldiers but not the group
+//! entity (that helper and its whole file are gone as of virtualization/integration Phase 5, which
+//! is the cheapest possible fix for it), and camp/FOB removal never touches garrisonEntities.
+//! Mirroring that with 27 untag calls would inherit
 //! every one of those leaks and would silently rot the moment a future feature adds a spawn site.
 //! Sweep() drops entries whose EntityID no longer resolves, which handles all of them uniformly and
 //! cannot be forgotten. A spawn site that forgets to Tag() produces a MISSING record, never a WRONG

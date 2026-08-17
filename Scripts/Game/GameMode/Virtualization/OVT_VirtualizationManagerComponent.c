@@ -59,6 +59,9 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	[Attribute(defvalue: "false", desc: "Keep registered group entities persistence-tracked (exempt from the BUG-118 untrack). OFF until a registered-groups-only self-spawn path exists - a tracked group that cannot self-spawn writes a record nothing will ever claim. See api.md 'Persistence'")]
 	protected bool m_bPersistGroupEntities;
 
+	[Attribute(defvalue: "true", desc: "A player's PARKED RECRUIT GROUP acts as an AI observer: registered groups inside its spawn ring materialise with no player anywhere near. That is the feature AND the budget risk - a squad parked in a town holds that town's garrisons and patrols spawned for as long as it stands there. Switch OFF to make parked recruits inert again (virtualization/integration D16). Read by the recruit group's own marker component; core never applies it to anyone else's AddEntityObserver call")]
+	protected bool m_bRecruitGroupsAreObservers;
+
 	[Attribute(defvalue: "false", desc: "DEBUG ONLY: log every ambient activation, per-tick spawn batch and despawn with timestamps. This is what the Phase 4 play-test ('a source of 20 spawns over several ticks') reads. Leave off for normal play")]
 	protected bool m_bDebugAmbientLogging;
 
@@ -130,6 +133,20 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	//! be installed twice and double every log block.
 	protected bool m_bDebugObserverTickRunning;
 
+	//! followed entity -> SP observer key (the AI OBSERVERS section at the bottom of this file).
+	//!
+	//! THIS MAP IS THE ANSWER TO "does that entity have an observer?", never the engine: application of
+	//! an InsertObserverSP/RemoveObserverSP is DEFERRED BY ONE FRAME both ways (measured, T1.9), so a
+	//! consumer that asked the engine would read a false negative right after adding and a false leak
+	//! right after removing. Keyed on EntityID rather than on the entity so a stale entry can be swept
+	//! after its entity is gone.
+	protected ref map<EntityID, int> m_mEntityObservers;
+
+	//! Monotonic SP observer key counter, namespaced away from every other key this mod parks (the
+	//! Phase 1 spike used 770019). NEVER persisted and NEVER replicated: a key is meaningful only to
+	//! the local ObserversSystem it was inserted into, so a saved one would name nothing on load.
+	protected int m_iNextObserverKey;
+
 	protected ref ScriptInvoker m_OnGroupWiped;
 	protected ref ScriptInvoker m_OnRecordsRestored;
 
@@ -197,6 +214,11 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 		m_mAmbientByEntity = new map<EntityID, int>();
 		m_iNextAmbientHandle = 1;
 		m_iAmbientCursor = 0;
+
+		// Allocated behind the same server guard as everything else, so AddEntityObserver on a client
+		// fails closed on the null map rather than parking an observer nothing would ever remove.
+		m_mEntityObservers = new map<EntityID, int>();
+		m_iNextObserverKey = ENTITY_OBSERVER_KEY_BASE;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -293,6 +315,15 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 		m_bDebugObserverTickRunning = false;
 
 		ClearAmbientState();
+
+		// ⚠ THE ONE THING THIS TEARDOWN DESTROYS. Everything else below is detach-don't-destroy
+		// (DetachAllRegisteredGroups / ClearAmbientState both say so at length) because records and
+		// their entities are things the NEXT world may still want. An SP observer is not a record: it
+		// is a live entry in an engine system, keyed by an integer this component is the only holder
+		// of, and one left behind pins whatever it is standing over materialised for the rest of the
+		// PROCESS - across a quit-to-menu, across a second campaign, with nothing left that could
+		// name the key to remove it. So observers are removed, and they are removed first.
+		RemoveAllEntityObservers();
 
 		if (m_bKillHookInstalled)
 		{
@@ -703,8 +734,11 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	// TRACKED GROUPS - WAYPOINT OWNERSHIP (D6)
 	//
-	// Every spawner in this tree except one leaks AIWaypoint entities - including
-	// OVT_EntitySpawningAPI.CleanupGroup(), which detaches waypoints without deleting them. Core
+	// A waypoint is an ordinary world entity and AddWaypoint() does NOT take ownership of it, so a
+	// spawner that tears a group down and forgets its waypoints leaves them standing for the rest of
+	// the session. Nearly every spawner in this tree has shipped that leak at some point - the
+	// deployments framework's own group-cleanup helper detached waypoints without deleting them,
+	// right up until the file was deleted outright in virtualization/integration Phase 5. Core
 	// records every waypoint it creates and deletes it on unregister or wipe, and because waypoints
 	// are persistence-tracked entities in 1.8, deletion untracks them too.
 	//------------------------------------------------------------------------------------------------
@@ -2914,6 +2948,11 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 			return;
 		}
 
+		// AI OBSERVERS RIDE THIS TICK (integration Phase 6). Deliberately ABOVE the "no sources"
+		// early-out below: the two halves are unrelated, and a manager with observers but no ambient
+		// source would otherwise never sweep. See SweepEntityObservers for what it is for.
+		SweepEntityObservers();
+
 		if (!m_mAmbientSources || !m_aAmbientOrder || m_aAmbientOrder.IsEmpty())
 			return;
 
@@ -3245,5 +3284,308 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 			return null;
 
 		return ObserversSystem.Cast(world.FindSystem(ObserversSystem));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// AI OBSERVERS (virtualization/integration Phase 6 - D14/D16)
+	//
+	// WHAT THIS IS FOR. The engine materialises a dormant registered group when an OBSERVER comes
+	// inside its spawn ring, and an observer is NOT a player: local cameras, MP inserts and the optics
+	// far observer all count (D2 finding 3). These four methods let Overthrow park one of its own,
+	// FOLLOWING AN ENTITY, so something that is not a player can pull content awake. The first
+	// consumer is a squad of parked recruits left alone in a town.
+	//
+	// ⚠ THIS IS THE MOST EXPENSIVE THING IN THE FILE, PER CALL. One observer holds EVERY registered
+	// group inside its ring materialised for as long as it exists - a squad parked in a town keeps
+	// that town's tower garrison and its patrols spawned, with their AI running, whether or not
+	// anybody is there to watch them. That is the feature and it is the budget risk in one sentence,
+	// which is why the consumer is expected to carry an off-switch (m_bRecruitGroupsAreObservers is
+	// the parked-recruit group's, read by that group's own marker component - core never applies it
+	// to anybody else's AddEntityObserver call).
+	//
+	// ⚠ APPLICATION IS DEFERRED BY ONE FRAME, INSERT AND REMOVE. Measured 2026-08-17 by the Phase 1
+	// gate case (integration T1.9): "server-side InsertObserverSP(key, 0, 0, entity) is HONOURED,
+	// application DEFERRED (invisible same-frame, visible within the settling budget) | settled after
+	// 1 frame(s), removal settled after 1". So HasEntityObserver and GetEntityObserverCount answer
+	// from m_mEntityObservers and NEVER from the engine: an engine query taken right after an add
+	// reads a false negative, and one taken right after a remove reads a false leak - the first
+	// version of the gate case went red on exactly that.
+	//
+	// ⚠ NEVER A NULL ENTITY. InsertObserverSP(key, x, z, null) - the documented fixed-position form -
+	// hard-FROZE the game client the one time a test case parked one (core context.md gotcha 0), and
+	// it has zero vanilla script callers in the whole 1.8 tree. AddEntityObserver refuses null before
+	// it does anything else, and the guard is repeated immediately above the call itself so a later
+	// edit cannot separate them.
+	//
+	// KEYS are a namespaced monotonic counter (ENTITY_OBSERVER_KEY_BASE and up). The SP key space has
+	// no vanilla script user at all, so a key only has to avoid Overthrow's own - the Phase 1 gate
+	// case owns 770019. They are session-local by construction: NEVER persisted, NEVER replicated. A
+	// saved key would name nothing on load, and a key sent to a client would name a different
+	// machine's observer table.
+	//------------------------------------------------------------------------------------------------
+
+	//! First SP observer key this manager hands out; it counts up from here for the life of the
+	//! component. Deliberately far above the Phase 1 gate case's 770019, so a spike run and a live
+	//! campaign in the same process cannot collide on one key.
+	static const int ENTITY_OBSERVER_KEY_BASE = 771000;
+
+	//------------------------------------------------------------------------------------------------
+	//! Parks an engine observer that FOLLOWS an entity, so registered groups near it materialise even
+	//! with no player anywhere near. Server-only, idempotent per entity.
+	//!
+	//! Zero offsets are passed, so the observer IS the entity's own position and moves with it - there
+	//! is nothing to keep updated and nothing to re-park when the entity walks away.
+	//!
+	//! ⚠ REFUSES A NULL ENTITY with a WARNING (it would hard-freeze the client - see the section
+	//! header), and REFUSES AN ENTITY WITH AN INVALID EntityID with a WARNING (it cannot be keyed -
+	//! see the note in the body). ⚠ The effect is not visible to the engine's own proximity queries
+	//! until the NEXT frame; HasEntityObserver below is unaffected, because it reads core's map.
+	//! \param[in] entity The entity to follow. Never null, and world-registered.
+	//! \return True when the entity has an observer on it after this call - including when it already
+	//!         had one, in which case the same key is reused and nothing is leaked.
+	bool AddEntityObserver(IEntity entity)
+	{
+		if (!entity)
+		{
+			Print("[Overthrow] Virtualization: AddEntityObserver refused a NULL entity - a null-entity InsertObserverSP hard-freezes the client (core context.md gotcha 0). Nothing was parked", LogLevel.WARNING);
+			return false;
+		}
+
+		if (!Replication.IsServer())
+			return false;
+
+		// Null on a client and before OnPostInit - the same fail-closed shape as every other entry
+		// point in this file.
+		if (!m_mEntityObservers)
+			return false;
+
+		EntityID id = entity.GetID();
+
+		// ⚠ THE SECOND REFUSAL, AND IT IS NOT DEFENSIVE PADDING - it is a measured hazard (integration
+		// Phase 6 suite run, 2026-08-17). An entity that is not world-registered answers GetID() with
+		// EntityID.INVALID, and EVERY such entity answers with the SAME value: keying the map on it
+		// makes two unrelated entities share one entry, so the second AddEntityObserver silently
+		// hijacks the first one's key, HasEntityObserver answers true for something nobody added, and
+		// removing either one removes the other's observer. That is a leak and a wrong-answer bug at
+		// once, and it is completely invisible - which is why an unkeyable entity is refused loudly
+		// instead of stored. The caller's fix is to hand this an entity that exists in the world (a
+		// spawn that has completed, not one still inside its own init).
+		if (id == EntityID.INVALID)
+		{
+			Print("[Overthrow] Virtualization: AddEntityObserver refused an entity with an INVALID EntityID - it is not world-registered yet, cannot be keyed, and would collide in the observer map with every other unregistered entity. Nothing was parked; add the observer once the entity exists in the world", LogLevel.WARNING);
+			return false;
+		}
+
+		ObserversSystem observers = GetObserversSystem();
+		if (!observers)
+		{
+			Print("[Overthrow] Virtualization: AddEntityObserver found no ObserversSystem in this world - nothing will ever be pulled awake by an entity observer here", LogLevel.WARNING);
+			return false;
+		}
+
+		// IDEMPOTENT PER ENTITY. An existing entry keeps its key and is re-inserted rather than
+		// skipped: the engine header documents the key as "insert or UPDATE", the gate case measured
+		// two inserts on one key settling at +1 (never +2), and re-inserting re-points the key at the
+		// entity handed in - which is the correct answer in the one case a stale entry could survive
+		// the sweep below, an EntityID the engine recycled for a different entity.
+		int key;
+		if (!m_mEntityObservers.Find(id, key))
+		{
+			key = m_iNextObserverKey;
+			m_iNextObserverKey++;
+		}
+
+		// ⚠ THE ONLY InsertObserverSP CALL SITE IN THE MOD, and this guard is not redundant paranoia:
+		// a null here FREEZES the client outright (core context.md gotcha 0), so the check lives
+		// next to the call as well as at the top of the method, where a later edit could separate the
+		// two. Zero offsets = follow the entity.
+		if (!entity)
+			return false;
+
+		observers.InsertObserverSP(key, 0, 0, entity);
+
+		// Booked after the engine call, so the map can never claim an observer that was not asked for.
+		m_mEntityObservers.Set(id, key);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the observer following an entity.
+	//!
+	//! ⚠ Like the insert, the removal is applied by the engine on the NEXT frame - core's own view
+	//! (HasEntityObserver / GetEntityObserverCount) is correct immediately, the engine's proximity
+	//! queries lag by one frame. That is a false LEAK if you go looking for it, not a real one.
+	//! \param[in] entity The entity that was being followed.
+	//! \return True when an observer was removed; false for null, for an invalid EntityID, for an
+	//!         unknown entity and on a client. All four are safe, silent no-ops.
+	bool RemoveEntityObserver(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		if (!m_mEntityObservers)
+			return false;
+
+		EntityID id = entity.GetID();
+
+		// Quiet here, loud in Add. An unkeyable entity can never have had an observer parked for it
+		// (Add refuses it), so this is an ordinary "no", not a caller error - and answering it from
+		// the map would mean looking up the shared INVALID key and removing somebody else's observer.
+		if (id == EntityID.INVALID)
+			return false;
+
+		return RemoveEntityObserverById(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an entity currently has one of core's observers on it.
+	//!
+	//! ⚠ ANSWERED FROM CORE'S OWN MAP, never from the engine, because engine application is deferred
+	//! by a frame in both directions (see the section header). This is therefore true the instant
+	//! AddEntityObserver returns and false the instant RemoveEntityObserver returns, which is what a
+	//! consumer's bookkeeping actually needs.
+	//! \param[in] entity The entity to ask about.
+	//! \return True when core parked an observer on it and has not removed or swept it. False for
+	//!         null, for an entity with an invalid EntityID, and on a client.
+	bool HasEntityObserver(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		if (!m_mEntityObservers)
+			return false;
+
+		EntityID id = entity.GetID();
+
+		// The same refusal as Add, and for the same reason: every unregistered entity shares one
+		// EntityID value, so answering this from the map would report "yes" for an entity nobody ever
+		// added an observer for as soon as any other unregistered entity had been refused... or, worse,
+		// stored. Refusing to key on it is what makes the map's answer trustworthy.
+		if (id == EntityID.INVALID)
+			return false;
+
+		return m_mEntityObservers.Contains(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many entity observers core is currently holding.
+	//!
+	//! Core's count, not the engine's: GetObserversSP() also contains cameras, the deploy-point MP
+	//! preload insert and anything else the session parked, none of which is ours to count.
+	//! \return The count; 0 on a client and before initialisation.
+	int GetEntityObserverCount()
+	{
+		if (!m_mEntityObservers)
+			return 0;
+
+		return m_mEntityObservers.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a player's PARKED RECRUIT GROUP should act as an AI observer (D16).
+	//!
+	//! The operator's off-switch, read by the parked group's own marker component. It is deliberately
+	//! NOT consulted by AddEntityObserver: that method serves every consumer, and one consumer's knob
+	//! must not silently disable another's.
+	//! \return The authored attribute; true as shipped.
+	bool GetRecruitGroupsAreObservers()
+	{
+		return m_bRecruitGroupsAreObservers;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The removal both the public method and the stale sweep funnel through.
+	//!
+	//! The map entry is dropped even when the ObserversSystem cannot be resolved (a world already
+	//! going away): keeping it would only make this manager claim an observer it can no longer name.
+	//! \param[in] id The followed entity's id.
+	//! \return True when an entry existed and has now gone.
+	protected bool RemoveEntityObserverById(EntityID id)
+	{
+		// Both callers already guard, but "every accessor in this file is null-safe" is the rule the
+		// whole component is written to, and a future third caller should not have to know.
+		if (!m_mEntityObservers)
+			return false;
+
+		int key;
+		if (!m_mEntityObservers.Find(id, key))
+			return false;
+
+		ObserversSystem observers = GetObserversSystem();
+		if (observers)
+			observers.RemoveObserverSP(key);
+
+		m_mEntityObservers.Remove(id);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops observers whose entity no longer exists. Folded into the ambient tick (2 s).
+	//!
+	//! WHY IT IS NEEDED AT ALL. A consumer removes its own observer from the marker component's
+	//! OnDelete, which covers every route an entity is normally destroyed by. This is the backstop for
+	//! the routes it does not: a consumer that forgets, an entity destroyed by something that never
+	//! runs script, or a component whose OnDelete could not reach the manager. The cost of missing one
+	//! is an observer standing over an empty patch of map, holding everything near it spawned, for the
+	//! rest of the session - which is exactly the failure the whole section is written to avoid.
+	//!
+	//! The stale ids are collected before any of them is removed: RemoveEntityObserverById writes to
+	//! the map this walks.
+	protected void SweepEntityObservers()
+	{
+		if (!m_mEntityObservers || m_mEntityObservers.IsEmpty())
+			return;
+
+		IEntity owner = GetOwner();
+		if (!owner)
+			return;
+
+		BaseWorld world = owner.GetWorld();
+		if (!world)
+			return;
+
+		array<EntityID> stale = new array<EntityID>();
+
+		foreach (EntityID id, int key : m_mEntityObservers)
+		{
+			if (!world.FindEntityByID(id))
+				stale.Insert(id);
+		}
+
+		foreach (EntityID id : stale)
+		{
+			RemoveEntityObserverById(id);
+
+			Print("[Overthrow] Virtualization: swept an entity observer whose entity is gone - its owner did not remove it", LogLevel.VERBOSE);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes EVERY entity observer. World teardown only (OnDelete).
+	//!
+	//! ⚠ The one destructive act in this component's teardown, and it has to be: an SP observer is
+	//! engine state keyed by an integer only this component holds, so one left behind survives the
+	//! world, survives a Continue and keeps whatever it stands over materialised for the rest of the
+	//! PROCESS, with nothing left able to name the key that would remove it.
+	protected void RemoveAllEntityObservers()
+	{
+		if (!m_mEntityObservers)
+			return;
+
+		ObserversSystem observers = GetObserversSystem();
+		if (!observers)
+		{
+			// No world left to remove them from - the observers went with it. What must not survive is
+			// this component's script state, and that is what the clear is for.
+			m_mEntityObservers.Clear();
+			return;
+		}
+
+		foreach (EntityID id, int key : m_mEntityObservers)
+		{
+			observers.RemoveObserverSP(key);
+		}
+
+		m_mEntityObservers.Clear();
 	}
 }

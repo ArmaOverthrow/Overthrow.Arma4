@@ -30,7 +30,22 @@
 //! config's modules, registering with the manager, starting the update loop - happens in
 //! OVT_DeploymentComponent.ApplyPersistedDeployment(), which is idempotent.
 //!
-//! FORMAT. Binary contexts are POSITIONAL: write order must equal read order. Version first.
+//! VERSION 2 IS ADDITIVE. It APPENDS the deployment's virtualization key after the five version 1
+//! fields, which keep their positions, so a version 1 payload is still read correctly - it simply
+//! restores a deployment with no key, and OVT_DeploymentComponent.EnsureVirtualKey() derives one
+//! from the restored marker's own position the first time anything needs it. That is the whole
+//! pre-feature-save migration path, and it works because the key is a pure function of the config
+//! name and the marker position, both of which version 1 already restored.
+//!
+//! WHY THE KEY IS PERSISTED AT ALL. It is the string the deployment's registered AI groups are
+//! tagged with in the virtualization registry, and reclaiming them after a load is a lookup by that
+//! string. Re-deriving it would agree with the saved one in every ordinary case and disagree the
+//! moment a marker came back a metre off - and a disagreement is invisible: the reclaim finds
+//! nothing and the deployment quietly registers a second force on top of the one already standing
+//! there.
+//!
+//! FORMAT. Binary contexts are POSITIONAL: write order must equal read order, and a new field is
+//! APPENDED behind a version bump - never inserted, never reordered. Version first.
 //------------------------------------------------------------------------------------------------
 class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 {
@@ -42,7 +57,8 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Writes the deployment's config name, faction, threat, invested resources and wipe-out flag.
+	//! Writes the deployment's config name, faction, threat, invested resources, wipe-out flag and
+	//! virtualization key.
 	//! \param[in] owner The deployment marker entity.
 	//! \param[in] component The deployment component being saved.
 	//! \param[in] context Save context to write into.
@@ -53,7 +69,7 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 		if (!deployment)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 1);
+		context.WriteValue("version", 2);
 
 		string configName;
 		OVT_DeploymentConfig config = deployment.GetConfig();
@@ -72,6 +88,12 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 
 		const bool spawnedUnitsEliminated = deployment.GetSpawnedUnitsEliminated();
 		context.Write(spawnedUnitsEliminated);
+
+		// VERSION 2, APPENDED LAST. Written as it stands rather than through EnsureVirtualKey(): a
+		// deployment that has never needed a key writes an empty one, which reads back exactly like a
+		// version 1 payload does and derives on first use. Saving must not have side effects.
+		string virtualKey = deployment.GetVirtualKey();
+		context.Write(virtualKey);
 
 		return ESerializeResult.OK;
 	}
@@ -111,7 +133,15 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 		bool spawnedUnitsEliminated;
 		context.Read(spawnedUnitsEliminated);
 
-		deployment.ApplyPersistedDeployment(configName, controllingFaction, threatLevel, resourcesInvested, spawnedUnitsEliminated);
+		// VERSION 2 APPENDED THE VIRTUALIZATION KEY. Binary contexts are positional, so the field is
+		// only read when the version says it was written - reading it out of a version 1 payload would
+		// consume whatever happens to follow. A version 1 deployment therefore comes back with an empty
+		// key and derives one from its restored marker on first use, which is the migration path.
+		string virtualKey;
+		if (version >= 2)
+			context.Read(virtualKey);
+
+		deployment.ApplyPersistedDeployment(configName, controllingFaction, threatLevel, resourcesInvested, spawnedUnitsEliminated, virtualKey);
 
 		return true;
 	}

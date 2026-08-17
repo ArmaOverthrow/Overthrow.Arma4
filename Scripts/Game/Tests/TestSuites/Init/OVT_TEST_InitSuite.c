@@ -4685,9 +4685,11 @@ class OVT_TEST_Init_VirtualMovement_ManagerResolvesAndDoesNotLeak : SCR_Autotest
 //! A waypoint plan becomes real AIWaypoint entities the record OWNS - and unregistering deletes
 //! every one of them along with the group entity.
 //!
-//! D6, the defect present in every other spawner in this tree: OVT_EntitySpawningAPI.CleanupGroup()
-//! detaches waypoints without deleting them, so a spawn/despawn cycle leaks one entity per waypoint
-//! forever. In 1.8 waypoints are also persistence-tracked, so a leak is save bloat as well as entity
+//! D6, the defect that was present in every other spawner in this tree: the deployments framework's
+//! shared group cleanup detached waypoints without deleting them, so a spawn/despawn cycle leaked one
+//! entity per waypoint forever (that helper and its file were deleted outright in
+//! virtualization/integration Phase 5; the leak survives elsewhere - see OVT_GMWaypointWalk's header).
+//! In 1.8 waypoints are also persistence-tracked, so a leak is save bloat as well as entity
 //! growth. This case is the automated half of Q5 (the other half is a 20-cycle play-test).
 //!
 //! The deletion assertions poll rather than reading the same frame: entity deletion is committed by
@@ -6891,5 +6893,2259 @@ class OVT_TEST_Init_Civilians_VehicleSourceResolvesAndRolls : SCR_AutotestCaseBa
 			return "m_iPlacementAttempts is below 1, so no car would ever be given a spot";
 
 		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE GATE (virtualization/integration Phase 1, T1.9): is a server-side InsertObserverSP honoured?
+//!
+//! Phase 6 of `virtualization/integration` wants to park an engine observer that FOLLOWS an entity, so
+//! a parked recruit squad pulls dormant registered groups awake with no player nearby. The whole design
+//! rests on one unanswerable-by-reading question: ObserversSystem.InsertObserverSP is documented as a
+//! LOCAL ("SP") observer, has ZERO vanilla script callers in the 1.8 tree, and nothing in script says
+//! whether an insert made on the AUTHORITY is seen by the proximity query the group lifecycle uses
+//! (ChimeraAIGroup.HasObserverInRange -> ObserversSystem.HasObserverWithinRangeSq).
+//!
+//! ⚠⚠ APPLICATION IS DEFERRED - measured 2026-08-17, and the reason this case is shaped the way it is.
+//! The first run of this spike sampled immediately after the call and read "not honoured": has(probe)
+//! false, GetObserversSP() still 1. Thirty frames later the SAME probe answered true and the count had
+//! grown to 2. The insert IS honoured; the engine simply does not apply it within the calling frame.
+//! The removal behaves the same way, which is what made the first version report a false leak. So EVERY
+//! sample this case asserts on is taken after settling, and any consumer built on this API (Phase 6's
+//! AddEntityObserver) must never expect its own effect to be visible on the frame it asks for it.
+//!
+//! ⚠ NEVER A NULL ENTITY. InsertObserverSP(key, x, z, null) hard-froze the game client the one time a
+//! test parked one (core context.md gotcha 0, 2026-08-17). This case always passes a real marker
+//! entity and always uses zero offsets, which is the entity-following form the API ask is written
+//! against. It never inserts a fixed-position observer.
+//!
+//! WHAT IS MEASURED, and printed as one greppable "T1.9 VERDICT" line whatever happens:
+//!   - honoured: has(probe) after settling, against a probe position that answered false before;
+//!   - the deferral itself: the same-frame samples are kept and printed as data, never asserted on;
+//!   - key semantics: the engine header says "insert or UPDATE" for a given key, so this case inserts
+//!     the SAME key TWICE and the settled count must have grown by exactly ONE, not two;
+//!   - removal: after RemoveObserverSP and the same settling budget, has(probe) is false again and the
+//!     count is back to its pre-insert value.
+//!
+//! WHY A "NOT HONOURED" RESULT IS NOT A RED. This is a spike over an engine surface, not an assertion
+//! about Overthrow code: the plan's own gate says a negative verdict re-plans Phase 6 onto
+//! InsertObserverMP. So the case FAILS only on things that are genuinely broken or dangerous - no
+//! ObserversSystem, no marker entity, a settled count that grew by more than one for two same-key
+//! inserts, or an observer that SURVIVES its removal (a leaked observer keeps whatever is near it
+//! materialised for the rest of the session). It never passes silently: the verdict line is printed on
+//! every path, including the paths that assert nothing.
+//!
+//! THE SETTLING BUDGETS ARE NOT RETRY BUDGETS. Each phase polls a bounded number of frames for the
+//! deferred effect to land and then asserts exactly ONCE, on the sample it took when the condition was
+//! met or the budget ran out - the same shape as this suite's ambient-activation case. No maxAttempts.
+//!
+//! THE PROBE POSITION IS FAR FROM THE AUTOTEST CAMERA, which is itself an engine observer (core: "observers
+//! are not just players"). The case searches a ring of candidates for one with no observer within 1 km
+//! and only then asserts "false here"; if this world has no such spot it says so and asserts nothing.
+//!
+//! Init tier: pure engine-system probing, no campaign state, and the marker is a bare GenericEntity.
+//! The marker outlives the removal on purpose - it is deleted only after the post-removal sample, so no
+//! observer is ever following an entity that has been deleted out from under it.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): replace the
+//! RemoveObserverSP(OBSERVER_KEY) call with RemoveObserverSP(OBSERVER_KEY + 1) and the two removal
+//! assertions go red after the settle (the observer outlives the case - the real leak, as opposed to
+//! the deferral the first version mistook for one); change the repeat insert to OBSERVER_KEY + 1 and
+//! the key-identity assertion goes red with a settled count of +2. Rename the local ObserversSystem
+//! type to ObserversSystemX (an unknown type, which is a hard compile error rather than a warning) to
+//! prove the case is compiled into the suite at all.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Virtualization_ServerObserverSPSpike : SCR_AutotestCaseBase
+{
+	//! Namespaced SP key. The SP key space has no vanilla script user at all, so this only has to not
+	//! collide with Overthrow's own future keys.
+	static const int OBSERVER_KEY = 770019;
+
+	//! Probe ring: the radius the "is anyone near the marker" question is asked at, squared.
+	static const float PROBE_RANGE_SQ = 2500;    // 50 m
+
+	//! How far the probe position must be from every existing observer, squared. Generous, because the
+	//! autotest camera is an observer and this case's whole precondition is "nobody is near here".
+	static const float CLEAR_RANGE_SQ = 1000000; // 1000 m
+
+	//! Frames allowed for a deferred insert or removal to be applied. Measured at ~<= 30 frames on
+	//! 2026-08-17; the budget is 4x that so a slow frame does not turn the spike red. Bounded, and NOT
+	//! a retry budget - each phase asserts once, on the sample it ends with.
+	static const int SETTLE_FRAMES = 120;
+
+	protected int m_iPhase;
+	protected int m_iFrames;
+	protected IEntity m_Marker;
+	protected vector m_vProbe;
+
+	protected int m_iCountBefore;
+	protected int m_iCountSameFrame;      // informational: the deferral, not an assertion
+	protected int m_iCountSettled;
+	protected int m_iInsertFrames;
+	protected bool m_bHasBefore;
+	protected bool m_bHasSameFrame;       // informational: the deferral, not an assertion
+	protected bool m_bHasSettled;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		if (m_iPhase == 1)
+			return AwaitInsert();
+
+		return AwaitRemoval();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds an observer-free probe position, spawns the marker there and inserts the observer twice on
+	//! one key. Samples same-frame purely as evidence of the deferral.
+	//! \return True when the case is already finished.
+	protected bool Arrange()
+	{
+		ObserversSystem observers = FindObserversSystem();
+		if (!observers)
+		{
+			SetFailure("This world has no ObserversSystem - the spike cannot be run here, and neither can any of core's proximity (nothing would ever materialise)");
+			return true;
+		}
+
+		m_vProbe = FindClearPosition(observers);
+		if (m_vProbe == vector.Zero)
+		{
+			Print("T1.9 VERDICT: NOT MEASURED - no candidate position in this world is 1 km clear of every existing observer, so the 'false before the insert' precondition could not be established. No claim asserted.");
+			return true;
+		}
+
+		m_bHasBefore = observers.HasObserverWithinRangeSq(m_vProbe[0], m_vProbe[2], PROBE_RANGE_SQ);
+		if (m_bHasBefore)
+		{
+			Print("T1.9 VERDICT: NOT MEASURED - the chosen probe position already reports an observer within 50 m despite being 1 km clear at the wider radius. No claim asserted.");
+			return true;
+		}
+
+		m_Marker = SpawnMarker(m_vProbe);
+		if (!m_Marker)
+		{
+			SetFailure("Could not spawn the throwaway marker entity - the spike refuses to insert a null-entity observer (core context.md gotcha 0: it hard-freezes the client)");
+			return true;
+		}
+
+		m_iCountBefore = CountObserversSP(observers);
+
+		// The entity-following form: zero offsets, so the observer IS the marker's position.
+		// Inserted TWICE on the SAME key - "insert or update" per the engine header, so the settled
+		// count must grow by exactly one.
+		observers.InsertObserverSP(OBSERVER_KEY, 0, 0, m_Marker);
+		observers.InsertObserverSP(OBSERVER_KEY, 0, 0, m_Marker);
+
+		// Evidence of the deferral, never asserted on: on 2026-08-17 both of these read "nothing
+		// happened" while the settled samples 30 frames later read "honoured".
+		m_bHasSameFrame = observers.HasObserverWithinRangeSq(m_vProbe[0], m_vProbe[2], PROBE_RANGE_SQ);
+		m_iCountSameFrame = CountObserversSP(observers);
+
+		m_iPhase = 1;
+		m_iFrames = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the deferred insert has been applied, or the budget is spent, then takes the sample
+	//! the honoured/not-honoured verdict is read from and asks for the removal.
+	//! \return True when the case is finished (only on an infrastructure failure).
+	protected bool AwaitInsert()
+	{
+		ObserversSystem observers = FindObserversSystem();
+		if (!observers)
+		{
+			CleanUp();
+			SetFailure("The ObserversSystem disappeared while waiting for the deferred insert");
+			return true;
+		}
+
+		m_iFrames++;
+
+		bool has = observers.HasObserverWithinRangeSq(m_vProbe[0], m_vProbe[2], PROBE_RANGE_SQ);
+		if (!has && m_iFrames < SETTLE_FRAMES)
+			return false;
+
+		m_bHasSettled = has;
+		m_iCountSettled = CountObserversSP(observers);
+		m_iInsertFrames = m_iFrames;
+
+		observers.RemoveObserverSP(OBSERVER_KEY);
+
+		m_iPhase = 2;
+		m_iFrames = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Polls until the deferred removal has been applied, or the budget is spent, then cleans up,
+	//! prints the verdict and asserts.
+	//! \return True - the case is finished on this frame either way.
+	protected bool AwaitRemoval()
+	{
+		ObserversSystem observers = FindObserversSystem();
+		if (!observers)
+		{
+			CleanUp();
+			SetFailure("The ObserversSystem disappeared while waiting for the deferred removal");
+			return true;
+		}
+
+		m_iFrames++;
+
+		bool has = observers.HasObserverWithinRangeSq(m_vProbe[0], m_vProbe[2], PROBE_RANGE_SQ);
+		int count = CountObserversSP(observers);
+
+		bool settled = !has && count <= m_iCountBefore;
+		if (!settled && m_iFrames < SETTLE_FRAMES)
+			return false;
+
+		// The marker is deleted only now: until the removal has been applied, an observer is still
+		// following it, and nothing here is worth finding out what a deleted followed entity does.
+		CleanUp();
+
+		Report(has, count, m_iFrames);
+
+		// -- the assertions, all post-settle, all about broken/dangerous behaviour, never the verdict --
+
+		if (m_bHasSettled && m_iCountSettled > m_iCountBefore + 1)
+		{
+			SetFailure("Two InsertObserverSP calls on the SAME key settled at " + m_iCountSettled.ToString()
+				+ " SP observers, up from " + m_iCountBefore.ToString()
+				+ " - the key is not an identity, so an idempotent AddEntityObserver() would leak one observer per call");
+			return true;
+		}
+
+		if (count > m_iCountBefore)
+		{
+			SetFailure("RemoveObserverSP left the SP observer count at " + count.ToString()
+				+ " after " + m_iFrames.ToString() + " settling frames, above the pre-insert "
+				+ m_iCountBefore.ToString()
+				+ " - a leaked observer keeps everything near it materialised for the rest of the session");
+			return true;
+		}
+
+		if (has)
+		{
+			SetFailure("The probe position still reports an observer within 50 m " + m_iFrames.ToString()
+				+ " frames after RemoveObserverSP, having reported none before the insert - the removal did not take");
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prints the one greppable verdict line the Phase 6 gate is read from.
+	//! \param[in] hasAfterRemove The settled has(probe) after the removal.
+	//! \param[in] countAfterRemove The settled SP observer count after the removal.
+	//! \param[in] removeFrames Frames waited for the removal to be applied.
+	protected void Report(bool hasAfterRemove, int countAfterRemove, int removeFrames)
+	{
+		// Built in short pieces: one long concatenation is "Formula too complex" to the compiler.
+		string honoured = "NOT HONOURED even after settling (Phase 6 must re-plan onto InsertObserverMP)";
+		if (m_bHasSettled)
+			honoured = "HONOURED, application DEFERRED (invisible same-frame, visible within the settling budget)";
+
+		string verdict = "T1.9 VERDICT: server-side InsertObserverSP(key, 0, 0, entity) is ";
+		verdict = verdict + honoured;
+		verdict = verdict + string.Format(" | settled after %1 frame(s), removal settled after %2", m_iInsertFrames.ToString(), removeFrames.ToString());
+		verdict = verdict + string.Format(" | has(probe): before=%1 sameFrame=%2", m_bHasBefore.ToString(), m_bHasSameFrame.ToString());
+		verdict = verdict + string.Format(" settled=%1 afterRemove=%2", m_bHasSettled.ToString(), hasAfterRemove.ToString());
+		verdict = verdict + string.Format(" | GetObserversSP(): before=%1 sameFrame=%2", m_iCountBefore.ToString(), m_iCountSameFrame.ToString());
+		verdict = verdict + string.Format(" settled=%1 (two inserts, one key) afterRemove=%2", m_iCountSettled.ToString(), countAfterRemove.ToString());
+
+		Print(verdict);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Deletes the marker entity. Called on every exit path, before the case reports.
+	protected void CleanUp()
+	{
+		if (m_Marker)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Marker);
+			m_Marker = null;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The world's observer system, or null when it has none.
+	protected ObserversSystem FindObserversSystem()
+	{
+		ChimeraWorld world = ChimeraWorld.CastFrom(GetGame().GetWorld());
+		if (!world)
+			return null;
+
+		return ObserversSystem.Cast(world.FindSystem(ObserversSystem));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] observers The system to ask.
+	//! \return How many local (SP) observers currently exist.
+	protected int CountObserversSP(notnull ObserversSystem observers)
+	{
+		array<vector> positions = new array<vector>();
+		observers.GetObserversSP(positions);
+		return positions.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Searches a ring of candidates for a spot with no observer inside CLEAR_RANGE_SQ. The autotest
+	//! camera is an observer, so "far from the camera" is measured, never assumed.
+	//! \param[in] observers The system to ask.
+	//! \return A clear position, or vector.Zero when this world has none.
+	protected vector FindClearPosition(notnull ObserversSystem observers)
+	{
+		vector anchor = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		array<vector> offsets = new array<vector>();
+		offsets.Insert(Vector(2000, 0, 0));
+		offsets.Insert(Vector(-2000, 0, 0));
+		offsets.Insert(Vector(0, 0, 2000));
+		offsets.Insert(Vector(0, 0, -2000));
+		offsets.Insert(Vector(2000, 0, 2000));
+		offsets.Insert(Vector(-2000, 0, -2000));
+		offsets.Insert(Vector(2000, 0, -2000));
+		offsets.Insert(Vector(-2000, 0, 2000));
+		offsets.Insert(Vector(4000, 0, 0));
+		offsets.Insert(Vector(-4000, 0, 0));
+		offsets.Insert(Vector(0, 0, 4000));
+		offsets.Insert(Vector(0, 0, -4000));
+
+		foreach (vector offset : offsets)
+		{
+			vector candidate = anchor + offset;
+			if (!observers.HasObserverWithinRangeSq(candidate[0], candidate[2], CLEAR_RANGE_SQ))
+				return candidate;
+		}
+
+		return vector.Zero;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A bare positional entity for the observer to follow. Never null at the call site: a null-entity
+	//! InsertObserverSP hard-freezes the client.
+	//! \param[in] pos Where to stand it.
+	//! \return The entity, or null when the spawn failed.
+	protected IEntity SpawnMarker(vector pos)
+	{
+		EntitySpawnParams params = new EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		return GetGame().SpawnEntity(GenericEntity, GetGame().GetWorld(), params);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE FREEZE GUARD: AddEntityObserver(null) is a safe false, and this run gets to finish.
+//!
+//! The single most valuable assertion in `virtualization/integration` Phase 6. A null-entity
+//! InsertObserverSP has ZERO vanilla script callers in the 1.8 tree and hard-FROZE the game client the
+//! one time a test case parked one - total log silence, the per-case timeout never fired, the run had
+//! to be killed at 300 s (core context.md gotcha 0, 2026-08-17). That failure mode does not produce a
+//! red case, a stack or a line number: it produces a hung process. So the refusal is asserted here, in
+//! the world where observers are actually honoured, and the case PASSING AT ALL is half of what it
+//! proves - if the guard is ever deleted, this run stops instead of reporting.
+//!
+//! Three claims, one per null-taking entry point, because each has its own early-out and any of them
+//! could be dropped independently:
+//!   - Add refuses and says so (false), and books NOTHING - a booked key with no observer behind it
+//!     would make HasEntityObserver lie for the rest of the session;
+//!   - Has answers false rather than dereferencing;
+//!   - Remove answers false rather than dereferencing.
+//!
+//! NOTHING IS SPAWNED and nothing is parked, so there is nothing to clean up: the case's whole subject
+//! is the path that returns before any engine call is made.
+//!
+//! ⚠ THE COUNT IS COMPARED AGAINST ITS OWN BEFORE-VALUE, never against 0. The manager's observer map is
+//! shared with any consumer live in this world (a parked recruit group is one), so an absolute count
+//! would be asserting something about the world instead of about the guard.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run - and note this
+//! one must NOT be proven by deleting the guard, which would hang the run rather than fail it): change
+//! the null branch of AddEntityObserver from `return false` to `return true` and the first assertion
+//! goes red with no engine call made; change HasEntityObserver's null early-out to `return true` and the
+//! second goes red. Rename the local OVT_VirtualizationManagerComponent to OVT_VirtualizationManagerComponentX
+//! (an unknown type, a hard compile error rather than a warning) to prove the case is compiled into the
+//! suite at all.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_EntityObserverRefusesNull : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		int before = virtualization.GetEntityObserverCount();
+
+		if (virtualization.AddEntityObserver(null))
+		{
+			SetFailure("AddEntityObserver(null) returned TRUE - a null entity must be refused before it ever reaches InsertObserverSP, which hard-freezes the client (core context.md gotcha 0)");
+			return true;
+		}
+
+		int after = virtualization.GetEntityObserverCount();
+		if (after != before)
+		{
+			SetFailure("AddEntityObserver(null) was refused but still moved the observer count from "
+				+ before.ToString() + " to " + after.ToString()
+				+ " - it booked a key with no observer behind it, and HasEntityObserver would lie about it for the rest of the session");
+			return true;
+		}
+
+		if (virtualization.HasEntityObserver(null))
+		{
+			SetFailure("HasEntityObserver(null) returned TRUE");
+			return true;
+		}
+
+		if (virtualization.RemoveEntityObserver(null))
+		{
+			SetFailure("RemoveEntityObserver(null) returned TRUE - it claimed to have removed an observer for an entity that does not exist");
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The entity-observer round trip: add, ask, count, add again, remove - all answered from core's own
+//! map, on the frame each call returns.
+//!
+//! WHY EVERY ASSERTION IS TAKEN IMMEDIATELY, WITH NO SETTLING. Engine application of an SP observer is
+//! DEFERRED BY ONE FRAME in both directions - measured by the Phase 1 gate case: "HONOURED, application
+//! DEFERRED (invisible same-frame, visible within the settling budget) | settled after 1 frame(s),
+//! removal settled after 1". That is precisely why HasEntityObserver and GetEntityObserverCount answer
+//! from the manager's map instead of asking the ObserversSystem, and this case is the assertion that
+//! they do: a version of them that queried the engine would read false right after the add and true
+//! right after the remove, and would go red here. Nothing in this case ever queries the engine, so
+//! nothing in it needs a settling budget and there is no maxAttempts anywhere near it.
+//!
+//! FIVE SEPARATE CLAIMS, because five separate things can rot independently:
+//!   - a fresh add returns true, is visible to Has, and moves the count by exactly one;
+//!   - the entity core keyed on is RESOLVABLE by that key (FindEntityByID). This is the load-bearing
+//!     assumption of the manager's 2 s stale-entity sweep: if a followed entity's own id did not
+//!     resolve, the sweep would delete every observer within two seconds of parking it and the whole
+//!     feature would silently do nothing;
+//!   - a SECOND add on the same entity returns true and moves the count by NOTHING. The engine key is
+//!     an identity ("insert or update"), so a non-idempotent Add would silently park a second observer
+//!     per call and nothing would ever notice until the map was pinned awake;
+//!   - removing an entity nobody ever added an observer for is a quiet false, not a crash and not a
+//!     stolen key belonging to something else;
+//!   - the remove takes: Has goes false, the count comes back to where it started, and a second remove
+//!     is a quiet false.
+//!
+//! ⚠⚠ THE MARKERS ARE PREFAB-SPAWNED, AND THE CASE ASSERTS THEIR IDs BEFORE IT ASSERTS ANYTHING ELSE.
+//! The first version of this case spawned two bare GetGame().SpawnEntity(GenericEntity, ...) markers and
+//! went red on "HasEntityObserver was true for an entity no observer was ever added for" - because BOTH
+//! markers answered GetID() with the same value (EntityID.INVALID: an entity that is not
+//! world-registered has no id, and every such entity shares one). Core now refuses an invalid id
+//! outright, for exactly that reason, so this case must hand it entities that really are in the world.
+//! It spawns them from a real prefab and then waits for both ids to be valid AND distinct before it
+//! asserts anything - and says so loudly if they never are, because "this world cannot give two
+//! entities two ids" would be a finding of its own, not a flaky case.
+//!
+//! ⚠ ORDERING, AND WHY THE MARKERS OUTLIVE THE CASE BY A FEW FRAMES. The observer is removed FIRST and
+//! the entity it was following is deleted several frames LATER, so at no point is an engine observer
+//! left following a deleted entity - the same discipline the Phase 1 gate case used, for the same
+//! reason: nothing here is worth finding out what the engine does with a dangling followed entity.
+//! Both delays are fixed delays, not retry budgets; the case asserts nothing during either, and each
+//! phase asserts exactly ONCE, on the sample it ends with.
+//!
+//! ⚠ THE MARKERS ARE SPAWNED NEAR THE FIXTURE POSITION, NOT FAR FROM IT - and the first version's 3 km
+//! offset is the OTHER candidate cause of the missing ids. An entity spawned outside the world's bounds
+//! may never be registered in it, and the autotest world is small (its only radio tower stands at
+//! `12.9 1 172.7`), so +3000/+3000 from a town centre is plausibly off the map entirely. Both fixes
+//! point the same way and both are applied: a real prefab, and a position the world actually has. The
+//! offset is only there so the markers are not standing exactly where other cases register groups; it
+//! does not need to be large, because every case in this suite unregisters what it registered, and a
+//! handful of frames is far too short for the engine's spawn queue to materialise anything anyway.
+//!
+//! CLEANED UP BEFORE REPORTING: both markers are deleted, and the observer removed, on every exit path
+//! including the failing ones - the failure text is carried to the end rather than reported early.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): mint a fresh
+//! key unconditionally in AddEntityObserver (drop the `if (!m_mEntityObservers.Find(id, key))` around
+//! the counter) and the double-add count assertion goes red at before+2; make HasEntityObserver ask
+//! GetObserversSystem().HasObserverWithinRangeSq instead of the map and the immediate has-assertion goes
+//! red on the deferral; drop the `m_mEntityObservers.Remove(id)` in RemoveEntityObserverById and both
+//! post-removal assertions go red; spawn the markers with GetGame().SpawnEntity(GenericEntity, ...)
+//! again and the id precondition goes red naming the collision (this is how the hazard was found).
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBase
+{
+	//! Frames allowed for both markers to become world-registered with distinct ids. Generous, because
+	//! the alternative to waiting is asserting on an engine timing property. Bounded, and NOT a retry
+	//! budget - the precondition is sampled once, when it is met or when the budget runs out.
+	static const int ID_SETTLE_FRAMES = 30;
+
+	//! Frames between removing the observer and deleting the entity it was following. The engine
+	//! applies a removal on the next frame; this is 5x that. A FIXED DELAY - the case asserts nothing
+	//! while it counts.
+	static const int DELETE_DELAY_FRAMES = 5;
+
+	//! How far from the fixture position to stand the markers. Small ON PURPOSE - see the header: an
+	//! entity spawned outside the world's bounds may never be world-registered, and an unregistered
+	//! entity has no EntityID, which is the failure this case was rewritten around.
+	static const float MARKER_OFFSET = 150;
+
+	protected int m_iPhase;
+	protected int m_iFrames;
+	protected IEntity m_Marker;
+	protected IEntity m_Stranger;
+	protected string m_sFailure;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		if (m_iPhase == 1)
+			return AwaitEntityIds();
+
+		return AwaitDeletion();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the two markers and hands over to the id wait. Deliberately asserts NOTHING about them
+	//! yet: a freshly spawned entity may not be world-registered on this frame.
+	//! \return True when the case is already finished (nothing usable was spawned).
+	protected bool Arrange()
+	{
+		if (!OVT_Global.GetVirtualization())
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		vector anchor = OVT_TEST_VirtualizationFixture.PickPosition() + Vector(MARKER_OFFSET, 0, MARKER_OFFSET);
+
+		m_Marker = SpawnMarker(anchor);
+		m_Stranger = SpawnMarker(anchor + Vector(25, 0, 0));
+
+		if (!m_Marker || !m_Stranger)
+		{
+			CleanUp();
+			SetFailure("Could not spawn the throwaway marker entities - the case refuses to exercise the observer API with a null entity, which hard-freezes the client (core context.md gotcha 0)");
+			return true;
+		}
+
+		m_iPhase = 1;
+		m_iFrames = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits until both markers are world-registered with distinct ids, then runs every assertion and
+	//! removes the observer.
+	//!
+	//! The precondition is the case's own subject as much as a setup step: core keys its observer map
+	//! on EntityID, and two entities sharing one id is precisely the bug this case caught.
+	//! \return True when the case is finished on this frame.
+	protected bool AwaitEntityIds()
+	{
+		m_iFrames++;
+
+		if (!m_Marker || !m_Stranger)
+		{
+			CleanUp();
+			SetFailure("A marker entity disappeared while waiting for its EntityID to be assigned");
+			return true;
+		}
+
+		EntityID markerId = m_Marker.GetID();
+		EntityID strangerId = m_Stranger.GetID();
+
+		bool usable = markerId != EntityID.INVALID && strangerId != EntityID.INVALID && markerId != strangerId;
+		if (!usable && m_iFrames < ID_SETTLE_FRAMES)
+			return false;
+
+		if (!usable)
+		{
+			CleanUp();
+			SetFailure("After " + m_iFrames.ToString()
+				+ " frames the two freshly spawned marker entities still do not have valid, distinct EntityIDs (invalid="
+				+ (markerId == EntityID.INVALID).ToString() + "/" + (strangerId == EntityID.INVALID).ToString()
+				+ ", equal=" + (markerId == strangerId).ToString()
+				+ ") - so nothing in this world can be keyed by EntityID, and the observer API cannot be exercised here at all. That is a finding about entity registration, not a flaky assertion: record it before changing this case");
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			CleanUp();
+			SetFailure("OVT_Global.GetVirtualization() went null between phases");
+			return true;
+		}
+
+		m_sFailure = Verify(virtualization);
+
+		// The observer comes off BEFORE the entity it follows is deleted, always - including on the
+		// failing paths, which is why the failure text is carried instead of reported here.
+		virtualization.RemoveEntityObserver(m_Marker);
+
+		m_iPhase = 2;
+		m_iFrames = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every claim, in order, first failure wins.
+	//! \param[in] virtualization The manager.
+	//! \return The failure text, or "" when everything held.
+	protected string Verify(notnull OVT_VirtualizationManagerComponent virtualization)
+	{
+		int before = virtualization.GetEntityObserverCount();
+
+		if (virtualization.HasEntityObserver(m_Marker))
+			return "The freshly spawned marker already reported an observer before one was added";
+
+		if (!virtualization.AddEntityObserver(m_Marker))
+			return "AddEntityObserver returned false for a real, non-null, world-registered entity on the server";
+
+		if (!virtualization.HasEntityObserver(m_Marker))
+			return "HasEntityObserver was false on the frame AddEntityObserver returned true - it is answering from the engine, whose application is deferred by a frame, instead of from core's own map";
+
+		int afterAdd = virtualization.GetEntityObserverCount();
+		if (afterAdd != before + 1)
+			return "One AddEntityObserver moved the observer count from " + before.ToString() + " to " + afterAdd.ToString() + ", expected " + (before + 1).ToString();
+
+		// -- the sweep's load-bearing assumption: the key core stored names the entity it came from --
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return "GetGame().GetWorld() is null";
+
+		if (world.FindEntityByID(m_Marker.GetID()) != m_Marker)
+			return "The followed entity is not resolvable through the EntityID core keyed it on - the manager's 2 s stale-entity sweep would drop this observer within two seconds of parking it, and every other one too";
+
+		// -- idempotence: the engine key is an identity, so a second add must reuse it --
+
+		if (!virtualization.AddEntityObserver(m_Marker))
+			return "A second AddEntityObserver on the SAME entity returned false - re-adding must reuse the existing key and report success";
+
+		int afterSecondAdd = virtualization.GetEntityObserverCount();
+		if (afterSecondAdd != afterAdd)
+			return "A second AddEntityObserver on the same entity moved the count from " + afterAdd.ToString() + " to " + afterSecondAdd.ToString() + " - it minted a second key, so every re-add leaks an observer that nothing will ever remove";
+
+		// -- an entity nobody ever added --
+
+		if (virtualization.HasEntityObserver(m_Stranger))
+			return "HasEntityObserver was true for a DIFFERENT entity no observer was ever added for - two entities are sharing one map entry, so removing either would silently remove the other's observer";
+
+		if (virtualization.RemoveEntityObserver(m_Stranger))
+			return "RemoveEntityObserver claimed to remove an observer for an entity that never had one";
+
+		int afterStranger = virtualization.GetEntityObserverCount();
+		if (afterStranger != afterSecondAdd)
+			return "Removing an unknown entity moved the observer count from " + afterSecondAdd.ToString() + " to " + afterStranger.ToString();
+
+		// -- the removal --
+
+		if (!virtualization.RemoveEntityObserver(m_Marker))
+			return "RemoveEntityObserver returned false for the entity it had just been added for";
+
+		if (virtualization.HasEntityObserver(m_Marker))
+			return "HasEntityObserver was still true after RemoveEntityObserver returned true";
+
+		int afterRemove = virtualization.GetEntityObserverCount();
+		if (afterRemove != before)
+			return "After the removal the observer count is " + afterRemove.ToString() + ", not back at the pre-add " + before.ToString() + " - an observer was leaked, and a leaked one keeps everything near it materialised for the rest of the session";
+
+		if (virtualization.RemoveEntityObserver(m_Marker))
+			return "A second RemoveEntityObserver on the same entity returned true - removal is not idempotent";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Counts out the fixed delay, then deletes the markers and reports.
+	//! \return True once the case is finished.
+	protected bool AwaitDeletion()
+	{
+		m_iFrames++;
+		if (m_iFrames < DELETE_DELAY_FRAMES)
+			return false;
+
+		CleanUp();
+
+		if (m_sFailure != "")
+		{
+			SetFailure(m_sFailure);
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Deletes both markers. Called on every exit path, before the case reports.
+	protected void CleanUp()
+	{
+		if (m_Marker)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Marker);
+			m_Marker = null;
+		}
+
+		if (m_Stranger)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Stranger);
+			m_Stranger = null;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A throwaway positional entity for an observer to follow.
+	//!
+	//! ⚠ A PREFAB SPAWN, not GetGame().SpawnEntity(GenericEntity, ...). Two bare class spawns came back
+	//! sharing one EntityID (see the case header), which core now refuses outright - so this uses the
+	//! config's wait-waypoint prefab, an entity Overthrow spawns by the hundred, which is untracked for
+	//! persistence by OVT_Global.SpawnEntityPrefab and belongs to no group. The bare spawn survives only
+	//! as the fallback for a world with no config component; the id precondition judges the result
+	//! either way.
+	//! \param[in] pos Where to stand it.
+	//! \return The entity, or null when the spawn failed.
+	protected IEntity SpawnMarker(vector pos)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (config)
+		{
+			IEntity waypoint = config.SpawnWaitWaypoint(pos, 1);
+			if (waypoint)
+				return waypoint;
+		}
+
+		EntitySpawnParams params = new EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = pos;
+		return GetGame().SpawnEntity(GenericEntity, GetGame().GetWorld(), params);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The SHIPPED "Town Patrol" config resolves, and its patrol module answers with a real, CYCLING plan.
+//!
+//! This is the claim the whole town-patrol migration rests on and nothing else in the tree makes it.
+//! The Logic tier pins the plan factory's geometry, but the factory is world-free statics that know
+//! nothing about which config is shipped: between the two sits the authored config, whose patrol type,
+//! radius and centre setting decide whether a town patrol comes out as a patrol at all. Four separate
+//! things can silently go wrong there, so each gets its own assertion:
+//!   - the registry stops carrying "Town Patrol" (a rename, a dropped entry) - the deployment would
+//!     never be created again, and NOTHING would log it;
+//!   - the config loses its patrol behaviour module - every group would register with a null plan and
+//!     every town patrol in the campaign would stand still forever, which reads exactly like the
+//!     virtualization being broken;
+//!   - the plan comes back EMPTY or ragged - a ragged plan is refused outright by RegisterGroup, so the
+//!     patrol would silently never be registered;
+//!   - the plan stops CYCLING, or stops containing a movable point. That is the subtle one. A plan is
+//!     the ONLY opt-in there is for being walked while dormant: a patrol whose plan has nothing movable
+//!     in it is a garrison, and a cycling patrol that lost its cycle guards one quarter of the town for
+//!     the rest of the campaign. Both are invisible without this assertion.
+//!
+//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it. That is deliberate and it is what keeps
+//! this case cheap: BuildVirtualPlan falls back to the group's own position when there is no centre to
+//! circle - the same fallback the hand-authored helper carried - so the shape of the shipped answer can
+//! be asserted without creating a marker entity, a deployment, or the repeating update it would leak
+//! into the shared test world (the T1.8 verdict).
+//!
+//! NOTHING IS REGISTERED, so there is nothing to clean up and no fixture the movement tick could walk.
+//!
+//! ⚠ The positions are NOT asserted. They are road-snapped against the live world, so their exact
+//! values are a property of the terrain, not of the code under test; the Logic tier owns the geometry.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set
+//! plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildPerimeterPlan and the cycle assertion goes red;
+//! return null from OVT_PatrolBehaviorDeploymentModule.BuildVirtualPlan's PERIMETER branch and the
+//! "no plan" assertion goes red naming the config; change the shipped config's m_sDeploymentName and
+//! the resolution assertion goes red first.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
+{
+	//! The shipped config this case is about.
+	static const string CONFIG_NAME = "Town Patrol";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
+		if (!config)
+		{
+			SetFailure("The deployment registry does not resolve '%1' - the shipped town patrol can never be created", CONFIG_NAME);
+			return true;
+		}
+
+		if (!config.IsValidConfig())
+		{
+			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
+			return true;
+		}
+
+		OVT_PatrolBehaviorDeploymentModule patrol = FindPatrolModule(config);
+		if (!patrol)
+		{
+			SetFailure("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - every group it registers would get a null plan and stand still forever", CONFIG_NAME);
+			return true;
+		}
+
+		vector groupPosition = OVT_TEST_VirtualizationFixture.PickPosition();
+		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(groupPosition);
+
+		string failure = VerifyPlan(plan);
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("'%1' builds a %2-point cycling plan with %3 movable point(s)", CONFIG_NAME,
+			plan.m_aPositions.Count().ToString(), CountMovable(plan).ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first patrol behaviour module, or null.
+	protected OVT_PatrolBehaviorDeploymentModule FindPatrolModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
+		{
+			OVT_PatrolBehaviorDeploymentModule patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
+			if (patrol)
+				return patrol;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] plan The plan the patrol module answered with.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyPlan(OVT_VirtualWaypointPlan plan)
+	{
+		if (!plan)
+			return string.Format("The patrol module of '%1' answered with no plan at all - its groups would register with no waypoints, which is a garrison", CONFIG_NAME);
+
+		int count = plan.m_aPositions.Count();
+		if (count == 0)
+			return "The plan is empty - a town patrol would register with no waypoints and never move";
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("The plan's parallel arrays are ragged (%1 positions, %2 types, %3 params) - RegisterGroup refuses a ragged plan outright, so the patrol would silently never be registered",
+				count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
+
+		if (!plan.m_bCycle)
+			return "The plan does not cycle - the patrol would walk to its last corner and guard that quarter of the town for the rest of the campaign";
+
+		if (CountMovable(plan) == 0)
+			return "The plan contains no movable point - a plan is the ONLY opt-in for being walked while dormant, so this patrol would stand still exactly like the old proximity-toggled one";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] plan The plan to count.
+	//! \return How many of its points the movement tick would advance along.
+	protected int CountMovable(notnull OVT_VirtualWaypointPlan plan)
+	{
+		int movable = 0;
+		foreach (int type : plan.m_aTypes)
+		{
+			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
+				movable++;
+		}
+
+		return movable;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The EnsureGroups contract, driven against the real core through the real key statics: register under
+//! a deployment owner key, reclaim it, prove a second pass adds NOTHING, then unregister.
+//!
+//! IDEMPOTENCE IS THE POINT. Every registration path in the deployments framework converges to a wanted
+//! count rather than spawning one, and it has to, because the same method is reached from a deployment's
+//! activation, from the manager's records-restored fan-out (which also fires on an in-session re-apply)
+//! and from the paid-for rebuy - in any order and any number of times. If reclaim-before-register ever
+//! broke, a continued campaign would come back with two of every patrol and nothing in the tree would
+//! notice: both copies are legal registrations.
+//!
+//! THE CYCLE IS SIMULATED RATHER THAN DRIVEN THROUGH A LIVE MODULE, deliberately. Driving the module
+//! itself would need a deployment marker entity, and creating one leaks a repeating 10 s UpdateDeployment
+//! into the shared test world for every case that runs after it (the recorded T1.8 verdict). What is
+//! exercised instead is exactly what the module composes: OVT_DeploymentVirtualKey's key arithmetic and
+//! the core's FindGroupsByOwner / MissingCount / RegisterGroup / UnregisterGroup round trip.
+//!
+//! ⚠ spawnDistanceOverride = 0, NOT -1. Zero is stamped as the engine's Manual lifecycle policy - "never
+//! materialise by proximity" - and the autotest camera IS an observer, so a registration at the global
+//! 1750 m ring would try to put real soldiers on the ground in the middle of the suite.
+//!
+//! ⚠ Null plans, and everything registered here is unregistered inside the SAME frame. Either property
+//! alone makes the fixture safe from the movement tick, which walks any dormant registered group whose
+//! plan has a movable point in it; this case has both.
+//!
+//! CLEANED UP BEFORE REPORTING, on every path including the red ones, so a broken assertion cannot leak
+//! records into the cases after it.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
+//! OVT_DeploymentVirtualKey.MissingCount return `wanted` unconditionally and the idempotence assertion
+//! goes red with 4 handles where 2 were expected; return an empty array from FindGroupsByOwner and the
+//! reclaim assertion goes red first; drop the m_mRecords.Remove(handle) line from UnregisterGroup and
+//! the post-cleanup assertion goes red instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_EnsureGroupsIsIdempotent : SCR_AutotestCaseBase
+{
+	//! The owner system every deployment-registered group carries.
+	static const string OWNER_SYSTEM = "deployment";
+
+	//! Stands in for a shipped config name in the key derivation. Deliberately carries a space and a '#'
+	//! so the sanitisation the composed key depends on is exercised on the way through.
+	static const string CONFIG_NAME = "Test #Patrol";
+
+	//! Stands in for the authored module name.
+	static const string MODULE_NAME = "Spawn Infantry";
+
+	//! How many groups the simulated module wants to hold.
+	static const int WANTED = 2;
+
+	//! Manual lifecycle policy: never materialise by proximity. See the header.
+	static const int SPAWN_DISTANCE_NEVER = 0;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+		{
+			SetFailure("No faction in this world defines a resolvable group registry entry, so registration cannot be exercised");
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+		string ownerKey = BuildOwnerKey(position);
+
+		int before = virtualization.GetGroupCount();
+		array<int> handles = new array<int>();
+
+		string failure = RunCycle(virtualization, ownerKey, factionKey, groupName, position, handles);
+
+		// Cleanup BEFORE reporting, on every path.
+		foreach (int handle : handles)
+		{
+			virtualization.UnregisterGroup(handle);
+		}
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		if (!virtualization.FindGroupsByOwner(OWNER_SYSTEM, ownerKey).IsEmpty())
+		{
+			SetFailure("FindGroupsByOwner still answers for '%1' after every handle was unregistered", ownerKey);
+			return true;
+		}
+
+		if (virtualization.GetGroupCount() != before)
+		{
+			SetFailure("The registry holds %1 records after cleanup, expected the %2 it started with",
+				virtualization.GetGroupCount().ToString(), before.ToString());
+			return true;
+		}
+
+		PrintFormat("EnsureGroups converged to %1 group(s) under '%2', a second pass added nothing, and unregistering emptied the owner", WANTED.ToString(), ownerKey);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Two convergence passes over one owner key. The second must add nothing.
+	//! \param[in] virtualization The virtualization manager.
+	//! \param[in] ownerKey The composed owner key.
+	//! \param[in] factionKey A faction this world resolves.
+	//! \param[in] groupName A composition that faction resolves.
+	//! \param[in] position Where to register.
+	//! \param[out] handles Every handle registered, for cleanup - filled even on a failure path.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunCycle(notnull OVT_VirtualizationManagerComponent virtualization, string ownerKey,
+		string factionKey, string groupName, vector position, notnull array<int> handles)
+	{
+		if (!virtualization.FindGroupsByOwner(OWNER_SYSTEM, ownerKey).IsEmpty())
+			return string.Format("Owner key '%1' already has registered groups before this case ran - a previous case leaked, or the key arithmetic collides", ownerKey);
+
+		// PASS 1: nothing held, so the whole wanted count is missing.
+		int missing = OVT_DeploymentVirtualKey.MissingCount(WANTED, 0);
+		if (missing != WANTED)
+			return string.Format("MissingCount(%1, 0) answered %2 - a fresh module would register the wrong number of groups", WANTED.ToString(), missing.ToString());
+
+		for (int i = 0; i < missing; i++)
+		{
+			int handle = virtualization.RegisterGroup(OWNER_SYSTEM, ownerKey, factionKey, groupName,
+				position, null, SPAWN_DISTANCE_NEVER, SCR_EAISpawnImportance.NORMAL);
+
+			if (handle == -1)
+				return string.Format("RegisterGroup refused group %1 of %2 for a composition the faction registry resolves (%3 '%4')",
+					(i + 1).ToString(), missing.ToString(), factionKey, groupName);
+
+			handles.Insert(handle);
+		}
+
+		// The registration really is inert - nothing can materialise it by walking near it.
+		foreach (int registeredHandle : handles)
+		{
+			if (virtualization.GetSpawnDistance(registeredHandle) != 0)
+				return string.Format("Handle %1 resolved a spawn distance of %2 m from an override of 0 - this fixture would materialise real soldiers next to the autotest camera",
+					registeredHandle.ToString(), virtualization.GetSpawnDistance(registeredHandle).ToString());
+		}
+
+		// PASS 2: reclaim. This is the step every real caller starts with.
+		array<int> reclaimed = virtualization.FindGroupsByOwner(OWNER_SYSTEM, ownerKey);
+		if (reclaimed.Count() != WANTED)
+			return string.Format("FindGroupsByOwner reclaimed %1 handle(s) for '%2', expected %3 - a module that cannot find its own groups registers a second set on top of them",
+				reclaimed.Count().ToString(), ownerKey, WANTED.ToString());
+
+		foreach (int handle : handles)
+		{
+			if (!reclaimed.Contains(handle))
+				return string.Format("Handle %1 was registered under '%2' but the reclaim did not return it", handle.ToString(), ownerKey);
+		}
+
+		// ...and the shortfall after reclaiming is nothing, so the second pass registers nothing.
+		int missingAfter = OVT_DeploymentVirtualKey.MissingCount(WANTED, reclaimed.Count());
+		if (missingAfter != 0)
+			return string.Format("MissingCount(%1, %2) answered %3 - a second convergence would register %3 duplicate group(s), which is how a continued campaign doubles every patrol",
+				WANTED.ToString(), reclaimed.Count().ToString(), missingAfter.ToString());
+
+		if (virtualization.FindGroupsByOwner(OWNER_SYSTEM, ownerKey).Count() != WANTED)
+			return "The owner's group count moved between the two reclaim calls without anything being registered";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Composes the owner key exactly as a spawning module does: the deployment's derived key, then the
+	//! module's tag.
+	//! \param[in] position The marker position the key is derived from.
+	//! \return The owner key.
+	protected string BuildOwnerKey(vector position)
+	{
+		string deploymentKey = OVT_DeploymentVirtualKey.DeriveKey(CONFIG_NAME, position[0], position[2]);
+		deploymentKey = OVT_DeploymentVirtualKey.Disambiguate(deploymentKey, 0);
+
+		return OVT_DeploymentVirtualKey.OwnerKey(deploymentKey, OVT_DeploymentVirtualKey.ModuleTag(MODULE_NAME, 0));
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The SHIPPED "Tower Garrison" config resolves, and everything about it that decides whether a
+//! garrison behaves like a garrison is what it is supposed to be.
+//!
+//! THIS IS THE CONFIG THAT REPLACED A WHOLE SUBSYSTEM. Radio tower garrisons used to be bespoke code
+//! inside the occupying faction manager's 9 s loop; they are now this one authored file, and every
+//! claim below is silent when it breaks:
+//!   - the registry stops carrying "Tower Garrison" (a rename, a dropped registry entry, a
+//!     mis-authored .conf that fails to parse) - no tower on the map would ever get a garrison
+//!     again, and the only symptom would be quiet towers;
+//!   - the config is not valid (no spawning module) - FindBestDeploymentConfig skips it silently;
+//!   - the plan stops being a ONE-POINT, NON-CYCLING DEFEND. A plan is the only opt-in there is for
+//!     being walked while dormant, so a garrison that acquired a movable point would WANDER OFF ITS
+//!     TOWER while nobody was watching and be somewhere else when the player arrived. That is the
+//!     "garrisons never wander" claim at its root and nothing else asserts it;
+//!   - the importance stops being HIGH - and this one is the nastiest, because a garrison at the
+//!     vanilla LOW/NORMAL tier is capped lower in the AI budget and evicted first, so on a busy
+//!     server it simply never appears, with no error anywhere. The clone is checked as well as the
+//!     template: modules are cloned by hand per deployment and a CloneModule that forgets an
+//!     attribute ships the class default instead of the authored value, which is exactly how
+//!     m_fMaxCruiseSpeed was lost on the vehicle module for a release.
+//!
+//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it, exactly as the Town Patrol case is:
+//! BuildVirtualPlan falls back to the group's own position when there is no centre to hold, so the
+//! shape of the shipped answer is assertable without creating a marker entity and leaking a
+//! repeating 10 s UpdateDeployment into the shared test world.
+//!
+//! NOTHING IS REGISTERED, so there is no fixture for the movement tick to walk.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set
+//! m_ePatrolType PERIMETER in Deployment_TowerGarrison.conf and both the point-count and the
+//! cycle assertions go red; drop m_eImportance from the config and the template assertion goes red
+//! naming NORMAL; delete the m_eImportance line from OVT_InfantrySpawningDeploymentModule.CloneModule
+//! and the CLONE assertion goes red while the template one stays green - which is the whole reason
+//! both are checked.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_TowerGarrisonHoldsItsPost : SCR_AutotestCaseBase
+{
+	//! The shipped config this case is about.
+	static const string CONFIG_NAME = "Tower Garrison";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
+		if (!config)
+		{
+			SetFailure("The deployment registry does not resolve '%1' - no radio tower would ever be garrisoned again", CONFIG_NAME);
+			return true;
+		}
+
+		if (!config.IsValidConfig())
+		{
+			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator skips it in silence", CONFIG_NAME);
+			return true;
+		}
+
+		string failure = VerifyPlan(config);
+		if (failure == "")
+			failure = VerifyImportance(config);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("'%1' builds a one-point non-cycling DEFEND plan and registers at HIGH importance, template and clone", CONFIG_NAME);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The plan half: one DEFEND point, no cycle, nothing movable.
+	//! \param[in] config The shipped config.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyPlan(notnull OVT_DeploymentConfig config)
+	{
+		OVT_PatrolBehaviorDeploymentModule patrol;
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
+		{
+			patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
+			if (patrol)
+				break;
+		}
+
+		if (!patrol)
+			return string.Format("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - its groups would register with no plan at all", CONFIG_NAME);
+
+		vector groupPosition = OVT_TEST_VirtualizationFixture.PickPosition();
+		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(groupPosition);
+
+		if (!plan)
+			return string.Format("The patrol module of '%1' answered with no plan - a garrison with no waypoints is legal, but then this case cannot tell a DEFEND post from a lost setting", CONFIG_NAME);
+
+		int count = plan.m_aPositions.Count();
+		if (count != 1)
+			return string.Format("The plan has %1 point(s), expected exactly 1 - a garrison holds ONE post; more than one means the patrol type is no longer DEFEND", count.ToString());
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("The plan's parallel arrays are ragged (%1 positions, %2 types, %3 params) - RegisterGroup refuses a ragged plan outright, so the garrison would silently never be registered",
+				count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
+
+		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
+			return string.Format("The plan's only point is type %1, expected DEFEND", plan.m_aTypes[0].ToString());
+
+		if (plan.m_bCycle)
+			return "The plan cycles - a cycling plan is walked by the movement tick, so the garrison would leave its tower while nobody was watching";
+
+		foreach (int type : plan.m_aTypes)
+		{
+			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
+				return "The plan contains a movable point - the movement tick would walk this garrison off its tower";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The budget half: HIGH on the authored template AND on the clone a real deployment gets.
+	//! \param[in] config The shipped config.
+	//! \return An empty string when both hold, or the broken one.
+	protected string VerifyImportance(notnull OVT_DeploymentConfig config)
+	{
+		OVT_InfantrySpawningDeploymentModule infantry;
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			infantry = OVT_InfantrySpawningDeploymentModule.Cast(spawningModule);
+			if (infantry)
+				break;
+		}
+
+		if (!infantry)
+			return string.Format("Config '%1' carries no OVT_InfantrySpawningDeploymentModule - there is nothing to garrison the tower with", CONFIG_NAME);
+
+		if (infantry.m_eImportance != SCR_EAISpawnImportance.HIGH)
+			return string.Format("The authored importance is %1, expected HIGH - a garrison below HIGH loses the AI spawn-budget race on a busy server and silently never appears",
+				typename.EnumToString(SCR_EAISpawnImportance, infantry.m_eImportance));
+
+		OVT_InfantrySpawningDeploymentModule clone = OVT_InfantrySpawningDeploymentModule.Cast(infantry.CloneModule());
+		if (!clone)
+			return "CloneModule() on the infantry module did not return an infantry module";
+
+		if (clone.m_eImportance != SCR_EAISpawnImportance.HIGH)
+			return string.Format("The CLONE's importance is %1 while the template's is HIGH - CloneModule drops the attribute, so every real deployment ships at the wrong tier",
+				typename.EnumToString(SCR_EAISpawnImportance, clone.m_eImportance));
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A radio tower's position classifies as RADIO_TOWER - IN ADDITION to whatever else it was.
+//!
+//! WITHOUT THIS THE WHOLE CONFIG IS INERT AND NOTHING SAYS SO. GetLocationTypeAtPosition is a
+//! first-match precedence chain - town, then base within 500 m, then port, airfield, tower,
+//! checkpoint - and it returns a SINGLE flag. Every radio tower worth garrisoning is near
+//! something, so before the RADIO_TOWER bit was OR-ed in on top, a tower inside a town's bounds
+//! classified as TOWN, the tower-only config never matched, and the only symptom was ungarrisoned
+//! towers with no error anywhere in the log.
+//!
+//! BOTH HALVES OF D19 ARE ASSERTED, because the fix is only correct if it is additive:
+//!   - at a tower, the result CONTAINS the RADIO_TOWER bit (the new behaviour), and
+//!   - at a tower, the result still contains every bit the precedence chain produced on its own
+//!     (nothing was stolen from the Town Patrol or the vehicle-patrol configs), and
+//!   - away from every tower, the result is EXACTLY the precedence value (the bit is conditional,
+//!     not welded on).
+//!
+//! READS THE LIVE TOWER LIST rather than a fixed position: the test world defines one radio tower
+//! and Eden defines two, so the case asks the occupying faction manager where they are instead of
+//! carrying a magic coordinate that would be wrong in one of the two worlds.
+//!
+//! NOTHING IS REGISTERED and nothing is mutated - this is a pure query on live campaign data.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete
+//! the `locationType | OVT_LocationTypeFlag.RADIO_TOWER` line from GetLocationTypeAtPosition and the
+//! first assertion goes red; change the OR to a plain assignment and the "still contains" assertion
+//! goes red; drop the IsNearRadioTower() guard so the bit is always added and the away-from-towers
+//! assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_RadioTowerLocationTypeIsOredIn : SCR_AutotestCaseBase
+{
+	//! How far from every known tower the "no tower here" probe is taken. Well outside the 300 m
+	//! classification ring on any map, and no terrain is touched - the classification does no ground
+	//! trace, so an off-map probe is legal.
+	static const float FAR_FROM_TOWERS = 5000;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_RadioTowers || occupying.m_RadioTowers.IsEmpty())
+		{
+			SetFailure("This world has no radio towers, so the classification cannot be exercised - InitializeBases() found none");
+			return true;
+		}
+
+		vector towerPos = occupying.m_RadioTowers[0].location;
+
+		OVT_LocationTypeFlag primary = manager.GetPrimaryLocationTypeAtPosition(towerPos);
+		OVT_LocationTypeFlag full = manager.GetLocationTypeAtPosition(towerPos);
+
+		if ((full & OVT_LocationTypeFlag.RADIO_TOWER) == 0)
+		{
+			SetFailure("A position at a radio tower classifies as %1 with no RADIO_TOWER bit - the Tower Garrison config can never match a candidate and no tower is ever garrisoned",
+				full.ToString());
+			return true;
+		}
+
+		if ((full & primary) != primary)
+		{
+			SetFailure("Classifying a tower position returned %1, which no longer contains the %2 the precedence chain produced - the RADIO_TOWER bit REPLACED a location kind instead of joining it, and whichever config wanted that kind has silently lost this position",
+				full.ToString(), primary.ToString());
+			return true;
+		}
+
+		vector awayPos = FindPositionAwayFromTowers(occupying);
+		OVT_LocationTypeFlag awayPrimary = manager.GetPrimaryLocationTypeAtPosition(awayPos);
+		OVT_LocationTypeFlag awayFull = manager.GetLocationTypeAtPosition(awayPos);
+
+		if (awayFull != awayPrimary)
+		{
+			SetFailure("A position %1 m from every tower classifies as %2 but the precedence chain says %3 - the RADIO_TOWER bit is being added unconditionally, so every candidate on the map would look like a tower",
+				FAR_FROM_TOWERS.ToString(), awayFull.ToString(), awayPrimary.ToString());
+			return true;
+		}
+
+		PrintFormat("A tower position classifies as %1 (precedence alone said %2); a position far from every tower is unchanged at %3",
+			full.ToString(), primary.ToString(), awayFull.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A position at least FAR_FROM_TOWERS from every tower in this world.
+	//! \param[in] occupying The occupying faction manager, for its tower list.
+	//! \return A position no tower is near.
+	protected vector FindPositionAwayFromTowers(notnull OVT_OccupyingFactionManager occupying)
+	{
+		// Walk outwards from the first tower until nothing is within range. Two towers on Eden and
+		// one in the test world, so this settles on the first or second step.
+		vector candidate = occupying.m_RadioTowers[0].location;
+
+		for (int attempt = 1; attempt <= 10; attempt++)
+		{
+			candidate = occupying.m_RadioTowers[0].location + Vector(FAR_FROM_TOWERS * attempt, 0, FAR_FROM_TOWERS * attempt);
+
+			bool clear = true;
+			foreach (OVT_RadioTowerData tower : occupying.m_RadioTowers)
+			{
+				if (tower && vector.Distance(candidate, tower.location) < FAR_FROM_TOWERS)
+				{
+					clear = false;
+					break;
+				}
+			}
+
+			if (clear)
+				return candidate;
+		}
+
+		return candidate;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE PHASE'S HEADLINE CLAIM: a tower changes hands when its garrison is KILLED, and at no other
+//! time - and then exactly once.
+//!
+//! WHAT THIS PROTECTS AGAINST, IN THE PLAYER'S WORDS. Drive away from a garrisoned tower until the
+//! garrison despawns, drive back: the tower must still be enemy-held and the fight must still be
+//! there. The old code got that wrong by construction - it flipped the tower whenever its list of
+//! garrison entity ids happened to be empty on a tick, and that list was emptied by DRIVING AWAY
+//! (and, for good measure, by any QRF anywhere on the map). The new rule is that capture is driven
+//! by the deployment's eliminated flag, which the virtualization core sets only when a group's
+//! survivor mask reports every slot dead.
+//!
+//! SO THE DEATHS HERE ARE REAL DEATHS, through the public seam (ReportMemberKilled) rather than
+//! world combat, and the wipe that follows is the core's own - the case never sets an eliminated
+//! flag by hand. Three states are walked in order, and the middle one is the one that matters:
+//!   1. two groups registered, nothing killed        -> no capture, tower unchanged;
+//!   2. ONE group wiped, the other untouched         -> still no capture (a partial loss is not a
+//!      wipe, and this is the state a despawn would look like if the accounting ever regressed);
+//!   3. the second group wiped as well               -> capture, ONCE. A fourth call does nothing.
+//!
+//! THE MODULE IS DRIVEN THROUGH EvaluateCapture() rather than through OnUpdate, deliberately. The
+//! only difference is where the three inputs come from, and going through OnUpdate would mean
+//! standing up a live deployment marker entity, which leaks a repeating 10 s UpdateDeployment into
+//! the shared test world for every case that runs after it (the recorded T1.8 verdict).
+//!
+//! ⚠ spawnDistanceOverride = 0 on every registration - the engine's Manual lifecycle policy, "never
+//! materialise by proximity" - because the autotest camera IS an observer and a registration at the
+//! global ring would put real soldiers on the ground in the middle of the suite. Null plans, so the
+//! movement tick has nothing to walk either.
+//!
+//! ⚠ THIS CASE REALLY FLIPS A TOWER, which sends the capture notification and the broadcast the live
+//! game sends. The tower's faction is captured before and restored after, on every path including
+//! the red ones, so the shared world is handed on exactly as it was found.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
+//! `if (!eliminated) return false;` guard from EvaluateCapture and the step-1 assertion goes red
+//! immediately; remove the m_bCaptureFired latch and the "exactly once" assertion goes red; invert
+//! the tower-ownership guard and the capture assertion goes red with the tower unchanged.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Deployments_TowerCaptureOnlyOnRealWipe : SCR_AutotestCaseBase
+{
+	//! The owner system every deployment-registered group carries.
+	static const string OWNER_SYSTEM = "deployment";
+
+	//! Manual lifecycle policy: never materialise by proximity.
+	static const int SPAWN_DISTANCE_NEVER = 0;
+
+	//! How many groups stand in for the garrison. Two, because the claim that ONE dead group is not
+	//! a wipe needs a second one to still be standing.
+	static const int GARRISON_GROUPS = 2;
+
+	//! Handles the core has not yet told us are wiped. This is the whole of the bridge between core
+	//! deaths and a deployment's eliminated flag, and it is the same rule the infantry spawning
+	//! module applies: the flag goes up when the last handle is gone and the module ever held one.
+	protected ref array<int> m_aLiveHandles;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		m_aLiveHandles = new array<int>();
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null");
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_RadioTowers || occupying.m_RadioTowers.IsEmpty())
+		{
+			SetFailure("This world has no radio towers, so there is nothing to capture");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		int playerFaction = config.GetPlayerFactionIndex();
+		if (occupyingFaction == playerFaction || occupyingFaction < 0 || playerFaction < 0)
+		{
+			SetFailure("The occupying faction (%1) and the player faction (%2) do not resolve to two different factions, so a capture would be unobservable",
+				occupyingFaction.ToString(), playerFaction.ToString());
+			return true;
+		}
+
+		OVT_RadioTowerData tower = occupying.m_RadioTowers[0];
+		int originalFaction = tower.faction;
+
+		// The deployment under test garrisons a tower its own faction holds, which is the only state
+		// the evaluator would ever have created one in.
+		tower.faction = occupyingFaction;
+
+		string failure = RunCapture(virtualization, occupying, tower, occupyingFaction, playerFaction);
+
+		// Cleanup BEFORE reporting, on every path: release anything still registered and hand the
+		// tower back exactly as it was found.
+		foreach (int handle : m_aLiveHandles)
+		{
+			virtualization.UnregisterGroup(handle);
+		}
+		m_aLiveHandles.Clear();
+		tower.faction = originalFaction;
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A partially wiped garrison did not capture the tower; wiping the last group captured it once, and a repeat call did nothing");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a stand-in garrison, kills it a group at a time, and asserts what the capture module
+	//! does at each step.
+	//! \param[in] virtualization The virtualization manager.
+	//! \param[in] occupying The occupying faction manager, which owns the tower record.
+	//! \param[in] tower The tower under test.
+	//! \param[in] occupyingFaction The faction the stand-in deployment belongs to.
+	//! \param[in] playerFaction The faction a capture hands the tower to.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunCapture(notnull OVT_VirtualizationManagerComponent virtualization,
+		notnull OVT_OccupyingFactionManager occupying, notnull OVT_RadioTowerData tower,
+		int occupyingFaction, int playerFaction)
+	{
+		string factionKey;
+		string groupName;
+		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
+			return "No faction in this world defines a resolvable group registry entry, so no garrison can be registered";
+
+		string ownerKey = OVT_DeploymentVirtualKey.OwnerKey(
+			OVT_DeploymentVirtualKey.DeriveKey("Tower Garrison", tower.location[0], tower.location[2]),
+			OVT_DeploymentVirtualKey.ModuleTag("Tower Garrison", 0));
+
+		for (int i = 0; i < GARRISON_GROUPS; i++)
+		{
+			int handle = virtualization.RegisterGroup(OWNER_SYSTEM, ownerKey, factionKey, groupName,
+				tower.location, null, SPAWN_DISTANCE_NEVER, SCR_EAISpawnImportance.HIGH);
+
+			if (handle == -1)
+				return string.Format("RegisterGroup refused garrison group %1 of %2 for a composition the faction registry resolves (%3 '%4')",
+					(i + 1).ToString(), GARRISON_GROUPS.ToString(), factionKey, groupName);
+
+			m_aLiveHandles.Insert(handle);
+		}
+
+		virtualization.GetOnGroupWiped().Insert(OnGroupWiped);
+		string failure = WalkTheThreeStates(virtualization, tower, occupyingFaction, playerFaction);
+		virtualization.GetOnGroupWiped().Remove(OnGroupWiped);
+
+		return failure;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Alive -> partially wiped -> wiped, asserting the capture module at each step.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string WalkTheThreeStates(notnull OVT_VirtualizationManagerComponent virtualization,
+		notnull OVT_RadioTowerData tower, int occupyingFaction, int playerFaction)
+	{
+		OVT_RadioTowerCaptureBehaviorDeploymentModule capture = new OVT_RadioTowerCaptureBehaviorDeploymentModule();
+		capture.m_fMaxDistance = 300;
+
+		// STATE 1: the garrison is registered and untouched.
+		if (capture.EvaluateCapture(IsEliminated(), tower.location, occupyingFaction))
+			return "The capture module fired with a fully alive garrison - a tower would flip the moment its deployment was created";
+
+		if (tower.faction != occupyingFaction)
+			return "The tower changed hands with a fully alive garrison";
+
+		// STATE 2: one group wiped, one still standing. This is the state a proximity despawn would
+		// be mistaken for if the wipe accounting ever regressed to counting what is materialised.
+		string wipeFailure = WipeOneGroup(virtualization);
+		if (wipeFailure != "")
+			return wipeFailure;
+
+		if (m_aLiveHandles.Count() != GARRISON_GROUPS - 1)
+			return string.Format("After wiping one group the case still holds %1 live handle(s), expected %2 - the core did not raise its group-wiped event",
+				m_aLiveHandles.Count().ToString(), (GARRISON_GROUPS - 1).ToString());
+
+		if (capture.EvaluateCapture(IsEliminated(), tower.location, occupyingFaction))
+			return "The capture module fired with one garrison group still alive - a partial loss is not a wipe, and this is exactly how walking away used to take a tower";
+
+		if (tower.faction != occupyingFaction)
+			return "The tower changed hands while one garrison group was still alive";
+
+		// STATE 3: the last group dies. Now, and only now, the tower changes hands.
+		wipeFailure = WipeOneGroup(virtualization);
+		if (wipeFailure != "")
+			return wipeFailure;
+
+		if (!m_aLiveHandles.IsEmpty())
+			return string.Format("After wiping every group the case still holds %1 live handle(s) - the core did not raise its group-wiped event for the last one",
+				m_aLiveHandles.Count().ToString());
+
+		if (!capture.EvaluateCapture(IsEliminated(), tower.location, occupyingFaction))
+			return "The capture module did NOT fire after the whole garrison was killed - clearing a tower would no longer take it";
+
+		if (tower.faction != playerFaction)
+			return string.Format("The capture reported success but the tower's faction is %1, expected the player faction %2",
+				tower.faction.ToString(), playerFaction.ToString());
+
+		// ...and only once. The eliminated flag stays up for as long as the deployment lives, and the
+		// module is asked again every ~10 s, so without a latch this would re-notify forever.
+		if (capture.EvaluateCapture(IsEliminated(), tower.location, occupyingFaction))
+			return "The capture module fired a SECOND time - the edge latch is gone and every tick would re-capture and re-notify";
+
+		if (tower.faction != playerFaction)
+			return "The tower's faction moved on the second capture call";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Kills every slot of the first live group through the public death seam.
+	//! \param[in] virtualization The virtualization manager.
+	//! \return An empty string on success, or what went wrong.
+	protected string WipeOneGroup(notnull OVT_VirtualizationManagerComponent virtualization)
+	{
+		if (m_aLiveHandles.IsEmpty())
+			return "Nothing left to wipe";
+
+		int handle = m_aLiveHandles[0];
+
+		int roster = virtualization.GetMemberCount(handle);
+		if (roster < 1)
+			return string.Format("Handle %1 has an empty roster, so no death can be reported against it and nothing below can mean anything", handle.ToString());
+
+		for (int slot = 0; slot < roster; slot++)
+		{
+			virtualization.ReportMemberKilled(handle, slot);
+		}
+
+		if (virtualization.IsRegistered(handle))
+			return string.Format("Handle %1 is still registered after all %2 of its slots were reported killed - the core did not wipe it",
+				handle.ToString(), roster.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The eliminated flag as a spawning module computes it: every handle gone, having held some.
+	//! \return Whether the stand-in garrison counts as wiped out.
+	protected bool IsEliminated()
+	{
+		return m_aLiveHandles.IsEmpty();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The core says one of our groups lost its last member.
+	//! \param[in] handle The wiped group's registry handle.
+	protected void OnGroupWiped(int handle)
+	{
+		m_aLiveHandles.RemoveItem(handle);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Both SHIPPED vehicle patrol configs resolve, their crew compositions exist for every faction that
+//! could field them, and their crews are registered ALWAYS-MATERIALISED.
+//!
+//! THIS IS THE CLAIM THE VEHICLE MIGRATION RESTS ON, and every way it can break is silent:
+//!   - the registry stops carrying "Light Vehicle Patrol" or "Heavy Vehicle Patrol" (a rename, a
+//!     dropped registry entry, a mis-authored .conf) - the evaluator would simply never create one
+//!     again, and nothing would log it;
+//!   - the config loses its vehicle spawning module, or that module loses its crew group name - the
+//!     trucks would still spawn and would then sit at the base forever with nobody in them;
+//!   - the crew group name stops resolving for a faction. The core resolves a composition by
+//!     (factionKey, groupName) and REFUSES the registration when it cannot, so an occupying faction
+//!     whose registry lost "light_patrol" would field driverless vehicles - with one WARNING per
+//!     attempt and nothing else. Both shipped occupying factions are checked, because a registry
+//!     entry can be dropped from one .conf and not the other;
+//!   - the crew spawn distance stops being an always-materialised one. This is the nastiest of the
+//!     four. A crew registered at the global ring (-1) goes DORMANT as soon as no observer is near,
+//!     and a dormant group holding a route plan is walked along it in a straight line by the
+//!     movement tick while its truck stays parked - so the crew materialises kilometres from its own
+//!     vehicle. A crew registered at 0 gets the engine's Manual policy and never materialises at all.
+//!     Neither produces an error; both produce vehicle patrols that do not patrol.
+//!
+//! THE CLONE IS CHECKED AS WELL AS THE TEMPLATE. Modules are cloned by hand per deployment and a
+//! CloneModule that forgets an attribute ships the class default instead of the authored value -
+//! which is exactly how m_fMaxCruiseSpeed was lost on this very module for a whole release.
+//!
+//! NOTHING IS REGISTERED and nothing is mutated: this is a pure query on the shipped configs and the
+//! live faction registries, so there is no fixture for the movement tick to walk and nothing to clean
+//! up. The route plan's own shape is pinned in the Logic tier (…_DeploymentVirtualization_RoutePlan),
+//! which is where geometry belongs; asking the multi-town module for a plan here would depend on how
+//! many towns the current world happens to have inside the config's 2500 m search radius.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
+//! m_sDeploymentName in Deployment_VehiclePatrol_Light.conf and the resolution assertion goes red
+//! first; set m_sCrewGroupType to a name no faction defines and the composition assertion goes red
+//! naming the faction and the config; set the m_iSpawnDistanceOverride attribute's defvalue to "-1"
+//! and the always-materialised assertion goes red; delete the m_iSpawnDistanceOverride line from
+//! OVT_VehicleSpawningDeploymentModule.CloneModule and the CLONE assertion goes red while the
+//! template one stays green - which is the whole reason both are checked.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_VehiclePatrolCrewsResolve : SCR_AutotestCaseBase
+{
+	//! The two shipped vehicle patrol configs.
+	static const string LIGHT_CONFIG = "Light Vehicle Patrol";
+	static const string HEAVY_CONFIG = "Heavy Vehicle Patrol";
+
+	//! How many factions must carry a group registry for the composition half to mean anything. Both
+	//! shipped occupying factions do; a world where fewer do would make this case pass vacuously, so it
+	//! fails loudly instead.
+	static const int MIN_FACTIONS_WITH_REGISTRY = 2;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+		{
+			SetFailure("OVT_Global.GetVirtualization() is null - vehicle crews are registered groups, so without it there is nothing to assert");
+			return true;
+		}
+
+		string failure = VerifyConfig(manager, virtualization, LIGHT_CONFIG);
+		if (failure == "")
+			failure = VerifyConfig(manager, virtualization, HEAVY_CONFIG);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("'%1' and '%2' both resolve, their crews resolve for every faction with a group registry, and both register always-materialised",
+			LIGHT_CONFIG, HEAVY_CONFIG);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every claim about one shipped vehicle patrol config.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] virtualization The virtualization manager, for the global spawn ring.
+	//! \param[in] configName The config to check.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyConfig(notnull OVT_DeploymentManagerComponent manager, notnull OVT_VirtualizationManagerComponent virtualization, string configName)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
+		if (!config)
+			return string.Format("The deployment registry does not resolve '%1' - that vehicle patrol can never be created again", configName);
+
+		if (!config.IsValidConfig())
+			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator skips it in silence", configName);
+
+		OVT_VehicleSpawningDeploymentModule vehicleModule = FindVehicleModule(config);
+		if (!vehicleModule)
+			return string.Format("Config '%1' carries no OVT_VehicleSpawningDeploymentModule - there is nothing to put on the road", configName);
+
+		if (vehicleModule.m_sCrewGroupType.IsEmpty())
+			return string.Format("The vehicle module of '%1' authors no crew group type - its trucks would spawn with nobody in them and never move", configName);
+
+		string failure = VerifyCrewSpawnDistance(virtualization, vehicleModule, configName);
+		if (failure != "")
+			return failure;
+
+		return VerifyComposition(configName, vehicleModule.m_sCrewGroupType);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The always-materialised half, on the template AND on the clone a real deployment gets.
+	//! \param[in] virtualization The virtualization manager.
+	//! \param[in] vehicleModule The config's vehicle module.
+	//! \param[in] configName The config being checked, for the message.
+	//! \return An empty string when both hold, or the broken one.
+	protected string VerifyCrewSpawnDistance(notnull OVT_VirtualizationManagerComponent virtualization, notnull OVT_VehicleSpawningDeploymentModule vehicleModule, string configName)
+	{
+		int authored = vehicleModule.m_iSpawnDistanceOverride;
+
+		if (authored <= 0)
+			return string.Format("'%1' registers its crews with spawn distance %2 - at 0 the engine's Manual policy means they never materialise at all, and anything below 0 is the global ring, which lets them go dormant and be walked away from their own vehicle",
+				configName, authored.ToString());
+
+		int global = virtualization.GetGlobalSpawnDistance();
+		if (authored < global)
+			return string.Format("'%1' registers its crews at %2 m, inside the global virtualization ring of %3 m - a vehicle crew must never be allowed to go dormant, because the movement tick walks a dormant crew along its route while its truck stays parked",
+				configName, authored.ToString(), global.ToString());
+
+		OVT_VehicleSpawningDeploymentModule clone = OVT_VehicleSpawningDeploymentModule.Cast(vehicleModule.CloneModule());
+		if (!clone)
+			return "CloneModule() on the vehicle module did not return a vehicle module";
+
+		if (clone.m_iSpawnDistanceOverride != authored)
+			return string.Format("The CLONE of '%1' registers crews at %2 while the template says %3 - CloneModule drops the attribute, so every real deployment ships at the class default instead of the authored value",
+				configName, clone.m_iSpawnDistanceOverride.ToString(), authored.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The composition half: every faction that has a group registry at all can field this crew.
+	//!
+	//! Asked through the same door the core uses - GetOverthrowFactionByKey then GetGroupPrefabByName -
+	//! rather than by reading the .conf, so a registry that parses but resolves to nothing is caught.
+	//! \param[in] configName The config being checked, for the message.
+	//! \param[in] crewName The crew group registry name it authors.
+	//! \return An empty string when every faction resolves it, or the first that does not.
+	protected string VerifyComposition(string configName, string crewName)
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return "OVT_Global.GetFactions() is null - no composition can be resolved at all";
+
+		int checkedFactions = 0;
+
+		int count = factions.GetFactionsCount();
+		for (int i = 0; i < count; i++)
+		{
+			Faction faction = factions.GetFactionByIndex(i);
+			if (!faction)
+				continue;
+
+			string key = faction.GetFactionKey();
+			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(key);
+			if (!overthrowFaction)
+				continue;
+
+			// Civilians and any other faction with no group registry cannot field a patrol at all and
+			// are not what this case is about.
+			array<string> names = overthrowFaction.GetAvailableGroupNames();
+			if (!names || names.IsEmpty())
+				continue;
+
+			checkedFactions++;
+
+			if (overthrowFaction.GetGroupPrefabByName(crewName) == ResourceName.Empty)
+				return string.Format("Faction '%1' has no group registry entry named '%2', which '%3' authors as its crew - the core refuses that registration, so this faction's vehicle patrols would drive nowhere",
+					key, crewName, configName);
+		}
+
+		if (checkedFactions < MIN_FACTIONS_WITH_REGISTRY)
+			return string.Format("Only %1 faction(s) carry a group registry, expected at least %2 - the composition check for '%3' would pass vacuously",
+				checkedFactions.ToString(), MIN_FACTIONS_WITH_REGISTRY.ToString(), configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first vehicle spawning module, or null.
+	protected OVT_VehicleSpawningDeploymentModule FindVehicleModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_VehicleSpawningDeploymentModule vehicleModule = OVT_VehicleSpawningDeploymentModule.Cast(spawningModule);
+			if (vehicleModule)
+				return vehicleModule;
+		}
+
+		return null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The two configs the 2026-08-17 amendment marks FREE AT GAME START really carry the flag - and the
+//! rest of the registry does not.
+//!
+//! WHY THIS IS A CASE AND NOT AN INSPECTION OF THE DIFF. `m_bFreeAtGameStart` is an authored `.conf`
+//! attribute with a default of FALSE, and everything about losing it is silent: an unauthored line, a
+//! renamed attribute, a registry entry that stops inheriting from its base `.conf`, a Workbench
+//! re-save that drops a default-looking value. The only symptom would be the exact bug the amendment
+//! was raised for - a play-tester on Easy finding most radio towers ungarrisoned because the seeding
+//! pass had nothing to seed - and no error anywhere.
+//!
+//! THE FALSE HALF MATTERS AS MUCH AS THE TRUE HALF. A defvalue typo (`"1"` instead of `"0"`) or an
+//! attribute accidentally welded on would make EVERY config free, which would seed both vehicle
+//! patrols at every base on the map for nothing on the first load of every campaign. Requiring at
+//! least one shipped config to answer false is what proves the flag is opt-in rather than universal.
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - a pure read of the shipped
+//! registry, so there is no fixture for the movement tick to walk and nothing to clean up.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
+//! `m_bFreeAtGameStart 1` line from `Configs/Deployment/Deployment_TowerGarrison.conf` and the tower
+//! assertion goes red naming it; do the same to `Deployment_TownPatrol.conf` and the town assertion
+//! goes red; change the attribute's defvalue in `OVT_DeploymentConfig` to `"1"` and the opt-in
+//! assertion goes red instead, because nothing in the registry answers false any more.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
+{
+	//! The two shipped configs the amendment marks free.
+	static const string TOWN_CONFIG = "Town Patrol";
+	static const string TOWER_CONFIG = "Tower Garrison";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry || !manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		string failure = VerifyMarkedFree(manager, TOWN_CONFIG);
+		if (failure == "")
+			failure = VerifyMarkedFree(manager, TOWER_CONFIG);
+
+		if (failure == "")
+			failure = VerifyFlagIsOptIn(manager);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("'%1' and '%2' are marked free at game start; %3 other shipped config(s) are not",
+			TOWN_CONFIG, TOWER_CONFIG, CountNotFree(manager).ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One named shipped config resolves and carries the flag.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] configName The config to check.
+	//! \return An empty string when the claim holds, or the broken one.
+	protected string VerifyMarkedFree(notnull OVT_DeploymentManagerComponent manager, string configName)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
+		if (!config)
+			return string.Format("The deployment registry does not resolve '%1', so it can neither be seeded nor bought", configName);
+
+		if (!config.IsValidConfig())
+			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the seeding pass skips it in silence", configName);
+
+		if (!config.m_bFreeAtGameStart)
+			return string.Format("Config '%1' is NOT marked m_bFreeAtGameStart - it is back to being bought out of the faction resource pool, which on Easy (150 per tick) is how most radio towers ended up ungarrisoned", configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! At least one shipped config answers false, which is what proves the default is false and the
+	//! flag is opt-in.
+	//! \param[in] manager The deployment manager.
+	//! \return An empty string when the claim holds, or the broken one.
+	protected string VerifyFlagIsOptIn(notnull OVT_DeploymentManagerComponent manager)
+	{
+		if (CountNotFree(manager) > 0)
+			return "";
+
+		return string.Format("EVERY one of the registry's %1 config(s) is marked free at game start - the attribute's default has flipped to true, so both vehicle patrols would be seeded at every base on the map for nothing on the first load of every campaign",
+			manager.m_DeploymentRegistry.m_aDeploymentConfigs.Count().ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] manager The deployment manager.
+	//! \return How many registry configs are NOT marked free at game start.
+	protected int CountNotFree(notnull OVT_DeploymentManagerComponent manager)
+	{
+		int notFree = 0;
+		foreach (OVT_DeploymentConfig config : manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			if (config && !config.m_bFreeAtGameStart)
+				notFree++;
+		}
+
+		return notFree;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A seeding pass puts a marked deployment on the ground, charges NOTHING for it, and a second pass
+//! adds nothing.
+//!
+//! THIS IS THE AMENDMENT'S WHOLE CLAIM, and both halves of it are silent when they break:
+//!   - THE PASS IS FREE. `SeedFreeDeployments()` calls `CreateDeployment(..., resourcesInvested 0,
+//!     ...)` and never touches `m_mFactionResources`. If either ever changed - a copy-paste of the
+//!     evaluator's `availableResources -= deploymentCost` line, a non-zero `resourcesInvested`
+//!     argument - the pass would quietly drain the occupying faction's opening pool on load, or
+//!     refund money nobody spent when a player collected the garrison. Neither logs anything.
+//!   - THE PASS IS IDEMPOTENT. It fires from `PostGameStart()`, which runs on a CONTINUED campaign as
+//!     well as a new one. If the 250 m same-name dedup ever stopped holding, every load of a save
+//!     would stack another garrison on top of the last one, forever, and the only symptom would be a
+//!     tower that got harder to clear every time you reloaded.
+//!
+//! DRIVEN DIRECTLY, because this tier never runs `PostGameStart()` and the `CallLater` therefore
+//! never fires here. That is the point: the seeding method is public precisely so its contract can be
+//! asserted without a campaign.
+//!
+//! ⚠ FIXTURE SAFETY - THIS CASE CREATES REAL DEPLOYMENTS, AND THAT IS UNUSUAL FOR THIS SUITE.
+//! A live deployment starts a repeating 8-12 s update whose first tick activates it, and activation
+//! registers real groups at the GLOBAL 1750 m spawn ring - inside which the autotest camera is an
+//! observer (the standing rule recorded as `virtualization/integration` T7.1). This case is safe on
+//! BOTH of the two accepted grounds, deliberately, rather than on either alone:
+//!   (a) every deployment it creates is `SetSpawnedUnitsEliminated(true)` on the deployment AND on
+//!       every one of its spawning modules before anything else happens to it, which is what makes
+//!       `ConvergeGroups()` refuse at both gates; and
+//!   (b) `SeedFreeDeployments()` is synchronous, so creation, both assertions and teardown all happen
+//!       inside ONE `Execute()` frame - no `UpdateDeployment` tick can run in between, so no group is
+//!       ever registered and there is nothing for the movement tick to walk.
+//! Teardown runs on EVERY path including the red ones.
+//!
+//! ⚠ TWO PIECES OF SHARED WORLD STATE ARE BORROWED AND HANDED BACK EXACTLY AS FOUND: the first radio
+//! tower's controlling faction (set to the occupying faction, because the garrison's control
+//! condition rightly refuses a tower the resistance holds - without this the case would assert
+//! nothing) and the occupying faction's resource pool (a known amount is planted so that "nothing was
+//! charged" is a claim about a real budget rather than about a pool that was 0 either way).
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change the
+//! `CreateDeployment(config, position, factionIndex, 0, threatLevel)` call in `SeedFreeConfig` to pass
+//! `config.GetTotalResourceCost()` and the invested-resources assertion goes red naming the config;
+//! add a `SubtractFactionResources()` beside it and the pool assertion goes red instead; delete the
+//! `HasExistingDeploymentOfType` guard and the second-pass assertion goes red with a duplicate count;
+//! delete `m_bFreeAtGameStart 1` from `Deployment_TowerGarrison.conf` and the "a tower garrison was
+//! seeded" assertion goes red first.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCaseBase
+{
+	//! The marked config this case looks for by name. Chosen over "Town Patrol" because it is the one
+	//! with a REAL cost (20 base + 10 per group): a pass that quietly charged for it would be visible
+	//! in the pool, where a 0-cost config would hide the bug.
+	static const string TOWER_CONFIG = "Tower Garrison";
+
+	//! Planted in the occupying faction's pool before the pass and taken back out afterwards, so the
+	//! "nothing was charged" claim is made against a budget that could have been spent.
+	static const int PLANTED_POOL = 5000;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so the seeding pass has nothing to read");
+			return true;
+		}
+
+		OVT_DeploymentConfig towerConfig = manager.m_DeploymentRegistry.FindConfigByName(TOWER_CONFIG);
+		if (!towerConfig || !towerConfig.m_bFreeAtGameStart)
+		{
+			SetFailure("'%1' either does not resolve or is not marked m_bFreeAtGameStart, so a seeding pass could not produce one - see OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored", TOWER_CONFIG);
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		if (occupyingFaction < 0)
+		{
+			SetFailure("The occupying faction does not resolve to a faction index, so nothing can be seeded for it");
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_RadioTowers || occupying.m_RadioTowers.IsEmpty())
+		{
+			SetFailure("This world has no radio towers, so there is nowhere for a tower garrison to be seeded - InitializeBases() found none");
+			return true;
+		}
+
+		// BORROWED STATE 1: the tower's controlling faction. A garrison's control condition refuses a
+		// tower the occupying faction does not hold, and this tier never ran NewGameStart() to hand the
+		// towers over.
+		OVT_RadioTowerData tower = occupying.m_RadioTowers[0];
+		int originalTowerFaction = tower.faction;
+		tower.faction = occupyingFaction;
+
+		// BORROWED STATE 2: the resource pool.
+		int originalPool = manager.GetFactionResources(occupyingFaction);
+		manager.AddFactionResources(occupyingFaction, PLANTED_POOL);
+		int expectedPool = originalPool + PLANTED_POOL;
+
+		array<OVT_DeploymentComponent> created = new array<OVT_DeploymentComponent>();
+		string failure = RunSeeding(manager, occupyingFaction, expectedPool, created);
+
+		int seededCount = created.Count();
+
+		// TEARDOWN BEFORE REPORTING, ON EVERY PATH. See the header: inert first, then deleted, then the
+		// two pieces of borrowed world state handed back.
+		Teardown(manager, created);
+		tower.faction = originalTowerFaction;
+		RestorePool(manager, occupyingFaction, originalPool);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A seeding pass created %1 deployment(s) including a '%2', every one of them with 0 invested resources, without moving a pool of %3; a second pass created nothing",
+			seededCount.ToString(), TOWER_CONFIG, expectedPool.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Two seeding passes over the live manager, asserting what each one is allowed to do.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The occupying faction.
+	//! \param[in] expectedPool What the faction's pool must read both before and after.
+	//! \param[in] created Every deployment either pass created, for teardown - filled even on a failure
+	//!            path, and filled BEFORE the assertion that could return.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunSeeding(notnull OVT_DeploymentManagerComponent manager, int factionIndex, int expectedPool,
+		notnull array<OVT_DeploymentComponent> created)
+	{
+		array<OVT_DeploymentComponent> beforeFirst = manager.GetAllDeployments();
+
+		manager.SeedFreeDeployments();
+		CollectNew(manager, beforeFirst, created);
+
+		if (created.IsEmpty())
+			return "SeedFreeDeployments() created nothing at all - with a marked config, an occupying-held radio tower and a pool of resources it did not need, the pass is inert";
+
+		// EVERY seeded deployment is free, not just the one this case went looking for.
+		foreach (OVT_DeploymentComponent deployment : created)
+		{
+			if (!deployment)
+				continue;
+
+			if (deployment.GetResourcesInvested() != 0)
+				return string.Format("Seeded deployment '%1' reports %2 invested resources, expected 0 - a deployment nobody paid for would refund that on collection and would read as money spent in the GM panel",
+					deployment.GetDeploymentName(), deployment.GetResourcesInvested().ToString());
+		}
+
+		if (!ContainsConfig(created, TOWER_CONFIG))
+			return string.Format("The pass created %1 deployment(s) but not one of them is a '%2' - the config the amendment exists for was not seeded at an occupying-held tower",
+				created.Count().ToString(), TOWER_CONFIG);
+
+		int poolAfterFirst = manager.GetFactionResources(factionIndex);
+		if (poolAfterFirst != expectedPool)
+			return string.Format("The occupying faction's pool moved from %1 to %2 across the seeding pass - seeding is charging for what it creates, which is the whole thing it exists not to do",
+				expectedPool.ToString(), poolAfterFirst.ToString());
+
+		// PASS 2: the dedup. This is the state every load of a saved campaign arrives in.
+		int firstPassCount = created.Count();
+		array<OVT_DeploymentComponent> beforeSecond = manager.GetAllDeployments();
+
+		manager.SeedFreeDeployments();
+
+		array<OVT_DeploymentComponent> second = new array<OVT_DeploymentComponent>();
+		CollectNew(manager, beforeSecond, second);
+
+		// Anything the second pass DID create still has to be torn down, so it joins the list before
+		// the assertion that returns on it.
+		foreach (OVT_DeploymentComponent duplicate : second)
+		{
+			created.Insert(duplicate);
+		}
+
+		if (!second.IsEmpty())
+			return string.Format("A second seeding pass created %1 more deployment(s) on top of the first pass's %2 - the same-name dedup is not holding, so every load of a saved campaign would stack another garrison on the last one",
+				second.Count().ToString(), firstPassCount.ToString());
+
+		int poolAfterSecond = manager.GetFactionResources(factionIndex);
+		if (poolAfterSecond != expectedPool)
+			return string.Format("The occupying faction's pool moved to %1 across the SECOND seeding pass, expected %2", poolAfterSecond.ToString(), expectedPool.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every live deployment that was not in the baseline.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] baseline The deployments that existed before the pass.
+	//! \param[in] into Where the new ones are appended.
+	protected void CollectNew(notnull OVT_DeploymentManagerComponent manager, notnull array<OVT_DeploymentComponent> baseline,
+		notnull array<OVT_DeploymentComponent> into)
+	{
+		array<OVT_DeploymentComponent> current = manager.GetAllDeployments();
+		foreach (OVT_DeploymentComponent deployment : current)
+		{
+			if (deployment && !baseline.Contains(deployment))
+				into.Insert(deployment);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] deployments The deployments to search.
+	//! \param[in] configName The config name to look for.
+	//! \return True when at least one of them runs that config.
+	protected bool ContainsConfig(notnull array<OVT_DeploymentComponent> deployments, string configName)
+	{
+		foreach (OVT_DeploymentComponent deployment : deployments)
+		{
+			if (deployment && deployment.GetDeploymentName() == configName)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes every fixture deployment unable to register anything, then deletes it.
+	//!
+	//! INERT FIRST, DELETED SECOND, and both in the frame that created them. See the case header for
+	//! why either alone would already be enough and why this does both anyway.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] created Every deployment the passes created.
+	protected void Teardown(notnull OVT_DeploymentManagerComponent manager, notnull array<OVT_DeploymentComponent> created)
+	{
+		foreach (OVT_DeploymentComponent deployment : created)
+		{
+			if (!deployment)
+				continue;
+
+			deployment.SetSpawnedUnitsEliminated(true);
+
+			array<OVT_BaseSpawningDeploymentModule> modules = deployment.GetSpawningModules();
+			foreach (OVT_BaseSpawningDeploymentModule module : modules)
+			{
+				if (module)
+					module.SetSpawnedUnitsEliminated(true);
+			}
+		}
+
+		foreach (OVT_DeploymentComponent deployment : created)
+		{
+			if (deployment)
+				manager.DeleteDeployment(deployment);
+		}
+
+		created.Clear();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts the faction's resource pool back exactly where it was found, whichever way it moved.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The faction whose pool was borrowed.
+	//! \param[in] originalPool The value to restore.
+	protected void RestorePool(notnull OVT_DeploymentManagerComponent manager, int factionIndex, int originalPool)
+	{
+		int current = manager.GetFactionResources(factionIndex);
+
+		if (current > originalPool)
+			manager.SubtractFactionResources(factionIndex, current - originalPool);
+		else if (current < originalPool)
+			manager.AddFactionResources(factionIndex, originalPool - current);
 	}
 }

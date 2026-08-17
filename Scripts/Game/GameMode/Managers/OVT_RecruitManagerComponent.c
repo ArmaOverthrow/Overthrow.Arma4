@@ -2485,9 +2485,10 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!     for groups whose policy is ProximityDriven - so a Manual group is never proximity-despawned.
 	//!     A proximity-driven inactive group would DELETE THE RECRUIT BODIES at 800 m, which is the
 	//!     whole feature gone (risk R2).
-	//!  2. NEVER ROUTE THIS GROUP THROUGH THE SPAWNING API'S CLEANUP HELPERS. They delete every member
-	//!     soldier of the group they are handed (OVT_EntitySpawningAPI.c:379-400) - and the members of
-	//!     this one are the player's recruits.
+	//!  2. NEVER ROUTE THIS GROUP THROUGH A BULK GROUP-CLEANUP HELPER. Any such helper deletes every
+	//!     member soldier of the group it is handed - and the members of this one are the player's
+	//!     recruits. (The deployments framework's version of that helper was deleted outright in
+	//!     virtualization/integration Phase 5; the rule stands for whatever replaces it.)
 	//! ==========================================================================================
 	//!
 	//! CLUSTERING, IN TWO HALVES. Which records could be hosting a nearby group is decided by the pure
