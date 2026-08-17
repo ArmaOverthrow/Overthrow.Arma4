@@ -1,8 +1,8 @@
 # Virtualization - Epic Overview
 
 **Epic:** virtualization
-**Status:** 🟡 In Progress (4/5 features complete)
-**Last Updated:** 2026-08-17 (integration Phases 1-8 complete)
+**Status:** ✅ Complete (5/5 features complete)
+**Last Updated:** 2026-08-18 (base-defense-migration Phases 1-8 complete: the epic's closing feature; kill switch gone)
 
 > **2026-08-14 — Replanned on Reforger 1.8.** The 1.8 update shipped engine-native group virtualization (`ProximityDriven` lifecycle, importance-tiered budgeted spawn queue, dormancy with survivor counts, vanilla group persistence). Decision (user-approved): **adopt as a hybrid** — core becomes a thin Overthrow registry/config/API layer over the engine lifecycle, with **slot-accurate** dead-member truth (a core-owned per-slot mask enforced via an `ExpandOneMember` override on the already-modded `SCR_AIGroup`; revised from an initial count-based acceptance the same day). See `core/implementation.md` Revision 2 and `docs/reforger/1.8.0.10-changes.md`.
 
@@ -28,7 +28,33 @@ The constituent features of this epic, in build order. Each feature is a subfold
 | 2 | civilians | ✅ Complete (Ready for Review) | 39/39 (100%) | Town civilians migrated onto core's ambient spawn-source seam: config-driven density with 3 runtime operator knobs, 6 civilian types with per-type clothing + per-town curation (13 Eden towns), 3 behaviour archetypes, doorway/POI placement, QRF despawn now **opt-in** (user amendment), ambient parked vehicles (kerb-first, save-safe untrack/claim). User play-test + Workbench passes owed (see its `context.md`). |
 | 3 | movement | ✅ Complete (Ready for Review) | 22/22 (100%) | Infantry-only virtual movement: a server-side manager on the game mode with one 2 s round-robin tick that walks every dormant registered group along its own waypoint plan in straight lines at a fixed configurable speed, with stateless projection resume (no serializer, nothing replicated, nothing persisted) and ground-snapped, never-in-water writes; core was extended by **exactly one** method (`GetAllHandles()`). Vehicle groups are excluded by construction — they stay spawned via a huge `spawnDistanceOverride` and live AI drives real roads (the engine has no script route-finding API, and insertion/extraction makes vehicle transit live by design). The plan **is** the opt-in: an empty or DEFEND-only plan is never advanced. Handoff is largely native (waypoints never leave the group across dormancy; a moved group resumes its route from index 0 — documented, not engineered around). Automated coverage: Logic tier for the progression maths, Init tier for the seam, the tick and the no-leak claim. User play-test PASSED 2026-08-17 (it surfaced 3 fixes, all landed: waypoint surface-snap, `GetCurrentPlanIndex` live-handoff direction, and the modded-`SCR_AIGroup` Manual-policy spawn guard — Manual groups now really never materialise unrequested). Final gates Fast 190 / All 236. |
 | 4 | integration | ✅ Complete (Ready for Review) | 62/62 (100%) | First tracked-group consumers, built: deployments' group lifecycle (town patrol + both vehicle patrols) **and radio-tower garrisons** run on the layer, and the ad-hoc proximity code is gone (the deployment proximity toggle, `IsPlayerInRange`, the 40 m vehicle rule and the whole 460-line `OVT_EntitySpawningAPI.c`). Tower garrisons became `Configs/Deployment/Deployment_TowerGarrison.conf` rather than migrating in place, so the epic has **exactly one** tracked-group consumer seam. Core was extended once more, additively: an **entity-observer API** (`AddEntityObserver`/`RemoveEntityObserver`, `m_bRecruitGroupsAreObservers` default ON) whose consumer is a parked recruit squad. Deployment serializer **v2** (persisted virtual key, v1 payloads migrate on first use). Player-visible: dead members stay dead across despawn *and* save/load, town patrols keep walking while unobserved, a tower flips only on a real wipe, and a tower may be found ungarrisoned when the occupier is short of resources. Phases 1–8 complete pending final review; **All suite 255 green 2026-08-17**. Play-test §6 steps 1–13 and an MP pass are owed (see its `context.md`). |
-| 5 | base-defense-migration | Planned | — | Complete the stalled base-upgrades→deployments migration (design phases 3–4) on virtualization and retire base-upgrades — scoped for visibility, deferrable without blocking the earlier features. **The deployments↔virtualization seam it depends on is now proven** (`integration`, 2026-08-17), and `Configs/Deployment/Deployment_TowerGarrison.conf` is its worked precedent: a bespoke garrison system turned into a four-module deployment config, with the spawning/behaviour/capture/reinforcement split, the control-condition module, the `RADIO_TOWER` location-type OR-in and the legacy spawner deleted with its enclosing block. Copy that shape rather than re-deriving it; note the two traps it recorded (behaviour-module order in a `.conf` is update order, and `m_bEnableReinforcement` is what keeps a lost deployment collectable). The two remaining `OVT-VIRT-PLAYTEST-ONLY` production guards (base upgrades ×2, QRF queue) are this feature's to remove. |
+| 5 | base-defense-migration | ✅ Complete (Ready for Review) | 69/69 (100%) | The epic's closing feature: the last ad-hoc virtualization is gone. Ten base-upgrade classes became **nine shipped deployment configs** (`Configs/Deployment/Deployment_Base*.conf`: garrison patrol, heavy patrol, AT section, defence positions, tower guards, sniper positions, checkpoints, fortifications, parked vehicles), each carrying its legacy priority, so a base now fortifies **concern by concern** through the evaluator instead of through `SpendResources()`. The evaluator learned to escalate (blanket 100 m veto deleted, per-config name-scoped 250 m dedup, ceiling raised to **400** on the game-mode prefab) and to classify a town-shadowed base as `BASE` (decision S1, 250 m OR-in). Four new modules ship: exact placement with a pluggable provider seam (tower cover posts, sniper markers, base defend positions), slotted compositions, parked vehicles, and a "no players nearby" **creation** gate. **Funding is single-path**: the per-base spender, the +5 s distribution and the conditional drip are deleted; 80 % of every tick goes unconditionally to the deployment pool, and pre-migration saves convert by **value refund** (D4). `OVT_BaseUpgradeSpecops` was **dropped with a written cost** (D3): no more special-forces walks to a FOB, and the occupier loses its only radio-tower recapture path. Deleted: `BaseUpgrades/` (12 files), `Configs/BaseUpgrades/`, `OVT_BaseUpgradesConfig`, 13 legacy faction attributes, `m_iMilitarySpawnDistance`, and, **the epic's final acceptance**, `OVT_VirtPlaytestKillSwitch.c`. Player-visible: a base's defence is what you left it as, across leaving, returning and reloading; bases thicken over time and never fortify while you are standing in one; a freshly taken or resource-starved base can be lightly held; cleared tower/sniper posts are manned again by the survivors. Core untouched (`git diff Scripts/Game/GameMode/Virtualization/` empty apart from the kill-switch deletion). **All suite 278 green 2026-08-18.** Play-test §6 steps 1–14 and an MP pass are owed (see its `context.md`). |
+
+## Epic Closing Ledger (base-defense-migration T8.5, 2026-08-18)
+
+The epic's final acceptance, run against the working tree on 2026-08-18 and recorded verbatim:
+
+```
+$ grep -rn "OVT-VIRT-PLAYTEST-ONLY\|DISABLE_LEGACY_AI_SPAWNS" Scripts/
+(no output, exit 1)
+
+$ ls Scripts/Game/GameMode/Virtualization/
+OVT_AmbientSpawnSourceConfig.c
+OVT_AmbientSpawnSourceInstance.c
+OVT_AmbientSpawnSourceRegistry.c
+OVT_VirtualGroupRecord.c
+OVT_VirtualizationManagerComponent.c
+OVT_VirtualizationMath.c
+```
+
+`OVT_VirtPlaytestKillSwitch.c` no longer exists: every production guard it wrapped left with the code
+it guarded (base upgrades) or was un-guarded by restoring the code it disabled (the QRF spawn queue).
+There is no longer any way to run the campaign on the pre-virtualization AI spawn paths, because they
+are deleted. Related greps, same run: `SpendResources` and `m_iMilitarySpawnDistance` both return
+nothing from `Scripts/`; `OVT_BaseUpgrade` matches only the legacy SAVE PAYLOAD classes that decision
+D4 deliberately keeps so pre-migration saves still parse.
+
+---
 
 > Reference any feature with the slash form `virtualization/[feature-name]` (e.g. `/continue-feature virtualization/core`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -78,8 +104,8 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** In Progress (4/5 features complete — core ✅ 50/50, civilians ✅ 39/39, movement ✅ 22/22 play-test passed, integration ✅ 62/62 pending final review)
-- **One-line summary for master:** The unified AI virtualization layer (issue #100, a thin registry over Reforger 1.8's engine-native group lifecycle): **core, civilians, movement and integration built** — registry/API + survivor masks + frozen contract, town-civilian ambience, infantry virtual movement (play-test passed), and now the first real campaign consumers: deployments' three configs plus radio-tower garrisons (a new deployment config) run on the layer, `OVT_EntitySpawningAPI.c` and every ad-hoc proximity toggle are deleted, an entity-observer API lets a parked recruit squad hold content awake, and dead members stay dead across despawn AND save/load. All suite **255 green 2026-08-17**; only the deferrable base-upgrades→deployments migration remains.
+- **Rollup status:** Complete (5/5 features complete — core ✅ 50/50, civilians ✅ 39/39, movement ✅ 22/22 play-test passed, integration ✅ 62/62, base-defense-migration ✅ 69/69; All suite 278 green 2026-08-18, play-tests owed)
+- **One-line summary for master:** The unified AI virtualization layer (issue #100, a thin registry over Reforger 1.8's engine-native group lifecycle) is **complete, 5/5**: registry/API + per-slot survivor masks + a frozen contract, town-civilian ambience, infantry virtual movement, the first real campaign consumers (town/vehicle patrols and radio-tower garrisons), and finally **base defence itself**: nine deployment configs replacing the base-upgrades system, one funding pool, and the epic's playtest kill switch deleted. Every AI force the occupying faction fields now rides one layer: dead members stay dead across despawn AND save/load, patrols keep walking while unobserved, and bases fortify concern by concern out of a single resource pool. All suite **278 green 2026-08-18**; play-tests and an MP pass are the only outstanding gates.
 
 ---
 

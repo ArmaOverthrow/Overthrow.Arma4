@@ -22,6 +22,21 @@ class OVT_DeploymentComponent : OVT_Component
 	//! load. Empty until first use, and empty on a deployment restored from a version 1 payload.
 	protected string m_sVirtualKey;
 
+	//! Whether this deployment arrived from a save point rather than from the evaluator.
+	//!
+	//! RUNTIME ONLY - SET IN ApplyPersistedDeployment, NEVER WRITTEN TO A PAYLOAD. It answers exactly
+	//! one question, D7's: may my static-content modules BUILD anything? A restored deployment's
+	//! compositions, checkpoints and parked vehicles are world entities that vanilla persistence has
+	//! already brought back (OVT_PersistenceTracking / the vehicle manager), and their slot claims came
+	//! back with the base controller's m_aSlotsFilled. A module that rebuilt on restore would give the
+	//! base one more bunker per load, in a different slot each time, forever.
+	//!
+	//! It is deliberately NOT persisted: it describes how THIS session's copy of the deployment came
+	//! into being, and a deployment that is saved again is restored again, so the answer is re-derived
+	//! every time it matters. Persisting it would also be a serializer field, and the serializer's
+	//! version and field order are frozen for this feature.
+	protected bool m_bRestoredFromSave;
+
 	static const int UPDATE_FREQUENCY = 10000; // 10 seconds
 	
 	//------------------------------------------------------------------------------------------------
@@ -112,6 +127,10 @@ class OVT_DeploymentComponent : OVT_Component
 
 		if (!m_aActiveModules)
 			m_aActiveModules = new array<ref OVT_BaseDeploymentModule>;
+
+		// D7's gate, set BEFORE anything else and on every branch including the already-running one:
+		// this deployment's static content came out of the save, so no module may build any of it.
+		m_bRestoredFromSave = true;
 
 		m_iControllingFaction = factionIndex;
 		m_fThreatLevel = threatLevel;
@@ -536,6 +555,11 @@ class OVT_DeploymentComponent : OVT_Component
 	//! when the answer "not derived yet" matters (the serializer, a collision probe); call
 	//! EnsureVirtualKey() when a key is actually needed.
 	string GetVirtualKey() { return m_sVirtualKey; }
+	//! Whether this deployment came from a save point (D7). Read by any spawning module that puts
+	//! ENTITIES rather than groups in the world: false means "you own building this", true means
+	//! "vanilla persistence has already brought yours back - build nothing". Never persisted; see the
+	//! member's header.
+	bool WasRestoredFromSave() { return m_bRestoredFromSave; }
 	string GetDeploymentName()
 	{ 
 		if (m_DeploymentConfig)

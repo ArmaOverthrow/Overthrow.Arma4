@@ -15,10 +15,10 @@
 //!  - THE EXTREMES. 0 reads "0%" and a full count reads "100%", so neither end is off by one;
 //!  - THE POPULATION PAIR. Both numbers are shown, because either alone hides whether a settlement is
 //!    growing or emptying;
-//!  - READABILITY OF A CLASS NAME. A shared prefix is stripped and the remaining words are separated,
-//!    and - the part that matters more - a name the formatter does not recognise passes through
-//!    UNCHANGED rather than becoming an empty row. A reader who sees an unexpected class name learns
-//!    something; a reader who sees a blank learns nothing;
+//!  - (the class-name prettifier that used to be pinned here is GONE. FormatUpgradeType() existed to
+//!    turn a base-upgrade script class name into words; the Game Master's base rows carry a deployment
+//!    config's authored display name now, the method lost its last production caller when the base
+//!    upgrades were deleted, and it was retired with them rather than kept alive by its own test);
 //!  - THE ABSENT-INDEX SENTINEL. Several group origins carry -1 because no index means anything for
 //!    them. A line reading "QRF -1" is a leaked sentinel, and this pins that it never renders.
 //!
@@ -49,15 +49,9 @@ class OVT_TEST_Logic_GMIconFormat : SCR_AutotestCaseBase
 		if (!ExpectPopulation(380, 400, "380 / 400", "growing towards its target"))
 			return true;
 
-		// --- UPGRADE READABILITY.
-		if (!ExpectUpgradeType("OVT_BaseUpgradeSniperPosition", "Sniper Position", "the prefix goes and the words separate"))
-			return true;
-
-		if (!ExpectUpgradeType("SomethingElseEntirely", "SomethingElseEntirely", "an unrecognised name passes through rather than becoming empty"))
-			return true;
-
 		// --- ORIGIN WITH AN INDEX. Both the kind and the number have to survive into the line.
-		string indexed = OVT_GMIconFormat.FormatOrigin(OVT_EGroupOrigin.BASE_PATROL, 3, "OVT_BaseUpgradePatrols");
+		// The reason is free text naming the concrete producer - a deployment config's name today.
+		string indexed = OVT_GMIconFormat.FormatOrigin(OVT_EGroupOrigin.BASE_PATROL, 3, "Base Garrison Patrol");
 		string patrolName = OVT_GMIconFormat.FormatOriginType(OVT_EGroupOrigin.BASE_PATROL);
 
 		if (!indexed.Contains(patrolName))
@@ -99,7 +93,7 @@ class OVT_TEST_Logic_GMIconFormat : SCR_AutotestCaseBase
 			return true;
 		}
 
-		Print("GM icon formatting: support divides in floating point and guards a zero denominator, population shows both halves, an unknown upgrade class name passes through unchanged, and an absent origin index never renders as -1");
+		Print("GM icon formatting: support divides in floating point and guards a zero denominator, population shows both halves, and an absent origin index never renders as -1");
 
 		return true;
 	}
@@ -140,25 +134,6 @@ class OVT_TEST_Logic_GMIconFormat : SCR_AutotestCaseBase
 
 		SetFailure("%1: population " + population.ToString() + " of " + targetPopulation.ToString() + " formatted as '%2', expected '%3'",
 			label, actual, expected);
-
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Asserts one formatted upgrade class name, naming the case on failure.
-	//! \param[in] className Class name handed to the formatter.
-	//! \param[in] expected String the display specification requires.
-	//! \param[in] label Human description, used only in the failure message.
-	//! \return True when it matched; false after recording the failure.
-	protected bool ExpectUpgradeType(string className, string expected, string label)
-	{
-		string actual = OVT_GMIconFormat.FormatUpgradeType(className);
-
-		if (actual == expected)
-			return true;
-
-		SetFailure("%1: '%2' formatted as '%3', expected '" + expected + "'",
-			label, className, actual);
 
 		return false;
 	}

@@ -589,14 +589,16 @@ it and `CONFIG_STREAM_VERSION` did not move. Takes effect on the next campaign s
 A very large value keeps every registered group spawned permanently (issue #100's ask); a small one
 despawns everything not adjacent. Per-registration overrides always beat it.
 
-It is **separate** from `m_iMilitarySpawnDistance`, which after `integration` (2026-08-17) has exactly
-**one** production reader left: the base-upgrade spawners, through
-`OVT_BasePatrolUpgrade.PlayerInRange()` (`OVT_BasePatrolUpgrade.c:96-99`), which the defence-position,
-sniper-position and tower-guard upgrades all call. Deployments (town patrols, vehicle patrols) and
-radio-tower garrisons no longer read it at all — they ride this value instead, or a per-registration
-override. The other un-migrated system, the **QRF spawn queue**, reads neither: it spawns off its own
-trigger and its own ranges (`OVT_QRFControllerComponent.c`). Both of those are
-`base-defense-migration`'s problem, not core's. (Its civilian counterpart was retired on
+It **replaced** `m_iMilitarySpawnDistance` outright. **No system reads `m_iMilitarySpawnDistance` any
+more. The attribute itself was deleted in `base-defense-migration` Phase 7 (2026-08-18)** together
+with the base-upgrade spawners that were its last readers, and `grep -rn "m_iMilitarySpawnDistance"
+Scripts/` returns nothing. Deployments (town patrols, vehicle patrols, the nine base-defence configs)
+and radio-tower garrisons ride this value instead, or a per-registration override. The one remaining
+un-migrated system, the **QRF spawn queue**, reads neither: it spawns off its own trigger and its own
+ranges (`OVT_QRFControllerComponent.c`), and is an epic-level exclusion rather than core's problem.
+*(This paragraph is a factual correction to a stale statement, made under `base-defense-migration`
+T8.4; no signature or contract in this document changed, api.md remains frozen.)* (Its civilian
+counterpart was retired on
 2026-08-17 by `civilians` Phase 2 along with the town-civilian spawner — ambient civilians ride this
 value through their source's `m_iSpawnDistanceOverride`, authored as `-1`.)
 

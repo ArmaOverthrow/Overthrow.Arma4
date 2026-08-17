@@ -40,6 +40,18 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	[Attribute(defvalue: "50", desc: "Spawn radius around deployment position")]
 	float m_fSpawnRadius;
 
+	//! ⚠ DEFAULT TRUE = TODAY'S BEHAVIOUR, and it must stay that way: the four shipped configs author
+	//! nothing here and have to keep registering exactly where they always did.
+	//!
+	//! WHY THE OPT-OUT EXISTS. The road snap is not bounded by m_fSpawnRadius. The ring roll picks a
+	//! point 10..m_fSpawnRadius m from the anchor and OVT_WorldUtils.FindNearestRoad then searches
+	//! 500 m for a road waypoint, so m_fSpawnRadius bounds the ROLL and not the RESULT: a garrison
+	//! authored at 15 m can end up hundreds of metres away on the access road, and with a DEFEND or
+	//! null plan it then holds there rather than walking back. That is right for a patrol meant to
+	//! use roads and wrong for anything garrisoning a PLACE.
+	[Attribute(defvalue: "1", desc: "Snap each registration to the nearest road. TRUE is the shipped behaviour. Set FALSE for anything that garrisons a PLACE - the snap searches up to 500 m and is NOT bounded by the spawn radius")]
+	bool m_bSnapToRoad;
+
 	[Attribute(defvalue: "30", desc: "Resource cost per group")]
 	int m_iCostPerGroup;
 
@@ -164,6 +176,11 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		// EVERY attribute has to appear here - a forgotten one silently ships the class default instead
 		// of the authored value (that is how m_fMaxCruiseSpeed was lost on the vehicle module). Forget
 		// m_eImportance and a HIGH-tier garrison ships at NORMAL and quietly loses the AI budget race.
+		//
+		// ⚠ EVERY SUBCLASS MUST COPY ALL OF THESE TOO. CloneModule is not chained - a subclass builds
+		// its own instance and copies by hand - so the list below has to be reproduced in full by
+		// OVT_PlacedInfantrySpawningDeploymentModule and OVT_CompositionSpawningDeploymentModule
+		// before they add their own. Anything appended here has to be appended there as well.
 		clone.m_sModuleName = m_sModuleName;
 		clone.m_sGroupType = m_sGroupType;
 		clone.m_iMinGroupCount = m_iMinGroupCount;
@@ -176,6 +193,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		clone.m_bSpawnAtNearestBase = m_bSpawnAtNearestBase;
 		clone.m_bReinforceFromNearestBase = m_bReinforceFromNearestBase;
 		clone.m_eImportance = m_eImportance;
+		clone.m_bSnapToRoad = m_bSnapToRoad;
 
 		return clone;
 	}
@@ -249,6 +267,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 			m_aHandles.Insert(foundHandle);
 			TagForGameMaster(virtualization.GetGroup(foundHandle));
+			OnGroupReclaimed(foundHandle);
 		}
 
 		if (m_aHandles.Count() > m_iSpawnedEver)
@@ -294,7 +313,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		for (int i = 0; i < count; i++)
 		{
-			vector spawnPos = GetRandomSpawnPosition(baseSpawnPos);
+			vector spawnPos = ResolveSpawnPosition(baseSpawnPos, i);
 			OVT_VirtualWaypointPlan plan = ResolveVirtualPlan(spawnPos);
 
 			int handle = virtualization.RegisterGroup(OWNER_SYSTEM, ownerKey, factionKey, m_sGroupType,
@@ -313,6 +332,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			registered++;
 
 			TagForGameMaster(virtualization.GetGroup(handle));
+			OnGroupRegistered(handle, spawnPos);
 		}
 
 		if (m_aHandles.Count() > m_iSpawnedEver)
@@ -387,6 +407,50 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! WHERE ONE GROUP OF THIS BATCH GOES. The single seam a subclass overrides to place its groups
+	//! somewhere it chose rather than on the shared ring.
+	//!
+	//! The default is the ring roll (plus the optional road snap), which is what every shipped config
+	//! wants. OVT_PlacedInfantrySpawningDeploymentModule overrides it to answer an exact post and
+	//! ignores both the ring and the snap.
+	//!
+	//! ⚠ CALLED ONCE PER GROUP, IN REGISTRATION ORDER, AND ONLY FOR THE SHORTFALL. `index` counts this
+	//! batch (0..count-1), NOT this module's groups: a convergence that reclaimed two groups and
+	//! registers a third calls this with index 0. A subclass that needs "which group am I placing"
+	//! reads m_aHandles.Count(), which is the index the handle about to be created will occupy.
+	//! \param[in] anchor The batch anchor - the deployment position, or the nearest controlled base.
+	//! \param[in] index Position within THIS batch.
+	//! \return The world position to register at.
+	protected vector ResolveSpawnPosition(vector anchor, int index)
+	{
+		return GetRandomSpawnPosition(anchor);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One group has just been registered under this module's owner key.
+	//!
+	//! Empty by design. It is the hook the placement subclass uses to remember a group's post and
+	//! subscribe its placement applier; nothing in the base class needs it.
+	//! \param[in] handle The new group's registry handle. Already present in m_aHandles.
+	//! \param[in] position Where it was registered.
+	protected void OnGroupRegistered(int handle, vector position)
+	{
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One group has just been RE-FOUND in the registry rather than created.
+	//!
+	//! Empty by design, and the counterpart to OnGroupRegistered for everything that survived a
+	//! despawn or a load. ⚠ A reclaimed group is a NEW ENTITY after a load (core re-creates it from
+	//! its own payload with a fresh EntityID), so anything a subclass subscribed to on the old entity
+	//! is gone and has to be re-established here - the same reason the base class re-tags for the Game
+	//! Master at this exact point.
+	//! \param[in] handle The reclaimed group's registry handle. Already present in m_aHandles.
+	protected void OnGroupReclaimed(int handle)
+	{
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected vector GetRandomSpawnPosition(vector center)
 	{
 		float angle = Math.RandomFloat01() * Math.PI2;
@@ -394,6 +458,12 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		vector offset = Vector(Math.Cos(angle) * distance, 0, Math.Sin(angle) * distance);
 		vector spawnPos = center + offset;
+
+		// The snap is an OPT-OUT, not an opt-in: every config that shipped before m_bSnapToRoad
+		// existed authors nothing and must keep snapping. See the attribute's header for why a
+		// garrison wants it off - the search is 500 m wide and ignores m_fSpawnRadius entirely.
+		if (!m_bSnapToRoad)
+			return spawnPos;
 
 		//Find nearest road
 		vector roadPos = OVT_WorldUtils.FindNearestRoad(spawnPos);
@@ -552,6 +622,23 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	int GetGroupCount()
 	{
 		return m_aHandles.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The framework-wide read of the same number, so a consumer that holds only an
+	//! OVT_BaseSpawningDeploymentModule (the Game Master snapshot builder) does not have to cast.
+	//!
+	//! GUARDED WHERE GetGroupCount() IS NOT, and deliberately. Every module reached through AddModule()
+	//! has been Initialize()d, so m_aHandles is never null on a live deployment - but this one is read
+	//! from a diagnostic walk over EVERY deployment on the map, on a Game Master's poll, and that path
+	//! must be incapable of throwing whatever state a deployment is in.
+	//! \return How many registered groups this module currently holds.
+	override int GetRegisteredGroupCount()
+	{
+		if (!m_aHandles)
+			return 0;
+
+		return GetGroupCount();
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -320,55 +320,28 @@ class OVT_Faction
 	[Attribute(desc: "Named single characters for this faction", category: "Character Registry")]
 	ref OVT_FactionCharacterRegistry m_CharacterRegistry;
 		
-	//! Legacy group prefabs - deprecated, use m_GroupRegistry instead
-	//! Kept for compatibility with BaseUpgrade systems
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "LEGACY: Faction groups (Light Infantry)", params: "et", category: "Legacy Faction Groups")]
-	ref array<ResourceName> m_aGroupInfantryPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Heavy Infantry)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aHeavyInfantryPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (AT)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aGroupATPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Special Forces)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aGroupSpecialPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupSniperPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper Team - spotter + sniper)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupSniperTeamPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (MG)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupMGPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (AT)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupATPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (FRAG)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupFRAGPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Light Town Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aLightTownPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Heavy Town Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aHeavyTownPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (SpecOps Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aSpecOpsPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Tower Defense Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aTowerDefensePatrolPrefab;
-	
+	// RETIRED 2026-08-18 (virtualization/base-defense-migration, decision D9). The whole "Legacy
+	// Faction Groups" / "Faction Groups" prefab-slot block is gone, along with the by-enum resolver
+	// that picked a random element out of it (GetGroupPrefabByType below is its replacement, and it
+	// answers from the registry). It was the last path in the codebase that resolved a force to a RAW
+	// PREFAB rather than to a (factionKey, groupName) pair, which is the only identity the
+	// virtualization core can register a composition under - so anything reached through it could
+	// never have dead members that stay dead.
+	// Every meaning it carried survives as a NAMED ENTRY in m_GroupRegistry above:
+	//   Light Infantry / Light Town Patrol / Tower Defense Patrol -> "light_patrol"
+	//   Heavy Infantry (and Special Forces) -> "heavy_infantry"      AT -> "at_team"
+	//   Sniper -> "sniper"                   Sniper Team -> "sniper_team"
+	// The MG, AT-single, FRAG, Heavy Town Patrol and SpecOps Patrol entries were swept in the same pass:
+	// they had neither a reader nor an authored value in any faction config, in either shipped faction
+	// prefab, or anywhere else in the tree.
+	// The checkpoint prefabs that used to live under "Faction Objects" went with them - they are now the
+	// "MediumCheckpoint" / "LargeCheckpoint" entries in m_aCompositionConfig - and the Cars / Trucks
+	// vehicle arrays are the "car" / "truck" entries in m_VehicleRegistry.
+	// ⚠ The attributes and their authored values were deleted in ONE change-set. An authored value with
+	// no attribute behind it is a parse warning on every load.
+
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (all)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehiclePrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Cars)", params: "et", category: "Faction Vehicles")]
-	ref array<ResourceName> m_aVehicleCarPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Trucks)", params: "et", category: "Faction Vehicles")]
-	ref array<ResourceName> m_aVehicleTruckPrefabSlots;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Lightly Armed)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehicleLightPrefabSlots;
@@ -384,12 +357,6 @@ class OVT_Faction
 		
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_sFlagPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Medium Checkpoint Prefab", params: "et", category: "Faction Objects")]
-	ResourceName m_aMediumCheckpointPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Large Checkpoint Prefab", params: "et", category: "Faction Objects")]
-	ResourceName m_aLargeCheckpointPrefab;
 		
 	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
@@ -468,23 +435,63 @@ class OVT_Faction
 		return null;
 	}
 	
-	ResourceName GetRandomGroupByType(OVT_GroupType type)
+	//------------------------------------------------------------------------------------------------
+	//! A group prefab for a coarse OVT_GroupType, resolved through the GROUP REGISTRY.
+	//!
+	//! WHY THE ENUM STILL EXISTS AT ALL. It is a job-stage authoring convenience
+	//! (OVT_SpawnGroupJobStage.m_GroupType), not a resolution mechanism: a job config picks a rough
+	//! shape of force and does not want to know a faction's registry names. Everything systemic - every
+	//! deployment, every garrison, every patrol - asks for a registry NAME instead, because that is the
+	//! only identity the virtualization core resolves a composition from.
+	//!
+	//! THE MAP, AND THE ONE JUDGEMENT CALL IN IT. LIGHT_INFANTRY -> "light_patrol",
+	//! HEAVY_INFANTRY -> "heavy_infantry", ANTI_TANK -> "at_team", SNIPER -> "sniper" are each the
+	//! registry entry that replaced the legacy array of the same meaning. SPECIAL_FORCES has no
+	//! registry entry and maps to "heavy_infantry", which is the only general-purpose combat group both
+	//! shipped factions define; the legacy USSR value for it was a manoeuvre group (itself a member of
+	//! the heavy-infantry list) and the legacy US value was a sniper team, which reads as an authoring
+	//! accident rather than a design worth inheriting. Nothing authors SPECIAL_FORCES today.
+	//!
+	//! THE FALLBACK IS THE VANILLA GROUP CATALOG and it is load-bearing, not defensive: a modded
+	//! faction that ships no registry entry under one of these names still gets a group of some sort
+	//! rather than an empty ResourceName and a silent no-spawn. m_aGroupPrefabSlots is built from the
+	//! faction's own vanilla GROUP entity catalog in Init(), so it is never empty for a real faction.
+	//! \param[in] type The coarse group type authored on the job stage.
+	//! \return A group prefab, or an empty ResourceName only when the faction has no catalog at all.
+	ResourceName GetGroupPrefabByType(OVT_GroupType type)
 	{
+		string groupName;
+
 		switch(type)
-		{				
+		{
+			case OVT_GroupType.LIGHT_INFANTRY:
+				groupName = "light_patrol";
+				break;
 			case OVT_GroupType.HEAVY_INFANTRY:
-				return m_aHeavyInfantryPrefabSlots.GetRandomElement();
+				groupName = "heavy_infantry";
+				break;
 			case OVT_GroupType.ANTI_TANK:
-				return m_aGroupATPrefabSlots.GetRandomElement();
+				groupName = "at_team";
+				break;
 			case OVT_GroupType.SPECIAL_FORCES:
-				return m_aGroupSpecialPrefabSlots.GetRandomElement();
+				groupName = "heavy_infantry";
+				break;
 			case OVT_GroupType.SNIPER:
-				return m_aGroupSniperPrefab;
+				groupName = "sniper";
+				break;
 		}
-		
+
+		if(groupName != "")
+		{
+			ResourceName prefab = GetGroupPrefabByName(groupName);
+			if(prefab != "") return prefab;
+		}
+
+		if(!m_aGroupPrefabSlots || m_aGroupPrefabSlots.IsEmpty()) return "";
+
 		return m_aGroupPrefabSlots.GetRandomElement();
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	// New group registry methods
 	//------------------------------------------------------------------------------------------------

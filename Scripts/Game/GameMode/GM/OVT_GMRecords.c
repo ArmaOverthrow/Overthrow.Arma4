@@ -24,48 +24,53 @@
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------
-//! One occupying-faction base, aggregated over its upgrades.
+//! One occupying-faction base, aggregated over what is deployed at it.
 //!
-//! The aggregate exists so a consumer can draw a base without walking the upgrade records: the three
-//! numbers here are exactly the sums of the OVT_GMBaseUpgradeRecord rows carrying the same base index,
-//! except that m_iUpgrades counts ALL upgrades while only NON-EMPTY ones get a row (see the builder).
-//! A base showing 12 upgrades and 4 rows is therefore correct, not truncated.
+//! The aggregate exists so a consumer can draw a base without walking the per-deployment records: the
+//! three numbers here are exactly the sums of the OVT_GMBaseUpgradeRecord rows carrying the same base
+//! index, and m_iUpgrades is how many of those rows there are.
+//!
+//! ⚠ THE CLASS NAMES ARE HISTORICAL. They say "upgrade" because they are on the Game Master wire and
+//! renaming them would move the RPC for no behavioural gain; a row is a DEPLOYMENT anchored at the
+//! base, and the base-upgrade system these were written for no longer exists.
 //------------------------------------------------------------------------------------------------
 class OVT_GMBaseRecord : Managed
 {
 	//! Positional index into OVT_OccupyingFactionManager.m_Bases. THE JOIN KEY.
 	int m_iBaseIndex;
 
-	//! Sum of OVT_BaseUpgrade.GetResources() over every upgrade on the base.
+	//! Sum of the resources invested in every deployment anchored at the base.
 	int m_iResources;
 
-	//! Sum of OVT_BasePatrolUpgrade.GetNumGroups() over the upgrades that have groups at all.
+	//! Sum of the virtualization-registered groups those deployments hold between them.
 	int m_iGroups;
 
-	//! How many upgrades the base runs, non-empty or not.
+	//! How many deployments are anchored at the base - equal to the number of rows it has.
 	int m_iUpgrades;
 }
 
 //------------------------------------------------------------------------------------------------
-//! One non-empty upgrade on one base: what it is, what it holds, what it fields.
+//! One deployment anchored at one base: what it is, what it cost, what it fields.
 //!
-//! Positions are deliberately absent - OVT_BaseUpgradeData.pos exists and gm-map will want it for its
-//! upgrade icon layer, but this feature has no renderer, so shipping it now would be speculative
-//! payload. It is a two-field additive extension when a consumer actually needs it.
+//! Positions are deliberately absent - a deployment's marker carries one and gm-map will want it for
+//! an icon layer, but this feature has no renderer, so shipping it now would be speculative payload.
+//! It is a two-field additive extension when a consumer actually needs it, and the join is already
+//! available another way: the same deployment also has an OVT_GMDeploymentRecord keyed by RplId.
 //------------------------------------------------------------------------------------------------
 class OVT_GMBaseUpgradeRecord : Managed
 {
 	//! Positional index of the owning base into OVT_OccupyingFactionManager.m_Bases.
 	int m_iBaseIndex;
 
-	//! The upgrade's concrete ClassName() - OVT_BaseUpgradeSpecops, OVT_BaseUpgradeTownPatrol, ...
-	//! Diagnostic text for a GM, never parsed.
+	//! The deployment config's display name ("Base Tower Guards"). Already readable as authored, so
+	//! nothing formats it. Diagnostic text for a GM, never parsed.
 	string m_sType;
 
-	//! OVT_BaseUpgrade.GetResources() for this upgrade.
+	//! Resources the deployment framework has invested in this deployment.
 	int m_iResources;
 
-	//! Live + banked groups for this upgrade, or 0 for an upgrade class that fields none.
+	//! Virtualization-registered groups its spawning modules hold, or 0 for a deployment that
+	//! registers none (parked vehicles field entities, not groups).
 	int m_iGroups;
 }
 

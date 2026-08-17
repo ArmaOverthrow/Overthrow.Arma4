@@ -19,13 +19,12 @@
 //------------------------------------------------------------------------------------------------
 class OVT_GMIconFormat
 {
-	//! The prefix every upgrade class name carries. What is left after it is the readable part.
-	protected static const string UPGRADE_PREFIX = "OVT_BaseUpgrade";
-
-	//! ASCII 'A' and 'Z' - the range a word break is inserted before. ToAscii() is used rather than a
-	//! case conversion because the conversion methods here mutate in place and return a length.
-	protected static const int ASCII_UPPER_A = 65;
-	protected static const int ASCII_UPPER_Z = 90;
+	//! RETIRED 2026-08-18 (virtualization/base-defense-migration): the class-name prettifier that stood
+	//! here, and the shared prefix constant it stripped, are gone. It existed to turn a base-upgrade
+	//! script class name into words for the Game Master's base rows; those rows now carry a DEPLOYMENT
+	//! CONFIG'S DISPLAY NAME, which is authored readable in the first place, and the method had no
+	//! production caller left at all once the base upgrades were deleted. Restore nothing here unless a
+	//! record starts carrying a raw identifier again.
 
 	//! What a percentage reads when there is nothing to take a percentage of.
 	protected static const string ZERO_PERCENT = "0%";
@@ -67,47 +66,6 @@ class OVT_GMIconFormat
 	static string FormatPopulation(int population, int targetPopulation)
 	{
 		return population.ToString() + " / " + targetPopulation.ToString();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! An upgrade's script class name, made readable: "OVT_BaseUpgradeSniperPosition" reads
-	//! "Sniper Position".
-	//!
-	//! ANYTHING IT DOES NOT RECOGNISE PASSES THROUGH UNCHANGED. A name that does not carry the shared
-	//! prefix is returned exactly as it arrived rather than becoming an empty row - a reader seeing an
-	//! unexpected class name learns something; a reader seeing a blank learns nothing.
-	//!
-	//! A run of capitals is spaced letter by letter ("QRFPatrol" reads "Q R F Patrol"). No class name
-	//! in use today has one, and the alternative - a run-detector - is more code than the readability
-	//! is worth.
-	//! \param[in] className The concrete class name carried by the record.
-	//! \return A readable name; never empty when the input was not.
-	static string FormatUpgradeType(string className)
-	{
-		if (className == string.Empty)
-			return className;
-
-		if (!className.StartsWith(UPGRADE_PREFIX))
-			return className;
-
-		int prefixLength = UPGRADE_PREFIX.Length();
-		string remainder = className.Substring(prefixLength, className.Length() - prefixLength);
-		if (remainder == string.Empty)
-			return className;
-
-		string spaced;
-
-		for (int i = 0; i < remainder.Length(); i++)
-		{
-			int code = remainder.ToAscii(i);
-
-			if (i > 0 && code >= ASCII_UPPER_A && code <= ASCII_UPPER_Z)
-				spaced = spaced + " ";
-
-			spaced = spaced + remainder.Get(i);
-		}
-
-		return spaced;
 	}
 
 	//------------------------------------------------------------------------------------------------

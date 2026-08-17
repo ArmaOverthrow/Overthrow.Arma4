@@ -21,10 +21,12 @@
 //!
 //! Rounding to whole metres is deliberate: a key derived from a raw float would differ in its last
 //! digit between the save that wrote it and the run that re-derives it, and the reclaim would find
-//! nothing. One metre is far below the spacing any two deployments are ever created at (the
-//! creation path enforces a 100 m minimum separation and a 250 m same-name dedup), so the rounding
-//! cannot merge two distinct deployments on its own - and where it somehow does, the ordinal
-//! separates them.
+//! nothing. One metre is far below the spacing two deployments OF ONE CONFIG are ever created at
+//! (the creation path enforces a 250 m same-name dedup), so the rounding cannot merge two
+//! deployments that share a key's name part - and where it somehow does, the ordinal separates
+//! them. ⚠ Two deployments of DIFFERENT configs may share a position outright since the base-defense
+//! migration removed the blanket 100 m separation; their keys differ in the name part, which is why
+//! that change needed nothing here.
 //!
 //! Everything here is a pure function of its arguments, which is exactly what lets the cheapest
 //! tier in the tree assert it.

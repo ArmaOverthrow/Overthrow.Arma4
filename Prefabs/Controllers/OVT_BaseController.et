@@ -2,8 +2,6 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
  ID "59845E6E8A2A6A0B"
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
-   m_BaseUpgradesConfig OVT_BaseUpgradesConfig "{B67368CBF1D3C5D0}" : "{0756DED5D4018095}Configs/BaseUpgrades/overthrowBaseUpgrades.conf" {
-   }
   }
   OVT_GMEditableCampaignComponent "{6B09A1C0E4D50003}" {
    m_EntityType SYSTEM

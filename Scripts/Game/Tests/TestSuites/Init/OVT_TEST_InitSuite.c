@@ -1537,8 +1537,8 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 //! never write the orphaned records that made the save grow without bound (~490 permanent records
 //! per idle restart, +4x blob size in four days on the reporting server).
 //!
-//! WHAT IT MEASURES: an occupying-faction group is spawned exactly the way base upgrades spawn
-//! garrisons (OVT_Global.SpawnEntityPrefab + SpawnAllImmediately), and a patrol waypoint the way
+//! WHAT IT MEASURES: an occupying-faction group is spawned the way every un-virtualized spawner in
+//! the campaign still does it (OVT_Global.SpawnEntityPrefab + SpawnAllImmediately), and a waypoint the way
 //! every patrol gets one (config.SpawnPatrolWaypoint). The case then asserts the group entity,
 //! every spawned member character, and the waypoint all end up UNTRACKED.
 //!
@@ -1597,13 +1597,17 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 			return true;
 		}
 
+		// The vanilla GROUP catalog first (it is what OVT_Faction.Init() builds and is never empty for
+		// a real faction), then the group REGISTRY by name. The legacy prefab-slot arrays that used to
+		// be the fallbacks here were retired with the base-defense migration.
 		ResourceName groupPrefab;
 		if (faction.m_aGroupPrefabSlots && !faction.m_aGroupPrefabSlots.IsEmpty())
 			groupPrefab = faction.m_aGroupPrefabSlots[0];
-		else if (faction.m_aGroupInfantryPrefabSlots && !faction.m_aGroupInfantryPrefabSlots.IsEmpty())
-			groupPrefab = faction.m_aGroupInfantryPrefabSlots[0];
-		else if (faction.m_aHeavyInfantryPrefabSlots && !faction.m_aHeavyInfantryPrefabSlots.IsEmpty())
-			groupPrefab = faction.m_aHeavyInfantryPrefabSlots[0];
+		else
+			groupPrefab = faction.GetGroupPrefabByName("light_patrol");
+
+		if (groupPrefab.IsEmpty())
+			groupPrefab = faction.GetGroupPrefabByName("heavy_infantry");
 
 		if (groupPrefab.IsEmpty())
 		{
@@ -1834,13 +1838,17 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 			return true;
 		}
 
+		// The vanilla GROUP catalog first (it is what OVT_Faction.Init() builds and is never empty for
+		// a real faction), then the group REGISTRY by name. The legacy prefab-slot arrays that used to
+		// be the fallbacks here were retired with the base-defense migration.
 		ResourceName groupPrefab;
 		if (faction.m_aGroupPrefabSlots && !faction.m_aGroupPrefabSlots.IsEmpty())
 			groupPrefab = faction.m_aGroupPrefabSlots[0];
-		else if (faction.m_aGroupInfantryPrefabSlots && !faction.m_aGroupInfantryPrefabSlots.IsEmpty())
-			groupPrefab = faction.m_aGroupInfantryPrefabSlots[0];
-		else if (faction.m_aHeavyInfantryPrefabSlots && !faction.m_aHeavyInfantryPrefabSlots.IsEmpty())
-			groupPrefab = faction.m_aHeavyInfantryPrefabSlots[0];
+		else
+			groupPrefab = faction.GetGroupPrefabByName("light_patrol");
+
+		if (groupPrefab.IsEmpty())
+			groupPrefab = faction.GetGroupPrefabByName("heavy_infantry");
 
 		if (groupPrefab.IsEmpty())
 		{
@@ -9147,5 +9155,3448 @@ class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCas
 			manager.SubtractFactionResources(factionIndex, current - originalPool);
 		else if (current < originalPool)
 			manager.AddFactionResources(factionIndex, originalPool - current);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A position at a base classifies with the BASE bit, so a BASE-only config can be bought there at
+//! all.
+//!
+//! WHY THIS IS WORTH A CASE. Location classification is a first-match precedence chain, and every
+//! base-defense config the migration ships authors `m_iAllowedLocationTypes BASE`. If the BASE
+//! branch ever stopped being reachable - a reordered precedence, a changed radius, a town test that
+//! swallowed it - nine configs would silently become unbuyable everywhere with no error anywhere,
+//! exactly the way the Tower Garrison config was unbuyable before the RADIO_TOWER bit was OR-ed in.
+//!
+//! THE CLAIM IS MADE AGAINST A SHIPPED CONSUMER, not just against the enum: the "Light Vehicle
+//! Patrol" config is asked whether it would accept the classification, because CanUseLocationType()
+//! is the only question the evaluator actually asks and a bit nobody consumes proves nothing.
+//!
+//! 🔴 TOWNS SHADOW BASES, AND THIS CASE MEASURES IT RATHER THAN ASSERTING IT AWAY. The chain tests
+//! towns FIRST, with a hardcoded 500 m radius (OVT_TownData.IsWithinTownBounds), so a base whose
+//! centre is within 500 m of a town centre classifies as TOWN and can NEVER be offered a BASE-only
+//! config - GetBasePositions() offers the base's own centre and nothing else. That is true of this
+//! test world's only base (114 m from its town) and of 4 of Eden's 10 bases, measured 2026-08-17 and
+//! recorded in the feature's context.md as an open design question. Until it is decided, the claim
+//! this case CAN make honestly is that the branch is alive and reachable somewhere in a base's ring;
+//! the shadow count is printed on every run so the number cannot be quietly forgotten.
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - pure queries on live campaign
+//! data. The classification does no ground trace, so probes off the terrain are legal.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): move the
+//! base branch of GetPrimaryLocationTypeAtPosition() below the OPEN_TERRAIN fallback, or drop its
+//! 500 m test to 0, and the reachability assertion goes red naming the base count; change
+//! `m_iAllowedLocationTypes BASE` in Deployment_VehiclePatrol_Light.conf to TOWN and the shipped-
+//! consumer assertion goes red instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_BaseLocationTypeIsReachable : SCR_AutotestCaseBase
+{
+	//! A shipped config that authors BASE and nothing else, used as the consumer of the classification.
+	static const string BASE_ONLY_CONFIG = "Light Vehicle Patrol";
+
+	//! Probe distances from a base centre, all inside the 500 m ring the classification uses.
+	static const float PROBE_NEAR = 150;
+	static const float PROBE_MID = 300;
+	static const float PROBE_FAR = 450;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
+		{
+			SetFailure("This world has no bases, so the BASE classification cannot be exercised - InitializeBases() found none");
+			return true;
+		}
+
+		vector probe;
+		if (!FindBaseClassifiedPosition(manager, occupying, probe))
+		{
+			SetFailure("No position within 500 m of any of this world's %1 base(s) classifies as BASE - every BASE-only deployment config is unbuyable everywhere on this map, silently",
+				occupying.m_Bases.Count().ToString());
+			return true;
+		}
+
+		OVT_LocationTypeFlag classification = manager.GetLocationTypeAtPosition(probe);
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so the classification has no shipped consumer to be checked against");
+			return true;
+		}
+
+		OVT_DeploymentConfig baseConfig = manager.m_DeploymentRegistry.FindConfigByName(BASE_ONLY_CONFIG);
+		if (!baseConfig)
+		{
+			SetFailure("The deployment registry does not resolve '%1', so the classification has no shipped consumer to be checked against", BASE_ONLY_CONFIG);
+			return true;
+		}
+
+		if (!baseConfig.CanUseLocationType(classification))
+		{
+			SetFailure("'%1' refuses a position classified %2 - the config's authored location types and the classification no longer agree, so it can never be created at a base",
+				BASE_ONLY_CONFIG, classification.ToString());
+			return true;
+		}
+
+		int shadowed = CountTownShadowedBases(manager, occupying);
+		PrintFormat("A position at a base classifies as %1 and '%2' accepts it; %3 of this world's base(s) are shadowed by a town at their own centre and can never be offered a BASE-only config",
+			classification.ToString(), BASE_ONLY_CONFIG, shadowed.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The first position inside some base's 500 m ring that classifies with the BASE bit.
+	//!
+	//! Tries each base's own centre first - which is the only position GetBasePositions() ever offers
+	//! the evaluator - and falls back to eight compass probes inside the ring, because a base centre
+	//! that sits inside a town's bounds classifies as TOWN.
+	//! \param[in] manager The deployment manager, for the classification.
+	//! \param[in] occupying The occupying faction manager, for the base list.
+	//! \param[out] found The position that classified as BASE.
+	//! \return True when one was found.
+	protected bool FindBaseClassifiedPosition(notnull OVT_DeploymentManagerComponent manager,
+		notnull OVT_OccupyingFactionManager occupying, out vector found)
+	{
+		foreach (OVT_BaseData baseData : occupying.m_Bases)
+		{
+			if (!baseData)
+				continue;
+
+			if (ClassifiesAsBase(manager, baseData.location))
+			{
+				found = baseData.location;
+				return true;
+			}
+		}
+
+		array<float> distances = {PROBE_FAR, PROBE_MID, PROBE_NEAR};
+
+		foreach (OVT_BaseData baseData : occupying.m_Bases)
+		{
+			if (!baseData)
+				continue;
+
+			foreach (float distance : distances)
+			{
+				for (int step = 0; step < 8; step++)
+				{
+					float angle = (step / 8.0) * Math.PI2;
+					vector probe = baseData.location + Vector(Math.Cos(angle) * distance, 0, Math.Sin(angle) * distance);
+
+					if (ClassifiesAsBase(manager, probe))
+					{
+						found = probe;
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] manager The deployment manager.
+	//! \param[in] position The position to classify.
+	//! \return True when the classification carries the BASE bit.
+	protected bool ClassifiesAsBase(notnull OVT_DeploymentManagerComponent manager, vector position)
+	{
+		return (manager.GetLocationTypeAtPosition(position) & OVT_LocationTypeFlag.BASE) != 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many bases do NOT classify as BASE at their own centre - i.e. how many of this world's
+	//! bases the evaluator can never offer a BASE-only config to.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] occupying The occupying faction manager.
+	//! \return The count, 0 when every base classifies as its own kind.
+	protected int CountTownShadowedBases(notnull OVT_DeploymentManagerComponent manager,
+		notnull OVT_OccupyingFactionManager occupying)
+	{
+		int shadowed = 0;
+
+		foreach (OVT_BaseData baseData : occupying.m_Bases)
+		{
+			if (baseData && !ClassifiesAsBase(manager, baseData.location))
+				shadowed++;
+		}
+
+		return shadowed;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The no-players-nearby condition refuses to CREATE a deployment on top of a player, and never
+//! fails at runtime for the same reason.
+//!
+//! THE ASYMMETRY IS THE ENTIRE POINT OF THE MODULE AND THIS IS THE ONLY MECHANICAL GUARD ON IT.
+//! EvaluateStaticCondition() gates creation, so a base does not fortify around a player who is
+//! standing in it. EvaluateCondition() gates the runtime, and every base-defense config authors
+//! m_bDeleteOnConditionFail - so if that method ever started answering the distance question too,
+//! walking into a base would DELETE its whole defense and refund the occupying faction for it. The
+//! fight would evaporate on approach and it would read as a spawning bug, not a condition bug.
+//!
+//! DRIVEN AGAINST A REAL PLAYER BODY, because "a player is standing here" is the only input the
+//! module has and a fabricated position would assert nothing about it. The local character can take
+//! a few frames to exist, so the case polls for it the same way
+//! OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns does.
+//!
+//! ⚠ THE DISTANCE IS SET BY HAND. [Attribute] defvalues are applied by the config loader, not by
+//! `new`, so a hand-constructed module carries 0 and would accept every position. Setting it here is
+//! what makes the refusal claim mean anything; the shipped default (320) is asserted by the configs
+//! that author it, from Phase 3 onwards.
+//!
+//! NOTHING IS REGISTERED AND NOTHING IS CREATED - the module is a bare object, asked two questions.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change
+//! EvaluateStaticCondition's comparison to `<=` inverted (return `GetPlayerProximity(position) <
+//! m_fMinPlayerDistance`) and the refusal and acceptance assertions swap and both go red; make
+//! EvaluateCondition() return the distance test instead of true and the runtime assertion goes red;
+//! delete `clone.m_fMinPlayerDistance = m_fMinPlayerDistance` from CloneModule and the clone
+//! assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Deployments_NoPlayersNearbyGatesCreationOnly : SCR_AutotestCaseBase
+{
+	//! The shipped default, set by hand because attribute defvalues do not apply to `new`.
+	static const float MIN_PLAYER_DISTANCE = 320;
+
+	//! Well beyond MIN_PLAYER_DISTANCE from any player in either world this suite runs in.
+	static const float FAR_AWAY = 5000;
+
+	//! A value no default could be mistaken for, for the clone check.
+	static const float CLONE_PROBE_DISTANCE = 777;
+
+	//! Frame polls allowed for the local player to have a character.
+	static const int MAX_POLLS = 300;
+
+	protected int m_iPolls;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		array<int> players = {};
+		GetGame().GetPlayerManager().GetPlayers(players);
+
+		IEntity body;
+		if (!players.IsEmpty())
+			body = GetGame().GetPlayerManager().GetPlayerControlledEntity(players[0]);
+
+		if (!body)
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetFailure("No player-controlled character appeared in %1 polls, so 'a player is standing here' could not be put to the condition at all", m_iPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+
+		OVT_NoPlayersNearbyConditionDeploymentModule module = new OVT_NoPlayersNearbyConditionDeploymentModule();
+		module.m_fMinPlayerDistance = MIN_PLAYER_DISTANCE;
+
+		vector playerPos = body.GetOrigin();
+
+		// CREATION, ON TOP OF A PLAYER: refused.
+		if (module.EvaluateStaticCondition(playerPos, occupyingFaction, 0))
+		{
+			SetFailure("The condition ACCEPTED a candidate position with a player standing on it (minimum distance %1 m) - a base would fortify itself in front of a player, and its groups would materialise in his view because he is an observer",
+				MIN_PLAYER_DISTANCE.ToString());
+			return true;
+		}
+
+		// CREATION, FAR AWAY: accepted.
+		vector farPos = playerPos + Vector(FAR_AWAY, 0, FAR_AWAY);
+		if (!module.EvaluateStaticCondition(farPos, occupyingFaction, 0))
+		{
+			SetFailure("The condition REFUSED a candidate position %1 m from the nearest player - no deployment carrying this module could ever be created anywhere", FAR_AWAY.ToString());
+			return true;
+		}
+
+		// RUNTIME, WITH A PLAYER RIGHT THERE: still true. This is the asymmetry.
+		if (!module.EvaluateCondition())
+		{
+			SetFailure("EvaluateCondition() answered FALSE while a player was nearby - with m_bDeleteOnConditionFail authored, walking into a base would delete its entire defense and refund the occupying faction for it");
+			return true;
+		}
+
+		// CLONE FIDELITY: a dropped distance clones as 0, which accepts every position and turns the
+		// module into a no-op nobody would notice.
+		module.m_fMinPlayerDistance = CLONE_PROBE_DISTANCE;
+		OVT_NoPlayersNearbyConditionDeploymentModule clone = OVT_NoPlayersNearbyConditionDeploymentModule.Cast(module.CloneModule());
+		if (!clone)
+		{
+			SetFailure("CloneModule() did not answer an OVT_NoPlayersNearbyConditionDeploymentModule at all");
+			return true;
+		}
+
+		if (clone.m_fMinPlayerDistance != CLONE_PROBE_DISTANCE)
+		{
+			SetFailure("A clone carries a minimum player distance of %1, expected the authored %2 - every deployment gets a CLONE of its config's modules, so the authored value would never reach the game",
+				clone.m_fMinPlayerDistance.ToString(), CLONE_PROBE_DISTANCE.ToString());
+			return true;
+		}
+
+		PrintFormat("The no-players condition refuses creation on top of a player and accepts it %1 m away, answers true at runtime regardless, and clones its distance", FAR_AWAY.ToString());
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE PHASE'S HEADLINE CLAIM: a position that already holds config A is answered with config B, not
+//! with nothing.
+//!
+//! WHAT THIS REPLACES. FindBestDeploymentConfig() used to answer the single lowest-priority config a
+//! place qualified for, full stop, and its caller skipped the position when that one was already
+//! there. A base could therefore hold exactly ONE deployment, forever - which is why nine
+//! per-concern base-defense configs could not exist before this phase. Two edits changed it: the
+//! blanket 100 m proximity veto came out of IsPositionSuitableForDeployment(), and the name-scoped
+//! 250 m dedup moved INTO the per-config filter, ahead of the priority comparison.
+//!
+//! THE LADDER IS WALKED WITH REAL DEPLOYMENTS, not with a mocked list, because the claim is about
+//! HasExistingDeploymentOfType() reading the live deployment list - the half of the change that the
+//! Logic tier's pure selection arithmetic (OVT_TEST_Logic_BaseDefenseEscalation) cannot see.
+//!
+//! TWO FIXTURE CONFIGS ARE APPENDED TO THE LIVE REGISTRY AND REMOVED AGAIN. They are used instead of
+//! the shipped configs deliberately: the shipped ones carry chance rolls, instance caps, condition
+//! modules and location restrictions, and a case that asserted the ladder through them would be
+//! asserting their authoring rather than the evaluator. They author NO location types, which
+//! CanUseLocationType() reads as "no restrictions", so the probe position's classification cannot
+//! affect the outcome either.
+//!
+//! ⚠ FIXTURE SAFETY - THIS CASE CREATES REAL DEPLOYMENTS. Safe on both accepted grounds, exactly as
+//! OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent is: (a) every deployment is
+//! SetSpawnedUnitsEliminated(true) on the deployment AND on every spawning module before anything
+//! else happens to it, so ConvergeGroups() refuses at both gates; and (b) everything here is
+//! synchronous inside one Execute() frame, so no UpdateDeployment tick can run between creation and
+//! teardown and no group is ever registered. Teardown runs on every path including the red ones, and
+//! deletes the deployments BEFORE it takes the fixture configs back out of the registry.
+//!
+//! ⚠ THE PROBE POSITION IS CHOSEN AWAY FROM EVERY TOWN, BASE AND TOWER so that no shipped config can
+//! be suitable there and be picked instead of a fixture one. If one ever were, the first assertion
+//! goes red naming it rather than the case quietly asserting something else.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): delete
+//! the `if (HasExistingDeploymentOfType(...)) alreadyHere.Insert(...)` line from
+//! FindBestDeploymentConfig and the escalation assertion goes red (config A comes back a second
+//! time); change OVT_DeploymentSelection.SelectNextConfigIndex to ignore its already-present set and
+//! the same assertion goes red for the other reason. ⚠ Restoring the deleted blanket proximity veto
+//! in IsPositionSuitableForDeployment would NOT redden this case - it asks the config filter
+//! directly, not the candidate filter - which is why
+//! OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent and the Campaign tier keep watch on the
+//! creation path as a whole.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig : SCR_AutotestCaseBase
+{
+	//! Fixture config names. Prefixed so they can never collide with a shipped config's name, which
+	//! is what the 250 m dedup keys on.
+	static const string CONFIG_A = "OVT_TEST Escalation A";
+	static const string CONFIG_B = "OVT_TEST Escalation B";
+
+	//! How far the probe must be from every town, base and tower, so no shipped config classifies as
+	//! usable there.
+	static const float CLEARANCE = 2000;
+
+	//! A budget every fixture config (cost 0) fits inside.
+	static const int BUDGET = 1000;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager || !manager.m_DeploymentRegistry || !manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			SetFailure("The deployment manager or its registry is null, so no config can be offered at all");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		if (occupyingFaction < 0)
+		{
+			SetFailure("The occupying faction does not resolve to a faction index, so nothing can be offered to it");
+			return true;
+		}
+
+		vector probe = FindClearPosition();
+
+		array<ref OVT_DeploymentConfig> registryConfigs = manager.m_DeploymentRegistry.m_aDeploymentConfigs;
+		int originalConfigCount = registryConfigs.Count();
+
+		registryConfigs.Insert(BuildFixtureConfig(CONFIG_A, 1));
+		registryConfigs.Insert(BuildFixtureConfig(CONFIG_B, 2));
+
+		array<OVT_DeploymentComponent> created = new array<OVT_DeploymentComponent>();
+		string failure = WalkTheLadder(manager, occupyingFaction, probe, created);
+
+		// TEARDOWN BEFORE REPORTING, ON EVERY PATH: deployments first, then the fixture configs.
+		Teardown(manager, created);
+
+		while (registryConfigs.Count() > originalConfigCount)
+		{
+			registryConfigs.Remove(registryConfigs.Count() - 1);
+		}
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A position holding '%1' was answered '%2' rather than nothing, and answered nothing once it held both", CONFIG_A, CONFIG_B);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks for the next config three times, creating what it is given, and checks each answer.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The occupying faction.
+	//! \param[in] probe The position being fortified.
+	//! \param[in] created Every deployment created, for teardown - filled BEFORE any assertion that
+	//!            could return.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string WalkTheLadder(notnull OVT_DeploymentManagerComponent manager, int factionIndex, vector probe,
+		notnull array<OVT_DeploymentComponent> created)
+	{
+		// RUNG 1: nothing here yet, so the cheapest priority wins.
+		OVT_DeploymentConfig first = manager.FindBestDeploymentConfig(probe, factionIndex, 0, BUDGET);
+		if (!first)
+			return string.Format("An empty position was offered no config at all, expected '%1' - the fixture configs are not reaching the filter (faction type, cost or conditions)", CONFIG_A);
+
+		if (first.m_sDeploymentName != CONFIG_A)
+			return string.Format("An empty position was offered '%1', expected '%2' - either priority is not deciding, or a shipped config is suitable at a probe chosen to be clear of every town, base and tower",
+				first.m_sDeploymentName, CONFIG_A);
+
+		OVT_DeploymentComponent firstDeployment = manager.CreateDeployment(first, probe, factionIndex, 0, 0);
+		if (!firstDeployment)
+			return string.Format("Creating a '%1' at the probe answered nothing, so the ladder cannot be walked", CONFIG_A);
+
+		created.Insert(firstDeployment);
+		MakeInert(firstDeployment);
+
+		// RUNG 2: THE HEADLINE. A already stands here, so the answer is B and not nothing.
+		OVT_DeploymentConfig second = manager.FindBestDeploymentConfig(probe, factionIndex, 0, BUDGET);
+		if (!second)
+			return string.Format("A position already holding '%1' was offered NOTHING - this is the pre-migration behaviour: a place can hold exactly one config and is then written off forever, so a base could never fortify concern by concern",
+				CONFIG_A);
+
+		if (second.m_sDeploymentName == CONFIG_A)
+			return string.Format("A position already holding '%1' was offered it AGAIN - the name-scoped dedup is not being applied before the priority comparison, and the pool would be spent on creations the caller's guard then refuses",
+				CONFIG_A);
+
+		if (second.m_sDeploymentName != CONFIG_B)
+			return string.Format("A position already holding '%1' was offered '%2', expected '%3'", CONFIG_A, second.m_sDeploymentName, CONFIG_B);
+
+		OVT_DeploymentComponent secondDeployment = manager.CreateDeployment(second, probe, factionIndex, 0, 0);
+		if (!secondDeployment)
+			return string.Format("Creating a '%1' at the probe answered nothing", CONFIG_B);
+
+		created.Insert(secondDeployment);
+		MakeInert(secondDeployment);
+
+		// RUNG 3: both stand here, so there is nothing left to buy AT THIS POSITION.
+		OVT_DeploymentConfig third = manager.FindBestDeploymentConfig(probe, factionIndex, 0, BUDGET);
+		if (third)
+			return string.Format("A position holding both fixture configs was offered '%1' - a fully fortified place must be answered nothing, or it is re-evaluated into creation attempts forever",
+				third.m_sDeploymentName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A config that qualifies everywhere, costs nothing, rolls no chance and carries no conditions -
+	//! so that what this case asserts is the evaluator's ordering and nothing else.
+	//! \param[in] name The config's name; the dedup keys on it.
+	//! \param[in] priority Lower wins.
+	//! \return The config.
+	protected OVT_DeploymentConfig BuildFixtureConfig(string name, int priority)
+	{
+		// ⚠ [Attribute] defvalues are applied by the config loader, never by `new`, so EVERY field a
+		// filter reads has to be set here. m_fChance in particular would be 0 and the config would
+		// essentially never be offered.
+		OVT_DeploymentConfig fixture = new OVT_DeploymentConfig();
+		fixture.m_sDeploymentName = name;
+		fixture.m_iPriority = priority;
+		fixture.m_iBaseCost = 0;
+		fixture.m_iMinimumThreatLevel = 0;
+		fixture.m_fChance = 100;
+		fixture.m_iMaxInstances = -1;
+		fixture.m_bFreeAtGameStart = false;
+		fixture.m_iAllowedFactionTypes = OVT_FactionTypeFlag.OCCUPYING_FACTION;
+		fixture.m_iAllowedLocationTypes = 0; // "no restrictions" - the probe's classification is irrelevant
+
+		// IsValidConfig() demands at least one spawning module. This one is left entirely unauthored,
+		// so it wants 0 groups and costs 0, and the deployment is made inert before it could tick.
+		OVT_InfantrySpawningDeploymentModule spawning = new OVT_InfantrySpawningDeploymentModule();
+		spawning.m_sModuleName = "OVT_TEST inert";
+		spawning.m_iMinGroupCount = 0;
+		spawning.m_iMaxGroupCount = 0;
+		spawning.m_iCostPerGroup = 0;
+		fixture.m_aModules.Insert(spawning);
+
+		return fixture;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A position at least CLEARANCE from every town, base and radio tower, so no shipped config's
+	//! location rule can match there.
+	//! \return The probe position.
+	protected vector FindClearPosition()
+	{
+		vector origin = "0 0 0";
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (occupying && occupying.m_Bases && !occupying.m_Bases.IsEmpty())
+			origin = occupying.m_Bases[0].location;
+
+		// Both worlds this suite runs in fit inside a few kilometres, so stepping out along one
+		// diagonal clears everything within a couple of steps.
+		vector candidate = origin;
+		for (int step = 1; step <= 12; step++)
+		{
+			candidate = origin + Vector(CLEARANCE * step, 0, CLEARANCE * step);
+
+			if (IsClearOfEverything(candidate))
+				return candidate;
+		}
+
+		return candidate;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] position The position to test.
+	//! \return True when no town, base or radio tower is within CLEARANCE.
+	protected bool IsClearOfEverything(vector position)
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (towns && towns.m_Towns)
+		{
+			foreach (OVT_TownData town : towns.m_Towns)
+			{
+				if (town && vector.Distance(position, town.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return true;
+
+		if (occupying.m_Bases)
+		{
+			foreach (OVT_BaseData baseData : occupying.m_Bases)
+			{
+				if (baseData && vector.Distance(position, baseData.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		if (occupying.m_RadioTowers)
+		{
+			foreach (OVT_RadioTowerData tower : occupying.m_RadioTowers)
+			{
+				if (tower && vector.Distance(position, tower.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes one fixture deployment unable to register anything, immediately after it is created.
+	//! \param[in] deployment The deployment to disarm.
+	protected void MakeInert(notnull OVT_DeploymentComponent deployment)
+	{
+		deployment.SetSpawnedUnitsEliminated(true);
+
+		array<OVT_BaseSpawningDeploymentModule> modules = deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (module)
+				module.SetSpawnedUnitsEliminated(true);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Deletes every fixture deployment. Called on every path, including the red ones.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] created Every deployment this case created.
+	protected void Teardown(notnull OVT_DeploymentManagerComponent manager, notnull array<OVT_DeploymentComponent> created)
+	{
+		foreach (OVT_DeploymentComponent deployment : created)
+		{
+			if (deployment)
+				MakeInert(deployment);
+		}
+
+		foreach (OVT_DeploymentComponent deployment : created)
+		{
+			if (deployment)
+				manager.DeleteDeployment(deployment);
+		}
+
+		created.Clear();
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Every faction registry name the base-defense migration introduces resolves to a REAL prefab, on
+//! BOTH shipped occupying factions.
+//!
+//! WHY THIS IS THE FIRST CASE OF THE PHASE. Nine deployment configs are about to be authored against
+//! these names, and every failure mode of a wrong one is silent at authoring time: core's
+//! RegisterGroup logs a WARNING and returns -1 for an unknown group name, the composition module logs
+//! a WARNING and builds nothing for an unknown tag, and the parked-vehicle module logs a WARNING and
+//! parks nothing. A campaign with a typo'd registry name is a campaign whose bases simply never
+//! fortify, with no error a player or a tester would ever see.
+//!
+//! ASKED THROUGH THE SAME DOOR THE GAME USES - GetOverthrowFactionByKey then GetGroupPrefabByName /
+//! GetVehiclePrefabByName / GetCompositionConfig - rather than by reading the .conf, so a registry
+//! that parses but resolves to nothing is caught too.
+//!
+//! BOTH FACTIONS, OR IT MEANS NOTHING. Overthrow swaps which faction occupies, so a name authored on
+//! USSR alone produces a campaign that fortifies under one occupier and not the other. The case
+//! counts the factions it actually checked and fails loudly rather than passing vacuously if fewer
+//! than two carry a group registry.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED - a pure read of the shipped faction configs. No
+//! fixture, no teardown, no tick.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): rename
+//! `heavy_infantry` to anything else in Configs/Factions/USSR_OverthrowData.conf and the group half
+//! goes red naming the faction and the missing name; delete the `truck` entry from
+//! US_OverthrowData.conf and the vehicle half goes red; change `LargeCheckpoint`'s m_sTag and the
+//! composition half goes red; empty a composition's m_aPrefabs and the "resolves but has no prefab"
+//! assertion goes red instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_AutotestCaseBase
+{
+	//! The group registry names Phase 2 appended.
+	static const ref array<string> GROUP_NAMES = {"heavy_infantry", "at_team", "sniper", "sniper_team", "bunker_team"};
+
+	//! The vehicle registry names Phase 2 appended.
+	static const ref array<string> VEHICLE_NAMES = {"car", "truck"};
+
+	//! The composition tags Phase 2 appended.
+	static const ref array<string> COMPOSITION_TAGS = {"MediumCheckpoint", "LargeCheckpoint"};
+
+	//! Both shipped occupying factions carry a group registry. Fewer would make every check below
+	//! pass vacuously.
+	static const int MIN_FACTIONS_WITH_REGISTRY = 2;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+		{
+			SetFailure("OVT_Global.GetFactions() is null - no registry name can be resolved at all");
+			return true;
+		}
+
+		int checkedFactions = 0;
+		string failure = "";
+
+		int count = factions.GetFactionsCount();
+		for (int i = 0; i < count; i++)
+		{
+			Faction faction = factions.GetFactionByIndex(i);
+			if (!faction)
+				continue;
+
+			string key = faction.GetFactionKey();
+			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(key);
+			if (!overthrowFaction)
+				continue;
+
+			// Civilians and anything else with no group registry cannot field base defense at all and
+			// are not what this case is about.
+			array<string> names = overthrowFaction.GetAvailableGroupNames();
+			if (!names || names.IsEmpty())
+				continue;
+
+			checkedFactions++;
+
+			if (failure == "")
+				failure = VerifyFaction(overthrowFaction, key);
+		}
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		if (checkedFactions < MIN_FACTIONS_WITH_REGISTRY)
+		{
+			SetFailure("Only %1 faction(s) carry a group registry, expected at least %2 - every base-defense registry check would pass vacuously",
+				checkedFactions.ToString(), MIN_FACTIONS_WITH_REGISTRY.ToString());
+			return true;
+		}
+
+		PrintFormat("All %1 base-defense group names, %2 vehicle names and %3 composition tags resolve on every faction with a registry",
+			GROUP_NAMES.Count().ToString(), VEHICLE_NAMES.Count().ToString(), COMPOSITION_TAGS.Count().ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every new name, on one faction.
+	//! \param[in] faction The Overthrow faction data.
+	//! \param[in] key Its faction key, for the message.
+	//! \return An empty string when every name resolves, or the first that does not.
+	protected string VerifyFaction(notnull OVT_Faction faction, string key)
+	{
+		foreach (string groupName : GROUP_NAMES)
+		{
+			if (faction.GetGroupPrefabByName(groupName) == ResourceName.Empty)
+				return string.Format("Faction '%1' has no GROUP registry entry named '%2' - core refuses that registration outright, so every base-defense config authoring it would register nothing and log only a WARNING",
+					key, groupName);
+		}
+
+		foreach (string vehicleName : VEHICLE_NAMES)
+		{
+			if (faction.GetVehiclePrefabByName(vehicleName) == ResourceName.Empty)
+				return string.Format("Faction '%1' has no VEHICLE registry entry named '%2' - the parked-vehicle module would park nothing and log only a WARNING",
+					key, vehicleName);
+		}
+
+		foreach (string tag : COMPOSITION_TAGS)
+		{
+			OVT_FactionComposition composition = faction.GetCompositionConfig(tag);
+			if (!composition)
+				return string.Format("Faction '%1' has no composition tagged '%2' - the composition module would build nothing and log only a WARNING",
+					key, tag);
+
+			if (!composition.m_aPrefabs || composition.m_aPrefabs.IsEmpty())
+				return string.Format("Faction '%1' composition '%2' resolves but authors no prefabs - it would be picked, refused and never retried",
+					key, tag);
+
+			if (composition.m_iCost <= 0)
+				return string.Format("Faction '%1' composition '%2' costs %3 - a free structure makes the deployment's resource cost wrong and the pool would never be the constraint it is meant to be",
+					key, tag, composition.m_iCost.ToString());
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Test-only window onto OVT_InfantrySpawningDeploymentModule's protected placement seam.
+//!
+//! ResolveSpawnPosition() is protected, and deliberately so - it is a subclass seam, not an API. A
+//! subclass is therefore the ONLY honest way to assert it: widening the production method to public
+//! for a test would change the class's contract to make the test easy, which is the opposite of the
+//! right trade.
+//!
+//! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker or be authorable
+//! into a deployment config.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_SnapProbeInfantryModule : OVT_InfantrySpawningDeploymentModule
+{
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] anchor The batch anchor to roll around.
+	//! \return Exactly what a registration would have used.
+	vector ProbeSpawnPosition(vector anchor)
+	{
+		return ResolveSpawnPosition(anchor, 0);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! m_bSnapToRoad 0 keeps a registration inside its own spawn radius. THE ROAD-SNAP OPT-OUT, which is
+//! the whole reason the attribute exists.
+//!
+//! WHAT IT IS GUARDING. The shared roller picks a point 10..m_fSpawnRadius m from the anchor and then
+//! calls OVT_WorldUtils.FindNearestRoad, which searches up to 500 m
+//! (GetReachableWaypointInRoad(center, center, 500, roadPos)). So with the snap ON, m_fSpawnRadius
+//! bounds the ROLL and not the RESULT - integration measured a tower garrison registering on the
+//! access road instead of at its tower, and recorded that "the fix is a module-level opt-out in a
+//! later phase". This is that opt-out, and this case is what stops it silently reverting.
+//!
+//! THE ASSERTION IS AN INVARIANT OVER MANY SAMPLES, NOT A RETRY. Every one of SAMPLES rolls must
+//! satisfy both halves; there is no "try until one passes" anywhere here.
+//!
+//! TWO HALVES, BOTH LOAD-BEARING:
+//!   - HORIZONTAL: the result is 10..m_fSpawnRadius from the anchor. That is the ring roll's own
+//!     range and it is what "inside the radius" means.
+//!   - ALTITUDE: the result's Y is EXACTLY the anchor's, because the ring offset has a zero Y
+//!     component. This is the half that actually catches a broken opt-out: FindNearestRoad answers a
+//!     road waypoint at terrain height, which is not the anchor's altitude except by coincidence.
+//!
+//! ⚠ THE SNAP-ON HALF IS PRINTED, NOT ASSERTED, AND THAT IS DELIBERATE. What snapping does depends
+//! entirely on where the roads are in whichever world this suite runs in - the plan's own wording is
+//! that snap ON "does not necessarily" stay inside the radius. Asserting a road network the test
+//! world does not guarantee would be a flake, so the observed behaviour is logged instead: the line
+//! tells a reader whether this world can even distinguish the two paths, which is exactly what the
+//! fail proof below depends on.
+//!
+//! NOTHING IS REGISTERED AND NO DEPLOYMENT EXISTS - the probe module is a bare `new` with no parent,
+//! and ResolveSpawnPosition is pure arithmetic plus (on the ON path) a read-only road query.
+//!
+//! ⚠ [Attribute] DEFVALUES DO NOT APPLY TO `new`. A hand-constructed module has m_fSpawnRadius 0 and
+//! m_bSnapToRoad FALSE, so both are set by hand below - and the snap-ON probe has to set the flag
+//! explicitly rather than relying on the shipped default.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): invert the
+//! guard in GetRandomSpawnPosition to `if (m_bSnapToRoad) return spawnPos;` and the altitude
+//! assertion goes red in any world whose printed diagnostic says the snap moves the anchor; delete
+//! the guard entirely and the same assertion goes red; change the ring roll to
+//! Math.RandomFloat(10, m_fSpawnRadius * 2) and the horizontal assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_SnapToRoadOptOutStaysInRadius : SCR_AutotestCaseBase
+{
+	//! The radius the probe module is given. Comfortably above the roller's hardcoded 10 m minimum.
+	static const float PROBE_RADIUS = 60;
+
+	//! The roller's own minimum distance from the anchor (Math.RandomFloat(10, m_fSpawnRadius)).
+	static const float ROLL_MINIMUM = 10;
+
+	//! How many rolls the invariant is checked over. Every one must hold.
+	static const int SAMPLES = 12;
+
+	//! Float slack. vector.Distance is only +1 ULP off at 1000/2000 m and these are tens of metres,
+	//! so this is generous by a wide margin.
+	static const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector anchor = OVT_TEST_VirtualizationFixture.PickPosition();
+
+		OVT_TEST_SnapProbeInfantryModule probe = new OVT_TEST_SnapProbeInfantryModule();
+		probe.m_fSpawnRadius = PROBE_RADIUS;
+		probe.m_bSnapToRoad = false;
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			vector sample = probe.ProbeSpawnPosition(anchor);
+
+			float altitudeDelta = Math.AbsFloat(sample[1] - anchor[1]);
+			if (altitudeDelta > EPSILON)
+			{
+				SetFailure("With m_bSnapToRoad OFF a registration came back %1 m off the anchor's altitude - the ring offset has a zero Y component, so the only thing that can move it is the road snap this flag is supposed to have turned off",
+					altitudeDelta.ToString());
+				return true;
+			}
+
+			float horizontal = HorizontalDistance(sample, anchor);
+			if (horizontal < ROLL_MINIMUM - EPSILON || horizontal > PROBE_RADIUS + EPSILON)
+			{
+				SetFailure("With m_bSnapToRoad OFF a registration came back %1 m from the anchor, outside the roll's own %2..%3 m range - a garrison authored to hold a place would be registered somewhere else and, with a DEFEND or null plan, would hold THERE",
+					horizontal.ToString(), ROLL_MINIMUM.ToString(), PROBE_RADIUS.ToString());
+				return true;
+			}
+		}
+
+		ReportSnapOnBehaviour(anchor);
+
+		PrintFormat("m_bSnapToRoad OFF kept all %1 registrations within %2 m of the anchor and at its exact altitude",
+			SAMPLES.ToString(), PROBE_RADIUS.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Logs what the SHIPPED path (snap ON) does at this anchor, so a reader can tell whether this
+	//! world distinguishes the two paths at all. Asserts nothing - see the class header.
+	//! \param[in] anchor The anchor the OFF half was measured around.
+	protected void ReportSnapOnBehaviour(vector anchor)
+	{
+		vector snappedAnchor = OVT_WorldUtils.FindNearestRoad(anchor);
+		if (snappedAnchor == anchor)
+		{
+			Print("[OVT_TEST] Snap diagnostic: this world's road query does not move the probe anchor at all, so snap ON and snap OFF are indistinguishable here - the altitude fail proof would NOT redden in this world", LogLevel.NORMAL);
+			return;
+		}
+
+		OVT_TEST_SnapProbeInfantryModule snapped = new OVT_TEST_SnapProbeInfantryModule();
+		snapped.m_fSpawnRadius = PROBE_RADIUS;
+		snapped.m_bSnapToRoad = true;
+
+		int leftTheRing = 0;
+		int changedAltitude = 0;
+		float furthest = 0;
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			vector sample = snapped.ProbeSpawnPosition(anchor);
+
+			if (Math.AbsFloat(sample[1] - anchor[1]) > EPSILON)
+				changedAltitude++;
+
+			float horizontal = HorizontalDistance(sample, anchor);
+			if (horizontal > PROBE_RADIUS + EPSILON)
+				leftTheRing++;
+
+			if (horizontal > furthest)
+				furthest = horizontal;
+		}
+
+		PrintFormat("[OVT_TEST] Snap diagnostic: with snap ON, %1 of the samples left the %2 m ring and the furthest landed %3 m from the anchor",
+			leftTheRing.ToString(), PROBE_RADIUS.ToString(), furthest.ToString());
+		PrintFormat("[OVT_TEST] Snap diagnostic: %1 samples changed altitude, so the altitude fail proof IS live in this world",
+			changedAltitude.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] a First position.
+	//! \param[in] b Second position.
+	//! \return Their distance ignoring altitude.
+	protected float HorizontalDistance(vector a, vector b)
+	{
+		return vector.Distance(Vector(a[0], 0, a[2]), Vector(b[0], 0, b[2]));
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Every shipped placement provider answers an EMPTY LIST, never null, where nothing qualifies.
+//!
+//! WHY "NOT NULL" IS THE CLAIM. Point 1 of the provider contract. A provider is asked on every
+//! convergence pass of every placed deployment, and "nothing here" is the ORDINARY answer - most
+//! deployments are nowhere near a watchtower or a curated sniper marker. If a provider answered null
+//! instead, OVT_PlacedInfantrySpawningDeploymentModule.CalculateGroupCount would dereference it on
+//! the very first tick of the very first tower-guard deployment. The module carries a defensive
+//! re-allocation for exactly that, and this case is what stops the defence from being the only thing
+//! holding the contract up.
+//!
+//! ⚠ THE PROBE POSITION IS CHOSEN CLEAR OF EVERY TOWN, BASE AND RADIO TOWER, for the same reason
+//! OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig chooses one: the claim is about the EMPTY
+//! answer, and a probe that happened to land beside a real tower would assert nothing at all. The
+//! defend-position provider is the one that would notice - it range-checks the nearest base against
+//! its own radius - so the clearance is what makes its empty answer meaningful rather than accidental.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED. Providers are read-only sphere queries over the live
+//! world; they build no entity and touch no registry.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): make any
+//! one of the three providers `return null` before its query and the case goes red naming that
+//! provider; make the base OVT_DeploymentPlacementProvider.ResolvePlacements return null and the
+//! contract assertion goes red; drop the range check from
+//! OVT_BaseDefendPositionPlacementProvider.FindNearestBaseController and it answers the far-away
+//! base's posts, so the non-empty assertion goes red naming the count.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_PlacementProvidersAnswerEmptyNotNull : SCR_AutotestCaseBase
+{
+	//! How far the probe must be from every town, base and tower.
+	static const float CLEARANCE = 2000;
+
+	//! The radius the providers are asked over. m_fSearchRadius' shipped default (baseRange).
+	static const float SEARCH_RADIUS = 280;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector probe = FindClearPosition();
+
+		string failure = VerifyProvider(new OVT_DeploymentPlacementProvider(), "the base provider", probe);
+
+		if (failure == "")
+			failure = VerifyProvider(new OVT_TowerCoverPostPlacementProvider(), "the tower cover post provider", probe);
+
+		if (failure == "")
+			failure = VerifyProvider(new OVT_SniperMarkerPlacementProvider(), "the sniper marker provider", probe);
+
+		if (failure == "")
+			failure = VerifyProvider(new OVT_BaseDefendPositionPlacementProvider(), "the base defend position provider", probe);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("All three shipped placement providers, and the base contract, answered an empty non-null list at a position %1 m clear of every town, base and tower",
+			CLEARANCE.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The whole contract, on one provider.
+	//! \param[in] provider The provider to ask.
+	//! \param[in] label Its name, for the message.
+	//! \param[in] probe A position with nothing near it.
+	//! \return An empty string when the contract holds, or the broken half.
+	protected string VerifyProvider(notnull OVT_DeploymentPlacementProvider provider, string label, vector probe)
+	{
+		array<ref OVT_DeploymentPlacement> placements = provider.ResolvePlacements(probe, SEARCH_RADIUS, 0);
+
+		if (!placements)
+			return string.Format("%1 answered NULL where nothing qualifies - 'nothing here' is the ordinary answer for a placement provider and every caller would have to guard against it",
+				label);
+
+		if (!placements.IsEmpty())
+			return string.Format("%1 answered %2 post(s) at a position deliberately chosen clear of every town, base and tower - either the probe is not clear after all, or the provider is not bounded by the radius it is given",
+				label, placements.Count().ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A position at least CLEARANCE from every town, base and radio tower.
+	//! \return The probe position.
+	protected vector FindClearPosition()
+	{
+		vector origin = "0 0 0";
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (occupying && occupying.m_Bases && !occupying.m_Bases.IsEmpty())
+			origin = occupying.m_Bases[0].location;
+
+		vector candidate = origin;
+		for (int step = 1; step <= 12; step++)
+		{
+			candidate = origin + Vector(CLEARANCE * step, 0, CLEARANCE * step);
+
+			if (IsClearOfEverything(candidate))
+				return candidate;
+		}
+
+		return candidate;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] position The position to test.
+	//! \return True when no town, base or radio tower is within CLEARANCE.
+	protected bool IsClearOfEverything(vector position)
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (towns && towns.m_Towns)
+		{
+			foreach (OVT_TownData town : towns.m_Towns)
+			{
+				if (town && vector.Distance(position, town.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return true;
+
+		if (occupying.m_Bases)
+		{
+			foreach (OVT_BaseData baseData : occupying.m_Bases)
+			{
+				if (baseData && vector.Distance(position, baseData.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		if (occupying.m_RadioTowers)
+		{
+			foreach (OVT_RadioTowerData tower : occupying.m_RadioTowers)
+			{
+				if (tower && vector.Distance(position, tower.location) < CLEARANCE)
+					return false;
+			}
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE STANDING CloneModule TRAP, asserted directly on every module this phase ships.
+//!
+//! WHY THIS CASE EXISTS AT ALL. Every deployment gets a CLONE of its config's modules
+//! (OVT_DeploymentComponent.InitializeDeployment), and CloneModule copies attribute by attribute BY
+//! HAND and is NOT CHAINED - a subclass builds a fresh instance and repeats its parent's whole copy
+//! list. A forgotten line does not warn, does not log and does not fail to parse: it ships the CLASS
+//! DEFAULT instead of the authored value, on every deployment, forever. That is how
+//! m_fMaxCruiseSpeed was lost on the vehicle module for a whole release, and it is the reason
+//! integration booked this assertion as "feature 5's problem".
+//!
+//! WHAT A DROPPED LINE WOULD ACTUALLY COST HERE, module by module:
+//!   - m_eImportance   -> every tower guard and sniper team registers at the class default tier and
+//!                        quietly loses the AI spawn-budget race on a busy server;
+//!   - m_Placement     -> the placed module has nowhere to stand anybody, wants 0 groups and
+//!                        registers NOTHING, logging nothing;
+//!   - m_sCompositionTag -> the composition module resolves no composition and builds no structure;
+//!   - m_eSlotType     -> a road checkpoint hunts for a flat SMALL slot and never finds one;
+//!   - m_eParkingType  -> every truck asks for a car-sized spot, finds none, and the base parks
+//!                        nothing.
+//!
+//! EVERY PROBE VALUE IS NON-ZERO, NON-EMPTY AND NON-FALSE, WHICH IS THE POINT. A `new` instance
+//! starts at 0 / "" / false / enum 0, so a probe value of `false` or `0` would be indistinguishable
+//! from a dropped copy and the assertion would pass while the bug shipped. Every bool below is set
+//! TRUE and every enum to a non-zero member for exactly that reason.
+//!
+//! ⚠ [Attribute] DEFVALUES DO NOT APPLY TO `new` - which is what makes the above true, and is worth
+//! stating because it is counter-intuitive and bites every fixture in this framework.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED. Four bare `new` module objects with no parent
+//! deployment; CloneModule is pure field copying.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): delete any
+//! single `clone.X = X;` line from any of the four CloneModule implementations and this case goes red
+//! naming that exact field and the module it belongs to.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_NewModuleClonesCarryEveryAttribute : SCR_AutotestCaseBase
+{
+	//! Distinctive probe values. None may be 0, "" or false - see the class header.
+	static const string PROBE_NAME = "OVT_TEST clone probe";
+	static const string PROBE_GROUP = "OVT_TEST group type";
+	static const string PROBE_TAG = "OVT_TEST composition tag";
+	static const string PROBE_VEHICLE = "OVT_TEST vehicle type";
+	static const int PROBE_MIN_GROUPS = 3;
+	static const int PROBE_MAX_GROUPS = 7;
+	static const float PROBE_SPAWN_RADIUS = 123.5;
+	static const int PROBE_COST = 41;
+	static const int PROBE_REINFORCE_COST = 17;
+	static const float PROBE_SEARCH_RADIUS = 321.5;
+	static const int PROBE_VEHICLE_COUNT = 5;
+	static const int PROBE_VEHICLE_COST = 77;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string failure = VerifyInfantryModule();
+
+		if (failure == "")
+			failure = VerifyPlacedModule();
+
+		if (failure == "")
+			failure = VerifyCompositionModule();
+
+		if (failure == "")
+			failure = VerifyParkedVehicleModule();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Every attribute of the infantry, placed-infantry, composition and parked-vehicle modules survives CloneModule", LogLevel.NORMAL);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The ONE attribute this phase added to the shipped infantry module.
+	//! \return An empty string when the clone carries it, or the failure.
+	protected string VerifyInfantryModule()
+	{
+		OVT_InfantrySpawningDeploymentModule module = new OVT_InfantrySpawningDeploymentModule();
+		AuthorInfantryAttributes(module);
+
+		OVT_InfantrySpawningDeploymentModule clone = OVT_InfantrySpawningDeploymentModule.Cast(module.CloneModule());
+		if (!clone)
+			return "OVT_InfantrySpawningDeploymentModule.CloneModule() did not answer an infantry module at all";
+
+		return CompareInfantryAttributes(module, clone, "OVT_InfantrySpawningDeploymentModule");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! All thirteen inherited attributes plus the placed module's own two.
+	//! \return An empty string when the clone carries them all, or the first missing one.
+	protected string VerifyPlacedModule()
+	{
+		OVT_PlacedInfantrySpawningDeploymentModule module = new OVT_PlacedInfantrySpawningDeploymentModule();
+		AuthorInfantryAttributes(module);
+		module.m_Placement = new OVT_SniperMarkerPlacementProvider();
+		module.m_fSearchRadius = PROBE_SEARCH_RADIUS;
+
+		OVT_PlacedInfantrySpawningDeploymentModule clone = OVT_PlacedInfantrySpawningDeploymentModule.Cast(module.CloneModule());
+		if (!clone)
+			return "OVT_PlacedInfantrySpawningDeploymentModule.CloneModule() did not answer a placed-infantry module at all";
+
+		string failure = CompareInfantryAttributes(module, clone, "OVT_PlacedInfantrySpawningDeploymentModule");
+		if (failure != "")
+			return failure;
+
+		if (!clone.m_Placement)
+			return "The clone of OVT_PlacedInfantrySpawningDeploymentModule carries NO placement provider - it would have nowhere to stand anybody, want 0 groups and register nothing at all, silently";
+
+		if (clone.m_fSearchRadius != PROBE_SEARCH_RADIUS)
+			return string.Format("The clone of OVT_PlacedInfantrySpawningDeploymentModule carries m_fSearchRadius %1, expected the authored %2",
+				clone.m_fSearchRadius.ToString(), PROBE_SEARCH_RADIUS.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! All thirteen inherited attributes plus the composition module's own three.
+	//! \return An empty string when the clone carries them all, or the first missing one.
+	protected string VerifyCompositionModule()
+	{
+		OVT_CompositionSpawningDeploymentModule module = new OVT_CompositionSpawningDeploymentModule();
+		AuthorInfantryAttributes(module);
+		module.m_sCompositionTag = PROBE_TAG;
+		module.m_eSlotType = OVT_EDeploymentSlotType.ROAD_LARGE;
+		module.m_bFillAmmoBoxes = true;
+
+		OVT_CompositionSpawningDeploymentModule clone = OVT_CompositionSpawningDeploymentModule.Cast(module.CloneModule());
+		if (!clone)
+			return "OVT_CompositionSpawningDeploymentModule.CloneModule() did not answer a composition module at all";
+
+		string failure = CompareInfantryAttributes(module, clone, "OVT_CompositionSpawningDeploymentModule");
+		if (failure != "")
+			return failure;
+
+		if (clone.m_sCompositionTag != PROBE_TAG)
+			return string.Format("The clone of OVT_CompositionSpawningDeploymentModule carries m_sCompositionTag '%1', expected '%2' - it would resolve no composition and build no structure",
+				clone.m_sCompositionTag, PROBE_TAG);
+
+		if (clone.m_eSlotType != OVT_EDeploymentSlotType.ROAD_LARGE)
+			return string.Format("The clone of OVT_CompositionSpawningDeploymentModule carries slot type %1, expected ROAD_LARGE - a road checkpoint would hunt for a flat slot it will never find",
+				typename.EnumToString(OVT_EDeploymentSlotType, clone.m_eSlotType));
+
+		if (!clone.m_bFillAmmoBoxes)
+			return "The clone of OVT_CompositionSpawningDeploymentModule carries m_bFillAmmoBoxes FALSE, expected the authored TRUE";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! All five of the parked-vehicle module's attributes.
+	//! \return An empty string when the clone carries them all, or the first missing one.
+	protected string VerifyParkedVehicleModule()
+	{
+		OVT_ParkedVehicleSpawningDeploymentModule module = new OVT_ParkedVehicleSpawningDeploymentModule();
+		module.m_sModuleName = PROBE_NAME;
+		module.m_sVehicleType = PROBE_VEHICLE;
+		module.m_iVehicleCount = PROBE_VEHICLE_COUNT;
+		module.m_iCostPerVehicle = PROBE_VEHICLE_COST;
+		module.m_eParkingType = OVT_ParkingType.PARKING_HEAVY;
+
+		OVT_ParkedVehicleSpawningDeploymentModule clone = OVT_ParkedVehicleSpawningDeploymentModule.Cast(module.CloneModule());
+		if (!clone)
+			return "OVT_ParkedVehicleSpawningDeploymentModule.CloneModule() did not answer a parked-vehicle module at all";
+
+		if (clone.m_sModuleName != PROBE_NAME)
+			return "The clone of OVT_ParkedVehicleSpawningDeploymentModule lost m_sModuleName";
+
+		if (clone.m_sVehicleType != PROBE_VEHICLE)
+			return string.Format("The clone of OVT_ParkedVehicleSpawningDeploymentModule carries m_sVehicleType '%1', expected '%2' - it would resolve no prefab and park nothing",
+				clone.m_sVehicleType, PROBE_VEHICLE);
+
+		if (clone.m_iVehicleCount != PROBE_VEHICLE_COUNT)
+			return string.Format("The clone of OVT_ParkedVehicleSpawningDeploymentModule carries m_iVehicleCount %1, expected %2",
+				clone.m_iVehicleCount.ToString(), PROBE_VEHICLE_COUNT.ToString());
+
+		if (clone.m_iCostPerVehicle != PROBE_VEHICLE_COST)
+			return string.Format("The clone of OVT_ParkedVehicleSpawningDeploymentModule carries m_iCostPerVehicle %1, expected %2 - the deployment's total cost would be wrong",
+				clone.m_iCostPerVehicle.ToString(), PROBE_VEHICLE_COST.ToString());
+
+		if (clone.m_eParkingType != OVT_ParkingType.PARKING_HEAVY)
+			return string.Format("The clone of OVT_ParkedVehicleSpawningDeploymentModule carries parking type %1, expected PARKING_HEAVY - every vehicle would ask for the wrong spot size and the base would park nothing",
+				typename.EnumToString(OVT_ParkingType, clone.m_eParkingType));
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sets every attribute OVT_InfantrySpawningDeploymentModule declares to a distinctive value.
+	//! \param[in] module The module to author.
+	protected void AuthorInfantryAttributes(notnull OVT_InfantrySpawningDeploymentModule module)
+	{
+		module.m_sModuleName = PROBE_NAME;
+		module.m_sGroupType = PROBE_GROUP;
+		module.m_iMinGroupCount = PROBE_MIN_GROUPS;
+		module.m_iMaxGroupCount = PROBE_MAX_GROUPS;
+		module.m_bScaleByTownSize = true;
+		module.m_fSpawnRadius = PROBE_SPAWN_RADIUS;
+		module.m_iCostPerGroup = PROBE_COST;
+		module.m_bAllowReinforcement = true;
+		module.m_iReinforcementCost = PROBE_REINFORCE_COST;
+		module.m_bSpawnAtNearestBase = true;
+		module.m_bReinforceFromNearestBase = true;
+		module.m_eImportance = SCR_EAISpawnImportance.CRITICAL;
+		module.m_bSnapToRoad = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Compares every attribute OVT_InfantrySpawningDeploymentModule declares.
+	//! \param[in] module The authored module.
+	//! \param[in] clone Its clone.
+	//! \param[in] label The class being checked, for the message.
+	//! \return An empty string when all thirteen survived, or the first that did not.
+	protected string CompareInfantryAttributes(notnull OVT_InfantrySpawningDeploymentModule module,
+		notnull OVT_InfantrySpawningDeploymentModule clone, string label)
+	{
+		if (clone.m_sModuleName != module.m_sModuleName)
+			return string.Format("%1's clone lost m_sModuleName - the module's OWNER KEY is derived from it, so its groups would be registered under a different key and never reclaimed", label);
+
+		if (clone.m_sGroupType != module.m_sGroupType)
+			return string.Format("%1's clone lost m_sGroupType - core resolves (factionKey, groupName) and would refuse every registration", label);
+
+		if (clone.m_iMinGroupCount != module.m_iMinGroupCount)
+			return string.Format("%1's clone lost m_iMinGroupCount", label);
+
+		if (clone.m_iMaxGroupCount != module.m_iMaxGroupCount)
+			return string.Format("%1's clone lost m_iMaxGroupCount - the force size would be the class default on every deployment", label);
+
+		if (clone.m_bScaleByTownSize != module.m_bScaleByTownSize)
+			return string.Format("%1's clone lost m_bScaleByTownSize", label);
+
+		if (clone.m_fSpawnRadius != module.m_fSpawnRadius)
+			return string.Format("%1's clone lost m_fSpawnRadius", label);
+
+		if (clone.m_iCostPerGroup != module.m_iCostPerGroup)
+			return string.Format("%1's clone lost m_iCostPerGroup - the deployment's resource cost would be wrong", label);
+
+		if (clone.m_bAllowReinforcement != module.m_bAllowReinforcement)
+			return string.Format("%1's clone lost m_bAllowReinforcement - a wiped force would never be rebought", label);
+
+		if (clone.m_iReinforcementCost != module.m_iReinforcementCost)
+			return string.Format("%1's clone lost m_iReinforcementCost", label);
+
+		if (clone.m_bSpawnAtNearestBase != module.m_bSpawnAtNearestBase)
+			return string.Format("%1's clone lost m_bSpawnAtNearestBase", label);
+
+		if (clone.m_bReinforceFromNearestBase != module.m_bReinforceFromNearestBase)
+			return string.Format("%1's clone lost m_bReinforceFromNearestBase", label);
+
+		if (clone.m_eImportance != module.m_eImportance)
+			return string.Format("%1's clone lost m_eImportance - every group would register at the class default tier and lose the AI spawn-budget race", label);
+
+		if (clone.m_bSnapToRoad != module.m_bSnapToRoad)
+			return string.Format("%1's clone lost m_bSnapToRoad - a garrison authored to hold a PLACE would be road-snapped up to 500 m away and, with a DEFEND or null plan, would hold THERE", label);
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The three base-defense patrol configs resolve, validate, and are the ONLY base configs that build
+//! a movable plan - a non-empty CYCLING PERIMETER one.
+//!
+//! THIS IS THE "GARRISONS NEVER WANDER, PATROLS ALWAYS DO" CLAIM AT ITS ROOT. A plan is the only
+//! opt-in there is for being walked while dormant (core's movement tick advances a dormant group only
+//! along a plan with a movable point in it). These three configs replace the legacy base defense
+//! patrol upgrade, whose whole job was a four-corner cycle around the base, so they MUST produce a
+//! cycling plan; the
+//! six static base configs that follow in Phases 4-5 must NOT, and their own case asserts that half.
+//! Getting this backwards is invisible in play until a base's entire garrison has walked off into the
+//! countryside - or until a "patrol" stands in one spot for a whole campaign.
+//!
+//! PERIMETER IS ASSERTED BY NAME, not merely inferred from the plan shape, because
+//! OVT_PatrolBehaviorDeploymentModule's DEFEND branch also answers with a plan - a one-point,
+//! non-cycling one - and a config that lost its m_ePatrolType line would fall back to the enum's
+//! zero value and read as an ordinary authoring value rather than as a mistake.
+//!
+//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it - the same shape (and the same reason)
+//! as OVT_TEST_Init_Deployments_TownPatrolPlanCycles: creating a marker leaks a repeating 10 s
+//! UpdateDeployment into the shared test world.
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED.
+//!
+//! ⚠ The plan's positions are NOT asserted - they are rolled against live terrain. The Logic tier
+//! owns the geometry.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
+//! `m_ePatrolType PERIMETER` to DEFEND in any one of the three .conf files and that config's patrol-
+//! type assertion goes red naming it; delete the OVT_PatrolBehaviorDeploymentModule block from one
+//! and the "no patrol module" assertion goes red first; rename a config's m_sDeploymentName, or drop
+//! its entry from overthrowDeployments.conf, and the resolution assertion goes red before either;
+//! set plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildPerimeterPlan and all three go red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCaseBase
+{
+	//! The three shipped base-defense configs that are allowed to move.
+	static const string GARRISON_CONFIG = "Base Garrison Patrol";
+	static const string HEAVY_CONFIG = "Base Heavy Patrol";
+	static const string AT_CONFIG = "Base AT Section";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		array<string> configNames = {GARRISON_CONFIG, HEAVY_CONFIG, AT_CONFIG};
+
+		foreach (string configName : configNames)
+		{
+			string failure = VerifyConfig(manager, configName);
+			if (failure != "")
+			{
+				SetFailure(failure);
+				return true;
+			}
+		}
+
+		PrintFormat("All three base patrol configs resolve, validate and build cycling PERIMETER plans: '%1', '%2', '%3'",
+			GARRISON_CONFIG, HEAVY_CONFIG, AT_CONFIG);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] manager The deployment manager, for its registry.
+	//! \param[in] configName The shipped config name to check.
+	//! \return An empty string when every claim holds for it, or the first broken one.
+	protected string VerifyConfig(notnull OVT_DeploymentManagerComponent manager, string configName)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
+		if (!config)
+			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf, and the base defense it carries can never be created", configName);
+
+		if (!config.IsValidConfig())
+			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
+
+		OVT_PatrolBehaviorDeploymentModule patrol = FindPatrolModule(config);
+		if (!patrol)
+			return string.Format("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - every group it registers would get a null plan and hold the spawn point, which is a garrison and not a patrol", configName);
+
+		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER)
+			return string.Format("Config '%1' authors patrol type %2, not PERIMETER - it would hold one post instead of circling the base, which is the behaviour of the six STATIC base configs and not of this one",
+				configName, typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
+
+		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
+
+		if (!plan)
+			return string.Format("The patrol module of '%1' answered with no plan at all - its groups would register with no waypoints", configName);
+
+		int count = plan.m_aPositions.Count();
+		if (count == 0)
+			return string.Format("'%1' builds an EMPTY plan - the patrol would register with no waypoints and never move", configName);
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types) - RegisterGroup refuses a ragged plan outright, so the patrol would silently never be registered",
+				configName, count.ToString(), plan.m_aTypes.Count().ToString());
+
+		if (!plan.m_bCycle)
+			return string.Format("'%1' builds a NON-CYCLING plan - the patrol would walk to its last corner and guard that quarter of the base for the rest of the campaign", configName);
+
+		if (CountMovable(plan) == 0)
+			return string.Format("'%1' builds a plan with no movable point - a plan is the ONLY opt-in for being walked while dormant, so this patrol would stand still", configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first patrol behaviour module, or null.
+	protected OVT_PatrolBehaviorDeploymentModule FindPatrolModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
+		{
+			OVT_PatrolBehaviorDeploymentModule patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
+			if (patrol)
+				return patrol;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] plan The plan to count.
+	//! \return How many of its points the movement tick would advance along.
+	protected int CountMovable(notnull OVT_VirtualWaypointPlan plan)
+	{
+		int movable = 0;
+		foreach (int type : plan.m_aTypes)
+		{
+			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
+				movable++;
+		}
+
+		return movable;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A base whose centre sits inside a town's 500 m bounds STILL carries the BASE bit, and a BASE-only
+//! base-defense config accepts it. This is decision S1, and this case is the only mechanical guard
+//! on it.
+//!
+//! WHY THE BIT EXISTS. GetPrimaryLocationTypeAtPosition() is a first-match precedence chain that
+//! tests towns before bases, and OVT_TownData.IsWithinTownBounds() is a hardcoded 500 m radius, so a
+//! base centre inside those bounds classified as TOWN and could be offered NO base-only config -
+//! GetBasePositions() offers the base's own centre and nothing else. Measured 2026-08-17: 4 of Eden's
+//! 10 bases (Erquy 323 m, Lamentin 372 m, Levie 460 m, Montfort Castle 481 m) and this test world's
+//! only base (114 m). The legacy system being replaced ran a priority sweep per base controller and
+//! never asked what kind of place a base was, so leaving it would have been a straight regression on
+//! ~40 % of the map's bases.
+//!
+//! ⚠ THE RADIUS IS THE SAFETY ARGUMENT, AND IT IS ASSERTED HERE AS A NUMBER. The BASE bit is OR-ed in
+//! within BASE_CLASSIFICATION_RADIUS, which is deliberately EQUAL to HasExistingDeploymentOfType()'s
+//! 250 m name-scoped dedup radius: every position that gains the bit is therefore within the dedup's
+//! reach of the base's own copy of each config, so a base and a shadowing town cannot each buy a full
+//! set of base defense. If someone raises this constant to "fix" a base at 300 m, force doubling
+//! becomes possible at every base whose town centre is between the two radii - which is why the
+//! constant, not just the behaviour, is pinned.
+//!
+//! THE NEGATIVE CONTROL IS THE OTHER HALF: a probe just OUTSIDE the radius, taken toward the town so
+//! that the precedence chain still answers TOWN there, must NOT carry the BASE bit. Whether this
+//! world's geometry can produce such a probe depends on the town's own bounds, so that half is
+//! skipped-with-a-print rather than asserted blind (the Phase 2 snap-case discipline).
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - pure queries on live campaign
+//! data. The classification does no ground trace, so probes off the terrain are legal.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
+//! `IsNearBaseCentre(position)` OR-in from GetLocationTypeAtPosition() and the BASE-bit assertion
+//! goes red naming the shadowed base; change BASE_CLASSIFICATION_RADIUS to 500 and the constant
+//! assertion goes red; change `m_iAllowedLocationTypes BASE` in Deployment_BaseGarrisonPatrol.conf to
+//! TOWN and the shipped-consumer assertion goes red instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_TownShadowedBaseAcceptsBaseConfig : SCR_AutotestCaseBase
+{
+	//! The first shipped BASE-only base-defense config, used as the consumer of the classification.
+	static const string BASE_ONLY_CONFIG = "Base Garrison Patrol";
+
+	//! The radius the OR-in is required to use, restated here so a change to the production constant
+	//! has to be a deliberate two-file change rather than a silent one.
+	static const float EXPECTED_RADIUS = 250;
+
+	//! How far past the radius the negative control probes.
+	static const float OUTSIDE_MARGIN = 10;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS != EXPECTED_RADIUS)
+		{
+			SetFailure("BASE_CLASSIFICATION_RADIUS is %1, not %2 - it MUST equal HasExistingDeploymentOfType()'s dedup radius, or a base and a position just outside the dedup's reach can each buy a full set of base defense",
+				OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS.ToString(), EXPECTED_RADIUS.ToString());
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
+		{
+			SetFailure("This world has no bases, so the BASE classification cannot be exercised - InitializeBases() found none");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+		{
+			SetFailure("OVT_Global.GetTowns() is null, so 'is this base shadowed by a town' cannot be asked at all");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so the classification has no shipped consumer to be checked against");
+			return true;
+		}
+
+		OVT_DeploymentConfig baseConfig = manager.m_DeploymentRegistry.FindConfigByName(BASE_ONLY_CONFIG);
+		if (!baseConfig)
+		{
+			SetFailure("The deployment registry does not resolve '%1' - the first BASE-only base-defense config is missing, so nothing consumes the classification", BASE_ONLY_CONFIG);
+			return true;
+		}
+
+		OVT_BaseData shadowed = FindTownShadowedBase(manager, occupying);
+
+		if (!shadowed)
+		{
+			// Not a failure: whether a world HAS a town-shadowed base is a property of its layers.
+			// The positive claim is still made against an ordinary base centre below.
+			shadowed = occupying.m_Bases[0];
+			Print("[Overthrow][TEST] No town-shadowed base in this world - the S1 claim is exercised against an ordinary base centre instead", LogLevel.WARNING);
+		}
+		else
+		{
+			PrintFormat("Base at %1 is town-shadowed: its primary classification is %2", shadowed.location.ToString(),
+				manager.GetPrimaryLocationTypeAtPosition(shadowed.location).ToString());
+		}
+
+		OVT_LocationTypeFlag classification = manager.GetLocationTypeAtPosition(shadowed.location);
+
+		if ((classification & OVT_LocationTypeFlag.BASE) == 0)
+		{
+			SetFailure("The base centre at %1 classifies %2 with NO base bit - every BASE-only base-defense config is unbuyable there, silently, exactly as it was before the bit was OR-ed in",
+				shadowed.location.ToString(), classification.ToString());
+			return true;
+		}
+
+		if (!baseConfig.CanUseLocationType(classification))
+		{
+			SetFailure("'%1' refuses a base centre classified %2 - the config's authored location types and the classification no longer agree, so the base can never be fortified",
+				BASE_ONLY_CONFIG, classification.ToString());
+			return true;
+		}
+
+		string negative = VerifyOutsideRadius(manager, towns, shadowed);
+		if (negative != "")
+		{
+			SetFailure(negative);
+			return true;
+		}
+
+		PrintFormat("A shadowed base centre classifies %1 and '%2' accepts it", classification.ToString(), BASE_ONLY_CONFIG);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The first base whose own centre the PRECEDENCE CHAIN calls a TOWN - i.e. one that could be
+	//! offered no BASE-only config at all before the OR-in existed.
+	//! \param[in] manager The deployment manager, for the classification.
+	//! \param[in] occupying The occupying faction manager, for the base list.
+	//! \return The shadowed base, or null when this world has none.
+	protected OVT_BaseData FindTownShadowedBase(notnull OVT_DeploymentManagerComponent manager,
+		notnull OVT_OccupyingFactionManager occupying)
+	{
+		foreach (OVT_BaseData baseData : occupying.m_Bases)
+		{
+			if (!baseData)
+				continue;
+
+			if (manager.GetPrimaryLocationTypeAtPosition(baseData.location) == OVT_LocationTypeFlag.TOWN)
+				return baseData;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The negative control: a position just outside BASE_CLASSIFICATION_RADIUS, taken toward the
+	//! nearest town so the precedence chain still answers TOWN there, must NOT gain the BASE bit.
+	//!
+	//! Skipped with a printed line when this world's geometry cannot produce such a probe, because a
+	//! probe that classifies BASE through the chain's own 500 m branch would be asserting the wrong
+	//! thing.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] towns The town manager, for the direction to probe in.
+	//! \param[in] baseData The base to probe away from.
+	//! \return An empty string when the control holds or could not be run, or the broken claim.
+	protected string VerifyOutsideRadius(notnull OVT_DeploymentManagerComponent manager,
+		notnull OVT_TownManagerComponent towns, notnull OVT_BaseData baseData)
+	{
+		OVT_TownData town = towns.GetNearestTown(baseData.location);
+		if (!town)
+		{
+			Print("[Overthrow][TEST] No town near this base - the outside-the-radius control was not run", LogLevel.NORMAL);
+			return "";
+		}
+
+		vector direction = town.location - baseData.location;
+		direction[1] = 0;
+
+		if (direction.Length() < 1)
+		{
+			Print("[Overthrow][TEST] The base and its town share a centre - the outside-the-radius control was not run", LogLevel.NORMAL);
+			return "";
+		}
+
+		direction.Normalize();
+		vector probe = baseData.location + direction * (EXPECTED_RADIUS + OUTSIDE_MARGIN);
+
+		if (manager.GetPrimaryLocationTypeAtPosition(probe) != OVT_LocationTypeFlag.TOWN)
+		{
+			Print("[Overthrow][TEST] The outside-the-radius probe does not classify TOWN through the chain, so the control cannot distinguish the OR-in from the chain's own base branch - not run", LogLevel.NORMAL);
+			return "";
+		}
+
+		OVT_LocationTypeFlag outside = manager.GetLocationTypeAtPosition(probe);
+		if ((outside & OVT_LocationTypeFlag.BASE) != 0)
+			return string.Format("A position %1 m from the base centre classifies %2 and carries the BASE bit - the OR-in reaches past the 250 m dedup radius, so that position and the base can each buy their own full set of base defense",
+				(EXPECTED_RADIUS + OUTSIDE_MARGIN).ToString(), outside.ToString());
+
+		PrintFormat("Negative control held: a probe %1 m out classifies %2 with no base bit",
+			(EXPECTED_RADIUS + OUTSIDE_MARGIN).ToString(), outside.ToString());
+		return "";
+	}
+}
+
+
+//------------------------------------------------------------------------------------------------
+//! THE THREE PLACED BASE-DEFENSE CONFIGS RESOLVE, VALIDATE, AND NONE OF THEM CAN EVER WANDER.
+//!
+//! THIS IS THE OTHER HALF OF "GARRISONS NEVER WANDER, PATROLS ALWAYS DO", and it is asserted at the
+//! only place the difference exists: the PLAN. Core's movement tick advances a dormant group only
+//! along a plan that has a movable point in it, so the plan is the opt-in and a config that authors no
+//! opinionated behaviour module opts out by construction. The three patrol configs' own case asserts
+//! the cycling half; this one asserts:
+//!   - Base Tower Guards  -> NO plan at all (null). Legacy parity, and deliberate: every post waypoint
+//!     available parks a guard at a smart action that is a pose loop with no fire node, while an idle
+//!     group keeps full threat and attack reactions.
+//!   - Base Sniper Positions -> NO plan at all (null), same reason.
+//!   - Base Defense Positions -> a ONE-POINT, NON-CYCLING DEFEND plan, because the legacy defense-
+//!     position guard did carry a defend waypoint on its post.
+//!
+//! ⚠ "NULL" IS ASSERTED THROUGH THE SAME WALK THE PRODUCTION PATH USES, not by counting modules:
+//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() asks every behaviour module in order and
+//! takes the FIRST non-null answer, and the reinforcement module IS a behaviour module. A case that
+//! merely asserted "no patrol module" would pass if some future behaviour module started answering a
+//! plan of its own.
+//!
+//! THE PLACEMENT PROVIDER IS ASSERTED TOO. A placed module with no m_Placement wants zero groups,
+//! registers nothing, and logs nothing - the single most silent way one of these configs can ship
+//! broken. So is m_eImportance on the two configs the plan authors HIGH: a tower guard at the class
+//! default loses the AI spawn-budget race on a busy server and simply is not there when the player
+//! arrives, which is indistinguishable from "the placement failed".
+//!
+//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it - the TownPatrolPlanCycles shape.
+//! Creating a marker leaks a repeating 10 s UpdateDeployment into the shared test world.
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): add an
+//! OVT_PatrolBehaviorDeploymentModule to Deployment_BaseTowerGuards.conf and its null-plan assertion
+//! goes red naming the type that answered; change Deployment_BaseDefensePositions.conf's
+//! m_ePatrolType from DEFEND to PERIMETER and the one-point/non-cycling assertions go red; delete the
+//! m_Placement block from any of the three and that config's provider assertion goes red first;
+//! change m_eImportance HIGH to NORMAL on the tower config and the importance assertion goes red;
+//! rename any config, or drop its entry from overthrowDeployments.conf, and resolution goes red
+//! before all of them.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCaseBase
+{
+	//! The three shipped configs that stand men on exact posts.
+	static const string DEFENSE_CONFIG = "Base Defense Positions";
+	static const string TOWER_CONFIG = "Base Tower Guards";
+	static const string SNIPER_CONFIG = "Base Sniper Positions";
+
+	//! Every base-defense concern the legacy conf authored at priority 2 keeps that priority, because
+	//! the evaluator's escalation order IS the old per-base priority sweep, re-expressed.
+	static const int EXPECTED_PRIORITY = 2;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null");
+			return true;
+		}
+
+		if (!manager.m_DeploymentRegistry)
+		{
+			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
+			return true;
+		}
+
+		string failure = VerifyStatic(manager, TOWER_CONFIG, SCR_EAISpawnImportance.HIGH);
+
+		if (failure == "")
+			failure = VerifyStatic(manager, SNIPER_CONFIG, SCR_EAISpawnImportance.HIGH);
+
+		if (failure == "")
+			failure = VerifyDefensePositions(manager);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("'%1' and '%2' build NO plan at all; '%3' builds a one-point non-cycling DEFEND plan - none of the three can be walked by the movement tick",
+			TOWER_CONFIG, SNIPER_CONFIG, DEFENSE_CONFIG);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A config whose groups get no waypoint at all.
+	//! \param[in] manager The deployment manager, for its registry.
+	//! \param[in] configName The shipped config name.
+	//! \param[in] expectedImportance The AI spawn-budget tier the config is required to author.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyStatic(notnull OVT_DeploymentManagerComponent manager, string configName, SCR_EAISpawnImportance expectedImportance)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
+
+		string shared = VerifyShared(config, configName, expectedImportance);
+		if (shared != "")
+			return shared;
+
+		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
+		if (plan)
+			return string.Format("'%1' builds a plan of %2 point(s) - it must build NONE. Its guards would be given waypoints, and any movable point in them hands the movement tick a garrison to walk off its post",
+				configName, plan.m_aPositions.Count().ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The one placed config that DOES get a plan - a one-point, non-cycling DEFEND.
+	//! \param[in] manager The deployment manager, for its registry.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyDefensePositions(notnull OVT_DeploymentManagerComponent manager)
+	{
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(DEFENSE_CONFIG);
+
+		string shared = VerifyShared(config, DEFENSE_CONFIG, SCR_EAISpawnImportance.NORMAL);
+		if (shared != "")
+			return shared;
+
+		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
+		if (!plan)
+			return string.Format("'%1' builds NO plan - the legacy defense-position guard carried a DEFEND waypoint on its post and this config is its replacement", DEFENSE_CONFIG);
+
+		int count = plan.m_aPositions.Count();
+		if (count != 1)
+			return string.Format("'%1' builds a %2-point plan, expected exactly one - a defense position is one post held by one group",
+				DEFENSE_CONFIG, count.ToString());
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types, %4 params) - RegisterGroup refuses a ragged plan outright, so the guards would silently never be registered",
+				DEFENSE_CONFIG, count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
+
+		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
+			return string.Format("'%1' builds a plan whose only point is type %2, expected DEFEND - any movable type here is an invitation for the movement tick to walk the base's defense away",
+				DEFENSE_CONFIG, plan.m_aTypes[0].ToString());
+
+		if (plan.m_bCycle)
+			return string.Format("'%1' builds a CYCLING plan - a one-point cycle is still a cycle, and the point of a defense position is that it is never left", DEFENSE_CONFIG);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Everything all three configs must satisfy.
+	//! \param[in] config The resolved config, or null.
+	//! \param[in] configName Its name, for the messages.
+	//! \param[in] expectedImportance The AI spawn-budget tier it is required to author.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyShared(OVT_DeploymentConfig config, string configName, SCR_EAISpawnImportance expectedImportance)
+	{
+		if (!config)
+			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf, and the base defense it carries can never be created", configName);
+
+		if (!config.IsValidConfig())
+			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
+
+		if (config.m_iPriority != EXPECTED_PRIORITY)
+			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place now, so a base would buy this concern at the wrong point in its escalation",
+				configName, config.m_iPriority.ToString(), EXPECTED_PRIORITY.ToString());
+
+		if ((config.m_iAllowedLocationTypes & OVT_LocationTypeFlag.BASE) == 0)
+			return string.Format("Config '%1' does not allow the BASE location type (%2) - it would never be offered at a base at all",
+				configName, config.m_iAllowedLocationTypes.ToString());
+
+		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
+		if (!placed)
+			return string.Format("Config '%1' carries no OVT_PlacedInfantrySpawningDeploymentModule - its groups would be rolled onto a ring around the marker instead of standing on their posts", configName);
+
+		if (!placed.m_Placement)
+			return string.Format("Config '%1' authors no m_Placement provider - the module has nowhere to stand anybody, wants 0 groups and registers NOTHING, logging nothing", configName);
+
+		if (placed.m_eImportance != expectedImportance)
+			return string.Format("Config '%1' authors AI spawn importance %2, expected %3 - the wrong tier loses the spawn-budget race on a busy server and the post is simply empty when the player arrives",
+				configName, typename.EnumToString(SCR_EAISpawnImportance, placed.m_eImportance), typename.EnumToString(SCR_EAISpawnImportance, expectedImportance));
+
+		if (placed.m_bSnapToRoad)
+			return string.Format("Config '%1' leaves m_bSnapToRoad ON - the placed module does not read it today, but a future class swap would silently move this garrison up to 500 m onto a road", configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The plan a group of this config would be registered with, resolved the way
+	//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() does it: ask every BEHAVIOUR module in
+	//! authored order, take the first non-null answer.
+	//! \param[in] config The config to ask.
+	//! \return The plan, or null when no behaviour module has an opinion.
+	protected OVT_VirtualWaypointPlan ResolvePlanLikeProduction(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
+		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
+		{
+			if (!behaviorModule)
+				continue;
+
+			OVT_VirtualWaypointPlan plan = behaviorModule.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
+			if (plan)
+				return plan;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first placed-infantry spawning module, or null.
+	protected OVT_PlacedInfantrySpawningDeploymentModule FindPlacedModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
+			if (placed)
+				return placed;
+		}
+
+		return null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE RE-MATERIALISATION CLAIM: THE SECOND TIME A PLACED GROUP COMES BACK, ITS MEN STAND WHERE THEY
+//! STOOD THE FIRST TIME.
+//!
+//! WHY THIS CANNOT BE ASSERTED THE OBVIOUS WAY. Live, the claim needs a real despawn/respawn cycle
+//! driven by real distance, which needs a live deployment marker - and a marker leaks a repeating
+//! 8-12 s UpdateDeployment into a shared test world. So the placement DECISION was made a pure
+//! function of its arguments (OVT_PlacedInfantrySpawningDeploymentModule's PostForGroup /
+//! SlotForArrival / PlacementForArrival), the production teleport routes through it, and the claim
+//! reduces to "the same inputs answer the same output twice". Integration used exactly this shape for
+//! EvaluateCapture and recorded the same reason.
+//!
+//! SIX CLAIMS, EACH A DIFFERENT WAY A GUARD ENDS UP IN THE WRONG PLACE:
+//!   1. POST SELECTION IS BY INDEX AND WRAPS. Group 0 takes post 0, group 1 post 1; a fourth group
+//!      where the world only offers three posts doubles up on post 0 rather than being dropped
+//!      somewhere the provider never chose.
+//!   2. TWO MATERIALISATIONS AGREE. The whole feature promise, computed twice with the arrival counter
+//!      reset between them exactly as OnPlacedGroupDespawning() resets it.
+//!   3. A MISSED RESET CANNOT MARCH ANYONE OFF THE POST. arrival + spread lands on the same step as
+//!      arrival - the modulo wrap that is the belt to the despawn notification's braces. Without it a
+//!      tower guard walks another 1.2 m sideways every materialisation, forever, and eventually off
+//!      his walkway.
+//!   4. THE SIDEWAYS STEP IS EXACTLY MEMBER_SPACING, asserted against the production constant rather
+//!      than a copy of the number.
+//!   5. THE POST'S OWN HEADING IS RESPECTED. A sniper marker carries an authored facing, and a spotter
+//!      stepped one metre "east" of a marker facing east would be standing in front of the sniper.
+//!   6. DEFENSIVE INPUTS DO NOT INDEX OUT OF BOUNDS. EnforceScript's % keeps the sign of its left
+//!      operand, so a negative index would answer a negative slot.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED - bare OVT_DeploymentPlacement objects and static calls.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): drop the
+//! `% posts.Count()` from PostForGroup and claim 1 goes red (index out of range or a repeated post);
+//! drop the `% spread` from SlotForArrival and claim 3 goes red; change MEMBER_SPACING and claim 4
+//! goes red naming both numbers; replace ArrivalTransform's `.Multiply3(outMat)` with a plain world-X
+//! add and claim 5 goes red; delete either negative guard and claim 6 goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_PlacedArrivalPlacementIsStable : SCR_AutotestCaseBase
+{
+	//! Three posts, far enough apart that a mixed-up assignment cannot look like a rounding error.
+	static const vector POST_A = "1000 10 1000";
+	static const vector POST_B = "1050 20 1000";
+	static const vector POST_C = "1100 30 1000";
+
+	//! A roster size to wrap the arrival index against.
+	static const int SPREAD = 4;
+
+	//! Tolerance for a metre-scale comparison. vector.Distance is +1 ULP off at 1000 m and 2000 m, and
+	//! these posts are deliberately at 1000 m to sit on that case.
+	static const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		array<ref OVT_DeploymentPlacement> posts = BuildPosts();
+
+		string failure = VerifyPostSelection(posts);
+
+		if (failure == "")
+			failure = VerifyTwoMaterialisationsAgree(posts);
+
+		if (failure == "")
+			failure = VerifyMissedResetWraps(posts);
+
+		if (failure == "")
+			failure = VerifySpacing(posts);
+
+		if (failure == "")
+			failure = VerifyHeadingIsRespected();
+
+		if (failure == "")
+			failure = VerifyDefensiveInputs(posts);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Placement is stable across two materialisations, wraps past %1 posts and %2 arrival steps, and steps %3 m along each post's own right vector",
+			posts.Count().ToString(), SPREAD.ToString(), OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Three headingless posts.
+	protected array<ref OVT_DeploymentPlacement> BuildPosts()
+	{
+		array<ref OVT_DeploymentPlacement> posts = new array<ref OVT_DeploymentPlacement>();
+
+		posts.Insert(new OVT_DeploymentPlacement(POST_A, vector.Zero));
+		posts.Insert(new OVT_DeploymentPlacement(POST_B, vector.Zero));
+		posts.Insert(new OVT_DeploymentPlacement(POST_C, vector.Zero));
+
+		return posts;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 1: one post per group, in handle order, wrapping past the end.
+	//! \param[in] posts The three posts.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifyPostSelection(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		for (int i = 0; i < posts.Count(); i++)
+		{
+			OVT_DeploymentPlacement post = OVT_PlacedInfantrySpawningDeploymentModule.PostForGroup(posts, i);
+			if (!post)
+				return string.Format("Group %1 was given no post at all, with %2 offered", i.ToString(), posts.Count().ToString());
+
+			if (post.m_vPosition != posts[i].m_vPosition)
+				return string.Format("Group %1 was given the post at %2, expected the one at %3 - posts are assigned by handle order and nothing else",
+					i.ToString(), post.m_vPosition.ToString(), posts[i].m_vPosition.ToString());
+		}
+
+		OVT_DeploymentPlacement wrapped = OVT_PlacedInfantrySpawningDeploymentModule.PostForGroup(posts, posts.Count());
+		if (!wrapped || wrapped.m_vPosition != POST_A)
+			return string.Format("A %1th group where %2 posts are offered did not wrap back onto the first post - it must double up rather than be placed somewhere the provider never chose",
+				(posts.Count() + 1).ToString(), posts.Count().ToString());
+
+		array<ref OVT_DeploymentPlacement> empty = new array<ref OVT_DeploymentPlacement>();
+		if (OVT_PlacedInfantrySpawningDeploymentModule.PostForGroup(empty, 0))
+			return "PostForGroup answered a post from an EMPTY post list - the caller uses null to mean 'the world offers nowhere to stand', and a non-null answer here would be a read off the end of an empty array";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 2: the headline promise.
+	//! \param[in] posts The three posts.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifyTwoMaterialisationsAgree(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		array<vector> first = Materialise(posts);
+		array<vector> second = Materialise(posts);
+
+		if (first.Count() != second.Count())
+			return string.Format("The two materialisations produced %1 and %2 placements", first.Count().ToString(), second.Count().ToString());
+
+		for (int i = 0; i < first.Count(); i++)
+		{
+			if (vector.Distance(first[i], second[i]) > EPSILON)
+				return string.Format("Placement %1 moved between two materialisations: %2 then %3. A base's guards would drift a little further from their posts every time the player drove away and came back",
+					i.ToString(), first[i].ToString(), second[i].ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One materialisation: every group's whole roster arrives, counting from zero.
+	//! \param[in] posts The posts.
+	//! \return The world position of every arrival, in order.
+	protected array<vector> Materialise(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		array<vector> placements = new array<vector>();
+
+		for (int group = 0; group < posts.Count(); group++)
+		{
+			for (int arrival = 0; arrival < SPREAD; arrival++)
+			{
+				placements.Insert(OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(posts, group, arrival, SPREAD));
+			}
+		}
+
+		return placements;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 3: a missed despawn notification wraps instead of marching.
+	//! \param[in] posts The three posts.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifyMissedResetWraps(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		for (int arrival = 0; arrival < SPREAD; arrival++)
+		{
+			vector reset = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(posts, 0, arrival, SPREAD);
+			vector missed = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(posts, 0, arrival + SPREAD, SPREAD);
+
+			if (vector.Distance(reset, missed) > EPSILON)
+				return string.Format("Arrival %1 of a SECOND materialisation whose counter was never reset landed at %2 instead of %3 - without the wrap every missed despawn notification steps the whole group another %4 m sideways, forever",
+					arrival.ToString(), missed.ToString(), reset.ToString(), OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 4: the step is exactly the production constant, on a headingless post along world +X.
+	//! \param[in] posts The three posts.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifySpacing(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		vector zeroth = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(posts, 0, 0, SPREAD);
+
+		if (vector.Distance(zeroth, POST_A) > EPSILON)
+			return string.Format("The FIRST man of a group landed at %1, not on the post itself (%2) - arrival 0 takes step 0 and no offset at all", zeroth.ToString(), POST_A.ToString());
+
+		vector first = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(posts, 0, 1, SPREAD);
+		float step = vector.Distance(first, zeroth);
+
+		if (Math.AbsFloat(step - OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING) > EPSILON)
+			return string.Format("The second man of a group stands %1 m from the first, expected MEMBER_SPACING (%2 m)",
+				step.ToString(), OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING.ToString());
+
+		vector offset = first - zeroth;
+		if (Math.AbsFloat(offset[0] - OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING) > EPSILON)
+			return string.Format("On a HEADINGLESS post the step went %1 rather than straight along world +X - an identity rotation must produce an identity offset", offset.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 5: the post's authored heading turns the step with it.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifyHeadingIsRespected()
+	{
+		array<ref OVT_DeploymentPlacement> turned = new array<ref OVT_DeploymentPlacement>();
+		turned.Insert(new OVT_DeploymentPlacement(POST_A, "90 0 0"));
+
+		vector zeroth = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(turned, 0, 0, SPREAD);
+		vector first = OVT_PlacedInfantrySpawningDeploymentModule.PlacementForArrival(turned, 0, 1, SPREAD);
+
+		float step = vector.Distance(first, zeroth);
+		if (Math.AbsFloat(step - OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING) > EPSILON)
+			return string.Format("On a post with an authored heading the step is %1 m, expected MEMBER_SPACING (%2 m) - the rotation must turn the step, not stretch it",
+				step.ToString(), OVT_PlacedInfantrySpawningDeploymentModule.MEMBER_SPACING.ToString());
+
+		if (Math.AbsFloat((first - zeroth)[0]) > EPSILON)
+			return string.Format("A post yawed 90 degrees still stepped along world +X (%1) - the offset is not being taken through the post's own transform, so a sniper's spotter would be placed in front of him instead of beside him",
+				(first - zeroth).ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Claim 6: inputs no caller passes today still cannot index out of bounds.
+	//! \param[in] posts The three posts.
+	//! \return An empty string when it holds, or the broken claim.
+	protected string VerifyDefensiveInputs(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		OVT_DeploymentPlacement negativeGroup = OVT_PlacedInfantrySpawningDeploymentModule.PostForGroup(posts, -3);
+		if (!negativeGroup || negativeGroup.m_vPosition != POST_A)
+			return "A negative group index did not resolve to the first post - EnforceScript's % keeps the sign of its left operand, so an unguarded negative reads off the front of the array";
+
+		if (OVT_PlacedInfantrySpawningDeploymentModule.SlotForArrival(-3, SPREAD) != 0)
+			return "A negative arrival index did not resolve to step 0";
+
+		int fallback = OVT_PlacedInfantrySpawningDeploymentModule.SlotForArrival(2, 0);
+		if (fallback != 2 % OVT_PlacedInfantrySpawningDeploymentModule.FALLBACK_SPREAD)
+			return string.Format("An unreadable roster size gave step %1 - it must fall back to FALLBACK_SPREAD (%2), which is what stops a group with no readable roster marching sideways forever",
+				fallback.ToString(), OVT_PlacedInfantrySpawningDeploymentModule.FALLBACK_SPREAD.ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Test-only: pins the campaign threat the sniper provider filters markers against.
+//!
+//! WHY A SUBCLASS RATHER THAN A WIDER PRODUCTION SIGNATURE. The provider deliberately reads the LIVE
+//! occupying-faction threat itself instead of taking one as an argument, because the threat a
+//! deployment carries (OVT_DeploymentComponent.GetThreatLevel()) is a snapshot taken when it was
+//! created and persisted with it - filtering markers against that would freeze a base's sniper
+//! coverage at whatever the campaign looked like the day the deployment appeared, and the whole point
+//! of the per-marker gate is that a base grows sniper teams as threat RISES. Overriding the one
+//! protected accessor keeps that true and still makes the gate assertable at a chosen threat.
+//! Deliberately NOT [BaseContainerProps] - it must never be authorable in a config.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_ThreatPinnedSniperProvider : OVT_SniperMarkerPlacementProvider
+{
+	//! The threat every call reports, whatever the campaign is doing.
+	float m_fPinnedThreat;
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The pinned threat.
+	override protected float GetOccupyingThreat()
+	{
+		return m_fPinnedThreat;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A CURATED SNIPER MARKER IS SKIPPED WHILE ITS OWN m_iMinimumThreat IS ABOVE THE CAMPAIGN'S THREAT,
+//! AND MANNED FROM THE MOMENT IT IS NOT.
+//!
+//! WHY THIS GATE IS IN THE PROVIDER AND NOT IN THE CONFIG. A deployment config's
+//! m_iMinimumThreatLevel gates the WHOLE deployment, all or nothing. The legacy sniper-position
+//! upgrade gated PER MARKER, so a designer could author exposed forward positions that only get manned
+//! once the campaign is hot while the safe ones are manned from day one. The deployment framework
+//! offers no per-position equivalent, so the filter lives in OVT_SniperMarkerPlacementProvider - which
+//! makes it the one piece of authored designer progression in this feature that has no config to
+//! protect it. This case is that protection.
+//!
+//! THE BOUNDARY IS ASSERTED, NOT JUST THE MIDDLE. The production test is `threat < minimum -> skip`,
+//! so a marker whose threshold EQUALS the current threat is manned. An off-by-one flip to `<=` would
+//! leave every always-on marker (m_iMinimumThreat 0, the authored default) unmanned at threat 0 on a
+//! brand-new campaign - the most player-visible way this can break, and invisible to a middle-of-the-
+//! range test.
+//!
+//! IT RUNS AGAINST A WORLD-AUTHORED MARKER, ON PURPOSE. Spawning one would assert the arithmetic but
+//! not that the sphere query actually finds the entities a level designer places. The claim is
+//! therefore scoped to THIS marker (present / absent in the answer) rather than to a count, so other
+//! markers in a larger world cannot make it flaky.
+//!
+//! ⚠ THE ONE MUTATION IS RESTORED ON EVERY PATH INCLUDING THE RED ONES. The marker's authored
+//! m_iMinimumThreat is written and put back inside a single Execute(); after this feature the provider
+//! is its only reader, and the case never yields between the two.
+//!
+//! Where a world has no sniper marker at all the case prints and stands down rather than asserting
+//! something else - the Phase 2 snap-case discipline.
+//!
+//! NOTHING IS REGISTERED, NOTHING IS CREATED.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
+//! `if (threat < position.m_iMinimumThreat) continue;` filter from the provider and the
+//! above-threshold assertion goes red; change it to `<=` and the equal-threshold assertion goes red on
+//! its own; make GetOccupyingThreat() ignore its override (e.g. read the manager directly in
+//! ResolvePlacements) and the below-threshold assertion goes red; drop the angles from the placement
+//! and the heading assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_SniperMarkerThreatGateFilters : SCR_AutotestCaseBase
+{
+	//! The campaign threat every resolve in this case is pinned to.
+	static const float PINNED_THREAT = 50;
+
+	//! Thresholds written onto the marker, either side of PINNED_THREAT and exactly on it.
+	static const int THRESHOLD_BELOW = 25;
+	static const int THRESHOLD_EQUAL = 50;
+	static const int THRESHOLD_ABOVE = 75;
+
+	//! How far around the marker the provider is asked. Small on purpose: the claim is about THIS
+	//! marker, and a tight radius keeps the answer short.
+	static const float SEARCH_RADIUS = 50;
+
+	//! How close a returned post has to be to count as this marker's.
+	static const float MATCH_EPSILON = 0.5;
+
+	//! How far around each base and town the marker hunt looks.
+	static const float HUNT_RADIUS = 500;
+
+	//! Scratch for the marker hunt's own query.
+	protected ref array<IEntity> m_aFoundMarkers;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		IEntity marker = FindAuthoredMarker();
+		if (!marker)
+		{
+			Print("[Overthrow][TEST] This world authors no OVT_SniperPositionComponent marker within 500 m of any base or town - the per-marker threat gate was not exercised", LogLevel.NORMAL);
+			return true;
+		}
+
+		OVT_SniperPositionComponent component = OVT_SniperPositionComponent.Cast(marker.FindComponent(OVT_SniperPositionComponent));
+		if (!component)
+		{
+			SetFailure("The marker found by the hunt carries no OVT_SniperPositionComponent, which is the only thing the hunt filtered on");
+			return true;
+		}
+
+		int authored = component.m_iMinimumThreat;
+
+		string failure = Verify(marker, component);
+
+		// Restore BEFORE reporting, on every path.
+		component.m_iMinimumThreat = authored;
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		// PrintFormat takes at most three string parameters, hence two lines.
+		PrintFormat("The marker at %1 is offered at thresholds %2 and %3 against a campaign threat of 50",
+			marker.GetOrigin().ToString(), THRESHOLD_BELOW.ToString(), THRESHOLD_EQUAL.ToString());
+		PrintFormat("...and withheld at threshold %1; its authored threshold (%2) was restored",
+			THRESHOLD_ABOVE.ToString(), authored.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The three threshold claims and the heading claim.
+	//! \param[in] marker The world-authored marker.
+	//! \param[in] component Its sniper-position component.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string Verify(notnull IEntity marker, notnull OVT_SniperPositionComponent component)
+	{
+		OVT_TEST_ThreatPinnedSniperProvider provider = new OVT_TEST_ThreatPinnedSniperProvider();
+		provider.m_fPinnedThreat = PINNED_THREAT;
+
+		vector origin = marker.GetOrigin();
+
+		// BELOW: manned, and this is also what proves the query finds a world-authored marker at all -
+		// without it, "withheld" below would be satisfied by a query that found nothing.
+		component.m_iMinimumThreat = THRESHOLD_BELOW;
+		array<ref OVT_DeploymentPlacement> below = provider.ResolvePlacements(origin, SEARCH_RADIUS, 0);
+
+		if (!Offers(below, origin))
+			return string.Format("A marker authored at minimum threat %1 was NOT offered at a campaign threat of %2 - either the sphere query does not see level-authored markers or the gate is inverted",
+				THRESHOLD_BELOW.ToString(), PINNED_THREAT.ToString());
+
+		// The heading claim rides on the below-threshold answer, which is the one that has a post in it.
+		string heading = VerifyHeading(below, marker);
+		if (heading != "")
+			return heading;
+
+		// EQUAL: the production test is `threat < minimum -> skip`, so equal is manned.
+		component.m_iMinimumThreat = THRESHOLD_EQUAL;
+		array<ref OVT_DeploymentPlacement> equal = provider.ResolvePlacements(origin, SEARCH_RADIUS, 0);
+
+		if (!Offers(equal, origin))
+			return string.Format("A marker whose minimum threat EQUALS the campaign threat (%1) was withheld - the gate has become `<=`, which also leaves every always-on marker (threshold 0) unmanned at threat 0 on a brand-new campaign",
+				THRESHOLD_EQUAL.ToString());
+
+		// ABOVE: withheld.
+		component.m_iMinimumThreat = THRESHOLD_ABOVE;
+		array<ref OVT_DeploymentPlacement> above = provider.ResolvePlacements(origin, SEARCH_RADIUS, 0);
+
+		if (Offers(above, origin))
+			return string.Format("A marker authored at minimum threat %1 was offered at a campaign threat of only %2 - the per-marker escalation a designer authored is being ignored and every exposed forward position is manned from day one",
+				THRESHOLD_ABOVE.ToString(), PINNED_THREAT.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The placement carries the marker's own rotation, which is the entire reason a designer places a
+	//! curated marker instead of letting the ring roller pick a spot.
+	//! \param[in] placements The answer that contains this marker.
+	//! \param[in] marker The marker.
+	//! \return An empty string when it holds (or cannot be told apart), or the broken claim.
+	protected string VerifyHeading(notnull array<ref OVT_DeploymentPlacement> placements, notnull IEntity marker)
+	{
+		vector authored = marker.GetAngles();
+
+		if (authored == vector.Zero)
+		{
+			Print("[Overthrow][TEST] This world's sniper marker has no authored rotation, so 'the heading is preserved' cannot be told apart from 'the heading was thrown away' - not asserted", LogLevel.NORMAL);
+			return "";
+		}
+
+		vector origin = marker.GetOrigin();
+
+		foreach (OVT_DeploymentPlacement placement : placements)
+		{
+			if (!placement || vector.Distance(placement.m_vPosition, origin) > MATCH_EPSILON)
+				continue;
+
+			if (placement.m_vAngles != authored)
+				return string.Format("The post offered for the marker at %1 faces %2, but the marker faces %3 - the team would spawn looking somewhere other than down the line the designer aimed them",
+					origin.ToString(), placement.m_vAngles.ToString(), authored.ToString());
+
+			return "";
+		}
+
+		return string.Format("The marker at %1 vanished from the answer between two calls with the same threshold", origin.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] placements An answer from the provider.
+	//! \param[in] origin The marker's position.
+	//! \return True when this marker's own post is in the answer.
+	protected bool Offers(array<ref OVT_DeploymentPlacement> placements, vector origin)
+	{
+		if (!placements)
+			return false;
+
+		foreach (OVT_DeploymentPlacement placement : placements)
+		{
+			if (placement && vector.Distance(placement.m_vPosition, origin) <= MATCH_EPSILON)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The first level-authored sniper marker near any base or town.
+	//! \return The marker entity, or null when this world has none.
+	protected IEntity FindAuthoredMarker()
+	{
+		m_aFoundMarkers = new array<IEntity>();
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return null;
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (occupying && occupying.m_Bases)
+		{
+			foreach (OVT_BaseData baseData : occupying.m_Bases)
+			{
+				if (!baseData)
+					continue;
+
+				world.QueryEntitiesBySphere(baseData.location, HUNT_RADIUS, AddMarker, FilterMarker, EQueryEntitiesFlags.ALL);
+				if (!m_aFoundMarkers.IsEmpty())
+					return m_aFoundMarkers[0];
+			}
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (towns && towns.m_Towns)
+		{
+			foreach (OVT_TownData town : towns.m_Towns)
+			{
+				if (!town)
+					continue;
+
+				world.QueryEntitiesBySphere(town.location, HUNT_RADIUS, AddMarker, FilterMarker, EQueryEntitiesFlags.ALL);
+				if (!m_aFoundMarkers.IsEmpty())
+					return m_aFoundMarkers[0];
+			}
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entity Candidate from the hunt's query.
+	//! \return True when it carries a sniper-position component.
+	protected bool FilterMarker(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		return entity.FindComponent(OVT_SniperPositionComponent) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entity A marker that passed the filter.
+	//! \return True, to keep the query running.
+	protected bool AddMarker(IEntity entity)
+	{
+		m_aFoundMarkers.Insert(entity);
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Test-only window onto OVT_CompositionSpawningDeploymentModule's protected latch.
+//!
+//! ApplyBuildDecision() is protected because it is an internal step of TryBuildComposition(), not an
+//! API. A subclass is therefore the only honest way to assert it - widening the production method to
+//! public for a test would change the class's contract to make the test easy. Same shape and the same
+//! argument as OVT_TEST_SnapProbeInfantryModule above.
+//!
+//! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker or be authorable
+//! into a deployment config.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_CompositionProbeModule : OVT_CompositionSpawningDeploymentModule
+{
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] decision What DecideBuild() answered.
+	//! \return Exactly what TryBuildComposition() would have gone on to do.
+	bool ProbeApplyBuildDecision(OVT_ECompositionBuildDecision decision)
+	{
+		return ApplyBuildDecision(decision);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A BASE NEVER GROWS A SECOND BUNKER. The no-double-build claim, asserted at the seam.
+//!
+//! WHAT THIS IS GUARDING, IN PLAYER TERMS. A composition - a bunker, an ammo cache, an MG nest, a
+//! road checkpoint - is a world ENTITY that vanilla persistence saves and restores on its own, and
+//! whose slot claim comes back separately in the base controller's m_aSlotsFilled. So a deployment
+//! restored from a save must build NOTHING: if it built again, every Continue would add one more
+//! structure to every fortified base, in a different slot each time, forever (D7). That is the single
+//! worst failure this phase can ship and it is completely silent for the first few loads.
+//!
+//! WHY IT IS ASSERTED THIS WAY. Live, the claim needs a save, a base whose controller has finished
+//! discovering slots, and a free slot of the right size - and the Init tier has none of those: it
+//! never runs InitBaseControllers() at all, so m_aSlotsFilled is null and every slot list is null. So
+//! the DECISION was made a pure function of its inputs (DecideBuild), the production path routes
+//! through it, and the claim reduces to a truth table. Integration used exactly this shape for
+//! EvaluateCapture and Phase 4 for the placement statics; the same reason applies here.
+//!
+//! THREE ANSWERS, NOT TWO, AND THE ASYMMETRY IS THE POINT:
+//!   BUILD - a fresh deployment, first pass;
+//!   SKIP  - do nothing NOW, retry next pass, latch NOTHING. A module with no deployment behind it (a
+//!           config template), and a module whose force is currently flagged eliminated - the rebuy
+//!           path clears that flag and the structure is then owed;
+//!   NEVER - do nothing EVER, and latch it. Already attempted (idempotence), or restored from a save
+//!           (D7).
+//! Latching a SKIP would make a base that converged one tick before its controller finished
+//! initialising permanently unfortifiable. Not latching a NEVER is the double build. Both are silent.
+//!
+//! THE LATCH IS ASSERTED SEPARATELY FROM THE DECISION, on a real module instance, because a decision
+//! that is computed correctly and never applied fails in exactly the same way as a wrong decision.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED - bare module objects and static calls, no world access.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): swap
+//! DecideBuild's restoredFromSave branch to SKIP and the D7 row goes red naming both answers; move the
+//! alreadyAttempted check below the eliminated one and the idempotence row goes red; drop the
+//! `m_bCompositionAttempted = true` from ApplyBuildDecision and the latch assertion goes red; make
+//! ApplyBuildDecision return true for anything but BUILD and the permission assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_CompositionNeverBuildsTwice : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string failure = VerifyDecisionTable();
+
+		if (failure == "")
+			failure = VerifyLatch();
+
+		if (failure == "")
+			failure = VerifyFreshModuleState();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("A restored deployment's composition module answers NEVER and latches it; a fresh one answers BUILD once and NEVER thereafter");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every row of DecideBuild(), each naming the campaign situation it stands for.
+	//! \return An empty string when every row holds, or the first broken one.
+	protected string VerifyDecisionTable()
+	{
+		// A config TEMPLATE - GetResourceCost() asks the registry's templates for their cost and they
+		// have no deployment behind them. SKIP, never NEVER: that same template is cloned onto every
+		// real deployment of this config and the clone must still be able to build.
+		string row = ExpectDecision(false, false, false, false, OVT_ECompositionBuildDecision.SKIP,
+			"a module with no deployment behind it (a config template)");
+		if (row != "")
+			return row;
+
+		// The ordinary case: a brand-new deployment, first convergence pass.
+		row = ExpectDecision(true, false, false, false, OVT_ECompositionBuildDecision.BUILD,
+			"a fresh deployment on its first pass");
+		if (row != "")
+			return row;
+
+		// IDEMPOTENCE. EnsureGroups() runs on activation, on the records-restored fan-out and on every
+		// rebuy; the second call must not put a second structure in a second slot.
+		row = ExpectDecision(true, true, false, false, OVT_ECompositionBuildDecision.NEVER,
+			"a module that has already had its one attempt");
+		if (row != "")
+			return row;
+
+		// D7, THE HEADLINE. The structure and its slot claim are already back from the save.
+		row = ExpectDecision(true, false, true, false, OVT_ECompositionBuildDecision.NEVER,
+			"a deployment restored from a save point");
+		if (row != "")
+			return row;
+
+		// A wiped force does not quietly grow a new bunker - but the rebuy clears this flag, so the
+		// structure is owed rather than forfeited.
+		row = ExpectDecision(true, false, false, true, OVT_ECompositionBuildDecision.SKIP,
+			"a deployment whose force is currently flagged eliminated");
+		if (row != "")
+			return row;
+
+		// PRECEDENCE. A restored deployment that is ALSO flagged eliminated must still answer NEVER: if
+		// the eliminated SKIP won here, the reinforcement that clears the flag would then build a second
+		// structure alongside the one the save restored. This is the row that catches a re-ordering.
+		row = ExpectDecision(true, false, true, true, OVT_ECompositionBuildDecision.NEVER,
+			"a restored deployment that is also flagged eliminated - restored must win");
+		if (row != "")
+			return row;
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The latch, on a real module instance: NEVER records itself, SKIP does not, and only BUILD gives
+	//! the caller permission to go on.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyLatch()
+	{
+		OVT_TEST_CompositionProbeModule skipProbe = new OVT_TEST_CompositionProbeModule();
+		if (skipProbe.ProbeApplyBuildDecision(OVT_ECompositionBuildDecision.SKIP))
+			return "ApplyBuildDecision(SKIP) gave the caller permission to build - SKIP means 'not this pass', and building on it would put a structure in the world for a deployment that has no live deployment or whose force is wiped";
+
+		if (skipProbe.HasAttemptedComposition())
+			return "ApplyBuildDecision(SKIP) LATCHED the attempt - a base that converged one tick before its controller finished discovering slots would then be permanently unable to fortify, silently and for the rest of the campaign";
+
+		OVT_TEST_CompositionProbeModule neverProbe = new OVT_TEST_CompositionProbeModule();
+		if (neverProbe.ProbeApplyBuildDecision(OVT_ECompositionBuildDecision.NEVER))
+			return "ApplyBuildDecision(NEVER) gave the caller permission to build - this is the D7 gate, and building through it is one extra bunker per load, forever";
+
+		if (!neverProbe.HasAttemptedComposition())
+			return "ApplyBuildDecision(NEVER) did NOT latch the attempt - the next convergence would ask again, and a reinforcement that clears the eliminated flags would then build a second structure beside the one the save restored";
+
+		OVT_TEST_CompositionProbeModule buildProbe = new OVT_TEST_CompositionProbeModule();
+		if (!buildProbe.ProbeApplyBuildDecision(OVT_ECompositionBuildDecision.BUILD))
+			return "ApplyBuildDecision(BUILD) refused the caller permission to build - no base would ever get a bunker, a cache, an MG nest or a checkpoint at all";
+
+		if (buildProbe.HasAttemptedComposition())
+			return "ApplyBuildDecision(BUILD) latched the attempt before the build was even tried - the production path latches only once it has a slot, so that a module that could not find a base controller yet gets its free retry";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A freshly constructed module has neither a structure nor a spent attempt. Cheap, but it is what
+	//! catches a class-default flip that would make every module a no-op or a rebuilder.
+	//! \return An empty string when both claims hold, or the broken one.
+	protected string VerifyFreshModuleState()
+	{
+		OVT_CompositionSpawningDeploymentModule fresh = new OVT_CompositionSpawningDeploymentModule();
+
+		if (fresh.HasAttemptedComposition())
+			return "A freshly constructed composition module already reports its attempt spent - every deployment of every fortification config would build nothing, with no warning anywhere";
+
+		if (fresh.GetComposition())
+			return "A freshly constructed composition module already answers a composition entity - its guards would be anchored on whatever that resolves to instead of on the structure they are meant to hold";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One row of the truth table.
+	//! \param[in] hasDeployment Whether a live deployment is behind the module.
+	//! \param[in] alreadyAttempted Whether the one attempt is spent.
+	//! \param[in] restoredFromSave Whether the deployment came back from a save.
+	//! \param[in] eliminated Whether the force is flagged wiped out.
+	//! \param[in] expected The decision the situation requires.
+	//! \param[in] situation What this row stands for, in campaign terms.
+	//! \return An empty string when the row holds, or the failure text.
+	protected string ExpectDecision(bool hasDeployment, bool alreadyAttempted, bool restoredFromSave, bool eliminated, OVT_ECompositionBuildDecision expected, string situation)
+	{
+		OVT_ECompositionBuildDecision actual = OVT_CompositionSpawningDeploymentModule.DecideBuild(hasDeployment, alreadyAttempted, restoredFromSave, eliminated);
+
+		if (actual == expected)
+			return "";
+
+		return string.Format("DecideBuild answered %1 for %2, expected %3",
+			typename.EnumToString(OVT_ECompositionBuildDecision, actual), situation,
+			typename.EnumToString(OVT_ECompositionBuildDecision, expected));
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! TWO COMPOSITIONS NEVER SHARE A SLOT - which is what lets a legacy save's structures and a new
+//! deployment's structures stand at one base without overlapping.
+//!
+//! THE MECHANISM, END TO END. A base controller keeps one m_aSlotsFilled list. The occupying-faction
+//! serializer writes it, InitBaseControllers() restores it verbatim from the save, and a composition
+//! module rolls for a slot that is NOT in it and then claims the one it built in. Nothing ever removes
+//! an entry. So the list is a permanent, campaign-wide, save-crossing record of "taken", and both
+//! halves of it have to hold:
+//!   1. A CLAIMED SLOT IS NEVER SELECTED. Break this and a new bunker spawns inside a legacy bunker on
+//!      the first load of a converted campaign;
+//!   2. A BUILD'S CLAIM ACTUALLY LANDS. Break this and the SAME base builds into the same slot again on
+//!      the next pass, stacking structures at one point.
+//!
+//! WHY THE PURE PAIR. The Init tier never runs InitBaseControllers() - the campaign is deliberately not
+//! started - so no base controller in this world has a slot list at all: m_aSlotsFilled is null and so
+//! is every m_*Slots array. A live-slot assertion is impossible here by construction, so the roll and
+//! the claim are static functions of the two arrays and the production path calls exactly them.
+//!
+//! REAL EntityIDs, NOT FABRICATED ONES. array.Contains() compares by value and EntityID is an opaque
+//! handle; a test that invented ids could not tell "never selects a claimed slot" from "every id
+//! compares equal". The ids are harvested read-only from entities this world already has.
+//!
+//! INVARIANTS OVER SAMPLES, NEVER A RETRY. Each roll is random by design (a scan would make every base
+//! put its first bunker in the same slot), so the claims are written as "every one of SAMPLES rolls
+//! satisfies this", plus one deterministic liveness row with an empty claim list so a function that
+//! simply always refused could not pass.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED. The two arrays are the case's own; the world is only
+//! read.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): invert
+//! RollFreeSlotIndex's Contains() test and the claimed-slot invariant goes red naming the slot it
+//! offered; make ClaimSlot a no-op and the round-trip goes red; drop RollFreeSlotIndex's empty guard
+//! and the null rows go red (RandInt(0,0) is an engine error, so this one fails loudly); make
+//! ClaimSlot insert unconditionally and the duplicate-claim row goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_CompositionSlotClaimsAreRespected : SCR_AutotestCaseBase
+{
+	//! How many slots the case needs to distinguish "refused the claimed ones" from "refused
+	//! everything". Three is the minimum: two claimed, one free.
+	static const int SLOTS_NEEDED = 3;
+
+	//! How many rolls each invariant is checked over. Every single one must hold.
+	static const int SAMPLES = 60;
+
+	//! How far around a base to look for entities to borrow ids from.
+	static const float HARVEST_RADIUS = 150;
+
+	//! Ids harvested from the world, in discovery order.
+	protected ref array<ref EntityID> m_aHarvested;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		array<ref EntityID> slots = HarvestSlotIds();
+		if (!slots)
+		{
+			Print("This world offers fewer than 3 distinct entity ids near its bases and towns, so the slot lottery cannot be exercised here at all - the claim is unasserted in this world rather than asserted weakly");
+			return true;
+		}
+
+		string failure = VerifyDefensiveInputs(slots);
+
+		if (failure == "")
+			failure = VerifyEmptyClaimListAlwaysAnswers(slots);
+
+		if (failure == "")
+			failure = VerifyClaimedSlotsAreNeverSelected(slots);
+
+		if (failure == "")
+			failure = VerifyFullBaseIsRefused(slots);
+
+		if (failure == "")
+			failure = VerifyClaimRoundTrip(slots);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("A slot in m_aSlotsFilled is never rolled, a full base answers -1 rather than doubling up, and a claim takes its slot out of the lottery permanently");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Null and empty inputs answer -1/false rather than reaching the roll. RandInt(0, 0) is an engine
+	//! error, so the emptiness guard is load-bearing rather than tidy.
+	//! \param[in] slots The harvested ids.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyDefensiveInputs(notnull array<ref EntityID> slots)
+	{
+		array<ref EntityID> empty = new array<ref EntityID>();
+
+		if (OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(null, empty) != -1)
+			return "RollFreeSlotIndex answered an index for a NULL slot list - a base whose controller has not discovered slots of this size yet would be indexed into nothing";
+
+		if (OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(empty, empty) != -1)
+			return "RollFreeSlotIndex answered an index for an EMPTY slot list - RandInt(0, 0) is an engine error, so this guard is what stops a base with no road slots from erroring on every convergence";
+
+		if (OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, null) != -1)
+			return "RollFreeSlotIndex answered an index against a NULL claim list - m_aSlotsFilled is null until InitializeBase() runs, and building then would claim a slot into a list that is about to be replaced";
+
+		if (OVT_CompositionSpawningDeploymentModule.ClaimSlot(null, slots[0]))
+			return "ClaimSlot reported success against a NULL claim list - the slot would be built in and never recorded, so the next pass would build in it again";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE LIVENESS ROW, and it is deterministic: with nothing claimed, every roll must answer a real
+	//! index. Without it, a RollFreeSlotIndex that always refused would satisfy every invariant below.
+	//! \param[in] slots The harvested ids.
+	//! \return An empty string when every roll answers, or the first failure.
+	protected string VerifyEmptyClaimListAlwaysAnswers(notnull array<ref EntityID> slots)
+	{
+		array<ref EntityID> filled = new array<ref EntityID>();
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			int index = OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, filled);
+
+			if (index < 0)
+				return "With NOTHING claimed, a roll still refused every slot - no base would ever build a composition, and the only symptom would be one 'the base is full' warning per module";
+
+			if (index >= slots.Count())
+				return string.Format("A roll answered index %1 against %2 slots - the caller indexes straight into the array with it",
+					index.ToString(), slots.Count().ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 1: a slot already in the claim list is never offered. Two of three claimed, so the only
+	//! acceptable answers are "the free one" and "refused this roll".
+	//! \param[in] slots The harvested ids.
+	//! \return An empty string when every roll holds, or the first failure.
+	protected string VerifyClaimedSlotsAreNeverSelected(notnull array<ref EntityID> slots)
+	{
+		array<ref EntityID> filled = new array<ref EntityID>();
+		filled.Insert(slots[0]);
+		filled.Insert(slots[1]);
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			int index = OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, filled);
+
+			if (index == 0 || index == 1)
+				return string.Format("A roll offered slot %1, which is already in the claim list - a legacy campaign's bunker and a new deployment's bunker would be built at the same point, and m_aSlotsFilled would then hold the same slot twice",
+					index.ToString());
+
+			if (index > 2)
+				return string.Format("A roll answered index %1 against 3 slots", index.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 1, at its limit: a base with every slot of the wanted size taken answers -1 on EVERY roll,
+	//! deterministically. The production caller reads that as "the base is full", says so once and
+	//! latches - it must never be reached by doubling up instead.
+	//! \param[in] slots The harvested ids.
+	//! \return An empty string when every roll refuses, or the first failure.
+	protected string VerifyFullBaseIsRefused(notnull array<ref EntityID> slots)
+	{
+		array<ref EntityID> filled = new array<ref EntityID>();
+		foreach (EntityID id : slots)
+		{
+			filled.Insert(id);
+		}
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			int index = OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, filled);
+
+			if (index >= 0)
+				return string.Format("With every slot claimed, a roll still offered slot %1 - the base would build a second structure on top of an existing one instead of reporting itself full",
+					index.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 2: the claim lands, it is not duplicated, and it is what removes the slot from the lottery.
+	//! This is the pair the whole coexistence argument rests on.
+	//! \param[in] slots The harvested ids.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string VerifyClaimRoundTrip(notnull array<ref EntityID> slots)
+	{
+		array<ref EntityID> filled = new array<ref EntityID>();
+		filled.Insert(slots[0]);
+		filled.Insert(slots[1]);
+
+		// The free slot before the claim.
+		int before = OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, filled);
+
+		if (!OVT_CompositionSpawningDeploymentModule.ClaimSlot(filled, slots[2]))
+			return "ClaimSlot refused to record a slot nothing had claimed - the structure would stand in a slot the base still believes is free, and the next fortification pass would build into it";
+
+		if (!filled.Contains(slots[2]))
+			return "ClaimSlot reported success but the slot is not in the claim list - m_aSlotsFilled is what the serializer writes, so the claim would also be missing from every future save";
+
+		if (OVT_CompositionSpawningDeploymentModule.ClaimSlot(filled, slots[2]))
+			return "ClaimSlot recorded the SAME slot twice - m_aSlotsFilled is written to the save point verbatim and never pruned, so duplicates accumulate across every load";
+
+		if (filled.Count() != 3)
+			return string.Format("The claim list holds %1 entries after two claims of one slot, expected 3", filled.Count().ToString());
+
+		for (int i = 0; i < SAMPLES; i++)
+		{
+			if (OVT_CompositionSpawningDeploymentModule.RollFreeSlotIndex(slots, filled) >= 0)
+				return string.Format("After claiming the last free slot (roll before the claim answered %1), a roll still offered one - the claim is recorded but not consulted, which is the same as not claiming at all",
+					before.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Borrows SLOTS_NEEDED distinct, valid EntityIDs from entities this world already has. Read-only:
+	//! nothing is spawned, moved or modified, and the ids stand in for slot entities purely as values.
+	//! \return The ids, or null when this world cannot offer enough.
+	protected array<ref EntityID> HarvestSlotIds()
+	{
+		m_aHarvested = new array<ref EntityID>();
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return null;
+
+		// The base markers themselves first - they are guaranteed distinct entities and cost no query.
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (occupying && occupying.m_Bases)
+		{
+			foreach (OVT_BaseData baseData : occupying.m_Bases)
+			{
+				if (baseData)
+					AddHarvested(baseData.entId);
+			}
+		}
+
+		if (m_aHarvested.Count() >= SLOTS_NEEDED)
+			return m_aHarvested;
+
+		// Then whatever stands around them. STATIC only: buildings and props, never a character.
+		if (occupying && occupying.m_Bases)
+		{
+			foreach (OVT_BaseData baseData : occupying.m_Bases)
+			{
+				if (!baseData)
+					continue;
+
+				world.QueryEntitiesBySphere(baseData.location, HARVEST_RADIUS, AddHarvestedEntity, null, EQueryEntitiesFlags.STATIC);
+				if (m_aHarvested.Count() >= SLOTS_NEEDED)
+					return m_aHarvested;
+			}
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (towns && towns.m_Towns)
+		{
+			foreach (OVT_TownData town : towns.m_Towns)
+			{
+				if (!town)
+					continue;
+
+				world.QueryEntitiesBySphere(town.location, HARVEST_RADIUS, AddHarvestedEntity, null, EQueryEntitiesFlags.STATIC);
+				if (m_aHarvested.Count() >= SLOTS_NEEDED)
+					return m_aHarvested;
+			}
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entity Candidate from a harvest query.
+	//! \return True, to keep the query running until the list is long enough.
+	protected bool AddHarvestedEntity(IEntity entity)
+	{
+		if (m_aHarvested.Count() >= SLOTS_NEEDED)
+			return false;
+
+		if (entity)
+			AddHarvested(entity.GetID());
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Adds an id when it is valid and not already held. Distinctness is what the whole case rests on.
+	//! \param[in] id The candidate id.
+	protected void AddHarvested(EntityID id)
+	{
+		if (id == EntityID.INVALID)
+			return;
+
+		if (m_aHarvested.Contains(id))
+			return;
+
+		if (m_aHarvested.Count() >= SLOTS_NEEDED)
+			return;
+
+		m_aHarvested.Insert(id);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Test-only window onto OVT_PatrolBehaviorDeploymentModule's two protected anchor inputs.
+//!
+//! WHY A SUBCLASS IS THE ONLY WAY. Both inputs are protected, and both answer differently for a LIVE
+//! deployment than for a config template: GetPatrolCenter() returns the deployment marker when there
+//! is a deployment and vector.Zero when there is not, and GroupsAreStationedDeliberately() walks the
+//! deployment's spawning modules. So a case built on a config template - which is how every other
+//! plan-shape case in this suite works - sees the template answers and CANNOT distinguish the marker
+//! anchor from the group anchor at all: both come out as the group position. Creating a real
+//! deployment instead would leak a repeating 8-12 s UpdateDeployment into this shared world.
+//!
+//! Overriding the two inputs is what makes the live cases reachable with no world state at all. Same
+//! shape and the same argument as OVT_TEST_SnapProbeInfantryModule and OVT_TEST_CompositionProbeModule.
+//!
+//! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_DefendAnchorProbeModule : OVT_PatrolBehaviorDeploymentModule
+{
+	//! Stands in for the live deployment marker GetPatrolCenter() would answer.
+	vector m_vProbeCentre;
+
+	//! Stands in for "this deployment's spawning module chose where its groups stand".
+	bool m_bProbeStationed;
+
+	//------------------------------------------------------------------------------------------------
+	override protected vector GetPatrolCenter()
+	{
+		return m_vProbeCentre;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override protected bool GroupsAreStationedDeliberately()
+	{
+		return m_bProbeStationed;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A DEFEND PLAN HOLDS WHERE THE GROUP WAS STATIONED - AND ONLY WHEN THAT POSITION WAS CHOSEN.
+//!
+//! WHAT THIS IS GUARDING, IN PLAYER TERMS. A defend waypoint tells live AI to walk to that point and
+//! hold it. Every base-defense config that stands men somewhere specific - defense positions on their
+//! posts, tower guards on walkways, checkpoint guards on their checkpoint - is teleported into place by
+//! its spawning module and then told by this plan where to hold. Anchor the plan on the deployment
+//! MARKER and the whole garrison walks to the base flag the moment it materialises, undoing the
+//! placement that is the entire point of those configs. That is the "guards hold their posts" promise,
+//! and it lives on one vector.
+//!
+//! ⚠ BUT THE OPPOSITE ANCHOR IS ALSO WRONG, FOR A DIFFERENT CONFIG, AND THAT IS WHY THIS CASE HAS TWO
+//! HALVES. The plain infantry module rolls a ring point and road-snaps it through a 500 m search that
+//! ignores m_fSpawnRadius - integration MEASURED that putting Deployment_TowerGarrison.conf's garrison
+//! on its access road instead of at its tower. Anchoring ITS defend point on the group would park that
+//! garrison on the road for good. So the anchor follows the spawning module's own
+//! StationsGroupsDeliberately(), and both directions are asserted:
+//!   1. STATIONED DELIBERATELY (placed / composition modules) -> hold the GROUP position;
+//!   2. ROLLED AND SNAPPED (the plain infantry module, i.e. the tower garrison) -> hold the MARKER,
+//!      exactly as it did before the fix;
+//!   3. NO DEPLOYMENT AT ALL (a config template) -> hold the group position, which is what every other
+//!      plan-shape case in this suite already depends on. ⚠ THIS ONE IS A REGRESSION GUARD WITH NO
+//!      INDEPENDENT FAIL PROOF TODAY, and that is stated rather than dressed up: with no deployment the
+//!      centre fallback ALSO resolves to the group position, so both branches agree and no single edit
+//!      to the anchor can break it. It is here to catch a future change that removes the fallback or
+//!      starts answering a marker for a template - either of which would silently move every
+//!      template-resolved plan in this suite;
+//!   4. PERIMETER IS UNTOUCHED - still a multi-point cycling plan. Its centre-dependence is deliberately
+//!      NOT asserted here: SnapPatrolPointsToRoads moves every PATROL corner onto a road up to 500 m
+//!      away, so any exact geometric claim about a perimeter ring is a flake waiting to happen. The
+//!      shipped ..._TownPatrolPlanCycles and ..._BasePatrolConfigsCyclePerimeter cases cover its shape.
+//!
+//! NOTHING IS REGISTERED, CREATED OR MUTATED - two bare module objects; the world is only read by the
+//! perimeter half's road snapping.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change the
+//! DEFEND branch back to BuildDefendPlan(centre, 0) and claim 1 goes red naming both positions; make it
+//! unconditionally BuildDefendPlan(groupPosition, 0) and claim 2 goes red - that is the tower-garrison
+//! regression, caught; delete the `if (centre == vector.Zero) centre = groupPosition` fallback AND
+//! anchor DEFEND on the centre and claim 3 goes red (it takes both, see above); route PERIMETER through
+//! the DEFEND branch and claim 4 goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_DefendPlansHoldTheStation : SCR_AutotestCaseBase
+{
+	//! Stands in for a deployment marker - a base flag, a radio tower.
+	static const vector MARKER = "1000 20 1000";
+
+	//! Stands in for where a group actually is: a defend position, a bunker, or a road the snap chose.
+	//! Far enough from MARKER that no rounding could confuse the two.
+	static const vector STATION = "1300 35 1150";
+
+	//! Float slack. Both positions are hundreds of metres apart, so this is generous by a wide margin.
+	static const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string failure = VerifyStationedHoldsTheGroup();
+
+		if (failure == "")
+			failure = VerifyRolledHoldsTheMarker();
+
+		if (failure == "")
+			failure = VerifyTemplateHoldsTheGroup();
+
+		if (failure == "")
+			failure = VerifyPerimeterStillBuildsARing();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("A deliberately stationed group holds ITS OWN position; a rolled-and-snapped one still holds the deployment marker; PERIMETER is unchanged");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 1 - the headline. A placed or composition module chose this position, so it is a post.
+	//! \return An empty string when the claim holds, or the failure.
+	protected string VerifyStationedHoldsTheGroup()
+	{
+		OVT_VirtualWaypointPlan plan = BuildDefend(MARKER, true);
+
+		if (!plan)
+			return "A DEFEND module built no plan at all for a deliberately stationed group - its guards would be registered with no waypoint and the config's whole behaviour would be silently missing";
+
+		string shape = VerifyDefendShape(plan);
+		if (shape != "")
+			return shape;
+
+		float offset = vector.Distance(plan.m_aPositions[0], STATION);
+		if (offset > EPSILON)
+			return string.Format("A deliberately stationed group's DEFEND point is %1 m from where it stands (%2 instead of %3) - every defense-position, tower-guard and checkpoint garrison would walk that far off its post towards the deployment marker the moment it materialised",
+				offset.ToString(), plan.m_aPositions[0].ToString(), STATION.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 2 - the other direction, and the one that protects a SHIPPED, FROZEN config. The plain
+	//! infantry module's position is a ring roll that has been through a 500 m road snap; the marker is
+	//! the only trustworthy point.
+	//! \return An empty string when the claim holds, or the failure.
+	protected string VerifyRolledHoldsTheMarker()
+	{
+		OVT_VirtualWaypointPlan plan = BuildDefend(MARKER, false);
+
+		if (!plan)
+			return "A DEFEND module built no plan at all for a rolled registration";
+
+		string shape = VerifyDefendShape(plan);
+		if (shape != "")
+			return shape;
+
+		float offset = vector.Distance(plan.m_aPositions[0], MARKER);
+		if (offset > EPSILON)
+			return string.Format("A rolled-and-road-snapped group's DEFEND point is %1 m from the deployment marker (%2 instead of %3) - Deployment_TowerGarrison.conf registers exactly this way, and its garrison would hold whatever road the 500 m snap dropped it on instead of its tower",
+				offset.ToString(), plan.m_aPositions[0].ToString(), MARKER.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 3 - the config-template path, which every other plan-shape case in this suite resolves
+	//! through. An unset centre has always meant "hold where you are", and that must not change.
+	//!
+	//! ⚠ A REGRESSION GUARD, NOT AN INDEPENDENT CLAIM: with no deployment the centre fallback resolves
+	//! to the group position too, so both anchors agree here by construction. See the case header.
+	//! \return An empty string when the claim holds, or the failure.
+	protected string VerifyTemplateHoldsTheGroup()
+	{
+		// vector.Zero is what GetPatrolCenter() answers with no deployment behind it.
+		OVT_VirtualWaypointPlan plan = BuildDefend(vector.Zero, true);
+
+		if (!plan)
+			return "A DEFEND module built no plan at all off a config template - every template-based plan-shape case in this suite depends on it answering";
+
+		string shape = VerifyDefendShape(plan);
+		if (shape != "")
+			return shape;
+
+		float offset = vector.Distance(plan.m_aPositions[0], STATION);
+		if (offset > EPSILON)
+			return string.Format("Off a config template the DEFEND point is %1 m from the group position - the template fallback has always meant 'hold where you are', and the shipped plan-shape cases assert against it",
+				offset.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLAIM 4 - PERIMETER did not come along for the ride. Structure only, deliberately: see the case
+	//! header for why a geometric claim about a road-snapped ring would be a flake.
+	//! \return An empty string when the claim holds, or the failure.
+	protected string VerifyPerimeterStillBuildsARing()
+	{
+		OVT_TEST_DefendAnchorProbeModule probe = new OVT_TEST_DefendAnchorProbeModule();
+		probe.m_ePatrolType = OVT_PatrolType.PERIMETER;
+		probe.m_fPatrolRadius = 200;
+		probe.m_bUseNearestTownCenter = false;
+		probe.m_vProbeCentre = MARKER;
+		probe.m_bProbeStationed = true;
+
+		OVT_VirtualWaypointPlan plan = probe.BuildVirtualPlan(STATION);
+
+		if (!plan)
+			return "PERIMETER built no plan - a town patrol would be registered with no waypoints and would stand still forever";
+
+		if (plan.m_aPositions.Count() <= 1)
+			return string.Format("PERIMETER built a %1-point plan - it has been routed through the DEFEND branch, and every patrol in the campaign would hold one spot instead of circling",
+				plan.m_aPositions.Count().ToString());
+
+		if (!plan.m_bCycle)
+			return "PERIMETER built a NON-CYCLING plan - a patrol that stops at its last corner guards one quarter of its area for the rest of the campaign";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Everything a DEFEND plan must be, whatever it is anchored on. A ragged plan is refused outright
+	//! by RegisterGroup, so the guards would silently never be registered at all.
+	//! \param[in] plan The plan to check.
+	//! \return An empty string when the shape is right, or the failure.
+	protected string VerifyDefendShape(notnull OVT_VirtualWaypointPlan plan)
+	{
+		int count = plan.m_aPositions.Count();
+
+		if (count != 1)
+			return string.Format("A DEFEND plan carries %1 points, expected exactly one", count.ToString());
+
+		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
+			return string.Format("A DEFEND plan is ragged (%1 positions, %2 types, %3 params) - RegisterGroup refuses a ragged plan outright",
+				count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
+
+		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
+			return string.Format("A DEFEND plan's only point is type %1 - any movable type here hands the movement tick a garrison to walk away while nobody is watching",
+				plan.m_aTypes[0].ToString());
+
+		if (plan.m_bCycle)
+			return "A DEFEND plan CYCLES - a one-point cycle is still a cycle";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds a DEFEND plan for a group standing at STATION, with the two live inputs forced.
+	//! \param[in] centre What GetPatrolCenter() should answer (vector.Zero = no deployment).
+	//! \param[in] stationed Whether the spawning module chose the group's position.
+	//! \return The plan, or null.
+	protected OVT_VirtualWaypointPlan BuildDefend(vector centre, bool stationed)
+	{
+		OVT_TEST_DefendAnchorProbeModule probe = new OVT_TEST_DefendAnchorProbeModule();
+		probe.m_ePatrolType = OVT_PatrolType.DEFEND;
+		probe.m_fPatrolRadius = 0;
+		probe.m_bUseNearestTownCenter = false;
+		probe.m_vProbeCentre = centre;
+		probe.m_bProbeStationed = stationed;
+
+		return probe.BuildVirtualPlan(STATION);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! EVERY RESOURCE THE OCCUPYING FACTION SPENDS ON DEFENSE ARRIVES IN THE DEPLOYMENT POOL, AND THE
+//! TRANSFER THAT PUTS IT THERE CONSERVES THE TOTAL. (virtualization/base-defense-migration T6.9.)
+//!
+//! WHY THIS IS THE CASE THE FUNDING REWRITE NEEDED. Base defense used to be funded by a SECOND
+//! spender: the campaign tick split 80 % of every gain across the bases by threat and had each base
+//! controller convert its share into men directly, while a separate conditional drip topped the
+//! deployment pool up only when it was starving. Both are deleted, and the whole economy now runs
+//! through one credit point. Two things can go wrong with that and neither one raises an error:
+//!
+//!   1. THE MONEY NEVER ARRIVES. If the opening budget were credited to the reserve instead of the
+//!      pool - the obvious mistake, since the reserve is what NewGameStart() sets two lines earlier -
+//!      the deployment evaluator would start every campaign broke and no base would fortify for
+//!      hours. Both numbers would look perfectly healthy in the Game Master panel.
+//!   2. THE MONEY IS INVENTED OR LOST. A transfer that credits the pool without debiting the reserve
+//!      doubles the occupying faction's income forever; one that debits without crediting starves
+//!      defense while the reserve looks fine. Neither is visible from any surface a player or a GM
+//!      has, which is why the assertion here is an EQUALITY on the sum and not a "did it go up".
+//!
+//! THREE CLAIMS, IN ORDER, ALL ON THE LIVE MANAGERS:
+//!   (a) the opening seed lands in the POOL and leaves the reserve untouched, to the resource;
+//!   (b) a tick's transfer moves exactly the funding split's share, and reserve+pool is unchanged;
+//!   (c) a reserve smaller than the share is clamped to what actually exists, and the identity still
+//!       holds - which is the degenerate state a campaign reaches after an expensive QRF.
+//!
+//! ⚠ TWO PIECES OF LIVE CAMPAIGN STATE ARE BORROWED AND HANDED BACK EXACTLY AS FOUND: the occupying
+//! faction's reserve and its deployment resource pool. Everything happens inside ONE Execute() frame,
+//! so no evaluation pass, no campaign tick and no QRF can observe the planted values - and teardown
+//! runs on every path including the red ones.
+//!
+//! NOTHING IS CREATED, REGISTERED OR SPAWNED. Two integers move.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change
+//! SeedOpeningDeploymentResources() to add its seed to m_iResources instead of calling
+//! AllocateDeploymentResources() and claim (a) goes red naming both numbers; delete the
+//! `m_iResources -= toSpend;` line from TransferDefenseShareToPool() and claim (b)'s conservation
+//! assertion goes red while its "the pool went up" half still passes; delete the
+//! `if(toSpend > m_iResources)` clamp and claim (c) goes red with a negative reserve.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_DefenseFundingLandsInThePool : SCR_AutotestCaseBase
+{
+	//! Planted into the reserve. Deliberately not a value any campaign start produces, and comfortably
+	//! larger than the share of the tick below, so claim (b) is not accidentally testing the clamp.
+	static const int PLANTED_RESERVE = 4137;
+
+	//! Planted into the deployment pool, for the same reason.
+	static const int PLANTED_POOL = 913;
+
+	//! A resource tick the size the shipped Normal difficulty produces on a quiet day.
+	static const int TICK = 250;
+
+	//! The reserve claim (c) is run against - smaller than the tick's share, so the transfer has to
+	//! clamp to it.
+	static const int STARVED_RESERVE = 7;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null, so there is no pool for defense funding to land in");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int factionIndex = config.GetOccupyingFactionIndex();
+		if (factionIndex < 0)
+		{
+			SetFailure("The occupying faction does not resolve to a faction index, so its pool cannot be addressed");
+			return true;
+		}
+
+		// BORROWED STATE, both halves.
+		int originalReserve = occupying.m_iResources;
+		int originalPool = manager.GetFactionResources(factionIndex);
+
+		string failure = RunClaims(occupying, manager, factionIndex);
+
+		// TEARDOWN BEFORE REPORTING, ON EVERY PATH.
+		occupying.m_iResources = originalReserve;
+		RestorePool(manager, factionIndex, originalPool);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Defense funding: the opening seed landed in the deployment pool with the reserve untouched, a tick of %1 moved exactly %2 across, and reserve+pool was conserved through both - including out of a starved reserve",
+			TICK.ToString(), OVT_BaseDefenseConversion.DefenseShare(TICK).ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The three claims, run against the live managers with the borrowed state planted.
+	//! \param[in] occupying The occupying faction manager.
+	//! \param[in] manager The deployment manager holding the pool.
+	//! \param[in] factionIndex The occupying faction's index.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunClaims(notnull OVT_OccupyingFactionManager occupying, notnull OVT_DeploymentManagerComponent manager, int factionIndex)
+	{
+		// ---- (a) THE OPENING SEED LANDS IN THE POOL ----------------------------------------------
+		occupying.m_iResources = PLANTED_RESERVE;
+		RestorePool(manager, factionIndex, PLANTED_POOL);
+
+		int seed = occupying.CalculateOpeningDeploymentSeed();
+		if (seed <= 0)
+			return string.Format("The opening defense budget computes to %1 - this world has no difficulty settings or no base controllers, so 'the seed lands in the pool' would assert nothing",
+				seed.ToString());
+
+		occupying.SeedOpeningDeploymentResources();
+
+		int poolAfterSeed = manager.GetFactionResources(factionIndex);
+		if (poolAfterSeed != PLANTED_POOL + seed)
+			return string.Format("The opening budget of %1 left the deployment pool at %2, expected %3 - the money a campaign starts its defense with is not reaching the only budget defense is bought from",
+				seed.ToString(), poolAfterSeed.ToString(), (PLANTED_POOL + seed).ToString());
+
+		if (occupying.m_iResources != PLANTED_RESERVE)
+			return string.Format("The opening budget moved the occupying faction's reserve to %1, expected it untouched at %2 - the seed is being credited to the QRF reserve instead of, or as well as, the pool",
+				occupying.m_iResources.ToString(), PLANTED_RESERVE.ToString());
+
+		// ---- (b) A TICK'S TRANSFER MOVES THE SHARE, AND ONLY THE SHARE ---------------------------
+		int reserveBefore = occupying.m_iResources;
+		int poolBefore = manager.GetFactionResources(factionIndex);
+		int expectedShare = OVT_BaseDefenseConversion.DefenseShare(TICK);
+
+		if (expectedShare <= 0 || expectedShare >= reserveBefore)
+			return string.Format("A tick of %1 splits to %2, which is not a share this case can tell apart from the clamp - pick a different planted reserve",
+				TICK.ToString(), expectedShare.ToString());
+
+		occupying.TransferDefenseShareToPool(TICK);
+
+		int reserveAfter = occupying.m_iResources;
+		int poolAfter = manager.GetFactionResources(factionIndex);
+
+		if (poolAfter - poolBefore != expectedShare)
+			return string.Format("The transfer moved %1 into the deployment pool, expected %2 - the funding split and the transfer disagree about what a tick is worth",
+				(poolAfter - poolBefore).ToString(), expectedShare.ToString());
+
+		if (reserveBefore - reserveAfter != expectedShare)
+			return string.Format("The transfer took %1 out of the reserve while putting %2 into the pool - resources are being created or destroyed on every campaign tick",
+				(reserveBefore - reserveAfter).ToString(), expectedShare.ToString());
+
+		if (reserveAfter + poolAfter != reserveBefore + poolBefore)
+			return string.Format("Reserve+pool moved from %1 to %2 across one transfer - the conserved-total identity the single funding path exists to guarantee does not hold",
+				(reserveBefore + poolBefore).ToString(), (reserveAfter + poolAfter).ToString());
+
+		// ---- (c) A STARVED RESERVE IS CLAMPED, AND THE IDENTITY STILL HOLDS -----------------------
+		occupying.m_iResources = STARVED_RESERVE;
+		poolBefore = manager.GetFactionResources(factionIndex);
+
+		occupying.TransferDefenseShareToPool(TICK);
+
+		reserveAfter = occupying.m_iResources;
+		poolAfter = manager.GetFactionResources(factionIndex);
+
+		if (reserveAfter != 0)
+			return string.Format("Transferring out of a reserve of %1 left it at %2, expected 0 - a reserve that can go negative is a campaign that can never afford a QRF again",
+				STARVED_RESERVE.ToString(), reserveAfter.ToString());
+
+		if (poolAfter - poolBefore != STARVED_RESERVE)
+			return string.Format("A starved reserve handed the pool %1, expected exactly the %2 it had - the transfer is crediting money that did not exist",
+				(poolAfter - poolBefore).ToString(), STARVED_RESERVE.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves a faction's pool to an exact value, whichever way it has to go.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The faction whose pool is being set.
+	//! \param[in] target The value to leave it on.
+	protected void RestorePool(notnull OVT_DeploymentManagerComponent manager, int factionIndex, int target)
+	{
+		int current = manager.GetFactionResources(factionIndex);
+
+		if (current > target)
+			manager.SubtractFactionResources(factionIndex, current - target);
+		else if (current < target)
+			manager.AddFactionResources(factionIndex, target - current);
 	}
 }

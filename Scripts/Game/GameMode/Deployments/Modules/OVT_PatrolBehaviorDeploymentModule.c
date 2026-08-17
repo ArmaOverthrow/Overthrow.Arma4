@@ -63,10 +63,18 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	//! cannot ask where the roads are. Each PATROL corner is pulled onto the nearest road and the WAIT
 	//! that follows it copies the snapped position, so a patrol pauses where it actually arrived
 	//! instead of at the point the geometry asked for.
+	//!
+	//! ⚠ THE TWO TYPES ANCHOR ON DIFFERENT THINGS, DELIBERATELY. PERIMETER circles GetPatrolCenter()
+	//! (the deployment marker, or the town centre when m_bUseNearestTownCenter is set) because circling
+	//! the PLACE is what a patrol is for. DEFEND holds groupPosition, because a garrison holds where it
+	//! was stationed - see the branch's own comment for what anchoring it on the marker instead does to
+	//! every config that places its groups away from that marker.
 	//! \param[in] groupPosition Where the group is about to be registered.
 	//! \return The plan, or null when this module's patrol type has nothing to say.
 	override OVT_VirtualWaypointPlan BuildVirtualPlan(vector groupPosition)
 	{
+		// Resolved before the type split so the call order is unchanged for every type; only PERIMETER
+		// reads it.
 		vector centre = GetPatrolCenter();
 
 		// The same fallback the hand-authored helper carried: an unset centre means "circle where you
@@ -77,9 +85,36 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 
 		if (m_ePatrolType == OVT_PatrolType.DEFEND)
 		{
+			// ⚠ A DEFEND WAYPOINT TELLS LIVE AI TO GO TO THAT POINT AND HOLD IT, so where it is anchored
+			// decides where a garrison ends up standing - and the right anchor is NOT the same for every
+			// config. GetPatrolCenter() answers the DEPLOYMENT MARKER whenever there is a live deployment
+			// (only a config TEMPLATE gets the groupPosition fallback above), so anchoring there
+			// unconditionally walks every deliberately-placed garrison off its post towards the marker:
+			// the placed module stands men on tower walkways, sniper markers and defend positions up to
+			// baseRange away, and the composition module stands them on a bunker or a road checkpoint.
+			// Every legacy caller anchored on the group instead - SpawnDefendWaypoint(aigroup.GetOrigin())
+			// in the slotted upgrade, and the checkpoint's own structure origin in the checkpoint upgrade.
+			//
+			// ⚠ BUT THE GROUP POSITION IS ONLY TRUSTWORTHY WHEN THE SPAWNING MODULE CHOSE IT. The plain
+			// infantry module rolls a ring point and road-snaps it through a 500 m search that ignores
+			// m_fSpawnRadius, and integration MEASURED that putting a tower garrison on its access road.
+			// Anchoring on that would park the garrison on the road instead of at the tower - the mirror
+			// image of the bug above, on a shipped config. So the anchor follows
+			// StationsGroupsDeliberately(): the group when its position is a chosen post, the marker when
+			// it is a rolled-and-snapped artefact. Deployment_TowerGarrison.conf therefore keeps exactly
+			// today's behaviour.
+			//
+			// PERIMETER keeps GetPatrolCenter()'s answer unconditionally, and must: circling the TOWN is
+			// the entire point of a town patrol, and it is the one type where the centre is deliberately
+			// not where the group stands.
+			//
 			// Radius 0 leaves the defend waypoint prefab's own completion radius alone - parity with
-			// SpawnDefendWaypoint(centre), which is all the old DEFEND branch did.
-			return OVT_VirtualPlanFactory.BuildDefendPlan(centre, 0);
+			// SpawnDefendWaypoint(pos), which is all the old DEFEND branch did.
+			vector holdPoint = centre;
+			if (GroupsAreStationedDeliberately())
+				holdPoint = groupPosition;
+
+			return OVT_VirtualPlanFactory.BuildDefendPlan(holdPoint, 0);
 		}
 
 		if (m_ePatrolType != OVT_PatrolType.PERIMETER)
@@ -152,6 +187,37 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		return clone;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Whether this deployment's groups are put where somebody decided they should stand.
+	//!
+	//! ANY spawning module answering true is enough, and that is exact rather than sloppy for every
+	//! config that ships: no config mixes a deliberate module with a rolling one. A future config that
+	//! did would want the anchor decided per module, which needs the spawning module to be passed down
+	//! into BuildVirtualPlan - a bigger change than any shipped config justifies today.
+	//!
+	//! NO DEPLOYMENT answers TRUE, deliberately: a config TEMPLATE has no marker to anchor on at all
+	//! (GetPatrolCenter() returns Zero and the caller has already fallen back to the group position), so
+	//! the group position is the only meaningful answer and this keeps the two paths agreeing.
+	//! \return Whether the DEFEND anchor should be the group rather than the marker.
+	protected bool GroupsAreStationedDeliberately()
+	{
+		if (!m_ParentDeployment)
+			return true;
+
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = m_ParentDeployment.GetSpawningModules();
+		if (!spawningModules)
+			return false;
+
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			if (spawningModule && spawningModule.StationsGroupsDeliberately())
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//------------------------------------------------------------------------------------------------
 	//! What the patrol circles: the nearest town centre when this module is authored to use one, and
 	//! the deployment's own position otherwise.

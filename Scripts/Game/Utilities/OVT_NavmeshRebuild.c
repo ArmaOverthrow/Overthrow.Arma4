@@ -9,7 +9,8 @@
 //! in a single file.
 //!
 //! THE PATHS THAT NEED IT. Placing (OVT_ResistanceFactionManager.PlaceItem), building (BuildItem),
-//! base upgrades (OVT_SlottedBaseUpgrade), removal (RemovePlacedItem and the camp / FOB area
+//! base compositions (OVT_CompositionSpawningDeploymentModule), removal (RemovePlacedItem and the
+//! camp / FOB area
 //! cleanups), and - the one that was missed - RESTORING A SAVE. Placeables and buildables are
 //! SelfSpawn 1 in Configs/Systems/Persistence/Overthrow.conf, so the persistence system respawns
 //! them on load; the navmesh that comes back with the world knows nothing about them. Vanilla does

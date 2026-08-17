@@ -8,6 +8,7 @@ OVT_OverthrowGameMode {
   OVT_DeploymentManagerComponent "{65B2DE4D19F8D47E}" {
    m_DeploymentRegistry OVT_DeploymentRegistry "{65B2DE433E54414A}" : "{C9A38056910495A2}Configs/Deployment/overthrowDeployments.conf" {
    }
+   m_iMaxDeploymentsPerFaction 400
   }
   OVT_EconomyManagerComponent "{5988DB0008700592}" {
    m_ShopConfig OVT_ShopConfig "{6490AAF29D7D5707}" : "{CA8AAD31D0E7E0B5}Configs/System/ShopConfig.conf" {

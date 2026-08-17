@@ -46,14 +46,32 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	protected bool m_bVirtualizationHooked;
 
 	static const float THREAT_EVALUATION_RADIUS = 2000; // 2km
-	static const int MIN_DEPLOYMENT_DISTANCE = 100; // 100m minimum between deployments
 	static const int MAX_DEPLOYMENTS_PER_EVALUATION = 10; // Maximum deployments per evaluation cycle
+
+	//! ⚠ There is no longer a blanket minimum distance between deployments. The 100 m veto that used
+	//! to live here was removed with the base-defense migration: it made a place that already held one
+	//! deployment invisible to every other config, and a base fortifies by acquiring several DIFFERENT
+	//! deployments at one place. The one anti-stack rule left is the name-scoped 250 m dedup in
+	//! HasExistingDeploymentOfType(), which is the rule that was ever actually load-bearing.
 
 	//! How close a position has to be to a radio tower to count as being AT one. Read by both halves
 	//! of the location classification (the precedence chain and the OR-ed bit), which is the point of
 	//! it being a constant: two copies of 300 that drifted apart would classify the same spot two
 	//! different ways depending on which question was asked.
 	static const float RADIO_TOWER_RADIUS = 300;
+
+	//! How close a position has to be to a base centre for the BASE bit to be OR-ed into its
+	//! classification (see GetLocationTypeAtPosition).
+	//!
+	//! ⚠ THIS NUMBER IS DELIBERATELY EQUAL TO HasExistingDeploymentOfType()'s DEFAULT 250 m DEDUP
+	//! RADIUS, and that equality is the whole safety argument for OR-ing the bit in at all. Any
+	//! position that gains the BASE bit is by definition within 250 m of the base centre, so the
+	//! name-scoped dedup already sees the base's own copy of every base config and refuses a second
+	//! one. Force doubling is therefore geometrically impossible rather than merely unlikely. If this
+	//! ever grows past the dedup radius, a base and a nearby position could each buy their own copy of
+	//! every base-defense config - which is exactly what the 500 m variant of this change was rejected
+	//! for (Levie's town centre sits 460 m from its base).
+	static const float BASE_CLASSIFICATION_RADIUS = 250;
 
 	//! Ceiling on the collision-ordinal search in NextKeyOrdinal(). Reaching it means something is
 	//! generating deployments on one spot in a loop, which is a bug to see in a log rather than a
@@ -449,12 +467,15 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//!
 	//! Asked PER LOCATION KIND rather than through FindDeploymentCandidates(), on purpose. That method
 	//! unions the kinds wanted by every config the faction can use and then filters by suitability -
-	//! which is right for the opportunistic evaluator, and wrong twice over here. It would offer a
-	//! tower position to the town patrol config (a tower inside a town's bounds classifies as both),
-	//! seeding a second patrol on top of the tower; and its MIN_DEPLOYMENT_DISTANCE filter exists to
-	//! stop the evaluator stacking deployments, which would make a garrison unseedable purely because
-	//! a town patrol happens to stand 90 m away. Seeding is per-LOCATION baseline presence, so it asks
-	//! each kind of location for its own list and lets the dedup below do the deduplicating.
+	//! which is right for the opportunistic evaluator and wrong here: it would offer a tower position
+	//! to the town patrol config (a tower inside a town's bounds classifies as both), seeding a second
+	//! patrol on top of the tower. Seeding is per-LOCATION baseline presence, so it asks each kind of
+	//! location for its own list and lets the dedup below do the deduplicating.
+	//!
+	//! (It used to have a second reason: FindDeploymentCandidates() also vetoed any position within
+	//! 100 m of any existing deployment, which would have made a garrison unseedable purely because a
+	//! town patrol stood 90 m away. That veto was removed with the base-defense migration - see
+	//! IsPositionSuitableForDeployment() - so only the first reason still stands.)
 	//!
 	//! A config that authors NO location types seeds nothing. CanUseLocationType() reads that as "no
 	//! restrictions", but seeding enumerates places and "anywhere" is not a place - so marking an
@@ -614,12 +635,20 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			OVT_DeploymentConfig bestConfig = FindBestDeploymentConfig(candidate.position, factionIndex, candidate.threatLevel, availableResources);
 			if (bestConfig)
 			{
-				// Check if we already have this type of deployment nearby
+				// REDUNDANT SINCE THE ESCALATION CHANGE, AND KEPT ON PURPOSE. FindBestDeploymentConfig
+				// now applies this same dedup per config before it picks, so a config it hands back is
+				// one this position does not hold. This is a cheap belt-and-braces guard on the ONE
+				// invariant the whole framework rests on - never two of the same config in one place -
+				// and it stays so that any future caller of FindBestDeploymentConfig, or any future
+				// change to it, cannot create a duplicate without tripping over this line first.
+				// ⚠ It must NOT go back to being a `continue` on the POSITION rather than on the config:
+				// that is precisely what stopped a place ever acquiring more than its single best
+				// config, because the position was written off for the whole pass.
 				if (HasExistingDeploymentOfType(candidate.position, factionIndex, bestConfig.m_sDeploymentName))
 				{
 					continue; // Skip this position, deployment already exists nearby
 				}
-				
+
 				int deploymentCost = bestConfig.GetTotalResourceCost();
 				if (availableResources >= deploymentCost)
 				{
@@ -844,24 +873,27 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Whether a candidate position can carry a deployment at all.
+	//!
+	//! THIS IS A GROUND CHECK AND NOTHING ELSE, deliberately. It used to veto any position within
+	//! 100 m of ANY existing deployment, which made a place that already had one deployment
+	//! permanently invisible to every other config: a base could buy its highest-priority config and
+	//! nothing else, ever. Per-concern configs need exactly the opposite - a base fortifies by
+	//! acquiring several different deployments at one place - so the blanket proximity veto is gone.
+	//!
+	//! WHAT PREVENTS STACKING NOW is the NAME-SCOPED 250 m dedup, HasExistingDeploymentOfType(),
+	//! which is the rule that actually mattered all along. Two deployments of DIFFERENT configs may
+	//! now share a position (a base's garrison patrol beside its tower guards; a town patrol beside a
+	//! tower garrison where the tower stands inside a town). Two of the SAME config still may not.
+	//! FindBestDeploymentConfig() applies that dedup per config BEFORE it compares priorities, which
+	//! is what turns "one config per place" into "the next config this place is still missing" - see
+	//! the escalation contract in that method's header.
+	//! \param[in] position The candidate position.
+	//! \param[in] factionIndex The faction being deployed for. Unused: suitability is a property of
+	//!            the ground, and every faction-scoped rule lives in the config filter instead.
+	//! \return True when there is ground under the position.
 	protected bool IsPositionSuitableForDeployment(vector position, int factionIndex)
 	{
-		// Check minimum distance to existing deployments
-		foreach (EntityID deploymentID : m_aActiveDeployments)
-		{
-			IEntity entity = GetGame().GetWorld().FindEntityByID(deploymentID);
-			if (!entity)
-				continue;
-				
-			OVT_DeploymentComponent deployment = GetDeploymentFromEntity(entity);
-			if (!deployment)
-				continue;
-				
-			float distance = vector.Distance(position, deployment.GetPosition());
-			if (distance < MIN_DEPLOYMENT_DISTANCE)
-				return false;
-		}
-		
 		// Check if position is in suitable terrain
 		TraceParam param = new TraceParam();
 		param.Start = position + Vector(0, 100, 0);
@@ -960,10 +992,59 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected OVT_DeploymentConfig FindBestDeploymentConfig(vector position, int factionIndex, float threatLevel, int availableResources)
+	//! The config this position should buy NEXT, or null when there is nothing left for it to buy.
+	//!
+	//! ================================ THE ESCALATION CONTRACT ==================================
+	//! m_iPriority is no longer only a tie-break. It is the ORDER OF ACQUISITION AT ONE PLACE.
+	//!
+	//! Every evaluation pass asks this method again, and it answers with the LOWEST-PRIORITY config
+	//! the position is still MISSING - so a place fortifies one concern at a time, cheapest-priority
+	//! first, over successive passes:
+	//!
+	//!     pass 1 at a base:  missing everything          -> Garrison Patrol   (priority 1)
+	//!     pass 2 at a base:  Garrison Patrol is here     -> Defense Positions (priority 2)
+	//!     pass 3 at a base:  both are here               -> Tower Guards      (priority 2, order)
+	//!     ...                                            -> Parked Vehicles   (priority 10)
+	//!     when nothing is missing                        -> null
+	//!
+	//! ...each still gated by cost, by m_iMinimumThreatLevel, by m_iMaxInstances, by m_fChance and by
+	//! the config's own condition modules, and paced map-wide by MAX_DEPLOYMENTS_PER_EVALUATION.
+	//! Ties in priority resolve to REGISTRY ORDER, and the loser is picked up on the next pass rather
+	//! than being shut out forever - which is what un-sticks the latent defect where a radio tower
+	//! inside a town could never be garrisoned because Town Patrol and Tower Garrison both sit at
+	//! priority 1.
+	//!
+	//! "MISSING" MEANS the name-scoped 250 m dedup, HasExistingDeploymentOfType() - the same call the
+	//! caller makes, applied here per config BEFORE the priority comparison instead of once after it.
+	//! Doing it after was the whole reason a place could only ever hold its single best config: the
+	//! caller got one answer, found it already present, and skipped the position entirely.
+	//! ==========================================================================================
+	//!
+	//! The pick itself is delegated to OVT_DeploymentSelection, which is pure arithmetic over names
+	//! and priorities with no world in it, so the contract above is assertable in the cheapest test
+	//! tier rather than only in a running campaign.
+	//!
+	//! ⚠ PUBLIC so the Init tier can assert the contract as a live claim (a position that already
+	//! holds config A answers config B) rather than as an inspection of this diff. Nothing outside the
+	//! evaluator and that case calls it.
+	//! \param[in] position The candidate position.
+	//! \param[in] factionIndex The faction being deployed for.
+	//! \param[in] threatLevel The candidate's scored threat.
+	//! \param[in] availableResources That faction's deployment pool.
+	//! \return The next config to create here, or null.
+	OVT_DeploymentConfig FindBestDeploymentConfig(vector position, int factionIndex, float threatLevel, int availableResources)
 	{
 		array<OVT_DeploymentConfig> suitableConfigs = new array<OVT_DeploymentConfig>;
-		
+
+		// Parallel to suitableConfigs, for the world-free selection below.
+		array<string> suitableNames = new array<string>;
+		array<int> suitablePriorities = new array<int>;
+
+		// Which of those this position ALREADY holds. Collected rather than `continue`d over so the
+		// selection stays one pure function of what was found, and so a log line can tell "nothing
+		// suitable here" apart from "everything suitable is already here".
+		array<string> alreadyHere = new array<string>;
+
 		// Filter configs by conditions and resources
 		foreach (OVT_DeploymentConfig config : m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
@@ -1002,28 +1083,22 @@ class OVT_DeploymentManagerComponent : OVT_Component
 				if (config.m_fChance >= 100.0 || s_AIRandomGenerator.RandFloatXY(0,100) <= config.m_fChance)
 				{
 					suitableConfigs.Insert(config);
+					suitableNames.Insert(config.m_sDeploymentName);
+					suitablePriorities.Insert(config.m_iPriority);
+
+					// THE ESCALATION FILTER. Asked per config, before anything compares priorities.
+					if (HasExistingDeploymentOfType(position, factionIndex, config.m_sDeploymentName))
+						alreadyHere.Insert(config.m_sDeploymentName);
 				}
 			}
 		}
-		
-		if (suitableConfigs.IsEmpty())
+
+		// Lowest priority among the ones this position does NOT already hold; ties to registry order.
+		int pick = OVT_DeploymentSelection.SelectNextConfigIndex(suitableNames, suitablePriorities, alreadyHere);
+		if (pick == OVT_DeploymentSelection.NOTHING_TO_BUY)
 			return null;
-		
-		// Select best config based on priority and threat level
-		OVT_DeploymentConfig bestConfig = null;
-		int bestPriority = 999;
-		
-		foreach (OVT_DeploymentConfig config : suitableConfigs)
-		{
-			// Lower priority value = higher priority
-			if (config.m_iPriority < bestPriority)
-			{
-				bestPriority = config.m_iPriority;
-				bestConfig = config;
-			}
-		}
-		
-		return bestConfig;
+
+		return suitableConfigs[pick];
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1066,11 +1141,25 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! before, then OR the RADIO_TOWER bit in on top. Nothing moves in the precedence, so no existing
 	//! config's candidate acceptance changes - a town centre near a tower still reads as a TOWN to
 	//! the Town Patrol config, because CanUseLocationType is a bitwise test and the TOWN bit is still
-	//! there. Returning the full union of every matching kind was rejected for the opposite reason:
-	//! it would newly make town centres within 500 m of a base acceptable to the BASE-only vehicle
-	//! patrol configs, which is a behaviour change nobody asked for.
+	//! there.
+	//!
+	//! THE BASE BIT IS OR-ED IN THE SAME WAY, AND FOR THE SAME CLASS OF REASON. Towns are tested
+	//! before bases and OVT_TownData.IsWithinTownBounds() is a hardcoded 500 m radius, so a base whose
+	//! centre falls inside a town's bounds classified as TOWN and could be offered NO base-only config
+	//! at all. That is 4 of Eden's 10 bases (Erquy 323 m, Lamentin 372 m, Levie 460 m, Montfort Castle
+	//! 481 m) plus the Init test world's only base (114 m) - and the system this replaces (a per-base
+	//! priority sweep run by the base controller itself) never asked what kind of place a base was, so
+	//! every base fortified. Leaving it would have been a regression on ~40 % of the map's bases.
+	//!
+	//! ⚠ THE 250 m RADIUS IS THE SAFETY ARGUMENT, NOT A TUNING KNOB. It is deliberately equal to
+	//! HasExistingDeploymentOfType()'s dedup radius (see BASE_CLASSIFICATION_RADIUS). Any position
+	//! that gains the BASE bit is at most 250 m from the base centre, so the name-scoped dedup sees
+	//! the base's own copy of a base config and refuses a second - force doubling is geometrically
+	//! impossible. OR-ing at the precedence chain's own 500 m was rejected for exactly that reason: at
+	//! Levie the town centre is 460 m from the base, far enough for the dedup to miss and for the base
+	//! and the town to each buy a full set of base defense.
 	//! \param[in] position The candidate position.
-	//! \return The location kind, with RADIO_TOWER OR-ed in when a tower is within range.
+	//! \return The location kind, with RADIO_TOWER and/or BASE OR-ed in when one is within range.
 	OVT_LocationTypeFlag GetLocationTypeAtPosition(vector position)
 	{
 		OVT_LocationTypeFlag locationType = GetPrimaryLocationTypeAtPosition(position);
@@ -1078,7 +1167,32 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (IsNearRadioTower(position))
 			locationType = locationType | OVT_LocationTypeFlag.RADIO_TOWER;
 
+		if (IsNearBaseCentre(position))
+			locationType = locationType | OVT_LocationTypeFlag.BASE;
+
 		return locationType;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a tracked base centre stands within BASE_CLASSIFICATION_RADIUS of a position.
+	//!
+	//! Deliberately NOT the 500 m the precedence chain's own base branch uses: this one feeds the
+	//! OR-in, where the radius must stay inside the deployment dedup radius to stop a base and a
+	//! neighbouring candidate each buying their own defense. The two numbers answer two different
+	//! questions and are meant to differ.
+	//! \param[in] position The position to test.
+	//! \return True when the nearest base centre is inside BASE_CLASSIFICATION_RADIUS.
+	protected bool IsNearBaseCentre(vector position)
+	{
+		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
+		if (!ofManager)
+			return false;
+
+		OVT_BaseData baseData = ofManager.GetNearestBase(position);
+		if (!baseData)
+			return false;
+
+		return vector.Distance(position, baseData.location) < BASE_CLASSIFICATION_RADIUS;
 	}
 
 	//------------------------------------------------------------------------------------------------

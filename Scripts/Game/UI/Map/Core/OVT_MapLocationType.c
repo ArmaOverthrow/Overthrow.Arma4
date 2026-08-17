@@ -1,5 +1,5 @@
 //! Base class for map location types using hybrid config/code pattern
-//! Follows the same pattern as OVT_BaseUpgrade for extensibility
+//! Hybrid config/code: a subclass carries behaviour and the .conf authors its values
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationType
 {

@@ -2,6 +2,28 @@ class OVT_BaseControllerComponentClass: OVT_ComponentClass
 {
 };
 
+//------------------------------------------------------------------------------------------------
+//! The marker component on a military base: WHERE ITS BUILDABLE GROUND IS, who holds it, and where a
+//! QRF should come from.
+//!
+//! ⚠ IT NO LONGER BUYS, SPENDS, TICKS OR SPAWNS ANYTHING. Until the base-defense migration this
+//! component also owned a whole parallel economy - a runtime list of upgrade objects copied from a
+//! config, a 10 s timer that ticked them, a 1..19 priority sweep the occupying faction handed a
+//! per-base budget to, and a by-class-name lookup the save path replayed old records into. All of it
+//! is gone: base defense is nine Configs/Deployment/Deployment_Base*.conf deployments, bought out of
+//! the deployment framework's own resource pool and virtualized by the core, and NOTHING may
+//! reintroduce a second spender here (that is decision G2 - one accounting path, grep-enforced).
+//!
+//! WHAT SURVIVES, AND WHY IT IS STILL THE ONLY PLACE THAT KNOWS IT:
+//!  - THE SLOT REGISTRY (m_AllSlots / m_AllCloseSlots / the six sized lists / m_Parking /
+//!    m_aSlotsFilled / m_aDefendPositions / m_aVehiclePatrolSpawns). This is discovered by one world
+//!    query per base at init and read by the composition, parked-vehicle and defend-position
+//!    deployment modules, by the resistance's FOB garrison path and by QRF placement. m_aSlotsFilled
+//!    in particular ROUND-TRIPS THROUGH THE SAVE and is what stops a deployment re-using a slot a
+//!    structure is already standing in;
+//!  - the faction/flag half, which is what a capture actually changes;
+//!  - the QRF spawn geometry attributes, read by OVT_QRFControllerComponent.
+//------------------------------------------------------------------------------------------------
 class OVT_BaseControllerComponent: OVT_Component
 {
 	[Attribute("")]
@@ -10,12 +32,6 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Initial Resource Multiplier")]
 	float m_fStartingResourcesMultiplier;
 
-	[Attribute("", UIWidgets.Object, desc: "Config defining the upgrades this base spends resources on")]
-	ref OVT_BaseUpgradesConfig m_BaseUpgradesConfig;
-
-	//! Runtime upgrade list, populated from m_BaseUpgradesConfig in InitializeBase
-	ref array<ref OVT_BaseUpgrade> m_aBaseUpgrades;
-	
 	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	
@@ -43,8 +59,6 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	protected OVT_OccupyingFactionManager m_occupyingFactionManager;
 
-	protected const int UPGRADE_UPDATE_FREQUENCY = 10000;
-	
 	void InitBaseClient()
 	{
 		if(Replication.IsServer()) return;
@@ -69,8 +83,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		}
 
 		InitializeBase();
-
-		GetGame().GetCallqueue().CallLater(UpdateUpgrades, UPGRADE_UPDATE_FREQUENCY, true, GetOwner());
 	}
 	
 	OVT_BaseData GetData()
@@ -79,18 +91,6 @@ class OVT_BaseControllerComponent: OVT_Component
 		return of.GetNearestBase(GetOwner().GetOrigin());
 	}
 
-	protected void UpdateUpgrades()
-	{
-		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return; // [OVT-VIRT-PLAYTEST-ONLY]
-		if(!m_aBaseUpgrades) return;
-		if(!IsOccupyingFaction()) return;
-
-		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
-		{
-			upgrade.OnUpdate(UPGRADE_UPDATE_FREQUENCY);
-		}
-	}
-	
 	void OnFactionChanged(FactionAffiliationComponent owner, Faction previousFaction, Faction newFaction)
 	{
 		// Get the faction index
@@ -172,42 +172,6 @@ class OVT_BaseControllerComponent: OVT_Component
 
 		FindSlots();
 		FindParking();
-
-		m_aBaseUpgrades = new array<ref OVT_BaseUpgrade>;
-		if(m_BaseUpgradesConfig && m_BaseUpgradesConfig.m_aBaseUpgrades)
-		{
-			foreach(OVT_BaseUpgrade upgrade : m_BaseUpgradesConfig.m_aBaseUpgrades)
-			{
-				m_aBaseUpgrades.Insert(upgrade);
-			}
-		}
-
-		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
-		{
-			upgrade.Init(this, m_occupyingFactionManager, OVT_Global.GetConfig());
-		}
-
-	}
-
-	OVT_BaseUpgrade FindUpgrade(string type, string tag = "")
-	{
-		if(!m_aBaseUpgrades) return null;
-		foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
-		{
-			if(tag != "")
-			{
-				OVT_BaseUpgradeComposition comp = OVT_BaseUpgradeComposition.Cast(upgrade);
-				if(!comp) continue;
-				if(comp.m_sCompositionTag == tag)
-				{
-					return upgrade;
-				}else{
-					continue;
-				}
-			}
-			if(upgrade.ClassName() == type) return upgrade;
-		}
-		return null;
 	}
 
 	void FindSlots()
@@ -236,7 +200,9 @@ class OVT_BaseControllerComponent: OVT_Component
 			if(mapdes)
 			{
 				EMapDescriptorType type = mapdes.GetBaseType();
-				if(type == EMapDescriptorType.MDT_TOWER) return false; //Towers are handled by OVT_BaseUpgradeTowerGuard
+				//Towers are handled by OVT_TowerCoverPostPlacementProvider (Deployment_BaseTowerGuards.conf),
+				//which finds them by map descriptor itself - a tower left in this sweep would be manned twice
+				if(type == EMapDescriptorType.MDT_TOWER) return false;
 			}
 			return true;
 		}
@@ -291,41 +257,6 @@ class OVT_BaseControllerComponent: OVT_Component
 			m_Parking.Insert(entity.GetID());
 		}
 		return false;
-	}
-
-	int SpendResources(int resources, float threat = 0)
-	{
-		if(OVT_VirtPlaytestKillSwitch.DISABLE_LEGACY_AI_SPAWNS) return 0; // [OVT-VIRT-PLAYTEST-ONLY]
-		if(!m_aBaseUpgrades) return 0;
-		int spent = 0;
-
-		for(int priority = 1; priority < 20; priority++)
-		{
-			if(resources <= 0) break;
-			foreach(OVT_BaseUpgrade upgrade : m_aBaseUpgrades)
-			{
-				if(resources <= 0) break;
-				if(upgrade.m_iMinimumThreat > threat) continue;
-				if(upgrade.m_iPriority == priority)
-				{
-					int allocate = upgrade.m_iResourceAllocation * OVT_Global.GetConfig().m_Difficulty.baseResourceCost;
-					int newres = 0;
-					if(allocate < 0)
-					{
-						//Ignore allocation, spend recklessly
-						newres = upgrade.Spend(resources, threat);
-					}else{
-						if(resources < allocate) allocate = resources;
-						newres = upgrade.SpendToAllocation(threat, allocate);
-					}
-
-					spent += newres;
-					resources -= newres;
-				}
-			}
-		}
-
-		return spent;
 	}
 
 	IEntity GetNearestSlot(vector pos)

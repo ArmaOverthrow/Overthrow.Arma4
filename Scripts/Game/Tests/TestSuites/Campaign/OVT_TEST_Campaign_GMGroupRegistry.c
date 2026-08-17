@@ -23,11 +23,11 @@
 //! assertions test each other: a Sweep() that removed everything would fail claim 1, a Sweep() that
 //! removed nothing dangling would leave stale entries that claim 2 would still have to survive.
 //!
-//! WHY IT WAITS, AND WHERE THE OBSERVABLE COMES FROM NOW (re-derived 2026-08-17,
-//! virtualization/integration T7.6). Nothing is tagged at campaign start. The producer this case used
-//! to rely on - OVT_BasePatrolUpgrade.BuyPatrol() on a ~9-11 s base-upgrade timer - is still silenced
-//! by the virtualization epic's legacy-spawn kill switch, which does not leave until the epic does.
-//! The producer that IS live again is the DEPLOYMENT wave, and its chain is longer:
+//! WHY IT WAITS, AND WHERE THE OBSERVABLE COMES FROM NOW (re-derived 2026-08-18, at the end of the
+//! virtualization epic). Nothing is tagged at campaign start. The producer this case relied on when it
+//! was written - a base-upgrade patrol timer - does not exist any more: base defense is nine
+//! Configs/Deployment/Deployment_Base*.conf deployments, so DEPLOYMENTS ARE NOW THE ONLY PRODUCER THIS
+//! WORLD HAS, and their chain is longer than a timer's:
 //!
 //!   NewGameStart()  allocates baseResourcesPerTick (250) to the deployment manager, so the first
 //!                   evaluation can already afford something;
@@ -42,15 +42,10 @@
 //! the first evaluation produces nothing and the 30 s one after it does. The budget below covers the
 //! second cycle deliberately: it is a bound on the EXPLANATION, not a retry budget, and a green run
 //! exits the moment the registry is non-empty, so the longer budget costs nothing except on a run
-//! that was going to be red anyway. When it expires the failure prints the base-upgrade ledger, the
-//! deployment ledger and the player-proximity state, because "registry empty" has three interesting
-//! causes now and this tells them apart.
-//!
-//! THE PROXIMITY DIAGNOSTIC IS NOT DECORATION. Every base-upgrade spawn is gated on PlayerInRange()
-//! at m_iMilitarySpawnDistance (1750 m). The test world is roughly 250 m across and the autotest
-//! client spawns a real local player, so the gate is open - but if that ever changes, an empty
-//! registry would be an environment fact rather than a broken tag, and the failure message has to say
-//! which.
+//! that was going to be red anyway. When it expires the failure prints the DEPLOYMENT LEDGER, which is
+//! the one diagnostic left worth printing: it tells "the evaluator never bought anything" apart from
+//! "deployments exist and hold groups but nothing tagged them", and those are completely different
+//! faults. The base-upgrade ledger that used to sit beside it went with the base upgrades.
 //!
 //! IT ALSO PINS THE EPIC'S JOIN KEY. Every tagged group must carry an RplComponent, because the GM
 //! snapshot sends groups keyed on RplId and a group without one cannot be matched to anything on a
@@ -63,10 +58,8 @@
 //!
 //! PROVEN ABLE TO FAIL (static): commenting out the Tag() call in
 //! OVT_BaseSpawningDeploymentModule.TagForGameMaster() removes the only origin the test world
-//! produces while the kill switch is on, and the case then goes red on claim 1 with the deployment
-//! ledger showing live deployments and an empty registry - the exact "groups exist, nothing tagged
-//! them" signature. (The same used to be true of OVT_BasePatrolUpgrade.BuyPatrol(); that producer is
-//! kill-switched until the virtualization epic ends and is no longer what this case measures.)
+//! produces, and the case then goes red on claim 1 with the deployment ledger showing live
+//! deployments and an empty registry - the exact "groups exist, nothing tagged them" signature.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_CampaignSuite, timeoutS: 90)]
 class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
@@ -86,12 +79,9 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
-		// The kill-switch trivial-pass guard that stood here from the start of the virtualization epic
-		// until 2026-08-17 is GONE (integration T7.6). It was correct while the epic had silenced every
-		// producer this case can see; deployments - including radio-tower garrisons, which are now an
-		// ordinary deployment config - register and TAG their groups again, so an empty registry is a
-		// broken tag once more and this case asserts for real. The base-upgrade producers are still
-		// silenced and are not what it measures; see the header.
+		// The virtualization epic's kill-switch trivial-pass guard that stood here is GONE, and so is
+		// the kill switch itself. Every producer this world has is a deployment, they register and TAG
+		// their groups, so an empty registry is a broken tag and this case asserts for real.
 
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
@@ -123,13 +113,11 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 			if (waited < MAX_WAIT_MS)
 				return false; // keep polling
 
-			// Both ledgers, because the live producer moved: deployments tag now, base upgrades are
-			// kill-switched. "No deployment exists" and "deployments exist but nothing tagged them"
-			// are completely different faults and only the deployment ledger tells them apart.
+			// One ledger, because there is one producer. "No deployment exists" and "deployments exist
+			// but nothing tagged them" are completely different faults and this tells them apart.
 			string report = string.Format("No AI group was tagged in the GM group registry within %1 ms (%2 ticks).",
 				waited.ToString(), m_iPolls.ToString());
 			report += " Deployment ledger: " + DescribeDeploymentState();
-			report += " Base upgrade ledger (kill-switched during the virtualization epic): " + DescribeSpawnState();
 
 			SetFailure(report);
 			return true;
@@ -299,99 +287,5 @@ class OVT_TEST_Campaign_GMGroupRegistry : SCR_AutotestCaseBase
 			report += " registry holds " + virtualization.GetGroupCount().ToString() + " virtual group(s)";
 
 		return report;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Why the registry might legitimately be empty: what the bases have actually spawned, and whether
-	//! the player-proximity gate every base-upgrade spawn sits behind is even open.
-	//!
-	//! This is the whole anti-vacuity story of the failure path. "Registry empty AND every upgrade
-	//! reports zero groups" means the campaign spawned nothing and the tags are innocent; "registry
-	//! empty AND upgrades report groups" means a Tag() call is missing or unreachable.
-	//! \return A single-line diagnostic.
-	protected string DescribeSpawnState()
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying)
-			return "OVT_Global.GetOccupyingFaction() is null";
-
-		if (occupying.m_Bases.Count() < 1)
-			return "no bases are registered, so no base upgrade can have spawned anything";
-
-		string report = "";
-
-		for (int i = 0; i < occupying.m_Bases.Count(); i++)
-		{
-			OVT_BaseControllerComponent controller = occupying.GetBaseByIndex(i);
-			if (!controller)
-			{
-				report += "base " + i.ToString() + ": no controller. ";
-				continue;
-			}
-
-			report += "base " + i.ToString() + " " + DescribeProximity(controller) + " {";
-
-			if (!controller.m_aBaseUpgrades)
-			{
-				report += "no upgrade list";
-			}
-			else
-			{
-				foreach (int u, OVT_BaseUpgrade upgrade : controller.m_aBaseUpgrades)
-				{
-					if (!upgrade)
-						continue;
-
-					if (u > 0)
-						report += ", ";
-
-					report += upgrade.ClassName() + " res=" + upgrade.GetResources().ToString();
-
-					OVT_BasePatrolUpgrade patrol = OVT_BasePatrolUpgrade.Cast(upgrade);
-					if (patrol)
-						report += " groups=" + patrol.GetNumGroups().ToString() + " live=" + patrol.m_Groups.Count().ToString();
-				}
-			}
-
-			report += "} ";
-		}
-
-		return report;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether a player is close enough to this base for its upgrades to spawn anything at all.
-	//! \param[in] controller The base controller.
-	//! \return A short diagnostic naming the nearest player distance and the gate's threshold.
-	protected string DescribeProximity(OVT_BaseControllerComponent controller)
-	{
-		IEntity owner = controller.GetOwner();
-		if (!owner)
-			return "(base entity is null)";
-
-		int spawnDistance = 0;
-		if (OVT_Global.GetConfig())
-			spawnDistance = OVT_Global.GetConfig().m_iMilitarySpawnDistance;
-
-		array<int> players = new array<int>();
-		PlayerManager manager = GetGame().GetPlayerManager();
-		manager.GetPlayers(players);
-
-		float nearest = -1;
-		foreach (int playerId : players)
-		{
-			IEntity controlled = manager.GetPlayerControlledEntity(playerId);
-			if (!controlled)
-				continue;
-
-			float distance = vector.Distance(controlled.GetOrigin(), owner.GetOrigin());
-			if (nearest < 0 || distance < nearest)
-				nearest = distance;
-		}
-
-		if (nearest < 0)
-			return "(no player-controlled entity exists, so PlayerInRange() is false and NO base upgrade can spawn)";
-
-		return "(nearest player " + nearest.ToString() + "m, spawn gate " + spawnDistance.ToString() + "m)";
 	}
 }

@@ -8,8 +8,8 @@
 //! is documented in the plan: OVT_OccupyingFactionManager.GainResources() computes the next
 //! distribution AND THEN ADDS IT, so a "predict the next tick" call from here would hand the occupying
 //! faction a free income tick every time a GM opened the editor. The same shape of mistake is
-//! available on the base upgrades (Spend/SpendToAllocation) and on the deployment manager
-//! (AllocateDeploymentResources). If a future field needs a number that only a mutating method
+//! available on the deployment manager (AllocateDeploymentResources) and on any deployment module
+//! method whose name starts with Ensure. If a future field needs a number that only a mutating method
 //! produces, EXTRACT THE ARITHMETIC into a pure static - do not call the mutator.
 //!
 //! THE ONE PERMITTED MUTATION is OVT_GMGroupRegistry.Sweep(), which drops registry entries whose
@@ -33,7 +33,8 @@ class OVT_GMSnapshotBuilder
 	//! record.
 	ref array<ref OVT_GMBaseRecord> m_aBases = new array<ref OVT_GMBaseRecord>();
 
-	//! One record per NON-EMPTY base upgrade. See BuildBases() for what "non-empty" buys.
+	//! One record per deployment anchored at a base. The record class is still named for the base
+	//! upgrades it used to carry, because it is on the GM wire and renaming it would move the RPC.
 	ref array<ref OVT_GMBaseUpgradeRecord> m_aBaseUpgrades = new array<ref OVT_GMBaseUpgradeRecord>();
 
 	//! One record per active deployment that has a resolvable RplComponent.
@@ -117,21 +118,42 @@ class OVT_GMSnapshotBuilder
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! Bases and their upgrades, in ONE walk because the base aggregate is the sum of the upgrade rows.
+	//! Bases and what is deployed at them, in ONE walk because the base aggregate is the sum of the
+	//! per-deployment rows.
 	//!
 	//! The base list is walked BY INDEX: the positional index into m_Bases is the join key clients
 	//! already hold through the occupying faction's JIP stream, and OVT_BaseData.id is NOT it.
 	//!
-	//! THE NON-EMPTY FILTER. An upgrade row is emitted only when the upgrade holds resources or fields
-	//! groups. A base runs every upgrade in its config from the first tick, most of them at zero until
-	//! the occupying faction has spent enough on them, so this roughly halves the largest record class
-	//! for free and costs a consumer nothing: the base record's m_iUpgrades still counts ALL of them,
-	//! so "12 upgrades, 4 rows" reads as "8 of them are empty", not as a truncated fan.
+	//! ⚠ THE ROWS ARE DEPLOYMENTS NOW. Base upgrades no longer exist - every base-defense concern is a
+	//! Configs/Deployment/Deployment_Base*.conf whose groups the virtualization core owns - so one row
+	//! is one deployment anchored at the base: m_sType is the config's display name (already readable,
+	//! which is why nothing formats it), m_iResources is what the deployment framework has actually
+	//! invested in it, and m_iGroups is how many virtualization-registered groups its spawning modules
+	//! hold right now. The RECORD CLASSES AND THE RPC ARE UNCHANGED - this method changes only what it
+	//! puts in them, so no client, GM panel or wire version moves with it.
 	//!
-	//! GetNumGroups() lives on OVT_BasePatrolUpgrade, not on OVT_BaseUpgrade, so it is reached through
-	//! a cast. Every group-fielding upgrade class in the tree derives from it (defence patrol, defence
-	//! position, sniper position, tower guard, town patrol, specops, checkpoints, slotted/composition);
-	//! the classes that do not - parked vehicles - genuinely field no groups and correctly report 0.
+	//! WHY THE BASE'S RADIUS IS THE DEDUP RADIUS. GetDeploymentsInRadius() is asked for
+	//! BASE_CLASSIFICATION_RADIUS, the same 250 m within which the evaluator considers a position to BE
+	//! this base - so exactly the deployments that could have been bought for it are the ones listed,
+	//! and a second base cannot claim them (the constant's own header carries that argument).
+	//!
+	//! NO FACTION FILTER, DELIBERATELY. A base's row answers "what is deployed here", and the most
+	//! interesting moment to read it is right after a capture, when the previous owner's deployments
+	//! are still standing and have not yet been collected by their control condition. Filtering them
+	//! out would blank the panel in exactly that state. The consequence is that a deployment placed for
+	//! a different location kind within 250 m of a base centre (a town patrol at a town-shadowed base)
+	//! also appears in that base's rows, which is still the truth about the ground.
+	//!
+	//! NO NON-EMPTY FILTER ANY MORE. The old filter existed because a base ran a dozen upgrades from
+	//! the first tick and most of them sat at zero forever; a deployment only exists once it has been
+	//! bought, so the row count IS the interesting number and m_iUpgrades equals the rows emitted.
+	//!
+	//! ONE COST, STATED HONESTLY: unlike the rest of this class, this walk allocates - one array per
+	//! base from GetDeploymentsInRadius() and one per deployment from GetSpawningModules(), so roughly
+	//! (bases + deployments-near-bases) small arrays per poll per Game Master. On a fully fortified
+	//! Eden that is ~100 short-lived allocations every 8 s, which is nothing next to the record objects
+	//! the build already creates. If it ever shows up in a profile, the fix is a reusable scratch array
+	//! on this class, not a cached module list on the deployment.
 	protected void BuildBases()
 	{
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
@@ -139,6 +161,8 @@ class OVT_GMSnapshotBuilder
 
 		BaseWorld world = GetGame().GetWorld();
 		if(!world) return;
+
+		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
 
 		for(int i = 0; i < occupying.m_Bases.Count(); i++)
 		{
@@ -152,34 +176,37 @@ class OVT_GMSnapshotBuilder
 
 			OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 			if(!controller) continue;
-			if(!controller.m_aBaseUpgrades) continue;
 
 			int baseResources = 0;
 			int baseGroups = 0;
+			int baseDeployments = 0;
 
-			foreach(OVT_BaseUpgrade upgrade : controller.m_aBaseUpgrades)
+			array<OVT_DeploymentComponent> deployments;
+			if(deploymentManager)
+				deployments = deploymentManager.GetDeploymentsInRadius(marker.GetOrigin(), OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS);
+
+			if(deployments)
 			{
-				if(!upgrade) continue;
+				foreach(OVT_DeploymentComponent deployment : deployments)
+				{
+					if(!deployment) continue;
 
-				int resources = upgrade.GetResources();
+					int resources = deployment.GetResourcesInvested();
+					int groups = CountRegisteredGroups(deployment);
 
-				int groups = 0;
-				OVT_BasePatrolUpgrade patrol = OVT_BasePatrolUpgrade.Cast(upgrade);
-				if(patrol) groups = patrol.GetNumGroups();
+					baseResources += resources;
+					baseGroups += groups;
+					baseDeployments += 1;
 
-				baseResources += resources;
-				baseGroups += groups;
+					if(!TakeBudget("OVT_GMBaseUpgradeRecord")) return;
 
-				if(resources <= 0 && groups <= 0) continue;
-
-				if(!TakeBudget("OVT_GMBaseUpgradeRecord")) return;
-
-				OVT_GMBaseUpgradeRecord upgradeRecord = new OVT_GMBaseUpgradeRecord();
-				upgradeRecord.m_iBaseIndex = i;
-				upgradeRecord.m_sType = upgrade.ClassName();
-				upgradeRecord.m_iResources = resources;
-				upgradeRecord.m_iGroups = groups;
-				m_aBaseUpgrades.Insert(upgradeRecord);
+					OVT_GMBaseUpgradeRecord upgradeRecord = new OVT_GMBaseUpgradeRecord();
+					upgradeRecord.m_iBaseIndex = i;
+					upgradeRecord.m_sType = deployment.GetDeploymentName();
+					upgradeRecord.m_iResources = resources;
+					upgradeRecord.m_iGroups = groups;
+					m_aBaseUpgrades.Insert(upgradeRecord);
+				}
 			}
 
 			if(!TakeBudget("OVT_GMBaseRecord")) return;
@@ -188,9 +215,34 @@ class OVT_GMSnapshotBuilder
 			baseRecord.m_iBaseIndex = i;
 			baseRecord.m_iResources = baseResources;
 			baseRecord.m_iGroups = baseGroups;
-			baseRecord.m_iUpgrades = controller.m_aBaseUpgrades.Count();
+			baseRecord.m_iUpgrades = baseDeployments;
 			m_aBases.Insert(baseRecord);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many virtualization-registered groups one deployment's spawning modules hold between them.
+	//!
+	//! Asked of the module base class (GetRegisteredGroupCount), which answers 0 for a module that
+	//! registers none - so a parked-vehicle module contributes nothing without needing a cast, and a
+	//! future module type is counted the day it is written rather than the day someone remembers to add
+	//! it here. STRICTLY READ-ONLY, like everything else in this class.
+	//! \param[in] deployment The deployment to count. Never null at the call site.
+	//! \return The registered group count across its spawning modules.
+	protected int CountRegisteredGroups(notnull OVT_DeploymentComponent deployment)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
+		if(!spawningModules) return 0;
+
+		int total = 0;
+		foreach(OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			if(!spawningModule) continue;
+
+			total += spawningModule.GetRegisteredGroupCount();
+		}
+
+		return total;
 	}
 
 	//------------------------------------------------------------------------------------------------

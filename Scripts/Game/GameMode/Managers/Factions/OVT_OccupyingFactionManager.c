@@ -146,6 +146,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	bool m_bDistributeInitial = true;
 
+	//! Resources a legacy save conversion owes the occupying faction's deployment pool but has not
+	//! handed over yet. NEVER PERSISTED and never replicated - it exists only between a deserialization
+	//! and the first safe moment to credit it. See QueueLegacyUpgradeRefund() for why it cannot be
+	//! credited on the spot.
+	protected int m_iPendingLegacyRefund;
+
 	int m_iResources;
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases = new array<ref OVT_BaseData>;
@@ -303,8 +309,81 @@ class OVT_OccupyingFactionManager: OVT_Component
 			Print(string.Format("[Overthrow] NewGameStart: Set %1 towns to occupying faction", townManager.m_Towns.Count()));
 		}
 
-		// Allocate initial resources to deployment manager
-		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
+		// THE OCCUPYING FACTION'S OPENING DEFENSE BUDGET - ONE CREDIT, AND THE ONLY ONE.
+		//
+		// It replaces TWO opening paths. The free baseResourcesPerTick that used to be credited here,
+		// and a +5 s per-base distribution that handed every base
+		// (startingResources * m_fStartingResourcesMultiplier) and had it SPEND that immediately through
+		// the base controller's legacy spender - money that never passed through m_iResources, never
+		// appeared in any pool, and was therefore invisible to every accounting the campaign had. Both
+		// are now one number in the deployment pool, which the evaluator spends on the nine
+		// Deployment_Base*.conf configs, concern by concern, as threat and cost allow.
+		//
+		// IT RUNS HERE AND NOT ON A TIMER. The deleted distribution was deferred 5 s because SPENDING
+		// needed each base controller's discovered slots (InitBase() runs out of PostGameStart). A
+		// CREDIT needs only m_fStartingResourcesMultiplier, which is an [Attribute] readable the instant
+		// the controller entity exists - and InitializeBases() has already found every one of them
+		// during Init(), which is the same reason the loops above can walk m_Bases.
+		if(m_bDistributeInitial)
+		{
+			SeedOpeningDeploymentResources();
+
+			// A campaign gets its opening allocation exactly once. ApplyPersistedOccupyingFaction()
+			// clears the same flag when a save is restored, so a continued campaign never re-seeds -
+			// which is what this flag has always meant.
+			m_bDistributeInitial = false;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Credits the occupying faction's deployment pool with its opening defense budget.
+	//!
+	//! PUBLIC, AND DELIBERATELY SEPARATE FROM THE NUMBER IT CREDITS. The phase's headline claim - that
+	//! the opening seed lands in the DEPLOYMENT POOL and not in m_iResources - is only assertable as a
+	//! live claim by driving this, and only checkable against CalculateOpeningDeploymentSeed() because
+	//! the two are apart. Nothing but NewGameStart() calls it in production.
+	//!
+	//! NOT GUARDED HERE. The "once per campaign" rule is m_bDistributeInitial's, and its owner is
+	//! NewGameStart(), which is the only path that can run on a campaign that has not been restored.
+	void SeedOpeningDeploymentResources()
+	{
+		int seed = CalculateOpeningDeploymentSeed();
+		AllocateDeploymentResources(seed);
+
+		Print(string.Format("[Overthrow.OccupyingFactionManager] Opening defense budget: %1 resources into the deployment pool across %2 base(s)",
+			seed.ToString(), m_Bases.Count().ToString()));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The opening defense budget: one tick of base income plus every base's authored opening
+	//! allocation.
+	//!
+	//! READ-ONLY - it computes, it never credits. Both halves are the legacy numbers unchanged:
+	//! baseResourcesPerTick is what NewGameStart() used to credit for free, and
+	//! (startingResources * m_fStartingResourcesMultiplier) per base is exactly what the deleted
+	//! per-base distribution used to conjure and spend. What changes is where the money goes, not how
+	//! much of it there is.
+	//! \return The seed in deployment-pool resources. Never negative.
+	int CalculateOpeningDeploymentSeed()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(!difficulty) return 0;
+
+		int seed = difficulty.baseResourcesPerTick;
+
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			if(!data) continue;
+
+			OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!base) continue;
+
+			seed += Math.Floor(difficulty.startingResources * base.m_fStartingResourcesMultiplier);
+		}
+
+		if(seed < 0) seed = 0;
+
+		return seed;
 	}
 
 	void PostGameStart()
@@ -322,8 +401,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		GetGame().GetCallqueue().CallLater(CheckRadioTowers, RADIO_TOWER_CHECK_FREQUENCY, true, GetOwner());
 
-		if(m_bDistributeInitial)
-			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
+		// THE +5 s INITIAL-RESOURCE DISTRIBUTION THAT STOOD HERE IS GONE AND MUST NOT COME BACK.
+		// The occupying faction's opening defense budget is now ONE credit to the deployment pool, made
+		// by NewGameStart() - see SeedOpeningDeploymentResources(). Scheduling anything here would run
+		// on a CONTINUED campaign too, which is precisely the double-build m_bDistributeInitial existed
+		// to prevent.
+
+		// THE LEGACY REFUND'S DELIVERY POINT ON THE LOAD PATH, and the reason it is here rather than in
+		// the deserialization that computed it: the deployment manager's restore CLEARS the resource
+		// pool, and it runs after this manager's inside the same load. This runs after the whole load.
+		// A no-op on any campaign that was not loaded from a pre-migration save.
+		CreditPendingLegacyRefund();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -332,16 +420,30 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! Called from OVT_OccupyingFactionManagerSerializer.Deserialize().
 	//!
 	//! SUPPRESSES THE OPENING RESOURCE ALLOCATION. m_bDistributeInitial is cleared because a saved
-	//! campaign has already spent its opening allocation; leaving it set would let PostGameStart()
-	//! schedule DistributeInitialResources() and build the occupying faction's opening position a
-	//! second time on top of the restored one. EPF cleared the same flag for the same reason.
+	//! campaign has already had its opening allocation; the flag is what NewGameStart() checks before
+	//! seeding the deployment pool, and a restored campaign must never be seeded a second time on top
+	//! of what it saved. EPF cleared the same flag for the same reason.
 	//!
-	//! SPAWNS NOTHING. Restored upgrades, filled slots and garrisons are data; InitBaseControllers()
-	//! replays them during PostGameStart, which is the same path a fresh campaign takes.
+	//! QUEUES THE LEGACY BASE-UPGRADE REFUND, ONCE, AFTER EVERY BASE RECORD HAS BEEN READ. A save
+	//! written before the base-defense migration carries per-base upgrade records; those upgrades no
+	//! longer exist, so each base's record is converted to a VALUE (ApplyPersistedBaseUpgrades), the sum
+	//! is accumulated across the whole loop, and it is handed to QueueLegacyUpgradeRefund() ONCE below.
+	//! The evaluator re-establishes defense from it by threat - there is no per-base re-establishment
+	//! code anywhere, deliberately. The sum is accumulated to after the loop because it is one
+	//! campaign-level refund, not eleven, and because the occupying faction key it is credited to is
+	//! only settled at the top of this method.
+	//!
+	//! 🔴 IT IS QUEUED, NOT CREDITED. The deployment manager's own restore CLEARS the per-faction
+	//! resource pool and runs after this one in the same load - read QueueLegacyUpgradeRefund()'s header
+	//! before moving the credit back inline.
+	//!
+	//! SPAWNS NOTHING. Filled slots and garrisons are data; InitBaseControllers() replays them during
+	//! PostGameStart, which is the same path a fresh campaign takes.
 	//!
 	//! NO RPC. Clients receive base and tower control through the normal replication paths.
 	//!
-	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session.
+	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session. The
+	//! refund is idempotent STRUCTURALLY rather than by a flag - see ApplyPersistedBaseUpgrades().
 	//! \param[in] occupyingFactionKey Faction key the campaign was started against, may be empty.
 	//! \param[in] resources Occupying faction resource pool.
 	//! \param[in] threat Occupying faction threat level.
@@ -358,6 +460,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources = resources;
 		m_iThreat = threat;
 		m_bDistributeInitial = false;
+
+		int legacyUpgradeValue = 0;
+		int baseRecordCount = 0;
 
 		array<ref OVT_BaseData> restoredBases = new array<ref OVT_BaseData>();
 		if (bases)
@@ -381,7 +486,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 				base.faction = faction;
 
-				ApplyPersistedBaseUpgrades(base, baseRecord);
+				legacyUpgradeValue += ApplyPersistedBaseUpgrades(base, baseRecord);
+				baseRecordCount += 1;
+
 				ApplyPersistedBaseSlots(base, baseRecord);
 				ApplyPersistedBaseGarrison(base, baseRecord);
 
@@ -389,10 +496,21 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}
 		}
 
+		// ONE refund, after every base record has been read. A post-migration payload sums to zero and
+		// nothing is queued at all - which is the whole of the idempotence argument, and why there is no
+		// flag here.
+		if (legacyUpgradeValue > 0)
+		{
+			Print(string.Format("[Overthrow] Legacy base upgrades converted: %1 resources owed to the occupying faction's deployment pool from %2 base record(s)",
+				legacyUpgradeValue.ToString(), baseRecordCount.ToString()));
+
+			QueueLegacyUpgradeRefund(legacyUpgradeValue);
+		}
+
 		// A base with no save record was added to the map after the save was written. NewGameStart
 		// never runs on a continue, and discovery stamped its faction before the campaign's real
 		// occupying faction key was applied above - so it is handed to the occupying faction here,
-		// or it would never garrison or spend resources as the occupying faction.
+		// or it would never garrison and the deployment evaluator would never fortify it.
 		if (config)
 		{
 			int occupyingBaseFaction = config.GetOccupyingFactionIndex();
@@ -439,8 +557,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		// A tower with no save record was added to the map after the save was written. NewGameStart
 		// never runs on a continue, and discovery stamped its faction before the campaign's real
-		// occupying faction key was applied above - so it is handed to the occupying faction here,
-		// or CheckRadioTowers would skip it forever and it would never garrison.
+		// occupying faction key was applied above - so it is handed to the occupying faction here.
+		// THE REASON IS NOT WHAT IT ORIGINALLY WAS, and the behaviour is still required. Nothing on
+		// this manager garrisons a tower any more; a tower is garrisoned by Deployment_TowerGarrison
+		// .conf, whose base-control condition module only offers a tower the deployment evaluator can
+		// see as OCCUPIED. A tower left on a stale faction index is therefore invisible to it forever.
 		if (config)
 		{
 			int occupyingFactionIndex = config.GetOccupyingFactionIndex();
@@ -456,46 +577,155 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Rebuilds one base's upgrade list from its save record.
+	//! Queues resources a legacy save conversion owes the occupying faction's deployment pool.
+	//!
+	//! 🔴 THE REFUND IS DEFERRED, AND IT HAS TO BE. It cannot be credited from inside
+	//! ApplyPersistedOccupyingFaction(), because the deployment manager's own restore runs LATER IN THE
+	//! SAME LOAD and its first act is to CLEAR the per-faction resource map before refilling it from the
+	//! save (OVT_DeploymentManagerComponent.ApplyPersistedFactionResources). The serializer order is
+	//! authored in Configs/Systems/Persistence/Overthrow.conf, where this manager sits several entries
+	//! ABOVE the deployment manager - so an inline credit would be wiped microseconds later, silently,
+	//! and every legacy campaign would load with its whole investment gone.
+	//!
+	//! TWO DELIVERY POINTS, AND WHICH ONE IS ARMED DEPENDS ON WHETHER A CAMPAIGN IS ALREADY RUNNING:
+	//!   - LOADING A SAVE POINT (campaign not started yet): the refund waits for PostGameStart(), which
+	//!     the game mode schedules only after the whole load has been applied. Provably after the
+	//!     deployment restore, with no assumption about how many frames a load takes.
+	//!   - RE-APPLYING TO A LIVE SESSION (campaign already running, so PostGameStart will never run
+	//!     again): a next-frame callback, which is after the one synchronous re-application that
+	//!     triggered it.
+	//! \param[in] value Resources owed. Accumulated, never overwritten.
+	protected void QueueLegacyUpgradeRefund(int value)
+	{
+		if (value <= 0)
+			return;
+
+		bool alreadyQueued = m_iPendingLegacyRefund > 0;
+		m_iPendingLegacyRefund += value;
+
+		if (alreadyQueued)
+			return;
+
+		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
+		if (mode && mode.HasGameStarted())
+			GetGame().GetCallqueue().CallLater(CreditPendingLegacyRefund, 0);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Hands whatever a legacy save conversion owed to the deployment pool, once.
+	//!
+	//! IDEMPOTENT AND SELF-CLEARING: the pending amount is zeroed before the credit, so whichever of the
+	//! two delivery points above reaches it first wins and the other becomes a no-op. That is what makes
+	//! it safe to arm both.
+	//!
+	//! PUBLIC so the persistence-tier case can drive it in the frame it made the claim in, rather than
+	//! asserting against a callback it would have to wait for.
+	void CreditPendingLegacyRefund()
+	{
+		if (m_iPendingLegacyRefund <= 0)
+			return;
+
+		int value = m_iPendingLegacyRefund;
+		m_iPendingLegacyRefund = 0;
+
+		AllocateDeploymentResources(value);
+
+		Print(string.Format("[Overthrow] Legacy base-upgrade refund credited: %1 resources into the occupying faction's deployment pool", value.ToString()));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resources a legacy save conversion owes the deployment pool but has not handed over yet.
+	//! \return The pending amount, 0 when nothing is owed.
+	int GetPendingLegacyRefund()
+	{
+		return m_iPendingLegacyRefund;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CONVERTS one base's LEGACY upgrade records into a resource value, and leaves the base's upgrade
+	//! list EMPTY.
+	//!
+	//! THIS USED TO COPY THE RECORDS ONTO THE BASE so InitBaseControllers() could replay them into the
+	//! live upgrade objects a base controller ran. Those objects no longer exist: base defense is nine
+	//! Deployment_Base*.conf configs the deployment evaluator establishes and the virtualization core
+	//! owns. So a pre-migration payload is read for its VALUE and nothing else - value-parity, not
+	//! entity-identity - and the caller credits the sum to the deployment pool once.
+	//!
+	//! THE PAYLOAD CLASSES STAY. OVT_PersistedBaseUpgrade / OVT_PersistedBaseUpgradeGroup are still
+	//! declared and still READ here, because OVT_PersistedBase.upgrades sits at field 4 of 5 and a
+	//! binary save context is positional: removing it would shift `garrison` and break every existing
+	//! save. What changed is that the write path now stores an empty array in it.
+	//!
+	//! WHAT CONVERTS TO ZERO, AND WHY, is documented on OVT_BaseDefenseConversion.ConvertedValue().
+	//! Two of them matter here: a composition/checkpoint record refunds nothing because the structure
+	//! itself is a tracked world entity that comes back on its own (and its slot claim comes back in
+	//! ApplyPersistedBaseSlots), and an ALREADY-CONVERTED payload refunds nothing because it is empty.
+	//!
+	//! IDEMPOTENCE IS STRUCTURAL, NOT GUARDED. After the first load the write path stores an empty
+	//! upgrade array, so every subsequent save/load of that campaign converts zero. The one exposure
+	//! this leaves, stated so nobody mistakes it for a bug: re-applying the SAME pre-migration save
+	//! twice in one session (OVT_PersistenceManagerComponent.ReapplyLatestSaveData) credits twice,
+	//! because nothing has rewritten the payload yet. Taking a single save after loading a legacy
+	//! campaign closes it permanently.
+	//!
+	//! A NON-OCCUPYING BASE NEEDS NO FILTER: the legacy write path only ever populated `upgrades` for a
+	//! base the occupying faction held, so a resistance-held record converts to zero on its own.
 	//! \param[in] base The live base data.
 	//! \param[in] record The saved record.
-	protected void ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	//! \return The value this base's legacy investment converts to, in deployment-pool resources.
+	//!         0 for a post-migration record.
+	protected int ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
 	{
 		if (!base.upgrades)
 			base.upgrades = new array<ref OVT_BaseUpgradeData>();
 
+		// Left EMPTY on every path. Nothing replays these any more, and a populated list would be a
+		// standing invitation for something to try.
 		base.upgrades.Clear();
 
 		if (!record.upgrades)
-			return;
+			return 0;
+
+		array<int> bankedResources = {};
+		array<int> groupCounts = {};
 
 		foreach (OVT_PersistedBaseUpgrade upgradeRecord : record.upgrades)
 		{
 			if (!upgradeRecord)
 				continue;
 
-			OVT_BaseUpgradeData data = new OVT_BaseUpgradeData();
-			data.type = upgradeRecord.type;
-			data.resources = upgradeRecord.resources;
-			data.tag = upgradeRecord.tag;
-			data.pos = upgradeRecord.pos;
+			bankedResources.Insert(upgradeRecord.resources);
 
+			int groups = 0;
 			if (upgradeRecord.groups)
-			{
-				foreach (OVT_PersistedBaseUpgradeGroup groupRecord : upgradeRecord.groups)
-				{
-					if (!groupRecord)
-						continue;
+				groups = upgradeRecord.groups.Count();
 
-					OVT_BaseUpgradeGroupData group = new OVT_BaseUpgradeGroupData();
-					group.prefab = groupRecord.prefab;
-					group.position = groupRecord.position;
-					data.groups.Insert(group);
-				}
-			}
-
-			base.upgrades.Insert(data);
+			groupCounts.Insert(groups);
 		}
+
+		return OVT_BaseDefenseConversion.ConvertedValue(bankedResources, groupCounts, GetLegacyGroupValue());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What one group recorded in a legacy base-upgrade payload is worth today.
+	//!
+	//! LEGACY_GROUP_VALUE = OVT_BaseDefenseConversion.LEGACY_GROUP_SIZE * difficulty.baseResourceCost,
+	//! which is the same per-man price the deleted valuation used (a live group was worth
+	//! agents * baseResourceCost). It is an APPROXIMATION BY DESIGN - value-parity, not
+	//! entity-identity - and the constant carries that sentence.
+	//!
+	//! NULL-SAFE ON DIFFICULTY: deserialization can land before the campaign's difficulty settings are
+	//! resolved, and a refund of 0 is a far better failure than a VME during a load.
+	//! \return The per-group refund value, never negative.
+	protected int GetLegacyGroupValue()
+	{
+		int baseResourceCost = 0;
+
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (difficulty)
+			baseResourceCost = difficulty.baseResourceCost;
+
+		return OVT_BaseDefenseConversion.LegacyGroupValue(baseResourceCost);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -684,11 +914,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
-	void RecoverResources(int resources)
-	{
-		m_iResources += resources;
-	}
-
 	void InitializeBases()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -723,15 +948,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			if(base.IsOccupyingFaction())
 			{
-				if(data.upgrades)
-				{
-					foreach(OVT_BaseUpgradeData upgrade : data.upgrades)
-					{
-						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-						if(up)
-							up.Deserialize(upgrade);
-					}
-				}
+				// THE UPGRADE REPLAY THAT STOOD HERE IS GONE. There is nothing to replay into: a legacy
+				// save's upgrade value was converted to a single deployment-pool credit during
+				// ApplyPersistedBaseUpgrades(), and base defense is nine Deployment_Base*.conf configs the
+				// evaluator re-establishes on its own.
+				//
+				// THE SLOT CLAIMS BELOW ARE KEPT VERBATIM AND ARE NOW LOAD-BEARING FOR A DIFFERENT
+				// REASON. They are what stops OVT_CompositionSpawningDeploymentModule choosing a slot a
+				// legacy composition is still standing in - the structure itself comes back from vanilla
+				// persistence as an ordinary tracked entity, and this list is the only record that its
+				// slot is taken.
 				if(data.slotsFilled)
 				{
 					foreach(vector slotPos : data.slotsFilled)
@@ -756,22 +982,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Print(string.Format("[Overthrow] InitBaseControllers complete"));
 	}
 
-	protected void DistributeInitialResources()
-	{
-		//Distribute initial resources		
-		foreach(OVT_BaseData data : m_Bases)
-		{
-			OVT_BaseControllerComponent base = GetBase(data.entId);
-			int toSpend = Math.Floor(m_Config.m_Difficulty.startingResources * base.m_fStartingResourcesMultiplier);
-			Print("[Overthrow.OccupyingFactionManager] Distributing " + toSpend.ToString() + " resources to " + base.m_sName);
-			base.SpendResources(toSpend, m_iThreat);
-		}
-		UpdateSpecops();	
-	}
-
+	//------------------------------------------------------------------------------------------------
+	//! Resolves a base's controller component from its marker entity id.
+	//!
+	//! NULL-SAFE ON THE MARKER. It used to dereference the result of FindEntityByID() directly and
+	//! throw when a marker had gone away - which is why the occupying-faction serializer carries its own
+	//! FindBaseController() and says so in its header. Every caller here already null-checks the
+	//! RESULT; this is what makes those checks reachable instead of decorative.
+	//! \param[in] id The base marker's entity id.
+	//! \return The controller, or null.
 	OVT_BaseControllerComponent GetBase(EntityID id)
 	{
 		IEntity marker = GetGame().GetWorld().FindEntityByID(id);
+		if(!marker) return null;
+
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 
@@ -1167,48 +1391,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			int newResources = GainResources();
 
-			int toSpend = Math.Floor((float)newResources * 0.8);
+			// KEPT, AND NOT A SPECOPS LEFTOVER. m_aKnownTargets feeds GetThreatByLocation(), which is
+			// what the DEPLOYMENT EVALUATOR sorts its candidates by and what the player's map threat
+			// overlay reads. Dropping this call would freeze both at whatever PostGameStart() computed.
 			UpdateKnownTargets();
 
-			//sort bases by threat score
-			array<OVT_BaseData> sortedBases = new array<OVT_BaseData>;
-			foreach(OVT_BaseData data : m_Bases)
-			{
-				if(!data.IsOccupyingFaction()) continue;
-				data.sortBy = GetBaseThreat(data);
-				sortedBases.Insert(data);
-			}
-			sortedBases.Sort(true);	
+			// THE ONE DEFENSE SPEND PATH. 80 % of every tick moves into the deployment pool, which is
+			// where base defense, town patrols, tower garrisons and vehicle patrols are ALL bought from.
+			//
+			// WHAT STOOD HERE WAS A SECOND SPENDER: bases sorted by threat, an EVEN per-base split, a
+			// "skip a base a player is standing near" rule, and the base controller's legacy spender
+			// turning each budget into men through the base-upgrade classes. Every one of those concerns
+			// now belongs to the deployment framework, which already does them better:
+			//   - threat ordering    -> EvaluateFactionDeployments() sorts candidates by threat, with
+			//                           jitter, instead of an even split that only decided serving order;
+			//   - the proximity skip -> OVT_NoPlayersNearbyConditionDeploymentModule, as a CREATION gate;
+			//   - the 1..19 priority sweep -> each config's m_iPriority and the escalation selection.
+			//
+			// The other 20 % stays in m_iResources, which remains the QRF sizing and counter-attack
+			// reserve - both epic-level exclusions, both untouched by this migration.
+			TransferDefenseShareToPool(newResources);
 
-			if(!sortedBases.IsEmpty())
-			{
-				int perBase = Math.Floor((float)toSpend / sortedBases.Count());
-
-				foreach(OVT_BaseData data : sortedBases)
-				{
-					if(toSpend <= 0) break;
-
-					OVT_BaseControllerComponent base = GetBase(data.entId);
-
-					//Dont spawn stuff if a player is watching lol
-					if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
-
-					int budget = perBase;
-					if(budget > toSpend) budget = toSpend;
-					if(budget > m_iResources) budget = m_iResources;
-					if(budget <= 0) break;
-
-					int spent = base.SpendResources(budget, m_iThreat);
-					m_iResources -= spent;
-					toSpend -= spent;
-
-					if(m_iResources <= 0) {
-						m_iResources = 0;
-						break;
-					}
-				}
-			}
-			UpdateSpecops();
 			Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
 
 		}
@@ -1267,32 +1470,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
-	protected void UpdateSpecops()
+	//------------------------------------------------------------------------------------------------
+	//! Moves this tick's defense share out of the occupying faction's reserve and into its deployment
+	//! resource pool.
+	//!
+	//! THE CONSERVED-TOTAL IDENTITY, AND IT IS UNCONDITIONAL: the pool rises by EXACTLY what the reserve
+	//! falls by. Nothing is created, nothing is destroyed, and after this phase there is exactly one
+	//! code path that credits the pool (AllocateDeploymentResources) and exactly one that spends it on
+	//! defense (the deployment evaluator).
+	//!
+	//! THE CLAMP TO THE RESERVE IS PARITY, NOT CAUTION. The per-base loop this replaced clamped every
+	//! base's budget the same way (`if(budget > m_iResources) budget = m_iResources;`). It is what makes
+	//! the identity hold in every state, including the degenerate ones a test can construct: the reserve
+	//! can never go negative and the pool can never be handed money that did not exist.
+	//!
+	//! PUBLIC, because the identity is only assertable as a live claim by driving it. CheckUpdate() is
+	//! its only production caller.
+	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
+	void TransferDefenseShareToPool(int newResources)
 	{
-		if(m_iResources > OVT_Global.GetConfig().m_Difficulty.maxQRF)
-		{
-			//Do Specops
-			foreach(OVT_TargetData target : m_aKnownTargets)
-			{
-				if(target.completed) continue;
-				OVT_BaseData data = GetNearestOccupiedBase(target.location);
-				if(!data) break;
-				OVT_BaseControllerComponent base = GetBase(data.entId);
-				OVT_BaseUpgradeSpecops upgrade = OVT_BaseUpgradeSpecops.Cast(base.FindUpgrade("OVT_BaseUpgradeSpecops"));
-				if(upgrade && !upgrade.HasTarget())
-				{
-					m_iResources -= upgrade.SetTarget(target);
-				}
+		int toSpend = OVT_BaseDefenseConversion.DefenseShare(newResources);
 
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
-				if(m_iResources < OVT_Global.GetConfig().m_Difficulty.maxQRF) {
-					break;
-				}
-			}
-		}
+		if(toSpend > m_iResources) toSpend = m_iResources;
+		if(toSpend <= 0) return;
+
+		AllocateDeploymentResources(toSpend);
+		m_iResources -= toSpend;
 	}
 
 	void UpdateKnownTargets()
@@ -1429,48 +1632,37 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources += newResources;
 
 		Print ("[Overthrow.OccupyingFactionManager] Gained Resources: " + newResources.ToString());
-		
-		// Allocate resources to deployment manager if it's running low
-		AllocateDeploymentResourcesIfNeeded(newResources);
+
+		// NOTHING IS ALLOCATED HERE ANY MORE. A conditional drip used to run from this line, topping the
+		// deployment pool up only when it was under 500 AND the reserve was over 1000. That condition
+		// existed for exactly one reason: to ARBITRATE between two spenders, the pool and the per-base
+		// loop that bought base defense directly. There is one spender now, so the arbitration is gone
+		// and CheckUpdate() transfers the defense share unconditionally.
 
 		return newResources;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	// Deployment Manager Resource Allocation
-	//------------------------------------------------------------------------------------------------
+	//! THE SINGLE POINT AT WHICH THE OCCUPYING FACTION'S DEPLOYMENT POOL IS CREDITED. Three callers,
+	//! and there must never be a fourth without a reason written down:
+	//!   - SeedOpeningDeploymentResources()  the opening budget, once per new campaign;
+	//!   - TransferDefenseShareToPool()      80 % of every resource tick;
+	//!   - CreditPendingLegacyRefund()       the legacy base-upgrade refund, once per legacy save.
+	//!
+	//! Keeping it in one place is what makes "resource accounting is closed" checkable at all: a grep
+	//! for AddFactionResources across the tree answers this method and the deployment framework's own
+	//! refund path, and nothing else.
+	//! \param[in] amount Resources to credit. A non-positive amount is a no-op at the manager.
 	protected void AllocateDeploymentResources(int amount)
 	{
 		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
 		if (!deploymentManager)
 			return;
-			
+
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		deploymentManager.AddFactionResources(occupyingFactionIndex, amount);
-		
+
 		Print(string.Format("[Overthrow.OccupyingFactionManager] Allocated %1 resources to deployment manager", amount));
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void AllocateDeploymentResourcesIfNeeded(int newResources)
-	{
-		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
-		if (!deploymentManager)
-			return;
-			
-		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
-		int deploymentResources = deploymentManager.GetFactionResources(occupyingFactionIndex);
-		
-		// If deployment manager has less than 500 resources and we have surplus
-		if (deploymentResources < 500 && m_iResources > 1000)
-		{
-			int toAllocate = Math.Min(newResources / 2, m_iResources - 1000);
-			if (toAllocate > 0)
-			{
-				AllocateDeploymentResources(toAllocate);
-				m_iResources -= toAllocate;
-			}
-		}
 	}
 
 	void OnAIKilled(IEntity ai, IEntity instigator)

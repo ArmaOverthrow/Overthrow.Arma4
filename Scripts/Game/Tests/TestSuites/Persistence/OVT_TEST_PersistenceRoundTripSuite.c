@@ -181,14 +181,20 @@
 //! fallback and is play-test territory, like every other real-restart claim in this feature.
 //!
 //! CASE LIST (execution order is alphabetical by class name):
-//!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload
-//!   1a. DeploymentEliminated_RegistersNoGroups          )
-//!   1b. DeploymentOwnedGroups_ReclaimAfterReload        ) the four DEPLOYMENT cases; read
-//!   1c. DeploymentRecord_SurvivesSaveAndReapply         ) OVT_TEST_DeploymentRoundTripFixture's
-//!   1d. DeploymentVersion1Payload_StillLoads            ) header FIRST - three of them assert the
-//!                                                         RESTORE half only, and it says why
+//!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload.
+//!      ⚠ It asserts HasSaveGame() is FALSE before it saves, so every case that takes a real save
+//!      MUST sort after it alphabetically - name deployment cases "Deployment*", never "Base*".
+//!   1a. DeploymentBaseDefense_SurvivesSaveAndReapply    )
+//!   1b. DeploymentEliminated_RegistersNoGroups          ) the five DEPLOYMENT cases; read
+//!   1c. DeploymentOwnedGroups_ReclaimAfterReload        ) OVT_TEST_DeploymentRoundTripFixture's
+//!   1d. DeploymentRecord_SurvivesSaveAndReapply         ) header FIRST - four of them assert the
+//!   1e. DeploymentVersion1Payload_StillLoads            ) RESTORE half only, and it says why
 //!   1e. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
 //!                                                idempotency is part of what it asserts
+//!   1f. LegacyBaseUpgrades_ConvertToDeploymentResources - a pre-migration base payload is refunded to
+//!                                                the deployment pool exactly once. Takes a real save
+//!                                                (which is what runs the rewritten write path) but
+//!                                                uses NEITHER reload seam
 //!   2. PlayerMoney_SurvivesSaveAndReload
 //!   3. PlayerSkills_SurvivesSaveAndReload
 //!   4. RealEstateOwnership_SurvivesSaveAndReload
@@ -6484,5 +6490,795 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : S
 			if (virtualization.IsRegistered(unnamed))
 				virtualization.UnregisterGroup(unnamed);
 		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A BASE-DEFENSE DEPLOYMENT'S FIVE PERSISTED VALUES COME BACK, ITS CONFIG STILL RESOLVES BY NAME, AND
+//! THE RESTORE MARKS IT AS RESTORED. (virtualization/base-defense-migration T4.8 - the requirement's
+//! named "base-defense deployment round trip".)
+//!
+//! ⚠ READ THIS FIRST - THE SEAM CANNOT DO WHAT THE CASE NAME SOUNDS LIKE, AND THAT IS NOT WORKED
+//! AROUND. The suite's reload seam (OVT_TEST_PersistenceRoundTripGate.RequestSessionReload) builds its
+//! request with Instances = {gameMode} only, so a deployment MARKER's Deserialize is NEVER re-run by
+//! it - a deployment is a marker entity with its own component serializer, which is outside the game
+//! mode's record. This case therefore does exactly what integration's four deployment cases do and
+//! says so out loud:
+//!   WRITE HALF - REAL. The fixture is created through the deployment manager's own public creation
+//!   path, which is what puts a marker into a save point at all, and a real save is then taken. A
+//!   serializer that could not write this state would fail there.
+//!   READ HALF - THE PUBLIC APPLY, NOT A RE-READ. ApplyPersistedDeployment() is the method the
+//!   marker's own Deserialize calls with the values it read.
+//! What is consequently NOT asserted, here or anywhere automated, is that the bytes on disk read back
+//! as the values that went in - a real-restart claim, covered by inspection (integration T7.7 decoded
+//! a real save point field by field). DO NOT WIDEN THE SEAM to "fix" this: widening it means naming
+//! persistence-framework types inside Scripts/Game/Tests/, which the suite's assertion rule forbids.
+//!
+//! WHY A SECOND DEPLOYMENT ROUND TRIP AT ALL, WHEN DeploymentRecord_SurvivesSaveAndReapply EXISTS.
+//! That case runs on "Town Patrol", whose modules are all pre-migration. This one runs on a BASE
+//! DEFENSE config, and the two things it adds are the two that are new:
+//!   - the restored deployment still carries a live OVT_PlacedInfantrySpawningDeploymentModule WITH
+//!     ITS m_Placement PROVIDER. CloneModule is hand-written and not chained; a dropped m_Placement
+//!     line ships a module that wants zero groups, registers nothing and logs nothing, and a base's
+//!     tower guards simply never come back after a load;
+//!   - WasRestoredFromSave() is TRUE afterwards. That flag is D7's gate - the one thing that stops a
+//!     restored deployment building a second bunker, checkpoint or parked truck on every load - and
+//!     nothing else in the tree asserts it.
+//!
+//! ⚠ WHY THIS FIXTURE CANNOT DELETE ITSELF MID-RUN, even though its config authors
+//! m_bDeleteOnConditionFail 1 (which is exactly why the Town Patrol fixture was chosen for the other
+//! cases). The delete branch lives inside OVT_ReinforcementBehaviorDeploymentModule.CheckReinforcement(),
+//! which OnUpdate() reaches only after m_fInitialDelay has elapsed since activation. The base-defense
+//! configs author neither m_fInitialDelay nor m_fCheckInterval, so both take the class defaults -
+//! 300 000 ms and 60 000 ms. The case's whole budget is 60 s. The condition modules are therefore
+//! never evaluated at runtime while this case is alive. If a future tuning pass authors a shorter
+//! initial delay on these configs, THIS is the case that starts failing intermittently, and the fix is
+//! to pick a config without the delete flag - not to lengthen the timeout.
+//!
+//! Read the OVT_TEST_DeploymentRoundTripFixture header for why every deployment fixture here is marked
+//! eliminated before anything can tick.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - drop any one of the four scalar writes from ApplyPersistedDeployment and that scalar's
+//!     assertion goes red with the dirty value still in place;
+//!   - delete the `if (!virtualKey.IsEmpty()) m_sVirtualKey = virtualKey;` write and the key assertion
+//!     goes red naming the string it fell back to;
+//!   - delete `clone.m_Placement = m_Placement;` from
+//!     OVT_PlacedInfantrySpawningDeploymentModule.CloneModule() and the provider assertion goes red;
+//!   - delete the `m_bRestoredFromSave = true;` line and the restored-flag assertion goes red on its
+//!     own while every scalar still passes;
+//!   - rename the config, or drop its entry from overthrowDeployments.conf, and the resolution
+//!     assertion goes red before any of them.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply : SCR_AutotestCaseBase
+{
+	//! The shipped base-defense config this case runs on. Chosen over the tower/sniper configs because
+	//! it is the one with a behaviour module, so its restored module chain is the longest of the three.
+	static const string CONFIG_NAME = "Base Defense Positions";
+
+	//! Offset from the shared fixture position, so this case's derived key cannot collide with the
+	//! other deployment cases' or with a live campaign deployment's.
+	static const vector MARKER_OFFSET = "-61 0 38";
+
+	//! The key planted before the save. SHAPED like a real key and IMPOSSIBLE as one: no marker stands
+	//! at (-874512, -874512), so a restore that re-derived would produce something else.
+	static const string SAVED_KEY = "BaseDefensePositions@-874512_-874512";
+
+	//! The key written over it before the reload, so "the saved key came back" is not "the key never
+	//! changed".
+	static const string DIRTY_KEY = "DirtiedByTheBaseDefenseCase@2_2";
+
+	//! Threat and invested resources written before the save. Neither is a value a campaign start or a
+	//! default-constructed component would produce.
+	static const float SAVED_THREAT = 233.75;
+	static const int SAVED_RESOURCES = 921;
+
+	//! ...and the values written over them.
+	static const float DIRTY_THREAT = 1.5;
+	static const int DIRTY_RESOURCES = 3;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected OVT_DeploymentComponent m_Deployment;
+
+	//! Faction the deployment was created for, and the different one written over it.
+	protected int m_iSavedFaction = -1;
+	protected int m_iDirtyFaction = -1;
+
+	//! The key this marker's own position WOULD derive, kept so the failure text can name it.
+	protected string m_sDerivableKey;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Creates a base-defense deployment, stamps the state under test onto it, and saves.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool MutateAndSave()
+	{
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
+		if (!config)
+		{
+			SetFailure("The deployment registry does not resolve '%1' - a saved base-defense deployment naming it would be dropped on load rather than restored", CONFIG_NAME);
+			return true;
+		}
+
+		if (!config.IsValidConfig())
+		{
+			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
+		if (!overthrowConfig)
+		{
+			SetFailure("OVT_Global.GetConfig() is null, so no faction index can be resolved to save one");
+			return true;
+		}
+
+		m_iSavedFaction = overthrowConfig.GetOccupyingFactionIndex();
+		m_iDirtyFaction = overthrowConfig.GetPlayerFactionIndex();
+
+		if (m_iSavedFaction == m_iDirtyFaction)
+		{
+			SetFailure("The occupying and player faction indices are both %1, so overwriting one with the other would not dirty anything", m_iSavedFaction.ToString());
+			return true;
+		}
+
+		vector position = OVT_TEST_DeploymentRoundTripFixture.MarkerPosition(MARKER_OFFSET);
+
+		m_Deployment = manager.CreateDeployment(config, position, m_iSavedFaction, SAVED_RESOURCES, SAVED_THREAT);
+		if (!m_Deployment)
+		{
+			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", CONFIG_NAME);
+			return true;
+		}
+
+		// Inert BEFORE anything can tick - see the fixture class header.
+		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
+
+		// Plant the payload, exactly as the marker's own Deserialize would hand it over.
+		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+
+		string precondition = VerifyPreconditions();
+		if (precondition != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(precondition);
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The state being saved really is the state this case thinks it is - including that the planted
+	//! key is one the marker's own position could NOT produce, and that the module chain the restore
+	//! will be asked about actually exists on a freshly created deployment.
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string VerifyPreconditions()
+	{
+		vector origin = m_Deployment.GetPosition();
+		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(CONFIG_NAME, origin[0], origin[2]);
+
+		if (m_sDerivableKey == SAVED_KEY)
+			return string.Format("The planted key '%1' is exactly what this marker's position derives, so 'the key was not re-derived' would be asserted against a coincidence", SAVED_KEY);
+
+		if (m_Deployment.GetVirtualKey() != SAVED_KEY)
+			return string.Format("The deployment holds key '%1' after being handed '%2' - the payload's key was refused before the save was even taken",
+				m_Deployment.GetVirtualKey(), SAVED_KEY);
+
+		if (!FindPlacedModule())
+			return string.Format("A freshly created '%1' deployment carries no OVT_PlacedInfantrySpawningDeploymentModule at all, so 'the restored one still does' would assert nothing", CONFIG_NAME);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a different value over every one of the five, then asks for the persisted state back.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		if (!m_Deployment)
+		{
+			SetFailure("The base-defense deployment fixture disappeared between the save and the dirty step");
+			return true;
+		}
+
+		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iDirtyFaction, DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
+
+		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetControllingFaction() != m_iDirtyFaction
+			|| m_Deployment.GetResourcesInvested() != DIRTY_RESOURCES)
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure("The dirty step did not change the deployment's state, so the assertion after the reload would pass against a value that was never wrong");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+			SetFailure(restored);
+			return true;
+		}
+
+		if (!m_Deployment)
+		{
+			SetFailure("The base-defense deployment fixture disappeared across the reload - if a future tuning pass shortened this config's reinforcement initial delay, its m_bDeleteOnConditionFail branch has started collecting the fixture mid-run");
+			return true;
+		}
+
+		// The payload the save was taken of, handed back through the method the marker's own
+		// Deserialize calls. See the class header for why this is not a re-read.
+		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+
+		string failure = Verify();
+
+		// Cleanup BEFORE reporting, on every path.
+		OVT_TEST_DeploymentRoundTripFixture.Destroy(m_Deployment);
+		m_Deployment = null;
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A base-defense deployment came back with its four scalars, its virtualization key '%1' (which its own position could not derive - that would have been '%2'), its placement provider and its restored-from-save flag",
+			SAVED_KEY, m_sDerivableKey);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when everything holds, or the first broken claim.
+	protected string Verify()
+	{
+		OVT_DeploymentConfig config = m_Deployment.GetConfig();
+		if (!config)
+			return "The restored base-defense deployment has no config at all - a deployment that cannot name what it is runs no modules and is collected on the manager's next sweep";
+
+		if (config.m_sDeploymentName != CONFIG_NAME)
+			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, CONFIG_NAME);
+
+		string diagnostic;
+		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
+		if (!manager)
+			return diagnostic;
+
+		if (!manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME))
+			return string.Format("The registry no longer resolves '%1' by name - the save stores the NAME, so a base-defense deployment restored in a later session would be dropped instead of restored",
+				CONFIG_NAME);
+
+		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
+			return string.Format("The restored deployment belongs to faction %1, saved as %2 (dirtied to %3) - a base's garrison that changes sides on a load fights for the wrong army",
+				m_Deployment.GetControllingFaction().ToString(), m_iSavedFaction.ToString(), m_iDirtyFaction.ToString());
+
+		if (Math.AbsFloat(m_Deployment.GetThreatLevel() - SAVED_THREAT) > 0.01)
+			return string.Format("The restored threat level is %1, saved as %2", m_Deployment.GetThreatLevel().ToString(), SAVED_THREAT.ToString());
+
+		if (m_Deployment.GetResourcesInvested() != SAVED_RESOURCES)
+			return string.Format("The restored deployment reports %1 invested resources, saved as %2 - this is what a base's defense is worth, and the Game Master snapshot shows it",
+				m_Deployment.GetResourcesInvested().ToString(), SAVED_RESOURCES.ToString());
+
+		if (m_Deployment.GetVirtualKey() != SAVED_KEY)
+			return string.Format("The restored virtualization key is '%1', saved as '%2' (this marker's position derives '%3') - if it fell back to the derivation, every guard this base-defense deployment registered is unreachable and the next convergence registers a second garrison on top of them",
+				m_Deployment.GetVirtualKey(), SAVED_KEY, m_sDerivableKey);
+
+		if (!m_Deployment.WasRestoredFromSave())
+			return "The restored deployment does not report WasRestoredFromSave() - that flag is what stops a restored deployment re-building its static content, so a base would grow a second composition on every load";
+
+		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule();
+		if (!placed)
+			return "The restored deployment carries no OVT_PlacedInfantrySpawningDeploymentModule - its guards would be rolled onto a ring around the marker instead of standing on their posts";
+
+		if (!placed.m_Placement)
+			return "The restored deployment's placed module has no m_Placement provider - CloneModule is hand-written and not chained, and a module with no provider wants 0 groups, registers NOTHING and logs nothing, so the base's guards simply never come back after a load";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The fixture deployment's live placed-infantry module, or null.
+	protected OVT_PlacedInfantrySpawningDeploymentModule FindPlacedModule()
+	{
+		if (!m_Deployment)
+			return null;
+
+		array<OVT_BaseSpawningDeploymentModule> modules = m_Deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(module);
+			if (placed)
+				return placed;
+		}
+
+		return null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A PRE-MIGRATION SAVE'S BASE-UPGRADE INVESTMENT IS REFUNDED TO THE DEPLOYMENT POOL, EXACTLY ONCE,
+//! AND A REWRITTEN PAYLOAD REFUNDS NOTHING. (virtualization/base-defense-migration T6.8.)
+//!
+//! WHAT A LEGACY SAVE IS AND WHY IT CANNOT SIMPLY BE DROPPED. Every campaign saved before this
+//! migration carries, per occupying-held base, a list of upgrade records: what each upgrade had banked
+//! and how many groups it had standing. The upgrade classes those records describe are deleted, so
+//! there is nothing left to replay them into. Rather than strand a player's whole investment, the
+//! records are read once for their VALUE, the sum is credited to the occupying faction's deployment
+//! resource pool, and the evaluator re-establishes defense from it - value-parity, not
+//! entity-identity, which is the decision this feature was given.
+//!
+//! THE FAILURE MODES THIS GUARDS, AND NEITHER OF THEM LOGS ANYTHING:
+//!   - REFUND NOTHING. A loaded legacy campaign arrives with no defense AND no money to buy any, and
+//!     the occupying faction is crippled for the rest of that campaign. Nothing errors; the player
+//!     just finds every base empty.
+//!   - REFUND TWICE. The refund is idempotent STRUCTURALLY - the write path stores an EMPTY upgrade
+//!     array from now on, so a second pass has nothing to sum - and there is deliberately no flag
+//!     guarding it. If that structural argument ever broke, every load of the same campaign would hand
+//!     the occupying faction another few thousand resources, forever.
+//!
+//! ⚠ READ THIS FIRST - WHAT THE SEAM CAN AND CANNOT DO, AND WHY IT IS NOT WORKED AROUND. The suite's
+//! reload seam re-applies the GAME MODE's stored record, which does include this manager - but the
+//! payload it would re-read is one this build WROTE, and this build writes the upgrade array empty.
+//! Feeding it a genuinely pre-migration payload therefore has to be done the way the manager's own
+//! Deserialize does it:
+//!   WRITE HALF - REAL, AND IT IS THE HALF THAT CHANGED. A real save is taken over untouched live
+//!   campaign state before anything else happens. WriteBase() now stops walking the base controller's
+//!   upgrade list and writes an empty array in its place, so a save that completes is a write path
+//!   that ran the new body over every base in the world. A serializer that threw on it would surface
+//!   here as the missing capability.
+//!   READ HALF - THE PUBLIC APPLY, NOT A RE-READ. ApplyPersistedOccupyingFaction() is the exact method
+//!   the serializer's Deserialize calls with the values it read, and it is handed hand-built records
+//!   shaped like the ones a 2026-era save really carries.
+//! DO NOT WIDEN THE SEAM to "fix" this: widening it means naming persistence-framework types inside
+//! Scripts/Game/Tests/, which the suite's assertion rule forbids.
+//!
+//! ⚠ THIS CASE TAKES A REAL SAVE, so its class name MUST sort after `..._Capability_...` - see the
+//! suite header's case list. `Legacy*` does; `Base*` would not.
+//!
+//! ⚠ LIVE CAMPAIGN STATE IS BORROWED AND HANDED BACK: the chosen base's controlling faction, the
+//! occupying faction's reserve and threat (both passed straight back through the apply, so neither
+//! moves), and the deployment resource pool. Two side effects of driving the apply are ACCEPTED and
+//! are the same ones OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction accepts: every base and
+//! tower with no record in the list handed in is swept to the occupying faction, and the chosen base's
+//! persisted slot/garrison lists are cleared. Those lists are rebuilt from the LIVE base controller at
+//! save time - the controller's own m_aSlotsFilled claim list is not touched - and are empty in a test
+//! session anyway.
+//!
+//! 🔴 THE REFUND IS QUEUED BY THE APPLY AND PAID BY A LATER DELIVERY POINT, AND THAT IS ASSERTED HERE
+//! AS A CLAIM IN ITS OWN RIGHT. It cannot be credited inline, because the deployment manager's own
+//! restore CLEARS the per-faction resource pool and is authored several entries BELOW this manager in
+//! Configs/Systems/Persistence/Overthrow.conf - so an inline credit is wiped microseconds later with
+//! nothing logged. This case therefore asserts three separate things: the apply queues the right
+//! amount, the apply does NOT move the pool, and the credit point delivers it exactly once.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
+//!   - make ApplyPersistedBaseUpgrades() return 0 unconditionally and the queued-amount assertion goes
+//!     red naming both numbers;
+//!   - call AllocateDeploymentResources() from inside ApplyPersistedOccupyingFaction() instead of
+//!     queueing and the "the pool moved during the apply itself" assertion goes red - which is the one
+//!     that pins the ordering hazard;
+//!   - delete the `m_iPendingLegacyRefund = 0;` line and the delivered-once assertion goes red;
+//!   - delete `base.upgrades.Clear()` and the emptied-list assertion goes red on its own;
+//!   - make the conversion count groups without multiplying by the per-group value and the refund
+//!     assertion goes red with a number short by exactly the group value;
+//!   - re-populate record.upgrades before the second pass instead of clearing it and the idempotence
+//!     assertion goes red, which is what a write path that forgot to empty the array would look like.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResources : SCR_AutotestCaseBase
+{
+	//! Banked value on the patrol-shaped record. Not a number any campaign start produces.
+	static const int BANKED_RESOURCES = 137;
+
+	//! Groups standing on that same record, each worth OVT_BaseDefenseConversion.LEGACY_GROUP_SIZE men.
+	static const int STANDING_GROUPS = 3;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return Save();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Takes one real save over untouched live state, which is what runs the rewritten write path.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Save()
+	{
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null, so there is no pool for a legacy refund to land in");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+		{
+			SetFailure("OVT_Global.GetDifficulty() is null, so the per-group refund value cannot be derived");
+			return true;
+		}
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+		if (occupyingFaction < 0)
+		{
+			SetFailure("The occupying faction does not resolve to a faction index");
+			return true;
+		}
+
+		OVT_BaseData base;
+		foreach (OVT_BaseData candidate : occupying.m_Bases)
+		{
+			if (candidate)
+			{
+				base = candidate;
+				break;
+			}
+		}
+
+		if (!base)
+		{
+			SetFailure("The test world handed out no base, so there is no base record to convert");
+			return true;
+		}
+
+		// BORROWED STATE. The reserve and threat are passed straight back through the apply, so neither
+		// moves; the base faction and the pool are put back by hand below.
+		int originalFaction = base.faction;
+		int originalPool = manager.GetFactionResources(occupyingFaction);
+		int reserve = occupying.m_iResources;
+		float threat = occupying.m_iThreat;
+
+		string failure = RunConversionClaims(occupying, manager, config, difficulty, base, occupyingFaction, reserve, threat);
+
+		// TEARDOWN BEFORE REPORTING, ON EVERY PATH.
+		base.faction = originalFaction;
+		RestorePool(manager, occupyingFaction, originalPool);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("A legacy base record carrying %1 banked resources and %2 standing groups refunded exactly its value to the deployment pool, left the base's upgrade list empty, and refunded nothing on a rewritten (empty) payload",
+			BANKED_RESOURCES.ToString(), STANDING_GROUPS.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The two claims, driven through the exact method the manager's own Deserialize calls.
+	//! \param[in] occupying The occupying faction manager.
+	//! \param[in] manager The deployment manager holding the pool.
+	//! \param[in] config The Overthrow config, for the occupying faction key.
+	//! \param[in] difficulty The campaign difficulty, for the per-man price the legacy valuation used.
+	//! \param[in] base The live base the hand-built record is aimed at.
+	//! \param[in] occupyingFaction The occupying faction index.
+	//! \param[in] reserve The occupying reserve, passed back through unchanged.
+	//! \param[in] threat The occupying threat, passed back through unchanged.
+	//! \return An empty string when both claims hold, or the first broken one.
+	protected string RunConversionClaims(notnull OVT_OccupyingFactionManager occupying, notnull OVT_DeploymentManagerComponent manager,
+		notnull OVT_OverthrowConfigComponent config, notnull OVT_DifficultySettings difficulty, notnull OVT_BaseData base,
+		int occupyingFaction, int reserve, float threat)
+	{
+		int groupValue = OVT_BaseDefenseConversion.LegacyGroupValue(difficulty.baseResourceCost);
+		if (groupValue <= 0)
+			return string.Format("A group in a legacy payload is worth %1 at this difficulty's baseResourceCost of %2 - the refund would be indistinguishable from no refund at all",
+				groupValue.ToString(), difficulty.baseResourceCost.ToString());
+
+		// PRECONDITION: nothing is already owed, or "the conversion queued exactly X" would be measured
+		// against a leftover. A campaign that was not loaded from a pre-migration save never owes
+		// anything - PostGameStart() settles any refund it does owe before this suite ever runs.
+		if (occupying.GetPendingLegacyRefund() != 0)
+			return string.Format("The occupying faction already owes its deployment pool %1 before this case planted anything - a previous refund was queued and never delivered",
+				occupying.GetPendingLegacyRefund().ToString());
+
+		int expectedRefund = BANKED_RESOURCES + (STANDING_GROUPS * groupValue);
+
+		array<ref OVT_PersistedBase> records = new array<ref OVT_PersistedBase>();
+
+		OVT_PersistedBase record = new OVT_PersistedBase();
+		record.location = base.location;
+		record.faction = occupyingFaction;
+
+		// A PATROL-SHAPED RECORD: banked value AND groups that were standing when the game was saved.
+		OVT_PersistedBaseUpgrade patrol = new OVT_PersistedBaseUpgrade();
+		patrol.type = "OVT_BasePatrolUpgrade";
+		patrol.resources = BANKED_RESOURCES;
+		patrol.tag = "";
+		patrol.pos = base.location;
+		for (int i = 0; i < STANDING_GROUPS; i++)
+		{
+			OVT_PersistedBaseUpgradeGroup group = new OVT_PersistedBaseUpgradeGroup();
+			group.prefab = "{00000000DEADBEEF}Prefabs/Nothing/ThisIsNeverResolved.et";
+			group.position = base.location;
+			patrol.groups.Insert(group);
+		}
+		record.upgrades.Insert(patrol);
+
+		// A STRUCTURE-SHAPED RECORD: a tag and a position, nothing banked and no groups. It must refund
+		// NOTHING, because the structure itself is a tracked world entity that comes back from the save
+		// on its own - refunding for it would pay for it twice.
+		//
+		// ⚠ BOTH `type` STRINGS ABOVE AND BELOW NAME CLASSES THAT NO LONGER EXIST, AND THAT IS THE
+		// POINT: this fixture stands in for a PRE-MIGRATION save point, and those are the literal
+		// strings such a save carries. Nothing in the conversion matches on them (it converts banked
+		// resources and group counts, never a class name), so they are payload realism rather than a
+		// reference - do not "fix" them to a config name, which no legacy save could contain.
+		OVT_PersistedBaseUpgrade composition = new OVT_PersistedBaseUpgrade();
+		composition.type = "OVT_BaseUpgradeComposition";
+		composition.resources = 0;
+		composition.tag = "SmallBunker";
+		composition.pos = base.location;
+		record.upgrades.Insert(composition);
+
+		records.Insert(record);
+
+		// ---- CLAIM 1: THE POOL RISES BY EXACTLY THE COMPUTED VALUE -------------------------------
+		int poolBefore = manager.GetFactionResources(occupyingFaction);
+
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, reserve, threat, records, null);
+
+		// 🔴 THE REFUND IS OWED HERE, NOT PAID HERE, AND THAT IS THE DESIGN. It cannot be credited from
+		// inside the apply, because the deployment manager's own restore CLEARS the resource pool and
+		// runs after this manager's in the same load. So the apply queues, and one of two later delivery
+		// points hands it over. The queued amount is asserted first - it is the conversion arithmetic -
+		// and then the credit point is driven directly, which keeps the whole claim inside one frame
+		// instead of racing a callback.
+		int owed = occupying.GetPendingLegacyRefund();
+		if (owed != expectedRefund)
+			return string.Format("The conversion queued %1 for the deployment pool, expected exactly %2 - a pre-migration campaign either loses the investment it had made or is owed money it never spent",
+				owed.ToString(), expectedRefund.ToString());
+
+		if (manager.GetFactionResources(occupyingFaction) != poolBefore)
+			return string.Format("The pool moved to %1 during the apply itself, expected it untouched at %2 - an inline credit is wiped by the deployment manager's own restore a few entries later in the same load, silently",
+				manager.GetFactionResources(occupyingFaction).ToString(), poolBefore.ToString());
+
+		occupying.CreditPendingLegacyRefund();
+
+		int poolAfter = manager.GetFactionResources(occupyingFaction);
+		int credited = poolAfter - poolBefore;
+
+		if (credited != expectedRefund)
+			return string.Format("The refund credited %1 to the deployment pool, expected exactly %2", credited.ToString(), expectedRefund.ToString());
+
+		// Delivered exactly once: a second run of the credit point hands over nothing.
+		occupying.CreditPendingLegacyRefund();
+		if (manager.GetFactionResources(occupyingFaction) != poolAfter)
+			return string.Format("Running the credit point twice moved the pool to %1, expected it to stay at %2 - the refund is not self-clearing, and both of its delivery points are armed on a real load",
+				manager.GetFactionResources(occupyingFaction).ToString(), poolAfter.ToString());
+
+		// ...AND THE BASE'S UPGRADE LIST IS LEFT EMPTY. Nothing replays these any more, and a populated
+		// list is an invitation for something to try.
+		if (!base.upgrades)
+			return "The base's upgrade list is null after the conversion, expected an empty list - a null list is a VME waiting for the next reader";
+
+		if (!base.upgrades.IsEmpty())
+			return string.Format("The base's upgrade list holds %1 entries after the conversion, expected 0 - the records were copied onto the base as well as converted",
+				base.upgrades.Count().ToString());
+
+		// ---- CLAIM 2: A REWRITTEN (EMPTY) PAYLOAD REFUNDS NOTHING --------------------------------
+		// This is what the same campaign's payload looks like after ONE save on this build: WriteBase()
+		// stores an empty upgrade array. It is the entire idempotence mechanism, and there is no flag
+		// behind it.
+		record.upgrades.Clear();
+
+		poolBefore = manager.GetFactionResources(occupyingFaction);
+
+		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, reserve, threat, records, null);
+
+		owed = occupying.GetPendingLegacyRefund();
+		if (owed != 0)
+			return string.Format("A second pass over the rewritten (empty) payload queued another %1 - every load of the same campaign would hand the occupying faction another refund, forever",
+				owed.ToString());
+
+		occupying.CreditPendingLegacyRefund();
+
+		poolAfter = manager.GetFactionResources(occupyingFaction);
+		if (poolAfter != poolBefore)
+			return string.Format("A second pass over the rewritten (empty) payload moved the pool from %1 to %2",
+				poolBefore.ToString(), poolAfter.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts the faction's resource pool back exactly where it was found, whichever way it moved.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The faction whose pool was borrowed.
+	//! \param[in] originalPool The value to restore.
+	protected void RestorePool(notnull OVT_DeploymentManagerComponent manager, int factionIndex, int originalPool)
+	{
+		int current = manager.GetFactionResources(factionIndex);
+
+		if (current > originalPool)
+			manager.SubtractFactionResources(factionIndex, current - originalPool);
+		else if (current < originalPool)
+			manager.AddFactionResources(factionIndex, originalPool - current);
 	}
 }

@@ -27,7 +27,10 @@ class OVT_SpawnGroupJobStage : OVT_JobStage
 		
 		OVT_Faction faction = config.GetFactionByType(m_Faction);
 		
-		IEntity entity = OVT_Global.SpawnEntityPrefab(faction.GetRandomGroupByType(m_GroupType), spawnPosition);
+		// Resolved through the faction's GROUP REGISTRY (OVT_Faction.GetGroupPrefabByType). The legacy
+		// prefab-slot arrays this used to read were retired with the base-defense migration; the enum
+		// stays because it is this stage's authored surface, and the faction maps it to a registry name.
+		IEntity entity = OVT_Global.SpawnEntityPrefab(faction.GetGroupPrefabByType(m_GroupType), spawnPosition);
 		
 		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
 		if(group)

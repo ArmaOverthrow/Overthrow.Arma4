@@ -11,7 +11,7 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	static const string OWNER_SYSTEM = "deployment";
 
 	//! spawnDistanceOverride meaning "use the global virtualizationSpawnDistance" - 1750 m as shipped,
-	//! which is the ring the deleted proximity toggle used (m_iMilitarySpawnDistance).
+	//! which is the same ring the deleted per-marker proximity toggle used to spawn and delete on.
 	static const int SPAWN_DISTANCE_GLOBAL = -1;
 
 	//------------------------------------------------------------------------------------------------
@@ -25,6 +25,28 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	{
 		array<IEntity> entities = new array<IEntity>;
 		return entities;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this module CHOOSES each group's position, rather than rolling one near the marker.
+	//!
+	//! ⚠ FALSE IS THE SHIPPED ANSWER AND MUST STAY THE DEFAULT. The plain infantry module rolls a ring
+	//! point and then hands it to OVT_WorldUtils.FindNearestRoad, whose search is 500 m wide and ignores
+	//! m_fSpawnRadius entirely - integration MEASURED a tower garrison registering on its access road
+	//! instead of at its tower. A registration reached that way is an artefact, not a station.
+	//!
+	//! TRUE means the position came from a deliberate decision the module can defend: a placement
+	//! provider's post (a tower walkway, a sniper marker, a defend position) or the composition this
+	//! module just built. Only those positions are safe to hold.
+	//!
+	//! THE ONE CONSUMER is OVT_PatrolBehaviorDeploymentModule's DEFEND branch, which anchors its hold
+	//! point on the group when this is true and on the deployment marker when it is false. Getting it
+	//! backwards either walks a placed garrison off its post towards the base flag, or parks a tower
+	//! garrison on the road the snap dropped it on.
+	//! \return Whether this module's registration positions are deliberate stations.
+	bool StationsGroupsDeliberately()
+	{
+		return false;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -74,6 +96,21 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	void OnVirtualGroupWiped(int handle)
 	{
 		// Not one of mine until a subclass says otherwise.
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many virtualization-registered groups this module currently holds.
+	//!
+	//! ZERO IS A CORRECT ANSWER, NOT A MISSING IMPLEMENTATION. A module that spawns entities rather
+	//! than registering groups - parked vehicles, for one - genuinely fields none, and a reader that
+	//! sums this across a deployment's modules gets the truth either way.
+	//!
+	//! READ-ONLY AND CHEAP BY CONTRACT. Its consumer is OVT_GMSnapshotBuilder, which is forbidden from
+	//! calling anything that allocates, spends or spawns and runs once per Game Master per poll.
+	//! \return The registered group count; 0 for a module that registers none.
+	int GetRegisteredGroupCount()
+	{
+		return 0;
 	}
 
 	//------------------------------------------------------------------------------------------------

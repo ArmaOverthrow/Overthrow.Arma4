@@ -52,10 +52,10 @@ class OVT_OverthrowConfigStruct
 	//! group's members materialise (implementation.md D5, issue #100). Each registration may override
 	//! it; a very large value keeps every registered group spawned permanently.
 	//! SERVER-ONLY, exactly like recruitLoadoutFeeMultiplier: it is deliberately absent from
-	//! RplSave/RplLoad below, so CONFIG_STREAM_VERSION does not move for it. Separate from
-	//! m_iMilitarySpawnDistance, which the un-migrated military spawn paths still use. (The civilian
-	//! spawn distance it used to be listed beside was retired with the town-civilian spawner - ambient
-	//! civilians ride this value through their source's m_iSpawnDistanceOverride.)
+	//! RplSave/RplLoad below, so CONFIG_STREAM_VERSION does not move for it. It is now the ONLY spawn
+	//! distance the campaign has: the separate military and civilian distances it used to sit beside
+	//! both went with the systems that read them (the town-civilian spawner, then base defense), and
+	//! ambient civilians ride this value through their source's m_iSpawnDistanceOverride.
 	int virtualizationSpawnDistance;
 
 	//! Operator multiplier on town civilian ambience density (civilians implementation.md §3.6). The
@@ -209,8 +209,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	// ambient source's own m_iSpawnDistanceOverride, which rides virtualizationSpawnDistance by
 	// default. Nothing read either of them once the town-controller spawner was retired.
 
-	[Attribute(defvalue: "1750", UIWidgets.EditBox, desc: "Military spawn distance")]
-	int m_iMilitarySpawnDistance;
+	// RETIRED 2026-08-18 (virtualization/base-defense-migration T7.7): the military spawn distance
+	// attribute is gone. Its last reader was the base-upgrade patrol proximity gate, which was deleted
+	// with the whole base-upgrade system, and it was authored in no prefab, config or world. Every
+	// systemic force is virtualized now and rides virtualizationSpawnDistance (or a per-registration
+	// override) instead. It was never in RplSave/RplLoad, so CONFIG_STREAM_VERSION does not move.
 
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "NPC Shop Buy Rate", category: "Economy")]
 	float m_fNPCBuyRate;
