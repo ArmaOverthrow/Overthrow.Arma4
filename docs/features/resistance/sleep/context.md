@@ -1,8 +1,8 @@
 # Sleep - Context & Decisions
 
-**Last Updated:** 2026-08-19 (post-review)
-**Current Phase:** Complete — six phases + Phase 7 review fixes, 32/33 (T6.3 blocked)
-**Status:** 🟢 Ready for Review — automated gates all green (All group 179/179); the play-test checklist and the wiki sync remain
+**Last Updated:** 2026-08-19 (play-test PASSED, localization re-exported)
+**Current Phase:** Complete — six phases + Phase 7 review fixes, 32/33 (only T6.3 remains)
+**Status:** 🟢 **DONE** — every automated gate green (All group 179/179) **and the full play-test checklist passed**. Only the public wiki sync (T6.3) is outstanding.
 
 ---
 
@@ -13,8 +13,8 @@
 - ✅ Dev docs scaffolded (`tasks.md` 29 tasks across 6 phases)
 - ✅ **Phase 1** (T1.1-T1.8) — `OVT_SleepSchedule`, `AssertHourLatches` + BUG-179's three call sites,
   `HandleTimeSkip` on both managers, the two `OVT_OccupyingFactionManager` extractions, and the Logic
-  suite. `tools/compile-check.sh` exit 0. Suite run and BUG-179's play-test checks are the
-  orchestrator's; BUG-179 stays `open` until they pass.
+  suite. `tools/compile-check.sh` exit 0. **BUG-179's three acceptance checks passed in the 2026-08-19
+  play-test and the bug is CLOSED** (resolution written into `docs/bugs/BUG-179.md`).
 - ✅ **Phase 2** (T2.1-T2.6) — `OVT_PlayerData.m_fLastSleepGameHours`, `OVT_PlayerManagerSerializer`
   version 5 (+ `ClearSleepCooldown`), `OVT_SleepService` (location gate, `CanSleep`, cooldown, the
   deferred skip and the `SetDate` ladder), the Phase 2 half of the Logic suite, and a persistence
@@ -61,13 +61,16 @@
   `tools/compile-check.sh` exit 0.
 
 **What's Next:**
-- ⏭️ **The play-test checklist below** — the only thing standing between this feature and Done. Item 1 first
-  (a bed inside an owned house), since it is the one step that could still disprove R5.
-- ⏭️ **T6.3** — the public wiki sync, from a session that has the wikijs MCP server attached.
-- ⏭️ **The Workbench localization re-export** — eighteen hand-mirrored keys. This buys *translations* for the
-  six non-English locales; it is not needed for the keys to render (see the Gotchas).
-- ⏭️ **BUG-179** stays `open` until play-test items 18-20 pass; **BUG-182** (the R11 night-tick finding, filed
-  2026-08-18 against `occupying/*`) is discovered-not-fixed and out of this feature's scope.
+- ⏭️ **T6.3 — the public wiki sync.** The one remaining task. Needs a session with the wikijs MCP server
+  attached; the source text to mirror is the eleven English Field Manual strings, in player language.
+- ✅ **The play-test checklist PASSED in full** (user, 2026-08-19) — every item green, including the R5 gate
+  (item 1, a bed inside an owned house), the Q1/Q2 payout-counting runs from 10:00 and 12:00, the midnight
+  date wrap, the pad-only pass and the multiplayer F11 check.
+- ✅ **Workbench localization re-export DONE** (user, 2026-08-19). All eighteen keys are exported; the seven
+  runtime `.conf` exports still read 795 `Ids` per half, so the hand-mirroring and the export agree.
+- ✅ **BUG-179 CLOSED** — its three acceptance checks (play-test items 18-20) passed.
+- 🐛 **BUG-182** (the R11 night-tick finding, filed 2026-08-18 against `occupying/*`) remains
+  discovered-not-fixed and out of this feature's scope.
 
 **Blockers:**
 - ✅ **The suite gate is DISCHARGED.** It was deferred through the build (the permission classifier denied
@@ -83,7 +86,9 @@
 
 ## Needs human verification
 
-**Nothing below has been done.** It is everything about this feature that no agent can check: the whole
+✅ **ALL ITEMS PASSED — user play-test, 2026-08-19.** The list is kept below as the record of what was
+checked (and as the regression script if any of this is ever touched again). It is everything about this
+feature that no agent could check: the whole
 feature's Verification Method (`implementation.md` §6) merged with the manual items Phases 3, 4 and 5 each
 recorded as owed. Work down it in order — the early items are the cheapest and the ones most likely to
 invalidate the later ones. DoD ids in **bold** are `implementation.md` §6.

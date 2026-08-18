@@ -1,6 +1,6 @@
 # Sleep — Implementation Plan
 
-**Status:** Ready for Review
+**Status:** Done (play-test passed 2026-08-19; T6.3 wiki sync outstanding)
 **Started:** 2026-08-18
 **Completed:** 2026-08-19
 **Last Updated:** 2026-08-19 (post-review: D16a, D18/D18a; suites green 179/179)

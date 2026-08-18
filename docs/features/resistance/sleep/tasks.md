@@ -1,7 +1,7 @@
 # Sleep - Task Checklist
 
 **Last Updated:** 2026-08-19 (post-review)
-**Progress:** 32/33 tasks complete (97%) — T6.3 blocked, see the Phase 6 session note. **Phase 7 (review fixes) is complete.**
+**Progress:** 32/33 tasks complete (97%) — only **T6.3** (public wiki) outstanding, blocked on the wikijs MCP server. **Phase 7 (review fixes) complete; the full play-test passed 2026-08-19 and BUG-179 is closed.**
 
 > **Phase 1 is ADVANCED** (`component-developer-advanced`) — it cuts into two shipped `CheckUpdate` bodies and
 > fixes a shipped money exploit (BUG-179). Phases 2-5 are `component-developer`, Phase 6 is `help-docs-sync`.
