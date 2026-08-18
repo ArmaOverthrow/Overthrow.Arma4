@@ -99,6 +99,12 @@ class OVT_EconomyManagerComponent: OVT_Component
   	protected int m_iHourPaidIncome = -1; //!< Tracks the hour when income was last calculated to prevent double payments.
 	protected int m_iHourPaidStock = -1; //!< Tracks the hour when stock was last replenished.
 	protected int m_iHourPaidRent = -1; //!< Tracks the hour when rent was last calculated.
+
+	//! BUG-183 one-shot guard. The three latches above are NOT persisted, so a loaded campaign starts
+	//! with all three armed at -1 while the in-game clock IS restored - which re-pays whatever the
+	//! saved hour had already paid. They are asserted to the live hour once, on the first tick that
+	//! can read the clock; see AssertHourLatches.
+	protected bool m_bLatchesAsserted;
 	
 	//Streamed to clients..			
 	int m_iResistanceMoney = 0; //!< Current amount of money held by the resistance faction. Streamed to clients.
@@ -152,13 +158,21 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! Called automatically by a timer.
 	void CheckUpdate()
 	{
-		if(!m_Time) 
+		if(!m_Time)
 		{
 			ChimeraWorld world = GetOwner().GetWorld();
 			m_Time = world.GetTimeAndWeatherManager();
 		}
-		
-		PlayerManager mgr = GetGame().GetPlayerManager();		
+
+		//BUG-183: the load-order-proof point. Init() asserts the latches too, but the restore order of
+		//the persisted clock relative to Init() is not guaranteed, and this tick lands ~10 s later when
+		//it certainly is. Deliberately ABOVE the player-count guard, so an idle server latches the hour
+		//it loaded in rather than the hour the first player happens to join in. Not a one-shot until it
+		//actually succeeds: a failed clock read leaves the guard down so the next tick tries again.
+		if(!m_bLatchesAsserted && AssertHourLatchesFromClock())
+			m_bLatchesAsserted = true;
+
+		PlayerManager mgr = GetGame().GetPlayerManager();
 		if(mgr.GetPlayerCount() == 0)
 		{
 			return;
@@ -201,7 +215,136 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_iHourPaidRent = -1;
 		}
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Replays every accounting sweep an in-game time skip would otherwise silently swallow.
+	//!
+	//! CONTRACT (implementation.md 3.3), shared word for word with OVT_OccupyingFactionManager's
+	//! HandleTimeSkip: called on the AUTHORITY, BEFORE the world clock is advanced. The current
+	//! in-game time is the START of the skipped window, and the window is (start, start + hours] -
+	//! HALF-OPEN at the start, CLOSED at the end. Anything owed exactly at the start is the live
+	//! tick's job, not ours, which is why step 1 below flushes CheckUpdate() once first.
+	//!
+	//! THIS IS NOT A CheckUpdate. It deliberately does NOT inherit CheckUpdate's "no players online ->
+	//! return" early exit: the only way to get here is a player performing the sleep action, so the
+	//! player count is never the question. Copying that guard in would make the skip a silent no-op on
+	//! any machine that momentarily reports zero players.
+	//!
+	//! WHY THE LATCH ASSERT IS PART OF THE PAYOUT, not an afterthought (D4): without step 5 the
+	//! resumed tick would find m_iHourPaidIncome still holding a pre-skip hour and pay a third time
+	//! for two crossings whenever the skip lands exactly on a boundary hour.
+	//! \param[in] hours Length of the skip in whole in-game hours. Non-positive is ignored.
+	void HandleTimeSkip(int hours)
+	{
+		if(!Replication.IsServer()) return;
+		if(hours <= 0) return;
+
+		TimeContainer time = ResolveGameTime();
+		if(!time) return;
+
+		//The start of the window, read into plain ints before anything else runs. GetTime() hands back
+		//a snapshot, not a live view, and the flush below must not be able to invalidate it.
+		int startHour = time.m_iHours;
+		int startMinute = time.m_iMinutes;
+
+		//1. Flush whatever the live tick owes at the CURRENT minute, using the shipped latch logic.
+		//   This is what makes a half-open window safe: the replay below never has to reason about
+		//   what the last tick did or did not observe.
+		CheckUpdate();
+
+		//2. Income and NPC shop buying, once per interval boundary the window contains.
+		int payouts = OVT_SleepSchedule.CountIntervalCrossings(startHour, startMinute, hours, OVT_SleepSchedule.INCOME_INTERVAL_HOURS);
+		for(int i = 0; i < payouts; i++)
+		{
+			CalculateIncome();
+			UpdateShops();
+		}
+
+		//3. Restock, once per entry into the restock hour. Driven by the count rather than a boolean
+		//   so a skip longer than a day stays correct without a second code path.
+		int restocks = OVT_SleepSchedule.CountHourEntries(startHour, startMinute, hours, OVT_SleepSchedule.RESTOCK_HOUR);
+		for(int i = 0; i < restocks; i++)
+		{
+			ReplenishStock();
+		}
+
+		//4. Rent, once per entry into the rent hour.
+		int rents = OVT_SleepSchedule.CountHourEntries(startHour, startMinute, hours, OVT_SleepSchedule.RENT_HOUR);
+		for(int i = 0; i < rents; i++)
+		{
+			UpdateRents();
+		}
+
+		//5. Leave all three latches asserted at the hour the player wakes in.
+		AssertHourLatches(OVT_SleepSchedule.LandingHour(startHour, hours));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts all three once-per-hour payout latches to a known hour.
+	//!
+	//! BUG-183. The latches are not persisted and re-initialise to -1, so a campaign loaded during
+	//! hour 0/6/12/18 pays the income sweep a second time, a campaign loaded during hour 7 restocks
+	//! twice, and one loaded during hour 0 charges rent twice. Asserting them to the hour actually on
+	//! the clock closes all three, and it is the same operation the time skip needs afterwards - which
+	//! is why there is one helper rather than two.
+	//!
+	//! WHY ONE VALUE IS CORRECT FOR ALL THREE, even though they guard different hours: every live
+	//! branch in CheckUpdate compares its latch against a FIXED hour (one of 0/6/12/18 for income, 7
+	//! for stock, 0 for rent). Setting a latch to "the hour we are in" therefore suppresses exactly
+	//! one re-fire - the one for this hour, which has either already happened or is being deliberately
+	//! skipped - and can never suppress a later one, because a later boundary is a different number.
+	//! Setting the stock latch to, say, 14 is simply inert: the next tick at any hour other than 7
+	//! resets it to -1 anyway.
+	//!
+	//! A NEGATIVE HOUR IS IGNORED. -1 is the ARMED state, so writing it would re-open the very
+	//! re-fire this exists to close; callers that could not read the clock must leave the latches
+	//! alone and try again.
+	//! \param[in] hour In-game hour of day, 0-23. Anything negative is a no-op.
+	protected void AssertHourLatches(int hour)
+	{
+		if(hour < 0) return;
+
+		m_iHourPaidIncome = hour;
+		m_iHourPaidStock = hour;
+		m_iHourPaidRent = hour;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads the live clock and asserts the three latches to its hour.
+	//! \return True when the clock was readable and the latches were written.
+	protected bool AssertHourLatchesFromClock()
+	{
+		TimeContainer time = ResolveGameTime();
+		if(!time) return false;
+
+		if(time.m_iHours < 0) return false;
+
+		AssertHourLatches(time.m_iHours);
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the in-game clock, re-acquiring the time manager if OnPostInit ran before the world
+	//! had one - the same defensive shape CheckUpdate uses.
+	//! \return The current time, or null when the time manager is unreachable.
+	protected TimeContainer ResolveGameTime()
+	{
+		if(!m_Time)
+		{
+			IEntity owner = GetOwner();
+			if(!owner) return null;
+
+			ChimeraWorld world = owner.GetWorld();
+			if(!world) return null;
+
+			m_Time = world.GetTimeAndWeatherManager();
+		}
+
+		if(!m_Time) return null;
+
+		return m_Time.GetTime();
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the base price of an item by its resource ID.
 	//! \param[in] id The resource ID of the item.
@@ -1266,6 +1409,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 		m_fResistanceTax = resistanceTax;
 
 		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
+
+		//BUG-183: a save payload has just replaced the campaign's state, and the hour latches are not
+		//part of that payload. Assert them from whatever the clock says now. Deliberately does NOT
+		//claim the m_bLatchesAsserted one-shot: the clock may not be restored yet at apply time, and
+		//the first CheckUpdate is the point where it certainly is. Also covers a LIVE re-apply, where
+		//there is no startup path to fall back on at all.
+		AssertHourLatchesFromClock();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1294,11 +1444,19 @@ class OVT_EconomyManagerComponent: OVT_Component
 		OVT_Global.GetTowns() = OVT_Global.GetTowns();
 		OVT_Global.GetPlayers() = OVT_Global.GetPlayers();
 		
-		GetGame().GetCallqueue().CallLater(AfterInit, 0);		
-		
+		GetGame().GetCallqueue().CallLater(AfterInit, 0);
+
 		if(!Replication.IsServer()) return;
+
+		//BUG-183: belt and braces, and nothing more. If the persisted clock is already restored this
+		//closes the duplicate payout immediately; if it is not, this latches a meaningless hour. Either
+		//way the one-shot at the top of CheckUpdate re-asserts from the clock ~10 s later and is the
+		//reading that actually decides - which is exactly why m_bLatchesAsserted is NOT claimed here.
+		//Nothing reads the latches between this line and that tick, so a wrong value here costs nothing.
+		AssertHourLatchesFromClock();
+
 		GetGame().GetCallqueue().CallLater(CheckUpdate, ECONOMY_UPDATE_FREQUENCY / timeMul, true, GetOwner());
-		
+
 	}
 	
 	//------------------------------------------------------------------------------------------------

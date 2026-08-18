@@ -99,6 +99,26 @@ class OVT_QRFControllerComponent: OVT_Component
 	}
 
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether a character is up and awake, and so counts towards zone control.
+	//!
+	//! Both questions, because they are different ones: GetLifeState() answers DEAD/INCAPACITATED, and
+	//! IsUnconscious() additionally covers the wake-up animation, during which the life state has
+	//! already flipped back to ALIVE (CharacterControllerComponent.c:262-267).
+	//! \param[in] entity The character to test.
+	//! \return True when it is alive and conscious.
+	protected bool IsFightingFit(IEntity entity)
+	{
+		if(!entity) return false;
+
+		CharacterControllerComponent controller = CharacterControllerComponent.Cast(entity.FindComponent(CharacterControllerComponent));
+		if(!controller) return false;
+
+		if(controller.GetLifeState() != ECharacterLifeState.ALIVE) return false;
+
+		return !controller.IsUnconscious();
+	}
+
 	protected void CheckUpdatePoints()
 	{
 		BaseWorld world = GetGame().GetWorld();
@@ -107,19 +127,45 @@ class OVT_QRFControllerComponent: OVT_Component
 		{
 			int enemyNum = 0;
 			int playerNum = 0;
+			int recruitNum = 0;
 			int enemyTotal = 0;
-			
+
+			PlayerManager mgr = GetGame().GetPlayerManager();
+
+			//Hoisted out of the loop - these were resolved once per agent, every 10 seconds
+			string occupyingKey = m_Config.m_sOccupyingFaction;
+			string resistanceKey = m_Config.m_sPlayerFaction;
+
 			array<AIAgent> groups();
 			GetGame().GetAIWorld().GetAIAgents(groups);
 			foreach(AIAgent group : groups)
-			{				
+			{
 				if(!group) continue;
 				IEntity entity = group.GetControlledEntity();
 				if(!entity) continue;
 				SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
 				if(!character) continue;
-				if(character.GetFactionKey() != OVT_Global.GetConfig().GetOccupyingFactionData().GetFactionKey()) continue;
+
+				string factionKey = character.GetFactionKey();
+				bool isResistance = factionKey == resistanceKey;
+				if(!isResistance && factionKey != occupyingKey) continue;
+
+				//A body on the ground holds no ground - dead and downed count for neither side
+				if(!IsFightingFit(entity)) continue;
+
 				float dist = vector.Distance(character.GetOrigin(),GetOwner().GetOrigin());
+
+				if(isResistance)
+				{
+					//Recruits (and any other resistance AI) hold the zone alongside the players who
+					//brought them - before this, an all-AI assault force scored nothing and lost by
+					//default. Players are counted in their own loop below for XP, and a player-
+					//controlled character can still surface as an agent, so don't count it twice.
+					if(mgr.GetPlayerIdFromControlledEntity(entity) > 0) continue;
+					if(dist < QRF_POINT_RANGE) recruitNum++;
+					continue;
+				}
+
 				if(dist < QRF_POINT_RANGE)
 				{
 					enemyNum += 1;
@@ -127,19 +173,20 @@ class OVT_QRFControllerComponent: OVT_Component
 				if(dist < QRF_RANGE)
 				{
 					enemyTotal += 1;
-				}	
+				}
 			}
-			
+
 			autoptr array<int> players = new array<int>;
-			PlayerManager mgr = GetGame().GetPlayerManager();
 			int numplayers = mgr.GetPlayers(players);
-			
+
 			if(numplayers > 0)
 			{
 				foreach(int playerID : players)
 				{
 					IEntity player = mgr.GetPlayerControlledEntity(playerID);
 					if(!player) continue;
+					//Same rule the AI gets: a corpse or a downed player neither holds the zone nor earns XP
+					if(!IsFightingFit(player)) continue;
 					float distance = vector.Distance(player.GetOrigin(), GetOwner().GetOrigin());
 					if(distance < QRF_POINT_RANGE)
 					{
@@ -149,17 +196,21 @@ class OVT_QRFControllerComponent: OVT_Component
 				}
 			}
 			
-			if(playerNum > 0 && enemyTotal == 0){
+			//Zone control is a head count: every fighter the resistance has in the zone counts,
+			//human or recruit
+			int resistanceNum = playerNum + recruitNum;
+
+			if(resistanceNum > 0 && enemyTotal == 0){
 				//push towards resistance fast
 				m_iPoints += 5;
 			}else{
-				if(playerNum == enemyNum)
+				if(resistanceNum == enemyNum)
 				{
 					//push towards zero
 					if(m_iPoints > 0) m_iPoints--;
 					if(m_iPoints < 0) m_iPoints++;
 				}else{
-					if(playerNum > enemyNum)
+					if(resistanceNum > enemyNum)
 					{
 						//push towards resistance
 						m_iPoints++;

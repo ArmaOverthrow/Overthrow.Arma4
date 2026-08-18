@@ -36,10 +36,13 @@
 //!     anyway because it is the pair vanilla always clears with TRACEABLE, and because it doubles as
 //!     this class's IsReserved() test.
 //!
-//! THE RESIDUAL, AND WHERE TO FIX IT IF THE PLAY-TEST SHOWS IT MATTERS: a CLIENT already streaming the
-//! entity in keeps rendering its own copy, so a player walking past a logged-out player's spot may see
-//! a motionless body. It cannot be shot, looted or interacted with (all authority-side), so this is
-//! cosmetic - but if it needs solving, Reserve()/Release() are the only two places to change.
+//! THE CLIENT HALF (the residual, closed 2026-08-18). The flags being local meant a CLIENT already
+//! streaming the entity kept rendering its own copy, and a client that streamed it in LATER (JIP, or
+//! walking into range) saw it with the prefab's default flags - server owners reported disconnected
+//! players' bodies standing frozen, unkillable but visible. Reserve()/Release() now mirror the state
+//! into OVT_ReservationSyncComponent, whose RplProp carries it to every proxy (streamed-in state
+//! included) and applies VISIBLE|TRACEABLE locally there. The component is OPTIONAL: an entity
+//! without it keeps the old authority-only behaviour.
 //!
 //! NON-RECURSIVE ON PURPOSE. `recursively: true` would also clear VISIBLE on every child entity - the
 //! character's clothing, weapons and the items inside them - and the restore could not be exact,
@@ -81,6 +84,11 @@ class OVT_PersistenceReservation
 		entity.ClearFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
 		entity.ClearFlags(EntityFlags.ACTIVE);
 
+		// Tell the clients - the flags above are local to the authority (see the class header).
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(entity);
+		if (sync)
+			sync.SetReserved(true);
+
 		return true;
 	}
 
@@ -102,6 +110,11 @@ class OVT_PersistenceReservation
 		// that can trace it.
 		entity.SetFlags(EntityFlags.ACTIVE);
 		entity.SetFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
+
+		// Tell the clients - the flags above are local to the authority (see the class header).
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(entity);
+		if (sync)
+			sync.SetReserved(false);
 
 		return true;
 	}

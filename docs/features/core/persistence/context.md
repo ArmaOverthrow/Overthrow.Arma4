@@ -1,9 +1,9 @@
 # Vanilla Persistence Migration - Context & Decisions
 
-**Last Updated:** 2026-08-08 (BUG-104 — a Continue left every connected player unmapped; see the latest session note)
+**Last Updated:** 2026-08-18 (BUG-184 load-drift snap-back + BUG-185 reservation client sync; see the latest session note)
 **Current Phase:** ✅ **SHIPPED** — maintenance only
 **Status:** ✅ **COMPLETE.** All build phases done and gate-verified; **SP play-test green 2026-08-03 (items 1–15)** and the **MP/dedicated half (section D) green**, with every linked bug closed — BUG-002, BUG-006, BUG-018, BUG-085, BUG-086 (and BUG-087 next door on `controller-migration`). Compile clean (5924 files, Overthrow addon only). Fast 38 · All **68**. Zero `EPF_`/`EDF_` references repo-wide.
-**Post-ship:** BUG-104 fixed 2026-08-08 (SP/listen-host Continue: the session ID maps were never rebuilt after the world transition, so the HUD read $0). One play-test re-check owed — see the session note.
+**Post-ship:** BUG-104 fixed 2026-08-08 (SP/listen-host Continue: the session ID maps were never rebuilt after the world transition, so the HUD read $0). BUG-184 + BUG-185 fixed 2026-08-18 (vehicles rotated after load on top of persisted objects; reserved bodies visible on clients). Play-test re-checks and the 2026-08-18 suite runs owed — see the session notes.
 
 ---
 
@@ -14,7 +14,7 @@
 - ✅ `vanilla-api-reference.md` created — verified API truth with file:line for everything (system, conf layer, serializers, SaveGameManager, UUID/WhenAvailable, lifecycle traps).
 - ✅ Acceptance gate in place since dev-ops/test-coverage (see below).
 
-**What's next:** nothing outstanding on the feature itself — it is shipped. The one item owed is a play-test re-check of **BUG-104** (below), which no automated case can reach because a real Continue is a world transition.
+**What's next:** maintenance items only. Owed: (1) play-test re-check of **BUG-104** (below) — no automated case can reach it because a real Continue is a world transition; (2) from the 2026-08-18 session: suite runs + the two recorded can-fail proofs (this environment could not launch the harness), the BUG-184 ramp play-test, and the BUG-185 dedicated-server visibility play-test.
 
 **Blockers:** none.
 
@@ -75,6 +75,16 @@ The dividing line for "should this entity persist?" is not "is it important" but
 ---
 
 ## Session Notes
+
+### 2026-08-18 (BUG-184 + BUG-185 FIXED) — two server reports against the shipped feature, one physics, one replication
+
+**BUG-184: "vehicles on a maintenance ramp load rotated ~45°."** The pose DATA was ruled out first — vanilla stores the full `Transform[4]` for a standing vehicle, and the registry fallback's `GetYawPitchRoll()` → `AnglesToMatrix()` pair uses one consistent convention — so nothing rewrites rotation on purpose. The mover is load-time PHYSICS: the vehicle self-spawns as a live dynamic body (no saved velocities) while its support — `OVT_VehicleMaintenanceRamp.et` is a BUILDABLE, i.e. a separately self-spawned Overthrow-collection record — has no spawn-ordering guarantee against the vanilla Vehicle collection. Vehicle first → free-fall ~0.9 m onto terrain, settle rotated; ramp into vehicle → depenetration kick (the BUG-129 mechanism, already documented in this very file for vehicle-vehicle overlap). Flat ground has zero fall height, hence only ramp reports, and a spawn-order race explains "sometimes". **Fix: `ReassertRecordedPose()`** on the vehicle manager — beyond 0.5 m / 5° drift from the registry record (which `SyncVehicleRecords()` refreshed at the last save), zero velocities, `SetTransform()` back, wake physics with the `OVT_FlipVehicleAction` impulse idiom; occupied vehicles skipped. **The load-bearing ordering fact: it runs from `InitialVehicleCleanup()` BEFORE `RegisterPlayerVehicle()`, because registration recaptures the record from the live pose** — done the other way round, the sweep itself would have laundered every drifted pose into the record and made the bug permanent. Not covered: shop/unowned vehicles (no registry record to snap to); the `RebuildVehicleFromRecord` path is distinguishable in reports by its `(contents lost)` log line, which nobody mentioned.
+
+**BUG-185: "players do not disappear on disconnect — frozen, unkillable, visible."** This is BUG-086's documented residual turning out not to be cosmetic: `ClearFlags` is server-local, so a client already streaming the body keeps rendering it, AND — the half the original note under-weighted — every client that streams it in later (JIP, walking into range) gets the prefab's default flags, fully visible. Unkillable is by design (authority-side TRACEABLE cleared); visible was not. **Fix: `OVT_ReservationSyncComponent`** — an `[RplProp(onRplName:)]` reserved bit, mirrored ONLY by `Reserve()`/`Release()`, applied on proxies as local `VISIBLE|TRACEABLE` flag changes. ACTIVE is deliberately NOT touched on proxies (they must keep accepting replication; simulation is the authority's). Vanilla precedent for the exact shape: `SCR_ResourceComponent.m_bIsVisible`. Wired into `Character_Player.et` `{6B0F52A100000003}`, `Wheeled_Base.et` `{6B0F52A100000001}`, `Helicopter_Base.et` `{6B0F52A100000002}` — hand-authored entries, GUID series `6B0F52A1` fresh. The component is optional by construction: an entity without it keeps the old authority-only behaviour, so the reservation class doc's residual paragraph is rewritten to say the client half is closed rather than deleted.
+
+**Two new cases**, both compile-verified, neither yet run (the harness launch is classifier-blocked in this environment): `OVT_TEST_PersistenceRoundTrip_VehiclePoseReassert_SnapsBackOnlyBeyondTolerance` (no-op below tolerance asserted FIRST — a seam that snapped everything would teleport cars out from under players — then 45°/1.7 m drift snapped back, all same-frame so tolerances are centimetres) and `OVT_TEST_Init_Persistence_ReservationReplicatesToClients` (prefab-wiring tripwires for the vehicle chain by spawning and the character chain via `OVT_SpawnLogic.GetInstance().m_rDefaultPrefab` + `SCR_BaseContainerTools.FindComponentSource`, plus the Reserve/Release mirror both ways). Each header records its can-fail method with the proof run explicitly owed. Compile clean, 6058 files.
+
+**Owed:** both suite runs; the two can-fail proofs (then stamp the case headers); BUG-184 ramp play-test (park on ramp, save, restart, continue — expect the `snapped back` log line if drift occurred); BUG-185 dedicated play-test (watcher sees the body vanish on disconnect, JIP client never sees it, reconnect restores it; same for a locked vehicle).
 
 ### 2026-08-08 (BUG-104 FIXED) — a Continue rebuilds the world, and NOTHING re-ran SetupPlayer
 

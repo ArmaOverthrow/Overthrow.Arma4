@@ -1,0 +1,26 @@
+GenericEntity : "{4CC2C69DE1AEF103}Prefabs/Props/Core/DestructibleMultiPhase_Props_Base.et" {
+ ID "5111E74D4E7A8DB6"
+ components {
+  ActionsManagerComponent "{6B5D000000000060}" {
+   ActionContexts {
+    UserActionContext "{6B5D000000000061}" {
+     ContextName "default"
+     Position PointInfo "{6B5D000000000062}" {
+      Offset 0 0.9 0
+     }
+     Radius 1.7
+    }
+   }
+   additionalActions {
+    OVT_SleepAction "{6B5D000000000063}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B5D000000000064}" {
+      Name "#OVT-Sleep"
+     }
+    }
+   }
+  }
+ }
+}

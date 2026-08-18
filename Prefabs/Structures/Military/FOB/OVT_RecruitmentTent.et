@@ -1,9 +1,6 @@
 SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/Camps/TentUSSR_01/TentUSSR_01_base.et" {
  ID "F0DBA538AC2A0552"
  components {
-  OVT_BuildableComponent "{6A7D9B2E00000052}" {
-   m_sBuildableType "RecruitmentTent"
-  }
   MeshObject "{506EDA9D46FC6C06}" {
    Materials {
     MaterialAssignClass "{65AAD8E2BE19D653}" {
@@ -14,6 +11,14 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
      SourceMaterial "Tent_Soviet_01_Fabric_MLOD"
      AssignedMaterial "{3C5C70981B855375}Assets/Structures/Military/Camps/TentUSSR_01/Data/Tent_FIA_01_Fabric_MLOD.emat"
     }
+   }
+  }
+  OVT_BuildableComponent "{6A7D9B2E00000052}" {
+   m_sBuildableType "RecruitmentTent"
+  }
+  OVT_SpawnPointComponent "{6A2480D412B160D3}" {
+   m_vPoint PointInfo "{6A2480D41E645214}" {
+    Offset 0 0 8
    }
   }
   SCR_EditableEntityComponent "{65B90A294FA187CE}" {
@@ -28,7 +33,7 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
   GenericEntity : "{03B44EA7652D0D17}Prefabs/Props/Military/Radios/RadioStation_R123M_01.et" {
    ID "65AAD8EE0865F8DE"
    coords -0.284 0.945 -2.45
-   angleY 21.639
+   angles 0 21.639 0
   }
   GenericEntity : "{1304FA1829C44690}Prefabs/Structures/Military/Camps/TentFIA_01/TentFIA_01_floor.et" {
    ID "65AAD8E2BE19D587"
@@ -99,7 +104,7 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
     }
    }
    coords -0.088 0.045 -2.3
-   angleY 0
+   angles 0 0 0
   }
   StaticModelEntity : "{C9CFDED29542A968}Prefabs/Props/Military/Furniture/CotMilitary_US_01.et" {
    ID "65AAD8EE0865F8FF"
@@ -108,7 +113,7 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
     }
    }
    coords 2.106 0.038 -1.529
-   angleY 85.455
+   angles 0 85.455 0
   }
  }
 }

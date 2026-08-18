@@ -356,9 +356,11 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//! anywhere for anything to leak from.
 	//!
 	//! The chosen position is used as given. It is only ever a vector the SERVER produced from its own
-	//! eligible-location enumeration, so it is already a place the server was willing to offer;
-	//! re-deriving or re-safety-checking it here would move the player away from the location they
-	//! deliberately picked.
+	//! eligible-location enumeration AND then healed through the spawn-point/clear-ground search
+	//! (CompleteRespawn, BUG-182) - by the time it arrives here it is an authored
+	//! OVT_SpawnPointComponent point or a traced-clear spot, and this method has no second opinion to
+	//! add. The raw recorded origin must never reach this parameter: it is the location entity's own
+	//! origin and spawning at it puts the player inside that entity.
 	//! \param[in] playerId The player who will control the character.
 	//! \param[in] characterPersistenceId The player's Overthrow persistent id.
 	//! \param[in] useChosenPosition True to spawn at chosenPosition, false to ask GetCreationPosition().
@@ -1659,7 +1661,18 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			return OVT_RespawnResult.OK_FELL_BACK_HOME;
 		}
 
-		CreateFreshCharacterAt(playerId, characterPersistenceId, true, resolvedPos);
+		// The recorded vector is the location's ORIGIN - the base controller, the deployed FOB truck,
+		// the camp tent, the house building - never a standing position, and spawning at it puts the
+		// player inside that geometry (BUG-182). Route it through the spawn-point query so a location
+		// that authors OVT_SpawnPointComponent points (bases, FOBs, camps and spawn-point houses all
+		// do) spawns the player at one of them, and anything without one heals to a traced-clear spot
+		// nearby. AFTER the eligibility match on purpose: the raw origin stays the lookup key the
+		// client and server agree on, only the spawn moves.
+		vector spawnPos;
+		if (!OVT_WorldUtils.TryFindSafeSpawnPosition(resolvedPos, spawnPos))
+			Print("[Overthrow] No authored spawn point or clear ground near " + resolvedPos.ToString() + " - spawning player " + playerId + " at the recorded origin", LogLevel.WARNING);
+
+		CreateFreshCharacterAt(playerId, characterPersistenceId, true, spawnPos);
 		return OVT_RespawnResult.OK;
 	}
 

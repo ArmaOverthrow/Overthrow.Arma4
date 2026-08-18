@@ -175,6 +175,42 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	int m_bCounterAttackTimeout = 0;
 
+	//------------------------------------------------------------------------------------------------
+	// TICK LATCHES (2026-08-19 review fix)
+	//
+	// WHAT THEY ARE FOR. CheckUpdate's two payload gates are minute-exact - "hour is 0/6/12/18 AND
+	// minute is 0" for the resource gain, "minute is 0/15/30/45" for the threat decay - and until now
+	// they had NO latch at all, which is the one thing OVT_EconomyManagerComponent's equivalent gates
+	// have always had (m_iHourPaidIncome / m_iHourPaidStock / m_iHourPaidRent). Without one, ANY second
+	// tick landing inside the same in-game minute runs the payload again, and after a sleep time skip
+	// the resumed tick re-runs the boundary the replay has just paid for (implementation.md Q1/F7).
+	//
+	// THEY MIRROR m_iHourPaidIncome EXACTLY, including its lack of an else-branch reset: consecutive
+	// boundaries are always DIFFERENT numbers (0 -> 6 -> 12 -> 18, and 0 -> 15 -> 30 -> 45), so a latch
+	// holding the last boundary can never suppress the next one, and any value that is not a boundary
+	// at all - which is what HandleTimeSkip leaves behind when a skip lands off the grid - is simply
+	// inert.
+	//
+	// THEY ARE INITIALISED TO -1, THE ARMED STATE. Every boundary value is >= 0, so the first boundary
+	// a fresh or freshly loaded campaign reaches always fires. Normal play is therefore provably
+	// unchanged: the gate is only reachable at an exact boundary minute, and at each such minute the
+	// latch cannot already hold that value unless the payload has already run inside that very minute.
+	//
+	// THIS APPLIES ON DEDICATED SERVERS TOO, not only to the single-player sleep path, because the
+	// latch lives on the LIVE gate. That is deliberate and is a strict de-duplication: it can only ever
+	// remove a repeat of a payload that has already run in the same in-game minute.
+	//
+	// NOT PERSISTED, on purpose. Same reasoning as BUG-183's fix on the economy manager: a latch
+	// restored from a save would be about a clock that no longer applies. The armed -1 costs at most
+	// one extra gain in the minute a campaign happens to load in, which is the pre-existing behaviour.
+	//------------------------------------------------------------------------------------------------
+
+	//! Hour of day the six-hour resource gain last ran in, or -1 when it has not run yet.
+	protected int m_iHourGainedResources = -1;
+
+	//! Minute of hour the quarter-hourly threat decay last ran in, or -1 when it has not run yet.
+	protected int m_iMinuteDecayedThreat = -1;
+
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
@@ -1387,33 +1423,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 			|| time.m_iHours == 12
 			|| time.m_iHours == 18)
 			 &&
-			time.m_iMinutes == 0)
+			time.m_iMinutes == 0
+			 &&
+			m_iHourGainedResources != time.m_iHours)
 		{
-			int newResources = GainResources();
+			m_iHourGainedResources = time.m_iHours;
 
-			// KEPT, AND NOT A SPECOPS LEFTOVER. m_aKnownTargets feeds GetThreatByLocation(), which is
-			// what the DEPLOYMENT EVALUATOR sorts its candidates by and what the player's map threat
-			// overlay reads. Dropping this call would freeze both at whatever PostGameStart() computed.
-			UpdateKnownTargets();
-
-			// THE ONE DEFENSE SPEND PATH. 80 % of every tick moves into the deployment pool, which is
-			// where base defense, town patrols, tower garrisons and vehicle patrols are ALL bought from.
-			//
-			// WHAT STOOD HERE WAS A SECOND SPENDER: bases sorted by threat, an EVEN per-base split, a
-			// "skip a base a player is standing near" rule, and the base controller's legacy spender
-			// turning each budget into men through the base-upgrade classes. Every one of those concerns
-			// now belongs to the deployment framework, which already does them better:
-			//   - threat ordering    -> EvaluateFactionDeployments() sorts candidates by threat, with
-			//                           jitter, instead of an even split that only decided serving order;
-			//   - the proximity skip -> OVT_NoPlayersNearbyConditionDeploymentModule, as a CREATION gate;
-			//   - the 1..19 priority sweep -> each config's m_iPriority and the escalation selection.
-			//
-			// The other 20 % stays in m_iResources, which remains the QRF sizing and counter-attack
-			// reserve - both epic-level exclusions, both untouched by this migration.
-			TransferDefenseShareToPool(newResources);
-
-			Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
-
+			GainAndSpendResources();
 		}
 		//If we have a surplus of resources, try to take a random base back
 		float rand = s_AIRandomGenerator.RandFloat01();
@@ -1437,18 +1453,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 			|| time.m_iMinutes == 30
 			|| time.m_iMinutes == 45)
 		{
-			// OVT_Global.GetDifficulty() is null-guarded now (it returns null instead of a VME before
-			// the config exists), so the dereference has to be guarded here too. No difficulty means no
-			// threat reduction this tick - fail closed rather than crash the campaign tick.
-			int threatReduce = 0;
-			OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-			if(difficulty)
-				threatReduce = Math.Ceil((float)m_iThreat * difficulty.threatReductionFactor);
+			//THE LATCH IS ON THE DECAY ONLY, deliberately NOT on the town-uprising scan below it: the
+			//scan is world-side and PlayerInRange-gated rather than a payload owed once per boundary,
+			//so it keeps exactly the behaviour it has always had. Only the accounting is latched.
+			if(m_iMinuteDecayedThreat != time.m_iMinutes)
+			{
+				m_iMinuteDecayedThreat = time.m_iMinutes;
 
-			m_iThreat -= threatReduce;
-			if(m_iThreat < 0) m_iThreat = 0;
-			
-			Print("[Overthrow.OccupyingFactionManager] Reduced Threat to: " + m_iThreat.ToString());
+				DecayThreatStep();
+			}
 
 			int playerFaction = m_Config.GetPlayerFactionIndex();
 			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
@@ -1471,6 +1484,187 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! One six-hour resource boundary: gain, move the defense share into the deployment pool, report.
+	//!
+	//! Lifted out of CheckUpdate (resistance/sleep) because there are now THREE callers - the live
+	//! tick, the sleep replay's chronological loop, and the replay's start-boundary flush - and a
+	//! second implementation of a payout is a defect by construction.
+	//!
+	//! WHAT THIS IS NOT ANY MORE. On main this method also called SpendResourcesOnBases() and
+	//! UpdateSpecops(). Both were deleted by virtualization/base-defense-migration: the per-base
+	//! spend became TransferDefenseShareToPool below, and specops left with the legacy spender. The
+	//! sleep replay therefore replays exactly what the live tick now does - which is the whole point
+	//! of routing both through this one method.
+	//!
+	//! THE LATCH IS NOT SET HERE. Each caller owns its own idea of "which boundary was that", so each
+	//! caller writes m_iHourGainedResources itself; burying the write in here would leave the replay
+	//! loop - which runs this many times for many different boundaries - writing a meaningless value.
+	protected void GainAndSpendResources()
+	{
+		int newResources = GainResources();
+
+		// KEPT, AND NOT A SPECOPS LEFTOVER. m_aKnownTargets feeds GetThreatByLocation(), which is
+		// what the DEPLOYMENT EVALUATOR sorts its candidates by and what the player's map threat
+		// overlay reads. Dropping this call would freeze both at whatever PostGameStart() computed.
+		UpdateKnownTargets();
+
+		// THE ONE DEFENSE SPEND PATH. 80 % of every tick moves into the deployment pool, which is
+		// where base defense, town patrols, tower garrisons and vehicle patrols are ALL bought from.
+		//
+		// WHAT STOOD HERE WAS A SECOND SPENDER: bases sorted by threat, an EVEN per-base split, a
+		// "skip a base a player is standing near" rule, and the base controller's legacy spender
+		// turning each budget into men through the base-upgrade classes. Every one of those concerns
+		// now belongs to the deployment framework, which already does them better:
+		//   - threat ordering    -> EvaluateFactionDeployments() sorts candidates by threat, with
+		//                           jitter, instead of an even split that only decided serving order;
+		//   - the proximity skip -> OVT_NoPlayersNearbyConditionDeploymentModule, as a CREATION gate;
+		//   - the 1..19 priority sweep -> each config's m_iPriority and the escalation selection.
+		//
+		// The other 20 % stays in m_iResources, which remains the QRF sizing and counter-attack
+		// reserve - both epic-level exclusions, both untouched by this migration.
+		TransferDefenseShareToPool(newResources);
+
+		Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One quarter-hour step of threat decay.
+	//!
+	//! Lifted out of CheckUpdate's fifteen-minute branch so the sleep time-skip replay can run the
+	//! same decay the live tick runs. ONLY the decay moved: the town-uprising scan that follows it in
+	//! CheckUpdate stayed behind deliberately (see HandleTimeSkip).
+	protected void DecayThreatStep()
+	{
+		// OVT_Global.GetDifficulty() is null-guarded now (it returns null instead of a VME before
+		// the config exists), so the dereference has to be guarded here too. No difficulty means no
+		// threat reduction this step - fail closed rather than crash the campaign tick.
+		int threatReduce = 0;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(difficulty)
+			threatReduce = Math.Ceil((float)m_iThreat * difficulty.threatReductionFactor);
+
+		m_iThreat -= threatReduce;
+		if(m_iThreat < 0) m_iThreat = 0;
+
+		Print("[Overthrow.OccupyingFactionManager] Reduced Threat to: " + m_iThreat.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Replays the occupying faction's resource gain, spend and threat decay for a skipped window.
+	//!
+	//! CONTRACT (implementation.md 3.3), shared word for word with OVT_EconomyManagerComponent's
+	//! HandleTimeSkip: called on the AUTHORITY, BEFORE the world clock is advanced. The current
+	//! in-game time is the START of the skipped window, and the window is (start, start + hours] -
+	//! HALF-OPEN at the start, CLOSED at the end. Anything owed exactly at the start is the live
+	//! tick's job, not ours.
+	//!
+	//! BOTH EDGES ARE DEFENDED, AND THEY ARE NOT THE SAME DEFENCE (2026-08-19 review fix). The economy
+	//! manager protects the open start with a flush CheckUpdate() and the closed end with
+	//! AssertHourLatches(landingHour); this one had neither, and its live gates had no latch to assert.
+	//! So: step 1 below flushes the two boundaries that can fall exactly ON the start instant, each
+	//! behind its own latch, and step 3 leaves both latches asserted at the landing instant. Without
+	//! step 3 a skip landing exactly on a boundary hour produces a THIRD "Gaining Resources" pair when
+	//! the live tick resumes inside the same in-game minute (Q1/F7); without step 1 a skip beginning
+	//! exactly on one loses that payday altogether (Q2).
+	//!
+	//! CHRONOLOGICAL, NOT BATCHED (D6). The loop walks the window in quarter-hour steps and does the
+	//! resource work on the steps that are also six-hour boundaries, exactly as the live tick does.
+	//! Batching it as "two gains, then thirty-two decays" would produce different numbers, because
+	//! GainResources scales with m_iThreat and m_iThreat decays between the gains. The loop IS the
+	//! simulation, at fifteen-minute resolution.
+	//!
+	//! ===========================================================================================
+	//! TWO THINGS ARE EXCLUDED ON PURPOSE. DO NOT "FIX" THEM (D7).
+	//!
+	//!  1. THE COUNTER-ATTACK ROLL. It is a random surplus check, not accounting. Replaying it would
+	//!     hand a sleeping player thirty-two rolls at a base QRF launching on top of them.
+	//!  2. THE TOWN-UPRISING SCAN. It is gated on PlayerInRange(town, 300) and is world-side. A
+	//!     sleeping player is by definition within 300 m of the town they are sleeping in, so thirty-
+	//!     two replays could start a town QRF onto a screen that is fading to black.
+	//!
+	//! Neither is a payout, so neither is owed. Anything the player would have missed by BEING there
+	//! is not something the skip is obliged to manufacture.
+	//! ===========================================================================================
+	//! \param[in] hours Length of the skip in whole in-game hours. Non-positive is ignored.
+	void HandleTimeSkip(int hours)
+	{
+		if(!Replication.IsServer()) return;
+		if(hours <= 0) return;
+
+		if(!m_Time)
+		{
+			ChimeraWorld world = GetOwner().GetWorld();
+			if(!world) return;
+			m_Time = world.GetTimeAndWeatherManager();
+		}
+
+		if(!m_Time) return;
+
+		TimeContainer time = m_Time.GetTime();
+		if(!time) return;
+
+		//Read into plain ints before the replay: GetTime() hands back a snapshot, not a live view.
+		int startHour = time.m_iHours;
+		int startMinute = time.m_iMinutes;
+
+		int startAbsoluteMinute = (startHour * OVT_SleepSchedule.MINUTES_PER_HOUR) + startMinute;
+
+		//1. THE OPEN START, CLOSED. The economy manager settles this by calling its own CheckUpdate()
+		//   once (implementation.md D3), which is not available here - this CheckUpdate also rolls the
+		//   counter-attack, scans towns for uprisings and returns early on a QRF, none of which the
+		//   replay is allowed to do. So the two boundaries that CAN be owed exactly at the start are
+		//   flushed explicitly instead, each behind its own latch so a live tick that already took it
+		//   is not paid twice. Without this a sleep beginning exactly at 12:00 loses the 12:00 payday
+		//   the live tick still owed (Q2), and one beginning on a quarter hour loses a decay step.
+		if(OVT_SleepSchedule.IsIntervalBoundary(startAbsoluteMinute, OVT_SleepSchedule.INCOME_INTERVAL_HOURS)
+			&& m_iHourGainedResources != startHour)
+		{
+			m_iHourGainedResources = startHour;
+
+			GainAndSpendResources();
+		}
+
+		if(OVT_SleepSchedule.IsStepBoundary(startAbsoluteMinute, OVT_SleepSchedule.THREAT_STEP_MINUTES)
+			&& m_iMinuteDecayedThreat != startMinute)
+		{
+			m_iMinuteDecayedThreat = startMinute;
+
+			DecayThreatStep();
+		}
+
+		//2. The window itself, chronologically.
+		int steps = OVT_SleepSchedule.CountStepCrossings(startHour, startMinute, hours, OVT_SleepSchedule.THREAT_STEP_MINUTES);
+
+		for(int i = 0; i < steps; i++)
+		{
+			int stepMinute = OVT_SleepSchedule.StepMinuteAt(startHour, startMinute, OVT_SleepSchedule.THREAT_STEP_MINUTES, i);
+
+			//Same order as the live tick: gain and transfer the defense share, then the decay for
+			//that same step.
+			if(OVT_SleepSchedule.IsIntervalBoundary(stepMinute, OVT_SleepSchedule.INCOME_INTERVAL_HOURS))
+			{
+				GainAndSpendResources();
+			}
+
+			DecayThreatStep();
+		}
+
+		//3. THE CLOSED END, LATCHED - the exact analogue of the economy manager's
+		//   AssertHourLatches(LandingHour(...)) (D4). The window is closed at the end, so the replay has
+		//   just paid for the landing instant; the tick that resumes a fraction of a second later still
+		//   reads that same in-game minute, and without these two writes it would gain and decay a
+		//   SECOND time for it. That is the third "Gaining Resources"/"Reserve Resources" pair Q1/F7
+		//   forbid, and the thirty-third decay step.
+		//
+		//   The landing MINUTE of hour is startMinute, because the skip is a whole number of hours -
+		//   OVT_SleepService.AdvanceClock preserves minutes and seconds. A landing hour that is not on
+		//   the six-hour grid (or a start minute that is not on the quarter-hour grid) leaves an inert
+		//   value behind, exactly as AssertHourLatches leaves the stock latch at hour 14.
+		m_iHourGainedResources = OVT_SleepSchedule.LandingHour(startHour, hours);
+		m_iMinuteDecayedThreat = startMinute;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Moves this tick's defense share out of the occupying faction's reserve and into its deployment
 	//! resource pool.
 	//!
@@ -1484,8 +1678,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! the identity hold in every state, including the degenerate ones a test can construct: the reserve
 	//! can never go negative and the pool can never be handed money that did not exist.
 	//!
-	//! PUBLIC, because the identity is only assertable as a live claim by driving it. CheckUpdate() is
-	//! its only production caller.
+	//! PUBLIC, because the identity is only assertable as a live claim by driving it.
+	//! GainAndSpendResources() is its only production caller - which since resistance/sleep means the
+	//! live tick AND the sleep replay reach it through the same one line.
 	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
 	void TransferDefenseShareToPool(int newResources)
 	{

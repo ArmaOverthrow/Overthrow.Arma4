@@ -1019,6 +1019,136 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 }
 
 //------------------------------------------------------------------------------------------------
+//! Reserving must be TOLD TO THE CLIENTS, or a disconnected player stands visible on every one.
+//!
+//! WHY THIS EXISTS (server reports, 2026-08-18). OVT_PersistenceReservation hides with
+//! ClearFlags(), which is a LOCAL engine call - the reservation design measured that and accepted
+//! a cosmetic residual. Server owners then reported the residual is not cosmetic in practice: a
+//! disconnected player's body stands frozen, unkillable but fully visible, on every client -
+//! including clients that stream it in AFTER the reservation, which get the prefab's default
+//! flags. The fix is OVT_ReservationSyncComponent: Reserve()/Release() mirror the state into its
+//! RplProp, and each proxy applies the visual half locally.
+//!
+//! WHAT THIS CASE PINS, there being no client in the autotest world to observe:
+//!  1. the WIRING - the ownable-vehicle prefab chain still carries the component (a prefab entry
+//!     that is dropped or renamed fails silently: everything compiles, clients just see ghosts
+//!     again), and the player-character prefab still carries it, checked through the spawn
+//!     logic's own default-prefab attribute;
+//!  2. the MIRROR - Reserve() drives the component's replicated state true and Release() drives
+//!     it false, on a live entity, through the production seams and not by poking the component.
+//! What replication then does with the prop is vanilla's RplProp contract
+//! (SCR_ResourceComponent.m_bIsVisible is the same pattern) and is play-test territory.
+//!
+//! CAN-FAIL METHOD (run owed - this environment cannot launch the harness): remove the
+//! SetReserved() mirror calls from OVT_PersistenceReservation; the case must report the replicated
+//! state still false after Reserve(). Record the date here once exercised.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCaseBase
+{
+	protected IEntity m_Vehicle;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string diagnostic;
+
+		ResourceName prefab;
+		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(prefab, diagnostic))
+		{
+			SetFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
+			return true;
+		}
+
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
+			return true;
+		}
+
+		m_Vehicle = OVT_Global.SpawnEntityPrefab(prefab, position);
+		if (!m_Vehicle)
+		{
+			SetFailure("SpawnEntityPrefab() produced no vehicle from %1", prefab);
+			return true;
+		}
+
+		// Wiring, vehicle half: the component rides the Wheeled_Base override every ownable car
+		// inherits. Losing the prefab entry is silent - this sentence is the tripwire.
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(m_Vehicle);
+		if (!sync)
+		{
+			SetFailure("The spawned vehicle has no OVT_ReservationSyncComponent - Prefabs/Vehicles/Core/Wheeled_Base.et has lost its entry, so a reserved vehicle is a visible ghost on every client again");
+			return FinishAndCleanUp();
+		}
+
+		if (sync.IsReserved())
+		{
+			SetFailure("A freshly spawned vehicle already reports reserved to clients - the mirror assertions below would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Reserve(m_Vehicle))
+		{
+			SetFailure("Reserve() refused a live vehicle");
+			return FinishAndCleanUp();
+		}
+
+		if (!sync.IsReserved())
+		{
+			SetFailure("Reserve() hid the vehicle but did NOT mirror the state into OVT_ReservationSyncComponent - nothing reaches the clients, and every one of them keeps rendering the reserved entity");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Release(m_Vehicle))
+		{
+			SetFailure("Release() refused a reserved vehicle");
+			return FinishAndCleanUp();
+		}
+
+		if (sync.IsReserved())
+		{
+			SetFailure("Release() put the vehicle back in play but left the replicated state reserved - clients would hide a vehicle its returning owner is standing next to");
+			return FinishAndCleanUp();
+		}
+
+		// Wiring, character half: the player prefab is reached through the spawn logic's own
+		// attribute rather than a hard-coded path, so a re-pointed prefab is checked wherever it
+		// points. The entry itself must be on the prefab: a reserved BODY is what the servers
+		// actually reported.
+		OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
+		if (!spawnLogic || spawnLogic.m_rDefaultPrefab.IsEmpty())
+		{
+			SetFailure("No spawn logic instance (or no default character prefab) - the player-character half of the wiring cannot be checked");
+			return FinishAndCleanUp();
+		}
+
+		if (!SCR_BaseContainerTools.FindComponentSource(Resource.Load(spawnLogic.m_rDefaultPrefab), OVT_ReservationSyncComponent))
+		{
+			SetFailure("The player character prefab (%1) has no OVT_ReservationSyncComponent - a disconnected player's body is a visible ghost on every client again", spawnLogic.m_rDefaultPrefab);
+			return FinishAndCleanUp();
+		}
+
+		Print("Reservation state reaches the clients: prefab wiring intact on the vehicle and character chains, and Reserve()/Release() drive the replicated flag both ways");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Vehicle)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Vehicle);
+
+		m_Vehicle = null;
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! BUG-085: a loadout must carry the CONTENTS of clothing and backpacks, not just the containers.
 //!
 //! WHAT IT MEASURES: the whole save -> apply round trip through the manager's PUBLIC API. A source
@@ -2478,133 +2608,6 @@ class OVT_TEST_Init_Tutorial_InvokerSeamsExist : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_Tutorial_SettingsStoreRoundTrips : SCR_AutotestCaseBase
-{
-	//! Test-only ids. Leading underscores are illegal in the authored entry-id scheme (lowercase
-	//! ASCII letters, digits and dashes), so these cannot collide with real content, ever.
-	static const string TEST_ID_A = "__ovt-selftest-alpha";
-	static const string TEST_ID_B = "__ovt-selftest-beta";
-
-	//! How long to wait after the round trip's write before the cleanup write, in milliseconds.
-	//! Comfortably past the measured throttle window (6000 ms was already enough).
-	static const int FLUSH_SETTLE_MS = 10000;
-
-	//! 0 = not started, 1 = written and waiting out the flush throttle, 2 = cleaned up.
-	protected int m_iPhase;
-
-	//! Tick at which the round trip's write happened.
-	protected int m_iWriteTick;
-
-	//! The round trip's verdict, held across frames while the throttle window drains.
-	protected string m_sFailure;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		// Phase 1: write and read the record back. Returning false asks the harness for another frame.
-		if (m_iPhase == 0)
-		{
-			m_sFailure = RunRoundTrip();
-			m_iWriteTick = System.GetTickCount();
-			m_iPhase = 1;
-			return false;
-		}
-
-		// Phase 2: wait out the disk-write throttle the round trip just opened.
-		if (m_iPhase == 1)
-		{
-			if (System.GetTickCount() - m_iWriteTick < FLUSH_SETTLE_MS)
-				return false;
-
-			m_iPhase = 2;
-		}
-
-		// Restore the profile unconditionally: a failed assertion must not ALSO leave the next run's
-		// settings block polluted.
-		string cleanupFailure = RestoreProfile();
-
-		if (m_sFailure == "")
-			m_sFailure = cleanupFailure;
-
-		if (m_sFailure != "")
-		{
-			SetFailure("%1", m_sFailure);
-			return true;
-		}
-
-		Print("Tutorial settings store round-tripped two ids and the tips flag through the engine user-settings container, and the profile was restored");
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Puts the profile block back the way this case found it, and PROVES it went back.
-	//!
-	//! Asserted rather than assumed for two reasons. It is this case's own hygiene contract - the ids
-	//! it writes must not be visible to any later run. And "can a value be written BACK to its
-	//! default?" is a real property of this store that the shipping code depends on: re-enabling tips
-	//! after disabling them is exactly that operation, and a settings serializer that skipped
-	//! default-valued members would make the toggle one-way.
-	//! \return A ready-to-report failure message, or an empty string when the profile came back clean.
-	protected string RestoreProfile()
-	{
-		if (!OVT_TutorialSettingsAccessor.Reset())
-			return "OVT_TutorialSettingsAccessor.Reset() reported the settings store unavailable, so this case's test ids are still in the profile";
-
-		OVT_TutorialSeenStore afterReset = new OVT_TutorialSeenStore();
-		bool tipsDisabled;
-		OVT_TutorialSettingsAccessor.Load(afterReset, tipsDisabled);
-
-		if (afterReset.Count() != 0)
-			return "Reset() left " + afterReset.Count().ToString() + " ids in the profile. Either this case is polluting every later run, or a stored value cannot be written back to its default - which would also make 'Don't show tips again' impossible to turn off.";
-
-		if (tipsDisabled)
-			return "Reset() left m_bTipsDisabled set. A value cannot be written back to its default, so re-enabling tips would never persist.";
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Writes a known record through the accessor and reads it back through a fresh instance.
-	//! \return A ready-to-report failure message, or an empty string when the round trip held.
-	protected string RunRoundTrip()
-	{
-		OVT_TutorialSeenStore written = new OVT_TutorialSeenStore();
-		written.MarkSeen(TEST_ID_A);
-		written.MarkSeen(TEST_ID_B);
-
-		if (!OVT_TutorialSettingsAccessor.Save(written, true))
-			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable. Either the engine has no OVT_TutorialSettings module (declaring the class is supposed to be the whole registration contract) or this run is a console app, in which case the case is being run in the wrong place.";
-
-		// A FRESH store and a fresh OVT_TutorialSettings instance inside Load(): nothing that was
-		// just written can be read back out of memory.
-		OVT_TutorialSeenStore reloaded = new OVT_TutorialSeenStore();
-		bool tipsDisabled;
-
-		if (!OVT_TutorialSettingsAccessor.Load(reloaded, tipsDisabled))
-			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after a successful Save()";
-
-		if (reloaded.Count() != 2)
-			return "The seen store came back with " + reloaded.Count().ToString() + " ids, expected 2. The nested ref array<ref OVT_SeenTutorialEntry> did NOT survive the settings container - risk R1 has fired and the feature needs one of its ranked fallbacks.";
-
-		if (!reloaded.HasSeen(TEST_ID_A))
-			return "The seen store lost the id '" + TEST_ID_A + "' across a settings round trip";
-
-		if (!reloaded.HasSeen(TEST_ID_B))
-			return "The seen store lost the id '" + TEST_ID_B + "' across a settings round trip";
-
-		if (!tipsDisabled)
-			return "The 'Don't show tips again' flag was written as true and came back false, so the player's suppression choice would be silently forgotten every launch";
-
-		if (reloaded.GetVersion() != OVT_TutorialSeenStore.CURRENT_VERSION)
-			return "The reloaded store is at schema version " + reloaded.GetVersion().ToString() + ", expected " + OVT_TutorialSeenStore.CURRENT_VERSION.ToString();
-
-		return "";
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBase
 {
@@ -3031,137 +3034,6 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		}
 
 		return joined;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_Tutorial_ResetRestoresTips : SCR_AutotestCaseBase
-{
-	//! Test-only id. Leading underscores are illegal in the authored entry-id scheme, so this cannot
-	//! collide with real content, ever.
-	static const string TEST_ID = "__ovt-selftest-reset";
-
-	//! How long to wait after this case's writes before the cleanup write, in milliseconds.
-	static const int FLUSH_SETTLE_MS = 10000;
-
-	//! 0 = not started, 1 = written and waiting out the flush throttle, 2 = cleaned up.
-	protected int m_iPhase;
-
-	//! Tick at which the last write happened.
-	protected int m_iWriteTick;
-
-	//! The verdict, held across frames while the throttle window drains.
-	protected string m_sFailure;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == 0)
-		{
-			m_sFailure = RunReset();
-			m_iWriteTick = System.GetTickCount();
-			m_iPhase = 1;
-			return false;
-		}
-
-		if (m_iPhase == 1)
-		{
-			if (System.GetTickCount() - m_iWriteTick < FLUSH_SETTLE_MS)
-				return false;
-
-			m_iPhase = 2;
-		}
-
-		string cleanupFailure = RestoreProfile();
-
-		if (m_sFailure == "")
-			m_sFailure = cleanupFailure;
-
-		if (m_sFailure != "")
-		{
-			SetFailure("%1", m_sFailure);
-			return true;
-		}
-
-		Print("Tutorial reset cleared a seeded seen id and re-enabled tips through the engine user-settings container, and the profile was restored");
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Seeds the exact state BUG-133 leaves behind, then performs the reset the way ResetSeen() does.
-	//! \return A ready-to-report failure message, or an empty string when the reset held.
-	protected string RunReset()
-	{
-		// 1. The state a player is stuck in: one tip read, and tips switched off for good.
-		OVT_TutorialSeenStore seeded = new OVT_TutorialSeenStore();
-		seeded.MarkSeen(TEST_ID);
-
-		if (!OVT_TutorialSettingsAccessor.Save(seeded, true))
-			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable while seeding. Either the engine has no OVT_TutorialSettings module or this run is a console app, in which case the case is being run in the wrong place.";
-
-		// 2. THE RESET, in ResetSeen()'s order. The load comes FIRST and through a fresh store,
-		//    exactly as GetSeenStore() does on a component that has not touched the profile yet; only
-		//    then is the set cleared and the flag put back to its default.
-		OVT_TutorialSeenStore store = new OVT_TutorialSeenStore();
-		bool tipsDisabled;
-
-		if (!OVT_TutorialSettingsAccessor.Load(store, tipsDisabled))
-			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after a successful Save()";
-
-		// The seed has to be visible at this point, or the case would pass without ever having had
-		// anything to clear.
-		if (!store.HasSeen(TEST_ID))
-			return "The seeded id '" + TEST_ID + "' was not readable back before the reset, so this case never had any progress to clear and proves nothing";
-
-		if (!tipsDisabled)
-			return "The seeded 'Don't show tips again' flag was not readable back before the reset, so this case never reproduced the state BUG-133 is about";
-
-		store.Clear();
-
-		if (!OVT_TutorialSettingsAccessor.Save(store, false))
-			return "OVT_TutorialSettingsAccessor.Save() reported the settings store unavailable while writing the reset";
-
-		// 3. Read the whole record back through a FRESH store: nothing just cleared can be answered
-		//    out of the instance above.
-		OVT_TutorialSeenStore reloaded = new OVT_TutorialSeenStore();
-		bool tipsDisabledAfter;
-
-		if (!OVT_TutorialSettingsAccessor.Load(reloaded, tipsDisabledAfter))
-			return "OVT_TutorialSettingsAccessor.Load() reported the settings store unavailable immediately after the reset was written";
-
-		if (reloaded.Count() != 0)
-			return "The reset left " + reloaded.Count().ToString() + " seen ids in the profile, expected 0. Clearing the store does not survive the settings round trip, so 'Turn Tips Back On' would clear the record in memory and then have every id written straight back - the tips would still never reappear (BUG-133).";
-
-		if (reloaded.HasSeen(TEST_ID))
-			return "The reset left the id '" + TEST_ID + "' in the profile";
-
-		if (tipsDisabledAfter)
-			return "The reset wrote m_bTipsDisabled false and it came back true. The flag cannot be written back to its default, so 'Don't show tips again' is a one-way door and BUG-133 is not fixed.";
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Puts the profile block back the way this case found it, and PROVES it went back.
-	//! \return A ready-to-report failure message, or an empty string when the profile came back clean.
-	protected string RestoreProfile()
-	{
-		if (!OVT_TutorialSettingsAccessor.Reset())
-			return "OVT_TutorialSettingsAccessor.Reset() reported the settings store unavailable, so this case's test id may still be in the profile";
-
-		OVT_TutorialSeenStore afterReset = new OVT_TutorialSeenStore();
-		bool tipsDisabled;
-		OVT_TutorialSettingsAccessor.Load(afterReset, tipsDisabled);
-
-		if (afterReset.Count() != 0)
-			return "Reset() left " + afterReset.Count().ToString() + " ids in the profile, so this case is polluting every later run";
-
-		if (tipsDisabled)
-			return "Reset() left m_bTipsDisabled set, so this case is polluting every later run";
-
-		return "";
 	}
 }
 

@@ -201,6 +201,7 @@
 //!                                                (which is what runs the rewritten write path) but
 //!                                                uses NEITHER reload seam
 //!   2. PlayerMoney_SurvivesSaveAndReload
+//!   2a. PlayerSleepCooldown_SurvivesSaveAndReload - the sleep action's game-clock cooldown stamp
 //!   3. PlayerSkills_SurvivesSaveAndReload
 //!   4. RealEstateOwnership_SurvivesSaveAndReload
 //!   5. Recruits_SurvivesSaveAndReload
@@ -208,10 +209,11 @@
 //!   7. TownPopulation_SurvivesSaveAndReload
 //!   8. TownStability_SurvivesSaveAndReload
 //!   9. TownSupport_SurvivesSaveAndReload
-//!  10. VehicleRegistry_SurvivesSaveAndReload
-//!  11. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
-//!  12. VirtualGroupsWiped_DoNotComeBack           - the terminal half of the D2 promise
-//!  13. VirtualGroups_SurviveSaveAndReload         - the partially wiped group, re-CREATED on load
+//!  10. VehiclePoseReassert_SnapsBackOnlyBeyondTolerance - the load-drift healing seam, no save point
+//!  11. VehicleRegistry_SurvivesSaveAndReload
+//!  12. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
+//!  13. VirtualGroupsWiped_DoNotComeBack           - the terminal half of the D2 promise
+//!  14. VirtualGroups_SurviveSaveAndReload         - the partially wiped group, re-CREATED on load
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -682,6 +684,173 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 		{
 			SetFailure("Money did not survive the round trip: saved %1, read back %2 (dirty value was %3)",
 				SAVED_MONEY.ToString(), money.ToString(), DIRTY_MONEY.ToString());
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Seen-tutorial state survives a save and a reload on the player's campaign record.
+//!
+//! The replacement for the retired per-machine profile store's round-trip gate (2026-08-18):
+//! tutorial progress now rides OVT_PlayerManagerSerializer version 4, and this is the case that
+//! fails if either half of the append - the ids or the flag - stops being written or re-applied.
+//! Same shape as the PlayerMoney case above: mutate, save, DIRTY, reload, assert.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_TutorialSeen_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! Test-only ids. Leading underscores are illegal in the authored entry-id scheme (lowercase
+	//! ASCII letters, digits and dashes), so these cannot collide with real content, ever.
+	static const string TEST_ID_A = "__ovt-selftest-persist-alpha";
+	static const string TEST_ID_B = "__ovt-selftest-persist-beta";
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("No OVT_PlayerData record for the local player");
+				return true;
+			}
+
+			if (!player.m_aSeenTutorials)
+				player.m_aSeenTutorials = new array<string>();
+
+			player.m_aSeenTutorials.Clear();
+			player.m_aSeenTutorials.Insert(TEST_ID_A);
+			player.m_aSeenTutorials.Insert(TEST_ID_B);
+			player.m_bTutorialsDisabled = true;
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("No OVT_PlayerData record for the local player before the reload");
+				return true;
+			}
+
+			// Dirty it: a reload that restores nothing now cannot pass.
+			if (player.m_aSeenTutorials)
+				player.m_aSeenTutorials.Clear();
+			player.m_bTutorialsDisabled = false;
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+		if (!player)
+		{
+			SetFailure("No OVT_PlayerData record for the local player after the reload");
+			return true;
+		}
+
+		if (!player.m_aSeenTutorials || !player.m_aSeenTutorials.Contains(TEST_ID_A) || !player.m_aSeenTutorials.Contains(TEST_ID_B))
+		{
+			int count = 0;
+			if (player.m_aSeenTutorials)
+				count = player.m_aSeenTutorials.Count();
+
+			SetFailure("Seen tutorials did not survive the round trip: saved 2 ids, read back %1 - OVT_PlayerManagerSerializer version 4 is not carrying m_aSeenTutorials, so every tip would re-show on every continue", count.ToString());
+			return true;
+		}
+
+		if (!player.m_bTutorialsDisabled)
+		{
+			SetFailure("The tutorials-disabled flag did not survive the round trip: saved true, read back false - a player who pressed \"Don't show tips again\" would be shown tips again on continue");
 			return true;
 		}
 
@@ -2980,6 +3149,422 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 		PrintFormat("Last known position round-tripped: body at %1, restored %2, facing %3",
 			m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), player.m_vLastKnownAngles.ToString());
 
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A player's sleep cooldown stamp survives a save and a reload.
+//!
+//! WHAT IS ACTUALLY BEING GUARDED. Sleeping skips eight in-game hours and may not be repeated for
+//! twelve, and the whole reason that cooldown is stored as an absolute GAME-CLOCK stamp rather than
+//! as a real-time countdown is that it has to survive a quit and a Continue (implementation.md D8/
+//! I2). If the stamp is lost, every load hands the player a fresh sleep - eight more hours of income
+//! and threat decay for the price of a save and a reload, which is the same shape of exploit as
+//! BUG-183. Nothing else in the tree would go red for it: the value is server-only, never
+//! replicated, and invisible in every UI except the action's own label.
+//!
+//! THE SAVED VALUE IS SYNTHETIC, AND THAT IS CORRECT HERE - the opposite of the last-known-position
+//! case above, where a pre-save capture overwrites whatever the case wrote. Nothing runs over this
+//! field before a save: it is written in exactly one place (OVT_SleepService.PerformSleep) and read
+//! everywhere else, so poking a value in and asserting it comes back tests the whole codec path
+//! without needing a bed, a clock or an owned house in the test world.
+//!
+//! THE DIRTY VALUE IS THE NEVER-SLEPT SENTINEL, deliberately. -1 is exactly the state a player who
+//! has never slept is in - it is also what a version 4 save's players are reset to on load - so it
+//! is both the honest "this was lost" value and the one whose survival would be indistinguishable
+//! from a working restore if the assertion were merely "not the saved value". The assertion is
+//! equality with the SAVED stamp (anti-vacuous-pass closures 2 and 3).
+//!
+//! CAN-FAIL METHOD (run owed - an implementation agent does not run the suites): remove
+//! `record.lastSleepGameHours` from the write half of OVT_PlayerManagerSerializer.Serialize(), or
+//! change the read guard to `if (version < 6)`. Either makes the restore hand back -1 and the case
+//! reports "the sleep cooldown stamp came back as -1.000000 ...". Record the date here once run.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_PlayerSleepCooldown_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! The stamp written before the save. A plausible absolute-game-hours value (roughly six months
+	//! into a campaign) and one no campaign start would ever produce - a fresh record carries -1 and
+	//! nothing else writes this field.
+	static const float SAVED_STAMP = 4321.5;
+
+	//! What the value is destroyed to between the save and the reload: the never-slept sentinel.
+	static const float DIRTY_STAMP = -1;
+
+	//! Exact-value tolerance. The stamp is one float through one codec, so this absorbs
+	//! representation noise only - it is far tighter than the difference between the two values above.
+	static const float STAMP_TOLERANCE = 0.001;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("OVT_PlayerData.Get() returned no record for the local player");
+				return true;
+			}
+
+			player.m_fLastSleepGameHours = SAVED_STAMP;
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("The local player record disappeared before the reload");
+				return true;
+			}
+
+			// See the header: the sentinel is what a lost stamp looks like in production.
+			player.m_fLastSleepGameHours = DIRTY_STAMP;
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+		if (!player)
+		{
+			SetFailure("OVT_PlayerData.Get() returned no record for the local player after the reload");
+			return true;
+		}
+
+		if (Math.AbsFloat(player.m_fLastSleepGameHours - SAVED_STAMP) > STAMP_TOLERANCE)
+		{
+			SetFailure("The sleep cooldown stamp came back as %1, expected the saved %2. A player whose stamp is lost on load may sleep again immediately, which is eight in-game hours of income and threat decay for the price of a save and a reload.",
+				player.m_fLastSleepGameHours.ToString(), SAVED_STAMP.ToString());
+			return true;
+		}
+
+		PrintFormat("Sleep cooldown stamp round-tripped: saved %1, dirtied to %2, restored %3",
+			SAVED_STAMP.ToString(), DIRTY_STAMP.ToString(), player.m_fLastSleepGameHours.ToString());
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A restored vehicle that load-time physics moved is snapped back to its recorded pose - and one
+//! that has not drifted is left exactly where it stands.
+//!
+//! WHY THIS EXISTS (server reports, 2026-08-18). A vehicle parked on top of a buildable
+//! maintenance ramp came back rotated ~45 degrees after a load. The pose DATA round-trips exactly
+//! (vanilla stores the full transform; the registry stores position + yaw-pitch-roll through one
+//! consistent convention) - what moves the vehicle is physics AT the load: it self-spawns as a
+//! live dynamic body with no saved velocities, while the ramp under it is a separately
+//! self-spawned record with no ordering guarantee, so the vehicle free-falls onto the terrain or
+//! takes the depenetration kick when its support spawns into it (the BUG-129 mechanism). On flat
+//! ground both effects are invisible, which is why only ramp-parked vehicles were reported.
+//! InitialVehicleCleanup() heals it by re-asserting each registered vehicle's recorded pose;
+//! OVT_VehicleManagerComponent.ReassertRecordedPose() is that seam, and this case drives it
+//! directly.
+//!
+//! THE NO-OP HALF IS ASSERTED FIRST, deliberately: a seam that snapped every vehicle - drifted or
+//! not - would teleport cars out from under their owners on every load. Below-tolerance drift must
+//! be left untouched.
+//!
+//! BOTH HALVES ASSERT IN THE SAME FRAME AS THE SEAM CALL, so physics cannot settle between act and
+//! assert and the tolerances can be tight (centimetres/a degree, not the 25 m the respawn case
+//! needs).
+//!
+//! WHAT THIS CANNOT SEE: the real load-order race (ramp spawning after the vehicle), which needs a
+//! genuine restart and is play-test territory. What it pins is the healing seam's whole contract.
+//!
+//! CAN-FAIL METHOD (run owed - this environment cannot launch the harness): make
+//! ReassertRecordedPose() return before the snap-back; the case must report the drifted vehicle
+//! still ~1.7 m / 45 deg from its record. Record the date here once exercised.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_VehiclePoseReassert_SnapsBackOnlyBeyondTolerance : SCR_AutotestCaseBase
+{
+	static const int PHASE_SPAWN = 0;
+	static const int PHASE_AWAIT_REGISTRATION = 1;
+	static const int PHASE_ASSERT = 2;
+
+	//! Same contract as the reserve/release case's budget: a diagnostic backstop, not a retry.
+	static const int MAX_REGISTRATION_POLLS = 120;
+
+	//! The below-tolerance drift the seam must ignore: under the manager's 0.5 m / 5 deg bounds.
+	static const float SMALL_DRIFT_M = 0.2;
+	static const float SMALL_DRIFT_DEG = 2;
+
+	//! The reported failure's shape: rotated ~45 degrees, displaced by a ramp-height fall.
+	static const float BIG_DRIFT_DEG = 45;
+
+	//! Same-frame assertion slack. SetTransform is synchronous; this absorbs float noise only.
+	static const float POSITION_EPSILON_M = 0.05;
+	static const float ANGLE_EPSILON_DEG = 1;
+
+	protected int m_iPhase;
+	protected int m_iRegistrationPolls;
+	protected string m_sPersId;
+	protected string m_sVehicleId;
+	protected IEntity m_Vehicle;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_SPAWN)
+			return SpawnSubjectVehicle();
+
+		if (m_iPhase == PHASE_AWAIT_REGISTRATION)
+			return AwaitRegistration();
+
+		return AssertSeamContract();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns an owned vehicle through the manager's own spawn seam, so it is registered and has a
+	//! captured record - the two things the pose seam reads.
+	//! \return True when the case is finished, which at this phase always means a named failure.
+	protected bool SpawnSubjectVehicle()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles)
+		{
+			SetFailure("OVT_Global.GetVehicles() is null - no vehicle manager on the game mode");
+			return true;
+		}
+
+		string diagnostic;
+		m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (m_sPersId == "")
+		{
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		ResourceName prefab;
+		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(prefab, diagnostic))
+		{
+			SetFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
+			return true;
+		}
+
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
+			return true;
+		}
+
+		vector mat[4];
+		Math3D.AnglesToMatrix("25 0 0", mat);
+		mat[3] = position;
+
+		m_Vehicle = vehicles.SpawnVehicleMatrix(prefab, mat, m_sPersId);
+		if (!m_Vehicle)
+		{
+			SetFailure("SpawnVehicleMatrix() produced no vehicle at %1", position.ToString());
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_REGISTRATION;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the manager to register the vehicle, which is also when its record is captured.
+	//! \return True when the case is finished.
+	protected bool AwaitRegistration()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles || !m_Vehicle)
+		{
+			SetFailure("The vehicle or its manager disappeared while waiting for registration");
+			return true;
+		}
+
+		array<string> registered = vehicles.GetPlayerVehicleIds(m_sPersId);
+		foreach (string vehicleId : registered)
+		{
+			if (vehicles.FindVehicleEntity(vehicleId) == m_Vehicle)
+			{
+				m_sVehicleId = vehicleId;
+				m_iPhase = PHASE_ASSERT;
+				return false;
+			}
+		}
+
+		m_iRegistrationPolls += 1;
+		if (m_iRegistrationPolls > MAX_REGISTRATION_POLLS)
+		{
+			SetFailure("The vehicle manager never registered the vehicle it spawned for '%1' - there is no record for the pose seam to read", m_sPersId);
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drives both halves of the seam's contract in one frame: below-tolerance drift ignored,
+	//! above-tolerance drift snapped back to the record exactly.
+	//! \return Always true - the case ends here either way.
+	protected bool AssertSeamContract()
+	{
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (!vehicles || !m_Vehicle)
+		{
+			SetFailure("The vehicle or its manager disappeared before the assertion");
+			return true;
+		}
+
+		map<string, ref OVT_PersistedPlayerVehicle> records = vehicles.GetVehicleRecords();
+		if (!records.Contains(m_sVehicleId))
+		{
+			SetFailure("Vehicle %1 is registered but has no captured record - CaptureVehicleRecord() no longer runs at registration", m_sVehicleId);
+			return true;
+		}
+
+		OVT_PersistedPlayerVehicle record = records[m_sVehicleId];
+
+		// Pin the vehicle exactly at its recorded pose first, so the drifts applied below are the
+		// ONLY drift there is - physics may have settled it slightly since the spawn.
+		vector recordMat[4];
+		Math3D.AnglesToMatrix(record.angles, recordMat);
+		recordMat[3] = record.position;
+		m_Vehicle.SetTransform(recordMat);
+
+		// HALF 1: drift below both tolerances must be left exactly where it is.
+		vector smallAngles = record.angles;
+		smallAngles[0] = smallAngles[0] + SMALL_DRIFT_DEG;
+		vector smallMat[4];
+		Math3D.AnglesToMatrix(smallAngles, smallMat);
+		smallMat[3] = record.position + Vector(SMALL_DRIFT_M, 0, 0);
+		m_Vehicle.SetTransform(smallMat);
+
+		vehicles.ReassertRecordedPose(m_sVehicleId, m_Vehicle);
+
+		if (vector.Distance(m_Vehicle.GetOrigin(), smallMat[3]) > POSITION_EPSILON_M)
+		{
+			SetFailure("ReassertRecordedPose() moved a vehicle whose drift (%1 m / %2 deg) is below tolerance - the seam would teleport cars out from under their owners on every load",
+				SMALL_DRIFT_M.ToString(), SMALL_DRIFT_DEG.ToString());
+			return true;
+		}
+
+		// HALF 2: the reported failure's shape - rotated ~45 degrees and displaced a ramp-height
+		// fall away - must snap back to the record.
+		vector bigAngles = record.angles;
+		bigAngles[0] = bigAngles[0] + BIG_DRIFT_DEG;
+		vector bigMat[4];
+		Math3D.AnglesToMatrix(bigAngles, bigMat);
+		bigMat[3] = record.position + Vector(1.5, -0.9, 0.7);
+		m_Vehicle.SetTransform(bigMat);
+
+		vehicles.ReassertRecordedPose(m_sVehicleId, m_Vehicle);
+
+		float positionError = vector.Distance(m_Vehicle.GetOrigin(), record.position);
+		if (positionError > POSITION_EPSILON_M)
+		{
+			SetFailure("ReassertRecordedPose() did not snap the drifted vehicle back: it stands %1 m from its recorded position - a ramp-parked vehicle stays where load physics dropped it",
+				positionError.ToString());
+			return true;
+		}
+
+		float yawError = Math.AbsFloat(m_Vehicle.GetYawPitchRoll()[0] - record.angles[0]);
+		if (yawError > 180)
+			yawError = 360 - yawError;
+
+		if (yawError > ANGLE_EPSILON_DEG)
+		{
+			SetFailure("ReassertRecordedPose() left the drifted vehicle rotated %1 deg off its recorded yaw - the reported symptom exactly",
+				yawError.ToString());
+			return true;
+		}
+
+		PrintFormat("Pose seam contract holds: %1 m / %2 deg drift ignored, 1.7 m / 45 deg drift snapped back to the record",
+			SMALL_DRIFT_M.ToString(), SMALL_DRIFT_DEG.ToString());
 		return true;
 	}
 }

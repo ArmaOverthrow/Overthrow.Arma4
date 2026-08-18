@@ -257,8 +257,9 @@ class OVT_RecruitRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		// Spawn recruit at the tent. This action only ever knew a position, so it passes no entity
-		// and keeps the shipped offset as its anchor. Ownership is handled inside the shared spawn.
+		// Spawn recruit at the tent. This action only ever knew a position, so it passes no entity;
+		// the shared spawn recovers the tent from the position and uses its authored spawn point.
+		// Ownership is handled inside the shared spawn.
 		SCR_ChimeraCharacter recruit = recruitManager.SpawnTentRecruit(null, tentPos, playerId);
 		if(!recruit) return;
 

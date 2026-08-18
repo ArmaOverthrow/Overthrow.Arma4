@@ -14,6 +14,8 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
   }
   OVT_PlayerWantedComponent "{596EE382181C58FB}" {
   }
+  OVT_ReservationSyncComponent "{6B0F52A100000003}" {
+  }
   OVT_UIManagerComponent "{597282FDAEED0B0D}" {
    m_aContexts {
     OVT_MainMenuContext "{598C51330A237566}" {
