@@ -81,6 +81,28 @@ class OVT_PlayerData : Managed
 	//! The player's "Don't show tips again" choice, persisted and synced exactly as the ids above.
 	bool m_bTutorialsDisabled = false;
 
+	//------------------------------------------------------------------------------------------------
+	//! Absolute in-game hours (OVT_SleepSchedule.AbsoluteGameHours) at the moment this player last
+	//! WOKE from sleeping. -1 - OVT_SleepSchedule.NEVER_SLEPT - means they never have.
+	//!
+	//! A GAME-CLOCK STAMP, NOT A REAL-TIME COUNTDOWN. The world clock runs at 6x by day and 12x by
+	//! night (OVT_TimeAndWeatherHandlerComponent.GetDayTimeMultiplier), so a cooldown counted in real
+	//! seconds would be wrong by that factor depending on when it was started. A difference of two
+	//! clock stamps is correct at any acceleration and survives a save for free, because the engine
+	//! persists the date and the time of day and this record persists the stamp.
+	//!
+	//! WRITTEN IN EXACTLY ONE PLACE: OVT_SleepService.StampCooldown(), which reads the PRE-SKIP calendar
+	//! and adds SKIP_HOURS to it - the pre-skip instant plus the skip IS the wake instant, and the
+	//! twelve-hour cooldown is measured from waking, so the player is awake for all twelve of them
+	//! (implementation.md D16, revised 2026-08-19 by the user; it used to be lie-down-relative, which
+	//! left only four hours on waking). Anything reading this field is reading a WAKE time.
+	//!
+	//! NEVER REPLICATED, same rule as the tutorial fields above: sleeping is single-player only
+	//! (RplMode.None, D12), so no other machine has any use for it and it is deliberately absent from
+	//! OVT_PlayerManagerComponent's RplSave/RplLoad JIP payload - do not add it there. It IS persisted,
+	//! by OVT_PlayerManagerSerializer (version 5).
+	float m_fLastSleepGameHours = -1;
+
 	//Not persisted	(controlled by skill effects)
 	[NonSerialized()]
 	float priceMultiplier=1;

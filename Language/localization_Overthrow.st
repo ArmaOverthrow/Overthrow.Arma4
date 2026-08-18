@@ -2649,6 +2649,14 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B5D0000000000A0}" {
+   Id "OVT-FieldManual_Placing_Cot_Text"
+   Target_en_us "A cot is one of the items on that list, at a cost of thirty, and it carries the same sleeping action a bed does, so a camp or a FOB can be given somewhere to sleep."
+   Comment "Field Manual - Camps and Placing page, closing sentence under the 'Where Placing Works' header. One sentence, no rich-text markup. FACT-CHECKED 2026-08-19 against Configs/Resistance/placeables.conf:148-157 (the OVT_Placeable 'Cot' entry: m_sName 'Cot' :149, m_iCost 30 :156, one prefab :152-154) and Prefabs/Props/Military/Furniture/OVT_Cot_Placed.et:19-39 (ActionsManagerComponent carrying OVT_SleepAction :30). Written as a new item rather than appended to OVT-FieldManual_Camps_Text2 so the existing de/uk translations of that paragraph stay valid."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
   CustomStringTableItem "{6B3B000000000147}" {
    Id "OVT-FieldManual_Recruits_Head"
    Target_en_us "Hiring Recruits"
@@ -3393,6 +3401,86 @@ StringTable {
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D0000000000A3}" {
+   Id "OVT-FieldManual_Sleep_Head"
+   Target_en_us "Where a Bed Works"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:144-189 (IsSleepLocation)."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A5}" {
+   Id "OVT-FieldManual_Sleep_Head2"
+   Target_en_us "The Hours Still Count"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c:237-280 and Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c:1338-1378."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A7}" {
+   Id "OVT-FieldManual_Sleep_Head3"
+   Target_en_us "Twelve Hours Between Sleeps"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:33-35 (COOLDOWN_HOURS = 12)."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A9}" {
+   Id "OVT-FieldManual_Sleep_Head4"
+   Target_en_us "When It Will Not Perform"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:205-250 (CanSleep) and Scripts/Game/UserActions/OVT_SleepAction.c:75-83."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A2}" {
+   Id "OVT-FieldManual_Sleep_Text"
+   Target_en_us "A bed can be slept in, and doing so moves the world clock forward by eight in-game hours. The screen fades to black, holds there a moment, and fades back in on the new time of day. Sleeping is a single-player thing: the action is not offered in a multiplayer session at all."
+   Comment "Field Manual - Sleeping page, opening paragraph, no header above it. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:31 (SKIP_HOURS = 8), :98-101 (FADE_DURATION 1.0, BLACK_DURATION 0.5), :394-406 (SetFade) and :211 (RplSession.Mode() != RplMode.None refuses), plus Scripts/Game/UserActions/OVT_SleepAction.c:126 (the same mode test hides the action)."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A4}" {
+   Id "OVT-FieldManual_Sleep_Text2"
+   Target_en_us "The action shows up on a bed standing inside a house you own, in your own camp, at a deployed FOB, or inside a base the resistance holds. A bed anywhere else offers nothing at all, because those four places are the same ones the resistance is allowed to put its own things down in."
+   Comment "Field Manual - Sleeping page, body paragraph under the 'Where a Bed Works' header. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:144-189 (IsSleepLocation, in order: GetNearestOwned within MAX_HOUSE_PLACE_DIS :150-156, own camp within MAX_CAMP_PLACE_DIS :162-167, any FOB within MAX_FOB_PLACE_DIS :170-172, a non-occupying base within m_Difficulty.baseRange :176-186), its source-of-truth comment at :37-55 naming Scripts/Game/Utilities/OVT_ItemLimitChecker.c, and Scripts/Game/UserActions/OVT_SleepAction.c:138 (the gate is CanBeShownScript, so elsewhere the action is hidden and not merely disabled). Distances are deliberately not quoted, matching OVT-FieldManual_Camps_Text2."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A6}" {
+   Id "OVT-FieldManual_Sleep_Text3"
+   Target_en_us "The eight hours are replayed rather than skipped over. Taxes and donations pay out and the town shops buy their stock once for every six-hour mark the window passes, the shops restock if it passes seven in the morning, rent moves if it passes midnight, and the occupying faction gains resources, spends them on its bases and lets its threat decay quarter hour by quarter hour, in the order it would have while you were awake. The payout notifications arrive over the black screen and are still there when it clears."
+   Comment "Field Manual - Sleeping page, body paragraph under 'The Hours Still Count'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c:255-261 (CalculateIncome + UpdateShops once per interval crossing), :598-627 (CalculateIncome = GetDonationIncome + GetTaxIncome, distributed to players), :519-531 (UpdateShops = NPC stock buying), :265-269 with Scripts/Game/Services/OVT_SleepSchedule.c:40 (ReplenishStock once per entry into RESTOCK_HOUR 7), :272-276 with OVT_SleepSchedule.c:43 (UpdateRents once per entry into RENT_HOUR 0), OVT_SleepSchedule.c:37 (INCOME_INTERVAL_HOURS 6) and :46 (THREAT_STEP_MINUTES 15), and Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c:1359-1377 (chronological quarter-hour loop: GainResources, SpendResourcesOnBases, UpdateSpecops on six-hour boundaries, DecayThreatStep every step). The last sentence is R9 in the plan: Scripts/Game/Services/OVT_SleepService.c:103-106 states the notifications are deliberately not suppressed."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A8}" {
+   Id "OVT-FieldManual_Sleep_Text4"
+   Target_en_us "Sleeping again is not possible for twelve in-game hours, counted from the moment you wake rather than from the moment you lie down. Those twelve are all spent awake, so with the eight the skip itself covers it is twenty in-game hours from one sleep to the next, and until they are up the action stays on the bed with the time remaining written into its label."
+   Comment "Field Manual - Sleeping page, body paragraph under 'Twelve Hours Between Sleeps'. Two sentences, no rich-text markup. REWRITTEN 2026-08-19 (user decision, D16 revised): the cooldown used to run from lying down, which left about four hours on waking; it now runs from waking, so the whole twelve are ahead and the door-to-door interval is twenty. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:38 (COOLDOWN_HOURS = 12, whose doc comment states it is measured from waking), :31 (SKIP_HOURS = 8), :443-457 (StampCooldown writes ReadAbsoluteGameHours(time) + SKIP_HOURS at :456, i.e. the wake instant, off the pre-skip clock), :369-373 (it runs before AdvanceClock), :264-278 (GetCooldownRemainingHours) and Scripts/Game/UserActions/OVT_SleepAction.c:94-101 (GetActionNameScript appends OVT_SleepSchedule.FormatRemaining to the label while the cooldown runs). Twenty is 8 + 12, both literals above."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000AA}" {
+   Id "OVT-FieldManual_Sleep_Text5"
+   Target_en_us "While an attack is underway, and while you are wanted, the action stays visible on the bed but refuses, and says which of the two is in the way. A bed that is nowhere the resistance holds is the other case, and that one shows no action rather than a refusal."
+   Comment "Field Manual - Sleeping page, body paragraph under 'When It Will Not Perform'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:223-228 (m_bQRFActive -> REASON_QRF), :232-241 (OVT_PlayerWantedComponent.GetWantedLevel() > 0 -> REASON_WANTED), :66-68 (the two reason keys, whose English texts are 'You cannot sleep while an attack is underway' and 'You cannot sleep while you are wanted'), and Scripts/Game/UserActions/OVT_SleepAction.c:75-83 (SetCannotPerformReason keeps the action visible) versus :60-64 and :138 (the location gate hides it instead). The plan's D13 states the hidden-versus-disabled split explicitly."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
+  }
+  CustomStringTableItem "{6B5D0000000000A1}" {
+   Id "OVT-FieldManual_Sleep_Title"
+   Target_en_us "Sleeping"
+   Comment "Field Manual - Sleeping page title, The Resistance category. FACT-CHECKED 2026-08-19 against Scripts/Game/UserActions/OVT_SleepAction.c:27 and Configs/FieldManual/Categories/FM_Overthrow.conf."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
   }
   CustomStringTableItem "{6B3B00000000013F}" {
    Id "OVT-FieldManual_WantedSystem_Head"
@@ -9081,6 +9169,20 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B5D000000000091}" {
+   Id "OVT-Place_Cot"
+   Target_en_us "Cot"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000092}" {
+   Id "OVT-Place_Cot_Description"
+   Target_en_us "A military cot you can sleep on"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
@@ -13018,6 +13120,41 @@ StringTable {
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D000000000001}" {
+   Id "OVT-Sleep"
+   Target_en_us "Sleep"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000002}" {
+   Id "OVT-SleepCooldown"
+   Target_en_us "You need to stay awake longer before sleeping again"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000003}" {
+   Id "OVT-SleepQRF"
+   Target_en_us "You cannot sleep while an attack is underway"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000004}" {
+   Id "OVT-SleepWanted"
+   Target_en_us "You cannot sleep while you are wanted"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000005}" {
+   Id "OVT-SleptWell"
+   Target_en_us "You slept for 8 hours"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"

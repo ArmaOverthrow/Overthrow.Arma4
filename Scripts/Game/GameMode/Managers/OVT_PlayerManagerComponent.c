@@ -266,6 +266,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 				player.m_aSeenTutorials.Copy(record.seenTutorialIds);
 			player.m_bTutorialsDisabled = record.tutorialsDisabled;
 
+			// Version 5: the sleep cooldown stamp follows the money rule, not the body-id rule. It is
+			// campaign state like money and XP, so a re-apply rolls it back with them; adopting it only
+			// when unset would leave a player who slept after the save was taken with no cooldown at all.
+			player.m_fLastSleepGameHours = record.lastSleepGameHours;
+
 			ApplyPersistedSkills(player, record, skills);
 
 			player.ResetSkillEffects();

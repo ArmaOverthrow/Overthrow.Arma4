@@ -185,6 +185,7 @@
 //!   1a. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
 //!                                                idempotency is part of what it asserts
 //!   2. PlayerMoney_SurvivesSaveAndReload
+//!   2a. PlayerSleepCooldown_SurvivesSaveAndReload - the sleep action's game-clock cooldown stamp
 //!   3. PlayerSkills_SurvivesSaveAndReload
 //!   4. RealEstateOwnership_SurvivesSaveAndReload
 //!   5. Recruits_SurvivesSaveAndReload
@@ -3129,6 +3130,186 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 
 		PrintFormat("Last known position round-tripped: body at %1, restored %2, facing %3",
 			m_vExpected.ToString(), player.m_vLastKnownPosition.ToString(), player.m_vLastKnownAngles.ToString());
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A player's sleep cooldown stamp survives a save and a reload.
+//!
+//! WHAT IS ACTUALLY BEING GUARDED. Sleeping skips eight in-game hours and may not be repeated for
+//! twelve, and the whole reason that cooldown is stored as an absolute GAME-CLOCK stamp rather than
+//! as a real-time countdown is that it has to survive a quit and a Continue (implementation.md D8/
+//! I2). If the stamp is lost, every load hands the player a fresh sleep - eight more hours of income
+//! and threat decay for the price of a save and a reload, which is the same shape of exploit as
+//! BUG-179. Nothing else in the tree would go red for it: the value is server-only, never
+//! replicated, and invisible in every UI except the action's own label.
+//!
+//! THE SAVED VALUE IS SYNTHETIC, AND THAT IS CORRECT HERE - the opposite of the last-known-position
+//! case above, where a pre-save capture overwrites whatever the case wrote. Nothing runs over this
+//! field before a save: it is written in exactly one place (OVT_SleepService.PerformSleep) and read
+//! everywhere else, so poking a value in and asserting it comes back tests the whole codec path
+//! without needing a bed, a clock or an owned house in the test world.
+//!
+//! THE DIRTY VALUE IS THE NEVER-SLEPT SENTINEL, deliberately. -1 is exactly the state a player who
+//! has never slept is in - it is also what a version 4 save's players are reset to on load - so it
+//! is both the honest "this was lost" value and the one whose survival would be indistinguishable
+//! from a working restore if the assertion were merely "not the saved value". The assertion is
+//! equality with the SAVED stamp (anti-vacuous-pass closures 2 and 3).
+//!
+//! CAN-FAIL METHOD (run owed - an implementation agent does not run the suites): remove
+//! `record.lastSleepGameHours` from the write half of OVT_PlayerManagerSerializer.Serialize(), or
+//! change the read guard to `if (version < 6)`. Either makes the restore hand back -1 and the case
+//! reports "the sleep cooldown stamp came back as -1.000000 ...". Record the date here once run.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_PlayerSleepCooldown_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! The stamp written before the save. A plausible absolute-game-hours value (roughly six months
+	//! into a campaign) and one no campaign start would ever produce - a fresh record carries -1 and
+	//! nothing else writes this field.
+	static const float SAVED_STAMP = 4321.5;
+
+	//! What the value is destroyed to between the save and the reload: the never-slept sentinel.
+	static const float DIRTY_STAMP = -1;
+
+	//! Exact-value tolerance. The stamp is one float through one codec, so this absorbs
+	//! representation noise only - it is far tighter than the difference between the two values above.
+	static const float STAMP_TOLERANCE = 0.001;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("OVT_PlayerData.Get() returned no record for the local player");
+				return true;
+			}
+
+			player.m_fLastSleepGameHours = SAVED_STAMP;
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("The local player record disappeared before the reload");
+				return true;
+			}
+
+			// See the header: the sentinel is what a lost stamp looks like in production.
+			player.m_fLastSleepGameHours = DIRTY_STAMP;
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+		if (!player)
+		{
+			SetFailure("OVT_PlayerData.Get() returned no record for the local player after the reload");
+			return true;
+		}
+
+		if (Math.AbsFloat(player.m_fLastSleepGameHours - SAVED_STAMP) > STAMP_TOLERANCE)
+		{
+			SetFailure("The sleep cooldown stamp came back as %1, expected the saved %2. A player whose stamp is lost on load may sleep again immediately, which is eight in-game hours of income and threat decay for the price of a save and a reload.",
+				player.m_fLastSleepGameHours.ToString(), SAVED_STAMP.ToString());
+			return true;
+		}
+
+		PrintFormat("Sleep cooldown stamp round-tripped: saved %1, dirtied to %2, restored %3",
+			SAVED_STAMP.ToString(), DIRTY_STAMP.ToString(), player.m_fLastSleepGameHours.ToString());
 
 		return true;
 	}

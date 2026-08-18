@@ -1,0 +1,41 @@
+GenericEntity : "{C9CFDED29542A968}Prefabs/Props/Military/Furniture/CotMilitary_US_01.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_PlaceableComponent "{65CE9A2ECEC30E10}" {
+   m_sPlaceableType "Cot"
+  }
+  OVT_PlayerOwnerComponent "{6B5D000000000081}" {
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+  SCR_EditableEntityComponent "{6B5D000000000082}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{6B5D000000000083}" {
+    Name "#OVT-Place_Cot"
+    Description "#OVT-Place_Cot_Description"
+   }
+   m_Flags PLACEABLE
+  }
+  ActionsManagerComponent "{6B5D000000000084}" {
+   ActionContexts {
+    UserActionContext "{6B5D000000000085}" {
+     ContextName "default"
+     Position PointInfo "{6B5D000000000086}" {
+      Offset 0 0.5 0
+     }
+     Radius 1.2
+    }
+   }
+   additionalActions {
+    OVT_SleepAction "{6B5D000000000087}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B5D000000000088}" {
+      Name "#OVT-Sleep"
+     }
+    }
+   }
+  }
+ }
+}
