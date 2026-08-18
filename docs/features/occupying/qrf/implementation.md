@@ -3,7 +3,7 @@
 **Status:** Implemented (Documented Retrospectively)
 **Originally Implemented:** Unknown (inherited from early Overthrow Reforger development)
 **Documented:** 2026-08-02
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-18
 
 ---
 
@@ -27,8 +27,8 @@ The QRF system is how the occupying faction *fights back*. When the resistance a
 - [x] AI-initiated counter-attacks and town suppression/uprising battles occur
 - [x] Battle state (timer, points, location) replicates to all clients including JIP
 - [x] Outcome flips base/town control, adjusts threat, and applies town modifiers
-- [ ] QRFs debit the faction's resource pool (currently free — see Known Issues)
-- [ ] Resistance AI counts toward the score (currently only human players score)
+- [x] QRFs debit the faction's resource pool (BUG-027, closed)
+- [x] Resistance AI counts toward the score (recruits added 2026-08-18)
 
 ---
 
@@ -49,7 +49,7 @@ One class does all the work; the faction manager owns its lifecycle.
 2. Manager spawns `OVT_QRFController.et` at the objective, copies the base/town attack-geometry attributes into it, calls `Start()`, subscribes the finish callback, sets `m_bQRFActive`/`m_vQRFLocation`, broadcasts RPCs.
 3. **Countdown** (120 s): `CheckUpdateTimer` ticks 1 s; after a deliberate 15 s delay (so despawning garrisons clear first) it drains one spawn-queue entry per second. Timer is RPC'd to clients every second.
 4. **Waves:** `SendTroops()` budgets `max(m_iResources, 400)` capped at `maxQRF × player-count multiplier` (×2 at >4 players … ×6 at >32), splits it across all friendly source bases, and queues random GROUP-catalog prefabs. Groups spawn *at the landing zone* (source bases only set the bucket count) with Scout → SearchAndDestroy waypoints scheduled at 5/15/30/60 s. Leftover budget schedules one more wave 4–8 minutes out.
-5. **Scoring** (every 10 s once timer ≤ 0): counts occupying AI vs human players within 220 m (`QRF_POINT_RANGE`) / 750 m (`QRF_RANGE`). +5/tick if zone clear of enemies, ±1 otherwise, decay toward 0 when tied; players in the zone earn 2 XP per tick. First to ±`QRFPointsToWin` ends it.
+5. **Scoring** (every 10 s once timer ≤ 0): counts occupying AI vs the resistance — human players **plus** resistance-faction AI (recruits) — within 220 m (`QRF_POINT_RANGE`), with the enemy "zone clear" test at 750 m (`QRF_RANGE`). Only characters that are alive and conscious count on either side (`IsFightingFit`). +5/tick if zone clear of enemies, ±1 otherwise, decay toward 0 when tied; players in the zone earn 2 XP per tick. First to ±`QRFPointsToWin` ends it.
 6. **Resolution:** `m_OnFinished` → manager callback: ownership change (±250 threat, notifications, `RpcDo_SetBaseFaction`), town support/stability modifiers (`RecentBattlePositive`/`Negative`, `RecentBattle`), `ResetSupport` on OF town wins (prevents battle looping). Controller entity deleted; surviving QRF AI is deliberately left in the world (commit `e115965`).
 
 ### Integration Points
@@ -98,10 +98,10 @@ See Future Enhancements.
 **Implementation:** Every garrison/patrol/civilian spawn predicate includes `!m_CurrentQRF`; the QRF waits 15 s before spawning to let them clear.
 **Trade-offs:** Affordable battles, but the contested base loses its own defenders, and the whole island visibly empties during any battle anywhere.
 
-### Decision 3: Zone-control scoring, players only
+### Decision 3: Zone-control scoring by head count (recruits included 2026-08-18)
 **Context:** Simple, readable win condition.
-**Implementation:** Head-count comparison inside 220 m every 10 s; ±points to a threshold.
-**Trade-offs:** Legible on the HUD; but resistance AI contributes nothing, any stray OF AI within 750 m blocks the +5 "zone clear" rate, and an all-AI defense loses by default.
+**Implementation:** Head-count comparison inside 220 m every 10 s; ±points to a threshold. Both sides count only characters that are alive and conscious. The resistance count is human players + resistance-faction AI agents, with player-controlled entities skipped in the agent loop so a player is never counted twice.
+**Trade-offs:** Legible on the HUD, and an assault carried by recruits now scores (it previously lost by default). Recruits alone can win a battle with no human in the zone — deliberate, they are committed forces the player paid for. Any stray OF AI within 750 m still blocks the +5 "zone clear" rate. Head count is unweighted, so a recruit is worth exactly one player.
 
 ### Decision 4: Battles are not persisted
 **Context:** (Implicit rather than designed.) No QRF state is serialized; the controller and its troops are never persistence-tracked.
@@ -119,11 +119,8 @@ See Future Enhancements.
 - Difficulty scaling via `maxQRF` × online-player-count ladder.
 
 ### Known Issues
-- **QRFs are free:** `SendTroops` reads `m_iResources` but never debits it; `m_iUsedResources` is accumulated then discarded (`OVT_QRFControllerComponent.c:25,222,294`).
-- **Landing-zone clear-check is a no-op:** `TracePosition` result compared `>= 0`, always true — groups can spawn inside geometry (`:487-494`).
-- **File-scope globals `Goodqrfpos`/`Goodqrfbasepos`** (`:4-5`) cache the first LZ, so every source base in a wave uses the identical spawn point; state is shared across controller instances.
-- **Unvalidated client RPCs:** `RpcAsk_StartBaseCapture` accepts any vector from any client (no proximity/faction/alive/rate checks); `RpcAsk_InstantCaptureBase` flips any base with no admin/debug guard (`OVT_PlayerCommsComponent.c:105-150`).
-- **BUG-013:** `QRFFastTravelMode` and `QRFPointsToWin` are read on clients but never replicated — wrong HUD scaling and fast-travel rules on non-default difficulty.
+> **Fixed since this doc was written (all bugs closed):** free QRFs (BUG-027 — `SendTroops` now debits `m_iResources` with a zero clamp), the LZ trace no-op and the `Goodqrfpos`/`Goodqrfbasepos` file-scope globals (BUG-031), the unvalidated capture RPCs (BUG-025), the spend loop (BUG-026) and client config replication (BUG-013).
+
 - **Leaked wave timer:** the leftover-resources `CallLater(SendWave, 4-8 min)` is never removed before the manager deletes the entity.
 - **JIP map circles wrong:** `m_iCurrentQRFBase/Town` missing from the JIP payload, so JIP clients keep drawing the contested base's own restricted circle.
 - **Counter-attack rarity bug:** random base picked *then* filtered, aborting the attempt when the pick is OF-held.
@@ -145,13 +142,14 @@ See Future Enhancements.
 ## Future Enhancements
 
 ### High Priority
-- [ ] Validate `RpcAsk_StartBaseCapture` server-side (proximity, faction, alive, rate-limit) and guard/remove `RpcAsk_InstantCaptureBase` (client-authority exploit).
-- [ ] Debit `m_iResources` for QRF spend so battles have a real economic cost.
-- [ ] Replicate `QRFPointsToWin`/`QRFFastTravelMode` to clients (BUG-013).
-- [ ] Fix the LZ trace no-op and the `Goodqrfpos` global-cache bug so waves actually spread and don't spawn in geometry.
+- [x] Validate `RpcAsk_StartBaseCapture` server-side and guard `RpcAsk_InstantCaptureBase` (BUG-025).
+- [x] Debit `m_iResources` for QRF spend so battles have a real economic cost (BUG-027).
+- [x] Replicate `QRFPointsToWin`/`QRFFastTravelMode` to clients (BUG-013).
+- [x] Fix the LZ trace no-op and the `Goodqrfpos` global-cache bug (BUG-031).
+- [ ] Defer autosaves while a QRF is active — an autosave mid-battle still silently discards it.
 
 ### Medium Priority
-- [ ] Count resistance AI (recruits/deployments) in the score model.
+- [x] Count resistance AI (recruits/deployments) in the score model. **(done 2026-08-18)**
 - [ ] Add `m_iCurrentQRFBase/Town` to the JIP payload.
 - [ ] Cancel the pending `SendWave` CallLater on resolution.
 - [ ] Filter-then-pick for counter-attack target selection.

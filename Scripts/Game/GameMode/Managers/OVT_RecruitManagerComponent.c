@@ -27,6 +27,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! The shipped fixed offset, kept for the caller that has no tent entity to take a facing from.
 	static const vector TENT_SPAWN_FALLBACK_OFFSET = "2 0 2";
 
+	//! How far a tent recruit may scatter from its spawn anchor, in metres.
+	//!
+	//! Uniform over a disc, so back-to-back recruits do not stack on one point while they wait for
+	//! their run to formation. Small enough that the whole disc stays inside the spawn point's
+	//! cleared area in front of the tent.
+	static const float TENT_SPAWN_SCATTER_RADIUS = 3;
+
+	//! How far around a bare tent position to look for the tent entity itself, in metres.
+	//!
+	//! The legacy tent action's RPC only ever carries a position, and its action sits on the tent's
+	//! table child - so the tent ROOT is always within a couple of metres of what it sends. Wide
+	//! enough to absorb that, narrow enough that two tents would have to overlap to confuse it.
+	static const float TENT_LOOKUP_RADIUS = 10;
+
 	//! ValidateTentRecruit(): the request may proceed.
 	static const int TENT_RECRUIT_OK = 0;
 
@@ -54,7 +68,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! One is spawned per cluster of parked recruits and destroyed by vanilla when its last member
 	//! leaves - see PlaceRecruitInInactiveGroup(). It must carry OVT_InactiveRecruitGroupComponent
 	//! or the manager will refuse to use it: that component is the only way a group is recognised as
-	//! one of ours, and it is what deletes the group's defend waypoint.
+	//! one of ours, and it is what deletes the group's hold waypoints.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Inactive Recruit Group Prefab", params: "et")]
 	ResourceName m_sInactiveGroupPrefab;
 
@@ -100,6 +114,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! SCR_SpawnLogic.m_CharacterCollection exactly.
 	protected PersistenceCollection m_RecruitBodyCollection;
 
+	//! Scratch for FindTentAtPosition()'s query filter; only meaningful during the query.
+	protected IEntity m_TentSearched;
+
 	//! Name of the collection recruit bodies are stored in.
 	//!
 	//! VERIFIED, not assumed. A recruit prefab inherits Prefabs/Characters/Core/Character_Base.et,
@@ -123,8 +140,12 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! frame.
 	static const int STATUS_SYNC_INTERVAL_MS = 10000;
 
-	//! Hold timer for a parked recruit's wait waypoint (BUG-170). One day of continuous session,
-	//! i.e. never in practice - the inactive groups are session-scoped and rebuilt on every boot.
+	//! Hold timer for the wait leg of a parked recruit's [move -> wait] hold cycle (BUG-170 + the
+	//! wander fix). One day of continuous session, i.e. never in practice - the inactive groups are
+	//! session-scoped and rebuilt on every boot - and even an expiry is harmless: the cycle reruns.
+	//! (The wander fix also made SpawnWaitWaypoint() honour this value - it used to ignore its time
+	//! parameter and run every wait on the prefab's 60 s default, which is what let parked recruits
+	//! wander in the first place.)
 	static const float INACTIVE_HOLD_WAIT_SECONDS = 86400;
 
 	//! Event fired when a recruit is added
@@ -1082,19 +1103,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! the character exists (the cap is re-checked inside it), and an unowned civilian left standing
 	//! at the tent is a bug players find before we do.
 	//!
-	//! THE TENT ENTITY IS OPTIONAL, and that is the one asymmetry between the two callers. The
-	//! equipped purchase names the tent by RplId and validates it, so it always has the entity and
-	//! gets the full placement treatment: in front of the tent, whichever way the tent was built. The
-	//! legacy action only ever sent a bare position, and giving it an entity would mean changing its
-	//! RPC signature - which would make its refactor a redesign. It passes null, keeps the shipped
-	//! fixed offset as its anchor, and still gains the half of the hardening that matters most: the
-	//! ground clamp and a collision-checked position.
+	//! THE TENT ENTITY IS OPTIONAL, and a null one is recovered here. The equipped purchase names
+	//! the tent by RplId and validates it, so it always has the entity. The legacy action only ever
+	//! sent a bare position, and giving it an entity would mean changing its RPC signature - which
+	//! would make its refactor a redesign. It passes null, and this method looks the tent up from
+	//! the position instead (FindTentAtPosition), so BOTH callers get the full placement treatment:
+	//! the tent's own OVT_SpawnPointComponent when it has one, facing included. Only when no tent
+	//! entity can be found at all does the shipped fixed offset remain the anchor.
 	//! \param[in] tent The tent's ROOT entity, or null when the caller only knows a position.
-	//! \param[in] tentPos Where the tent is. Used as the anchor when tent is null.
+	//! \param[in] tentPos Where the tent is. Used to recover the tent when tent is null.
 	//! \param[in] playerId Runtime id of the recruiting player.
 	//! \return The recruit's body, or null when nothing was spawned or nothing was owned.
 	SCR_ChimeraCharacter SpawnTentRecruit(IEntity tent, vector tentPos, int playerId)
 	{
+		if (!tent)
+			tent = FindTentAtPosition(tentPos);
+
 		vector spawnPos = ResolveTentSpawnPosition(tent, tentPos);
 		vector spawnAngles = ResolveTentSpawnAngles(tent);
 
@@ -1114,21 +1138,27 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Where a tent recruit is put down.
 	//!
-	//! Three steps, and the third one has a trap in it:
+	//! Four steps, and the fourth one has a trap in it:
 	//!
-	//!  1. ANCHOR. With a tent entity, the tent's own forward axis from its world transform, so the
-	//!     recruit appears in front of the tent however the tent was rotated when it was built - the
-	//!     shipped fixed world-space "2 0 2" put it in a different place relative to the tent for
-	//!     every orientation. Without one, that shipped offset, unchanged.
-	//!  2. GROUND CLAMP. The anchor inherits the tent's Y, which on a slope is not the ground three
-	//!     metres away. FindSafeSpawnPosition() reads its own GetSurfaceY() and then never uses it -
-	//!     it searches within +0..2 m of the Y IT WAS GIVEN - so clamping before the call is the only
+	//!  1. ANCHOR. The tent's own OVT_SpawnPointComponent when it carries one - the authored point,
+	//!     placed in Workbench where the ground in front of the tent is actually clear. Without the
+	//!     component, the tent's forward axis from its world transform, so the recruit appears in
+	//!     front of the tent however the tent was rotated when it was built - the shipped fixed
+	//!     world-space "2 0 2" put it in a different place relative to the tent for every
+	//!     orientation. Without even a tent entity, that shipped offset, unchanged.
+	//!  2. SCATTER. A uniform random point in a TENT_SPAWN_SCATTER_RADIUS disc around the anchor, so
+	//!     consecutive recruits spread out instead of stacking on one point.
+	//!  3. GROUND CLAMP. The anchor inherits the tent's Y (or the spawn point's, which is for a
+	//!     different X/Z than the scattered one), which on a slope is not the ground three metres
+	//!     away. FindSafeSpawnPosition() reads its own GetSurfaceY() and then never uses it - it
+	//!     searches within +0..2 m of the Y IT WAS GIVEN - so clamping before the call is the only
 	//!     thing that puts the search at ground level.
-	//!  3. ! skipSpawnPointSearch MUST STAY TRUE. With the search enabled the function returns the
+	//!  4. ! skipSpawnPointSearch MUST STAY TRUE. With the search enabled the function returns the
 	//!     closest OVT_SpawnPointComponent within 15 m and returns BEFORE the TraceBox is built,
 	//!     ignoring the box entirely (OVT_Global.c:406-440). Tents are built at bases and FOBs, and
 	//!     both OVT_BaseController.et and OverthrowMobileFOBDeployed.et carry that component - so a
-	//!     tent built near one would drop every recruit on the respawn marker instead of at the tent.
+	//!     tent built near one could drop every recruit on the respawn marker instead of at the
+	//!     tent. The tent's OWN spawn point is read directly in step 1, never through that search.
 	//! \param[in] tent The tent's root entity, or null.
 	//! \param[in] fallbackPos Anchor used when there is no tent entity.
 	//! \return A world position with a collision-checked box at it.
@@ -1138,20 +1168,57 @@ class OVT_RecruitManagerComponent : OVT_Component
 
 		if (tent)
 		{
+			OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(tent.FindComponent(OVT_SpawnPointComponent));
 			vector forward = tent.GetWorldTransformAxis(2);
 			forward[1] = 0;
 
-			if (forward.Length() > 0.01)
+			if (spawnPoint)
+				anchor = spawnPoint.GetSpawnPoint();
+			else if (forward.Length() > 0.01)
 				anchor = tent.GetOrigin() + (forward.Normalized() * TENT_SPAWN_FORWARD_OFFSET);
 			else
 				anchor = tent.GetOrigin() + TENT_SPAWN_FALLBACK_OFFSET;
 		}
+
+		float scatterAngle = s_AIRandomGenerator.RandFloatXY(0, Math.PI2);
+		float scatterDistance = TENT_SPAWN_SCATTER_RADIUS * Math.Sqrt(s_AIRandomGenerator.RandFloat01());
+		anchor[0] = anchor[0] + Math.Cos(scatterAngle) * scatterDistance;
+		anchor[2] = anchor[2] + Math.Sin(scatterAngle) * scatterDistance;
 
 		BaseWorld world = GetGame().GetWorld();
 		if (world)
 			anchor[1] = world.GetSurfaceY(anchor[0], anchor[2]);
 
 		return OVT_Global.FindSafeSpawnPosition(anchor, "-0.5 0 -0.5", "0.5 2 0.5", true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The tent ROOT entity at a bare position, or null.
+	//!
+	//! The legacy tent action's RPC only ever carried a position (changing that would make its
+	//! refactor a redesign - see RpcAsk_RecruitFromTent), so the entity is recovered server-side
+	//! instead: the first RecruitmentTent buildable within TENT_LOOKUP_RADIUS. Matching on
+	//! OVT_BuildableComponent's type - NOT on OVT_SpawnPointComponent, which base controllers and
+	//! deployed FOBs also carry - is what keeps a tent built at a base from resolving to the base.
+	//! \param[in] pos Where the caller says the tent is.
+	//! \return The tent root, or null when nothing matched.
+	protected IEntity FindTentAtPosition(vector pos)
+	{
+		m_TentSearched = null;
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, TENT_LOOKUP_RADIUS, null, FilterTentEntity, EQueryEntitiesFlags.ALL);
+		return m_TentSearched;
+	}
+
+	//! Query filter for FindTentAtPosition(). Stores the match on the member and always returns
+	//! false, exactly like OVT_TownManagerComponent.FindTownMarker() - the one proven shape for a
+	//! find-one query in this codebase.
+	protected bool FilterTentEntity(IEntity entity)
+	{
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (buildable && buildable.GetBuildableType() == "RecruitmentTent")
+			m_TentSearched = entity;
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2544,14 +2611,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!
 	//! Everything that makes the group usable happens while it is still EMPTY, because SetFaction()
 	//! rewrites the faction affiliation of every agent already in a group
-	//! (Entities/SCR_AIGroup.c:2112-2120), and the defend waypoint should be waiting for the first
+	//! (Entities/SCR_AIGroup.c:2112-2120), and the hold waypoints should be waiting for the first
 	//! member rather than arriving after it.
 	//!
 	//! The prohibitions in PlaceRecruitInInactiveGroup()'s header apply to the group built here.
 	//!
 	//! \param[in] recruit The record being parked.
 	//! \param[in] recruitEntity Its body.
-	//! \param[in] position Where to build the group and aim its defend waypoint.
+	//! \param[in] position Where to build the group and aim its hold waypoints.
 	//! \return True when the group exists and holds this recruit. On false NOTHING is left behind.
 	protected bool CreateInactiveGroupFor(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity, vector position)
 	{
@@ -2576,7 +2643,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!marker)
 		{
 			// REFUSED, NOT TOLERATED. Without the marker this group could never be recognised as a
-			// cluster host again, and nothing would ever delete its defend waypoint - so a prefab
+			// cluster host again, and nothing would ever delete its hold waypoints - so a prefab
 			// missing the component would silently leak one group and one waypoint per parked recruit.
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
 			Print("[Overthrow] The inactive-recruit group prefab has no OVT_InactiveRecruitGroupComponent - recruit " + recruit.m_sRecruitId + " cannot be parked", LogLevel.ERROR);
@@ -2598,23 +2665,56 @@ class OVT_RecruitManagerComponent : OVT_Component
 					group.SetFaction(playerFaction);
 			}
 
-			// Hold in place with a plain wait waypoint (BUG-170, revising decision D9). The garrison-style
-			// defend waypoint continuously re-manages the group - cover picks, stance changes, order
-			// barks - which on a parked roadside recruit is an audible, visible re-order loop. A waiting
-			// group still engages perceived threats (the town patrols wait at points via the same
-			// waypoint and return fire, OVT_TownController.c:175). The timer is effectively infinite for
-			// a session-scoped group: it is rebuilt from the records on every boot (D7/D8), so the
-			// wait never expires in practice.
-			AIWaypoint waypoint = config.SpawnWaitWaypoint(position, INACTIVE_HOLD_WAIT_SECONDS);
-			if (waypoint)
-			{
-				group.AddWaypoint(waypoint);
+			// Hold in place with an endless [move -> wait] cycle (wander fix, revising the BUG-170
+			// plain wait, which itself revised decision D9's defend waypoint). The plain wait LOOKED
+			// infinite but was not: SpawnWaitWaypoint() used to ignore its time parameter, so the
+			// prefab's own m_holdingTime of 60 s applied (AIWaypoint_Wait.et), the waypoint
+			// completed after a minute, and the waypointless group was vanilla idle AI - free to
+			// wander off its park spot. The helper is fixed, and the cycle makes the hold
+			// self-healing rather than timer-dependent anyway: the move walks them back to the spot
+			// (including after combat displacement), the 24 h wait keeps the loop silent between
+			// laps, and SetRerunCounter(-1) reruns it forever. This is the exact shape of the town
+			// perimeter patrol (OVT_OverthrowConfigComponent.GivePatrolWaypoints), which also proves
+			// a group in this loop still engages perceived threats (OVT_TownController.c:175). Still
+			// no defend waypoint: its continuous re-manage loop - cover picks, stance changes, order
+			// barks - is what BUG-170 removed.
+			AIWaypoint moveWaypoint = config.SpawnMoveWaypoint(position);
+			SCR_TimedWaypoint waitWaypoint = config.SpawnWaitWaypoint(position, INACTIVE_HOLD_WAIT_SECONDS);
 
-				// Handing it to the marker is what deletes it when the group dies. AddWaypoint() does
-				// NOT take ownership: vanilla destroys the waypoints IT spawned explicitly
-				// (SCR_AIGroup.DestroyEntities :1871-1886), and this group is destroyed by vanilla's
-				// delete-when-empty far more often than by anything here.
-				marker.SetWaypoint(waypoint);
+			AIWaypointCycle cycleWaypoint;
+			if (moveWaypoint && waitWaypoint)
+				cycleWaypoint = AIWaypointCycle.Cast(config.SpawnBasicCycleWaypoint(position));
+
+			if (cycleWaypoint)
+			{
+				array<AIWaypoint> holdLoop = {};
+				holdLoop.Insert(moveWaypoint);
+				holdLoop.Insert(waitWaypoint);
+				cycleWaypoint.SetWaypoints(holdLoop);
+				cycleWaypoint.SetRerunCounter(-1);
+				group.AddWaypoint(cycleWaypoint);
+
+				// Handing them to the marker is what deletes them when the group dies. AddWaypoint()
+				// and SetWaypoints() do NOT take ownership: vanilla destroys the waypoints IT
+				// spawned explicitly (SCR_AIGroup.DestroyEntities :1871-1886), and this group is
+				// destroyed by vanilla's delete-when-empty far more often than by anything here.
+				marker.AddOwnedWaypoint(moveWaypoint);
+				marker.AddOwnedWaypoint(waitWaypoint);
+				marker.AddOwnedWaypoint(cycleWaypoint);
+			}
+			else
+			{
+				// A waypoint prefab failed to spawn. Degrade to the shipped single wait - a real
+				// 24 h hold, just without the self-healing loop - and leak nothing that was spawned
+				// for a cycle that will not exist.
+				if (moveWaypoint)
+					SCR_EntityHelper.DeleteEntityAndChildren(moveWaypoint);
+
+				if (waitWaypoint)
+				{
+					group.AddWaypoint(waitWaypoint);
+					marker.AddOwnedWaypoint(waitWaypoint);
+				}
 			}
 		}
 
@@ -2630,7 +2730,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			// LEAVES; its own attribute description says it will "*not* delete the group when it starts
 			// empty" (Entities/SCR_AIGroup.c:95-97), and OnEmpty() is only raised by a removal. A group
 			// that never received its first agent is therefore ours to destroy, here, or it stands in
-			// the world with a defend waypoint and nobody in it for the rest of the session.
+			// the world with its hold waypoints and nobody in it for the rest of the session.
 			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " could not be added to its new inactive group - deleting the group", LogLevel.WARNING);
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
 			return false;
@@ -2688,7 +2788,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!
 	//! THE GROUP IS NOT DELETED HERE, EVER. If that was its last member, vanilla's OnEmpty() has
 	//! already queued the deletion for the next frame (Entities/SCR_AIGroup.c:2442-2455), and the
-	//! defend waypoint goes with it through OVT_InactiveRecruitGroupComponent.OnDelete(). Deleting it
+	//! hold waypoints go with it through OVT_InactiveRecruitGroupComponent.OnDelete(). Deleting it
 	//! here as well would be a double delete of an entity vanilla is still holding a pointer to.
 	//!
 	//! \param[in] recruitEntity The body to pull out.

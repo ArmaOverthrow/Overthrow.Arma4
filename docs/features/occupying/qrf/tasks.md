@@ -1,7 +1,7 @@
 # QRF - Task Checklist
 
-**Last Updated:** 2026-08-16
-**Progress:** Complete (Existing Feature) + player-initiated uprisings enhancement
+**Last Updated:** 2026-08-18
+**Progress:** Complete (Existing Feature) + player-initiated uprisings + recruits count towards zone control
 
 ---
 
@@ -30,6 +30,17 @@ Replaced the surprise auto-trigger (player within 300 m of an occupied town with
 - [x] ✅ compile-check OK; Fast tier 125/125
 - [ ] ⏸️ USER: reposition `OVT_TownController` instances in the world (prefab now has a flagpole model; some sit on roads)
 - [ ] 📋 MP play-test: client-initiated uprising over the wire (RPC arity is a compile blind spot)
+
+## Recruits Count Towards Zone Control (COMPLETED 2026-08-18)
+
+Only human players scored for the resistance, so an assault carried by recruits lost by default.
+
+- [x] ✅ Resistance-faction AI within `QRF_POINT_RANGE` counted alongside players (`recruitNum` + `playerNum` = `resistanceNum`)
+- [x] ✅ Player-controlled entities skipped in the agent loop so a player is never counted twice
+- [x] ✅ `IsFightingFit()` — dead/unconscious characters count for neither side (applies to OF AI, recruits and players; also stops corpses earning the 2 XP/tick)
+- [x] ✅ Faction-key lookups hoisted out of the per-agent loop
+- [x] ✅ compile-check OK
+- [ ] 📋 Play-test: recruits-only assault can win a base QRF; verify a downed recruit stops counting
 
 ## Future Enhancements
 

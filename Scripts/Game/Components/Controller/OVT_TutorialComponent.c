@@ -58,12 +58,15 @@ class OVT_TutorialComponent : OVT_Component
 	//! Pending entries, priority-ordered. Pure; see OVT_TutorialQueue.
 	protected ref OVT_TutorialQueue m_Queue;
 
-	//! Per-machine "already shown" record. Pure; see OVT_TutorialSeenStore.
+	//! The owning client's mirror of "already shown". Pure; see OVT_TutorialSeenStore.
 	//!
-	//! Loaded from the player's profile on first use through OVT_TutorialSettingsAccessor and flushed
-	//! back on every mutation. On a headless server (or if the engine has no settings module) the
-	//! load is a no-op and this degrades to an in-memory store for the session - which is correct
-	//! there, because a dedicated server has no profile to remember anything in.
+	//! NO LONGER THE PER-MACHINE PROFILE STORE (2026-08-18). The authoritative copy is
+	//! OVT_PlayerData.m_aSeenTutorials on the SERVER, persisted with the campaign by
+	//! OVT_PlayerManagerSerializer (version 4) - the ModuleGameSettings store this used to load from
+	//! proved unreliable in practice (tips re-showed on every load) and was retired wholesale. This
+	//! in-memory mirror is filled by the server's RpcDo_SetTutorialState push at player finalization
+	//! and grows as the player dismisses tips; every mutation is reported back to the server through
+	//! the RpcAsk_* methods below, which is what makes it durable.
 	protected ref OVT_TutorialSeenStore m_SeenStore;
 
 	//! Reusable match buffer for the client-local path. Cleared by the matcher on every call.
@@ -76,8 +79,8 @@ class OVT_TutorialComponent : OVT_Component
 	//! replicate with the game-mode prefab, which is what makes a client-side lookup possible at all.
 	protected ref map<string, ref OVT_TutorialEntryConfig> m_mEntriesById;
 
-	//! The player's "Don't show tips again" setting. Read from the profile alongside the seen ids on
-	//! the first store access, and flushed by SetTipsDisabled().
+	//! The player's "Don't show tips again" setting - the owning client's mirror of
+	//! OVT_PlayerData.m_bTutorialsDisabled, delivered and written back the same way as the seen ids.
 	protected bool m_bTipsDisabled;
 
 	//! True from the moment an entry is handed to the UI until the UI reports it dismissed.
@@ -247,6 +250,195 @@ class OVT_TutorialComponent : OVT_Component
 
 		m_sSpawnContextFilter = filter;
 		m_bSpawnContextReceived = true;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	// SEEN-STATE SYNC - the campaign record is the truth, this component carries the owner's mirror
+	//-----------------------------------------------------------------------------------------------
+
+	//! Separator for the seen-id push. Safe because authored entry ids are kebab-case
+	//! (letters, digits, hyphens) - the manager's registry validation would already have to change
+	//! before an id could carry this character.
+	static const string SEEN_IDS_SEPARATOR = "|";
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: hands this controller's owning client its persisted tutorial state.
+	//!
+	//! Called from OVT_OverthrowGameMode.FinalizePlayerPreparation beside SetSpawnContext, so a
+	//! continue, a reconnect and a JIP all deliver the campaign's record before the player can
+	//! trigger anything. Mirrors SetSpawnContext's local-direct branch for the same reason: the
+	//! engine never loops an RPC back to the sender, so a listen host would otherwise never receive
+	//! its own state.
+	//! \param[in] playerId Runtime id of the player this controller belongs to.
+	void PushTutorialState(int playerId)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+		if (!player)
+			return;
+
+		string joined = "";
+		if (player.m_aSeenTutorials)
+		{
+			foreach (string id : player.m_aSeenTutorials)
+			{
+				if (id == "")
+					continue;
+
+				if (joined != "")
+					joined += SEEN_IDS_SEPARATOR;
+
+				joined += id;
+			}
+		}
+
+		int localPlayerId = SCR_PlayerController.GetLocalPlayerId();
+		if (localPlayerId >= FIRST_VALID_PLAYER_ID && localPlayerId == playerId)
+		{
+			RpcDo_SetTutorialState(joined, player.m_bTutorialsDisabled);
+			return;
+		}
+
+		Rpc(RpcDo_SetTutorialState, joined, player.m_bTutorialsDisabled);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: the campaign's record of what this player has already read.
+	//!
+	//! MERGES rather than replaces: anything already marked seen on this machine this session stays
+	//! seen. The push can arrive after the player has dismissed something (the finalize that sends it
+	//! races nothing), and "seen somewhere" only ever suppresses a tip - the failure mode of merging
+	//! is a tip not repeating, which is the point of the store.
+	//! \param[in] joinedSeenIds Seen entry ids joined with SEEN_IDS_SEPARATOR. "" means none.
+	//! \param[in] tipsDisabled The persisted "Don't show tips again" choice.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	void RpcDo_SetTutorialState(string joinedSeenIds, bool tipsDisabled)
+	{
+		OVT_TutorialSeenStore store = GetSeenStore();
+
+		if (joinedSeenIds != "")
+		{
+			array<string> ids = {};
+			joinedSeenIds.Split(SEEN_IDS_SEPARATOR, ids, true);
+
+			foreach (string id : ids)
+			{
+				store.MarkSeen(id);
+			}
+		}
+
+		m_bTipsDisabled = tipsDisabled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: the owning client dismissed an entry - write it on the campaign record.
+	//!
+	//! Also the direct-call target for a listen host and single player (Notify()'s pattern, reversed:
+	//! client -> server this time). Resolving the player from the OWNED CONTROLLER rather than
+	//! trusting an id argument is the established shape for requests on this entity - see
+	//! OVT_RespawnRequestComponent.RpcAsk_Respawn.
+	//! \param[in] entryId Id of the entry the player read.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_MarkTutorialSeen(string entryId)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (entryId == "")
+			return;
+
+		OVT_PlayerData player = ResolveOwningPlayerData();
+		if (!player)
+			return;
+
+		if (!player.m_aSeenTutorials)
+			player.m_aSeenTutorials = new array<string>();
+
+		if (player.m_aSeenTutorials.Contains(entryId))
+			return;
+
+		player.m_aSeenTutorials.Insert(entryId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: the owning client flipped "Don't show tips again" - write it on the campaign record.
+	//! \param[in] disabled The new value.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_SetTutorialsDisabled(bool disabled)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		OVT_PlayerData player = ResolveOwningPlayerData();
+		if (!player)
+			return;
+
+		player.m_bTutorialsDisabled = disabled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: the owning client reset their tutorial progress - clear the campaign record of it.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_ResetTutorials()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		OVT_PlayerData player = ResolveOwningPlayerData();
+		if (!player)
+			return;
+
+		if (player.m_aSeenTutorials)
+			player.m_aSeenTutorials.Clear();
+
+		player.m_bTutorialsDisabled = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends one mutation to the authority: directly when this machine IS the authority (the engine
+	//! never loops an RPC back to its sender), over the wire otherwise.
+	//! \param[in] entryId Id to mark seen.
+	protected void SendSeenToServer(string entryId)
+	{
+		if (Replication.IsServer())
+		{
+			RpcAsk_MarkTutorialSeen(entryId);
+			return;
+		}
+
+		Rpc(RpcAsk_MarkTutorialSeen, entryId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The campaign record of the player who owns this controller. Server only.
+	//!
+	//! The same walk OVT_RespawnRequestComponent.ResolveOwningPlayerId performs: match this
+	//! component's owner entity against every connected player's registered controller.
+	//! \return The record, or null when the owner cannot be resolved (disconnecting, or a crafted
+	//! request) - in which case the mutation is dropped, never guessed onto another player.
+	protected OVT_PlayerData ResolveOwningPlayerData()
+	{
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return null;
+
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (!playerManager)
+			return null;
+
+		array<int> playerIds = {};
+		playerManager.GetPlayers(playerIds);
+
+		foreach (int playerId : playerIds)
+		{
+			OVT_OverthrowController controller = players.GetController(playerId);
+			if (controller && controller == GetOwner())
+				return OVT_PlayerData.Get(playerId);
+		}
+
+		return null;
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -497,6 +689,16 @@ class OVT_TutorialComponent : OVT_Component
 			return;
 		}
 
+		// Re-checked at SHOW time as well as at enqueue: the server's state push can arrive after a
+		// local trigger already queued an entry this campaign has seen (the queue admits it because
+		// the mirror was still empty), and showing it anyway would be the exact re-showing bug the
+		// campaign store exists to end.
+		if (GetSeenStore().HasSeen(pendingId))
+		{
+			m_Queue.TryDequeue(pendingId);
+			return;
+		}
+
 		if (!OVT_TutorialGate.CanShowNow(m_bTipsDisabled, m_bShowing, IsBlockingUiOpen(), IsLocalPlayerAlive(), ShowsOverUi(FindEntry(pendingId))))
 			return;
 
@@ -554,12 +756,12 @@ class OVT_TutorialComponent : OVT_Component
 
 		// The HasSeen test is not redundant with MarkSeen's idempotence: dismissing an already-seen
 		// entry (the auto-dismiss timer and an explicit Dismiss can both fire) must not cost a second
-		// disk flush for a byte-identical block.
+		// round trip to the server for a fact it already holds.
 		if (entryId != "")
 		{
 			OVT_TutorialSeenStore store = GetSeenStore();
 			if (!store.HasSeen(entryId) && store.MarkSeen(entryId))
-				PersistSettings();
+				SendSeenToServer(entryId);
 		}
 
 		if (m_Queue.Count() > 0)
@@ -720,37 +922,19 @@ class OVT_TutorialComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The per-machine seen store, allocated and LOADED FROM THE PROFILE on first use.
+	//! The owning client's in-memory seen mirror.
 	//!
-	//! Loaded lazily rather than in the constructor because the component is built on a controller
-	//! entity that a dedicated server also owns, and the load is the one call in this class that
-	//! touches the player's profile. Loading once is enough: this process is the only writer, so the
-	//! in-memory store and the profile block cannot drift apart afterwards.
+	//! Starts EMPTY and is filled by the server's RpcDo_SetTutorialState push - there is no profile
+	//! load any more (the campaign record on the server is the durable copy). Empty-until-pushed is
+	//! safe in both directions: a tip queued before the push arrives is caught by Pump()'s show-time
+	//! seen check, and the server additionally refuses to send entries the record already carries.
 	//! \return The store. Never null.
 	protected OVT_TutorialSeenStore GetSeenStore()
 	{
-		if (m_SeenStore)
-			return m_SeenStore;
-
-		m_SeenStore = new OVT_TutorialSeenStore();
-
-		bool tipsDisabled;
-		if (OVT_TutorialSettingsAccessor.Load(m_SeenStore, tipsDisabled))
-			m_bTipsDisabled = tipsDisabled;
+		if (!m_SeenStore)
+			m_SeenStore = new OVT_TutorialSeenStore();
 
 		return m_SeenStore;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Writes the seen ids and the tips flag back to the player's profile and flushes to disk.
-	//!
-	//! Called from every mutation rather than only on exit (plan decision D8): the value of this
-	//! store is entirely in a tip never repeating, and a crash or an alt-F4 is the common exit in
-	//! this game. Silent when the profile is unavailable - the caller has nothing useful to do about
-	//! it and the session still behaves correctly in memory.
-	protected void PersistSettings()
-	{
-		OVT_TutorialSettingsAccessor.Save(GetSeenStore(), m_bTipsDisabled);
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -794,18 +978,22 @@ class OVT_TutorialComponent : OVT_Component
 	//! Sets the "Don't show tips again" setting. Disabling also empties the pending queue: those tips
 	//! were queued under the old setting and re-showing them the moment tips come back on would make
 	//! the toggle look broken.
-	//! The flag is flushed to the profile immediately, so it survives an unclean exit - a player who
-	//! turned tips off and then crashed must not be shown tips again on the next launch.
+	//! The flag is reported to the authority immediately, where it lives on the campaign record
+	//! (OVT_PlayerData.m_bTutorialsDisabled) and rides every save - a player who turned tips off must
+	//! not be shown them again on continue.
 	//! \param[in] disabled True to suppress every subsequent popup.
 	void SetTipsDisabled(bool disabled)
 	{
-		// Read the store BEFORE mutating the flag: the first access loads the profile, and that load
-		// would otherwise overwrite the value just set with the one still on disk.
-		GetSeenStore();
-
 		m_bTipsDisabled = disabled;
 
-		PersistSettings();
+		if (Replication.IsServer())
+		{
+			RpcAsk_SetTutorialsDisabled(disabled);
+		}
+		else
+		{
+			Rpc(RpcAsk_SetTutorialsDisabled, disabled);
+		}
 
 		if (!disabled)
 			return;
@@ -817,28 +1005,26 @@ class OVT_TutorialComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Clears the player's tutorial progress: every seen id, plus the "don't show tips again" flag.
 	//!
-	//! THE ONLY SUPPORTED WAY TO RESET FROM THE UI. OVT_TutorialSettingsAccessor.Reset() writes an
-	//! empty record straight to the profile and leaves this component's in-memory store and flag
-	//! untouched - so the running session still believes every id is seen, and the next MarkSeen or
-	//! SetTipsDisabled writes them all straight back. This component is documented as the ONLY writer
-	//! (see GetSeenStore), and that invariant is what a direct accessor call would break.
-	//!
-	//! Ordering is the same caution SetTipsDisabled carries: GetSeenStore() is what LOADS the profile
-	//! on first access, so it has to run BEFORE the flag is set. Clearing through its return value
-	//! rather than after a bare call makes that ordering impossible to get wrong by re-editing.
+	//! THE ONLY SUPPORTED WAY TO RESET FROM THE UI. Both halves - this mirror and the campaign record
+	//! the RpcAsk clears - must move together: clearing only the server's record would leave this
+	//! session still believing every id is seen, and the next dismissal would start writing them back.
 	//!
 	//! Deliberately does NOT touch the pending queue. Re-enabling tips is exactly the SetTipsDisabled
 	//! (false) case, which also leaves the queue alone: anything still queued was matched under the
 	//! old setting and is legitimately still due.
 	void ResetSeen()
 	{
-		OVT_TutorialSeenStore store = GetSeenStore();
-
-		store.Clear();
+		GetSeenStore().Clear();
 
 		m_bTipsDisabled = false;
 
-		PersistSettings();
+		if (Replication.IsServer())
+		{
+			RpcAsk_ResetTutorials();
+			return;
+		}
+
+		Rpc(RpcAsk_ResetTutorials);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -856,8 +1042,9 @@ class OVT_TutorialComponent : OVT_Component
 	//!
 	//! "MOST RECENT" IS AN APPROXIMATION AND IS DOCUMENTED AS ONE. The walk runs newest-first over
 	//! the store's own order, but OVT_TutorialSeenStore is backed by a sorted set<string> and
-	//! WriteTo() says so explicitly - the order is canonical, not chronological, and a profile round
-	//! trip normalises it. Nothing here depends on getting the genuinely-latest tip: every candidate
+	//! WriteTo() says so explicitly - the order is canonical, not chronological, and a round trip
+	//! through the campaign record normalises it. Nothing here depends on getting the genuinely-latest
+	//! tip: every candidate
 	//! is something the player has read, and any of them is a valid thing to re-read.
 	//! \return An entry with at least one page, or null when nothing at all resolves.
 	OVT_TutorialEntryConfig FindReviewEntry()

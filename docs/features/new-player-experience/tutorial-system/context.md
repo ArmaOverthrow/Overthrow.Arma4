@@ -1,8 +1,8 @@
 # Tutorial System - Context & Decisions
 
-**Last Updated:** 2026-08-11 (post-close change set: show-over-UI tips, HUD field-manual link, PLAYER_ENTER_BASE)
+**Last Updated:** 2026-08-18 (post-close change set 2: seen store moved into campaign persistence, the modal made modal, BUG-159 closed)
 **Current Phase:** — (all 9 phases complete)
-**Status:** 🟢 Build complete · ⏳ awaiting the string-table export and the play-test gates
+**Status:** 🟢 Build complete · ⏳ 2026-08-18 change set awaits suites + play-test (user was in Workbench)
 
 **Epic:** `new-player-experience` (feature #1 of 5 — the framework everything else in the epic runs on)
 
@@ -361,6 +361,26 @@ Phase 7 narrowed that last one considerably. The merged config object is now ass
 ---
 
 > Newest phase first. Each block ends with the gotchas that phase discovered — see the index under **Gotchas & Learnings** for where each number lives.
+
+### 2026-08-18 — seen store into campaign persistence, the modal made modal, BUG-159 root-caused (post-close, user-reported)
+
+Three user reports in one sitting. Gates after all three: compile-check **0** (6057 files) · `check-input-conflicts.py --warnings` **0 errors / 0 warnings / 3 combo notes** · **suites NOT run and owed** (the user's Workbench was open the whole session, which is the known unreliable state) · `Language/` untouched.
+
+**1. The per-machine profile store is DELETED; seen state now rides normal campaign persistence (user decision).** "The user-config persistence just isn't working — I get the tutorials showing on every load." Rather than diagnose the `ModuleGameSettings` store further, the whole mechanism moved:
+- `OVT_PlayerData` gained `m_aSeenTutorials` + `m_bTutorialsDisabled` (server-only section, like `m_sBodyPersistenceId`); `OVT_PlayerManagerSerializer` is at **version 4** (both fields appended, `< 4` payloads cleared); `ApplyPersistedPlayers` re-applies them under **money/rollback semantics**, not the body-id adoption rule.
+- The owning client's mirror: `PushTutorialState(playerId)` (called from `SetPlayerSpawnContext` in the game mode, so it runs on every arrival path) sends `RpcDo_SetTutorialState(joinedIds, disabled)` — ids joined with `|`, split client-side, **merged** into the in-memory `OVT_TutorialSeenStore`. Mutations flow back via `RpcAsk_MarkTutorialSeen` / `RpcAsk_SetTutorialsDisabled` / `RpcAsk_ResetTutorials`, each with the direct-call branch on the authority (the Notify() pattern, reversed). The owner is resolved server-side from the owned controller (the `OVT_RespawnRequestComponent.ResolveOwningPlayerId` walk), never from a client-supplied id.
+- Two dedup layers close the push race: `OVT_TutorialManagerComponent.SendToPlayer` now vetoes on the **persisted record** before the session sent-set, and `Pump()` re-checks `HasSeen` at show time (a local trigger can enqueue before the push lands).
+- `OVT_TutorialSettings.c` / `OVT_TutorialSettingsAccessor.c` deleted; the two Init profile-store cases (`_SettingsStoreRoundTrips`, `_ResetRestoresTips`) removed with them; replacement coverage is `OVT_TEST_PersistenceRoundTrip_TutorialSeen_SurvivesSaveAndReload` (mutate → save → dirty → reload → assert both fields).
+- **Accepted consequences:** per campaign AND per player now — a new playthrough re-shows tips (user: "that's fine"), and "Don't show tips again" is per-campaign too. Gotchas 16-18 (the SaveUserSettings throttle family) are retired along with the store.
+- ⚠️ **`OVT_MapLayerSettings` still uses the same ModuleGameSettings mechanism.** If the profile store is genuinely broken on the user's machine (the R1 gate proved the mechanism worked in CI on 2026-08-07), map-layer prefs may be silently failing the same way — worth one look before trusting any other per-machine setting.
+
+**2. The modal welcome was not modal — and the root cause was a MERGE CASUALTY, not the popup's code.** Merge `7fea0cfa` (2026-08-11, "Merge branch 'main' into new-map") resolved the `chimeraInputCommon.conf` conflict by keeping main's new contexts and **dropping `OverthrowTutorialMenuContext` AND `OverthrowTutorialHudContext`** while keeping all five `OverthrowTutorial*` actions. `ActivateContext` on a nonexistent context is a silent no-op, so every tutorial binding was dead and the character context stayed live — "pressing any of the keyboard/pad bindings don't work" was exactly right. Both contexts are restored byte-identical to `e43874e0`.
+- **Restoring the context alone would NOT stop the player moving** — it is Priority 50 / Flags 4 like every menu context, and a non-exclusive context never suppresses the character tier (BUG-156's proven mechanic). True modality is script-side: `OVT_TutorialContext.OnShow/OnClose` now flip `SetDisableViewControls` / `SetDisableWeaponControls` / `SetDisableMovementControls`, which is vanilla's own recipe (`SCR_PlayerController.SetDisableControls`, and the base game's tutorial at `SCR_TutorialGamemodeComponent.c:542-544`).
+- ⚠️ **Lesson for every future conf merge:** a conflict resolution in `chimeraInputCommon.conf` can drop an `ActionContext` while keeping its actions, and nothing fails loudly — the checker sees no conflict in bindings that are no longer live anywhere. `grep -c "ActionContext Overthrow"` before and after a merge is a ten-second guard.
+
+**3. BUG-159 closed, and the reported mechanism was wrong in both halves** — full revision in the bug file. Short form: the place tip is NONMODAL (the modal's `FocusFirstButton` never ran), showing over the place menu is the `m_bShowOverUI` design rather than a race, and the real culprit is that the HUD tip's two prompt buttons are focusable widgets on ALWAYS_TOP — a focus island the workspace's default gamepad pick falls into. Fixed with `WidgetFlags.NOFOCUS` on both prompts (they are action/mouse-driven, never focus-driven); the modal additionally got capture/restore of the previously focused widget.
+
+**Owed:** Fast + All suite runs once Workbench is closed; play-test of all three fixes (welcome modal blocks movement and every binding works on pad; tips stay seen across Continue; place menu stays d-pad-live under its tip); the two stale `BasesFirstCapture` authoring Comments in the `.st` (still describe the old BASE_CONTROL_CHANGE trigger — not edited because Workbench holds the file).
 
 ### 2026-08-11 — tips on the screens they are about, a field-manual link on the HUD tip, and a new base trigger (post-close, user-requested)
 

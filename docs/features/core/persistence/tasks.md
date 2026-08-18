@@ -1,7 +1,7 @@
 # Vanilla Persistence Migration - Task Checklist (v2)
 
-**Last Updated:** 2026-08-08 (Phase 11 — BUG-104, the Continue re-mapping fix)
-**Progress:** 53/53 tasks complete (100%) — **feature SHIPPED.** SP and MP/dedicated play-tests both green, every linked bug closed. Phase 10 (BUG-085/086) and Phase 11 (BUG-104) are the post-round-2 work, recorded below
+**Last Updated:** 2026-08-18 (Phase 12 — BUG-180 vehicle pose drift on load, BUG-181 reserved bodies visible on clients)
+**Progress:** 55/55 tasks complete (100%) — **feature SHIPPED**, in maintenance. SP and MP/dedicated play-tests green as of ship; Phase 12 fixes are compile-verified with suite runs + play-tests owed (see Phase 12)
 
 > Plan v1's 67 tasks (6 marked complete) are void — the "completed" Phase 1 never compiled and targeted a nonexistent API. This list implements `implementation.md` v2. API truth: `vanilla-api-reference.md`. Field truth: the EPF SaveData classes in-repo.
 
@@ -175,10 +175,19 @@ Post-ship, found 2026-08-08 in Workbench SP: save → restart → Continue showe
 
 - [x] ✅ **Re-establish the session ID mapping on the load path** — `SetupPlayer()` is called only from `OVT_SpawnLogic.DoSpawn_S`, which runs when a player CONNECTS; a Continue REPLACES THE WORLD without anyone connecting, so the player manager's maps came back empty and stayed that way. The HUD's `GetPersistentIDFromPlayerID` → `GetPlayerMoney` composition read $0, every playerId-keyed lookup missed, and no `OVT_OverthrowController` was spawned. `OVT_OverthrowGameMode.PrepareConnectedPlayers()` now runs `SetupPlayer` for a connected player whose runtime ID resolves to nothing (idempotent on the new-game path). **Dedicated servers never showed it** — they continue at boot, before anyone connects. New case `OVT_TEST_Campaign_ContinuePlayerIdMapping` (All 67 → 68) asserts the $0 symptom before asserting the repair; **proven able to fail** by removing the fix
 
+## Phase 12: Post-ship server reports — load-drift and reservation ghosts (2/2) ✅ (verified: compile clean 6058 files; suite runs + can-fail proofs + play-tests OWED)
+
+Two server-owner reports, both investigated and fixed 2026-08-18. Full reasoning in context.md's session note and in the bug files.
+
+- [x] ✅ **BUG-180 — vehicles load rotated when parked on another persisted object** — the pose data round-trips exactly (vanilla stores the full transform; the registry's YPR capture/apply conventions match); what moves the vehicle is load-time PHYSICS: it wakes as a dynamic body while its support (a buildable ramp) is a separately self-spawned record with no ordering guarantee, so it free-falls or takes the depenetration kick (the BUG-129 mechanism) — invisible on flat ground, which is why only ramp reports exist. Fix: `OVT_VehicleManagerComponent.ReassertRecordedPose()` — beyond 0.5 m / 5° drift from the registry record, zero velocities, `SetTransform()` back, wake physics; called from `InitialVehicleCleanup()` **before** `RegisterPlayerVehicle()`, whose record recapture would otherwise make the drifted pose permanent. New case `OVT_TEST_PersistenceRoundTrip_VehiclePoseReassert_SnapsBackOnlyBeyondTolerance` (both halves of the contract, same-frame assertions)
+- [x] ✅ **BUG-181 — disconnected players' bodies visible on every client** — the BUG-086 reservation hides with `ClearFlags`, which is server-local; already-streaming clients keep rendering their copy and late/JIP streamers get default (visible) flags, so every client sees a frozen unkillable ghost. Fix: `OVT_ReservationSyncComponent` (new) — `RplProp` reserved bit mirrored by `Reserve()`/`Release()`, proxies apply `VISIBLE|TRACEABLE` locally (ACTIVE deliberately authority-only); vanilla pattern `SCR_ResourceComponent.m_bIsVisible`. Wired into `Character_Player.et`, `Wheeled_Base.et`, `Helicopter_Base.et`; optional by construction. New case `OVT_TEST_Init_Persistence_ReservationReplicatesToClients` (prefab-wiring tripwires + the mirror both ways)
+
+**Owed from this phase:** run both suites (this session's environment could not launch the harness — classifier-blocked); exercise each case's recorded can-fail method once and stamp the headers; play-test BUG-180's real repro (ramp, save, restart, continue) and BUG-181's dedicated-server visibility (watcher + JIP + reconnect, body and locked vehicle).
+
 ## Bugs & Issues
 
 **Active:** none.
-**Resolved:** BUG-002, BUG-006 (no working save path in either system — Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest); **BUG-086** (records are not durable → the reservation model, Phase 10); **BUG-085** (loadout apply destroyed everything inside clothing/backpacks — pre-existing, affected ordinary loadouts too); **BUG-018** (corpses across a continue); **BUG-104** (a Continue left every connected player unmapped — Phase 11). Next door on `core/controller-migration`: **BUG-087** (unvalidated vehicle lock), which BUG-086's locked/unlocked split depended on, is also closed.
+**Resolved:** BUG-002, BUG-006 (no working save path in either system — Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest); **BUG-086** (records are not durable → the reservation model, Phase 10); **BUG-085** (loadout apply destroyed everything inside clothing/backpacks — pre-existing, affected ordinary loadouts too); **BUG-018** (corpses across a continue); **BUG-104** (a Continue left every connected player unmapped — Phase 11); **BUG-180** (vehicles load rotated on top of persisted objects — Phase 12); **BUG-181** (reserved bodies visible on clients — Phase 12). Next door on `core/controller-migration`: **BUG-087** (unvalidated vehicle lock), which BUG-086's locked/unlocked split depended on, is also closed.
 
 ## Technical Debt
 

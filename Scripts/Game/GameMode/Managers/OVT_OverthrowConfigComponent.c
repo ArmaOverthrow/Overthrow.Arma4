@@ -498,6 +498,12 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
 
+		// Overrides the prefab's own m_holdingTime (60 s in vanilla's AIWaypoint_Wait.et). This
+		// call was missing for years, so every caller's time was silently ignored in favour of
+		// that 60 s default.
+		if (wp)
+			wp.SetHoldingTime(time);
+
 		return wp;
 	}
 

@@ -1,0 +1,26 @@
+GenericEntity : "{A43461050704B41B}Prefabs/Props/Furniture/BunkBed_02/BunkBed_02_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  ActionsManagerComponent "{6B5D000000000070}" {
+   ActionContexts {
+    UserActionContext "{6B5D000000000071}" {
+     ContextName "default"
+     Position PointInfo "{6B5D000000000072}" {
+      Offset 0 0.9 0
+     }
+     Radius 1.3
+    }
+   }
+   additionalActions {
+    OVT_SleepAction "{6B5D000000000073}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B5D000000000074}" {
+      Name "#OVT-Sleep"
+     }
+    }
+   }
+  }
+ }
+}

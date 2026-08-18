@@ -1,18 +1,18 @@
 //------------------------------------------------------------------------------------------------
-//! The in-memory half of the per-machine "already seen this tip" record.
+//! The in-memory half of the "already seen this tip" record.
 //!
-//! This class holds the SET LOGIC and nothing else. It makes no engine call, never touches
-//! GetGameUserSettings, and knows nothing about BaseContainer: the settings module is injected as a
-//! plain array of ids and read back as one. That split is deliberate - the store's rules (exact
-//! match, idempotent marking, version invalidation, the cap) are the part that can silently corrupt
-//! a player's state, so they live where a Logic-tier case can pin them, and the unverifiable
-//! BaseContainer plumbing is an accessor of its own.
+//! This class holds the SET LOGIC and nothing else. It makes no engine call and knows nothing about
+//! where the durable copy lives: ids are injected as a plain array and read back as one. That split
+//! is deliberate - the store's rules (exact match, idempotent marking, version invalidation, the
+//! cap) are the part that can silently corrupt a player's state, so they live where a Logic-tier
+//! case can pin them.
 //!
-//! The permanent record is per MACHINE and per PROFILE, not per campaign and not per player record.
-//! An entry shown once is never shown again on that profile, on any server or campaign - which is
-//! the whole point of the feature, and the exact property the legacy intro hint's session-only
-//! dedup set failed to deliver by being reallocated every EOnInit. (That set was deleted with the
-//! hint on 2026-08-09 by new-player-experience/first-spawn; this store is what replaced it.)
+//! WHERE THE DURABLE COPY LIVES (changed 2026-08-18): the player's campaign record,
+//! OVT_PlayerData.m_aSeenTutorials, persisted by OVT_PlayerManagerSerializer version 4 and owned by
+//! the server. This store is the owning client's session mirror, filled by the server's state push
+//! and reported back to on every dismissal (OVT_TutorialComponent). Per CAMPAIGN and per PLAYER,
+//! not per machine: a new playthrough shows the tips again, by decision. The per-machine
+//! ModuleGameSettings profile store this used to feed proved unreliable and was deleted outright.
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialSeenStore
 {

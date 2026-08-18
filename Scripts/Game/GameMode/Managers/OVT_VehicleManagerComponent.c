@@ -118,6 +118,12 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	//! How long to wait for a spawn request to answer before giving up on it (ms).
 	static const int VEHICLE_SPAWN_TIMEOUT_MS = 15000;
 
+	//! Drift beyond which InitialVehicleCleanup() puts a restored vehicle back at its recorded pose.
+	//! Generous enough that suspension settle on flat ground never trips either bound; a fall off a
+	//! ramp or a depenetration kick is metres and tens of degrees away from both.
+	static const float POSE_DRIFT_TOLERANCE_M = 0.5;
+	static const float POSE_DRIFT_TOLERANCE_DEG = 5;
+
 	static OVT_VehicleManagerComponent GetInstance()
 	{
 		if (!s_Instance)
@@ -1201,6 +1207,83 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Puts a restored vehicle back at its recorded pose when load-time physics moved it.
+	//!
+	//! WHY VEHICLES MOVE DURING A LOAD. A vehicle self-spawns from its stored record at its exact
+	//! saved transform, but it wakes as a live dynamic body with no saved velocities - and whatever
+	//! it was parked ON (a buildable maintenance ramp, a base composition) is a separately
+	//! self-spawned record with no ordering guarantee between collections. A vehicle whose support
+	//! is not in the world yet free-falls onto the terrain and settles rotated, and a support
+	//! spawning into it kicks it with the depenetration impulse (the BUG-129 mechanism). On flat
+	//! ground both effects are invisible, which is why only ramp-parked vehicles were reported.
+	//!
+	//! The record's pose is the truth to snap back to: SyncVehicleRecords() captured it from the
+	//! standing vehicle immediately before the save was written. Snapping is safe at the call site,
+	//! InitialVehicleCleanup(), because by then every self-spawned entity - support included -
+	//! exists and has collision.
+	//!
+	//! MUST RUN BEFORE RegisterPlayerVehicle() FOR THE SAME VEHICLE. Registration recaptures the
+	//! record from the live pose, which would overwrite the saved pose with the drifted one and
+	//! make the drift permanent.
+	//!
+	//! Public for the test seam only; production's one call site is InitialVehicleCleanup().
+	//! \param[in] vehicleId The vehicle's persistent id; empty tolerated (untracked, no record).
+	//! \param[in] vehicle The live instance to check.
+	void ReassertRecordedPose(string vehicleId, notnull IEntity vehicle)
+	{
+		if (vehicleId.IsEmpty() || !m_mVehicleRecords.Contains(vehicleId))
+			return;
+
+		OVT_PersistedPlayerVehicle record = m_mVehicleRecords[vehicleId];
+		if (!record || record.position == vector.Zero)
+			return;
+
+		// An occupied vehicle is being used, not settling - its pose is the driver's business.
+		Vehicle typed = Vehicle.Cast(vehicle);
+		if (typed && typed.IsOccupied())
+			return;
+
+		float positionDrift = vector.Distance(vehicle.GetOrigin(), record.position);
+
+		vector liveAngles = vehicle.GetYawPitchRoll();
+		float angleDrift = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			float delta = Math.AbsFloat(liveAngles[i] - record.angles[i]);
+			if (delta > 180)
+				delta = 360 - delta;
+			if (delta > angleDrift)
+				angleDrift = delta;
+		}
+
+		if (positionDrift < POSE_DRIFT_TOLERANCE_M && angleDrift < POSE_DRIFT_TOLERANCE_DEG)
+			return;
+
+		vector mat[4];
+		Math3D.AnglesToMatrix(record.angles, mat);
+		mat[3] = record.position;
+
+		// The vehicle can still be tumbling when this runs - kill the motion before the teleport
+		// or it survives it.
+		Physics physics = vehicle.GetPhysics();
+		if (physics)
+		{
+			physics.SetVelocity(vector.Zero);
+			physics.SetAngularVelocity(vector.Zero);
+		}
+
+		vehicle.SetTransform(mat);
+
+		// Wake physics at the corrected pose so the vehicle rests on its support instead of a stale
+		// contact set - the OVT_FlipVehicleAction idiom.
+		if (physics)
+			physics.ApplyImpulse("0 -1 0");
+
+		Print(string.Format("[Overthrow] Vehicle %1 drifted %2 m / %3 deg from its recorded pose during the load - snapped back",
+			vehicleId, positionDrift, angleDrift));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Rebuilds the in-memory registries from a save.
 	//!
 	//! Both maps are derived from the same records, so they cannot disagree after a load the way two
@@ -1516,6 +1599,13 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			if (ownerUid.IsEmpty())
 				continue;
 
+			string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
+
+			// Load-time physics can have moved this vehicle off its saved pose (fell off a not-yet-
+			// spawned ramp, depenetration kick). Snap it back BEFORE RegisterPlayerVehicle(), whose
+			// record recapture would otherwise make the drifted pose the recorded one.
+			ReassertRecordedPose(persistentId, vehicle);
+
 			// EVERY player-owned vehicle is indexed, whatever its owner is doing - see the method header
 			// for the offline-and-unlocked case this used to drop on the floor.
 			RegisterPlayerVehicle(ownerUid, vehicle);
@@ -1535,7 +1625,6 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			// property, and an FOB is never hidden at all (BUG-129)
 			if (!isOnline && ownerComp.IsLocked() && !IsMobileFOB(vehicle))
 			{
-				string persistentId = OVT_PersistenceTracking.GetPersistentId(vehicle);
 				if (!persistentId.IsEmpty() && ReserveVehicle(persistentId, vehicle))
 				{
 					despawnedCount++;

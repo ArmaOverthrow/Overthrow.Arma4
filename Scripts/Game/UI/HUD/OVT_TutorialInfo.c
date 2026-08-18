@@ -180,6 +180,14 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		m_wMoreButton = m_wRoot.FindAnyWidget("TutorialMoreButton");
 		if (m_wMoreButton)
 		{
+			// NOFOCUS on both prompts, because this overlay draws on ALWAYS_TOP - the one layer that
+			// sits above every menu. A focusable button up there is where the workspace's default
+			// focus pick lands when a menu below has no focused widget yet, and once focus is inside
+			// this two-button island the d-pad cannot reach the menu underneath until the tip retires
+			// (BUG-159: the place menu was pad-dead for the tip's whole 20 s). Neither prompt is ever
+			// driven BY focus - they fire from their bound inputs and from the mouse.
+			m_wMoreButton.SetFlags(WidgetFlags.NOFOCUS);
+
 			m_MoreAction = SCR_InputButtonComponent.Cast(m_wMoreButton.FindHandler(SCR_InputButtonComponent));
 			if (m_MoreAction)
 				m_MoreAction.m_OnActivated.Insert(OnMoreActivated);
@@ -188,6 +196,8 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 		m_wLearnMoreButton = m_wRoot.FindAnyWidget("TutorialLearnMoreButton");
 		if (m_wLearnMoreButton)
 		{
+			m_wLearnMoreButton.SetFlags(WidgetFlags.NOFOCUS);
+
 			m_LearnMoreAction = SCR_InputButtonComponent.Cast(m_wLearnMoreButton.FindHandler(SCR_InputButtonComponent));
 			if (m_LearnMoreAction)
 				m_LearnMoreAction.m_OnActivated.Insert(OnLearnMoreActivated);
