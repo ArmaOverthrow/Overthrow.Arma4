@@ -27,6 +27,20 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! The shipped fixed offset, kept for the caller that has no tent entity to take a facing from.
 	static const vector TENT_SPAWN_FALLBACK_OFFSET = "2 0 2";
 
+	//! How far a tent recruit may scatter from its spawn anchor, in metres.
+	//!
+	//! Uniform over a disc, so back-to-back recruits do not stack on one point while they wait for
+	//! their run to formation. Small enough that the whole disc stays inside the spawn point's
+	//! cleared area in front of the tent.
+	static const float TENT_SPAWN_SCATTER_RADIUS = 3;
+
+	//! How far around a bare tent position to look for the tent entity itself, in metres.
+	//!
+	//! The legacy tent action's RPC only ever carries a position, and its action sits on the tent's
+	//! table child - so the tent ROOT is always within a couple of metres of what it sends. Wide
+	//! enough to absorb that, narrow enough that two tents would have to overlap to confuse it.
+	static const float TENT_LOOKUP_RADIUS = 10;
+
 	//! ValidateTentRecruit(): the request may proceed.
 	static const int TENT_RECRUIT_OK = 0;
 
@@ -99,6 +113,9 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! obtainable from it (PersistenceCollection is sealed with a private constructor). This mirrors
 	//! SCR_SpawnLogic.m_CharacterCollection exactly.
 	protected PersistenceCollection m_RecruitBodyCollection;
+
+	//! Scratch for FindTentAtPosition()'s query filter; only meaningful during the query.
+	protected IEntity m_TentSearched;
 
 	//! Name of the collection recruit bodies are stored in.
 	//!
@@ -1082,19 +1099,22 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! the character exists (the cap is re-checked inside it), and an unowned civilian left standing
 	//! at the tent is a bug players find before we do.
 	//!
-	//! THE TENT ENTITY IS OPTIONAL, and that is the one asymmetry between the two callers. The
-	//! equipped purchase names the tent by RplId and validates it, so it always has the entity and
-	//! gets the full placement treatment: in front of the tent, whichever way the tent was built. The
-	//! legacy action only ever sent a bare position, and giving it an entity would mean changing its
-	//! RPC signature - which would make its refactor a redesign. It passes null, keeps the shipped
-	//! fixed offset as its anchor, and still gains the half of the hardening that matters most: the
-	//! ground clamp and a collision-checked position.
+	//! THE TENT ENTITY IS OPTIONAL, and a null one is recovered here. The equipped purchase names
+	//! the tent by RplId and validates it, so it always has the entity. The legacy action only ever
+	//! sent a bare position, and giving it an entity would mean changing its RPC signature - which
+	//! would make its refactor a redesign. It passes null, and this method looks the tent up from
+	//! the position instead (FindTentAtPosition), so BOTH callers get the full placement treatment:
+	//! the tent's own OVT_SpawnPointComponent when it has one, facing included. Only when no tent
+	//! entity can be found at all does the shipped fixed offset remain the anchor.
 	//! \param[in] tent The tent's ROOT entity, or null when the caller only knows a position.
-	//! \param[in] tentPos Where the tent is. Used as the anchor when tent is null.
+	//! \param[in] tentPos Where the tent is. Used to recover the tent when tent is null.
 	//! \param[in] playerId Runtime id of the recruiting player.
 	//! \return The recruit's body, or null when nothing was spawned or nothing was owned.
 	SCR_ChimeraCharacter SpawnTentRecruit(IEntity tent, vector tentPos, int playerId)
 	{
+		if (!tent)
+			tent = FindTentAtPosition(tentPos);
+
 		vector spawnPos = ResolveTentSpawnPosition(tent, tentPos);
 		vector spawnAngles = ResolveTentSpawnAngles(tent);
 
@@ -1114,21 +1134,27 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Where a tent recruit is put down.
 	//!
-	//! Three steps, and the third one has a trap in it:
+	//! Four steps, and the fourth one has a trap in it:
 	//!
-	//!  1. ANCHOR. With a tent entity, the tent's own forward axis from its world transform, so the
-	//!     recruit appears in front of the tent however the tent was rotated when it was built - the
-	//!     shipped fixed world-space "2 0 2" put it in a different place relative to the tent for
-	//!     every orientation. Without one, that shipped offset, unchanged.
-	//!  2. GROUND CLAMP. The anchor inherits the tent's Y, which on a slope is not the ground three
-	//!     metres away. FindSafeSpawnPosition() reads its own GetSurfaceY() and then never uses it -
-	//!     it searches within +0..2 m of the Y IT WAS GIVEN - so clamping before the call is the only
+	//!  1. ANCHOR. The tent's own OVT_SpawnPointComponent when it carries one - the authored point,
+	//!     placed in Workbench where the ground in front of the tent is actually clear. Without the
+	//!     component, the tent's forward axis from its world transform, so the recruit appears in
+	//!     front of the tent however the tent was rotated when it was built - the shipped fixed
+	//!     world-space "2 0 2" put it in a different place relative to the tent for every
+	//!     orientation. Without even a tent entity, that shipped offset, unchanged.
+	//!  2. SCATTER. A uniform random point in a TENT_SPAWN_SCATTER_RADIUS disc around the anchor, so
+	//!     consecutive recruits spread out instead of stacking on one point.
+	//!  3. GROUND CLAMP. The anchor inherits the tent's Y (or the spawn point's, which is for a
+	//!     different X/Z than the scattered one), which on a slope is not the ground three metres
+	//!     away. FindSafeSpawnPosition() reads its own GetSurfaceY() and then never uses it - it
+	//!     searches within +0..2 m of the Y IT WAS GIVEN - so clamping before the call is the only
 	//!     thing that puts the search at ground level.
-	//!  3. ! skipSpawnPointSearch MUST STAY TRUE. With the search enabled the function returns the
+	//!  4. ! skipSpawnPointSearch MUST STAY TRUE. With the search enabled the function returns the
 	//!     closest OVT_SpawnPointComponent within 15 m and returns BEFORE the TraceBox is built,
 	//!     ignoring the box entirely (OVT_Global.c:406-440). Tents are built at bases and FOBs, and
 	//!     both OVT_BaseController.et and OverthrowMobileFOBDeployed.et carry that component - so a
-	//!     tent built near one would drop every recruit on the respawn marker instead of at the tent.
+	//!     tent built near one could drop every recruit on the respawn marker instead of at the
+	//!     tent. The tent's OWN spawn point is read directly in step 1, never through that search.
 	//! \param[in] tent The tent's root entity, or null.
 	//! \param[in] fallbackPos Anchor used when there is no tent entity.
 	//! \return A world position with a collision-checked box at it.
@@ -1138,20 +1164,57 @@ class OVT_RecruitManagerComponent : OVT_Component
 
 		if (tent)
 		{
+			OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(tent.FindComponent(OVT_SpawnPointComponent));
 			vector forward = tent.GetWorldTransformAxis(2);
 			forward[1] = 0;
 
-			if (forward.Length() > 0.01)
+			if (spawnPoint)
+				anchor = spawnPoint.GetSpawnPoint();
+			else if (forward.Length() > 0.01)
 				anchor = tent.GetOrigin() + (forward.Normalized() * TENT_SPAWN_FORWARD_OFFSET);
 			else
 				anchor = tent.GetOrigin() + TENT_SPAWN_FALLBACK_OFFSET;
 		}
+
+		float scatterAngle = s_AIRandomGenerator.RandFloatXY(0, Math.PI2);
+		float scatterDistance = TENT_SPAWN_SCATTER_RADIUS * Math.Sqrt(s_AIRandomGenerator.RandFloat01());
+		anchor[0] = anchor[0] + Math.Cos(scatterAngle) * scatterDistance;
+		anchor[2] = anchor[2] + Math.Sin(scatterAngle) * scatterDistance;
 
 		BaseWorld world = GetGame().GetWorld();
 		if (world)
 			anchor[1] = world.GetSurfaceY(anchor[0], anchor[2]);
 
 		return OVT_Global.FindSafeSpawnPosition(anchor, "-0.5 0 -0.5", "0.5 2 0.5", true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The tent ROOT entity at a bare position, or null.
+	//!
+	//! The legacy tent action's RPC only ever carried a position (changing that would make its
+	//! refactor a redesign - see RpcAsk_RecruitFromTent), so the entity is recovered server-side
+	//! instead: the first RecruitmentTent buildable within TENT_LOOKUP_RADIUS. Matching on
+	//! OVT_BuildableComponent's type - NOT on OVT_SpawnPointComponent, which base controllers and
+	//! deployed FOBs also carry - is what keeps a tent built at a base from resolving to the base.
+	//! \param[in] pos Where the caller says the tent is.
+	//! \return The tent root, or null when nothing matched.
+	protected IEntity FindTentAtPosition(vector pos)
+	{
+		m_TentSearched = null;
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, TENT_LOOKUP_RADIUS, null, FilterTentEntity, EQueryEntitiesFlags.ALL);
+		return m_TentSearched;
+	}
+
+	//! Query filter for FindTentAtPosition(). Stores the match on the member and always returns
+	//! false, exactly like OVT_TownManagerComponent.FindTownMarker() - the one proven shape for a
+	//! find-one query in this codebase.
+	protected bool FilterTentEntity(IEntity entity)
+	{
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (buildable && buildable.GetBuildableType() == "RecruitmentTent")
+			m_TentSearched = entity;
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
