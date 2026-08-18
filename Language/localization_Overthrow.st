@@ -13295,6 +13295,13 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A248E7D184926DA}" {
+   Id "OVT-StartUprising"
+   Target_en_us "Start Uprising"
+   Modified 1780783911
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
@@ -13570,6 +13577,13 @@ StringTable {
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A248E7DE9D0DBC4}" {
+   Id "OVT-SupportTooLow"
+   Target_en_us "Not enough support in this town"
+   Modified 1780783937
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
