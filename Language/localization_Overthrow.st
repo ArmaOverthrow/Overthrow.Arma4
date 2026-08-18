@@ -4,7 +4,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD0}" {
    Id "OVT-Account"
    Target_en_us "Account"
-   Target_de_de "Menge"
+   Target_de_de "Konto"
    Target_ru_ru "Кошелёк"
    Target_ko_kr "계정"
    Target_zh_cn "账户"
