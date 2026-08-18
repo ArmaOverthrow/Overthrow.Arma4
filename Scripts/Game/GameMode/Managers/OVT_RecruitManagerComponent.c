@@ -68,7 +68,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! One is spawned per cluster of parked recruits and destroyed by vanilla when its last member
 	//! leaves - see PlaceRecruitInInactiveGroup(). It must carry OVT_InactiveRecruitGroupComponent
 	//! or the manager will refuse to use it: that component is the only way a group is recognised as
-	//! one of ours, and it is what deletes the group's defend waypoint.
+	//! one of ours, and it is what deletes the group's hold waypoints.
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Inactive Recruit Group Prefab", params: "et")]
 	ResourceName m_sInactiveGroupPrefab;
 
@@ -140,8 +140,12 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//! frame.
 	static const int STATUS_SYNC_INTERVAL_MS = 10000;
 
-	//! Hold timer for a parked recruit's wait waypoint (BUG-170). One day of continuous session,
-	//! i.e. never in practice - the inactive groups are session-scoped and rebuilt on every boot.
+	//! Hold timer for the wait leg of a parked recruit's [move -> wait] hold cycle (BUG-170 + the
+	//! wander fix). One day of continuous session, i.e. never in practice - the inactive groups are
+	//! session-scoped and rebuilt on every boot - and even an expiry is harmless: the cycle reruns.
+	//! (The wander fix also made SpawnWaitWaypoint() honour this value - it used to ignore its time
+	//! parameter and run every wait on the prefab's 60 s default, which is what let parked recruits
+	//! wander in the first place.)
 	static const float INACTIVE_HOLD_WAIT_SECONDS = 86400;
 
 	//! Event fired when a recruit is added
@@ -2607,14 +2611,14 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!
 	//! Everything that makes the group usable happens while it is still EMPTY, because SetFaction()
 	//! rewrites the faction affiliation of every agent already in a group
-	//! (Entities/SCR_AIGroup.c:2112-2120), and the defend waypoint should be waiting for the first
+	//! (Entities/SCR_AIGroup.c:2112-2120), and the hold waypoints should be waiting for the first
 	//! member rather than arriving after it.
 	//!
 	//! The prohibitions in PlaceRecruitInInactiveGroup()'s header apply to the group built here.
 	//!
 	//! \param[in] recruit The record being parked.
 	//! \param[in] recruitEntity Its body.
-	//! \param[in] position Where to build the group and aim its defend waypoint.
+	//! \param[in] position Where to build the group and aim its hold waypoints.
 	//! \return True when the group exists and holds this recruit. On false NOTHING is left behind.
 	protected bool CreateInactiveGroupFor(notnull OVT_RecruitData recruit, notnull IEntity recruitEntity, vector position)
 	{
@@ -2639,7 +2643,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (!marker)
 		{
 			// REFUSED, NOT TOLERATED. Without the marker this group could never be recognised as a
-			// cluster host again, and nothing would ever delete its defend waypoint - so a prefab
+			// cluster host again, and nothing would ever delete its hold waypoints - so a prefab
 			// missing the component would silently leak one group and one waypoint per parked recruit.
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
 			Print("[Overthrow] The inactive-recruit group prefab has no OVT_InactiveRecruitGroupComponent - recruit " + recruit.m_sRecruitId + " cannot be parked", LogLevel.ERROR);
@@ -2661,23 +2665,56 @@ class OVT_RecruitManagerComponent : OVT_Component
 					group.SetFaction(playerFaction);
 			}
 
-			// Hold in place with a plain wait waypoint (BUG-170, revising decision D9). The garrison-style
-			// defend waypoint continuously re-manages the group - cover picks, stance changes, order
-			// barks - which on a parked roadside recruit is an audible, visible re-order loop. A waiting
-			// group still engages perceived threats (the town patrols wait at points via the same
-			// waypoint and return fire, OVT_TownController.c:175). The timer is effectively infinite for
-			// a session-scoped group: it is rebuilt from the records on every boot (D7/D8), so the
-			// wait never expires in practice.
-			AIWaypoint waypoint = config.SpawnWaitWaypoint(position, INACTIVE_HOLD_WAIT_SECONDS);
-			if (waypoint)
-			{
-				group.AddWaypoint(waypoint);
+			// Hold in place with an endless [move -> wait] cycle (wander fix, revising the BUG-170
+			// plain wait, which itself revised decision D9's defend waypoint). The plain wait LOOKED
+			// infinite but was not: SpawnWaitWaypoint() used to ignore its time parameter, so the
+			// prefab's own m_holdingTime of 60 s applied (AIWaypoint_Wait.et), the waypoint
+			// completed after a minute, and the waypointless group was vanilla idle AI - free to
+			// wander off its park spot. The helper is fixed, and the cycle makes the hold
+			// self-healing rather than timer-dependent anyway: the move walks them back to the spot
+			// (including after combat displacement), the 24 h wait keeps the loop silent between
+			// laps, and SetRerunCounter(-1) reruns it forever. This is the exact shape of the town
+			// perimeter patrol (OVT_OverthrowConfigComponent.GivePatrolWaypoints), which also proves
+			// a group in this loop still engages perceived threats (OVT_TownController.c:175). Still
+			// no defend waypoint: its continuous re-manage loop - cover picks, stance changes, order
+			// barks - is what BUG-170 removed.
+			AIWaypoint moveWaypoint = config.SpawnMoveWaypoint(position);
+			SCR_TimedWaypoint waitWaypoint = config.SpawnWaitWaypoint(position, INACTIVE_HOLD_WAIT_SECONDS);
 
-				// Handing it to the marker is what deletes it when the group dies. AddWaypoint() does
-				// NOT take ownership: vanilla destroys the waypoints IT spawned explicitly
-				// (SCR_AIGroup.DestroyEntities :1871-1886), and this group is destroyed by vanilla's
-				// delete-when-empty far more often than by anything here.
-				marker.SetWaypoint(waypoint);
+			AIWaypointCycle cycleWaypoint;
+			if (moveWaypoint && waitWaypoint)
+				cycleWaypoint = AIWaypointCycle.Cast(config.SpawnBasicCycleWaypoint(position));
+
+			if (cycleWaypoint)
+			{
+				array<AIWaypoint> holdLoop = {};
+				holdLoop.Insert(moveWaypoint);
+				holdLoop.Insert(waitWaypoint);
+				cycleWaypoint.SetWaypoints(holdLoop);
+				cycleWaypoint.SetRerunCounter(-1);
+				group.AddWaypoint(cycleWaypoint);
+
+				// Handing them to the marker is what deletes them when the group dies. AddWaypoint()
+				// and SetWaypoints() do NOT take ownership: vanilla destroys the waypoints IT
+				// spawned explicitly (SCR_AIGroup.DestroyEntities :1871-1886), and this group is
+				// destroyed by vanilla's delete-when-empty far more often than by anything here.
+				marker.AddOwnedWaypoint(moveWaypoint);
+				marker.AddOwnedWaypoint(waitWaypoint);
+				marker.AddOwnedWaypoint(cycleWaypoint);
+			}
+			else
+			{
+				// A waypoint prefab failed to spawn. Degrade to the shipped single wait - a real
+				// 24 h hold, just without the self-healing loop - and leak nothing that was spawned
+				// for a cycle that will not exist.
+				if (moveWaypoint)
+					SCR_EntityHelper.DeleteEntityAndChildren(moveWaypoint);
+
+				if (waitWaypoint)
+				{
+					group.AddWaypoint(waitWaypoint);
+					marker.AddOwnedWaypoint(waitWaypoint);
+				}
 			}
 		}
 
@@ -2693,7 +2730,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			// LEAVES; its own attribute description says it will "*not* delete the group when it starts
 			// empty" (Entities/SCR_AIGroup.c:95-97), and OnEmpty() is only raised by a removal. A group
 			// that never received its first agent is therefore ours to destroy, here, or it stands in
-			// the world with a defend waypoint and nobody in it for the rest of the session.
+			// the world with its hold waypoints and nobody in it for the rest of the session.
 			Print("[Overthrow] Recruit " + recruit.m_sRecruitId + " could not be added to its new inactive group - deleting the group", LogLevel.WARNING);
 			SCR_EntityHelper.DeleteEntityAndChildren(group);
 			return false;
@@ -2751,7 +2788,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!
 	//! THE GROUP IS NOT DELETED HERE, EVER. If that was its last member, vanilla's OnEmpty() has
 	//! already queued the deletion for the next frame (Entities/SCR_AIGroup.c:2442-2455), and the
-	//! defend waypoint goes with it through OVT_InactiveRecruitGroupComponent.OnDelete(). Deleting it
+	//! hold waypoints go with it through OVT_InactiveRecruitGroupComponent.OnDelete(). Deleting it
 	//! here as well would be a double delete of an entity vanilla is still holding a pointer to.
 	//!
 	//! \param[in] recruitEntity The body to pull out.
