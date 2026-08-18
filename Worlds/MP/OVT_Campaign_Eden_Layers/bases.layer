@@ -23,7 +23,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDirectionVariance 20
    }
   }
-  coords 9398.637 196.296 1170.662
+  coords 9296.714 191.08 1143.872
+  angles 0 -44.444 0
  }
  OVT_Base_Lamentin {
   components {
