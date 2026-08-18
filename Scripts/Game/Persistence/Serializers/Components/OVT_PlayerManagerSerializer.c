@@ -53,6 +53,13 @@ class OVT_PersistedPlayer
 	//! body cannot be spawned back, the player is still rebuilt here rather than at their home.
 	vector lastKnownPosition;
 	vector lastKnownAngles;
+
+	//! Version 4. Tutorial entry ids this player has dismissed. Moved into the campaign save from the
+	//! per-machine profile (2026-08-18) - see OVT_PlayerData.m_aSeenTutorials for the reasoning.
+	ref array<string> seenTutorialIds = {};
+
+	//! Version 4. The player's "Don't show tips again" choice.
+	bool tutorialsDisabled;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -100,6 +107,9 @@ class OVT_PersistedPlayer
 //!   3 - adds lastKnownPosition/lastKnownAngles, appended after the body id, so a player comes back
 //!       where they logged out even when their stored body cannot be found (2026-08-04 dedicated
 //!       play-test: the body answered NOT_FOUND after a server restart and the player woke up at home)
+//!   4 - adds seenTutorialIds/tutorialsDisabled, appended after the transform: tutorial progress moved
+//!       into the campaign save from the unreliable per-machine profile (2026-08-18, user decision -
+//!       tips were re-showing on every load; a new campaign showing them again is accepted)
 //------------------------------------------------------------------------------------------------
 class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 {
@@ -122,7 +132,7 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		if (!players)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 3);
+		context.WriteValue("version", 4);
 
 		array<ref OVT_PersistedPlayer> records = new array<ref OVT_PersistedPlayer>();
 
@@ -166,6 +176,12 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 				// written even when the id could not be captured.
 				record.lastKnownPosition = player.m_vLastKnownPosition;
 				record.lastKnownAngles = player.m_vLastKnownAngles;
+
+				// Version 4. The tutorial component's server half keeps these current as the owning
+				// client dismisses tips; a null array on a record that predates the field writes empty.
+				if (player.m_aSeenTutorials)
+					record.seenTutorialIds.Copy(player.m_aSeenTutorials);
+				record.tutorialsDisabled = player.m_bTutorialsDisabled;
 
 				if (player.skills)
 				{
@@ -223,6 +239,11 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		if (version < 3)
 			ClearLastKnownTransforms(records);
 
+		// And again for version 4: an older payload carries no tutorial state, and "no state" means
+		// every tip shows again - which is exactly what such a save's players were seeing anyway.
+		if (version < 4)
+			ClearTutorialState(records);
+
 		players.ApplyPersistedPlayers(records);
 
 		return true;
@@ -240,6 +261,25 @@ class OVT_PlayerManagerSerializer : ScriptedComponentSerializer
 		{
 			if (record)
 				record.bodyPersistenceId = "";
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Blanks the version 4 tutorial state on every record of an older payload.
+	//! \param[in] records Records just read, may be null.
+	protected void ClearTutorialState(array<ref OVT_PersistedPlayer> records)
+	{
+		if (!records)
+			return;
+
+		foreach (OVT_PersistedPlayer record : records)
+		{
+			if (record)
+			{
+				if (record.seenTutorialIds)
+					record.seenTutorialIds.Clear();
+				record.tutorialsDisabled = false;
+			}
 		}
 	}
 

@@ -672,6 +672,173 @@ class OVT_TEST_PersistenceRoundTrip_PlayerMoney_SurvivesSaveAndReload : SCR_Auto
 }
 
 //------------------------------------------------------------------------------------------------
+//! Seen-tutorial state survives a save and a reload on the player's campaign record.
+//!
+//! The replacement for the retired per-machine profile store's round-trip gate (2026-08-18):
+//! tutorial progress now rides OVT_PlayerManagerSerializer version 4, and this is the case that
+//! fails if either half of the append - the ids or the flag - stops being written or re-applied.
+//! Same shape as the PlayerMoney case above: mutate, save, DIRTY, reload, assert.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_TutorialSeen_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! Test-only ids. Leading underscores are illegal in the authored entry-id scheme (lowercase
+	//! ASCII letters, digits and dashes), so these cannot collide with real content, ever.
+	static const string TEST_ID_A = "__ovt-selftest-persist-alpha";
+	static const string TEST_ID_B = "__ovt-selftest-persist-beta";
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+	protected string m_sPersId;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string diagnostic;
+			m_sPersId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+			if (m_sPersId == "")
+			{
+				SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+				return true;
+			}
+
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("No OVT_PlayerData record for the local player");
+				return true;
+			}
+
+			if (!player.m_aSeenTutorials)
+				player.m_aSeenTutorials = new array<string>();
+
+			player.m_aSeenTutorials.Clear();
+			player.m_aSeenTutorials.Insert(TEST_ID_A);
+			player.m_aSeenTutorials.Insert(TEST_ID_B);
+			player.m_bTutorialsDisabled = true;
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+			if (!player)
+			{
+				SetFailure("No OVT_PlayerData record for the local player before the reload");
+				return true;
+			}
+
+			// Dirty it: a reload that restores nothing now cannot pass.
+			if (player.m_aSeenTutorials)
+				player.m_aSeenTutorials.Clear();
+			player.m_bTutorialsDisabled = false;
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_PlayerData player = OVT_PlayerData.Get(m_sPersId);
+		if (!player)
+		{
+			SetFailure("No OVT_PlayerData record for the local player after the reload");
+			return true;
+		}
+
+		if (!player.m_aSeenTutorials || !player.m_aSeenTutorials.Contains(TEST_ID_A) || !player.m_aSeenTutorials.Contains(TEST_ID_B))
+		{
+			int count = 0;
+			if (player.m_aSeenTutorials)
+				count = player.m_aSeenTutorials.Count();
+
+			SetFailure("Seen tutorials did not survive the round trip: saved 2 ids, read back %1 - OVT_PlayerManagerSerializer version 4 is not carrying m_aSeenTutorials, so every tip would re-show on every continue", count.ToString());
+			return true;
+		}
+
+		if (!player.m_bTutorialsDisabled)
+		{
+			SetFailure("The tutorials-disabled flag did not survive the round trip: saved true, read back false - a player who pressed \"Don't show tips again\" would be shown tips again on continue");
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! Player XP and skill levels survive a save and a reload.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]

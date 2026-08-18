@@ -50,6 +50,10 @@ class OVT_TutorialContext : OVT_UIContext
 	//! True while the subscribe retry timer is registered on the call queue.
 	protected bool m_bSubscribeRetryRunning;
 
+	//! Whatever held keyboard/gamepad focus before this popup took it, restored on close so a tip
+	//! shown while a menu is open does not leave that menu focus-dead afterwards (BUG-159).
+	protected Widget m_wPreviousFocus;
+
 	protected Widget m_wDismissButton;
 	protected Widget m_wNextButton;
 	protected Widget m_wBackButton;
@@ -404,7 +408,21 @@ class OVT_TutorialContext : OVT_UIContext
 
 		Refresh();
 
+		// Captured BEFORE FocusFirstButton takes it, restored in OnClose. Without this, a tip shown
+		// while any menu is open strands that menu with no focused widget once the tip closes, and a
+		// gamepad cannot recover (BUG-159).
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (workspace)
+			m_wPreviousFocus = workspace.GetFocusedWidget();
+
 		FocusFirstButton();
+
+		// A MODAL popup means the character stops responding while it is up. The action context alone
+		// cannot deliver that: it is not exclusive, so movement, view and fire all stay live underneath
+		// (the exact symptom reported 2026-08-18). This is vanilla's own recipe for the same moment -
+		// SCR_PlayerController.SetDisableControls and the base game's tutorial both flip these three.
+		// Symmetric restore in OnClose; a close driven by death restores harmlessly on a dead controller.
+		SetCharacterControlsDisabled(true);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -415,6 +433,10 @@ class OVT_TutorialContext : OVT_UIContext
 	//! so a button-side implementation would silently fail to record the most common dismissal.
 	override void OnClose()
 	{
+		SetCharacterControlsDisabled(false);
+
+		RestorePreviousFocus();
+
 		if (m_DismissAction) m_DismissAction.m_OnActivated.Remove(Dismiss);
 		if (m_NextAction) m_NextAction.m_OnActivated.Remove(NextPage);
 		if (m_BackAction) m_BackAction.m_OnActivated.Remove(PreviousPage);
@@ -638,6 +660,47 @@ class OVT_TutorialContext : OVT_UIContext
 			workspace.SetFocusedWidget(m_wDismissButton);
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Hands keyboard/gamepad focus back to whatever held it before this popup opened.
+	//!
+	//! Null-guarded on both sides: there may have been no focused widget (a tip over open gameplay is
+	//! the normal case), and the widget that was focused may have been torn down while the popup was
+	//! up. Restoring nothing is fine in both cases - what must never happen is leaving focus ON this
+	//! popup's own soon-to-be-deleted buttons, which reads to a gamepad as "the UI stopped responding".
+	protected void RestorePreviousFocus()
+	{
+		Widget previous = m_wPreviousFocus;
+		m_wPreviousFocus = null;
+
+		if (!previous)
+			return;
+
+		WorkspaceWidget workspace = GetGame().GetWorkspace();
+		if (!workspace)
+			return;
+
+		workspace.SetFocusedWidget(previous);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Stops (or resumes) the character responding to movement, view and weapon input.
+	//!
+	//! What makes the MODAL presentation actually modal. OverthrowTutorialMenuContext is Priority 50 /
+	//! Flags 4 like every other Overthrow menu context, and a non-exclusive context never suppresses
+	//! the character tier underneath it - so without this, a player could sprint, aim and fire with
+	//! the welcome sequence on screen. Same three switches as SCR_PlayerController.SetDisableControls
+	//! and the base game's own tutorial (SCR_TutorialGamemodeComponent.c:542-544).
+	//! \param[in] disabled True while the popup is on screen.
+	protected void SetCharacterControlsDisabled(bool disabled)
+	{
+		if (!m_Controller)
+			return;
+
+		m_Controller.SetDisableViewControls(disabled);
+		m_Controller.SetDisableWeaponControls(disabled);
+		m_Controller.SetDisableMovementControls(disabled);
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	// ACTIONS
 	//-----------------------------------------------------------------------------------------------
@@ -702,9 +765,9 @@ class OVT_TutorialContext : OVT_UIContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Turns every future tip off for this machine, then closes.
+	//! Turns every future tip off for this player's campaign, then closes.
 	//!
-	//! The flag is written straight through to the player's profile by
+	//! The flag is written straight through to the campaign record by
 	//! OVT_TutorialComponent.SetTipsDisabled, which also empties the pending queue - tips queued under
 	//! the old setting reappearing the moment the player turns tips back on would make the toggle look
 	//! broken. Two-way by construction: writing false later really does clear the stored true.
@@ -720,11 +783,9 @@ class OVT_TutorialContext : OVT_UIContext
 		if (tutorials)
 			tutorials.SetTipsDisabled(true);
 
-		// The flag is written FIRST on purpose. GetGame().SaveUserSettings() is throttled and DROPS
-		// rather than defers, so of the two flushes this method causes - the flag here, and this
-		// entry's seen id from OnClose a moment later - only the first is guaranteed to reach disk.
-		// Losing the seen id costs nothing: tips are off, and the accessor rewrites the whole record
-		// on the next mutation. Losing the flag would silently un-disable tips on the next launch.
+		// The flag is written first so the campaign record carries it even if the close's own
+		// mark-seen never lands; both now travel as ordinary reliable RPCs to the authority, where
+		// they live on OVT_PlayerData and ride every save.
 		CloseLayout();
 	}
 
@@ -741,9 +802,9 @@ class OVT_TutorialContext : OVT_UIContext
 	//! either a second layout or a second bound input - and the input budget in this context is the
 	//! very thing the shared-input toggle above is working around.
 	//!
-	//! Goes through OVT_TutorialComponent and NOT OVT_TutorialSettingsAccessor.Reset(): the accessor
-	//! writes the profile without touching the component's in-memory store, so the session would carry
-	//! on believing every id is seen and write them all back on the next mutation.
+	//! Goes through OVT_TutorialComponent.ResetSeen(), which clears the client's in-memory mirror AND
+	//! tells the authority to clear the campaign record - clearing only one side would leave the
+	//! session believing every id is seen and writing them all back on the next dismissal.
 	//! \param[in] src The component that fired. Unused.
 	//! \param[in] value Unused.
 	//! \param[in] reason Unused.
@@ -759,9 +820,7 @@ class OVT_TutorialContext : OVT_UIContext
 		// contradiction, and the entry on screen is now unseen again.
 		//
 		// Clearing the entry first is what stops OnClose putting it straight back. With m_Entry null,
-		// OnClose takes its documented "release WITHOUT marking seen" path, so the reset survives -
-		// and ResetSeen's flush stays the only profile write this press causes, which matters because
-		// GetGame().SaveUserSettings() is throttled and DROPS a second call rather than deferring it.
+		// OnClose takes its documented "release WITHOUT marking seen" path, so the reset survives.
 		SetEntry(null);
 
 		CloseLayout();

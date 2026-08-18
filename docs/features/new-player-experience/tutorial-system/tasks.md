@@ -1,6 +1,6 @@
 # Tutorial System - Task Checklist
 
-**Last Updated:** 2026-08-11 (post-close change set — show-over-UI tips, HUD field-manual link, PLAYER_ENTER_BASE)
+**Last Updated:** 2026-08-18 (post-close change set 2 — campaign-persisted seen store, real modality, BUG-159)
 **Progress:** 61/61 tasks complete (100%) · **2 tasks cancelled by risk R3** (5.4, 6.8) · **F5 deferred**
 
 **Epic:** `new-player-experience` (feature #1 of 5) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md`
@@ -910,11 +910,29 @@ Runtime/visual items the harness structurally cannot reach. Populated as phases 
 - [ ] ⚠️ **Read the tip's art against the new moment.** `bases-first-capture-ui.edds` was shot for a tip about a base *changing hands*; the tip now fires on *arrival*. If the screenshot shows an outcome, it is now a picture that contradicts its own page — the same fault first-spawn caught with the car-in-a-garage header.
 - [ ] The body text is **owed a rewrite** (see the scratchpad note) and still describes the old event until the `.st` merge is resolved.
 
-### From Phase 4 — the settings store's cross-restart half (Q3)
-- [ ] Trigger the proof entry, dismiss it, **quit cleanly**, relaunch, trigger the same action — nothing appears.
-- [ ] Repeat but **kill the process** instead, more than ~10 s after the dismissal — the id must still be in the profile.
-- [ ] Dismiss two tips within a couple of seconds of each other, then kill the process — did the second id survive? This is the exact residual exposure of the `SaveUserSettings` throttle and its real-world shape is worth knowing.
-- [ ] Run a headless server and confirm **no settings access** appears in the log.
+### ~~From Phase 4 — the settings store's cross-restart half (Q3)~~ RETIRED 2026-08-18
+*The per-machine profile store was deleted outright (it was re-showing tips on every load in practice — the user's report). Seen state now rides the campaign save via `OVT_PlayerManagerSerializer` v4; the checks below replace this block.*
+
+### From the 2026-08-18 change set — campaign-persisted seen store, real modality, BUG-159
+
+**Before anything: close Workbench and run the suites** — `tools/compile-check.sh` (already 0), `tools/run-tests.sh` Fast `{6A6E29FF47ECB840}` and All `{6A6E2A002F53A581}`. The new `OVT_TEST_PersistenceRoundTrip_TutorialSeen_SurvivesSaveAndReload` case must pass, and it has never been proven red.
+
+**Seen state in the campaign save:**
+- [ ] Fresh campaign, dismiss the welcome and one buy tip, **save and quit, Continue** — neither returns. (This is the exact user-reported failure of the old store.)
+- [ ] Start a **new campaign** on the same machine — the welcome shows again (accepted consequence, confirm it reads as intended).
+- [ ] Press "Don't show tips again", save/quit/Continue — still off. Reset tips from the menu, save/quit/Continue — still on.
+- [ ] **Two-client MP:** A dismisses a tip; B still gets theirs (per-player record). A reconnects — no re-show (the `PushTutorialState` push on rejoin).
+- [ ] **Pre-v4 save:** Continue a campaign saved before this build — loads clean, tips simply show again (the `version < 4` clear).
+
+**The modal is modal:**
+- [ ] Welcome opens on spawn: **no movement, no aim, no fire** while it is up; every button works on keyboard AND pad (`Esc`/`E`/`Q`/`N`, `B`/`Y`/`X`/`R3`); controls return the instant it closes.
+- [ ] Die-with-modal-open still restores controls after respawn (the disable is per-character and the close path re-enables).
+
+**BUG-159:**
+- [ ] Gamepad: open the place menu on a fresh profile — the place tip draws over it and the **d-pad keeps driving the menu the whole 20 s**.
+- [ ] A modal tip closed while a menu is open puts focus back where it was.
+
+**Still owed from before:** the two stale `BasesFirstCapture` authoring Comments in `localization_Overthrow.st` (they still describe the old BASE_CONTROL_CHANGE trigger; the shipped body text is already correct).
 
 ---
 

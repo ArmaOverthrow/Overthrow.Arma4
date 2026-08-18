@@ -9,10 +9,12 @@
 //!   3. The routing decision - which player caused the event, and (for the two events that have no
 //!      acting player at all) which players are close enough to care.
 //!
-//! It deliberately does NOT decide whether a player should SEE an entry. That is the client's call,
-//! made against its own per-machine seen store, because the server has no visibility into seen state
-//! (plan decision D5). The one thing the server tracks is a volatile per-session sent-set, purely so
-//! that a veteran's every shop purchase does not generate a fresh RPC for the rest of the session.
+//! Whether a player should SEE an entry is decided twice, on purpose (changed 2026-08-18, when the
+//! seen store moved from the per-machine profile into the campaign record): SendToPlayer consults
+//! the player's persisted OVT_PlayerData record - the authoritative cross-session dedup - and the
+//! owning client's own mirror dedups again for the client-local triggers the server never hears
+//! about. The volatile per-session sent-set on top is traffic control only, so a veteran's every
+//! shop purchase does not generate a fresh RPC for the rest of the session.
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialManagerComponentClass: OVT_ComponentClass
 {
@@ -479,16 +481,30 @@ class OVT_TutorialManagerComponent: OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Sends one entry to one player, at most once per player per session.
 	//!
-	//! The sent-set here is a traffic control, not a correctness mechanism: the client's per-machine
-	//! store is what actually decides whether a tip is shown. Dropping a repeat send is therefore
-	//! always safe - the only entry the client could have wanted is one it has never seen, and it has
-	//! never seen this one only if this is the first send.
+	//! The campaign record's veto below is the correctness mechanism; the sent-set after it is
+	//! traffic control. Dropping a repeat send is therefore always safe - the only entry the client
+	//! could have wanted is one it has never seen, and it has never seen this one only if this is
+	//! the first send.
 	//! \param playerId Runtime id of the target player.
 	//! \param entryId Id of the entry to send.
 	void SendToPlayer(int playerId, string entryId)
 	{
 		if (playerId < FIRST_VALID_PLAYER_ID || entryId == "")
 			return;
+
+		// The campaign record's veto (2026-08-18, seen state moved into normal persistence). The
+		// client's own mirror still dedups too, but that mirror starts empty every session and is
+		// filled by an async push - this check is what makes cross-session dedup authoritative
+		// rather than dependent on a race the client usually wins.
+		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+		if (player)
+		{
+			if (player.m_bTutorialsDisabled)
+				return;
+
+			if (player.m_aSeenTutorials && player.m_aSeenTutorials.Contains(entryId))
+				return;
+		}
 
 		string key = GetSentSetKey(playerId);
 

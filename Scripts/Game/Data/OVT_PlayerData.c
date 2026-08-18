@@ -65,6 +65,22 @@ class OVT_PlayerData : Managed
 	//! Yaw/pitch/roll to match m_vLastKnownPosition. Meaningless on its own - always test the position.
 	vector m_vLastKnownAngles = "0 0 0";
 
+	//------------------------------------------------------------------------------------------------
+	//! Tutorial entry ids this player has dismissed, part of the campaign record like money and XP.
+	//!
+	//! MOVED HERE FROM THE PER-MACHINE PROFILE (2026-08-18, user decision): the ModuleGameSettings
+	//! store proved unreliable in practice - tips re-showed on every load - so seen-tutorial state now
+	//! rides the same save the rest of the campaign does. Consequence, accepted: a NEW campaign shows
+	//! the tips again.
+	//!
+	//! SERVER-AUTHORITATIVE. The owning client mirrors this through OVT_TutorialComponent (pushed once
+	//! at player finalization, mutated back through that component's server RPCs); it is NOT in the
+	//! player manager's RplSave/RplLoad JIP payload - no other client has any use for it.
+	ref array<string> m_aSeenTutorials = {};
+
+	//! The player's "Don't show tips again" choice, persisted and synced exactly as the ids above.
+	bool m_bTutorialsDisabled = false;
+
 	//Not persisted	(controlled by skill effects)
 	[NonSerialized()]
 	float priceMultiplier=1;

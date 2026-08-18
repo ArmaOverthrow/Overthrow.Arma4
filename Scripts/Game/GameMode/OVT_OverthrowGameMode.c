@@ -1188,6 +1188,11 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 
 		tutorials.SetSpawnContext(playerId, filter);
+
+		// The campaign's tutorial record rides the same moment: this is the one per-player push that
+		// provably runs on every path a player arrives by (new spawn, continue, reconnect, JIP), and
+		// the state must land before the player can trigger anything worth suppressing.
+		tutorials.PushTutorialState(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
