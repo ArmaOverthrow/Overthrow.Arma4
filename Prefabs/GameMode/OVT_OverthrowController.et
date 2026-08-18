@@ -41,6 +41,8 @@ OVT_OverthrowController {
   }
   OVT_UprisingRequestComponent "{68A0C7D24B913A60}" {
   }
+  OVT_FuelRequestComponent "{6B4E1F6000000001}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

@@ -3,6 +3,11 @@
 **Epic:** economy
 **Created:** 2026-08-18
 
+> **Deviation note (built 2026-08-18):** the "flat fee per unit time" below was superseded by a
+> **per-litre-delivered** charge (user decision D1 in `implementation.md`) — the difficulty knob is
+> `float fuelPricePerLitre`, charged server-side in `OnFuelAddedToVehicleServer`, not in
+> `LoopActionUpdate` (which runs client-side and moves no fuel).
+
 ## Overview
 
 Wire the base game's fuel systems into Overthrow's economy: refueling at world fuel stations costs

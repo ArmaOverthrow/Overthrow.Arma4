@@ -53,6 +53,10 @@ class OVT_OverthrowConfigStruct
 	float gunDealerSellPriceMultiplier;
 	float procurementMultiplier;
 	float vehiclePriceMultiplier;
+	//! Price per litre charged at static fuel stations. 0 disables fuel charging entirely. Unlike the
+	//! server-only fields below this one IS replicated (CONFIG_STREAM_VERSION 4) — the client needs it
+	//! for the Refuel action's price suffix and its own affordability gate.
+	float fuelPricePerLitre;
 	//! Gear fee multiplier for equipped tent recruits. Server-side only - see the note on
 	//! OVT_DifficultySettings.recruitLoadoutFeeMultiplier. Nothing replicates this and nothing may
 	//! start to: it is deliberately absent from RplSave/RplLoad below, which is why
@@ -117,6 +121,7 @@ class OVT_OverthrowConfigStruct
 		gunDealerSellPriceMultiplier = 0.5;
 		procurementMultiplier = 0.8;
 		vehiclePriceMultiplier = 1.0;
+		fuelPricePerLitre = 1.0;
 		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
 		virtualizationSpawnDistance = 1750;
 		civilianDensityMultiplier = 1.0;
@@ -657,7 +662,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! ValidateTravel (the travel button's enable state) and OVT_MapLocationFOB.CanRespawn (the
 	//! respawn marker) — without it a client whose server disabled the FOB exemption would show an
 	//! enabled button the server then refuses.
-	protected const int CONFIG_STREAM_VERSION = 3;
+	//!
+	//! Version 4 appended fuelPricePerLitre to the difficulty block. It is read client-side by the
+	//! Refuel action's price suffix and by the local affordability gate that greys that action out —
+	//! without it a client would draw its own preset's price and refuse (or offer) a refuel the
+	//! server prices differently, which is the gate disagreeing with the authority, not a cosmetic
+	//! difference.
+	protected const int CONFIG_STREAM_VERSION = 4;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -686,6 +697,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.radioTowerRange);
 		writer.WriteFloat(m_Difficulty.baseSupportRange);
 		writer.WriteBool(m_Difficulty.allowFOBDuringQRF);
+		writer.WriteFloat(m_Difficulty.fuelPricePerLitre);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -777,6 +789,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadBool(b)) return false;
 		m_Difficulty.allowFOBDuringQRF = b;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.fuelPricePerLitre = f;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

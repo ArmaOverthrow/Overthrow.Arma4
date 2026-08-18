@@ -247,6 +247,8 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B3D000000000016}" : "{6B3D000000000010}Configs/Tutorials/welcomeNohome.conf" {
     }
+    OVT_TutorialEntryConfig "{6B4E1F5000000004}" : "{6B4E1F5000000001}Configs/Tutorials/fuelDepotBuilt.conf" {
+    }
    }
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {

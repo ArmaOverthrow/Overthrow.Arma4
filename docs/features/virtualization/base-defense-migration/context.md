@@ -183,6 +183,11 @@
 
 ## Session Notes
 
+### 2026-08-18 (orchestrator) — A1 closed: viz single-square, gate green (All 280)
+- WB viz saga resolved. Crash #3 ("radius < 50") did not reproduce after a **clean WB restart** with the CreateArrow-only viz — no mechanism for a radius threshold exists in the code (viz is pure vector maths; runtime has no min>max rolls), the crash stack was WB's Qt UI thread, and that session had hot-reloaded scripts after a live [Attribute] edit. Verdict: WB script hot-reload instability, not the viz. The temporary radius breadcrumb print was removed after the user confirmed all good.
+- Per user request the viz now draws **one square only** (edge arrowheads = walk direction, start arrow kept; the ±jitter band is not drawn).
+- **Amendment A1 gate: All suite 280/280 green 2026-08-18.** Feature remains Ready for Review; still owed: wiki publish, loc re-export, remaining §6 play-test items + MP pass, per-base perimeter authoring pass (all bases ship 280 m / 0°).
+
 ### 2026-08-18 (orchestrator) — WB viz crash #2 and the CreateArrow rewrite
 - The member-buffer fix did NOT hold: Workbench crashed again on base selection (native illegal-write AV ~11 s after Eden load, no script frames, minidump unsymbolised — log `logs_2026-08-18_03-42-14`).
 - **The viz no longer uses the CreateLines family at all.** `DrawPerimeterSquare` now draws each square as four `Shape.CreateArrow` edges (copy-safe — the attack arrows' proven primitive; bare `ONCE` calls, vanilla precedent `SCR_PowerLineJointEntity.c:163`), heads showing walk direction: solid cyan authored square (head 8), two faint ±10° squares (head 4), start arrow kept. The three member vertex buffers and the perimeter Shape handles are deleted. Compile 0.

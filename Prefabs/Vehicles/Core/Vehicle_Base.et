@@ -39,6 +39,16 @@ Vehicle {
      CanAggregate 1
      "Sort Priority" 101
     }
+    OVT_FillFuelAction "{6B4E1F1000000010}" {
+     ParentContextList {
+      "fuel_cap"
+     }
+     UIInfo UIInfo "{6B4E1F1000000011}" {
+      Name "#OVT-FillFuel"
+     }
+     VisibilityRange -1
+     Duration 5
+    }
    }
   }
  }

@@ -189,6 +189,11 @@
 //!   1c. DeploymentOwnedGroups_ReclaimAfterReload        ) OVT_TEST_DeploymentRoundTripFixture's
 //!   1d. DeploymentRecord_SurvivesSaveAndReapply         ) header FIRST - four of them assert the
 //!   1e. DeploymentVersion1Payload_StillLoads            ) RESTORE half only, and it says why
+//!   1d2. FuelDepot_LevelSurvivesSave          - builds a Fuel Depot, fills it and takes a real save.
+//!                                                DELIBERATELY DEGRADED and uses NEITHER reload seam:
+//!                                                the depot is its own tracked root, and the load seam
+//!                                                below re-applies the GAME MODE entity's record only.
+//!                                                Read its own header before "fixing" it
 //!   1e. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
 //!                                                idempotency is part of what it asserts
 //!   1f. LegacyBaseUpgrades_ConvertToDeploymentResources - a pre-migration base payload is refunded to
@@ -7280,5 +7285,374 @@ class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResour
 			manager.SubtractFactionResources(factionIndex, current - originalPool);
 		else if (current < originalPool)
 			manager.AddFactionResources(factionIndex, originalPool - current);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The Fuel Depot buildable can be built, filled to a distinctive level, and carried through a real
+//! save with that level intact.
+//!
+//! ==========================================================================================
+//! ⚠ THIS IS THE PLAN'S DOCUMENTED FALLBACK, NOT THE FULL ROUND TRIP. READ THIS FIRST.
+//!
+//! docs/features/economy/fuel/implementation.md § Testing Strategy asks for a five-phase round trip
+//! here - build, set the level, save, DIRTY the level, reload, assert the saved level came back -
+//! and names its own degradation path "if the reload does not restore a mid-session build". It does
+//! not, and that is structural rather than a timing problem:
+//!
+//!   OVT_PersistenceManagerComponent.ReapplyLatestSaveData() - the suite's only load seam - asks the
+//!   persistence system for exactly ONE instance, the GAME MODE ENTITY (`request.Instances =
+//!   {owner}`). Its own doc comment says so: "WHAT IT DOES NOT COVER. Anything outside the game mode
+//!   entity's record - world entities, characters, vehicles, placeables." A depot is a separate
+//!   tracked root (SelfSpawn 1, its own EntityPersistenceConfig keyed on OVT_BuildableComponent), so
+//!   no re-application will ever put its record back. Restoring it means restarting the session,
+//!   which the suite header explains at length is impossible inside the -autotest harness.
+//!
+//! WHY THIS CASE IS HERE AND NOT IN OVT_TEST_PersistenceSuite, which is where the plan's fallback
+//! sentence points. Two hard reasons, either one sufficient:
+//!   1. That suite's header forbids it in terms: "Nothing in THIS file triggers a save at all" /
+//!      "Do not add save/reload assertions here." A save-taking case there would break its contract.
+//!   2. OVT_TEST_PersistenceSuite is listed BEFORE this suite in Configs/Tests/OVT_TestGroup_All.conf,
+//!      and this suite's capability gate asserts HasSaveGame() is FALSE before its own first save
+//!      (closure 1). A save taken in the earlier suite turns that gate into a "precondition violated"
+//!      failure - i.e. putting the fallback where the sentence says would make the All group red.
+//! The save seam lives here, so the case that needs it lives here too. `LegacyBaseUpgrades_*` is the
+//! standing precedent: it also takes a real save and uses NEITHER reload seam.
+//!
+//! WHAT IS THEREFORE STILL OWED TO A HUMAN: manual step F18 (part-fill the depot, save, RELOAD the
+//! session, confirm the level). That step is the only thing that proves the serializer's read half.
+//! ==========================================================================================
+//!
+//! WHAT THIS CASE DOES PROVE, and none of it is provable any other way in this harness:
+//!  - "Fuel Depot" exists in Configs/Resistance/buildables.conf and is resolvable BY NAME (never by
+//!    index - the index moves every time an entry is added);
+//!  - BuildItem() with playerId -1 gets past OVT_FuelDepotHandler and returns a real entity, which is
+//!    the server-side build path the handler is written for;
+//!  - the spawned prefab carries OVT_BuildableComponent typed "FuelDepot" and is findable by that
+//!    type from a world query, which is how any consumer would find it;
+//!  - THE TWO PREFAB FACTS THE VANILLA SERIALIZER SILENTLY DEPENDS ON (implementation.md R4).
+//!    SCR_FuelManagerComponentSerializer only walks SCR_FuelNode-typed nodes and SKIPS any node whose
+//!    fuel equals its initial state. So a node authored as a bare BaseFuelNode, or an initial state
+//!    authored as a fraction (0.5) instead of litres, makes persistence a no-op with no error
+//!    anywhere. This case asserts a scripted node exists, that its capacity is the authored 10000 L,
+//!    and that its initial state is 0 - all three of which are the difference between the depot
+//!    saving and the depot silently not saving;
+//!  - a real save completes with the depot in the world and does not disturb its level.
+//!
+//! NON-VACUOUS: the level asserted at the end is written BEFORE the save and read back through a
+//! FRESH world query, not through the handle BuildItem() returned - so an assertion that passes
+//! requires the entity to still be there and still hold the value. It is not a value the prefab or
+//! the campaign produces: the depot is authored to start EMPTY.
+//!
+//! THE DEPOT IS LEFT STANDING ON PURPOSE. Deleting a persistence-tracked entity mid-suite means
+//! driving the transient-untrack retry queue (BUG-118), which is far more likely to disturb the
+//! later cases than an inert static prop is. It has no AI, no deployment and no manager registration
+//! that any other case reads.
+//!
+//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `FuelDepot*` does.
+//!
+//! PROVEN ABLE TO FAIL: inverting the final equality (`if (fuel == SAVED_FUEL)`) fails the case with
+//! both numbers named; recorded and reverted during Phase 3.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCaseBase
+{
+	//! Resolved by name out of the buildables config. Never an index - entries get appended.
+	static const string BUILDABLE_NAME = "Fuel Depot";
+
+	//! OVT_BuildableComponent.m_sBuildableType on the prefab. Deliberately NOT the same string as the
+	//! menu name (check-placeables.py reports the difference for every buildable in the file).
+	static const string BUILDABLE_TYPE = "FuelDepot";
+
+	//! Written before the save. Not a level the prefab or the campaign produces - it starts empty.
+	static const float SAVED_FUEL = 1234;
+
+	//! Litres of slack allowed when comparing back. Fuel is a float and passes through the engine.
+	static const float FUEL_EPSILON = 0.5;
+
+	//! SCR_FuelNode MaxFuel authored on OVT_FuelDepot.et. Raised 5000 -> 10000 by amendment A2.3 so a
+	//! depot holds two full fuel-truck deliveries; SAVED_FUEL stays well inside it.
+	static const float EXPECTED_MAX_FUEL = 10000;
+
+	//! SCR_FuelNode m_fInitialFuelTankState authored on OVT_FuelDepot.et - LITRES, not a fraction.
+	static const float EXPECTED_INITIAL_FUEL = 0;
+
+	//! Metres from the chosen base to put the depot. Far enough to sit on its own, near enough that
+	//! the buildable's own m_bBuildAtBase intent is what is being exercised.
+	static const float BUILD_OFFSET = 30;
+
+	//! Metres searched around the build position when finding the depot again.
+	static const float REFIND_RADIUS = 12;
+
+	//! Local phases. The gate's four-phase machine has no "spawn the subject" step, and the spawn
+	//! deliberately gets a frame of its own before anything reads the fuel nodes off it.
+	static const int PHASE_BUILD = 0;
+	static const int PHASE_FILL_AND_SAVE = 1;
+	static const int PHASE_AWAIT_SAVE = 2;
+	static const int PHASE_ASSERT = 3;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected vector m_vBuildPos;
+	protected IEntity m_FoundDepot;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_BUILD)
+			return Build();
+
+		if (m_iPhase == PHASE_FILL_AND_SAVE)
+			return FillAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the buildable by name and builds one depot beside a base.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Build()
+	{
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance)
+		{
+			SetFailure("OVT_Global.GetResistanceFaction() is null");
+			return true;
+		}
+
+		if (!resistance.m_BuildablesConfig || !resistance.m_BuildablesConfig.m_aBuildables)
+		{
+			SetFailure("The resistance faction has no buildables config loaded");
+			return true;
+		}
+
+		int index = -1;
+		for (int i = 0; i < resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
+		{
+			OVT_Buildable candidate = resistance.m_BuildablesConfig.m_aBuildables[i];
+			if (candidate && candidate.m_sName == BUILDABLE_NAME)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index < 0)
+		{
+			SetFailure("No buildable named '%1' in the buildables config - the depot entry is missing or renamed",
+				BUILDABLE_NAME);
+			return true;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null, so there is no base to build beside");
+			return true;
+		}
+
+		OVT_BaseData base;
+		foreach (OVT_BaseData candidate : occupying.m_Bases)
+		{
+			if (candidate)
+			{
+				base = candidate;
+				break;
+			}
+		}
+
+		if (!base)
+		{
+			SetFailure("The campaign has no bases, so there is nowhere to put a base buildable");
+			return true;
+		}
+
+		m_vBuildPos = base.location + Vector(0, 0, BUILD_OFFSET);
+
+		// playerId -1 is BuildItem()'s own server-initiated marker: it waives the funds, distance and
+		// item-limit checks, and OVT_FuelDepotHandler lets it through for exactly this reason.
+		IEntity depot = resistance.BuildItem(index, 0, m_vBuildPos, vector.Zero, -1);
+		if (!depot)
+		{
+			SetFailure("BuildItem() built no Fuel Depot at %1 - the prefab failed to spawn, or the handler refused a server build",
+				m_vBuildPos.ToString());
+			return true;
+		}
+
+		m_iPhase = PHASE_FILL_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Checks the prefab facts the vanilla serializer depends on, fills the depot, and saves once.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool FillAndSave()
+	{
+		SCR_FuelNode node;
+		string diagnostic = ResolveDepotFuelNode(node);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// R4, both halves. A serializer that skips this node writes nothing and says nothing.
+		if (!float.AlmostEqual(node.GetMaxFuel(), EXPECTED_MAX_FUEL))
+		{
+			SetFailure("The depot's fuel node holds %1 L, expected %2 L - the prefab's MaxFuel was changed",
+				node.GetMaxFuel().ToString(), EXPECTED_MAX_FUEL.ToString());
+			return true;
+		}
+
+		if (!float.AlmostEqual(node.GetInitialFuelTankState(), EXPECTED_INITIAL_FUEL))
+		{
+			SetFailure("The depot's fuel node starts at %1 L, expected %2 L. That attribute is LITRES, not a fraction, and anything but empty means an untouched depot is skipped by the fuel serializer and never persists",
+				node.GetInitialFuelTankState().ToString(), EXPECTED_INITIAL_FUEL.ToString());
+			return true;
+		}
+
+		node.SetFuel(SAVED_FUEL);
+
+		if (!float.AlmostEqual(node.GetFuel(), SAVED_FUEL))
+		{
+			SetFailure("Setting the depot's fuel to %1 L left it reading %2 L",
+				SAVED_FUEL.ToString(), node.GetFuel().ToString());
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the depot again from scratch and asserts it still holds the level that was saved.
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		SCR_FuelNode node;
+		string diagnostic = ResolveDepotFuelNode(node);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		float fuel = node.GetFuel();
+		if (Math.AbsFloat(fuel - SAVED_FUEL) > FUEL_EPSILON)
+		{
+			SetFailure("The depot's fuel level did not survive the save: filled to %1 L, reads %2 L afterwards",
+				SAVED_FUEL.ToString(), fuel.ToString());
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the depot near the build position by world query and hands back its single fuel node.
+	//!
+	//! Deliberately NOT cached from the handle BuildItem() returned: every phase looks the depot up
+	//! again the way a consumer would, so an entity that quietly stopped existing fails the case
+	//! instead of being read through a stale reference.
+	//! \param[out] node The depot's scripted fuel node; untouched unless the return is empty.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	protected string ResolveDepotFuelNode(out SCR_FuelNode node)
+	{
+		m_FoundDepot = null;
+		GetGame().GetWorld().QueryEntitiesBySphere(m_vBuildPos, REFIND_RADIUS, CollectDepot, null, EQueryEntitiesFlags.ALL);
+
+		IEntity depot = m_FoundDepot;
+		m_FoundDepot = null;
+
+		if (!depot)
+		{
+			return string.Format("No buildable of type '%1' within %2 m of %3 - the depot is not in the world",
+				BUILDABLE_TYPE, REFIND_RADIUS.ToString(), m_vBuildPos.ToString());
+		}
+
+		SCR_FuelManagerComponent fuelManager = SCR_FuelManagerComponent.Cast(depot.FindComponent(SCR_FuelManagerComponent));
+		if (!fuelManager)
+		{
+			return "The depot has no SCR_FuelManagerComponent - it stores nothing and can persist nothing";
+		}
+
+		array<SCR_FuelNode> nodes = {};
+		int count = fuelManager.GetScriptedFuelNodesList(nodes);
+		if (count < 1)
+		{
+			return "The depot's fuel manager holds no SCR_FuelNode. The vanilla fuel serializer only walks scripted nodes, so a bare BaseFuelNode would make its tank level silently unsaveable";
+		}
+
+		node = nodes[0];
+		if (!node)
+			return "The depot's first scripted fuel node is null";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! World-query collector: keeps the first entity carrying a Fuel Depot buildable component.
+	//! \param[in] entity Candidate from the sphere query.
+	//! \return False once the depot is found, which stops the query.
+	protected bool CollectDepot(IEntity entity)
+	{
+		if (!entity)
+			return true;
+
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (!buildable || buildable.GetBuildableType() != BUILDABLE_TYPE)
+			return true;
+
+		m_FoundDepot = entity;
+		return false;
 	}
 }

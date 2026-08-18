@@ -256,6 +256,40 @@ StringTable {
    Author "Aaron Static"
    LastChanged "CrioUA"
   }
+  CustomStringTableItem "{6B4E1F3000000001}" {
+   Id "OVT-Build_FuelDepot"
+   Target_en_us "Fuel Depot"
+   Comment "Build-menu title of the Fuel Depot buildable (Configs/Resistance/buildables.conf) and the Game Master name of Prefabs/Structures/Military/FOB/OVT_FuelDepot.et. Two words, title case, sits in the same list as Guard Tower / Medical Tent / Vehicle Maintenance Ramp."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000002}" {
+   Id "OVT-Build_FuelDepot_Description"
+   Target_en_us "Stores and delivers fuel"
+   Comment "Build-menu description of the Fuel Depot. SHORTENED BY THE USER 2026-08-18 from a two-sentence version to this four-word one - do not restore the long form without asking; the build menu's description panel is narrow. Keep it capacity- and mechanism-free so it cannot go stale: the numbers now live only in #OVT-FieldManual_Fuel_Text4 and #OVT-Tutorial_FuelDepotBuilt_Body, which are the two places a claim about the depot has to be fact-checked. For reference, the prefab facts as of amendment A2.3: SCR_FuelNode MaxFuel 10000 (up from 5000, two full truck loads), m_fInitialFuelTankState 0 (LITRES, not a fraction, so it starts empty), station m_fRange 7, OVT_FuelSourceComponent m_bFree 1 read by OVT_FuelUtils.IsFreeFuelSource. Deliberately says nothing about where it can be built - the build menu only offers it where it is allowed. Renders in the build menu's description panel and in the Game Master entity info."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1780769721
+   Author "Claude"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
@@ -1942,6 +1976,142 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B4E1F3000000003}" {
+   Id "OVT-FieldManual_Fuel_Head"
+   Target_en_us "When the Money Runs Out"
+   Comment "Field Manual - Fuel page, header above the can't-afford paragraph. Three to five words, title case, matches the header style of the other pages. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000004}" {
+   Id "OVT-FieldManual_Fuel_Head2"
+   Target_en_us "Fuel That Costs Nothing"
+   Comment "Field Manual - Fuel page, header above the free-transfer paragraph. Three to five words, title case. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000005}" {
+   Id "OVT-FieldManual_Fuel_Head3"
+   Target_en_us "The Fuel Depot"
+   Comment "Field Manual - Fuel page, header above the depot paragraph. 'Fuel Depot' must match the build-menu name in #OVT-Build_FuelDepot. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000006}" {
+   Id "OVT-FieldManual_Fuel_Text"
+   Target_en_us "Fuel is something the resistance buys. Refuelling at a fuel pump or a static fuel tank costs money for every litre actually delivered, taken while the fuel flows. The Refuel action shows the rate next to the tank reading, for example ($1/L). That rate is a difficulty setting: half a dollar a litre at the easiest end, four dollars at the hardest, and a server can set it to zero so fuel costs nothing anywhere. Vehicles and the Fuel Depot also carry a Fill Tank action: one five-second hold that fills the tank you are standing at in a single go, shows the exact price before you start, and sells you as much fuel as your money buys when you cannot afford a full load."
+   Comment "Field Manual - Fuel page, opening paragraph. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5, and again for amendment A1 (the Fill Tank sentence). Per-litre charging on delivery: the modded SCR_FuelSupportStationComponent charges inside OnFuelAddedToVehicleServer, which receives the exact litres delivered (Scripts/Game/Components/SupportStation/Modded/). Which stations are paid: OVT_FuelUtils.IsFreeFuelSource - anything static that is not the depot, i.e. world pumps, FuelSupportStation_Zone and static fuel tanks. Label: modded SCR_RefuelAtSupportStationAction appends #OVT-Refuel_PriceFormat after super, so the fill percentage is kept. Rates: OVT_DifficultySettings.fuelPricePerLitre with Configs/Difficulty/*.conf - Easy 0.5, Normal 1, Hard 1.5, Extreme 2.5, Insane 4; 0 disables charging entirely (implementation.md D9). The example ($1/L) is the Normal preset. FILL TANK SENTENCE, every clause cited: 'Vehicles and the Fuel Depot also carry' = OVT_FillFuelAction authored on Prefabs/Vehicles/Core/Vehicle_Base.et (fuel_cap context), Prefabs/Vehicles/Core/Vehicle_Fuel_Tank_Base.et (supportStation_fuel context, amendment A2.2) and Prefabs/Structures/Military/FOB/OVT_FuelDepot.et (default context); 'five-second hold' = Duration 5 on all three; 'the tank you are standing at' = amendment A2.1 - OVT_FuelUtils.GetOwnFuelManager scopes the fill to the action owner's OWN fuel manager exactly as SCR_RefuelAtSupportStationAction.Init does, so a truck's fuel cap fills the ~360 L chassis tanks and the cargo nozzle fills the ~4,500 L cargo tank, never both; 'in a single go' = OVT_FuelRequestComponent.AddFuelToManager walks that manager's CAN_RECEIVE_FUEL nodes with no flow cap; 'shows the exact price before you start' = OVT_FillFuelAction.GetActionNameScript draws the CLAMPED cost from OVT_FuelPricing.ComputeFillPlan; 'as much fuel as your money buys' = that same plan takes the minimum of need, source stock and balance. Do NOT say the fast fill is free or instant at a pump - it costs the same per litre as the trickle. Do NOT add a claim that pumps run dry or restock - stock is finite but out of scope and unquantified in player terms."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000007}" {
+   Id "OVT-FieldManual_Fuel_Text2"
+   Target_en_us "If you cannot cover the next moment of flow, the Refuel action is greyed out and reads that you cannot afford fuel here. If the money runs out while fuel is already moving, the flow stops, every litre already delivered stays in the tank, and you are told once. A few dollars can be left unspendable that way, because refuelling only starts when you can pay for a whole moment of flow."
+   Comment "Field Manual - Fuel page, body paragraph under 'When the Money Runs Out'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5. Greyed action + reason: the affordability gate lives in the modded SCR_FuelSupportStationComponent.IsValid and maps to #OVT-Refuel_CannotAfford ('You cannot afford fuel here') via the modded SCR_RefuelAtSupportStationAction.GetInvalidPerformReasonString. Stop-and-keep + single toast: #OVT-Msg-CannotAffordFuel is sent once from OnExecutedServer, and the charge only ever happens after the fuel has moved. The unspendable remainder is DELIBERATE (implementation.md R10): the gate estimates one full tick at the station's output rate, so a player can be refused with a few dollars left. Do NOT reword this into 'you ran out of money' - the same wording rule as #OVT-Msg-CannotAffordFuel, and it would be a shipped lie."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000008}" {
+   Id "OVT-FieldManual_Fuel_Text3"
+   Target_en_us "Moving fuel from a fuel truck into a vehicle costs nothing, and neither does pouring a jerrycan. What costs is filling them: a jerrycan or a truck's own cargo tank topped up at a pump is charged at the usual rate. Fuel carried in a truck has already been paid for."
+   Comment "Field Manual - Fuel page, body paragraph under 'Fuel That Costs Nothing'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5. OVT_FuelUtils.IsFreeFuelSource treats a station on a vehicle (fuel trucks) and a station with no range (held jerrycans) as free, so only the static source charges - which is why filling the truck or the can at a pump is charged and emptying either of them is not (implementation.md D5, DoD F5/F6)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000009}" {
+   Id "OVT-FieldManual_Fuel_Text4"
+   Target_en_us "The resistance can build a Fuel Depot at a base it holds. It stores 10,000 litres - two full truck loads - and arrives empty, so it has no fuel to give until it is filled: park a fuel truck alongside and drain it into the depot from the depot's own actions. After that it refuels vehicles parked beside it for nothing, and whatever is left in it is kept in the campaign save."
+   Comment "Field Manual - Fuel page, body paragraph under 'The Fuel Depot'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5 against Prefabs/Structures/Military/FOB/OVT_FuelDepot.et and Configs/Resistance/buildables.conf: m_bBuildAtBase 1 only (with OVT_FuelDepotHandler as the server-side backstop), SCR_FuelNode MaxFuel 10000 (amendment A2.3, up from 5000; 'two full truck loads' is 2 x the ~4,500 L cargo tank authored on Ural4320_fuel_tank.et / M923A1_fuel_tank.et), m_fInitialFuelTankState 0 (LITRES, not a fraction, so it starts empty and reports NO_FUEL_TO_GIVE), station m_fRange 7 ('alongside' / 'beside it'), OVT_FuelSourceComponent m_bFree 1 for the free dispense, and SCR_FuelManagerComponentSerializer on the buildable group in Configs/Systems/Persistence/Overthrow.conf for the saved level. The build price is deliberately NOT quoted: m_iCost 2000 is multiplied by the difficulty's buildableCostMultiplier, the same reason no other build text quotes a price. The fill sentence names no single action on purpose: BOTH the depot's vanilla SCR_RefuelAtSupportStationAction and the fast OVT_FillFuelAction do it, and both are on the depot rather than on the truck - which is the fact players get wrong."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F300000000A}" {
+   Id "OVT-FieldManual_Fuel_Title"
+   Target_en_us "Fuel"
+   Comment "Field Manual - title of the Fuel page, shown on its tile in the Money and Trade category grid and as the heading at the top of the page. One word. This key is also the deep-link id the 'fuel-depot-built' tutorial popup uses to open this page, so it must never be renamed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B000000000129}" {
    Id "OVT-FieldManual_GunDealers_Head"
    Target_en_us "Finding a Dealer"
@@ -2434,61 +2604,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6B5A11C000000101}" {
-   Id "OVT-FieldManual_OccupyingForces_Title"
-   Target_en_us "Patrols and Garrisons"
-   Comment "Field Manual - title of the Patrols and Garrisons page, shown on its tile in The Resistance category grid and as the heading at the top of the page. Two to four words. Also usable as a deep-link id from a tutorial popup, so it must never be renamed. Added 2026-08-17 by virtualization/integration Phase 8."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786665600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B5A11C000000102}" {
-   Id "OVT-FieldManual_OccupyingForces_Text"
-   Target_en_us "The occupying faction keeps standing forces in the field: defences at the military bases it holds, foot patrols working the towns it still controls, vehicle patrols on the roads, and a garrison at each radio tower it holds. Base defences, vehicle patrols and tower garrisons are all bought out of one and the same pool of resources, so a faction that is short of them fields fewer of every kind; foot patrols in a town cost it nothing."
-   Comment "Field Manual - Patrols and Garrisons page, opening paragraph. Two sentences, no rich-text markup. Reference voice: describes, never instructs. FACT-CHECKED 2026-08-17 against Configs/Deployment/Deployment_TownPatrol.conf (m_iAllowedLocationTypes TOWN, m_iBaseCost 0, m_iCostPerGroup 0), Deployment_VehiclePatrol_Light.conf:21 (m_iBaseCost 25) and Deployment_VehiclePatrol_Heavy.conf:20 (m_iBaseCost 50), Deployment_TowerGarrison.conf (m_iAllowedLocationTypes RADIO_TOWER, m_iBaseCost 20, m_iCostPerGroup 10), and the affordability gate in OVT_DeploymentManager.c:386-391 with FindBestDeploymentConfig:750-752. Deliberately quotes no resource numbers - the authored costs are a starting point per the feature's T4.5 note and are expected to be tuned. UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: base defence joined this list because it is now nine deployment configs of its own (Configs/Deployment/Deployment_BaseGarrisonPatrol/_BaseHeavyPatrol/_BaseATSection/_BaseDefensePositions/_BaseTowerGuards/_BaseSniperPositions/_BaseCheckpoints/_BaseFortifications/_BaseParkedVehicles.conf, every one m_iAllowedLocationTypes BASE, m_iAllowedFactionTypes OCCUPYING_FACTION, m_bFreeAtGameStart 0). 'One and the same pool' is literal and is the feature's G2: the legacy per-base spender is deleted and 80 % of every resource tick is credited to the deployment pool unconditionally (OVT_OccupyingFactionManager.c:1399-1413 TransferDefenseShareToPool at :1413), which is the same pool the affordability gate reads for every other config. grep -rn 'SpendResources' Scripts/ returns nothing."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786665600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6B5A11C000000103}" {
    Id "OVT-FieldManual_OccupyingForces_Head"
    Target_en_us "Losses Stay Lost"
    Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the paragraph about casualties persisting. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786665600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B5A11C000000104}" {
-   Id "OVT-FieldManual_OccupyingForces_Text2"
-   Target_en_us "Soldiers killed out of a patrol, a base defence or a tower garrison are gone for good. When that group stops being watched and later comes back into view it returns with only the men who lived through the last fight, and a campaign saved and loaded again brings back the same survivors rather than a fresh full-strength unit. A base is left in the state you left it in, then. A force wiped out to the last man can be replaced later, at a cost to the faction that fielded it."
-   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Losses Stay Lost' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against the virtualization core survivor mask: OVT_VirtualizationManagerComponent.c:1813-1828 GetMemberAlive and :1886-1900 ReportMemberKilled (per-slot death, idempotent), :731 SetOVTSlotMask (the mask decides which roster slots materialise), :1029-1033 (the mask is written into the save payload) and :1180 ApplyPersistedMask (it is read back on restore). Replacement: OVT_ReinforcementBehaviorDeploymentModule.c:123-128 ShouldReinforceModule/TryReinforceModule, which fires only for a FULLY eliminated module, spending m_iReinforcementCost through OVT_InfantrySpawningDeploymentModule.Reinforce:479-495. NOTE the last sentence deliberately says 'a force' and not 'a garrison': a fully wiped TOWER garrison is not rebought, because the tower has already changed hands by then (see OccupyingForces_Text4). UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: base defence is now registered with the same virtualization core as patrols and tower garrisons, so the survivor mask cited above covers it too - every base config's groups are held by OVT_InfantrySpawningDeploymentModule or a subclass of it (OVT_PlacedInfantrySpawningDeploymentModule, OVT_CompositionSpawningDeploymentModule). The legacy base-upgrade system this replaced banked a despawned patrol as an integer and brought back a different, full-strength set of men; that code is deleted (grep -rn 'OVT_BaseUpgrade' Scripts/ hits only the legacy SAVE PAYLOAD classes). The 'left in the state you left it in' sentence is that change stated the way a player meets it. Every base config authors m_bAllowReinforcement 1 except Deployment_BaseParkedVehicles.conf, which holds no men."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2519,10 +2638,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6B5A11C000000106}" {
-   Id "OVT-FieldManual_OccupyingForces_Text3"
-   Target_en_us "A town patrol walks its round whether or not anybody is there to see it. With nobody nearby it keeps covering the same circuit, so it will not be waiting on the corner it was last seen standing on; it turns up wherever along that route it had got to. A patrol working a base perimeter behaves the same way. A garrison posted at a radio tower is a different matter and holds the ground it was put on, and so do the men in a base's fighting positions, on its towers and at its checkpoints."
-   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Patrols Keep Moving' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_VirtualMovementManagerComponent.c:355 (the tick advances a handle ONLY while it is not spawned) and :658 (SetPosition is the only mutation), plus OVT_PatrolBehaviorDeploymentModule.c:16-18 and :28 (a PERIMETER plan cycles and IS walked while dormant, a DEFEND plan is never walked) and :78-85. Deployment_TownPatrol.conf authors no m_ePatrolType, so it takes the attribute default of PERIMETER; Deployment_TowerGarrison.conf authors m_ePatrolType DEFEND, which is the last sentence. UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: Deployment_BaseGarrisonPatrol.conf:21, Deployment_BaseHeavyPatrol.conf:21 and Deployment_BaseATSection.conf:21 all author PERIMETER with m_fPatrolRadius 280, so a base's roving patrol is walked while dormant exactly as a town patrol is; Deployment_BaseDefensePositions.conf:24 and Deployment_BaseCheckpoints.conf:42 author DEFEND, and Deployment_BaseTowerGuards.conf / _BaseSniperPositions.conf author NO behaviour module at all (deliberate legacy parity - an idle group keeps full threat and attack reactions), so none of those three is ever walked."
+  CustomStringTableItem "{6B5A11C000000107}" {
+   Id "OVT-FieldManual_OccupyingForces_Head3"
+   Target_en_us "Radio Towers"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a radio tower changes hands. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2536,10 +2655,61 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6B5A11C000000107}" {
-   Id "OVT-FieldManual_OccupyingForces_Head3"
-   Target_en_us "Radio Towers"
-   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a radio tower changes hands. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
+  CustomStringTableItem "{6B5A11C00000010A}" {
+   Id "OVT-FieldManual_OccupyingForces_Head4"
+   Target_en_us "Defending a Base"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a military base is defended. Two to four words, no markup. Added 2026-08-18 by virtualization/base-defense-migration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786752000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000102}" {
+   Id "OVT-FieldManual_OccupyingForces_Text"
+   Target_en_us "The occupying faction keeps standing forces in the field: defences at the military bases it holds, foot patrols working the towns it still controls, vehicle patrols on the roads, and a garrison at each radio tower it holds. Base defences, vehicle patrols and tower garrisons are all bought out of one and the same pool of resources, so a faction that is short of them fields fewer of every kind; foot patrols in a town cost it nothing."
+   Comment "Field Manual - Patrols and Garrisons page, opening paragraph. Two sentences, no rich-text markup. Reference voice: describes, never instructs. FACT-CHECKED 2026-08-17 against Configs/Deployment/Deployment_TownPatrol.conf (m_iAllowedLocationTypes TOWN, m_iBaseCost 0, m_iCostPerGroup 0), Deployment_VehiclePatrol_Light.conf:21 (m_iBaseCost 25) and Deployment_VehiclePatrol_Heavy.conf:20 (m_iBaseCost 50), Deployment_TowerGarrison.conf (m_iAllowedLocationTypes RADIO_TOWER, m_iBaseCost 20, m_iCostPerGroup 10), and the affordability gate in OVT_DeploymentManager.c:386-391 with FindBestDeploymentConfig:750-752. Deliberately quotes no resource numbers - the authored costs are a starting point per the feature's T4.5 note and are expected to be tuned. UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: base defence joined this list because it is now nine deployment configs of its own (Configs/Deployment/Deployment_BaseGarrisonPatrol/_BaseHeavyPatrol/_BaseATSection/_BaseDefensePositions/_BaseTowerGuards/_BaseSniperPositions/_BaseCheckpoints/_BaseFortifications/_BaseParkedVehicles.conf, every one m_iAllowedLocationTypes BASE, m_iAllowedFactionTypes OCCUPYING_FACTION, m_bFreeAtGameStart 0). 'One and the same pool' is literal and is the feature's G2: the legacy per-base spender is deleted and 80 % of every resource tick is credited to the deployment pool unconditionally (OVT_OccupyingFactionManager.c:1399-1413 TransferDefenseShareToPool at :1413), which is the same pool the affordability gate reads for every other config. grep -rn 'SpendResources' Scripts/ returns nothing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000104}" {
+   Id "OVT-FieldManual_OccupyingForces_Text2"
+   Target_en_us "Soldiers killed out of a patrol, a base defence or a tower garrison are gone for good. When that group stops being watched and later comes back into view it returns with only the men who lived through the last fight, and a campaign saved and loaded again brings back the same survivors rather than a fresh full-strength unit. A base is left in the state you left it in, then. A force wiped out to the last man can be replaced later, at a cost to the faction that fielded it."
+   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Losses Stay Lost' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against the virtualization core survivor mask: OVT_VirtualizationManagerComponent.c:1813-1828 GetMemberAlive and :1886-1900 ReportMemberKilled (per-slot death, idempotent), :731 SetOVTSlotMask (the mask decides which roster slots materialise), :1029-1033 (the mask is written into the save payload) and :1180 ApplyPersistedMask (it is read back on restore). Replacement: OVT_ReinforcementBehaviorDeploymentModule.c:123-128 ShouldReinforceModule/TryReinforceModule, which fires only for a FULLY eliminated module, spending m_iReinforcementCost through OVT_InfantrySpawningDeploymentModule.Reinforce:479-495. NOTE the last sentence deliberately says 'a force' and not 'a garrison': a fully wiped TOWER garrison is not rebought, because the tower has already changed hands by then (see OccupyingForces_Text4). UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: base defence is now registered with the same virtualization core as patrols and tower garrisons, so the survivor mask cited above covers it too - every base config's groups are held by OVT_InfantrySpawningDeploymentModule or a subclass of it (OVT_PlacedInfantrySpawningDeploymentModule, OVT_CompositionSpawningDeploymentModule). The legacy base-upgrade system this replaced banked a despawned patrol as an integer and brought back a different, full-strength set of men; that code is deleted (grep -rn 'OVT_BaseUpgrade' Scripts/ hits only the legacy SAVE PAYLOAD classes). The 'left in the state you left it in' sentence is that change stated the way a player meets it. Every base config authors m_bAllowReinforcement 1 except Deployment_BaseParkedVehicles.conf, which holds no men."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000106}" {
+   Id "OVT-FieldManual_OccupyingForces_Text3"
+   Target_en_us "A town patrol walks its round whether or not anybody is there to see it. With nobody nearby it keeps covering the same circuit, so it will not be waiting on the corner it was last seen standing on; it turns up wherever along that route it had got to. A patrol working a base perimeter behaves the same way. A garrison posted at a radio tower is a different matter and holds the ground it was put on, and so do the men in a base's fighting positions, on its towers and at its checkpoints."
+   Comment "Field Manual - Patrols and Garrisons page, body paragraph under the 'Patrols Keep Moving' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_VirtualMovementManagerComponent.c:355 (the tick advances a handle ONLY while it is not spawned) and :658 (SetPosition is the only mutation), plus OVT_PatrolBehaviorDeploymentModule.c:16-18 and :28 (a PERIMETER plan cycles and IS walked while dormant, a DEFEND plan is never walked) and :78-85. Deployment_TownPatrol.conf authors no m_ePatrolType, so it takes the attribute default of PERIMETER; Deployment_TowerGarrison.conf authors m_ePatrolType DEFEND, which is the last sentence. UPDATED 2026-08-18 by virtualization/base-defense-migration Phase 8: Deployment_BaseGarrisonPatrol.conf:21, Deployment_BaseHeavyPatrol.conf:21 and Deployment_BaseATSection.conf:21 all author PERIMETER with m_fPatrolRadius 280, so a base's roving patrol is walked while dormant exactly as a town patrol is; Deployment_BaseDefensePositions.conf:24 and Deployment_BaseCheckpoints.conf:42 author DEFEND, and Deployment_BaseTowerGuards.conf / _BaseSniperPositions.conf author NO behaviour module at all (deliberate legacy parity - an idle group keeps full threat and attack reactions), so none of those three is ever walked."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2587,23 +2757,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6B5A11C00000010A}" {
-   Id "OVT-FieldManual_OccupyingForces_Head4"
-   Target_en_us "Defending a Base"
-   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a military base is defended. Two to four words, no markup. Added 2026-08-18 by virtualization/base-defense-migration Phase 8."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786752000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6B5A11C00000010B}" {
    Id "OVT-FieldManual_OccupyingForces_Text6"
    Target_en_us "A military base is held by whatever its owners have managed to put there. A patrol works the perimeter, men hold prepared fighting positions, guards stand on the towers, marksmen take marked ground, checkpoints go up on the roads in, sandbagged positions and ammunition caches are built inside the wire, and trucks are parked in the yard. Each of those is bought and paid for on its own, roughly in that order, so a base thickens up over a campaign rather than arriving finished. Heavier infantry and an anti-tank section are only added once the faction is under enough pressure to want them."
@@ -2633,6 +2786,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1786752000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000101}" {
+   Id "OVT-FieldManual_OccupyingForces_Title"
+   Target_en_us "Patrols and Garrisons"
+   Comment "Field Manual - title of the Patrols and Garrisons page, shown on its tile in The Resistance category grid and as the heading at the top of the page. Two to four words. Also usable as a deep-link id from a tutorial popup, so it must never be renamed. Added 2026-08-17 by virtualization/integration Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786665600
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -3510,6 +3680,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B4E000000000001}" {
+   Id "OVT-FieldManual_Welcome_Head3"
+   Target_en_us "Life in the Towns"
+   Comment "Field Manual - section header inside the Welcome to Overthrow page, above the two paragraphs describing a town's ambient civilians and its parked civilian cars. Two to four words, title case. No rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755388800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B000000000116}" {
    Id "OVT-FieldManual_Welcome_Text"
    Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no ending: the resistance grows out of whatever you choose to do, and the occupying faction reacts to it. Towns, money, property, vehicles, recruits and captured ground are all durable state, so a campaign carries on between sessions and across server restarts."
@@ -3556,23 +3743,6 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754611200
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B4E000000000001}" {
-   Id "OVT-FieldManual_Welcome_Head3"
-   Target_en_us "Life in the Towns"
-   Comment "Field Manual - section header inside the Welcome to Overthrow page, above the two paragraphs describing a town's ambient civilians and its parked civilian cars. Two to four words, title case. No rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755388800
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -3748,6 +3918,74 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B4E1F300000000D}" {
+   Id "OVT-FillFuel"
+   Target_en_us "Fill Tank"
+   Comment "Name of the fast fuel-fill user action (OVT_FillFuelAction), a five-second hold that fills one tank in a single go instead of the vanilla Refuel's trickle. SINGULAR IS LOAD-BEARING (amendment A2.1): a press fills only the tank whose action you are holding - a truck's fuel cap fills its chassis tanks, its cargo nozzle fills its cargo tank. It is drawn TWO WAYS: on its own as the prefab UIInfo fallback, and with the live price appended by GetActionNameScript as '#OVT-FillFuel ($37)' - so this string must read correctly with a bracketed dollar amount after it and must NOT end in punctuation. Two words, title case, sits in the same interaction list as vanilla's 'Refuel'. LENGTH BUDGET: short - it shares a line with the price. The free variant is #OVT-FillFuel_Free; keep the two in step."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F300000000E}" {
+   Id "OVT-FillFuel_Free"
+   Target_en_us "Fill Tank (Free)"
+   Comment "The fast fuel-fill action's label when the source costs nothing - a fuel truck, a Fuel Depot, or any server running fuelPricePerLitre 0 (OVT_FuelUtils.IsFreeFuelSource decides). '(Free)' is worth saying because the SAME action on the SAME vehicle shows a dollar amount at a pump fifty metres away, and a player needs to be able to tell those apart at a glance. Must stay a variant of #OVT-FillFuel - if that name is retranslated, this one follows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F300000000F}" {
+   Id "OVT-FillFuel_SourceEmpty"
+   Target_en_us "The fuel source here is empty"
+   Comment "Reason shown under the greyed-out Fill Tank action when a fuel source covers this spot but has nothing left to give - an emptied Fuel Depot, a drained fuel truck, an exhausted pump. Set by OVT_FillFuelAction.CanBePerformedScript. The action deliberately stays VISIBLE for this case (an empty depot must not look like no depot at all) and HIDES only when there is no source in range whatsoever. LENGTH BUDGET: one short line - it renders in the same slot as vanilla's #AR-SupportStation_ActionInvalid_* reasons and must not wrap. TONE: states the fact, gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F3000000010}" {
+   Id "OVT-FillFuel_TankFull"
+   Target_en_us "Tanks are already full"
+   Comment "Reason shown under the greyed-out Fill Tank action when the target has no room left in any fuel tank that can receive fuel. Set by OVT_FillFuelAction.CanBePerformedScript. PLURAL ON PURPOSE, but scoped: the action fills every receiving node of ONE fuel manager - a Ural-4320's chassis manager is its 300 L main tank plus its 60 L reserve - and this reason is shown when all the nodes of THAT manager are full. It says nothing about the truck's separate cargo tank, which has its own action and its own reason. LENGTH BUDGET: one short line, must not wrap. TONE: states the fact, gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5E68F65B3B222D82}" {
    Id "OVT-FlipVehicle"
    Target_en_us "Flip Vehicle"
@@ -3904,6 +4142,358 @@ StringTable {
    Modified 1706583756
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50102}" {
+   Id "OVT-GMIcon_Base"
+   Target_en_us "Base %1"
+   Comment "Game Master icon and tooltip name for an occupying-faction base. %1 is the base index the campaign files it under, so a GM can match the icon to the base rows in the Overthrow panel. Keep it short"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50103}" {
+   Id "OVT-GMIcon_BaseGeneric"
+   Target_en_us "Base"
+   Comment "Game Master icon name for a base whose index is not known yet (campaign data has not reached this machine). Same word as OVT-GMIcon_Base without the number"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50101}" {
+   Id "OVT-GMIcon_RadioTower"
+   Target_en_us "Radio Tower"
+   Comment "Game Master icon and tooltip name for an Overthrow radio tower. One or two words - it is drawn under a 48px icon in the editor viewport"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011E}" {
+   Id "OVT-GMIcon_Tooltip_Base"
+   Target_en_us "%1 Resources - %2 Garrison Groups"
+   Comment "Game Master hover tooltip for a base icon. %1 is the base's resource total, %2 the number of AI groups garrisoned there (both from the gm-state store). No faction here - the vanilla tooltip already shows it below. One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50121}" {
+   Id "OVT-GMIcon_Tooltip_NoData"
+   Target_en_us "No campaign data yet"
+   Comment "Game Master hover tooltip shown when a town, base or radio tower record cannot be resolved yet - world still loading, or a client that has not received campaign state. Must never be empty: an empty tooltip description removes the widget"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011F}" {
+   Id "OVT-GMIcon_Tooltip_TowerOnline"
+   Target_en_us "Online"
+   Comment "Game Master hover tooltip for a radio tower that is working normally - it is broadcasting, so the occupying faction gets its detection bonus from it"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50120}" {
+   Id "OVT-GMIcon_Tooltip_TowerSabotaged"
+   Target_en_us "Sabotaged - %1"
+   Comment "Game Master hover tooltip for a sabotaged radio tower. %1 is the downtime left as a clock string (eg 4:12). One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D5011D}" {
+   Id "OVT-GMIcon_Tooltip_Town"
+   Target_en_us "Support %1 - Stability %2"
+   Comment "Game Master hover tooltip for a town icon. %1 is support as an already-formatted percentage (eg 62%), %2 stability the same way - neither is a bare number, so do not add a percent sign. One line, tooltip is 276px wide"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786880000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B09A1C0E4D50104}" {
+   Id "OVT-GMIcon_Town"
+   Target_en_us "Town"
+   Comment "Game Master icon name for a town whose own name is not known yet (world still loading). The generic word for a settlement, not a specific town"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786860000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1006}" {
+   Id "OVT-GMPanel_Funds"
+   Target_en_us "Resistance Funds"
+   Comment "GM panel row label - money currently held by the resistance"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1004}" {
+   Id "OVT-GMPanel_NextDistribution"
+   Target_en_us "Next Distribution"
+   Comment "GM panel row label - the next occupying-faction resource distribution: amount and countdown"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1005}" {
+   Id "OVT-GMPanel_NextPayout"
+   Target_en_us "Next Payout"
+   Comment "GM panel row label - the next player payout: amount and countdown"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1008}" {
+   Id "OVT-GMPanel_NoData"
+   Target_en_us "Waiting for campaign data..."
+   Comment "GM panel - shown in place of the campaign numbers until the first data snapshot arrives. Reads as waiting, not as broken"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1003}" {
+   Id "OVT-GMPanel_OFDeployment"
+   Target_en_us "Deployment Pool"
+   Comment "GM panel row label - the occupying faction's resources set aside for deploying new units"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1002}" {
+   Id "OVT-GMPanel_OFResources"
+   Target_en_us "OF Resources"
+   Comment "GM panel row label - the occupying faction's reserve resource pool"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1007}" {
+   Id "OVT-GMPanel_QRF"
+   Target_en_us "QRF"
+   Comment "GM panel row label - status of the occupying faction's quick reaction force"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100C}" {
+   Id "OVT-GMPanel_QRFActive"
+   Target_en_us "%1 pts - %2"
+   Comment "GM panel QRF row value - an active quick reaction force with no named target. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss). Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100D}" {
+   Id "OVT-GMPanel_QRFActiveTown"
+   Target_en_us "%1 pts - %2 - %3"
+   Comment "GM panel QRF row value - an active quick reaction force attacking a town. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss), %3 is the town name. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1009}" {
+   Id "OVT-GMPanel_QRFNone"
+   Target_en_us "None"
+   Comment "GM panel QRF row value - no quick reaction force is currently active"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100B}" {
+   Id "OVT-GMPanel_SuppressedNoPlayers"
+   Target_en_us "paused - no players"
+   Comment "GM panel countdown status - the payout countdown will not fire because no players are connected. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100A}" {
+   Id "OVT-GMPanel_SuppressedQRF"
+   Target_en_us "paused - QRF active"
+   Comment "GM panel countdown status - the distribution countdown will not fire because a QRF is running. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1001}" {
+   Id "OVT-GMPanel_Threat"
+   Target_en_us "Threat"
+   Comment "GM panel row label - the occupying faction's current threat level, one decimal place"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -7233,6 +7823,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B4E1F0000000003}" {
+   Id "OVT-Msg-CannotAffordFuel"
+   Target_en_us "You can no longer afford fuel - refuelling stopped"
+   Comment "One-shot notification to the refuelling player only, fired by the modded SCR_FuelSupportStationComponent (Scripts/Game/Components/SupportStation/Modded/) when a paid refuel is about to cut off for lack of money. The fuel already delivered is theirs and the next 0.5 s tick's IsValid greys the action out with #OVT-Refuel_CannotAfford. Preset tag 'CannotAffordFuel' in Configs/overthrowBroadcastMessages.conf. WORDED 'CAN NO LONGER AFFORD' AND NOT 'RAN OUT OF MONEY' ON PURPOSE, and it must stay that way: the affordability gate demands a whole tick up front (ceil(maxFlow x price)), so the usual stopping point leaves the player holding a few dollars they cannot spend - implementation.md R10, documented as expected behaviour. 'Ran out of money' would be a plain falsehood on the common path. It is also true of the rarer trigger, where a concurrent debit clamped the charge and the balance really is 0. NO PARAMETERS - the shortfall is a sub-dollar carry plus part of a tick and no number there would mean anything to a player. Distinct from the generic #OVT-CannotAfford ('You cannot afford that'), which is a refused purchase; this one describes something that STOPPED part way through."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D64799026B5CA0A}" {
    Id "OVT-Msg-CityBattle"
    Target_en_us "The battle for the city of %1 will begin shortly"
@@ -8007,6 +8614,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
+   Id "OVT-Msg-WantedSeen"
+   Target_en_us "You have been spotted!"
+   Comment "Broadcast notification for the level-1 re-escalation (OVT_PlayerWantedComponent decay tail, BUG-171): level 1 is the transitionary decay state and ANY sighting bumps it back to 2, so the reason is simply being seen - no uniform or weapon is implied. The visibly-armed case still uses OVT-Msg-WantedWeapon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755216000
+   Author "Claude AI"
+   LastChanged "Claude AI"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A1B2C3D4E5F6789}" {
    Id "OVT-Msg-WantedWeapon"
    Target_en_us "You are now wanted for carrying a weapon!"
@@ -8022,23 +8646,6 @@ StringTable {
    Modified 1716471940
    Author "Claude AI"
    LastChanged "CrioUA"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
-   Id "OVT-Msg-WantedSeen"
-   Target_en_us "You have been spotted!"
-   Comment "Broadcast notification for the level-1 re-escalation (OVT_PlayerWantedComponent decay tail, BUG-171): level 1 is the transitionary decay state and ANY sighting bumps it back to 2, so the reason is simply being seen - no uniform or weapon is implied. The visibly-armed case still uses OVT-Msg-WantedWeapon."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755216000
-   Author "Claude AI"
-   LastChanged "Claude AI"
    ImageLink ""
    Hidden 0
   }
@@ -8107,6 +8714,12 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A34}" {
+   Id "OVT-MustBeOnHelipad"
+   Target_en_us "Must be on a helipad at a friendly base"
+   Modified 1786759417
+   Author "Aaron Static"
   }
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
@@ -8382,6 +8995,12 @@ StringTable {
    LastChanged "parkj_c3c9hji"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A35}" {
+   Id "OVT-NothingToRearm"
+   Target_en_us "Weapons are fully armed"
+   Modified 1786759417
+   Author "Aaron Static"
   }
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
@@ -9801,6 +10420,12 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A9F4C2DB1E07A33}" {
+   Id "OVT-RearmVehicle"
+   Target_en_us "Re-arm"
+   Modified 1786759417
+   Author "Aaron Static"
+  }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
@@ -10655,6 +11280,40 @@ StringTable {
    Modified 1716472886
    Author "Claude Code"
    LastChanged "CrioUA"
+  }
+  CustomStringTableItem "{6B4E1F0000000002}" {
+   Id "OVT-Refuel_CannotAfford"
+   Target_en_us "You cannot afford fuel here"
+   Comment "Reason shown under the greyed-out Refuel action when the player cannot pay for the next tick of fuel. Returned by the modded SCR_RefuelAtSupportStationAction.GetInvalidPerformReasonString for ESupportStationReasonInvalid.OVT_CANNOT_AFFORD_FUEL (550), which the modded SCR_FuelSupportStationComponent.IsValid sets. LENGTH BUDGET: one short line - it renders in the same slot as vanilla's #AR-SupportStation_ActionInvalid_* reasons and must not wrap. 'here' is load-bearing: fuel truck, jerrycan and Fuel Depot refuels are free, so the refusal is about THIS pump and not about fuel in general. TONE: states the fact, gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F0000000001}" {
+   Id "OVT-Refuel_PriceFormat"
+   Target_en_us "%1 ($%2/L)"
+   Comment "Format that appends the fuel rate to the Refuel action label at a paid station. %1 is the ENTIRE label vanilla just built, fill percentage included (e.g. 'Refuel (37.5)'); %2 is the price per litre, already trimmed of trailing zeros by OVT_FuelPricing.FormatPricePerLitre, so it arrives as '1', '1.5' or '2.25' and never '1.00'. Result: 'Refuel (37.5) ($1/L)'. Applied by the modded SCR_RefuelAtSupportStationAction.GetActionNameScript AFTER super - not through GetActionStringParam, which would suppress the percentage readout. Translators: keep %1 first and do not add a currency symbol, the $ is already here; 'L' is litres."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
   }
   CustomStringTableItem "{5992E2F582B25E29}" {
    Id "OVT-RemovalModeActive"
@@ -12487,6 +13146,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
+   Id "OVT-StartUprising"
+   Target_en_us "Start Uprising"
+   Comment "Name of the Start Uprising user action on Prefabs/Controllers/OVT_TownController.et:46. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786861251
+   Author "Aaron Static"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
@@ -12741,6 +13417,23 @@ StringTable {
    Modified 1706590964
    Author "Aaron Static"
    LastChanged "parkj_c3c9hji"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
+   Id "OVT-SupportTooLow"
+   Target_en_us "Not enough support in this town"
+   Comment "Reason shown under the greyed-out Start Uprising action, set by OVT_StartUprisingAction.c:39 SetCannotPerformReason. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786861251
+   Author "Aaron Static"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -13138,6 +13831,40 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754524800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F300000000B}" {
+   Id "OVT-Tutorial_FuelDepotBuilt_Body"
+   Target_en_us "A fuel depot stores 10,000 litres and arrives empty, so it has no fuel to give until it is filled. A fuel truck parked alongside can be drained into it using the depot's own actions, and after that it refuels vehicles parked beside it for free."
+   Comment "Body of the 'fuel-depot-built' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. DELIVERY: fires on PLAYER_BUILD filtered to the buildable name 'Fuel Depot' (Configs/Tutorials/fuelDepotBuilt.conf; the filter is matched against OVT_Buildable.m_sName, OVT_TutorialManagerComponent.OnBuild:317-324), so the reader has just finished building one. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5 and re-checked for amendment A2.3 against Prefabs/Structures/Military/FOB/OVT_FuelDepot.et: SCR_FuelNode MaxFuel 10000 (up from 5000), m_fInitialFuelTankState 0 (LITRES, not a fraction - it really does start empty and reports NO_FUEL_TO_GIVE), station m_fRange 7 for 'alongside' and 'beside it', and OVT_FuelSourceComponent m_bFree 1 read by OVT_FuelUtils.IsFreeFuelSource for 'for free'. The fill is done AT THE DEPOT - either its vanilla SCR_RefuelAtSupportStationAction or the fast OVT_FillFuelAction - with the truck's station as the provider, hence 'the depot's own actions'; m_bIgnoreSelf 1 and OVT_FuelUtils.IsStationMountedOn stop it filling itself. Kept consistent with #OVT-Build_FuelDepot_Description and #OVT-FieldManual_Fuel_Text4."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B4E1F300000000C}" {
+   Id "OVT-Tutorial_FuelDepotBuilt_Title"
+   Target_en_us "Fuel Depot"
+   Comment "Title of the 'fuel-depot-built' tutorial tip, shown the first time the player finishes building a fuel depot. Heading of a small HUD popup, so keep it to two or three words. Must match the build-menu name in #OVT-Build_FuelDepot. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755475200
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -14156,387 +14883,6 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "CrioUA"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A33}" {
-   Id "OVT-RearmVehicle"
-   Target_en_us "Re-arm"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A34}" {
-   Id "OVT-MustBeOnHelipad"
-   Target_en_us "Must be on a helipad at a friendly base"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A35}" {
-   Id "OVT-NothingToRearm"
-   Target_en_us "Weapons are fully armed"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6B08D3A17C4B1001}" {
-   Id "OVT-GMPanel_Threat"
-   Target_en_us "Threat"
-   Comment "GM panel row label - the occupying faction's current threat level, one decimal place"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1002}" {
-   Id "OVT-GMPanel_OFResources"
-   Target_en_us "OF Resources"
-   Comment "GM panel row label - the occupying faction's reserve resource pool"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1003}" {
-   Id "OVT-GMPanel_OFDeployment"
-   Target_en_us "Deployment Pool"
-   Comment "GM panel row label - the occupying faction's resources set aside for deploying new units"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1004}" {
-   Id "OVT-GMPanel_NextDistribution"
-   Target_en_us "Next Distribution"
-   Comment "GM panel row label - the next occupying-faction resource distribution: amount and countdown"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1005}" {
-   Id "OVT-GMPanel_NextPayout"
-   Target_en_us "Next Payout"
-   Comment "GM panel row label - the next player payout: amount and countdown"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1006}" {
-   Id "OVT-GMPanel_Funds"
-   Target_en_us "Resistance Funds"
-   Comment "GM panel row label - money currently held by the resistance"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1007}" {
-   Id "OVT-GMPanel_QRF"
-   Target_en_us "QRF"
-   Comment "GM panel row label - status of the occupying faction's quick reaction force"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1008}" {
-   Id "OVT-GMPanel_NoData"
-   Target_en_us "Waiting for campaign data..."
-   Comment "GM panel - shown in place of the campaign numbers until the first data snapshot arrives. Reads as waiting, not as broken"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B1009}" {
-   Id "OVT-GMPanel_QRFNone"
-   Target_en_us "None"
-   Comment "GM panel QRF row value - no quick reaction force is currently active"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B100A}" {
-   Id "OVT-GMPanel_SuppressedQRF"
-   Target_en_us "paused - QRF active"
-   Comment "GM panel countdown status - the distribution countdown will not fire because a QRF is running. Keep short, it shares a 380px row"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B100B}" {
-   Id "OVT-GMPanel_SuppressedNoPlayers"
-   Target_en_us "paused - no players"
-   Comment "GM panel countdown status - the payout countdown will not fire because no players are connected. Keep short, it shares a 380px row"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B100C}" {
-   Id "OVT-GMPanel_QRFActive"
-   Target_en_us "%1 pts - %2"
-   Comment "GM panel QRF row value - an active quick reaction force with no named target. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss). Keep short, it shares a 380px row"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B08D3A17C4B100D}" {
-   Id "OVT-GMPanel_QRFActiveTown"
-   Target_en_us "%1 pts - %2 - %3"
-   Comment "GM panel QRF row value - an active quick reaction force attacking a town. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss), %3 is the town name. Keep short, it shares a 380px row"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786800000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50101}" {
-   Id "OVT-GMIcon_RadioTower"
-   Target_en_us "Radio Tower"
-   Comment "Game Master icon and tooltip name for an Overthrow radio tower. One or two words - it is drawn under a 48px icon in the editor viewport"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786860000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50102}" {
-   Id "OVT-GMIcon_Base"
-   Target_en_us "Base %1"
-   Comment "Game Master icon and tooltip name for an occupying-faction base. %1 is the base index the campaign files it under, so a GM can match the icon to the base rows in the Overthrow panel. Keep it short"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786860000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50103}" {
-   Id "OVT-GMIcon_BaseGeneric"
-   Target_en_us "Base"
-   Comment "Game Master icon name for a base whose index is not known yet (campaign data has not reached this machine). Same word as OVT-GMIcon_Base without the number"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786860000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50104}" {
-   Id "OVT-GMIcon_Town"
-   Target_en_us "Town"
-   Comment "Game Master icon name for a town whose own name is not known yet (world still loading). The generic word for a settlement, not a specific town"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786860000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D5011D}" {
-   Id "OVT-GMIcon_Tooltip_Town"
-   Target_en_us "Support %1 - Stability %2"
-   Comment "Game Master hover tooltip for a town icon. %1 is support as an already-formatted percentage (eg 62%), %2 stability the same way - neither is a bare number, so do not add a percent sign. One line, tooltip is 276px wide"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786880000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D5011E}" {
-   Id "OVT-GMIcon_Tooltip_Base"
-   Target_en_us "%1 Resources - %2 Garrison Groups"
-   Comment "Game Master hover tooltip for a base icon. %1 is the base's resource total, %2 the number of AI groups garrisoned there (both from the gm-state store). No faction here - the vanilla tooltip already shows it below. One line, tooltip is 276px wide"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786880000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D5011F}" {
-   Id "OVT-GMIcon_Tooltip_TowerOnline"
-   Target_en_us "Online"
-   Comment "Game Master hover tooltip for a radio tower that is working normally - it is broadcasting, so the occupying faction gets its detection bonus from it"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786880000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50120}" {
-   Id "OVT-GMIcon_Tooltip_TowerSabotaged"
-   Target_en_us "Sabotaged - %1"
-   Comment "Game Master hover tooltip for a sabotaged radio tower. %1 is the downtime left as a clock string (eg 4:12). One line, tooltip is 276px wide"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786880000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B09A1C0E4D50121}" {
-   Id "OVT-GMIcon_Tooltip_NoData"
-   Target_en_us "No campaign data yet"
-   Comment "Game Master hover tooltip shown when a town, base or radio tower record cannot be resolved yet - world still loading, or a client that has not received campaign state. Must never be empty: an empty tooltip description removes the widget"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1786880000
-   Author "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
-   Id "OVT-StartUprising"
-   Target_en_us "Start Uprising"
-   Modified 1786861251
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
-   Id "OVT-SupportTooLow"
-   Target_en_us "Not enough support in this town"
-   Modified 1786861251
-   Author "Aaron Static"
   }
  }
 }

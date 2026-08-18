@@ -415,6 +415,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 				config.m_Difficulty.vehiclePriceMultiplier = config.m_ConfigFile.vehiclePriceMultiplier;
+				config.m_Difficulty.fuelPricePerLitre = config.m_ConfigFile.fuelPricePerLitre;
 				config.m_Difficulty.recruitLoadoutFeeMultiplier = config.m_ConfigFile.recruitLoadoutFeeMultiplier;
 			}
 		}

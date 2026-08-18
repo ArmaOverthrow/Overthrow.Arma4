@@ -17,7 +17,9 @@
 //!
 //! THREE INDEPENDENT CLAIMS, DELIBERATELY IN ONE CASE, because they share one expensive precondition
 //! (a local player whose controller has been spawned and registered):
-//!   1. all seven pre-existing components resolve;
+//!   1. every component on the asserted roster resolves (the seven the controller migration left here,
+//!      plus OVT_FuelRequestComponent from economy/fuel amendment A1 - one line per new component is
+//!      the whole cost of this guarantee);
 //!   2. what comes back is the SAME instance the controller entity carries - not merely "a component
 //!      of that type from somewhere", which a future Get() that searched the wrong entity would also
 //!      satisfy;
@@ -90,7 +92,7 @@ class OVT_TEST_Init_Controller_ComponentsResolve : SCR_AutotestCaseBase
 			return true;
 		}
 
-		PrintFormat("Controller seam: all 7 controller components resolve through OVT_ControllerComponent<T>.Get() (controller found after %1 poll(s))", m_iPolls.ToString());
+		PrintFormat("Controller seam: all 8 asserted controller components resolve through OVT_ControllerComponent<T>.Get() (controller found after %1 poll(s))", m_iPolls.ToString());
 		return true;
 	}
 
@@ -107,6 +109,7 @@ class OVT_TEST_Init_Controller_ComponentsResolve : SCR_AutotestCaseBase
 		if (!OVT_ControllerComponent<OVT_AdminCommandsComponent>.Get()) return "OVT_AdminCommandsComponent";
 		if (!OVT_ControllerComponent<OVT_TravelRequestComponent>.Get()) return "OVT_TravelRequestComponent";
 		if (!OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get()) return "OVT_RespawnRequestComponent";
+		if (!OVT_ControllerComponent<OVT_FuelRequestComponent>.Get()) return "OVT_FuelRequestComponent";
 
 		return "";
 	}

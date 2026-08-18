@@ -1,0 +1,78 @@
+SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industrial/Containers/FuelTanks/FuelTank_02/FuelTank_02_green.et" {
+ ID "51BA89020930D32D"
+ components {
+  OVT_BuildableComponent "{6B4E1F1000000002}" {
+   m_sBuildableType "FuelDepot"
+  }
+  OVT_FuelSourceComponent "{6B4E1F1000000003}" {
+   m_bFree 1
+  }
+  SCR_EditableEntityComponent "{6B4E1F1000000004}" {
+   m_UIInfo SCR_EditableEntityUIInfo "{6B4E1F1000000005}" {
+    Name "#OVT-Build_FuelDepot"
+    Description "#OVT-Build_FuelDepot_Description"
+   }
+   m_Flags PLACEABLE
+  }
+  SCR_FuelManagerComponent "{6B4E1F1000000006}" {
+   Enabled 1
+   FuelNodes {
+    SCR_FuelNode "{6B4E1F1000000007}" {
+     MaxFuel 10000
+     m_fInitialFuelTankState 0
+     m_MaxFlowCapacityOut VEHICLE_MEDIUM
+     m_MaxFlowCapacityIn FUEL_CARGO
+     m_eFuelNodeType 11
+     m_iFuelTankID 1
+    }
+   }
+  }
+  SCR_FuelSupportStationComponent "{6B4E1F1000000008}" : "{0B0900FB5E48E2FD}Prefabs/Components/SupportStations/Fuel/BaseFuelSupportStation.ct" {
+   m_eSupportStationPriority HIGH
+   m_fRange 7
+   m_bIgnoreSelf 1
+  }
+  ActionsManagerComponent "{6B4E1F1000000009}" {
+   ActionContexts {
+    UserActionContext "{6B4E1F100000000A}" {
+     ContextName "default"
+     Position PointInfo "{6B4E1F100000000B}" {
+      Offset 0 1.3 -1.9
+     }
+     Radius 2.5
+    }
+   }
+   additionalActions {
+    SCR_RefuelAtSupportStationAction "{6B4E1F100000000C}" : "{7891F1B10FA40962}Configs/Actions/SupportStationActions/Refuel/BaseRefuel.conf" {
+     ParentContextList {
+      "default"
+     }
+    }
+    OVT_FillFuelAction "{6B4E1F100000000E}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B4E1F100000000F}" {
+      Name "#OVT-FillFuel"
+     }
+     Duration 5
+    }
+    SCR_CheckFuelAction "{6B4E1F1000000014}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo SCR_ActionUIInfo "{6B4E1F1000000015}" : "{8EF2434DCE844759}Prefabs/Vehicles/Core/Configs/Actions/ActionUIInfo/ActionUIInfo_CheckFuel.conf" {
+      Name "#AR-Action_CheckFuel"
+     }
+     Duration 2.5
+    }
+   }
+  }
+  SoundComponent "{6B4E1F100000000D}" {
+   Filenames {
+    "{9DD9C6279F4489B4}Sounds/SupportStations/SupportStations_Vehicles.acp"
+   }
+   DistanceManagement 0
+  }
+ }
+}

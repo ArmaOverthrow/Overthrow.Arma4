@@ -86,7 +86,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float procurementMultiplier;
 	[Attribute(defvalue: "1.0", desc: "Multiplier for vehicle purchase prices", category: "Economy")]
 	float vehiclePriceMultiplier;
-	
+	[Attribute(defvalue: "1.0", desc: "Fuel price per litre at static fuel stations (0 disables fuel charging)", category: "Economy")]
+	float fuelPricePerLitre;
+
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]
 	int baseThreat;	
