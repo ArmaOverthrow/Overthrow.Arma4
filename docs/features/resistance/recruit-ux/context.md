@@ -113,6 +113,11 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 
 ## Session Notes
 
+### 2026-08-18 — Tent spawn point + 3 m scatter (user request)
+- User added an `OVT_SpawnPointComponent` (offset 0 0 7) to `OVT_RecruitmentTent.et` in Workbench (uncommitted prefab change in the tree). Both tent spawn paths now use it: `ResolveTentSpawnPosition` prefers the tent's own spawn point over the forward-axis anchor, then scatters uniformly in a `TENT_SPAWN_SCATTER_RADIUS = 3` m disc (ground re-clamp after scatter; `skipSpawnPointSearch` stays true — the tent's point is read directly, never via `FindSafeSpawnPosition`'s 15 m closest-component search, which would still find base/FOB points).
+- Legacy path parity: `RpcAsk_RecruitFromTent` only carries a position, so `SpawnTentRecruit` now recovers the tent root server-side (`FindTentAtPosition` — 10 m sphere query filtered on `OVT_BuildableComponent` type `RecruitmentTent`, NOT on `OVT_SpawnPointComponent`, which bases/FOBs also carry; filter mirrors `FindTownMarker`'s store-and-return-false shape). Legacy recruits therefore also gain the tent's facing via `ResolveTentSpawnAngles`.
+- Compile check green. Suites not run (user in Workbench — never run suites then). Play-test owed: recruit + buy-equipped at a tent built near a base (must NOT land on the respawn marker), several purchases spread out ~3 m, tent on a slope.
+
 ### 2026-08-15 — Play-test PASSED (all green, user-attested); Buy action made instant
 - User play-tested the full feature: **all green, works well.** One tweak requested and applied: `OVT_BuyEquippedRecruitAction` on the tent had `Duration 1.5` (held); the sibling Recruit Civilian action is instant, so the Duration line was removed — both tent actions now instant. (The action only opens the picker; the money step is the explicit Buy button, so a hold added nothing.)
 - **Localization re-export DONE by the user** — verified: `OVT-Recruit_BuyButton`, `OVT-Tutorial_RecruitsEquipped_Title`, `OVT-FieldManual_Recruits_Head8` all present in `localization_Overthrow.en-us.conf`.

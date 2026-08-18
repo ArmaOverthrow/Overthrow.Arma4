@@ -678,6 +678,21 @@ autotest world has no players, so `OnPlayerKilled_S` never fires, no RPC ever cr
 is no UI tier at all. See **Still unverified** above for the single consolidated list, and
 **Where to look when it doesn't work** for the three distinguishing failure signatures.
 
+### 2026-08-18 — BUG-175: chosen-location respawns spawned players inside geometry
+
+**Post-ship defect, filed and fixed.** Players picking a location on the respawn screen materialised
+inside the FOB truck / building walls: `CollectEligiblePositions` records **raw entity origins** and
+`CreateFreshCharacterAt`'s "used as given" contract meant the chosen-location path was the **only**
+spawn path that never ran `OVT_Global.FindSafeSpawnPosition`'s `OVT_SpawnPointComponent` query — the
+authored points on `OverthrowMobileFOBDeployed.et` / `OVT_RecruitmentTent.et` / `OVT_Camp.et` /
+`OVT_BaseController.et` were simply never consulted (the HOME path heals via
+`EnsureClearSpawnPosition` and was unaffected). Fix: `CompleteRespawn` now routes `resolvedPos`
+through `TryFindSafeSpawnPosition` **after** the eligibility match (the raw origin stays the lookup
+key; only the spawn moves), with a loud WARNING fallback to the origin when nothing clear is found.
+The stale "re-safety-checking would move the player away" premise in `CreateFreshCharacterAt`'s doc
+comment is corrected. Compile 0 / 6059 files; acceptance is manual (see `docs/bugs/BUG-175.md`) —
+the bug stays open until the FOB/camp/base/house respawns are observed landing on authored points.
+
 ### 2026-08-11 — Phase 9 discharged: the user ran the gate and reported all green
 
 **The feature is complete.** The user ran the §6 Verification Method and reported the whole gate green —
