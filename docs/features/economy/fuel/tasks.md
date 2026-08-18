@@ -1,6 +1,6 @@
 # Fuel - Task Checklist
 
-**Last Updated:** 2026-08-18 (Amendment A2 built)
+**Last Updated:** 2026-08-18 (feature CLOSED — play-test green, committed a765bd12)
 **Progress:** 35/36 tasks complete (97%)
 
 > Agent routing: phases 2 and 3 are **ADVANCED** (`component-developer-advanced`); phases 1 and 4 are STANDARD (`component-developer`); phase 5 is `help-docs-sync`. Suite per phase: 1–3 → **All** `{6A6E2A002F53A581}` (config-stream / economy / persistence state), 4 → **Fast** `{6A6E29FF47ECB840}`, 5 → skipped (docs-only). Source of truth: `implementation.md` phase tables.
@@ -236,10 +236,10 @@
 
 ## Needs human verification (running list)
 
-- [ ] Manual play-test steps A–H in `implementation.md` (pump feel, broke-mid-refuel, free paths, depot build/fill/dispense, persistence F18, MP/JIP, kill switch)
-- [ ] `Language/localization_Overthrow.en-us.conf` re-export (Workbench) — owed for the 4 new A1 keys (raw until it runs) and for the A2.3 depot-capacity rewrites of the Field Manual and tutorial text
-- [ ] 🔴 **Verify the two restored loc keys still render**: `#OVT-StartUprising` and `#OVT-SupportTooLow` were silently dropped when the string table was re-saved from Workbench (they had been parsed as nested inside the unclosed `{6B09A1C0E4D50121}` item). Restored at top level with their original GUIDs; the brace imbalance that caused it is now gone.
-- [ ] **A1 play-test (step I below) — nothing in the harness reaches a fuel node, a support station or a second machine**
+- [x] ✅ Manual play-test steps A–H in `implementation.md` — **user confirmed all green 2026-08-18** (pump feel, broke-mid-refuel, free paths, depot build/fill/dispense, persistence F18, MP/JIP, kill switch)
+- [x] ✅ `Language/localization_Overthrow.en-us.conf` re-export — done 2026-08-18 (new keys verified present in the generated file; committed in a765bd12)
+- [x] ✅ 🔴 **Verify the two restored loc keys still render** — covered by the green play-test 2026-08-18: `#OVT-StartUprising` and `#OVT-SupportTooLow` were silently dropped when the string table was re-saved from Workbench (they had been parsed as nested inside the unclosed `{6B09A1C0E4D50121}` item). Restored at top level with their original GUIDs; the brace imbalance that caused it is now gone.
+- [x] ✅ **A1 play-test (step I below)** — user confirmed all green 2026-08-18
 
 ### A1 manual play-test (step I)
 

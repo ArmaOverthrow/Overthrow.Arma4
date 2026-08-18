@@ -274,6 +274,9 @@ purely additive, and `grep -n "Rpc(" ` over the Phase 2 files still returns noth
   red-proven by inverting the source-clamp assertion (compile-check exit 0 with the inversion, then
   restored). Suites left to the orchestrator.
 
+### 2026-08-18 — CLOSED
+- User confirmed all play-test items green (A–H + I1–I10), re-exported `en-us.conf`, and committed the feature (`a765bd12`). Depot action point hand-tuned in Workbench to `Offset 1.3 1.3 0 / Radius 3`. A3 added vanilla `SCR_CheckFuelAction` to the depot (`{6B4E1F1000000014/15}`). Remaining: wiki sync (T5.2, auth-blocked).
+
 ### 2026-08-18 16:05 — Phase 3 amendment: depot model swapped on user feedback
 
 - **`OVT_FuelDepot.et` re-based from the FIA mobile water tank to `{2D92D7E09B3424BC}Prefabs/Structures/Industrial/Containers/FuelTanks/FuelTank_02/FuelTank_02_green.et`** (user's choice). Root class `GenericEntity` -> `SCR_DestructibleBuildingEntity`; root ID `F0DBA538AC2A0552` -> `51BA89020930D32D` (mirrors the immediate parent, the same rule `OVT_MedicalTent.et` follows). **Resource GUID `{6B4E1F1000000001}` and all twelve component GUIDs unchanged**, so buildables.conf, the persistence config and the test case needed no edit at all.

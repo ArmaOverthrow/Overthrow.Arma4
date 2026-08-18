@@ -1,6 +1,12 @@
 SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industrial/Containers/FuelTanks/FuelTank_02/FuelTank_02_green.et" {
  ID "51BA89020930D32D"
  components {
+  SoundComponent "{6B4E1F100000000D}" {
+   Filenames {
+    "{9DD9C6279F4489B4}Sounds/SupportStations/SupportStations_Vehicles.acp"
+   }
+   DistanceManagement 0
+  }
   OVT_BuildableComponent "{6B4E1F1000000002}" {
    m_sBuildableType "FuelDepot"
   }
@@ -37,9 +43,9 @@ SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industria
     UserActionContext "{6B4E1F100000000A}" {
      ContextName "default"
      Position PointInfo "{6B4E1F100000000B}" {
-      Offset 0 1.3 -1.9
+      Offset 1.3 1.3 0
      }
-     Radius 2.5
+     Radius 3
     }
    }
    additionalActions {
@@ -67,12 +73,6 @@ SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industria
      Duration 2.5
     }
    }
-  }
-  SoundComponent "{6B4E1F100000000D}" {
-   Filenames {
-    "{9DD9C6279F4489B4}Sounds/SupportStations/SupportStations_Vehicles.acp"
-   }
-   DistanceManagement 0
   }
  }
 }

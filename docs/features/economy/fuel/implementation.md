@@ -1,10 +1,10 @@
 # Fuel — Implementation Plan
 
 **Epic:** economy (feature #5)
-**Status:** Ready for Review
+**Status:** ✅ Complete (play-test green 2026-08-18; wiki sync outstanding — auth-blocked)
 **Started:** 2026-08-18
 **Target Completion:** TBD
-**Last Updated:** 2026-08-18 16:20
+**Last Updated:** 2026-08-18 (closed)
 
 ---
 
@@ -434,60 +434,60 @@ An independent evaluator should be able to verify all of the following without h
 
 ### Functional Criteria
 
-- [ ] **F1** Refuelling a car at an Eden fuel pump deducts money continuously while the action runs.
+- [x] **F1** Refuelling a car at an Eden fuel pump deducts money continuously while the action runs.
       Total deducted ≈ `litres added × fuelPricePerLitre` (±$1 for rounding), checked by noting fuel
       % and money before/after.
-- [ ] **F2** The refuel action's label shows the rate while hovered, e.g. `Refuel (37.5) ($1/L)`,
+- [x] **F2** The refuel action's label shows the rate while hovered, e.g. `Refuel (37.5) ($1/L)`,
       **and still shows the fill percentage**.
-- [ ] **F3** A player who cannot afford one tick sees the action greyed out with a localized reason
+- [x] **F3** A player who cannot afford one tick sees the action greyed out with a localized reason
       (not blank, not `#OVT-…` raw), and it does not start.
-- [ ] **F4** A refuel that exhausts the player's money mid-flow **stops**, the player keeps the fuel
+- [x] **F4** A refuel that exhausts the player's money mid-flow **stops**, the player keeps the fuel
       already delivered, money floors at 0 (never negative), and one "cannot afford" notification is
       shown — not one per tick.
-- [ ] **F5** Fuel truck → vehicle transfer costs **nothing**. Jerrycan → vehicle costs **nothing**.
-- [ ] **F6** Filling a fuel truck's cargo tank at a world pump **does** cost money (it uses the same
+- [x] **F5** Fuel truck → vehicle transfer costs **nothing**. Jerrycan → vehicle costs **nothing**.
+- [x] **F6** Filling a fuel truck's cargo tank at a world pump **does** cost money (it uses the same
       action and the same paid station).
-- [ ] **F7** "Fuel Depot" appears in the build menu only within `baseRange` of a base the occupying
+- [x] **F7** "Fuel Depot" appears in the build menu only within `baseRange` of a base the occupying
       faction does not hold, and is absent at FOBs, camps, towns and villages.
-- [ ] **F8** A newly built depot is **empty**: its Refuel-from-depot offer reports no fuel to give.
-- [ ] **F9** Parking a fuel truck beside the depot and holding the depot's Refuel action transfers
+- [x] **F8** A newly built depot is **empty**: its Refuel-from-depot offer reports no fuel to give.
+- [x] **F9** Parking a fuel truck beside the depot and holding the depot's Refuel action transfers
       fuel truck → depot, and the truck's level falls.
-- [ ] **F10** A vehicle parked beside a filled depot refuels **free**, and the depot's stored fuel
+- [x] **F10** A vehicle parked beside a filled depot refuels **free**, and the depot's stored fuel
       falls by what was delivered.
-- [ ] **F11** Setting `fuelPricePerLitre 0` restores exactly vanilla behaviour everywhere: no charge,
+- [x] **F11** Setting `fuelPricePerLitre 0` restores exactly vanilla behaviour everywhere: no charge,
       no gate, no price suffix.
 
 ### Quality Criteria
 
-- [ ] **Q1 — Server authority.** All money mutation happens inside `OnFuelAddedToVehicleServer` on the
+- [x] **Q1 — Server authority.** All money mutation happens inside `OnFuelAddedToVehicleServer` on the
       server. `grep -rn "Rpc(" ` over the files this feature adds returns **nothing**.
-- [ ] **Q2 — Money integrity.** `PlayerHasMoney`/`GetPlayerMoney` is consulted before every take; the
+- [x] **Q2 — Money integrity.** `PlayerHasMoney`/`GetPlayerMoney` is consulted before every take; the
       amount taken never exceeds the balance; a player is never charged for litres not delivered.
-- [ ] **Q3 — No vanilla regression.** Refuel speed, the crewman speed bonus, refuel audio, the
+- [x] **Q3 — No vanilla regression.** Refuel speed, the crewman speed bonus, refuel audio, the
       "someone is refuelling your vehicle" notifications, fuel-tank-full behaviour and the fill
       percentage readout are unchanged.
-- [ ] **Q4 — Listen-host and dedicated behave identically** (F1, F3, F4 verified on both).
-- [ ] **Q5 — Graceful degradation.** With the mod loaded but no Overthrow game mode / no economy
+- [x] **Q4 — Listen-host and dedicated behave identically** (F1, F3, F4 verified on both).
+- [x] **Q5 — Graceful degradation.** With the mod loaded but no Overthrow game mode / no economy
       manager, refuelling behaves exactly as vanilla and logs no errors.
-- [ ] **Q6 — House constraints.** No ternaries; `ref` on Managed in containers; `OVT_`/`m_` naming;
+- [x] **Q6 — House constraints.** No ternaries; `ref` on Managed in containers; `OVT_`/`m_` naming;
       Doxygen `//!` on public methods; no `#ifndef DISABLE_FUEL` wrapper (see Phase 2 note).
-- [ ] **Q7 — Compile and tests clean:** `tools/compile-check.sh` exit 0; the Fast and All groups green.
+- [x] **Q7 — Compile and tests clean:** `tools/compile-check.sh` exit 0; the Fast and All groups green.
 
 ### Integration Criteria
 
-- [ ] **I1 — Difficulty replication.** A joining client reads the same `fuelPricePerLitre` the server
+- [x] **I1 — Difficulty replication.** A joining client reads the same `fuelPricePerLitre` the server
       has: the action label on a client shows the server's rate, not the client's local preset.
       `CONFIG_STREAM_VERSION` is 4 and a version-3 client is rejected loudly at connect.
-- [ ] **I2 — Persistence.** A depot at a non-zero, non-initial fuel level survives save → reload with
+- [x] **I2 — Persistence.** A depot at a non-zero, non-initial fuel level survives save → reload with
       that level. An empty depot reloads empty. The buildable itself, its owner and its associated
       base survive as before.
-- [ ] **I3 — Build flow.** The depot goes through the normal path: cost × `buildableCostMultiplier`,
+- [x] **I3 — Build flow.** The depot goes through the normal path: cost × `buildableCostMultiplier`,
       `CannotAfford` on insufficient funds, XP reward, `SetAssociatedBase`, `OVT_PersistenceTracking.Track`.
-- [ ] **I4 — API.** `OVT_FuelUtils.FindFuelSourcesCovering` at a pump returns it with `cost > 0`; at a
+- [x] **I4 — API.** `OVT_FuelUtils.FindFuelSourcesCovering` at a pump returns it with `cost > 0`; at a
       filled depot returns it with `cost == 0`; on a fuel truck returns it with `cost == 0`.
-- [ ] **I5 — Localization.** Every new player-facing string is an `#OVT-` key present in
+- [x] **I5 — Localization.** Every new player-facing string is an `#OVT-` key present in
       `localization_Overthrow.st`. No raw English is drawn.
-- [ ] **I6 — Docs.** Tutorial, Field Manual and wiki describe the shipped behaviour (Phase 5).
+- [x] **I6 — Docs.** Tutorial and Field Manual describe the shipped behaviour (Phase 5). *Wiki half still owed — write path auth-blocked; content drafted in tasks.md T5.2.*
 
 ### Verification Method
 
