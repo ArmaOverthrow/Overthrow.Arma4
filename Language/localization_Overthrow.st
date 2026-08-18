@@ -4,6 +4,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD0}" {
    Id "OVT-Account"
    Target_en_us "Account"
+   Target_de_de "Menge"
    Target_ru_ru "Кошелёк"
    Target_ko_kr "계정"
    Target_zh_cn "账户"
@@ -16,9 +17,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579111
+   Modified 1780504099
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -26,6 +27,7 @@ StringTable {
    Id "OVT-AddToGarrison"
    Target_en_us "Add To Garrison"
    Target_fr_fr "Ajouter à la garnison"
+   Target_de_de "Garnison hinzufügen"
    Target_ru_ru "Добавить в гарнизон"
    Target_ko_kr "주둔지에 배치"
    Target_zh_cn "添加驻守"
@@ -38,9 +40,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579155
+   Modified 1780389844
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -48,6 +50,7 @@ StringTable {
    Id "OVT-AlreadyOccupied"
    Target_en_us "Position is already occupied"
    Target_fr_fr "La position est déjà occupée"
+   Target_de_de "Die Position ist bereits besetzt"
    Target_ru_ru "Точка уже захвачена"
    Target_ko_kr "해당 위치는 이미 점령되어 있습니다"
    Target_zh_cn "该位置已被占用"
@@ -60,9 +63,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579174
+   Modified 1780389916
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -70,6 +73,7 @@ StringTable {
    Id "OVT-Amount"
    Target_en_us "Amount"
    Target_fr_fr "Montant"
+   Target_de_de "Menge"
    Target_ru_ru "Количество"
    Target_ko_kr "수량"
    Target_zh_cn "数量"
@@ -82,83 +86,92 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579214
+   Modified 1780389945
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6468E2321E96E602}" {
    Id "OVT-Base_Chotain"
    Target_en_us "Chotain Base"
+   Target_de_de "Chotain Basis"
    Target_ko_kr "초테인 기지"
    Target_zh_cn "乔坦基地"
    Target_uk_ua "База Шотен"
-   Modified 1716476324
+   Modified 1780401291
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{646E48D7E93CDF0B}" {
    Id "OVT-Base_Erquy"
    Target_en_us "Erquy Harbour"
+   Target_de_de "Erquy Hafen"
    Target_ko_kr "에르퀴 항구"
    Target_zh_cn "埃尔基港"
    Target_uk_ua "Гавань Еркі"
-   Modified 1716476296
+   Modified 1780401301
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6468E2320833D633}" {
    Id "OVT-Base_Lamentin"
    Target_en_us "Lamentin Harbour"
+   Target_de_de "Lamentin Hafen"
    Target_ko_kr "라망탱 항구"
    Target_zh_cn "拉芒廷港"
    Target_uk_ua "Гавань Ламентен"
-   Modified 1716476273
+   Modified 1780504137
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6468E232050364DF}" {
    Id "OVT-Base_Levie"
    Target_en_us "Levie Base"
+   Target_de_de "Levie Basis"
    Target_ko_kr "레비 기지"
    Target_zh_cn "利维基地"
    Target_uk_ua "База Леві"
-   Modified 1716476246
+   Modified 1780504186
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6A18B7BFD9B3DDC7}" {
    Id "OVT-Base_MilitaryHospital"
    Target_en_us "Military Hospital"
-   Modified 1780015970
+   Target_de_de "Militärkrankenhaus"
+   Target_uk_ua "Військовий шпиталь"
+   Modified 1780504205
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6468E232E3F6812C}" {
    Id "OVT-Base_StPhillipe"
    Target_en_us "St Phillipe Base"
+   Target_de_de "St Phillipe Basis"
    Target_ko_kr "상필립 기지"
    Target_zh_cn "圣菲利普基地"
    Target_uk_ua "База Сент-Філіп"
-   Modified 1716476227
+   Modified 1780504224
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6468E232F36B047A}" {
    Id "OVT-Base_TrainingGrounds"
    Target_en_us "Training Grounds"
+   Target_de_de "Trainingsgelände"
    Target_ko_kr "훈련장"
    Target_zh_cn "训练场"
    Target_uk_ua "Тренувальні майданчики"
-   Modified 1716476186
+   Modified 1780504240
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
    Target_fr_fr "Base proche"
+   Target_de_de "Basis in der Nähe"
    Target_ru_ru "База около"
    Target_ko_kr "인근 기지"
    Target_zh_cn "基地附近"
@@ -171,9 +184,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706582582
+   Modified 1780401262
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -181,6 +194,7 @@ StringTable {
    Id "OVT-BattleProgress"
    Target_en_us "Battle In Progress"
    Target_fr_fr "Bataille en cours"
+   Target_de_de "Kampf im Gange"
    Target_ru_ru "Идет бой"
    Target_ko_kr "전투 진행 중"
    Target_zh_cn "战斗正在进行"
@@ -193,9 +207,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579400
+   Modified 1780504258
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -203,6 +217,7 @@ StringTable {
    Id "OVT-BattleStartsIn"
    Target_en_us "Battle Starts In"
    Target_fr_fr "La Bataille commence dans"
+   Target_de_de "Der Kampf beginnt in"
    Target_ru_ru "Бой начнется через"
    Target_ko_kr "전투 시작까지"
    Target_uk_ua "Бій почнеться через"
@@ -213,15 +228,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579411
+   Modified 1780504272
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D822427A868571A}" {
    Id "OVT-BodiesLooted"
    Target_en_us "Dead bodies and weapons within 25m have looted into the vehicle"
+   Target_de_de "Leichen und Waffen im Umkreis von 25 m wurden in das Fahrzeug gelootet"
    Target_ru_ru "Снаряжения и оружие в радиусе 25м загружены в машину"
    Target_ko_kr "25미터 이내의 시체와 무기가 차량 안으로 약탈되었습니다."
    Target_zh_cn "25米范围内尸体和武器被洗劫到车内"
@@ -234,31 +250,34 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579425
+   Modified 1780504322
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65B90A1309A95BE3}" {
    Id "OVT-Build_Bunkers"
    Target_en_us "Bunker"
+   Target_de_de "Bunker"
    Target_uk_ua "Бункер"
-   Modified 1716476148
+   Modified 1780504329
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{65B90A13E7E87AEF}" {
    Id "OVT-Build_Bunkers_Description"
    Target_en_us "A hidey-hole to shoot out of"
+   Target_de_de "Ein Versteck, aus dem man schießen kann"
    Target_uk_ua "Схованка для стрільби"
-   Modified 1716476141
+   Modified 1780504346
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
+   Target_de_de "Wachturm"
    Target_ru_ru "Башня охраны"
    Target_ko_kr "감시탑"
    Target_zh_cn "哨塔"
@@ -271,15 +290,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579442
+   Modified 1780504362
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E25C2B0175}" {
    Id "OVT-Build_GuardTower_Description"
    Target_en_us "Provides a better view"
+   Target_de_de "Bietet eine bessere Sicht"
    Target_ru_ru "Дает хорошую просматриваемость"
    Target_ko_kr "더 나은 시야를 제공합니다."
    Target_zh_cn "提供更好的视野"
@@ -292,9 +312,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579538
+   Modified 1780504377
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -302,6 +322,7 @@ StringTable {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
    Target_fr_fr "Tente Médicale"
+   Target_de_de "Sanitätszelt"
    Target_ru_ru "Медицинский тент"
    Target_ko_kr "의료 텐트"
    Target_zh_cn "医疗帐篷"
@@ -314,15 +335,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579550
+   Modified 1780504392
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E22347ED73}" {
    Id "OVT-Build_MedicalTent_Description"
    Target_en_us "Heals players"
+   Target_de_de "Heilt Spieler"
    Target_ru_ru "Лечит  игроков"
    Target_ko_kr "플레이어 치료하기"
    Target_zh_cn "治愈玩家"
@@ -335,9 +357,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579557
+   Modified 1780504402
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -345,6 +367,7 @@ StringTable {
    Id "OVT-Build_RecruitmentTent"
    Target_en_us "Recruitment Tent"
    Target_fr_fr "Tente de recrutement"
+   Target_de_de "Rekrutierungszelt"
    Target_ru_ru "Палатка вербовки"
    Target_zh_cn "招募帐篷"
    Target_uk_ua "Наметна вербування"
@@ -356,9 +379,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1640995200
+   Modified 1780504415
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -366,6 +389,7 @@ StringTable {
    Id "OVT-Build_RecruitmentTent_Description"
    Target_en_us "Recruit civilians from nearby towns at reduced cost"
    Target_fr_fr "Recruter des civils des villes voisines à coût réduit"
+   Target_de_de "Rekrutieren Sie Zivilisten aus nahegelegenen Städten, zu reduzierten Kosten"
    Target_ru_ru "Нанимать гражданских из близлежащих городов по сниженной стоимости"
    Target_zh_cn "以低价从附近城镇招募平民"
    Target_uk_ua "Набирати цивільних з навколишніх міст за зниженою вартістю"
@@ -377,15 +401,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1640995200
+   Modified 1780504456
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D7C5DE39344EAE9}" {
    Id "OVT-Build_Tent"
    Target_en_us "Tent"
+   Target_de_de "Zelt"
    Target_ru_ru "Палатка"
    Target_ko_kr "텐트"
    Target_zh_cn "帐篷"
@@ -398,15 +423,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579610
+   Modified 1780504461
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E24EA74F15}" {
    Id "OVT-Build_Tent_Description"
    Target_en_us "A roof over your head"
+   Target_de_de "Ein Dach über dem Kopf"
    Target_ru_ru "Крыша над головой"
    Target_ko_kr "대피소"
    Target_zh_cn "栖身之处"
@@ -419,9 +445,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579649
+   Modified 1780504476
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -429,6 +455,7 @@ StringTable {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
    Target_fr_fr "Rampe de Maintenance de Véhicules"
+   Target_de_de "Fahrzeugwartungsrampe"
    Target_ru_ru "Рампа для обслуживания техники"
    Target_ko_kr "차량 정비 램프"
    Target_zh_cn "车辆维修斜坡"
@@ -441,15 +468,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579682
+   Modified 1780504497
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E22A59D4C6}" {
    Id "OVT-Build_VehicleMaintenanceRamp_Description"
    Target_en_us "Can repair and upgrade vehicles"
+   Target_de_de "Kann Fahrzeuge reparieren und aufrüsten"
    Target_ru_ru "Может чинить и улучшать технику"
    Target_ko_kr "차량을 수리하고 업그레이드할 수 있습니다."
    Target_zh_cn "可以修理和升级车辆"
@@ -462,15 +490,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579694
+   Modified 1780504514
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000072}" {
    Id "OVT-BuyEquippedRecruit"
    Target_en_us "Buy Equipped Recruit"
+   Target_de_de "Ausrüstung für Rekruten kaufen"
+   Target_uk_ua "Найняти спорядженого рекрута"
    Comment "Name of the second held action on a recruitment tent - opens the loadouts screen in purchase mode. The prefab carries the literal English until the runtime exports are regenerated (decision D14)"
    DevNote ""
    Repro ""
@@ -479,15 +509,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1755129600
+   Modified 1780504525
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDB}" {
    Id "OVT-CampInfo"
    Target_en_us "Camps allow fast travel and basic building. Public camps can be used by anyone, private camps are owner-only."
+   Target_de_de "Camps ermöglichen Schnellreisen und grundlegende Bauarbeiten. Öffentliche Camps können von jedem genutzt werden, private Camps sind nur für den Eigentümer zugänglich."
    Target_uk_ua "Табори дозволяють швидко переміщуватися та будувати базові об’єкти. Публічні табори доступні для будь-кого, приватні - лише для власника."
    Comment ""
    DevNote ""
@@ -497,15 +528,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716476114
+   Modified 1780506115
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD3}" {
    Id "OVT-CampName"
    Target_en_us "Camp Name"
+   Target_de_de "Camp Name"
    Target_uk_ua "Ім'я табору"
    Comment ""
    DevNote ""
@@ -515,15 +547,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716476080
+   Modified 1780504676
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD6}" {
    Id "OVT-CampPrivate"
    Target_en_us "Private"
+   Target_de_de "Privat"
    Target_uk_ua "Приватний"
    Comment ""
    DevNote ""
@@ -533,15 +566,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716476065
+   Modified 1780504697
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD5}" {
    Id "OVT-CampPublic"
    Target_en_us "Public"
+   Target_de_de "Öffentlich"
    Target_uk_ua "Публічний"
    Comment ""
    DevNote ""
@@ -551,9 +585,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716476050
+   Modified 1780504728
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -561,6 +595,7 @@ StringTable {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
    Target_fr_fr "Annuler"
+   Target_de_de "beenden"
    Target_ru_ru "Отмена"
    Target_ko_kr "취소하기"
    Target_zh_cn "取消"
@@ -573,9 +608,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579706
+   Modified 1780504763
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -583,6 +618,7 @@ StringTable {
    Id "OVT-CannotAfford"
    Target_en_us "You cannot afford that"
    Target_fr_fr "Vous n'avez pas assez d'argent"
+   Target_de_de "Das kannst du dir nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
    Target_ko_kr "돈이 충분하지 않습니다."
    Target_zh_cn "你负担不起"
@@ -595,9 +631,9 @@ StringTable {
    Status DEVELOPMENT_DONE
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579740
+   Modified 1780504779
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -605,6 +641,7 @@ StringTable {
    Id "OVT-CannotBuildAnythingHere"
    Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
    Target_fr_fr "Vous ne pouvez rien placer ici, réessayez dans un avant-poste ou une commune/base capturée"
+   Target_de_de "Hier kannst du nichts bauen. Versuche es an einer FOB oder in einer eroberten Stadt bzw. Basis."
    Target_ru_ru "Вы не можете здесь ничего построить. Попробуйте на FOB или в захваченом городе или базе"
    Target_ko_kr "여기서는 아무것도 건설할 수 없습니다. 전진 기지(FOB)나 점령한 마을/기지에서 시도하세요."
    Target_zh_cn "你无法在此建造任何东西。尝试在FOB或被占领的城镇/基地建造。"
@@ -617,9 +654,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579754
+   Modified 1780506126
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -627,6 +664,7 @@ StringTable {
    Id "OVT-CannotBuildHere"
    Target_en_us "You cannot build that here"
    Target_fr_fr "Vous ne pas pouvez construire ceci ici"
+   Target_de_de "Das kannst du hier nicht bauen"
    Target_ru_ru "Вы не можете строить здесь"
    Target_ko_kr "여기서는 선택한 것을 건설할 수 없습니다."
    Target_zh_cn "你无法在此建造"
@@ -639,9 +677,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579796
+   Modified 1780505121
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -649,6 +687,7 @@ StringTable {
    Id "OVT-CannotBuildTown"
    Target_en_us "You can only build that in small villages"
    Target_fr_fr "Vous pouvez construire ceci uniquement dans un village."
+   Target_de_de "Das kannst du nur in kleinen Dörfern bauen"
    Target_ru_ru "Вы можете это построить только в  деревнях"
    Target_ko_kr "선택한 것은 작은 마을에서만 건설할 수 있습니다."
    Target_zh_cn "你只能在小村庄里建造它"
@@ -661,9 +700,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579812
+   Modified 1780505135
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -671,6 +710,7 @@ StringTable {
    Id "OVT-CannotBuildVillage"
    Target_en_us "You cannot build that in a small village"
    Target_fr_fr "Vous ne pouvez pas construire ceci dans un petit village"
+   Target_de_de "Das kann man nicht in einem kleinen Dorf bauen"
    Target_ru_ru "Вы не можете это простроить в деревне"
    Target_ko_kr "작은 마을에서는 선택한 것을 건설할 수 없습니다."
    Target_zh_cn "你不可能在一个小村庄里建造它"
@@ -683,9 +723,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579830
+   Modified 1780505162
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -693,6 +733,7 @@ StringTable {
    Id "OVT-CannotFastTravelDistance"
    Target_en_us "That is too short of a distance to fast travel"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pour si peu, vous avez des jambes !"
+   Target_de_de "Die Entfernung ist zu gering für eine Schnellreise"
    Target_ru_ru "Это очень маленькая дистанция для быстрого перемещения"
    Target_ko_kr "빠른 이동을 하기에는 너무 짧은 거리입니다."
    Target_zh_cn "距离太近，无法快速移动"
@@ -705,9 +746,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579854
+   Modified 1780505174
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -715,6 +756,7 @@ StringTable {
    Id "OVT-CannotFastTravelDuringQRF"
    Target_en_us "You cannot fast travel during a battle"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pendant une contre attaque"
+   Target_de_de "Während eines Kampfes kannst du keine Schnellreise nutzen"
    Target_ru_ru "Вы не можете переместиться в бою"
    Target_ko_kr "전투 중에는 빠른 이동을 할 수 없습니다."
    Target_zh_cn "战斗期间无法快速移动"
@@ -727,37 +769,44 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579867
+   Modified 1780505187
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D6C329AA15E1D7}" {
    Id "OVT-CannotFastTravelEnemyBase"
    Target_en_us "You cannot fast travel to enemy bases"
-   Modified 1708574797
+   Target_de_de "Du kannst nicht per Schnellreise zu feindlichen Basen reisen"
+   Target_uk_ua "Швидке переміщення до ворожих баз неможливе"
+   Modified 1780505200
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6A88000000000001}" {
    Id "OVT-CannotFastTravelNotYourHouse"
    Target_en_us "You cannot fast travel to a house you do not own or rent"
-   Modified 1786492800
+   Target_de_de "Du kannst nicht per Schnellreise zu einem Haus reisen, das dir nicht gehört oder das du nicht gemietet hast"
+   Target_uk_ua "Швидке переміщення можливе лише до власного або орендованого будинку"
+   Modified 1780505223
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6A88000000000002}" {
    Id "OVT-CannotFastTravelPrivateCamp"
    Target_en_us "You cannot fast travel to someone else's private camp"
-   Modified 1786492800
+   Target_de_de "Du kannst nicht per Schnellreise zum privaten Camp einer anderen Person reisen"
+   Target_uk_ua "Швидке переміщення до чужого приватного табору неможливе"
+   Modified 1780505232
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ici. Vous devez sélectionner une propriété ou un avant-poste/base que vous controllez"
+   Target_de_de "Du kannst nicht dorthin schnellreisen. Du musst dich in der Nähe eines eigenen Hauses, eines Lagers, einer FOB oder einer kontrollierten Basis befinden"
    Target_ru_ru "Вы не можете переместиться сюда. Точка должна быть возле купленого дома, лагеря, FOB или контролируемой базы"
    Target_ko_kr "선택한 곳으로 빠른 이동을 할 수 없습니다. 소유한 집, 캠프, 전진기지(FOB) 또는 점령한 기지 근처여야 합니다."
    Target_zh_cn "你不能快速前往那里。必须靠近拥有的房屋、营地、FOB或受控基地"
@@ -770,9 +819,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579889
+   Modified 1780505287
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -780,6 +829,7 @@ StringTable {
    Id "OVT-CannotFastTravelToQRF"
    Target_en_us "You cannot fast travel to a battle in progress"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ependant une bataille"
+   Target_de_de "Du kannst nicht per Schnellreise zu einen laufenden Kampf reisen."
    Target_ru_ru "Вы не можете переместиться к зоне боевых действий"
    Target_ko_kr "전투중인 지역으론 빠른 이동을 할 수 없습니다."
    Target_zh_cn "你不能快速前往正在进行的战场"
@@ -792,9 +842,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579923
+   Modified 1780505325
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -802,6 +852,7 @@ StringTable {
    Id "OVT-CannotFastTravelWanted"
    Target_en_us "You cannot fast travel while wanted"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide en étant recherché"
+   Target_de_de "Du kannst keine Schnellreise nutzen, solange du gesucht wirst"
    Target_ru_ru "Вы не можете переместиться во время розыска"
    Target_ko_kr "수배된 상태에서는 빠른 이동을 할 수 없습니다."
    Target_zh_cn "你不能在被通缉时快速移动"
@@ -814,15 +865,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579936
+   Modified 1780505334
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA6821F295FE629}" {
    Id "OVT-CannotImport"
    Target_en_us "Trade skill level 1 is required to import"
+   Target_de_de "Für den Import ist Handelsfertigkeitsstufe 1 erforderlich"
    Target_ru_ru "Необходим 1 уровень прокаченой торговли для импорта"
    Target_ko_kr "수입하려면 거래 기술 레벨 1이 필요합니다."
    Target_zh_cn "进口需要贸易技能等级1"
@@ -835,42 +887,46 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579949
+   Modified 1780505348
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E02BE2D148E3EDB}" {
    Id "OVT-CannotPlaceAnythingHere"
    Target_en_us "You cannot place anything here, you must be near a house/camp you own, an FOB or a controlled base"
+   Target_de_de "Du kannst hier nichts platzieren; du musst dich in der Nähe eines Hauses oder Lagers, das dir gehört, einer FOB oder einer kontrollierten Basis befinden."
    Target_uk_ua "Ви не можете тут нічого розміщувати. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
-   Modified 1716475979
+   Modified 1780505411
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house/camp you own, an FOB or a controlled base"
+   Target_de_de "Du kannst diesen Gegenstand hier nicht platzieren; du musst dich in der Nähe eines Hauses oder Lagers, das dir gehört, einer FOB oder einer kontrollierten Basis befinden"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
    Target_uk_ua "Ви не можете розмістити цей предмет тут. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
-   Modified 1716475857
+   Modified 1780505587
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5992E2F582B25E2B}" {
    Id "OVT-CannotRemoveItem"
    Target_en_us "Cannot remove this item"
+   Target_de_de "Dieses Element kann nicht entfernt werden"
    Target_ru_ru "Невозможно удалить этот предмет"
    Target_uk_ua "Неможливо видалити цей предмет"
-   Modified 1716475826
+   Modified 1780505605
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"
    Target_fr_fr "Capturer la base"
+   Target_de_de "Basis einnehmen"
    Target_ru_ru "Захват базы"
    Target_ko_kr "기지 점령"
    Target_zh_cn "占领基地"
@@ -883,9 +939,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706579995
+   Modified 1780505626
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -893,6 +949,7 @@ StringTable {
    Id "OVT-CatchBus"
    Target_en_us "Catch a bus"
    Target_fr_fr "Prendre un bus"
+   Target_de_de "Nimm den Bus"
    Target_ru_ru "Поймать автобус"
    Target_ko_kr "버스 잡기"
    Target_zh_cn "搭乘公交车"
@@ -905,22 +962,25 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706583415
+   Modified 1780505638
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D0CCE5C1759927}" {
    Id "OVT-City"
    Target_en_us "City"
-   Modified 1708198306
+   Target_de_de "Stadt"
+   Target_uk_ua "Місто"
+   Modified 1780505647
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5D86A310C893DBE0}" {
    Id "OVT-ContainerProgress"
    Target_en_us "Container %1 of %2"
+   Target_de_de "Container %1 von %2"
    Target_uk_ua "Контейнер %1 з %2"
    Comment ""
    DevNote ""
@@ -930,9 +990,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716475801
+   Modified 1780505670
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -940,6 +1000,7 @@ StringTable {
    Id "OVT-ContinueSave"
    Target_en_us "Continue Save"
    Target_fr_fr "Reprendre la sauvegarde"
+   Target_de_de "Weiter Speichern"
    Target_ru_ru "Продлжить сохранение"
    Target_ko_kr "저장 계속하기"
    Target_zh_cn "继续保存"
@@ -952,15 +1013,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580022
+   Modified 1780505705
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA4CE52026813CE}" {
    Id "OVT-ConvertedSupporter"
    Target_en_us "This citizen now supports the resistance"
+   Target_de_de "Dieser Bürger unterstützt nun den Widerstand."
    Target_ru_ru "Этот горожанин теперь поддерживает сопротивление"
    Target_ko_kr "이 시민은 이제 저항군을 지지합니다."
    Target_zh_cn "这位公民现在支持抵抗运动"
@@ -973,15 +1035,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580235
+   Modified 1780505731
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E3A9993D96}" {
    Id "OVT-ConvertSupporter"
    Target_en_us "Convert supporter"
+   Target_de_de "Unterstützer konvertieren"
    Target_ru_ru "Призвать присоединиться к сопротивлению"
    Target_ko_kr "저항군에 합류를 요청하기"
    Target_zh_cn "转变的支持者"
@@ -994,15 +1057,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580068
+   Modified 1780505715
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD9}" {
    Id "OVT-DeleteCamp"
    Target_en_us "Delete Camp"
+   Target_de_de "Camp löschen"
    Target_uk_ua "Видалити табір"
    Comment ""
    DevNote ""
@@ -1012,15 +1076,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716475487
+   Modified 1780505747
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDA}" {
    Id "OVT-DeleteCampConfirm"
    Target_en_us "Are you sure you want to delete this camp? All items will be lost."
+   Target_de_de "Sind Sie sicher, dass Sie dieses Camp löschen möchten? Alle Elemente gehen verloren."
    Target_uk_ua "Ви впевнені, що хочете видалити цей табір? Усі предмети будуть втрачені."
    Comment ""
    DevNote ""
@@ -1030,9 +1095,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716475540
+   Modified 1780505781
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1040,6 +1105,7 @@ StringTable {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
    Target_fr_fr "Livrer le Matériel Médical"
+   Target_de_de "Medizinische Hilfsgüter liefern"
    Target_ru_ru "Доставить медикаменты"
    Target_ko_kr "의료 물자 전달"
    Target_zh_cn "运送医疗物资"
@@ -1052,33 +1118,37 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580246
+   Modified 1780505841
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E04888F0573C994}" {
    Id "OVT-DeployFOB"
    Target_en_us "Deploy FOB"
+   Target_de_de "FOB errichten"
    Target_uk_ua "Розмістити FOB"
-   Modified 1716475446
+   Modified 1780505851
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6466E3EDBB9A2E23}" {
    Id "OVT-Difficulty"
    Target_en_us "Difficulty"
+   Target_de_de "Schwierigkeit"
    Target_ko_kr "난이도"
    Target_zh_cn "难度"
    Target_uk_ua "Складність"
-   Modified 1716475460
+   Modified 1780505864
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6B3D00000000010A}" {
    Id "OVT-Difficulty_Easy_Desc"
    Target_en_us "Recommended for solo players. Occupying garrisons and patrols are at their smallest."
+   Target_de_de "Für Einzelspieler empfohlen. Die Besatzungen und Patrouillen sind auf ein Minimum reduziert."
+   Target_uk_ua "Рекомендовано для поодиноких гравців. Гарнізони оккупантів та патрулі мінімальні."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Easy is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Easy.conf as a stringtable key: TextWidget.SetText translates #-prefixed keys, so the config carries the key and the read site in OVT_StartGameContext needs no change. LENGTH BUDGET: ONE line, about 105 characters. All five difficulty descriptions are held to one line on purpose - the block above the Start button has roughly 180 units of vertical room for four description widgets, and the two faction descriptions already take two lines each. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. The recommendation is the shipped authored text of Difficulty_Easy.conf:3 and carries itself. Smallest garrisons and patrols: Difficulty_Easy.conf:9-11 (patrolGroupsMin 1, patrolGroupsMax 2, defenseGroupsBaseMax 2 - the lowest of the five presets), read at OVT_OccupyingFactionManager.c:508, halved at OVT_InfantrySpawningDeploymentModule.c:224, and OVT_BaseUpgradeDefensePosition.c:48. The claim is deliberately RELATIVE ('smallest') and names no location: the two patrol read sites use different arithmetic, so any single quoted number would be false at one of them, but both scale monotonically with the same fields so the ordering is true at both. FORBIDDEN in every difficulty description: real-estate prices scaling with difficulty (realEstateCostMultiplier is declared and replicated but read by nobody - GetBuyPrice and GetRentPrice at OVT_RealEstateManagerComponent.c:712,730 ignore it) and a flat respawn cost (ChargeRespawn only charges above a hardcoded money > 500 gate, OVT_EconomyManagerComponent.c:1874)."
    DevNote ""
    Repro ""
@@ -1087,15 +1157,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506176
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D00000000010D}" {
    Id "OVT-Difficulty_Extreme_Desc"
    Target_en_us "Recommended for very busy servers. A radio is the only equipment you start with."
+   Target_de_de "Empfohlen für sehr stark frequentierte Server. Ein Funkgerät ist die einzige Ausrüstung, mit der man startet."
+   Target_uk_ua "Рекомендовано для серверів із високим онлайном. Із початкового спорядження у вас буде лише рація."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Extreme is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Extreme.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Extreme.conf:3. The radio clause: Difficulty_Extreme.conf's startingItems array holds exactly one entry, Prefabs/Items/Equipment/Radios/Radio_R148.et, where Easy, Normal and Hard each hold an M9 handgun, a 9x19 magazine and the radio; read at OVT_SpawnLogic.c:1177. This is the single most surprising difference between the presets and is why it earned the one clause this line has room for. It is stated as EQUIPMENT ('the only equipment you start with'), not as a total inventory, because clothing comes from the character prefab rather than from startingItems. Starting cash is not mentioned here because the numbers line directly underneath states it. Also true of Extreme but cut for length: fast travel is refused entirely while a QRF is active (QRFFastTravelMode DISABLED, read at OVT_MapContext.c:78-84), which Insane shares."
    DevNote ""
    Repro ""
@@ -1104,15 +1176,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506183
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D00000000010C}" {
    Id "OVT-Difficulty_Hard_Desc"
    Target_en_us "Recommended for busy servers. Garrisons and patrols are larger, and building costs more."
+   Target_de_de "Empfohlen für stark frequentierte Server. Garnisonen und Patrouillen sind größer, und Bauvorhaben kosten mehr."
+   Target_uk_ua "Рекомендовано для завантажених серверів. Гарнізони та патрулі більші, а будівництво коштує дорожче."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Hard is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Hard.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Hard.conf:3. Larger garrisons and patrols: Difficulty_Hard.conf:12-14 (patrolGroupsMin 4, patrolGroupsMax 6, defenseGroupsBaseMax 10, against Easy's 1/2/2 and Normal's default 2/4/5), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Building costs more: Difficulty_Hard.conf placeableCostMultiplier 1.5 and buildableCostMultiplier 1.5 against Easy's 0.8 and Normal's default 1, read at OVT_OverthrowConfigComponent.c:252 and :257. Real-estate prices are NOT mentioned and must not be: realEstateCostMultiplier is a dead field."
    DevNote ""
    Repro ""
@@ -1121,15 +1195,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506190
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D00000000010E}" {
    Id "OVT-Difficulty_Insane_Desc"
    Target_en_us "Recommended for highly experienced servers. Occupying garrisons and patrols are at their largest."
+   Target_de_de "Empfohlen für sehr erfahrene Server. Die Besatzungen der Garnisonen und die Patrouillen sind hier am stärksten."
+   Target_uk_ua "Для хардкорних серверів. Найбільша кількість ворожих гарнізонів та патрулів."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Insane is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Insane.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09. Recommendation: the shipped authored text of Difficulty_Insane.conf:3. Largest garrisons and patrols: Difficulty_Insane.conf:11-13 (patrolGroupsMin 8, patrolGroupsMax 12, defenseGroupsBaseMax 30 - the highest of the five presets), read at OVT_OccupyingFactionManager.c:508, OVT_InfantrySpawningDeploymentModule.c:224 and OVT_BaseUpgradeDefensePosition.c:48; stated relatively and with no location named, for the reason recorded on OVT-Difficulty_Easy_Desc. Also true of Insane but cut for length: its startingItems is the R148 radio alone, exactly as Extreme's (OVT_SpawnLogic.c:1177), and fast travel is refused while a QRF is active (QRFFastTravelMode DISABLED, OVT_MapContext.c:78-84). The garrison clause was chosen over the radio clause because it is what distinguishes Insane from Extreme."
    DevNote ""
    Repro ""
@@ -1138,15 +1214,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506195
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D00000000010B}" {
    Id "OVT-Difficulty_Normal_Desc"
    Target_en_us "Recommended for small servers, hosted games and experienced solo players."
+   Target_de_de "Empfohlen für kleine Server, gehostete Spiele und erfahrene Einzelspieler."
+   Target_uk_ua "Рекомендовано для невеликих серверів, хостованих сесій та досвідчених поодиноких гравців."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyDescription widget), shown under the Difficulty spinner when Normal is selected. Held in the 'description' field of Configs/Difficulty/Difficulty_Normal.conf as a stringtable key. LENGTH BUDGET: ONE line, about 105 characters - see OVT-Difficulty_Easy_Desc for why. TONE: informs, never instructs. FACT-CHECKED 2026-08-09: this is the shipped authored recommendation of Difficulty_Normal.conf:3, unchanged apart from a closing full stop, and an authored recommendation carries itself. No mechanical clause was added because Normal is the baseline the other four are described relative to, and the numbers line underneath already states its starting cash and fast travel cost. Note for anyone extending it: Normal is also the preset a hosted or dedicated game opens on (OVT_StartGameContext.c:132-135 selects index 1 outside RplMode.None, and :127-131 selects index 0 in single player), and Difficulty_Normal.conf contains NEITHER startingCash NOR fastTravelCost - both fall back to the class defaults at OVT_DifficultySettings.c:54 (100) and :58 (5)."
    DevNote ""
    Repro ""
@@ -1155,15 +1233,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506199
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D00000000010F}" {
    Id "OVT-Difficulty_Numbers"
    Target_en_us "Starting cash: $%1     Fast travel: $%2"
+   Target_de_de "Startkapital: $%1     Schnellreise: $%2"
+   Target_uk_ua "Початкові гроші: $%1     Швидке переміщення: $%2"
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the DifficultyNumbers widget), the line directly under the difficulty description. Composed at runtime by OVT_StartGameContext.RefreshDescriptions through TextWidget.SetTextFormat with exactly TWO substitution arguments, never by string concatenation, so no English is ever built in script (precedent: OVT_TutorialContext.c:459 with #OVT-Tutorial_PageIndicator). %1 is OVT_DifficultySettings.startingCash, an int, read at OVT_OverthrowGameMode.c:1080 and granted through AddPlayerMoney at :1081 on the new-player branch only. %2 is OVT_DifficultySettings.fastTravelCost, an int, read at OVT_MapContext.c:384. Translators: keep both placeholders and keep the currency symbol inside this string (established convention, see OVT-Msg-DonationReceived and OVT-Msg-MoneySent); the run of spaces is the column gap between the two figures and may be replaced with whatever separator reads correctly in the target language. Resolved values across the five presets are 500/100/100/0/0 for %1 and 0/5/10/25/25 for %2, but note the TRAP: Difficulty_Normal.conf contains neither field and Difficulty_Hard.conf contains no startingCash, so three of those ten values come from the class defaults at OVT_DifficultySettings.c:54 (100) and :58 (5) rather than from the conf files. LABEL WORDING: 'Fast travel' is deliberately unqualified and singular because fastTravelCost is charged AGAIN per nearby recruit (OVT_MapContext.c:395) and zeroed in debug mode - the figure is the base cost, not a total. KNOWN LIMITATION: a server running an Overthrow_Config.json with overrideDifficulty set replaces startingCash after the campaign starts (OVT_OverthrowGameMode.c:364), so on such a server this line shows the preset's authored figure rather than the override. Two numbers ship and no third: every other candidate (patrolGroups, baseRecruitCost, busTicketPrice, the cost multipliers) has either multiple read sites with different arithmetic or no meaning as a bare figure."
    DevNote ""
    Repro ""
@@ -1172,9 +1252,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780505966
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1182,6 +1262,7 @@ StringTable {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
    Target_fr_fr "Donner des fonds"
+   Target_de_de "Spenden Sie Geld"
    Target_ru_ru "Переслать деньги"
    Target_ko_kr "송금"
    Target_zh_cn "捐款"
@@ -1194,9 +1275,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706580213
+   Modified 1780505976
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1204,6 +1285,7 @@ StringTable {
    Id "OVT-DriverMustExit"
    Target_en_us "Driver must exit vehicle first"
    Target_fr_fr "Le conducteur doit d'abord sortir du véhicule"
+   Target_de_de "Der Fahrer muss das Fahrzeug zuerst verlassen"
    Target_ru_ru "Водитель сперва должен покинуть транспорт"
    Target_ko_kr "운전자는 먼저 차량에서 내려야 합니다"
    Target_zh_cn "驾驶员必须先下车"
@@ -1216,9 +1298,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706583559
+   Modified 1780505988
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1226,6 +1308,7 @@ StringTable {
    Id "OVT-EquipmentCost"
    Target_en_us "Equipment Cost"
    Target_fr_fr "Coût de l'équipement"
+   Target_de_de "Ausrüstungskosten"
    Target_ru_ru "Стоймость снаряжения"
    Target_ko_kr "장비 비용"
    Target_zh_cn "装备成本"
@@ -1238,15 +1321,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1706583557
+   Modified 1780505998
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000106}" {
    Id "OVT-Faction_US_Occupying"
    Target_en_us "US forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Target_de_de "US-Streitkräfte halten die Insel besetzt. Sie bemannen deren Stützpunkte und Funktürme und patrouillieren in den Ortschaften – und ihre Uniform ist es, die als Tarnung dient."
+   Target_uk_ua "Острів перебуває під контролем сил США. Вони утримують гарнізони на базах і радіовежах та патрулюють населені пункти, а їхню уніформу можна використовувати для маскування."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when US is selected. Resolved by faction KEY, not by spinner index, in OVT_StartGameContext.ResolveOccupyingFactionDescription. LENGTH BUDGET: this widget is right-aligned, wrapped, font 18 in an 880px column and must not exceed TWO lines (about 210 characters) or the description block starts eating the gap above the Start button. TONE: informs, never instructs; no imperative and no implied order of play. FACT-CHECKED 2026-08-09. 'US forces hold the island': the occupying faction is what OVT_StartGameContext.OnSpinOccupyingFaction sets through OVT_OverthrowConfigComponent.SetOccupyingFaction:275, and US is one of the two spinner options (OVT_OverthrowFactionManager.et:24-31 registers USSR, US, FIA and CIV; OVT_StartGameContext.c:98 drops FIA because FIA_OverthrowData.conf:3 is m_bIsPlayable 1, and :99 drops CIV). Garrisons and patrols: OVT_OccupyingFactionManager.c:508 (defence groups sized by patrolGroupsMin/Max), OVT_BaseUpgradeDefensePosition.c:48 (defenseGroupsBaseMax) and Configs/Deployment/Deployment_TownPatrol.conf:26 (m_iAllowedFactionTypes OCCUPYING_FACTION - only the occupier patrols towns). Disguise: OVT_PlayerWantedComponent.c:111 IsDisguisedAsOccupying, with 7 live consumers including SCR_CharacterDamageManagerComponent.c:27,69,121. This string and OVT-Faction_USSR_Occupying differ ONLY in the faction name, and that is correct rather than lazy: US_OverthrowData.conf and USSR_OverthrowData.conf differ only in which prefabs the generic slot names resolve to, so no mechanical per-faction claim survives a fact-check (cut C6)."
    DevNote ""
    Repro ""
@@ -1255,15 +1340,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506689
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000108}" {
    Id "OVT-Faction_US_Supporting"
    Target_en_us "The United States is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Target_de_de "Die US-Streitkräfte ist eine ausländische Macht, die mit dem Widerstand sympathisiert, aber nicht mit deiner eigenen Fraktion. Wer in dieser Uniform gesehen wird, löst sofort eine Fahndung aus; zudem kann man nicht gleichzeitig als Besatzer auftreten."
+   Target_uk_ua "Сполучені Штати — це дружня до опору іноземна держава, а не ваша власна фракція. Поява у їхній формі одразу викликає рівень розшуку, і вони також не можуть бути окупантами."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the SupportingFactionDescription widget), shown under the Supporting Faction spinner when US is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, and this description exists BECAUSE the supporting faction is the most misunderstood choice on the screen. 'Not your own faction': the player character is affiliated CIV (Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et:177-178) and recruits are set to the player faction FIA (OVT_RecruitManagerComponent.c:1720); neither is the supporting faction. Wanted level: OVT_PlayerWantedComponent.c:447-453 groups the supporting faction key with the player faction key as NOT disguised, and :709-715 sets newLevel = 2 on sight for either, so wearing its uniform is treated exactly as wearing the resistance's. Cannot also be the occupier: OVT_StartGameContext.c:142-168 and :170-196, where each spin handler walks the other spinner and reassigns it on a key collision. WHAT THIS STRING MAY NOT SAY, all five re-verified false 2026-08-09: that the supporting faction sends troops (no shipped deployment config permits SUPPORTING_FACTION - Deployment_TownPatrol.conf:26 is OCCUPYING_FACTION and the other two take the same default), supplies equipment (m_bIncludeSupportingFactionItems defaults true at OVT_EconomyManagerComponent.c:38-39 and no config disables it, so the filter never removes anything), affects prices, can be worn as a disguise (IsDisguisedAsSupporting at OVT_PlayerWantedComponent.c:130 has zero callers), or fights alongside you. It also may not claim the choice persists or replicates - it does neither."
    DevNote ""
    Repro ""
@@ -1272,15 +1359,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506892
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000107}" {
    Id "OVT-Faction_USSR_Occupying"
    Target_en_us "Soviet forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Target_de_de "Sowjetische Streitkräfte halten die Insel besetzt. Sie bemannen Stützpunkte und Funktürme und patrouillieren in den Ortschaften – und ihre Uniform ist es, die als Tarnung dient."
+   Target_uk_ua "Острів перебуває під контролем радянських військ. Вони розміщують гарнізони на базах і радіовежах та патрулюють міста, а їхньою уніформою можна скористатися як маскуванням."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the OccupyingFactionDescription widget), shown under the Occupying Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters - see OVT-Faction_US_Occupying. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Occupying: OVT_OverthrowFactionManager.et:24-31 (USSR is one of the two spinner factions), OVT_OccupyingFactionManager.c:508 and OVT_BaseUpgradeDefensePosition.c:48 (garrison sizes), Configs/Deployment/Deployment_TownPatrol.conf:26 (town patrols are OCCUPYING_FACTION only), OVT_PlayerWantedComponent.c:111 (the occupier's uniform is the disguise that works). DELIBERATELY IDENTICAL to the US string except for the faction name (cut C6): the two faction data files differ only in which prefabs their generic slot names resolve to, so any mechanical difference between them would be invented. Translators: 'Soviet' here is the USSR faction, matching the spinner label."
    DevNote ""
    Repro ""
@@ -1289,15 +1378,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506219
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000109}" {
    Id "OVT-Faction_USSR_Supporting"
    Target_en_us "The Soviet Union is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Target_de_de "Die Sowjetunion ist eine ausländische Macht, die mit dem Widerstand sympathisiert, aber nicht mit deiner eigenen Fraktion. Wer in dieser Uniform gesehen wird, löst sofort eine Fahndung aus; zudem kann man nicht gleichzeitig als Besatzer auftreten."
+   Target_uk_ua "Радянський Союз - це дружня до опору іноземна держава, а не ваша власна фракція. Поява у їхній формі одразу викликає розшук, і вони також не можуть бути окупантами."
    Comment "Campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, the SupportingFactionDescription widget), shown under the Supporting Faction spinner when USSR is selected. Resolved by faction KEY, not by spinner index. LENGTH BUDGET: two lines maximum, about 210 characters. TONE: informs, never instructs. FACT-CHECKED 2026-08-09, same citations as OVT-Faction_US_Supporting: Character_Player.et:177-178 and OVT_RecruitManagerComponent.c:1720 (the supporting faction is not the player's), OVT_PlayerWantedComponent.c:447-453 and :709-715 (its uniform is treated exactly as the resistance's, instant wanted level 2 on sight), OVT_StartGameContext.c:142-168 and :170-196 (the occupier and the supporter cannot be the same faction, so moving one spinner moves the other). The same five claims are forbidden here as on the US string: no troops, no equipment, no price effect, not a disguise, not an ally in the field. Translators: 'The Soviet Union' is the USSR faction, matching the spinner label."
    DevNote ""
    Repro ""
@@ -1306,23 +1397,26 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754697600
+   Modified 1780506661
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A19}" {
    Id "OVT-Feature_NotImplemented"
    Target_en_us "Feature not yet implemented"
+   Target_de_de "Funktion noch nicht implementiert"
    Target_uk_ua "Функція ще не реалізована"
-   Modified 1716475576
+   Modified 1780506912
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6B3B00000000015F}" {
    Id "OVT-FieldManual_BaseCapture_Head"
    Target_en_us "Starting a Battle"
+   Target_de_de "Einen Kampf beginnen"
+   Target_uk_ua "Початок бою"
    Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about how an attack on a base begins. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1331,15 +1425,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780506933
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000160}" {
    Id "OVT-FieldManual_BaseCapture_Head2"
    Target_en_us "Holding the Ground"
+   Target_de_de "Die Stellung halten"
+   Target_uk_ua "Утримання позицій"
    Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about how a battle is scored and won. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1348,15 +1444,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780506946
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000161}" {
    Id "OVT-FieldManual_BaseCapture_Head3"
    Target_en_us "A Base You Hold"
+   Target_de_de "Eine Basis, die du hältst"
+   Target_uk_ua "Захоплена вами база"
    Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about what changes once the resistance controls a base. Three or four words, no markup."
    DevNote ""
    Repro ""
@@ -1365,15 +1463,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780506954
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000162}" {
    Id "OVT-FieldManual_BaseCapture_Head4"
    Target_en_us "The Answer Back"
+   Target_de_de "Die Antwort"
+   Target_uk_ua "Удар у відповідь"
    Comment "Field Manual - section header inside the Capturing Bases page, drawn above the paragraph about counter attacks by the occupying faction. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1382,15 +1482,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780506963
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000101}" {
    Id "OVT-FieldManual_BaseCapture_Text"
    Target_en_us "Military bases are held by the occupying faction and change hands only after a battle is fought at them. A base under resistance control weakens the occupiers in that area, and they may spend their reserves on a counter attack to take it back later."
+   Target_de_de "Militärbasen werden von der Besatzungsfraktion gehalten und wechseln den Besitzer erst nach einem dort ausgetragenen Kampf. Eine Basis unter der Kontrolle des Widerstands schwächt die Besatzer in diesem Gebiet; diese können ihre Reserven für einen Gegenangriff einsetzen, um sie später zurückzuerobern."
+   Target_uk_ua "Військові бази перебувають під контролем окупантів і змінюють власника тільки після бою. Перехід бази під контроль опору послаблює ворога в цьому секторі, змушуючи його витрачати резерви на подальші контратаки для її відвоювання."
    Comment "Field Manual - opening paragraph of the Capturing Bases page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -1399,15 +1501,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780506982
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000163}" {
    Id "OVT-FieldManual_BaseCapture_Text2"
    Target_en_us "An attack is begun from inside an occupied base, and everybody on the server is told when one starts. The occupying faction answers by ordering troops in from its other bases nearby, who arrive around the site over the following minutes. Only one battle runs anywhere on the map at a time, so while one is going the option to start another is not offered."
+   Target_de_de "Ein Angriff wird aus einer besetzten Basis heraus gestartet, und alle Spieler auf dem Server werden über den Beginn informiert. Die besetzende Fraktion reagiert, indem sie Truppen aus ihren anderen, nahegelegenen Basen herbeordert, die im Laufe der nächsten Minuten am Einsatzort eintreffen. Es findet jeweils nur ein einziger Kampf auf der Karte statt; solange dieser läuft, besteht keine Möglichkeit, einen weiteren zu beginnen."
+   Target_uk_ua "Атака розпочинається безпосередньо з території окупованої бази, і всі гравці на сервері отримують сповіщення про її початок. Окупанти реагують на це, направляючи підкріплення з найближчих баз, яке прибуває в зону бою протягом наступних кількох хвилин. Одночасно на всій карті може тривати лише один бій, тому поки він не завершиться, розпочати новий неможливо."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'Starting a Battle' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CaptureBaseAction.c:1-24 (the action is hidden while m_bQRFActive and only shown on an occupying-held base), OVT_PlayerCommsComponent.RpcAsk_StartBaseCapture:192-217 (server re-checks the faction and that the player is within baseCloseRange), OVT_OccupyingFactionManager.StartBaseQRF:792-824 (a single m_CurrentQRF, the BaseBattle notification to everyone), and OVT_QRFControllerComponent.SendTroops:194-215 with CheckUpdateTimer:64-79 (troops are drawn from occupying-held bases and spawned in over the timer). The timer length is a field default and is not quoted."
    DevNote ""
    Repro ""
@@ -1416,15 +1520,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507029
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000164}" {
    Id "OVT-FieldManual_BaseCapture_Text3"
    Target_en_us "Once the reinforcements have arrived the ground itself is counted, over and over: what matters is how many players are standing in the middle of the base against how many occupying soldiers are there with them. Players present with no enemy left swings it quickly; more soldiers than players swings it the other way; even numbers drift back towards nothing. The count runs to a total the difficulty settings set, in one direction or the other, and whoever reaches it takes the base. Players inside the fight pick up experience while it goes on."
+   Target_de_de "Sobald die Verstärkung eingetroffen ist, wird das Kräfteverhältnis vor Ort fortlaufend ermittelt: Entscheidend ist, wie viele Spieler sich in der Mitte der Basis befinden und wie viele feindliche Soldaten ihnen dort gegenüberstehen. Überwiegen die Spieler und sind keine Gegner mehr vorhanden, schlägt das Pendel schnell zu ihren Gunsten aus; sind mehr Soldaten als Spieler anwesend, kehrt sich das Verhältnis um; bei ausgeglichenen Zahlenverhältnissen tendiert der Wert wieder gegen Null. Der Zähler bewegt sich – je nach gewählter Schwierigkeitsstufe – in die eine oder andere Richtung; wer den Zielwert erreicht, erobert die Basis. Die am Kampf beteiligten Spieler sammeln währenddessen Erfahrungspunkte."
+   Target_uk_ua "Після прибуття підкріплення починається постійний підрахунок сил на самій території: вирішальним є співвідношення кількості гравців у центрі бази та окупантів поруч із ними. Присутність гравців за повної відсутності ворогів швидко схиляє шальки терезів на вашу користь; перевага солдатів ворога діє навпаки; за рівних сил прогрес повільно повертається до нуля. Підрахунок триває до досягнення ліміту, визначеного налаштуваннями складності, в той чи інший бік, і той, хто першим досягає мети, захоплює базу. Усі гравці, які перебувають у зоні бою, отримують досвід під час битви."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'Holding the Ground' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_QRFControllerComponent.CheckUpdatePoints:102-192 (scoring only begins once m_iTimer reaches zero; counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE; +5 for players with no enemies in the wider QRF_RANGE, +1 or -1 by which side has more, drift towards zero when equal; clamped at the difficulty setting QRFPointsToWin, which also ends it; GiveXP 2 per tick to each player inside). Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
    DevNote ""
    Repro ""
@@ -1433,15 +1539,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507092
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000165}" {
    Id "OVT-FieldManual_BaseCapture_Text4"
    Target_en_us "A base that changes hands flies the new owner's flag and is announced across the server. A base the resistance holds is somewhere you can fast travel to, set as the spot you respawn at, place and build in, and station a garrison hired from the nearest town; some facilities only serve the side that holds the ground they stand on. Taking one also raises the pressure the occupying faction is under, and losing one takes that pressure off again."
+   Target_de_de "Wechselt eine Basis den Besitzer, wird dort die Flagge des neuen Eigentümers gehisst und die Übernahme serverweit bekannt gegeben. Eine von der Widerstandsbewegung gehaltene Basis dient als Ziel für Schnellreisen und als Respawn-Punkt; zudem können Spieler dort bauen und eine in der nächstgelegenen Stadt angeheuerte Garnison stationieren. Manche Einrichtungen stehen ausschließlich der Fraktion zur Verfügung, die das entsprechende Gebiet kontrolliert. Die Eroberung einer Basis erhöht den Druck auf die besetzende Fraktion, während ihr Verlust diesen Druck wieder verringert."
+   Target_uk_ua "Коли база змінює контролюючу сторону, на ній піднімається новий прапор, а всі гравці на сервері отримують сповіщення. На захоплену опором базу можна швидко переміщатися, обирати її точкою респавну, зводити на ній споруди та розміщувати гарнізон із найближчого населеного пункту. Деякі об'єкти інфраструктури функціонують лише для тих, хто контролює цю землю. Взяття бази підвищує рівень тиску на окупантів, тоді як її втрата послаблює цей тиск."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'A Base You Hold' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager.ChangeBaseControl:895-915 (notification both ways, faction index written to the base data and the controller) and OVT_BaseControllerComponent.SetControllingFaction:143-152 with UpdateFlagMaterial:99-116, OVT_MapContext.CanFastTravel:124-131, OVT_PlaceContext.CanPlace:393-398, OVT_BuildContext.CanBuild:294-303, OVT_BaseMenuContext.AddToGarrison:80-110, OVT_SetHomeAction.CanBeShownScript (on Prefabs/Controllers/OVT_BaseController.et, shown only while the base is not occupying-faction held), and OVT_MainMenuContext.FindOverride:63-87 (m_bMustOwnBase gates a location's own menu). The threat figure moved on a control change is a literal in ChangeBaseControl but is deliberately described in words, because 'threat' is explained on its own wiki page rather than here."
    DevNote ""
    Repro ""
@@ -1450,15 +1558,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507113
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000166}" {
    Id "OVT-FieldManual_BaseCapture_Text5"
    Target_en_us "Nothing taken is held for good. The occupying faction keeps reserves, spends them on the bases it still has, and when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again. Towns and radio towers are fought over in much the same way, and a place can change hands more than once in a campaign."
+   Target_de_de "Nichts, was eingenommen wurde, bleibt dauerhaft in der eigenen Hand. Die Besatzungsmacht hält Reserven zurück und investiert sie in ihre verbliebenen Stützpunkte; verfügt sie über einen Überschuss, wählt sie einen von der Widerstandsbewegung eroberten Stützpunkt aus, um ihn zurückzuerobern, und wartet anschließend eine Weile, bevor sie es erneut versucht. Um Städte und Funktürme wird auf ganz ähnliche Weise gekämpft, sodass ein Ort im Verlauf einer Kampagne mehrfach den Besitzer wechseln kann."
+   Target_uk_ua "Жоден захоплений об'єкт не забігається за вами назавжди. Ворог накопичує резерви й розподіляє їх між утримуваними базами. Коли ресурсів стає достатньо, окупанти обирають одну з втрачених баз і починають контратаку, а після штурму беруть паузу перед наступним нападом. Захоплення міст і радіовеж відбувається за аналогічною механікою, тож контроль над локаціями може переходити з рук у руки неодноразово протягом кампанії."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:37-70 (radio towers are retaken by a specops team). The surplus threshold, the random roll and the timeout are deliberately not quoted."
    DevNote ""
    Repro ""
@@ -1467,15 +1577,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507282
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000102}" {
    Id "OVT-FieldManual_BaseCapture_Title"
    Target_en_us "Capturing Bases"
+   Target_de_de "Basen einnehmen"
+   Target_uk_ua "Захоплення баз"
    Comment "Field Manual - title of the Capturing Bases page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -1484,15 +1596,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507291
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014F}" {
    Id "OVT-FieldManual_Camps_Head"
    Target_en_us "Where Placing Works"
+   Target_de_de "Wo Platzierungen funktionieren"
+   Target_uk_ua "Де дозволено будівництво"
    Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about where a placeable is allowed to go. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1501,15 +1615,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507304
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000150}" {
    Id "OVT-FieldManual_Camps_Head2"
    Target_en_us "Camps"
+   Target_de_de "Camp"
+   Target_uk_ua "Табори"
    Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about what a camp is and what it gives you. One or two words, no markup."
    DevNote ""
    Repro ""
@@ -1518,15 +1634,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507320
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000151}" {
    Id "OVT-FieldManual_Camps_Head3"
    Target_en_us "Public and Private"
+   Target_de_de "Öffentlich und Privat"
+   Target_uk_ua "Публічні та приватні"
    Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about the camp menu and camp privacy. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1535,15 +1653,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507379
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000152}" {
    Id "OVT-FieldManual_Camps_Head4"
    Target_en_us "Illegal Placeables"
+   Target_de_de "Unzulässige platzierbare Objekte"
+   Target_uk_ua "Заборонені для розміщення об'єкти"
    Comment "Field Manual - section header inside the Camps and Placing page, drawn above the paragraph about illegal placeables and propaganda. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1552,15 +1672,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507394
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000103}" {
    Id "OVT-FieldManual_Camps_Text"
    Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Many placeables are only allowed in certain locations, and some are illegal, so placing one in sight of the occupying faction is noticed."
+   Target_de_de "Beim Platzieren werden gegen Bezahlung Widerstandsobjekte in der Spielwelt aufgestellt – von kleinen Gegenständen bis hin zu einem kompletten Camp. Viele dieser Objekte dürfen nur an bestimmten Orten errichtet werden; einige sind zudem illegal, sodass ihr Aufstellen bemerkt wird, wenn es im Sichtfeld der Besatzungsfraktion geschieht."
+   Target_uk_ua "Будівництво дозволяє розміщувати у світі об'єкти опору за грошові кошти — від дрібного спорядження до цілого польового табору. Чимало предметів доступні для встановлення лише в певних зонах, а деякі з них є нелегальними, тож якщо ворог помітить процес розміщення, він одразу зреагує."
    Comment "Field Manual - opening paragraph of the Camps and Placing page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -1569,15 +1691,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507447
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000153}" {
    Id "OVT-FieldManual_Camps_Text2"
    Target_en_us "Place, on the Overthrow main menu, gives you a preview to set down in front of you, and it turns you down when the spot is not allowed. Most items may go close to a house you own, close to your own camp, anywhere around a FOB, or inside a base the resistance holds. Posters and the pirate radio work the other way round: they have to go inside a town, and a town has room for only so many of them at a time. One location can also hold only so many placed and built objects in total, which is a server setting."
+   Target_de_de "Über die Option „Platzieren“ im Overthrow-Hauptmenü erhältst du eine Vorschau des Objekts, das du vor dir aufstellen kannst; das System verweigert die Platzierung, wenn der gewählte Ort unzulässig ist. Die meisten Gegenstände lassen sich in der Nähe eines eigenen Hauses oder Lagers, im Umkreis einer FOB (Forward Operating Base) oder innerhalb einer von der Resistance gehaltenen Basis aufstellen. Bei Plakaten und dem Piratensender verhält es sich umgekehrt: Sie müssen innerhalb einer Ortschaft platziert werden, wobei pro Ort nur eine begrenzte Anzahl gleichzeitig zulässig ist. Zudem ist die Gesamtzahl der platzierbaren und baubaren Objekte an einem Standort begrenzt – ein Wert, der über die Servereinstellungen festgelegt wird."
+   Target_uk_ua "Опція «Будівництво» в головному меню Overthrow відображає силует об’єкта перед гравцем і блокує розміщення, якщо точка не підходить. Більшість предметів дозволено ставити біля вашого будинку чи табору, в радіусі ПБП або на території захопленої базі. Плакати та піратські радіостанції мають протилежні вимоги: їх слід встановлювати безпосередньо в містах, де для них діє обмеження за кількістю. Окрім цього, загальна кількість збудованих об’єктів на одну локацію лімітується налаштуваннями сервера."
    Comment "Field Manual - Camps and Placing page, body paragraph under the 'Where Placing Works' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:120-123 (the Place button), OVT_PlaceContext.CanPlace:247-400 (owned house within 30 m, own camp within 75 m, any FOB within 100 m, a non-occupying base within baseRange), Configs/Resistance/placeables.conf:22 and :155 (m_bNearTown on Poster and PirateRadio) with CanPlace:360-368, GetSupportModifierSpace:408-420 with OVT_TownModifierSystem.GetModifierLimit:163-172 (per-town modifier limit), and OVT_ItemLimitChecker.CanPlaceItem:28-56 (limits read from GetHouseItemLimit / GetCampItemLimit / GetFOBItemLimit, unlimited when zero). Distances are not quoted because the page reads better without them and several are config-derived."
    DevNote ""
    Repro ""
@@ -1586,15 +1710,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507509
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000154}" {
    Id "OVT-FieldManual_Camps_Text3"
    Target_en_us "A camp is placed like anything else, but it registers as a resistance position when it goes down, and it has to be at least a hundred metres from another camp. A camp is somewhere you can fast travel to, somewhere you can set as the spot you respawn at, somewhere your other placeables are allowed, and one of the places the build menu will work. You hold one camp at a time: placing a new one takes down the old one."
+   Target_de_de "Ein Camp wird wie jedes andere Objekt platziert, gilt jedoch nach der Errichtung als Widerstandsposten und muss mindestens hundert Meter von einem anderen Camp entfernt sein. Ein Camp ist ein Ort, zu dem du schnellreisen und an dem du deinen Wiedereinstiegspunkt festlegen kannst; zudem ist es ein Ort, an dem du weitere Objekte platzieren darfst und an dem das Baumenü funktioniert. Du kannst jeweils nur ein Camp besitzen: Das Platzieren eines neuen Camp entfernt das alte."
+   Target_uk_ua "Табір розміщується як і будь-який інший об'єкт, але після встановлення він реєструється як позиція опору та повинен розташовуватися щонайменше за сто метрів від іншого табору. Табір слугує точкою для швидкого переміщення, місцем для відродження, зоною, де дозволено розміщувати інші об'єкти, а також одним із місць, де працює меню будівництва. Ви можете утримувати лише один табір одночасно: розміщення нового автоматично згортає попередній."
    Comment "Field Manual - Camps and Placing page, body paragraph under the 'Camps' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Resistance/placeables.conf:29-43 (the Camp placeable and its OVT_PlaceableCampHandler), OVT_PlaceableCampHandler.c (RegisterCamp), OVT_PlaceContext.CanPlace:267-280 (m_bAwayFromCamps enforces 100 m from the nearest camp), OVT_MapContext.CanFastTravel:109-118, OVT_SetHomeAction.c (present on Prefabs/Structures/Military/Camps/OVT_Camp.et; it sets the respawn position to where the player is standing), OVT_ItemLimitChecker.MAX_CAMP_PLACE_DIS:14, OVT_BuildContext.CanBuild:334-339 with Configs/Resistance/buildables.conf:40-52 (m_bBuildAtCamp), and OVT_ResistanceFactionManager.RegisterCamp:1079-1104 (an existing camp is removed when a new one is placed). The hundred metres is a literal in the source, so it is safe to quote."
    DevNote ""
    Repro ""
@@ -1603,15 +1729,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507572
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000155}" {
    Id "OVT-FieldManual_Camps_Text4"
    Target_en_us "A camp carries its own menu, used at the camp itself, which switches it between public and private and can take it down again. A public camp shows on everyone's map and any player may fast travel to it. A private camp is on the map only for the player who owns it, and only that player may travel to it."
+   Target_de_de "Ein Camp verfügt über ein eigenes Menü zur Verwaltung, über das man zwischen einem öffentlichen und einem privaten Status wechseln oder das Camp wieder entfernen kann. Ein öffentliches Camp wird auf der Karte aller Spieler angezeigt, und jeder Spieler kann per Schnellreise dorthin gelangen. Ein privates Camp ist nur auf der Karte des jeweiligen Besitzers sichtbar, und auch nur dieser Spieler kann dorthin reisen."
+   Target_uk_ua "Табір має власне меню, яке використовується безпосередньо в ньому: воно дає змогу перемикати статус між публічним і приватним, а також згортати його. Публічний табір відображається на карті кожного гравця, і будь-хто може швидко переміститися до нього. Приватний табір видно на карті лише його власнику, і тільки цей гравець має змогу туди телепортуватися."
    Comment "Field Manual - Camps and Placing page, body paragraph under the 'Public and Private' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CampMenuContext.c:39-90 (privacy toggle and delete), OVT_MapIcons.c:644 (a private camp is hidden from players who do not own it), and OVT_MapContext.CanFastTravel:109-118 (travel allowed when the camp is the player's own or is not private)."
    DevNote ""
    Repro ""
@@ -1620,15 +1748,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507605
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000156}" {
    Id "OVT-FieldManual_Camps_Text5"
    Target_en_us "Posters, the pirate radio, sandbags and vehicle obstacles are illegal to put down. Setting one out while the occupying faction can see you makes you wanted, in the same way looting a soldier in view does; unseen, it passes without notice. Posters and pirate radios also work on the town they stand in, adding to the support the resistance has there until the effect runs out, and a town holds only a few posters and a single radio."
+   Target_de_de "Das Aufstellen von Plakaten, Piratensendern, Sandsäcken und Fahrzeugsperren ist illegal. Werden diese platziert, während die Besatzungsmacht einen dabei beobachten kann, wird man steckbrieflich gesucht – genau wie beim Plündern eines Soldaten unter den Augen anderer; geschieht dies unbemerkt, bleibt es folgenlos. Plakate und Piratensender wirken sich zudem auf die jeweilige Stadt aus, in der sie aufgestellt wurden: Sie stärken die Unterstützung für den Widerstand, bis die Wirkung nachlässt. Pro Stadt sind dabei nur eine begrenzte Anzahl an Plakaten und ein einzelner Sender möglich."
+   Target_uk_ua "Встановлювати плакати, піратські радіостанції, мішки з піском та протитранспортні їжаки — незаконно. Якщо окупанти помітять вас за цим заняттям, ви миттєво отримаєте рівень розшуку (як і під час лутання трупів на видноті). Зроблене потайки залишиться непоміченим. Плакати й радіостанції підвищують лояльність населення до опору в місті, де вони встановлені, поки діє ефект. При цьому місто має ліміт: лише кілька плакатів та одна радіостанція одночасно."
    Comment "Field Manual - Camps and Placing page, body paragraph under the 'Illegal Placeables' header. Three sentences, no rich-text markup. 'Vehicle obstacles' is the Hedgehog placeable, named in plain language. FACT-CHECKED 2026-08-08 against Configs/Resistance/placeables.conf (m_bIllegal 1 on Poster :24, Sandbags :70, Hedgehog :81, PirateRadio :157), OVT_ResistanceFactionManager.PlaceItem:737-748 (illegal placement calls OnIllegalActionSeen) and OVT_PlayerWantedComponent.OnIllegalActionSeen:296-303 (returns immediately unless m_bIsSeen), OVT_PlaceableSupportModHandler.c:15-24, and Configs/Modifiers/supportModifiers.conf:14-19 (RecruitmentPosters, stackable, default stackLimit 5, timeout 3600) and :110-116 (PirateRadio, stackLimit 1, timeout 3600). The wanted LEVEL is not quoted here because the Wanted System page owns that detail."
    DevNote ""
    Repro ""
@@ -1637,15 +1767,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507624
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000104}" {
    Id "OVT-FieldManual_Camps_Title"
    Target_en_us "Camps and Placing"
+   Target_de_de "Camps und Platzierung"
+   Target_uk_ua "Табори та будівництво"
    Comment "Field Manual - title of the Camps and Placing page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -1654,15 +1786,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754611200
+   Modified 1780507666
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000091}" {
    Id "OVT-FieldManual_Category_GettingStarted_Title"
    Target_en_us "Getting Started"
+   Target_de_de "Erste Schritte"
+   Target_uk_ua "Початок гри"
    Comment "Field Manual - name of the sub-category button under the Overthrow heading, listing Overthrow's own manual pages. Previously reused the base game's Introduction key, which rendered a second button literally named Introduction. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
    DevNote ""
    Repro ""
@@ -1673,13 +1807,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000105}" {
    Id "OVT-FieldManual_Category_MoneyAndTrade_Title"
    Target_en_us "Money and Trade"
+   Target_de_de "Geld und Handel"
+   Target_uk_ua "Гроші та торгівля"
    Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about money, shops and gun dealers. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment. Please avoid an ampersand character here, the rest of this table does not use one."
    DevNote ""
    Repro ""
@@ -1690,7 +1826,7 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1698,6 +1834,7 @@ StringTable {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
    Target_fr_fr "Overthrow"
+   Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
    Target_ko_kr "Overthrow"
    Target_zh_cn "抵抗"
@@ -1712,13 +1849,15 @@ StringTable {
    MaxLength 0
    Modified 1706580342
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000106}" {
    Id "OVT-FieldManual_Category_StayingHidden_Title"
    Target_en_us "Staying Hidden"
+   Target_de_de "Unentdeckt bleiben"
+   Target_uk_ua "Переховування"
    Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about the wanted system and skills. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
    DevNote ""
    Repro ""
@@ -1729,13 +1868,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000107}" {
    Id "OVT-FieldManual_Category_TheResistance_Title"
    Target_en_us "The Resistance"
+   Target_de_de "Der Widerstand"
+   Target_uk_ua "Опір"
    Comment "Field Manual - name of a sub-category button under the Overthrow heading, grouping the manual pages about recruits, camps, FOBs and capturing bases. Two or three words; it sits in a narrow left-hand list beside Introduction, Editor, Multiplayer, Gameplay and Equipment."
    DevNote ""
    Repro ""
@@ -1746,7 +1887,7 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1754,10 +1895,11 @@ StringTable {
    Id "OVT-FieldManual_FastTravel_Text"
    Target_en_us "Open the map and select a location you can travel to: a house you own or rent, your own camp or any public camp, a FOB, or a base the resistance controls. Its info panel has a travel button showing the fare. Fast travel costs the distance in kilometres multiplied by the fast travel price from the difficulty settings, charged for a minimum of one kilometre. Recruits within 50 metres travel with you by default and each one pays a full fare; the panel has a toggle to leave them behind. You cannot fast travel while you are wanted, to somewhere closer than the minimum travel distance, or as a passenger in a vehicle - only the driver takes the vehicle along - and a QRF in progress can block it, depending on the difficulty settings. For bus travel, use \"Catch a bus\" at a bus stop and pick another bus stop on the map: the bus fare has no minimum distance, and you must be on foot."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
+   Target_de_de "Öffne die Karte und wähle einen Ort aus, zu dem du reisen kannst: ein Haus, das dir gehört oder das du mietest, dein eigenes Camp oder ein öffentliches Camp, einen FOB oder eine vom Widerstand kontrollierte Basis. Im Informationsfenster gibt es eine Schaltfläche für die Reise, auf der der Fahrpreis angezeigt wird. Schnellreise kostet die Entfernung in Kilometern multipliziert mit dem in den Schwierigkeitseinstellungen festgelegten Schnellreisepreis, wobei mindestens ein Kilometer berechnet wird. Rekruten in einem Umkreis von 50 Metern reisen standardmäßig mit dir und jeder von ihnen zahlt den vollen Fahrpreis; im Fenster gibt es einen Schalter, mit dem du sie zurücklassen kannst. Du kannst nicht schnellreisen, solange du gesucht wirst, zu einem Ziel, das näher als die Mindestentfernung liegt, oder als Beifahrer in einem Fahrzeug – nur der Fahrer nimmt das Fahrzeug mit – und eine laufende QRF kann die Schnellreise abhängig von den Schwierigkeitseinstellungen blockieren. Für Busreisen verwende an einer Bushaltestelle \"Nimm den Bus\" und wähle auf der Karte eine andere Bushaltestelle aus: Beim Busfahrpreis gibt es keine Mindestentfernung und du musst zu Fuß sein."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
    Target_ko_kr "빠른 이동을 사용하려면 인벤토리에 지도가 있어야 합니다. 지도가 열리면 소유한 집, 캠프, 전진 기지(FOB), 또는 저항군이 현재 점령한 기지를 클릭하여 즉시 이동할 수 있습니다. 이 기능을 이용 시 난이도에 따라 소량의 비용이 발생합니다."
    Target_zh_cn "你必须在库存中拥有地图才能使用 \"快速移动\". 地图将打开，你可以点击任何由反抗军控制的房屋、营地、FOB或基地，立即前往那里。根据难度等级，你将需要为此项服务支付少量费用。"
-   Target_uk_ua "Щоб використовувати \"Швидку подорож\", у вашому інвентарі повинна бути карта. Відкриється карта, і ви зможете натиснути на будь-який будинок, табір, FOB або базу, яку зараз контролює Опір, щоб миттєво відправитися туди. За цю послугу з вас стягуватиметься невелика плата залежно від рівня складності."
+   Target_uk_ua "Відкрийте мапу та виберіть місце, до якого можна переміститися: будинок, яким ви володієте або який орендуєте, власний табір чи будь-який громадський табір, FOB або базу, контрольовану опором. На інформаційній панелі цього місця є кнопка переміщення із зазначеною вартістю. Вартість швидкого переміщення дорівнює відстані в кілометрах, помноженій на ціну швидкого переміщення з налаштувань складності, при цьому мінімальна оплата стягується як за один кілометр. Рекрути в радіусі 50 метрів за замовчуванням переміщуються разом із вами, і за кожного з них стягується повна вартість проїзду; на панелі є перемикач, щоб залишити їх позаду. Ви не можете скористатися швидким переміщенням, якщо перебуваєте в розшуку, якщо пункт призначення ближчий за мінімальну відстань переміщення або якщо ви є пасажиром у транспортному засобі — транспорт переміщується лише разом із водієм. Крім того, активна QRF може блокувати швидке переміщення залежно від налаштувань складності. Для поїздки автобусом скористайтеся «Сісти на автобус» на автобусній зупинці та виберіть іншу автобусну зупинку на мапі: для автобусного тарифу немає мінімальної відстані, і ви повинні бути пішки."
    Comment ""
    DevNote ""
    Repro ""
@@ -1768,13 +1910,15 @@ StringTable {
    MaxLength 0
    Modified 1706583585
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000157}" {
    Id "OVT-FieldManual_FOBs_Head"
    Target_en_us "Deploying a FOB"
+   Target_de_de "Einen FOB errichten"
+   Target_uk_ua "Розгортання FOB"
    Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about the Mobile FOB truck and where it can be set up. Two to four words, no markup. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table."
    DevNote ""
    Repro ""
@@ -1785,13 +1929,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000158}" {
    Id "OVT-FieldManual_FOBs_Head2"
    Target_en_us "What a FOB Gives You"
+   Target_de_de "Was dir ein FOB bietet"
+   Target_uk_ua "Що дає FOB"
    Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph listing what a deployed FOB is good for. Three to five words, no markup."
    DevNote ""
    Repro ""
@@ -1802,13 +1948,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000159}" {
    Id "OVT-FieldManual_FOBs_Head3"
    Target_en_us "Building"
+   Target_de_de "Bauen"
+   Target_uk_ua "Будівництво"
    Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about the build menu, what it costs and where it works. One word, no markup."
    DevNote ""
    Repro ""
@@ -1819,13 +1967,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000015A}" {
    Id "OVT-FieldManual_FOBs_Head4"
    Target_en_us "Moving On"
+   Target_de_de "Weiterziehen"
+   Target_uk_ua "Рух уперед"
    Comment "Field Manual - section header inside the FOBs and Building page, drawn above the paragraph about packing a FOB up again and about the occupying faction taking an interest. Two or three words, no markup."
    DevNote ""
    Repro ""
@@ -1836,13 +1986,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000108}" {
    Id "OVT-FieldManual_FOBs_Text"
    Target_en_us "A FOB is a forward operating base the resistance can deploy in the field, and it has to be sited clear of bases and radio towers. Building adds structures at a base the resistance holds, at a FOB or at a camp, and what is on offer depends on which of those you are standing in."
+   Target_de_de "Ein FOB ist eine vorgeschobene Operationsbasis, die der Widerstand im Feld errichten kann. Sie muss in ausreichendem Abstand zu Basen und Funktürmen platziert werden. Durch Bauen können an einer vom Widerstand gehaltenen Basis, an einem FOB oder in einem Camp Strukturen hinzugefügt werden; was verfügbar ist, hängt davon ab, an welchem dieser Orte du dich befindest."
+   Target_uk_ua "FOB — це передова оперативна база, яку опір може розгорнути в польових умовах. Її потрібно розміщувати подалі від баз і радіовеж. Будівництво дозволяє зводити споруди на базі, яку контролює опір, на FOB або в таборі, а доступні споруди залежать від того, де саме ви перебуваєте."
    Comment "Field Manual - opening paragraph of the FOBs and Building page, shown as body prose under the page heading. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup. CORRECTED 2026-08-08: the earlier wording said structures could be built 'at a town', which no shipped buildable allows - Configs/Resistance/buildables.conf has no m_bBuildInTown or m_bBuildInVillage entry, and the exclusion of occupying-held bases is checked in OVT_BuildContext.CanBuild:294-303."
    DevNote ""
    Repro ""
@@ -1853,13 +2005,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000015B}" {
    Id "OVT-FieldManual_FOBs_Text2"
    Target_en_us "A FOB starts as a Mobile FOB truck, bought like any other vehicle, and an action on the truck sets the FOB up where it stands. It cannot go up near any base, whether the occupying faction or the resistance holds it, nor within seventy metres of a radio tower, and the map shades those areas so they can be seen in advance. Deploying is limited to officers unless the server has been set otherwise."
+   Target_de_de "Ein FOB beginnt als mobiler FOB-Lkw, der wie jedes andere Fahrzeug gekauft wird. Eine Aktion am Lkw richtet den FOB an seiner aktuellen Position ein. Er kann weder in der Nähe einer Basis errichtet werden – unabhängig davon, ob diese von der Besatzungsmacht oder vom Widerstand gehalten wird – noch innerhalb von siebzig Metern um einen Funkturm. Die Karte markiert diese Bereiche, damit sie im Voraus erkennbar sind. Das Errichten ist auf Offiziere beschränkt, sofern der Server nicht anders eingestellt wurde."
+   Target_uk_ua "FOB починається як мобільна вантажівка FOB, яку купують так само, як і будь-який інший транспортний засіб, а дія на вантажівці розгортає FOB на місці, де вона стоїть. Її не можна розгорнути поблизу будь-якої бази, незалежно від того, хто її контролює — окупаційна фракція чи опір, а також у межах сімдесяти метрів від радіовежі. Мапа затінює ці зони, щоб їх можна було побачити заздалегідь. Розгортати FOB можуть лише офіцери, якщо на сервері не встановлено інше."
    Comment "Field Manual - FOBs and Building page, body paragraph under the 'Deploying a FOB' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Pricing/vehiclePrices.conf:87-92 (OverthrowMobileFOB is an ordinary priced vehicle), OVT_DeployFOBAction.c:1-58 and OVT_ResistanceFactionManager.DeployFOB:466-553 (client and server both reject a site within baseCloseRange + FOB_DEPLOY_BASE_BUFFER of ANY base in m_Bases and within FOB_DEPLOY_TOWER_RANGE = 70 of any radio tower), OVT_ResistanceFactionManager.c:60-64 (the two constants), OVT_MapRestrictedAreas.c:70-95 (the map overlay), and OVT_OverthrowConfigComponent.c:32 and :54 (mobileFOBOfficersOnly defaults to true). The base distance is not quoted because it is built from a difficulty setting; the seventy metres is a fixed constant."
    DevNote ""
    Repro ""
@@ -1870,13 +2024,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000015C}" {
    Id "OVT-FieldManual_FOBs_Text3"
    Target_en_us "Any player can fast travel to a FOB, a FOB can be set as the spot you respawn at, and it is ground where placing and building both work. A garrison of soldiers can be stationed at one, paid for and drawn from the nearest town's supporters; camps take a garrison the same way. An officer can mark a single FOB as the priority FOB, which gives it its own map icon and keeps it visible however far the map is zoomed out."
+   Target_de_de "Jeder Spieler kann per Schnellreise zu einem FOB gelangen, ein FOB kann als Wiedereinstiegspunkt festgelegt werden und dort funktionieren sowohl Platzieren als auch Bauen. Eine Garnison aus Soldaten kann dort stationiert werden; sie wird bezahlt und aus den Unterstützern der nächstgelegenen Stadt rekrutiert. Camps erhalten auf dieselbe Weise eine Garnison. Ein Offizier kann einen einzelnen FOB als Prioritäts-FOB markieren. Dadurch erhält er ein eigenes Kartensymbol und bleibt unabhängig von der Zoomstufe der Karte sichtbar."
+   Target_uk_ua "Будь-який гравець може швидко переміщуватися до FOB, FOB можна встановити як місце відродження, а також використовувати як територію для розміщення об’єктів і будівництва. На FOB можна розмістити гарнізон солдатів, оплачений і сформований із прихильників найближчого міста; табори отримують гарнізон так само. Офіцер може позначити один FOB як пріоритетний, що надає йому окремий значок на мапі та залишає його видимим незалежно від масштабу мапи."
    Comment "Field Manual - FOBs and Building page, body paragraph under the 'What a FOB Gives You' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MapContext.CanFastTravel:119-122 (no ownership or privacy test on a FOB, unlike a camp), OVT_SetHomeAction.c on Prefabs/Structures/Military/Flags/FOB_V1_FIA.et, OVT_PlaceContext.CanPlace:385-391 and OVT_BuildContext.CanBuild:343-347, OVT_FOBMenuContext.AddToGarrison:65-95 with OVT_ResistanceFactionManager.AddGarrisonFOB and AddGarrisonCamp (both charge and both call TakeSupportersFromNearestTown; the same menu serves camps), OVT_ResistanceFactionManager.SetPriorityFOB:634-659 (only one at a time) with OVT_SetPriorityFOBAction.c:15-18 (officers only) and OVT_MapIcons.c:664-690 (range 0 and the fob_priority icon)."
    DevNote ""
    Repro ""
@@ -1887,13 +2043,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000015D}" {
    Id "OVT-FieldManual_FOBs_Text4"
    Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. A structure costs money and nothing else: there is no separate stock of materials to gather first. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base."
+   Target_de_de "\"Bauen\" im Overthrow-Hauptmenü öffnet eine Liste von Strukturen sowie eine Kamera, mit der sie in kurzer Entfernung von deinem Standort platziert werden können. Eine Struktur kostet nur Geld: Es gibt keinen separaten Materialvorrat, den du vorher sammeln musst. Jede Struktur hat eigene Regeln dafür, wo sie platziert werden darf, und der Großteil der Liste erfordert eine vom Widerstand gehaltene Basis oder einen FOB. Deshalb bietet dasselbe Menü in einem Camp weniger Möglichkeiten als in einer eroberten Basis."
+   Target_uk_ua "«Будівництво» в головному меню Overthrow відкриває список споруд і камеру для вибору місця їх розташування неподалік від вас. Споруда коштує лише грошей: не потрібно заздалегідь збирати окремі запаси матеріалів. Кожна споруда має власні вимоги до місця розміщення, а для більшості з них потрібна база, контрольована опором, або FOB, тому в таборі це меню пропонує менше варіантів, ніж на захопленій базі."
    Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier."
    DevNote ""
    Repro ""
@@ -1904,13 +2062,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000015E}" {
    Id "OVT-FieldManual_FOBs_Text5"
    Target_en_us "A FOB is not fixed in place. Packing it up turns it back into the truck and gathers the containers standing around it, with what is inside them, into the vehicle, so a FOB can be moved rather than abandoned. The occupying faction, for its part, comes to know where resistance camps and FOBs are, and sends troops out to look at them when it has soldiers to spare."
+   Target_de_de "Ein FOB ist nicht dauerhaft an einen Ort gebunden. Wird er eingepackt, verwandelt er sich wieder in den Lkw und nimmt die in seiner Umgebung stehenden Container samt Inhalt in das Fahrzeug auf. So kann ein FOB verlegt werden, anstatt ihn zurückzulassen. Die Besatzungsmacht erfährt ihrerseits, wo sich Camp und FOBs des Widerstands befinden, und schickt Truppen zur Aufklärung dorthin, wenn sie Soldaten entbehren kann."
+   Target_uk_ua "FOB не закріплена на одному місці. Якщо згорнути її, вона знову перетвориться на вантажівку, а контейнери навколо неї разом із їхнім вмістом буде завантажено в транспортний засіб, тож FOB можна перемістити, а не залишати. Окупаційна фракція, зі свого боку, дізнається про розташування таборів і FOB опору та відправляє туди солдатів на розвідку, коли має вільні сили."
    Comment "Field Manual - FOBs and Building page, body paragraph under the 'Moving On' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ResistanceFactionManager.UndeployFOB:557-620 with OVT_ContainerTransferComponent.UndeployFOBWithCollection:231-240 and OVT_InventoryManagerComponent.UndeployFOBWithCollection:212-216 (containers and their contents are collected into the respawned truck), and OVT_OccupyingFactionManager.UpdateKnownTargets:1258-1360 (FOB and CAMP targets are added with an ATTACK order) with UpdateSpecops:1233-1257 and OVT_BaseUpgradeSpecops.OnUpdate:23-80. The wording deliberately stops at 'sends troops out to look at them': the arrival branch for a FOB or camp target destroys nothing (its source carries a 'To-Do: Destroy stuff if needed' comment) and only clears the target when no player is within 200 m."
    DevNote ""
    Repro ""
@@ -1921,13 +2081,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000109}" {
    Id "OVT-FieldManual_FOBs_Title"
    Target_en_us "FOBs and Building"
+   Target_de_de "FOBs und Bauen"
+   Target_uk_ua "FOB та будівництво"
    Comment "Field Manual - title of the FOBs and Building page, shown on its tile in the category grid and as the heading at the top of the page. FOB is an established in-game abbreviation. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -1938,13 +2100,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000129}" {
    Id "OVT-FieldManual_GunDealers_Head"
    Target_en_us "Finding a Dealer"
+   Target_de_de "Einen Waffenhändler finden"
+   Target_uk_ua "Пошук дилера"
    Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph that describes where dealers are. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1955,13 +2119,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012A}" {
    Id "OVT-FieldManual_GunDealers_Head2"
    Target_en_us "What They Carry"
+   Target_de_de "Was sie anbieten"
+   Target_uk_ua "Що у них є в наявності"
    Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph about dealer stock. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1972,13 +2138,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012B}" {
    Id "OVT-FieldManual_GunDealers_Head3"
    Target_en_us "Selling to a Dealer"
+   Target_de_de "An einen Händler verkaufen"
+   Target_uk_ua "Продаж дилеру"
    Comment "Field Manual - section header inside the Gun Dealers page, drawn above the paragraph about selling. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -1989,13 +2157,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010A}" {
    Id "OVT-FieldManual_GunDealers_Text"
    Target_en_us "A gun dealer is a shop that trades weapons and military equipment rather than everyday goods. Gun dealers draw on their own stock list, restock separately from ordinary shops, and their prices are shaped by the campaign's difficulty settings."
+   Target_de_de "Ein Waffenhändler ist ein Geschäft, das statt alltäglicher Waren Waffen und militärische Ausrüstung handelt. Waffenhändler greifen auf eine eigene Bestandsliste zurück, füllen ihre Vorräte getrennt von gewöhnlichen Geschäften auf und ihre Preise werden von den Schwierigkeitseinstellungen der Kampagne beeinflusst."
+   Target_uk_ua "Торговець зброєю — це торговець, який продає озброєння та військове спорядження замість побутових товарів. У торговців зброєю власний перелік товарів, їхній асортимент оновлюється окремо від звичайних крамниць, а розцінки безпосередньо залежать від налаштувань складності кампанії."
    Comment "Field Manual - opening paragraph of the Gun Dealers page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2006,13 +2176,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012C}" {
    Id "OVT-FieldManual_GunDealers_Text2"
    Target_en_us "Every town larger than a village has one gun dealer, and villages have none. The dealer is a person standing at a spot in the town rather than a counter inside a shop, and once a town has settled on that spot it keeps it for the rest of the campaign. Dealers and ordinary shops both carry their own icon on the map."
+   Target_de_de "Jede Stadt, die größer als ein Dorf ist, hat einen Waffenhändler; Dörfer haben keinen. Der Händler ist eine Person, die an einem bestimmten Ort in der Stadt steht, und kein Tresen innerhalb eines Geschäfts. Sobald eine Stadt diesen Standort festgelegt hat, bleibt er für den Rest der Kampagne bestehen. Sowohl Händler als auch gewöhnliche Geschäfte haben jeweils ein eigenes Symbol auf der Karte."
+   Target_uk_ua "Кожне місто, більше за село, має одного торгівця зброєю, а в селах їх немає взагалі. Торговець — це персонаж, який стоїть у певній точці міста, а не за стійкою всередині магазину, і як тільки місто визначається з цим місцем, воно залишається незмінним до кінця кампанії. Зброярі та звичайні крамниці позначені на карті власними іконками."
    Comment "Field Manual - Gun Dealers page, body paragraph under the 'Finding a Dealer' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_TownController.ActivateTown:102-103 (SpawnGunDealer runs only when town.size != OVT_TownSize.VILLAGE, once per town), SpawnGunDealer:233-276 (a random building carrying a SHOP_GUNDEALER OVT_ShopComponent is chosen, the dealer prefab is spawned there and the position is stored on m_Town.gunDealerPosition and reused afterwards) and OVT_MapIcons.TryCreateGunDealerIcon:111-134 plus TryCreateShopIcon:137. Reference voice: describes the system, never instructs."
    DevNote ""
    Repro ""
@@ -2023,13 +2195,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012D}" {
    Id "OVT-FieldManual_GunDealers_Text3"
    Target_en_us "A dealer's stock comes from its own list rather than the general shop catalogue: pistols, ammunition, attachments, explosives and throwables are the staples, and each town's dealer also rolls a single rifle, a single sniper rifle, a single machine gun and a single launcher when its town first comes to life. Those rolls belong to that dealer for good, topped back up when they run low rather than rolled again, so two towns rarely offer the same heavy weapons. Most equipment belonging to the occupying faction is not traded."
+   Target_de_de "Der Bestand eines Händlers stammt aus seiner eigenen Liste und nicht aus dem allgemeinen Warenkatalog der Geschäfte: Pistolen, Munition, Anbauteile, Sprengstoffe und Wurfgegenstände gehören zum Standardangebot. Zusätzlich erhält der Händler jeder Stadt bei der ersten Aktivierung der Stadt jeweils ein zufällig ausgewähltes Gewehr, Scharfschützengewehr, Maschinengewehr und einen Werfer. Diese Auswahl bleibt diesem Händler dauerhaft erhalten und wird bei niedrigem Bestand wieder aufgefüllt, statt neu ausgewürfelt zu werden. Deshalb bieten zwei Städte nur selten dieselben schweren Waffen an. Die meiste Ausrüstung der Besatzungsmacht wird nicht gehandelt."
+   Target_uk_ua "Торговець зброєю має власний каталог, який відрізняється від асортименту звичайних крамниць. Базовий товар — це пістолети, патрони, обвіси, вибухівка та гранати. Додатково при створенні міста скупник процедурно отримує по одній випадковій позиції зі штурмових гвинтівок, снайперських гвинтівок, кулеметів та гранатометів. Цей набір зброї закріплюється за ним назавжди: коли товар закінчується, запас поповнюється тим самим зразком, тому асортимент важкого озброєння в кожному місті унікальний. Трофейне спорядження окупантів у скупників майже не продається."
    Comment "Field Manual - Gun Dealers page, body paragraph under the 'What They Carry' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/System/GunDealerConfig.conf (PISTOL, AMMUNITION, ATTACHMENT, EXPLOSIVES, LETHAL_THROWABLE and NON_LETHAL_THROWABLE rules, plus m_bSingleRandomItem rules for WEAPON, SNIPER_RIFLE, MACHINE_GUN and ROCKET_LAUNCHER; nearly every rule sets m_bIncludeOccupyingFactionItems 0), OVT_TownController.SpawnGunDealer:282-330 (the single-random rolls happen at spawn) and OVT_EconomyManagerComponent.ReplenishStock:346-360 (the comment there states sold-out ids stay in the map at 0 so the rolled items are restocked, never re-rolled)."
    DevNote ""
    Repro ""
@@ -2040,13 +2214,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012E}" {
    Id "OVT-FieldManual_GunDealers_Text4"
    Target_en_us "Unlike a shop that only buys back the sort of goods it sells, a dealer takes almost anything that has a price. What it pays is a fraction of the item's value, set by the campaign's difficulty settings, and where those settings put that fraction at zero the dealer does not buy at all. Large sums changing hands at a dealer get noticed: they lower the stability of the town it happened in and raise support for the resistance there."
+   Target_de_de "Anders als ein Geschäft, das nur die Arten von Waren zurückkauft, die es selbst verkauft, nimmt ein Händler fast alles an, was einen Preis besitzt. Er bezahlt einen durch die Schwierigkeitseinstellungen der Kampagne festgelegten Anteil des Gegenstandswerts. Ist dieser Anteil dort auf null gesetzt, kauft der Händler überhaupt nichts an. Große Geldbeträge, die bei einem Händler den Besitzer wechseln, bleiben nicht unbemerkt: Sie senken die Stabilität der betreffenden Stadt und erhöhen dort die Unterstützung für den Widerstand."
+   Target_uk_ua "На відміну від звичайних крамниць, які скуповують лише свій профільний товар, торговець зброєю бере практично будь-які речі, що мають ціну. Сума виплати становить відсоток від базової вартості предмета й залежить від налаштувань складності гри (якщо коефіцієнт рівний нулю, скупка буде повністю вимкнена). Угоди на великі суми привертають увагу: вони розхитують стабільність у місті, але водночас збільшують лояльність містян до сил опору."
    Comment "Field Manual - Gun Dealers page, body paragraph under the 'Selling to a Dealer' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 with ShopTypeHasInventoryRules:524-533 (SHOP_GUNDEALER has no rules in Configs/System/ShopConfig.conf so any registered priced resource is accepted), OVT_ShopSellRules.GetSellMultiplier:53-59 and ShopBuysFromPlayers:30-42 (gunDealerSellPriceMultiplier, zero disables the sell path), OVT_BlackMarketStabilityModifier:22-42 and OVT_BlackMarketSupportModifier:22-42 (gun dealer transactions over 1000 only), with the effect sizes in Configs/Modifiers/stabilityModifiers.conf:87-94 (-5) and supportModifiers.conf:75-82 (+5). No fixed multiplier is quoted because it is difficulty-scaled."
    DevNote ""
    Repro ""
@@ -2057,13 +2233,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010B}" {
    Id "OVT-FieldManual_GunDealers_Title"
    Target_en_us "Gun Dealers"
+   Target_de_de "Waffenhändler"
+   Target_uk_ua "Торговці зброєю"
    Comment "Field Manual - title of the Gun Dealers page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -2074,7 +2252,7 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -2082,6 +2260,7 @@ StringTable {
    Id "OVT-FieldManual_MainMenu_Text"
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
    Target_fr_fr "Ouvrez le menu principal avec <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> pour accéder à la plupart des fonctions d'Overthrow"
+   Target_de_de "Öffne das Hauptmenü mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>, um auf die meisten Funktionen von Overthrow zuzugreifen."
    Target_ru_ru "Откройте главное меню нажатем кнопки <color rgba='226,168,79,255'><action name=\\"OverthrowMainMenu\\"/></color>для доступа ко всем основным возможностям Overthrow."
    Target_ko_kr "Overthrow의 대부분 기능에 접근하려면 <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>를 눌러 메인 메뉴를 여세요."
    Target_zh_cn "使用以下方式打开主菜单 <color rgba='226,168,79,255'><action name=\"抵抗主菜单\"/></color> 可以访问抵抗的大部分功能。"
@@ -2096,13 +2275,15 @@ StringTable {
    MaxLength 0
    Modified 1706580497
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011E}" {
    Id "OVT-FieldManual_MainMenu_Text2"
    Target_en_us "The menu opens on the town you are standing in, with its population, stability and supporter count, and the log of recent notifications.<br/>From here you can reach map info and fast travel, placing and building, the resistance menu, jobs, the real estate menu for the building you are in, recruit management, your character sheet, the last tip you were shown, and a request to save the campaign.<br/>Some entries only work in the right circumstances: real estate stays greyed out unless the building you are standing in can be owned, tips stays greyed out until a tip has been shown, and saving is limited to officers. Standing next to certain places, such as a shop counter, opens that place's own menu instead."
+   Target_de_de "Das Menü öffnet sich mit der Stadt, in der du dich befindest, einschließlich ihrer Bevölkerung, Stabilität und Anzahl an Unterstützern sowie dem Protokoll der letzten Benachrichtigungen.<br/>Von hier aus erreichst du Karteninformationen und Schnellreise, Platzieren und Bauen, das Widerstandsmenü, Aufträge, das Immobilienmenü für das Gebäude, in dem du dich befindest, die Rekrutenverwaltung, deinen Charakterbogen, den zuletzt angezeigten Tipp und die Option zum Speichern der Kampagne.<br/>Einige Einträge funktionieren nur unter den richtigen Umständen: Immobilien bleibt ausgegraut, solange das Gebäude, in dem du dich befindest, nicht besessen werden kann; Tipps bleibt ausgegraut, bis ein Tipp angezeigt wurde; und Speichern ist auf Offiziere beschränkt. Wenn du neben bestimmten Orten stehst, beispielsweise an einem Ladentresen, öffnet sich stattdessen das eigene Menü dieses Ortes."
+   Target_uk_ua "Меню відкривається для міста, у якому ви перебуваєте: воно відображає населення, стабільність, кількість прихильників та журнал останніх сповіщень. Звідси можна перейти до інформації на карті й швидкого переміщення, розміщення й будівництва, меню опору, завдань, меню нерухомості для будівлі, у якій ви стоїте, керування рекрутами, характеристики персонажа, останньої показаної підказки та запиту на збереження кампанії. Деякі пункти працюють лише за певних умов: нерухомість залишається неактивною, якщо будівлю не можна придбати, підказки — доки не з'явиться перша підказка, а збереження доступне лише офіцерам. Перебування біля певних місць, наприклад прилавка магазину, натомість відкриває особисте меню цього місця."
    Comment "Field Manual - second body paragraph on the Main Menu page, listing what the menu holds. CONTAINS RICH TEXT: two <br/> line breaks, which must be preserved verbatim in every translation. FACT-CHECKED against OVT_MainMenuContext.c:94-97 (town name and stats), :198-223 (notification log), :104-195 (the button list), :148-157 (real estate disabled when the building is not ownable), :178-188 (Tips disabled until an entry exists), :306-309 (save is officer-only), :29-56 (a nearby override component opens that location's context instead). The disabled Options button in MainMenu.layout is deliberately not listed. Reference voice: describes, does not instruct. Three paragraphs."
    DevNote ""
    Repro ""
@@ -2113,7 +2294,7 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -2121,6 +2302,7 @@ StringTable {
    Id "OVT-FieldManual_MainMenu_Title"
    Target_en_us "Main Menu"
    Target_fr_fr "Menu Principal"
+   Target_de_de "Hauptmenü"
    Target_ru_ru "Главное меню"
    Target_ko_kr "메인 메뉴"\
    ""
@@ -2136,13 +2318,15 @@ StringTable {
    MaxLength 0
    Modified 1706580515
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000124}" {
    Id "OVT-FieldManual_MapAndTravel_Head"
    Target_en_us "Bus Travel"
+   Target_de_de "Busreisen"
+   Target_uk_ua "Поїздка автобусом"
    Comment "Field Manual - section header inside The Map and Fast Travel page, above the paragraph on catching a bus. Two words, title case. No rich-text markup."
    DevNote ""
    Repro ""
@@ -2153,13 +2337,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010C}" {
    Id "OVT-FieldManual_MapAndTravel_Text"
    Target_en_us "The map is the campaign's overview. Alongside the terrain it marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports it knows about. Carrying a map in your inventory is what makes the map info and fast travel options usable."
+   Target_de_de "Die Karte bietet den Überblick über die Kampagne. Neben dem Gelände zeigt sie Gebäude und Fahrzeuge in deinem Besitz, vom Widerstand platzierte Camp und FOBs sowie bekannte Geschäfte, Waffenhändler und Häfen. Nur wenn du eine Karte im Inventar trägst, können die Optionen für Karteninformationen und Schnellreise verwendet werden."
+   Target_uk_ua "Мапа — це огляд кампанії. Окрім місцевості, на ній позначено будівлі та транспортні засоби, якими ви володієте, табори й FOB, розміщені опором, а також відомі магазини, торговців зброєю та порти. Щоб користуватися інформацією на мапі та можливостями швидкого переміщення, потрібно мати мапу в інвентарі."
    Comment "Field Manual - opening paragraph of The Map and Fast Travel page, shown as body prose above the existing Map Info and Fast Travel sections. FACT-CHECKED against OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, camps :641, FOBs :664, owned vehicles :710, shop/gun dealer/port icons via the Try* helpers :111-211) and OVT_MapContext.c:135-158 and :277-285 (both options need the map gadget, otherwise 'MustHaveMap'). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2170,13 +2356,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000125}" {
    Id "OVT-FieldManual_MapAndTravel_Text2"
    Target_en_us "The panel names the nearest town to the point you clicked and shows its population, its distance from you, its stability and its supporter count, along with the modifiers currently pushing that town's stability and support up or down."
+   Target_de_de "Das Fenster nennt die dem angeklickten Punkt nächstgelegene Stadt und zeigt ihre Bevölkerung, ihre Entfernung zu dir, ihre Stabilität und die Anzahl ihrer Unterstützer sowie die Modifikatoren, die Stabilität und Unterstützung dieser Stadt derzeit erhöhen oder senken."
+   Target_uk_ua "Панель вказує найближче місто до обраної точки та відображає його населення, відстань до нього, рівень стабільності й кількість прихильників, а також поточні модифікатори, що підвищують або знижують стабільність і підтримку у цьому місті."
    Comment "Field Manual - body paragraph on The Map and Fast Travel page, immediately after the existing Map Info paragraph. FACT-CHECKED against OVT_MapContext.c:167-275 (ShowTownInfo fills town name, population, distance, stability, support and the two modifier lists) and :512-518 (a click selects the nearest town to the clicked point). Reference voice: describes, does not instruct. One sentence, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2187,13 +2375,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000126}" {
    Id "OVT-FieldManual_MapAndTravel_Text3"
    Target_en_us "Fast travel is conditional. The destination has to be next to something the resistance holds: a house you own or rent, one of your own camps or a public one, a FOB, or a base under resistance control. It also has to be far enough from where you are standing, it is refused while you have a wanted level, and an active quick reaction force can block it, depending on the campaign's difficulty settings."
+   Target_de_de "Schnellreise ist an Bedingungen geknüpft. Das Ziel muss sich neben etwas befinden, das der Widerstand hält: einem Haus, das dir gehört oder das du mietest, einem deiner eigenen Camps oder einem öffentlichen Camp, einem FOB oder einer vom Widerstand kontrollierten Basis. Außerdem muss das Ziel weit genug von deinem aktuellen Standort entfernt sein. Schnellreise wird verweigert, solange du einen Fahndungslevel hast, und eine aktive schnelle Eingreiftruppe kann sie abhängig von den Schwierigkeitseinstellungen der Kampagne blockieren."
+   Target_uk_ua "Швидке переміщення працює за певних умов. Точка призначення має розташовуватися поруч із об'єктом під контролем опору: будинком у вашій власності чи оренді, вашим власним або спільним табором, ПБП чи базою під контролем опору. Окрім цього, ціль має бути достатньо віддаленою від вашої поточної позиції. Телепорт недоступний під час розшуку, а активні сили швидкого реагування (QRF) можуть блокувати його залежно від налаштувань складності."
    Comment "Field Manual - body paragraph on The Map and Fast Travel page, after the existing Fast Travel paragraph. FACT-CHECKED against OVT_MapContext.c:53-133 (CanFastTravel: minimum distance from OVT_DifficultySettings.minFastTravelDistance, refused at wanted level above zero, QRF handling per OVT_QRFFastTravelMode, and the owned/rented house, own-or-public camp, FOB and resistance-held base destinations). Distances and the minimum range are difficulty settings and are deliberately not quoted. Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2204,13 +2394,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000127}" {
    Id "OVT-FieldManual_MapAndTravel_Text4"
    Target_en_us "The fee is a difficulty setting rather than a fixed price. Recruits standing near you travel with you when you are on foot, and each one adds the same fee again. Fast travelling from inside a vehicle only works if you are the driver."
+   Target_de_de "Die Gebühr wird durch eine Schwierigkeitseinstellung bestimmt und ist kein fester Preis. Rekruten in deiner Nähe reisen mit dir, wenn du zu Fuß bist, und jeder von ihnen verursacht dieselbe Gebühr zusätzlich. Schnellreise aus einem Fahrzeug heraus funktioniert nur, wenn du der Fahrer bist."
+   Target_uk_ua "Плата за переміщення залежить від налаштувань складності, а не є фіксованою сумою. Рекрути, які стоять поруч із вами, переміщуються разом із вами, коли ви йдете пішки, і кожен із них додає до вартості таку ж суму. Швидке переміщення зсередини транспорту працює лише в тому разі, якщо ви перебуваєте за кермом."
    Comment "Field Manual - body paragraph on The Map and Fast Travel page, following the fast travel conditions paragraph. FACT-CHECKED against OVT_MapContext.c:384-396 (cost = OVT_DifficultySettings.fastTravelCost, plus the same again for each nearby recruit) and :417-446 (in a vehicle the player must be in the pilot seat; recruits are brought along on the on-foot path). The cost is difficulty-scaled and is deliberately not quoted as a number. Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2221,13 +2413,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000128}" {
    Id "OVT-FieldManual_MapAndTravel_Text5"
    Target_en_us "Bus stops offer a separate way to cross the map. Catching a bus opens the map so a destination near another bus stop can be picked, and the fare is charged per kilometre travelled at a rate the difficulty settings decide. Bus travel does not check your wanted level or whether the resistance holds the ground, but it does need you to be out of a vehicle, and recruits near you each add their own fare."
+   Target_de_de "Bushaltestellen bieten eine eigene Möglichkeit, die Karte zu überqueren. Beim Nehmen eines Busses wird die Karte geöffnet, sodass ein Ziel in der Nähe einer anderen Bushaltestelle ausgewählt werden kann. Der Fahrpreis wird pro zurückgelegtem Kilometer zu einem von den Schwierigkeitseinstellungen bestimmten Tarif berechnet. Bei Busreisen wird weder dein Fahndungslevel geprüft noch, ob der Widerstand das Gebiet hält. Du musst dich jedoch außerhalb eines Fahrzeugs befinden und jeder Rekrut in deiner Nähe verursacht seinen eigenen Fahrpreis."
+   Target_uk_ua "Автобусні зупинки пропонують альтернативний спосіб переміщення картою. Взаємодія із зупинкою відкриває карту, де ви обираєте ціль поруч із будь-якою іншою зупинкою, а вартість поїздки вираховується за кілометраж згідно з налаштуваннями складності. Подорож автобусом ігнорує рівень розшуку та статус контролю території, але ви маєте бути пішки, а за кожного рекрута поблизу доведеться доплатити."
    Comment "Field Manual - body paragraph on The Map and Fast Travel page, under the 'Bus Travel' header. FACT-CHECKED against OVT_CatchBusAction.c (the user action opens bus travel on the map) and OVT_MapContext.c:451-509 (destination must be near a bus stop, fare = distance in km times OVT_DifficultySettings.busTicketPrice, the same again per nearby recruit, refused inside a vehicle, and no wanted or ownership check on this path). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2238,13 +2432,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010D}" {
    Id "OVT-FieldManual_MapAndTravel_Title"
    Target_en_us "The Map and Fast Travel"
+   Target_de_de "Die Karte und Schnellreise"
+   Target_uk_ua "Мапа та швидке переміщення"
    Comment "Field Manual - title of The Map and Fast Travel page, shown on its tile in the category grid and as the heading at the top of the page. Two to five words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -2255,13 +2451,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A86D5E100000002}" {
    Id "OVT-FieldManual_MapInfluence_Head"
    Target_en_us "Influence"
+   Target_de_de "Einfluss"
+   Target_uk_ua "Вплив"
    Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the influence overlay. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Influence."
    DevNote ""
    Repro ""
@@ -2272,13 +2470,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A86D5E100000003}" {
    Id "OVT-FieldManual_MapInfluence_Text"
    Target_en_us "Selecting a location on the map, either by hovering over its marker or by clicking to pin its info panel open, draws dashed lines to the other locations it stands in an influence relationship with. Select a town and lines run in from the radio towers and the military bases whose reach covers it, along with the revolutionary momentum passing between it and any town close enough, which runs from a town the resistance holds to an occupied one nearby. Select a radio tower or a military base and a line runs out to each town inside its reach, together with a dashed ring marking how far that reach goes; the ring is an outline rather than a filled disc, so the map inside it stays readable. Selecting anything else, a house, a shop, a forward base, a vehicle, a bus stop, draws nothing, since those neither project influence nor receive it. Every line carries the colour of the faction exerting the influence, the owner of the tower or the base, or the town lending the momentum, which is the same colour that location's own marker is drawn in."
+   Target_de_de "Wenn du einen Ort auf der Karte auswählst – entweder indem du mit dem Mauszeiger über seine Markierung fährst oder sie anklickst, um das Informationsfenster geöffnet zu halten – werden gestrichelte Linien zu anderen Orten angezeigt, mit denen er in einer Einflussbeziehung steht. Wählst du eine Stadt aus, führen Linien von den Funktürmen und Militärbasen zu ihr, deren Reichweite sie erfasst, sowie für revolutionären Schwung zwischen ihr und jeder ausreichend nahen Stadt. Dieser verläuft von einer vom Widerstand gehaltenen Stadt zu einer nahegelegenen besetzten Stadt. Wählst du einen Funkturm oder eine Militärbasis aus, führt eine Linie zu jeder Stadt innerhalb ihrer Reichweite. Zusätzlich zeigt ein gestrichelter Ring, wie weit diese Reichweite reicht; der Ring ist nur eine Kontur und keine ausgefüllte Fläche, damit die Karte darin lesbar bleibt. Bei allen anderen Objekten – etwa einem Haus, Geschäft, vorgeschobenen Stützpunkt, Fahrzeug oder einer Bushaltestelle – werden keine Linien angezeigt, da diese weder Einfluss ausüben noch empfangen. Jede Linie trägt die Farbe der Fraktion, die den Einfluss ausübt: des Besitzers des Turms oder der Basis beziehungsweise der Stadt, von der der revolutionäre Schwung ausgeht. Es ist dieselbe Farbe, in der auch die Markierung dieses Ortes dargestellt wird."
+   Target_uk_ua "Вибір місця на мапі — наведенням курсора на його маркер або натисканням на нього, щоб закріпити інформаційну панель, — показує пунктирні лінії до інших місць, з якими воно пов’язане впливом. Якщо вибрати місто, до нього простягнуться лінії від радіовеж і військових баз, зона впливу яких його охоплює, а також лінії революційного імпульсу між ним і будь-яким достатньо близьким містом. Такий імпульс поширюється від міста, контрольованого опором, до сусіднього окупованого міста. Якщо вибрати радіовежу або військову базу, лінії простягнуться до кожного міста в межах її впливу, а пунктирне кільце покаже межі цієї зони; кільце відображається лише контуром, без заливки, щоб мапа всередині залишалася читабельною. Вибір будь-чого іншого — будинку, магазину, передової бази, транспортного засобу чи автобусної зупинки — не показує жодних ліній, оскільки ці об’єкти не створюють і не отримують вплив. Кожна лінія має колір фракції, що чинить вплив: власника радіовежі чи бази або міста, від якого поширюється імпульс. Це той самий колір, яким позначено маркер відповідного місця."
    Comment "Field Manual - first paragraph of the Influence section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentence 1: OVT_MapInfluenceLayer.EmitFrame reads OVT_OverthrowMapUI.GetPanelLocation, which is the panel's own location and is set by ShowLocationInfo on both the hover and the m_bSelectionPinned click paths (settled decision D2). Sentence 2: OVT_MapInfluenceLayer.BuildTownSelectionEdges - the tower and base loops over OVT_OccupyingFactionManager.m_RadioTowers and m_Bases gated on OVT_InfluenceRules.IsProximitySource, then the momentum loop gated on IsMomentumSource plus TownQualifiesForMomentum in both directions, so a momentum edge always runs player-held town to non-player-held town. Sentence 3: BuildTowerSelectionEdges and BuildBaseSelectionEdges set m_vRingCentre/m_fRingRadius/m_iRingFaction and call AddEdgesToTownsInRange; EmitRing draws alternating open arcs with LineDrawCommand, explicitly not OVT_MapCanvasLayer.DrawCircle's filled PolygonDrawCommand (settled decision D4). Sentence 4: BuildEdges dispatches only on OVT_MapLocationTown, OVT_MapLocationRadioTower and OVT_MapLocationBase; every other type falls through and derives nothing. Sentence 5: EmitEdge and EmitRing both colour through OVT_MapLocationType.GetFactionArgbByIndex on the SOURCE faction (edge.m_iSourceFaction, m_iRingFaction), which unpacks the same GetFactionColorByIndex the markers use through GetIconColor. NOTE the overlay carries NO magnitude or strength channel and covers only the three SUPPORT modifiers that have a second location - it must never be described as showing influence strength, as touching stability, as revealing anything the location panels do not already show, or as affecting the campaign."
    DevNote ""
    Repro ""
@@ -2289,13 +2489,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A86D5E100000004}" {
    Id "OVT-FieldManual_MapInfluence_Text2"
    Target_en_us "A line drawn bright, in long dashes, is one the campaign is currently applying, and the town it reaches lists it on its info panel as Nearby Radio Tower, Nearby Base or Revolutionary Momentum. A line drawn dim, in shorter and sparser dashes, means the relationship is there but the campaign is not applying it. Two things cause that today, and neither of them is the whole of it. One is an enemy source outweighing a friendly one of the same kind: a single occupying tower or base within reach beats any number of friendly ones, so a town can sit inside a friendly tower's reach and still carry the negative entry. The other is a sabotaged radio tower, which broadcasts for nobody while it is off the air. The overlay puts relationships the location panels already list into one picture rather than uncovering anything new, and it changes nothing in the campaign; it has its own row, Influence, in the map filter panel, remembered against your profile in the same way as the other overlays."
+   Target_de_de "Eine hell dargestellte Linie mit langen Strichen zeigt einen Einfluss an, den die Kampagne derzeit tatsächlich anwendet. Die erreichte Stadt führt ihn in ihrem Informationsfenster als \"Nahegelegener Funkturm\", \"Nahegelegene Basis\" oder \"Revolutionärer Vormarsch\" auf. Eine dunkler dargestellte Linie mit kürzeren und weiter auseinanderliegenden Strichen bedeutet, dass die Beziehung besteht, von der Kampagne aber momentan nicht angewendet wird. Dafür gibt es derzeit zwei Ursachen, wobei keine davon das vollständige System ausmacht. Zum einen kann eine feindliche Quelle eine freundliche Quelle desselben Typs überwiegen: Ein einziger besetzender Turm oder eine feindliche Basis in Reichweite schlägt beliebig viele freundliche, sodass sich eine Stadt innerhalb der Reichweite eines freundlichen Turms befinden und trotzdem den negativen Eintrag tragen kann. Zum anderen kann ein sabotierter Funkturm betroffen sein, der für niemanden sendet, solange er außer Betrieb ist. Die Einblendung fasst lediglich Beziehungen, die bereits in den Ortsfenstern aufgeführt werden, in einem Bild zusammen, anstatt neue Informationen aufzudecken, und verändert nichts an der Kampagne. Sie besitzt im Kartenfilter eine eigene Zeile namens \"Influence\" und wird wie die anderen Einblendungen in deinem Profil gespeichert."
+   Target_uk_ua "Яскрава лінія з довгими штрихами означає зв’язок, який кампанія зараз враховує, а місто, до якого вона веде, показує його на своїй інформаційній панелі як «Радіовежа поблизу», «База поблизу» або «Революційний імпульс». Тьмяна лінія з коротшими й рідшими штрихами означає, що зв’язок існує, але кампанія зараз його не враховує. Наразі це може бути спричинено двома причинами, і жодна з них не є вичерпною. Перша — ворожий джерело переважає дружнє того самого типу: одна окупаційна радіовежа або база в зоні досяжності переважає будь-яку кількість дружніх, тому місто може перебувати в зоні впливу дружньої радіовежі й водночас мати негативний запис. Друга — саботована радіовежа, яка не веде мовлення ні для кого, поки не працює. Цей шар лише об’єднує в одне зображення зв’язки, які вже показані на панелях місць, не відкриваючи нічого нового, і ніяк не впливає на кампанію. У панелі фільтрів мапи для нього є окремий рядок «Вплив», а його стан зберігається у вашому профілі так само, як і стан інших шарів."
    Comment "Field Manual - second paragraph of the Influence section on The Map and Fast Travel page. This paragraph is the load-bearing one: the dim class is defined by the GENERAL rule (implementation.md K3), and the two causes are named as EXAMPLES only - never rewrite them into the definition. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-12 for map/influence-overlay, symbols only. Sentences 1-2: OVT_MapInfluenceLayer.AddEdge sets ACTIVE only when TownHasSupportModifier finds the modifier index in the target town's replicated supportModifiers list, otherwise SUPPRESSED (the cross-check, implementation.md K2); ResolveStyle pairs ACTIVE with m_iActiveAlpha 220 and dash 14 / gap 10, SUPPRESSED with m_iSuppressedAlpha 70 and dash 6 / gap 14 - both classes are DASHED, which is why the wording is 'bright, in long dashes' and not 'solid'. The three panel names are the titles of NearbyRadioTowerPositive/Negative (#OVT-StabilityMod_NearbyTower 'Nearby Radio Tower'), NearbyBasePositive/Negative (#OVT-Modifier_NearbyBase 'Nearby Base') and RevolutionaryMomentum (#OVT-Modifier_RevolutionaryMomentum) in Configs/Modifiers/supportModifiers.conf, rendered by OVT_MapLocationTown.SetupModifierContainer on SupportModifiersContainer. Sentence 4: OVT_InfluenceRules.ResolveProximity returns NEGATIVE whenever hasEnemy, whatever hasFriendly says. Sentence 5: OVT_TownManagerComponent.CheckUpdateModifiers removes NearbyRadioTower* for a tower that is off the air, so the geometry still qualifies while the modifier is gone; the layer never asks a tower whether it is sabotaged. Sentence 6: the layer is a read-only projection with no RplProp, no Rpc and no persistence, and its toggle row comes from OVT_MapInfluenceLayer's m_sLayerId 'influence' and m_sDisplayName #OVT-Map_Layer_Influence in Configs/Map/MapOverthrow.conf via OVT_MapCanvasLayer.SetLayerVisible and the per-profile OVT_MapLayerPrefsStore."
    DevNote ""
    Repro ""
@@ -2306,7 +2508,7 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -2314,10 +2516,11 @@ StringTable {
    Id "OVT-FieldManual_MapInfo_Text"
    Target_en_us "You must have a map in your inventory to open it with <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>. Overthrow marks towns, bases, FOBs, camps, houses, shops, gun dealers, warehouses, ports, radio towers, bus stops, your vehicles and your waypoints on it. Move the map cursor over a marker to show an info panel about that location, and click the marker to keep the panel pinned open. Clicking an empty part of the map unpins it again."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
+   Target_de_de "Du musst eine Karte im Inventar haben, um sie mit <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color> zu öffnen. Overthrow markiert darauf Städte, Basen, FOBs, Camp, Häuser, Geschäfte, Waffenhändler, Lagerhäuser, Häfen, Funktürme, Bushaltestellen, deine Fahrzeuge und deine Wegpunkte. Bewege den Kartenzeiger über eine Markierung, um ein Informationsfenster zu diesem Ort anzuzeigen, und klicke auf die Markierung, damit das Fenster geöffnet bleibt. Durch Klicken auf einen leeren Bereich der Karte wird es wieder gelöst."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
    Target_ko_kr "\"지도 정보\"를 사용하려면 인벤토리에 지도가 있어야 합니다. 메인 메뉴에서 이 항목을 클릭하면 지도가 열리고, 지도 어느 곳이나 클릭하면 해당 위치에 대한 정보와 알려진 정보(information)를 확인할 수 있습니다."
    Target_zh_cn "你必须在库存中拥有地图才能使用 \"地区信息\". 在主菜单中单击此按钮将打开地图，然后你可以单击地图上的任意位置来显示有关该地区的信息，包括有关该地区的任何已知信息。"
-   Target_uk_ua "Ви повинні мати мапу у вашому інвентарі для користуватися \"Інформації про мапу\". Якщо натиснути на це в головному меню, відкриється карта, а потім ви можете клацнути будь-де на карті, щоб показати інформацію про це місце, включно з будь-якою відомою інформацією про цю місцевість."
+   Target_uk_ua "Щоб відкрити мапу за допомогою <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>, у вашому інвентарі має бути мапа. Overthrow позначає на ній міста, бази, FOB, табори, будинки, магазини, торговців зброєю, склади, порти, радіовежі, автобусні зупинки, ваші транспортні засоби та маршрутні точки. Наведіть курсор мапи на маркер, щоб відобразити інформаційну панель про це місце, а потім натисніть на маркер, щоб закріпити панель. Натискання на порожню ділянку мапи знову відкріпить її."
    Comment ""
    DevNote ""
    Repro ""
@@ -2328,13 +2531,15 @@ StringTable {
    MaxLength 0
    Modified 1706583653
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000080}" {
    Id "OVT-FieldManual_MapLayers_Head"
    Target_en_us "Filtering the Map"
+   Target_de_de "Karte filtern"
+   Target_uk_ua "Фільтрування мапи"
    Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the map layer filter panel. Three words, title case. No rich-text markup. Matches the in-game panel title #OVT-Map_Layers_Title."
    DevNote ""
    Repro ""
@@ -2345,13 +2550,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000081}" {
    Id "OVT-FieldManual_MapLayers_Text"
    Target_en_us "A filter entry on the strip of icons down the left of the map opens a panel of on and off rows. Every category of marker has one, from towns and bases down to houses, bus stops and your own vehicles, and so does each overlay drawn beneath them, the territory shading and the restricted area rings. Player markers have a row of their own on difficulty settings that draw them. Clearing a row hides that category straight away, with the map still open, and ticking it again brings it back. Everything starts switched on, and a category left on still keeps its own zoom threshold, so the smaller markers still appear only as you zoom in. The panel can be reached and worked with a controller as well as with a mouse."
+   Target_de_de "Ein Filtereintrag in der Symbolleiste auf der linken Seite der Karte öffnet ein Fenster mit Zeilen, die ein- und ausgeschaltet werden können. Jede Markierungskategorie besitzt eine solche Zeile – von Städten und Basen bis hin zu Häusern, Bushaltestellen und deinen eigenen Fahrzeugen – ebenso wie jede darunter dargestellte Einblendung, also die Gebietsschattierung und die Ringe für Sperrgebiete. Spielermarkierungen haben bei Schwierigkeitseinstellungen, die sie anzeigen, eine eigene Zeile. Wenn du eine Zeile deaktivierst, wird diese Kategorie sofort ausgeblendet, während die Karte geöffnet bleibt; aktivierst du sie erneut, erscheint sie wieder. Zu Beginn ist alles eingeschaltet. Eine aktivierte Kategorie behält dennoch ihre eigene Zoomgrenze, sodass kleinere Markierungen weiterhin erst beim Heranzoomen erscheinen. Das Fenster kann sowohl mit einem Controller als auch mit der Maus geöffnet und bedient werden."
+   Target_uk_ua "Пункт фільтра на панелі значків ліворуч від мапи відкриває панель із перемикачами. Кожна категорія маркерів має власний перемикач — від міст і баз до будинків, автобусних зупинок і ваших транспортних засобів, — як і кожен шар, що відображається під ними: затінення території та кільця заборонених зон. Маркери гравців також мають окремий перемикач, якщо їх відображення дозволене налаштуваннями складності. Вимкнення перемикача одразу приховує відповідну категорію, не закриваючи мапу, а повторне ввімкнення повертає її. За замовчуванням усе ввімкнено, і навіть увімкнена категорія зберігає власний поріг масштабу, тому дрібніші маркери з’являються лише при наближенні. Панеллю можна користуватися як мишею, так і контролером."
    Comment "Field Manual - first paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayersUI.Init registers the entry through SCR_MapToolMenuUI.RegisterToolMenuEntry with the m_sToolMenuIcon quad 'filters', and vanilla MapMenu.layout anchors ToolMenuContainer top-left. Sentence 2: OVT_MapLayersUI.BuildLocationTypeRows over OVT_OverthrowMapUI.GetLocationTypes (the 14 types in Configs/Map/OverthrowMap.conf) and BuildCanvasLayerRows over OVT_MapCanvasCompositor.GetLayers (OVT_MapTerritoryLayer m_sLayerId 'territory' and OVT_MapRestrictedAreas m_sLayerId 'restricted' in Configs/Map/MapOverthrow.conf; OVT_MapThreatGrid ships m_bDisableModule 1 and never registers, so it has no row). Sentence 3: OVT_MapLayersUI.BuildPlayerRow, gated on OVT_MapPlayerLocation.IsAvailableThisSession, which is false when the difficulty preset has showPlayerOnMap off. Sentence 4: OVT_MapLayersUI.OnRowToggled calls ApplyOne before anything else, which routes to OVT_MapLocationType.SetPlayerVisible plus OVT_OverthrowMapUI.RefreshAllVisibility, or to OVT_MapCanvasLayer.SetLayerVisible. Sentence 5: OVT_MapLocationType.m_bPlayerVisible defaults true and OVT_MapLayerPrefsStore.IsVisible treats an absent key as visible; the zoom gate is the GetEffectiveVisibilityZoom test that OVT_MapLocationElement.SetVisible still applies after the player-visibility gate. Sentence 6: OverthrowMapLayersContext in Configs/System/chimeraInputCommon.conf, renewed per frame by OVT_MapLayersUI.ActivateRowNavigationContext while the panel is open. NOTE this panel only decides what is DRAWN for this player - it must never be described as revealing, hiding or changing anything in the campaign itself."
    DevNote ""
    Repro ""
@@ -2362,13 +2569,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000082}" {
    Id "OVT-FieldManual_MapLayers_Text2"
    Target_en_us "What you hide is remembered against your game profile rather than against a campaign, so the same choices are waiting the next time you open the map, in a later session, and in any campaign or server you play in. Nothing in the campaign itself changes: the filter only decides what is drawn for you, and everyone else sees whatever they have chosen for themselves."
+   Target_de_de "Was du ausblendest, wird in deinem Spielprofil gespeichert und nicht in einer bestimmten Kampagne. Dadurch erwarten dich dieselben Einstellungen, wenn du die Karte in einer späteren Sitzung oder in einer beliebigen anderen Kampagne bzw. auf einem anderen Server wieder öffnest. An der Kampagne selbst ändert sich nichts: Der Filter bestimmt nur, was für dich dargestellt wird, und alle anderen sehen jeweils das, was sie selbst ausgewählt haben."
+   Target_uk_ua "Приховані параметри зберігаються у вашому ігровому профілі, а не в збереженні конкретної кампанії, тому ваші налаштування залишаться незмінними під час наступного відкриття карти, у наступних ігрових сесіях та на будь-яких інших серверах чи в нових кампаніях. Це ніяк не впливає на сам перебіг гри: фільтр змінює лише те, що відображається на вашому екрані, тоді як інші гравці бачать карту згідно зі своїми власними налаштуваннями."
    Comment "Field Manual - second paragraph of the Filtering the Map section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/map-layers, symbols only per epic rule K-9. Sentence 1: OVT_MapLayerSettingsAccessor reads and writes OVT_MapLayerSettings, a ModuleGameSettings block on the engine's user settings, which is per profile and carries no campaign or world identity; OVT_MapLayersUI.EnsurePrefsLoaded loads it on the first map open and FlushPrefs writes it at panel close and map close. This is settled decision D6 of docs/features/map/map-layers. Sentence 2: the feature's boundary audit found no RplProp, no RplRpc, no Rpc call and no EPF in any new or changed file, and the only mutating calls added are SetVisible, SetMarkersVisible and SetPlayerVisible on client-side UI objects. NOTE do not describe this as saving with the campaign - per profile rather than per campaign is the user-visible consequence this paragraph exists to state."
    DevNote ""
    Repro ""
@@ -2379,13 +2588,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000167}" {
    Id "OVT-FieldManual_MapTerritory_Head"
    Target_en_us "Territory"
+   Target_de_de "Gebiet"
+   Target_uk_ua "Територія"
    Comment "Field Manual - section header inside The Map and Fast Travel page, above the two paragraphs on the territory shading. One word, title case. No rich-text markup. Matches the map layer name #OVT-Map_Layer_Territory."
    DevNote ""
    Repro ""
@@ -2396,13 +2607,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000168}" {
    Id "OVT-FieldManual_MapTerritory_Text"
    Target_en_us "The map shades the ground the occupying faction still holds, in that faction's own colour. Ground the resistance has taken is left blank, so the shading recedes as a campaign goes on and a fully liberated island draws none of it. The regions are worked out from towns, military bases, radio towers and resistance FOBs, and the bigger a site is the further its ground reaches: a base spreads further than a town, and a capital further than a village. Territory stops at the coast, though rivers and inland lakes do not divide it."
+   Target_de_de "Die Karte schattiert das Gebiet, das weiterhin von der Besatzungsmacht gehalten wird, in der Farbe dieser Fraktion. Vom Widerstand eingenommenes Gebiet bleibt unmarkiert, sodass die Schattierung im Verlauf einer Kampagne zurückgeht und auf einer vollständig befreiten Insel ganz verschwindet. Die Regionen werden anhand von Städten, Militärbasen, Funktürmen und Widerstands-FOBs berechnet. Je größer ein Standort ist, desto weiter reicht sein Gebiet: Eine Basis erstreckt sich weiter als eine Stadt und eine Hauptstadt weiter als ein Dorf. An der Küste endet das Gebiet, Flüsse und Binnenseen teilen es jedoch nicht."
+   Target_uk_ua "Мапа затінює територію, яку все ще контролює окупаційна фракція, її власним кольором. Території, захоплені опором, залишаються незатіненими, тож у міру проходження кампанії затінення відступає, а на повністю звільненому острові воно зникає зовсім. Регіони визначаються за містами, військовими базами, радіовежами та FOB опору, і що більший об’єкт, то далі простягається його територія: база має більший вплив, ніж місто, а столиця — більший, ніж село. Територія обмежується узбережжям, але річки та внутрішні озера її не розділяють."
    Comment "Field Manual - first paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and ResolveFactionArgb:1641-1656, which reads OVT_MapLocationType.GetFactionColorByIndex:469-483 - the same Faction.GetFactionColor() the markers use through GetIconColor:437-452. Sentence 2: OVT_TerritorySolver.IsEmittedCell:1645-1657 plus OVT_MapTerritoryLayer.c:801-807. Sentence 3: CollectTowns/CollectBases/CollectRadioTowers/CollectFOBs:446-449, weights in Configs/Map/MapOverthrow.conf:8-23 (base 1.6, town 1, radiotower 0.7, fob 0.55), town size factors OVT_MapTerritoryLayer.c:169-172 applied at :574, and the weighted ownership test OVT_TerritorySolver.OwnsPoint:234. Sentence 4: OVT_MapTerritoryLayer.c:80-81 and OVT_TerritorySolver.IsLandAt:187-215, which compares terrain surface against OCEAN height so a river or lake cannot cut a region. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
    DevNote ""
    Repro ""
@@ -2413,13 +2626,15 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000169}" {
    Id "OVT-FieldManual_MapTerritory_Text2"
    Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
+   Target_de_de "Wo besetztes Gebiet auf vom Widerstand gehaltenes Gebiet trifft, wird die Grenze als Band dargestellt; an einer Küstenlinie gibt es kein solches Band. Eine Region mit diagonaler Schraffur gilt als umkämpft: Die Besatzungsmacht hält sie noch, aber mindestens die Hälfte der Stadtbevölkerung unterstützt den Widerstand. Dabei wird derselbe Unterstützungswert verwendet, der auch im Informationsfenster der Stadt angezeigt wird. Nur Städte können auf diese Weise dargestellt werden, da Basen, Funktürme und FOBs keine Bevölkerung besitzen, die ausgewertet werden könnte. Die Schattierung prüft alle paar Sekunden neu, wer welches Gebiet hält, sodass Gebietswechsel sichtbar werden, ohne die Karte schließen zu müssen."
+   Target_uk_ua "Там, де окупована територія межує з територією, яку контролює опір, уздовж межі відображається смуга; узбережжя такої смуги не має. Регіон із діагональним штрихуванням є спірним: окупанти все ще його контролюють, але половина або більше населення міста підтримує опір — використовується той самий показник підтримки, що відображається на інформаційній панелі міста. Так позначатися можуть лише міста, оскільки бази, радіовежі та FOB не мають населення, рівень підтримки якого можна виміряти. Затінення кожні кілька секунд оновлює дані про те, хто яку територію контролює, тому зміна контролю відображається без закриття мапи."
    Comment "Field Manual - second paragraph of the Territory section on The Map and Fast Travel page. Reference voice: describes, does not instruct. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-11 for map/territory-overlay. Sentence 1: OVT_MapTerritoryLayer.EmitBands:1296-1301 and BuildContours:891-892 (water has no owner, so a coastline is never a frontier) over OVT_TerritorySolver.IsFrontierSide:1611-1624. Sentence 2: contested hatch OVT_MapTerritoryLayer.c:111-112 applied at :1225-1228, threshold m_fContestedSupportThreshold 0.5 at :99-100 evaluated by OVT_TerritorySolver.IsContestedCell (supportFraction >= threshold, occupier-held only), and ResolveTownSupportFraction:620-631 computing (support * 100.0) / population, the same expression the town info panel prints in OVT_MapLocationTown.c:82-83. Sentence 3: CollectBases:505, CollectRadioTowers:525 and CollectFOBs:553 all pass OVT_TerritorySite.SUPPORT_NONE, which IsContestedCell rejects. Sentence 4: m_fRefreshInterval defaults 5 at :133-134, Update:410-423 and RefreshTick:965-980 re-read faction and support with the map still open. NOTE the overlay only DISPLAYS control that already exists - it must never be described as affecting income, stability, spawns or AI."
    DevNote ""
    Repro ""
@@ -2430,13 +2645,23 @@ StringTable {
    MaxLength 0
    Modified 1786320000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D0000000000A0}" {
+   Id "OVT-FieldManual_Placing_Cot_Text"
+   Target_en_us "A cot is one of the items on that list, at a cost of thirty, and it carries the same sleeping action a bed does, so a camp or a FOB can be given somewhere to sleep."
+   Comment "Field Manual - Camps and Placing page, closing sentence under the 'Where Placing Works' header. One sentence, no rich-text markup. FACT-CHECKED 2026-08-19 against Configs/Resistance/placeables.conf:148-157 (the OVT_Placeable 'Cot' entry: m_sName 'Cot' :149, m_iCost 30 :156, one prefab :152-154) and Prefabs/Props/Military/Furniture/OVT_Cot_Placed.et:19-39 (ActionsManagerComponent carrying OVT_SleepAction :30). Written as a new item rather than appended to OVT-FieldManual_Camps_Text2 so the existing de/uk translations of that paragraph stay valid."
+   Modified 1780876800
+   Author "Claude"
+   LastChanged "Claude"
   }
   CustomStringTableItem "{6B3B000000000147}" {
    Id "OVT-FieldManual_Recruits_Head"
    Target_en_us "Hiring Recruits"
+   Target_de_de "Rekruten anwerben"
+   Target_uk_ua "Найм рекрутів"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about how a civilian becomes a recruit. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2447,13 +2672,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000148}" {
    Id "OVT-FieldManual_Recruits_Head2"
    Target_en_us "Orders and Groups"
+   Target_de_de "Befehle und Gruppen"
+   Target_uk_ua "Накази та групи"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about commanding recruits and about joining another player's group. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2464,13 +2691,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000149}" {
    Id "OVT-FieldManual_Recruits_Head3"
    Target_en_us "Experience and Gear"
+   Target_de_de "Erfahrung und Ausrüstung"
+   Target_uk_ua "Досвід та спорядження"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about recruit experience, levels and loadouts. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2481,13 +2710,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014A}" {
    Id "OVT-FieldManual_Recruits_Head4"
    Target_en_us "Managing Recruits"
+   Target_de_de "Rekruten verwalten"
+   Target_uk_ua "Керування рекрутами"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about the Manage Recruits screen and about how recruits persist. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2498,13 +2729,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005B}" {
    Id "OVT-FieldManual_Recruits_Head5"
    Target_en_us "Holding Position"
+   Target_de_de "Position halten"
+   Target_uk_ua "Утримання позиції"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about parking a recruit so it holds position. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2515,13 +2748,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005D}" {
    Id "OVT-FieldManual_Recruits_Head6"
    Target_en_us "Swapping Kit"
+   Target_de_de "Ausrüstung tauschen"
+   Target_uk_ua "Обмін спорядження"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about exchanging your loadout with a recruit's. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2532,13 +2767,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005F}" {
    Id "OVT-FieldManual_Recruits_Head7"
    Target_en_us "Finding Your Recruits"
+   Target_de_de "Deine Rekruten finden"
+   Target_uk_ua "Пошук ваших рекрутів"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about the map marker layer and the sectioned roster screen. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2549,13 +2786,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000008D}" {
    Id "OVT-FieldManual_Recruits_Head8"
    Target_en_us "Equipped Recruits"
+   Target_de_de "Ausgerüstete Rekruten"
+   Target_uk_ua "Споряджені рекрути"
    Comment "Field Manual - section header inside the Recruits page, drawn above the paragraph about buying a recruit that arrives already wearing one of your saved loadouts. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2566,13 +2805,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010E}" {
    Id "OVT-FieldManual_Recruits_Text"
    Target_en_us "Civilians can be hired as recruits and fight alongside you. Recruits belong to the player who hired them, stay with that player between sessions, and one player can hold up to sixteen at a time."
+   Target_de_de "Zivilisten können als Rekruten angeworben werden und an deiner Seite kämpfen. Rekruten gehören dem Spieler, der sie angeworben hat, bleiben diesem Spieler zwischen Sitzungen erhalten und ein Spieler kann gleichzeitig bis zu sechzehn Rekruten besitzen."
+   Target_uk_ua "Цивільних можна наймати як рекрутів, і вони воюватимуть пліч-о-пліч із вами. Рекрути закріплюються за гравцем, який їх найняв, зберігаються за ним між сесіями, а один гравець може утримувати до шістнадцяти бійців одночасно."
    Comment "Field Manual - opening paragraph of the Recruits page, shown as body prose under the page heading. The number sixteen is the per-player recruit cap (OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER, a fixed constant, not a difficulty setting). Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2583,13 +2824,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014B}" {
    Id "OVT-FieldManual_Recruits_Text2"
    Target_en_us "A civilian is hired by holding the recruit action on them from close by, which costs the recruit price the difficulty settings carry. A recruitment tent, built at a base or a FOB, hires from the nearest town instead at half that price, and takes one of that town's supporters with it, so it only works while that town has support to give. Either way the recruit is yours, and nobody can hold more than sixteen at once."
+   Target_de_de "Ein Zivilist wird angeworben, indem du aus kurzer Entfernung die Rekrutierungsaktion auf ihm gedrückt hältst. Das kostet den in den Schwierigkeitseinstellungen festgelegten Rekrutierungspreis. Ein Rekrutierungszelt, das an einer Basis oder einem FOB gebaut wurde, rekrutiert stattdessen aus der nächstgelegenen Stadt zum halben Preis und verbraucht dabei einen Unterstützer dieser Stadt. Es funktioniert daher nur, solange die Stadt Unterstützung zur Verfügung hat. In beiden Fällen gehört der Rekrut dir, und niemand kann gleichzeitig mehr als sechzehn besitzen."
+   Target_uk_ua "Найняти цивільного можна, затиснувши дію «Найняти» з близької відстані; це коштує стільки, скільки вказано в налаштуваннях складності. Вербувальний намет, побудований на базі чи ПБП, натомість вербує бійців з найближчого міста за вдвічі меншу ціну й забирає одного з прихильників цього міста, тому він працює лише доти, доки місто має підтримку. У будь-якому разі рекрут стає вашим, а один гравець не може утримувати більше шістнадцяти бійців одночасно."
    Comment "Field Manual - Recruits page, body paragraph under the 'Hiring Recruits' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitCivilianAction.c:1-40 and OVT_PlayerCommsComponent.RpcAsk_RecruitCivilian:1293-1333 (CIV faction only, 20 m range, charged at m_Difficulty.baseRecruitCost), OVT_RecruitFromTentAction.c:1-80 and RpcAsk_RecruitFromTent:1341-1386 (half cost, NearestTownHasSupporters gate, TakeSupportersFromNearestTown), Configs/Resistance/buildables.conf:16-27 (Recruitment Tent is a buildable, m_bBuildAtBase and m_bBuildAtFOB), and OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16. The money price is deliberately not quoted because it is a difficulty setting; sixteen is a hard constant."
    DevNote ""
    Repro ""
@@ -2600,13 +2843,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014C}" {
    Id "OVT-FieldManual_Recruits_Text3"
    Target_en_us "Recruits join your group and take orders through the ordinary group command menu, the same as any other AI subordinate. If you join another player's group the recruits currently following you go with you and that player commands them while you are there; they are still yours, and they come back under your command when you leave the group or reconnect. Recruits within fifty metres of you when you fast travel come along, unless they are holding position, and each one adds another fare of the same size to the trip."
+   Target_de_de "Rekruten treten deiner Gruppe bei und erhalten Befehle über das normale Gruppenbefehlsmenü, genau wie andere KI-Untergebene. Wenn du der Gruppe eines anderen Spielers beitrittst, kommen die Rekruten, die dir gerade folgen, mit und werden von diesem Spieler kommandiert, solange du dort bist. Sie gehören weiterhin dir und unterstehen wieder deinem Befehl, sobald du die Gruppe verlässt oder dich erneut verbindest. Rekruten in einem Umkreis von fünfzig Metern reisen bei einer Schnellreise mit dir, sofern sie nicht ihre Position halten, und jeder von ihnen erhöht den Fahrpreis um denselben Betrag."
+   Target_uk_ua "Нездовзі після найму рекрути вступають у ваш загін і підпорядковуються стандартному меню наказів ШІ-союзникам. У разі приєднання до групи іншого гравця ваші бійці переходять під його тимчасове командування, але залишаються вашою власністю та автоматично повертаються у ваш загін після виходу з групи чи перезаходу в гру. Під час швидкого телепорту всі рекрути в радіусі 50 метрів переміщуються разом із вами (якщо їм не наказано утримувати позицію), збільшуючи підсумковий чек на вартість проїзду за кожного бійця."
    Comment "Field Manual - Recruits page, body paragraph under the 'Orders and Groups' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.RecruitCivilian:800-846 (AddRecruitToPlayerGroup puts the recruit in the owner's group), Scripts/Game/UI/Modded/SCR_GroupSubMenuBase.c:1-60 (the shipped explanation of the group model: recruits follow their owner into a joined group, the leader commands them, ownership is unchanged), and OVT_MapContext.c:25 RECRUIT_TRAVEL_RADIUS = 50 with :386-395 (cost += one fastTravelCost per nearby recruit). The fare itself is a difficulty setting and is not quoted. REVISED 2026-08-14 (recruit-ux Phase 8): recruits that are holding position are excluded from both the group transfer (OVT_GroupRecruitTransfer.c:84) and fast travel (OVT_TravelRequestComponent.c:289, OVT_FastTravelService.c:440), so the two unqualified claims were narrowed to the recruits currently following you."
    DevNote ""
    Repro ""
@@ -2617,13 +2862,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014D}" {
    Id "OVT-FieldManual_Recruits_Text4"
    Target_en_us "Recruits earn experience for killing occupying faction soldiers and gain levels of their own, and their kills, level and progress are listed beside their name. They arrive in civilian clothes, and a saved loadout can be applied to one nearby recruit or to all of them at once from the loadout screen. What a recruit is carrying stays with it, and is still there when it comes back after a save is loaded."
+   Target_de_de "Rekruten erhalten Erfahrung für das Töten von Soldaten der Besatzungsmacht und steigen in eigenen Stufen auf. Ihre Abschüsse, ihre Stufe und ihr Fortschritt werden neben ihrem Namen angezeigt. Sie beginnen in Zivilkleidung, und über den Ausrüstungsbildschirm kann eine gespeicherte Ausrüstung auf einen Rekruten in der Nähe oder auf alle Rekruten gleichzeitig angewendet werden. Was ein Rekrut bei sich trägt, bleibt bei ihm und ist auch noch vorhanden, wenn er nach dem Laden eines Spielstands zurückkehrt."
+   Target_uk_ua "Бійці отримують досвід за ліквідацію солдатів ворога й підвищують свій рівень (статистика вбивств, рівень і прогрес показуються поруч із ім'ям бійця). Початково вони одягнені в цивільний одяг, але ви можете швидко видати збережений пресет спорядження одному або всім рекрутам одразу через меню пресетів. Усе видане екіпірування зберігається за бійцем і залишається в його інвентарі після перезавантаження сесії."
    Comment "Field Manual - Recruits page, body paragraph under the 'Experience and Gear' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_RecruitManagerComponent.OnAIKilled:678-710 (XP only for US/USSR kills) and AddRecruitXP:553-574, OVT_RecruitData.GetLevel:54-57, OVT_RecruitsContext.UpdateRecruitDetails:228-280 (level, XP, kills, hometown, status), SpawnRecruit:760-795 (ApplyCivilianLoadout), OVT_LoadoutsContext.c:60-79 (apply to selected recruit / apply to all nearby recruits), and OVT_RecruitData.m_sBodyPersistenceId:34-44 with RequestPersistedRecruitBody:1069-1124 (the stored body returns with its inventory). The per-kill XP amount is not quoted."
    DevNote ""
    Repro ""
@@ -2634,13 +2881,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000014E}" {
    Id "OVT-FieldManual_Recruits_Text5"
    Target_en_us "Manage Recruits, on the Overthrow main menu, lists everyone you have hired along with their home town and whether they are in the world at the moment. A recruit can be renamed, marked on the map, or dismissed from there. Recruits are kept between sessions: they leave the world about ten minutes after their owner disconnects and are put back where they were when that player returns. A recruit that is killed is gone for good, and its place on the roster is free again."
+   Target_de_de "\"Rekruten verwalten\" im Overthrow-Hauptmenü listet alle von dir angeworbenen Personen zusammen mit ihrer Heimatstadt und der Information auf, ob sie sich derzeit in der Spielwelt befinden. Dort kann ein Rekrut umbenannt, auf der Karte markiert oder entlassen werden. Rekruten bleiben zwischen Sitzungen erhalten: Etwa zehn Minuten nachdem ihr Besitzer die Verbindung trennt, verlassen sie die Spielwelt und werden an derselben Stelle wieder eingesetzt, wenn der Spieler zurückkehrt. Ein getöteter Rekrut ist dauerhaft verloren und sein Platz in der Liste wird wieder frei."
+   Target_uk_ua "Пункт «Керування рекрутами» в головному меню Overthrow містить список усіх найнятих вами бійців із зазначенням їхнього рідного міста та поточного статусу у світі. Звідти рекрута можна перейменувати, позначити на карті або звільнити. Бійці зберігаються між сесіями: вони залишають світ приблизно через десять хвилин після від'єднання власника й повертаються на те саме місце, коли гравець знову входить у гру. Загиблий рекрут втрачається назавжди, а його місце в списку стає вільним."
    Comment "Field Manual - Recruits page, body paragraph under the 'Managing Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:159-163 and :272-276 (the Manage Recruits button opens OVT_RecruitsContext), OVT_RecruitsContext.c:228-280 (hometown and online/offline status), :365-394 (dismiss), :397-459 (rename), :471-494 (show on map), OVT_RecruitManagerComponent.OFFLINE_DESPAWN_TIME:41 = 600 seconds with OnPlayerDisconnected:970-977 and RespawnPlayerRecruits:1004-1035, and OnCharacterKilled:638-674 (a dead recruit's record is removed)."
    DevNote ""
    Repro ""
@@ -2651,13 +2900,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005C}" {
    Id "OVT-FieldManual_Recruits_Text6"
    Target_en_us "A recruit you own can be told to hold position, with a held action on the recruit itself or with the toggle on the Manage Recruits screen. One that is holding position leaves your group and stays where it stands, waiting there rather than wandering and returning fire if it is attacked, and recruits left holding position within fifty metres of each other share a single group. They are still yours and still use one of your sixteen slots, they are not taken along when you fast travel, and they stay behind when you join another player's group. A recruit that is inside a vehicle cannot be told to hold position. After a save is loaded they are back where they were left, still holding position."
+   Target_de_de "Ein Rekrut in deinem Besitz kann angewiesen werden, seine Position zu halten, entweder über eine gedrückt gehaltene Aktion direkt am Rekruten oder über den Schalter im Bildschirm \"Rekruten verwalten\". Ein Rekrut, der seine Position hält, verlässt deine Gruppe und bleibt dort stehen. Er wartet an diesem Ort, statt umherzulaufen, und erwidert Feuer, wenn er angegriffen wird. Rekruten, die innerhalb von fünfzig Metern zueinander ihre Position halten, teilen sich eine einzige Gruppe. Sie gehören weiterhin dir und belegen weiterhin einen deiner sechzehn Plätze, werden bei Schnellreisen nicht mitgenommen und bleiben zurück, wenn du der Gruppe eines anderen Spielers beitrittst. Ein Rekrut in einem Fahrzeug kann nicht angewiesen werden, seine Position zu halten. Nach dem Laden eines Spielstands befinden sie sich wieder dort, wo sie zurückgelassen wurden, und halten weiterhin ihre Position."
+   Target_uk_ua "Ви можете наказати своєму рекруту утримувати позицію за допомогою утримання клавіші дії на самому бійцеві або через перемикач на екрані «Керування рекрутами». Боєць, який утримує позицію, залишає вашу групу та залишається на місці: він чекає там замість того, щоб блукати довкола, і відкриває вогонь у відповідь у разі нападу. Рекрути, залишені утримувати позицію в радіусі п'ятдесяти метрів один від одного, об'єднуються в єдину групу. Вони залишаються вашими та продовжують займати один із шістнадцяти слотів, не переміщуються разом із вами під час швидкого переміщення й залишаються на місці, коли ви приєднуєтеся до групи іншого гравця. Рекруту, який перебуває всередині транспорту, не можна наказати утримувати позицію. Після завантаження збереження вони повертаються туди, де їх залишили, і продовжують утримувати позицію."
    Comment "Field Manual - Recruits page, body paragraph under the 'Holding Position' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8, REVISED 2026-08-14 for Phase 9 play-test feedback (BUG-170: the parked group now holds on a PLAIN WAIT waypoint, not a defend waypoint - 'defending the spot' overstated it, and the honest claim is 'waits there and returns fire'). Cited against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:29,38 (the two held actions, Duration 1.5 and 1), OVT_RecruitsContext ToggleActiveButton, OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2596-2613 (SpawnWaitWaypoint at INACTIVE_HOLD_WAIT_SECONDS:128, with the return-fire precedent cited there as OVT_TownController.c:175) and :2473 (OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS), OVT_RecruitInactiveGrouping.c:42 = 50.0, OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208, OVT_TravelRequestComponent.c:289 and OVT_FastTravelService.c:440 (both pass excludeInactive true), OVT_GroupRecruitTransfer.c:84 (inactive recruits are not transferable), OVT_SetRecruitInactiveAction.c:38-42 with OVT_RecruitCommandComponent RESULT_IN_VEHICLE:85, and OVT_RecruitManagerSerializer.c:44/108/203 (version 3 carries the flag) with OVT_RecruitManagerComponent.PlaceRecruitInWorld:2125 (a restored recruit goes back to an inactive group). Positions come from m_vLastKnownPosition."
    DevNote ""
    Repro ""
@@ -2668,13 +2919,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005E}" {
    Id "OVT-FieldManual_Recruits_Text7"
    Target_en_us "A recruit that is following you carries a Swap Gear action, usable from close by, which exchanges your whole kit with theirs: clothing, armour, rucksack and weapons, together with whatever is inside them. The exchange moves the real items rather than copying them, so nothing can be created or destroyed by it. Where a piece will not fit the place it belongs, it is stowed elsewhere or, at worst, left on the ground, and the message afterwards says the swap was only partial. A recruit that is holding position does not offer the action."
+   Target_de_de "Ein Rekrut, der dir folgt, besitzt die Aktion \"Ausrüstung tauschen\". Sie kann aus kurzer Entfernung verwendet werden und tauscht deine gesamte Ausrüstung mit seiner: Kleidung, Panzerung, Rucksack und Waffen samt jeweiligem Inhalt. Dabei werden die tatsächlichen Gegenstände verschoben und nicht kopiert, sodass dadurch nichts erzeugt oder vernichtet werden kann. Passt ein Ausrüstungsteil nicht an die vorgesehene Stelle, wird es anderswo verstaut oder im ungünstigsten Fall auf dem Boden abgelegt. Die anschließende Meldung weist dann darauf hin, dass der Tausch nur teilweise durchgeführt wurde. Ein Rekrut, der seine Position hält, bietet diese Aktion nicht an."
+   Target_uk_ua "Рекрут, який слідує за вами, має дію «Обмін спорядженням», доступну з близької відстані, яка повністю обмінює ваше екіпірування на його: одяг, броню, рюкзак та зброю разом із усім вмістом. Під час обміну переміщуються реальні предмети, а не дублюються, тому нічого не може створитися або зникнути. Якщо якась річ не поміщається на відповідне місце, вона складається в інший слот або, в гіршому випадку, залишається на землі, а після цього з'являється повідомлення про те, що обмін був лише частковим. Рекрут, який утримує позицію, не пропонує цієї дії."
    Comment "Field Manual - Recruits page, body paragraph under the 'Swapping Kit' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:47 (OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 2.5 - shortened from 5 by the 2026-08-14 play-test), OVT_SwapLoadoutWithRecruitAction.c:43-46 (active recruits only) and OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5 with RESULT_TOO_FAR:115, OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 for the clothing areas and the weapon-slot pass for weapons, plan decision D13 with the Q9 grep proof (no SpawnEntityPrefab / TryDeleteItem / DeleteEntityAndChildren / TrySpawnPrefabToStorage in OVT_LoadoutSwap.c), and OVT_LoadoutSwapResult:19-35 plus OVT-Recruit_SwapPartial for the partial-outcome message. The five-metre figure is deliberately not quoted."
    DevNote ""
    Repro ""
@@ -2685,13 +2938,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000060}" {
    Id "OVT-FieldManual_Recruits_Text8"
    Target_en_us "The map has a Recruits layer that draws a marker for each of your own recruits, at full strength for the ones following you and dimmed for the ones holding position, with a badge that shows whether a recruit is armed and whether it still has ammunition. That layer can be switched off from the map's layer panel, and the choice is remembered between sessions. The Manage Recruits screen shows the same split as Active and Holding Position sections, with a status icon on each row and a count of how many of your sixteen slots are in use."
+   Target_de_de "Die Karte besitzt eine Ebene \"Rekruten\", die für jeden deiner Rekruten eine Markierung anzeigt. Rekruten, die dir folgen, werden mit voller Stärke dargestellt, Rekruten, die ihre Position halten, abgeblendet. Ein Abzeichen zeigt außerdem an, ob ein Rekrut bewaffnet ist und noch Munition besitzt. Diese Ebene kann im Ebenenfenster der Karte ausgeschaltet werden, und die Auswahl bleibt zwischen Sitzungen gespeichert. Der Bildschirm \"Rekruten verwalten\" zeigt dieselbe Aufteilung in den Bereichen \"Aktiv\" und \"Halte Position\", mit einem Statussymbol in jeder Zeile und einer Anzeige, wie viele deiner sechzehn Plätze belegt sind."
+   Target_uk_ua "На карті є шар «Рекрути», який відображає маркери всіх ваших бійців: яскравий колір для тих, хто слідує за вами, та тьмяний — для тих, хто утримує позицію. Поруч із маркером є значок, який показує, чи озброєний боєць і чи має він боєприпаси. Цей шар можна вимкнути в панелі шарів карти, і ваш вибір збережеться між сесіями. На екрані «Керування рекрутами» відображається той самий поділ на розділи «Активні» та «Утримують позицію» з іконкою статусу в кожному рядку та лічильником використаних слотів із шістнадцяти доступних."
    Comment "Field Manual - Recruits page, body paragraph under the 'Finding Your Recruits' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8 against OVT_MapRecruitLocation.c (one widget per owned recruit; :24 and :295 INACTIVE_MARKER_OPACITY = 0.45 for the dimming), OVT_RecruitStatus.TagIcon:95-104 (no badge when unarmed, armed-with-ammo and armed-dry otherwise), OVT_MapLayersUI.c:65/72/763/993-1002 (the Recruits filter row and its stored preference) with OVT_MapLayerSettingsAccessor.Load/Save through EnsurePrefsLoaded:907 and FlushPrefs:925 (profile-stored, so it survives a restart), and OVT-Recruits_SectionActive / OVT-Recruits_SectionInactive / OVT-Recruits_Capacity for the roster sections and the X / 16 header. The ten-second status refresh interval is deliberately not quoted."
    DevNote ""
    Repro ""
@@ -2702,13 +2957,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000008E}" {
    Id "OVT-FieldManual_Recruits_Text9"
    Target_en_us "A recruitment tent carries a second action, Buy Equipped Recruit, which opens your loadouts with a price beside each one. Selecting a loadout shows how many items it holds and what the whole thing would cost: what that gear would fetch at a shop near the tent, plus a convenience fee the difficulty settings carry, plus the ordinary tent recruit cost. Buying spawns the recruit beside the tent already wearing the kit, and it takes a town supporter and a roster slot like any other tent recruit. A loadout holding something the shops do not stock cannot be priced and is refused by name, and if the recruit arrives with none of its kit only the recruit itself is charged for."
+   Target_de_de "Ein Rekrutierungszelt besitzt eine zweite Aktion, \"Rekruten mit Ausrüstung kaufen\". Sie öffnet deine gespeicherten Ausrüstungen und zeigt neben jeder einen Preis an. Wenn du eine Ausrüstung auswählst, wird angezeigt, wie viele Gegenstände sie enthält und was das Gesamtpaket kostet: der Betrag, den diese Ausrüstung in einem Geschäft in der Nähe des Zelts erzielen würde, zuzüglich einer in den Schwierigkeitseinstellungen festgelegten Komfortgebühr und der normalen Rekrutierungskosten des Zelts. Beim Kauf erscheint der Rekrut neben dem Zelt und trägt die Ausrüstung bereits. Wie jeder andere Zelt-Rekrut verbraucht er einen Unterstützer der Stadt und einen Platz in deiner Rekrutenliste. Enthält eine Ausrüstung einen Gegenstand, den die Geschäfte nicht führen, kann kein Preis berechnet werden und die Auswahl wird unter Nennung dieses Gegenstands abgelehnt. Erscheint der Rekrut ohne irgendeinen Teil seiner Ausrüstung, wird nur der Rekrut selbst berechnet."
+   Target_uk_ua "У вербувальному наметі доступна додаткова функція — «Купити спорядженого рекрута», яка відкриває перелік ваших пресетів із цінниками. При виборі пресета ви бачите кількість предметів та підсумковий кошторис: ринкову вартість майна в найближчому магазині + націнку за сервіс (залежить від складності) + базову вартість найму в наметі. Після оплати боєць спавниться біля намету вже повністю екіпірованим. Купівля так само списує одного лояльного містянина й займає слот загону. Якщо пресет містить дефіцитні предмети, які не продаються в магазинах, замовити його неможливо (система видасть відмову з назвою пресета). Якщо ж із якихось причин рекрут заспавнився без спорядження, з вас буде списано гроші лише за найм бійця."
    Comment "Field Manual - Recruits page, body paragraph under the 'Equipped Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9 against Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:86-95 (OVT_BuyEquippedRecruitAction on the 'tabletop' context beside OVT_RecruitFromTentAction, ActionTitle 'Buy Equipped Recruit'), OVT_BuyEquippedRecruitAction.c:44-57 (opens OVT_LoadoutsContext through SetRecruitmentTent - it buys nothing itself), OVT_LoadoutsContext.c:700-703 IsPurchaseMode with :395-397 (the per-selection line reads '%1 items - $%2 equipped' and the button 'Buy Recruit ($%1)'), OVT_RecruitLoadoutPricing.c:208-217 (IsRegisteredResource gate, then GetBuyPrice at the tent position for the acting player, so town stock and the trader perk are already in the number), OVT_RecruitPurchaseRules.TotalPrice:83-91 with GearFee:63-69 and OVT_RecruitCommandComponent.c:1033-1034 (recruit cost = baseRecruitCost * 0.5, fee multiplier = m_Difficulty.recruitLoadoutFeeMultiplier, 1.3 to 1.7 across Configs/Difficulty/*.conf, so no number is quoted), OVT_RecruitManagerComponent.SpawnTentRecruit:1093-1106 with ResolveTentSpawnPosition (tent forward offset, ground clamp, safe-position box), OVT_RecruitCommandComponent.c:891-910 (supporter taken and money charged only once a body exists) and ValidateTentPurchase:942 (cap, supporters, distance via ValidateTentRecruit), and OVT_RecruitPurchaseRules.ChargeFor:143-160 (RESULT_SPAWN_FAILED charges nothing, RESULT_GEAR_FAILED charges the recruit cost only; a PARTIAL apply pays the quoted total and is deliberately not described as a discount)."
    DevNote ""
    Repro ""
@@ -2719,13 +2976,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000010F}" {
    Id "OVT-FieldManual_Recruits_Title"
    Target_en_us "Recruits"
+   Target_de_de "Rekruten"
+   Target_uk_ua "Рекрути"
    Comment "Field Manual - title of the Recruits page, shown on its tile in the category grid and as the heading at the top of the page. One or two words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -2736,7 +2995,7 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -2744,6 +3003,7 @@ StringTable {
    Id "OVT-FieldManual_Resistance_Text"
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
    Target_fr_fr "Ouvre un menu vous permettant de voir & modifier les paramètres de la résistance. Les officiers peuvent définir d'autres officiers et régler les impôts (0% par défaut) que chaque membre de la résistance doit payer aux fonds communs. Les officiers peuvent retirer de l'argent des fonds communs ou en envoyer à d'autres joueurs. N'importe quel joueur peut donner de l'argent pour la résistance."
+   Target_de_de "Öffnet ein Menü, in dem du Informationen über den Widerstand ansehen oder dessen Einstellungen ändern kannst. Offiziere können hier andere Offiziere ernennen oder einen Steuersatz festlegen (Standard: 0 %), durch den ein Anteil des regulären Einkommens direkt in die Widerstandskasse eingezahlt wird. Offiziere können hier Geld aus der Widerstandskasse abheben oder an einen anderen Spieler senden. Außerdem kann jeder Spieler hier Geld für die Bemühungen des Widerstands spenden."
    Target_ru_ru "Меню позволяющее посмотреть иноформацию или изменить настройки сопротивления. Офицер здесь может назначать на должность других офицеров, а так же задавать размер налогов. (По умолчанию 0%)  это позволит вместо этого вносить сумму регулярного дохода непосредственно в фонды сопротивления. Офицер здесь может снимать деньги со счета сопротивления или передавать другому игроку. Любой игрок может делать взносы на счёт сопротивления, для его усиления."
    Target_ko_kr "저항군에 관한 정보 확인 또는 설정 변경이 가능한 메뉴입니다. 장교는 여기서 다른 장교를 임명할 수 있으며, 세율(기본값 0%)을 설정할 수 있습니다. 이 세율에 따라 정기 수입의 일부가 저항군 자금으로 직접 입금됩니다. 장교는 저항군 자금에서 돈을 인출하거나 다른 플레이어에게 보낼 수 있습니다. 모든 플레이어는 저항군 강화 목적의 기부를 이곳에서 할 수 있습니다."
    Target_zh_cn "打开菜单，你可以查看有关抵抗的信息或更改设置。 指挥官可以在这里指派其他官员或设定税率（默认为 0%），将一定比例的固定收入直接存入抵抗基金。指挥官可以在这里从抵抗基金中提取资金或将其发送给其他玩家。任何玩家也可以从这里向抵抗运动捐款。"
@@ -2758,13 +3018,15 @@ StringTable {
    MaxLength 0
    Modified 1706583682
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000012F}" {
    Id "OVT-FieldManual_Shops_Head"
    Target_en_us "Where Money Comes From"
+   Target_de_de "Woher das Geld kommt"
+   Target_uk_ua "Джерела надходжень"
    Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about income. Three or four words, no markup."
    DevNote ""
    Repro ""
@@ -2775,13 +3037,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000130}" {
    Id "OVT-FieldManual_Shops_Head2"
    Target_en_us "Prices"
+   Target_de_de "Preise"
+   Target_uk_ua "Ціни"
    Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about pricing. One or two words, no markup."
    DevNote ""
    Repro ""
@@ -2792,13 +3056,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000131}" {
    Id "OVT-FieldManual_Shops_Head3"
    Target_en_us "Stock"
+   Target_de_de "Bestand"
+   Target_uk_ua "Запаси"
    Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about shop stock. One or two words, no markup."
    DevNote ""
    Repro ""
@@ -2809,13 +3075,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000132}" {
    Id "OVT-FieldManual_Shops_Head4"
    Target_en_us "Selling to Shops"
+   Target_de_de "An Geschäfte verkaufen"
+   Target_uk_ua "Продаж товарів у магазини"
    Comment "Field Manual - section header inside the Money and Shops page, drawn above the paragraph about selling. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2826,13 +3094,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000110}" {
    Id "OVT-FieldManual_Shops_Text"
    Target_en_us "Towns hold shops that both buy from you and sell to you. What a shop carries depends on the kind of shop it is, stock is limited and replenishes each morning, and prices move with the town: how much of an item is stocked nearby and how far that town is from a port both feed into what it costs."
+   Target_de_de "In Städten gibt es Geschäfte, die Waren sowohl von dir kaufen als auch an dich verkaufen. Was ein Geschäft führt, hängt von seiner Art ab. Der Bestand ist begrenzt und wird jeden Morgen aufgefüllt. Die Preise verändern sich mit der Stadt: Sowohl die örtlich verfügbare Menge eines Gegenstands als auch die Entfernung der Stadt zu einem Hafen beeinflussen seinen Preis."
+   Target_uk_ua "Міські магазини здійснюють купівлю та продаж товарів. Наявний асортимент визначається спеціалізацією торгової точки, а лімітований запас товарів автоматично оновлюється щоранку. Ціноутворення прив'язане до економіки регіону: чим більше аналогічного краму є на місцевих складах і чим далі місто розташоване від порту, тим вищою буде підсумкова ціна."
    Comment "Field Manual - opening paragraph of the Money and Shops page, shown as body prose under the page heading. FACT-CHECKED against OVT_EconomyManagerComponent.GetSellPrice (town stock level and distance to the nearest port both adjust the base price) and the 7am restock in ReplenishStock. Agrees with the 'economy-first-buy' tutorial tip on price variation. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -2843,13 +3113,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000133}" {
    Id "OVT-FieldManual_Shops_Text2"
    Target_en_us "A new character starts with a sum of cash set by the campaign's difficulty settings. After that, income arrives from the towns four times a day in game time: towns pay tax according to their population and their stability, towns that support the resistance donate on top of that, and towns still held by the occupying faction pay no tax at all. The resistance tax is taken off that total first, and what is left is shared between the players online at the time; with nobody online it all goes to resistance funds. Selling at shops, finishing jobs and rent from property you own add to the same balance, which is recorded against your player rather than carried in your pockets."
+   Target_de_de "Ein neuer Charakter beginnt mit einem Geldbetrag, der durch die Schwierigkeitseinstellungen der Kampagne festgelegt wird. Danach wird viermal pro Spieltag Einkommen aus den Städten ausgeschüttet: Städte zahlen entsprechend ihrer Bevölkerung und Stabilität Steuern, Städte, die den Widerstand unterstützen, spenden zusätzlich, und Städte, die noch von der Besatzungsmacht gehalten werden, zahlen überhaupt keine Steuern. Zuerst wird die Widerstandssteuer vom Gesamtbetrag abgezogen; der Rest wird unter den zu diesem Zeitpunkt online befindlichen Spielern aufgeteilt. Ist niemand online, geht alles in die Widerstandskasse. Verkäufe in Geschäften, abgeschlossene Aufträge und Mieteinnahmen aus Immobilien in deinem Besitz werden demselben Guthaben hinzugefügt. Dieses Guthaben ist deinem Spieler zugeordnet und wird nicht als Bargeld im Inventar getragen."
+   Target_uk_ua "Стартовий капітал нового персонажа залежить від вибраного рівня складності кампанії. Подальші надходження з міст нараховуються чотири рази на ігрову добу: обсяг податків визначається населенням і стабільністю міста, а підконтрольні опору поселення додатково надсилають добровільні внески. Захоплені окупантами міста прибутків не приносять. З загального нарахування спочатку відраховується частка в казну опору, а залишок порівну ділиться між онлайн-гравцями (якщо сервер порожній, увесь прибуток іде до казни). Торгівля в крамницях, виконання контрактів та оренда власної нерухомості зараховуються на ваш особистий банківський рахунок, а не зберігаються у вигляді готівки в інвентарі."
    Comment "Field Manual - Money and Shops page, body paragraph under the 'Where Money Comes From' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OverthrowGameMode.c:1048 (m_Difficulty.startingCash for a new player), OVT_EconomyManagerComponent.CheckUpdate:169-180 (income at hours 0, 6, 12 and 18), GetTaxIncome:499-510 (population and stability, occupying-faction towns skipped), GetDonationIncome:481-494 (scales with town support), CalculateIncome:446-475 (resistance tax off the top, remainder split between online players, all to resistance funds when none are online), OVT_JobManagerComponent.c:438, UpdateRents:238-283 and OVT_ShopTransactionComponent.c:371. No cash figures are quoted because startingCash is difficulty-scaled. Agrees with the 'economy-first-buy' tutorial tip that money is a balance, not a carried item."
    DevNote ""
    Repro ""
@@ -2860,13 +3132,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000134}" {
    Id "OVT-FieldManual_Shops_Text3"
    Target_en_us "Every item has a base price, and what a shop asks is that price adjusted for where you are standing. Two things move it: how well stocked the surrounding town is for that item, and how far that town lies from the nearest port, so goods cost more the deeper inland they have travelled. A shop then adds its margin on top, which is why it never pays as much for an item as it charges for one. Trade skill lowers what you are charged, and vehicle prices are scaled separately by the difficulty settings."
+   Target_de_de "Jeder Gegenstand besitzt einen Grundpreis. Was ein Geschäft verlangt, ist dieser Preis angepasst an deinen aktuellen Standort. Zwei Dinge beeinflussen ihn: wie gut die umliegende Stadt mit diesem Gegenstand versorgt ist und wie weit sie vom nächsten Hafen entfernt liegt. Dadurch werden Waren umso teurer, je weiter sie ins Landesinnere transportiert wurden. Anschließend schlägt das Geschäft seine Marge auf, weshalb es beim Ankauf eines Gegenstands nie so viel bezahlt, wie es beim Verkauf verlangt. Die Handelsfertigkeit senkt deinen Kaufpreis, während Fahrzeugpreise zusätzlich separat durch die Schwierigkeitseinstellungen skaliert werden."
+   Target_uk_ua "Кожен предмет має базову ціну, а підсумкова вартість у магазині — це базова ціна, скоригована залежно від вашого місцеперебування. На неї впливають два чинники: наскільки добре навколишнє місто забезпечене цим товаром і наскільки далеко воно розташоване від найближчого порту, тому товари коштують дорожче вглиб континенту. Крім того, магазин додає власну маржу, через що він ніколи не платить за предмет стільки ж, скільки просить за нього при продажу. Навичка торгівлі знижує ціну купівлі для вас, а ціни на транспорт додатково коригуються налаштуваннями складності."
    Comment "Field Manual - Money and Shops page, body paragraph under the 'Prices' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_EconomyManagerComponent.GetSellPrice:537-556 (town stock level and distance to the nearest port both adjust the base price; vehicles keep the base price), GetBuyPrice:565-577 (m_fShopProfitMargin, then the player's priceMultiplier), GetShopBuyPrice:616-640 (vehiclePriceMultiplier and the procurement path) and OVT_TradeDiscountSkillEffect.c:8. Deliberately says 'how well stocked' rather than naming a curve: the stock term is an integer division in GetSellPrice, so its real behaviour is closer to a step than a slope. Agrees with the 'economy-first-buy' tutorial tip that prices move with the town."
    DevNote ""
    Repro ""
@@ -2877,13 +3151,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000135}" {
    Id "OVT-FieldManual_Shops_Text4"
    Target_en_us "Shops hold a limited number of each item, and a town can only hold so much of anything: its population, its stability and how sought after the item is together set the ceiling. Townspeople buy from the shelves as the days pass, so stock falls whether or not anyone else is trading. Each morning shops top themselves back up towards that ceiling, and anything sold to a shop goes back onto its shelves."
+   Target_de_de "Geschäfte führen nur eine begrenzte Anzahl jedes Gegenstands, und eine Stadt kann von keiner Ware unbegrenzt viel aufnehmen. Ihre Bevölkerung, ihre Stabilität und die Nachfrage nach dem Gegenstand bestimmen gemeinsam die Obergrenze. Im Laufe der Tage kaufen die Einwohner Waren aus den Regalen, sodass der Bestand auch dann sinkt, wenn sonst niemand handelt. Jeden Morgen füllen die Geschäfte ihren Bestand wieder in Richtung dieser Obergrenze auf, und alles, was an ein Geschäft verkauft wird, landet wieder in dessen Warenbestand."
+   Target_uk_ua "Магазини мають обмежену кількість кожного предмета, а місто може вмістити лише певний його обсяг: чисельність населення, стабільність та затребуваність товару разом визначають цей ліміт. Містяни купують товари з полиць із плином днів, тому запаси зменшуються незалежно від того, чи торгує хтось інший. Щоранку магазини поповнюють свої запаси до цього ліміту, а все, що ви продали магазину, повертається на його полиці."
    Comment "Field Manual - Money and Shops page, body paragraph under the 'Stock' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_EconomyManagerComponent.GetTownMaxStock:602-607 (population, m_fNPCBuyRate, item demand and stability), UpdateShops:367-408 (townspeople draw stock down), CheckUpdate:182-191 with ReplenishStock:288-361 (restock at 07:00 game time, topping up to half the ceiling) and OVT_ShopTransactionComponent's sell path returning items to stock. 'Each morning' rather than '7am' keeps it readable; the hour is 7."
    DevNote ""
    Repro ""
@@ -2894,13 +3170,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000136}" {
    Id "OVT-FieldManual_Shops_Text5"
    Target_en_us "A shop that deals in one kind of goods only buys that kind back, so a clothes shop has no use for a rifle, while gun dealers and drug dealers take almost anything with a price on it. An item that is worn, held or slung cannot be sold while it is equipped, and an item worth nothing cannot be sold at all; the menu names whichever rule applies. Vehicle shops and procurement points sell only, and never buy. Ordinary trade also does the town some good: business above a trivial sum lifts that town's stability for a while."
+   Target_de_de "Ein Geschäft, das mit nur einer Warenart handelt, kauft auch nur diese Art zurück. Ein Bekleidungsgeschäft hat daher keine Verwendung für ein Gewehr, während Waffen- und Drogenhändler fast alles annehmen, was einen Preis besitzt. Ein getragener, gehaltener oder geschulterter Gegenstand kann nicht verkauft werden, solange er ausgerüstet ist, und ein wertloser Gegenstand kann überhaupt nicht verkauft werden; das Menü nennt jeweils den zutreffenden Grund. Fahrzeughändler und Beschaffungsstellen verkaufen ausschließlich und kaufen nichts an. Auch gewöhnlicher Handel hilft der Stadt: Geschäfte oberhalb eines unbedeutenden Betrags erhöhen die Stabilität dieser Stadt für eine gewisse Zeit."
+   Target_uk_ua "Спеціалізований магазин купує лише ті товари, якими торгує сам, тому магазин одягу не зацікавиться гвинтівкою, тоді як збройні та наркодилери приймають майже все, що має цінність. Предмет, який надітий, утримується в руках або висить через плече, неможливо продати, поки він екіпірований, а предмет без цінності взагалі не підлягає продажу; у меню вказується відповідне правило. Автосалони та пункти постачання працюють лише на продаж і ніколи нічого не купують. Звичайна торгівля також іде на користь місту: угоди на суми, вищі за символічні, на певний час підвищують стабільність цього міста."
    Comment "Field Manual - Money and Shops page, body paragraph under the 'Selling to Shops' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 and ShopTypeHasInventoryRules:524-533 (only SHOP_GENERAL, SHOP_ELECTRONIC, SHOP_CLOTHES and SHOP_VEHICLE have rules in Configs/System/ShopConfig.conf, so SHOP_GUNDEALER and SHOP_DRUG accept any registered priced resource), OVT_ShopSellRules.CanSellItem:71-83 and GetBlockReasonKey:94-106 (equipped, shop does not buy, no value), ShopBuysFromPlayers:30-42 (vehicle and procurement shops never buy) and OVT_StrongEconomyStabilityModifier:22-42 with Configs/Modifiers/stabilityModifiers.conf:71-78 (non-dealer transactions over 50 add a temporary +5 stability). The threshold is not quoted as a figure because it reads as trivia at that size."
    DevNote ""
    Repro ""
@@ -2911,13 +3189,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000111}" {
    Id "OVT-FieldManual_Shops_Title"
    Target_en_us "Money and Shops"
+   Target_de_de "Geld und Geschäfte"
+   Target_uk_ua "Гроші та магазини"
    Comment "Field Manual - title of the Money and Shops page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -2928,13 +3208,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000137}" {
    Id "OVT-FieldManual_Skills_Head"
    Target_en_us "Earning Experience"
+   Target_de_de "Erfahrung sammeln"
+   Target_uk_ua "Здобуття досвіду"
    Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about how experience is awarded. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2945,13 +3227,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000138}" {
    Id "OVT-FieldManual_Skills_Head2"
    Target_en_us "Levels and Points"
+   Target_de_de "Stufen und Punkte"
+   Target_uk_ua "Рівні та бали"
    Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about levels and skill points. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2962,13 +3246,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000139}" {
    Id "OVT-FieldManual_Skills_Head3"
    Target_en_us "The Three Skills"
+   Target_de_de "Die drei Fertigkeiten"
+   Target_uk_ua "Три навички"
    Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph describing Trade, Stealth and Diplomacy. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2979,13 +3265,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013A}" {
    Id "OVT-FieldManual_Skills_Head4"
    Target_en_us "The Character Sheet"
+   Target_de_de "Der Charakterbogen"
+   Target_uk_ua "Профіль персонажа"
    Comment "Field Manual - section header inside the Skills and Levelling page, drawn above the paragraph about the character sheet screen. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -2996,13 +3284,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000112}" {
    Id "OVT-FieldManual_Skills_Text"
    Target_en_us "Experience is earned for most of the things you do for the resistance, and enough of it raises your level. Every level past the first is worth one point, and points are spent on skills from your character sheet."
+   Target_de_de "Für die meisten Dinge, die du für den Widerstand tust, erhältst du Erfahrung. Genug Erfahrung erhöht deine Stufe. Jede Stufe nach der ersten bringt einen Punkt, und diese Punkte werden im Charakterbogen für Fertigkeiten ausgegeben."
+   Target_uk_ua "Досвід нараховується за більшість дій, які ви здійснюєте на користь опору, і його достатня кількість підвищує ваш рівень. Кожен рівень після першого дає одне очко, а очки витрачаються на навички у профілі вашого персонажа."
    Comment "Field Manual - opening paragraph of the Skills and Levelling page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3013,13 +3303,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013B}" {
    Id "OVT-FieldManual_Skills_Text2"
    Target_en_us "Experience comes in for killing occupying faction soldiers, for building, for placing things, for finishing a job that carries an experience reward, and in small amounts for trading at a shop or with a dealer. Each buildable and placeable is worth its own amount, so the larger pieces of work pay more. Trading only pays out once in a while rather than on every transaction, so a run of small sales at the same counter does not stack up. Being killed costs experience, though your total never falls below zero."
+   Target_de_de "Erfahrung erhältst du für das Töten von Soldaten der Besatzungsmacht, für das Bauen, für das Platzieren von Gegenständen, für das Abschließen eines Auftrags mit Erfahrungsbelohnung und in kleinen Mengen für Handel in einem Geschäft oder mit einem Händler. Jedes baubare oder platzierbare Objekt besitzt einen eigenen Erfahrungswert, sodass größere Arbeiten mehr einbringen. Handel gewährt nur gelegentlich Erfahrung und nicht bei jeder einzelnen Transaktion. Eine Reihe kleiner Verkäufe am selben Tresen summiert sich daher nicht unbegrenzt. Wenn du getötet wirst, verlierst du Erfahrung, dein Gesamtwert fällt jedoch niemals unter null."
+   Target_uk_ua "Досвід нараховується за ліквідацію солдатів окупаційної фракції, будівництво, розміщення об'єктів, виконання завдань із винагородою у вигляді досвіду, а також у невеликих кількостях за торгівлю в магазинах або у дилерів. Кожен об'єкт будівництва та розміщення має власну цінність, тому за більші обсяги робіт ви отримуєте більше досвіду. За торгівлю досвід нараховується лише час від часу, а не за кожну операцію, тому серія дрібних продажів при одному зверненні до прилавка не сумується. Смерть персонажа призводить до втрати досвіду, однак ваш загальний показник ніколи не опускається нижче нуля."
    Comment "Field Manual - Skills and Levelling page, body paragraph under the 'Earning Experience' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_SkillManagerComponent.OnAIKilled:252-270 (occupying faction kills by a player), OnBuild:196-199 and OnPlace:186-189 (each buildable/placeable carries its own m_iRewardXP), OVT_JobManagerComponent:440-442 (job reward XP), OnPlayerBuy:231-235 and OnPlayerSell:241-246 with TryStartTradeXPCooldown:215-225 (buy and sell share one per-player cooldown), and OnPlayerKilled:204-207 with TakeXP:276-283 (clamped at zero). Amounts are deliberately not quoted because they are config data. Reference voice: describes the system, never instructs."
    DevNote ""
    Repro ""
@@ -3030,13 +3322,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013C}" {
    Id "OVT-FieldManual_Skills_Text3"
    Target_en_us "Your level is worked out from your total experience, and each level takes more experience than the one before it. Every level after the first is worth one skill point. Points already spent are counted against that, so what is left over is your level minus one, minus every skill level you have bought so far."
+   Target_de_de "Deine Stufe wird anhand deiner gesamten Erfahrung berechnet, wobei jede neue Stufe mehr Erfahrung erfordert als die vorherige. Jede Stufe nach der ersten bringt einen Fertigkeitspunkt. Bereits ausgegebene Punkte werden davon abgezogen. Deine verbleibenden Punkte entsprechen daher deiner Stufe minus eins, abzüglich aller bisher gekauften Fertigkeitsstufen."
+   Target_uk_ua "Ваш рівень розраховується на основі загальної кількості накопиченого досвіду, і кожен наступний рівень вимагає більше досвіду, ніж попередній. Кожен рівень після першого дає одне очко навичок. Уже витрачені очки враховуються проти цього значення, тому залишок очок дорівнює вашому рівню мінус один і мінус кожен рівень навичок, придбаний вами раніше."
    Comment "Field Manual - Skills and Levelling page, body paragraph under the 'Levels and Points' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerData.GetRawLevel:111-114 and GetLevelXP:141-144 (level derives from xp, the curve is quadratic so each level costs more), CountSkills:152-160, and the spendable-points expression '(player.GetLevel() - 1) - player.CountSkills()' used in both OVT_SkillManagerComponent.AddSkillLevel:121 and OVT_CharacterSheetContext.Refresh:62."
    DevNote ""
    Repro ""
@@ -3047,13 +3341,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013D}" {
    Id "OVT-FieldManual_Skills_Text4"
    Target_en_us "Trade, Stealth and Diplomacy each run to five levels, bought one level at a time. Trade lowers what you pay when buying, opens up importing at its first level, and at its fifth extends importing to goods no ordinary shop stocks. Stealth shortens the distance at which the occupying faction picks you out, and recruits are seen using their commander's Stealth rather than any of their own. Diplomacy raises the chance that a civilian you speak to comes over to the resistance."
+   Target_de_de "Handel, Tarnung und Diplomatie besitzen jeweils fünf Stufen, die nacheinander gekauft werden. Handel senkt deine Kaufpreise, schaltet auf der ersten Stufe den Import frei und erweitert ihn auf der fünften Stufe auf Waren, die kein gewöhnliches Geschäft führt. Tarnung verkürzt die Entfernung, aus der die Besatzungsmacht dich erkennt; bei Rekruten wird dafür die Tarnungsfertigkeit ihres Kommandanten verwendet und nicht eine eigene. Diplomatie erhöht die Wahrscheinlichkeit, dass sich ein Zivilist, mit dem du sprichst, dem Widerstand anschließt."
+   Target_uk_ua "Навички «Торгівля», «Стелс» та «Дипломатія» мають по п'ять рівнів кожна, які купуються покроково по одному рівню. «Торгівля» знижує ціни при купівлі товарів, відкриває доступ до імпорту на першому рівні, а на п'ятому розширює імпорт до товарів, які відсутні в асортименті звичайних магазинів. «Стелс» зменшує дистанцію, на якій вас виявляють бійці окупаційної фракції, причому рекрутів бачать за рівнем «Стелсу» їхнього командира, а не за їхнім власним. «Дипломатія» підвищує шанс того, що цивільний після розмови з вами перейде на бік опору."
    Comment "Field Manual - Skills and Levelling page, body paragraph under the 'The Three Skills' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against Configs/Player/overthrowSkills.conf (three OVT_SkillConfig entries, five OVT_SkillLevelConfig levels each), OVT_TradeDiscountSkillEffect (sets priceMultiplier, applied in OVT_EconomyManagerComponent.GetBuyPrice:565-577) with the 'Import' permission granted at level 1 and 'IllegalImports' at level 5 (gates in OVT_PlayerCommsComponent:799 and :813, OVT_VehicleMenuContext:172, OVT_PortContext:99), OVT_StealthSkillEffect (sets stealthMultiplier, used in OVT_PlayerWantedComponent.CheckUpdate:496 and inherited by recruits at :488-493), and OVT_SupportSkillEffect (sets diplomacy, rolled in OVT_PlayerCommsComponent:153). Percentages are not quoted because they are config data shown in the character sheet itself."
    DevNote ""
    Repro ""
@@ -3064,13 +3360,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013E}" {
    Id "OVT-FieldManual_Skills_Text5"
    Target_en_us "The character sheet, reached from the Overthrow main menu, is where points are spent. It lists your level, how far along you are towards the next one, how many points are waiting, and every skill with its five levels and what each level gives. Levels you already hold are marked, and the button that buys the next one only appears while you have a point spare and the skill has a level left to take."
+   Target_de_de "Im Charakterbogen, den du über das Overthrow-Hauptmenü erreichst, werden Punkte ausgegeben. Er zeigt deine Stufe, deinen Fortschritt bis zur nächsten Stufe, die Anzahl verfügbarer Punkte sowie jede Fertigkeit mit ihren fünf Stufen und den jeweiligen Vorteilen. Bereits erworbene Stufen sind markiert. Die Schaltfläche zum Kauf der nächsten Stufe erscheint nur, solange du einen freien Punkt besitzt und die Fertigkeit noch eine weitere Stufe haben kann."
+   Target_uk_ua "Вкладка «Профіль персонажа» в головному меню Overthrow слугує для прокачування бійця. Тут вказано ваш поточний рівень, шкалу прогресу до наступного, кількість вільних очок, а також усі три гілки навичок із їхніми 5 рівневими бонусами. Уже розблоковані рівні відмічені відповідними позначками, а кнопка купівлі наступного рівня активується лише за наявності вільних очок прокачування та наявних недосліджених рівнів у навичці."
    Comment "Field Manual - Skills and Levelling page, body paragraph under the 'The Character Sheet' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext:170 and :278-281 (the Character Sheet button opens OVT_CharacterSheetContext) and OVT_CharacterSheetContext.Refresh:53-100 plus RenderSkill:102-169 (level, progress bar, points-to-spend text, per-skill level rows with effect descriptions, and the add button hidden unless toSpend > 0 and playerLevel < levels)."
    DevNote ""
    Repro ""
@@ -3081,13 +3379,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000113}" {
    Id "OVT-FieldManual_Skills_Title"
    Target_en_us "Skills and Levelling"
+   Target_de_de "Fertigkeiten und Stufenaufstieg"
+   Target_uk_ua "Навички та підвищення рівня"
    Comment "Field Manual - title of the Skills and Levelling page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -3098,13 +3398,119 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D0000000000A3}" {
+   Id "OVT-FieldManual_Sleep_Head"
+   Target_en_us "Where a Bed Works"
+   Target_de_de "Wo ein Bett funktioniert"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:144-189 (IsSleepLocation)."
+   Modified 1780800685
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A5}" {
+   Id "OVT-FieldManual_Sleep_Head2"
+   Target_en_us "The Hours Still Count"
+   Target_de_de "Die Stunden zählen noch"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c:237-280 and Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c:1338-1378."
+   Modified 1780800715
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A7}" {
+   Id "OVT-FieldManual_Sleep_Head3"
+   Target_en_us "Twelve Hours Between Sleeps"
+   Target_de_de "Zwölf Stunden zwischen den Schlafenszeiten"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:33-35 (COOLDOWN_HOURS = 12)."
+   Modified 1780800740
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A9}" {
+   Id "OVT-FieldManual_Sleep_Head4"
+   Target_en_us "When It Will Not Perform"
+   Target_de_de "Wenn es nicht funktioniert"
+   Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:205-250 (CanSleep) and Scripts/Game/UserActions/OVT_SleepAction.c:75-83."
+   Modified 1780800753
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A2}" {
+   Id "OVT-FieldManual_Sleep_Text"
+   Target_en_us "A bed can be slept in, and doing so moves the world clock forward by eight in-game hours. The screen fades to black, holds there a moment, and fades back in on the new time of day. Sleeping is a single-player thing: the action is not offered in a multiplayer session at all."
+   Target_de_de "Ein Bett kann zum Schlafen benutzt werden. Dadurch wird die Spielzeit um acht Stunden vorgestellt. Der Bildschirm blendet dabei zu Schwarz über, bleibt einen kurzen Moment schwarz und blendet anschließend wieder ein – nun zur neuen Tageszeit."\
+   ""\
+   "Schlafen ist ausschließlich im Einzelspielermodus möglich: In einer Mehrspieler-Sitzung steht diese Aktion überhaupt nicht zur Verfügung."
+   Comment "Field Manual - Sleeping page, opening paragraph, no header above it. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:31 (SKIP_HOURS = 8), :98-101 (FADE_DURATION 1.0, BLACK_DURATION 0.5), :394-406 (SetFade) and :211 (RplSession.Mode() != RplMode.None refuses), plus Scripts/Game/UserActions/OVT_SleepAction.c:126 (the same mode test hides the action)."
+   Modified 1780801134
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A4}" {
+   Id "OVT-FieldManual_Sleep_Text2"
+   Target_en_us "The action shows up on a bed standing inside a house you own, in your own camp, at a deployed FOB, or inside a base the resistance holds. A bed anywhere else offers nothing at all, because those four places are the same ones the resistance is allowed to put its own things down in."
+   Target_de_de "Die Aktion erscheint bei einem Bett, das sich in einem Haus in deinem Besitz, in deinem eigenen Camp, an einem errichteten FOB oder innerhalb einer von der Resistance kontrollierten Basis befindet."\
+   ""\
+   "Ein Bett an jedem anderen Ort bietet keinerlei Interaktionsmöglichkeit. Der Grund dafür ist, dass genau diese vier Orte auch diejenigen sind, an denen die Resistance ihre eigenen Gegenstände platzieren darf."
+   Comment "Field Manual - Sleeping page, body paragraph under the 'Where a Bed Works' header. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:144-189 (IsSleepLocation, in order: GetNearestOwned within MAX_HOUSE_PLACE_DIS :150-156, own camp within MAX_CAMP_PLACE_DIS :162-167, any FOB within MAX_FOB_PLACE_DIS :170-172, a non-occupying base within m_Difficulty.baseRange :176-186), its source-of-truth comment at :37-55 naming Scripts/Game/Utilities/OVT_ItemLimitChecker.c, and Scripts/Game/UserActions/OVT_SleepAction.c:138 (the gate is CanBeShownScript, so elsewhere the action is hidden and not merely disabled). Distances are deliberately not quoted, matching OVT-FieldManual_Camps_Text2."
+   Modified 1780801169
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A6}" {
+   Id "OVT-FieldManual_Sleep_Text3"
+   Target_en_us "The eight hours are replayed rather than skipped over. Taxes and donations pay out and the town shops buy their stock once for every six-hour mark the window passes, the shops restock if it passes seven in the morning, rent moves if it passes midnight, and the occupying faction gains resources, spends them on its bases and lets its threat decay quarter hour by quarter hour, in the order it would have while you were awake. The payout notifications arrive over the black screen and are still there when it clears."
+   Target_de_de "Die acht Stunden werden nachgespielt, statt einfach übersprungen zu werden. Steuern und Spenden werden ausgezahlt, und die Geschäfte in den Städten kaufen ihre Waren jedes Mal ein, wenn innerhalb dieses Zeitfensters eine Sechs-Stunden-Marke überschritten wird. Die Läden füllen ihre Bestände wieder auf, wenn 7 Uhr morgens überschritten wird, und Mietzahlungen werden verarbeitet, wenn Mitternacht überschritten wird."\
+   ""\
+   "Auch die Besatzungsfraktion läuft währenddessen normal weiter: Sie erhält Ressourcen, gibt sie für ihre Basen aus und baut ihre Bedrohungsstufe Viertelstunde für Viertelstunde ab – genau in der Reihenfolge, in der all das auch passiert wäre, wenn du wach geblieben wärst."\
+   ""\
+   "Die Benachrichtigungen über Auszahlungen erscheinen dabei bereits auf dem schwarzen Bildschirm und sind noch sichtbar, wenn das Bild wieder eingeblendet wird."
+   Comment "Field Manual - Sleeping page, body paragraph under 'The Hours Still Count'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c:255-261 (CalculateIncome + UpdateShops once per interval crossing), :598-627 (CalculateIncome = GetDonationIncome + GetTaxIncome, distributed to players), :519-531 (UpdateShops = NPC stock buying), :265-269 with Scripts/Game/Services/OVT_SleepSchedule.c:40 (ReplenishStock once per entry into RESTOCK_HOUR 7), :272-276 with OVT_SleepSchedule.c:43 (UpdateRents once per entry into RENT_HOUR 0), OVT_SleepSchedule.c:37 (INCOME_INTERVAL_HOURS 6) and :46 (THREAT_STEP_MINUTES 15), and Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c:1359-1377 (chronological quarter-hour loop: GainResources, SpendResourcesOnBases, UpdateSpecops on six-hour boundaries, DecayThreatStep every step). The last sentence is R9 in the plan: Scripts/Game/Services/OVT_SleepService.c:103-106 states the notifications are deliberately not suppressed."
+   Modified 1780801201
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A8}" {
+   Id "OVT-FieldManual_Sleep_Text4"
+   Target_en_us "Sleeping again is not possible for twelve in-game hours, counted from the moment you wake rather than from the moment you lie down. Those twelve are all spent awake, so with the eight the skip itself covers it is twenty in-game hours from one sleep to the next, and until they are up the action stays on the bed with the time remaining written into its label."
+   Target_de_de "Erneutes Schlafen ist erst nach zwölf Spielstunden möglich. Diese Frist beginnt in dem Moment, in dem du wieder aufwachst – nicht bereits dann, wenn du dich schlafen legst."\
+   ""\
+   "Diese zwölf Stunden müssen vollständig im wachen Zustand vergehen. Zusammen mit den acht Stunden, die durch das Schlafen selbst vergehen, liegen somit insgesamt zwanzig Spielstunden zwischen zwei Schlafvorgängen."\
+   ""\
+   "Solange die zwölfstündige Wartezeit noch nicht abgelaufen ist, bleibt die Aktion am Bett sichtbar. In ihrer Bezeichnung wird dabei angezeigt, wie viel Zeit bis zum nächsten möglichen Schlafen noch verbleibt."
+   Comment "Field Manual - Sleeping page, body paragraph under 'Twelve Hours Between Sleeps'. Two sentences, no rich-text markup. REWRITTEN 2026-08-19 (user decision, D16 revised): the cooldown used to run from lying down, which left about four hours on waking; it now runs from waking, so the whole twelve are ahead and the door-to-door interval is twenty. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:38 (COOLDOWN_HOURS = 12, whose doc comment states it is measured from waking), :31 (SKIP_HOURS = 8), :443-457 (StampCooldown writes ReadAbsoluteGameHours(time) + SKIP_HOURS at :456, i.e. the wake instant, off the pre-skip clock), :369-373 (it runs before AdvanceClock), :264-278 (GetCooldownRemainingHours) and Scripts/Game/UserActions/OVT_SleepAction.c:94-101 (GetActionNameScript appends OVT_SleepSchedule.FormatRemaining to the label while the cooldown runs). Twenty is 8 + 12, both literals above."
+   Modified 1780801570
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000AA}" {
+   Id "OVT-FieldManual_Sleep_Text5"
+   Target_en_us "While an attack is underway, and while you are wanted, the action stays visible on the bed but refuses, and says which of the two is in the way. A bed that is nowhere the resistance holds is the other case, and that one shows no action rather than a refusal."
+   Target_de_de "Während ein Angriff läuft oder solange nach dir gefahndet wird, bleibt die Schlafaktion am Bett sichtbar, lässt sich jedoch nicht ausführen. Dabei wird angegeben, welcher der beiden Gründe das Schlafen gerade verhindert."\
+   ""\
+   "Anders verhält es sich bei einem Bett an einem Ort, den die Resistance nicht kontrolliert: Dort wird die Schlafaktion gar nicht erst angezeigt, anstatt lediglich verweigert zu werden."
+   Comment "Field Manual - Sleeping page, body paragraph under 'When It Will Not Perform'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:223-228 (m_bQRFActive -> REASON_QRF), :232-241 (OVT_PlayerWantedComponent.GetWantedLevel() > 0 -> REASON_WANTED), :66-68 (the two reason keys, whose English texts are 'You cannot sleep while an attack is underway' and 'You cannot sleep while you are wanted'), and Scripts/Game/UserActions/OVT_SleepAction.c:75-83 (SetCannotPerformReason keeps the action visible) versus :60-64 and :138 (the location gate hides it instead). The plan's D13 states the hidden-versus-disabled split explicitly."
+   Modified 1780801671
+   Author "Claude"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5D0000000000A1}" {
+   Id "OVT-FieldManual_Sleep_Title"
+   Target_en_us "Sleeping"
+   Target_de_de "Schlafen"
+   Comment "Field Manual - Sleeping page title, The Resistance category. FACT-CHECKED 2026-08-19 against Scripts/Game/UserActions/OVT_SleepAction.c:27 and Configs/FieldManual/Categories/FM_Overthrow.conf."
+   Modified 1780801682
+   Author "Claude"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{6B3B00000000013F}" {
    Id "OVT-FieldManual_WantedSystem_Head"
    Target_en_us "What Draws Attention"
+   Target_de_de "Was Aufmerksamkeit erregt"
+   Target_uk_ua "Що привертає увагу"
    Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph listing what makes a player wanted. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -3115,13 +3521,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000140}" {
    Id "OVT-FieldManual_WantedSystem_Head2"
    Target_en_us "Being Seen"
+   Target_de_de "Gesehen werden"
+   Target_uk_ua "Бути поміченим"
    Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about the seen indicator and detection range. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -3132,13 +3540,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000141}" {
    Id "OVT-FieldManual_WantedSystem_Head3"
    Target_en_us "Wearing Their Uniform"
+   Target_de_de "Ihre Uniform tragen"
+   Target_uk_ua "Носіння їхньої уніформи"
    Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about disguises. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -3149,13 +3559,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000142}" {
    Id "OVT-FieldManual_WantedSystem_Head4"
    Target_en_us "Cooling Off"
+   Target_de_de "Untertauchen"
+   Target_uk_ua "Зниження уваги"
    Comment "Field Manual - section header inside The Wanted System page, drawn above the paragraph about how a wanted level decays. Two to four words, no markup."
    DevNote ""
    Repro ""
@@ -3166,13 +3578,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000114}" {
    Id "OVT-FieldManual_WantedSystem_Text"
    Target_en_us "Doing something the occupying faction objects to raises your wanted level, and they come looking for you while it is above zero. Some of it has to be seen to count and some of it does not. The level falls one step at a time once nobody is watching you, and how long each step takes is set by the difficulty settings."
+   Target_de_de "Wenn du etwas tust, das der Besatzungsmacht missfällt, steigt dein Fahndungslevel, und solange er über null liegt, sucht sie nach dir. Manche Handlungen müssen gesehen werden, damit sie zählen, andere nicht. Sobald dich niemand mehr beobachtet, sinkt der Level Schritt für Schritt. Wie lange jeder Schritt dauert, wird durch die Schwierigkeitseinstellungen bestimmt."
+   Target_uk_ua "Будь-яка протиправна дія з точки зору окупантів піднімає ваш рівень розшуку — поки він вищий за нуль, за вами полюватимуть патрулі. Деякі порушення фіксуються лише за наявності свідків, інші ж викликають підозру автоматично. Як тільки ви відірветеся від спостереження, рівень розшуку почне поступово спадати, а швидкість його зниження залежить від вибраного рівня складності."
    Comment "Field Manual - opening paragraph of The Wanted System page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08: the seen gate applies to the OVT_PlayerWantedComponent paths (CheckEntity:698, OnPlayerLoot:284, OnIllegalActionSeen:298, base/tower at CheckUpdate:519-541) but NOT to the damage paths in SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 and WhenDamageStateChanged:44-82, which escalate with no witness at all - hence the deliberate 'some of it does not'. Decay at CheckUpdate:545-559 runs only while !m_bTempSeen, with wantedTimeout/wantedOneTimeout from OVT_DifficultySettings:20-23."
    DevNote ""
    Repro ""
@@ -3183,13 +3597,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000143}" {
    Id "OVT-FieldManual_WantedSystem_Text2"
    Target_en_us "Most of it has to be witnessed. Being watched while openly carrying a weapon, while looting, while putting up something they have outlawed, or while close to one of their bases or radio towers all count, and being taken for the resistance or one of its backers by what you are wearing counts the moment you are seen at all. Violence needs no witness: wounding anybody makes you wanted, killing anybody raises it further, and either one blows a disguise you were wearing. When one of their soldiers is killed, whoever is sitting in a vehicle right beside the body is held responsible as well. Being seen at the wheel of an armed vehicle or a mobile FOB raises it further again, and that vehicle is marked as resistance from then on. Above the first level the occupying faction stops reading you as a civilian and treats you as an enemy on sight."
+   Target_de_de "Das meiste muss beobachtet werden. Es zählt, wenn du gesehen wirst, während du offen eine Waffe trägst, plünderst, etwas von der Besatzungsmacht Verbotenes aufstellst oder dich in der Nähe einer ihrer Basen oder Funktürme aufhältst. Ebenso zählt es bereits beim ersten Sichtkontakt, wenn deine Kleidung dich als Mitglied oder Unterstützer des Widerstands erkennen lässt. Gewalt braucht keine Zeugen: Wenn du jemanden verwundest, wirst du gesucht; wenn du jemanden tötest, steigt der Level weiter, und beides zerstört eine eventuell getragene Verkleidung. Wird einer ihrer Soldaten getötet, gilt außerdem jeder als verantwortlich, der in einem Fahrzeug direkt neben der Leiche sitzt. Wirst du am Steuer eines bewaffneten Fahrzeugs oder eines mobilen FOB gesehen, steigt der Level erneut, und das Fahrzeug wird von diesem Zeitpunkt an als Widerstandsfahrzeug markiert. Oberhalb der ersten Stufe betrachtet dich die Besatzungsmacht nicht mehr als Zivilisten, sondern greift dich bei Sichtkontakt als Feind an."
+   Target_uk_ua "Більшість правопорушень фіксується лише за наявності свідків. Відкрите носіння зброї, обшук трупів/майна, встановлення нелегальних об'єктів або перебування поруч із ворожими базами чи радіовежами миттєво піднімають рівень розшуку. Якщо ж ваш одяг видає у вас бійця або прибічника опору, ворог задозрить вас одразу при зоровому контакті. Насильство не потребує свідків: поранення будь-кого робить вас розшукуваним, убивство підвищує рівень розшуку ще більше, а будь-яка з цих дій розкриває ваше маскування. Коли вбивають одного з їхніх солдатів, той, хто сидить у транспорті поруч із тілом, також вважається відповідальним. Перебування за кермом озброєного транспорту або пересувної бази (FOB) на очах у ворога додатково підвищує рівень розшуку, а цей транспорт відтоді позначається як техніка опору. Вище першого рівня окупаційна фракція перестає вважати вас цивільним і атакує як ворога при першому ж зоровому контакті."
    Comment "Field Manual - The Wanted System page, body paragraph under the 'What Draws Attention' header. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent: the seen gate on those paths (m_bTempSeen in CheckEntity:698, m_bIsSeen in OnPlayerLoot:284 and OnIllegalActionSeen:298), IsVisiblyArmed:720-724, OVT_ResistanceFactionManager:739-747 (illegal placement), base and radio tower proximity at CheckUpdate:519-541, perceived player/supporting faction at CheckEntity:700-717, the armed-vehicle and mobile FOB branch at :727-760 with SetVehicleAsEnemy:792-799, and CheckWanted:599-611 (perceived as hostile player faction once the level is above 1). The violence sentences come from SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 (any damage to any character escalates the instigator, blowing an occupying-faction disguise) and WhenDamageStateChanged:44-82 plus CheckVehicleSetWanted:106-131 (a kill escalates further, and when the victim is occupying faction every occupant of a vehicle within 5 m is escalated too). NEITHER damage path checks whether the instigator was seen. No distances or level numbers are quoted: the base range is a difficulty setting."
    DevNote ""
    Repro ""
@@ -3200,13 +3616,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000144}" {
    Id "OVT-FieldManual_WantedSystem_Text3"
    Target_en_us "An eye shows on your screen while someone working for the occupying faction has you in sight, and it fades in and out with how clearly they can make you out. Their people only start to pick you up inside a certain range, and the Stealth skill draws that range in. Recruits are watched by the same rules and are seen using their commander's Stealth."
+   Target_de_de "Ein Augensymbol erscheint auf deinem Bildschirm, solange dich jemand im Dienst der Besatzungsmacht im Blick hat. Es wird je nach Sichtbarkeit stärker oder schwächer eingeblendet. Ihre Leute erkennen dich erst innerhalb einer bestimmten Entfernung, und die Fertigkeit Tarnung verringert diese Reichweite. Für Rekruten gelten dieselben Beobachtungsregeln; bei ihnen wird die Tarnungsfertigkeit ihres Kommandanten verwendet."
+   Target_uk_ua "Іконка ока з'являється на вашому екрані, коли вас бачить хтось із бійців окупаційної фракції, і її прозорість змінюється залежно від того, наскільки чітко вас помічають. Вороги починають помічати вас лише в межах певної дистанції, а навичка «Стелс» зменшує цей радіус виявлення. На рекрутів поширюються ті ж самі правила, і їх виявляють за рівнем «Стелсу» їхнього командира."
    Comment "Field Manual - The Wanted System page, body paragraph under the 'Being Seen' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_WantedInfo.UpdateSeen:79-98 (the SeenEye widget is shown while IsSeen and its opacity is set from m_fVisualRecognitionFactor) and OVT_PlayerWantedComponent.CheckUpdate:480-517 (distanceSeen = 5 + m_fBaseDistanceSeenAt * stealthMultiplier, with recruits reading their owner's stealthMultiplier at :488-493)."
    DevNote ""
    Repro ""
@@ -3217,13 +3635,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000145}" {
    Id "OVT-FieldManual_WantedSystem_Text4"
    Target_en_us "Dressed convincingly enough in the occupying faction's own kit, their troops read you as one of their own and stop watching you at a distance. What is left is close range: near enough and in plain sight, someone sees through it, the disguise is blown and a wanted level comes with it. Opening fire on anybody blows it as well, at any range and whether or not it was noticed. While it holds, standing near a base or a radio tower does not make you wanted on its own. An icon on your screen carries the state of it, and how far their soldiers can see through a disguise is a difficulty setting."
+   Target_de_de "Wenn du die Ausrüstung der Besatzungsmacht überzeugend genug trägst, halten deren Truppen dich für einen von ihnen und beobachten dich nicht mehr aus der Entfernung. Übrig bleibt nur der Nahbereich: Kommst du ihnen nahe genug und befindest dich in freier Sicht, durchschaut jemand die Tarnung, die Verkleidung fliegt auf und du erhältst einen Fahndungslevel. Auf jemanden zu schießen zerstört die Verkleidung ebenfalls – unabhängig von der Entfernung und davon, ob der Schuss bemerkt wurde. Solange die Verkleidung hält, macht dich allein die Nähe zu einer Basis oder einem Funkturm nicht gesucht. Ein Symbol auf deinem Bildschirm zeigt ihren Zustand an. Wie weit Soldaten eine Verkleidung durchschauen können, wird durch eine Schwierigkeitseinstellung bestimmt."
+   Target_uk_ua "Якщо ви перевдягнені у переконливий комплект однострою окупаційної фракції, їхні війська сприймають вас як свого й припиняють стежити за вами здалеку. Ризик залишається лише на близькій відстані: якщо підійти занадто близько й залишатися на видноті, хтось розкриє ваше маскування, після чого воно скинеться й ви отримаєте рівень розшуку. Відкриття вогню по кому завгодно також миттєво зриває маскування — на будь-якій дистанції та незалежно від наявності свідків. Доки маскування діє, перебування поблизу бази чи радіовежі само по собі не підвищує рівень розшуку. Стан вашого маскування відображається відповідною іконкою на екрані, а дистанція, з якої ворожі солдати розпізнають обман, визначається налаштуваннями складності."
    Comment "Field Manual - The Wanted System page, body paragraph under the 'Wearing Their Uniform' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent.CheckUpdate:434-446 (perceived occupying faction sets m_bIsDisguised and skips normal detection in favour of the close check), CheckDisguisedAsOccupying:325-372 (difficulty setting disguiseDetectionDistance plus TraceLOS, then SetBaseWantedLevel(2, 'WantedDisguiseBlown') and BlowDisguise), SCR_CharacterDamageManagerComponent.WhenDamaged:24-37 and WhenDamageStateChanged:66-79 (both call BlowDisguise on the instigator with no range or witness check), the '!m_bIsDisguised' guard on the base and tower checks at :519-541, and OVT_WantedInfo.UpdateUndercoverStatus:103-235 (the undercover icon is coloured from the disguise and wanted state). The 15 m default is deliberately not quoted."
    DevNote ""
    Repro ""
@@ -3234,13 +3654,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000146}" {
    Id "OVT-FieldManual_WantedSystem_Text5"
    Target_en_us "A wanted level only comes down while nobody has eyes on you, one level at a time, with a countdown between each step. Anything that makes you wanted again sets the level straight to whatever that thing is worth and starts the countdown over, so the level jumps up and only ever walks back down. The last step down to nothing runs on its own separate countdown, and being spotted during it puts you back up rather than letting it finish. Both countdowns are difficulty settings. Fast travel is unavailable while your wanted level is anything above zero."
+   Target_de_de "Ein Fahndungslevel sinkt nur, solange dich niemand im Blick hat, jeweils um eine Stufe mit einem Countdown zwischen den einzelnen Schritten. Alles, was dich erneut gesucht macht, setzt den Level sofort auf den Wert, den diese Handlung verursacht, und startet den Countdown neu. Der Level springt also nach oben und sinkt nur schrittweise wieder ab. Für den letzten Schritt bis auf null läuft ein eigener Countdown. Wirst du währenddessen entdeckt, steigt der Level wieder, statt vollständig abzulaufen. Beide Countdowns werden durch Schwierigkeitseinstellungen bestimmt. Schnellreise ist nicht verfügbar, solange dein Fahndungslevel über null liegt."
+   Target_uk_ua "Рівень розшуку знижується лише тоді, коли за вами ніхто не спостерігає — по одному рівню за раз із відліком часу між кожним кроком. Будь-яка дія, що знову робить вас розшукуваним, одразу встановлює рівень відповідно до цінності цієї дії та перезапускає відлік, тому рівень розшуку зростає стрибкоподібно, а знижується лише поступово. Останній крок до повного скидання запускється на окремому таймері, і якщо вас помітять під час нього, рівень розшуку знову зросте, замість того щоб обнулитися. Обидва таймери визначаються налаштуваннями складності. Швидке переміщення недоступне, поки ваш рівень розшуку вищий за нуль."
    Comment "Field Manual - The Wanted System page, body paragraph under the 'Cooling Off' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_PlayerWantedComponent.CheckUpdate:545-567 (decay only runs when !m_bTempSeen, decrements m_iWantedTimer once per tick and steps the level down by one via the raw SetWantedLevel, reloading wantedTimeout for levels above 1 and wantedOneTimeout for the last step; being seen at level 1 re-escalates to 2 instead), SetBaseWantedLevel:65-91 (escalation only, jumps straight to the new level and restarts the timer), OVT_DifficultySettings:20-23 (wantedTimeout and wantedOneTimeout are both difficulty settings) and OVT_MapContext:71-76 (fast travel refused while GetWantedLevel() > 0). No millisecond values are quoted."
    DevNote ""
    Repro ""
@@ -3251,13 +3673,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000115}" {
    Id "OVT-FieldManual_WantedSystem_Title"
    Target_en_us "The Wanted System"
+   Target_de_de "Das Fahndungssystem"
+   Target_uk_ua "Система розшуку"
    Comment "Field Manual - title of The Wanted System page, shown on its tile in the category grid and as the heading at the top of the page. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -3268,13 +3692,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011A}" {
    Id "OVT-FieldManual_Welcome_Head"
    Target_en_us "What You Start With"
+   Target_de_de "Womit du beginnst"
+   Target_uk_ua "З чим ви починаєте"
    Comment "Field Manual - section header inside the Welcome to Overthrow page, above the paragraph about the starting house, car and cash. Two to four words, title case. No rich-text markup."
    DevNote ""
    Repro ""
@@ -3285,13 +3711,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011B}" {
    Id "OVT-FieldManual_Welcome_Head2"
    Target_en_us "No Set Order"
+   Target_de_de "Keine feste Reihenfolge"
+   Target_uk_ua "Довільний порядок"
    Comment "Field Manual - section header inside the Welcome to Overthrow page, above the paragraph explaining that the campaign has no required sequence. Two to four words, title case. No rich-text markup."
    DevNote ""
    Repro ""
@@ -3302,13 +3730,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000116}" {
    Id "OVT-FieldManual_Welcome_Text"
    Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no ending: the resistance grows out of whatever you choose to do, and the occupying faction reacts to it. Towns, money, property, vehicles, recruits and captured ground are all durable state, so a campaign carries on between sessions and across server restarts."
+   Target_de_de "Overthrow ist eine persistente Sandbox-Kampagne auf einer besetzten Insel. Es gibt weder eine feste Liste von Zielen noch ein Ende: Der Widerstand entwickelt sich aus deinen Entscheidungen, und die Besatzungsmacht reagiert darauf. Städte, Geld, Immobilien, Fahrzeuge, Rekruten und erobertes Gebiet sind dauerhafte Zustände, sodass eine Kampagne über Sitzungen und Serverneustarts hinweg fortgeführt wird."
+   Target_uk_ua "Overthrow — це динамічна персистентна кампанія-пісочниця про визволення окупованого острова. У грі немає фіксованого сюжетного лінійного списку завдань чи кінцевої точки: опір формується та розвивається виключно через ваші рішення, а ворожа фракція гнучко реагує на будь-які загрози. Контроль над містами, фінансовий баланс, нерухомість, автопарк, набрані рекрути та відвойовані території зберігаються у реальному часі, тож прогрес кампанії продовжується між ігровими сесіями та не зникає після рестарту сервера."
    Comment "Field Manual - opening paragraph of the Welcome to Overthrow page, shown as body prose beneath the mod banner image. FACT-CHECKED against docs/mission-statement.md (persistent, no scripted mission, server-authoritative). Reference voice: it describes the mod, it does not instruct the player, and it must not imply an order of play. Two to four sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3319,13 +3749,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011C}" {
    Id "OVT-FieldManual_Welcome_Text2"
    Target_en_us "A new character is given a house in one of the island's towns, with a car parked outside it, and a small amount of starting cash. That house is registered as your home, which is where you respawn. When no starting house is free, a new character begins in one of the towns instead, with the starting cash but no house and no car, and respawns where they started until a building they own is set as their home. Everything past that is earned, bought, built or taken."
+   Target_de_de "Ein neuer Charakter erhält ein Haus in einer der Städte der Insel, ein davor geparktes Auto und einen kleinen Geldbetrag als Startkapital. Dieses Haus wird als dein Zuhause eingetragen und dient als Wiedereinstiegspunkt. Ist kein Starthaus frei, beginnt ein neuer Charakter stattdessen in einer der Städte mit dem Startkapital, aber ohne Haus und ohne Auto. Bis ein Gebäude in seinem Besitz als Zuhause festgelegt wird, steigt er an seinem ursprünglichen Startpunkt wieder ein. Alles Weitere muss verdient, gekauft, gebaut oder erobert werden."
+   Target_uk_ua "На старті новий персонаж отримує власне житло в одному з міст острова, припаркований поруч автомобіль та початковий капітал. Цей будинок автоматично призначається вашим домом — точкою відродження (респавну). Якщо ж вільного житла на карті немає, гравець починає в одному з поселень лише зі стартовими грошима; у такому разі точкою респавну слугуватиме місце першої появи, доки ви не придбаєте нерухомість і не призначите її домом. Будь-які інші ресурси, техніка та спорядження доведеться заробляти, купувати, зводити або відбирати у ворога."
    Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'What You Start With' header. FACT-CHECKED against OVT_OverthrowGameMode.c:1011-1023 (random starting house, home, starting car) and :1048 (starting cash), OVT_SpawnLogic.c:787-802 (home is the respawn position). The cash amount is a difficulty setting and is deliberately not quoted. Reference voice: describes, does not instruct. Three to four sentences, no rich-text markup. HOUSELESS CLAUSE ADDED 2026-08-09 by new-player-experience/first-spawn Phase 6.1: this page is the Learn-more target of BOTH welcome entries, so without it a player who took the fallback spawn followed 'Learn more' from OVT-Tutorial_WelcomeNohome_Body2 into a paragraph telling them they were given a house. FACT-CHECKED against OVT_OverthrowGameMode.c:1036-1046 (the !house branch calls only SpawnPlayerAtFallbackPosition - no SetOwner, no SetHome, no SpawnStartingCar), :838-853 (a bus stop, or the starting town centre when none exists, with SetHomePos), :1043-1053 (the starting-cash block sits outside the house if/else and runs on both branches), OVT_SpawnLogic.c:787-802 (home is the respawn position) and OVT_RealEstateContext.c:267-268 -> OVT_RealEstateManagerComponent.c:567-576 (the 'Set as Home' action, enabled only for an owned building). It must not say more than OVT-Tutorial_WelcomeNohome_Body2 does."
    DevNote ""
    Repro ""
@@ -3336,13 +3768,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011D}" {
    Id "OVT-FieldManual_Welcome_Text3"
    Target_en_us "Nothing here has to happen before anything else. Trading, recruiting, placing camps, building and capturing bases are tools that stay available in whatever order suits you, and on a server every player is acting on the same island and the same campaign state."
+   Target_de_de "Hier muss nichts zwingend vor etwas anderem geschehen. Handel, Rekrutierung, das Platzieren von Lagern, Bauen und das Erobern von Basen sind Werkzeuge, die dir in jeder beliebigen Reihenfolge zur Verfügung stehen. Auf einem Server handeln alle Spieler auf derselben Insel und innerhalb desselben Kampagnenzustands."
+   Target_uk_ua "У грі немає жорсткої послідовності чи обов'язкових кроків: торгівля, вербування рекрутів, облаштування таборів, зведення споруд та штурм ворожих баз доступні в будь-якому порядку. Ви самі обираєте власну стратегію розвитку. При грі на сервері всі учасники знаходяться в одному світі й діють у межах єдиної спільної кампанії, змінюючи її стан у реальному часі."
    Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'No Set Order' header. FACT-CHECKED against docs/mission-statement.md (sandbox, no mission order, multiplayer-first and server-authoritative). Reference voice: it must not imply a required sequence or assign a goal. Two sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3353,13 +3787,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000117}" {
    Id "OVT-FieldManual_Welcome_Title"
    Target_en_us "Welcome to Overthrow"
+   Target_de_de "Willkommen bei Overthrow"
+   Target_uk_ua "Ласкаво просимо до Overthrow"
    Comment "Field Manual - title of the Welcome to Overthrow page, shown on its tile in the category grid and as the heading at the top of the page. Overthrow is the mod name and stays untranslated. Two to four words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -3370,13 +3806,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000011F}" {
    Id "OVT-FieldManual_YourHome_Head"
    Target_en_us "What a Home Gives You"
+   Target_de_de "Was dir ein Zuhause bietet"
+   Target_uk_ua "Що дає власне житло"
    Comment "Field Manual - section header inside the Your Home page, above the paragraph on respawning and fast travel. Three to five words, title case. No rich-text markup."
    DevNote ""
    Repro ""
@@ -3387,13 +3825,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000120}" {
    Id "OVT-FieldManual_YourHome_Head2"
    Target_en_us "Buying and Renting"
+   Target_de_de "Kaufen und Mieten"
+   Target_uk_ua "Купівля та оренда"
    Comment "Field Manual - section header inside the Your Home page, above the paragraphs on prices, rent and selling. Two to four words, title case. No rich-text markup."
    DevNote ""
    Repro ""
@@ -3404,13 +3844,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000118}" {
    Id "OVT-FieldManual_YourHome_Text"
    Target_en_us "Every campaign begins with a house of your own and a car parked outside it. Ownership is recorded against your player rather than against the session, so a building you own stays yours between sessions and across server restarts."
+   Target_de_de "Jede Kampagne beginnt mit einem eigenen Haus und einem davor geparkten Auto. Der Besitz wird deinem Spieler und nicht der jeweiligen Sitzung zugeordnet. Ein Gebäude in deinem Besitz bleibt daher zwischen Sitzungen und über Serverneustarts hinweg dein Eigentum."
+   Target_uk_ua "Кожна кампанія стартує з того, що ви отримуєте власне житло та припарковане поруч авто. Право власності прив'язується безпосередньо до вашого профілю гравця, а не до поточної сесії. Це гарантує, що вся ваша нерухомість зберігається під час виходу з гри та не зникає після рестарту сервера."
    Comment "Field Manual - opening paragraph of the Your Home page, shown as body prose under the page heading. FACT-CHECKED against OVT_OverthrowGameMode.c:1011-1023 (starting house plus starting car) and OVT_RealEstateManagerComponent.c:189-268 with its persistence serializer (ownership is keyed to the persistent player id and is saved). Reference voice: describes, does not instruct. Two sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3421,13 +3863,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000121}" {
    Id "OVT-FieldManual_YourHome_Text2"
    Target_en_us "The building set as your home is where your character respawns after dying. Buildings you own or rent also count as fast travel destinations, unless the building is rented out to somebody else. Rejoining after you have left the game puts you back where you logged out rather than at home."
+   Target_de_de "Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter nach dem Tod wieder einsteigt. Gebäude, die dir gehören oder die du mietest, gelten ebenfalls als Schnellreiseziele, sofern das Gebäude nicht an jemand anderen vermietet ist. Wenn du nach dem Verlassen des Spiels erneut beitrittst, erscheinst du dort, wo du dich abgemeldet hast, und nicht zu Hause."
+   Target_uk_ua "Будинок, призначений вашим домом, слугує точкою респавну після загибелі персонажа. Будь-яка нерухомість, що перебуває у вашій власності або оренді, також працює як точка швидкого переміщення (Fast Travel) — за умови, що ви не здаєте її в оренду іншим особам. Зверніть увагу: при повторному вході на сервер ви з'явитеся саме там, де вийшли з гри минулого разу, а не на точці домашнього респавну."
    Comment "Field Manual - body paragraph on the Your Home page, under the 'What a Home Gives You' header. FACT-CHECKED against OVT_SpawnLogic.c:767-807 (home is the respawn position, last-known logout position takes priority and is cleared on death) and OVT_MapContext.c:93-108 (an owned or rented building is a fast travel destination; one that is rented out, and a warehouse, are not). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3438,13 +3882,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000122}" {
    Id "OVT-FieldManual_YourHome_Text3"
    Target_en_us "The real estate menu appears in the main menu whenever you are standing in a building that can be owned, and shows that building's sale price and its rent. Neither is a flat figure: both rise with the population and the stability of the nearest town, so the same kind of house is worth more in a large, settled town than in a small unsettled one. Officers can buy and rent using resistance funds instead of their own money."
+   Target_de_de "Das Immobilienmenü erscheint im Hauptmenü, wenn du dich in einem Gebäude befindest, das besessen werden kann. Es zeigt den Verkaufspreis und die Miete dieses Gebäudes. Beides sind keine festen Werte: Sie steigen mit der Bevölkerung und der Stabilität der nächstgelegenen Stadt. Dasselbe Haus ist daher in einer großen, stabilen Stadt mehr wert als in einer kleinen, instabilen. Offiziere können Käufe und Mieten mit Geld aus der Widerstandskasse statt mit ihrem eigenen Geld bezahlen."
+   Target_uk_ua "Меню нерухомості з'являється в головному меню щоразу, коли ви перебуваєте всередині будівлі, яку можна придбати, і відображає її ціну продажу та вартість оренди. Жоден із цих показників не є фіксованим: обидва зростають відповідно до чисельності населення та рівня стабільності найближчого міста. Через це однаковий тип будинку коштуватиме дорожче у великому, спокійному місті, ніж у малому чи нестабільному. Офіцери мають можливість купувати та орендувати нерухомість за кошти опору замість власних грошей."
    Comment "Field Manual - body paragraph on the Your Home page, under the 'Buying and Renting' header. FACT-CHECKED against OVT_MainMenuContext.c:148-157 (menu entry enabled only in an ownable building), OVT_RealEstateManagerComponent.c:712-745 (price and rent = base value scaled by the nearest town's population and stability) and OVT_RealEstateContext.c:59-69 plus OVT_PlayerCommsComponent.c:459-464 (officer-only resistance funds account). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3455,13 +3901,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000123}" {
    Id "OVT-FieldManual_YourHome_Text4"
    Target_en_us "Rent is settled once a day at midnight: whoever rents a building pays, and whoever owns it is paid. You can own more than one building and set any of them as your home instead. A building cannot be sold while it is your home, and your last remaining building cannot be sold at all."
+   Target_de_de "Die Miete wird einmal täglich um Mitternacht abgerechnet: Wer ein Gebäude mietet, bezahlt, und wer es besitzt, erhält die Zahlung. Du kannst mehr als ein Gebäude besitzen und jedes davon als dein Zuhause festlegen. Ein Gebäude kann nicht verkauft werden, solange es dein Zuhause ist, und dein letztes verbliebenes Gebäude kann überhaupt nicht verkauft werden."
+   Target_uk_ua "Орендна плата розраховується один раз на добу опівночі: той, хто орендує будівлю, сплачує кошти, а власник отримує виплату. Ви можете володіти кількома будівлями та обрати будь-яку з них як свій дім. Будівлю не можна продати, поки вона призначена вашим домом, а вашу останню нерухомість продати неможливо взагалі."
    Comment "Field Manual - body paragraph on the Your Home page, under the 'Buying and Renting' header, following the price paragraph. FACT-CHECKED against OVT_EconomyManagerComponent.c:194-198 and :238-281 (rents settle at hour 0, owner credited and renter debited) and OVT_RealEstateContext.c:355-365 and :459-479 (a home cannot be sold, the only remaining house cannot be sold, any owned building can be set as home). Reference voice: describes, does not instruct. Three sentences, no rich-text markup."
    DevNote ""
    Repro ""
@@ -3472,13 +3920,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000119}" {
    Id "OVT-FieldManual_YourHome_Title"
    Target_en_us "Your Home"
+   Target_de_de "Dein Zuhause"
+   Target_uk_ua "Ваш дім"
    Comment "Field Manual - title of the Your Home page, shown on its tile in the category grid and as the heading at the top of the page. Two or three words. This key is also the deep-link id tutorial popups use to open this page, so it must never be renamed."
    DevNote ""
    Repro ""
@@ -3489,13 +3939,14 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68F65B3B222D82}" {
    Id "OVT-FlipVehicle"
    Target_en_us "Flip Vehicle"
+   Target_de_de "Fahrzeug umdrehen"
    Target_ko_kr "차량 뒤집기"
    Target_zh_cn "翻正车辆"
    Target_uk_ua "Перевернути техніку"
@@ -3509,13 +3960,15 @@ StringTable {
    MaxLength 0
    Modified 1716475323
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893FA01}" {
    Id "OVT-FOBOperationInProgress"
    Target_en_us "Another FOB operation is already in progress"
+   Target_de_de "Eine weitere FOB-Operation ist bereits im Gange"
+   Target_uk_ua "Інша операція з розгортання передової бази вже триває"
    Comment ""
    DevNote ""
    Repro ""
@@ -3524,15 +3977,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1754179200
+   Modified 1780506018
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-FOBUndeployed"
    Target_en_us "FOB Undeployed"
+   Target_de_de "FOB nicht stationiert"
    Target_uk_ua "FOB Нерозгорнуто"
    Comment ""
    DevNote ""
@@ -3542,15 +3996,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716475600
+   Modified 1780506048
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-FOBUndeployFailed"
    Target_en_us "FOB Undeployment Failed"
+   Target_de_de "Abbau der FOB fehlgeschlagen"
    Target_uk_ua "Не вдалося згорнути FOB"
    Comment ""
    DevNote ""
@@ -3560,9 +4015,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716475750
+   Modified 1780506034
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3570,6 +4025,7 @@ StringTable {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
    Target_fr_fr "Carburant"
+   Target_de_de "Kraftstoff"
    Target_ru_ru "Топливо"
    Target_ko_kr "연료"
    Target_zh_cn "油料"
@@ -3584,13 +4040,14 @@ StringTable {
    MaxLength 0
    Modified 1706580609
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E2314F517D}" {
    Id "OVT-Garage"
    Target_en_us "Garage"
+   Target_de_de "Garage"
    Target_ru_ru "Гараж"
    Target_ko_kr "차고"
    Target_zh_cn "车库"
@@ -3605,13 +4062,14 @@ StringTable {
    MaxLength 0
    Modified 1706580619
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E23E9BF397}" {
    Id "OVT-Garage_Description"
    Target_en_us "Allows purchase of vehicles"
+   Target_de_de "Ermöglicht den Kauf von Fahrzeugen"
    Target_ru_ru "Позволяет покупать технику"
    Target_ko_kr "차량 구매를 허용합니다"
    Target_zh_cn "允许购买车辆"
@@ -3626,7 +4084,7 @@ StringTable {
    MaxLength 0
    Modified 1706583751
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3634,6 +4092,7 @@ StringTable {
    Id "OVT-Garrison"
    Target_en_us "Garrison"
    Target_fr_fr "Garnison"
+   Target_de_de "Garnison"
    Target_ru_ru "Гарнизон"
    Target_ko_kr "주둔지"
    Target_zh_cn "守备部队"
@@ -3648,7 +4107,7 @@ StringTable {
    MaxLength 0
    Modified 1706583756
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3656,6 +4115,7 @@ StringTable {
    Id "OVT-GunDealer"
    Target_en_us "Gun Dealer"
    Target_fr_fr "Marchant d'Armes"
+   Target_de_de "Waffenhändler"
    Target_ru_ru "Торговец оружием"
    Target_ko_kr "총기 딜러"
    Target_zh_cn "军火商"
@@ -3670,7 +4130,7 @@ StringTable {
    MaxLength 0
    Modified 1706580641
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3678,6 +4138,7 @@ StringTable {
    Id "OVT-Heal"
    Target_en_us "Heal"
    Target_fr_fr "Soigner"
+   Target_de_de "Heilen"
    Target_ru_ru "Лечить"
    Target_ko_kr "치료"
    Target_zh_cn "治愈"
@@ -3692,7 +4153,7 @@ StringTable {
    MaxLength 0
    Modified 1706580653
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3700,6 +4161,7 @@ StringTable {
    Id "OVT-Healed"
    Target_en_us "You have been healed"
    Target_fr_fr "Vous avez été soigné"
+   Target_de_de "Du wurdest geheilt"
    Target_ru_ru "Вы были вылечены"
    Target_ko_kr "당신은 치료되었습니다"
    Target_zh_cn "你已经痊愈"
@@ -3714,7 +4176,7 @@ StringTable {
    MaxLength 0
    Modified 1706583785
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3722,6 +4184,7 @@ StringTable {
    Id "OVT-Health"
    Target_en_us "Health"
    Target_fr_fr "Santé"
+   Target_de_de "Gesundheit"
    Target_ru_ru "Здоровье"
    Target_ko_kr "체력"
    Target_zh_cn "健康"
@@ -3736,13 +4199,14 @@ StringTable {
    MaxLength 0
    Modified 1706580707
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E648245F29C7998}" {
    Id "OVT-Helipad"
    Target_en_us "Helipad"
+   Target_de_de "Hubschrauberlandeplatz"
    Target_ko_kr "헬리포드"
    Target_zh_cn "直升机停机坪"
    Target_uk_ua "Вертолітний майданчик"
@@ -3756,13 +4220,14 @@ StringTable {
    MaxLength 0
    Modified 1706580719
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E6482493A453E1C}" {
    Id "OVT-Helipad_Description"
    Target_en_us "Allows purchase of helicopters"
+   Target_de_de "Ermöglicht den Kauf von Hubschraubern"
    Target_ko_kr "헬리콥터 구매 허용"
    Target_zh_cn "允许购买直升机"
    Target_uk_ua "Дозволяє придбати вертольоти"
@@ -3776,7 +4241,7 @@ StringTable {
    MaxLength 0
    Modified 1706580808
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3784,6 +4249,7 @@ StringTable {
    Id "OVT-HomeSet"
    Target_en_us "Your home is now set to here"
    Target_fr_fr "Votre domicile est désormais ici"
+   Target_de_de "Dein Zuhause wurde auf diesen Ort festgelegt"
    Target_ru_ru "Ваш дом теперь установлен в этой точке"
    Target_ko_kr "이제 집이 설정되었습니다."
    Target_zh_cn "你的家现在设置为这里"
@@ -3798,21 +4264,24 @@ StringTable {
    MaxLength 0
    Modified 1706580835
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D6C32BD9BC2121}" {
    Id "OVT-House"
    Target_en_us "House"
+   Target_de_de "Haus"
+   Target_uk_ua "Будинок"
    Modified 1708573829
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
    Target_en_us "Import"
    Target_fr_fr "Importer"
+   Target_de_de "Importieren"
    Target_ru_ru "Импорт"
    Target_ko_kr "가져오기"
    Target_zh_cn "进口"
@@ -3827,7 +4296,7 @@ StringTable {
    MaxLength 0
    Modified 1706580843
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3835,6 +4304,7 @@ StringTable {
    Id "OVT-Income"
    Target_en_us "Income"
    Target_fr_fr "Revenu"
+   Target_de_de "Einkommen"
    Target_ru_ru "Доход"
    Target_ko_kr "수입"
    Target_zh_cn "出口"
@@ -3849,7 +4319,7 @@ StringTable {
    MaxLength 0
    Modified 1706580853
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3865,6 +4335,13 @@ StringTable {
    Target_fr_fr "Bienvenue sur Overthrow! Ceci est votre domicile, vous réapparaitrez ici et pourrez y effectuer des déplacement rapides pour pas très cher dans le menu principal <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. Vous possédez également une voiture dans le garage."\
    ""\
    "Pour plus d'informations sur les fonctionnalités d'Overthrow, ouvrez le \"Manuel de terrain\""
+   Target_de_de "Willkommen bei Overthrow! Dies ist dein Zuhause. Du wirst hier wieder einsteigen und kannst gegen eine kleine Gebühr hierher schnellreisen, indem du das Hauptmenü mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> öffnest."\
+   ""\
+   "Du besitzt ein Auto, das in deiner Garage geparkt ist, und in deiner Hose befindet sich eine Handfeuerwaffe. Der Feind hält dich für einen Zivilisten, solange er dich nicht mit einer Waffe sieht, und wird nicht auf dich schießen. Sei deshalb vorsichtig, wenn du in seiner Nähe eine Waffe ausrüstest. Oben rechts erscheinen Sterne, wenn du vom Feind als \"wanted\" gesucht wirst."\
+   ""\
+   "Wenn Overthrow neu für dich ist, findest du im Bereich \"Jobs\" des Overthrow-Hauptmenüs eine Reihe von Tutorials."\
+   ""\
+   "Weitere Informationen zu den Funktionen und zum Gameplay von Overthrow findest du im \"Feldhandbuch\"."
    Target_ru_ru "Приветствую в Overthrow! Этой ваш дом, вы будете здесь возрождаться, вы можете быстро перемещаться сюда с небольшой платой, через главное меню <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. В гараже стоит ваша машина."\
    ""\
    "Для дополнительной информации о возможностях и геймплее вы можете посмотреть в \"Полевом мануале\"."
@@ -3897,7 +4374,7 @@ StringTable {
    MaxLength 0
    Modified 1706583963
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3905,6 +4382,7 @@ StringTable {
    Id "OVT-IsHome"
    Target_en_us "Your Home (Respawn Point)"
    Target_fr_fr "Domicile (Point de réapparition)"
+   Target_de_de "Dein Zuhause (Wiedereinstiegspunkt)"
    Target_ru_ru "Ваш дом (Точка возрождения)"
    Target_ko_kr "당신의 집 (리스폰 지점)"
    Target_zh_cn "你的房子（重生点）"
@@ -3919,7 +4397,7 @@ StringTable {
    MaxLength 0
    Modified 1706581046
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3927,6 +4405,7 @@ StringTable {
    Id "OVT-Item_Weed_Description"
    Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
    Target_fr_fr "C'est de la bonne mais il faut pas y toucher. Peut être vendu aux civils pour gagner un peu d'argent"
+   Target_de_de "Eine Viertelunze vom feinsten klebrigen Gras. Kann mit kleinem Gewinn an Zivilisten verkauft werden."
    Target_ru_ru "Четверть унции высококласной травки. Может быть продан гражданским лицам с небольшой прибылью."
    Target_ko_kr "최고급 대마초 1/4온스. 민간인에게 팔아 약간의 수익을 올릴 수 있음."
    Target_zh_cn "四分之一盎司的高品质大麻，可以卖给平民赚点小钱。"
@@ -3941,7 +4420,7 @@ StringTable {
    MaxLength 0
    Modified 1706584076
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -3949,6 +4428,7 @@ StringTable {
    Id "OVT-Item_Weed_Name"
    Target_en_us "Weed"
    Target_fr_fr "Weed"
+   Target_de_de "Cannabis"
    Target_ru_ru "Травка"
    Target_ko_kr "대마초"
    Target_zh_cn "烟草"
@@ -3963,22 +4443,24 @@ StringTable {
    MaxLength 0
    Modified 1706581088
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992E2F582B25E28}" {
    Id "OVT-ItemLimitReached"
    Target_en_us "Item limit reached at this location"
+   Target_de_de "Gegenstandslimit an diesem Ort erreicht"
    Target_ru_ru "Достигнут лимит предметов в этом месте"
    Target_uk_ua "Досягнуто ліміт предметів у цьому місці"
    Modified 1716475283
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D86A310C893DBE1}" {
    Id "OVT-ItemProgress"
    Target_en_us "Item %1 of %2"
+   Target_de_de "Gegenstand %1 von %2"
    Target_uk_ua "Предмет %1 з %2"
    Comment ""
    DevNote ""
@@ -3990,23 +4472,25 @@ StringTable {
    MaxLength 0
    Modified 1716475253
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992E2F582B25E2A}" {
    Id "OVT-ItemRemoved"
    Target_en_us "Item removed"
+   Target_de_de "Gegenstand entfernt"
    Target_ru_ru "Предмет удален"
    Target_uk_ua "Предмет видалено"
    Modified 1716475235
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
    Target_fr_fr "Un marqueur a été placé sur la carte"
+   Target_de_de "Deiner Karte wurde eine Wegpunktmarkierung hinzugefügt"
    Target_ru_ru "Маркер с маршрутной точкой добавлен на карту"
    Target_ko_kr "지도에 웨이포인트 마커가 추가되었습니다"
    Target_zh_cn "路点标记已添加到你的地图"
@@ -4021,13 +4505,15 @@ StringTable {
    MaxLength 0
    Modified 1706584098
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000073}" {
    Id "OVT-Job_AssassinateOfficer"
    Target_en_us "Assassinate Officer"
+   Target_de_de "Offizier ausschalten"
+   Target_uk_ua "Убивство офіцера"
    Comment "Jobs menu - title of the repeatable base officer assassination job"
    DevNote ""
    Repro ""
@@ -4038,13 +4524,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000074}" {
    Id "OVT-Job_AssassinateOfficer_Description"
    Target_en_us "The officer running this base is the reason the surrounding towns keep their heads down. Get inside, kill him, and get out. The garrison will be exactly as unhappy about it as you would expect - but the towns nearby will remember it."
+   Target_de_de "Der Offizier, der diese Basis führt, ist der Grund dafür, dass die umliegenden Städte den Kopf einziehen. Dring ein, töte ihn und verschwinde wieder. Die Garnison wird darüber genauso unglücklich sein, wie du es erwartest – aber die Städte in der Nähe werden sich daran erinnern."
+   Target_uk_ua "Саме командир цієї бази тримає в страху весь навколишній регіон. Ваша мета — проникнути на об'єкт, ліквідувати офіцера та оперативно відійти. Ворожий гарнізон миттєво підніме тривогу й кине всі сили на ваш пошук, проте цей удар по окупантах підніме бойовий дух місцевих жителів і схилить сусідні міста на бік опору."
    Comment "Jobs menu - description of the repeatable base officer assassination job"
    DevNote ""
    Repro ""
@@ -4055,7 +4543,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4063,6 +4551,7 @@ StringTable {
    Id "OVT-Job_AssassinateTraitor"
    Target_en_us "Assassinate Traitor"
    Target_fr_fr "Élimination de déserteur"
+   Target_de_de "Verräter ausschalten"
    Target_ru_ru "Уничтожить предателя"
    Target_ko_kr "배신자 제거"
    Target_zh_cn "刺杀叛徒"
@@ -4077,7 +4566,7 @@ StringTable {
    MaxLength 0
    Modified 1706584118
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4087,6 +4576,9 @@ StringTable {
    ""\
    "Eliminate this traitor before they can reveal any information."
    Target_fr_fr "Un membre de la résistance a déserté et est désormais sous haute protection. Nous l'avons repéré dans une planque. Éliminez le traitre avant qu'il ne puisse révéler quoi que ce soit."
+   Target_de_de "Ein Mitglied des Widerstands ist übergelaufen und befindet sich in Schutzhaft. Wir haben seinen Aufenthaltsort bis zu einem Haus zurückverfolgt."\
+   ""\
+   "Eliminiere diesen Verräter, bevor er irgendwelche Informationen preisgeben kann."
    Target_ru_ru "Один из членов сопротивления предал нас и теперь находится под охраной противника. Мы отследили дом, где он скрывается. "\
    ""\
    "Устраните предателя до того, как он сможет раскрыть какую-либо информацию."
@@ -4109,7 +4601,7 @@ StringTable {
    MaxLength 0
    Modified 1706584302
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4117,6 +4609,7 @@ StringTable {
    Id "OVT-Job_BaseRecon"
    Target_en_us "Reconnaissance"
    Target_fr_fr "Reconnaissance"
+   Target_de_de "Aufklärung"
    Target_ru_ru "Разведка"
    Target_ko_kr "정찰"
    Target_zh_cn "侦察"
@@ -4131,7 +4624,7 @@ StringTable {
    MaxLength 0
    Modified 1706584312
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4141,6 +4634,9 @@ StringTable {
    ""\
    "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
    Target_fr_fr "Approchez vous d'une base pour en étudier l'importance de ses défenses. Vous devez vous trouvez à moins de 100 mètres de la base pour avoir un bon point de vue. Faites attention à ne pas vous faire repérer dans les zones interdites marquées en rouge sur la carte, au risque de vous faire tirer dessus"
+   Target_de_de "Besuche eine Basis in der Nähe, um die Stärke ihrer Verteidigung festzustellen. Du musst bis auf 100 m an die Flagge der Basis herankommen, um sie gut auskundschaften zu können."\
+   ""\
+   "Achte darauf, im auf deiner Karte rot markierten Sperrgebiet nicht gesehen zu werden, sonst wird auf dich geschossen."
    Target_ru_ru "Подойдите к близжайшей базе, чтобы определить насколько сильно построена оборона. Вам нужно будет подойти на расстояние не более 100 метров к базе, чтобы хорошенько ее рассмотреть."\
    ""\
    "Будьте осторожны, чтобы вас не заметили в пределах запретной зоны, отмеченной красным цветом на вашей карте, иначе в вас будут стрелять."
@@ -4163,7 +4659,7 @@ StringTable {
    MaxLength 0
    Modified 1706584390
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4171,6 +4667,7 @@ StringTable {
    Id "OVT-Job_FindGunDealer"
    Target_en_us "Tutorial - Find a gun dealer"
    Target_fr_fr "Trouver un marchant d'armes"
+   Target_de_de "Tutorial – Einen Waffenhändler finden"
    Target_ru_ru "Найти торговца оружием"
    Target_ko_kr "튜토리얼 - 총기 딜러 찾기"
    Target_zh_cn "教程 - 寻找军火商"
@@ -4185,7 +4682,7 @@ StringTable {
    MaxLength 0
    Modified 1706584411
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4195,6 +4692,9 @@ StringTable {
    ""\
    "Visit the nearest gun dealer to see what items they have available."
    Target_fr_fr "Les marchants d'armes peuvent être trouvés dans les grands bourgs & villes. Ce sont des marchants indépendants qui stockent des armes et d'autres objets illégaux. Rendez vous au plus proche pour voir quels objets sont disponibles."
+   Target_de_de "Waffenhändler befinden sich in größeren Ortschaften und Städten. Sie sind unabhängige Händler, die Waffen und andere illegale Gegenstände auf Lager haben. Jeder Waffenhändler verkauft sämtliche Munition sowie eine zufällige Waffe jeder Art. Probiere daher verschiedene Städte aus, um die gesuchte Waffe zu finden."\
+   ""\
+   "Besuche den nächstgelegenen Waffenhändler und sieh dir an, welche Gegenstände er anbietet."
    Target_ru_ru "Торговцы оружием расположены в крупных городах. Это независимые торговцы, которые торгуют оружием и другими незаконными товарами."\
    ""\
    "Посетите ближайшего торговца оружием, чтобы узнать, какие товары у него есть в наличии."\
@@ -4219,13 +4719,14 @@ StringTable {
    MaxLength 0
    Modified 1706584472
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D9E51CB2C43D69B}" {
    Id "OVT-Job_FindShop"
    Target_en_us "Tutorial - Find a shop"
+   Target_de_de "Tutorial – Ein Geschäft finden"
    Target_ru_ru "Найти магазин"
    Target_ko_kr "튜토리얼 - 상점 찾기"
    Target_zh_cn "教程 - 寻找商店"
@@ -4240,7 +4741,7 @@ StringTable {
    MaxLength 0
    Modified 1706584483
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4249,6 +4750,9 @@ StringTable {
    Target_en_us "Many towns on the map have various shops where you can purchase legal items. They are marked on the map by different icons representing the type of shop."\
    ""\
    "Visit the nearest shop and see what items they have available by performing an action on the cash register."
+   Target_de_de "In vielen Städten auf der Karte gibt es verschiedene Geschäfte, in denen du legale Gegenstände kaufen kannst. Sie sind auf der Karte durch unterschiedliche Symbole gekennzeichnet, die die jeweilige Art des Geschäfts darstellen."\
+   ""\
+   "Besuche das nächstgelegene Geschäft und sieh dir an, welche Gegenstände dort verfügbar sind, indem du eine Aktion an der Kasse ausführst."
    Target_ru_ru "Во многих городах на карте есть различные магазины, где вы можете приобрести легальные товары. Они отмечены на карте различными значками, обозначающими тип магазина."\
    ""\
    "Посетите ближайший магазин и посмотрите, какие товары у них есть в наличии, нажав на кассовый аппарат."
@@ -4272,13 +4776,14 @@ StringTable {
    MaxLength 0
    Modified 1706584490
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D9E322DC34EA5A4}" {
    Id "OVT-Job_InProgress"
    Target_en_us "In Progress:"
+   Target_de_de "In Bearbeitung:"
    Target_ru_ru "В работе:"
    Target_ko_kr "진행 중:"
    Target_zh_cn "正在进行中:"
@@ -4293,13 +4798,15 @@ StringTable {
    MaxLength 0
    Modified 1706584522
    Author "bgui3"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000044}" {
    Id "OVT-Job_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_de_de "Piratensender"
+   Target_uk_ua "Піратське радіо"
    Comment "Jobs menu - title of the repeatable public pirate radio job"
    DevNote ""
    Repro ""
@@ -4310,13 +4817,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000045}" {
    Id "OVT-Job_PirateRadio_Description"
    Target_en_us "Word travels further than paper. Set up a pirate radio transmitter in this town to broadcast for the resistance. You'll have to buy the transmitter yourself using the 'Place' option in the main menu, and being seen by soldiers placing it will make you wanted."
+   Target_de_de "Worte verbreiten sich weiter als Papier. Errichte in dieser Stadt einen Piratensender, um für den Widerstand zu senden. Du musst den Sender selbst über die Option 'Place' im Hauptmenü kaufen. Wenn Soldaten dich beim Platzieren sehen, wirst du gesucht."
+   Target_uk_ua "Слово розходиться далі, ніж папір. Встановіть у цьому місті піратський радіопередавач, щоб вести мовлення на підтримку опору. Вам доведеться придбати передавач самостійно через пункт «Розмістити» в головному меню, але зважте: якщо ворожі солдати помітять вас під час його встановлення, ви потрапите у розшук."
    Comment "Jobs menu - description of the repeatable public pirate radio job"
    DevNote ""
    Repro ""
@@ -4327,17 +4836,18 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65CD1C84C885C17F}" {
    Id "OVT-Job_PlaceCamp"
    Target_en_us "Tutorial - Place a camp"
+   Target_de_de "Tutorial – Ein Camp errichten"
    Target_uk_ua "Навчання - Розмістіть табір"
    Modified 1716475214
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65CD1C84DFC4F3AD}" {
    Id "OVT-Job_PlaceCamp_Description"
@@ -4352,6 +4862,17 @@ StringTable {
    "You can also set a camp as \"home' so you will respawn there on your death."\
    ""\
    "Place a camp by opening the Overthrow menu and choosing \"Place\". Put it somewhere useful so you can easily get back to an area where you are currently operating or where you parked your vehicle."
+   Target_de_de "Camps können überall platziert werden, solange sie nicht zu nah an einer Basis liegen."\
+   ""\
+   "Ein Camp erzeugt einen Schnellreisepunkt, den jeder Spieler nutzen kann, und ermöglicht es dir, einige grundlegende Gegenstände in seiner Umgebung zu platzieren oder zu bauen."\
+   ""\
+   "Über \"Camp verwalten\" kannst du dein Camp außerdem auf privat stellen, wenn du nicht möchtest, dass andere Spieler dorthin schnellreisen."\
+   ""\
+   "Jeder Spieler darf nur ein Camp gleichzeitig besitzen. Wenn du ein neues Camp platzierst, werden dein altes Camp sowie alle Gegenstände gelöscht, die du dort platziert oder gebaut hast."\
+   ""\
+   "Du kannst ein Camp außerdem als \"Zuhause' festlegen, sodass du dort nach deinem Tod wieder einsteigst."\
+   ""\
+   "Platziere ein Camp, indem du das Overthrow-Menü öffnest und \"Platzieren\" auswählst. Stelle es an einem nützlichen Ort auf, damit du leicht in ein Gebiet zurückkehren kannst, in dem du gerade operierst oder in dem du dein Fahrzeug geparkt hast."
    Target_uk_ua "Табори можна розміщувати будь-де, де вони не будуть занадто близько до бази."\
    ""\
    "Вони створюють точку швидкого переміщення, якою може користуватися будь-який гравець, і дозволяють розміщувати/будувати базові предмети поруч."\
@@ -4365,15 +4886,16 @@ StringTable {
    "Щоб розмістити табір, відкрийте меню Overthrow і виберіть \"Розмістити\". Встановіть його у корисному місці, щоб легко повертатися до зони, де ви зараз дієте, або де залишили свій транспорт."
    Modified 1716475188
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65CD0E9BACF7992F}" {
    Id "OVT-Job_PlaceEquipmentBox"
    Target_en_us "Tutorial - Place an Equipment Box"
+   Target_de_de "Tutorial – Eine Ausrüstungskiste platzieren"
    Target_uk_ua "Навчання - Розмістіть ящик із екіпіруванням"
    Modified 1716475027
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65CD0E9BBC6527A5}" {
    Id "OVT-Job_PlaceEquipmentBox_Description"
@@ -4387,6 +4909,16 @@ StringTable {
    "- Save your current loadout and apply it to yourself or nearby recruits"\
    ""\
    "Use the \"Place\" option in the Overthrow menu to place one at your house, your camp, an FOB or a base."
+   Target_de_de "Eine Ausrüstungskiste ist ein sehr nützlicher Lagerbehälter mit zusätzlichen Funktionen in Overthrow."\
+   ""\
+   "Sie kann:"\
+   "- alle Arten von Ausrüstung lagern"\
+   "- gesperrt werden, damit andere Spieler nicht darauf zugreifen können"\
+   "- in ein Fahrzeug in der Nähe entladen werden"\
+   "- aus einem Fahrzeug in der Nähe beladen werden"\
+   "- deine aktuelle Ausrüstung speichern und auf dich selbst oder Rekruten in der Nähe anwenden"\
+   ""\
+   "Verwende die Option \"Platzieren\" im Overthrow-Menü, um eine an deinem Haus, deinem Camp, einem FOB oder einer Basis zu platzieren."
    Target_uk_ua "Ящик із екіпіруванням — це дуже корисний контейнер для зберігання з додатковими функціями в Overthrow."\
    ""\
    "Він може:"\
@@ -4399,11 +4931,13 @@ StringTable {
    "Використайте опцію \"Розмістити\" в меню Overthrow, щоб встановити його у вашому будинку, таборі, на FOB або базі."
    Modified 1716474987
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7D9B2E00000042}" {
    Id "OVT-Job_PropagandaRun"
    Target_en_us "Propaganda Run"
+   Target_de_de "Propagandaaktion"
+   Target_uk_ua "Розповсюдження пропаганди"
    Comment "Jobs menu - title of the repeatable public poster job"
    DevNote ""
    Repro ""
@@ -4414,13 +4948,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000043}" {
    Id "OVT-Job_PropagandaRun_Description"
    Target_en_us "The town needs reminding who the occupiers are. Put up a resistance poster somewhere in town - a wall in plain sight, where people will see it. Don't let the occupying forces catch you doing it."
+   Target_de_de "Die Stadt muss daran erinnert werden, wer die Besatzer sind. Bringe irgendwo in der Stadt ein Widerstandsplakat an – an einer gut sichtbaren Wand, wo die Leute es sehen werden. Lass dich dabei nicht von den Besatzungstruppen erwischen."
+   Target_uk_ua "Місцевим жителям треба нагадати, хто тут окупанти. Розклейте плакат опору десь у місті — на видному місці, на стіні, де його побачать люди. Головне — не попадіться на очі окупаційним військам під час роботи."
    Comment "Jobs menu - description of the repeatable public poster job"
    DevNote ""
    Repro ""
@@ -4431,7 +4967,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4439,6 +4975,7 @@ StringTable {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Tutorial - Raise Support"
    Target_fr_fr "Augmenter le soutien"
+   Target_de_de "Tutorial – Unterstützung erhöhen"
    Target_ru_ru "Увеличить поддержку"
    Target_ko_kr "튜토리얼 - 지원 강화하기"
    Target_zh_cn "教程 - 提高支持度"
@@ -4453,7 +4990,7 @@ StringTable {
    MaxLength 0
    Modified 1706581304
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4465,6 +5002,11 @@ StringTable {
    ""\
    "Check your progress using the \"Map Info\" menu option. You can raise support in any village, town or city without needing a job to do it."
    Target_fr_fr "Les partisans représentent une importante source de revenus pour la résistance. Ralliez les à votre cause en collant des affiches dans et autour de la commune en utilisant l'option \"Placer\" du menu, puis attendez qu'au moins 15% y prêtent attention. Vous pouvez également leur fournir du matériel médical comme des bandages ou de l'insuline pour accélérer leur ralliement."
+   Target_de_de "Unterstützer in dieser Stadt liefern dem Widerstand in Form von Spenden eine dringend benötigte Einnahmequelle."\
+   ""\
+   "Erhöhe die Unterstützung, indem du mit der Option \"Platzieren\" im Overthrow-Menü Plakate in und um die Stadt platzierst und wartest, bis sie 15 % der Einwohner ins Auge fallen. Du kannst außerdem medizinische Vorräte wie Verbände und Aspirinflaschen ausliefern, indem du sie in dein Auto legst und im Kofferraum die Option \"Deliver Medical Supplies\" verwendest."\
+   ""\
+   "Überprüfe deinen Fortschritt in der \"Map\"sehen. Du kannst die Unterstützung in jedem Dorf, jeder Ortschaft und jeder Stadt erhöhen, ohne dafür einen Auftrag zu benötigen."
    Target_ru_ru "Сторонники в этом городе принесут столь необходимый сопротивлению источник дохода в виде пожертвований."\
    ""\
    "Соберите поддержку людей, разместив плакаты в городе и его окрестностях, используя опцию \"Разместить\" в главном меню \"Overthtow\" и дождитесь, пока они привлекут внимание 15% жителей города. Вы также можете доставить медицинские принадлежности, такие как бинты и флаконы с аспирином, поместив их в свой автомобиль и воспользовавшись опцией \"Доставить медицину\" в багажнике."\
@@ -4497,17 +5039,18 @@ StringTable {
    MaxLength 0
    Modified 1706581371
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65CD1C80A56DB4F2}" {
    Id "OVT-Job_RecruitACivilian"
    Target_en_us "Tutorial - Recruit a civilian"
+   Target_de_de "Tutorial – Einen Zivilisten rekrutieren"
    Target_uk_ua "Навчання - Рекрутируйте цивільного"
    Modified 1716474803
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65CD1C80A8F890D1}" {
    Id "OVT-Job_RecruitACivilian_Description"
@@ -4518,6 +5061,13 @@ StringTable {
    "2. Build a \"Recruitment Tent\" at an FOB"\
    ""\
    "Once recruited you can command them using the \"Command menu\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
+   Target_de_de "Zivilisten können für deinen Trupp rekrutiert werden."\
+   ""\
+   "Es gibt zwei Möglichkeiten, sie zu rekrutieren:"\
+   "1. Geh auf der Straße zu ihnen und rekrutiere sie direkt"\
+   "2. Baue ein \"Rekrutierungszelt\" an einem FOB"\
+   ""\
+   "Nach der Rekrutierung kannst du ihnen über das \"Command menu\" mit <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color> Befehle erteilen."
    Target_uk_ua "Цивільних можна рекрутувати до вашого загону."\
    ""\
    "Існує два способи рекрутувати їх:"\
@@ -4527,11 +5077,13 @@ StringTable {
    "Після рекрутингу ви можете командувати ними використовуючи \"Командне Меню\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
    Modified 1716474680
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7D9B2E0000005D}" {
    Id "OVT-Job_SabotageRadioTower"
    Target_en_us "Sabotage Radio Tower"
+   Target_de_de "Funkturm sabotieren"
+   Target_uk_ua "Диверсія на радіовежі"
    Comment "Jobs menu - title of the repeatable public radio tower sabotage job"
    DevNote ""
    Repro ""
@@ -4542,13 +5094,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000005E}" {
    Id "OVT-Job_SabotageRadioTower_Description"
    Target_en_us "An occupier transmitter near this town is drowning out everything we put out. Get to the tower and sabotage it - it will be off the air long enough to matter. It will be guarded, and if you are seen at it you will be a wanted person."
+   Target_de_de "Ein Sender der Besatzer in der Nähe dieser Stadt übertönt alles, was wir ausstrahlen. Geh zum Turm und sabotiere ihn – er wird lange genug außer Betrieb sein, um einen Unterschied zu machen. Er wird bewacht, und wenn man dich dort sieht, wirst du gesucht."
+   Target_uk_ua "Радіопередавач окупантів поблизу цього міста глушить усі наші трансляції. Дістаньтеся вежі та виведіть її з ладу — вона вийде з ладу на достатньо тривалий час. Об'єкт охороняється, і якщо вас помітять біля нього, ви опинитеся в розшуку."
    Comment "Jobs menu - description of the repeatable public radio tower sabotage job"
    DevNote ""
    Repro ""
@@ -4559,7 +5113,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4567,6 +5121,7 @@ StringTable {
    Id "OVT-Jobs_Accept"
    Target_en_us "Accept"
    Target_fr_fr "Accepter"
+   Target_de_de "Annehmen"
    Target_ru_ru "Принять"
    Target_ko_kr "수락하기"
    Target_zh_cn "接受"
@@ -4581,7 +5136,7 @@ StringTable {
    MaxLength 0
    Modified 1706584659
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4589,6 +5144,7 @@ StringTable {
    Id "OVT-Jobs_Completed"
    Target_en_us "Job Completed"
    Target_fr_fr "Accompli"
+   Target_de_de "Auftrag abgeschlossen"
    Target_ru_ru "Работа выполнена"
    Target_ko_kr "임무 완료"
    Target_zh_cn "工作完成"
@@ -4603,7 +5159,7 @@ StringTable {
    MaxLength 0
    Modified 1706584670
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4611,6 +5167,7 @@ StringTable {
    Id "OVT-Jobs_Decline"
    Target_en_us "Decline"
    Target_fr_fr "Refuser"
+   Target_de_de "Ablehnen"
    Target_ru_ru "Отказаться"
    Target_ko_kr "거절하기"
    Target_zh_cn "拒绝"
@@ -4625,7 +5182,7 @@ StringTable {
    MaxLength 0
    Modified 1706584678
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4633,6 +5190,7 @@ StringTable {
    Id "OVT-Jobs_NoJobs"
    Target_en_us "There are currently no jobs available"
    Target_fr_fr "Il n'y a actuellement aucun Jobs disponible"
+   Target_de_de "Derzeit sind keine Aufträge verfügbar"
    Target_ru_ru "На текущий момент нет доступной работы"
    Target_ko_kr "현재 이용 가능한 임무가 없습니다"
    Target_zh_cn "当前没有可用的任务"
@@ -4647,7 +5205,7 @@ StringTable {
    MaxLength 0
    Modified 1706584696
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4655,6 +5213,7 @@ StringTable {
    Id "OVT-Jobs_ShowOnMap"
    Target_en_us "Show On Map"
    Target_fr_fr "Montrer sur la carte"
+   Target_de_de "Auf Karte anzeigen"
    Target_ru_ru "Показать на карте"
    Target_ko_kr "지도에 표시하기"
    Target_zh_cn "在地图上显示"
@@ -4669,24 +5228,26 @@ StringTable {
    MaxLength 0
    Modified 1706584704
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{64685092EE73FE51}" {
    Id "OVT-JobsMenuDescription"
    Target_en_us "These jobs are designed to be a tutorial for the game mode. They are not a great source of income and just show you what is possible. Overthrow is an open-world game mode where YOU decide how to further the cause of the revolution. You will make a lot more money by raising support and taking towns. So get out there and raise support, capture bases and take over the island!"
+   Target_de_de "Diese Aufträge sind als Tutorial für den Spielmodus gedacht. Sie sind keine besonders gute Einnahmequelle, sondern zeigen dir lediglich, was möglich ist. Overthrow ist ein Open-World-Spielmodus, in dem DU entscheidest, wie du die Revolution voranbringst. Du wirst deutlich mehr Geld verdienen, indem du Unterstützung erhöhst und Städte einnimmst. Also geh raus, erhöhe die Unterstützung, erobere Basen und übernimm die Insel!"
    Target_ko_kr "이 임무들은 게임 모드의 튜토리얼용으로 설계되었습니다. 많은 수입을 기대하기보다는 가능한 활동들을 보여주기 위한 것입니다. Overthrow는 당신이 혁명의 대의를 위해 어떻게 행동할지 스스로 결정하는 오픈 월드 게임 모드입니다. 지지자를 모으고 마을을 점령하는 것이 훨씬 더 많은 돈을 벌 수 있는 방법입니다. 그러니 밖으로 나가서 지지를 모으고, 기지를 점령하며 섬을 장악하세요!"\
    ""
    Target_zh_cn "这些工作主要用于教学目的，帮助玩家熟悉游戏机制。这些任务的收入有限，旨在展示游戏中的可能性。抵抗是一个开放类世界游戏模式，你可以决定如何进一步抵抗革命事业。通过提高支持度和占领城镇，你将更多的资金和资源。因此，积极争取支持、占领基地并逐步控制整个岛屿吧！"
    Target_uk_ua "Ці завдання призначені як навчальний посібник для ігрового режиму. Вони не дають великого доходу і лише показують, що можливо зробити. Overthrow - це відкритий світовий ігровий режим, де ВИ вирішуєте, як просувати справу революції. Ви заробите набагато більше, збираючи підтримку та захоплюючи міста. Тож вирушайте туди, збирайте підтримку, захоплюйте бази та підкорюйте острів!"
    Modified 1716474338
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{A1B2C3D4E5F60002}" {
    Id "OVT-LoadLoadout"
    Target_en_us "Load Loadout"
+   Target_de_de "Ausrüstung laden"
    Target_uk_ua "Завантажити комплект спорядження"
    Comment "UserAction for loading player equipment loadouts"
    DevNote ""
@@ -4698,13 +5259,14 @@ StringTable {
    MaxLength 0
    Modified 1716474267
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60005}" {
    Id "OVT-LoadLoadoutMessage"
    Target_en_us "Select a loadout to apply:"
+   Target_de_de "Wähle eine anzuwendende Ausrüstung:"
    Target_uk_ua "Виберіть комплект спорядження для застосування:"
    Comment "Message for load loadout dialog"
    DevNote ""
@@ -4716,13 +5278,14 @@ StringTable {
    MaxLength 0
    Modified 1716474250
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169A}" {
    Id "OVT-LoadoutApplied"
    Target_en_us "Loadout applied successfully"
+   Target_de_de "Ausrüstung erfolgreich angewendet"
    Target_uk_ua "Комплект спорядження застосовано успішно"
    Comment "Confirmation message when loadout is applied"
    DevNote ""
@@ -4734,13 +5297,14 @@ StringTable {
    MaxLength 0
    Modified 1716474226
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A5}" {
    Id "OVT-Loadouts_AppliedToAllRecruits"
    Target_en_us "Applied loadout '%1' to %2 recruits"
+   Target_de_de "Ausrüstung '%1' auf %2 Rekruten angewendet"
    Target_uk_ua "Комплект спорядження '%1' застосовано до %2 рекрутів"
    Comment "Success message when loadout is applied to all recruits"
    DevNote ""
@@ -4752,13 +5316,14 @@ StringTable {
    MaxLength 0
    Modified 1716474208
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A4}" {
    Id "OVT-Loadouts_AppliedToRecruit"
    Target_en_us "Applied loadout '%1' to %2"
+   Target_de_de "Ausrüstung '%1' auf %2 angewendet"
    Target_uk_ua "Комплект спорядження '%1' застосовано до %2"
    Comment "Success message when loadout is applied to a recruit"
    DevNote ""
@@ -4770,13 +5335,14 @@ StringTable {
    MaxLength 0
    Modified 1716474190
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391696}" {
    Id "OVT-Loadouts_Apply"
    Target_en_us "Apply to Self"
+   Target_de_de "Auf dich anwenden"
    Target_uk_ua "Застосувати до себе"
    Comment "Button to apply selected loadout to player"
    DevNote ""
@@ -4788,13 +5354,14 @@ StringTable {
    MaxLength 0
    Modified 1716474166
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169E}" {
    Id "OVT-Loadouts_ApplyToAll"
    Target_en_us "Apply to All"
+   Target_de_de "Auf alle anwenden"
    Target_uk_ua "Застосувати до всіх"
    Comment "Button to apply loadout to all nearby recruits"
    DevNote ""
@@ -4806,13 +5373,14 @@ StringTable {
    MaxLength 0
    Modified 1716474141
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169D}" {
    Id "OVT-Loadouts_ApplyToSelected"
    Target_en_us "Apply to Selected"
+   Target_de_de "Auf Auswahl anwenden"
    Target_uk_ua "Застосувати до вибраного"
    Comment "Button to apply loadout to selected recruit"
    DevNote ""
@@ -4824,13 +5392,14 @@ StringTable {
    MaxLength 0
    Modified 1716474125
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391697}" {
    Id "OVT-Loadouts_Delete"
    Target_en_us "Delete"
+   Target_de_de "Löschen"
    Target_uk_ua "Видалити"
    Comment "Button to delete selected loadout"
    DevNote ""
@@ -4842,13 +5411,14 @@ StringTable {
    MaxLength 0
    Modified 1716474106
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A8}" {
    Id "OVT-Loadouts_FailedToApply"
    Target_en_us "Failed to apply loadout"
+   Target_de_de "Ausrüstung konnte nicht angewendet werden"
    Target_uk_ua "Не вдалося застосувати комплект спорядження"
    Comment "Error message when loadout application fails"
    DevNote ""
@@ -4860,13 +5430,14 @@ StringTable {
    MaxLength 0
    Modified 1716474098
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391693}" {
    Id "OVT-Loadouts_ManageLoadouts"
    Target_en_us "Manage Loadouts"
+   Target_de_de "Ausrüstungen verwalten"
    Target_uk_ua "Керування комплектами спорядження"
    Comment "Title for loadout management screen"
    DevNote ""
@@ -4878,13 +5449,14 @@ StringTable {
    MaxLength 0
    Modified 1716474078
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169B}" {
    Id "OVT-Loadouts_NearbyRecruits"
    Target_en_us "Nearby Recruits"
+   Target_de_de "Rekruten in der Nähe"
    Target_uk_ua "Рекрути поблизу"
    Comment "Title for nearby recruits section"
    DevNote ""
@@ -4896,13 +5468,14 @@ StringTable {
    MaxLength 0
    Modified 1716474063
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A7}" {
    Id "OVT-Loadouts_NoEquipmentBox"
    Target_en_us "No equipment box available"
+   Target_de_de "Keine Ausrüstungskiste verfügbar"
    Target_uk_ua "Ящик із екіпіруванням відсутній"
    Comment "Error message when trying to apply loadout without equipment box"
    DevNote ""
@@ -4914,13 +5487,14 @@ StringTable {
    MaxLength 0
    Modified 1716474042
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391695}" {
    Id "OVT-Loadouts_NoLoadoutsHelp"
    Target_en_us "No loadouts saved yet. Use an equipment box to save your current loadout, then come back here to manage and apply them."
+   Target_de_de "Noch keine Ausrüstungen gespeichert. Verwende eine Ausrüstungskiste, um deine aktuelle Ausrüstung zu speichern, und kehre anschließend hierher zurück, um sie zu verwalten und anzuwenden."
    Target_uk_ua "Поки що жодного комплекту спорядження не збережено. Використайте ящик із екіпіруванням, щоб зберегти ваш поточний комплект, а потім поверніться сюди, щоб керувати ними та застосовувати їх."
    Comment "Help text when no loadouts exist"
    DevNote ""
@@ -4932,13 +5506,14 @@ StringTable {
    MaxLength 0
    Modified 1716474023
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A3}" {
    Id "OVT-Loadouts_NoRecruitSelected"
    Target_en_us "No recruit selected"
+   Target_de_de "Kein Rekrut ausgewählt"
    Target_uk_ua "Рекрут не вибраний"
    Comment "Error message when no recruit is selected"
    DevNote ""
@@ -4950,13 +5525,14 @@ StringTable {
    MaxLength 0
    Modified 1716473969
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169C}" {
    Id "OVT-Loadouts_NoRecruitsNearby"
    Target_en_us "No recruits nearby"
+   Target_de_de "Keine Rekruten in der Nähe"
    Target_uk_ua "Поруч немає рекрутів"
    Comment "Message when no recruits are found nearby"
    DevNote ""
@@ -4968,13 +5544,14 @@ StringTable {
    MaxLength 0
    Modified 1716473953
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391698}" {
    Id "OVT-Loadouts_PersonalLoadout"
    Target_en_us "Personal loadout"
+   Target_de_de "Persönliche Ausrüstung"
    Target_uk_ua "Особистий комплект спорядження"
    Comment "Label for personal loadouts in list"
    DevNote ""
@@ -4986,13 +5563,14 @@ StringTable {
    MaxLength 0
    Modified 1716473933
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391699}" {
    Id "OVT-Loadouts_Ready"
    Target_en_us "Ready"
+   Target_de_de "Bereit"
    Target_uk_ua "Готовий"
    Comment "Status text for available loadouts"
    DevNote ""
@@ -5004,13 +5582,14 @@ StringTable {
    MaxLength 0
    Modified 1716473911
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A1}" {
    Id "OVT-Loadouts_RecruitDead"
    Target_en_us "Dead"
+   Target_de_de "Tot"
    Target_uk_ua "Мертвий"
    Comment "Status for recruit that is dead"
    DevNote ""
@@ -5022,13 +5601,14 @@ StringTable {
    MaxLength 0
    Modified 1716473901
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E39169F}" {
    Id "OVT-Loadouts_RecruitReady"
    Target_en_us "Ready"
+   Target_de_de "Bereit"
    Target_uk_ua "Готовий"
    Comment "Status for recruit that is ready for loadout"
    DevNote ""
@@ -5040,13 +5620,14 @@ StringTable {
    MaxLength 0
    Modified 1716473894
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A0}" {
    Id "OVT-Loadouts_RecruitUnconscious"
    Target_en_us "Unconscious"
+   Target_de_de "Bewusstlos"
    Target_uk_ua "Непритомний"
    Comment "Status for recruit that is unconscious"
    DevNote ""
@@ -5058,13 +5639,14 @@ StringTable {
    MaxLength 0
    Modified 1716473877
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A2}" {
    Id "OVT-Loadouts_RecruitUnknown"
    Target_en_us "Unknown"
+   Target_de_de "Unbekannt"
    Target_uk_ua "Невідомо"
    Comment "Status for recruit with unknown state"
    DevNote ""
@@ -5076,13 +5658,14 @@ StringTable {
    MaxLength 0
    Modified 1716473857
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E3916A6}" {
    Id "OVT-Loadouts_SelectedRecruit"
    Target_en_us "Selected: %1"
+   Target_de_de "Ausgewählt: %1"
    Target_uk_ua "Вибрано: %1"
    Comment "Shows the name of the currently selected recruit"
    DevNote ""
@@ -5094,13 +5677,14 @@ StringTable {
    MaxLength 0
    Modified 1716473579
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391694}" {
    Id "OVT-Loadouts_YourLoadouts"
    Target_en_us "Your Loadouts"
+   Target_de_de "Deine Ausrüstungen"
    Target_uk_ua "Ваші комплекти спорядження"
    Comment "Title for player loadouts list"
    DevNote ""
@@ -5112,7 +5696,7 @@ StringTable {
    MaxLength 0
    Modified 1716473561
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5120,6 +5704,7 @@ StringTable {
    Id "OVT-LoadStorage"
    Target_en_us "Load Into vehicle"
    Target_fr_fr "Charger dans le véhicule"
+   Target_de_de "In Fahrzeug laden"
    Target_ru_ru "Загрузить в транспорт"
    Target_ko_kr "차량에 탑승하기"
    Target_zh_cn "装入车辆"
@@ -5134,13 +5719,14 @@ StringTable {
    MaxLength 0
    Modified 1706584751
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68F659A1044CB6}" {
    Id "OVT-Lock"
    Target_en_us "Lock"
+   Target_de_de "Sperren"
    Target_ko_kr "잠그기"
    Target_zh_cn "锁车"
    Target_uk_ua "Блокування"
@@ -5154,13 +5740,14 @@ StringTable {
    MaxLength 0
    Modified 1706581454
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68DB10BD28E109}" {
    Id "OVT-Locked"
    Target_en_us "Locked"
+   Target_de_de "Gesperrt"
    Target_ko_kr "잠김"
    Target_zh_cn "已锁"
    Target_uk_ua "Заблоковано"
@@ -5174,13 +5761,14 @@ StringTable {
    MaxLength 0
    Modified 1706581466
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68DB1CEC304F21}" {
    Id "OVT-LockVehicle"
    Target_en_us "Lock Vehicle"
+   Target_de_de "Fahrzeug verriegeln"
    Target_ko_kr "차량 잠그기"
    Target_zh_cn "锁车"
    Target_uk_ua "Заблокувати техніку"
@@ -5194,7 +5782,7 @@ StringTable {
    MaxLength 0
    Modified 1706581460
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5202,6 +5790,7 @@ StringTable {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
    Target_fr_fr "Construire"
+   Target_de_de "Bauen"
    Target_ru_ru "Строительство"
    Target_ko_kr "건설"
    Target_zh_cn "建造"
@@ -5216,7 +5805,7 @@ StringTable {
    MaxLength 0
    Modified 1706584782
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5224,6 +5813,7 @@ StringTable {
    Id "OVT-MainMenu_CharacterSheet"
    Target_en_us "Character Sheet"
    Target_fr_fr "Arbre de compétences"
+   Target_de_de "Charakterbogen"
    Target_ru_ru "Прокачка персонажа"
    Target_ko_kr "캐릭터 능력치"
    Target_zh_cn "人物卡"
@@ -5238,7 +5828,7 @@ StringTable {
    MaxLength 0
    Modified 1706584796
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5246,6 +5836,7 @@ StringTable {
    Id "OVT-MainMenu_FastTravel"
    Target_en_us "Fast Travel"
    Target_fr_fr "Déplacement Rapide"
+   Target_de_de "Schnellreise"
    Target_ru_ru "Быстрое перемещение"
    Target_ko_kr "빠른 이동"
    Target_zh_cn "快速移动"
@@ -5260,7 +5851,7 @@ StringTable {
    MaxLength 0
    Modified 1706581482
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5268,6 +5859,7 @@ StringTable {
    Id "OVT-MainMenu_Jobs"
    Target_en_us "Jobs"
    Target_fr_fr "Jobs"
+   Target_de_de "Aufträge"
    Target_ru_ru "Работа"
    Target_ko_kr "임무들"
    Target_zh_cn "工作"
@@ -5282,7 +5874,7 @@ StringTable {
    MaxLength 0
    Modified 1706584806
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5290,6 +5882,7 @@ StringTable {
    Id "OVT-MainMenu_ManageRecruits"
    Target_en_us "Manage Recruits"
    Target_fr_fr "Gérer les recrues"
+   Target_de_de "Rekruten verwalten"
    Target_ru_ru "Управление бойцами"
    Target_ko_kr "전투원 관리"
    Target_zh_cn "管理招募"
@@ -5304,7 +5897,7 @@ StringTable {
    MaxLength 0
    Modified 1706584812
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5337,6 +5930,7 @@ StringTable {
    Id "OVT-MainMenu_Options"
    Target_en_us "Options"
    Target_fr_fr "Options"
+   Target_de_de "Optionen"
    Target_ru_ru "Опции"
    Target_ko_kr "옵션"
    Target_zh_cn "选项"
@@ -5351,7 +5945,7 @@ StringTable {
    MaxLength 0
    Modified 1706581581
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5359,6 +5953,7 @@ StringTable {
    Id "OVT-MainMenu_Place"
    Target_en_us "Place"
    Target_fr_fr "Placer"
+   Target_de_de "Platzieren"
    Target_ru_ru "Разместить"
    Target_ko_kr "배치하기"
    Target_zh_cn "放置"
@@ -5373,7 +5968,7 @@ StringTable {
    MaxLength 0
    Modified 1706584887
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5381,6 +5976,7 @@ StringTable {
    Id "OVT-MainMenu_RealEstate"
    Target_en_us "Real Estate"
    Target_fr_fr "Immobilier"
+   Target_de_de "Immobilien"
    Target_ru_ru "Недвижимость"
    Target_ko_kr "부동산"
    Target_zh_cn "房产"
@@ -5395,7 +5991,7 @@ StringTable {
    MaxLength 0
    Modified 1706584904
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5403,6 +5999,7 @@ StringTable {
    Id "OVT-MainMenu_Resistance"
    Target_en_us "Resistance"
    Target_fr_fr "Résistance"
+   Target_de_de "Widerstand"
    Target_ru_ru "Сопротивление"
    Target_ko_kr "저항군"
    Target_zh_cn "抵抗"
@@ -5417,13 +6014,15 @@ StringTable {
    MaxLength 0
    Modified 1706584908
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000069}" {
    Id "OVT-MainMenu_Tips"
    Target_en_us "Tips"
+   Target_de_de "Tipps"
+   Target_uk_ua "Поради"
    Comment "Overthrow main menu - button that re-opens the most recent tutorial tip in its full, readable form. Sits in the same vertical list as Jobs, Build and Save."
    DevNote ""
    Repro ""
@@ -5434,13 +6033,14 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD7}" {
    Id "OVT-MakeCampPrivate"
    Target_en_us "Make Private"
+   Target_de_de "Privat machen"
    Target_uk_ua "Зробити приватним"
    Comment ""
    DevNote ""
@@ -5452,13 +6052,14 @@ StringTable {
    MaxLength 0
    Modified 1716473537
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD8}" {
    Id "OVT-MakeCampPublic"
    Target_en_us "Make Public"
+   Target_de_de "Öffentlich machen"
    Target_uk_ua "Зробити публічним"
    Comment ""
    DevNote ""
@@ -5470,7 +6071,7 @@ StringTable {
    MaxLength 0
    Modified 1716473515
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5478,6 +6079,7 @@ StringTable {
    Id "OVT-MakeOfficer"
    Target_en_us "Make Officer"
    Target_fr_fr "Promouvoir Officier"
+   Target_de_de "Zum Offizier ernennen"
    Target_ru_ru "Сделать офицером"
    Target_ko_kr "장교로 임명하기"
    Target_zh_cn "任命指挥官"
@@ -5492,7 +6094,7 @@ StringTable {
    MaxLength 0
    Modified 1706584918
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5500,6 +6102,7 @@ StringTable {
    Id "OVT-ManageBase"
    Target_en_us "Manage Base"
    Target_fr_fr "Gérer Base"
+   Target_de_de "Basis verwalten"
    Target_ru_ru "Управление базой"
    Target_ko_kr "기지 관리"
    Target_zh_cn "管理基地"
@@ -5514,21 +6117,24 @@ StringTable {
    MaxLength 0
    Modified 1706584925
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A08DC3474BC6703}" {
    Id "OVT-ManageCamp"
    Target_en_us "Manage Camp"
+   Target_de_de "Camp verwalten"
+   Target_uk_ua "Управління табором"
    Modified 1778965597
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D582605F2DE0E0B}" {
    Id "OVT-ManageFOB"
    Target_en_us "Manage FOB"
    Target_fr_fr "Gérer Avant Poste"
+   Target_de_de "FOB verwalten"
    Target_ru_ru "Управление FOB"
    Target_ko_kr "FOB 관리"
    Target_zh_cn "管理FOB"
@@ -5543,7 +6149,7 @@ StringTable {
    MaxLength 0
    Modified 1706581651
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5551,6 +6157,7 @@ StringTable {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
    Target_fr_fr "Gérer Véhicule"
+   Target_de_de "Fahrzeug verwalten"
    Target_ru_ru "Управление техникой"
    Target_ko_kr "차량 관리"
    Target_zh_cn "管理车辆"
@@ -5565,13 +6172,15 @@ StringTable {
    MaxLength 0
    Modified 1706581655
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C40A9B33003}" {
    Id "OVT-Map_BringRecruits"
    Target_en_us "Bring recruits %1 (+$%2)"
+   Target_de_de "Rekruten mitnehmen %1 (+$%2)"
+   Target_uk_ua "Залучено рекрутів: %1 (+$%2)"
    Comment "Map info panel - recruit opt-out toggle, ON state. %1 is the number of recruits within travel radius, %2 is the extra fare they add"
    DevNote ""
    Repro ""
@@ -5587,6 +6196,8 @@ StringTable {
   CustomStringTableItem "{6A8B150000000001}" {
    Id "OVT-Map_BusStop"
    Target_en_us "Bus Stop"
+   Target_de_de "Bushaltestelle"
+   Target_uk_ua "Автобусна зупинка"
    Comment "Map info panel type line for a bus stop marker. SINGULAR: names one place. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_BusStops and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5597,13 +6208,15 @@ StringTable {
    MaxLength 0
    Modified 1755043200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003E}" {
    Id "OVT-Map_BusStop_Desc"
    Target_en_us "Catch a bus here to travel to another bus stop. The fare rises with distance."
+   Target_de_de "Nimm hier einen Bus, um zu einer anderen Bushaltestelle zu reisen. Der Fahrpreis steigt mit der Entfernung."
+   Target_uk_ua "Скористайтеся автобусом для поїздки до іншої зупинки. Вартість квитка залежить від відстані."
    Comment "Map info panel line for a bus stop - explains bus travel and that the ticket price scales with distance"
    DevNote ""
    Repro ""
@@ -5614,13 +6227,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000045}" {
    Id "OVT-Map_Category_Bases"
    Target_en_us "Bases"
+   Target_de_de "Basen"
+   Target_uk_ua "Бази"
    Comment "Category name in the map layer-filter panel - the row that switches military base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Covers bases held by either side. The singular form shown on the info panel is the separate key #OVT-MilitaryBase and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5631,13 +6246,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004E}" {
    Id "OVT-Map_Category_BusStops"
    Target_en_us "Bus Stops"
+   Target_de_de "Bushaltestellen"
+   Target_uk_ua "Автобусні зупинки"
    Comment "Category name in the map layer-filter panel - the row that switches bus stop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. These are the stops the island bus service runs between."
    DevNote ""
    Repro ""
@@ -5648,13 +6265,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000049}" {
    Id "OVT-Map_Category_Camps"
    Target_en_us "Camps"
+   Target_de_de "Camp"
+   Target_uk_ua "Табори"
    Comment "Category name in the map layer-filter panel - the row that switches camp markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Place_Camp and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5665,13 +6284,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000047}" {
    Id "OVT-Map_Category_FOBs"
    Target_en_us "FOBs"
+   Target_de_de "FOBs"
+   Target_uk_ua "Передові бази"
    Comment "Category name in the map layer-filter panel - the row that switches Forward Operating Base markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. FOB is an established military abbreviation and is used as such throughout the game; the expanded singular form is the separate key #OVT-Place_FOB. If the abbreviation is not used in your language, prefer the local abbreviation over a long expansion - this is a narrow row label."
    DevNote ""
    Repro ""
@@ -5682,13 +6303,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004C}" {
    Id "OVT-Map_Category_GunDealers"
    Target_en_us "Gun Dealers"
+   Target_de_de "Waffenhändler"
+   Target_uk_ua "Торговці зброєю"
    Comment "Category name in the map layer-filter panel - the row that switches gun dealer markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. Gun dealers are a category of their own, separate from the general Shops row. The singular form shown on the info panel is the separate key #OVT-GunDealer and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5699,13 +6322,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004A}" {
    Id "OVT-Map_Category_Houses"
    Target_en_us "Houses"
+   Target_de_de "Häuser"
+   Target_uk_ua "Будинки"
    Comment "Category name in the map layer-filter panel - the row that switches house markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-House and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5716,13 +6341,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000050}" {
    Id "OVT-Map_Category_POIs"
    Target_en_us "Points of Interest"
+   Target_de_de "Sehenswürdigkeiten"
+   Target_uk_ua "Точки інтересу"
    Comment "Category name in the map layer-filter panel - the row that switches point-of-interest markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. It is the catch-all category for notable places that are not one of the named categories in the same list, so keep it broad. This is the longest label in the panel; if your language has an established abbreviation, prefer it."
    DevNote ""
    Repro ""
@@ -5733,13 +6360,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000048}" {
    Id "OVT-Map_Category_Ports"
    Target_en_us "Ports"
+   Target_de_de "Häfen"
+   Target_uk_ua "Порти"
    Comment "Category name in the map layer-filter panel - the row that switches port markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Port and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5750,13 +6379,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000046}" {
    Id "OVT-Map_Category_RadioTowers"
    Target_en_us "Radio Towers"
+   Target_de_de "Funktürme"
+   Target_uk_ua "Радіовежі"
    Comment "Category name in the map layer-filter panel - the row that switches radio tower markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-RadioTower and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5767,13 +6398,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004B}" {
    Id "OVT-Map_Category_Shops"
    Target_en_us "Shops"
+   Target_de_de "Geschäfte"
+   Target_uk_ua "Крамниці"
    Comment "Category name in the map layer-filter panel - the row that switches shop markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. One row covers every kind of shop at once (general, pharmacy, clothing, electronics and vehicle), so it needs the broad word rather than any one shop kind. The singular form shown on the info panel is the separate key #OVT-Shop."
    DevNote ""
    Repro ""
@@ -5784,13 +6417,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000044}" {
    Id "OVT-Map_Category_Towns"
    Target_en_us "Towns"
+   Target_de_de "Städte"
+   Target_uk_ua "Міста"
    Comment "Category name in the map layer-filter panel - the row that switches town markers on and off. PLURAL and title case: every row in this list names a CATEGORY of marker, never one place. This one covers villages, towns and cities alike, which is why it is the general word rather than a size. The singular form shown on the info panel is a separate string."
    DevNote ""
    Repro ""
@@ -5801,13 +6436,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004F}" {
    Id "OVT-Map_Category_Vehicles"
    Target_en_us "Vehicles"
+   Target_de_de "Fahrzeuge"
+   Target_uk_ua "Техніка"
    Comment "Category name in the map layer-filter panel - the row that switches vehicle markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The markers it controls are the ones for vehicles the player themselves owns, so the word should not suggest all traffic on the island."
    DevNote ""
    Repro ""
@@ -5818,13 +6455,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E00000004D}" {
    Id "OVT-Map_Category_Warehouses"
    Target_en_us "Warehouses"
+   Target_de_de "Lagerhäuser"
+   Target_uk_ua "Склади"
    Comment "Category name in the map layer-filter panel - the row that switches warehouse markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Warehouse and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -5835,13 +6474,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000051}" {
    Id "OVT-Map_Category_Waypoints"
    Target_en_us "Waypoints"
+   Target_de_de "Wegpunkte"
+   Target_uk_ua "Маршрутні точки"
    Comment "Category name in the map layer-filter panel - the row that switches waypoint markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. A waypoint here is a destination the player has set for themselves - the current job and the recruit rally point each have one - not a route or a navigation aid."
    DevNote ""
    Repro ""
@@ -5852,13 +6493,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C40A9B33006}" {
    Id "OVT-Map_ClosePanel"
    Target_en_us "Close"
+   Target_de_de "Schließen"
+   Target_uk_ua "Закрити"
    Comment "Map info panel - button that dismisses the panel for the clicked location"
    DevNote ""
    Repro ""
@@ -5874,6 +6517,8 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000049}" {
    Id "OVT-Map_GunDealer_Available"
    Target_en_us "Available here"
+   Target_de_de "Hier verfügbar"
+   Target_uk_ua "Доступно тут"
    Comment "Map gun dealer info panel - heading above the heavy weapons this dealer is carrying. Present tense on purpose: the selection is re-rolled every time the campaign loads, so it must not read as permanent."
    DevNote ""
    Repro ""
@@ -5884,13 +6529,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000004E}" {
    Id "OVT-Map_GunDealer_Launcher"
    Target_en_us "Launcher"
+   Target_de_de "Werfer"
+   Target_uk_ua "Пускова установка"
    Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
    DevNote ""
    Repro ""
@@ -5901,13 +6548,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000004D}" {
    Id "OVT-Map_GunDealer_MachineGun"
    Target_en_us "Machine gun"
+   Target_de_de "Maschinengewehr"
+   Target_uk_ua "Кулемет"
    Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
    DevNote ""
    Repro ""
@@ -5918,13 +6567,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000004A}" {
    Id "OVT-Map_GunDealer_None"
    Target_en_us "No heavy weapons in stock right now."
+   Target_de_de "Derzeit keine schweren Waffen auf Lager."
+   Target_uk_ua "Наразі важкого озброєння немає в наявності."
    Comment "Map gun dealer info panel - shown when the dealer is carrying no rifle, sniper rifle, machine gun or launcher"
    DevNote ""
    Repro ""
@@ -5935,13 +6586,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000004B}" {
    Id "OVT-Map_GunDealer_Rifle"
    Target_en_us "Rifle"
+   Target_de_de "Gewehr"
+   Target_uk_ua "Гвинтівка"
    Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
    DevNote ""
    Repro ""
@@ -5952,13 +6605,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000004C}" {
    Id "OVT-Map_GunDealer_Sniper"
    Target_en_us "Sniper"
+   Target_de_de "Scharfschützengewehr"
+   Target_uk_ua "Снайпер"
    Comment "Map gun dealer info panel - weapon kind caption beside a weapon name. Keep short, it shares a narrow row with the weapon's own name."
    DevNote ""
    Repro ""
@@ -5969,13 +6624,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003A}" {
    Id "OVT-Map_House_Home"
    Target_en_us "Home"
+   Target_de_de "Zuhause"
+   Target_uk_ua "Дім"
    Comment "Map info panel row value - this house is the player's registered home and respawn point"
    DevNote ""
    Repro ""
@@ -5986,13 +6643,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000F0}" {
    Id "OVT-Map_JobWaypoint"
    Target_en_us "Job Waypoint"
+   Target_de_de "Auftragswegpunkt"
+   Target_uk_ua "Точка завдання"
    Comment "Map marker label for the waypoint placed by Show On Map in the Jobs menu"
    DevNote ""
    Repro ""
@@ -6003,13 +6662,15 @@ StringTable {
    MaxLength 0
    Modified 1754784000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A86D5E100000001}" {
    Id "OVT-Map_Layer_Influence"
    Target_en_us "Influence"
+   Target_de_de "Einfluss"
+   Target_uk_ua "Вплив"
    Comment "Map overlay layer name in the map layer-toggle list. Names the overlay that draws lines between a selected location and the other locations exerting influence on it - a radio tower or military base depressing a town's support, or a player-held town lending momentum to its neighbours. One or two words - it is a row label in a short list."
    DevNote ""
    Repro ""
@@ -6020,13 +6681,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000043}" {
    Id "OVT-Map_Layer_Players"
    Target_en_us "Players"
+   Target_de_de "Spieler"
+   Target_uk_ua "Гравці"
    Comment "Row label in the map layer-filter panel for the markers showing where each player is standing. Plural, title case, one word. It sits under the Overlays header rather than with the marker categories because it is not one of the configured location types. The row is left out entirely on difficulty presets that do not show players on the map, so this string never labels a disabled control."
    DevNote ""
    Repro ""
@@ -6037,13 +6700,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000003F}" {
    Id "OVT-Map_Layer_Recruits"
    Target_en_us "Recruits"
+   Target_de_de "Rekruten"
+   Target_uk_ua "Рекрути"
    Comment "Row label in the map layer-filter panel for the markers showing where each of the player's own recruits is. Plural, title case, one word - it sits directly under the Players row in the same short list. It only ever labels a live control: a player who owns no recruits gets no row at all rather than a disabled one. Covers both active recruits following the player and inactive ones parked holding position."
    DevNote ""
    Repro ""
@@ -6054,13 +6719,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A84D5E100000002}" {
    Id "OVT-Map_Layer_Restricted"
    Target_en_us "Restricted Areas"
+   Target_de_de "Sperrgebiete"
+   Target_uk_ua "Заборонені зони"
    Comment "Map overlay layer name in the map layer-toggle list. Names the circles showing where a FOB cannot be deployed because of a nearby base or radio tower. One or two words - it is a row label in a short list."
    DevNote ""
    Repro ""
@@ -6071,13 +6738,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A84D5E100000001}" {
    Id "OVT-Map_Layer_Territory"
    Target_en_us "Territory"
+   Target_de_de "Gebiet"
+   Target_uk_ua "Територія"
    Comment "Map overlay layer name in the map layer-toggle list. Names the faction-coloured territory overlay drawn beneath the map markers. One or two words - it is a row label in a short list."
    DevNote ""
    Repro ""
@@ -6088,13 +6757,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000042}" {
    Id "OVT-Map_Layers_Markers"
    Target_en_us "Markers"
+   Target_de_de "Markierungen"
+   Target_uk_ua "Маркери"
    Comment "Section header inside the map layer-filter panel. It heads the rows for the individual categories of map icon - towns, bases, houses and so on. One word, title case. Contrasts with the Overlays header (#OVT-Map_Layers_Overlays) in the same panel, so the two should read as a clear pair."
    DevNote ""
    Repro ""
@@ -6105,13 +6776,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000041}" {
    Id "OVT-Map_Layers_Overlays"
    Target_en_us "Overlays"
+   Target_de_de "Einblendungen"
+   Target_uk_ua "Оверлеї"
    Comment "Section header inside the map layer-filter panel. It heads the rows for things drawn across the map rather than as individual markers - the faction territory shading and the restricted-area rings - plus the player-position row. One word, title case. Contrasts with the Markers header (#OVT-Map_Layers_Markers) in the same panel, so the two should read as a clear pair."
    DevNote ""
    Repro ""
@@ -6122,13 +6795,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A85D1E000000040}" {
    Id "OVT-Map_Layers_Title"
    Target_en_us "Map Layers"
+   Target_de_de "Kartenebenen"
+   Target_uk_ua "Шари карти"
    Comment "Title at the top of the map layer-filter panel - the panel docked beside the tool icon strip on the left of the fullscreen map, which lets a player choose which categories of marker and which map overlays are drawn. Two words, title case. Keep it short: the panel is a narrow fixed-width column."
    DevNote ""
    Repro ""
@@ -6139,13 +6814,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C40A9B33004}" {
    Id "OVT-Map_LeaveRecruits"
    Target_en_us "Leave recruits behind %1"
+   Target_de_de "Rekruten zurücklassen %1"
+   Target_uk_ua "Залишити рекрутів: %1"
    Comment "Map info panel - recruit opt-out toggle, OFF state. %1 is the number of recruits within travel radius"
    DevNote ""
    Repro ""
@@ -6161,6 +6838,8 @@ StringTable {
   CustomStringTableItem "{6A8B150000000002}" {
    Id "OVT-Map_POI"
    Target_en_us "Point of Interest"
+   Target_de_de "Sehenswürdigkeit"
+   Target_uk_ua "Точка інтересу"
    Comment "Map info panel type line for a point-of-interest marker. SINGULAR: names one place. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_POIs and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -6171,13 +6850,15 @@ StringTable {
    MaxLength 0
    Modified 1755043200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003C}" {
    Id "OVT-Map_Port_Desc"
    Target_en_us "Imported goods can be bought here in bulk."
+   Target_de_de "Importierte Waren können hier in großen Mengen gekauft werden."
+   Target_uk_ua "Тут можна оптом придбати імпортні товари."
    Comment "Map info panel line for a port - one of two sentences explaining what a port is for"
    DevNote ""
    Repro ""
@@ -6188,13 +6869,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003D}" {
    Id "OVT-Map_Port_Prices"
    Target_en_us "Shops closer to a port sell goods more cheaply."
+   Target_de_de "Geschäfte näher an einem Hafen verkaufen Waren günstiger."
+   Target_uk_ua "Магазини поблизу порту продають товари дешевше."
    Comment "Map info panel line for a port - explains that shop prices rise with distance from the nearest port"
    DevNote ""
    Repro ""
@@ -6205,13 +6888,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000F1}" {
    Id "OVT-Map_RecruitWaypoint"
    Target_en_us "Recruit Waypoint"
+   Target_de_de "Rekrutenwegpunkt"
+   Target_uk_ua "Точка рекрутингу"
    Comment "Map marker label for the waypoint placed by Show On Map in the Recruits menu"
    DevNote ""
    Repro ""
@@ -6222,13 +6907,15 @@ StringTable {
    MaxLength 0
    Modified 1754784000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000034}" {
    Id "OVT-Map_Row_Access"
    Target_en_us "Access"
+   Target_de_de "Zugang"
+   Target_uk_ua "Доступ"
    Comment "Map info panel row label - whether a camp may be used by everyone or only by its owner"
    DevNote ""
    Repro ""
@@ -6239,13 +6926,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000037}" {
    Id "OVT-Map_Row_Contents"
    Target_en_us "Contents"
+   Target_de_de "Inhalt"
+   Target_uk_ua "Вміст"
    Comment "Map info panel row label - heading above the list of items stored in a warehouse"
    DevNote ""
    Repro ""
@@ -6256,13 +6945,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000038}" {
    Id "OVT-Map_Row_Empty"
    Target_en_us "Empty"
+   Target_de_de "Leer"
+   Target_uk_ua "Порожньо"
    Comment "Map info panel row value - this warehouse is storing nothing"
    DevNote ""
    Repro ""
@@ -6273,13 +6964,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000033}" {
    Id "OVT-Map_Row_No"
    Target_en_us "No"
+   Target_de_de "Nein"
+   Target_uk_ua "Ні"
    Comment "Map info panel row value - negative answer to a yes/no row such as Priority"
    DevNote ""
    Repro ""
@@ -6290,13 +6983,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000031}" {
    Id "OVT-Map_Row_Priority"
    Target_en_us "Priority"
+   Target_de_de "Priorität"
+   Target_uk_ua "Пріоритет"
    Comment "Map info panel row label - whether this FOB is the resistance's designated priority FOB"
    DevNote ""
    Repro ""
@@ -6307,13 +7002,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000035}" {
    Id "OVT-Map_Row_Private"
    Target_en_us "Private"
+   Target_de_de "Privat"
+   Target_uk_ua "Приватний"
    Comment "Map info panel row value - this camp can only be used by the player who placed it"
    DevNote ""
    Repro ""
@@ -6324,13 +7021,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000036}" {
    Id "OVT-Map_Row_Public"
    Target_en_us "Public"
+   Target_de_de "Öffentlich"
+   Target_uk_ua "Публічний"
    Comment "Map info panel row value - this camp can be used by any player"
    DevNote ""
    Repro ""
@@ -6341,13 +7040,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000039}" {
    Id "OVT-Map_Row_Renter"
    Target_en_us "Renter"
+   Target_de_de "Mieter"
+   Target_uk_ua "Орендар"
    Comment "Map info panel row label - the player currently renting this warehouse"
    DevNote ""
    Repro ""
@@ -6358,13 +7059,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000030}" {
    Id "OVT-Map_Row_Status"
    Target_en_us "Status"
+   Target_de_de "Status"
+   Target_uk_ua "Статус"
    Comment "Map info panel row label - ownership state of a house or warehouse (Home / Owned / Rented)"
    DevNote ""
    Repro ""
@@ -6375,13 +7078,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000032}" {
    Id "OVT-Map_Row_Yes"
    Target_en_us "Yes"
+   Target_de_de "Ja"
+   Target_uk_ua "Так"
    Comment "Map info panel row value - affirmative answer to a yes/no row such as Priority"
    DevNote ""
    Repro ""
@@ -6392,13 +7097,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000041}" {
    Id "OVT-Map_Shop_LocalSupply"
    Target_en_us "Local supply"
+   Target_de_de "Lokales Angebot"
+   Target_uk_ua "Місцеве постачання"
    Comment "Map shop info panel - heading above the list of items that are unusually cheap or unusually dear in this town"
    DevNote ""
    Repro ""
@@ -6409,13 +7116,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000047}" {
    Id "OVT-Map_Shop_NoStock"
    Target_en_us "Nothing in stock right now."
+   Target_de_de "Derzeit nichts auf Lager."
+   Target_uk_ua "Наразі немає в наявності."
    Comment "Map shop info panel - shown when a shop has no items at all in stock"
    DevNote ""
    Repro ""
@@ -6426,13 +7135,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000048}" {
    Id "OVT-Map_Shop_NothingUnusual"
    Target_en_us "Nothing unusually cheap or dear right now."
+   Target_de_de "Derzeit ist nichts ungewöhnlich günstig oder teuer."
+   Target_uk_ua "Наразі немає аномально дешевих чи дорогих товарів."
    Comment "Map shop info panel - shown when a shop has stock but no item is far enough from normal to earn a caret"
    DevNote ""
    Repro ""
@@ -6443,13 +7154,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000045}" {
    Id "OVT-Map_Shop_Remote"
    Target_en_us "Far from a port - everything here costs more to bring in."
+   Target_de_de "Weit von einem Hafen entfernt – alles hier ist teurer in der Beschaffung."
+   Target_uk_ua "Далеко від порту — доставка товарів сюди коштує дорожче."
    Comment "Map shop info panel - badge shown when a shop is a long way from the nearest port, which raises every price at that shop. No figure is quoted on purpose."
    DevNote ""
    Repro ""
@@ -6460,13 +7173,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000042}" {
    Id "OVT-Map_Shop_TownWide"
    Target_en_us "Stock is pooled across every shop in this town."
+   Target_de_de "Der Bestand wird über alle Geschäfte dieser Stadt gemeinsam verwaltet."
+   Target_uk_ua "Товари є спільними для всіх магазинів у цьому місті."
    Comment "Map shop info panel - explains that the cheap/dear signal is a town-wide one, so two shops in the same town read identically. Must not imply this shop sets its own prices."
    DevNote ""
    Repro ""
@@ -6477,13 +7192,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000046}" {
    Id "OVT-Map_Shop_VehicleFlat"
    Target_en_us "Vehicles cost the same wherever you buy them."
+   Target_de_de "Fahrzeuge kosten überall gleich viel."
+   Target_uk_ua "Вартість транспорту однакова в усіх продавців."
    Comment "Map shop info panel - the only line a vehicle shop shows. Vehicle prices carry neither the local-supply nor the distance-to-port adjustment, so there is nothing to compare."
    DevNote ""
    Repro ""
@@ -6494,13 +7211,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003B}" {
    Id "OVT-Map_Vehicle"
    Target_en_us "Vehicle"
+   Target_de_de "Fahrzeug"
+   Target_uk_ua "Транспорт"
    Comment "Map info panel row label - the model name of the player's vehicle shown by this marker. Also the SINGULAR type line for a vehicle marker on the info panel; the plural category row is the separate key #OVT-Map_Category_Vehicles and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -6511,13 +7230,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8B150000000003}" {
    Id "OVT-Map_Waypoint"
    Target_en_us "Waypoint"
+   Target_de_de "Wegpunkt"
+   Target_uk_ua "Маршрутна точка"
    Comment "Map info panel type line for a player-placed waypoint marker. SINGULAR: names one marker. The plural category row in the layer-filter panel is the separate key #OVT-Map_Category_Waypoints and should stay consistent with this one."
    DevNote ""
    Repro ""
@@ -6528,13 +7249,15 @@ StringTable {
    MaxLength 0
    Modified 1755043200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D0000003F}" {
    Id "OVT-Map_Waypoint_JobDesc"
    Target_en_us "Marked from the Jobs menu."
+   Target_de_de "Über das Auftragsmenü markiert."
+   Target_uk_ua "Позначено з меню «Роботи»."
    Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Jobs menu"
    DevNote ""
    Repro ""
@@ -6545,13 +7268,15 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C4D00000040}" {
    Id "OVT-Map_Waypoint_RecruitDesc"
    Target_en_us "Marked from the Recruits menu."
+   Target_de_de "Über das Rekrutenmenü markiert."
+   Target_uk_ua "Позначено з меню «Новобранці»."
    Comment "Map info panel line for a waypoint - says this marker was placed by Show On Map in the Recruits menu"
    DevNote ""
    Repro ""
@@ -6562,7 +7287,7 @@ StringTable {
    MaxLength 0
    Modified 1754870400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6570,6 +7295,7 @@ StringTable {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
    Target_fr_fr "Matériel Médical"
+   Target_de_de "Medizinische Vorräte"
    Target_ru_ru "Медикаменты"
    Target_ko_kr "의료 물품"
    Target_zh_cn "医疗用品"
@@ -6584,7 +7310,7 @@ StringTable {
    MaxLength 0
    Modified 1706584948
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6592,6 +7318,7 @@ StringTable {
    Id "OVT-MedicalSupplies_TooFar"
    Target_en_us "You are too far from any towns to deliver medical supplies"
    Target_fr_fr "Vous êtes trop loin d'une commune pour livrer le matériel médical"
+   Target_de_de "Du bist zu weit von einer Stadt entfernt, um medizinische Vorräte auszuliefern"
    Target_ru_ru "Вы слишком далеко от насленого пункта, чтобы доставить медикаменты"
    Target_ko_kr "마을에서 너무 멀리 떨어져 있어 의료 물품을 전달할 수 없습니다."
    Target_zh_cn "你距离任何城镇都太远，无法分发医疗物资"
@@ -6606,7 +7333,7 @@ StringTable {
    MaxLength 0
    Modified 1706584975
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6614,6 +7341,7 @@ StringTable {
    Id "OVT-MedicalSuppliesDelivered"
    Target_en_us "Medical supplies delivered to the value of"
    Target_fr_fr "Matériel Médical livré pour "
+   Target_de_de "Medizinische Vorräte im Wert von geliefert:"
    Target_ru_ru "Медикаменты доставлены на сумму"
    Target_ko_kr "전달된 의료 물품의 가치"
    Target_zh_cn "医疗物资交付价值"
@@ -6628,37 +7356,42 @@ StringTable {
    MaxLength 0
    Modified 1706584966
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D3388219BB413F}" {
    Id "OVT-MilitaryBase"
    Target_en_us "Military Base"
+   Target_de_de "Militärbasis"
+   Target_uk_ua "Військова база"
    Modified 1708346911
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65C4B2C28934AFF0}" {
    Id "OVT-MobileFOB"
    Target_en_us "Mobile FOB"
+   Target_de_de "Mobiler FOB"
    Target_uk_ua "Мобільна FOB"
    Modified 1716473494
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65D08ACC7FDB3C67}" {
    Id "OVT-MobileFOBHelp"
    Target_en_us "FOBs are now deployed from a \"Mobile FOB\" truck, purchase one at any vehicle store"
+   Target_de_de "FOBs werden jetzt von einem \"Mobile FOB\"-Lkw aus errichtet. Kaufe einen bei einem beliebigen Fahrzeughändler."
    Target_uk_ua "FOB тепер розгортаються з вантажівки \"Мобільна FOB\", придбайте її в будь-якому магазині техніки"
    Modified 1716473479
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
    Target_en_us "Black Market Activity"
    Target_fr_fr "Activité du Marché Noir"
+   Target_de_de "Schwarzmarktaktivität"
    Target_ru_ru "Активность черного рынка"
    Target_zh_cn "黑市活动"
    Target_uk_ua "Активність чорного ринку"
@@ -6672,7 +7405,7 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6680,6 +7413,7 @@ StringTable {
    Id "OVT-Modifier_CivilianDeath"
    Target_en_us "Civilian Deaths"
    Target_fr_fr "Morts Civiles"
+   Target_de_de "Tote Zivilisten"
    Target_ru_ru "Смерти гражданских"
    Target_zh_cn "平民死亡"
    Target_uk_ua "Смерті цивільних"
@@ -6693,7 +7427,7 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6701,6 +7435,7 @@ StringTable {
    Id "OVT-Modifier_GrowingDiscontent"
    Target_en_us "Growing Discontent"
    Target_fr_fr "Mécontentement Croissant"
+   Target_de_de "Wachsende Unzufriedenheit"
    Target_ru_ru "Растущее недовольство"
    Target_zh_cn "日益不满"
    Target_uk_ua "Зростаюче невдоволення"
@@ -6714,13 +7449,14 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D6C212548EA9183}" {
    Id "OVT-Modifier_NearbyBase"
    Target_en_us "Nearby Base"
+   Target_de_de "Nahegelegene Basis"
    Target_ru_ru "База поблизости"
    Target_ko_kr "근처 기지"
    Target_zh_cn "附近基地"
@@ -6735,7 +7471,7 @@ StringTable {
    MaxLength 0
    Modified 1706584985
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6743,6 +7479,7 @@ StringTable {
    Id "OVT-Modifier_OccupyingFactionDeath"
    Target_en_us "Occupier Deaths"
    Target_fr_fr "Morts des Occupants"
+   Target_de_de "Tote Besatzer"
    Target_ru_ru "Смерти оккупантов"
    Target_zh_cn "占领军死亡"
    Target_uk_ua "Смерті окупантів"
@@ -6756,13 +7493,15 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000075}" {
    Id "OVT-Modifier_OfficerAssassinated"
    Target_en_us "Officer Killed"
+   Target_de_de "Offizier getötet"
+   Target_uk_ua "Офіцера вбито"
    Comment "Town support modifier - granted to towns near a base whose officer was killed"
    DevNote ""
    Repro ""
@@ -6773,7 +7512,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6781,6 +7520,7 @@ StringTable {
    Id "OVT-Modifier_PatrolHarassment"
    Target_en_us "Patrol Harassment"
    Target_fr_fr "Harcèlement de Patrouille"
+   Target_de_de "Belästigung von Patrouillen"
    Target_ru_ru "Преследование патрулем"
    Target_zh_cn "巡逻骚扰"
    Target_uk_ua "Переслідування патрулем"
@@ -6794,13 +7534,15 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893FA02}" {
    Id "OVT-Modifier_PatrolPresence"
    Target_en_us "Patrol Presence"
+   Target_de_de "Patrouillenpräsenz"
+   Target_uk_ua "Присутність патрулів"
    Comment ""
    DevNote ""
    Repro ""
@@ -6811,7 +7553,7 @@ StringTable {
    MaxLength 0
    Modified 1754179200
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6819,6 +7561,7 @@ StringTable {
    Id "OVT-Modifier_RecentBattle"
    Target_en_us "Recent Battle"
    Target_fr_fr "Batailles Récentes"
+   Target_de_de "Kürzliche Schlacht"
    Target_ru_ru "Недавние бои"
    Target_ko_kr "최근 전투"
    Target_zh_cn "附近战斗"
@@ -6833,7 +7576,7 @@ StringTable {
    MaxLength 0
    Modified 1706584992
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6841,6 +7584,7 @@ StringTable {
    Id "OVT-Modifier_ResistanceVictory"
    Target_en_us "Resistance Victory"
    Target_fr_fr "Victoire de la Résistance"
+   Target_de_de "Sieg des Widerstands"
    Target_ru_ru "Победа сопротивления"
    Target_zh_cn "抵抗胜利"
    Target_uk_ua "Перемога опору"
@@ -6854,7 +7598,7 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6862,6 +7606,7 @@ StringTable {
    Id "OVT-Modifier_RevolutionaryMomentum"
    Target_en_us "Revolutionary Momentum"
    Target_fr_fr "Élan Révolutionnaire"
+   Target_de_de "Revolutionärer Schwung"
    Target_ru_ru "Революционный импульс"
    Target_zh_cn "革命势头"
    Target_uk_ua "Революційний імпульс"
@@ -6875,13 +7620,15 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000F6}" {
    Id "OVT-Msg-AdminCommandRefused"
    Target_en_us "This command requires server admin rights"
+   Target_de_de "Dieser Befehl erfordert Server-Adminrechte"
+   Target_uk_ua "Ця команда вимагає прав адміністратора сервера."
    Comment "Shown when a non-admin player tries an admin chat command such as /givemoney"
    DevNote ""
    Repro ""
@@ -6892,13 +7639,15 @@ StringTable {
    MaxLength 0
    Modified 1754784000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000F5}" {
    Id "OVT-Msg-AdminFundsAdded"
    Target_en_us "Admin: $%1 added to your account"
+   Target_de_de "Admin: $%1 deinem Konto hinzugefügt"
+   Target_uk_ua "Адмін: на ваш рахунок додано $%1"
    Comment "Confirmation to a server admin who used the /givemoney chat command - %1 is the amount added"
    DevNote ""
    Repro ""
@@ -6909,13 +7658,14 @@ StringTable {
    MaxLength 0
    Modified 1754784000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
+   Target_de_de "Die Schlacht um %1 beginnt in Kürze"
    Target_ru_ru "Бой за базу %1 скоро начнётся"
    Target_ko_kr "%1 기지를 위한 전투가 곧 시작됩니다."
    Target_zh_cn "%1之战即将开始"
@@ -6930,7 +7680,7 @@ StringTable {
    MaxLength 0
    Modified 1706585027
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6938,6 +7688,7 @@ StringTable {
    Id "OVT-Msg-BaseControlledOccupying"
    Target_en_us "The resistance has lost control of %1 base"
    Target_fr_fr "La résistance a perdu le contrôle d'une base"
+   Target_de_de "Der Widerstand hat die Kontrolle über die Basis %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над базой %1"
    Target_ko_kr "저항군이 %1 기지의 통제권을 상실했습니다."
    Target_zh_cn "抵抗力量已失去对%1基地的控制"
@@ -6952,7 +7703,7 @@ StringTable {
    MaxLength 0
    Modified 1706585051
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6960,6 +7711,7 @@ StringTable {
    Id "OVT-Msg-BaseControlledResistance"
    Target_en_us "The resistance has captured %1 base"
    Target_fr_fr "La résistance a capturé une base ennemie"
+   Target_de_de "Der Widerstand hat die Basis %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль базу  %1"
    Target_ko_kr "저항군이 %1 기지를 점령했습니다."
    Target_zh_cn "抵抗力量已占领%1基地"
@@ -6974,7 +7726,7 @@ StringTable {
    MaxLength 0
    Modified 1706585139
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6982,6 +7734,7 @@ StringTable {
    Id "OVT-Msg-CityBattle"
    Target_en_us "The battle for the city of %1 will begin shortly"
    Target_fr_fr "La bataille pour le contrôle de la ville va bientôt commencer"
+   Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнётся"
    Target_ko_kr "%1 도시를 위한 전투가 곧 시작됩니다."
    Target_zh_cn "争夺%1城镇的战斗即将开始"
@@ -6996,7 +7749,7 @@ StringTable {
    MaxLength 0
    Modified 1706585081
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7004,6 +7757,7 @@ StringTable {
    Id "OVT-Msg-CityControlledOccupying"
    Target_en_us "The resistance has lost control of the city of %1"
    Target_fr_fr "La résistance a perdu le contrôle de la ville"
+   Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_ko_kr "저항군이 %1 도시의 통제권을 잃었습니다."
    Target_zh_cn "抵抗力量已经失去了对%1城镇的控制"
@@ -7018,7 +7772,7 @@ StringTable {
    MaxLength 0
    Modified 1706585161
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7026,6 +7780,7 @@ StringTable {
    Id "OVT-Msg-CityControlledResistance"
    Target_en_us "The city of %1 is now under control by the resistance"
    Target_fr_fr "La ville est maintenant sous contrôle de la résistance"
+   Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь контроллируется сопротивлением"
    Target_ko_kr "%1 도시는 이제 저항군의 통제 하에 있습니다."
    Target_zh_cn "%1城镇现已被抵抗力量控制"
@@ -7040,13 +7795,15 @@ StringTable {
    MaxLength 0
    Modified 1706585106
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000E1}" {
    Id "OVT-Msg-GroupAiBudgetExceeded"
    Target_en_us "This group now commands %1 AI, over the recommended limit of %2 - performance may suffer"
+   Target_de_de "Diese Gruppe befehligt jetzt %1 KI-Einheiten und liegt damit über dem empfohlenen Limit von %2 – die Leistung kann darunter leiden"
+   Target_uk_ua "Ця група зараз керує %1 ШІ, що перевищує рекомендовану лімітну кількість у %2 — продуктивність може знизитися."
    Comment "Notification to the joining player and the group leader when a join takes the group's AI over the configured budget - %1 is the projected AI count, %2 is the budget"
    DevNote ""
    Repro ""
@@ -7057,13 +7814,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E000000E0}" {
    Id "OVT-Msg-GroupJoinRefusedFull"
    Target_en_us "That group is full - your join request could not be completed"
+   Target_de_de "Diese Gruppe ist voll – deine Beitrittsanfrage konnte nicht abgeschlossen werden"
+   Target_uk_ua "Ця група заповнена — ваш запит на приєднання не вдалося виконати."
    Comment "Notification to a player whose approved join request was refused because the group filled up first"
    DevNote ""
    Repro ""
@@ -7074,22 +7833,24 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D6231551A70A67}" {
    Id "OVT-Msg-HasPlacedCamp"
    Target_en_us "%1 has placed a camp"
+   Target_de_de "%1 hat ein Camp errichtet"
    Target_uk_ua "%1 розмістив табір"
    Modified 1716473398
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
    Target_fr_fr "a placé un nouvel avant poste. Vous pouvez désormais y faire un déplacement rapide"
+   Target_de_de "%1 hat einen neuen FOB in der Nähe von %2 errichtet. Er steht jetzt unter anderem für Schnellreisen zur Verfügung"
    Target_ru_ru "%1 разместил FOB вблизи %2. Точка доступна для быстрого перемещения"
    Target_ko_kr "%1은 %2 근처에 새로운 FOB를 설치했습니다. 이제 빠른 이동과 더 많은 기능을 사용할 수 있습니다."
    Target_zh_cn "%1在%2附近建立了一个新FOB。现在可用于快速移动和更多功能。"
@@ -7104,13 +7865,15 @@ StringTable {
    MaxLength 0
    Modified 1706582217
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E2C1D4A9F0031}" {
    Id "OVT-Msg-ImportNoPermission"
    Target_en_us "You do not have permission to import"
+   Target_de_de "Du hast keine Berechtigung zum Importieren"
+   Target_uk_ua "У вас немає дозволу на імпорт."
    Comment "Shown when a player without the Import permission attempts an import"
    DevNote ""
    Repro ""
@@ -7121,13 +7884,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E2C1D4A9F0030}" {
    Id "OVT-Msg-ImportNotAvailable"
    Target_en_us "That item cannot be imported"
+   Target_de_de "Dieser Gegenstand kann nicht importiert werden"
+   Target_uk_ua "Цей предмет неможливо імпортувати."
    Comment "Shown when the server refuses an import - the item belongs to the occupying faction, is not in the port's catalogue, or is not a valid import"
    DevNote ""
    Repro ""
@@ -7138,13 +7903,15 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E2C1D4A9F0032}" {
    Id "OVT-Msg-ImportTooFarFromPort"
    Target_en_us "You and the vehicle must be at the port to import"
+   Target_de_de "Du und das Fahrzeug müssen sich zum Importieren am Hafen befinden"
+   Target_uk_ua "Щоб виконати імпорт, ви та ваша техніка повинні бути на території порту."
    Comment "Shown when the importing player or the receiving vehicle is further than 30m from a port"
    DevNote ""
    Repro ""
@@ -7155,13 +7922,14 @@ StringTable {
    MaxLength 0
    Modified 1754611200
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA4CE52796041FE}" {
    Id "OVT-Msg-LevelledUp"
    Target_en_us "You have reached level %1 and have a skill point to spend in the Character Sheet"
+   Target_de_de "Du hast Stufe %1 erreicht und kannst im Charakterbogen einen Fertigkeitspunkt ausgeben"
    Target_ru_ru "Вы достигли %1 уровня и у вас есть очко навыка, которое можно потратить в прокачке персонажа"
    Target_ko_kr "%1 레벨에 도달했으며, 캐릭터 시트에서 사용할 수 있는 스킬 포인트가 생겼습니다."
    Target_zh_cn "你已达到%1级，并且在角色表中有一个技能点可供使用"
@@ -7176,7 +7944,7 @@ StringTable {
    MaxLength 0
    Modified 1706585188
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7184,6 +7952,7 @@ StringTable {
    Id "OVT-Msg-LoadoutApplied"
    Target_en_us "Loadout '%1' applied - %2 items equipped"
    Target_fr_fr "Équipement '%1' appliqué - %2 objets équipés"
+   Target_de_de "Ausrüstung '%1' angewendet – %2 Gegenstände ausgerüstet"
    Target_ru_ru "Экипировка '%1' применена - %2 предметов установлено"
    Target_zh_cn "装备'%1'已应用 - %2个物品已装备"
    Target_uk_ua "Спорядження '%1' застосовано - %2 предметів встановлено"
@@ -7197,7 +7966,7 @@ StringTable {
    MaxLength 0
    Modified 1735682400
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7205,6 +7974,7 @@ StringTable {
    Id "OVT-Msg-LoadoutAppliedPartial"
    Target_en_us "Loadout '%1' partially applied - %2 of %3 items equipped"
    Target_fr_fr "Équipement '%1' partiellement appliqué - %2 sur %3 objets équipés"
+   Target_de_de "Ausrüstung '%1' teilweise angewendet – %2 von %3 Gegenständen ausgerüstet"
    Target_ru_ru "Экипировка '%1' частично применена - %2 из %3 предметов установлено"
    Target_zh_cn "装备'%1'部分应用 - %2/%3个物品已装备"
    Target_uk_ua "Спорядження '%1' частково застосовано - %2 з %3 предметів встановлено"
@@ -7218,7 +7988,7 @@ StringTable {
    MaxLength 0
    Modified 1735682400
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7226,6 +7996,7 @@ StringTable {
    Id "OVT-Msg-LoadoutAppliedToRecruit"
    Target_en_us "Loadout '%1' applied to %2 - %3 items equipped"
    Target_fr_fr "Équipement '%1' appliqué à %2 - %3 objets équipés"
+   Target_de_de "Ausrüstung '%1' auf %2 angewendet – %3 Gegenstände ausgerüstet"
    Target_ru_ru "Экипировка '%1' применена к %2 - %3 предметов установлено"
    Target_zh_cn "装备'%1'已应用到%2 - %3个物品已装备"
    Target_uk_ua "Спорядження '%1' застосовано до %2 - %3 предметів встановлено"
@@ -7239,7 +8010,7 @@ StringTable {
    MaxLength 0
    Modified 1735682400
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7247,6 +8018,7 @@ StringTable {
    Id "OVT-Msg-LoadoutAppliedToRecruits"
    Target_en_us "Loadout '%1' applied to %2 recruits"
    Target_fr_fr "Équipement '%1' appliqué à %2 recrues"
+   Target_de_de "Ausrüstung '%1' auf %2 Rekruten angewendet"
    Target_ru_ru "Экипировка '%1' применена к %2 бойцам"
    Target_zh_cn "装备'%1'已应用到%2名新兵"
    Target_uk_ua "Спорядження '%1' застосовано до %2 бійців"
@@ -7260,7 +8032,7 @@ StringTable {
    MaxLength 0
    Modified 1735682400
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7268,6 +8040,7 @@ StringTable {
    Id "OVT-Msg-LoadoutDeleted"
    Target_en_us "Loadout '%1' deleted"
    Target_fr_fr "Équipement '%1' supprimé"
+   Target_de_de "Ausrüstung '%1' gelöscht"
    Target_ru_ru "Экипировка '%1' удалена"
    Target_zh_cn "装备'%1'已删除"
    Target_uk_ua "Спорядження '%1' видалено"
@@ -7281,7 +8054,7 @@ StringTable {
    MaxLength 0
    Modified 1735682400
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7289,6 +8062,7 @@ StringTable {
    Id "OVT-Msg-NewCamp"
    Target_en_us "New FOB"
    Target_fr_fr "Nouvel avant poste"
+   Target_de_de "Neuer FOB"
    Target_ru_ru "Новая FOB"
    Target_ko_kr "새로운 FOB"
    Target_zh_cn "新FOB"
@@ -7303,13 +8077,14 @@ StringTable {
    MaxLength 0
    Modified 1706582231
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A3C61F7BDD71}" {
    Id "OVT-Msg-PatrolSpotted"
    Target_en_us "Supporters have spotted a patrol in %1"
+   Target_de_de "Unterstützer haben eine Patrouille in %1 gesichtet"
    Target_ru_ru "Жители заметили патруль в %1"
    Target_ko_kr "지지자들이 %1 에서 순찰대를 발견했습니다."
    Target_zh_cn "支持者在%1发现了巡逻队"
@@ -7324,13 +8099,14 @@ StringTable {
    MaxLength 0
    Modified 1706585205
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA8D3A294F70ED0}" {
    Id "OVT-Msg-PlayerDonated"
    Target_en_us "%1 has donated $%2 to the resistance funds"
+   Target_de_de "%1 hat $%2 an die Widerstandskasse gespendet"
    Target_ru_ru "%1 пожертвовал $%2 на нужды сопротивления"
    Target_ko_kr "%1이 저항군을 위해 \$%2를 기부했습니다."
    Target_zh_cn "%1已向抵抗基金捐赠%2$"
@@ -7345,13 +8121,15 @@ StringTable {
    MaxLength 0
    Modified 1706585218
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000098}" {
    Id "OVT-Msg-PlayerJoinedWithRecruits"
    Target_en_us "%1 joined your group with %2 recruits - you can command them while they are here"
+   Target_de_de "%1 ist deiner Gruppe mit %2 Rekruten beigetreten – du kannst ihnen Befehle erteilen, solange sie hier sind"
+   Target_uk_ua "%1 приєднався до вашої групи з %2 рекрутами — ви можете керувати ними, поки вони тут"
    Comment "Notification to a group leader - %1 is the joining player's name, %2 is how many of their recruits followed them in"
    DevNote ""
    Repro ""
@@ -7362,13 +8140,14 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA8D3A10424E647}" {
    Id "OVT-Msg-PlayerSentFunds"
    Target_en_us "An officer has sent you $%1 in resistance funds"
+   Target_de_de "Ein Offizier hat dir $%1 aus der Widerstandskasse gesendet"
    Target_ru_ru "Офицер отправил вам $%1 со счёта сопротивления"
    Target_ko_kr "한 명의 장교가 저항군 기금으로 $%1를 보내왔습니다."
    Target_zh_cn "一名指挥官已向你发送了%1$的抵抗资金"
@@ -7383,13 +8162,14 @@ StringTable {
    MaxLength 0
    Modified 1706585226
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA8D3A13F1C34F3}" {
    Id "OVT-Msg-PlayerSentMoney"
    Target_en_us "%1 has sent you $%2"
+   Target_de_de "%1 hat dir $%2 gesendet"
    Target_ru_ru "%1 отправил вам $%2"
    Target_ko_kr "%1이 \$%2를 보내왔습니다."
    Target_zh_cn "%1已向你发送%2$"
@@ -7404,13 +8184,14 @@ StringTable {
    MaxLength 0
    Modified 1706585657
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A3FA5A8D0F3C}" {
    Id "OVT-Msg-RadioTowerCapture"
    Target_en_us "The enemy is attempting to capture a radio tower near %1"
+   Target_de_de "Der Feind versucht, einen Funkturm in der Nähe von %1 einzunehmen"
    Target_ru_ru "Противник пытается захватить радиовышку вблизи %1"
    Target_ko_kr "적이 %1 근처에 있는 무전탑을 점령하려 하고 있습니다."
    Target_zh_cn "敌人正试图占领%1附近的无线电塔"
@@ -7425,13 +8206,15 @@ StringTable {
    MaxLength 0
    Modified 1706585655
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000002C}" {
    Id "OVT-Msg-RadioTowerRepaired"
    Target_en_us "The radio tower near %1 is back on the air"
+   Target_de_de "Der Funkturm in der Nähe von %1 ist wieder auf Sendung"
+   Target_uk_ua "Радіовежа поблизу %1 знову в ефірі"
    Comment "Broadcast - sabotaged radio tower re-enabled"
    DevNote ""
    Repro ""
@@ -7442,13 +8225,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000002B}" {
    Id "OVT-Msg-RadioTowerSabotaged"
    Target_en_us "A radio tower near %1 has been sabotaged"
+   Target_de_de "Ein Funkturm in der Nähe von %1 wurde sabotiert"
+   Target_uk_ua "На радіовежі поблизу %1 було проведено диверсію"
    Comment "Broadcast - radio tower taken off the air"
    DevNote ""
    Repro ""
@@ -7459,21 +8244,23 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65AA3C7A9ED20711}" {
    Id "OVT-Msg-RecruitDied"
    Target_en_us "%1 has died"
+   Target_de_de "%1 ist gestorben"
    Target_uk_ua "%1 помер"
    Modified 1716471573
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
    Target_en_us "You have received $%1 in donations and taxes"
+   Target_de_de "Du hast $%1 an Spenden und Steuern erhalten"
    Target_ru_ru "Вы получили $%1 налогов и пожертвований"
    Target_ko_kr "당신은 \$%1의 기부금과 세금을 받았습니다"
    Target_zh_cn "你已收到%1$的捐款和税收"
@@ -7488,13 +8275,14 @@ StringTable {
    MaxLength 0
    Modified 1706585689
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A3FB6DAF997D}" {
    Id "OVT-Msg-TowerControlledOccupying"
    Target_en_us "The resistance has lost control of a radio tower near %1"
+   Target_de_de "Der Widerstand hat die Kontrolle über einen Funkturm in der Nähe von %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над радиовышкой вблизи %1"
    Target_ko_kr "저항군이 %1 근처 무전탑에 대한 통제권을 잃었습니다"
    Target_zh_cn "抵抗力量已经失去了对%1附近一座无线电塔的控制"
@@ -7509,7 +8297,7 @@ StringTable {
    MaxLength 0
    Modified 1706589640
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7517,6 +8305,7 @@ StringTable {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower near %1"
    Target_fr_fr "La résistance a capturé la tour radio ennemie"
+   Target_de_de "Der Widerstand hat einen feindlichen Funkturm in der Nähe von %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль радиовышку вблизи %1"
    Target_ko_kr "저항군이 %1 근처 적 무전탑을 점령했습니다"
    Target_zh_cn "抵抗力量已占领%1附近的敌方无线电塔"
@@ -7531,7 +8320,7 @@ StringTable {
    MaxLength 0
    Modified 1706585775
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7539,6 +8328,7 @@ StringTable {
    Id "OVT-Msg-TownBattle"
    Target_en_us "The battle for the town of %1 will begin shortly"
    Target_fr_fr "La bataille pour le contrôle du bourg va bientôt commencer"
+   Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнется"
    Target_ko_kr "%1 마을을 위한 전투가 곧 시작됩니다"
    Target_zh_cn "%1镇争夺战即将开始"
@@ -7553,7 +8343,7 @@ StringTable {
    MaxLength 0
    Modified 1706585784
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7561,6 +8351,7 @@ StringTable {
    Id "OVT-Msg-TownControlledOccupying"
    Target_en_us "The resistance has lost control of the town of %1"
    Target_fr_fr "La résistance ne contrôle plus le bourg dû au manque de soutien des habitants"
+   Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
    Target_ko_kr "저항군이 %1 마을에 대한 통제권을 잃었습니다"
    Target_zh_cn "抵抗力量已经失去了对%1镇的控制"
@@ -7575,7 +8366,7 @@ StringTable {
    MaxLength 0
    Modified 1706585804
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7583,6 +8374,7 @@ StringTable {
    Id "OVT-Msg-TownControlledResistance"
    Target_en_us "The town of %1 is now under control by the resistance"
    Target_fr_fr "Le bourg est maintenant sous le contrôle de la résistance"
+   Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь под контролем сопротивления"
    Target_ko_kr "%1 마을이 이제 저항군의 통제 하에 있습니다"
    Target_zh_cn "%1镇现已被抵抗力量控制"
@@ -7597,7 +8389,7 @@ StringTable {
    MaxLength 0
    Modified 1706585840
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7605,6 +8397,7 @@ StringTable {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village of %1 due to low support"
    Target_fr_fr "La résistance ne contrôle plus le village dû au manque de soutien des habitants"
+   Target_de_de "Der Widerstand hat aufgrund geringer Unterstützung die Kontrolle über das Dorf %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над населенным пунктом %1 в следствии низкой поддержки населением"
    Target_ko_kr "지원 부족으로 저항군이 %1 마을에 대한 통제권을 잃었습니다"
    Target_zh_cn "由于支持率低迷，抵抗力量已经失去了对%1村的控制"
@@ -7619,7 +8412,7 @@ StringTable {
    MaxLength 0
    Modified 1706586112
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7627,6 +8420,7 @@ StringTable {
    Id "OVT-Msg-VillageControlledResistance"
    Target_en_us "The village of %1 is now under control by the resistance due to overwhelming support"
    Target_fr_fr "Le village est maintenant sous le contrôle de la résistance en raison d'un soutien écrasant"
+   Target_de_de "Das Dorf %1 steht aufgrund überwältigender Unterstützung jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Населенный пункт %1 теперь находится под контролем сопротивления из-за подавляющей поддержки"\
    "населением"
    Target_ko_kr "압도적인 지원으로 %1 마을이 이제 저항군의 통제 하에 있습니다"
@@ -7642,13 +8436,14 @@ StringTable {
    MaxLength 0
    Modified 1706586121
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F6791}" {
    Id "OVT-Msg-WantedArmedVehicle"
    Target_en_us "You are now wanted for operating an armed vehicle!"
+   Target_de_de "Du wirst jetzt wegen des Führens eines bewaffneten Fahrzeugs gesucht!"
    Target_uk_ua "Вас оголошено в розшук за використання озброєної техніки!"
    Comment ""
    DevNote ""
@@ -7660,13 +8455,14 @@ StringTable {
    MaxLength 0
    Modified 1716471819
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678F}" {
    Id "OVT-Msg-WantedBaseProximity"
    Target_en_us "You are now wanted for being too close to an enemy base!"
+   Target_de_de "Du wirst jetzt gesucht, weil du einer feindlichen Basis zu nahe gekommen bist!"
    Target_uk_ua "Вас оголошено в розшук за наближення до ворожої бази"
    Comment ""
    DevNote ""
@@ -7678,13 +8474,14 @@ StringTable {
    MaxLength 0
    Modified 1716471764
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678D}" {
    Id "OVT-Msg-WantedDisguiseBlown"
    Target_en_us "Your disguise has been blown! You are now wanted!"
+   Target_de_de "Deine Verkleidung ist aufgeflogen! Du wirst jetzt gesucht!"
    Target_uk_ua "Ваше маскування розкрито! Вас розшукують!"
    Comment ""
    DevNote ""
@@ -7696,13 +8493,14 @@ StringTable {
    MaxLength 0
    Modified 1716471879
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F678B}" {
    Id "OVT-Msg-WantedHostileFaction"
    Target_en_us "You are now wanted for wearing hostile faction uniform!"
+   Target_de_de "Du wirst jetzt gesucht, weil du die Uniform einer feindlichen Fraktion trägst!"
    Target_uk_ua "Вас розшукують за носіння уніформи ворожої фракції!"
    Comment ""
    DevNote ""
@@ -7714,13 +8512,15 @@ StringTable {
    MaxLength 0
    Modified 1716471910
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000004}" {
    Id "OVT-Msg-WantedIllegalPlacement"
    Target_en_us "You were seen placing illegal materials!"
+   Target_de_de "Du wurdest beim Platzieren illegaler Materialien gesehen!"
+   Target_uk_ua "Вас помітили за розміщенням нелегальних матеріалів!"
    Comment "Wanted notification - seen placing an illegal placeable (posters)"
    DevNote ""
    Repro ""
@@ -7731,13 +8531,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000002A}" {
    Id "OVT-Msg-WantedSabotage"
    Target_en_us "You were seen committing sabotage!"
+   Target_de_de "Du wurdest bei einer Sabotage gesehen!"
+   Target_uk_ua "Вас помітили за здійсненням диверсії!"
    Comment "Wanted notification - seen sabotaging a radio tower"
    DevNote ""
    Repro ""
@@ -7748,13 +8550,33 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
+   Id "OVT-Msg-WantedSeen"
+   Target_en_us "You have been spotted!"
+   Target_de_de "Du wurdest entdeckt!"
+   Target_uk_ua "Вас помітили!"
+   Comment "Broadcast notification for the level-1 re-escalation (OVT_PlayerWantedComponent decay tail, BUG-171): level 1 is the transitionary decay state and ANY sighting bumps it back to 2, so the reason is simply being seen - no uniform or weapon is implied. The visibly-armed case still uses OVT-Msg-WantedWeapon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755216000
+   Author "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F6789}" {
    Id "OVT-Msg-WantedWeapon"
    Target_en_us "You are now wanted for carrying a weapon!"
+   Target_de_de "Du wirst jetzt gesucht, weil du eine Waffe trägst!"
    Target_uk_ua "Вас розшукують за носіння зброї!"
    Comment ""
    DevNote ""
@@ -7766,24 +8588,7 @@ StringTable {
    MaxLength 0
    Modified 1716471940
    Author "Claude AI"
-   LastChanged "CrioUA"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
-   Id "OVT-Msg-WantedSeen"
-   Target_en_us "You have been spotted!"
-   Comment "Broadcast notification for the level-1 re-escalation (OVT_PlayerWantedComponent decay tail, BUG-171): level 1 is the transitionary decay state and ANY sighting bumps it back to 2, so the reason is simply being seen - no uniform or weapon is implied. The visibly-armed case still uses OVT-Msg-WantedWeapon."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755216000
-   Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7791,6 +8596,7 @@ StringTable {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
    Target_fr_fr "Vous devez être le conducteur pour effectuer le déplacement rapide avec tous les passagers"
+   Target_de_de "Du musst der Fahrer des Fahrzeugs sein, um alle Insassen per Schnellreise mitzunehmen"
    Target_ru_ru "Вы должны быть водителем транспортного средства, чтобы быстро перевезти всех пассажиров"
    Target_ko_kr "모든 탑승자를 빠른 이동시키려면 차량의 운전자가 되어야 합니다"
    Target_zh_cn "你必须是车辆驾驶员才能快速传送所有乘客"
@@ -7805,7 +8611,7 @@ StringTable {
    MaxLength 0
    Modified 1706586132
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7813,6 +8619,7 @@ StringTable {
    Id "OVT-MustBeNearTown"
    Target_en_us "This item must be placed inside a town to have any effect"
    Target_fr_fr "L'objet doit être placé dans une commune pour avoir un effet"
+   Target_de_de "Dieser Gegenstand muss innerhalb einer Stadt platziert werden, um eine Wirkung zu haben"
    Target_ru_ru "Этот предмет должен быть помещен внутри города, чтобы иметь какой-либо эффект"
    Target_ko_kr "이 아이템이 효과를 발휘하려면 반드시 마을 내부에 설치해야 합니다"
    Target_zh_cn "此物品必须放置在城镇内才能产生效果"
@@ -7827,7 +8634,7 @@ StringTable {
    MaxLength 0
    Modified 1706586161
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7835,6 +8642,7 @@ StringTable {
    Id "OVT-MustBeOfficer"
    Target_en_us "You must be an officer to do that"
    Target_fr_fr "Vous devez être officier pour effectuer cela"
+   Target_de_de "Du musst Offizier sein, um das zu tun"
    Target_ru_ru "Вы должны быть офицером, чтобы сделать это"
    Target_ko_kr "그 작업을 하기위해선 장교여야 합니다"
    Target_zh_cn "你必须是一名指挥官才能这么做"
@@ -7849,14 +8657,23 @@ StringTable {
    MaxLength 0
    Modified 1706586272
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A34}" {
+   Id "OVT-MustBeOnHelipad"
+   Target_en_us "Must be on a helipad at a friendly base"
+   Target_de_de "Du musst dich auf einem Hubschrauberlandeplatz an einer verbündeten Basis befinden"
+   Target_uk_ua "Потрібно перебувати на гелікоптерному майданчику дружньої бази"
+   Modified 1786759417
+   Author "Aaron Static"
   }
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
    Target_en_us "You must exit your vehicle first"
    Target_fr_fr "Vous devez d'abord sortir du véhicule"
+   Target_de_de "Du musst zuerst dein Fahrzeug verlassen"
    Target_ru_ru "Сначало вы должны выйти из автомобиля."
    Target_ko_kr "먼저 차량에서 내려야 합니다"
    Target_zh_cn "你必须先下车"
@@ -7871,7 +8688,7 @@ StringTable {
    MaxLength 0
    Modified 1706586220
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7879,6 +8696,7 @@ StringTable {
    Id "OVT-MustHaveMap"
    Target_en_us "You must have a map equipped"
    Target_fr_fr "Il vous faut une carte"
+   Target_de_de "Du musst eine Karte ausgerüstet haben"
    Target_ru_ru "Вы должны иметь при себе карту"
    Target_ko_kr "지도를 착용하고 있어야 합니다"
    Target_zh_cn "你必须配备地图"
@@ -7893,13 +8711,14 @@ StringTable {
    MaxLength 0
    Modified 1706586268
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310CD4EFBC4}" {
    Id "OVT-MyAccount"
    Target_en_us "My Account"
+   Target_de_de "Mein Konto"
    Target_ru_ru "Мой Кошелёк"
    Target_ko_kr "내 계정"
    Target_zh_cn "我的账户"
@@ -7914,7 +8733,7 @@ StringTable {
    MaxLength 0
    Modified 1706586285
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7922,6 +8741,7 @@ StringTable {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"
    Target_fr_fr "Cliquez près d'un autre arrêt de bus"
+   Target_de_de "Du musst in der Nähe einer anderen Bushaltestelle klicken"
    Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
    Target_ko_kr "다른 버스 정류장 근처를 클릭해야 합니다"
    Target_zh_cn "你必须在另一个公交车站附近点击"
@@ -7936,7 +8756,7 @@ StringTable {
    MaxLength 0
    Modified 1706586296
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7944,6 +8764,7 @@ StringTable {
    Id "OVT-NewOfficer"
    Target_en_us "has been made an officer"
    Target_fr_fr "a été promu officier"
+   Target_de_de "wurde zum Offizier ernannt"
    Target_ru_ru "был назначен офицером"
    Target_ko_kr "장교로 임명되었습니다"
    Target_zh_cn "已被任命为指挥官"
@@ -7958,7 +8779,7 @@ StringTable {
    MaxLength 0
    Modified 1706586308
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -7966,6 +8787,7 @@ StringTable {
    Id "OVT-NewOfficerYou"
    Target_en_us "You have been made an officer"
    Target_fr_fr "Vous avez été promu officier"
+   Target_de_de "Du wurdest zum Offizier ernannt"
    Target_ru_ru "Вы назначены офицером"
    Target_ko_kr "당신은 장교로 임명되었습니다"
    Target_zh_cn "你已被任命为指挥官"
@@ -7980,13 +8802,14 @@ StringTable {
    MaxLength 0
    Modified 1706586318
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D822427D032737F}" {
    Id "OVT-NoDeadBodiesNearby"
    Target_en_us "There are no dead bodies or weapons within 25m"
+   Target_de_de "Im Umkreis von 25 m befinden sich keine Leichen oder Waffen"
    Target_ru_ru "Здесь нет мертвых тел или оружия в пределах 25м"
    Target_ko_kr "25m 이내에 시체나 무기가 없습니다"
    Target_zh_cn "25米内没有尸体或武器"
@@ -8001,7 +8824,7 @@ StringTable {
    MaxLength 0
    Modified 1706586326
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8009,6 +8832,7 @@ StringTable {
    Id "OVT-NoDrugs"
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
    Target_fr_fr "Vous ne transportez pas de drogue. Achetez en d'abord au vendeur d'armes."
+   Target_de_de "Du trägst keine Drogen bei dir. Kaufe sie bei einem Waffenhändler."
    Target_ru_ru "У вас нет с собой никаких наркотиков. Купите их у торговца оружием."
    Target_ko_kr "당신은 마약을 소지하고 있지 않습니다. 총기 딜레에게서 구입하세요."
    Target_zh_cn "你没有携带任何毒品。请从军火商处购买。"
@@ -8023,7 +8847,7 @@ StringTable {
    MaxLength 0
    Modified 1706586341
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8031,6 +8855,7 @@ StringTable {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
    Target_fr_fr "Pas de matériel médical dans le véhicule"
+   Target_de_de "Keine medizinischen Vorräte im Fahrzeug gefunden"
    Target_ru_ru "В машине нет медикаментов"
    Target_ko_kr "차량 내에 의료 물자가 없습니다"
    Target_zh_cn "车内未发现医疗用品"
@@ -8045,7 +8870,7 @@ StringTable {
    MaxLength 0
    Modified 1706586362
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8053,6 +8878,7 @@ StringTable {
    Id "OVT-NoSupportersAvailable"
    Target_en_us "No supporters available in nearby towns"
    Target_fr_fr "Aucun partisan disponible dans les villes voisines"
+   Target_de_de "In den umliegenden Städten sind keine Unterstützer verfügbar"
    Target_ru_ru "Нет доступных сторонников в близлежащих городах"
    Target_zh_cn "附近城镇没有可用的支持者"
    Target_uk_ua "Немає доступних прихильників у навколишніх містах"
@@ -8066,7 +8892,7 @@ StringTable {
    MaxLength 0
    Modified 1640995200
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8074,6 +8900,7 @@ StringTable {
    Id "OVT-NoSupportersToRecruit"
    Target_en_us "There are not enough supporters in the nearest town to recruit"
    Target_fr_fr "Il n'y a pas assez de soutien dans le village à proximité pour recruter"
+   Target_de_de "In der nächstgelegenen Stadt gibt es nicht genügend Unterstützer zum Rekrutieren"
    Target_ru_ru "В блзжайшем населенном пункте не хватает сторонников для найма."
    Target_ko_kr "가장 가까운 마을에 지지자가 충분하지 않아 모집할 수 없습니다"
    Target_zh_cn "附近城镇没有足够的支持者来招募"
@@ -8088,13 +8915,15 @@ StringTable {
    MaxLength 0
    Modified 1706586386
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C40A9B33001}" {
    Id "OVT-NotAtBusStop"
    Target_en_us "You must be at a bus stop to catch a bus"
+   Target_de_de "Du musst dich an einer Bushaltestelle befinden, um einen Bus zu nehmen"
+   Target_uk_ua "Щоб сісти на автобус, потрібно перебувати на автобусній зупинці"
    Comment ""
    DevNote ""
    Repro ""
@@ -8110,6 +8939,7 @@ StringTable {
   CustomStringTableItem "{5DA486E2EACACAD6}" {
    Id "OVT-NotConvertedSupporter"
    Target_en_us "This civilian was not interested in supporting the resistance"
+   Target_de_de "Dieser Zivilist hatte kein Interesse daran, den Widerstand zu unterstützen"
    Target_ru_ru "Житель не заинтересован в поддержке сопротивления"
    Target_ko_kr "이 민간인은 저항군 지원에 관심이 없었습니다"
    Target_zh_cn "这位平民对支持抵抗运动不感兴趣"
@@ -8124,14 +8954,23 @@ StringTable {
    MaxLength 0
    Modified 1706589705
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A35}" {
+   Id "OVT-NothingToRearm"
+   Target_en_us "Weapons are fully armed"
+   Target_de_de "Die Waffen sind vollständig aufmunitioniert"
+   Target_uk_ua "Зброю повністю зведено"
+   Modified 1786759417
+   Author "Aaron Static"
   }
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
    Target_fr_fr "Pas de véhicule sur la rampe"
+   Target_de_de "Kein Fahrzeug auf der Rampe"
    Target_ru_ru "Нет техники на рампе"
    Target_ko_kr "램프에 차량이 없습니다"
    Target_zh_cn "匝道禁止车辆通行"
@@ -8146,7 +8985,7 @@ StringTable {
    MaxLength 0
    Modified 1706586478
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8154,6 +8993,7 @@ StringTable {
    Id "OVT-NoVehiclesNearby"
    Target_en_us "There are no vehicles nearby"
    Target_fr_fr "Pas de véhicule à proximité"
+   Target_de_de "Es befinden sich keine Fahrzeuge in der Nähe"
    Target_ru_ru "Нет машин рядом"
    Target_ko_kr "주변에 차량이 없습니다"
    Target_zh_cn "附近没有车辆"
@@ -8168,7 +9008,7 @@ StringTable {
    MaxLength 0
    Modified 1706586491
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8176,6 +9016,7 @@ StringTable {
    Id "OVT-OccupyingFaction"
    Target_en_us "Occupying Faction"
    Target_fr_fr "Faction dominante"
+   Target_de_de "Besatzungsmacht"
    Target_ru_ru "Фракция оккупантов"
    Target_ko_kr "점령중인 세력"
    Target_zh_cn "占领军"
@@ -8190,7 +9031,7 @@ StringTable {
    MaxLength 0
    Modified 1706589727
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8198,6 +9039,7 @@ StringTable {
    Id "OVT-OpenInventory"
    Target_en_us "Open Inventory"
    Target_fr_fr "Ouvrir l'inventaire"
+   Target_de_de "Inventar öffnen"
    Target_ru_ru "Открыть инвентарь"
    Target_zh_cn "打开库存"
    Target_uk_ua "Відкрити інвентар"
@@ -8211,7 +9053,7 @@ StringTable {
    MaxLength 0
    Modified 1658678321
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8219,6 +9061,7 @@ StringTable {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
    Target_fr_fr "Overthrow"
+   Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
    Target_zh_cn "抵抗"
    Target_uk_ua "Overthrow"
@@ -8232,7 +9075,7 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8240,6 +9083,7 @@ StringTable {
    Id "OVT-Owned"
    Target_en_us "Owned"
    Target_fr_fr "Possédé"
+   Target_de_de "Im Besitz"
    Target_ru_ru "Во владении"
    Target_ko_kr "소유됨"
    Target_zh_cn "拥有"
@@ -8254,7 +9098,7 @@ StringTable {
    MaxLength 0
    Modified 1706586548
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8262,6 +9106,7 @@ StringTable {
    Id "OVT-Owner"
    Target_en_us "Owner"
    Target_fr_fr "Propriétaire"
+   Target_de_de "Besitzer"
    Target_ru_ru "Владелец"
    Target_ko_kr "소유자"
    Target_zh_cn "所有者"
@@ -8276,7 +9121,7 @@ StringTable {
    MaxLength 0
    Modified 1706586546
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8284,6 +9129,7 @@ StringTable {
    Id "OVT-PerDay"
    Target_en_us "per day"
    Target_fr_fr "par jour"
+   Target_de_de "pro Tag"
    Target_ru_ru "в день"
    Target_ko_kr "하루당"
    Target_zh_cn "每天"
@@ -8298,7 +9144,7 @@ StringTable {
    MaxLength 0
    Modified 1706586566
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8306,6 +9152,7 @@ StringTable {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"
    Target_fr_fr "Camp"
+   Target_de_de "Camp"
    Target_ru_ru "Лагерь"
    Target_ko_kr "캠프"
    Target_zh_cn "营地"
@@ -8320,13 +9167,14 @@ StringTable {
    MaxLength 0
    Modified 1706586570
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E39FBCD116}" {
    Id "OVT-Place_Camp_Description"
    Target_en_us "A fast-travel destination"
+   Target_de_de "Ein Schnellreiseziel"
    Target_ru_ru "Персональная точка быстрого перемещения"
    Target_ko_kr "개인 빠른 이동 지점"
    Target_zh_cn "个人快速移动目的地"
@@ -8341,14 +9189,29 @@ StringTable {
    MaxLength 0
    Modified 1706586587
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D000000000091}" {
+   Id "OVT-Place_Cot"
+   Target_en_us "Cot"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000092}" {
+   Id "OVT-Place_Cot_Description"
+   Target_en_us "A military cot you can sleep on"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
    Target_fr_fr "Caisse d'Équipement"
+   Target_de_de "Ausrüstungskiste"
    Target_ru_ru "Ящик для снаряжения"
    Target_ko_kr "장비 상자"
    Target_zh_cn "装备箱"
@@ -8363,13 +9226,14 @@ StringTable {
    MaxLength 0
    Modified 1706586596
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E26BD2084C}" {
    Id "OVT-Place_EquipmentBox_Description"
    Target_en_us "Somewhere to put your stuff"
+   Target_de_de "Ein Ort für deine Ausrüstung"
    Target_ru_ru "Место для ваших вещей"
    Target_ko_kr "물건을 놓을 장소"
    Target_zh_cn "放个人东西的地方"
@@ -8384,7 +9248,7 @@ StringTable {
    MaxLength 0
    Modified 1706586788
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8392,6 +9256,7 @@ StringTable {
    Id "OVT-Place_Floodlights"
    Target_en_us "Floodlights"
    Target_fr_fr "Projecteurs"
+   Target_de_de "Flutlichter"
    Target_ru_ru "Прожектор"
    Target_ko_kr "투광등"
    Target_zh_cn "泛光灯"
@@ -8406,13 +9271,14 @@ StringTable {
    MaxLength 0
    Modified 1706586643
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E247151F16}" {
    Id "OVT-Place_Floodlights_Description"
    Target_en_us "Provides light at night"
+   Target_de_de "Sorgen nachts für Licht"
    Target_ru_ru "Дает свет ночью"
    Target_ko_kr "밤에 빛을 제공합니다"
    Target_zh_cn "夜间提供照明"
@@ -8427,7 +9293,7 @@ StringTable {
    MaxLength 0
    Modified 1706586783
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8435,6 +9301,7 @@ StringTable {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
    Target_fr_fr "Avant poste"
+   Target_de_de "FOB"
    Target_ru_ru "FOB"
    Target_zh_cn "FOB"
    Target_uk_ua "FOB"
@@ -8448,13 +9315,14 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E2647E8EC3}" {
    Id "OVT-Place_FOB_Description"
    Target_en_us "Forward Operating Base"
+   Target_de_de "Vorgeschobene Operationsbasis"
    Target_ru_ru "База передового развёртывания"
    Target_ko_kr "전진 작전 기지"
    Target_zh_cn "前进作战基地"
@@ -8469,30 +9337,33 @@ StringTable {
    MaxLength 0
    Modified 1706586633
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65CE9A28E959892F}" {
    Id "OVT-Place_Furniture"
    Target_en_us "Furniture"
+   Target_de_de "Möbel"
    Target_uk_ua "Меблі"
    Modified 1716471971
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65CE9A28FB5BD02E}" {
    Id "OVT-Place_Furniture_Description"
    Target_en_us "Lanterns, tables, chairs, etc"
+   Target_de_de "Laternen, Tische, Stühle usw."
    Target_uk_ua "Ліхтарі, столи, стільці тощо"
    Modified 1716471989
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
    Target_fr_fr "Obstacle"
+   Target_de_de "Panzersperre"
    Target_ru_ru "Ёж"
    Target_ko_kr "대차량 장애물"
    Target_zh_cn "刺猬桩"
@@ -8507,13 +9378,14 @@ StringTable {
    MaxLength 0
    Modified 1706589818
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E27E03497F}" {
    Id "OVT-Place_Hedgehog_Description"
    Target_en_us "Slows down vehicles"
+   Target_de_de "Bremst Fahrzeuge aus"
    Target_ru_ru "Препятствует перемещению техники"
    Target_ko_kr "차량의 속도를 늦춥니다"
    Target_zh_cn "使车辆减速"
@@ -8528,7 +9400,7 @@ StringTable {
    MaxLength 0
    Modified 1706586712
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8536,6 +9408,7 @@ StringTable {
    Id "OVT-Place_Lamps"
    Target_en_us "Lamps"
    Target_fr_fr "Lampes"
+   Target_de_de "Lampen"
    Target_ru_ru "Лампа"
    Target_ko_kr "등불"
    Target_zh_cn "灯"
@@ -8550,7 +9423,7 @@ StringTable {
    MaxLength 0
    Modified 1706586779
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8558,6 +9431,7 @@ StringTable {
    Id "OVT-Place_NextItem"
    Target_en_us "Next Item"
    Target_fr_fr "Item Suivant"
+   Target_de_de "Nächster Gegenstand"
    Target_ru_ru "Следующий предмет"
    Target_ko_kr "다음 아이템"
    Target_zh_cn "下一项"
@@ -8572,13 +9446,15 @@ StringTable {
    MaxLength 0
    Modified 1706586744
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000026}" {
    Id "OVT-Place_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_de_de "Piratensender"
+   Target_uk_ua "Піратське радіо"
    Comment "Place menu - pirate radio transmitter placeable title"
    DevNote ""
    Repro ""
@@ -8589,13 +9465,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000027}" {
    Id "OVT-Place_PirateRadio_Description"
    Target_en_us "An illegal transmitter"
+   Target_de_de "Ein illegaler Sender"
+   Target_uk_ua "Нелегальний передавач"
    Comment "Place menu - pirate radio description"
    DevNote ""
    Repro ""
@@ -8606,7 +9484,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8614,6 +9492,7 @@ StringTable {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
    Target_fr_fr "Affiche"
+   Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Постер"
    Target_ko_kr "모집 포스터"
    Target_zh_cn "征兵海报"
@@ -8628,13 +9507,14 @@ StringTable {
    MaxLength 0
    Modified 1706586775
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E38A335821}" {
    Id "OVT-Place_Poster_Description"
    Target_en_us "Raises support (max 5/town)"
+   Target_de_de "Erhöht Unterstützung (max. 5/Stadt)"
    Target_ru_ru "Увеличиват уровень поддержки населением (макс 5/населенный пункт)"
    Target_ko_kr "지지도를 올립니다 (마을당 최대 5개)"
    Target_zh_cn "提高支持率（每个城镇最多5张）"
@@ -8649,7 +9529,7 @@ StringTable {
    MaxLength 0
    Modified 1706586774
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8657,6 +9537,7 @@ StringTable {
    Id "OVT-Place_PrevItem"
    Target_en_us "Previous Item"
    Target_fr_fr "Item Précédent"
+   Target_de_de "Vorheriger Gegenstand"
    Target_ru_ru "Предыдущий предмет"
    Target_ko_kr "이전 아이템"
    Target_zh_cn "上一个项目"
@@ -8671,7 +9552,7 @@ StringTable {
    MaxLength 0
    Modified 1706586772
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8679,6 +9560,7 @@ StringTable {
    Id "OVT-Place_RotateLeft"
    Target_en_us "Rotate Left"
    Target_fr_fr "Rotation Gauche"
+   Target_de_de "Nach links drehen"
    Target_ru_ru "Повернуть влево"
    Target_ko_kr "왼쪽으로 회전"
    Target_zh_cn "向左旋转"
@@ -8693,7 +9575,7 @@ StringTable {
    MaxLength 0
    Modified 1706586817
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8701,6 +9583,7 @@ StringTable {
    Id "OVT-Place_RotateRight"
    Target_en_us "Rotate Right"
    Target_fr_fr "Rotation Droite"
+   Target_de_de "Nach rechts drehen"
    Target_ru_ru "Повернуть вправо"
    Target_ko_kr "오른쪽으로 회전"
    Target_zh_cn "向右旋转"
@@ -8715,7 +9598,7 @@ StringTable {
    MaxLength 0
    Modified 1706586826
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8723,6 +9606,7 @@ StringTable {
    Id "OVT-Place_Sandbags"
    Target_en_us "Sandbags"
    Target_fr_fr "Sacs de sable"
+   Target_de_de "Sandsäcke"
    Target_ru_ru "Мешки с песком"
    Target_ko_kr "샌드백"
    Target_zh_cn "沙袋"
@@ -8737,13 +9621,14 @@ StringTable {
    MaxLength 0
    Modified 1706586832
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E27516F652}" {
    Id "OVT-Place_Sandbags_Description"
    Target_en_us "Makes it harder to get shot at"
+   Target_de_de "Erschwert es, getroffen zu werden"
    Target_ru_ru "Повышает шансы не быть застреленным"
    Target_ko_kr "적에게 피격당할 확률이 줄어듭니다"
    Target_zh_cn "更不容易中枪"
@@ -8758,7 +9643,7 @@ StringTable {
    MaxLength 0
    Modified 1706590274
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8766,6 +9651,7 @@ StringTable {
    Id "OVT-Place_Signs"
    Target_en_us "Signs"
    Target_fr_fr "Panneaux"
+   Target_de_de "Schilder"
    Target_ru_ru "Указатель"
    Target_ko_kr "표지판"
    Target_zh_cn "标记"
@@ -8780,22 +9666,24 @@ StringTable {
    MaxLength 0
    Modified 1706587232
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65B90A2D9E4D747F}" {
    Id "OVT-Place_Signs_Description"
    Target_en_us "Tells people stuff"
+   Target_de_de "Vermitteln Informationen"
    Target_uk_ua "Розповідає щось людям"
    Modified 1716472069
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
    Target_en_us "Player"
    Target_fr_fr "Joueur"
+   Target_de_de "Spieler"
    Target_ru_ru "Игрок"
    Target_zh_cn "玩家"
    Target_uk_ua "Гравець"
@@ -8809,13 +9697,15 @@ StringTable {
    MaxLength 0
    Modified 1684559858
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000094}" {
    Id "OVT-PlayerGroups_JoinBlockedFull"
    Target_en_us "That group is full. Nobody else can join it until somebody leaves."
+   Target_de_de "Diese Gruppe ist voll. Niemand kann beitreten, bis jemand die Gruppe verlässt."
+   Target_uk_ua "Ця група заповнена. Ніхто більше не може приєднатися, поки хтось не вийде."
    Comment "Group menu - shown when the player tries to join a group that already holds the maximum number of players"
    DevNote ""
    Repro ""
@@ -8826,13 +9716,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000096}" {
    Id "OVT-PlayerGroups_JoinBlockedGone"
    Target_en_us "That group no longer exists."
+   Target_de_de "Diese Gruppe existiert nicht mehr."
+   Target_uk_ua "Ця група більше не існує."
    Comment "Group menu - shown when the selected group was deleted between selecting it and confirming the join"
    DevNote ""
    Repro ""
@@ -8843,13 +9735,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000093}" {
    Id "OVT-PlayerGroups_JoinBlockedTitle"
    Target_en_us "Cannot Join Group"
+   Target_de_de "Gruppe kann nicht beigetreten werden"
+   Target_uk_ua "Неможливо приєднатися до групи"
    Comment "Group menu - title of the dialog shown when a join is refused before anything is sent to the server"
    DevNote ""
    Repro ""
@@ -8860,13 +9754,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000095}" {
    Id "OVT-PlayerGroups_JoinBlockedUnavailable"
    Target_en_us "You cannot join that group right now."
+   Target_de_de "Du kannst dieser Gruppe derzeit nicht beitreten."
+   Target_uk_ua "Зараз ви не можете приєднатися до цієї групи."
    Comment "Group menu - shown when a join is refused for a reason other than the group being full (wrong faction, group role, rank)"
    DevNote ""
    Repro ""
@@ -8877,13 +9773,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000091}" {
    Id "OVT-PlayerGroups_JoinConfirmMessage"
    Target_en_us "%1 will be able to command your recruits while you are in their group."
+   Target_de_de "%1 kann deine Rekruten kommandieren, solange du in seiner Gruppe bist."
+   Target_uk_ua "%1 зможе командувати вашими рекрутами, поки ви перебуваєте в його групі."
    Comment "Group menu join confirmation - %1 is the other group's leader name. Shown when the local player owns no recruits"
    DevNote ""
    Repro ""
@@ -8894,13 +9792,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000092}" {
    Id "OVT-PlayerGroups_JoinConfirmRecruitsMessage"
    Target_en_us "Your %1 recruits will move to %2's group and take orders from %2. You still own them - they return to you when you leave the group, change groups, or reconnect."
+   Target_de_de "Deine %1 Rekruten wechseln in die Gruppe von %2 und befolgen die Befehle von %2. Sie gehören weiterhin dir – wenn du die Gruppe verlässt, die Gruppe wechselst oder dich erneut verbindest, kehren sie zu dir zurück."
+   Target_uk_ua "Ваші рекрути (%1) перейдуть до групи %2 і виконуватимуть накази %2. Вони й надалі належатимуть вам — вони повернуться до вас, коли ви залишите групу, зміните групу або перепідключитеся."
    Comment "Group menu join confirmation - %1 is the local player's recruit count, %2 is the other group's leader name (used twice). Shown when the local player owns at least one recruit"
    DevNote ""
    Repro ""
@@ -8911,13 +9811,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000090}" {
    Id "OVT-PlayerGroups_JoinConfirmTitle"
    Target_en_us "Join Group"
+   Target_de_de "Gruppe beitreten"
+   Target_uk_ua "Приєднатися до групи"
    Comment "Group menu - title of the dialog shown before a join request or invite acceptance is sent"
    DevNote ""
    Repro ""
@@ -8928,13 +9830,15 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E00000097}" {
    Id "OVT-PlayerGroups_ModelExplainer"
    Target_en_us "Your group is private and named after you. Your recruits follow you into any group you join - that group's leader commands them while you are there, but you keep ownership and they come back when you leave. To leave a group, use Create new group."
+   Target_de_de "Deine Gruppe ist privat und nach dir benannt. Deine Rekruten folgen dir in jede Gruppe, der du beitrittst – der Anführer dieser Gruppe kommandiert sie, solange du dort bist, aber sie bleiben in deinem Besitz und kehren zurück, wenn du die Gruppe verlässt. Um eine Gruppe zu verlassen, verwende \"Erstelle neue Gruppe\"."
+   Target_uk_ua "Ваша група приватна й названа на вашу честь. Ваші рекрути переходять разом із вами до будь-якої групи, до якої ви приєднуєтеся — поки ви перебуваєте в ній, ними командує лідер цієї групи, але вони й надалі належать вам і повертаються до вас, коли ви виходите з групи. Щоб залишити групу, скористайтеся «Створити нову групу»."
    Comment "Group menu - paragraph under the group list explaining Overthrow's group model, including that Create new group is the only way to leave a group"
    DevNote ""
    Repro ""
@@ -8945,7 +9849,7 @@ StringTable {
    MaxLength 0
    Modified 1754438400
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8953,6 +9857,7 @@ StringTable {
    Id "OVT-Population"
    Target_en_us "Population"
    Target_fr_fr "Population"
+   Target_de_de "Bevölkerung"
    Target_ru_ru "Население"
    Target_ko_kr "인구"
    Target_zh_cn "人口"
@@ -8967,7 +9872,7 @@ StringTable {
    MaxLength 0
    Modified 1706587265
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8975,6 +9880,7 @@ StringTable {
    Id "OVT-Port"
    Target_en_us "Port"
    Target_fr_fr "Port"
+   Target_de_de "Hafen"
    Target_ru_ru "Порт"
    Target_ko_kr "항구"
    Target_zh_cn "港口"
@@ -8989,7 +9895,7 @@ StringTable {
    MaxLength 0
    Modified 1706587274
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -8997,6 +9903,7 @@ StringTable {
    Id "OVT-Port_Buy_10"
    Target_en_us "Buy 10"
    Target_fr_fr "Acheter 10"
+   Target_de_de "10 kaufen"
    Target_ru_ru "Купить 10"
    Target_ko_kr "구매 10"
    Target_zh_cn "购买10"
@@ -9011,7 +9918,7 @@ StringTable {
    MaxLength 0
    Modified 1706587289
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9019,6 +9926,7 @@ StringTable {
    Id "OVT-Port_Buy_100"
    Target_en_us "Buy 100"
    Target_fr_fr "Acheter 100"
+   Target_de_de "100 kaufen"
    Target_ru_ru "Купить 100"
    Target_ko_kr "구매 100"
    Target_zh_cn "购买100"
@@ -9033,13 +9941,14 @@ StringTable {
    MaxLength 0
    Modified 1706587293
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDD}" {
    Id "OVT-PriorityFOBSet"
    Target_en_us "%1 has been set as the priority FOB"
+   Target_de_de "%1 wurde als Prioritäts-FOB festgelegt"
    Target_uk_ua "%1 встановлено як головну FOB"
    Comment ""
    DevNote ""
@@ -9051,13 +9960,14 @@ StringTable {
    MaxLength 0
    Modified 1716472104
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBD4}" {
    Id "OVT-Privacy"
    Target_en_us "Privacy"
+   Target_de_de "Privatsphäre"
    Target_uk_ua "Конфіденційність"
    Comment ""
    DevNote ""
@@ -9069,13 +9979,14 @@ StringTable {
    MaxLength 0
    Modified 1716472120
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E4A6E76C0D01F62}" {
    Id "OVT-Procurement"
    Target_en_us "Procurement"
+   Target_de_de "Beschaffung"
    Target_ko_kr "조달"
    Target_zh_cn "采购"
    Target_uk_ua "Закупівлі"
@@ -9089,7 +10000,7 @@ StringTable {
    MaxLength 0
    Modified 1706587304
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9097,6 +10008,7 @@ StringTable {
    Id "OVT-Progress-CollectingContainers"
    Target_en_us "Collecting containers"
    Target_fr_fr "Collecte de conteneurs"
+   Target_de_de "Container werden eingesammelt"
    Target_ru_ru "Сбор контейнеров"
    Target_ko_kr "컨테이너 수집 중"
    Target_zh_cn "收集容器中"
@@ -9111,7 +10023,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9119,6 +10031,7 @@ StringTable {
    Id "OVT-Progress-Completed"
    Target_en_us "Completed: %1 items"
    Target_fr_fr "Terminé : %1 objets"
+   Target_de_de "Abgeschlossen: %1 Gegenstände"
    Target_ru_ru "Завершено: %1 предметов"
    Target_ko_kr "완료: %1 아이템"
    Target_zh_cn "完成：%1 个物品"
@@ -9133,7 +10046,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9141,6 +10054,7 @@ StringTable {
    Id "OVT-Progress-CompletedWithSkipped"
    Target_en_us "Completed: %1 items (%2 skipped)"
    Target_fr_fr "Terminé : %1 objets (%2 ignorés)"
+   Target_de_de "Abgeschlossen: %1 Gegenstände (%2 übersprungen)"
    Target_ru_ru "Завершено: %1 предметов (%2 пропущено)"
    Target_ko_kr "완료: %1 아이템 (%2 스킵됨)"
    Target_zh_cn "完成：%1 个物品（%2 个跳过）"
@@ -9155,7 +10069,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9163,6 +10077,7 @@ StringTable {
    Id "OVT-Progress-DeployingFOB"
    Target_en_us "Deploying FOB"
    Target_fr_fr "Déploiement de la FOB"
+   Target_de_de "FOB wird errichtet"
    Target_ru_ru "Развертывание передовой базы"
    Target_ko_kr "FOB 배치 중"
    Target_zh_cn "部署前进基地中"
@@ -9177,7 +10092,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9185,6 +10100,7 @@ StringTable {
    Id "OVT-Progress-Error"
    Target_en_us "Error: %1"
    Target_fr_fr "Erreur : %1"
+   Target_de_de "Fehler: %1"
    Target_ru_ru "Ошибка: %1"
    Target_ko_kr "오류: %1"
    Target_zh_cn "错误：%1"
@@ -9199,7 +10115,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9207,6 +10123,7 @@ StringTable {
    Id "OVT-Progress-LootingBattlefield"
    Target_en_us "Looting battlefield"
    Target_fr_fr "Pillage du champ de bataille"
+   Target_de_de "Schlachtfeld wird geplündert"
    Target_ru_ru "Сбор трофеев"
    Target_ko_kr "전리품 수집 중"
    Target_zh_cn "战场搜刮中"
@@ -9221,7 +10138,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9229,6 +10146,7 @@ StringTable {
    Id "OVT-Progress-TransferringItems"
    Target_en_us "Transferring items"
    Target_fr_fr "Transfert d'objets"
+   Target_de_de "Gegenstände werden übertragen"
    Target_ru_ru "Передача предметов"
    Target_ko_kr "아이템 이동 중"
    Target_zh_cn "转移物品中"
@@ -9243,7 +10161,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9251,6 +10169,7 @@ StringTable {
    Id "OVT-Progress-TransferringToWarehouse"
    Target_en_us "Transferring to warehouse"
    Target_fr_fr "Transfert vers l'entrepôt"
+   Target_de_de "Übertragung ins Lagerhaus"
    Target_ru_ru "Передача на склад"
    Target_ko_kr "창고로 이동 중"
    Target_zh_cn "转移至仓库中"
@@ -9265,7 +10184,7 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9273,6 +10192,7 @@ StringTable {
    Id "OVT-Progress-UndeployingFOB"
    Target_en_us "Undeploying FOB"
    Target_fr_fr "Déploiement de la FOB"
+   Target_de_de "FOB wird abgebaut"
    Target_ru_ru "Сворачивание передовой базы"
    Target_ko_kr "FOB 철수 중"
    Target_zh_cn "撤收前进基地中"
@@ -9287,13 +10207,14 @@ StringTable {
    MaxLength 0
    Modified 1733000000
    Author "Claude AI"
-   LastChanged "Claude AI"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-ProgressComplete"
    Target_en_us "Progress: 100%"
+   Target_de_de "Fortschritt: 100 %"
    Target_uk_ua "Прогрес: 100%"
    Comment ""
    DevNote ""
@@ -9305,13 +10226,14 @@ StringTable {
    MaxLength 0
    Modified 1716472152
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-ProgressPercent"
    Target_en_us "Progress: %1%"
+   Target_de_de "Fortschritt: %1 %"
    Target_uk_ua "Прогрес: %1%"
    Comment ""
    DevNote ""
@@ -9323,13 +10245,14 @@ StringTable {
    MaxLength 0
    Modified 1716472168
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F139}" {
    Id "OVT-PurchaseFailedInsufficientFunds"
    Target_en_us "Purchase failed: Insufficient funds"
+   Target_de_de "Kauf fehlgeschlagen: Nicht genügend Geld"
    Target_uk_ua "Покупка не вдалася: недостатньо коштів"
    Comment ""
    DevNote ""
@@ -9341,13 +10264,14 @@ StringTable {
    MaxLength 0
    Modified 1716472185
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F13A}" {
    Id "OVT-PurchaseFailedInventoryFull"
    Target_en_us "Purchase failed: Inventory full"
+   Target_de_de "Kauf fehlgeschlagen: Inventar voll"
    Target_uk_ua "Покупка не вдалася: інвентар повний"
    Comment ""
    DevNote ""
@@ -9359,13 +10283,14 @@ StringTable {
    MaxLength 0
    Modified 1716472200
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A82FE978603F13C}" {
    Id "OVT-PurchasePartialSuccess"
    Target_en_us "Purchase partially successful: Got %1 out of %2 items"
+   Target_de_de "Kauf teilweise erfolgreich: %1 von %2 Gegenständen erhalten"
    Target_uk_ua "Покупка частково успішна: отримано %1 з %2 товарів"
    Comment ""
    DevNote ""
@@ -9377,7 +10302,7 @@ StringTable {
    MaxLength 0
    Modified 1716472218
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -9385,6 +10310,7 @@ StringTable {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"
    Target_fr_fr "Mettre dans l'Entrepôt"
+   Target_de_de "Ins Lagerhaus legen"
    Target_ru_ru "Поместить на склад"
    Target_ko_kr "창고에 넣기"
    Target_zh_cn "入库"
@@ -9399,20 +10325,24 @@ StringTable {
    MaxLength 0
    Modified 1706587328
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65DAD69E45B60D49}" {
    Id "OVT-RadioTower"
    Target_en_us "Radio Tower"
+   Target_de_de "Funkturm"
+   Target_uk_ua "Радіовежа"
    Modified 1708845495
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7E1A2D00000009}" {
    Id "OVT-RealEstate_AlreadyHome"
    Target_en_us "This is already your home"
+   Target_de_de "Dies ist bereits dein Zuhause"
+   Target_uk_ua "Це вже ваш дім."
    Comment "Real estate menu - set as home refused because it already is"
    DevNote ""
    Repro ""
@@ -9423,13 +10353,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000003}" {
    Id "OVT-RealEstate_CantAfford"
    Target_en_us "You cannot afford this"
+   Target_de_de "Du kannst dir das nicht leisten"
+   Target_uk_ua "Ви не можете собі цього дозволити."
    Comment "Real estate menu - buy or rent refused for insufficient funds"
    DevNote ""
    Repro ""
@@ -9440,13 +10372,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000007}" {
    Id "OVT-RealEstate_CantRent"
    Target_en_us "This property cannot be rented"
+   Target_de_de "Diese Immobilie kann nicht gemietet werden"
+   Target_uk_ua "Цю нерухомість не можна орендувати."
    Comment "Real estate menu - rent refused because it is already rented, owned by someone else, or is home"
    DevNote ""
    Repro ""
@@ -9457,13 +10391,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000006}" {
    Id "OVT-RealEstate_IsHome"
    Target_en_us "You cannot sell your home"
+   Target_de_de "Du kannst dein Zuhause nicht verkaufen"
+   Target_uk_ua "Ви не можете продати свій дім."
    Comment "Real estate menu - sell refused because the building is the player's home"
    DevNote ""
    Repro ""
@@ -9474,13 +10410,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000002}" {
    Id "OVT-RealEstate_NotForSale"
    Target_en_us "This property is not for sale"
+   Target_de_de "Diese Immobilie steht nicht zum Verkauf"
+   Target_uk_ua "Ця нерухомість не продається."
    Comment "Real estate menu - buy refused because the building is already owned or rented"
    DevNote ""
    Repro ""
@@ -9491,13 +10429,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000004}" {
    Id "OVT-RealEstate_NotOwner"
    Target_en_us "You do not own this property"
+   Target_de_de "Diese Immobilie gehört dir nicht"
+   Target_uk_ua "Ви не володієте цією нерухомістю."
    Comment "Real estate menu - sell or set-as-home refused because the player is not the owner"
    DevNote ""
    Repro ""
@@ -9508,13 +10448,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000008}" {
    Id "OVT-RealEstate_NotRenter"
    Target_en_us "You are not renting this property"
+   Target_de_de "Du mietest diese Immobilie nicht"
+   Target_uk_ua "Ви не орендуєте цю нерухомість."
    Comment "Real estate menu - stop renting refused because the player is not the renter"
    DevNote ""
    Repro ""
@@ -9525,13 +10467,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000005}" {
    Id "OVT-RealEstate_OnlyHouse"
    Target_en_us "You cannot sell your only property"
+   Target_de_de "Du kannst deine einzige Immobilie nicht verkaufen"
+   Target_uk_ua "Ви не можете продати свою єдину нерухомість."
    Comment "Real estate menu - sell refused because it is the player's last building"
    DevNote ""
    Repro ""
@@ -9542,21 +10486,32 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A9F4C2DB1E07A33}" {
+   Id "OVT-RearmVehicle"
+   Target_en_us "Re-arm"
+   Target_de_de "Aufmunitionieren"
+   Target_uk_ua "Поповнити боєзапас"
+   Modified 1786759417
+   Author "Aaron Static"
   }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
+   Target_de_de "Aktiv"
    Target_uk_ua "Активний"
    Modified 1716473362
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000073}" {
    Id "OVT-Recruit_BuyButton"
    Target_en_us "Buy Recruit ($%1)"
+   Target_de_de "Rekrut kaufen ($%1)"
+   Target_uk_ua "Найняти рекрута ($%1)"
    Comment "Label of the purchase button on the loadouts screen in tent purchase mode. %1 is the whole quoted price - recruit cost plus the gear fee - as computed by the server. Carries a number, so it stays literal English in script until the runtime exports are regenerated"
    DevNote ""
    Repro ""
@@ -9567,13 +10522,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000008F}" {
    Id "OVT-Recruit_BuyButtonPlain"
    Target_en_us "Buy Recruit"
+   Target_de_de "Rekrut kaufen"
+   Target_uk_ua "Найняти рекрута"
    Comment "Purchase button label when no price can be shown: empty selection, unreachable tent, unpriceable loadout, or a generic refusal. The priced variant is OVT-Recruit_BuyButton"
    DevNote ""
    Repro ""
@@ -9584,13 +10541,15 @@ StringTable {
    MaxLength 0
    Modified 1755216000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000076}" {
    Id "OVT-Recruit_BuyComplete"
    Target_en_us "Recruit hired and equipped ($%1)"
+   Target_de_de "Rekrut angeworben und ausgerüstet ($%1)"
+   Target_uk_ua "Рекрута найнято та споряджено ($%1)"
    Comment "Hint after buying an equipped recruit at a tent with the whole kit arriving. %1 is the amount actually charged, carried back from the server so the player can check it against the price they were shown. Assembled with a count in script, so it stays literal English until the runtime exports are regenerated"
    DevNote ""
    Repro ""
@@ -9601,13 +10560,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000007D}" {
    Id "OVT-Recruit_BuyFailed"
    Target_en_us "The recruit could not be hired - you were not charged"
+   Target_de_de "Der Rekrut konnte nicht angeworben werden – dir wurde nichts berechnet"
+   Target_uk_ua "Не вдалося найняти рекрута — кошти не списано."
    Comment "Refusal when nothing spawned at all. Nothing is charged and no town supporter is taken, which is what the second half of the sentence promises"
    DevNote ""
    Repro ""
@@ -9618,13 +10579,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000078}" {
    Id "OVT-Recruit_BuyGearFailed"
    Target_en_us "Recruit hired for $%1 - none of the kit could be issued, so the gear was not charged for"
+   Target_de_de "Rekrut für $%1 angeworben – keine Ausrüstung konnte ausgegeben werden, daher wurde die Ausrüstung nicht berechnet"
+   Target_uk_ua "Рекрута найнято за $%1 — спорядження не вдалося видати, тому кошти за нього не списано."
    Comment "Hint when an equipped purchase spawned a recruit but not one piece of the loadout landed. Only the ordinary recruit cost is taken; the gear fee is not (decision D19)"
    DevNote ""
    Repro ""
@@ -9635,13 +10598,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000090}" {
    Id "OVT-Recruit_Buying"
    Target_en_us "Buying..."
+   Target_de_de "Wird gekauft..."
+   Target_uk_ua "Купівля..."
    Comment "Shown on the purchase button and status line after the buy request is sent, until the server result arrives. Distinct from OVT-Recruit_QuoteChecking, which is the pre-purchase price check"
    DevNote ""
    Repro ""
@@ -9652,13 +10617,15 @@ StringTable {
    MaxLength 0
    Modified 1755216000
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000077}" {
    Id "OVT-Recruit_BuyPartial"
    Target_en_us "Recruit hired for $%1, but only %2 of %3 items arrived"
+   Target_de_de "Rekrut für $%1 angeworben, aber nur %2 von %3 Gegenständen sind angekommen"
+   Target_uk_ua "Рекрута найнято за $%1, але надійшло лише %2 з %3 предметів"
    Comment "Hint after buying an equipped recruit where part of the kit did not land. A partial apply is charged in full - the player was shown the price before committing and per-item refunds cannot be computed correctly for container contents (decision D19)"
    DevNote ""
    Repro ""
@@ -9669,13 +10636,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000022}" {
    Id "OVT-Recruit_CannotParkInVehicle"
    Target_en_us "Get the recruit out of the vehicle first"
+   Target_de_de "Lass den Rekruten zuerst aus dem Fahrzeug aussteigen"
+   Target_uk_ua "Спочатку висадіть рекрута з транспортного засобу"
    Comment "Why a recruit sitting in a vehicle cannot be told to hold position - also the server's refusal hint"
    DevNote ""
    Repro ""
@@ -9686,13 +10655,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000052}" {
    Id "OVT-Recruit_CannotSwapDown"
    Target_en_us "The recruit has to be on their feet"
+   Target_de_de "Der Rekrut muss auf den Beinen sein"
+   Target_uk_ua "Рукрут має стояти на ногах"
    Comment "Why a dead or unconscious recruit cannot have its gear swapped - also the server's refusal hint"
    DevNote ""
    Repro ""
@@ -9703,13 +10674,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000051}" {
    Id "OVT-Recruit_CannotSwapParked"
    Target_en_us "Bring the recruit back into your squad first"
+   Target_de_de "Hol den Rekruten zuerst zurück in deinen Trupp"
+   Target_uk_ua "Спочатку поверніть рекрута до свого загону"
    Comment "Why a parked recruit cannot have its gear swapped - also the server's refusal hint"
    DevNote ""
    Repro ""
@@ -9720,13 +10693,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000025}" {
    Id "OVT-Recruit_CommandFailed"
    Target_en_us "Could not change that recruit's orders"
+   Target_de_de "Die Befehle dieses Rekruten konnten nicht geändert werden"
+   Target_uk_ua "Не вдалося змінити накази цього рекрута"
    Comment "Server refusal hint for a recruit command that failed for any other reason"
    DevNote ""
    Repro ""
@@ -9737,53 +10712,60 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A15}" {
    Id "OVT-Recruit_Dismissed"
    Target_en_us "Recruit dismissed"
+   Target_de_de "Rekrut entlassen"
    Target_uk_ua "Рекрут звільнений"
    Modified 1716473346
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A20}" {
    Id "OVT-Recruit_Hometown"
    Target_en_us "Hometown: %1"
+   Target_de_de "Heimatstadt: %1"
    Target_uk_ua "Рідне місто: %1"
    Modified 1716473324
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A08}" {
    Id "OVT-Recruit_Kills"
    Target_en_us "Kills: %1"
+   Target_de_de "Abschüsse: %1"
    Target_uk_ua "Вбивств: %1"
    Modified 1716473295
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A06}" {
    Id "OVT-Recruit_Level"
    Target_en_us "Level %1"
+   Target_de_de "Stufe %1"
    Target_uk_ua "Рівень %1"
    Modified 1716473281
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A07}" {
    Id "OVT-Recruit_LevelXP"
    Target_en_us "Level: %1 (%2/%3 XP)"
+   Target_de_de "Stufe: %1 (%2/%3 EP)"
    Target_uk_ua "Рівень: %1 (%2 із %3 XP)"
    Modified 1716473263
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C00000000007B}" {
    Id "OVT-Recruit_LoadoutEmpty"
    Target_en_us "That loadout has nothing in it"
+   Target_de_de "Diese Ausrüstung enthält nichts"
+   Target_uk_ua "У цьому комплекті спорядження нічого немає"
    Comment "Refusal when the selected loadout records no items, so there is no kit to sell with the recruit"
    DevNote ""
    Repro ""
@@ -9794,13 +10776,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000007C}" {
    Id "OVT-Recruit_LoadoutUnpriceable"
    Target_en_us "Something in that loadout has no price and cannot be supplied"
+   Target_de_de "Etwas in dieser Ausrüstung hat keinen Preis und kann nicht bereitgestellt werden"
+   Target_uk_ua "Щось у цьому комплекті спорядження не має ціни й не може бути поставлене"
    Comment "Refusal when an item in the loadout is not a registered resource. It is never priced at zero and never guessed - an unregistered prefab resolves to another item's price and the price lookup cannot report unknown (decision D20). The server logs and returns the item name; the picker names it"
    DevNote ""
    Repro ""
@@ -9811,21 +10795,24 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A16}" {
    Id "OVT-Recruit_MarkedOnMap"
    Target_en_us "Recruit location marked on map"
-   Target_uk_ua "Позиція рекрута позначена на мапі"
+   Target_de_de "Position des Rekruten auf der Karte markiert"
+   Target_uk_ua "Місцезнаходження рекрута позначено на мапі"
    Modified 1716473228
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000024}" {
    Id "OVT-Recruit_NoBody"
    Target_en_us "That recruit is not here right now"
+   Target_de_de "Dieser Rekrut ist momentan nicht hier"
+   Target_uk_ua "Цього рекрута зараз тут немає"
    Comment "Server refusal hint when a recruit command targets a recruit with no body in the world"
    DevNote ""
    Repro ""
@@ -9836,13 +10823,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000007E}" {
    Id "OVT-Recruit_NoLoadouts"
    Target_en_us "Save a loadout first"
+   Target_de_de "Speichere zuerst eine Ausrüstung"
+   Target_uk_ua "Спочатку збережіть комплект спорядження"
    Comment "Cannot-perform reason on the tent Buy Equipped Recruit action for a player with no saved loadouts. The action stays visible with this reason rather than vanishing, so the feature is discoverable"
    DevNote ""
    Repro ""
@@ -9853,13 +10842,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000007A}" {
    Id "OVT-Recruit_NoSuchLoadout"
    Target_en_us "That loadout no longer exists"
+   Target_de_de "Diese Ausrüstung existiert nicht mehr"
+   Target_uk_ua "Цього комплекту спорядження більше не існує"
    Comment "Refusal when the named loadout is not found under the buyer's own persistent id. Loadouts are looked up by the id the server resolved, so naming another player's loadout lands here too"
    DevNote ""
    Repro ""
@@ -9870,13 +10861,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000079}" {
    Id "OVT-Recruit_NotAtTent"
    Target_en_us "You are not at a recruitment tent"
+   Target_de_de "Du befindest dich nicht an einem Rekrutierungszelt"
+   Target_uk_ua "Ви не біля намету для найму"
    Comment "Refusal for an equipped recruit purchase whose named tent did not resolve, is not a recruitment tent, or is further away than the tent action allows. One sentence for all three on purpose - none of them should confirm anything about a tent the player cannot see"
    DevNote ""
    Repro ""
@@ -9887,13 +10880,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000023}" {
    Id "OVT-Recruit_NotYours"
    Target_en_us "That is not one of your recruits"
+   Target_de_de "Das ist keiner deiner Rekruten"
+   Target_uk_ua "Це не один із ваших рекрутів"
    Comment "Server refusal hint when a recruit command names a recruit the player does not own"
    DevNote ""
    Repro ""
@@ -9904,21 +10899,24 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A11}" {
    Id "OVT-Recruit_Offline"
    Target_en_us "Offline"
+   Target_de_de "Offline"
    Target_uk_ua "Офлайн"
    Modified 1716473195
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000075}" {
    Id "OVT-Recruit_QuoteChecking"
    Target_en_us "Checking price..."
+   Target_de_de "Preis wird geprüft..."
+   Target_uk_ua "Перевірка ціни..."
    Comment "Shown on the purchase button between selecting a loadout and the server quote arriving. The button is DISABLED while this shows, so a pad user can never fire an unpriced purchase"
    DevNote ""
    Repro ""
@@ -9929,13 +10927,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000074}" {
    Id "OVT-Recruit_QuotePrice"
    Target_en_us "%1 items, $%2 equipped"
+   Target_de_de "%1 Gegenstände, für $%2 ausgerüstet"
+   Target_uk_ua "%1 предметів, споряджено на $%2"
    Comment "Per-selection price line in the loadouts screen details pane while buying a recruit at a tent. %1 is how many items were priced (nesting and attachments included), %2 the whole quoted price"
    DevNote ""
    Repro ""
@@ -9946,21 +10946,24 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A23}" {
    Id "OVT-Recruit_Renamed"
    Target_en_us "Recruit renamed successfully"
-   Target_uk_ua "Рекрут успішно перейменований"
+   Target_de_de "Rekrut erfolgreich umbenannt"
+   Target_uk_ua "Рекрута успішно перейменовано"
    Modified 1716473182
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000021}" {
    Id "OVT-Recruit_SetActive"
    Target_en_us "Rejoin to group"
+   Target_de_de "Wieder der Gruppe beitreten"
+   Target_uk_ua "Повернутися до групи"
    Comment "Held action on a parked recruit: bring it back into your squad"
    DevNote ""
    Repro ""
@@ -9971,13 +10974,15 @@ StringTable {
    MaxLength 0
    Modified 1780356449
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000020}" {
    Id "OVT-Recruit_SetInactive"
    Target_en_us "Remove From Group"
+   Target_de_de "Aus Gruppe entfernen"
+   Target_uk_ua "Видалити з групи"
    Comment "Held action on an owned recruit: take it out of your squad and have it hold position"
    DevNote ""
    Repro ""
@@ -9988,37 +10993,42 @@ StringTable {
    MaxLength 0
    Modified 1780356425
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A13}" {
    Id "OVT-Recruit_StatusActive"
    Target_en_us "Status: Active (Distance: %1m)"
+   Target_de_de "Status: Aktiv (Entfernung: %1 m)"
    Target_uk_ua "Статус: активний (відстань: %1 м)"
    Modified 1716473164
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A12}" {
    Id "OVT-Recruit_StatusDead"
    Target_en_us "Status: Dead"
+   Target_de_de "Status: Tot"
    Target_uk_ua "Статус: мертвий"
    Modified 1716473141
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A14}" {
    Id "OVT-Recruit_StatusOffline"
    Target_en_us "Status: Offline"
+   Target_de_de "Status: Offline"
    Target_uk_ua "Статус: офлайн"
    Modified 1716473133
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000054}" {
    Id "OVT-Recruit_SwapComplete"
    Target_en_us "Kit swapped"
+   Target_de_de "Ausrüstung getauscht"
+   Target_uk_ua "Спорядження змінено"
    Comment "Loadout swap finished with every item exchanged. Rendered as literal English in script until the runtime exports are regenerated"
    DevNote ""
    Repro ""
@@ -10029,13 +11039,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000056}" {
    Id "OVT-Recruit_SwapFailed"
    Target_en_us "Nothing could be exchanged"
+   Target_de_de "Nichts konnte getauscht werden"
+   Target_uk_ua "Нічого не вдалося обміняти"
    Comment "Loadout swap ran but moved nothing. Rendered as literal English in script until the runtime exports are regenerated"
    DevNote ""
    Repro ""
@@ -10046,13 +11058,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000050}" {
    Id "OVT-Recruit_SwapLoadout"
    Target_en_us "Swap Gear"
+   Target_de_de "Ausrüstung tauschen"
+   Target_uk_ua "Обміняти спорядження"
    Comment "Held action on an owned active recruit: exchange your whole kit with theirs"
    DevNote ""
    Repro ""
@@ -10063,13 +11077,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000055}" {
    Id "OVT-Recruit_SwapPartial"
    Target_en_us "Kit swapped: %1 items exchanged, %2 could not be"
+   Target_de_de "Ausrüstung getauscht: %1 Gegenstände getauscht, %2 konnten nicht getauscht werden"
+   Target_uk_ua "Спорядження змінено: %1 предметів обміняно, %2 не вдалося обміняти"
    Comment "Loadout swap finished with some items left behind. Assembled with counts in script, so it stays literal English until the runtime exports are regenerated"
    DevNote ""
    Repro ""
@@ -10080,13 +11096,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000053}" {
    Id "OVT-Recruit_TooFarAway"
    Target_en_us "Get closer to the recruit"
+   Target_de_de "Geh näher an den Rekruten heran"
+   Target_uk_ua "Підійдіть ближче до рекрута"
    Comment "Server refusal: the requesting player was not next to the recruit when the action completed"
    DevNote ""
    Repro ""
@@ -10097,30 +11115,33 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A09}" {
    Id "OVT-Recruit_Unconscious"
    Target_en_us "Unconscious"
+   Target_de_de "Bewusstlos"
    Target_uk_ua "Непритомний"
    Modified 1716473113
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{64A10301CB5B1FEF}" {
    Id "OVT-RecruitCivilian"
    Target_en_us "Recruit Civilian"
+   Target_de_de "Zivilisten rekrutieren"
    Target_uk_ua "Вербувати цивільного"
    Modified 1716472246
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5DA486E22A59D4CB}" {
    Id "OVT-RecruitedFromTent"
    Target_en_us "Recruited supporter from nearby town"
    Target_fr_fr "Partisan recruté de la ville voisine"
+   Target_de_de "Unterstützer aus der nahegelegenen Stadt rekrutiert"
    Target_ru_ru "Завербован сторонник из близлежащего города"
    Target_zh_cn "从附近城镇招募了支持者"
    Target_uk_ua "Завербовано прихильника з навколишнього міста"
@@ -10134,7 +11155,7 @@ StringTable {
    MaxLength 0
    Modified 1640995200
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10142,6 +11163,7 @@ StringTable {
    Id "OVT-RecruitFromTent"
    Target_en_us "Recruit from Tent"
    Target_fr_fr "Recruter de la tente"
+   Target_de_de "Am Zelt rekrutieren"
    Target_ru_ru "Завербовать из палатки"
    Target_zh_cn "从帐篷招募"
    Target_uk_ua "Завербувати з намету"
@@ -10155,7 +11177,7 @@ StringTable {
    MaxLength 0
    Modified 1640995200
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10163,6 +11185,7 @@ StringTable {
    Id "OVT-RecruitGunner"
    Target_en_us "Recruit Gunner"
    Target_fr_fr "Recruter Homme de main"
+   Target_de_de "Schützen rekrutieren"
    Target_ru_ru "Нанять пулеметчика"
    Target_ko_kr "용병 모집"
    Target_zh_cn "招募枪手"
@@ -10177,7 +11200,7 @@ StringTable {
    MaxLength 0
    Modified 1706587359
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10185,6 +11208,7 @@ StringTable {
    Id "OVT-RecruitLimitReached"
    Target_en_us "You have reached the maximum number of recruits (16)"
    Target_fr_fr "Vous avez atteint le nombre maximum de recrues (16)"
+   Target_de_de "Du hast die maximale Anzahl an Rekruten erreicht (16)"
    Target_ru_ru "Вы достигли максимального количества бойцов (16)"
    Target_zh_cn "你已达到招募人员的最大数量 (16)"
    Target_uk_ua "Ви досягли максимальної кількості рекрутів (16)"
@@ -10198,13 +11222,15 @@ StringTable {
    MaxLength 0
    Modified 1640995200
    Author "Claude Code"
-   LastChanged "Claude Code"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000042}" {
    Id "OVT-Recruits_Capacity"
    Target_en_us "%1 / %2 recruits"
+   Target_de_de "%1 / %2 Rekruten"
+   Target_uk_ua "%1 / %2 рекрутів"
    Comment "Recruits screen: how many of your 16 recruit slots are used - parked recruits count too"
    DevNote ""
    Repro ""
@@ -10215,77 +11241,87 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A05}" {
    Id "OVT-Recruits_Dismiss"
    Target_en_us "Dismiss"
+   Target_de_de "Entlassen"
    Target_uk_ua "Звільнити"
    Modified 1716473088
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A18}" {
    Id "OVT-Recruits_DismissMessage"
    Target_en_us "Are you sure you want to dismiss this recruit? This action cannot be undone."
+   Target_de_de "Möchtest du diesen Rekruten wirklich entlassen? Diese Aktion kann nicht rückgängig gemacht werden."
    Target_uk_ua "Ви дійсно хочете звільнити цього рекрута? Ця дія незворотна."
    Modified 1716473075
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A17}" {
    Id "OVT-Recruits_DismissTitle"
    Target_en_us "Dismiss Recruit"
+   Target_de_de "Rekrut entlassen"
    Target_uk_ua "Звільнити рекрута"
    Modified 1716473054
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A02}" {
    Id "OVT-Recruits_NoRecruitsHelp"
    Target_en_us "You have no recruits yet. Recruit civilians by approaching them in towns with high support and using the Recruit Civilian action."
+   Target_de_de "Du hast noch keine Rekruten. Rekrutiere Zivilisten, indem du dich ihnen in Städten mit hoher Unterstützung näherst und die Aktion \"Rekrutiere Zivilisten\" verwendest."
    Target_uk_ua "У вас ще немає рекрутів. Вербуйте цивільних, наближаючись до них у населених пунктах із високою підтримкою та використовуючи дію Вербувати Цивільного."
    Modified 1716473031
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A04}" {
    Id "OVT-Recruits_Rename"
    Target_en_us "Rename"
+   Target_de_de "Umbenennen"
    Target_uk_ua "Перейменувати"
    Modified 1716472984
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A21}" {
    Id "OVT-Recruits_RenameMessage"
    Target_en_us "Enter a new name for this recruit:"
+   Target_de_de "Gib einen neuen Namen für diesen Rekruten ein:"
    Target_uk_ua "Введіть нове ім’я для цього рекрута:"
    Modified 1716472967
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A22}" {
    Id "OVT-Recruits_RenamePrompt"
    Target_en_us "Recruit Name"
+   Target_de_de "Name des Rekruten"
    Target_uk_ua "Ім'я рекрута"
    Modified 1716472944
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A20}" {
    Id "OVT-Recruits_RenameTitle"
    Target_en_us "Rename Recruit"
+   Target_de_de "Rekrut umbenennen"
    Target_uk_ua "Перейменувати рекрута"
    Modified 1716472924
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000040}" {
    Id "OVT-Recruits_SectionActive"
    Target_en_us "Active"
+   Target_de_de "Aktiv"
+   Target_uk_ua "Активні"
    Comment "Recruits screen: heading over the recruits that are following you"
    DevNote ""
    Repro ""
@@ -10296,13 +11332,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000041}" {
    Id "OVT-Recruits_SectionInactive"
    Target_en_us "Holding Position"
+   Target_de_de "Position halten"
+   Target_uk_ua "Утримують позицію"
    Comment "Recruits screen: heading over the recruits that have been parked and are holding position"
    DevNote ""
    Repro ""
@@ -10313,21 +11351,24 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A03}" {
    Id "OVT-Recruits_ShowOnMap"
    Target_en_us "Show on Map"
+   Target_de_de "Auf Karte anzeigen"
    Target_uk_ua "Показати на мапі"
    Modified 1716472907
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6B4C000000000045}" {
    Id "OVT-Recruits_StatusHolding"
    Target_en_us "Holding position (%1m)"
+   Target_de_de "Hält Position (%1m)"
+   Target_uk_ua "Утримує позицію (%1 м)"
    Comment "Recruits screen: the selected recruit is parked, with its distance from you"
    DevNote ""
    Repro ""
@@ -10338,13 +11379,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000046}" {
    Id "OVT-Recruits_StatusHoldingShort"
    Target_en_us "Holding"
+   Target_de_de "Hält Position"
+   Target_uk_ua "Утримує позицію"
    Comment "Recruits screen list row: this recruit is parked and holding position"
    DevNote ""
    Repro ""
@@ -10355,13 +11398,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000044}" {
    Id "OVT-Recruits_ToggleFollow"
    Target_en_us "Follow Me"
+   Target_de_de "Mir folgen"
+   Target_uk_ua "Слідувати за мною"
    Comment "Recruits screen button: bring the selected parked recruit back into your squad"
    DevNote ""
    Repro ""
@@ -10372,13 +11417,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000043}" {
    Id "OVT-Recruits_ToggleHold"
    Target_en_us "Hold Position"
+   Target_de_de "Position halten"
+   Target_uk_ua "Утримувати позицію"
    Comment "Recruits screen button: take the selected recruit out of your squad and have it hold position"
    DevNote ""
    Repro ""
@@ -10389,49 +11436,54 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A01}" {
    Id "OVT-Recruits_YourRecruits"
    Target_en_us "Your Recruits"
+   Target_de_de "Deine Rekruten"
    Target_uk_ua "Ваші рекрути"
    Modified 1716472886
    Author "Claude Code"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5992E2F582B25E29}" {
    Id "OVT-RemovalModeActive"
    Target_en_us "Removal mode active - look at items to remove them"
+   Target_de_de "Entfernungsmodus aktiv – sieh Gegenstände an, um sie zu entfernen"
    Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
    Target_uk_ua "Режим видалення активний - дивіться на предмети, щоб їх видалити"
    Modified 1716472857
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5992E2F582B25E2C}" {
    Id "OVT-Remove"
    Target_en_us "Remove"
+   Target_de_de "Entfernen"
    Target_ru_ru "Удалить"
    Target_uk_ua "Видалити"
    Modified 1716472827
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5992E2F582B25E2D}" {
    Id "OVT-RemoveDescription"
    Target_en_us "Remove placed or built items"
+   Target_de_de "Platzierte oder gebaute Gegenstände entfernen"
    Target_ru_ru "Удалить размещенные или построенные предметы"
    Target_uk_ua "Видалити розміщені або побудовані предмети"
    Modified 1716472814
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
    Target_fr_fr "Louer"
+   Target_de_de "Mieten"
    Target_ru_ru "Арендовать"
    Target_ko_kr "임대하기"
    Target_zh_cn "租借"
@@ -10446,21 +11498,24 @@ StringTable {
    MaxLength 0
    Modified 1706587375
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D6C32968AF3759}" {
    Id "OVT-Rented"
    Target_en_us "Rented"
+   Target_de_de "Gemietet"
+   Target_uk_ua "Орендовано"
    Modified 1708574432
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
    Target_fr_fr "Loyer"
+   Target_de_de "Mieteinnahmen"
    Target_ru_ru "Доход с сдачи в аренду"
    Target_ko_kr "임대 수입"
    Target_zh_cn "租金收入"
@@ -10475,7 +11530,7 @@ StringTable {
    MaxLength 0
    Modified 1706587383
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10483,6 +11538,7 @@ StringTable {
    Id "OVT-Renting"
    Target_en_us "Renting"
    Target_fr_fr "En Location"
+   Target_de_de "Mieten"
    Target_ru_ru "Арендуется"
    Target_ko_kr "임대 중"
    Target_zh_cn "租赁"
@@ -10497,7 +11553,7 @@ StringTable {
    MaxLength 0
    Modified 1706590413
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10505,6 +11561,7 @@ StringTable {
    Id "OVT-RepairVehicle"
    Target_en_us "Repair Vehicle"
    Target_fr_fr "Réparer Véhicule"
+   Target_de_de "Fahrzeug reparieren"
    Target_ru_ru "Починить технику"
    Target_ko_kr "차량 수리"
    Target_zh_cn "修理车辆"
@@ -10519,7 +11576,7 @@ StringTable {
    MaxLength 0
    Modified 1706587405
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10527,6 +11584,7 @@ StringTable {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"
    Target_fr_fr "Total des Fonds"
+   Target_de_de "Gesamtvermögen"
    Target_ru_ru "Всего средств"
    Target_ko_kr "총 자금"
    Target_zh_cn "总资金"
@@ -10541,7 +11599,7 @@ StringTable {
    MaxLength 0
    Modified 1706587613
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10549,6 +11607,7 @@ StringTable {
    Id "OVT-Resistance_NextIncome"
    Target_en_us "Next income is at"
    Target_fr_fr "Prochain Revenu à"
+   Target_de_de "Nächstes Einkommen um"
    Target_ru_ru "Следущий доход в"
    Target_ko_kr "다음 수입은"
    Target_zh_cn "下一笔收入是"
@@ -10563,7 +11622,7 @@ StringTable {
    MaxLength 0
    Modified 1706587611
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10571,6 +11630,7 @@ StringTable {
    Id "OVT-Resistance_SupporterDonations"
    Target_en_us "Supporter Donations"
    Target_fr_fr "Dons des Partisans"
+   Target_de_de "Spenden von Unterstützern"
    Target_ru_ru "Помощь сторонников"
    Target_ko_kr "지지자 기부금"
    Target_zh_cn "支持者捐款"
@@ -10585,7 +11645,7 @@ StringTable {
    MaxLength 0
    Modified 1706587610
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10593,6 +11653,7 @@ StringTable {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
    Target_fr_fr "Impôt Total"
+   Target_de_de "Steuern gesamt"
    Target_ru_ru "Всего налогов"
    Target_ko_kr "총 세금"
    Target_zh_cn "总税额"
@@ -10607,13 +11668,14 @@ StringTable {
    MaxLength 0
    Modified 1706587608
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310D3971BAE}" {
    Id "OVT-ResistanceFunds"
    Target_en_us "Resistance Funds"
+   Target_de_de "Widerstandskasse"
    Target_ru_ru "Денег у сопротивления"
    Target_ko_kr "저항군 자금"
    Target_zh_cn "抵抗基金"
@@ -10628,7 +11690,7 @@ StringTable {
    MaxLength 0
    Modified 1706587421
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10636,6 +11698,7 @@ StringTable {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
    Target_fr_fr "Impôt de la résistance"
+   Target_de_de "Widerstandssteuer"
    Target_ru_ru "Налоги сопротивления"
    Target_ko_kr "저항군 세금"
    Target_zh_cn "抵抗税收"
@@ -10650,13 +11713,15 @@ StringTable {
    MaxLength 0
    Modified 1706587501
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A83D5A0000000C3}" {
    Id "OVT-Respawn_AtHome"
    Target_en_us "Respawn at Home"
+   Target_de_de "Zu Hause wiedereinsteigen"
+   Target_uk_ua "Відродитися вдома"
    Comment "Respawn screen - button that always works, needs no map selection and ignores every eligibility rule"
    DevNote ""
    Repro ""
@@ -10672,6 +11737,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C5}" {
    Id "OVT-Respawn_EnemyBase"
    Target_en_us "This base is held by the occupying faction"
+   Target_de_de "Diese Basis wird von der Besatzungsmacht gehalten"
+   Target_uk_ua "Цю базу утримує окупаційна фракція"
    Comment "Respawn screen - why an enemy-held base cannot be respawned at"
    DevNote ""
    Repro ""
@@ -10687,6 +11754,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000CA}" {
    Id "OVT-Respawn_Failed"
    Target_en_us "The respawn could not be completed. Try again."
+   Target_de_de "Der Wiedereinstieg konnte nicht abgeschlossen werden. Versuche es erneut."
+   Target_uk_ua "Не вдалося виконати відродження. Спробуйте ще раз."
    Comment "Respawn screen - the server could not complete the spawn; the screen stays up so the player can pick again"
    DevNote ""
    Repro ""
@@ -10702,6 +11771,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C4}" {
    Id "OVT-Respawn_FellBackHome"
    Target_en_us "That location was no longer available. You respawned at home."
+   Target_de_de "Dieser Ort war nicht mehr verfügbar. Du bist zu Hause wiedereingestiegen."
+   Target_uk_ua "Ця локація більше недоступна. Ви відродилися вдома."
    Comment "Respawn screen - the chosen location stopped being eligible before the server got the request; the player spawned at home instead"
    DevNote ""
    Repro ""
@@ -10717,6 +11788,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C2}" {
    Id "OVT-Respawn_Here"
    Target_en_us "Respawn Here"
+   Target_de_de "Hier wiedereinsteigen"
+   Target_uk_ua "Відродитися тут"
    Comment "Respawn screen - button on a selected map location's info panel, spawns the player there"
    DevNote ""
    Repro ""
@@ -10732,6 +11805,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C1}" {
    Id "OVT-Respawn_Hint"
    Target_en_us "Choose where to respawn"
+   Target_de_de "Wähle deinen Wiedereinstiegsort"
+   Target_uk_ua "Виберіть місце відродження"
    Comment "Respawn screen - status line under the title, shown until the server answers a request"
    DevNote ""
    Repro ""
@@ -10747,6 +11822,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C9}" {
    Id "OVT-Respawn_NotEligible"
    Target_en_us "You cannot respawn there"
+   Target_de_de "Du kannst dort nicht wiedereinsteigen"
+   Target_uk_ua "Ви не можете там відродитися"
    Comment "Respawn screen - generic refusal when the server does not agree the player may spawn at the requested place"
    DevNote ""
    Repro ""
@@ -10762,6 +11839,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C7}" {
    Id "OVT-Respawn_NotYourHouse"
    Target_en_us "You do not own or rent this house"
+   Target_de_de "Dieses Haus gehört dir nicht und wird nicht von dir gemietet"
+   Target_uk_ua "Ви не володієте й не орендуєте цей будинок"
    Comment "Respawn screen - why a house the player has no tenure in cannot be respawned at"
    DevNote ""
    Repro ""
@@ -10777,6 +11856,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C6}" {
    Id "OVT-Respawn_PrivateCamp"
    Target_en_us "This camp is private"
+   Target_de_de "Dieses Camp ist privat"
+   Target_uk_ua "Цей табір приватний"
    Comment "Respawn screen - why another player's private camp cannot be respawned at"
    DevNote ""
    Repro ""
@@ -10792,6 +11873,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C8}" {
    Id "OVT-Respawn_QRF"
    Target_en_us "There is fighting at this location"
+   Target_de_de "An diesem Ort wird gekämpft"
+   Target_uk_ua "У цьому місці триває бій"
    Comment "Respawn screen - why a location inside an active QRF cannot be respawned at"
    DevNote ""
    Repro ""
@@ -10807,6 +11890,8 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C0}" {
    Id "OVT-Respawn_Title"
    Target_en_us "Respawn"
+   Target_de_de "Wiedereinstieg"
+   Target_uk_ua "Відродження"
    Comment "Respawn screen - title bar over the map a killed player chooses their spawn point on"
    DevNote ""
    Repro ""
@@ -10822,6 +11907,8 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000029}" {
    Id "OVT-SabotageTower"
    Target_en_us "Sabotage Radio Tower"
+   Target_de_de "Funkturm sabotieren"
+   Target_uk_ua "Саботувати радіовежу"
    Comment "Hold action on occupying radio towers"
    DevNote ""
    Repro ""
@@ -10832,7 +11919,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10840,6 +11927,7 @@ StringTable {
    Id "OVT-Save"
    Target_en_us "Save"
    Target_fr_fr "Sauvegarder"
+   Target_de_de "Speichern"
    Target_ru_ru "Сохранить"
    Target_ko_kr "저장"
    Target_zh_cn "保存"
@@ -10854,7 +11942,7 @@ StringTable {
    MaxLength 0
    Modified 1706590513
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -10862,6 +11950,7 @@ StringTable {
    Id "OVT-Saved"
    Target_en_us "Game Saved"
    Target_fr_fr "Partie Sauvegardée"
+   Target_de_de "Spiel gespeichert"
    Target_ru_ru "Игра сохранена"
    Target_ko_kr "게임 저장"
    Target_zh_cn "游戏已保存"
@@ -10876,19 +11965,22 @@ StringTable {
    MaxLength 0
    Modified 1706590521
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{68C1A47E52B90D11}" {
    Id "OVT-SaveFailed"
    Target_en_us "Save failed"
+   Target_de_de "Speichern fehlgeschlagen"
+   Target_uk_ua "Не вдалося зберегти"
    Modified 1785674614
    Author "Claude"
   }
   CustomStringTableItem "{A1B2C3D4E5F60001}" {
    Id "OVT-SaveLoadout"
    Target_en_us "Save Loadout"
+   Target_de_de "Ausrüstung speichern"
    Target_uk_ua "Зберегти комплект спорядження"
    Comment "UserAction for saving player equipment loadouts"
    DevNote ""
@@ -10900,13 +11992,14 @@ StringTable {
    MaxLength 0
    Modified 1716472778
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveLoadoutMessage"
    Target_en_us "Enter a name for your loadout, using an existing name will override the loadout:"
+   Target_de_de "Gib einen Namen für deine Ausrüstung ein. Wenn du einen vorhandenen Namen verwendest, wird die bestehende Ausrüstung überschrieben:"
    Target_uk_ua "Введіть назву для свого комплекту спорядження, використання існуючої назви перезапише поточний комплект"
    Comment "Message for save loadout dialog"
    DevNote ""
@@ -10918,13 +12011,14 @@ StringTable {
    MaxLength 0
    Modified 1716472756
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60004}" {
    Id "OVT-SaveLoadoutPrompt"
    Target_en_us "Loadout Name"
+   Target_de_de "Name der Ausrüstung"
    Target_uk_ua "Назва комплекту спорядження"
    Comment "Prompt for loadout name input field"
    DevNote ""
@@ -10936,13 +12030,14 @@ StringTable {
    MaxLength 0
    Modified 1716472721
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveOfficerLoadout"
    Target_en_us "Save Resistance Loadout"
+   Target_de_de "Widerstandsausrüstung speichern"
    Target_uk_ua "Зберегти комплект спорядження Опору"
    Comment "UserAction for officers to save template loadouts"
    DevNote ""
@@ -10954,13 +12049,15 @@ StringTable {
    MaxLength 0
    Modified 1716472698
    Author "Claude AI"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000001}" {
    Id "OVT-SellBlocked_Equipped"
    Target_en_us "Equipped items cannot be sold"
+   Target_de_de "Ausgerüstete Gegenstände können nicht verkauft werden"
+   Target_uk_ua "Споряджені предмети не можна продати"
    Comment "Shop sell mode - reason a row is greyed out"
    DevNote ""
    Repro ""
@@ -10971,13 +12068,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000002}" {
    Id "OVT-SellBlocked_NotBoughtHere"
    Target_en_us "This shop does not buy this"
+   Target_de_de "Dieses Geschäft kauft das nicht an"
+   Target_uk_ua "Цей магазин цього не купує"
    Comment "Shop sell mode - reason a row is greyed out"
    DevNote ""
    Repro ""
@@ -10988,13 +12087,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000003}" {
    Id "OVT-SellBlocked_NoValue"
    Target_en_us "Worth nothing here"
+   Target_de_de "Hier wertlos"
+   Target_uk_ua "Тут нічого не варте"
    Comment "Shop sell mode - reason a row is greyed out"
    DevNote ""
    Repro ""
@@ -11005,13 +12106,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000004}" {
    Id "OVT-SellCargoHere"
    Target_en_us "Sell Cargo Here"
+   Target_de_de "Fracht hier verkaufen"
+   Target_uk_ua "Продати вантаж тут"
    Comment "Vehicle trunk user action"
    DevNote ""
    Repro ""
@@ -11022,7 +12125,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11030,6 +12133,7 @@ StringTable {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
    Target_fr_fr "Vendre la Drogue"
+   Target_de_de "Drogen verkaufen"
    Target_ru_ru "Продать наркотики"
    Target_ko_kr "마약 판매"
    Target_zh_cn "贩卖毒品"
@@ -11044,7 +12148,7 @@ StringTable {
    MaxLength 0
    Modified 1706587606
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11052,6 +12156,7 @@ StringTable {
    Id "OVT-SendFunds"
    Target_en_us "Send Funds"
    Target_fr_fr "Envoyer des Fonds"
+   Target_de_de "Geldmittel senden"
    Target_ru_ru "Отправить средства"
    Target_ko_kr "자금 송금"
    Target_zh_cn "发送资金"
@@ -11066,7 +12171,7 @@ StringTable {
    MaxLength 0
    Modified 1706587634
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11074,6 +12179,7 @@ StringTable {
    Id "OVT-SendFundsMoney"
    Target_en_us "Send Money"
    Target_fr_fr "Envoyer de l'Argent"
+   Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
    Target_ko_kr "송금하기"
    Target_zh_cn "汇款"
@@ -11088,7 +12194,7 @@ StringTable {
    MaxLength 0
    Modified 1706587648
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11096,6 +12202,7 @@ StringTable {
    Id "OVT-SendMoney"
    Target_en_us "Send Money"
    Target_fr_fr "Envoyer de l'Argent"
+   Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
    Target_ko_kr "송금하기"
    Target_zh_cn "汇款"
@@ -11110,7 +12217,7 @@ StringTable {
    MaxLength 0
    Modified 1706587691
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11118,6 +12225,7 @@ StringTable {
    Id "OVT-SetAsHome"
    Target_en_us "Set As Home"
    Target_fr_fr "Définir comme Domicile"
+   Target_de_de "Als Zuhause festlegen"
    Target_ru_ru "Сделать домом"
    Target_ko_kr "집으로 설정"
    Target_zh_cn "以此为家"
@@ -11132,7 +12240,7 @@ StringTable {
    MaxLength 0
    Modified 1706587722
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11140,6 +12248,7 @@ StringTable {
    Id "OVT-SetHome"
    Target_en_us "Set Home"
    Target_fr_fr "Définir Domicile"
+   Target_de_de "Zuhause festlegen"
    Target_ru_ru "Сделать домом"
    Target_ko_kr "집 설정"
    Target_zh_cn "回家"
@@ -11154,13 +12263,14 @@ StringTable {
    MaxLength 0
    Modified 1706590573
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBDC}" {
    Id "OVT-SetPriorityFOB"
    Target_en_us "Set as Priority FOB"
+   Target_de_de "Als Prioritäts-FOB festlegen"
    Target_uk_ua "Встановити як пріоритетну FOB"
    Comment ""
    DevNote ""
@@ -11172,7 +12282,7 @@ StringTable {
    MaxLength 0
    Modified 1716472664
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11180,6 +12290,7 @@ StringTable {
    Id "OVT-Shop"
    Target_en_us "Shop"
    Target_fr_fr "Magasin"
+   Target_de_de "Geschäft"
    Target_ru_ru "Магазин"
    Target_ko_kr "상점"
    Target_zh_cn "商店"
@@ -11194,7 +12305,7 @@ StringTable {
    MaxLength 0
    Modified 1706587735
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11202,6 +12313,7 @@ StringTable {
    Id "OVT-Shop_Buy"
    Target_en_us "Buy"
    Target_fr_fr "Acheter"
+   Target_de_de "Kaufen"
    Target_ru_ru "Купить"
    Target_ko_kr "구입"
    Target_zh_cn "购买"
@@ -11216,7 +12328,7 @@ StringTable {
    MaxLength 0
    Modified 1706587809
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11224,6 +12336,7 @@ StringTable {
    Id "OVT-Shop_Buying"
    Target_en_us "Buy for"
    Target_fr_fr "Acheter pour"
+   Target_de_de "Kaufen für"
    Target_ru_ru "Купить за"
    Target_ko_kr "구입 대상"
    Target_zh_cn "购买"
@@ -11238,42 +12351,51 @@ StringTable {
    MaxLength 0
    Modified 1706587801
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D33887DE0307AF}" {
    Id "OVT-Shop_Clothing"
    Target_en_us "Clothing Store"
+   Target_de_de "Bekleidungsgeschäft"
+   Target_uk_ua "Магазин одягу"
    Modified 1708348644
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65D33887F4A3A3CD}" {
    Id "OVT-Shop_Drug"
    Target_en_us "Drug Store"
+   Target_de_de "Drogerie"
+   Target_uk_ua "Аптека"
    Modified 1708348578
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65D338878CA73F35}" {
    Id "OVT-Shop_Equipment"
    Target_en_us "Equipment Store"
+   Target_de_de "Ausrüstungsgeschäft"
+   Target_uk_ua "Магазин спорядження"
    Modified 1708350540
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{65D33887028D6F64}" {
    Id "OVT-Shop_General"
    Target_en_us "General Store"
+   Target_de_de "Gemischtwarenladen"
+   Target_uk_ua "Універсальний магазин"
    Modified 1708348496
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
    Target_fr_fr "En stock"
+   Target_de_de "Auf Lager"
    Target_ru_ru "В наличии"
    Target_ko_kr "재고 있음"
    Target_zh_cn "有存货"
@@ -11288,13 +12410,15 @@ StringTable {
    MaxLength 0
    Modified 1706587875
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000005}" {
    Id "OVT-Shop_ModeBuy"
    Target_en_us "Buy Mode"
+   Target_de_de "Kaufmodus"
+   Target_uk_ua "Режим купівлі"
    Comment "Shop menu header - switch the browser to the shop's stock"
    DevNote ""
    Repro ""
@@ -11305,13 +12429,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000006}" {
    Id "OVT-Shop_ModeSell"
    Target_en_us "Sell Mode"
+   Target_de_de "Verkaufsmodus"
+   Target_uk_ua "Режим продажу"
    Comment "Shop menu header - switch the browser to the player's own items"
    DevNote ""
    Repro ""
@@ -11322,13 +12448,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000007}" {
    Id "OVT-Shop_NextCategory"
    Target_en_us "Next Category"
+   Target_de_de "Nächste Kategorie"
+   Target_uk_ua "Наступна категорія"
    Comment "Shop menu header - step to the next category tab"
    DevNote ""
    Repro ""
@@ -11339,7 +12467,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11347,6 +12475,7 @@ StringTable {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
    Target_fr_fr "Ouvrir magasin"
+   Target_de_de "Geschäft öffnen"
    Target_ru_ru "Открыть магазин"
    Target_ko_kr "가게 열기"
    Target_zh_cn "打开商店"
@@ -11361,13 +12490,15 @@ StringTable {
    MaxLength 0
    Modified 1706587874
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000008}" {
    Id "OVT-Shop_Owned"
    Target_en_us "Owned"
+   Target_de_de "Im Besitz"
+   Target_uk_ua "У власності"
    Comment "Shop sell mode - how many copies the player is carrying"
    DevNote ""
    Repro ""
@@ -11378,13 +12509,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000009}" {
    Id "OVT-Shop_PrevCategory"
    Target_en_us "Prev Category"
+   Target_de_de "Vorherige Kategorie"
+   Target_uk_ua "Попередня категорія"
    Comment "Shop menu header - step to the previous category tab"
    DevNote ""
    Repro ""
@@ -11395,7 +12528,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11403,6 +12536,7 @@ StringTable {
    Id "OVT-Shop_Renting"
    Target_en_us "Rent for"
    Target_fr_fr "Louer pour"
+   Target_de_de "Mieten für"
    Target_ru_ru "Арендовать за"
    Target_ko_kr "임대 대상"
    Target_zh_cn "出租"
@@ -11417,7 +12551,7 @@ StringTable {
    MaxLength 0
    Modified 1706587851
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11425,6 +12559,7 @@ StringTable {
    Id "OVT-Shop_Sell"
    Target_en_us "Sell"
    Target_fr_fr "Vendre"
+   Target_de_de "Verkaufen"
    Target_ru_ru "Продать"
    Target_ko_kr "판매"
    Target_zh_cn "出售"
@@ -11439,13 +12574,15 @@ StringTable {
    MaxLength 0
    Modified 1706587855
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E0000000A}" {
    Id "OVT-Shop_SellAll"
    Target_en_us "Sell All"
+   Target_de_de "Alles verkaufen"
+   Target_uk_ua "Продати все"
    Comment "Shop sell mode - sell every carried copy of the selected item"
    DevNote ""
    Repro ""
@@ -11456,7 +12593,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11464,6 +12601,7 @@ StringTable {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
    Target_fr_fr "Vendre pour"
+   Target_de_de "Verkaufen für"
    Target_ru_ru "Продать за"
    Target_ko_kr "판매 대상"
    Target_zh_cn "出售"
@@ -11478,13 +12616,15 @@ StringTable {
    MaxLength 0
    Modified 1706587859
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E0000000B}" {
    Id "OVT-Shop_SkippedItems"
    Target_en_us "%1 not bought here"
+   Target_de_de "%1 hier nicht angekauft"
+   Target_uk_ua "%1 тут не купують"
    Comment "Shop sell result - items the shop refused"
    DevNote ""
    Repro ""
@@ -11495,13 +12635,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E0000000C}" {
    Id "OVT-Shop_SoldItems"
    Target_en_us "Sold %1 for %2"
+   Target_de_de "%1 für %2 verkauft"
+   Target_uk_ua "Продано %1 за %2"
    Comment "Shop sell result - count and money earned"
    DevNote ""
    Repro ""
@@ -11512,13 +12654,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E0000000D}" {
    Id "OVT-Shop_SoldNothing"
    Target_en_us "Nothing was sold"
+   Target_de_de "Nichts wurde verkauft"
+   Target_uk_ua "Нічого не продано"
    Comment "Shop sell result - the server sold no items"
    DevNote ""
    Repro ""
@@ -11529,20 +12673,24 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D3388630BD8913}" {
    Id "OVT-Shop_Vehicle"
    Target_en_us "Vehicle Store"
+   Target_de_de "Fahrzeughändler"
+   Target_uk_ua "Магазин транспорту"
    Modified 1708348931
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7C4E1E0000000E}" {
    Id "OVT-ShopCategory_All"
    Target_en_us "All"
+   Target_de_de "Alle"
+   Target_uk_ua "Усе"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11553,13 +12701,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E0000000F}" {
    Id "OVT-ShopCategory_Ammunition"
    Target_en_us "Ammunition"
+   Target_de_de "Munition"
+   Target_uk_ua "Боєприпаси"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11570,13 +12720,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000010}" {
    Id "OVT-ShopCategory_Attachments"
    Target_en_us "Attachments"
+   Target_de_de "Anbauteile"
+   Target_uk_ua "Модулі зброї"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11587,13 +12739,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000011}" {
    Id "OVT-ShopCategory_Clothing"
    Target_en_us "Clothing"
+   Target_de_de "Kleidung"
+   Target_uk_ua "Одяг"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11604,13 +12758,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000012}" {
    Id "OVT-ShopCategory_Explosives"
    Target_en_us "Explosives"
+   Target_de_de "Sprengstoffe"
+   Target_uk_ua "Вибухівка"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11621,13 +12777,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000013}" {
    Id "OVT-ShopCategory_Gear"
    Target_en_us "Gear"
+   Target_de_de "Ausrüstung"
+   Target_uk_ua "Спорядження"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11638,13 +12796,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000014}" {
    Id "OVT-ShopCategory_Medical"
    Target_en_us "Medical"
+   Target_de_de "Medizin"
+   Target_uk_ua "Медицина"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11655,13 +12815,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000015}" {
    Id "OVT-ShopCategory_Other"
    Target_en_us "Other"
+   Target_de_de "Sonstiges"
+   Target_uk_ua "Інше"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11672,13 +12834,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7C4E1E00000016}" {
    Id "OVT-ShopCategory_Weapons"
    Target_en_us "Weapons"
+   Target_de_de "Waffen"
+   Target_uk_ua "Зброя"
    Comment "Shop browser category tab"
    DevNote ""
    Repro ""
@@ -11689,13 +12853,14 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E30664D5AA}" {
    Id "OVT-Skill_Diplomacy"
    Target_en_us "Diplomacy"
+   Target_de_de "Diplomatie"
    Target_ru_ru "Дипломатия"
    Target_ko_kr "외교술"
    Target_zh_cn "外交技巧"
@@ -11710,13 +12875,14 @@ StringTable {
    MaxLength 0
    Modified 1706590695
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E30167EF6C}" {
    Id "OVT-Skill_Diplomacy_Description"
    Target_en_us "Skill at raising support and the profile of the resistance"
+   Target_de_de "Fertigkeit beim Erhöhen der Unterstützung und des Ansehens des Widerstands"
    Target_ru_ru "Умение повышать уровень поддержки и популярность сопротивления"
    Target_ko_kr "저항군의 지지율과 인지도를 높이는 능력"
    Target_zh_cn "提高支持率和声望的技能"
@@ -11731,13 +12897,14 @@ StringTable {
    MaxLength 0
    Modified 1706588107
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E3117724CA}" {
    Id "OVT-Skill_Stealth"
    Target_en_us "Stealth"
+   Target_de_de "Tarnung"
    Target_ru_ru "Невидимка"
    Target_ko_kr "은신술"
    Target_zh_cn "隐身"
@@ -11752,13 +12919,14 @@ StringTable {
    MaxLength 0
    Modified 1706588115
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E31D3DED8C}" {
    Id "OVT-Skill_Stealth_Description"
    Target_en_us "Skill at remaining unseen for longer"
+   Target_de_de "Fertigkeit, länger unentdeckt zu bleiben"
    Target_ru_ru "Умение дольше оставаться невидимым"
    Target_ko_kr "들키지 않고 더 오래 숨어 있을 수 있는 능력"
    Target_zh_cn "提升隐蔽、不被关注的技能"
@@ -11773,13 +12941,14 @@ StringTable {
    MaxLength 0
    Modified 1706588306
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E35F7AD204}" {
    Id "OVT-Skill_Trade"
    Target_en_us "Trade"
+   Target_de_de "Handel"
    Target_ru_ru "Торг"
    Target_ko_kr "거래"
    Target_zh_cn "贸易"
@@ -11794,13 +12963,14 @@ StringTable {
    MaxLength 0
    Modified 1706588304
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E35B0CDFD0}" {
    Id "OVT-Skill_Trade_Description"
    Target_en_us "Skill at getting good deals for the resistance on items"
+   Target_de_de "Fertigkeit, gute Geschäfte für den Widerstand beim Handel mit Gegenständen auszuhandeln"
    Target_ru_ru "Умение заключать выгодные сделки за сопротивление"
    Target_ko_kr "저항 세력을 위해 더욱 유리한 거래를 성사시키는 능력"
    Target_zh_cn "为抵抗力量争取价格折扣的技能"
@@ -11815,13 +12985,14 @@ StringTable {
    MaxLength 0
    Modified 1706590751
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E33F3873F8}" {
    Id "OVT-SkillEffect_IllegalImports"
    Target_en_us "Unlocks import of illegal goods at ports"
+   Target_de_de "Schaltet den Import illegaler Waren an Häfen frei"
    Target_ru_ru "Открывает доступ к ввозу нелегальных товаров в портах"\
    ""
    Target_ko_kr "항구에서 불법 물품 수입 허용"
@@ -11837,13 +13008,14 @@ StringTable {
    MaxLength 0
    Modified 1706587870
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E32DD93FD1}" {
    Id "OVT-SkillEffect_Import"
    Target_en_us "Unlocks import of legal goods at ports"
+   Target_de_de "Schaltet den Import legaler Waren an Häfen frei"
    Target_ru_ru "Открывает доступ к легальному импорту товаров в портах"\
    ""
    Target_ko_kr "항구에서 합법적인 물품 수입 허용"
@@ -11859,13 +13031,14 @@ StringTable {
    MaxLength 0
    Modified 1706587891
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E3F0541B08}" {
    Id "OVT-SkillEffect_Stealth"
    Target_en_us "%1% Reduction in distance seen from"
+   Target_de_de "%1 % geringere Sichtentfernung"
    Target_ru_ru "%1% Уменьшение дальности видимости"
    Target_ko_kr "%1% 에서부터 보이는 거리 감소"
    Target_zh_cn "%1%距离减少"
@@ -11880,13 +13053,14 @@ StringTable {
    MaxLength 0
    Modified 1706587956
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E3C0B62D40}" {
    Id "OVT-SkillEffect_Support"
    Target_en_us "%1% Chance at converting a supporter"
+   Target_de_de "%1 % Chance, einen Unterstützer zu gewinnen"
    Target_ru_ru "%1% Шанс к присоединению к сопротивлению"
    Target_ko_kr "저항군에 합류할 확률 %1%"
    Target_zh_cn "%1%转化为支持者的机会"
@@ -11901,13 +13075,14 @@ StringTable {
    MaxLength 0
    Modified 1706588046
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E3D2532344}" {
    Id "OVT-SkillEffect_TradeDiscount"
    Target_en_us "%1% Discount when buying items at shops"
+   Target_de_de "%1 % Rabatt beim Kauf von Gegenständen in Geschäften"
    Target_ru_ru "%1% Скидка на покупки в магазинах"
    Target_ko_kr "상점에서 물건 구매 시 %1% 할인"
    Target_zh_cn "在商店购买商品时享受折扣%1%"
@@ -11922,13 +13097,14 @@ StringTable {
    MaxLength 0
    Modified 1706588044
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA486E2F82C6218}" {
    Id "OVT-SkillPointsToSpend"
    Target_en_us "%1 Skill points to spend"
+   Target_de_de "%1 Fertigkeitspunkte verfügbar"
    Target_ru_ru "%1 Очков доступно"
    Target_ko_kr "사용 가능한 스킬 포인트 %1"
    Target_zh_cn "消耗技能点数%1"
@@ -11943,13 +13119,14 @@ StringTable {
    MaxLength 0
    Modified 1706590822
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5DA4CE522EDC12E2}" {
    Id "OVT-SkillPointToSpend"
    Target_en_us "%1 Skill point to spend"
+   Target_de_de "%1 Fertigkeitspunkt verfügbar"
    Target_ru_ru "%1 Очко доступно"
    Target_ko_kr "사용 가능한 스킬 포인트 %1"
    Target_zh_cn "%1技能点消耗"
@@ -11964,14 +13141,50 @@ StringTable {
    MaxLength 0
    Modified 1706588060
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B5D000000000001}" {
+   Id "OVT-Sleep"
+   Target_en_us "Sleep"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000002}" {
+   Id "OVT-SleepCooldown"
+   Target_en_us "You need to stay awake longer before sleeping again"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000003}" {
+   Id "OVT-SleepQRF"
+   Target_en_us "You cannot sleep while an attack is underway"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000004}" {
+   Id "OVT-SleepWanted"
+   Target_en_us "You cannot sleep while you are wanted"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
+  CustomStringTableItem "{6B5D000000000005}" {
+   Id "OVT-SleptWell"
+   Target_en_us "You slept for 8 hours"
+   Modified 1780790400
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"
    Target_en_us "Soldier Cost"
    Target_fr_fr "Coût Soldat"
+   Target_de_de "Kosten pro Soldat"
    Target_ru_ru "Стоймость бойца"
    Target_ko_kr "병사 비용"
    Target_zh_cn "士兵成本"
@@ -11986,7 +13199,7 @@ StringTable {
    MaxLength 0
    Modified 1706588357
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11994,6 +13207,7 @@ StringTable {
    Id "OVT-Stability"
    Target_en_us "Stability"
    Target_fr_fr "Stabilité"
+   Target_de_de "Stabilität"
    Target_ru_ru "Стабильность"
    Target_ko_kr "안정성"
    Target_zh_cn "稳定"
@@ -12008,7 +13222,7 @@ StringTable {
    MaxLength 0
    Modified 1706590839
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12016,6 +13230,7 @@ StringTable {
    Id "OVT-StabilityMod_CorruptMayor"
    Target_en_us "Corrupt Mayor"
    Target_fr_fr "Maire Corrompu"
+   Target_de_de "Korrupter Bürgermeister"
    Target_ru_ru "Коррумпированый мэр"
    Target_ko_kr "부패한 시장"
    Target_zh_cn "腐败官员"
@@ -12030,7 +13245,7 @@ StringTable {
    MaxLength 0
    Modified 1706588419
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12038,6 +13253,7 @@ StringTable {
    Id "OVT-StabilityMod_DrugProblems"
    Target_en_us "Drug Problems"
    Target_fr_fr "Problème de Drogue"
+   Target_de_de "Drogenprobleme"
    Target_ru_ru "Проблемы с наркотиками"
    Target_ko_kr "마약 문제"
    Target_zh_cn "毒品问题"
@@ -12052,7 +13268,7 @@ StringTable {
    MaxLength 0
    Modified 1706588426
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12060,6 +13276,7 @@ StringTable {
    Id "OVT-StabilityMod_NearbyTower"
    Target_en_us "Nearby Radio Tower"
    Target_fr_fr "Tour Radio Proche"
+   Target_de_de "Nahegelegener Funkturm"
    Target_ru_ru "Радио вышка поблизости"
    Target_ko_kr "근처 라디오 타워"
    Target_zh_cn "附近的无线电塔"
@@ -12074,7 +13291,7 @@ StringTable {
    MaxLength 0
    Modified 1706588436
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12082,6 +13299,7 @@ StringTable {
    Id "OVT-StabilityMod_OrganizedCrime"
    Target_en_us "Organized Crime"
    Target_fr_fr "Crime Organisé"
+   Target_de_de "Organisierte Kriminalität"
    Target_ru_ru "Организованные преступные группировки"
    Target_ko_kr "조직 범죄"
    Target_zh_cn "犯罪集团"
@@ -12096,7 +13314,7 @@ StringTable {
    MaxLength 0
    Modified 1706588443
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12104,6 +13322,7 @@ StringTable {
    Id "OVT-StabilityMod_RecentDeath"
    Target_en_us "Recent Deaths"
    Target_fr_fr "Morts Récentes"
+   Target_de_de "Kürzliche Todesfälle"
    Target_ru_ru "Недавние смерти"
    Target_ko_kr "최근 사망 사건"
    Target_zh_cn "附近尸体"
@@ -12118,7 +13337,7 @@ StringTable {
    MaxLength 0
    Modified 1706588459
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12126,6 +13345,7 @@ StringTable {
    Id "OVT-StabilityMod_RecentGunfire"
    Target_en_us "Recent Gunfire"
    Target_fr_fr "Coups de feu Récents"
+   Target_de_de "Kürzliche Schüsse"
    Target_ru_ru "Недавняя стрельба"
    Target_ko_kr "최근 총격 사건"
    Target_zh_cn "附近枪战"
@@ -12140,7 +13360,7 @@ StringTable {
    MaxLength 0
    Modified 1706588547
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12148,6 +13368,7 @@ StringTable {
    Id "OVT-StabilityMod_RecentPatrol"
    Target_en_us "Recent Patrol"
    Target_fr_fr "Patrouille Récente"
+   Target_de_de "Kürzliche Patrouille"
    Target_ru_ru "Недавний патруль"
    Target_ko_kr "최근 순찰"
    Target_zh_cn "附近巡逻队"
@@ -12162,7 +13383,7 @@ StringTable {
    MaxLength 0
    Modified 1706588561
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12170,6 +13391,7 @@ StringTable {
    Id "OVT-StabilityMod_StrongEconomy"
    Target_en_us "Strong Economy"
    Target_fr_fr "Economie fleurissante"
+   Target_de_de "Starke Wirtschaft"
    Target_ru_ru "Сильная экономика"
    Target_ko_kr "번영하는 경제"
    Target_zh_cn "经济实力雄厚"
@@ -12184,7 +13406,7 @@ StringTable {
    MaxLength 0
    Modified 1706588582
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12192,6 +13414,7 @@ StringTable {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
    Target_fr_fr "Lancer le jeu"
+   Target_de_de "Spiel starten"
    Target_ru_ru "Начать игру"
    Target_ko_kr "게임 시작"
    Target_zh_cn "开始游戏"
@@ -12206,7 +13429,7 @@ StringTable {
    MaxLength 0
    Modified 1706588588
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12214,6 +13437,7 @@ StringTable {
    Id "OVT-StartNewGame"
    Target_en_us "Start New Game"
    Target_fr_fr "Nouvelle partie"
+   Target_de_de "Neues Spiel starten"
    Target_ru_ru "Начать новую игру"
    Target_ko_kr "새 게임 시작"
    Target_zh_cn "开始新游戏"
@@ -12228,14 +13452,22 @@ StringTable {
    MaxLength 0
    Modified 1785715200
    Author "Aaron Static"
-   LastChanged ""
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A248E7D184926DA}" {
+   Id "OVT-StartUprising"
+   Target_en_us "Start Uprising"
+   Modified 1780783911
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
    Target_fr_fr "Ne plus louer"
+   Target_de_de "Miete beenden"
    Target_ru_ru "Завершить аренду"
    Target_ko_kr "임대 중단"
    Target_zh_cn "停止租赁"
@@ -12250,7 +13482,7 @@ StringTable {
    MaxLength 0
    Modified 1706588596
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12258,6 +13490,7 @@ StringTable {
    Id "OVT-StorageEmpty"
    Target_en_us "Equipment Box is empty"
    Target_fr_fr "La caisse est vide"
+   Target_de_de "Ausrüstungskiste ist leer"
    Target_ru_ru "Ящик со снаряжением пуст"
    Target_ko_kr "장비 상자가 비어 있습니다"
    Target_zh_cn "装备箱是空的"
@@ -12272,13 +13505,14 @@ StringTable {
    MaxLength 0
    Modified 1706588626
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE6}" {
    Id "OVT-StorageTransferCancelled"
    Target_en_us "Storage Transfer Cancelled"
+   Target_de_de "Lagerübertragung abgebrochen"
    Target_uk_ua "Передача зі сховища скасована"
    Comment ""
    DevNote ""
@@ -12290,13 +13524,14 @@ StringTable {
    MaxLength 0
    Modified 1716472641
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE7}" {
    Id "OVT-StorageTransferCancelledByUser"
    Target_en_us "Operation cancelled by user"
+   Target_de_de "Vorgang vom Benutzer abgebrochen"
    Target_uk_ua "Операцію скасовано користувачем"
    Comment ""
    DevNote ""
@@ -12308,7 +13543,7 @@ StringTable {
    MaxLength 0
    Modified 1716472620
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12317,6 +13552,9 @@ StringTable {
    Target_en_us "Transfer Complete"\
    ""\
    "%1 items transferred"
+   Target_de_de "Übertragung abgeschlossen"\
+   ""\
+   "%1 Gegenstände übertragen"
    Target_uk_ua "Передача завершена"\
    ""\
    "Передано %1 предметів"
@@ -12330,7 +13568,7 @@ StringTable {
    MaxLength 0
    Modified 1716472576
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12340,6 +13578,10 @@ StringTable {
    ""\
    "%1 items transferred"\
    "%2 items skipped"
+   Target_de_de "Übertragung abgeschlossen"\
+   ""\
+   "%1 Gegenstände übertragen"\
+   "%2 Gegenstände übersprungen"
    Target_uk_ua "Передача завершена"\
    ""\
    "Передано %1 предметів"\
@@ -12354,13 +13596,14 @@ StringTable {
    MaxLength 0
    Modified 1716472528
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE4}" {
    Id "OVT-StorageTransferError"
    Target_en_us "Error: %1"
+   Target_de_de "Fehler: %1"
    Target_uk_ua "Помилка: %1"
    Comment ""
    DevNote ""
@@ -12372,13 +13615,14 @@ StringTable {
    MaxLength 0
    Modified 1716472418
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE5}" {
    Id "OVT-StorageTransferFailed"
    Target_en_us "Storage Transfer Failed"
+   Target_de_de "Lagerübertragung fehlgeschlagen"
    Target_uk_ua "Передача зі сховища не вдалася"
    Comment ""
    DevNote ""
@@ -12390,7 +13634,7 @@ StringTable {
    MaxLength 0
    Modified 1716472401
    Author "Claude"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12398,6 +13642,7 @@ StringTable {
    Id "OVT-Support"
    Target_en_us "Support"
    Target_fr_fr "Support"
+   Target_de_de "Unterstützung"
    Target_ru_ru "Поддержка"
    Target_ko_kr "지원"
    Target_zh_cn "支持"
@@ -12412,7 +13657,7 @@ StringTable {
    MaxLength 0
    Modified 1706588617
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12420,6 +13665,7 @@ StringTable {
    Id "OVT-Supporters"
    Target_en_us "Supporters"
    Target_fr_fr "Partisans"
+   Target_de_de "Unterstützer"
    Target_ru_ru "Сторонники"
    Target_ko_kr "지지자들"
    Target_zh_cn "支持者"
@@ -12434,7 +13680,7 @@ StringTable {
    MaxLength 0
    Modified 1706588665
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12442,17 +13688,20 @@ StringTable {
    Id "OVT-SupportingFaction"
    Target_en_us "Supporting Faction"
    Target_fr_fr "Faction de soutien"
+   Target_de_de "Unterstützte Fraktion"
    Target_ru_ru "Поддерживающая фракция"
    Target_ko_kr "지원 세력"
    Target_uk_ua "Фракція підтримки"
    Terminology NONE
    Modified 1706590952
    Author "theonegfrost"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7D9B2E00000028}" {
    Id "OVT-SupportMod_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_de_de "Piratensender"
+   Target_uk_ua "Піратське радіо"
    Comment "Town support modifier title - pirate radio placeable"
    DevNote ""
    Repro ""
@@ -12463,7 +13712,7 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12471,6 +13720,7 @@ StringTable {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
    Target_fr_fr "Affiches de propagande"
+   Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Постеры"
    Target_ko_kr "모집 포스터"
    Target_zh_cn "招聘海报"
@@ -12485,14 +13735,22 @@ StringTable {
    MaxLength 0
    Modified 1706590964
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6A248E7DE9D0DBC4}" {
+   Id "OVT-SupportTooLow"
+   Target_en_us "Not enough support in this town"
+   Modified 1780783937
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
    Target_en_us "Take From Warehouse"
    Target_fr_fr "Prendre de l'entrepôt"
+   Target_de_de "Aus Lagerhaus nehmen"
    Target_ru_ru "Взять со склада"
    Target_ko_kr "창고에서 가져오기"
    Target_zh_cn "从仓库取出"
@@ -12507,7 +13765,7 @@ StringTable {
    MaxLength 0
    Modified 1706588680
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12515,6 +13773,7 @@ StringTable {
    Id "OVT-TooCloseBase"
    Target_en_us "You cannot place that here, it is too close to a military base"
    Target_fr_fr "Impossible de placer ici, trop près d'une Base"
+   Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Militärbasis"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к военной базе"
    Target_ko_kr "여기에 배치할 수 없습니다. 군사 기지와 너무 가깝습니다."
    Target_zh_cn "你不能把它放在这里，它离军事基地太近了"
@@ -12529,7 +13788,7 @@ StringTable {
    MaxLength 0
    Modified 1706588689
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12537,6 +13796,7 @@ StringTable {
    Id "OVT-TooCloseBuilding"
    Target_en_us "You cannot place that here, it is too close to a building"
    Target_fr_fr "Impossible de placer ici, trop près d'un batiment"
+   Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem Gebäude"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к постройке"
    Target_ko_kr "여기에 배치할 수 없습니다. 건물과 너무 가깝습니다."
    Target_zh_cn "你不能把它放在这里，它离建筑物太近了"
@@ -12551,7 +13811,7 @@ StringTable {
    MaxLength 0
    Modified 1706588697
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12559,6 +13819,7 @@ StringTable {
    Id "OVT-TooCloseFOB"
    Target_en_us "You cannot place that here, it is too close to an FOB"
    Target_fr_fr "Impossible de placer ici, trop près d'un avant poste"
+   Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem FOB"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к FOB"
    Target_ko_kr "여기에 배치할 수 없습니다. FOB와 너무 가깝습니다."
    Target_zh_cn "你不能把它放在这里，它离FOB太近了"
@@ -12573,23 +13834,25 @@ StringTable {
    MaxLength 0
    Modified 1706588709
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5992E2F582B25E31}" {
    Id "OVT-TooCloseToRadioTower"
    Target_en_us "Cannot deploy FOB - too close to radio tower"
+   Target_de_de "FOB kann nicht errichtet werden – zu nah an einem Funkturm"
    Target_ru_ru "Невозможно развернуть FOB - слишком близко к радиовышке"
    Target_uk_ua "Неможливо розгорнути FOB - занадто близько до радіовежі"
    Modified 1716472362
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
    Target_en_us "You cannot place that here, it is too close to a town"
    Target_fr_fr "Impossible de placer ici, trop près d'un village"
+   Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Stadt"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к населенному пункту"
    Target_ko_kr "여기에 배치할 수 없습니다. 마을과 너무 가깝습니다."
    Target_zh_cn "你不能把它放在这里，它离城镇太近了"
@@ -12604,7 +13867,7 @@ StringTable {
    MaxLength 0
    Modified 1706588721
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -12612,6 +13875,7 @@ StringTable {
    Id "OVT-Total"
    Target_en_us "Total"
    Target_fr_fr "Total"
+   Target_de_de "Gesamt"
    Target_ru_ru "Всего"
    Target_ko_kr "총합"
    Target_zh_cn "全部"
@@ -12626,13 +13890,15 @@ StringTable {
    MaxLength 0
    Modified 1706588728
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000002E}" {
    Id "OVT-TowerAlreadySabotaged"
    Target_en_us "This radio tower is already off the air"
+   Target_de_de "Dieser Funkturm ist bereits außer Betrieb"
+   Target_uk_ua "Ця радіовежа вже не працює в ефірі"
    Comment "Why the sabotage action cannot be performed while the tower is down"
    DevNote ""
    Repro ""
@@ -12643,13 +13909,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7D9B2E0000002D}" {
    Id "OVT-TowerSabotaged"
    Target_en_us "Sabotaged"
+   Target_de_de "Sabotiert"
+   Target_uk_ua "Саботовано"
    Comment "Radio tower action name while the tower is down - the time left is appended in brackets"
    DevNote ""
    Repro ""
@@ -12660,20 +13928,24 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D0CCE5C784D4F8}" {
    Id "OVT-Town"
    Target_en_us "Town"
+   Target_de_de "Stadt"
+   Target_uk_ua "Місто"
    Modified 1708198297
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{6A7D9B2E00000001}" {
    Id "OVT-TownModifierLimit"
    Target_en_us "This town already has the maximum number of these"
+   Target_de_de "Diese Stadt hat bereits die maximale Anzahl davon"
+   Target_uk_ua "У цьому місті вже досягнуто максимальної кількості таких об'єктів"
    Comment "Place mode - poster/support-modifier stack limit reached in the nearest town"
    DevNote ""
    Repro ""
@@ -12684,13 +13956,15 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1C40A9B33002}" {
    Id "OVT-Travelled"
    Target_en_us "Travelled"
+   Target_de_de "Zurückgelegte Strecke"
+   Target_uk_ua "Подорожував"
    Comment "Fast travel/bus - shown after a successful trip that cost nothing. The paid variant is OVT-TravelWithFare"
    DevNote ""
    Repro ""
@@ -12706,6 +13980,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33005}" {
    Id "OVT-TravelWithFare"
    Target_en_us "%1 ($%2)"
+   Target_de_de "%1 ($%2)"
    Comment "Fast travel/bus - a label with its fare. %1 is the label (\"Fast Travel\", \"Catch a bus\", \"Travelled\"), %2 is the amount of money"
    DevNote ""
    Repro ""
@@ -12721,6 +13996,8 @@ StringTable {
   CustomStringTableItem "{6B3A000000000065}" {
    Id "OVT-Tutorial_Back"
    Target_en_us "Back"
+   Target_de_de "Zurück"
+   Target_uk_ua "Назад"
    Comment "Modal tutorial popup - label on the button that moves to the previous page of a multi-page tip. This is page navigation, NOT closing the popup. One short word."
    DevNote ""
    Repro ""
@@ -12731,13 +14008,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000112}" {
    Id "OVT-Tutorial_BasesFirstCapture_Body"
    Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction keeps reserves and spends a surplus of them on retaking a base the resistance holds."
+   Target_de_de "Du hast gerade das Sperrgebiet einer Basis betreten. Wenn du hier gesehen wirst, wirst du gesucht. Um Basen einzunehmen, musst du die Flagge in der Mitte erreichen und eine Schlacht auslösen. Der Ausgang der Schlacht hängt davon ab, wie viele Spieler (und Rekruten) die Mitte der Basis halten und wie viele Soldaten der Besatzungsmacht noch dort sind. Die Kontrolle kann in beide Richtungen wechseln: Die Besatzungsmacht hält Reserven vor und setzt überschüssige Kräfte ein, um eine vom Widerstand gehaltene Basis zurückzuerobern."
+   Target_uk_ua "Ви щойно увійшли до забороненої зони бази. Якщо вас тут помітять, вас оголосять у розшук. Щоб захопити базу, потрібно дістатися прапора в центрі та розпочати бій. Результат бою залежатиме від того, скільки гравців (і новобранців) утримують центр бази, порівняно з кількістю окупаційних солдатів, що ще залишилися на ній. Контроль працює в обидва боки: окупаційна фракція має резерви й витрачає їх надлишок на спроби відбити базу, яку утримує опір."
    Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1178-1194 spends a reserve surplus on a QRF against a base the resistance holds. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
    DevNote ""
    Repro ""
@@ -12748,13 +14027,15 @@ StringTable {
    MaxLength 0
    Modified 1779758225
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000111}" {
    Id "OVT-Tutorial_BasesFirstCapture_Title"
    Target_en_us "Base Control"
+   Target_de_de "Basiskontrolle"
+   Target_uk_ua "Контроль бази"
    Comment "Title of the 'bases-first-capture' tutorial tip, shown to every player within 300 m of a base that has just changed hands, in either direction. Deliberately neutral: the reader may have fought for the base, may have been passing by, and may have just lost it. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -12765,13 +14046,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000110}" {
    Id "OVT-Tutorial_BuildFirstStructure_Body"
    Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB or a camp. What the build menu offers depends on which of those you are in, and a structure costs money and nothing else."
+   Target_de_de "Durch Bauen werden Strukturen dort hinzugefügt, wo der Widerstand bereits Gebiet hält: an einer von ihm kontrollierten Basis, einem FOB oder einem Camp. Was das Baumenü anbietet, hängt davon ab, an welchem dieser Orte du dich befindest. Eine Struktur kostet ausschließlich Geld."
+   Target_uk_ua "Будівництво додає споруди там, де опір уже контролює територію: на підконтрольній базі, FOB або в таборі. Вміст меню будівництва залежить від того, де саме ви перебуваєте, а споруди коштують лише грошей."
    Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting."
    DevNote ""
    Repro ""
@@ -12782,13 +14065,15 @@ StringTable {
    MaxLength 0
    Modified 1779758244
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010F}" {
    Id "OVT-Tutorial_BuildFirstStructure_Title"
    Target_en_us "Building Structures"
+   Target_de_de "Strukturen bauen"
+   Target_uk_ua "Будівництво споруд"
    Comment "Title of the 'build-first-structure' tutorial tip, shown the first time a player builds a structure from the Build menu. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -12799,13 +14084,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000067}" {
    Id "OVT-Tutorial_DisableTips"
    Target_en_us "Don't Show Tips Again"
+   Target_de_de "Tipps nicht mehr anzeigen"
+   Target_uk_ua "Більше не показувати підказки"
    Comment "Modal tutorial popup - label on the button that permanently switches every tutorial tip off for this player profile. Must read as a lasting preference, not as dismissing this one tip."
    DevNote ""
    Repro ""
@@ -12816,13 +14103,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000062}" {
    Id "OVT-Tutorial_Dismiss"
    Target_en_us "Close"
+   Target_de_de "Schließen"
+   Target_uk_ua "Закрити"
    Comment "Modal tutorial popup - label on the button that closes the tip and records it as read. Sits inside a navigation button beside an Escape / gamepad-B glyph, so keep it to one short word."
    DevNote ""
    Repro ""
@@ -12833,13 +14122,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A0000000000B1}" {
    Id "OVT-Tutorial_EconomyFirstBuy_Body"
    Target_en_us "Shops sell legal items to you and will buy back the ones they sell. Their stock is limited and tops itself back up each morning. Prices differ from town to town, opening up the possibility of trade. Items can be imported from ports for a low price, and shops further inland from those ports will pay a higher price than the shops which are closer."
+   Target_de_de "Geschäfte verkaufen dir legale Gegenstände und kaufen die Waren zurück, die sie selbst führen. Ihr Bestand ist begrenzt und wird jeden Morgen wieder aufgefüllt. Die Preise unterscheiden sich von Stadt zu Stadt und eröffnen dadurch Handelsmöglichkeiten. Gegenstände können an Häfen günstig importiert werden, und Geschäfte weiter im Landesinneren bezahlen dafür höhere Preise als Geschäfte in Hafennähe."
+   Target_uk_ua "Магазини продають вам легальні товари та викуповують назад ті, якими торгують. Їхні запаси обмежені й поповнюються щоранку. Ціни відрізняються від міста до міста, що дає можливість займатися торгівлею. Товари можна дешево імпортувати з портів, а магазини далі вглиб країни платитимуть за них більше, ніж магазини поблизу портів."
    Comment "Body of the 'economy-first-buy' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). Explains how the economy works; it must NOT tell the player what to do, because Overthrow is a sandbox and the tip system never assigns goals. FACT-CHECKED 2026-08-08 against OVT_PlayerData.money (a persisted int on the player record, not an entity) and OVT_SellableItemScanner: there is no theft, drop or loot-money mechanic anywhere, and no deposit/bank/vault. The previous text claimed money could be stolen and deposited at your house - both invented. Do not reintroduce either claim. The only real money loss is OVT_EconomyManagerComponent.ChargeRespawn, a flat fee charged on respawn only above a 500 balance, and only on Hard/Extreme/Insane (Normal and Easy are 0). REWRITTEN 2026-08-09 for tutorial-content Phase 1 (entry adopted, link repointed from Main Menu to Money and Shops). Sentence 1: OVT_ShopSellRules.ShopBuysFromPlayers:30-42 (every shop type buys back except vehicle shops, procurement points, and gun dealers when the difficulty multiplier is zero, hence 'most of them'), OVT_EconomyManagerComponent.CheckUpdate:183-187 with ReplenishStock:288-361 (shops top back up towards half the town ceiling at 07:00 game time) and GetTownMaxStock:602-607 (stock has a ceiling). Sentence 2: GetSellPrice:537-556 (base price adjusted by town stock level and distance to the nearest port). NOTE, CORRECTED 2026-08-09: this sentence was originally narrowed to 'differ' rather than 'scale' on the belief that the town-stock term was an integer division behaving as a step - BUG-105 investigated that on main and DISPROVED it at runtime (measured 1116 -> 1067 -> 1018 across stock 1/50/100; EnforceScript int/int evaluates fractionally inside an expression containing float operands, and the division is now written (float)stock_level / max_stock). The scarcity gradient IS a real smooth curve. The current wording is still true and needs no change, but the old 'do not reintroduce the curve wording' instruction was wrong and is withdrawn: a future author MAY say prices move with local scarcity. Money as a balance: OVT_PlayerData.c:13 (int money on the persisted player record). Compresses #OVT-FieldManual_Shops_Text, _Text3 and _Text4."
    DevNote ""
    Repro ""
@@ -12850,13 +14141,15 @@ StringTable {
    MaxLength 0
    Modified 1779758395
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A0000000000B0}" {
    Id "OVT-Tutorial_EconomyFirstBuy_Title"
    Target_en_us "Buying and Selling"
+   Target_de_de "Kaufen und Verkaufen"
+   Target_uk_ua "Купівля та продаж"
    Comment "Title of the 'economy-first-buy' tutorial tip, shown the first time a player buys anything at a shop. Appears as the heading of a small HUD popup, so keep it to two or three words."
    DevNote ""
    Repro ""
@@ -12867,13 +14160,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000064}" {
    Id "OVT-Tutorial_Finish"
    Target_en_us "Finish"
+   Target_de_de "Fertig"
+   Target_uk_ua "Завершити"
    Comment "Modal tutorial popup - the Next button is relabelled to this on the LAST page, where it closes the tip instead of paging forward. One short word."
    DevNote ""
    Repro ""
@@ -12884,13 +14179,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000102}" {
    Id "OVT-Tutorial_HomeFirstOpen_Body"
    Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Various warehouses can also be bought via this screen and allow mass storage and retireval of items."
+   Target_de_de "Immobilien können gekauft, gemietet und verkauft werden. Nicht alle Gebäude können gekauft werden, die meisten Häuser jedoch schon. Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter wiedereinsteigt, und Gebäude in deinem Besitz oder von dir gemietete Gebäude gelten als Schnellreiseziele. Basen und FOBs können ebenfalls als \"Zuhause\" festgelegt werden. Über diesen Bildschirm können außerdem verschiedene Lagerhäuser gekauft werden, die das Lagern und Entnehmen großer Mengen von Gegenständen ermöglichen."
+   Target_uk_ua "Нерухомість можна купувати, орендувати та продавати. Не всі будівлі можна придбати, але більшість будинків — можна. Будівля, встановлена як ваш дім, є місцем відродження вашого персонажа, а будівлі, якими ви володієте або які орендуєте, доступні як точки швидкого переміщення. Бази та FOB також можна встановити як «Дім». Через цей екран також можна купувати різні склади, які дають змогу зберігати та забирати велику кількість предметів."
    Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2."
    DevNote ""
    Repro ""
@@ -12901,13 +14198,15 @@ StringTable {
    MaxLength 0
    Modified 1779760812
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000101}" {
    Id "OVT-Tutorial_HomeFirstOpen_Title"
    Target_en_us "Owning Property"
+   Target_de_de "Immobilien besitzen"
+   Target_uk_ua "Володіння нерухомістю"
    Comment "Title of the 'home-first-open' tutorial tip, shown the first time a player opens the Real Estate screen. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -12918,13 +14217,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000066}" {
    Id "OVT-Tutorial_LearnMore"
    Target_en_us "Learn More"
+   Target_de_de "Mehr erfahren"
+   Target_uk_ua "Дізнатися більше"
    Comment "Modal tutorial popup - label on the button that opens the Field Manual on the page this tip links to. Only shown when the tip declares a field-manual link. Two words at most."
    DevNote ""
    Repro ""
@@ -12935,13 +14236,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000106}" {
    Id "OVT-Tutorial_MapFirstOpen_Body"
    Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. The filter on the strip of icons down the left opens a panel with an on and off row for each kind of marker and each overlay. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Target_de_de "Die Karte markiert Gebäude und Fahrzeuge in deinem Besitz, vom Widerstand platzierte Camp und FOBs sowie Geschäfte, Waffenhändler und Häfen, die für Importe verfügbar sind. Eine Schattierung über dem Gelände zeigt das Gebiet, das weiterhin von der Besatzungsmacht gehalten wird, und verschwindet überall dort, wo der Widerstand die Kontrolle übernimmt. Der Filter in der Symbolleiste auf der linken Seite öffnet ein Fenster mit einer Ein-/Aus-Zeile für jede Art von Markierung und jede Einblendung. Du musst einen Kartengegenstand in deinem Inventar bei dir tragen, damit sich die Karte öffnen lässt – verliere ihn also nicht!"
+   Target_uk_ua "Мапа позначає будівлі та транспортні засоби, якими ви володієте, табори й FOB, розміщені опором, а також магазини, торговців зброєю та порти, доступні для імпорту. Затінення місцевості показує території, які все ще контролює окупаційна фракція, і зникає там, де їх захоплює опір. Фільтр на панелі значків ліворуч відкриває меню з перемикачами для кожного типу маркера та кожного шару. Щоб відкрити мапу, ви повинні мати її як предмет у своєму інвентарі, тож не загубіть її!"
    Comment "Body of the 'map-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - keep it to four short sentences). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_MapIcons.c OnMapOpen (owned houses :472, warehouses :573, gun dealers via TryCreateGunDealerIcon:111, camps :641, FOBs :664, shops via TryCreateShopIcon:137, ports via TryCreatePortIcon:184, owned vehicles :710). Sentence 3: OVT_MapContext.c ShowMap:135-146 requires an SCR_MapGadgetComponent, and both EnableMapInfo:152-158 and EnableFastTravel:277-285 show the 'MustHaveMap' notification and return when it is absent. Sentence 2 ADDED 2026-08-11 for map/territory-overlay and fact-checked then: OVT_MapTerritoryLayer.c:127-128 (m_bOnlyShowOccupying defaults 1) and OVT_TerritorySolver.c IsEmittedCell:1645-1657 draw only ground whose owning site's faction is the occupying faction, and OVT_MapTerritoryLayer.c:801-807 gives every other site's ground no appearance at all, so liberated ground renders blank. Compresses #OVT-FieldManual_MapAndTravel_Text and #OVT-FieldManual_MapTerritory_Text. Sentence 3 ADDED 2026-08-11 for map/map-layers and fact-checked then, symbols only per epic rule K-9: OVT_MapLayersUI.Init registers the tool menu entry through SCR_MapToolMenuUI.RegisterToolMenuEntry using the m_sToolMenuIcon quad 'filters', vanilla MapMenu.layout anchors ToolMenuContainer top-left, and TogglePanel shows the panel whose rows come from BuildCanvasLayerRows, BuildPlayerRow and BuildLocationTypeRows. Longer form in #OVT-FieldManual_MapLayers_Text."
    DevNote ""
    Repro ""
@@ -12952,13 +14255,15 @@ StringTable {
    MaxLength 0
    Modified 1779758629
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000105}" {
    Id "OVT-Tutorial_MapFirstOpen_Title"
    Target_en_us "The Map"
+   Target_de_de "Die Karte"
+   Target_uk_ua "Мапа"
    Comment "Title of the 'map-first-open' tutorial tip, shown the first time a player opens the map. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -12969,13 +14274,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000060}" {
    Id "OVT-Tutorial_MoreInMenu"
    Target_en_us "Overthrow Menu"
+   Target_de_de "Overthrow-Menü"
+   Target_uk_ua "Меню Overthrow"
    Comment "Label on the only input prompt of the non-modal tutorial popup (HUD overlay). Points the player at the Overthrow main menu, where the fuller version of the tip lives. Keep it short - it sits inside a small navigation button next to a key/gamepad glyph."
    DevNote ""
    Repro ""
@@ -12986,13 +14293,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000063}" {
    Id "OVT-Tutorial_Next"
    Target_en_us "Next"
+   Target_de_de "Weiter"
+   Target_uk_ua "Далі"
    Comment "Modal tutorial popup - label on the button that moves to the next page of a multi-page tip. Sits inside a navigation button beside a key/gamepad glyph, so keep it to one short word."
    DevNote ""
    Repro ""
@@ -13003,13 +14312,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A00000000006A}" {
    Id "OVT-Tutorial_NoneAvailable"
    Target_en_us "No tip to show right now"
+   Target_de_de "Momentan ist kein Tipp verfügbar"
+   Target_uk_ua "Наразі немає підказок для показу"
    Comment "Hint shown when the player picks Tips in the Overthrow main menu but there is nothing to re-open - either no tip has appeared yet this session, or the player is mid-placement so the popup would sit on top of the ghost."
    DevNote ""
    Repro ""
@@ -13020,13 +14331,14 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000068}" {
    Id "OVT-Tutorial_PageIndicator"
    Target_en_us "%1 / %2"
+   Target_de_de "%1 / %2"
    Comment "Modal tutorial popup - page counter in the header of a multi-page tip. %1 is the current page number, %2 is the total. Hidden entirely on single-page tips."
    DevNote ""
    Repro ""
@@ -13037,13 +14349,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010E}" {
    Id "OVT-Tutorial_PlaceFirstPlaceable_Body"
    Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Some placeables are illegal, and putting one down while the occupying faction can see you makes you wanted. Items can be placed at any real-estate or camp you own, as well as resistance-controlled bases and FOBs."
+   Target_de_de "Beim Platzieren werden gegen Geld Objekte des Widerstands in die Spielwelt gesetzt, von kleinen Gegenständen bis hin zu einem vollständigen Camp. Einige platzierbare Objekte sind illegal. Wenn du eines aufstellst, während dich die Besatzungsmacht sehen kann, wirst du gesucht. Gegenstände können bei jeder Immobilie oder jedem Camp in deinem Besitz sowie an vom Widerstand kontrollierten Basen und FOBs platziert werden."
+   Target_uk_ua "Розміщення дає змогу за гроші встановлювати у світі об'єкти опору — від дрібних предметів до повноцінного табору. Деякі об'єкти заборонені, і якщо встановити такий об'єкт на очах в окупаційної фракції, вас оголосять у розшук. Предмети можна розміщувати на будь-якій нерухомості або в таборі, якими ви володієте, а також на базах і FOB, контрольованих опором."
    Comment "Body of the 'place-first-placeable' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This entry is triggered by an UNFILTERED PLAYER_PLACE (decision D5), so the body must fit a Poster, an Ammobox or a Camp equally. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1, cost in money: OVT_ResistanceFactionManager.PlaceItem:661-755 checks funds at :678 and charges economy.TakePlayerMoney(playerId, cost) at :751; the range of items is Configs/Resistance/placeables.conf (Poster m_iCost 5 at :21, Camp m_iCost 250 at :39). Sentence 2, illegal and seen-gated: m_bIllegal 1 on Poster :24, Sandbags, Hedgehog and PirateRadio :157, with PlaceItem:739-748 calling OVT_PlayerWantedComponent.OnIllegalActionSeen:296-303, which returns immediately unless m_bIsSeen and otherwise sets base wanted level 2. Compresses #OVT-FieldManual_Camps_Text and _Text5. DO NOT write that a camp cannot be placed near an occupying base: that exclusion is never reached, because OVT_PlaceContext.CanPlace:267-280 returns true as soon as the away-from-camps check passes and the m_bAwayFromBases branch below it is unreachable for the Camp placeable (verified again 2026-08-09)."
    DevNote ""
    Repro ""
@@ -13054,13 +14368,15 @@ StringTable {
    MaxLength 0
    Modified 1779758687
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010D}" {
    Id "OVT-Tutorial_PlaceFirstPlaceable_Title"
    Target_en_us "Placing Objects"
+   Target_de_de "Objekte platzieren"
+   Target_uk_ua "Розміщення об'єктів"
    Comment "Title of the 'place-first-placeable' tutorial tip, shown the first time a player places anything from the Place menu. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13071,13 +14387,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000008A}" {
    Id "OVT-Tutorial_RecruitsEquipped_Body"
    Target_en_us "A recruitment tent hires an unequipped civilian from the nearest town, or, with Buy Equipped Recruit, one that arrives already wearing a loadout you saved. The price of an equipped one is its gear at local shop prices plus a convenience fee, on top of the usual recruit cost, and it is shown before you commit to it."
+   Target_de_de "Ein Rekrutierungszelt wirbt einen unausgerüsteten Zivilisten aus der nächstgelegenen Stadt an oder über \"Rekruten mit Ausrüstung kaufen\" einen Rekruten, der bereits eine von dir gespeicherte Ausrüstung trägt. Der Preis eines ausgerüsteten Rekruten setzt sich zusätzlich zu den normalen Rekrutierungskosten aus dem örtlichen Ladenpreis seiner Ausrüstung und einer Komfortgebühr zusammen und wird dir vor dem Kauf angezeigt."
+   Target_uk_ua "Намет для найму дозволяє найняти неспорядженого цивільного з найближчого міста або, за допомогою «Найняти спорядженого новобранця», новобранця, який прибуде вже у збереженому вами комплекті спорядження. Вартість спорядженого новобранця включає ціну його спорядження за місцевими магазинними цінами та додаткову плату за послугу понад звичайну вартість найму. Загальну ціну буде показано перед підтвердженням найму."
    Comment "Body of the 'recruits-equipped-tent' tutorial tip (single page, HUD popup - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9. The tent's two actions: Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:64-95. Unequipped civilian from the nearest town at half cost: OVT_PlayerCommsComponent.c:1511-1529. Equipped flow: OVT_BuyEquippedRecruitAction.c:44-57 opens OVT_LoadoutsContext in purchase mode, OVT_LoadoutsContext.c:395-397 shows the price on the button before the purchase press. Price composition: OVT_RecruitLoadoutPricing.c:216 (GetBuyPrice at the tent), OVT_RecruitPurchaseRules.TotalPrice:83-91, OVT_RecruitCommandComponent.c:1033-1034. No number is quoted because the fee multiplier is a difficulty setting (Configs/Difficulty/*.conf, 1.3 to 1.7)."
    DevNote ""
    Repro ""
@@ -13088,13 +14406,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000089}" {
    Id "OVT-Tutorial_RecruitsEquipped_Title"
    Target_en_us "Equipped Recruits"
+   Target_de_de "Ausgerüstete Rekruten"
+   Target_uk_ua "Споряджені рекрути"
    Comment "Title of the 'recruits-equipped-tent' tutorial tip, shown the first time the player finishes building a recruitment tent. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13105,13 +14425,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010C}" {
    Id "OVT-Tutorial_RecruitsFirstRecruit_Body"
    Target_en_us "A recruit belongs to the player who hired them, joins that player's group, and takes orders through the ordinary group command menu. Recruits stay with their owner always, even if you change groups.<br/><br/>Use the commanding menu <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color> to give them orders or open their inventory while looking at them. Orders given while not looking at a recruit will apply to all your recruits."
+   Target_de_de "Ein Rekrut gehört dem Spieler, der ihn angeworben hat, tritt der Gruppe dieses Spielers bei und erhält Befehle über das normale Gruppenbefehlsmenü. Rekruten bleiben immer bei ihrem Besitzer, auch wenn du die Gruppe wechselst.<br/><br/>Verwende das Befehlsmenü <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>, um ihnen Befehle zu erteilen oder ihr Inventar zu öffnen, während du sie ansiehst. Befehle, die du erteilst, ohne einen bestimmten Rekruten anzusehen, gelten für alle deine Rekruten."
+   Target_uk_ua "Рекрут належить гравцеві, який його найняв, приєднується до групи цього гравця та виконує накази через звичайне меню командування групою. Рекрути завжди залишаються зі своїм власником, навіть якщо ви змінюєте групу.<br/><br/>Використовуйте меню командування <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>, щоб віддавати їм накази або відкривати їхній інвентар, дивлячись на них. Накази, віддані без наведення погляду на конкретного рекрута, застосовуються до всіх ваших рекрутів."
    Comment "Body of the 'recruits-first-recruit' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1, ownership: OVT_RecruitManagerComponent.AddRecruit:423 (m_sOwnerPersistentId is the hiring player's persistent id) with RecruitCivilian:800-846 (SetPlayerOwner then AddRecruit); group: RecruitCivilian:843 calls AddRecruitToPlayerGroup:1682-1730, which adds the recruit to the hiring player's own group through SCR_PlayerControllerGroupComponent, so the vanilla group command menu commands it. Sentence 2, between sessions: OFFLINE_DESPAWN_TIME:41 = 600 s with OnPlayerDisconnected:970-977 and RespawnPlayerRecruits:1004-1035 (the recruit leaves the world ten minutes after its owner does and is put back when that player returns) plus ApplyPersistedRecruits:327-384 (records are restored from the save). Cap: MAX_RECRUITS_PER_PLAYER:11 = 16, enforced in CanRecruit:173. Compresses #OVT-FieldManual_Recruits_Text, _Text3 and _Text5. The hire price is deliberately not quoted: it is a difficulty setting (m_Difficulty.baseRecruitCost)."
    DevNote ""
    Repro ""
@@ -13122,13 +14444,15 @@ StringTable {
    MaxLength 0
    Modified 1779759373
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010B}" {
    Id "OVT-Tutorial_RecruitsFirstRecruit_Title"
    Target_en_us "Your Recruits"
+   Target_de_de "Deine Rekruten"
+   Target_uk_ua "Ваші рекрути"
    Comment "Title of the 'recruits-first-recruit' tutorial tip, shown the first time a civilian is hired as a recruit. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13139,13 +14463,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000058}" {
    Id "OVT-Tutorial_RecruitsHoldPosition_Body"
    Target_en_us "Recruits you own can be told to hold position, from this screen or with a held action on the recruit itself. One that is holding position leaves your group and stays where it stands, still yours and still using one of your sixteen recruit slots."
+   Target_de_de "Rekruten in deinem Besitz können angewiesen werden, ihre Position zu halten – entweder über diesen Bildschirm oder über eine gedrückt gehaltene Aktion direkt am Rekruten. Ein Rekrut, der seine Position hält, verlässt deine Gruppe und bleibt an seinem Standort. Er gehört weiterhin dir und belegt weiterhin einen deiner sechzehn Rekrutenplätze."
+   Target_uk_ua "Рекрутам, які належать вам, можна наказати утримувати позицію — з цього екрана або за допомогою утримуваної дії на самому рекруті. Рекрут, який утримує позицію, залишає вашу групу й залишається на місці, але все ще належить вам і займає один із ваших шістнадцяти слотів для рекрутів."
    Comment "Body of the 'recruits-hold-position' tutorial tip (single page, HUD popup over the recruits screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Roster toggle: OVT_RecruitsContext ToggleActiveButton with Configs/System/chimeraInputCommon.conf:612 OverthrowRecruitsToggleActive. Held action on the body: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:29 OVT_SetRecruitInactiveAction, Duration 1.5 (shortened from 3 by the 2026-08-14 play-test). Leaves the group and holds: OVT_RecruitManagerComponent.SetRecruitInactive with PlaceRecruitInInactiveGroup:2596-2613 (SpawnWaitWaypoint, BUG-170 - a plain wait, not a defend waypoint). Still owned and still counted: OVT_RecruitManagerComponent.c:11 MAX_RECRUITS_PER_PLAYER = 16 with :208 CanRecruit, which counts every owned record regardless of state."
    DevNote ""
    Repro ""
@@ -13156,13 +14482,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000057}" {
    Id "OVT-Tutorial_RecruitsHoldPosition_Title"
    Target_en_us "Holding Position"
+   Target_de_de "Position halten"
+   Target_uk_ua "Утримання позиції"
    Comment "Title of the 'recruits-hold-position' tutorial tip, shown the first time the Manage Recruits screen is opened. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13173,13 +14501,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C00000000005A}" {
    Id "OVT-Tutorial_RecruitsSwapGear_Body"
    Target_en_us "A recruit that is following you carries a Swap Gear action: holding it from close by exchanges your whole kit with theirs, clothing and weapons alike. The real items change hands, so nothing is created or lost; anything that will not fit is stowed instead, or at worst left on the ground."
+   Target_de_de "Ein Rekrut, der dir folgt, besitzt die Aktion \"Ausrüstung tauschen\": Wenn du sie aus kurzer Entfernung gedrückt hältst, wird deine gesamte Ausrüstung mit seiner getauscht, einschließlich Kleidung und Waffen. Dabei wechseln die tatsächlichen Gegenstände den Besitzer, sodass nichts erzeugt oder verloren geht. Was nicht an die vorgesehene Stelle passt, wird stattdessen anderswo verstaut oder im schlimmsten Fall auf dem Boden abgelegt."
+   Target_uk_ua "Рекрут, який слідує за вами, має дію «Обміняти спорядження»: утримуючи її поблизу, ви повністю обмінюєтеся з ним спорядженням, включно з одягом і зброєю. Обмінюються саме наявні предмети, тому нічого не створюється й не зникає; усе, що не вміститься, буде покладено до сховища або, у крайньому разі, залишено на землі."
    Comment "Body of the 'recruits-swap-gear' tutorial tip (single page, HUD popup over the loadouts screen - two sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-14 for recruit-ux Phase 8. Action and name: Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et:47 OVT_SwapLoadoutWithRecruitAction, UIInfo Name 'Swap Gear', Duration 2.5 (shortened from 5 by the 2026-08-14 play-test). Active-only: OVT_SwapLoadoutWithRecruitAction.c:43-46. Close by: OVT_RecruitCommandComponent.c:64 SWAP_MAX_DISTANCE = 5. What moves: OVT_LoadoutSwap.BuildClothingAreaOrder:402-412 (backpack, vest, armoured vest, jacket, pants, boots, headcover, handwear) plus the weapon slots. Nothing created or destroyed: plan decision D13 with the Q9 grep proof over OVT_LoadoutSwap.c. Stowed or dropped: OVT_LoadoutSwapResult m_iRelocated and m_iDropped (OVT_LoadoutSwap.c:19-35)."
    DevNote ""
    Repro ""
@@ -13190,13 +14520,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B4C000000000059}" {
    Id "OVT-Tutorial_RecruitsSwapGear_Title"
    Target_en_us "Swapping Gear"
+   Target_de_de "Ausrüstung tauschen"
+   Target_uk_ua "Обмін спорядження"
    Comment "Title of the 'recruits-swap-gear' tutorial tip, shown the first time the loadouts screen is opened. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13207,13 +14539,15 @@ StringTable {
    MaxLength 0
    Modified 1755129600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3E000000000011}" {
    Id "OVT-Tutorial_ResetDone"
    Target_en_us "Tips are back on and will appear again as you play"
+   Target_de_de "Tipps sind wieder aktiviert und werden beim Spielen erneut angezeigt"
+   Target_uk_ua "Підказки знову увімкнено, і вони з’являтимуться під час гри"
    Comment "Hint shown just after the player presses 'Turn Tips Back On' in the modal tutorial popup. The popup closes on that press, so this is the only confirmation the player gets that it worked."
    DevNote ""
    Repro ""
@@ -13224,13 +14558,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3E000000000010}" {
    Id "OVT-Tutorial_ResetTips"
    Target_en_us "Turn Tips Back On"
+   Target_de_de "Tipps wieder einschalten"
+   Target_uk_ua "Знову увімкнути підказки"
    Comment "Modal tutorial popup - label on the button that appears in place of 'Don't Show Tips Again' once tips have been switched off. Pressing it clears the record of which tips this profile has read and lets every tip appear again from the start, so the wording should promise tips coming back rather than something being deleted."
    DevNote ""
    Repro ""
@@ -13241,13 +14577,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000104}" {
    Id "OVT-Tutorial_ShopsFirstGunDealer_Body"
    Target_en_us "A gun dealer trades weapons and military equipment rather than everyday goods, working from its own stock list and restocking separately from ordinary shops. Each gun dealer will stock a set of unique weapons and their ammo, you may need to hunt around multiple towns to find the specific weapon you need."
+   Target_de_de "Ein Waffenhändler handelt statt alltäglicher Waren mit Waffen und militärischer Ausrüstung, verwendet eine eigene Bestandsliste und füllt seinen Vorrat getrennt von gewöhnlichen Geschäften auf. Jeder Waffenhändler führt eine eigene Auswahl besonderer Waffen und die passende Munition. Möglicherweise musst du mehrere Städte durchsuchen, um genau die benötigte Waffe zu finden."
+   Target_uk_ua "Торговець зброєю продає зброю та військове спорядження замість звичайних товарів, має власний асортимент і поповнює запаси окремо від звичайних магазинів. Кожен торговець зброєю має набір унікальної зброї та боєприпасів до неї, тому, щоб знайти потрібну зброю, можливо, доведеться пошукати в кількох містах."
    Comment "Body of the 'shops-first-gun-dealer' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: Configs/System/GunDealerConfig.conf (the dealer's own catalogue and prefab list) and OVT_EconomyManagerComponent.ReplenishStock:326-361 (gun dealers are restocked in a separate loop over m_aGunDealers, after the town shop loop at :290-324). Sentence 2: OVT_ShopTransactionComponent.ResourceIsAccepted:512-517 with ShopTypeHasInventoryRules:524-533 (SHOP_GUNDEALER has no inventory rules in Configs/System/ShopConfig.conf, so any registered priced resource is accepted). Compresses #OVT-FieldManual_GunDealers_Text and _Text4. DO NOT add that gun dealers stock occupying-faction ammunition (unresolved, see field-manual/context.md:167) and do not describe their map icon in this tip."
    DevNote ""
    Repro ""
@@ -13258,13 +14596,15 @@ StringTable {
    MaxLength 0
    Modified 1779759492
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000103}" {
    Id "OVT-Tutorial_ShopsFirstGunDealer_Title"
    Target_en_us "Gun Dealers"
+   Target_de_de "Waffenhändler"
+   Target_uk_ua "Торговці зброєю"
    Comment "Title of the 'shops-first-gun-dealer' tutorial tip, shown the first time a player trades with a gun dealer. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13275,13 +14615,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C00000000010A}" {
    Id "OVT-Tutorial_SkillsFirstOpen_Body"
    Target_en_us "Experience comes in from most of the work you do for the resistance, and every level past the first is worth one skill point. Points buy levels in the three skills, Trade, Stealth and Diplomacy, from the character sheet."
+   Target_de_de "Für den Großteil der Arbeit, die du für den Widerstand erledigst, erhältst du Erfahrung, und jede Stufe nach der ersten bringt einen Fertigkeitspunkt. Mit Punkten kaufst du im Charakterbogen Stufen in den drei Fertigkeiten Handel, Tarnung und Diplomatie."
+   Target_uk_ua "Досвід нараховується за більшість завдань, які ви виконуєте для опору, а кожен рівень після першого дає одне очко навичок. Очки можна витрачати на підвищення трьох навичок — Торгівлі, Скритності та Дипломатії — у меню персонажа."
    Comment "Body of the 'skills-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_SkillManagerComponent OnPlace:186-189, OnBuild:196-199, OnPlayerKilled:204-207, OnPlayerBuy:231-235, OnPlayerSell:241-246 and OnAIKilled:252-270 (experience from placing, building, trading and killing occupying troops), OVT_JobManagerComponent:440-442 (job reward XP), and the spendable-points expression '(player.GetLevel() - 1) - player.CountSkills()' at OVT_SkillManagerComponent.AddSkillLevel:121 and OVT_CharacterSheetContext.Refresh:62. Sentence 2: Configs/Player/overthrowSkills.conf:4, 58, 103 - there are EXACTLY three skills, Trade, Stealth and Diplomacy, and no override adds any. Never name a fourth. Screen: OVT_MainMenuContext:278-281 opens OVT_CharacterSheetContext. Compresses #OVT-FieldManual_Skills_Text, _Text3, _Text4 and _Text5."
    DevNote ""
    Repro ""
@@ -13292,13 +14634,15 @@ StringTable {
    MaxLength 0
    Modified 1779759506
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000109}" {
    Id "OVT-Tutorial_SkillsFirstOpen_Title"
    Target_en_us "Skills and Levels"
+   Target_de_de "Fertigkeiten und Stufen"
+   Target_uk_ua "Навички та рівні"
    Comment "Title of the 'skills-first-open' tutorial tip, shown the first time a player opens the character sheet. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13309,13 +14653,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A000000000061}" {
    Id "OVT-Tutorial_Title"
    Target_en_us "Tip"
+   Target_de_de "Tipp"
+   Target_uk_ua "Підказка"
    Comment "Default heading of the modal tutorial popup, shown only when the tutorial entry itself declares no title key. Normally replaced at runtime by the entry's own title."
    DevNote ""
    Repro ""
@@ -13326,13 +14672,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000108}" {
    Id "OVT-Tutorial_WantedFirstLevel_Body"
    Target_en_us "The occupying faction has now marked you as \"wanted\" and will hunt you down. To clear your wanted level you must get out of their sight and hide for a while. Once your stars have disappeared again you will no longer be seen as an enemy.<br/><br/>You can disguise yourself by wearing the enemy's clothes. When the \"clothes\" icon shows as red you are disguised and will be able to enter restricted areas, but don't get too close to them or they will recognize you. Night time, foliage and skills can reduce the distance at which you are seen."
+   Target_de_de "Die Besatzungsmacht hat dich jetzt als \"Gesucht\" markiert und wird dich jagen. Um deinen Fahndungslevel abzubauen, musst du aus ihrem Sichtfeld verschwinden und dich eine Weile verstecken. Sobald deine Sterne wieder verschwunden sind, wirst du nicht länger als Feind betrachtet.<br/><br/>Du kannst dich verkleiden, indem du die Kleidung des Feindes trägst. Wenn das \"clothes\"-Symbol rot angezeigt wird, bist du verkleidet und kannst Sperrgebiete betreten. Komm den Feinden jedoch nicht zu nahe, sonst erkennen sie dich. Nacht, Vegetation und Fertigkeiten können die Entfernung verringern, aus der du gesehen wirst."
+   Target_uk_ua "Окупаційна фракція оголосила вас у розшук і тепер полюватиме на вас. Щоб позбутися рівня розшуку, потрібно зникнути з їхнього поля зору та деякий час переховуватися. Коли зірки знову зникнуть, вас більше не вважатимуть ворогом.<br/><br/>Ви можете замаскуватися, одягнувши форму ворога. Коли значок «одяг» стає червоним, ви замасковані й можете входити до заборонених зон, але не підходьте до ворогів надто близько, інакше вони вас упізнають. Ніч, рослинність і навички можуть зменшити відстань, з якої вас помічають."
    Comment "Body of the 'wanted-first-level' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_PlayerWantedComponent.CheckWanted:599-611 (above level 1 the perceived faction override becomes the hostile player faction). Sentence 2, seen gate: CheckEntity:698, OnPlayerLoot:284 and OnIllegalActionSeen:298 require the player to be seen, while SCR_CharacterDamageManagerComponent.WhenDamaged:15-40 and WhenDamageStateChanged:44-82 escalate with no witness at all. Decay: CheckUpdate:545-559 steps the level down by one only while !m_bTempSeen. DO NOT write that levels run 1 to 5: escalation sites set 2, 3 or 4 only, level 1 is reachable only on the way down and nothing sets 5 (field-manual/context.md:170). Also NOT claimed here: that the occupying faction dispatches a search for you - no such dispatch exists in OVT_OccupyingFactionManager; the mechanic is the perception override above. Compresses #OVT-FieldManual_WantedSystem_Text, _Text2 and _Text5."
    DevNote ""
    Repro ""
@@ -13343,13 +14691,15 @@ StringTable {
    MaxLength 0
    Modified 1779759771
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3C000000000107}" {
    Id "OVT-Tutorial_WantedFirstLevel_Title"
    Target_en_us "Being Wanted"
+   Target_de_de "Gesucht werden"
+   Target_uk_ua "Перебування в розшуку"
    Comment "Title of the 'wanted-first-level' tutorial tip, shown the first time a player's wanted level is raised. Heading of a small HUD popup, so keep it to two or three words. No markup."
    DevNote ""
    Repro ""
@@ -13360,13 +14710,15 @@ StringTable {
    MaxLength 0
    Modified 1754697600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000101}" {
    Id "OVT-Tutorial_WelcomeIntro_Body1"
    Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no required order, and the island reacts to what you do.<br/><br/>Towns, money, property, vehicles and captured ground are durable state, so a campaign carries on between sessions and across server restarts.<br/><br/>Money is most easily obtained by receiving donations from supporters in towns. In order to gain support for the resistance you must raise awareness of it or reduce the influence that the occupied forces have over the public."
+   Target_de_de "Overthrow ist eine persistente Sandbox-Kampagne auf einer besetzten Insel. Es gibt weder eine feste Liste von Zielen noch eine vorgeschriebene Reihenfolge, und die Insel reagiert auf deine Handlungen.<br/><br/>Städte, Geld, Immobilien, Fahrzeuge und erobertes Gebiet sind dauerhafte Zustände. Eine Kampagne wird daher über Sitzungen und Serverneustarts hinweg fortgeführt.<br/><br/>Geld erhältst du am einfachsten durch Spenden von Unterstützern in den Städten. Um Unterstützung für den Widerstand zu gewinnen, musst du auf ihn aufmerksam machen oder den Einfluss der Besatzungstruppen auf die Bevölkerung verringern."
+   Target_uk_ua "Overthrow — це постійна кампанія-пісочниця на окупованому острові. Тут немає списку цілей чи обов’язкового порядку дій, а острів реагує на ваші вчинки.<br/><br/>Міста, гроші, нерухомість, транспорт і захоплені території зберігаються, тож кампанія продовжується між ігровими сесіями та після перезапусків сервера.<br/><br/>Найпростіше отримувати гроші завдяки пожертвам від прихильників у містах. Щоб збільшити підтримку опору, потрібно підвищувати обізнаність про нього або зменшувати вплив окупаційних сил на населення."
    Comment "Page 1 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH the 'welcome-intro' entry (Configs/Tutorials/proofWelcome.conf, the player who was given a house) AND the 'welcome-nohome' entry (Configs/Tutorials/welcomeNohome.conf, the player for whom no starting house was free). Editing this text edits both entries, which is the intent. TONE: it informs and never instructs - no imperative, no goal, no objective, no order of play; it must read correctly for a player who ignores all of it for three hours. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09: sentences 1 and 3 compress #OVT-FieldManual_Welcome_Text and sentence 2 compresses #OVT-FieldManual_Welcome_Text3, both sourced to docs/mission-statement.md; the durable-state clause is corroborated by the shipped persistence feature and by OVT_RealEstateManagerComponent.c:333-350. The previous text's closing clause 'You start with a house, a car and a little money' was REMOVED: it is false for 'welcome-nohome', which shares this key (OVT_OverthrowGameMode.c:1012-1017 takes the fallback branch with no house, no car and no owner record), and it belongs on page 2, where it now lives."
    DevNote ""
    Repro ""
@@ -13377,13 +14729,15 @@ StringTable {
    MaxLength 0
    Modified 1779760570
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000102}" {
    Id "OVT-Tutorial_WelcomeIntro_Body2"
    Target_en_us "You have been given a house in one of the island's towns, with a car parked in the attached garage, and some starting cash.<br/><br/>This house is your \"home\", which is where you respawn. You can also fast-travel back to this house or any other houses that you own from anywhere.<br/><br/>Other travel options include going to a bus stop, which allows travelling to any other bus stop on the map for a small price."
+   Target_de_de "Du hast ein Haus in einer der Städte der Insel erhalten, dazu ein Auto in der angeschlossenen Garage und etwas Startkapital.<br/><br/>Dieses Haus ist dein \"Zuhause\" und damit der Ort, an dem du wiedereinsteigst. Von überall aus kannst du außerdem per Schnellreise zu diesem Haus oder zu anderen Häusern in deinem Besitz zurückkehren.<br/><br/>Eine weitere Reisemöglichkeit sind Bushaltestellen. Von dort kannst du gegen eine geringe Gebühr zu jeder anderen Bushaltestelle auf der Karte reisen."
+   Target_uk_ua "Вам надали будинок в одному з міст острова, автомобіль, припаркований у прилеглому гаражі, та трохи грошей на початок.<br/><br/>Цей будинок є вашим «домом» — місцем, де ви відроджуєтеся. Ви також можете швидко переміщуватися назад до цього будинку або до будь-якого іншого будинку, яким володієте, з будь-якого місця.<br/><br/>Інший варіант пересування — дістатися автобусної зупинки, звідки за невелику плату можна поїхати до будь-якої іншої автобусної зупинки на мапі."
    Comment "Page 2 of 4 of the first-spawn welcome modal, HOUSE variant. Consumed by the 'welcome-intro' entry ONLY (Configs/Tutorials/proofWelcome.conf, trigger filter 'house'); the houseless entry uses OVT-Tutorial_WelcomeNohome_Body2 instead. TONE: informs, never instructs; no goal and no order of play. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_OverthrowGameMode.c:1011-1023 (a random free starting house, SetOwner :1021, SetHome :1022, SpawnStartingCar :1023), OVT_VehicleManagerComponent.c:179-191 (the car goes to the house's parking spot or failing that a kerb within 20 m - it is 'parked outside it', NEVER 'in your garage'), OVT_OverthrowGameMode.c:1048-1049 (starting cash) and OVT_SpawnLogic.c:786-802 (player.home is the respawn position). Compresses #OVT-FieldManual_Welcome_Text2. The cash AMOUNT is deliberately not quoted: it is a difficulty setting (0 to 500 across the five presets) and the manual paragraph refuses to quote it for the same reason. The text deliberately STOPS at 'this is yours and you respawn here' - what ownership means mechanically belongs to the 'home-first-open' tip, which goes deeper on purpose. Do not mention the starting handgun here: startingItems is a radio alone on Extreme and Insane (OVT_SpawnLogic.c:1177)."
    DevNote ""
    Repro ""
@@ -13394,13 +14748,15 @@ StringTable {
    MaxLength 0
    Modified 1779760040
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000104}" {
    Id "OVT-Tutorial_WelcomeIntro_Body3"
    Target_en_us "Most of what Overthrow adds sits in the Overthrow menu, opened with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>From there you can do all the things Overthrow has to offer.<br/><br/>When you are in a vehicle you can also use <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> to open the \"Vehicle menu\" with more options specific to vehicles."
+   Target_de_de "Die meisten von Overthrow hinzugefügten Funktionen befinden sich im Overthrow-Menü, das du mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> öffnest.<br/><br/>Von dort aus kannst du auf alle Funktionen zugreifen, die Overthrow bietet.<br/><br/>Wenn du dich in einem Fahrzeug befindest, kannst du außerdem mit <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> das \"Fahrzeugmenü\" mit weiteren fahrzeugspezifischen Optionen öffnen."
+   Target_uk_ua "Більшість можливостей, які додає Overthrow, доступні в меню Overthrow, яке відкривається за допомогою <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>У ньому доступні всі можливості, які пропонує Overthrow.<br/><br/>Коли ви перебуваєте в транспортному засобі, також можна скористатися <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color>, щоб відкрити «Меню транспорту» з додатковими параметрами для транспортних засобів."
    Comment "Page 3 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH 'welcome-intro' (Configs/Tutorials/proofWelcome.conf) AND 'welcome-nohome' (Configs/Tutorials/welcomeNohome.conf). Editing this text edits both entries. TONE: informs, never instructs - it says where things are, it does not tell the player to open anything. MARKUP: <br/> and the <color>/<action> pair are rich text and must be preserved; the <action> tag renders the player's own bound key glyph and its name attribute is an input-action id that must NOT be translated (precedent: OVT-FieldManual_MainMenu_Text, shipped in six languages). FACT-CHECKED 2026-08-09 against Configs/System/chimeraInputCommon.conf:71 (the OverthrowMainMenu action exists), OVT_TutorialContext.c:415 (the body is a RichTextWidget, so the markup resolves) and UI/Layouts/Menu/MainMenu.layout:172, 212, 252, 412, 452, 492 wired at OVT_MainMenuContext.c:109, 116, 130, 155, 163, 170 (MapInfo, FastTravel, Resistance, RealEstate, ManageRecruits, CharacterSheet). The menu's Jobs entry SURVIVES: new-player-experience/starter-jobs-retirement completed on 2026-08-09 and removed five job configs, not the menu entry - seven jobs still ship, MainMenu.layout's Jobs button is untouched, and the page-3 screenshot welcome-intro-3-ui.edds showing it therefore remains true and needs no re-shooting (that feature's decision D12). The omission from this text is now purely one of length, on the same footing as Place, Build, Options and Save. Place, Build, Options and Save are omitted for length, and Tips is omitted because page 4 is about it."
    DevNote ""
    Repro ""
@@ -13411,13 +14767,15 @@ StringTable {
    MaxLength 0
    Modified 1779760150
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000105}" {
    Id "OVT-Tutorial_WelcomeIntro_Body4"
    Target_en_us "Occasional tips like this one appear the first time something new happens, and each is shown once.<br/><br/>The Tips entry in the Overthrow menu reopens the most recent one and allows you to turn off tips or reset your tutorial.<br/><br/>For more information you can access the \"Field Manual\" in the Reforger menu and scroll down to the Overthrow entries, or visit our wiki at <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
+   Target_de_de "Gelegentlich erscheinen Tipps wie dieser, wenn zum ersten Mal etwas Neues passiert. Jeder Tipp wird einmal angezeigt.<br/><br/>Der Eintrag \"Tipps\" im Overthrow-Menü öffnet den zuletzt angezeigten Tipp erneut und ermöglicht es dir, Tipps auszuschalten oder dein Tutorial zurückzusetzen.<br/><br/>Weitere Informationen findest du im \"Feldhandbuch\" im Reforger-Menü. Scrolle dort zu den Overthrow-Einträgen oder besuche unser Wiki unter <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
+   Target_uk_ua "Періодично з’являтимуться такі підказки, коли щось нове відбувається вперше, і кожна з них показується лише один раз.<br/><br/>Пункт «Підказки» в меню Overthrow дозволяє знову відкрити останню підказку, вимкнути підказки або скинути навчання.<br/><br/>Для отримання додаткової інформації відкрийте «Польовий посібник» у меню Reforger і прокрутіть до розділів Overthrow або відвідайте нашу вікі за адресою <a href='https://wiki.armaoverthrow.com'>[https://wiki.armaoverthrow.com](https://wiki.armaoverthrow.com)</a>"
    Comment "Page 4 of 4 of the first-spawn welcome modal. SHARED KEY: consumed by BOTH 'welcome-intro' (Configs/Tutorials/proofWelcome.conf) AND 'welcome-nohome' (Configs/Tutorials/welcomeNohome.conf). Editing this text edits both entries. TONE: informs, never instructs; it describes the tip system rather than asking the player to use it. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_TutorialComponent.NotifyDismissed:380-396 (MarkSeen plus PersistSettings at :390-391 - the seen store is per machine, so a tip is shown once and not once per campaign), UI/Layouts/Menu/MainMenu.layout:532 (#OVT-MainMenu_Tips) and OVT_MainMenuContext.c:184 with :290-301 (Tips() calls OVT_TutorialContext.ShowLayout on the most recent tip). INHERITED FACT-CHECK, moved here from OVT-Tutorial_WelcomeIntro_Body2 with the text it belongs to, checked 2026-08-08 and re-counted 2026-08-09: the Overthrow menu has exactly 12 entries (MapInfo, FastTravel, Resistance, Jobs, Place, Build, RealEstate, ManageRecruits, CharacterSheet, Tips, Save, Options). It does NOT contain the Field Manual (a base-game menu, reached from the pause/main menu or a tip's Learn More button) and does NOT contain a money screen (money is on the HUD). An earlier version of this welcome claimed both. Name only entries that exist."
    DevNote ""
    Repro ""
@@ -13428,13 +14786,15 @@ StringTable {
    MaxLength 0
    Modified 1779760268
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3A0000000000B2}" {
    Id "OVT-Tutorial_WelcomeIntro_Title"
    Target_en_us "Welcome to Overthrow"
+   Target_de_de "Willkommen bei Overthrow"
+   Target_uk_ua "Ласкаво просимо до Overthrow"
    Comment "Title of the first-spawn welcome, the four-page modal popup shown once on a player's first spawn. SHARED: it is the m_sTitle of BOTH the 'welcome-intro' entry (Configs/Tutorials/proofWelcome.conf) and the 'welcome-nohome' entry (Configs/Tutorials/welcomeNohome.conf), which differ only on page 2. Heading of a full-width modal, so a few words are fine. Overthrow is the mod name and stays untranslated."
    DevNote ""
    Repro ""
@@ -13445,13 +14805,15 @@ StringTable {
    MaxLength 0
    Modified 1754524800
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3D000000000103}" {
    Id "OVT-Tutorial_WelcomeNohome_Body2"
    Target_en_us "No starting house was free, so you began in one of the island's towns rather than at a home of your own. This can happen on very busy servers.<br/><br/>You still have your starting cash, and for now you respawn where you started. Property on the island can be bought, and a building you own can be set as your home."
+   Target_de_de "Es war kein Starthaus frei, deshalb hast du in einer der Städte der Insel begonnen und nicht in einem eigenen Zuhause. Das kann auf sehr stark ausgelasteten Servern vorkommen.<br/><br/>Du besitzt weiterhin dein Startkapital und steigst vorerst dort wieder ein, wo du begonnen hast. Immobilien auf der Insel können gekauft werden, und ein Gebäude in deinem Besitz kann als dein Zuhause festgelegt werden."
+   Target_uk_ua "Вільного стартового будинку не знайшлося, тому ви почали гру в одному з міст острова, а не у власному домі. Таке може траплятися на дуже завантажених серверах.<br/><br/>У вас усе ще є стартові гроші, а поки що ви відроджуватиметеся там, де почали гру. Нерухомість на острові можна купувати, а будівлю, якою ви володієте, можна встановити як свій дім."
    Comment "Page 2 of 4 of the first-spawn welcome modal, HOUSELESS variant. Consumed by the 'welcome-nohome' entry ONLY (Configs/Tutorials/welcomeNohome.conf, trigger filter 'nohouse'); the house entry uses OVT-Tutorial_WelcomeIntro_Body2 instead. It must read correctly for a player who has cash and a home POSITION but owns nothing. TONE: informs, never instructs - 'can be bought' is a statement of what is possible, not an instruction to go and buy. <br/> is rich-text markup and must be preserved in translation. FACT-CHECKED 2026-08-09 against OVT_OverthrowGameMode.c:1012-1017 (the !house branch calls only SpawnPlayerAtFallbackPosition: no SetOwner, no SetHome, no SpawnStartingCar), :824-839 (a bus stop, or the starting town centre when none exists, with SetHomePos at :830/:835), :1043-1053 (the starting-cash block sits outside the house if/else, so it runs on BOTH branches), OVT_SpawnLogic.c:786-802 (home is the respawn position), OVT_RealEstateManagerComponent.c:712 (GetBuyPrice - buildings are purchasable) and OVT_RealEstateContext.c:267-268 (the 'Set as Home' button, enabled only when isOwner) via :459-480 to OVT_RealEstateManagerComponent.c:567-576. Do not say the cash amount and do not mention a starting weapon."
    DevNote ""
    Repro ""
@@ -13462,22 +14824,24 @@ StringTable {
    MaxLength 0
    Modified 1779760297
    Author "Claude"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E04888F00ABCED0}" {
    Id "OVT-UndeployFOB"
    Target_en_us "Undeploy FOB"
+   Target_de_de "FOB abbauen"
    Target_uk_ua "Згорнути FOB"
    Modified 1716472332
    Author "Aaron Static"
-   LastChanged "CrioUA"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
    Target_en_us "Unload from vehicle"
    Target_fr_fr "Décharger cargaison"
+   Target_de_de "Aus Fahrzeug entladen"
    Target_ru_ru "Выгрузить из транспорта"
    Target_ko_kr "차량에서 내리기"
    Target_zh_cn "从车辆上卸下"
@@ -13492,13 +14856,14 @@ StringTable {
    MaxLength 0
    Modified 1706591046
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68F659AB46ED4B}" {
    Id "OVT-Unlock"
    Target_en_us "Unlock"
+   Target_de_de "Entsperren"
    Target_ko_kr "잠금 해제"
    Target_zh_cn "解锁"
    Target_uk_ua "Розблокувати"
@@ -13512,13 +14877,14 @@ StringTable {
    MaxLength 0
    Modified 1706588749
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E68DB1CF6BF6571}" {
    Id "OVT-UnlockVehicle"
    Target_en_us "Unlock Vehicle"
+   Target_de_de "Fahrzeug entriegeln"
    Target_ko_kr "차량 잠금 해제"
    Target_zh_cn "解锁车辆"
    Target_uk_ua "Розблокувати техніку"
@@ -13532,21 +14898,24 @@ StringTable {
    MaxLength 0
    Modified 1706588758
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D6C32A9AAF1AD1}" {
    Id "OVT-Unowned"
    Target_en_us "Unowned"
+   Target_de_de "Ohne Besitzer"
+   Target_uk_ua "Без власника"
    Modified 1708574401
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
    Target_en_us "Upgrades"
    Target_fr_fr "Améliorations"
+   Target_de_de "Verbesserungen"
    Target_ru_ru "Улучшения"
    Target_ko_kr "업그레이드"
    Target_zh_cn "升级"
@@ -13561,7 +14930,7 @@ StringTable {
    MaxLength 0
    Modified 1706588773
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13569,6 +14938,7 @@ StringTable {
    Id "OVT-UpgradeVehicle"
    Target_en_us "Upgrade Vehicle"
    Target_fr_fr "Amélioration du véhicule"
+   Target_de_de "Fahrzeug verbessern"
    Target_ru_ru "Улучшить технику"
    Target_ko_kr "차량 업그레이드"
    Target_zh_cn "升级车辆"
@@ -13583,7 +14953,7 @@ StringTable {
    MaxLength 0
    Modified 1706588764
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13591,6 +14961,7 @@ StringTable {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
    Target_fr_fr "Le véhicule est vide"
+   Target_de_de "Fahrzeug ist leer"
    Target_ru_ru "Техника пуста"
    Target_ko_kr "차량이 비어 있습니다"
    Target_zh_cn "车辆是空的"
@@ -13605,7 +14976,7 @@ StringTable {
    MaxLength 0
    Modified 1706588787
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13613,6 +14984,7 @@ StringTable {
    Id "OVT-VehicleLoaded"
    Target_en_us "Vehicle has been loaded"
    Target_fr_fr "Le véhicule a été chargé"
+   Target_de_de "Fahrzeug wurde beladen"
    Target_ru_ru "Техника была загружена"
    Target_ko_kr "차량이 적재되었습니다"
    Target_zh_cn "车辆已装载"
@@ -13627,7 +14999,7 @@ StringTable {
    MaxLength 0
    Modified 1706588812
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13635,6 +15007,7 @@ StringTable {
    Id "OVT-VehicleRepaired"
    Target_en_us "Vehicle has been repaired"
    Target_fr_fr "Le véhicule a été réparé"
+   Target_de_de "Fahrzeug wurde repariert"
    Target_ru_ru "Техника была починена"
    Target_ko_kr "차량이 수리되었습니다"
    Target_zh_cn "车辆已修复"
@@ -13649,7 +15022,7 @@ StringTable {
    MaxLength 0
    Modified 1706588903
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13657,6 +15030,7 @@ StringTable {
    Id "OVT-VehicleUnloaded"
    Target_en_us "Vehicle has been unloaded into storage"
    Target_fr_fr "Le véhicule a été déchargé"
+   Target_de_de "Fahrzeug wurde ins Lager entladen"
    Target_ru_ru "Техника была выгружена в хранилище"
    Target_ko_kr "차량이 보관소에 하역되었습니다"
    Target_zh_cn "车辆已卸入仓库"
@@ -13671,7 +15045,7 @@ StringTable {
    MaxLength 0
    Modified 1706588905
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13679,6 +15053,7 @@ StringTable {
    Id "OVT-VehicleUpgraded"
    Target_en_us "Vehicle has been upgraded"
    Target_fr_fr "Le véhicule a été amélioré"
+   Target_de_de "Fahrzeug wurde verbessert"
    Target_ru_ru "Техника была улучшена"
    Target_ko_kr "차량이 업그레이드되었습니다"
    Target_zh_cn "车辆已升级"
@@ -13693,21 +15068,24 @@ StringTable {
    MaxLength 0
    Modified 1706588906
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65D0CCE5FBF5456C}" {
    Id "OVT-Village"
    Target_en_us "Village"
+   Target_de_de "Dorf"
+   Target_uk_ua "Село"
    Modified 1708198289
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "Lemmi"
   }
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"
    Target_en_us "Warehouse"
    Target_fr_fr "Entrepôt"
+   Target_de_de "Lagerhaus"
    Target_ru_ru "Склад"
    Target_ko_kr "보관소"
    Target_zh_cn "仓库"
@@ -13722,7 +15100,7 @@ StringTable {
    MaxLength 0
    Modified 1706588939
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13730,6 +15108,7 @@ StringTable {
    Id "OVT-Warehouse_Take_1"
    Target_en_us "Take 1"
    Target_fr_fr "Prendre 1"
+   Target_de_de "1 nehmen"
    Target_ru_ru "Взять 1"
    Target_ko_kr "1개 가져가기"
    Target_zh_cn "拿取1"
@@ -13744,7 +15123,7 @@ StringTable {
    MaxLength 0
    Modified 1706588938
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13752,6 +15131,7 @@ StringTable {
    Id "OVT-Warehouse_Take_10"
    Target_en_us "Take 10"
    Target_fr_fr "Prendre 10"
+   Target_de_de "10 nehmen"
    Target_ru_ru "Взять 10"
    Target_ko_kr "10개 가져가기"
    Target_zh_cn "拿取10"
@@ -13766,7 +15146,7 @@ StringTable {
    MaxLength 0
    Modified 1706588944
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13774,6 +15154,7 @@ StringTable {
    Id "OVT-Warehouse_Take_100"
    Target_en_us "Take 100"
    Target_fr_fr "Prendre 100"
+   Target_de_de "100 nehmen"
    Target_ru_ru "Взять 100"
    Target_ko_kr "100개 가져가기"
    Target_zh_cn "拿取100"
@@ -13788,13 +15169,15 @@ StringTable {
    MaxLength 0
    Modified 1706588949
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A7E1A2D00000001}" {
    Id "OVT-Warehouse_Take_All"
    Target_en_us "Take All"
+   Target_de_de "Alles nehmen"
+   Target_uk_ua "Взяти все"
    Comment "Warehouse menu - takes the whole selected stock line into the vehicle"
    DevNote ""
    Repro ""
@@ -13805,13 +15188,14 @@ StringTable {
    MaxLength 0
    Modified 1754265600
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D8224288CE28A36}" {
    Id "OVT_Action-Loot"
    Target_en_us "Loot"
+   Target_de_de "Plündern"
    Target_ru_ru "Залутать"
    Target_ko_kr "전리품 획득"
    Target_zh_cn "洗劫"
@@ -13826,7 +15210,7 @@ StringTable {
    MaxLength 0
    Modified 1706588974
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13834,6 +15218,7 @@ StringTable {
    Id "OVT_Group"
    Target_en_us "Group"
    Target_fr_fr "Groupe"
+   Target_de_de "Gruppe"
    Target_ru_ru "Группа"
    Target_ko_kr "그룹"
    Target_zh_cn "群组"
@@ -13848,7 +15233,7 @@ StringTable {
    MaxLength 0
    Modified 1706588978
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -13856,6 +15241,7 @@ StringTable {
    Id "OVT_Mission_Eden_Description"
    Target_en_us "The persistent and dynamic revolution simulator"
    Target_fr_fr "Le simulateur de révolte dynamique"
+   Target_de_de "Der persistente und dynamische Revolutionssimulator"
    Target_ru_ru "Сохраняемый и динамический симулятор революции"
    Target_ko_kr "지속적이고 역동적인 혁명 시뮬레이터"
    Target_zh_cn "持续而动态的革命模拟器"
@@ -13870,13 +15256,14 @@ StringTable {
    MaxLength 0
    Modified 1706588992
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5E4852B16105E7FC}" {
    Id "OVT_Open_Overthrow_Menu"
    Target_en_us "Open Overthrow Menu"
+   Target_de_de "Overthrow-Menü öffnen"
    Target_ko_kr "Overthrow 메뉴 열기"
    Target_zh_cn "打开抵抗菜单"
    Target_uk_ua "Відкрити Overthrow меню"
@@ -13890,47 +15277,18 @@ StringTable {
    MaxLength 0
    Modified 1706589010
    Author "Aaron Static"
-   LastChanged "parkj_c3c9hji"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{65CE9A0D3DF93914}" {
    Id "OVT_Vehicle_Menu"
    Target_en_us "Open Vehicle Menu"
+   Target_de_de "Fahrzeugmenü öffnen"
    Target_uk_ua "Відкрити меню техніки"
    Modified 1716472290
    Author "Aaron Static"
-   LastChanged "CrioUA"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A33}" {
-   Id "OVT-RearmVehicle"
-   Target_en_us "Re-arm"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A34}" {
-   Id "OVT-MustBeOnHelipad"
-   Target_en_us "Must be on a helipad at a friendly base"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A35}" {
-   Id "OVT-NothingToRearm"
-   Target_en_us "Weapons are fully armed"
-   Modified 1786759417
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A36}" {
-   Id "OVT-StartUprising"
-   Target_en_us "Start Uprising"
-   Modified 1786861251
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6A9F4C2DB1E07A37}" {
-   Id "OVT-SupportTooLow"
-   Target_en_us "Not enough support in this town"
-   Modified 1786861251
-   Author "Aaron Static"
+   LastChanged "Lemmi"
   }
  }
 }
