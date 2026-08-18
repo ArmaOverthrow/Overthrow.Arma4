@@ -1017,6 +1017,136 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 }
 
 //------------------------------------------------------------------------------------------------
+//! Reserving must be TOLD TO THE CLIENTS, or a disconnected player stands visible on every one.
+//!
+//! WHY THIS EXISTS (server reports, 2026-08-18). OVT_PersistenceReservation hides with
+//! ClearFlags(), which is a LOCAL engine call - the reservation design measured that and accepted
+//! a cosmetic residual. Server owners then reported the residual is not cosmetic in practice: a
+//! disconnected player's body stands frozen, unkillable but fully visible, on every client -
+//! including clients that stream it in AFTER the reservation, which get the prefab's default
+//! flags. The fix is OVT_ReservationSyncComponent: Reserve()/Release() mirror the state into its
+//! RplProp, and each proxy applies the visual half locally.
+//!
+//! WHAT THIS CASE PINS, there being no client in the autotest world to observe:
+//!  1. the WIRING - the ownable-vehicle prefab chain still carries the component (a prefab entry
+//!     that is dropped or renamed fails silently: everything compiles, clients just see ghosts
+//!     again), and the player-character prefab still carries it, checked through the spawn
+//!     logic's own default-prefab attribute;
+//!  2. the MIRROR - Reserve() drives the component's replicated state true and Release() drives
+//!     it false, on a live entity, through the production seams and not by poking the component.
+//! What replication then does with the prop is vanilla's RplProp contract
+//! (SCR_ResourceComponent.m_bIsVisible is the same pattern) and is play-test territory.
+//!
+//! CAN-FAIL METHOD (run owed - this environment cannot launch the harness): remove the
+//! SetReserved() mirror calls from OVT_PersistenceReservation; the case must report the replicated
+//! state still false after Reserve(). Record the date here once exercised.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCaseBase
+{
+	protected IEntity m_Vehicle;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string diagnostic;
+
+		ResourceName prefab;
+		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(prefab, diagnostic))
+		{
+			SetFailure("Cannot resolve a vehicle to spawn: %1", diagnostic);
+			return true;
+		}
+
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetFailure("Cannot resolve somewhere to put a vehicle: %1", diagnostic);
+			return true;
+		}
+
+		m_Vehicle = OVT_Global.SpawnEntityPrefab(prefab, position);
+		if (!m_Vehicle)
+		{
+			SetFailure("SpawnEntityPrefab() produced no vehicle from %1", prefab);
+			return true;
+		}
+
+		// Wiring, vehicle half: the component rides the Wheeled_Base override every ownable car
+		// inherits. Losing the prefab entry is silent - this sentence is the tripwire.
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(m_Vehicle);
+		if (!sync)
+		{
+			SetFailure("The spawned vehicle has no OVT_ReservationSyncComponent - Prefabs/Vehicles/Core/Wheeled_Base.et has lost its entry, so a reserved vehicle is a visible ghost on every client again");
+			return FinishAndCleanUp();
+		}
+
+		if (sync.IsReserved())
+		{
+			SetFailure("A freshly spawned vehicle already reports reserved to clients - the mirror assertions below would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Reserve(m_Vehicle))
+		{
+			SetFailure("Reserve() refused a live vehicle");
+			return FinishAndCleanUp();
+		}
+
+		if (!sync.IsReserved())
+		{
+			SetFailure("Reserve() hid the vehicle but did NOT mirror the state into OVT_ReservationSyncComponent - nothing reaches the clients, and every one of them keeps rendering the reserved entity");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_PersistenceReservation.Release(m_Vehicle))
+		{
+			SetFailure("Release() refused a reserved vehicle");
+			return FinishAndCleanUp();
+		}
+
+		if (sync.IsReserved())
+		{
+			SetFailure("Release() put the vehicle back in play but left the replicated state reserved - clients would hide a vehicle its returning owner is standing next to");
+			return FinishAndCleanUp();
+		}
+
+		// Wiring, character half: the player prefab is reached through the spawn logic's own
+		// attribute rather than a hard-coded path, so a re-pointed prefab is checked wherever it
+		// points. The entry itself must be on the prefab: a reserved BODY is what the servers
+		// actually reported.
+		OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
+		if (!spawnLogic || spawnLogic.m_rDefaultPrefab.IsEmpty())
+		{
+			SetFailure("No spawn logic instance (or no default character prefab) - the player-character half of the wiring cannot be checked");
+			return FinishAndCleanUp();
+		}
+
+		if (!SCR_BaseContainerTools.FindComponentSource(Resource.Load(spawnLogic.m_rDefaultPrefab), OVT_ReservationSyncComponent))
+		{
+			SetFailure("The player character prefab (%1) has no OVT_ReservationSyncComponent - a disconnected player's body is a visible ghost on every client again", spawnLogic.m_rDefaultPrefab);
+			return FinishAndCleanUp();
+		}
+
+		Print("Reservation state reaches the clients: prefab wiring intact on the vehicle and character chains, and Reserve()/Release() drive the replicated flag both ways");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Vehicle)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Vehicle);
+
+		m_Vehicle = null;
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! BUG-085: a loadout must carry the CONTENTS of clothing and backpacks, not just the containers.
 //!
 //! WHAT IT MEASURES: the whole save -> apply round trip through the manager's PUBLIC API. A source

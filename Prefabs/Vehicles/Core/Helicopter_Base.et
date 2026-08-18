@@ -3,6 +3,8 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
  components {
   OVT_PlayerOwnerComponent "{5F1EC253F0A9CC36}" {
   }
+  OVT_ReservationSyncComponent "{6B0F52A100000002}" {
+  }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
     OVT_RearmVehicleAction "{6A9F4C2DB1E07A31}" {

@@ -3,6 +3,8 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
  components {
   OVT_PlayerOwnerComponent "{5E68DB17BD399A4F}" {
   }
+  OVT_ReservationSyncComponent "{6B0F52A100000001}" {
+  }
   SCR_BaseHUDComponent "{53151CEE6C0A409F}" {
    InfoDisplays {
     OVT_WantedInfo "{59B70A6E01375E1B}" {
