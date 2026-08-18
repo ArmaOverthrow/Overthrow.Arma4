@@ -1,6 +1,6 @@
 # QRF - Context & Decisions
 
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-18
 **Current Phase:** Enhancements
 **Status:** ✅ Documented (Existing Feature) + player-initiated uprisings landed
 
@@ -12,6 +12,7 @@
 - ✅ Feature fully implemented (existing code)
 - ✅ Retrospective documentation created (thorough code investigation, 2026-08-02)
 - ✅ Player-initiated town uprisings (2026-08-16): auto-trigger removed; uprising starts from a new flag action on the town controller (see tasks.md)
+- ✅ Recruits count towards zone control (2026-08-18): resistance AI now scores alongside players; dead/downed characters count for neither side
 
 **What's Next:**
 - ⏸️ USER: reposition `OVT_TownController` instances in the world (prefab now has a flagpole model)
@@ -40,7 +41,7 @@
 - **Town controller is now a flagpole:** `OVT_TownController.et` inherits `FlagPole_02_V1_FIA.et` exactly like `OVT_BaseController.et` (same `SlotManagerComponent {55DAE04E55ECE7FA}` override → USSR flag). Flag material tracks the replicated town faction via a 10 s check on every machine (`CheckUpdateFlag` — same `SCR_FlagComponent.ChangeMaterial` pattern as bases). The medical-supplies sign child was kept (jobs use it as the delivery landmark); world instances need repositioning by hand — the entity was invisible before and some sit on roads.
 - **Ephemeral battle entity:** one controller entity per battle, spawned at the objective, deleted on resolution; consequences flow only through the manager's `m_OnFinished` callbacks. One QRF at a time (`m_CurrentQRF` singleton slot).
 - **Global garrison despawn:** all garrison/patrol/civilian spawn predicates check `!m_CurrentQRF`; the QRF delays its own spawning 15 s so they clear first. The contested base loses its defenders by design (perf headroom).
-- **Players-only scoring:** zone control counted every 10 s inside 220 m; only human players score for the resistance; +5/tick requires zero OF AI within 750 m.
+- **Zone control is a head count of everyone still standing (2026-08-18):** counted every 10 s inside 220 m. Human players **and** resistance-faction AI (recruits, and any future resistance deployment) score for the resistance — the old players-only model made an all-AI assault lose by default. Player-controlled entities are skipped in the agent loop so a player is never double-counted. Dead and unconscious characters count for neither side (`IsFightingFit`), which also stops a corpse earning the 2 XP/tick. +5/tick still requires zero OF AI within 750 m. Recruits alone can now carry a battle — deliberate: they are forces the player paid for and committed.
 - **Not persisted, by omission:** no QRF state in the serializer, controller/troops never persistence-tracked — a load mid-battle cleanly rolls back to "no battle".
 - **Survivors stay:** QRF AI is intentionally not cleaned up after battle (commit `e115965`).
 
@@ -48,10 +49,9 @@
 
 ## Gotchas & Learnings
 
+- **Stale-doc warning cleared 2026-08-18:** BUG-013/025/026/027/031 are all **closed** — QRFs now debit `m_iResources` (with a zero clamp), the LZ trace checks `result > 0 && !trace.TraceEnt`, and the `Goodqrfpos` file-scope globals are gone (replaced by the member `m_vGoodTargetPos`).
+- **`SCR_ChimeraCharacter.GetFactionKey()` reads the *affiliated* faction**, which is exactly what `OVT_RecruitManagerComponent.SetRecruitFaction` writes (`m_sPlayerFaction`) — so a faction-key compare is a reliable recruit test. It was CIV before BUG-146.
 - **Two replication channels, one live:** the controller's `RplProp m_iPoints/m_iWinningFaction` stop replicating the moment the battle phase starts (BumpMe unreachable); the manager's broadcast RPCs are the real channel the HUD uses.
-- **File-scope globals** `Goodqrfpos`/`Goodqrfbasepos` cache the first landing zone per QRF — all wave sources collapse to one spawn point, and state leaks across controller instances.
-- **The LZ "clear box" trace is a no-op** (`TracePosition` fraction compared `>= 0`), so troops can spawn inside geometry.
-- **QRFs never debit `m_iResources`** — the budget math is real but the spend is discarded (`m_iUsedResources` write-only).
 - **`m_iCurrentQRFBase/Town` are not in the JIP payload** — JIP clients mis-draw map restricted areas during a battle.
 - The economy freeze during a QRF is total (no resources/threat/spending/counter-attacks/town checks anywhere) — long battles visibly stall the whole faction.
 - Deployment AI within 750 m counts toward the QRF's enemy tally (unintended coupling); deployments also stop evaluating during battles.
