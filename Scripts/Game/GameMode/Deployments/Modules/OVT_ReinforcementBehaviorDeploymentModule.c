@@ -232,17 +232,38 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Takes the deployment down because the thing it existed for is no longer true.
+	//!
+	//! ⚠ CollectDeployment, NOT DeleteDeployment (2026-08-20). A condition failing is not "this force no
+	//! longer exists" - it is "the REASON for this force no longer exists", and the men are very often
+	//! still standing when it happens. The clearest case is the one that prompted the change: a recapture
+	//! team takes its radio tower, the tower-control condition it was deployed under turns false, and this
+	//! is the path that collects it. Under DeleteDeployment the team that had just SUCCEEDED was written
+	//! off in full - author, play-test: "they took the radio tower, but was not collected due to 'Failed
+	//! conditions'".
+	//!
+	//! ⚠ IT DOES NOT MAKE EVERY CONDITION-FAIL PAY OUT, WHICH IS THE OBJECTION IT HAS TO ANSWER.
+	//! CollectDeployment refunds only groups still at FULL strength, so the common condition-fail - a
+	//! tower or base garrison whose location changed hands, which is how it changed hands - has no intact
+	//! groups and refunds exactly nothing. What it does pay for is a force that came through whatever
+	//! ended its posting untouched, which is the same rule the behaviour modules' own success path uses.
+	//! See OVT_DeploymentManagerComponent.CollectDeployment for what is and is not returned.
+	//!
+	//! ⚠ AND IT IS WHY THE RECAPTURE MODULE DOES NOT REQUEST ITS OWN COLLECTION. It runs before this
+	//! module in every config that carries both, so its deferred one-frame request would be beaten by
+	//! this module's INLINE delete in the same pass and would find the deployment already gone. Fixing
+	//! the teardown that actually runs is the only arrangement in which the refund cannot be raced.
 	protected void RequestDeploymentDeletion()
 	{
 		if (!m_ParentDeployment)
 			return;
-		
+
 		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 		if (manager)
 		{
-			Print(string.Format("Requesting deletion of deployment %1 due to failed conditions", 
+			Print(string.Format("Requesting deletion of deployment %1 due to failed conditions",
 				m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
-			manager.DeleteDeployment(m_ParentDeployment);
+			manager.CollectDeployment(m_ParentDeployment);
 		}
 	}
 	

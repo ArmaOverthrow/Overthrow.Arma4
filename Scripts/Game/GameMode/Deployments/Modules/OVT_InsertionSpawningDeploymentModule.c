@@ -253,6 +253,16 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! forward base, a port) borrowing the markers of a base it merely stands near.
 	static const float SOURCE_BASE_RADIUS_M = 250;
 
+	//! HOW CLOSE TO ITS OWN SPAWN A STALLED TRANSPORT COUNTS AS "never left", in metres.
+	//!
+	//! 30 m is chosen against the two things it has to separate, not as a round number. It must be
+	//! comfortably WIDER than MARKER_CLEARANCE_M (6) plus a truck's own length, so a transport that
+	//! rolled a few metres and stalled still counts as blocking the marker it is fouling. And it must be
+	//! far TIGHTER than any distance at which a truck is worth keeping as a landmark - a convoy that
+	//! made it out of the compound and stalled on the road is hundreds of metres away and is left alone.
+	//! Nothing in between is a case that occurs: a truck either fails to get going at all or gets going.
+	static const float ABANDONED_AT_SPAWN_RADIUS_M = 30;
+
 	//! How much room a transport needs at an authored marker before that marker counts as free. Wider
 	//! than the vehicle manager's car-sized 3 m default because the thing being placed is a truck, and
 	//! because these markers are SHARED with the vehicle-patrol deployments - a patrol vehicle sitting
@@ -1244,6 +1254,42 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		if (m_bTruckAbandoned)
 			return;
+
+		// ==========================================================================================
+		// 🔴 A TRANSPORT THAT NEVER LEFT ITS OWN MOTOR POOL IS NOT A LANDMARK, IT IS AN OBSTRUCTION -
+		// AND LEAVING IT THERE IS SELF-REINFORCING.
+		//
+		// The countdown below is written for a truck stranded OUT IN THE WORLD, where it is worth
+		// something as scenery and as loot. A truck that stalled on the spot it spawned on is the
+		// opposite: it is sitting on an authored OVT_VehiclePatrolSpawn at a friendly base, and
+		// ResolveAuthoredTruckSpawn() skips any marker with a vehicle within MARKER_CLEARANCE_M. So it
+		// takes that marker out of service - and when the last free marker goes, ChooseSpawnMarker()
+		// answers -1 and the next insertion falls back to the road snap, which the method's own header
+		// admits "may land on the access road, inside the wire, across a gate or nose-first into a
+		// wall". That truck stalls too, and abandons itself somewhere worse. Each failure makes the
+		// next one likelier.
+		//
+		// The author walked into the middle of exactly that loop (2026-08-20): "I also just found an
+		// abandoned truck at the vehicle spawn point of chotain. then a specops harassment team spawned
+		// in a new truck nearby but triggered the 'stuck' gate shortly after".
+		//
+		// ⚠ THE 20-MINUTE TIMEOUT CANNOT SAVE IT, AND NEITHER CAN THE PROXIMITY HOLD - THE HOLD IS THE
+		// PROBLEM. Collection also requires no player within ABANDONED_TRUCK_PLAYER_RADIUS_M, which is
+		// 320 m: at a base a player visits, that covers the whole compound, so the obstruction is held
+		// in place for as long as anyone is around to be inconvenienced by it.
+		//
+		// ⚠ RELEASE, NOT DELETE, so the ownership veto still has the last word. If a player has claimed
+		// it, ReleaseTruck() leaves it standing and forgets it - stealing one still makes it yours
+		// permanently - and it nulls the handle either way, which is why nothing is armed afterwards.
+		// ==========================================================================================
+		if (m_vHome != vector.Zero && vector.Distance(m_Truck.GetOrigin(), m_vHome) <= ABANDONED_AT_SPAWN_RADIUS_M)
+		{
+			Print(string.Format("[Overthrow] Insertion '%1': its transport never left its spawn point - %2. Collecting it now rather than in %3 minutes, because it is standing on a vehicle spawn the next insertion needs",
+				DescribeSelf(), reason, AbandonedTruckTimeoutMinutes().ToString()), LogLevel.NORMAL);
+
+			ReleaseTruck();
+			return;
+		}
 
 		m_bTruckAbandoned = true;
 		m_iAbandonedTicksElapsed = 0;

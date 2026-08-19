@@ -7,12 +7,12 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 750
     m_iAttackPreferredDirection 201
     m_iAttackDirectionVariance 55
-    m_fPerimeterRadius 70
-    m_fPerimeterRotation 57
+    m_fPerimeterRadius 65
+    m_fPerimeterRotation 64
    }
   }
-  coords 7463.372 164.562 4306.762
-  angles 0 -78.33 0
+  coords 7468.14 164.562 4314.692
+  angles 0 -75.757 0
  }
  OVT_Base_StPierre {
   components {
@@ -37,7 +37,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMin 450
     m_iAttackPreferredDirection 75
     m_iAttackDirectionVariance 20
-    m_fPerimeterRadius 25
+    m_fPerimeterRadius 15
    }
   }
   coords 924.679 2.75 6059.404
@@ -67,6 +67,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    }
   }
   coords 5343.506 43.617 10535.197
+  angles 0 -22.173 0
  }
  OVT_Base_Airport {
   components {

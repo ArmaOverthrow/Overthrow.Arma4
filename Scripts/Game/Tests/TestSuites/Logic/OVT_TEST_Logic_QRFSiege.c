@@ -523,7 +523,12 @@ class OVT_TEST_Logic_QRFSiege_TimerCrossesFromMinutesToSecondsAtTwoMinutes : SCR
 			return true;
 
 		// --- Claim 2: rounding UP, including at the exact multiples.
-		if (!ExpectMinutes(OVT_QRFSiege.MUSTER_TIME_MS, 30, "a freshly armed muster window reads exactly 30"))
+		// ⚠ 15, NOT 30, SINCE 2026-08-20 - MUSTER_TIME_MS was halved on the author's play-test call. The
+		// EXPECTATION is derived rather than hardcoded so this row pins the ROUNDING rule (a whole
+		// multiple reads as itself, not one higher) instead of pinning a balance number that is expected
+		// to move. It read a literal 30 before and duly went red on the tuning change, which is a test
+		// asserting the wrong thing: the constant is a knob, the round-UP is the contract.
+		if (!ExpectMinutes(OVT_QRFSiege.MUSTER_TIME_MS, OVT_QRFSiege.MUSTER_TIME_MS / OVT_QRFSiege.MS_PER_MINUTE, "a freshly armed muster window reads its own whole minutes"))
 			return true;
 
 		if (!ExpectMinutes(1799999, 30, "29:59.999 must read 30 minutes, never 29"))

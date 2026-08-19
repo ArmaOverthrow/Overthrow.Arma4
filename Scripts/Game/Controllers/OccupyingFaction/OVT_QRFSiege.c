@@ -35,11 +35,18 @@ class OVT_QRFSiege
 	//! Degrees in a full turn. Named because it is a divisor here, not a coincidental literal.
 	static const float FULL_CIRCLE = 360;
 
-	//! The muster window, in milliseconds. THIRTY REAL MINUTES, not in-game minutes (D16, user
+	//! The muster window, in milliseconds. FIFTEEN REAL MINUTES, not in-game minutes (D16, user
 	//! decision): the window exists so players can physically drive to the fight, and a world running
-	//! at 6x would otherwise leave five real minutes, which is a warning shot rather than a window.
-	//! Fits an int with three orders of magnitude to spare.
-	static const int MUSTER_TIME_MS = 1800000;
+	//! at 6x would otherwise leave two and a half real minutes, which is a warning shot rather than a
+	//! window. Fits an int with three orders of magnitude to spare.
+	//!
+	//! ⚠ THIRTY UNTIL 2026-08-20, when the author play-tested the first counter-attack that actually
+	//! fired and judged it too long ("im also thinking 30 mins is too long, maybe 15 is better").
+	//! Halving it does not touch any other rule: nothing is scored during the window whatever its
+	//! length, the early-wipe end is on its own 10 s cadence, and the minutes/seconds display crossover
+	//! is PUBLISH_THRESHOLD_MS and unchanged. The only thing that scales with it is how far away a
+	//! player can be and still make it, which is the knob itself.
+	static const int MUSTER_TIME_MS = 900000;
 
 	//! Innermost and outermost radius of a siege ring slot, in metres. Close enough that the ring
 	//! reads as an encirclement from the middle of the objective, far enough that it is not standing
@@ -187,6 +194,49 @@ class OVT_QRFSiege
 
 		return rounded;
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The clock as "M:SS" - one string for the whole countdown, both QRF modes.
+	//!
+	//! ⚠ IT REPLACES A TWO-BRANCH DISPLAY, and that is the point rather than a side effect. The HUD used
+	//! to render whole minutes above PUBLISH_THRESHOLD_MS and a bare seconds count below it, through two
+	//! different localised strings - so one countdown changed both its unit and its wording partway
+	//! through, and a player watching "3" turn into "119" had to work out that nothing had gone wrong.
+	//! A single M:SS reads identically at 15:00 and at 0:07 and needs no crossover at all (author,
+	//! 2026-08-20).
+	//!
+	//! ⚠ SECONDS ARE ZERO-PADDED AND MINUTES ARE NOT. "9:07" is a clock; "9:7" is a typo and reads as
+	//! nine minutes seven-something. The padding is what makes the string scannable at a glance, which
+	//! is the entire job of a HUD countdown.
+	//!
+	//! ⚠ IT TRUNCATES RATHER THAN ROUNDING, unlike MusterMinutesRemaining's deliberate round-UP. A clock
+	//! showing seconds has no reason to flatter: 0:59 means fifty-nine seconds, and rounding up would
+	//! make the last second of the window read 0:01 for two seconds and then jump to zero.
+	//!
+	//! NEGATIVE AND ZERO BOTH ANSWER "0:00" rather than a negative clock, which is what the display
+	//! shows for the instant between the window expiring and the stage advancing.
+	//! \param[in] ms What the clock reads.
+	//! \return The countdown as M:SS, never empty.
+	static string FormatClock(int ms)
+	{
+		int total = ms / MS_PER_SECOND;
+		if (total < 0)
+			total = 0;
+
+		int minutes = total / SECONDS_PER_MINUTE;
+		int seconds = total % SECONDS_PER_MINUTE;
+
+		string padded = seconds.ToString();
+		if (seconds < 10)
+			padded = "0" + padded;
+
+		return minutes.ToString() + ":" + padded;
+	}
+
+	//! Milliseconds in a second and seconds in a minute. Named for the same reason FULL_CIRCLE is:
+	//! they are divisors in the arithmetic above, not incidental literals.
+	static const int MS_PER_SECOND = 1000;
+	static const int SECONDS_PER_MINUTE = 60;
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether ONE tracked group counts as neutralised, given only the three facts a caller can read

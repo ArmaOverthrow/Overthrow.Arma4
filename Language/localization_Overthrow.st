@@ -237,7 +237,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D000000C7}" {
    Id "OVT-BattleStartsInMinutes"
    Target_en_us "Battle Starts In (min)"
-   Comment "HUD battle panel, the countdown label used when MORE than two minutes remain - the counter-attack muster window, which is thirty REAL minutes. The number appended after it is whole minutes rounded UP (OVT_QRFSiege.MusterMinutesRemaining), so '30' means up to thirty minutes left, and it counts down to '3' before the display switches to the existing seconds label OVT-BattleStartsIn. Keep the unit marker: the same panel shows a bare seconds count below two minutes and the two must not be confusable. A player-initiated battle never shows this string - its countdown starts at exactly two minutes and renders in seconds from its first frame."
+   Comment "HUD battle panel, the countdown label used when MORE than two minutes remain - the counter-attack muster window, which is FIFTEEN real minutes since 2026-08-20 (was thirty). The number appended after it is whole minutes rounded UP (OVT_QRFSiege.MusterMinutesRemaining), ⚠ NO LONGER USED BY THE HUD as of 2026-08-20 - the battle panel now renders one M:SS clock via OVT-QRFScoringBeginsIn. Kept because removing a shipped key breaks any translation memory keyed on it. Keep the unit marker: the same panel shows a bare seconds count below two minutes and the two must not be confusable. A player-initiated battle never shows this string - its countdown starts at exactly two minutes and renders in seconds from its first frame."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1307,6 +1307,66 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B8C3F5D00000065}" {
+   Id "OVT-DismantleEnemyFOB"
+   Target_en_us "Dismantle Forward Base"
+   Comment "Held user action (15 s, authored on Prefabs/Bases/OVT_OccupyingFOB.et) shown on the flag of the occupying faction's forward operating base. Performing it tears the base down, takes objectiveFOBCost back out of the enemy's deployment pool and ends the current objective. Wording is an imperative verb phrase like the other flag actions (OVT-CaptureBase)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000066}" {
+   Id "OVT-DismantleEnemyFOB_Defended"
+   Target_en_us "Enemy soldiers are still defending this position"
+   Comment "Refusal reason shown on the Dismantle Forward Base action (SetCannotPerformReason) while at least one living occupying-faction soldier is within 150 m of the flag. The site has to be CLEARED, not merely reached - this is the whole challenge of removing a forward base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000068}" {
+   Id "OVT-DismantleEnemyFOB_None"
+   Target_en_us "There is no enemy forward base here any more"
+   Comment "Refusal reason shown on the Dismantle Forward Base action when the occupying faction no longer has a forward base at all - it starved, the objective ended, or another player pulled it down first. The structure is a persisted world entity and can briefly outlive the campaign's record of it, which is when a player sees this."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000067}" {
+   Id "OVT-DismantleEnemyFOB_TooFar"
+   Target_en_us "You are too far from the forward base"
+   Comment "Refusal reason shown on the Dismantle Forward Base action when the caller is further than 30 m from the recorded forward-base position. In practice only reachable when the flag and the enemy's recorded base position have drifted apart, so the wording explains the distance rather than blaming the player."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
@@ -2095,7 +2155,7 @@ StringTable {
   }
   CustomStringTableItem "{6B8C3F5D0000020A}" {
    Id "OVT-FieldManual_CounterAttacks_Text6"
-   Target_en_us "The word comes when the last of them is in place, and with it thirty real minutes in which nothing at all is scored. That time belongs to the resistance: it is long enough to drive in, gather recruits, dig in on the ground that matters, or decide the place is not worth the fight and leave. The countdown on the battle panel reads in minutes until the last two, then in seconds. If every attacker on the ring is killed before it runs out the battle ends there and then in the resistance's favour, with no assault at all. Otherwise the clock reaches zero, the ring closes in and the ground is counted exactly as it is in any other battle. Whatever the outcome, their forward base comes down afterwards and the occupiers begin choosing again."
+   Target_en_us "The word comes when the last of them is in place, and with it fifteen real minutes in which nothing at all is scored. That time belongs to the resistance: it is long enough to drive in, gather recruits, dig in on the ground that matters, or decide the place is not worth the fight and leave. The battle panel names the place being fought over and counts down to the moment scoring begins. If every attacker on the ring is killed before it runs out the battle ends there and then in the resistance's favour, with no assault at all. Otherwise the clock reaches zero, the ring closes in and the ground is counted exactly as it is in any other battle. Whatever the outcome, their forward base comes down afterwards and the occupiers begin choosing again."
    Comment "Field Manual - Counter Attacks page, second body paragraph under 'The Encirclement'. Reference voice: describes, never instructs, and offers options rather than a course of action. Six sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_QRFControllerComponent.c: EnterMuster() fires at the SILENT_DEPLOY -> MUSTER transition, i.e. when the spawn queue is empty, sends the CounterAttackBase/CounterAttackTown broadcast through the manager's RevealQRF() and sets m_iTimer to OVT_QRFSiege.MUSTER_TIME_MS = 1800000 ms. THIRTY REAL MINUTES, NOT IN-GAME ONES: the countdown is driven by the 1000 ms CheckUpdateTimer callqueue, which timeMul does not scale. Nothing is scored during it because CheckUpdatePoints' whole body is behind 'if(m_iTimer <= 0)', which MUSTER cannot satisfy until it transitions. The minutes-then-seconds display is OVT_QRFSiege.MusterMinutesRemaining with the crossover at PUBLISH_THRESHOLD_MS 120000 (see OVT-BattleStartsInMinutes); a player-initiated battle never reaches the minutes form because its clock starts at exactly 120000. The early end is CheckSiegeWipedOut on CheckUpdatePoints' 10 s cadence, in MUSTER only, through OVT_QRFSiege.GroupNeutralised / AllNeutralised behind the m_bSiegeForceSeenAlive arming latch; it transitions to BATTLE, where the unmodified scoring loop awards the resistance the objective quickly with no enemy inside QRF_RANGE - hence 'ends there and then in the resistance's favour' rather than 'is cancelled'. ⚠ DO NOT write that the siege is called off: it is not, the battle is resolved by scoring against an empty ring. The assault order change at the BATTLE transition is IssueAssaultOrders(), which removes each group's held waypoint and gives it SearchAndDestroy - 'the ring closes in'. The teardown-and-reselect on every outcome is the director polling m_CurrentQRF going null and calling its one ResetObjective() path."
    DevNote ""
    Repro ""
@@ -8650,6 +8710,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B8C3F5D00000003}" {
+   Id "OVT-Modifier_ObjectiveHarassment"
+   Target_en_us "Enemy Harassment"
+   Comment "Town support modifier - applied by OVT_TownHarassmentBehaviorDeploymentModule when an occupying-faction group sent by the objective director has held the town centre for objectiveHarassmentHoldSeconds. Stacks up to 4 (one per rung of the harassment ladder) and expires after 2 in-game hours. Shown in the town panel's support modifier list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5E4852B16105E7FF}" {
    Id "OVT-Modifier_OccupyingFactionDeath"
    Target_en_us "Occupier Deaths"
@@ -8688,21 +8763,6 @@ StringTable {
    Modified 1754265600
    Author "Claude"
    LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D00000003}" {
-   Id "OVT-Modifier_ObjectiveHarassment"
-   Target_en_us "Enemy Harassment"
-   Comment "Town support modifier - applied by OVT_TownHarassmentBehaviorDeploymentModule when an occupying-faction group sent by the objective director has held the town centre for objectiveHarassmentHoldSeconds. Stacks up to 4 (one per rung of the harassment ladder) and expires after 2 in-game hours. Shown in the town panel's support modifier list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -8833,23 +8893,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A7D9B2E000000F8}" {
-   Id "OVT-Msg-AdminResourcesAdded"
-   Target_en_us "Admin: %1 resources added to the occupying faction and distributed (now %2 in reserve). The defense share went to the deployment pool immediately."
-   Comment "Confirmation to a server admin who used the /give-resources chat command - %1 is the amount credited, %2 is the reserve AFTER the distribution (so it is the remainder, not the credited amount). Amended 2026-08-19: the command now runs TransferDefenseShareToPool immediately, because crediting the reserve alone left the deployment pool - the thing every visible force spends - untouched until the next tick, which made the command near-useless for its one purpose."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755561600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A7D9B2E000000F5}" {
    Id "OVT-Msg-AdminFundsAdded"
    Target_en_us "Admin: $%1 added to your account"
@@ -8866,6 +8909,23 @@ StringTable {
    Modified 1754784000
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A7D9B2E000000F8}" {
+   Id "OVT-Msg-AdminResourcesAdded"
+   Target_en_us "Admin: %1 resources added to the occupying faction and distributed (now %2 in reserve). The defense share went to the deployment pool immediately."
+   Comment "Confirmation to a server admin who used the /give-resources chat command - %1 is the amount credited, %2 is the reserve AFTER the distribution (so it is the remainder, not the credited amount). Amended 2026-08-19: the command now runs TransferDefenseShareToPool immediately, because crediting the reserve alone left the deployment pool - the thing every visible force spends - untouched until the next tick, which made the command near-useless for its one purpose."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755561600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -8977,36 +9037,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6B8C3F5D000000C5}" {
-   Id "OVT-Msg-CounterAttackBase"
-   Target_en_us "Enemy forces have surrounded %1 and will assault within 30 minutes"
-   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held BASE is complete and the siege stops being secret. %1 is the base's name. Sent to every player and to the external notification channel together, the same pairing OVT-Msg-BaseBattle uses. The thirty minutes are REAL minutes, not in-game ones, and nothing at all is decided during them - the wording is a warning with a deadline in it, because that window is the whole point of the mechanic. Paired with OVT-Msg-CounterAttackTown, which says the same thing about a town or city."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D000000C6}" {
-   Id "OVT-Msg-CounterAttackTown"
-   Target_en_us "Enemy forces have surrounded %1 and will assault within 30 minutes"
-   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held TOWN OR CITY is complete. %1 is the town's name. Cities use this same string - there is no separate city form, unlike OVT-Msg-TownBattle / OVT-Msg-CityBattle - and villages never appear here at all, because the occupying faction's objective director only ever targets a town or a base. Paired with OVT-Msg-CounterAttackBase; see that entry for the thirty-minute window."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{5D647993297FAA09}" {
    Id "OVT-Msg-CityControlledOccupying"
    Target_en_us "The resistance has lost control of the city of %1"
@@ -9050,6 +9080,36 @@ StringTable {
    Modified 1706585106
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D000000C5}" {
+   Id "OVT-Msg-CounterAttackBase"
+   Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"
+   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held BASE is complete and the siege stops being secret. %1 is the base's name. Sent to every player and to the external notification channel together, the same pairing OVT-Msg-BaseBattle uses. The fifteen minutes are REAL minutes, not in-game ones (thirty until 2026-08-20), and nothing at all is decided during them - the wording is a warning with a deadline in it, because that window is the whole point of the mechanic. Paired with OVT-Msg-CounterAttackTown, which says the same thing about a town or city."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D000000C6}" {
+   Id "OVT-Msg-CounterAttackTown"
+   Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"
+   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held TOWN OR CITY is complete. %1 is the town's name. Cities use this same string - there is no separate city form, unlike OVT-Msg-TownBattle / OVT-Msg-CityBattle - and villages never appear here at all, because the occupying faction's objective director only ever targets a town or a base. Paired with OVT-Msg-CounterAttackBase; see that entry for the fifteen-minute window."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -9354,66 +9414,6 @@ StringTable {
    Id "OVT-Msg-ObjectiveSabotageDetail"
    Target_en_us "Enemy saboteurs are demolishing what you built at %1"
    Comment "Broadcast notification BODY, sent once per sabotage mission (not once per structure). %1 is the base's name. The destruction is permanent and nothing refunds it, so the wording is deliberately a warning about work in progress rather than a report of a finished act - more structures follow every couple of minutes until the team is killed or driven off. Paired with the title OVT-Msg-ObjectiveSabotage."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D00000065}" {
-   Id "OVT-DismantleEnemyFOB"
-   Target_en_us "Dismantle Forward Base"
-   Comment "Held user action (15 s, authored on Prefabs/Bases/OVT_OccupyingFOB.et) shown on the flag of the occupying faction's forward operating base. Performing it tears the base down, takes objectiveFOBCost back out of the enemy's deployment pool and ends the current objective. Wording is an imperative verb phrase like the other flag actions (OVT-CaptureBase)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D00000066}" {
-   Id "OVT-DismantleEnemyFOB_Defended"
-   Target_en_us "Enemy soldiers are still defending this position"
-   Comment "Refusal reason shown on the Dismantle Forward Base action (SetCannotPerformReason) while at least one living occupying-faction soldier is within 150 m of the flag. The site has to be CLEARED, not merely reached - this is the whole challenge of removing a forward base."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D00000067}" {
-   Id "OVT-DismantleEnemyFOB_TooFar"
-   Target_en_us "You are too far from the forward base"
-   Comment "Refusal reason shown on the Dismantle Forward Base action when the caller is further than 30 m from the recorded forward-base position. In practice only reachable when the flag and the enemy's recorded base position have drifted apart, so the wording explains the distance rather than blaming the player."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B8C3F5D00000068}" {
-   Id "OVT-DismantleEnemyFOB_None"
-   Target_en_us "There is no enemy forward base here any more"
-   Comment "Refusal reason shown on the Dismantle Forward Base action when the occupying faction no longer has a forward base at all - it starved, the objective ended, or another player pulled it down first. The structure is a persisted world entity and can briefly outlive the campaign's record of it, which is when a player sees this."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11670,6 +11670,53 @@ StringTable {
    Modified 1706587328
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5E00000001}" {
+   Id "OVT-QRFBattleFor"
+   Target_en_us "Battle for"
+   Comment "HUD battle panel HEADER, shown for BOTH kinds of battle - a player-initiated QRF and an occupying-faction counter-attack. %1 is the place being fought over: a town name for a town battle, the base's own m_sName for a base battle, resolved client-side from the replicated m_iCurrentQRFTown / m_iCurrentQRFBase indices. Keep it a NOUN PHRASE naming the place, not a sentence - it sits above a smaller countdown line and is read at a glance. ADDED 2026-08-20."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1780955573
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5E00000002}" {
+   Id "OVT-QRFBattleForUnknown"
+   Target_en_us "Battle in progress"
+   Comment "HUD battle panel header FALLBACK, used when the client cannot resolve which place is being fought over. Reached when the battle's town/base index has not arrived - most likely a player who joined mid-battle, because m_iCurrentQRFBase / m_iCurrentQRFTown are replicated on change but are NOT in the JIP catch-up payload (pre-existing debt, see the epic's JIP/client divergence entry). Deliberately says nothing about WHERE: a wrong place name is worse than no place name. ADDED 2026-08-20."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5E00000003}" {
+   Id "OVT-QRFScoringBeginsIn"
+   Target_en_us "Scoring will begin in"
+   Comment "HUD battle panel SUB-LINE, under the OVT-QRFBattleFor header, smaller text. A M:SS clock is appended after it (OVT_QRFSiege.FormatClock), so the rendered line reads 'Scoring will begin in 14:32'. Used for BOTH battle kinds - a player-initiated QRF counts down two minutes and a counter-attack's muster window counts down fifteen, in the same format. Do NOT reintroduce a separate minutes-only wording: the single M:SS form exists precisely so one countdown never changes its unit partway through. ADDED 2026-08-20, superseding the display use of OVT-BattleStartsIn / OVT-BattleStartsInMinutes."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -14837,9 +14884,6 @@ StringTable {
   CustomStringTableItem "{6A248E7D184926DA}" {
    Id "OVT-StartUprising"
    Target_en_us "Start Uprising"
-   Modified 1780783911
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
    Comment "Name of the Start Uprising user action on Prefabs/Controllers/OVT_TownController.et:46. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
    DevNote ""
    Repro ""
@@ -14848,6 +14892,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
+   Modified 1780783911
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -15130,9 +15177,6 @@ StringTable {
   CustomStringTableItem "{6A248E7DE9D0DBC4}" {
    Id "OVT-SupportTooLow"
    Target_en_us "Not enough support in this town"
-   Modified 1780783937
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
    Comment "Reason shown under the greyed-out Start Uprising action, set by OVT_StartUprisingAction.c:39 SetCannotPerformReason. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
    DevNote ""
    Repro ""
@@ -15141,6 +15185,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
+   Modified 1780783937
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }

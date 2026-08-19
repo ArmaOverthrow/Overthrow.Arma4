@@ -132,6 +132,78 @@ class OVT_FOBSiting
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether a candidate stands in the SUPPLY CORRIDOR: the band, on the supply side, and not too far
+	//! off the line.
+	//!
+	//! ==========================================================================================
+	//! 🔴 WHY THIS EXISTS AT ALL: IsInBand() IS A RING, AND A RING HAS NO SIDE. The band is a distance
+	//! from the objective and nothing else, so it is satisfied just as well by a point BEHIND the
+	//! objective - on the far side from every base the faction owns - as by one between the objective
+	//! and its supply base. The generated lattice never noticed, because it builds its candidates as
+	//! `objective - along * standoff` and is therefore on the supply side by construction. The AUTHORED
+	//! path had no such protection: it queried a sphere around the objective and band-checked what came
+	//! back, so a marker anywhere in the ring could win on terrain score alone.
+	//!
+	//! A play-test found it exactly that way (2026-08-20): a marker 968 m from the objective, inside an
+	//! 847-1816 m band, but on the OPPOSITE SIDE from the only nearby base the occupying faction held.
+	//! The forward base was raised behind its own objective and supplied from a base 1.2 km further
+	//! away than the one the director had recorded as its source. Author: *"authored markers should use
+	//! the same corridor math used for non-authored markers. I assumed they did."*
+	//! ==========================================================================================
+	//!
+	//! IT IS THE LATTICE'S OWN SHAPE, WRITTEN DOWN. The generated sampler walks `standoff` across the
+	//! band and `lateral` across +/-spread; this asks whether an arbitrary point falls in the region
+	//! those two ranges sweep. So an authored marker is admitted exactly when the sampler could have
+	//! produced it, which is what "the same corridor math" means and why the bound is the same constant
+	//! rather than a second, looser one.
+	//!
+	//! ⚠ THE ALONG-AXIS DISTANCE IS NEGATED, and getting that backwards is the whole failure this
+	//! prevents. `along` runs FROM the source TO the objective, and a valid candidate is BEHIND the
+	//! objective along that axis - the sampler's own `objective - along * standoff`. So the projection
+	//! of (candidate - objective) onto `along` is NEGATIVE for a good site, and its magnitude is the
+	//! standoff. A sign slip here re-admits precisely the far-side markers this was written to reject.
+	//!
+	//! ⚠ DEGENERATE GEOMETRY ACCEPTS NOTHING, the same rule and for the same reason as IsInBand: a
+	//! source on top of the objective has no direction to measure a corridor along, and "put it
+	//! anywhere" is the one answer that must never be inferred from "I cannot tell".
+	//! \param[in] candidate The position being judged.
+	//! \param[in] objective Where the objective is.
+	//! \param[in] source The base the forward base would be supplied from.
+	//! \param[in] bandMin Nearest it may stand to the objective.
+	//! \param[in] bandMax Furthest it may stand from the objective.
+	//! \param[in] lateralSpread How far off the supply line it may sit, in metres. Non-positive means
+	//!            the line itself, which no real point satisfies - callers pass the sampler's spread.
+	//! \return True when the candidate is inside the corridor.
+	static bool IsInSupplyCorridor(vector candidate, vector objective, vector source, float bandMin, float bandMax, float lateralSpread)
+	{
+		if (bandMin >= bandMax)
+			return false;
+
+		vector toObjective = objective - source;
+		toObjective[1] = 0;
+
+		float separation = toObjective.Length();
+		if (separation <= 0)
+			return false;
+
+		vector along = toObjective.Normalized();
+		vector lateral = Vector(-along[2], 0, along[0]);
+
+		vector rel = candidate - objective;
+		rel[1] = 0;
+
+		// NEGATED: see the header. A good candidate sits behind the objective along the supply axis.
+		float alongDistance = -(rel[0] * along[0] + rel[2] * along[2]);
+
+		if (!IsInBand(alongDistance, bandMin, bandMax))
+			return false;
+
+		float lateralDistance = Math.AbsFloat(rel[0] * lateral[0] + rel[2] * lateral[2]);
+
+		return lateralDistance <= lateralSpread;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Whether a candidate is clear of every place a forward base may not be built.
 	//!
 	//! THE TWO LISTS ARE PARALLEL AND ARE MATCHED BY INDEX: exclusions[i] is a position and radii[i] is

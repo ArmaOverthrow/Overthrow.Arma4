@@ -1522,6 +1522,34 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
+	//! HOW FAR A KNOWN ENEMY TARGET PROJECTS THREAT, in metres.
+	//!
+	//! ⚠ WIDENED 1000 -> 2500 ON 2026-08-20, and the reason is that this score became load-bearing that
+	//! day. It used to be added to the global campaign threat (~420) before anything read it, so its
+	//! range and its weights barely mattered - the sum was dominated by the constant. Now it IS the
+	//! deployment evaluator's entire notion of where danger is, and at 1 km a base the resistance had
+	//! taken projected nothing at all onto the next base along, or onto the towns between them. The
+	//! occupying faction could not see its own frontline.
+	static const float KNOWN_TARGET_THREAT_RANGE = 2500;
+
+	//! WHAT EACH KIND OF ENEMY HOLDING IS WORTH at zero distance, falling off linearly to nothing at
+	//! KNOWN_TARGET_THREAT_RANGE.
+	//!
+	//! ⚠ THESE WERE 10 / 5 / 5 / 1 AND ARE NOW MUCH LARGER, deliberately and for the same reason as the
+	//! range. Against a ~420 constant they were rounding error; against nothing but each other and the
+	//! town terms they are the signal. The author's own list of what should count - "support, radio
+	//! towers and captured bases" - is exactly what these encode, with support already handled by the
+	//! town loop below.
+	//!
+	//! THE ORDER IS THE POINT, not the absolute numbers: a base the resistance has TAKEN is the most
+	//! threatening thing on the map to the faction that lost it, a radio tower it cannot broadcast from
+	//! is next, then a camp, then a warehouse. Tune the ratios before tuning the magnitudes.
+	static const float THREAT_WEIGHT_ENEMY_BASE = 40;
+	static const float THREAT_WEIGHT_ENEMY_TOWER = 25;
+	static const float THREAT_WEIGHT_ENEMY_FOB = 20;
+	static const float THREAT_WEIGHT_ENEMY_CAMP = 20;
+	static const float THREAT_WEIGHT_ENEMY_WAREHOUSE = 5;
+
 	int GetThreatByLocation(vector pos)
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
@@ -1534,24 +1562,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 		foreach(OVT_TargetData target : m_aKnownTargets)
 		{
 			float distance = vector.Distance(target.location, pos);
-			if(distance < 1000)
+			if(distance < KNOWN_TARGET_THREAT_RANGE)
 			{
-				float distanceFactor = 1.0 - (distance / 1000);
+				float distanceFactor = 1.0 - (distance / KNOWN_TARGET_THREAT_RANGE);
 				if(target.type == OVT_TargetType.BASE)
 				{
-					score += (int)Math.Round(10 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_BASE * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.BROADCAST_TOWER)
 				{
-					score += (int)Math.Round(5 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_TOWER * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.FOB)
 				{
-					score += (int)Math.Round(5 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_FOB * distanceFactor);
+				}
+				// ⚠ CAMP WAS SCORED AT NOTHING UNTIL 2026-08-20, and it is not a new target type -
+				// UpdateKnownTargets() has always inserted one for every resistance camp it knows about,
+				// and this loop simply had no branch for it. A resistance camp contributed exactly zero
+				// to how dangerous the occupying faction considered the ground around it.
+				if(target.type == OVT_TargetType.CAMP)
+				{
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_CAMP * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.WAREHOUSE)
 				{
-					score += 1;
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_WAREHOUSE * distanceFactor);
 				}
 			}
 		}

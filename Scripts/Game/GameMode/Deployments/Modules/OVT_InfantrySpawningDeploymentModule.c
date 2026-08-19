@@ -260,9 +260,24 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 	//------------------------------------------------------------------------------------------------
 	//! Brings this module's registered groups up to the count it wants. ALWAYS SAFE TO CALL.
+	//! ⚠ A GAME-START SEEDING IGNORES m_bSpawnAtNearestBase, ON PURPOSE. Author's rule, 2026-08-20:
+	//! "they shouldnt spawn at nearest base at game start (if free at game start = true they should
+	//! spawn in the town)". A campaign that opens with every town's patrol walking in from a base opens
+	//! with every town empty, which is not what a map the occupying faction has held for years should
+	//! look like. A patrol BOUGHT later is reinforcement arriving from somewhere real and should travel;
+	//! the founding garrison is simply already there.
+	//!
+	//! ⚠ THE QUESTION IS ASKED OF THE DEPLOYMENT, NOT OF THE CONFIG. config.m_bFreeAtGameStart would be
+	//! the wrong test - the same config is bought again by the evaluator mid-campaign, and answering it
+	//! would ground every one of those purchases too. See OVT_DeploymentComponent.WasSeededAtGameStart().
 	override void EnsureGroups()
 	{
-		ConvergeGroups(m_bSpawnAtNearestBase);
+		bool fromNearestBase = m_bSpawnAtNearestBase;
+
+		if (fromNearestBase && m_ParentDeployment && m_ParentDeployment.WasSeededAtGameStart())
+			fromNearestBase = false;
+
+		ConvergeGroups(fromNearestBase);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -663,21 +678,62 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		m_iActualGroupCount = m_aHandles.Count() + groupsNeeded;
 
 		bool wasEliminated = m_bSpawnedUnitsEliminated;
+
+		// ⚠ THE DEPLOYMENT'S PREVIOUS STATE IS CAPTURED TOO, AND IT DID NOT USED TO BE. Not restoring it
+		// on the failure path defeated CheckAllSpawningModulesEliminated()'s edge trigger: that method
+		// only logs when the flag CHANGES, so clearing it here and letting the recompute set it straight
+		// back re-announced "All spawned units for deployment 'X' have been eliminated" on EVERY failed
+		// rebuy. A wiped deployment whose condition can never be met again therefore printed the same
+		// line every check interval for the rest of the campaign - once every ~66 s in the play-test that
+		// found it (2026-08-20) - which reads as an event recurring rather than a state that has not
+		// changed since the first time it was announced.
+		bool deploymentWasEliminated = m_ParentDeployment.GetSpawnedUnitsEliminated();
+
 		m_bSpawnedUnitsEliminated = false;
 		m_ParentDeployment.SetSpawnedUnitsEliminated(false);
 
 		int successfulSpawns = ConvergeGroups(m_bReinforceFromNearestBase);
 
 		if (successfulSpawns <= 0)
+		{
 			m_bSpawnedUnitsEliminated = wasEliminated;
+			m_ParentDeployment.SetSpawnedUnitsEliminated(deploymentWasEliminated);
+		}
 
 		// Recompute the deployment-wide flag from what the modules now actually hold, on both paths.
 		m_ParentDeployment.CheckAllSpawningModulesEliminated();
 
-		if (successfulSpawns <= 0)
+		// 🔴 PAY BACK WHAT WAS NOT DELIVERED. The charge above is taken up front, before anything is
+		// registered, because the convergence needs the money to already be gone - but a group that
+		// failed to register is a group the faction did not get, and keeping its price is a straight
+		// leak. It used to keep it: this method's header said "resources are charged up front and not
+		// refunded on a failed registration, which is what this path has always done", and a play-test
+		// showed what that costs. A town patrol whose town had changed hands could never register again,
+		// retried every check interval, and burned 100 resources a time - THIRTEEN failed rebuys and
+		// 1300 resources in twenty minutes, for zero groups, with no successful reinforcement anywhere in
+		// the session. That money is a large part of the "spending that doesn't make sense" the same
+		// play-test reported.
+		//
+		// ⚠ PRO-RATA, NOT ALL-OR-NOTHING, because a partial success is a real outcome: buying 2 and
+		// registering 1 should cost one group, not two and not none.
+		//
+		// ⚠ THROUGH THE MANAGER'S OWN CREDIT METHOD, on the precedent OVT_MultiTownPatrolBehaviorDeployment
+		// Module's patrol recovery already set - "resource accounting is closed" is checked by grepping
+		// AddFactionResources for callers, and the framework's own refunds are an allowed answer.
+		int undelivered = groupsNeeded - successfulSpawns;
+		if (undelivered > 0)
 		{
-			Print(string.Format("Reinforcement bought 0/%1 groups, cost: %2 resources", groupsNeeded, totalCost), LogLevel.WARNING);
-			return false;
+			int refund = undelivered * m_iReinforcementCost;
+			manager.AddFactionResources(factionIndex, refund);
+
+			if (successfulSpawns <= 0)
+			{
+				Print(string.Format("Reinforcement bought 0/%1 groups - the %2 resources it was charged have been refunded, because nothing was delivered", groupsNeeded, refund), LogLevel.WARNING);
+				return false;
+			}
+
+			Print(string.Format("Reinforced with %1/%2 groups, cost: %3 resources (%4 refunded for the %5 that could not be registered)", successfulSpawns, groupsNeeded, totalCost - refund, refund, undelivered), LogLevel.NORMAL);
+			return true;
 		}
 
 		Print(string.Format("Reinforced with %1/%2 groups, cost: %3 resources", successfulSpawns, groupsNeeded, totalCost), LogLevel.NORMAL);
@@ -685,27 +741,47 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! THE NEAREST BASE THIS FACTION ACTUALLY CONTROLS.
+	//!
+	//! 🔴 IT USED TO ASK FOR THE NEAREST BASE AND THEN CHECK WHETHER THAT ONE HAPPENED TO BE FRIENDLY,
+	//! which is a different and much weaker question - and it answered vector.Zero whenever the closest
+	//! base belonged to somebody else. On a contested map that is exactly backwards: the moment the
+	//! resistance takes the base beside a town, every deployment there loses its source and falls back to
+	//! materialising in place, however many friendly bases are a kilometre further on. The author hit it
+	//! at Levie on 2026-08-20 - "a town patrol was bought for Levie and has spawned at Levie base (I
+	//! control Levie base). they need to come from the closest controlled base".
+	//!
+	//! ⚠ IT DELEGATES RATHER THAN RE-IMPLEMENTING, and that is the point of the fix rather than an
+	//! incidental tidy-up. OVT_NearestControlledBaseSourceProvider already walks the faction's OWN base
+	//! list and picks the nearest of those - its class header describes this exact defect as the reason
+	//! it exists - so the insertion module has had the correct answer available all along while this one
+	//! kept the broken copy. One implementation, one behaviour.
+	//! \param[in] factionIndex The faction that must control the base.
+	//! \return The nearest controlled base's position, or vector.Zero when the faction holds none.
 	protected vector GetNearestControlledBasePosition(int factionIndex)
 	{
 		if (!m_ParentDeployment)
 			return vector.Zero;
 
-		vector deploymentPos = m_ParentDeployment.GetPosition();
-
-		// Get occupying faction manager to check bases
-		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
-		if (!ofManager)
-			return vector.Zero;
-
-		// Get nearest base and check if it's controlled by our faction
-		OVT_BaseData nearestBase = ofManager.GetNearestBase(deploymentPos);
-		if (nearestBase && nearestBase.faction == factionIndex)
+		if (!m_NearestBaseSource)
 		{
-			return nearestBase.location;
+			// ⚠ `new` DOES NOT APPLY [Attribute()] DEFVALUES - the same trap the anchor provider's
+			// constructor documents - so the limit is set explicitly. 0 = no limit, which is what this
+			// caller wants: a distant friendly base is still better than no source at all.
+			m_NearestBaseSource = new OVT_NearestControlledBaseSourceProvider();
+			m_NearestBaseSource.m_fMaxSourceDistance = 0;
 		}
 
-		return vector.Zero;
+		vector source;
+		if (!m_NearestBaseSource.ResolveSource(m_ParentDeployment.GetPosition(), factionIndex, source))
+			return vector.Zero;
+
+		return source;
 	}
+
+	//! Held rather than constructed per call: a provider is a stateless answerer, so one instance can
+	//! serve every lookup this module makes for its whole life.
+	protected ref OVT_NearestControlledBaseSourceProvider m_NearestBaseSource;
 
 	//------------------------------------------------------------------------------------------------
 	// Status methods for behavior modules

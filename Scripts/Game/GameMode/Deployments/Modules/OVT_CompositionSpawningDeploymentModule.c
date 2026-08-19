@@ -361,8 +361,29 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 			// A base with every slot of this size already filled is an ordinary, permanent state, so
 			// this IS marked attempted - retrying every 10 s forever would log the same warning for the
 			// rest of the campaign.
-			Print(string.Format("[Overthrow] Deployment '%1' found no free %2 slot for composition '%3' - the base is full",
-				m_ParentDeployment.GetDeploymentName(), typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), m_sCompositionTag), LogLevel.WARNING);
+			//
+			// ⚠ "THE BASE IS FULL" USED TO BE SAID FOR TWO DIFFERENT FAILURES AND SENT A READER THE WRONG
+			// WAY (2026-08-20). A base with no slot of this KIND at all - which is the common case for
+			// the ROAD_* sizes, since road slots only exist where a road actually runs through the base -
+			// reported exactly the same sentence as a base whose slots are genuinely all taken. The
+			// author read it, checked the base's SMALL slots, found them free, and reasonably concluded
+			// the module was broken: "a checkpoint was purchased but not spawned. levie base is free, it
+			// has small slots afaik, I think the composition module is broken." A checkpoint needs
+			// ROAD_LARGE / ROAD_MEDIUM, and SMALL slots have nothing to do with it.
+			array<ref EntityID> ofThisKind = GetSlotList(controller);
+			int slotCount = 0;
+			if (ofThisKind)
+				slotCount = ofThisKind.Count();
+
+			string reason;
+			if (slotCount == 0)
+				reason = "this base has NO slot of that kind at all - it is not a shortage, nothing of this type can ever be built here";
+			else
+				reason = string.Format("all %1 slot(s) of that kind at this base are already taken", slotCount.ToString());
+
+			Print(string.Format("[Overthrow] Deployment '%1' could not place composition '%2': it needs a %3 slot and %4",
+				m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), reason), LogLevel.WARNING);
+
 			m_bCompositionAttempted = true;
 			return;
 		}
@@ -501,7 +522,23 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 	//! \return The slot array this module's authored size names.
 	protected array<ref EntityID> GetSlotList(notnull OVT_BaseControllerComponent controller)
 	{
-		switch (m_eSlotType)
+		return GetSlotListFor(controller, m_eSlotType);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE PLACE A SLOT TYPE IS TURNED INTO A LIST, shared by this module and by the condition that
+	//! stops a deployment being bought for a slot type the base does not have.
+	//!
+	//! ⚠ STATIC BECAUSE THE CONDITION HAS NO INSTANCE TO ASK. It runs at CREATION time, before any
+	//! deployment or module clone exists, so it cannot call the instance method above - and a second
+	//! copy of this switch is exactly how the two would drift into disagreeing about which list a
+	//! ROAD_MEDIUM composition looks at.
+	//! \param[in] controller The base whose slots to read.
+	//! \param[in] slotType Which size and kind.
+	//! \return That base's list for the type, or null for an unrecognised type.
+	static array<ref EntityID> GetSlotListFor(notnull OVT_BaseControllerComponent controller, OVT_EDeploymentSlotType slotType)
+	{
+		switch (slotType)
 		{
 			case OVT_EDeploymentSlotType.SMALL:
 				return controller.m_SmallSlots;
@@ -518,6 +555,37 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 		}
 
 		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether any slot in a list is unclaimed.
+	//!
+	//! ⚠ A SCAN, DELIBERATELY, WHERE FindFreeSlot() ROLLS. The roll is right for PICKING - it stops
+	//! every base putting its first bunker in the same slot - but it is wrong for ASKING, because a roll
+	//! that lands on a taken slot is indistinguishable from there being none free. A creation gate that
+	//! answered "no" on a bad roll would refuse a perfectly buildable deployment at random.
+	//!
+	//! PURE OVER THE TWO ARRAYS, so the Init tier can assert it without a base, a slot entity or a
+	//! world - the same reason RollFreeSlotIndex is written this way.
+	//! \param[in] slots Every slot of one kind at a base. Null or empty answers false.
+	//! \param[in] filled Every slot at that base anything has already claimed. Null answers false,
+	//!            because "the claim list does not exist" is not the same as "nothing is claimed".
+	//! \return True when at least one entry of `slots` is absent from `filled`.
+	static bool HasFreeSlot(array<ref EntityID> slots, array<ref EntityID> filled)
+	{
+		if (!slots || slots.IsEmpty())
+			return false;
+
+		if (!filled)
+			return false;
+
+		foreach (EntityID slot : slots)
+		{
+			if (!filled.Contains(slot))
+				return true;
+		}
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------

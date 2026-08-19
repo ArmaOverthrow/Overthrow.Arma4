@@ -284,24 +284,79 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		m_wRoot.FindAnyWidget("QRF").SetVisible(true);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! WHICH PLACE THIS BATTLE IS FOR, resolved on the CLIENT, or an empty string when it cannot be.
+	//!
+	//! ⚠ IT READS THE REPLICATED INDICES, NEVER THE HANDLES. m_CurrentQRFBase / m_CurrentQRFTown are
+	//! server-side object handles that the finish handlers never clear - only the indices beside them
+	//! are reset to -1 - so reading a handle would make this panel name whatever place was fought over
+	//! LAST. The manager's own RevealQRF() carries the same warning for the same reason.
+	//!
+	//! ⚠ THE TOWN IS ASKED FIRST because a base battle leaves m_iCurrentQRFTown at -1 while a town
+	//! battle can sit inside a base's classification radius. Same precedence the reveal notification
+	//! uses, so the header and the broadcast never disagree about where the fighting is.
+	//!
+	//! ⚠ EMPTY IS A REAL ANSWER, NOT A FAILURE, AND THE CALLER HAS A STRING FOR IT. The indices are
+	//! replicated on change but are NOT in the JIP catch-up payload - pre-existing debt recorded in the
+	//! epic's JIP/client divergence entry - so a player who joined mid-battle legitimately has neither.
+	//! Naming the wrong place would be worse than naming none.
+	//! \return The place's display name, or "" when the client cannot tell.
+	protected string ResolveQRFPlaceName()
+	{
+		if(!m_OccupyingFaction)
+			return "";
+
+		if(m_OccupyingFaction.m_iCurrentQRFTown > -1)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if(towns)
+				return towns.GetTownName(m_OccupyingFaction.m_iCurrentQRFTown);
+
+			return "";
+		}
+
+		int baseIndex = m_OccupyingFaction.m_iCurrentQRFBase;
+		if(baseIndex < 0)
+			return "";
+
+		// ⚠ BOUNDS-CHECKED AGAINST THE CLIENT'S OWN LIST, not assumed to match the server's. m_Bases is
+		// built by a server-side world query; a client whose copy is shorter (or empty) would index off
+		// the end, and GetBaseByIndex dereferences m_Bases[index] with no guard of its own.
+		if(!m_OccupyingFaction.m_Bases || baseIndex >= m_OccupyingFaction.m_Bases.Count())
+			return "";
+
+		OVT_BaseControllerComponent base = m_OccupyingFaction.GetBaseByIndex(baseIndex);
+		if(!base)
+			return "";
+
+		return base.m_sName;
+	}
+
 	void UpdateQRF()
 	{
+		// THE HEADER NAMES THE PLACE, THE SUB-LINE COUNTS DOWN TO SCORING. Both battle kinds render
+		// identically - a player-initiated QRF counts two minutes and a counter-attack's muster window
+		// fifteen, in the same M:SS clock, under the same header.
+		TextWidget header = TextWidget.Cast(m_wRoot.FindAnyWidget("QRFHeaderText"));
+		if(header)
+		{
+			string place = ResolveQRFPlaceName();
+			if(place.IsEmpty())
+				header.SetText("#OVT-QRFBattleForUnknown");
+			else
+				header.SetText("#OVT-QRFBattleFor " + place);
+		}
+
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("QRFTimerText"));
 		if(m_OccupyingFaction.m_iQRFTimer > 0)
 		{
-			// A counter-attack's muster window is THIRTY REAL MINUTES; rendered as raw seconds that is
-			// a four-digit number nobody can read at a glance. Above two minutes it shows whole minutes
-			// (rounded UP, so 29:59 never reads "29"), below it today's seconds line, unchanged.
-			//
-			// ⚠ A STANDARD BATTLE NEVER TAKES THE MINUTES BRANCH. Its countdown starts at exactly
-			// 120 000 ms and ShouldRenderMinutes is strictly greater-than, so the very first value it
-			// ever publishes already renders in seconds - which is the point.
-			if(OVT_QRFSiege.ShouldRenderMinutes(m_OccupyingFaction.m_iQRFTimer))
-			{
-				w.SetText("#OVT-BattleStartsInMinutes " + OVT_QRFSiege.MusterMinutesRemaining(m_OccupyingFaction.m_iQRFTimer).ToString());
-			}else{
-				w.SetText("#OVT-BattleStartsIn " + Math.Floor(m_OccupyingFaction.m_iQRFTimer / 1000).ToString());
-			}
+			// ⚠ ONE CLOCK, NOT TWO BRANCHES (2026-08-20). This used to render whole minutes above two
+			// minutes and bare seconds below, through two different strings - so a single countdown
+			// changed both its unit and its wording partway through, and "3" becoming "119" looked like
+			// a fault. OVT_QRFSiege.FormatClock reads the same at 15:00 and at 0:07 and needs no
+			// crossover. ShouldRenderMinutes and MusterMinutesRemaining are no longer called from here;
+			// they are kept because the Logic tier pins them and because a mod may want the old form.
+			w.SetText("#OVT-QRFScoringBeginsIn " + OVT_QRFSiege.FormatClock(m_OccupyingFaction.m_iQRFTimer));
 		}else{
 			w.SetText("#OVT-BattleProgress");
 		}

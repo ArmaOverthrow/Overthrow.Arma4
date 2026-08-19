@@ -178,6 +178,109 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		// Check for destroyed vehicles
 		CheckVehicleStatus();
+
+		// An armed patrol vehicle whose gun nobody is manning is not a patrol. See the method.
+		EnsureTurretsManned();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! PUTS SOMEBODY BACK BEHIND THE GUN when an armed patrol vehicle is driving around with an empty
+	//! turret.
+	//!
+	//! ==========================================================================================
+	//! 🔴 WHY THIS IS A RE-ASSERT AND NOT A FIX TO THE SEATING. SeatAgent() already seats
+	//! pilot -> turret -> cargo and already refuses to move a man who is aboard, so the turret IS manned
+	//! correctly when the crew is first seated - the author confirmed it: "the gunner spawns in the
+	//! gunner slot but then gets moved to co-driver". Something OUTSIDE this module moves him
+	//! afterwards, and the two candidates are both vanilla:
+	//!   - SCR_AIGetEmptyCompartment allocates a NON-LEADER driver > turret > cargo and the LEADER
+	//!     turret > cargo, and it runs whenever the group boards a vehicle it owns. It only ever fills
+	//!     compartments that are EMPTY, so it cannot evict on its own - but any member who leaves for
+	//!     any reason is re-allocated by that priority rather than back to the seat he had.
+	//!   - The crew despawns and respawns by proximity like everything else here, and members
+	//!     materialise through the AI spawn queue in whatever order it produces. Nothing anywhere
+	//!     records that THIS man was the gunner, so a fresh materialisation re-races the seats - the
+	//!     same order-of-arrival race that put a passenger in the insertion truck's co-driver seat.
+	//!
+	//! Chasing either into vanilla would be a much larger job than the symptom warrants, and neither
+	//! can be prevented from here. What CAN be guaranteed from here is the property that actually
+	//! matters: if there is a gun and there is a spare crewman, the gun is manned. This runs on the
+	//! ordinary deployment update, so it self-heals within one tick of whatever moved him.
+	//! ==========================================================================================
+	//!
+	//! ⚠ IT ONLY EVER PROMOTES OUT OF CARGO, NEVER OUT OF THE PILOT SEAT. Taking the driver would strand
+	//! a patrol that is mid-route, which is a worse failure than an unmanned gun and a far more visible
+	//! one. A vehicle with a driver and no spare passenger therefore keeps its empty turret, correctly:
+	//! there is nobody to put in it.
+	//!
+	//! ⚠ AND IT CANNOT FIGHT ITSELF. The move is only made when the turret is genuinely unoccupied, so
+	//! once somebody is in it this method does nothing on every subsequent tick. If vanilla moves him
+	//! straight back out again the two would alternate at the update interval - that would be visible in
+	//! the log as a repeating "manned the turret" line, which is the signal to go and do the larger
+	//! vanilla investigation after all.
+	protected void EnsureTurretsManned()
+	{
+		foreach (Vehicle vehicle : m_aSpawnedVehicles)
+		{
+			if (!vehicle)
+				continue;
+
+			BaseCompartmentManagerComponent manager = BaseCompartmentManagerComponent.Cast(
+				vehicle.FindComponent(BaseCompartmentManagerComponent)
+			);
+
+			if (!manager)
+				continue;
+
+			array<BaseCompartmentSlot> slots = {};
+			manager.GetCompartments(slots);
+
+			BaseCompartmentSlot emptyTurret;
+			IEntity cargoOccupant;
+
+			foreach (BaseCompartmentSlot slot : slots)
+			{
+				if (!slot)
+					continue;
+
+				if (slot.GetType() == ECompartmentType.TURRET)
+				{
+					// A vehicle can carry more than one gun; the first unmanned one is the one to fill.
+					if (!emptyTurret && !slot.GetOccupant())
+						emptyTurret = slot;
+
+					continue;
+				}
+
+				if (slot.GetType() != ECompartmentType.CARGO)
+					continue;
+
+				if (!cargoOccupant)
+					cargoOccupant = slot.GetOccupant();
+			}
+
+			if (!emptyTurret || !cargoOccupant)
+				continue;
+
+			SCR_CompartmentAccessComponent access = SCR_CompartmentAccessComponent.Cast(
+				cargoOccupant.FindComponent(SCR_CompartmentAccessComponent)
+			);
+
+			if (!access)
+				continue;
+
+			// ⚠ A PLAYER IN THE BACK IS NOT CREW AND IS NEVER MOVED. Teleporting somebody who climbed
+			// into an occupying-faction vehicle into its turret would be the game playing for them.
+			PlayerManager players = GetGame().GetPlayerManager();
+			if (players && players.GetPlayerIdFromControlledEntity(cargoOccupant) > 0)
+				continue;
+
+			if (access.MoveInVehicle(vehicle, ECompartmentType.TURRET, false, emptyTurret))
+			{
+				Print(string.Format("[Overthrow] Deployment '%1': its patrol vehicle was driving with an unmanned gun - moved a passenger into the turret",
+					m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+			}
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

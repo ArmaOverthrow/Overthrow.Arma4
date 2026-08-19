@@ -51,6 +51,19 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	[Attribute(defvalue: "600", desc: "Seconds the tower must be held before it changes hands. FALLBACK ONLY - the campaign's objectiveTowerRecaptureHoldSeconds is used whenever difficulty settings are loaded")]
 	int m_iHoldSeconds;
 
+	//! HOW CLOSE THE TEAM HAS TO GET BEFORE THE PLAYER IS TOLD THEY ARE COMING.
+	//!
+	//! 300 m is the insertion module's own m_fLZStandoffDistance on every objective config that carries
+	//! a recapture team, so the warning lands as the team is put down rather than while it is still
+	//! driving - which is what the author asked for: "it should trigger when they are almost at the
+	//! location (about the distance the insertion would drop them)".
+	//!
+	//! ⚠ IT IS DELIBERATELY WIDER THAN m_fHoldRadius (80). The hold radius answers "are they ON the
+	//! tower", which is far too late to be a warning - by then the 600-second clock has already started.
+	//! A player told at 300 m has the whole hold to respond in, which is the entire point of telling them.
+	[Attribute(defvalue: "300", desc: "How close a team has to get to the tower before the resistance is warned they are coming. Roughly the insertion's drop distance, so the warning lands as they are put down")]
+	float m_fApproachWarningRadius;
+
 	//! One deployment update, in seconds. See OVT_TownHarassmentBehaviorDeploymentModule.UPDATE_SECONDS.
 	static const int UPDATE_SECONDS = 10;
 
@@ -59,6 +72,11 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	//! reason the module this mirrors gives: on the only path a restored deployment could reach the
 	//! flip again the tower is already ours, and the faction guard in EvaluateRecapture refuses it.
 	protected bool m_bCaptureFired;
+
+	//! Announced-once latch for the approach warning. Same rules as m_bCaptureFired: not an attribute,
+	//! not persisted, NOT copied by CloneModule. Without it the warning would repeat every update for as
+	//! long as the team stood near the tower - once every ten seconds, for the whole ten-minute hold.
+	protected bool m_bApproachAnnounced;
 
 	protected int m_iTicksLeft;
 
@@ -95,6 +113,19 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 			m_bArmed = true;
 		}
 
+		// 🔴 THE WARNING THE MIGRATION LOST. "The enemy is attempting to capture a radio tower near %1"
+		// is authored in overthrowBroadcastMessages.conf as the RadioTowerCapture preset and localised
+		// in three languages - and after virtualization/base-defense-migration deleted
+		// OVT_BaseUpgradeSpecops NOTHING SENT IT. The preset and its strings sat orphaned; a recapture
+		// team simply arrived unannounced, which is what the author noticed (2026-08-20): "a specops
+		// team just arrived at it (good) but no notification".
+		//
+		// ⚠ IT IS SENT ON APPROACH, NOT ON ARRIVAL AT THE TOWER, and that is the whole value of it. The
+		// hold radius is 80 m and the hold is ten minutes; a warning fired at 80 m tells the player
+		// something is happening at the moment it is already happening. At the drop distance they get
+		// the entire hold to do something about it.
+		WarnOnApproach(tower);
+
 		int myFaction = m_ParentDeployment.GetControllingFaction();
 
 		bool holding = CountAliveRegisteredMembersWithin(tower.location, m_fHoldRadius) >= 1;
@@ -107,6 +138,42 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 
 		Print(string.Format("[Overthrow] A recapture team held the radio tower at %1 and it changes hands",
 			tower.location.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells everyone, ONCE, that a team has reached the tower it means to take.
+	//!
+	//! ⚠ IT COUNTS THE TEAM, NOT THE DEPLOYMENT MARKER. The marker is created at the tower and never
+	//! moves, so measuring from it would fire the warning the instant the operation was bought - while
+	//! the men were still at the source base, possibly a 2.4 km drive away. CountAliveRegisteredMembersWithin
+	//! asks where the MEN are, which is the only thing that makes "they are almost here" true.
+	//!
+	//! ⚠ ALIVE MEMBERS, so a team wiped out on the way never announces itself. That falls out of using
+	//! the same counter the hold does rather than being a separate rule.
+	//!
+	//! THE TOWN NAME IS THE TOWER'S NEAREST, matching every other radio-tower notification in the
+	//! campaign (RadioTowerControlledResistance, RadioTowerSabotaged, RadioTowerRepaired all resolve the
+	//! same way), so a player reading two of them about one tower sees one name.
+	//! \param[in] tower The tower this team is going for.
+	protected void WarnOnApproach(notnull OVT_RadioTowerData tower)
+	{
+		if (m_bApproachAnnounced)
+			return;
+
+		if (CountAliveRegisteredMembersWithin(tower.location, m_fApproachWarningRadius) < 1)
+			return;
+
+		m_bApproachAnnounced = true;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if (!notify)
+			return;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+			return;
+
+		notify.SendTextNotification("RadioTowerCapture", -1, towns.GetNearestTownName(tower.location));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -192,6 +259,12 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		clone.m_fMaxDistance = m_fMaxDistance;
 		clone.m_fHoldRadius = m_fHoldRadius;
 		clone.m_iHoldSeconds = m_iHoldSeconds;
+
+		// ⚠ THE ATTRIBUTE IS COPIED, THE LATCH IS NOT. Dropped, m_fApproachWarningRadius clones as 0 and
+		// the warning can never fire - the operation goes back to arriving unannounced, silently, which
+		// is the defect this was written to fix. m_bApproachAnnounced is deliberately absent: a clone is
+		// a fresh deployment's module and has announced nothing.
+		clone.m_fApproachWarningRadius = m_fApproachWarningRadius;
 
 		return clone;
 	}

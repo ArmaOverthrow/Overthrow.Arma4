@@ -5194,3 +5194,297 @@ Both faults reverted, both verified back in the tree by grep, compile green, and
 **Still genuinely owed** (unchanged by this run): tests for the day's world-facing fixes — the settle-speed
 reading, the FOB-sourced walk, the hijack eviction, the Phase-2 livelock and the intact-group refund. The
 refund is the most testable of them and should be first.
+
+### 2026-08-20 — The forward base was queued behind an interval it should never have lost
+
+**The report:** *"no FOB being deployed for some reason. I think my save is in phase 2 for levie base and no FOB
+deployed yet"* — after a save reload.
+
+**It was not blocked. It had lost its turn.** From `logs_2026-08-20_01-49-57`:
+
+```
+02:01:44  A forward-base deployment from a previous session is standing near objective '#OVT-Base_Levie'
+          and can never raise anything - collecting it and re-siting
+02:01:44  Sent 'Objective Sabotage' at <7463.37...> for 100 resources
+```
+
+Both lines are the **same tick**. `SendFOBOperation()` found the supply party restored from the save, deleted
+it (it can never raise anything - D11 gates a restored deployment's raise) and returned **false**. The `&&`
+chain read that false as "the forward base has nothing to send", fell through to `SendSabotageOperation()`,
+bought one, and armed `SetOperationCountdown(objectiveHarassmentIntervalMinutes)`.
+
+So the tick that **cleaned up for** the forward base handed its slot to a sabotage mission and pushed the base
+a full operation interval away - **60 in-game minutes on Normal**. The author looked inside that window.
+
+⚠ **The earlier livelock guard did not cover this, correctly.** That guard holds the chain only on an
+AFFORDABILITY refusal, and this refusal was housekeeping - `m_bBlockedOnAffordability` was false. The two
+cases genuinely differ: waiting for money can last many ticks, whereas this is a single tick of bookkeeping
+with a clear field on the very next one. Hence a separate **one-shot** flag, `m_bFOBResitePending`, set by
+both re-site branches and cleared the moment it is read.
+
+**Decisions taken:**
+- ⚠ **Not folded into the affordability hold**, for the reason above - one is a wait, the other is a beat.
+- ⚠ **The idle clock is deliberately NOT held.** Being broke is not the objective's fault; spending a tick
+  tidying up after itself arguably is, and one idle tick out of a 240-minute budget does not justify a second
+  exemption that would have to be reasoned about every time the clock is read.
+- **Cleared in `ClearFOBRuntimeState()`** - a re-site owed to a forward base that no longer exists is owed to
+  nothing, and left set it would spend the first tick of the NEXT objective's forward-base phase holding the
+  chain for a job that already happened.
+
+`tools/compile-check.sh` exit 0.
+
+### 2026-08-20 — 🔴 CORRECTION: "a convoy is never resumed across a load" is protecting against a TELEPORT
+
+Earlier the same day this file's author (me) told the author that letting a restored insertion take a fresh
+truck instead of marching was **"one line, low-risk"**, and offered it. **That was wrong, and the reason is
+worth recording so nobody tries it again on that description.**
+
+`DecideInsertion()` short-circuits a restored deployment straight to `EnterWalking()`. The stated reason is
+that a convoy - truck, crew, waypoints, reservation - is session-only state with nothing to resume. True, but
+**not the dangerous half**. The dangerous half is that seating is a **teleport**: `SeatRider()` →
+`FillSlot()`/`FillCompartment()` → `SCR_CompartmentAccessComponent.MoveInVehicle()`, which calls
+`GetInVehicle(slotEntity, slot, true /* forceTeleport */, ...)` - vanilla, verified in the reference tree.
+
+So a restored team that has already marched a kilometre from its source base would, on taking a fresh truck,
+be **teleported back into it from wherever it stands**. That is worse than the long walk it was trying to
+avoid, and it is exactly what "never resumed across a load" prevents even though the comment does not say so.
+
+**The comment has NOT been changed and the behaviour has NOT been changed** - only this note added. If it is
+ever revisited, the shape that could work is *"spawn the transport at the FORCE, not at the source base"*, or
+a proximity guard that only offers a convoy to a restored force still bunched at its origin. Neither is one
+line.
+
+**The residual cost, unchanged and now understood:** a restored insertion walks however far it is (2 426 m in
+this session), and because `m_bRestoredFromSave` is never cleared, every group that deployment registers for
+the rest of the session walks too - including the reinforcement at 01:59:46, which registered AT the base and
+could safely have driven.
+
+### 2026-08-20 — Authored FOB markers now use the SAME corridor as the generated lattice
+
+Author, on being shown the ordering: *"authored markers should use the same corridor math used for
+non-authored markers. I assumed they did."* They did not.
+
+**The generated sampler is a corridor by construction** - `candidate = objective - along * standoff +
+lateral * offset`, so it can only produce points behind the objective on the supply side, within
+`FOB_LATERAL_SPREAD` of the line. **The authored path was a RING**: `QueryEntitiesBySphere(objective,
+bandMax)` and then `EvaluateFOBCandidate`'s band test, which is a *distance* from the objective and has no
+side. A marker directly behind the objective was as eligible as one on the supply line, and won on terrain
+score alone.
+
+**The play-test that exposed it:** marker at `<7772.23, 3389.22>`, **968 m** from Levie, band **847-1816 m**
+(0.35-0.75 of the 2 421 m Chotain->Levie separation) - inside the band, on the **opposite side** from
+Chotain, the only OF base anywhere near. The forward base was raised behind its own objective.
+
+New pure static `OVT_FOBSiting.IsInSupplyCorridor()` asks whether a point falls in the region the sampler's
+two ranges sweep, so an authored marker is admitted **exactly when the sampler could have produced it**. The
+bound is the same `FOB_LATERAL_SPREAD` constant rather than a second looser one - that is what "the same
+corridor math" means.
+
+⚠ **The along-axis projection is NEGATED, and a sign slip re-admits precisely what this rejects.** `along`
+runs from source to objective; a valid site sits *behind* the objective on that axis, so the projection of
+`candidate - objective` is negative and its magnitude is the standoff.
+
+**And the record now names the base that really supplies it** (author approved, same day).
+`m_FOB.sourceBasePosition` is resolved from the chosen **site** rather than from the objective, through a new
+shared `ResolveNearestControlledBaseTo()` that `ResolveFOBSourceBase()` also delegates to - one walk, two
+callers, no chance of them drifting into subtly different questions.
+
+⚠ **`source` is still the right input for the CORRIDOR and is unchanged.** It answers "which way does the
+supply line run" before any site exists. It was only ever wrong as the thing to *remember*.
+
+✅ **The raise path already did this correctly, which is the strongest evidence the change matches intent
+rather than inventing a rule.** `OVT_FOBRaiseSpawningDeploymentModule` calls
+`director.OnFOBRaised(site, GetInsertionSource(), ...)` - the insertion module's own `m_vSource`, i.e. the
+base the supply party actually drove from - and `OnFOBRaised()` overwrites the record with it. So the system
+already corrected itself **at raise time**; what it could not do was be right in the window BETWEEN the send
+and the raise, which on a 2.7 km drive is several minutes of a phase that ticks starvation every minute. That
+window is what this closes.
+
+### 2026-08-20 — A truck that never left its spawn is now collected immediately, not in 20 minutes
+
+**The report:** *"I also just found an abandoned truck at the vehicle spawn point of chotain. then a specops
+harassment team spawned in a new truck nearby but triggered the 'stuck' gate shortly after so they started
+walking. I dont know how a truck isnt being cleaned up but there must be a way to avoid this situation."*
+
+**The two halves are one self-reinforcing loop:**
+
+1. A transport stalls where it spawned -> the stuck gate fires after ~60 s -> `ReleaseConvoy(reason, false)`
+   -> `ArmAbandonedTruck()` leaves it standing **on the authored `OVT_VehiclePatrolSpawn`**.
+2. `ResolveAuthoredTruckSpawn()` skips any marker with a vehicle within `MARKER_CLEARANCE_M` (6 m), so that
+   marker is out of service.
+3. When the last free marker goes, `ChooseSpawnMarker()` answers **-1** and the next insertion falls back to
+   the road snap - which the method's own header admits "may land on the access road, which may be inside the
+   wire, across a gate or nose-first into a wall".
+4. That truck stalls too, and abandons itself somewhere worse. **Each failure makes the next likelier.**
+
+**Why the existing safety nets could not clear it:** collection needs `ABANDONED_TRUCK_TIMEOUT_TICKS` (~20
+real minutes) **and** no player within `ABANDONED_TRUCK_PLAYER_RADIUS_M` - **320 m**. At a base a player
+visits, that radius covers the whole compound, so the proximity hold pins the obstruction in place for
+exactly as long as somebody is there to be inconvenienced by it. The hold is not a bug (it exists so a truck
+never vanishes in front of someone looting it) - it is simply the wrong rule for a truck in a motor pool.
+
+**The fix:** `ArmAbandonedTruck()` now checks whether the transport is still within
+`ABANDONED_AT_SPAWN_RADIUS_M` (**30 m**) of `m_vHome` - the spot it spawned on, recorded earlier the same day
+for the return leg - and if so calls `ReleaseTruck()` immediately instead of arming the countdown.
+
+⚠ **Release, not delete**, so the ownership veto keeps the last word: a truck a player has claimed is left
+standing and forgotten, because stealing one still makes it yours permanently. `ReleaseTruck()` nulls the
+handle on both paths, which is why nothing is armed afterwards.
+
+**Why 30 m:** comfortably wider than `MARKER_CLEARANCE_M` (6) plus a truck's length, so a transport that
+rolled a few metres and stalled still counts as fouling its marker; far tighter than any distance at which a
+truck is worth keeping as a landmark. A convoy that got out of the compound and stalled on the road is
+hundreds of metres away and is left entirely alone.
+
+`tools/compile-check.sh` exit 0 on both. ⚠ Suite re-run still owed (Workbench running).
+
+### 2026-08-20 — The tower-recapture warning was never re-wired after the migration
+
+**The report:** *"prior to this feature when we migrated the tower recapture a notification would be sent when
+a team was trying to recapture a radio tower. a specops team just arrived at it (good) but no notification.
+it should trigger when they are almost at the location (about the distance the insertion would drop them)"*.
+
+**The notification was still there. Nothing had sent it since the migration.** `Configs/overthrowBroadcastMessages.conf`
+carries a `RadioTowerCapture` preset, and `Language/localization_Overthrow.st` has its text in three
+languages:
+
+```
+"The enemy is attempting to capture a radio tower near %1"
+```
+
+`grep -rn "RadioTowerCapture" Scripts/` returns **only the class name**
+`OVT_RadioTowerCaptureBehaviorDeploymentModule` - a coincidental substring - and never the tag. When
+`virtualization/base-defense-migration` deleted `OVT_BaseUpgradeSpecops` it took the only sender with it and
+left the preset and its localised strings orphaned. `counter-attacks` then rebuilt the recapture as a
+deployment (T5.4) and restored the *capability* without restoring the *warning*: `ChangeRadioTowerControl()`
+notifies on the flip, which is the ANNOUNCEMENT OF THE RESULT, not of the attempt.
+
+**Now sent on approach**, from `OVT_TowerRecaptureBehaviorDeploymentModule.WarnOnApproach()`.
+
+**Decisions taken:**
+- ⚠ **It measures the MEN, not the deployment marker.** The marker is created at the tower and never moves,
+  so measuring from it would fire the warning the moment the operation was bought - while the team was still
+  at the source base, up to a 2.4 km drive away. `CountAliveRegisteredMembersWithin()` is what makes "they are
+  almost here" actually true, and using the same counter the hold uses means a team wiped out on the way never
+  announces itself.
+- ⚠ **300 m, not the 80 m hold radius**, per the author's "about the distance the insertion would drop them" -
+  it is `m_fLZStandoffDistance` on every config that carries a recapture team, so the warning lands as the men
+  are put down. A warning at the hold radius would arrive at the moment the ten-minute hold had already
+  started, which is too late to be a warning at all.
+- **Announced-once latch**, not persisted, **not cloned** - without it the line would repeat every update for
+  the whole hold, six times a minute.
+- **The town name resolves the same way as every other radio-tower notification**
+  (`RadioTowerControlledResistance`, `RadioTowerSabotaged`, `RadioTowerRepaired`), so two messages about one
+  tower name the same place.
+
+Authored `m_fApproachWarningRadius 300` on **both** recapture configs - the director's
+`Deployment_ObjectiveTowerRecapture` and the evaluator's `Deployment_TowerRecaptureUnrest`.
+
+⚠ **No `.st` work was needed and none was done** - the string already exists in en/de/ru. This is one of the
+rare cases where the localisation debt runs the other way: the text outlived its sender.
+
+`tools/compile-check.sh` exit 0.
+
+### 2026-08-20 — A condition-fail teardown now pays back the men who survived it
+
+**The report:** *"they took the radio tower, but was not collected due to 'Failed conditions'"* — with the log
+showing the flip, the new Tower Garrison, and then `Requesting deletion of deployment Tower Recapture
+(Unrest) due to failed conditions`.
+
+**This is the gap flagged when `CollectDeployment()` was written and deliberately left open then.** The
+recapture's success IS a condition failure: the team takes the tower, the
+`OVT_RadioTowerControlConditionDeploymentModule` it deployed under (`m_bRequireControl 0`) turns false, and
+the reinforcement module tears it down. That route called `DeleteDeployment()`, which refunds nothing — so a
+team that had just **succeeded** was written off in full.
+
+**Fixed at the teardown that actually runs**, not at the behaviour module.
+
+⚠ **The recapture module deliberately does NOT request its own collection**, and this is the reason: it runs
+*before* the reinforcement module in every config carrying both (enforced by
+`OVT_TEST_Init_TowerUnrestRecapture`'s ordering check), so its deferred one-frame
+`RequestDeploymentCollection()` would be beaten by the reinforcement module's **inline** delete in the same
+pass and would find the deployment already gone. Fixing the teardown that actually runs is the only
+arrangement in which the refund cannot be raced.
+
+**⚠ THE OBJECTION THIS HAS TO ANSWER — "does every condition-fail now pay out?" — is NO, and the intact-group
+rule is what makes it no.** `CollectDeployment()` refunds only groups still at **full strength**:
+
+| Condition-fail case | Intact groups? | Refund |
+|---|---|---|
+| Tower/base garrison whose location changed hands | none — that is *how* it changed hands | **nothing** |
+| Recapture team that took its tower | all of them | per-group cost ✅ |
+| Objective operation called off when the objective moves | usually all | per-group cost ✅ |
+| Anything that was wiped out | none | **nothing** |
+
+**And what can refund at all is bounded by class**, checked rather than assumed: `GetIntactGroupRefund()`
+returns 0 on `OVT_BaseSpawningDeploymentModule` and is overridden only on the infantry module, so
+`OVT_VehicleSpawningDeploymentModule` and `OVT_ParkedVehicleSpawningDeploymentModule` refund **nothing**,
+while everything that puts *men* on the ground (infantry, placed infantry, composition, insertion, FOB raise)
+refunds their per-group cost. Men come home; vehicles and structures do not.
+
+**Blast radius, stated rather than estimated:** 15 shipped configs author `m_bDeleteOnConditionFail 1` — the
+eight base-defence configs, the tower garrison, both tower recaptures, and the four objective operations.
+All of them now pay back intact groups on a condition-driven teardown.
+
+`tools/compile-check.sh` exit 0. ⚠ Suite re-run owed and this one genuinely needs it: it changes a teardown
+path shared by every shipped deployment.
+
+### 2026-08-20 — The battle HUD names the place, and the muster window is halved to 15 minutes
+
+**First counter-attack to actually fire**, and the author's three asks off the back of it: a header reading
+*"Battle for Levie Base"*, a smaller sub-line *"Scoring will begin in M:SS"*, **both** for both QRF modes, and
+*"30 mins is too long, maybe 15"*.
+
+**1. The muster window: `MUSTER_TIME_MS` 1 800 000 -> 900 000.** Nothing else moves with it - nothing is
+scored during the window whatever its length, the early-wipe end runs on its own 10 s cadence, and the
+publish threshold is unchanged. The only thing that scales with it is how far away a player can be and still
+make it, which is the knob itself.
+
+**2. One clock instead of two branches.** New pure `OVT_QRFSiege.FormatClock(ms)` -> `"M:SS"`, zero-padded
+seconds, truncating. The HUD used to render whole minutes above `PUBLISH_THRESHOLD_MS` and bare seconds below
+it, through two different strings - so **one countdown changed both its unit and its wording partway
+through**, and `"3"` becoming `"119"` read as a fault. `ShouldRenderMinutes` / `MusterMinutesRemaining` are no
+longer called by the HUD but are kept: the Logic tier pins them and a mod may want the old form.
+
+**3. The header.** New `QRFHeaderText` above the timer in `EconomyInfo.layout`; the timer drops to font size
+12 and grey as the sub-line.
+
+⚠ **The place name is resolved from the REPLICATED INDICES, never the handles.** `m_CurrentQRFBase` /
+`m_CurrentQRFTown` are server-side object handles that the finish handlers never clear - only the indices
+beside them reset to -1 - so reading a handle would make the panel name **whatever place was fought over
+last**. The manager's own `RevealQRF()` carries the same warning for the same reason, and the HUD now uses the
+same town-before-base precedence so the header and the broadcast can never disagree.
+
+⚠ **Bounds-checked against the CLIENT's own base list.** `GetBaseByIndex()` dereferences `m_Bases[index]` with
+no guard of its own, and `m_Bases` is built by a server-side world query - a client whose copy is shorter would
+index off the end.
+
+⚠ **An unresolvable place is a REAL case with its own string**, `OVT-QRFBattleForUnknown` -> *"Battle in
+progress"*. The indices are replicated on change but are **not** in the JIP catch-up payload (pre-existing
+debt, epic's JIP/client divergence entry), so a player who joins mid-battle legitimately has neither. Naming
+the wrong place would be worse than naming none.
+
+**4. Three player-facing strings that the halving turned into lies, all corrected** - this is the
+fact-checking rule the project has been bitten by twice:
+
+| String | Was | Now |
+|---|---|---|
+| `OVT-Msg-CounterAttackBase` | "will assault within **30** minutes" | 15 |
+| `OVT-Msg-CounterAttackTown` | "will assault within **30** minutes" | 15 |
+| Field Manual, Counter Attacks page | "**thirty** real minutes" + "reads in minutes until the last two, then in seconds" | "fifteen real minutes" + "names the place being fought over and counts down to the moment scoring begins" |
+
+Checked: both broadcast keys are English-only, and **no other language carries a 30-minute claim**.
+
+⚠ **Only `Language/localization_Overthrow.st` was edited - the `.conf` exports are untouched** (confirmed by
+`git diff`), and the file's brace balance was verified after the insert (1772/1772, 884 items, no duplicate
+Ids) because an unbalanced `.st` loses data on the next Workbench save.
+
+⚠ **Three new keys mean the owed Workbench re-export now also covers `OVT-QRFBattleFor`,
+`OVT-QRFBattleForUnknown` and `OVT-QRFScoringBeginsIn`** - until it runs, the battle panel renders raw
+`#OVT-` keys. That is the export being stale, not a bug.
+
+**The Logic tier still passes unchanged, checked rather than assumed:** its `ExpectPublish(1800000, ...)` rows
+feed literal millisecond values to a pure predicate and never reference `MUSTER_TIME_MS`; 1 800 000 ms is
+thirty minutes whatever the constant says. The Init tier compares against the symbol and follows the change.
+
+`tools/compile-check.sh` exit 0. ⚠ The `.layout` is parsed by no automated gate - **needs a look in game**.

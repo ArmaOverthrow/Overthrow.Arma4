@@ -620,4 +620,29 @@ class OVT_DeploymentComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	bool GetSpawnedUnitsEliminated() { return m_bSpawnedUnitsEliminated; }
 	void SetSpawnedUnitsEliminated(bool eliminated) { m_bSpawnedUnitsEliminated = eliminated; }
+
+	//------------------------------------------------------------------------------------------------
+	//! WHETHER THIS DEPLOYMENT CAME FROM THE FREE-AT-GAME-START PASS rather than from a purchase.
+	//!
+	//! WHAT READS IT: OVT_InfantrySpawningDeploymentModule.EnsureGroups(), to decide whether to honour
+	//! m_bSpawnAtNearestBase. Author's rule, 2026-08-20: *"they shouldnt spawn at nearest base at game
+	//! start (if free at game start = true they should spawn in the town)"*. A campaign that opens with
+	//! every town's patrol walking in from a base opens with every town empty, which is not what a map
+	//! the occupying faction has held for years should look like; a patrol BOUGHT mid-campaign is
+	//! reinforcement arriving from somewhere real, and should travel.
+	//!
+	//! ⚠ IT IS NOT config.m_bFreeAtGameStart AND CANNOT BE DERIVED FROM IT. That flag is a property of
+	//! the CONFIG, and the same config is bought again by the evaluator later in the campaign - when the
+	//! force SHOULD come from a base. This is a property of THIS INSTANCE: how it came into being.
+	//!
+	//! ⚠ NOT PERSISTED, deliberately. On load, spawning modules RECLAIM their groups by owner key rather
+	//! than registering new ones, so nothing re-reads this for a restored deployment; a save taken after
+	//! game start therefore has nothing to remember. The cost of being wrong is one patrol walking in
+	//! from a base after a load rather than appearing in its town, which is the same outcome as the
+	//! evaluator having bought it.
+	//! \return True when the free-at-game-start pass created this deployment.
+	bool WasSeededAtGameStart() { return m_bSeededAtGameStart; }
+	void SetSeededAtGameStart(bool seeded) { m_bSeededAtGameStart = seeded; }
+
+	protected bool m_bSeededAtGameStart;
 }

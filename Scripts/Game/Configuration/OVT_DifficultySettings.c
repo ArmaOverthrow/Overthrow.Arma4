@@ -23,7 +23,28 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int wantedOneTimeout;
 	
 	//OF
-	[Attribute(defvalue: "3000", desc: "OF starting resources per base", category: "Occupying Faction")]
+	//! ⚠ PER BASE, NOT PER CAMPAIGN, AND THE MULTIPLICATION IS WHY THIS WAS RE-SCALED (2026-08-20).
+	//! CalculateOpeningDeploymentSeed() sums `floor(startingResources * base.m_fStartingResourcesMultiplier)`
+	//! over EVERY base on the map, so on a ten-base world the campaign's opening credit is roughly eleven
+	//! times this number. Normal's authored 850 produced **9 940** into the deployment pool, which the
+	//! author reasonably read as a leak.
+	//!
+	//! IT WAS NOT A LEAK - IT WAS SIZED FOR A MODEL THAT NO LONGER EXISTS. 9 940 is very close to the
+	//! cost of fortifying all ten bases outright (the five non-baseline base configs total ~820 apiece),
+	//! which is exactly what the deleted per-base distribution used to do with it on the first tick. Two
+	//! changes since have made that wrong: base defence is now bought concern-by-concern by the evaluator
+	//! as threat allows, and MIN_LOCAL_THREAT_TO_DEPLOY refuses escalation at a quiet place - and at t0
+	//! EVERY place is quiet. So the old figure could not be spent when it was granted and simply banked,
+	//! turning into a burst the moment the player made noise anywhere.
+	//!
+	//! THE NUMBERS ARE NOW SIZED AS "a few early deployments", not "fortify the map": 150 on Normal is
+	//! about 1 960 into the pool, or roughly two bases' worth of escalation. The Easy -> Insane ordering
+	//! and rough ratios are preserved.
+	//!
+	//! ⚠ THE DEFAULT WAS 3000 AND Difficulty_Insane AUTHORED NOTHING, so Insane silently inherited it and
+	//! opened on a ~35 000 credit. It now authors 500 explicitly, and this default is lowered so the next
+	//! preset that forgets inherits something sane rather than the largest number in the file.
+	[Attribute(defvalue: "150", desc: "OF starting resources PER BASE, credited once into the deployment pool at campaign start. The campaign total is this times the number of bases (times each base's own multiplier), so a ten-base world opens on roughly eleven times this figure", category: "Occupying Faction")]
 	int startingResources;
 	[Attribute(defvalue: "250", desc: "OF resources per 6 hrs", category: "Occupying Faction")]
 	int baseResourcesPerTick;

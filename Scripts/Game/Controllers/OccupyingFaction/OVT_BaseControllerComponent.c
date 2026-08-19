@@ -201,6 +201,33 @@ class OVT_BaseControllerComponent: OVT_Component
 	void FindSlots()
 	{
 		GetGame().GetWorld().QueryEntitiesBySphere(GetOwner().GetOrigin(),  OVT_Global.GetConfig().m_Difficulty.baseRange, CheckSlotAddToArray, FilterSlotEntities);
+
+		// ⚠ THE SLOT INVENTORY IS OTHERWISE INVISIBLE UNTIL SOMETHING FAILS TO USE IT, which is how a
+		// base with no ROAD_LARGE slot at all looked identical to one whose road slots were merely taken,
+		// and how "all the vanilla slots are missing" went unnoticed until a checkpoint was bought and
+		// never built (author, 2026-08-20). This is the one moment the answer is known, it is one line
+		// per base at init, and it turns "is the discovery working" from a rebuild into a log read.
+		//
+		// EVERY SIZE IS PRINTED, INCLUDING THE ZEROES. A missing size is exactly the interesting case, so
+		// it must not be the one that prints nothing.
+		// ⚠ APPENDED IN STEPS, NOT BUILT AS ONE EXPRESSION, AND NOT string.Format. Format caps its
+		// parameter count and rejects this many outright ("Too many parameters for 'Format' method");
+		// a single long `+` chain then fails differently, with "Formula too complex" - EnforceScript
+		// caps expression size too. Successive `+=` clears both, and the whole value of the line is that
+		// it carries every size at once, so splitting it across two Prints would be worse than this.
+		string inventory = "[Overthrow] Base '" + m_sName + "' slot inventory within ";
+		inventory += OVT_Global.GetConfig().m_Difficulty.baseRange.ToString() + " m:";
+		inventory += " SMALL " + m_SmallSlots.Count().ToString();
+		inventory += ", MEDIUM " + m_MediumSlots.Count().ToString();
+		inventory += ", LARGE " + m_LargeSlots.Count().ToString();
+		inventory += ", ROAD_SMALL " + m_SmallRoadSlots.Count().ToString();
+		inventory += ", ROAD_MEDIUM " + m_MediumRoadSlots.Count().ToString();
+		inventory += ", ROAD_LARGE " + m_LargeRoadSlots.Count().ToString();
+		inventory += " (total " + m_AllSlots.Count().ToString();
+		inventory += ", defend posts " + m_aDefendPositions.Count().ToString();
+		inventory += ", vehicle spawns " + m_aVehiclePatrolSpawns.Count().ToString() + ")";
+
+		Print(inventory, LogLevel.NORMAL);
 	}
 
 	bool FilterSlotEntities(IEntity entity)

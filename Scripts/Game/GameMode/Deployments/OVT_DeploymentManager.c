@@ -213,6 +213,21 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! terms scale with town SIZE, so raising the floor prunes villages long before it prunes cities.
 	static const float MIN_LOCAL_THREAT_TO_DEPLOY = 5;
 
+	//! How far apart two BASELINE deployments of the same config must be, in metres.
+	//!
+	//! ⚠ WIDER THAN THE 250 m PER-CONCERN DEDUP ON PURPOSE, and only applied to m_bFreeAtGameStart
+	//! configs. 250 m is right for escalation - a base fortifies by acquiring several DIFFERENT configs
+	//! within a few hundred metres of each other, and narrowing that would break the whole per-concern
+	//! model. It is wrong for baseline presence, which is supposed to exist exactly ONCE per place: a
+	//! base position inside a town's bounds classifies as BASE|TOWN and therefore satisfies Town Patrol's
+	//! TOWN mask, while standing far enough from the town centre that a 250 m check cannot see the patrol
+	//! already there.
+	//!
+	//! 1000 m is OVT_DeploymentManagerComponent.HasDeploymentNearPosition()'s own default radius - the
+	//! figure the framework already uses for "is there one of these around here" - rather than a new
+	//! number invented for this rule.
+	static const float BASELINE_DEDUP_RADIUS = 1000;
+
 	//! ⚠ There is no longer a blanket minimum distance between deployments. The 100 m veto that used
 	//! to live here was removed with the base-defense migration: it made a place that already held one
 	//! deployment invisible to every other config, and a base fortifies by acquiring several DIFFERENT
@@ -947,7 +962,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 
 			// resourcesInvested 0 IS LOAD-BEARING: a deployment nobody paid for must refund nothing
 			// when it is collected, and must not show up in the GM panel as money spent.
-			OVT_DeploymentComponent deployment = CreateDeployment(config, position, factionIndex, 0, threatLevel);
+			//
+			// ⚠ AND SO IS THE seededAtGameStart FLAG, WHICH CANNOT BE INFERRED FROM ANYTHING ELSE HERE.
+			// It is NOT the same question as config.m_bFreeAtGameStart: that is a property of the CONFIG,
+			// and the very same config is bought again by the evaluator later in the campaign, when the
+			// force SHOULD come from a base. Nor is it "resourcesInvested == 0" - Town Patrol authors
+			// m_iCostPerGroup 0, so an evaluator purchase of it costs zero too. Only the caller knows.
+			OVT_DeploymentComponent deployment = CreateDeployment(config, position, factionIndex, 0, threatLevel, 0, true);
 			if (!deployment)
 				continue;
 
@@ -1165,34 +1186,74 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		candidatesWithThreat.Sort(true);
 		
 		int numDeployments = 0;
-		int suppressedByFloor = 0;
 
 		// Evaluate each candidate position in order of threat level
 		foreach (OVT_CandidatePosition candidate : candidatesWithThreat)
 		{
-			// 🔴 THE SPEND FLOOR: A QUIET PLACE IS NOT WORTH FORTIFYING, AND SAVING THE MONEY IS A BETTER
-			// ANSWER THAN SPENDING IT BADLY. Author, 2026-08-20: "id rather the manager saved resources
-			// than just spend where it isnt needed".
-			//
-			// ⚠ IT READS candidate.threatLevel, WHICH IS THE UNBIASED SCORE, and that is load-bearing
-			// rather than incidental. The objective anchor writes only to sortBy (D5: it biases ORDERING,
-			// never ELIGIBILITY), so an objective cannot make a dead corner of the map worth garrisoning -
-			// it can only change which of the places that ARE worth it gets bought first.
-			//
-			// ⚠ THE FREE-AT-GAME-START SEEDING DOES NOT COME THROUGH HERE and must not be floored: a
-			// fresh campaign has no known targets and quiet towns, so every position would score near
-			// zero and the map would start completely undefended. That path is SeedFreeDeployments(),
-			// which asks PassesSeedConditions() instead.
-			if (candidate.threatLevel < MIN_LOCAL_THREAT_TO_DEPLOY)
-			{
-				suppressedByFloor++;
-				continue;
-			}
-
 			// Find suitable deployment config for this position and threat level
 			OVT_DeploymentConfig bestConfig = FindBestDeploymentConfig(candidate.position, factionIndex, candidate.threatLevel, availableResources);
 			if (bestConfig)
 			{
+				// 🔴 THE SPEND FLOOR: A QUIET PLACE IS NOT WORTH ESCALATING AT, AND SAVING THE MONEY IS A
+				// BETTER ANSWER THAN SPENDING IT BADLY. Author, 2026-08-20: "id rather the manager saved
+				// resources than just spend where it isnt needed".
+				//
+				// 🔴 BUT IT EXEMPTS BASELINE PRESENCE, AND THAT EXEMPTION IS A BUG FIX (2026-08-20, later
+				// the same day). A config marked m_bFreeAtGameStart is not escalation - it is what a place
+				// this faction holds is SUPPOSED TO LOOK LIKE, and SeedFreeConfig() already refuses to
+				// gate it on threat for exactly this reason: "Threat is a measure of what has already
+				// happened, and at t0 nothing has."
+				//
+				// Without the exemption the two paths disagreed, and the gap between them was permanent.
+				// Seeding is a ONE-SHOT that legitimately skips places - a base a player happens to be
+				// standing in is refused by Base Garrison Patrol's own
+				// OVT_NoPlayersNearbyConditionDeploymentModule, and the author had been repeatedly loading
+				// saves while standing at bases. Before the floor, the evaluator quietly repaired those
+				// gaps on a later pass. After it, a quiet base scored under 5 and the evaluator refused
+				// too, so a garrison missed once was missed FOREVER: the play-test that found it had
+				// ZERO Base Garrison Patrols, 26 of 39 candidates floored every pass, and 6871 resources
+				// sitting idle.
+				//
+				// ⚠ THE FLOOR IS THEREFORE ASKED AFTER THE CONFIG IS CHOSEN, not before. It cannot be a
+				// per-candidate pre-filter any more, because "is this worth spending on" now depends on
+				// WHAT would be bought. The cost is one FindBestDeploymentConfig walk per quiet candidate
+				// per pass, which is a registry scan over a few dozen positions - cheap next to the
+				// permanent hole it closes.
+				//
+				// ⚠ IT READS candidate.threatLevel, WHICH IS THE UNBIASED SCORE, and that is load-bearing
+				// rather than incidental. The objective anchor writes only to sortBy (D5: it biases
+				// ORDERING, never ELIGIBILITY), so an objective cannot make a dead corner of the map worth
+				// garrisoning - it can only change which of the places that ARE worth it gets bought first.
+				if (!bestConfig.m_bFreeAtGameStart && candidate.threatLevel < MIN_LOCAL_THREAT_TO_DEPLOY)
+				{
+					continue;
+				}
+
+				// 🔴 AND A BASELINE EXEMPTION REPAIRS WHAT IS MISSING, NEVER DUPLICATES WHAT IS THERE.
+				//
+				// The exemption above was added so a garrison the one-shot seeding skipped could still be
+				// bought later. Its first play-test showed the other half of that coin: the evaluator's
+				// FIRST pass, one second after seeding, bought four more Town Patrols, two more Tower
+				// Garrisons and two more Base Garrison Patrols on top of the twenty the seeding had just
+				// placed - including a THIRD patrol for one town. Before the exemption those candidates
+				// were floored at t0 and the duplication was invisible; it is not a new fault, but the
+				// exemption is what made it reachable, so the exemption is where it is answered.
+				//
+				// ⚠ THE STANDARD 250 m DEDUP HAD ALREADY SAID YES. FindBestDeploymentConfig() applies it
+				// per config before it picks, so a config reaching this line is one that check believes
+				// the position lacks - and for a town-scoped config it can be wrong by construction: a
+				// BASE position inside a town's bounds classifies as BASE|TOWN, satisfies Town Patrol's
+				// TOWN mask, and sits far enough from the town centre that a 250 m radius cannot see the
+				// patrol already standing there. Widening the radius for THIS path only is what closes
+				// that gap without loosening the per-concern dedup the whole escalation model depends on
+				// (a base must be able to hold several DIFFERENT configs at one place).
+				//
+				// ⚠ IT IS DELIBERATELY ASYMMETRIC. Escalation still uses the 250 m rule and can still be
+				// acquired concern by concern at close quarters; only baseline presence - the thing that
+				// is supposed to exist exactly once per place - is held to the wider one.
+				if (bestConfig.m_bFreeAtGameStart && HasExistingDeploymentOfType(candidate.position, factionIndex, bestConfig.m_sDeploymentName, BASELINE_DEDUP_RADIUS))
+					continue;
+
 				// REDUNDANT SINCE THE ESCALATION CHANGE, AND KEPT ON PURPOSE. FindBestDeploymentConfig
 				// now applies this same dedup per config before it picks, so a config it hands back is
 				// one this position does not hold. This is a cheap belt-and-braces guard on the ONE
@@ -1228,16 +1289,6 @@ class OVT_DeploymentManagerComponent : OVT_Component
 
 			if (numDeployments >= MAX_DEPLOYMENTS_PER_EVALUATION)
 				break;
-		}
-
-		// THE ONE CASE WORTH A LINE: the faction had money, looked at every place it holds, and decided
-		// none of them needed anything. That is the floor doing its job rather than a stall, and without
-		// a line saying so it is indistinguishable from a broken evaluator. Bounded to the pass that
-		// bought NOTHING, so a normal pass that skips a few dead corners and buys elsewhere stays silent.
-		if (numDeployments == 0 && suppressedByFloor > 0)
-		{
-			Print(string.Format("[Overthrow] Deployment pool for faction %1: bought nothing and kept %2 resources - %3 candidate position(s) are below the local-threat floor of %4, i.e. nothing is happening near them. The faction is saving rather than fortifying quiet ground",
-				factionIndex.ToString(), pool.ToString(), suppressedByFloor.ToString(), MIN_LOCAL_THREAT_TO_DEPLOY.ToString()), LogLevel.NORMAL);
 		}
 	}
 	
@@ -1339,12 +1390,34 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			
 		foreach (OVT_BaseData baseData : ofManager.m_Bases)
 		{
-			if (baseData && IsPositionRelevantToFaction(baseData.location, factionIndex))
-			{
-				positions.Insert(baseData.location);
-			}
+			if (!baseData)
+				continue;
+
+			// 🔴 A BASE THIS FACTION DOES NOT HOLD IS NOT A PLACE FOR IT TO BUILD (added 2026-08-20).
+			// IsPositionRelevantToFaction() answers TRUE unconditionally for the occupying faction, so
+			// without this line every base on the map - including every one the resistance has captured -
+			// was offered to the evaluator as somewhere to buy a garrison, defences or parked vehicles.
+			//
+			// ⚠ IT WAS LATENT UNTIL THE THREAT RESCALE THE SAME DAY, WHICH IS WHY IT SURVIVED THIS LONG.
+			// While every candidate scored the global threat plus noise, an enemy base was no more
+			// attractive than anywhere else and rarely won the sort. Now a captured base is worth
+			// THREAT_WEIGHT_ENEMY_BASE to the spatial score, so it is SYSTEMATICALLY among the top
+			// candidates - the rescale turned a lottery into a certainty and the author watched the
+			// occupying faction deploy into a base they controlled.
+			//
+			// ⚠ THE DIRECTOR IS UNAFFECTED AND MUST BE. Its operations against enemy bases - sabotage,
+			// the forward base - are created through ForceCreateDeployment(), which never asks for a
+			// candidate list. This filters the ROUTINE evaluator only, which is exactly the thing that
+			// has no business building at a place it does not hold.
+			if (baseData.faction != factionIndex)
+				continue;
+
+			if (!IsPositionRelevantToFaction(baseData.location, factionIndex))
+				continue;
+
+			positions.Insert(baseData.location);
 		}
-		
+
 		return positions;
 	}
 	
@@ -1924,7 +1997,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! \param[in] threatLevel Threat level the candidate position scored at.
 	//! \param[in] yaw Heading for the marker, in degrees. 0 leaves it unrotated, as every deployment was
 	//!            before 2026-08-19.
-	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0)
+	//! \param[in] seededAtGameStart True only for the free-at-game-start pass. See
+	//!            OVT_DeploymentComponent.WasSeededAtGameStart() for what reads it and why.
+	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0, bool seededAtGameStart = false)
 	{
 		if (config)
 			Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
@@ -1975,6 +2050,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// the spawning modules create and delete them by player proximity - so this entity is the
 		// only durable record that the faction has a force committed here.
 		OVT_PersistenceTracking.Track(deploymentEntity);
+
+		// ⚠ SET BEFORE InitializeDeployment, NOT AFTER, and the ordering is the whole reason this is a
+		// parameter rather than a call the seeding pass makes on the returned component. Initialisation
+		// is what builds and activates the modules, and a spawning module reads this on its very first
+		// convergence; stamping it afterwards would be one pass too late for exactly the deployments it
+		// exists to describe.
+		deployment.SetSeededAtGameStart(seededAtGameStart);
 
 		deployment.InitializeDeployment(config, factionIndex);
 

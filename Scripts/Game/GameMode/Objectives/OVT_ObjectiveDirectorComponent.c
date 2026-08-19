@@ -454,6 +454,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! FindLiveFOBDeployment() is for.
 	protected bool m_bFOBDeploymentSent;
 
+	//! One-shot: SendFOBOperation() spent this tick clearing the way for a forward base rather than
+	//! sending one, so the chain must not hand the interval to a cheaper operation. Set by the two
+	//! housekeeping branches, cleared the moment SendNextFOBOperation() reads it. Runtime only - a save
+	//! taken between the two ticks simply re-discovers the same condition on the next one.
+	protected bool m_bFOBResitePending;
+
 	//! Where the forward base's deployment was created. Held separately from m_FOB.position, which is
 	//! only written once the structure is actually standing, so the teardown can still find a marker
 	//! whose raise never completed.
@@ -1973,6 +1979,32 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (m_bBlockedOnAffordability && !m_FOB.up && !m_bFOBDeploymentSent)
 			return false;
 
+		// 🔴 AND HOUSEKEEPING MUST NOT COST THE FORWARD BASE ITS TURN EITHER (2026-08-20).
+		//
+		// SendFOBOperation() has two branches that CLEAR THE WAY for a base rather than sending one: a
+		// stale supply party restored from a save (which can never raise anything, D11) and one that
+		// vanished between the send and the raise. Both delete something, set up a re-site, and return
+		// false - and false let the chain fall straight through to a cheaper ramp operation, which then
+		// armed the whole operation interval. So the tick that CLEANED UP for the forward base handed
+		// its slot to a sabotage mission and pushed the base a full interval away - 60 in-game minutes
+		// on Normal. The author loaded a save in the forward-base phase, watched exactly that happen
+		// ("no FOB being deployed for some reason... my save is in phase 2 for levie base"), and the
+		// base was not blocked at all - it was queued behind an interval it should never have lost.
+		//
+		// ⚠ THIS IS NOT THE AFFORDABILITY HOLD AND MUST NOT BE FOLDED INTO IT. That one waits for money
+		// and can last many ticks; this one is a SINGLE tick of bookkeeping, and the very next tick has
+		// a clear field to site on. Hence a one-shot flag, cleared as it is read.
+		//
+		// ⚠ THE IDLE CLOCK IS DELIBERATELY NOT HELD HERE. Being unable to afford anything is not the
+		// objective's fault; spending a tick tidying up after itself arguably is, and one idle tick out
+		// of a 240-minute budget is not worth a second exemption that would have to be reasoned about
+		// every time the clock is read.
+		if (m_bFOBResitePending)
+		{
+			m_bFOBResitePending = false;
+			return false;
+		}
+
 		if (!SendFOBGarrisonOperation() && !SendTowerRecaptureOperation() && !SendHarassmentOperation() && !SendSabotageOperation())
 			return false;
 
@@ -2030,6 +2062,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			m_bFOBDeploymentSent = false;
 			m_vFOBSite = vector.Zero;
 
+			m_bFOBResitePending = true;
 			return false;
 		}
 
@@ -2040,6 +2073,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		{
 			Print(LOG + "A forward-base deployment from a previous session is standing near objective '" + m_Objective.name + "' and can never raise anything - collecting it and re-siting", LogLevel.WARNING);
 			deployments.DeleteDeployment(existing);
+
+			m_bFOBResitePending = true;
 			return false;
 		}
 
@@ -2095,7 +2130,32 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		}
 
 		m_vFOBSite = site;
-		m_FOB.sourceBasePosition = source;
+
+		// 🔴 RECORDED FROM THE SITE, NOT FROM THE OBJECTIVE, SO THE RECORD MATCHES WHO ACTUALLY SUPPLIES
+		// IT (2026-08-20).
+		//
+		// `source` above is the nearest controlled base TO THE OBJECTIVE, and it is the right input for
+		// the corridor - it is what decides which way the supply line runs before any site exists. It is
+		// the wrong thing to REMEMBER. What actually drives the supply party is the insertion module's
+		// own provider, and that resolves the nearest controlled base to the DEPLOYMENT, i.e. to the
+		// site. Those two are allowed to differ, and before the corridor gate they routinely did: a
+		// play-test found a forward base whose record named a base 1.2 km further from it than the one
+		// its convoy really came from.
+		//
+		// ⚠ WHY IT MATTERS RATHER THAN BEING BOOKKEEPING: IsFOBStarved() reads this record to ask "has
+		// the base supplying it been taken?". Named wrongly, the forward base starves when the player
+		// takes a base that was supplying nothing, and survives when they take the one that really was.
+		//
+		// ⚠ THE CORRIDOR MADE THEM AGREE IN PRACTICE; THIS MAKES THEM AGREE BY CONSTRUCTION, which is
+		// the difference between a property that holds and one that is enforced. Asking the same
+		// question the insertion module asks, at the same position, is the only arrangement in which
+		// they cannot drift apart again - including for an authored marker that a future FOB_LATERAL_SPREAD
+		// widens the corridor to admit.
+		vector supplyBase;
+		if (ResolveNearestControlledBaseTo(site, occupyingIndex, supplyBase))
+			m_FOB.sourceBasePosition = supplyBase;
+		else
+			m_FOB.sourceBasePosition = source;
 
 		Print(LOG + "Objective '" + m_Objective.name + "': a supply party is on its way to raise a forward base at " + site.ToString(), LogLevel.NORMAL);
 
@@ -2187,6 +2247,31 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \return False when the faction holds no base at all.
 	protected bool ResolveFOBSourceBase(int factionIndex, out vector source)
 	{
+		return ResolveNearestControlledBaseTo(m_Objective.position, factionIndex, source);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The nearest base the faction holds to ANY position.
+	//!
+	//! ⚠ TWO CALLERS ASKING THE SAME QUESTION ABOUT DIFFERENT PLACES, which is exactly why it is one
+	//! method. ResolveFOBSourceBase() asks it about the OBJECTIVE, to decide which way the supply line
+	//! runs before a site exists; SendFOBOperation() asks it again about the chosen SITE, to record who
+	//! will really be supplying the base once it is standing. Written twice, those two would be free to
+	//! drift into answering subtly different questions - which is the class of defect that put a forward
+	//! base's recorded supply base 1.2 km from its actual one.
+	//!
+	//! ⚠ IT IS THE SAME WALK OVT_NearestControlledBaseSourceProvider MAKES, deliberately, because the
+	//! second caller's whole purpose is to predict what that provider will answer for the deployment it
+	//! is about to create. The provider cannot be called directly here - it resolves against a live
+	//! deployment position and none exists yet - so the agreement is kept by both walking the faction's
+	//! OWN base list and taking the nearest, rather than by nearest-then-check-if-friendly, which is the
+	//! subtly different question that broke the insertion module's copy of this.
+	//! \param[in] position What "nearest" is measured to.
+	//! \param[in] factionIndex The faction that must control the base.
+	//! \param[out] source The nearest controlled base's position; zero when there is none.
+	//! \return False when the faction holds no base at all.
+	protected bool ResolveNearestControlledBaseTo(vector position, int factionIndex, out vector source)
+	{
 		source = vector.Zero;
 
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
@@ -2205,7 +2290,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			if (!base)
 				continue;
 
-			float distance = vector.Distance(base.location, m_Objective.position);
+			float distance = vector.Distance(base.location, position);
 
 			if (found && distance >= best)
 				continue;
@@ -2527,6 +2612,17 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 			OVT_FOBPositionComponent authored = OVT_FOBPositionComponent.Cast(marker.FindComponent(OVT_FOBPositionComponent));
 			if (!authored || !authored.m_bEnabled)
+				continue;
+
+			// 🔴 THE SAME CORRIDOR THE GENERATED LATTICE OCCUPIES, AND WITHOUT IT THIS PATH WAS A RING.
+			// The query above is a SPHERE around the objective and EvaluateFOBCandidate's band test is a
+			// DISTANCE - neither has a side - so before this line a marker directly behind the objective,
+			// on the far side from every base the faction held, was as eligible as one on the supply
+			// line and could win outright on terrain score. That is exactly what a play-test found
+			// (2026-08-20). The generated sampler never had the problem because it constructs its
+			// candidates along the line; this makes the authored path answer the same question rather
+			// than a weaker one. See OVT_FOBSiting.IsInSupplyCorridor.
+			if (!OVT_FOBSiting.IsInSupplyCorridor(marker.GetOrigin(), objective, source, bandMin, bandMax, FOB_LATERAL_SPREAD))
 				continue;
 
 			vector accepted;
@@ -2987,6 +3083,11 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_bFOBDeploymentSent = false;
 		m_vFOBSite = vector.Zero;
 		m_bStarvationLogged = false;
+
+		// A re-site owed to a forward base that no longer exists is not owed to anything. Left set, it
+		// would spend the FIRST tick of the next objective's forward-base phase holding the chain for a
+		// housekeeping job that already happened.
+		m_bFOBResitePending = false;
 
 		// ⚠ THE CEILING'S OWN "already said" LATCH IS NO LONGER HERE. It is one entry in the (config,
 		// reason) refusal ledger now, which is cleared with the OBJECTIVE record rather than with the
