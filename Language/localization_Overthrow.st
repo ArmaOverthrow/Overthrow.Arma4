@@ -234,6 +234,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B8C3F5D000000C7}" {
+   Id "OVT-BattleStartsInMinutes"
+   Target_en_us "Battle Starts In (min)"
+   Comment "HUD battle panel, the countdown label used when MORE than two minutes remain - the counter-attack muster window, which is thirty REAL minutes. The number appended after it is whole minutes rounded UP (OVT_QRFSiege.MusterMinutesRemaining), so '30' means up to thirty minutes left, and it counts down to '3' before the display switches to the existing seconds label OVT-BattleStartsIn. Keep the unit marker: the same panel shows a bare seconds count below two minutes and the two must not be confusable. A player-initiated battle never shows this string - its countdown starts at exactly two minutes and renders in seconds from its first frame."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D822427A868571A}" {
    Id "OVT-BodiesLooted"
    Target_en_us "Dead bodies and weapons within 25m have looted into the vehicle"
@@ -1524,10 +1539,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000101}" {
    Id "OVT-FieldManual_BaseCapture_Text"
-   Target_en_us "Military bases are held by the occupying faction and change hands only after a battle is fought at them. A base under resistance control weakens the occupiers in that area, and they may spend their reserves on a counter attack to take it back later."
+   Target_en_us "Military bases are held by the occupying faction and change hands only after a battle is fought at them. A base under resistance control weakens the occupiers in that area, and it can later become the one place they decide to take back."
    Target_de_de "Militärbasen werden von der Besatzungsfraktion gehalten und wechseln den Besitzer erst nach einem dort ausgetragenen Kampf. Eine Basis unter der Kontrolle des Widerstands schwächt die Besatzer in diesem Gebiet; diese können ihre Reserven für einen Gegenangriff einsetzen, um sie später zurückzuerobern."
    Target_uk_ua "Військові бази перебувають під контролем окупантів і змінюють власника тільки після бою. Перехід бази під контроль опору послаблює ворога в цьому секторі, змушуючи його витрачати резерви на подальші контратаки для її відвоювання."
-   Comment "Field Manual - opening paragraph of the Capturing Bases page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup."
+   Comment "Field Manual - opening paragraph of the Capturing Bases page, shown as body prose under the page heading. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup. CORRECTED 2026-08-19 by occupying/counter-attacks Phase 10: the second half used to read 'and they may spend their reserves on a counter attack to take it back later', which described the RETIRED hourly surplus roll - the 10%-per-game-hour, uniformly-random-base branch of OVT_OccupyingFactionManager.CheckUpdate, deleted in Phase 1 together with m_bCounterAttackTimeout and the counterAttackTimeout difficulty field (grep -rn 'counterAttackTimeout' Scripts/ Configs/ Prefabs/ is now empty). The occupying faction now holds ONE objective at a time and works toward it in phases (OVT_ObjectiveDirectorComponent.c), so 'the one place they decide to take back' is literally what the machine does. The full build-up is the Counter Attacks page. ⚠ Target_de_de and Target_uk_ua still carry the retired-mechanic wording and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1543,10 +1558,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000163}" {
    Id "OVT-FieldManual_BaseCapture_Text2"
-   Target_en_us "An attack is begun from inside an occupied base, and everybody on the server is told when one starts. The occupying faction answers by ordering troops in from its other bases nearby, who arrive around the site over the following minutes. Only one battle runs anywhere on the map at a time, so while one is going the option to start another is not offered."
+   Target_en_us "An attack is begun from inside an occupied base, and everybody on the server is told when one starts. The occupying faction answers by ordering troops in from its other bases nearby, who arrive around the site over the following minutes. Only one battle runs anywhere on the map at a time, so while one is going the option to start another is not offered, and a counter attack that has not announced itself yet counts as one."
    Target_de_de "Ein Angriff wird aus einer besetzten Basis heraus gestartet, und alle Spieler auf dem Server werden über den Beginn informiert. Die besetzende Fraktion reagiert, indem sie Truppen aus ihren anderen, nahegelegenen Basen herbeordert, die im Laufe der nächsten Minuten am Einsatzort eintreffen. Es findet jeweils nur ein einziger Kampf auf der Karte statt; solange dieser läuft, besteht keine Möglichkeit, einen weiteren zu beginnen."
    Target_uk_ua "Атака розпочинається безпосередньо з території окупованої бази, і всі гравці на сервері отримують сповіщення про її початок. Окупанти реагують на це, направляючи підкріплення з найближчих баз, яке прибуває в зону бою протягом наступних кількох хвилин. Одночасно на всій карті може тривати лише один бій, тому поки він не завершиться, розпочати новий неможливо."
-   Comment "Field Manual - Capturing Bases page, body paragraph under the 'Starting a Battle' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CaptureBaseAction.c:1-29 (the action is hidden while m_bQRFActive and only shown on an occupying-held base), OVT_CampaignRequestComponent.RpcAsk_StartBaseCapture:143-178 (server re-checks the faction and that the player is within baseCloseRange, taking the position from the caller's own character; citation re-pointed 2026-08-14 when the controller migration moved this handler off the legacy comms monolith), OVT_OccupyingFactionManager.StartBaseQRF:840-871 (a single m_CurrentQRF, the BaseBattle notification to everyone), and OVT_QRFControllerComponent.SendTroops:194-215 with CheckUpdateTimer:64-79 (troops are drawn from occupying-held bases and spawned in over the timer). The timer length is a field default and is not quoted."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'Starting a Battle' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_CaptureBaseAction.c:1-29 (the action is hidden while m_bQRFActive and only shown on an occupying-held base), OVT_CampaignRequestComponent.RpcAsk_StartBaseCapture:143-178 (server re-checks the faction and that the player is within baseCloseRange, taking the position from the caller's own character; citation re-pointed 2026-08-14 when the controller migration moved this handler off the legacy comms monolith), OVT_OccupyingFactionManager.StartBaseQRF:840-871 (a single m_CurrentQRF, the BaseBattle notification to everyone), and OVT_QRFControllerComponent.SendTroops:194-215 with CheckUpdateTimer:64-79 (troops are drawn from occupying-held bases and spawned in over the timer). The timer length is a field default and is not quoted. EXTENDED 2026-08-19 by occupying/counter-attacks Phase 10: the last sentence gained the counter-attack clause. m_bQRFActive is set the moment the battle object exists in BOTH QRF modes, and the four gates that read it (OVT_CaptureBaseAction.c:7,:25, OVT_StartUprisingAction.c:6,:21, OVT_CampaignRequestComponent.c:172, OVT_UprisingRequestComponent.c:48) were deliberately NOT changed by the siege work (its I8), so during the silent stage of a counter attack the capture and uprising actions are hidden even though nothing has been announced. That is the feature's one accepted tell and it belongs in the manual. ⚠ Target_de_de and Target_uk_ua predate the added clause."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1600,10 +1615,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000166}" {
    Id "OVT-FieldManual_BaseCapture_Text5"
-   Target_en_us "Nothing taken is held for good. The occupying faction keeps reserves, spends them on the bases it still has, and when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again. Towns are fought over in much the same way. A radio tower is a quieter business: it is taken by clearing the garrison standing at it, and once it is lost the occupying faction has no way of taking it back. Bases and towns can change hands more than once in a campaign."
+   Target_en_us "Nothing taken is held for good. The occupying faction settles on one place it means to take back and works toward it over hours of visible activity, so a counter attack arrives at the end of a build-up rather than out of nowhere; the Counter Attacks page follows that build-up from the first truck to the assault. Towns and cities are chosen the same way and fought over the same way. A radio tower is a quieter business: it is taken by clearing the garrison standing at it, and a tower near whatever the occupiers are working toward can be walked back the other way by a team that reaches it and holds it long enough. Bases, towns and towers can all change hands more than once in a campaign."
    Target_de_de "Nichts, was eingenommen wurde, bleibt dauerhaft in der eigenen Hand. Die Besatzungsmacht hält Reserven zurück und investiert sie in ihre verbliebenen Stützpunkte; verfügt sie über einen Überschuss, wählt sie einen von der Widerstandsbewegung eroberten Stützpunkt aus, um ihn zurückzuerobern, und wartet anschließend eine Weile, bevor sie es erneut versucht. Um Städte und Funktürme wird auf ganz ähnliche Weise gekämpft, sodass ein Ort im Verlauf einer Kampagne mehrfach den Besitzer wechseln kann."
    Target_uk_ua "Жоден захоплений об'єкт не забігається за вами назавжди. Ворог накопичує резерви й розподіляє їх між утримуваними базами. Коли ресурсів стає достатньо, окупанти обирають одну з втрачених баз і починають контратаку, а після штурму беруть паузу перед наступним нападом. Захоплення міст і радіовеж відбувається за аналогічною механікою, тож контроль над локаціями може переходити з рук у руки неодноразово протягом кампанії."
-   Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:38-65 (radio towers are retaken by a specops team, ChangeRadioTowerControl at :65). The surplus threshold, the random roll and the timeout are deliberately not quoted. CORRECTED 2026-08-17 by virtualization/integration Phase 8: the sentence used to read 'Towns and radio towers are fought over in much the same way', which is no longer true of towers - a tower is not a QRF battle and has no ticking control counter, it flips the moment its garrison is wiped (OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 and :122-124). Towers now have their own Field Manual page, 'Patrols and Garrisons'. CORRECTED AGAIN 2026-08-18 by virtualization/base-defense-migration Phase 8: the tower sentence used to end 'and it is taken back by a specialist team sent out from an occupied base', which cited OVT_BaseUpgradeSpecops.OnUpdate - that class and its 600 s recapture timer are DELETED (decision D3, specops dropped with no replacement). The ONLY writer of ChangeRadioTowerControl left in the tree is OVT_RadioTowerCaptureBehaviorDeploymentModule.c:124, which always passes config.GetPlayerFactionIndex(), so no code path returns a tower to the occupying faction; the replacement clause states exactly that. The 'a place can change hands more than once' sentence was narrowed to bases and towns for the same reason. The earlier citation of SpendResources:281-315 in this comment is also dead - base defence is now bought from the deployment pool (see OccupyingForces_Text); the counter-attack half of this paragraph is unaffected and re-verified at OVT_OccupyingFactionManager.c:1420-1429 (m_iResources > 2000, a random roll, StartBaseQRF on a base the resistance holds, then m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout)."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'The Answer Back' header. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager (reserve resources spent per base via OVT_BaseControllerComponent.SpendResources:281-315; the counter-attack branch at :1178-1194 fires on a surplus, picks a base the resistance holds, calls StartBaseQRF and then sets m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout), StartTownQRF:826-878 and OnQRFFinishedTown:917-960 (towns), and OVT_BaseUpgradeSpecops.OnUpdate:38-65 (radio towers are retaken by a specops team, ChangeRadioTowerControl at :65). The surplus threshold, the random roll and the timeout are deliberately not quoted. CORRECTED 2026-08-17 by virtualization/integration Phase 8: the sentence used to read 'Towns and radio towers are fought over in much the same way', which is no longer true of towers - a tower is not a QRF battle and has no ticking control counter, it flips the moment its garrison is wiped (OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 and :122-124). Towers now have their own Field Manual page, 'Patrols and Garrisons'. CORRECTED AGAIN 2026-08-18 by virtualization/base-defense-migration Phase 8: the tower sentence used to end 'and it is taken back by a specialist team sent out from an occupied base', which cited OVT_BaseUpgradeSpecops.OnUpdate - that class and its 600 s recapture timer are DELETED (decision D3, specops dropped with no replacement). The ONLY writer of ChangeRadioTowerControl left in the tree is OVT_RadioTowerCaptureBehaviorDeploymentModule.c:124, which always passes config.GetPlayerFactionIndex(), so no code path returns a tower to the occupying faction; the replacement clause states exactly that. The 'a place can change hands more than once' sentence was narrowed to bases and towns for the same reason. The earlier citation of SpendResources:281-315 in this comment is also dead - base defence is now bought from the deployment pool (see OccupyingForces_Text); the counter-attack half of this paragraph is unaffected and re-verified at OVT_OccupyingFactionManager.c:1420-1429 (m_iResources > 2000, a random roll, StartBaseQRF on a base the resistance holds, then m_bCounterAttackTimeout from the difficulty setting counterAttackTimeout). REWRITTEN 2026-08-19 by occupying/counter-attacks Phase 10, because TWO of its five sentences had become false. (1) 'when it has more than it needs it will pick a base the resistance took and come back for it, then wait a while before trying again' described the surplus roll and the timeout, BOTH DELETED in this feature's Phase 1 - the immediately preceding CORRECTED-AGAIN note's own re-verification at :1420-1429 is now dead code and is left above only as a record. Counter-attacks are now a single objective run through three phases by OVT_ObjectiveDirectorComponent.c, with the battle itself gated on OVT_ObjectivePhaseRules.TownPhase3Gate / BasePhase3Gate plus the daylight predicate; nothing anywhere rolls dice for a target. (2) 'once it is lost the occupying faction has no way of taking it back' was true only between base-defense-migration deleting OVT_BaseUpgradeSpecops and this feature landing: OVT_TowerRecaptureBehaviorDeploymentModule.c:100-106 now calls ChangeRadioTowerControl with the DEPLOYMENT's faction after a team holds the tower (m_fHoldRadius 80, hold time objectiveTowerRecaptureHoldSeconds, 600 on Normal), authored on Configs/Deployment/Deployment_ObjectiveTowerRecapture.conf and sent only during the harassment phase of a nearby objective (OVT_ObjectiveConditionDeploymentModule m_iRequiredPhase 1). Hence the last sentence widens back out to include towers. 'Towns and cities are chosen the same way' is the selection set in OVT_ObjectiveSelection - resistance-held bases, towns and cities, never villages, towers or FOBs. ⚠ Target_de_de and Target_uk_ua still carry the pre-rewrite text and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1922,6 +1937,193 @@ StringTable {
    Modified 1754611200
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000201}" {
+   Id "OVT-FieldManual_CounterAttacks_Head"
+   Target_en_us "The Build-Up"
+   Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about the harassment phase. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000202}" {
+   Id "OVT-FieldManual_CounterAttacks_Head2"
+   Target_en_us "What Sabotage Costs"
+   Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about structures being permanently destroyed at a base. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000203}" {
+   Id "OVT-FieldManual_CounterAttacks_Head3"
+   Target_en_us "A Base of Their Own"
+   Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about the occupying faction's forward base. Three to five words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000204}" {
+   Id "OVT-FieldManual_CounterAttacks_Head4"
+   Target_en_us "The Encirclement"
+   Comment "Field Manual - section header inside the Counter Attacks page, drawn above the two paragraphs about how the counter attack itself is fought. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000205}" {
+   Id "OVT-FieldManual_CounterAttacks_Text"
+   Target_en_us "The occupying faction works toward one place at a time. It picks a single base, town or city the resistance holds and spends the following hours building up against it, and the choice is not a lottery: bigger towns, ground close to the bases it still holds, places its radio towers still reach, and towns whose support has already slipped are what draw it. Villages, radio towers and resistance FOBs are never the target themselves. The target can change while the build-up is still in its early stage; once the occupiers have committed to it they see it through unless the build-up is broken."
+   Comment "Field Manual - opening paragraph of the Counter Attacks page. Reference voice: describes the system, never instructs, and implies no order of play. Four sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against the shipped code: one objective at a time is OVT_ObjectiveDirectorComponent.c (m_Objective, a single record; SelectObjective runs only from the IDLE and HARASSMENT branches of DirectorTick). The scoring inputs are OVT_ObjectiveSelection.ScoreTown/ScoreBase - population, distance to the nearest occupying-held base, radio-tower coverage, and town support - with no randomness anywhere in the pick (the file has no RandInt/RandFloat call). Candidates are resistance-held BASE, TOWN and CITY only; OVT_TownSize.VILLAGE, radio towers and FOBs are excluded. 'Committed' is the phase lock: re-selection is refused once the phase is past HARASSMENT (see the reselect guard in DirectorTick), and 'unless the build-up is broken' is the starvation and teardown path in OVT_ObjectivePhaseRules.IsFOBStarved. No numbers are quoted: every weight is an internal constant and every threshold is either a constant or a difficulty setting."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000206}" {
+   Id "OVT-FieldManual_CounterAttacks_Text2"
+   Target_en_us "The first sign is traffic. Groups are driven out from a base the occupiers still hold, dropped at a road short of the target and left to walk the rest of the way, and the truck turns round and goes home. In a town they make for the centre, and a group that holds it with nobody there to contest it drives the town's support for the resistance down a step; the next one drives it down again. A radio tower the resistance holds nearby draws a team of its own, which has to reach the tower and stand on it for a long stretch before it flips back. At a base they infiltrate and start pulling down what was built there. Standing in any of those places pauses the clock the group is working against, and killing the group ends the attempt outright."
+   Comment "Field Manual - Counter Attacks page, body paragraph under 'The Build-Up'. Reference voice: describes, never instructs. Six sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against: OVT_InsertionSpawningDeploymentModule.c (source base -> truck + registered crew -> drive -> drop at a road landing zone m_fLZStandoffDistance short of the target -> return and despawn; m_fWalkThresholdDistance 400 means a close enough source walks instead), authored on Deployment_ObjectiveHarassment.conf, Deployment_ObjectiveTowerRecapture.conf and Deployment_ObjectiveSabotage.conf. Town harassment: OVT_TownHarassmentBehaviorDeploymentModule.c:91-94 counts living registered members inside m_fHoldRadius (120, Deployment_ObjectiveHarassment.conf:33) and pauses on a player inside the same circle (EvaluateHold, :114-130), then stacks the 'ObjectiveHarassment' support modifier authored in Configs/Modifiers/supportModifiers.conf:125-134 (baseEffect -20, stackLimit 4) - which is why 'a step' and 'again' are both true. Tower recapture: OVT_TowerRecaptureBehaviorDeploymentModule.c:100-106, m_fHoldRadius 80 and m_iHoldSeconds 600 in Deployment_ObjectiveTowerRecapture.conf:34-35, with objectiveTowerRecaptureHoldSeconds overriding it per difficulty (300 on Insane, 900 on Easy) - 'a long stretch' rather than a number for that reason. Base sabotage: OVT_BaseSabotageBehaviorDeploymentModule.c:132-135, m_fClearRadius 150. The pause-not-reset behaviour is explicit in all three EvaluateX methods (ticksLeft is left alone, never re-armed). Deliberately quotes no distances or timings: all three are difficulty-scaled or config-authored and are expected to be tuned."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000207}" {
+   Id "OVT-FieldManual_CounterAttacks_Text3"
+   Target_en_us "What saboteurs pull down at a base is gone for good. There is no rubble, no repair, no salvage and no refund, and it does not come back when the campaign is loaded again: the money and the work that went into it are simply lost. They take the cheapest thing standing first and work upward, so bunkers and tents go before the garage does, and only what belongs to that base is ever at risk. A single player inside the base stops the demolitions where they are, and one message goes out per mission, on the first thing destroyed."
+   Comment "Field Manual - Counter Attacks page, body paragraph under 'What Sabotage Costs'. This paragraph is the T6.9 statement of permanent loss and is deliberately blunt. Four sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_BaseSabotageBehaviorDeploymentModule.c: the removal goes through OVT_ResistanceFactionManager.DestroyPlacedItem(), which is OVT_NavmeshRebuild.Queue() then SCR_EntityHelper.DeleteEntityAndChildren() and nothing else - no refund call, no rubble prefab, and a deleted entity is never written to a save. Cheapest first is the ordering by OVT_ResistanceFactionManager.GetStructureCost(), joined BY PREFAB RESOURCE NAME against Configs/Resistance/buildables.conf and placeables (an unpriced prefab answers UNKNOWN_STRUCTURE_COST 1000000 and therefore sorts LAST, never first). The shipped buildable prices, in the order they go: Bunkers 750, Recruitment Tent 1000, Medical Tent 1000, Guard Tower 1200, Vehicle Maintenance Ramp 1500, Helipad 1500, Fuel Depot 2000, Garage 8000 - 'bunkers and tents before the garage' is that list, not a guess. Scope: the enumerator matches on association id AND type, so only structures associated with THAT base are candidates (a camp's, a FOB's, a house's and another base's are all excluded). The player block is m_fClearRadius 150 in Deployment_ObjectiveSabotage.conf and it PAUSES rather than resets (EvaluateDemolition leaves m_iTicksLeft alone). The notification is NotifyOnce() at :372-383 behind the m_bNotified latch, sending the ObjectiveSabotage broadcast preset once per mission on the first structure. How many go per mission and how long between them are difficulty settings (objectiveSabotageStructuresPerMission, objectiveSabotageHoldSeconds) and are deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000208}" {
+   Id "OVT-FieldManual_CounterAttacks_Text4"
+   Target_en_us "Once the build-up has told, the occupiers put a forward base of their own on the ground between their nearest holding and the target. A supply truck drives out to raise it, so it can be ambushed on the road, and nothing announces the base once it is standing: it is found, not reported. From then on it is where their groups come from, and it is also the shortest way to stop the whole thing. Take or empty the base supplying it, or stay in strength on the forward base itself, and after a while it is pulled down and the occupiers start looking elsewhere. With the site clear of their soldiers, a held action on its flag takes it down on the spot, and that costs them more than starving it does."
+   Comment "Field Manual - Counter Attacks page, body paragraph under 'A Base of Their Own'. Reference voice: describes, never instructs. Five sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_ObjectiveDirectorComponent.c: siting runs in a band between the nearest occupying-held base and the objective (FOB_BAND_MIN_FRACTION 0.35 / FOB_BAND_MAX_FRACTION 0.75 with FOB_MIN_STANDOFF 350 and FOB_MAX_STANDOFF 2500), preferring an authored OVT_FOBPosition marker and falling back to a generated clear/flat/elevated point. The raise is OVT_FOBRaiseSpawningDeploymentModule on Deployment_ObjectiveFOB.conf, which is an OVT_InsertionSpawningDeploymentModule subclass and therefore a live truck on real roads - hence 'ambushed on the road'. NO NOTIFICATION is deliberate (the feature's D12 and G12): nothing in the tree sends a broadcast, a text notification or an RplProp for the forward base, and none of the director's state replicates at all. Starvation is OVT_ObjectivePhaseRules.IsFOBStarved(sourceHeld, aliveGroups, playerPresent) driven from OVT_ObjectiveDirectorComponent.c:2200 - three independent causes: the supplying base is no longer occupying-held (IsFOBSourceBaseHeld), its garrison is dead (CountAliveFOBGroups), or a player is inside baseCloseRange OF THE FORWARD BASE ITSELF (IsPlayerAtFOB, :2325-2332). ⚠ NOTE the presence test is at the forward base, not at the supplying base - the requirements' wording says otherwise and the shipped code is what this sentence follows. It has to hold for objectiveStarvationMinutes (a difficulty setting, 30 on Normal) and any good tick zeroes the count. The hand teardown is OVT_DismantleEnemyFOBAction with Duration 15 authored in Prefabs/Bases/OVT_OccupyingFOB.et, gated server-side by OVT_ObjectiveDirectorComponent.CanDismantleFOBAt:2567-2584 - within FOB_DISMANTLE_RANGE (30 m) of the flag and zero living occupying soldiers within FOB_DEFENDER_CLEAR_RADIUS (150 m). 'Costs them more' is the resource penalty applied only on the player-dismantle exit of the teardown (OnFOBDismantledByPlayer); starvation and a resolved battle carry no penalty. Distances and minutes are deliberately not quoted: two are internal constants and the starvation window is a difficulty setting."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000209}" {
+   Id "OVT-FieldManual_CounterAttacks_Text5"
+   Target_en_us "The counter attack itself arrives without a word. Nothing is announced, no battle panel appears and no circle is drawn on the map; the whole force is put down at once at the usual landing distances and walks in to form a ring roughly a hundred to a hundred and fifty metres out from the centre. The one thing that gives it away early is that no battle of your own can be started while it is forming, so a capture or an uprising that was available a minute ago is quietly not on offer. Counter attacks only ever begin in daylight, between roughly 05:00 and 15:00, and the waves come in from the side the occupying faction actually holds, including from its forward base."
+   Comment "Field Manual - Counter Attacks page, first body paragraph under 'The Encirclement'. Reference voice: describes, never instructs. Four sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_QRFControllerComponent.c: the COUNTER_ATTACK mode's SILENT_DEPLOY stage sends no notification and leaves m_bQRFRevealed false, which is the conjunct the four client surfaces read (OVT_EconomyInfo.c:83 the HUD panel, OVT_MapRestrictedAreas.c:332 the circle, OVT_FastTravelService.c:115, OVT_RespawnService.c:226). The single-pass spend and the ring are BuildSiegeRing(), called at the end of SendTroops() after SendWave() has filled the queue: slot i takes bearing 360/N*i (OVT_QRFSiege.RingSlotBearing) at a radius rolled per slot in [OVT_QRFSiege.SIEGE_RING_MIN 100, SIEGE_RING_MAX 150] - the two numbers this sentence quotes, and the only two it does. Groups still spawn at the ordinary landing zones and walk to their slot, so nothing appears next to a player standing in the objective. The tell is m_bQRFActive, which is true from the moment the battle object exists in BOTH modes and is read unchanged by OVT_CaptureBaseAction.c:7,:25, OVT_StartUprisingAction.c:6,:21, OVT_CampaignRequestComponent.c:172 and OVT_UprisingRequestComponent.c:48 - the actions hide rather than refuse, which is why 'quietly not on offer'. The daylight window is OVT_ObjectivePhaseRules.IsCounterAttackWindow with COUNTER_ATTACK_HOUR_START 5 and COUNTER_ATTACK_HOUR_END 15 on the director (half-open, so the last minute one may START is 14:59; a battle already begun runs on past 15:00, which is why the sentence says BEGIN). Wave direction is the forward base joining the wave-source list in SendTroops() plus OVT_QRFBearing deriving each wave's landing-zone bearing from the source that sent it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D0000020A}" {
+   Id "OVT-FieldManual_CounterAttacks_Text6"
+   Target_en_us "The word comes when the last of them is in place, and with it thirty real minutes in which nothing at all is scored. That time belongs to the resistance: it is long enough to drive in, gather recruits, dig in on the ground that matters, or decide the place is not worth the fight and leave. The countdown on the battle panel reads in minutes until the last two, then in seconds. If every attacker on the ring is killed before it runs out the battle ends there and then in the resistance's favour, with no assault at all. Otherwise the clock reaches zero, the ring closes in and the ground is counted exactly as it is in any other battle. Whatever the outcome, their forward base comes down afterwards and the occupiers begin choosing again."
+   Comment "Field Manual - Counter Attacks page, second body paragraph under 'The Encirclement'. Reference voice: describes, never instructs, and offers options rather than a course of action. Six sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_QRFControllerComponent.c: EnterMuster() fires at the SILENT_DEPLOY -> MUSTER transition, i.e. when the spawn queue is empty, sends the CounterAttackBase/CounterAttackTown broadcast through the manager's RevealQRF() and sets m_iTimer to OVT_QRFSiege.MUSTER_TIME_MS = 1800000 ms. THIRTY REAL MINUTES, NOT IN-GAME ONES: the countdown is driven by the 1000 ms CheckUpdateTimer callqueue, which timeMul does not scale. Nothing is scored during it because CheckUpdatePoints' whole body is behind 'if(m_iTimer <= 0)', which MUSTER cannot satisfy until it transitions. The minutes-then-seconds display is OVT_QRFSiege.MusterMinutesRemaining with the crossover at PUBLISH_THRESHOLD_MS 120000 (see OVT-BattleStartsInMinutes); a player-initiated battle never reaches the minutes form because its clock starts at exactly 120000. The early end is CheckSiegeWipedOut on CheckUpdatePoints' 10 s cadence, in MUSTER only, through OVT_QRFSiege.GroupNeutralised / AllNeutralised behind the m_bSiegeForceSeenAlive arming latch; it transitions to BATTLE, where the unmodified scoring loop awards the resistance the objective quickly with no enemy inside QRF_RANGE - hence 'ends there and then in the resistance's favour' rather than 'is cancelled'. ⚠ DO NOT write that the siege is called off: it is not, the battle is resolved by scoring against an empty ring. The assault order change at the BATTLE transition is IssueAssaultOrders(), which removes each group's held waypoint and gives it SearchAndDestroy - 'the ring closes in'. The teardown-and-reselect on every outcome is the director polling m_CurrentQRF going null and calling its one ResetObjective() path."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D0000020B}" {
+   Id "OVT-FieldManual_CounterAttacks_Title"
+   Target_en_us "Counter Attacks"
+   Comment "Field Manual - title of the Counter Attacks page, shown on its tile in The Resistance category grid and as the heading at the top of the page. Two or three words. Also usable as a deep-link id from a tutorial popup, so it must never be renamed. Added 2026-08-19 by occupying/counter-attacks Phase 10."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786838400
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -2940,8 +3142,8 @@ StringTable {
   }
   CustomStringTableItem "{6B5A11C000000108}" {
    Id "OVT-FieldManual_OccupyingForces_Text4"
-   Target_en_us "A radio tower the occupying faction holds changes hands when the men garrisoning it are all dead, and only then. Standing next to a tower does nothing on its own, and walking away and coming back neither resets the fight nor finishes it: the garrison is still short by everyone who fell, and the tower stays occupied until the last of them does."
-   Comment "Field Manual - Patrols and Garrisons page, first body paragraph under the 'Radio Towers' header. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 (no eliminated flag, no capture - the gate a proximity despawn can never satisfy), :91 (the fired-once latch), :103-114 (nearest tower within m_fMaxDistance, authored 300 in Deployment_TowerGarrison.conf, and the tower must still belong to the deployment's faction) and :122-124 (ChangeRadioTowerControl). The eliminated flag is set only from the virtualization core's group-wiped bookkeeping, which requires every roster slot dead (OVT_VirtualizationManagerComponent.c:1886-1900). Survivors persisting across a despawn is the same survivor mask cited in OccupyingForces_Text2."
+   Target_en_us "A radio tower the occupying faction holds changes hands when the men garrisoning it are all dead, and only then. Standing next to a tower does nothing on its own, and walking away and coming back neither resets the fight nor finishes it: the garrison is still short by everyone who fell, and the tower stays occupied until the last of them does. It can go back the other way as well: a tower the resistance holds close to whatever the occupiers are working toward draws a team of their own, and the tower is theirs again only if that team is still standing on it when its hold time is up. Being there yourself pauses their clock."
+   Comment "Field Manual - Patrols and Garrisons page, first body paragraph under the 'Radio Towers' header. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-17 against OVT_RadioTowerCaptureBehaviorDeploymentModule.c:89 (no eliminated flag, no capture - the gate a proximity despawn can never satisfy), :91 (the fired-once latch), :103-114 (nearest tower within m_fMaxDistance, authored 300 in Deployment_TowerGarrison.conf, and the tower must still belong to the deployment's faction) and :122-124 (ChangeRadioTowerControl). The eliminated flag is set only from the virtualization core's group-wiped bookkeeping, which requires every roster slot dead (OVT_VirtualizationManagerComponent.c:1886-1900). Survivors persisting across a despawn is the same survivor mask cited in OccupyingForces_Text2. EXTENDED 2026-08-19 by occupying/counter-attacks Phase 10 with the two recapture sentences. The claim that no code path returned a tower to the occupying faction, recorded on BaseCapture_Text5 in August, is NO LONGER TRUE: OVT_TowerRecaptureBehaviorDeploymentModule.c:100-106 calls OVT_OccupyingFactionManager.ChangeRadioTowerControl with the deployment's own controlling faction once CountAliveRegisteredMembersWithin(tower.location, m_fHoldRadius) has held for the whole hold window, and Configs/Deployment/Deployment_ObjectiveTowerRecapture.conf authors that module with m_fHoldRadius 80 and m_iHoldSeconds 600 (overridden per campaign by the difficulty setting objectiveTowerRecaptureHoldSeconds - 300 on Insane, 900 on Easy, which is why 'its hold time' is not a number here). 'Close to whatever the occupiers are working toward' is the OVT_ObjectiveConditionDeploymentModule on that config (m_iRequiredPhase 1, m_fMaxDistanceFromObjective) - a tower nowhere near the current objective is never contested. 'Being there yourself pauses their clock' is EvaluateRecapture at :127-140, which is fed enemyPresent from NearestPlayerDistance(tower.location) <= m_fHoldRadius and leaves ticksLeft untouched on that path: it PAUSES, it does not reset. The full build-up this belongs to is the Counter Attacks page."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2957,8 +3159,8 @@ StringTable {
   }
   CustomStringTableItem "{6B5A11C000000109}" {
    Id "OVT-FieldManual_OccupyingForces_Text5"
-   Target_en_us "A tower may also be found with nobody on it. The garrison is paid for out of the faction's reserves, so a faction that is stretched leaves towers bare, and one that recovers can post a garrison at a tower you walked past unguarded days earlier. While a battle is running anywhere on the island, and while nobody at all is connected, no new force of any kind is put out; the ones already in the field carry on as they were."
-   Comment "Field Manual - Patrols and Garrisons page, second body paragraph under the 'Radio Towers' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17, CITATIONS RE-POINTED 2026-08-18 (base-defense-migration moved the line numbers, the claims are unchanged) against OVT_DeploymentManager.c:652-657 (a deployment is created only when the faction pool covers GetTotalResourceCost) and :1069-1071 (a config too expensive is filtered out of the candidate list entirely), with the evaluator's two early returns at :573 (GetPlayerCount() == 0) and :577 (m_CurrentQRF) - both deliberately kept, see the feature's D9. 'A battle' is the player-facing word this manual already uses for a QRF (see BaseCapture_Text2); m_CurrentQRF covers base and town QRFs alike. The last clause is the D9 consequence: existing deployments' groups live on the engine lifecycle and neither guard touches them."
+   Target_en_us "A tower may also be found with nobody on it. The garrison is paid for out of the faction's reserves, so a faction that is stretched leaves towers bare, and one that recovers can post a garrison at a tower you walked past unguarded days earlier. While a battle is actually being fought anywhere on the island, and while nobody at all is connected, no new force of any kind is put out; the ones already in the field carry on as they were."
+   Comment "Field Manual - Patrols and Garrisons page, second body paragraph under the 'Radio Towers' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-17, CITATIONS RE-POINTED 2026-08-18 (base-defense-migration moved the line numbers, the claims are unchanged) against OVT_DeploymentManager.c:652-657 (a deployment is created only when the faction pool covers GetTotalResourceCost) and :1069-1071 (a config too expensive is filtered out of the candidate list entirely), with the evaluator's two early returns at :573 (GetPlayerCount() == 0) and :577 (m_CurrentQRF) - both deliberately kept, see the feature's D9. 'A battle' is the player-facing word this manual already uses for a QRF (see BaseCapture_Text2); m_CurrentQRF covers base and town QRFs alike. The last clause is the D9 consequence: existing deployments' groups live on the engine lifecycle and neither guard touches them. CORRECTED 2026-08-19 by occupying/counter-attacks Phase 10: 'while a battle is RUNNING' became 'while a battle is actually being FOUGHT', which is now a real distinction. The evaluator's guard is no longer m_CurrentQRF but OVT_OccupyingFactionManager.IsQRFEngaged(), which is true from creation for a player-initiated battle but true only in the BATTLE stage of a counter attack (its D15: m_bQRFActive = a battle exists, m_bQRFRevealed = the client knows, IsQRFEngaged = the shooting has started). During the silent and muster stages of a counter attack the world deliberately keeps living - deployments are still created, the occupying economy still ticks and the objective town's civilians are not suppressed - because suppressing them would empty the target half an hour before anyone was told. The old wording would have had a player expecting a lull that no longer happens. ⚠ Target_de_de and Target_uk_ua predate the change of wording."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -4776,6 +4978,134 @@ StringTable {
    Id "OVT-GMPanel_NoData"
    Target_en_us "Waiting for campaign data..."
    Comment "GM panel - shown in place of the campaign numbers until the first data snapshot arrives. Reads as waiting, not as broken"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100E}" {
+   Id "OVT-GMPanel_Objective"
+   Target_en_us "Objective"
+   Comment "GM panel row label - the base, town or city the occupying faction has decided to take back. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B100F}" {
+   Id "OVT-GMPanel_ObjectiveNone"
+   Target_en_us "None"
+   Comment "GM panel objective row value - the occupying faction has no current objective. A normal state early in a campaign, not an error"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1010}" {
+   Id "OVT-GMPanel_ObjectivePhase"
+   Target_en_us "Phase"
+   Comment "GM panel row label - how far along the occupying faction's three-phase campaign against its current objective has got. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1011}" {
+   Id "OVT-GMPanel_ObjectivePhaseCounterAttack"
+   Target_en_us "3 - Counter-attack"
+   Comment "GM panel phase row value - phase three, the occupying faction is assaulting its objective. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1012}" {
+   Id "OVT-GMPanel_ObjectivePhaseForwardBase"
+   Target_en_us "2 - Forward base"
+   Comment "GM panel phase row value - phase two, the occupying faction is raising a forward operating base between its nearest held base and the objective. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1013}" {
+   Id "OVT-GMPanel_ObjectivePhaseHarassment"
+   Target_en_us "1 - Harassment"
+   Comment "GM panel phase row value - phase one, the occupying faction is sending operations to soften its objective up. Keep short, it shares a 380px row"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1014}" {
+   Id "OVT-GMPanel_ObjectivePhaseNone"
+   Target_en_us "-"
+   Comment "GM panel phase row value - there is no objective, so there is no phase. A dash rather than a word, because the objective row beside it already says None"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786800000
+   Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B08D3A17C4B1015}" {
+   Id "OVT-GMPanel_ObjectivePhaseUnknown"
+   Target_en_us "Unknown"
+   Comment "GM panel phase row value - the server reported a campaign phase this build does not recognise, which means the client and server builds differ. Deliberately not None, which would say the campaign has no target while it is being attacked"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -8337,6 +8667,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B8C3F5D00000003}" {
+   Id "OVT-Modifier_ObjectiveHarassment"
+   Target_en_us "Enemy Harassment"
+   Comment "Town support modifier - applied by OVT_TownHarassmentBehaviorDeploymentModule when an occupying-faction group sent by the objective director has held the town centre for objectiveHarassmentHoldSeconds. Stacks up to 4 (one per rung of the harassment ladder) and expires after 2 in-game hours. Shown in the town panel's support modifier list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5E4852B16105E804}" {
    Id "OVT-Modifier_PatrolHarassment"
    Target_en_us "Patrol Harassment"
@@ -8464,6 +8809,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A7D9B2E000000F8}" {
+   Id "OVT-Msg-AdminResourcesAdded"
+   Target_en_us "Admin: %1 resources added to the occupying faction and distributed (now %2 in reserve). The defense share went to the deployment pool immediately."
+   Comment "Confirmation to a server admin who used the /give-resources chat command - %1 is the amount credited, %2 is the reserve AFTER the distribution (so it is the remainder, not the credited amount). Amended 2026-08-19: the command now runs TransferDefenseShareToPool immediately, because crediting the reserve alone left the deployment pool - the thing every visible force spends - untouched until the next tick, which made the command near-useless for its one purpose."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755561600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E000000F5}" {
    Id "OVT-Msg-AdminFundsAdded"
    Target_en_us "Admin: $%1 added to your account"
@@ -8588,6 +8950,36 @@ StringTable {
    Modified 1706585081
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D000000C5}" {
+   Id "OVT-Msg-CounterAttackBase"
+   Target_en_us "Enemy forces have surrounded %1 and will assault within 30 minutes"
+   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held BASE is complete and the siege stops being secret. %1 is the base's name. Sent to every player and to the external notification channel together, the same pairing OVT-Msg-BaseBattle uses. The thirty minutes are REAL minutes, not in-game ones, and nothing at all is decided during them - the wording is a warning with a deadline in it, because that window is the whole point of the mechanic. Paired with OVT-Msg-CounterAttackTown, which says the same thing about a town or city."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D000000C6}" {
+   Id "OVT-Msg-CounterAttackTown"
+   Target_en_us "Enemy forces have surrounded %1 and will assault within 30 minutes"
+   Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held TOWN OR CITY is complete. %1 is the town's name. Cities use this same string - there is no separate city form, unlike OVT-Msg-TownBattle / OVT-Msg-CityBattle - and villages never appear here at all, because the occupying faction's objective director only ever targets a town or a base. Paired with OVT-Msg-CounterAttackBase; see that entry for the thirty-minute window."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -8916,6 +9308,96 @@ StringTable {
    Modified 1706582231
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000063}" {
+   Id "OVT-Msg-ObjectiveSabotage"
+   Target_en_us "Sabotage"
+   Comment "Broadcast notification TITLE, sent once per sabotage mission by OVT_BaseSabotageBehaviorDeploymentModule when an occupying-faction team demolishes the first player-built structure at a base the resistance holds. Paired with OVT-Msg-ObjectiveSabotageDetail. Short - it is the heading above the detail line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000064}" {
+   Id "OVT-Msg-ObjectiveSabotageDetail"
+   Target_en_us "Enemy saboteurs are demolishing what you built at %1"
+   Comment "Broadcast notification BODY, sent once per sabotage mission (not once per structure). %1 is the base's name. The destruction is permanent and nothing refunds it, so the wording is deliberately a warning about work in progress rather than a report of a finished act - more structures follow every couple of minutes until the team is killed or driven off. Paired with the title OVT-Msg-ObjectiveSabotage."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000065}" {
+   Id "OVT-DismantleEnemyFOB"
+   Target_en_us "Dismantle Forward Base"
+   Comment "Held user action (15 s, authored on Prefabs/Bases/OVT_OccupyingFOB.et) shown on the flag of the occupying faction's forward operating base. Performing it tears the base down, takes objectiveFOBCost back out of the enemy's deployment pool and ends the current objective. Wording is an imperative verb phrase like the other flag actions (OVT-CaptureBase)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000066}" {
+   Id "OVT-DismantleEnemyFOB_Defended"
+   Target_en_us "Enemy soldiers are still defending this position"
+   Comment "Refusal reason shown on the Dismantle Forward Base action (SetCannotPerformReason) while at least one living occupying-faction soldier is within 150 m of the flag. The site has to be CLEARED, not merely reached - this is the whole challenge of removing a forward base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000067}" {
+   Id "OVT-DismantleEnemyFOB_TooFar"
+   Target_en_us "You are too far from the forward base"
+   Comment "Refusal reason shown on the Dismantle Forward Base action when the caller is further than 30 m from the recorded forward-base position. In practice only reachable when the flag and the enemy's recorded base position have drifted apart, so the wording explains the distance rather than blaming the player."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8C3F5D00000068}" {
+   Id "OVT-DismantleEnemyFOB_None"
+   Target_en_us "There is no enemy forward base here any more"
+   Comment "Refusal reason shown on the Dismantle Forward Base action when the occupying faction no longer has a forward base at all - it starved, the objective ended, or another player pulled it down first. The structure is a persisted world entity and can briefly outlive the campaign's record of it, which is when a player sees this."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -14906,10 +15388,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000112}" {
    Id "OVT-Tutorial_BasesFirstCapture_Body"
-   Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction keeps reserves and spends a surplus of them on retaking a base the resistance holds."
+   Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction settles on one place it means to take back and builds up against it over time, and a base the resistance holds can be that place."
    Target_de_de "Du hast gerade das Sperrgebiet einer Basis betreten. Wenn du hier gesehen wirst, wirst du gesucht. Um Basen einzunehmen, musst du die Flagge in der Mitte erreichen und eine Schlacht auslösen. Der Ausgang der Schlacht hängt davon ab, wie viele Spieler (und Rekruten) die Mitte der Basis halten und wie viele Soldaten der Besatzungsmacht noch dort sind. Die Kontrolle kann in beide Richtungen wechseln: Die Besatzungsmacht hält Reserven vor und setzt überschüssige Kräfte ein, um eine vom Widerstand gehaltene Basis zurückzuerobern."
    Target_uk_ua "Ви щойно увійшли до забороненої зони бази. Якщо вас тут помітять, вас оголосять у розшук. Щоб захопити базу, потрібно дістатися прапора в центрі та розпочати бій. Результат бою залежатиме від того, скільки гравців (і новобранців) утримують центр бази, порівняно з кількістю окупаційних солдатів, що ще залишилися на ній. Контроль працює в обидва боки: окупаційна фракція має резерви й витрачає їх надлишок на спроби відбити базу, яку утримує опір."
-   Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1217-1226 spends a reserve surplus on a QRF against a base the resistance holds (RE-CITED 2026-08-17, Phase 8 of virtualization/integration; the branch was at :1178-1194). ALSO CORRECTED 2026-08-17: the DELIVERY CONSTRAINT above describes BASE_CONTROL_CHANGE, but Configs/Tutorials/basesFirstCapture.conf now binds this entry to PLAYER_ENTER_BASE (OVT_TutorialTrigger.c:44), which is a per-player crossing into a base's restricted radius and carries no payload - the 'never say you captured' rule still holds, for the different reason that the reader has captured nothing yet. NOTE FOR FUTURE EDITS, REWRITTEN 2026-08-18 by virtualization/base-defense-migration Phase 8 (the old note said base garrisons were NOT migrated and that the kill switch still guarded their legacy spawners - both statements are now false; the kill switch file is deleted and base defence IS on the virtualization layer as nine deployment configs). Every sentence of this body was RE-VERIFIED on 2026-08-18 and none of them changed: the restricted-zone/wanted clause, the flag (OVT_CaptureBaseAction is authored on Prefabs/Structures/Military/Flags/BaseFlag_US.et:18 and BaseFlag_USSR.et:28 as well as on Prefabs/Controllers/OVT_BaseController.et:74), the QRF point count and the counter-attack clause (OVT_OccupyingFactionManager.c:1420-1429, which still spends m_iResources and is an epic-level exclusion). Base defence persistence claims still belong on #OVT-FieldManual_OccupyingForces_Text2 and _Text7, not here: this popup is 460 px wide and already over its own two-sentence budget. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
+   Comment "Body of the 'bases-first-capture' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. DELIVERY CONSTRAINT, read before rewording: this entry is triggered by BASE_CONTROL_CHANGE, which is a 300 m proximity fan-out with NO acting player and which fires in BOTH directions (OVT_TutorialManagerComponent.c:34, 345-355). The text must therefore never say 'you captured', never assume the reader did anything, and must read correctly for a bystander and for a player who has just lost a base. Sandbox tone rule: describes the system, never instructs. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_QRFControllerComponent.CheckUpdatePoints:100-192 - once the reinforcement timer expires the component counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE = 220 every ten seconds, moves m_iPoints towards whichever side has more, and control changes when the score reaches the difficulty setting QRFPointsToWin in either direction, at which point m_OnFinished fires and OVT_OccupyingFactionManager.ChangeBaseControl:895-915 flips the faction. DO NOT describe capture as taking or planting a flag: the flag material follows the faction change (OVT_BaseControllerComponent.SetControllingFaction:143-152, UpdateFlagMaterial:99-116) and never causes it. Sentence 2: ChangeBaseControl:895-915 notifies the whole server in both directions and moves threat by 250 each way, and OVT_OccupyingFactionManager:1217-1226 spends a reserve surplus on a QRF against a base the resistance holds (RE-CITED 2026-08-17, Phase 8 of virtualization/integration; the branch was at :1178-1194). ALSO CORRECTED 2026-08-17: the DELIVERY CONSTRAINT above describes BASE_CONTROL_CHANGE, but Configs/Tutorials/basesFirstCapture.conf now binds this entry to PLAYER_ENTER_BASE (OVT_TutorialTrigger.c:44), which is a per-player crossing into a base's restricted radius and carries no payload - the 'never say you captured' rule still holds, for the different reason that the reader has captured nothing yet. NOTE FOR FUTURE EDITS, REWRITTEN 2026-08-18 by virtualization/base-defense-migration Phase 8 (the old note said base garrisons were NOT migrated and that the kill switch still guarded their legacy spawners - both statements are now false; the kill switch file is deleted and base defence IS on the virtualization layer as nine deployment configs). Every sentence of this body was RE-VERIFIED on 2026-08-18 and none of them changed: the restricted-zone/wanted clause, the flag (OVT_CaptureBaseAction is authored on Prefabs/Structures/Military/Flags/BaseFlag_US.et:18 and BaseFlag_USSR.et:28 as well as on Prefabs/Controllers/OVT_BaseController.et:74), the QRF point count and the counter-attack clause (OVT_OccupyingFactionManager.c:1420-1429, which still spends m_iResources and is an epic-level exclusion). Base defence persistence claims still belong on #OVT-FieldManual_OccupyingForces_Text2 and _Text7, not here: this popup is 460 px wide and already over its own two-sentence budget. Compresses #OVT-FieldManual_BaseCapture_Text, _Text3 and _Text5. Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants. CORRECTED 2026-08-19 by occupying/counter-attacks Phase 10 - the LAST SENTENCE WAS FALSE AS SHIPPED. It read 'the occupying faction keeps reserves and spends a surplus of them on retaking a base the resistance holds', which is the retired hourly surplus roll at the OVT_OccupyingFactionManager.c:1420-1429 this comment kept re-citing; that branch, m_bCounterAttackTimeout and the counterAttackTimeout difficulty field were all DELETED in this feature's Phase 1, and grep -rn 'counterAttackTimeout' Scripts/ Configs/ Prefabs/ is empty. The replacement states the shipped machine: OVT_ObjectiveDirectorComponent.c holds ONE objective at a time, selected without any random roll by OVT_ObjectiveSelection from the resistance-held bases, towns and cities, and works toward it through harassment, a forward base and finally the counter attack. Deliberately no numbers and no phase names in a 460 px popup - the page it points at, #OVT-FieldManual_BaseCapture_Title, now names the Counter Attacks page for the detail. Tone re-checked: 'can be that place' informs and implies no action. ⚠ Target_de_de and Target_uk_ua still carry the retired-mechanic sentence and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE

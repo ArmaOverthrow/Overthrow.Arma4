@@ -114,6 +114,24 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Appends this module's virtualization handles to a caller's list.
+	//!
+	//! ⚠ HANDLES, NOT ENTITIES, AND THE DIFFERENCE IS THE WHOLE REASON THIS EXISTS. GetSpawnedEntities()
+	//! answers only about groups that are MATERIALISED right now, so a behavior that counted through it
+	//! would read a perfectly alive dormant force as gone - which is the "0 agents = dead" mistake
+	//! Reforger 1.8's spawn queue and dormancy made fatal and which this framework has already removed
+	//! from three other places. A handle can be asked GetAliveMemberCount() and GetPosition() whether or
+	//! not anybody is standing near it, because both are answered off the core's own record.
+	//!
+	//! READ-ONLY, APPEND-ONLY AND CHEAP BY CONTRACT, the same terms as GetRegisteredGroupCount() above:
+	//! it allocates nothing, spends nothing and spawns nothing, and it never clears the caller's list -
+	//! a caller summing across a deployment's modules passes one array through all of them.
+	//! \param[inout] handles The caller's list, appended to. Never cleared.
+	void CollectRegisteredHandles(notnull array<int> handles)
+	{
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! The owner key this module's groups are registered under - the deployment's persisted virtual key
 	//! plus a tag identifying this module within it.
 	//!

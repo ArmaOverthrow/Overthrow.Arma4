@@ -1,9 +1,9 @@
 # Counter Attacks — Implementation Plan
 
-**Status:** Planning
-**Started:** 2026-08-18
+**Status:** Ready for Review
+**Started:** 2026-08-19 (build started; plan authored 2026-08-18)
 **Target Completion:** TBD
-**Last Updated:** 2026-08-18 (written by `solution-architect`; every `file:line` verified against the working tree on this date)
+**Last Updated:** 2026-08-19 — **counter-attack QRF mode addendum** (user-specified, this date): the counter-QRF is now a *silent siege* with its own mode on the QRF controller, and it only starts in daylight. New [§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege), new [Phase 9](#phase-9--the-counter-attack-qrf-mode-the-silent-siege), new [D14](#d14--the-siege-is-a-mode-on-the-existing-controller-not-a-second-controller)–[D17](#d17--the-counter-attack-window-is-a-pure-hour-predicate-on-the-phase-3-gate); [G8](#2-goals) and [D9](#d9--the-qrf-changes-are-exactly-two-and-need-no-prerequisite-repair) amended, the docs phase renumbered 9 → 10. Original plan written 2026-08-18 by `solution-architect`; every `file:line` verified against the working tree on that date, and every `file:line` in the addendum verified on 2026-08-19.
 
 **Epic:** `occupying` — see `docs/features/occupying/epic-overview.md`
 **Requirements:** `docs/features/occupying/counter-attacks/requirements.md` — **authoritative**. Its Out of Scope list is binding.
@@ -47,9 +47,9 @@ Everything the director builds is a deployment. Three new behaviour modules (tow
 
 Three legacy triggers are deleted **first**, in Phase 1, before anything replaces them: the hourly random counter-attack roll, the town-suppression QRF, and the `counterAttackTimeout` difficulty field with all four of its authored values. v1.5 is unreleased and the user has accepted temporary OF passivity in dev play-tests; nothing else in the campaign depends on either trigger, and both player-initiated battle paths (`OVT_CampaignRequestComponent.c:177` base capture, `OVT_UprisingRequestComponent.c:92` uprising) are untouched.
 
-The QRF controller keeps its job and changes in exactly two places: the FOB joins its wave-source list, and each wave's landing zone is biased toward the bearing of the source that sent it, so an attack visibly comes from where the occupying faction actually is.
+The QRF controller keeps its job — it is still the only thing that resolves a battle — and gains **one new mode**. A player-initiated assault is unchanged: notification, 120 s countdown, waves, scoring. A counter-attack QRF is a **siege** ([§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege)): it begins silently with no notification and no scoring UI, spends its **whole** budget in a single pass instead of trickling waves, walks those groups into an encirclement 100–150 m around the objective, and only when the last group is on the ground does it tell the resistance anything — at which point a **30-minute muster clock** starts during which nothing is scored and the resistance can gather, dig in, or run. Scoring begins when that clock expires, or early if the resistance kills the whole siege force first. It only ever starts in daylight (05:00–15:00), so a counter-attack is never a night ambush on a sleeping server. On top of the mode, the FOB joins the wave-source list and each wave's landing zone is biased toward the bearing of the source that sent it, so the attack visibly comes from where the occupying faction actually is.
 
-**Expected shape:** strongly net-adding (unlike its predecessor) — roughly 12 new script files, 8 new configs, 1 new prefab, 1 new entity class, 1 new serializer, ~2 500 lines added against ~60 deleted.
+**Expected shape:** strongly net-adding (unlike its predecessor) — roughly 14 new script files, 8 new configs, 1 new prefab, 1 new entity class, 1 new serializer, ~2 800 lines added against ~60 deleted.
 
 ---
 
@@ -64,7 +64,9 @@ The QRF controller keeps its job and changes in exactly two places: the FOB join
 - **G5 — The pool still balances.** The director never holds resources. Every resource it spends leaves `OVT_DeploymentManagerComponent.m_mFactionResources` exactly once, through `SubtractFactionResources`, at the moment the deployment is created. The FOB "budget" is a **ceiling counter**, not a wallet. No third funding path exists.
 - **G6 — The whole objective survives a save.** Objective, phase, all timers, both success counters, the blacklist and the full FOB record round-trip through a **new, version-first serializer of the director's own**. The fragile positional `OVT_OccupyingFactionManagerSerializer` payload is **not** extended and does not move.
 - **G7 — Insertion is real.** Phase 1+ groups arrive from a controlled base in a live truck that drives real roads, drops them at a road landing zone short of the target, and goes home — with a stuck fallback that dismounts and walks, and a hard cap on concurrent live insertions.
-- **G8 — The QRF changes are two lines of intent, not a rewrite.** `git diff Scripts/Game/Controllers/OccupyingFaction/OVT_QRFControllerComponent.c` touches only `SendTroops`' source list, `SendWave`'s call into `GetLandingZone`, and `GetLandingZone`'s signature and preferred-direction derivation. Countdown, budgeting, scoring, waypoints and resolution are byte-identical.
+- **G8 — A player-initiated QRF is byte-for-byte the battle it is today.** The counter-attack siege is a **mode**, entered only by the director. With `m_eMode == STANDARD` the controller takes exactly the paths it takes at HEAD: 120 s countdown, wave scheduling, `CheckUpdatePoints` gated on `m_iTimer <= 0`, the same notification at the same moment. The only unconditional changes to the file are Phase 8's three: `SendTroops`' source list, `SendWave`'s call into `GetLandingZone`, and `GetLandingZone`'s signature and preferred-direction derivation. Everything Phase 9 adds sits behind a mode branch, and F17 verifies the standard path by playing it.
+- **G13 — A counter-attack is a siege, not a raid.** It starts unannounced, spends its whole budget in one pass, forms a visible ring at 100–150 m, and gives the resistance a **30-minute scored-nothing window** to react after the reveal. Killing the whole siege force during that window ends it early and wins the battle. It never begins outside 05:00–15:00.
+- **G14 — "A QRF exists" and "a QRF is being fought" stop being the same question.** `m_bQRFActive` (a battle object exists → no second battle may start) and `IsQRFEngaged()` (the shooting has started → the world suppresses) are separate, and the client learns about the battle on a third flag, `m_bQRFRevealed`. Nothing suppresses civilians, garrisons, deployments or the economy during a siege the resistance has not been told about.
 
 ### Secondary
 
@@ -83,7 +85,7 @@ This is a **backend / AI-systems** feature. There is no UI polish axis; the bar 
 | **Data integrity — the pool balances** | The sum of `m_iResources` + the deployment pool + what has been spent on live deployments is conserved across every director action. `m_iFOBSpent` is a counter that never holds money. This epic's history is broken bookkeeping (BUG-026/027/029) and the migration that just fixed it must not be undone. | §6 F10/Q6; Logic-tier ceiling maths; Init-tier "spend leaves the pool exactly once"; the `AddFactionResources` grep |
 | **Data integrity — the save round-trips** | Objective, phase, both counters, every timer, the blacklist and the FOB record come back exactly as they were, on a **Continue** and on an in-session re-apply. A live QRF still deliberately rolls back. | §6 F11; the Persistence-tier case; the version-first serializer |
 | **Determinism of tests** | Every new case is world-free or seam-driven, carries a recorded can-fail proof, and uses **no `maxAttempts`**. Nothing asserts on a live AI reaching a place. Randomness enters only through `s_AIRandomGenerator`, and no assertion depends on a roll. | §7; Q3 |
-| **Legibility of the ramp** | A player who has never read this document can tell, from the game, that something is building: trucks arriving, support sliding, structures gone, a flag they did not plant. Each phase transition is either visible in the world or announced. **The FOB is the deliberate exception and stays silent.** | §6 F2/F3/F6/F7; play-test steps 3–9; Phase 9 |
+| **Legibility of the ramp** | A player who has never read this document can tell, from the game, that something is building: trucks arriving, support sliding, structures gone, a flag they did not plant. Each phase transition is either visible in the world or announced. **The FOB is the deliberate exception and stays silent.** | §6 F2/F3/F6/F7; play-test steps 3–9; Phase 10 |
 | **The frozen neighbours stay frozen** | `git diff Scripts/Game/GameMode/Virtualization/ Scripts/Game/GameMode/VirtualMovement/` empty every phase; `Deployment_Base*.conf`, `Deployment_TownPatrol.conf`, `Deployment_TowerGarrison.conf` and both vehicle patrols byte-identical. | Acceptance criterion on all eight code phases |
 
 ---
@@ -221,13 +223,23 @@ NOT BUILT, DELIBERATELY (the requirements' Out of Scope, restated as a build con
    └───────────┬────────────────────────────────────────────────────────────────────┘
    town: support < 25 %  |  base: sabotage ≥ objectiveSabotageMissionsRequired
    AND the FOB is up  AND m_iResources >= objectiveQRFResourceGate
+   AND the world clock is inside 05:00–15:00                                    (D17)
                          ▼
    ┌────────────────────────────────────────────────────────────────────────────────┐
-   │ PHASE 3 — COUNTER-QRF                                                          │
-   │  StartBaseQRF(baseController) or StartTownQRF(town). The existing controller    │
-   │  resolves the battle. The FOB is one of its wave sources; LZs favour the        │
-   │  bearing of whichever source sent that wave.                                    │
+   │ PHASE 3 — COUNTER-QRF  (a SIEGE, not a raid — §3.9)                            │
+   │  StartBaseQRF(baseController) or StartTownQRF(town), with mode COUNTER_ATTACK.  │
+   │  The existing controller resolves the battle, in three stages:                  │
+   │    SILENT_DEPLOY  whole budget in one pass, no notification, no HUD, no map     │
+   │                   circle, no scoring, world NOT suppressed. Groups land at the  │
+   │                   usual LZs and walk to an even ring 100–150 m out.             │
+   │    MUSTER         last group spawned → notify + 30 REAL minutes, still unscored │
+   │                   ends early if every siege group is neutralised                │
+   │    BATTLE         scoring exactly as today; the world suppresses from here      │
+   │  Throughout, m_bQRFActive is true, so the resistance cannot start a battle of   │
+   │  its own. This is a deliberate, accepted tell.                                  │
    │  On m_OnFinished, WHATEVER the outcome: FOB torn down, objective RESET.         │
+   │  Gate not met only because of the clock → the director WAITS in Phase 2 and     │
+   │  keeps harassing; it never abandons an objective for being night.               │
    └────────────────────────────────────────────────────────────────────────────────┘
 
 RE-SELECTION TRIGGERS (Phase 1 and IDLE only — Phase 2+ is locked, per the requirements)
@@ -304,14 +316,23 @@ OVT_DeploymentManagerComponent
 
 and in `EvaluateFactionDeployments` (`:615-627`), one line inside the loop that already builds `OVT_CandidatePosition`:
 
+> 🔴 **CORRECTED 2026-08-19, during the Phase 3 build. The original snippet here was wrong and would have broken D5's own invariant.** It biased the value passed to the `OVT_CandidatePosition` constructor — but that constructor writes its argument to **two** fields, and only one of them is a sort key:
+> - `sortBy` — the ordering key. Biasing this is the whole intent.
+> - `threatLevel` — read twice more in the same loop: `FindBestDeploymentConfig` → `CheckDeploymentConditions` uses it as a **hard eligibility gate** (`m_iMinimumThreatLevel`, authored above zero by `Deployment_BaseATSection` 50, `Deployment_BaseHeavyPatrol` 25, `Deployment_VehiclePatrol_Heavy` 1200), and `CreateDeployment` **persists** it via `SetThreatLevel()`, where four Persistence cases assert it.
+>
+> Biasing the constructor argument would therefore have let an objective-adjacent position **buy configs its real threat cannot afford** and written an inflated threat into the save — exactly the "changes eligibility" failure the ⚠ three paragraphs below forbids. The bias is applied to **`sortBy` only, after construction.** The design stands; only this example was wrong.
+
 ```
 BEFORE                                                AFTER
 base   = CalculateThreatLevel(position, faction)      base   = CalculateThreatLevel(position, faction)
 jitter = RandFloatXY(-0.2, 0.2)                       jitter = RandFloatXY(-0.2, 0.2)
 final  = base * (1.0 + jitter)                        final  = base * (1.0 + jitter)
-                                                      final  = OVT_ObjectiveSelection.ApplyAnchorBias(
-                                                                   final, distanceToAnchor, radius, weight)
-candidatesWithThreat.Insert(new OVT_CandidatePosition(position, final))
+candidate = new OVT_CandidatePosition(position, final)  candidate = new OVT_CandidatePosition(position, final)
+                                                      ApplyObjectiveAnchorBias(candidate, anchor)
+                                                      //  ^ mutates candidate.sortBy ONLY.
+                                                      //    candidate.threatLevel is left alone: it gates
+                                                      //    config eligibility and it is persisted.
+candidatesWithThreat.Insert(candidate)                candidatesWithThreat.Insert(candidate)
 ```
 
 with
@@ -489,9 +510,118 @@ Three rules this shape enforces, each learned from a defect in this epic:
 
 ---
 
+### 3.9 The counter-attack QRF mode — the silent siege
+
+> **Added 2026-08-19 at the user's direction, after the rest of this plan was written.** Every `file:line` below was verified against the working tree on that date. This subsection is the authority for Phase 9; where it and the requirements document disagree about Phase 3, this subsection wins (the requirements predate it).
+
+A player assaulting a base and the occupying faction coming to take a town back are not the same event, and after this feature they no longer read the same. The QRF controller keeps one job — resolving a battle — and gains one **mode**.
+
+**`STANDARD` (every battle the player starts) is unchanged at HEAD.** Notification the moment it starts, a 120 s countdown on the HUD, troops arriving in waves 4–8 minutes apart (`:342`), zone scoring the instant the countdown reaches zero (`:126`). Nothing in Phase 9 may alter that path; it is the branch `m_eMode == OVT_EQRFMode.STANDARD` skips into.
+
+**`COUNTER_ATTACK` (only the director sets it) is a siege in three stages.**
+
+| | `SILENT_DEPLOY` | `MUSTER` | `BATTLE` |
+|---|---|---|---|
+| **Entered when** | `Start()` | the spawn queue empties — i.e. the last group is on the ground | the muster clock hits 0, **or** every siege group is neutralised |
+| **Notification** | none | **"the occupying faction is assaulting X"**, broadcast + external | — |
+| **HUD QRF panel** | hidden | shown; "battle starts in **28 min**", both sliders at 0 | shown; "#OVT-BattleProgress" + the sliders, exactly as today |
+| **Map restricted-area circle** | hidden | shown | shown |
+| **Fast travel / respawn rules** | **not applied** | applied (today's rules, FOB exemption intact) | applied |
+| **Zone scoring** | off | off | on — `CheckUpdatePoints` unchanged |
+| **Spawning** | whole budget, one pass, no waves | none | none |
+| **Group orders** | walk from the LZ to an assigned ring slot 100–150 m out, `Defend` there | hold the ring | `SearchAndDestroy` on the objective centre |
+| **World suppression** (economy, deployments, that town's civilians) | **off — the world lives** | **off** | **on**, as today |
+| **Resistance may start its own battle** | **no** | no | no |
+| **Typical duration** | seconds to ~1 min (one group per second) | 30 real minutes | until a side reaches `QRFPointsToWin` |
+
+#### Why the world keeps living until `BATTLE`
+
+Three server-side gates currently read "does a QRF object exist" and mean "is a battle being fought": the occupying economy tick (`OVT_OccupyingFactionManager.c:1418`), deployment evaluation (`OVT_DeploymentManager.c:577`) and the objective town's civilian crowd (`m_OnQRFTownChanged.Invoke` at `OVT_OccupyingFactionManager.c:1162`). Under a 30-minute siege those three would empty the target town of civilians, freeze every deployment on the map and stall the faction's income for half an hour *before the resistance is told anything* — the loudest possible tell, and a dead world besides. All three move onto a new accessor:
+
+```
+bool IsQRFEngaged()   // OVT_OccupyingFactionManager
+    return m_CurrentQRF && m_CurrentQRF.IsEngaged();
+```
+
+`IsEngaged()` is `true` for a `STANDARD` QRF from the moment it is created — **so standard battles behave exactly as they do today** — and `true` for a `COUNTER_ATTACK` QRF only in `BATTLE`. `m_CurrentQRF` keeps its other meaning untouched: a battle object exists, no second one may start, the director stands down.
+
+⚠ The civilian invoke is a **transition**, not a poll: `StartTownQRF` fires it inline at `:1162` and `OnQRFFinishedTown` fires it again at `:1249`. In counter-attack mode the *first* invoke moves to the `BATTLE` transition. It must still be paired — a siege resolved during `MUSTER` (early end straight into `BATTLE`) still passes through `BATTLE`, so the pairing holds by construction; a siege that could ever skip `BATTLE` would leak a suppressed town, and nothing may introduce such a path.
+
+#### Three flags, three questions
+
+| Flag | Lives on | Replicated | Answers |
+|---|---|---|---|
+| `m_bQRFActive` | OF manager (`:169`) | yes, via `RpcDo_SetQRFActive/Inactive` (`:1957`, `:2008`) | *May a new battle start? May this player capture / rise up?* Set for the whole siege, from `SILENT_DEPLOY`. **Unchanged.** |
+| `m_bQRFRevealed` | OF manager — **new** | yes, new `RpcDo_SetQRFRevealed(bool)` beside the others | *Does the client know?* Drives the HUD panel, the map circle and the travel/respawn rules. `true` from creation for `STANDARD`; `true` at the `MUSTER` transition for `COUNTER_ATTACK`. |
+| `IsQRFEngaged()` | OF manager — **new**, server-only | no | *Is the shooting on?* Drives the three world-suppression gates. |
+
+The client-side consumers each gain one conjunct and nothing else:
+
+- `OVT_EconomyInfo.c:79` → `if(m_OccupyingFaction.m_bQRFActive && m_OccupyingFaction.m_bQRFRevealed)`
+- `OVT_MapRestrictedAreas.c:327` → the same conjunct
+- `OVT_FastTravelService.c:108` and `OVT_RespawnService.c:220` → the same conjunct (**this is the one behavioural change to a shipped rule**: during `SILENT_DEPLOY` a player may still fast-travel to and respawn in the objective, because nobody has told them not to. Without it, a fast-travel refusal is a free reveal.)
+- `OVT_SleepService.c:227` and `OVT_GMPanelUIComponent.c:532` keep reading `m_bQRFActive` — a Game Master is *meant* to see the siege forming, and sleeping through an incoming assault should be refused from the moment it is incoming.
+
+#### The spawn pass, and the ring
+
+`SendTroops()` (`:245`) already computes the budget; in counter-attack mode only the **shape of the spend** changes:
+
+- `SendWave()` (`:309`) loops until `m_iResourcesLeft <= 0` instead of allocating one bounded slice per source, and **does not** schedule a follow-up wave (`:342` is skipped). The 16-groups-per-source clamp still bounds a single source; the loop simply cycles the source list until the budget is gone. The debit at `:345-352` is unchanged and still runs once per pass — ⚠ it is the only place a QRF debits `m_iResources`, and a mode that spends in one pass must still pass through it exactly once.
+- Spawn positions stay the existing `GetLandingZone()` points (250–750 m, bearing-biased by Phase 8), so nothing pops in beside a player standing in the objective.
+- Each queued group is additionally assigned a **ring slot**: with `N` groups queued, slot `i` sits at bearing `360/N * i` from the objective centre at a radius rolled in `[SIEGE_RING_MIN (100), SIEGE_RING_MAX (150)]`, rejected and re-rolled inward if it lands in the ocean (`OVT_WorldUtils.IsOceanAtPosition`, the predicate `GetTargetZone` already uses at `:487`). The ring is computed **once, from the final queue length**, after the spawn pass fills the queue and before the first group spawns — assigning slots as groups spawn would clump them.
+- `SpawnFromQueue()` (`:418`) keeps its one-per-second cadence (it is the frame-load spreader) and its `OVT_GMGroupRegistry.Tag(..., OVT_EGroupOrigin.QRF, -1, "QRF")` call at `:435`. Only the waypoint block at `:440-443` branches: counter-attack groups get a single `Defend` waypoint on their ring slot instead of the Scout/Scout/SaD/SaD ladder aimed at the centre.
+- At the `BATTLE` transition every surviving group is issued `SearchAndDestroy` on `GetTargetZone(...)` through the existing `AddWaypoint` (`:403`) — the assault proper. ⚠ `SCR_AIGroup.AddWaypoint` appends; the `Defend` waypoint must be **removed** first or the group finishes defending before it attacks.
+
+#### The muster clock, and ending early
+
+`m_iTimer` (`:15`) is reused as-is — it is already a millisecond countdown ticked by `CheckUpdateTimer` (`:64-79`) and already gates scoring at `:126`. The mode changes when and how far it counts:
+
+```
+CheckUpdateTimer():                        // one second, real time, unchanged cadence
+  STANDARD          → exactly as today: spawn below 105 000, decrement, publish
+  SILENT_DEPLOY     → drain the queue; DO NOT decrement; publish nothing
+                      queue empty → m_iTimer = MUSTER_TIME (1 800 000); stage = MUSTER;
+                                    manager.RevealQRF()  (notification + m_bQRFRevealed)
+  MUSTER            → decrement; publish (see the rate note); every 10 s check the early end
+                      m_iTimer <= 0            → stage = BATTLE
+                      whole force neutralised  → m_iTimer = 0, stage = BATTLE
+  BATTLE            → nothing to do; CheckUpdatePoints owns it
+```
+
+**30 real minutes, not in-game minutes** (user decision, 2026-08-19): the window exists so players can physically drive there, so it must not shrink with `timeMul`. `MUSTER_TIME = 1 800 000` fits an `int` with three orders of magnitude to spare.
+
+⚠ **Publication rate.** `UpdateQRFTimer` (`:1064`) broadcasts an RPC to every client on **every tick**; over a 30-minute muster that is 1 800 broadcasts where a standard QRF sends 120. Publish every **10 s** while more than 120 s remain, then every second — and render minutes while more than 120 s remain (`"#OVT-BattleStartsInMinutes"` + `Math.Ceil(ms / 60000)`), seconds below it via today's `"#OVT-BattleStartsIn"` string (`OVT_EconomyInfo.c:286-289`). A 10 s granularity is invisible on a minutes display and the final two minutes tick as they do today.
+
+**Early end — "if all of the spawned enemy is neutralised, scoring begins."** Checked on the 10 s cadence during `MUSTER` only, over `m_Groups` (`:434`), reusing `IsFightingFit` (`:110`):
+
+```
+a group counts as NEUTRALISED when
+    its entity is null / deleted                                   → dead
+ OR it has ≥ 1 agent and none of them are IsFightingFit(...)        → dead
+a group with ZERO agents but a live entity counts as ALIVE         → see the trap below
+early end fires when every tracked group is neutralised AND at least one was ever tracked
+```
+
+🔴 **The trap this shape exists for:** "0 agents = dead" is a **known-bad** prune in this engine — the AI spawn queue and dormancy can legitimately report a group with no agents (recorded in `docs/features/.../reforger-1.8-update` and still unfixed at HEAD). Siege groups are spawned live and never virtualised, so the case should not arise, but a false positive here **hands the resistance an instant win**, which is the worst possible failure. The zero-agent case therefore resolves to ALIVE, deliberately.
+
+Once `BATTLE` is entered by the early path, scoring runs unmodified: with no occupying AI left inside `QRF_RANGE` and any resistance inside `QRF_POINT_RANGE`, `CheckUpdatePoints` awards +5/tick and the resistance wins in `QRFPointsToWin / 5` ticks. That is the intended reward for wiping a siege before it lands, and it needs no new code.
+
+#### Daylight only
+
+The Phase 3 gate gains one conjunct: the world clock must be inside **05:00–15:00**. See [D17](#d17--the-counter-attack-window-is-a-pure-hour-predicate-on-the-phase-3-gate). A gate blocked only by the clock is **not** a failure — the director stays in Phase 2, keeps harassing, and fires on the next tick inside the window.
+
+#### What does not change
+
+- **Persistence: nothing.** No mode, no stage, no ring, no muster clock is serialized. A live QRF still rolls back cleanly on load (`§3.8`), and a director restored in `COUNTER_QRF` with no live QRF resets on its first tick — which now also covers a save taken mid-siege. Say so in `context.md`; it is the kind of omission a later reader files a bug against.
+- **Resolution.** `OnQRFFinishedBase/Town` (`:1165`, `:1204`), `ChangeBaseControl`, the town outcome table and `m_OnFinished` are untouched. A siege that loses flips nothing, exactly as today.
+- **`KillAll()`** (`:81`) is untouched and still unreferenced by this feature.
+- **Survivors stay** after the battle, per commit `e115965`.
+
+---
+
 ## 4. Implementation Phases
 
-Nine phases. Each leaves the tree compiling and the campaign playable. **No phase ships a module without the config that uses it, and no phase ships a config whose modules do not exist.**
+Ten phases. Each leaves the tree compiling and the campaign playable. (Phase 9 — the counter-attack QRF mode — was added on 2026-08-19; the documentation phase moved 9 → 10. Phases 1–8 are unchanged.) **No phase ships a module without the config that uses it, and no phase ships a config whose modules do not exist.**
 
 **Test-run policy:** `tools/compile-check.sh` runs freely; `tools/run-tests.sh` launches a real Reforger client that steals desktop focus, so it is run **by the orchestrator only, once, after a phase completes** — never during planning, never inside a subagent. See `.claude/test-policy.md` for the full rules. Fast = `{6A6E29FF47ECB840}`, All = `{6A6E2A002F53A581}`.
 
@@ -509,7 +639,7 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 2. **T1.2 — Delete the counter-attack roll.** `OVT_OccupyingFactionManager.c:1418-1432`. ⚠ **`float rand = s_AIRandomGenerator.RandFloat01();` at `:1419` is computed unconditionally every tick and used only here** — it goes with the block. Delete `m_bCounterAttackTimeout` (`:176`) and its decrement (`:1351-1352`).
 3. **T1.3 — Delete the town-suppression QRF.** `:1453-1469` **only**. ⚠ **Threat decay lives in the same `if(time.m_iMinutes == …)` block at `:1443-1451` and stays.** The two dead locals `playerFaction`/`occupyingFaction` at `:1453-1454` go with the loop. Leave the block shell intact.
 4. **T1.4 — Retire `counterAttackTimeout`.** Delete `OVT_DifficultySettings.c:50-51` **and the four authored values in the same commit** (`Difficulty_Normal.conf:10`, `Hard.conf:15`, `Extreme.conf:15`, `Insane.conf:14`). An authored value with no attribute is a parse warning on every load.
-5. **T1.5 — Author the eleven new difficulty fields** per [§3.6](#faction-registry-and-difficulty-additions), in the `Occupying Faction` category, each with a `desc:` a tuner can act on. Author the per-preset values in all five shipped presets; `Difficulty_TestWorld.conf` authors none.
+5. **T1.5 — Author the twelve new difficulty fields** per [§3.6](#faction-registry-and-difficulty-additions), in the `Occupying Faction` category, each with a `desc:` a tuner can act on. Author the per-preset values in all five shipped presets; `Difficulty_TestWorld.conf` authors none.
 6. **T1.6 — Re-word the two comments this invalidates.** `OVT_OccupyingFactionManager.c:1411-1412` says the remaining 20 % is "the QRF sizing **and counter-attack** reserve" — the counter-attack half is now gated by `objectiveQRFResourceGate` and belongs to the director. `:1394-1397` (`UpdateKnownTargets`) is still correct and stays.
 7. **T1.7 — Logic-tier:** new `TestSuites/Logic/OVT_TEST_Logic_ObjectiveScaling.c` (Fast, `suite: OVT_TEST_LogicSuite`) covering the difficulty-consumption statics that exist at this point — `RequiredSabotageMissions(authored, fallback)` clamps a 0/negative/absurd authored value to the fallback and passes a sane one through; the harassment ramp maps success count → group-ladder index and saturates at the top rung. ⚠ World-free **including comments**.
 8. **T1.8 — Init-tier:** the five shipped presets load, and `objectiveSabotageMissionsRequired` is **non-increasing** Easy → Normal → Hard → Extreme → Insane with at least one strict step ([G11](#secondary)). This is the only tier that can assert the inversion, because it needs loaded configs.
@@ -655,7 +785,8 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 1. **T6.1 — Read-only survey first, and it gates the rest of the phase.** Re-verify and record:
    - **The removal path.** `OVT_ResistanceFactionManager.RemovePlacedItem(RplId entityId, int playerId)` (`:870`) is the **only** removal API. Its two load-bearing lines, **in this order and no other** (the comment at `:896-898` explains why), are `OVT_NavmeshRebuild.Queue(entity)` then `SCR_EntityHelper.DeleteEntityAndChildren(entity)`. It sends no notification and performs no untracking — a deleted entity simply is not saved.
    - **🔴 The blocker: its owner-or-officer permission check at `:883-894` rejects a server-initiated call**, because a sabotage team has no `playerId`. The phase must therefore either add a `playerId == -1` server bypass to that method or extract the navmesh-queue-then-delete pair into a shared helper both paths call. **Decide and record which; do not copy the two lines into the sabotage module.**
-   - **The cost join, which does not exist yet.** The live entity carries only a **type string** — `OVT_PlaceableComponent.GetPlaceableType()` / `OVT_BuildableComponent.GetBuildableType()` — and nothing in the tree joins that back to `OVT_Placeable.m_sName` / `OVT_Buildable.m_sName` to reach `m_iCost`. That lookup is new code and belongs in one place.
+   - **The cost join, which does not exist yet.** The live entity carries only a **type string** — `OVT_PlaceableComponent.GetPlaceableType()` / `OVT_BuildableComponent.GetBuildableType()` — and nothing in the tree joins that back to the config to reach `m_iCost`. That lookup is new code and belongs in one place.
+     > 🔴 **CORRECTED 2026-08-19 during the Phase 6 build: do NOT join on `m_sName`.** The type string and the display name **disagree for seven of the eight shipped buildables** — `"GuardTower"`/`"Guard Tower"`, `"RecruitmentTent"`/`"Recruitment Tent"`, `"Bunker"`/`"Bunkers"`, `"VehicleGarage"`/`"Garage"`, `"FuelDepot"`/`"Fuel Depot"`, `"MedicalTent"`, `"VehicleMaintenanceRamp"`; only `"Helipad"` happens to line up. A name join would have priced almost everything at **zero** and so demolished the **garage first** — the exact inverse of the authored cheapest-first design, and a failure no compile or type check could catch. **Join on the prefab `ResourceName`** (`OVT_PrefabUtils.GetPrefabName(entity)` against `m_aPrefabs`): exact, needs no data re-authoring, and survives a restore. An unmatched prefab must sort **last**, never first.
    - **The enumerator, which also does not exist.** There is **no registry of placed structures**; discovery is a sphere query. `OVT_ItemLimitChecker.CountItemsForLocation(locationId, baseType, searchCenter)` (`:216`, radius **500 for `EOVTBaseType.BASE`**) is the exact shape — with `FilterItemCallback` (`:244`, either component present) and `CountItemCallback` (`:279`, association match). The sabotage enumerator is that method **collecting instead of counting**.
    **Nothing is deleted until this table exists.**
 2. **T6.2 — Reuse, do not reinvent.** Destruction goes through the single path T6.1 settled on. ⚠ Do not raw-delete: the navmesh carve must be captured **before** the entity goes, or the AI keeps pathing around a building that is not there.
@@ -665,7 +796,7 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 6. **T6.6 — Director wiring:** `TickHarassment()` for a BASE objective creates sabotage operations on the same cadence, with the same pool debit; `OnSabotageSuccess()` increments `m_iSabotageSuccesses` and re-checks the Phase 2 gate.
 7. **T6.7 — Logic-tier:** `NextTargetIndex` returns the cheapest not-yet-destroyed index; returns `-1` on an empty list, an all-destroyed list and a ragged input; ties go to input order; a negative cost sorts first without crashing.
 8. **T6.8 — Init-tier:** the config resolves and validates; the module's candidate filter excludes a structure associated with a *different* base and one owned by the occupying faction; the module destroys **nothing** while an enemy is inside the clear radius; `m_iStructuresPerMission` is respected.
-9. **T6.9 — `context.md`:** the T6.1 table, the removal-path decision, and an explicit statement of what the player permanently loses so the Phase 9 documentation can be truthful.
+9. **T6.9 — `context.md`:** the T6.1 table, the removal-path decision, and an explicit statement of what the player permanently loses so the Phase 10 documentation can be truthful.
 
 **Acceptance criteria**
 
@@ -711,7 +842,7 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 
 ---
 
-### Phase 8 — Phase 3: the counter-QRF, and the GM panel
+### Phase 8 — Phase 3: the counter-QRF, the daylight gate, and the GM panel
 
 **Agent:** `component-developer-advanced` — **advanced.** It touches the battle layer and the GM wire, both of which have live client consumers and neither of which the automated spine covers well.
 **Estimate:** 8–12 h
@@ -731,11 +862,14 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 10. **T8.10 — Logic-tier:** `PreferredDegreesFromSource` for all four cardinal directions and both diagonals, with a tolerance (⚠ `vector.Distance` is +1 ULP off at 1 000 m and 2 000 m; bearings are worse); a source coincident with the target returns a defined value rather than NaN; the panel formatter for every phase and for no objective.
 11. **T8.11 — Init-tier:** the GM seam accepts the new record and the state receives both fields; `Clear()` zeroes them; the director's Phase 3 gate fires `StartBaseQRF` exactly once (drive the gate twice and assert one call, using the existing `m_CurrentQRF` guard as the observable).
 12. **T8.12 — `context.md`:** the T8.1 verdict, the bearing sign argument written out in full, the `m_Bases` staleness note, and the `CAMPAIGN_RECORD_COUNT` / `WIRE_VERSION` bumps with their reason.
+13. **T8.13 — The daylight conjunct** ([D17](#d17--the-counter-attack-window-is-a-pure-hour-predicate-on-the-phase-3-gate), added 2026-08-19). Add `static bool IsCounterAttackWindow(int hour, int startHour, int endHour)` to the objective-scaling pure static — a half-open `[start, end)` window that **handles wrap** (`start > end` means the window crosses midnight) even though the shipped values do not wrap, and add it as a conjunct to both Phase 3 gates. Read the hour the way the OF manager already does: `m_Time = world.GetTimeAndWeatherManager()` then `TimeContainer time = m_Time.GetTime()` (`OVT_OccupyingFactionManager.c:1389-1394, :1416`), guarding the null manager the same way. Consts `COUNTER_ATTACK_HOUR_START = 5` / `COUNTER_ATTACK_HOUR_END = 15` live on the director, **not** in `OVT_DifficultySettings` — the user asked for a fixed window, and promoting them to authored fields later is a two-line change. ⚠ A gate blocked **only** by the clock logs at most once per objective (not once per tick — it is a once-a-minute tick and the block can last in-game hours) and does **not** count toward any starvation or timeout counter.
+14. **T8.14 — Logic-tier for the window:** inside, both boundaries (05:00 in, 15:00 out — half-open), outside, midnight, and a wrapping window (22 → 4) on both sides of both its edges.
 
 **Acceptance criteria**
 
 - compile **0**; All green.
-- `git diff Scripts/Game/Controllers/OccupyingFaction/OVT_QRFControllerComponent.c` touches **only** `SendTroops`' source insertion, `SendWave`'s call, and `GetLandingZone`'s signature + preferred-direction derivation. Countdown, budgeting, scoring, waypoints and resolution are untouched.
+- `git diff Scripts/Game/Controllers/OccupyingFaction/OVT_QRFControllerComponent.c` touches **only** `SendTroops`' source insertion, `SendWave`'s call, and `GetLandingZone`'s signature + preferred-direction derivation. Countdown, budgeting, scoring, waypoints and resolution are untouched. (**This criterion is scoped to Phase 8.** The siege mode lands in Phase 9 and widens this file deliberately; at the end of *this* phase the QRF still fires as a standard, loud, waved battle.)
+- `grep -n "COUNTER_ATTACK_HOUR_START\|IsCounterAttackWindow" Scripts/` finds the consts on the director and the predicate in the pure static — and **nothing** in `OVT_DifficultySettings.c`.
 - `git diff Scripts/Game/GameMode/GM/OVT_GMRecords.c` → **empty** (no per-entity record class changes).
 - The GM state's existing fields are in their original order; the two new ones are last, and both appear in `CopyFrom` **and** `Clear`.
 - `grep -n "CAMPAIGN_RECORD_COUNT\|WIRE_VERSION" Scripts/Game/Components/Controller/OVT_GMRequestComponent.c` → **3** and **2**.
@@ -744,7 +878,46 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 
 ---
 
-### Phase 9 — Help & documentation sync
+### Phase 9 — The counter-attack QRF mode (the silent siege)
+
+**Agent:** `component-developer-advanced` — **advanced.** It restructures the timer and spawn paths of a 561-line server-only component that every battle in the game runs through, and it touches four shipped client-facing rules (HUD, map, fast travel, respawn). A regression here breaks player-initiated battles, which are the feature's most-used path and the one nobody is testing while working on counter-attacks.
+**Estimate:** 10–14 h
+**Suite after this phase:** **All**.
+**Authority:** [§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege). Read it before writing anything; it carries the stage table, the flag table and the traps.
+
+**Tasks**
+
+1. **T9.1 — Read-only survey, and a baseline.** Re-verify the eleven `file:line` anchors §3.9 cites (`OVT_QRFControllerComponent.c` `:15`, `:64-79`, `:110`, `:126`, `:245`, `:309`, `:342`, `:345-352`, `:418`, `:434-443`; `OVT_OccupyingFactionManager.c` `:169`, `:1064`, `:1162`, `:1418`, `:1957`, `:2008`). Record the verdict in `context.md`. **Then write down, before changing anything, what a standard QRF does second by second** — it is the thing you must not break, and T9.11 checks you against this note.
+2. **T9.2 — The enums and the mode field.** `OVT_EQRFMode { STANDARD, COUNTER_ATTACK }` and `OVT_EQRFStage { SILENT_DEPLOY, MUSTER, BATTLE }` in one new file under `Scripts/Game/Controllers/OccupyingFaction/`. On the controller: `m_eMode` (defaults `STANDARD`), `m_eStage`, `bool IsEngaged()`. ⚠ `m_eMode` must be set by the caller **before** `Start()` — `SpawnQRFController` (`OVT_OccupyingFactionManager.c:1278`) returns the component and both starters configure it before calling `Start()` (`:1091`, `:1143`), so follow that existing order rather than adding a parameter to `Start()`.
+3. **T9.3 — `OVT_QRFSiege`, the pure static** (`Scripts/Game/Controllers/OccupyingFaction/OVT_QRFSiege.c`). No world, no entity, no manager, no `OVT_Global` — **including in comments** (the Logic-tier rule is a directory-wide grep). It owns: `RingSlotBearing(int index, int count)`; `RingSlotOffset(int index, int count, float radius)` returning a local offset in the same 0°=North=`-Z` convention `GetRandomDirection` documents at `:416-419`; `ShouldPublishTimer(int remainingMs, int lastPublishedMs)`; `FormatMusterRemaining(int ms)`'s numeric half (minutes above 120 s, seconds below); and `AllNeutralised(int tracked, int neutralised)`. Everything that can be decided without the world is decided here.
+4. **T9.4 — The single-pass spend.** In `SendWave()` (`:309`), branch on the mode: cycle the source list until `m_iResourcesLeft <= 0`, and skip the follow-up `CallLater` at `:342`. ⚠ **The debit at `:345-352` must still run exactly once for the pass** — it is the only place a QRF debits `m_iResources`, and double-debiting or skipping it re-opens BUG-027 in a new place. ⚠ Bound the loop with an iteration counter as well as the budget: a source list that allocates 0 per pass (possible if `baseResourceCost` is misauthored) would otherwise spin forever on the server thread.
+5. **T9.5 — The ring.** After the spawn pass fills the queue and **before** the first group spawns, compute one ring slot per queued group from the final queue length (§3.9 — computing them as groups spawn clumps them), rolling the radius in `[SIEGE_RING_MIN 100, SIEGE_RING_MAX 150]` and re-rolling inward when `OVT_WorldUtils.IsOceanAtPosition` rejects a slot (the predicate `GetTargetZone` already uses at `:487`). Store them alongside the existing parallel spawn arrays (`m_aSpawnQueue` / `m_aSpawnPositions` / `m_aSpawnTargets`, `:30-32`) — ⚠ these arrays are index-parallel and `SpawnFromQueue` removes index 0 from each (`:445-447`); a fourth array must be removed in the same place or every later group gets the wrong slot.
+6. **T9.6 — Orders.** In `SpawnFromQueue` (`:418`), counter-attack groups get one `Defend` waypoint on their ring slot instead of the Scout/Scout/SaD/SaD ladder (`:440-443`). At the `BATTLE` transition, remove that waypoint from every surviving group and add `SearchAndDestroy` on the objective — ⚠ `AddWaypoint` appends (`:403-410`), so without the removal the group finishes defending before it attacks.
+7. **T9.7 — The stage machine in `CheckUpdateTimer`** (`:64-79`), exactly as §3.9 spells it out. ⚠ The `m_iTimer < 105000` spawn condition (`:66`) is a *standard-mode* expression of "wait 15 s for the world to despawn"; in `SILENT_DEPLOY` the timer does not move at all, so the drain needs its own condition — and the 15 s wait is **not needed** in counter-attack mode because nothing is being suppressed yet ([§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege) "Why the world keeps living"). Publish through `UpdateQRFTimer` only when `ShouldPublishTimer` says so.
+8. **T9.8 — The early end.** On the existing 10 s `CheckUpdatePoints` cadence, in `MUSTER` only. Implement the neutralised test **exactly** as §3.9 states, 🔴 **including the zero-agent-means-ALIVE rule** — a false positive hands the resistance an instant win. Write the reason in a comment at the test, not just in the docs.
+9. **T9.9 — The reveal, on the manager.** `m_bQRFRevealed` + `RpcDo_SetQRFRevealed(bool)` beside the existing pair (`:1957`, `:2008`), set `true` at creation for `STANDARD` (so nothing changes for player battles) and at the `MUSTER` transition for `COUNTER_ATTACK` via a new `RevealQRF()` that also sends the notification. ⚠ **`Rpc()` is an untyped variadic prototype — a wrong argument count compiles clean and dies silently at the wire (BUG-090).** Arity-diff the new pair by eye against `RpcDo_SetQRFTimer` (`:2002`). ⚠ Add the flag to the JIP payload the same way the others are carried, and note in `context.md` that `m_iCurrentQRFBase/Town` are *already* missing from it (a known defect, not this phase's to fix — do not quietly widen the payload contract beyond the one new flag).
+10. **T9.10 — `IsQRFEngaged()` and the three world gates.** Add the accessor to the OF manager; move `OVT_OccupyingFactionManager.c:1418`, `OVT_DeploymentManager.c:577` and the first `m_OnQRFTownChanged.Invoke` (`:1162`) onto it per §3.9. ⚠ The civilian invoke is a paired transition (`:1162` / `:1249`) — moving the first one must not break the pairing; assert that a siege always passes through `BATTLE`.
+11. **T9.11 — The client conjuncts, and the standard-path proof.** One conjunct each in `OVT_EconomyInfo.c:79`, `OVT_MapRestrictedAreas.c:327`, `OVT_FastTravelService.c:108`, `OVT_RespawnService.c:220`. Leave `OVT_SleepService.c:227` and `OVT_GMPanelUIComponent.c:532` on `m_bQRFActive` (§3.9). Then re-read the T9.1 baseline note and confirm line by line that a `STANDARD` QRF still does all of it.
+12. **T9.12 — The HUD's minutes form.** `OVT_EconomyInfo.c:286-289`: minutes above 120 s via a new `#OVT-BattleStartsInMinutes`, today's seconds string below it. ⚠ **`Language/localization_Overthrow.st` is the only file you may edit** — the `.conf` exports are Workbench build output; add the new keys with a `Comment` each and **tell the orchestrator a re-export is owed**. Never hand-edit an export.
+13. **T9.13 — Notifications.** New `CounterAttackBase` / `CounterAttackTown` tags in `Configs/overthrowBroadcastMessages.conf` (the `BaseBattle` entry at `:109-111` is the model) plus their `.st` entries, sent from `RevealQRF()` through `SendTextNotification` **and** `SendExternalNotifications`, matching the pairing at `OVT_OccupyingFactionManager.c:1102-1103`. Cities use the town tag; villages are never objectives.
+14. **T9.14 — Logic-tier:** a new `TestSuites/Logic/OVT_TEST_Logic_QRFSiege.c` covering every `OVT_QRFSiege` static — ring bearings for 1, 2, 3 and 12 groups sum to a full circle and never repeat; slot 0 is due north of the centre; the offset convention matches `GetRandomDirection`'s (the **sign** asserted explicitly, as T8.10 does for bearing); the publish predicate on both sides of the 120 s boundary; the minutes/seconds crossover at exactly 120 000 ms; `AllNeutralised` for 0-of-0 (**false** — never fire with nothing tracked), 0-of-N, partial and N-of-N.
+15. **T9.15 — Init-tier:** a controller created with `m_eMode = COUNTER_ATTACK` reports `IsEngaged() == false` in `SILENT_DEPLOY` and `MUSTER` and `true` in `BATTLE`; a `STANDARD` controller reports `true` immediately; the stage advances `SILENT_DEPLOY → MUSTER` on a driven empty queue and sets the muster clock to 1 800 000; the early-end predicate does not fire on a fixture whose one group reports zero agents. ⚠ Fixture groups must be eliminated-marked before anything ticks, per the binding constraints in [§7](#7-testing-strategy).
+16. **T9.16 — `context.md`:** the T9.1 verdict and baseline note, the flag table, the zero-agent decision and why, the parallel-array trap, the fact that **no siege state is persisted** and a mid-siege save rolls the battle back, and the owed localization re-export.
+
+**Acceptance criteria**
+
+- compile **0**; All green.
+- **A player-initiated QRF is unchanged, verified by playing one** — notification immediately, 120 s countdown, waves, scoring at zero. This is the phase's primary risk and a green suite does not cover it.
+- `grep -n "m_eMode\|m_eStage" Scripts/Game/Controllers/OccupyingFaction/OVT_QRFControllerComponent.c` — every read is a branch that leaves the `STANDARD` side on today's code path.
+- `grep -rn "m_CurrentQRF" Scripts/` → the OF manager's own uses, the GM flag at `OVT_GMRequestComponent.c:564`, and **nothing else**: the economy tick, the deployment evaluator and the civilian transition all read `IsQRFEngaged()`.
+- `grep -rn "m_bQRFRevealed" Scripts/` → the manager, its RPC, and exactly four client consumers.
+- `grep -rn "OVT_Global\|GetGame()" Scripts/Game/Controllers/OccupyingFaction/OVT_QRFSiege.c` → **empty**, comments included.
+- `git diff Language/*.conf` → **empty** (only the `.st` master is edited; the re-export is owed and reported).
+- `git diff Scripts/Game/GameMode/Virtualization/ Scripts/Game/GameMode/VirtualMovement/` → **empty**.
+
+---
+
+### Phase 10 — Help & documentation sync
 
 **Agent:** `help-docs-sync`
 **Estimate:** 3–4 h
@@ -752,17 +925,21 @@ Nine phases. Each leaves the tree compiling and the campaign playable. **No phas
 
 Players see substantially different enemy behaviour, so the closing sync is in scope.
 
-1. **T9.1** Fact-check **every** existing sentence in `Configs/Tutorials/` and `Configs/FieldManual/` about enemy counter-attacks, QRFs, defending a town and defending a base against the shipped code, and cite a `file:line` or cut the sentence. The project has shipped invented mechanics twice; no gate catches a well-formed lie.
-2. **T9.2** The player-visible changes to document:
+1. **T10.1** Fact-check **every** existing sentence in `Configs/Tutorials/` and `Configs/FieldManual/` about enemy counter-attacks, QRFs, defending a town and defending a base against the shipped code, and cite a `file:line` or cut the sentence. The project has shipped invented mechanics twice; no gate catches a well-formed lie.
+2. **T10.2** The player-visible changes to document:
    - **counter-attacks are no longer random.** The occupying faction picks one target and works toward it; you can see which one and prepare.
    - **the three phases and what each looks like** — trucks bringing groups in, support sliding in a harassed town, radio towers being retaken, structures at your base being demolished, an enemy FOB appearing between their nearest base and your town.
    - **an enemy FOB is not announced** — you find it, and pulling it down needs the area cleared and a held action on its flag.
    - **starving an FOB works**: take or empty the base supplying it, or keep a strong presence there, and it comes down on its own.
    - **the QRF now arrives from where they actually are**, including from the FOB.
+   - **a counter-attack surrounds you before it announces itself.** The first sign may be that you cannot start a battle of your own. When the encirclement is complete you are told, and you then have **30 real minutes** before anything is decided — that time is yours to gather, dig in, call recruits, or leave. Nothing is scored during it.
+   - **the ring is about 100–150 m out** from the centre of the town or base, and it is worth scouting before the clock runs down.
+   - **wipe them all before the 30 minutes are up and the battle ends there** — the assault never happens and the ground is yours.
+   - **counter-attacks come in daylight**, roughly between 05:00 and 15:00. They will not start on you at night.
    - **difficulty changes how much warning you get** — easier settings demand more sabotage missions before the assault.
    - **what you permanently lose to sabotage** (the T6.9 list), stated plainly.
-3. **T9.3** Wiki: the same points plus the operator-facing notes — the eleven new difficulty fields and what each does, the removal of `counterAttackTimeout`, and the fact that objective operations spend the same deployment pool as everything else.
-4. **T9.4** Epic bookkeeping: add `counter-attacks` to `docs/features/occupying/epic-overview.md`'s feature table, refresh its Tech Debt section (the QRF LZ half of BUG-031 is fixed; the "no OF tower-recapture path" regression from C1 is closed), and update the epic's row in the master `docs/overview.md`.
+3. **T10.3** Wiki: the same points plus the operator-facing notes — the twelve new difficulty fields and what each does, the removal of `counterAttackTimeout`, and the fact that objective operations spend the same deployment pool as everything else.
+4. **T10.4** Epic bookkeeping: add `counter-attacks` to `docs/features/occupying/epic-overview.md`'s feature table, refresh its Tech Debt section (the QRF LZ half of BUG-031 is fixed; the "no OF tower-recapture path" regression from C1 is closed), and update the epic's row in the master `docs/overview.md`.
 
 **Acceptance criteria** — all three surfaces agree with the code; no invented mechanics; every claim carries a `file:line`; the epic overview and master row reflect the new feature.
 
@@ -838,9 +1015,11 @@ The reason is a lifetime hazard: `OnQRFFinishedBase` (`:1129-1144`) and `OnQRFFi
 
 ### D9 — The QRF changes are exactly two, and need no prerequisite repair
 
+> ⚠ **Amended 2026-08-19.** "Exactly two" is now **exactly two *unconditional* changes, plus a mode** ([§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege), [D14](#d14--the-siege-is-a-mode-on-the-existing-controller-not-a-second-controller)). Everything below still stands for Phase 8 and for the `STANDARD` path, which is the path this decision was protecting; the siege additions land in Phase 9 and are all behind a mode branch. The "deliberately excluded" list at the end of this decision is **unchanged and still binding** — Phase 9 does not get to fix `m_Bases` staleness or the cosmetic dead code either.
+
 The brief asked for an explicit decision on whether fixing the LZ-cache globals is a prerequisite of bearing bias. **It is not, because they no longer exist** ([C4](#corrections-to-the-requirements-document)): commit `d7e42362` removed `Goodqrfpos`/`Goodqrfbasepos`, made each wave source resolve its own LZ, fixed the `TracePosition` no-op, and fixed the 0°/360° wrap. All three halves of BUG-031's LZ cluster are closed at HEAD.
 
-So the scope is exactly what the requirements say and nothing more:
+So the unconditional scope is exactly what the requirements say and nothing more:
 
 1. The FOB joins `m_Bases` as a wave source.
 2. `GetLandingZone` takes the source position and derives the preferred direction from real geometry.
@@ -879,6 +1058,48 @@ So they become two more rows there, following `Row_Threat` verbatim. That is che
 
 ---
 
+> **D14–D17 were added 2026-08-19 with [§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege).**
+
+### D14 — The siege is a mode on the existing controller, not a second controller
+
+The alternative was an `OVT_SiegeControllerComponent` beside the QRF's, leaving `OVT_QRFControllerComponent` untouched. Rejected on three counts.
+
+**The battle layer is a singleton by design.** `m_CurrentQRF` is one slot; "one battle at a time" is a property the whole epic leans on — the director's freeze, the world suppression, the player-capture block, the map circle, the HUD panel all key off it. A second controller type means every one of those grows a second thing to ask, and the invariant stops being checkable by reading one field.
+
+**The siege *is* a QRF for 90 % of its life.** Budgeting, source bases, landing zones, spawn pacing, the group registry tag, zone scoring, `QRFPointsToWin`, the win/loss handoff to `OnQRFFinishedBase/Town` — all of it is wanted verbatim. A separate class either duplicates ~400 lines or inherits from the one it was meant to leave alone.
+
+**The differences are genuinely small and genuinely local.** They are: when the timer runs, how the budget is spent in one pass, where groups walk, and who has been told. Four branches on one enum, in a file that already branches on `m_iTimer`.
+
+The cost is real and is accepted: a mistake in this file breaks player-initiated battles too. That is why Phase 9 is an advanced-agent phase, why T9.1 demands a written baseline of standard-mode behaviour before any edit, and why an explicit "play a normal QRF" acceptance criterion exists — the automated spine cannot see it.
+
+### D15 — Three flags, because "a QRF exists", "a QRF is being fought" and "the players know" are three questions
+
+Before this feature they were one question with three answers, and it worked because a QRF became all three at once. A siege breaks that: it exists for up to 31 minutes before it is fought, and it is fought-in-secret for a minute before anyone is told.
+
+Conflating them is what would produce the two worst bugs available here — a town whose civilians vanish half an hour before the resistance is told anything (the tell that ruins the whole mechanic), and a resistance that can start a second battle because the siege has not "really" begun (the one thing the user explicitly required against). Splitting them is a new bool, a new server-only accessor, and one added conjunct at seven call sites, each verifiable by grep. See §3.9's flag table for which is which.
+
+⚠ The default of every new flag is chosen so that **`STANDARD` behaves exactly as it does at HEAD**: revealed at creation, engaged at creation. A player battle should be incapable of taking a new code path.
+
+### D16 — The muster window is real minutes, and the early end is biased toward "still alive"
+
+**Real minutes** (user decision): the window exists so players can physically drive to the fight, and `timeMul` must not shrink it. In-game minutes at a typical 6× would leave five real minutes, which is not a mustering window, it is a warning shot.
+
+**The early end resolves ambiguity toward ALIVE.** The check answers "is the whole siege force dead?", and it is asked of `m_Groups`, whose entries can be deleted, empty, or full of corpses. The engine's "zero agents" state is *not* reliable evidence of death — the spawn queue and dormancy both produce it, a known-unfixed hazard at HEAD. A false positive here does not cost a little accuracy; it ends the battle and hands the resistance the objective for free, silently, in a way no log would explain. So a group with a live entity and no agents counts as alive, and the early end additionally requires that at least one group was ever tracked (`AllNeutralised(0, 0)` is **false**). The failure mode this leaves is the benign one: a siege that should have ended early instead waits out its clock.
+
+### D17 — The counter-attack window is a pure hour predicate on the Phase 3 gate
+
+The user's rule is "no counter-attack at night — roughly 05:00 to 15:00". It belongs on the **gate**, not in the controller: a siege that has begun should finish whatever the clock does, and only the *decision to begin* is time-of-day sensitive. Starting no later than 15:00 also means the muster window and the battle both land in daylight without any second check.
+
+It is a **pure static** (`IsCounterAttackWindow(hour, start, end)`) for the same reason every other gate in this feature is: it is a Logic-tier case with no world in it. It handles a wrapping window even though the shipped values do not wrap — the predicate is the natural place for that, and an operator who later authors 22 → 04 gets a correct answer instead of a silent never.
+
+> 🔴 **CLARIFIED 2026-08-19 during the Phase 8 build — the original wording below was too broad and was read literally, correctly.** "No starvation tick" meant *waiting for daylight must not count as the objective failing*: no phase timeout, no reselect, no blacklist. It did **not** mean suspending starvation. The distinction is the difference between a clock the director runs against itself (freeze it) and **the player's counterplay** (never freeze it). Starvation responds to facts about the world — the supplying base taken or emptied, a strong resistance presence — and those are true at night too. Freezing it means a player who kills the supplying garrison at 22:00 watches the forward base stand frozen for hours and then launch a counter-attack from a base whose garrison is already dead, which contradicts [F7](#functional-criteria) outright and punishes a correct play.
+>
+> **The window gates firing the counter-QRF and nothing else.** During the wait the forward-base phase stays live: starvation is evaluated and its counter ticks, the garrison sender runs, and the FOB can be starved down or dismantled exactly as it can at midday. Only the **phase timeout** is held, and the wait still never reselects or blacklists. Gate the phase-timeout advance specifically — not the whole tick.
+
+The bounds are **consts on the director, not `OVT_DifficultySettings` fields.** The user asked for a fixed window; the difficulty block already grows by eleven fields in this feature; and promoting two consts to authored fields later is a two-line change, while un-shipping two authored fields is a save-format conversation. ⚠ Being outside the window is **not** a failure of the objective: no starvation tick, no timeout, no reselect, no blacklist. The director simply keeps doing Phase 2 until morning, and logs the wait **once**, not once per tick.
+
+---
+
 ## 6. Definition of Done
 
 An evaluator with **no implementation context** should be able to verify every item below.
@@ -893,10 +1114,15 @@ An evaluator with **no implementation context** should be able to verify every i
 - **F6 — Phase 2 raises a real FOB.** Let the ramp run. **Expect:** a supply truck drives out and an occupying-faction FOB appears between their nearest base and your town — with **no notification**. It has a garrison. Ambushing or stealing the truck prevents it.
 - **F7 — The FOB can be starved.** Take or empty the base supplying the FOB, or keep a strong presence there. **Expect:** after the difficulty's starvation window the FOB comes down on its own and the occupying faction picks a new objective.
 - **F8 — The FOB can be removed by hand.** Clear the area of occupying AI, then hold the action on the FOB's flag. **Expect:** the action is hidden to the wrong faction, refused with a reason while enemies are near, and on completion the FOB and its garrison are gone and the objective resets.
-- **F9 — Phase 3 arrives from the right direction.** Let the gate pass. **Expect:** a QRF on the objective whose waves land **on the side the occupying faction actually holds**, including from the FOB — not on a uniformly random bearing. Whatever the outcome, the FOB comes down and a new objective is chosen.
+- **F9 — Phase 3 arrives from the right direction.** Let the gate pass. **Expect:** a QRF on the objective whose troops land **on the side the occupying faction actually holds**, including from the FOB — not on a uniformly random bearing. Whatever the outcome, the FOB comes down and a new objective is chosen.
 - **F10 — Resource accounting is closed.** Watch the GM campaign panel across several director operations and one 6-hour resource tick. **Expect:** the deployment pool falls by exactly the cost of each operation created, the reserve behaves exactly as it did before this feature, and no number moves unexplained. **The occupying faction never gains resources from anything the director does.**
 - **F11 — The whole objective survives a Continue.** Save mid-Phase-2 with an FOB up and some sabotage successes banked, quit, **Continue**. **Expect:** the same objective, the same phase, the same counters, **exactly one** FOB structure, and the ramp resumes where it stopped.
-- **F12 — A QRF freezes everything.** Trigger a player-initiated QRF elsewhere on the map during Phase 1. **Expect:** the objective's operations stop being created and its timers do not advance for the duration; afterwards they resume from where they were.
+- **F12 — A QRF freezes the director.** Trigger a player-initiated QRF elsewhere on the map during Phase 1. **Expect:** the objective's operations stop being created and its timers do not advance for the duration; afterwards they resume from where they were. (A *standard* QRF also freezes the economy, deployments and its own town's civilians from the moment it starts, exactly as it does today — see F15/F17 for how a siege differs.)
+- **F15 — A counter-attack begins in silence, and the first tell is the one we accepted.** Let the Phase 3 gate pass with a player in the objective town. **Expect:** no notification, no QRF panel on the HUD, no circle on the map — but the capture and uprising actions are refused, and enemy groups are walking in from several directions. Fast travel and respawn into the town still work during this stage. Civilians are still going about their business.
+- **F16 — The ring forms, then the clock starts.** Keep watching. **Expect:** groups take up positions in a rough circle 100–150 m out from the centre rather than driving straight in; when the last of them is on the ground the notification fires, the HUD shows a countdown in **minutes**, and both battle sliders sit at zero and stay there for the full **30 real minutes**. Nothing is won or lost during it. In the last two minutes the display switches to seconds.
+- **F17 — A player-initiated battle is exactly the battle it was.** Capture a base yourself. **Expect:** the notification immediately, the 120 s countdown in seconds, troops arriving in waves over several minutes, scoring the moment the countdown reaches zero, and the town's civilians and the faction's economy freezing as they always did. **Nothing about the siege appears anywhere in this battle.**
+- **F18 — Wiping the siege ends it early.** During the 30-minute window, kill every attacker. **Expect:** scoring starts as soon as the last one falls rather than at the end of the clock, and with no enemy left within 750 m the resistance takes the points quickly and wins. Conversely, leaving one group alive in a far corner does **not** end it early.
+- **F19 — Counter-attacks come in daylight.** Play several in-game days with a ripe objective. **Expect:** every counter-attack begins between roughly 05:00 and 15:00; a gate that ripens at 22:00 waits until morning while harassment continues, and the log says so once. No objective is ever abandoned for being night.
 - **F13 — The machine never wedges.** Play for an extended session. **Expect:** every objective either progresses, is abandoned for a stated reason, or is blacklisted and replaced — and every one of those transitions appears in the log with its reason. No objective sits in one phase indefinitely with nothing happening.
 - **F14 — The retired triggers are gone.** Play for several in-game days without provoking anything. **Expect:** no QRF ever fires on a random base, and no QRF fires the instant a town's support crosses 25 %. Player-initiated capture and uprising still work exactly as before.
 
@@ -907,13 +1133,21 @@ An evaluator with **no implementation context** should be able to verify every i
 - **Q3** Every new test case carries a recorded proof that it can fail — the exact edit, in a preamble comment. **No `maxAttempts` anywhere.**
 - **Q4 The legacy triggers are gone:** `grep -rn "counterAttackTimeout\|m_bCounterAttackTimeout" Scripts/ Configs/ Prefabs/` → **empty**; `grep -rn "StartBaseQRF\|StartTownQRF" Scripts/` → exactly the two player-initiated callers plus the director.
 - **Q5 Core and movement are untouched:** `git diff Scripts/Game/GameMode/Virtualization/ Scripts/Game/GameMode/VirtualMovement/ docs/features/virtualization/core/api.md` → **empty** across the whole feature.
-- **Q6 One funding path:** `grep -rn "AddFactionResources" Scripts/` → the OF manager's single credit point and the deployment framework's own refund, **and nothing in `Scripts/Game/GameMode/Objectives/`**. Every director spend goes through `SubtractFactionResources` immediately after a successful create.
+- **Q6 One funding path:** `grep -rn "AddFactionResources" Scripts/` → the OF manager's single credit point and the deployment framework's **two** refunds — `OVT_MultiTownPatrolBehaviorDeploymentModule.RecoverResources()` and `OVT_DeploymentManagerComponent.RecallDeployment()` — **and nothing in `Scripts/Game/GameMode/Objectives/`, comments included**. Every director spend goes through `SubtractFactionResources` immediately after a successful create.
+
+  > ⚠ **AMENDED 2026-08-19, WITH THE REASON, EXACTLY AS THE CRITERION'S OWN WORDING INVITES.** It read "the deployment framework's own refund" (singular) until the idle-clock/recall fix. That fix had to make an abandoned objective hand back what it had spent on operations that never arrived — a play-test deleted a sabotage team mid-walk *and* its 100 resources, and the pool never saw them again. A credit in the director would have been a fourth kind of funding path and would have broken the **`Objectives/` clause**, which is the load-bearing half. So the credit went into the **framework**, beside the one that was already there: `RecallDeployment()` is "delete and refund what is recoverable", the director calls it and never touches a pool. **The `Objectives/` clause is unchanged and still empty**; what changed is only the enumeration of the framework's own refund points, from one to two.
+  >
+  > **[G5](#primary) is not weakened.** A refund is paid at most once per deployment and only for work bought and never delivered: `RecallDeployment()` zeroes `m_iResourcesInvested` **before** it credits, so a second call reads 0; the director's ledger is cleared by the same teardown, so a lookup cannot find the deployment twice; a force flagged eliminated pays nothing (a team the player killed is a loss, not a recall); and a *standing* forward base or garrison is never recalled at all, because its money bought exactly what it was for.
 - **Q7 Logic-tier grep clean:** no manager, game-mode, world, entity or `OVT_Global` identifier in any of the four pure-static files or their Logic-tier test files, **comments included**.
 - **Q8 The dependency points one way:** `grep -rn "OVT_ObjectiveDirector" Scripts/Game/GameMode/Deployments/` → **empty**.
 - **Q9 The save formats did not move:** `git diff` on `OVT_OccupyingFactionManagerSerializer.c`, `OVT_PersistedBase`, `OVT_PersistedRadioTower`, `RplSave`, `RplLoad`, `OVT_DeploymentComponentSerializer.c` and `OVT_DeploymentManagerSerializer.c` → **empty**. The director's own serializer is version 1 and append-only.
 - **Q10 The modifier config appended:** `git diff Configs/Modifiers/supportModifiers.conf` shows exactly one entry, **at the end of `m_aModifiers`**.
 - **Q11 The GM wire is append-only:** `git diff Scripts/Game/GameMode/GM/OVT_GMRecords.c` → **empty**; `OVT_GMCampaignState`'s pre-existing fields are in their original order.
 - **Q12 Shipped configs are byte-identical:** `git diff Configs/Deployment/Deployment_TownPatrol.conf Configs/Deployment/Deployment_TowerGarrison.conf Configs/Deployment/Deployment_VehiclePatrol_*.conf Configs/Deployment/Deployment_Base*.conf` → **empty**.
+- **Q13 The siege never leaks into a standard battle:** every read of `m_eMode` / `m_eStage` in `OVT_QRFControllerComponent.c` is a branch whose `STANDARD` side is today's code path, and `grep -rn "m_bQRFRevealed" Scripts/` returns the manager, its RPC and exactly four client consumers (`OVT_EconomyInfo`, `OVT_MapRestrictedAreas`, `OVT_FastTravelService`, `OVT_RespawnService`).
+- **Q14 The three world gates moved together:** `grep -rn "m_CurrentQRF" Scripts/` returns only the OF manager's own uses and `OVT_GMRequestComponent.c:564`; the economy tick, the deployment evaluator and the civilian transition all read `IsQRFEngaged()`.
+- **Q15 Localization exports untouched:** `git diff Language/` shows **only** `localization_Overthrow.st`, every new key carries a `Comment`, and the owed re-export is stated in `context.md` and reported to the user.
+- **Q16 The siege statics are pure:** `grep -rn "OVT_Global\|GetGame()\|GetWorld" Scripts/Game/Controllers/OccupyingFaction/OVT_QRFSiege.c` → **empty**, comments included.
 
 ### Integration Criteria
 
@@ -923,7 +1157,9 @@ An evaluator with **no implementation context** should be able to verify every i
 - **I4** `OVT_EGroupOrigin` is **not** renumbered; objective groups carry `DEPLOYMENT` origin through the inherited `TagForGameMaster`, like every other deployment group.
 - **I5** The resistance's own FOB system (`OVT_FOBData`, `OVT_DeployFOBAction`, `OVT_UndeployFOBAction`, `OVT_SetPriorityFOBAction`) is untouched; `git diff Scripts/Game/GameMode/Managers/Factions/OVT_ResistanceFactionManager.c` is empty except any shared removal helper T6.2 introduces.
 - **I6** `UpdateKnownTargets()` and `GetThreatByLocation()` are untouched — the director has its own selection and does not repurpose the known-target list.
-- **I7** `git diff Scripts/Game/GameMode/Civilians/` → **empty**.
+- **I7** `git diff Scripts/Game/GameMode/Civilians/` → **empty**. The civilian suppression change is a change to *when the OF manager fires* `m_OnQRFTownChanged` (`:1162`), not to the subscriber — `OVT_CivilianAmbienceManagerComponent` is not edited.
+- **I8 (added 2026-08-19)** Every rule that currently keys off `m_bQRFActive` still fires for a standard QRF at the same moment it does today: capture and uprising actions and their server validators (`OVT_CampaignRequestComponent.c:148`, `OVT_UprisingRequestComponent.c:48`, `OVT_CaptureBaseAction.c:7,:25`, `OVT_StartUprisingAction.c:6,:21`) are **not edited at all** — they read "a battle exists", which is exactly what they should read during a siege.
+- **I9 (added 2026-08-19)** `OVT_SleepService.c:227` and `OVT_GMPanelUIComponent.c:532` are **not edited**: sleep is refused and a Game Master can see the battle from the moment it exists, deliberately.
 
 ### Verification Method
 
@@ -935,7 +1171,8 @@ An evaluator with **no implementation context** should be able to verify every i
 4. `grep -rn "counterAttackTimeout\|m_bCounterAttackTimeout" Scripts/ Configs/ Prefabs/` → **empty**. → Q4
 5. `grep -rn "StartBaseQRF\|StartTownQRF" Scripts/` → three callers total, all named. → Q4, F14
 6. `git diff Scripts/Game/GameMode/Virtualization/ Scripts/Game/GameMode/VirtualMovement/ docs/features/virtualization/core/api.md` → **empty**. → Q5
-7. `grep -rn "AddFactionResources" Scripts/Game/GameMode/Objectives/` → **empty**. → Q6, G5
+7. `grep -rn "AddFactionResources" Scripts/Game/GameMode/Objectives/` → **empty**, comments included. → Q6, G5
+7a. `grep -rn "AddFactionResources" Scripts/ | grep -v Scripts/Game/Tests/` → **five** lines: the declaration, `RecallDeployment`'s call, the patrol module's recovery, and the OF manager's credit point plus its own header comment. → Q6, G5
 8. `grep -rn "OVT_ObjectiveDirector" Scripts/Game/GameMode/Deployments/` → **empty**. → Q8
 9. `git diff Scripts/Game/Persistence/Serializers/Components/OVT_OccupyingFactionManagerSerializer.c Scripts/Game/Persistence/Serializers/Components/OVT_DeploymentComponentSerializer.c` → **empty**. → Q9
 10. `git diff Configs/Deployment/Deployment_TownPatrol.conf Configs/Deployment/Deployment_TowerGarrison.conf Configs/Deployment/Deployment_Base*.conf Configs/Deployment/Deployment_VehiclePatrol_*.conf` → **empty**. → Q12
@@ -982,7 +1219,7 @@ An evaluator with **no implementation context** should be able to verify every i
 - **No `maxAttempts` anywhere** — the suites are deterministic and every new case carries a can-fail proof.
 - **Scope every registry assertion to your own owner key** — the Init and Persistence worlds run a live deployment wave.
 
-### Logic tier — Fast, three new files
+### Logic tier — Fast, four new files
 
 `TestSuites/Logic/OVT_TEST_Logic_ObjectiveScaling.c` (Phases 1, 2, 6, 7)
 - Difficulty consumption: `RequiredSabotageMissions` clamps unset/zero/negative/absurd to the fallback and passes a sane value through; `HarassmentLadderIndex` saturates at the top rung and never indexes past the array; `FOBBudgetCeiling` derives from `objectiveFOBCost` and `WithinFOBCeiling` is asserted at, below and above.
@@ -1003,6 +1240,14 @@ An evaluator with **no implementation context** should be able to verify every i
 - `ApplyAnchorBias`: unchanged for `radius <= 0`, `weight <= 0` and `distance >= radius`; monotonic in distance; bounded by `score + weight`; never below `score`; the ordering claim of [§3.5](#35-the-objective-anchor--how-the-bias-plugs-into-evaluation-scoring) expressed as two candidates.
 - `PreferredDegreesFromSource`: all four cardinals and two diagonals with tolerance; source coincident with target returns a defined value; the **sign** claim asserted explicitly — a source due north of the target yields a bearing that puts the LZ north of the target.
 - The GM panel objective formatter for every phase and for no objective.
+- `IsCounterAttackWindow` (Phase 8, T8.14): inside; **both boundaries** of the half-open window (05:00 in, 15:00 out); outside; midnight; and a wrapping window (22 → 04) on both sides of both its edges.
+
+`TestSuites/Logic/OVT_TEST_Logic_QRFSiege.c` (Phase 9, added 2026-08-19)
+- `RingSlotBearing` for 1, 2, 3 and 12 groups: bearings are evenly spaced, span a full circle, never repeat, and slot 0 is due north.
+- `RingSlotOffset`: the **sign** convention asserted explicitly against `GetRandomDirection`'s documented 0° = North = `-Z` (a mirrored ring is the phase's most likely silent defect, exactly as the bearing sign is Phase 8's); magnitude equals the radius for every slot; radius 0 returns the zero vector.
+- `ShouldPublishTimer` on both sides of the 120 000 ms boundary and at it; never publishes twice for the same value.
+- `FormatMusterRemaining`'s numeric half: minutes above 120 s (rounding **up**, so a 30-minute clock reads "30" not "29"), seconds below, and the crossover asserted at exactly 120 000 ms.
+- `AllNeutralised`: **`(0, 0)` is false** — the early end must never fire with nothing tracked; plus 0-of-N, partial, and N-of-N.
 
 ### Init tier — additions to `TestSuites/Init/OVT_TEST_InitSuite.c` (Fast), plus one seam file
 
@@ -1013,7 +1258,8 @@ An evaluator with **no implementation context** should be able to verify every i
 - **Phase 5:** both configs resolve and validate; `EvaluateHold` / `EvaluateRecapture` fire once from a driven sequence and never twice; every new module's clone is complete; the new support modifier resolves by name and is **last** in its config.
 - **Phase 6:** the sabotage config resolves; the candidate filter excludes structures of another base and of the occupying faction; nothing is destroyed while an enemy is inside the clear radius; the per-mission cap holds.
 - **Phase 7:** both FOB configs resolve; the raise module raises nothing on a restored deployment and exactly once on a fresh one; the anchor source provider prefers the FOB; teardown leaves no deployment of either config in the radius.
-- **Phase 8:** the GM seam accepts the new record and the state receives all four fields (extend `OVT_TEST_Init_GMRequestSeam.c` — this is the only mechanical defence against the `Rpc()` arity blind spot); the Phase 3 gate fires the starter exactly once.
+- **Phase 8:** the GM seam accepts the new record and the state receives all four fields (extend `OVT_TEST_Init_GMRequestSeam.c` — this is the only mechanical defence against the `Rpc()` arity blind spot); the Phase 3 gate fires the starter exactly once; the gate **refuses at 22:00 and passes at 06:00** with every other input identical.
+- **Phase 9 (added 2026-08-19):** a controller with `m_eMode = COUNTER_ATTACK` reports `IsEngaged() == false` in `SILENT_DEPLOY` and `MUSTER` and `true` in `BATTLE`, while a `STANDARD` controller reports `true` immediately; a driven empty spawn queue advances `SILENT_DEPLOY → MUSTER` and sets the muster clock to 1 800 000; the early-end predicate does **not** fire on a fixture group that reports zero agents with a live entity; `m_bQRFRevealed` is true at creation for `STANDARD` and false for `COUNTER_ATTACK`. ⚠ Fixture groups are eliminated-marked before anything ticks.
 
 ### Persistence tier — `TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c` (All)
 
@@ -1039,6 +1285,10 @@ Two cases, both on the shared gate (`OVT_TEST_PersistenceSuite.RequiresStartedCa
 | Save → quit → **Continue** | The harness restarts the suite on a world transition |
 | Two campaigns in one session | Same reason; `virtualization/core`'s Phase 6 found four teardown bugs exactly here |
 | MP / JIP, including the GM record and the dismantle request | Uncovered by the whole spine; a dedicated-server pass is the only check |
+| Whether a player-initiated QRF still behaves as it always did (F17) | The suites assert seams, not a battle's second-by-second feel; this is the phase's primary regression risk and only a play-test sees it |
+| Whether the ring reads as an encirclement rather than a clump | A judgement about a place, and it depends on live AI pathing from the LZ |
+| Whether 30 minutes is the right muster window | Pacing; a subjective verdict over several battles |
+| A JIP client arriving mid-siege (does it see the right thing at each stage?) | Needs a second machine; the JIP payload is uncovered by the spine |
 
 ---
 
@@ -1075,9 +1325,9 @@ Two cases, both on the shared gate (`OVT_TEST_PersistenceSuite.RequiresStartedCa
 | **R1** | **The director wedges.** An objective sits in one phase forever because a gate can never pass — a town whose support never reaches 50 %, a base with nothing left to sabotage, an FOB site that can never be found. | High if not designed against | The feature silently does nothing; the OF is passive forever after Phase 1 retired its triggers | Every phase has a **timeout exit** as well as a gate exit: a phase that has run `m_iPhaseTicks` past its budget resets and reselects, logging why. The blacklist stops the same dead objective being re-picked immediately. F13 is a player-visible criterion and play-test step 12 reads the log for it. Sabotage with nothing left to destroy reports success rather than stalling. |
 | **R2** | **A second FOB on every load.** The classic static-content duplication — a restored deployment re-runs its raise. | High if not designed against | Save-breaking over a long campaign; visible and absurd | [D11](#d11--the-fob-is-a-deployment-plus-a-tracked-structure-not-a-new-entity-system): `WasRestoredFromSave()` gates the raise, the module is idempotent on its own entity handle, T7.12 asserts both halves, F11 is a player-visible criterion and play-test step 7 checks it explicitly. This is R2 from `base-defense-migration`, restated. |
 | **R3** | **Pool accounting breaks.** `ForceCreateDeployment` does **not** debit; a director that forgets to call `SubtractFactionResources` creates free armies, which is exactly the bug class (BUG-026/027/029) the migration just closed. | Medium | The economy becomes decorative again | Every create goes through **one** director method that creates-then-debits, named and headed as such. Q6's grep proves the director never credits. An Init case drives a create and asserts the pool fell by exactly the cost. F10 is a play-test criterion. |
-| **R4** | **The bearing sign is backwards** and every counter-QRF wave lands on the far side of the objective. | Medium | The headline Phase 3 promise is inverted, and it looks like a physics bug rather than a sign error | [§3.3 of the QRF task](#phase-8--phase-3-the-counter-qrf-and-the-gm-panel) spells the convention out (`dir` points target → LZ, so the bearing wanted is target → **source**); T8.8 asserts the sign directly as a named case; play-test step 9 is the live check. |
+| **R4** | **The bearing sign is backwards** and every counter-QRF wave lands on the far side of the objective. | Medium | The headline Phase 3 promise is inverted, and it looks like a physics bug rather than a sign error | [§3.3 of the QRF task](#phase-8--phase-3-the-counter-qrf-the-daylight-gate-and-the-gm-panel) spells the convention out (`dir` points target → LZ, so the bearing wanted is target → **source**); T8.10 asserts the sign directly as a named case; play-test step 9 is the live check. |
 | **R5** | **Inserting the support modifier in the wrong place corrupts live saves.** `m_iIndex` is the positional index in `m_aModifiers` and travels in the replicated per-town modifier lists. | Medium | Every town's modifiers shift by one — silent, save-wide, and hard to diagnose | T5.2 states the append-only rule three times (task, class header, `context.md`), Q10 makes "the new entry is last" a grep-verifiable acceptance criterion, and an Init case asserts the new modifier's index is the final one. |
-| **R6** | **The ramp is paced wrong.** Eleven new difficulty values are first guesses; too fast and the resistance is overwhelmed with no warning, too slow and nothing ever happens. | **High** | The feature's entire purpose is pacing | Every value is a difficulty field, not a constant, so tuning needs no code. Play-test step 14 is a dedicated pacing pass whose numbers feed straight back. The director logs every transition with its tick count, so the pass has data rather than impressions. |
+| **R6** | **The ramp is paced wrong.** Twelve new difficulty values are first guesses; too fast and the resistance is overwhelmed with no warning, too slow and nothing ever happens. | **High** | The feature's entire purpose is pacing | Every value is a difficulty field, not a constant, so tuning needs no code. Play-test step 14 is a dedicated pacing pass whose numbers feed straight back. The director logs every transition with its tick count, so the pass has data rather than impressions. |
 | **R7** | **Live insertion is expensive or fails often.** Two always-materialised trucks with crews and passengers driving Eden's roads is more live AI than the campaign usually holds, and Reforger road AI is not reliable over long distances. | Medium-High | Frame cost; groups that never arrive | `objectiveMaxConcurrentInsertions` bounds it (default 2, Easy 1). The **walk fallback is written first and is never optional** (T4.5) — every failure path still delivers the men. `m_fWalkThresholdDistance` means short hops never spawn a truck at all. Play-test step 14 measures the cost and step 3 checks arrival. |
 | **R8** | **`CloneModule` silently drops an attribute** on one of six new modules. The standing trap of the module system — it lost `m_fMaxCruiseSpeed` once already. | **High** | Silent wrong behaviour: an insertion with no truck type, a hold timer of zero, a sabotage cap of zero | Every new module hand-writes `CloneModule` copying its own **and all inherited** attributes, and every phase that ships a module asserts clone fidelity mechanically (T4.8, T5.9, T6.8, T7.12). It is the only defence that exists. |
 | **R9** | **Sabotage deletes something that comes back**, because the entity was persistence-tracked and only the world copy was removed — the BUG-030 failure class. | Medium | Player property "destroyed" that reappears on load; or worse, an untracked orphan | T6.1 is a **gating read-only survey**: the removal path the player's own dismantle uses is found and named before anything is deleted; T6.2 reuses it or introduces one shared helper and re-points the player path at it. F5's save/reload check is the live proof. |
@@ -1089,6 +1339,9 @@ Two cases, both on the shared gate (`OVT_TEST_PersistenceSuite.RequiresStartedCa
 | **R15** | **The anchor changes where non-objective deployments are created**, and base defence or town patrols degrade across the map. | Low-Medium | A regression in the system that just shipped | [D5](#d5--the-anchor-is-pushed-biases-ordering-only-and-is-absent-by-default): no anchor is byte-identical to today, the anchor biases **ordering not eligibility**, and T3.6 asserts the no-anchor path is unchanged by driving two consecutive evaluations. I3 is an integration criterion. |
 | **R16** | **The GM record breaks a JIP client**, because the fan is a wire and a mismatched client mis-parses. `Rpc()` arity is a compile-check blind spot in this tree (BUG-090), and `SendSnapshotEnd` reports a record count an old client would then wait for. | Medium | A client-side error storm during a GM session; a snapshot that never commits | T8.6 adds a **new** pair rather than widening an existing one, bumps both `CAMPAIGN_RECORD_COUNT` and `WIRE_VERSION`, leaves every record class untouched, and adds an Init seam case — the only mechanical check available for RPC arity. T8.7 names the three `OVT_GMCampaignState` methods a new scalar must touch. Play-test step 15 is the live MP check. |
 | **R17** | **No authored FOB sites exist on day one.** `OVT_FOBPosition` instances live in world layers and placing them is a Workbench world-editing job nobody has done. If the generated fallback is weak, Phase 2 blacklists every objective in turn and the ramp never completes. | **Certain at first** | The feature's middle phase silently never fires | The **generated path is the primary path and is built and tuned as if the authored one will never exist**; authored markers are an optimisation for map authors, not a dependency. T7.3's siting is bounded-attempt with an ocean check, a clearance trace and a flatness probe, and T7.4 logs every failure with the attempt count so "the OF never builds an FOB" has a diagnosis in the log. Play-test step 7 checks the site quality; authoring a handful of Eden markers is a **follow-up**, not a blocker. |
+| **R18** | **Phase 9 breaks player-initiated QRFs.** The siege restructures the timer and spawn paths of the one component every battle in the game runs through, and the most-used battle — a player capturing a base — is the one nobody is playing while building counter-attacks. | **High** | The feature's own path works and the shipped one silently regresses: no notification, no waves, a battle that never scores | [D14](#d14--the-siege-is-a-mode-on-the-existing-controller-not-a-second-controller): every siege behaviour is behind a mode branch whose `STANDARD` side is today's code, and every new flag defaults so a standard battle takes no new path. T9.1 requires a **written second-by-second baseline before any edit**, T9.11 checks the finished code against it, Q13 makes the branch structure grep-verifiable, and **F17 is a play-test criterion in its own right** — a green suite does not cover this. |
+| **R19** | **The early end fires on a live siege force**, because a group momentarily reports zero agents. | Medium | The resistance is handed the objective for free, silently, with nothing in the log to explain it | [D16](#d16--the-muster-window-is-real-minutes-and-the-early-end-is-biased-toward-still-alive): the zero-agent state resolves to **ALIVE**, `AllNeutralised(0, 0)` is false, and both rules carry the reason in a comment at the test site and a Logic case each. The residual failure is the benign one — a siege that waits out its clock when it could have ended early. |
+| **R20** | **The siege is not as silent as intended.** A tell the design did not account for — a suppressed civilian crowd, a fast-travel refusal, a map circle, an RPC storm — reveals the target before the reveal. | Medium | The mechanic's whole point is the reveal being a moment; a leaked target makes the silent stage merely an unexplained restriction | The three world-suppression gates move onto `IsQRFEngaged()` and the two travel rules onto `m_bQRFRevealed` ([§3.9](#39-the-counter-attack-qrf-mode--the-silent-siege)), each grep-verified by Q13/Q14. The **accepted** tell is stated up front and only one: a player who tries to start a battle of their own is refused. F15 is the live check for the rest. |
 
 ---
 
@@ -1103,9 +1356,12 @@ Two cases, both on the shared gate (`OVT_TEST_PersistenceSuite.RequiresStartedCa
 | 5 — Town operations: harassment + tower recapture | `component-developer` | no — new modules and configs; one appended modifier entry under a stated rule |
 | 6 — Base operations: sabotage | `component-developer-advanced` | **yes** — permanently destroys player property; integrates two ownership registries |
 | 7 — Phase 2: the FOB | `component-developer-advanced` | **yes — the largest phase.** New prefab + entity + tracked structure + spend ceiling + held action + server-validated request |
-| 8 — Phase 3: counter-QRF + GM panel | `component-developer-advanced` (hand the `.layout` slice, if any, to `ui-developer`) | **yes** — touches the battle layer and the GM wire, both with live client consumers |
-| 9 — Help & documentation sync | `help-docs-sync` | — |
+| 8 — Phase 3: counter-QRF + GM panel + daylight gate | `component-developer-advanced` (hand the `.layout` slice, if any, to `ui-developer`) | **yes** — touches the battle layer and the GM wire, both with live client consumers |
+| 9 — The counter-attack QRF mode (the silent siege) | `component-developer-advanced` | **yes** — restructures the timer and spawn paths every battle in the game runs through, and moves four shipped client-facing rules onto a new flag |
+| 10 — Help & documentation sync | `help-docs-sync` | — |
 
-**Skills to activate:** `enforcescript-patterns` (all code phases), `overthrow-architecture` (1–8), `workbench-workflow` (4–8 — prefab and config authoring, and every play-test).
+**Skills to activate:** `enforcescript-patterns` (all code phases), `overthrow-architecture` (1–9), `workbench-workflow` (4–9 — prefab and config authoring, and every play-test).
 
-**Estimate:** 85–116 h across the nine phases, of which Phases 2, 4 and 7 are roughly half.
+**Estimate:** 95–130 h across the ten phases, of which Phases 2, 4, 7 and 9 are roughly half.
+
+**Owed to the user at the end:** a **localization re-export from Workbench** — Phase 9 adds `#OVT-BattleStartsInMinutes` and the two counter-attack broadcast messages to `Language/localization_Overthrow.st`, and the `.conf` exports are build output that must never be hand-edited. Raw `#OVT-` keys on screen after Phase 9 mean the re-export is outstanding, not that the strings are wrong.

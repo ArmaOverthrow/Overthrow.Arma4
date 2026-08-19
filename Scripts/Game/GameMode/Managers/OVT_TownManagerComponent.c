@@ -272,18 +272,19 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			bool hasEnemyTower = false;
 			bool hasFriendlyTower = false;
-			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
+
+			//THE RANGE TEST AND THE SABOTAGE SKIP LIVE ON THE MANAGER NOW - GetRadioTowersAffecting()
+			//returns only towers that are in range AND on the air, which is exactly what the loop that
+			//stood here computed inline. The objective director asks the same question, and two copies
+			//of "which towers can be heard here" would drift.
+			array<OVT_RadioTowerData> towersHeard = of.GetRadioTowersAffecting(town.location);
+			foreach(OVT_RadioTowerData tower : towersHeard)
 			{
-				if(OVT_InfluenceRules.IsProximitySource(town.location, tower.location, OVT_Global.GetConfig().m_Difficulty.radioTowerRange))
+				if(tower.IsOccupyingFaction())
 				{
-					//Sabotaged towers broadcast nothing for either side
-					if(tower.IsDisabled()) continue;
-					if(tower.IsOccupyingFaction())
-					{
-						hasEnemyTower = true;
-					}else{
-						hasFriendlyTower = true;
-					}
+					hasEnemyTower = true;
+				}else{
+					hasFriendlyTower = true;
 				}
 			}
 

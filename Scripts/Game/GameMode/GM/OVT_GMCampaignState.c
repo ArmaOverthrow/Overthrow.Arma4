@@ -84,6 +84,23 @@ class OVT_GMCampaignState : Managed
 	//! truncated by the server's cap - which the server also logged.
 	int m_iReportedRecordCount;
 
+	//! The occupying faction's current objective, as a display name. EMPTY MEANS IT HAS NO TARGET,
+	//! which is a normal state (an early campaign in which the resistance holds nothing) and not a
+	//! missing value.
+	//!
+	//! ⚠ APPENDED, and every new scalar has to be added to THREE places, not one: the declaration here,
+	//! CopyFrom() and Clear(). A field missed in Clear() leaks the previous campaign's objective into
+	//! the next one - the editor closes, the store is emptied, and one row keeps showing a town from a
+	//! game that ended.
+	string m_sObjectiveName;
+
+	//! Which phase of the ramp that objective is in, as OVT_EObjectivePhase's INTEGER.
+	//!
+	//! Stored as the ordinal that crossed the wire rather than as the enum: the sending build may be
+	//! older or newer than this one, and a value this build does not recognise must be displayable as
+	//! "unknown" rather than silently read as whichever member happens to share its number.
+	int m_iObjectivePhase;
+
 	//------------------------------------------------------------------------------------------------
 	//! Whether a snapshot has ever been committed into this store.
 	//! \return True once a complete snapshot has landed and has not since been cleared.
@@ -183,6 +200,13 @@ class OVT_GMCampaignState : Managed
 		m_fPayoutSeconds = other.m_fPayoutSeconds;
 		m_iReportedRecordCount = other.m_iReportedRecordCount;
 
+		// ⚠ THE OBJECTIVE PAIR BELONGS HERE AND NOT IN CopyRecords(). That method copies the four
+		// PER-ENTITY record arrays; these two are campaign-wide scalars of exactly the same kind as
+		// threat and the resource pools above, and they arrive on their own campaign record, not on the
+		// per-entity fan.
+		m_sObjectiveName = other.m_sObjectiveName;
+		m_iObjectivePhase = other.m_iObjectivePhase;
+
 		// Element copies, not array-object swaps: the staging store keeps its arrays for the next fan
 		// and refills them with FRESH record objects, so the two stores never alias a record that is
 		// about to be rewritten, and a consumer holding a record from the previous snapshot is not
@@ -235,6 +259,12 @@ class OVT_GMCampaignState : Managed
 		m_fPayoutSeconds = 0;
 		m_fReceivedWorldTime = 0;
 		m_iReportedRecordCount = 0;
+
+		// ⚠ AND HERE. A field added to the declaration and to CopyFrom() but forgotten in Clear() shows
+		// no symptom until a second campaign starts in the same client session, at which point the panel
+		// labels it with the previous campaign's objective until the first snapshot lands.
+		m_sObjectiveName = "";
+		m_iObjectivePhase = OVT_EObjectivePhase.IDLE;
 
 		m_aBases.Clear();
 		m_aBaseUpgrades.Clear();

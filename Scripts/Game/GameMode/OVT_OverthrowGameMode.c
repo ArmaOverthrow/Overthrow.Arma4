@@ -60,6 +60,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_CivilianAmbienceManagerComponent m_CivilianAmbience;
 	//! Reference to the tutorial manager component.
 	protected OVT_TutorialManagerComponent m_TutorialManager;
+	//! Reference to the occupying faction's objective director.
+	protected OVT_ObjectiveDirectorComponent m_ObjectiveDirector;
 	//! Reference to the perceived faction manager component.
 	protected SCR_PerceivedFactionManagerComponent m_PerceivedFactionManager;
 
@@ -386,6 +388,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Starting Tutorials");
 
 			m_TutorialManager.PostGameStart();
+		}
+
+		// LAST IN THE CHAIN, for the same reason its Init() is: its first tick queries the town and
+		// base registries, the deployment pool and the difficulty settings, and every one of those is
+		// established by a PostGameStart above.
+		if(m_ObjectiveDirector)
+		{
+			Print("[Overthrow] Starting Objective Director");
+
+			m_ObjectiveDirector.PostGameStart();
 		}
 		
 		// Overthrow_Config.json is a dedicated-server config: SP and listen hosts pick their
@@ -1515,6 +1527,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Tutorials");
 
 			m_TutorialManager.Init(this);
+		}
+
+		// LAST IN THE CHAIN, DELIBERATELY. The objective director subscribes to the town and occupying
+		// faction control-change invokers and scores candidates out of both registries, so every
+		// manager it reads has to have been initialized before it runs.
+		m_ObjectiveDirector = OVT_ObjectiveDirectorComponent.Cast(FindComponent(OVT_ObjectiveDirectorComponent));
+		if(m_ObjectiveDirector)
+		{
+			Print("[Overthrow] Initializing Objective Director");
+
+			m_ObjectiveDirector.Init(this);
 		}
 
 		if(!IsMaster()) {

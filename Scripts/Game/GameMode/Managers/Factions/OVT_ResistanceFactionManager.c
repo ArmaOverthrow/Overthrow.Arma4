@@ -63,6 +63,14 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! Enforced FOB deployment exclusion radius (m) around any radio tower
 	static const int FOB_DEPLOY_TOWER_RANGE = 70;
 
+	//! What GetStructureCost() answers for a live structure no config entry claims.
+	//!
+	//! ⚠ DELIBERATELY HUGE, NOT ZERO. Its only consumer orders structures cheapest-first, and an
+	//! unknown price sorting FIRST would make anything a mod adds the first thing destroyed. Sorting
+	//! last means the known, authored, cheap things go first and an unpriced object is only ever
+	//! reached once everything else is gone - the conservative half of the mistake either way.
+	static const int UNKNOWN_STRUCTURE_COST = 1000000;
+
 	[Attribute()]
 	ResourceName m_rPlaceablesConfigFile;
 	
@@ -893,15 +901,80 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Only allow removal if player is owner or officer
 		if(ownerUid != playerUid && !isOfficer) return;
 
-		// Capture the hole this object carved BEFORE it stops existing - Queue() measures at call
-		// time and rebuilds a second later, which is the only ordering that works. Without it the
-		// navmesh keeps the carve forever and the AI refuses to cross ground that is now empty.
-		OVT_NavmeshRebuild.Queue(entity);
+		DestroyPlacedItem(entity);
+	}
 
-		// Delete the entity
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE WAY A PLACED OR BUILT STRUCTURE LEAVES THE WORLD. Two lines, and their ORDER is the
+	//! whole of it.
+	//!
+	//! ⚠ MECHANISM, NOT AUTHORIZATION. This method asks nobody's permission and is not reachable from
+	//! any RPC. RemovePlacedItem() above is the PLAYER's door and keeps its owner-or-officer check
+	//! exactly where it is; this is the door the server itself uses (base sabotage, camp teardown, FOB
+	//! area cleanup), where there is no player to check. Adding a caller means deciding, at the CALL
+	//! SITE, who is allowed to ask - do not "fix" this by giving it a playerId.
+	//!
+	//! ⚠ QUEUE BEFORE DELETE, NEVER AFTER, AND NEVER RebuildNow(). OVT_NavmeshRebuild.Queue() measures
+	//! the entity's bounds at CALL TIME and issues the rebuild a second later, so the capture happens
+	//! while the object still stands and the rebuild happens once it is gone. Reverse the two and there
+	//! is nothing left to measure: the carve stays in the navmesh forever and the AI keeps refusing to
+	//! walk through ground that is now empty. That is the whole reason this pair is a method rather
+	//! than two lines each caller writes for itself - it used to be copied four times in this file.
+	//! \param[in] entity The structure to remove. Null is a no-op.
+	void DestroyPlacedItem(IEntity entity)
+	{
+		if(!entity) return;
+
+		OVT_NavmeshRebuild.Queue(entity);
 		SCR_EntityHelper.DeleteEntityAndChildren(entity);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! THE COST JOIN: the only place in the tree that gets from a LIVE structure back to the config
+	//! entry it was built from, and therefore to a price.
+	//!
+	//! ⚠ IT JOINS ON THE PREFAB, NOT ON THE TYPE STRING, and that is a finding rather than a
+	//! preference. OVT_PlaceableComponent.GetPlaceableType() / OVT_BuildableComponent.GetBuildableType()
+	//! are authored on the prefab and DO NOT MATCH the config's m_sName for seven of the eight shipped
+	//! buildables ("GuardTower" vs "Guard Tower", "Bunker" vs "Bunkers", "VehicleGarage" vs "Garage");
+	//! only "Helipad" happens to line up. A join on the type string would silently price most of the
+	//! game's structures at nothing. The prefab resource name is exact, needs no data to be re-authored,
+	//! and is what PlaceItem()/BuildItem() spawned the thing from in the first place.
+	//!
+	//! ⚠ THE RAW AUTHORED m_iCost, NOT the difficulty-multiplied one. The only consumer today orders
+	//! structures by price, and the multiplier is uniform, so applying it would change nothing except
+	//! to add a config dependency to a pure lookup. A caller that wants what a PLAYER would pay must
+	//! ask OVT_OverthrowConfigComponent.GetPlaceableCost/GetBuildableCost itself.
+	//! \param[in] entity The live structure.
+	//! \return Its authored cost, or UNKNOWN_STRUCTURE_COST when no config entry claims its prefab.
+	int GetStructureCost(IEntity entity)
+	{
+		if(!entity) return UNKNOWN_STRUCTURE_COST;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(entity);
+		if(prefab == ResourceName.Empty) return UNKNOWN_STRUCTURE_COST;
+
+		if(m_BuildablesConfig && m_BuildablesConfig.m_aBuildables)
+		{
+			foreach(OVT_Buildable buildable : m_BuildablesConfig.m_aBuildables)
+			{
+				if(!buildable || !buildable.m_aPrefabs) continue;
+				if(buildable.m_aPrefabs.Contains(prefab)) return buildable.m_iCost;
+			}
+		}
+
+		if(m_PlaceablesConfig && m_PlaceablesConfig.m_aPlaceables)
+		{
+			foreach(OVT_Placeable placeable : m_PlaceablesConfig.m_aPlaceables)
+			{
+				if(!placeable || !placeable.m_aPrefabs) continue;
+				if(placeable.m_aPrefabs.Contains(prefab)) return placeable.m_iCost;
+			}
+		}
+
+		return UNKNOWN_STRUCTURE_COST;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Resolves a garrison group prefab from the player faction, guarding the client-supplied index.
 	protected ResourceName GetGarrisonPrefab(int prefabIndex)
@@ -1439,9 +1512,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 				IEntity campEntity = rpl.GetEntity();
 				if (campEntity)
 				{
-					// Before the delete - see RemovePlacedItem().
-					OVT_NavmeshRebuild.Queue(campEntity);
-					SCR_EntityHelper.DeleteEntityAndChildren(campEntity);
+					DestroyPlacedItem(campEntity);
 				}
 			}
 			
@@ -1600,10 +1671,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 			IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
 			if (entity)
 			{
-				// Queued before each delete, so a whole camp's worth of carves is measured while the
-				// objects still stand and re-issued as one merged batch once they are gone.
-				OVT_NavmeshRebuild.Queue(entity);
-				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				// One call per object, so a whole camp's worth of carves is measured while the objects
+				// still stand and re-issued as one merged batch once they are gone.
+				DestroyPlacedItem(entity);
 			}
 		}
 		
@@ -1687,9 +1757,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			if (entity)
 			{
-				// Before each delete - see CleanupCampObjects().
-				OVT_NavmeshRebuild.Queue(entity);
-				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				DestroyPlacedItem(entity);
 				deletedCount++;
 			}
 		}

@@ -1,5 +1,8 @@
 //------------------------------------------------------------------------------------------------
-//! TIER A case - the Overthrow GM panel's display formatting.
+//! TIER A cases - the Overthrow GM panel's display formatting.
+//!
+//! TWO CASES IN THIS FILE. The first covers the countdown and threat formatters this panel shipped
+//! with; the second, added by occupying/counter-attacks Phase 8, covers the two objective rows.
 //!
 //! OVT_GMPanelFormat is a class of pure statics, and it is the entirety of that panel's automatable
 //! surface: everything else the panel does is a text write into a widget inside the Game Master
@@ -124,6 +127,110 @@ class OVT_TEST_Logic_GMPanelFormat : SCR_AutotestCaseBase
 
 		SetFailure("%1: threat %2 formatted as '%3', expected '" + expected + "'",
 			label, threat.ToString(), actual);
+
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The two objective rows: every phase is named, no state renders blank, and "unknown" is not "none".
+//!
+//! WHY IT IS WORTH A CASE. Both formatters are trivial and both have one failure mode that is invisible
+//! from anywhere else: a phase this build has never heard of. The phase crosses the Game Master wire as
+//! an INTEGER, and the two ends of that wire can be different builds. A formatter that answered "None"
+//! for an unrecognised value would tell a Game Master the occupying faction has no target while it is
+//! actively assaulting a town - a lie the panel presents with complete confidence.
+//!
+//! ⚠ THE EXPECTED VALUES ARE LOCALIZATION KEYS, NOT ENGLISH. That is the point: the formatter must
+//! never build a display sentence, and pinning the KEY rather than the text means a translator changing
+//! the wording cannot fail a test. The keys are re-stated here as literals rather than read off the
+//! subject, because reading the subject's own constants back would assert nothing at all.
+//!
+//! ⚠ THE PHASE INTEGERS ARE ALSO LITERALS, and deliberately. They are a wire format that may never be
+//! renumbered; writing 3 here rather than naming the enum member means a renumbering breaks this case
+//! instead of silently travelling with it.
+//!
+//! CAN-FAIL, three faults, injected one at a time and compiled. All three exited compile-check 0:
+//!   F1. FOLD UNKNOWN INTO NONE - `return PHASE_NONE;` as the final fallthrough. Compiled clean (exit
+//!       0). Every shipped row passes. The case fails on "a phase this build does not know must say so
+//!       rather than claiming the campaign has no objective".
+//!   F2. RETURN THE NAME UNCONDITIONALLY - drop the empty test in FormatObjectiveName. Compiled clean
+//!       (exit 0). The case fails on "an empty objective name must render as the None key, never as an
+//!       empty row".
+//!   F3. SHIFT THE PHASE TABLE BY ONE - test HARASSMENT against 2, FOB against 3 and so on. Compiled
+//!       clean (exit 0). The case fails on "phase 1 is harassment".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_GMPanelFormat_ObjectiveRows : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// --- The objective row. A real name passes through untouched; nothing else may.
+		if (!ExpectName("Levie", "Levie", "a real objective name is passed through unchanged - it is a proper noun and must not be translated"))
+			return true;
+
+		if (!ExpectName("", "#OVT-GMPanel_ObjectiveNone", "an empty objective name must render as the None key, never as an empty row"))
+			return true;
+
+		// --- The phase row, every shipped value, against the INTEGERS that cross the wire.
+		if (!ExpectPhase(0, "#OVT-GMPanel_ObjectivePhaseNone", "phase 0 is idle, which means there is no objective"))
+			return true;
+
+		if (!ExpectPhase(1, "#OVT-GMPanel_ObjectivePhaseHarassment", "phase 1 is harassment"))
+			return true;
+
+		if (!ExpectPhase(2, "#OVT-GMPanel_ObjectivePhaseForwardBase", "phase 2 is the forward operating base"))
+			return true;
+
+		if (!ExpectPhase(3, "#OVT-GMPanel_ObjectivePhaseCounterAttack", "phase 3 is the counter-attack"))
+			return true;
+
+		// --- And the value nobody has shipped yet. Both directions: a future phase and a nonsense one.
+		if (!ExpectPhase(4, "#OVT-GMPanel_ObjectivePhaseUnknown", "a phase this build does not know must say so rather than claiming the campaign has no objective"))
+			return true;
+
+		if (!ExpectPhase(-1, "#OVT-GMPanel_ObjectivePhaseUnknown", "a negative phase is not idle either - it is a wire fault and must read as unknown"))
+			return true;
+
+		Print("GM panel: every campaign phase has a name, an absent objective says so explicitly, and a phase from a build this one does not recognise reads as unknown rather than as no objective at all");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one formatted objective name.
+	//! \param[in] name The name handed to the formatter.
+	//! \param[in] expected The string the display specification requires.
+	//! \param[in] label Human description, used only in the failure message.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectName(string name, string expected, string label)
+	{
+		string actual = OVT_GMPanelFormat.FormatObjectiveName(name);
+
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got '%2', expected '%3'", label, actual, expected);
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one formatted phase.
+	//! \param[in] phase The phase integer handed to the formatter.
+	//! \param[in] expected The key the display specification requires.
+	//! \param[in] label Human description, used only in the failure message.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectPhase(int phase, string expected, string label)
+	{
+		string actual = OVT_GMPanelFormat.FormatObjectivePhase(phase);
+
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: phase " + phase.ToString() + " formatted as '%2', expected '%3'", label, actual, expected);
 
 		return false;
 	}

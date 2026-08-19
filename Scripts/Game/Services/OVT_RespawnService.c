@@ -209,15 +209,21 @@ class OVT_RespawnService
 	//! exists. A missing manager means "we cannot tell", and here that resolves to NOT excluded -
 	//! refusing every location on a partially replicated client would leave a dead player with an
 	//! empty screen, and the server re-checks on arrival anyway.
+	//!
+	//! ⚠ ACTIVE **AND** REVEALED (occupying/counter-attacks D15). During a counter-attack's silent
+	//! encirclement a player may still respawn at the objective, because nobody has told them not to -
+	//! a refusal there would be a free reveal, delivered by the respawn screen before the notification.
+	//! A player-initiated battle is revealed from creation, so this is unchanged for every battle a
+	//! player starts.
 	//! \param[in] pos World position to test.
-	//! \return True when a QRF is running and pos is within QRF_RANGE of it.
+	//! \return True when a REVEALED QRF is running and pos is within QRF_RANGE of it.
 	static bool IsPositionInActiveQRF(vector pos)
 	{
 		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
 		if (!occupyingFaction)
 			return false;
 
-		return IsInsideQrf(occupyingFaction.m_bQRFActive, occupyingFaction.m_vQRFLocation, pos);
+		return IsInsideQrf(occupyingFaction.m_bQRFActive && occupyingFaction.m_bQRFRevealed, occupyingFaction.m_vQRFLocation, pos);
 	}
 
 	//------------------------------------------------------------------------------------------------

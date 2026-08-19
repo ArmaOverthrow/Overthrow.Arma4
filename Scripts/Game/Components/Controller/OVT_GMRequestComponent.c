@@ -68,7 +68,13 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 {
 	//! Wire format version, echoed in every SnapshotBegin. A client that does not recognise the
 	//! version REFUSES TO STAGE rather than mis-parsing a fan from a mismatched build.
-	static const int WIRE_VERSION = 1;
+	//!
+	//! ⚠ BUMP IT WHENEVER THE SHAPE OF THE FAN CHANGES, not only when a field changes meaning.
+	//!  1 -> 2  occupying/counter-attacks Phase 8 appended the CampaignObjective record. A 1-speaking
+	//!          client would stage a fan whose End reports one more record than it ever received and
+	//!          would show a permanently short m_iReportedRecordCount; refusing to stage at all is the
+	//!          loud failure this field exists to produce.
+	static const int WIRE_VERSION = 2;
 
 	//! Minimum real seconds between two refusal log lines from this player. The component is
 	//! per-player, so one field rate-limits per player and a spamming client cannot flood the log.
@@ -87,10 +93,17 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//! Follows the existing -ovtDevUid precedent (OVT_Global.c:4).
 	static const string DEV_CLI_PARAM = "ovtGmDev";
 
-	//! Campaign-wide records in every fan: CampaignResources and CampaignSchedule. They are outside
-	//! m_iMaxRecordsPerSnapshot's budget on purpose - the cap exists to bound the PER-ENTITY fan, and
-	//! a snapshot that dropped its campaign scalars to make room for a base record would be useless.
-	static const int CAMPAIGN_RECORD_COUNT = 2;
+	//! Campaign-wide records in every fan: CampaignResources, CampaignSchedule and CampaignObjective.
+	//! They are outside m_iMaxRecordsPerSnapshot's budget on purpose - the cap exists to bound the
+	//! PER-ENTITY fan, and a snapshot that dropped its campaign scalars to make room for a base record
+	//! would be useless.
+	//!
+	//! ⚠ IT MUST EQUAL THE NUMBER OF SendCampaign* CALLS IN SendCampaignSnapshot(), AND NOTHING CHECKS
+	//! THAT FOR YOU. SendSnapshotEnd reports CAMPAIGN_RECORD_COUNT + perEntityRecords as the total the
+	//! server sent, and the client compares that against what it actually received; a count left behind
+	//! makes every snapshot look truncated, and a count run ahead hides a record that really was lost.
+	//! A record added here is also a WIRE_VERSION bump - see that field.
+	static const int CAMPAIGN_RECORD_COUNT = 3;
 
 	[Attribute(defvalue: "8000", desc: "How often a GM client re-requests the campaign snapshot while the editor is open, in milliseconds")]
 	protected float m_fPollIntervalMs;
@@ -586,9 +599,24 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 
 		int perEntityRecords = m_Builder.Build(m_iMaxRecordsPerSnapshot, m_bDebugSnapshotTiming);
 
+		// The occupying faction's current objective. Read HERE rather than in the builder because it is a
+		// campaign-wide scalar of exactly the same kind as threat and both resource pools above, not a
+		// per-entity record - and because both calls are PURE GETTERS on the director, which is the
+		// read-only rule the builder's header states and this fan inherits (T8.8).
+		string objectiveName = "";
+		int objectivePhase = OVT_EObjectivePhase.IDLE;
+
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if(director)
+		{
+			objectiveName = director.GetObjectiveDisplayName();
+			objectivePhase = director.GetPhase();
+		}
+
 		SendSnapshotBegin(playerId, seq);
 		SendCampaignResources(playerId, seq, threat, ofResources, deploymentResources, flags);
 		SendCampaignSchedule(playerId, seq, distributionAmount, realSeconds, payoutAmount, realSeconds);
+		SendCampaignObjective(playerId, seq, objectiveName, objectivePhase);
 		SendRecordFan(playerId, seq);
 		SendSnapshotEnd(playerId, seq, CAMPAIGN_RECORD_COUNT + perEntityRecords);
 
@@ -800,6 +828,32 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		}
 
 		Rpc(RpcDo_CampaignSchedule, seq, distAmount, distSeconds, payoutAmount, payoutSeconds);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: the occupying faction's current objective and how far along the ramp it is.
+	//!
+	//! ⚠ A NEW PAIR, NOT A WIDENED ONE, AND DELIBERATELY. Adding two arguments to SendCampaignSchedule
+	//! would have been fewer lines and one fewer record; it would also have been an untyped variadic
+	//! Rpc() call whose argument count no longer matched its handler on any build that had only half the
+	//! change (BUG-090 - a wrong argument count compiles clean and dies silently at the wire). A new pair
+	//! cannot half-land: the record either exists on both ends or on neither, and WIRE_VERSION says which.
+	//!
+	//! ARITY, DIFFED BY EYE as the block header above instructs: Rpc(handler, seq, name, phase) is three
+	//! payload arguments and RpcDo_CampaignObjective(int, string, int) takes three.
+	//! \param[in] playerId Recipient.
+	//! \param[in] seq The client's sequence id.
+	//! \param[in] name The objective's display name, or "" when the occupying faction has no target.
+	//! \param[in] phase OVT_EObjectivePhase as an integer. IDLE (0) when there is no objective.
+	protected void SendCampaignObjective(int playerId, int seq, string name, int phase)
+	{
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_CampaignObjective(seq, name, phase);
+			return;
+		}
+
+		Rpc(RpcDo_CampaignObjective, seq, name, phase);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1018,6 +1072,25 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		m_Staging.m_fDistributionSeconds = distSeconds;
 		m_Staging.m_iPayoutAmount = payoutAmount;
 		m_Staging.m_fPayoutSeconds = payoutSeconds;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: the occupying faction's current objective for the staging snapshot.
+	//!
+	//! ⚠ THE PHASE IS STORED AS THE INTEGER IT ARRIVED AS, not cast to the enum. The wire carries the
+	//! ordinal, this build may be older or newer than the one that sent it, and the panel's formatter
+	//! already answers "unknown" for a value it does not recognise - converting here would only move
+	//! that decision somewhere with less information.
+	//! \param[in] seq Sequence id; anything but the staging sequence is dropped.
+	//! \param[in] name The objective's display name, or "" when there is no objective.
+	//! \param[in] phase OVT_EObjectivePhase as an integer.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_CampaignObjective(int seq, string name, int phase)
+	{
+		if(!IsStagingRecord(seq)) return;
+
+		m_Staging.m_sObjectiveName = name;
+		m_Staging.m_iObjectivePhase = phase;
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -402,6 +402,25 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	// THE FACTION ACCESSORS
+	//
+	// ⚠ THE FACTION MANAGER MAY NOT EXIST YET, AND THAT IS NOT A FAULT. A component's OnPostInit() runs
+	// in the WORLD EDITOR, before anybody presses play: the game mode entity's components ARE
+	// constructed, but GetGame().GetFactionManager() is null because no game has started. Anything
+	// asked of these accessors in that context has exactly one honest answer - "cannot tell yet" - and
+	// it is null from the three data accessors and -1 from the three index accessors. Before
+	// 2026-08-19 all six dereferenced the manager unguarded and the first caller to reach one from an
+	// OnPostInit() took the whole editor down with a NULL-pointer VM exception.
+	//
+	// ⚠ AND -1 IS NEVER WRITTEN INTO THE CACHE. -1 is this component's NOT-YET-RESOLVED sentinel - it
+	// is what the members are born holding and what OVT_OccupyingFactionManager deliberately resets
+	// them to when a campaign restarts - so caching it as an ANSWER would make one unlucky early call
+	// permanent: the index would still read -1 for the rest of the session, long after the faction
+	// manager existed. Each guard returns WITHOUT touching the member, so the real index is still
+	// resolved by the first call that can see a faction manager.
+	//------------------------------------------------------------------------------------------------
+
 	OVT_Faction GetOccupyingFaction()
 	{
 		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sOccupyingFaction);
@@ -409,7 +428,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetOccupyingFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sOccupyingFaction);
 	}
 
 	int GetOccupyingFactionIndex()
@@ -417,6 +439,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iOccupyingFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sOccupyingFaction));
 		}
 		return m_iOccupyingFactionIndex;
@@ -429,7 +453,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetSupportingFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sSupportingFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sSupportingFaction);
 	}
 
 	int GetSupportingFactionIndex()
@@ -437,6 +464,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iSupportingFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sSupportingFaction));
 		}
 		return m_iSupportingFactionIndex;
@@ -449,7 +478,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetPlayerFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sPlayerFaction);
 	}
 
 	int GetPlayerFactionIndex()
@@ -457,6 +489,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iPlayerFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sPlayerFaction));
 		}
 		return m_iPlayerFactionIndex;

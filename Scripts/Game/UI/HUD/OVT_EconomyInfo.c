@@ -76,7 +76,11 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			InitCharacter();
 		}
 		UpdateMoney(timeSlice);
-		if(m_OccupyingFaction.m_bQRFActive)
+		// ⚠ ACTIVE **AND** REVEALED (occupying/counter-attacks D15). A counter-attack siege is active
+		// while it is still encircling the objective in silence, and the panel must not be the thing
+		// that gives it away. A player-initiated battle is revealed from creation, so this reads
+		// exactly as it did before for every battle a player starts.
+		if(m_OccupyingFaction.m_bQRFActive && m_OccupyingFaction.m_bQRFRevealed)
 		{
 			ShowQRF();
 			UpdateQRF();
@@ -285,7 +289,19 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("QRFTimerText"));
 		if(m_OccupyingFaction.m_iQRFTimer > 0)
 		{
-			w.SetText("#OVT-BattleStartsIn " + Math.Floor(m_OccupyingFaction.m_iQRFTimer / 1000).ToString());
+			// A counter-attack's muster window is THIRTY REAL MINUTES; rendered as raw seconds that is
+			// a four-digit number nobody can read at a glance. Above two minutes it shows whole minutes
+			// (rounded UP, so 29:59 never reads "29"), below it today's seconds line, unchanged.
+			//
+			// ⚠ A STANDARD BATTLE NEVER TAKES THE MINUTES BRANCH. Its countdown starts at exactly
+			// 120 000 ms and ShouldRenderMinutes is strictly greater-than, so the very first value it
+			// ever publishes already renders in seconds - which is the point.
+			if(OVT_QRFSiege.ShouldRenderMinutes(m_OccupyingFaction.m_iQRFTimer))
+			{
+				w.SetText("#OVT-BattleStartsInMinutes " + OVT_QRFSiege.MusterMinutesRemaining(m_OccupyingFaction.m_iQRFTimer).ToString());
+			}else{
+				w.SetText("#OVT-BattleStartsIn " + Math.Floor(m_OccupyingFaction.m_iQRFTimer / 1000).ToString());
+			}
 		}else{
 			w.SetText("#OVT-BattleProgress");
 		}

@@ -122,6 +122,15 @@ class OVT_ControllerRequestComponent : OVT_Component
 	//!
 	//! On a DEDICATED server GetLocalPlayerId() is 0, so this is always false and every response goes
 	//! over the wire exactly as before.
+	//!
+	//! ! ONE UNRESOLVED TENSION, recorded 2026-08-19 so nobody re-derives it. The engine's own RPC
+	//! routing table (ArmaReforger scripts/GameLib/replication/RplDocs.c:549-557, example at :1844-1853)
+	//! says an RplRcver.Owner RPC invoked BY the owner is invoked directly rather than dropped, which
+	//! would make this short-circuit redundant on a host rather than necessary. The claim above came
+	//! from the host-facing failures this project actually hit; the table has only been confirmed for
+	//! the single-player case (OVT_OverthrowController.RpcDo_NotifyOwnerAssignment demonstrably runs in
+	//! Workbench SP with no short-circuit anywhere). KEEP THE PATTERN EITHER WAY: if the table is right
+	//! it costs one comparison, and if it is wrong the host sees nothing at all.
 	//! \param[in] playerId The player the response is aimed at.
 	//! \return True when this machine's local player is the recipient.
 	protected bool ShouldRespondLocally(int playerId)

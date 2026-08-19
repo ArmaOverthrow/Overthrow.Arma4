@@ -214,6 +214,22 @@
 //!  12. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
 //!  13. VirtualGroupsWiped_DoNotComeBack           - the terminal half of the D2 promise
 //!  14. VirtualGroups_SurviveSaveAndReload         - the partially wiped group, re-CREATED on load
+//!  15. ObjectiveDirector_SurvivesSaveAndReapply   - the occupying faction's current objective, its
+//!                                                phase, both counters, every tick counter, the
+//!                                                blacklist and the whole forward-base record, PLUS
+//!                                                the far side of the re-link grace window: a saved
+//!                                                forward base whose deployment does not exist ends
+//!                                                the objective rather than stranding it. Sorts
+//!                                                after the capability case (C < O) and before every
+//!                                                Town* case, which matters: a town changing hands
+//!                                                asks the director to re-select
+//!  16. ObjectiveFOB_RelinksItsDeployment          - the OTHER half of the same window: a saved
+//!                                                forward base whose deployment IS standing is
+//!                                                re-adopted by name and position on the first tick
+//!                                                after the load, rather than torn down a few
+//!                                                in-game minutes into every continued campaign.
+//!                                                It needs its own reload because which half runs is
+//!                                                decided by the payload, and a case gets one
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -8239,5 +8255,849 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 
 		m_FoundDepot = entity;
 		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The occupying faction's current objective - kind, place, phase, both counters, all three tick
+//! counters, the blacklist and the whole forward-base record - survives a save and a re-application.
+//!
+//! WHY IT MATTERS. The objective is the occupying faction's only piece of long-term intent. A
+//! campaign continued after a save has to come back mid-ramp: the same target, the same phase, the
+//! same number of completed operations, the same forward base with the same budget already spent
+//! against its ceiling. Losing it does not crash anything - the director simply picks a fresh target
+//! on its next tick and the player's twenty minutes of warning silently restart, which is the kind of
+//! defect nobody reports as a bug because it looks like the system working.
+//!
+//! EVERY VALUE IS WRITTEN AND READ THROUGH THE DIRECTOR'S PUBLIC API, as this tier's assertion rule
+//! requires: the case names no storage type, no payload and no restore entry point, and reads every
+//! assertion back through the same getters the game itself uses.
+//!
+//! THE DIRTY STEP CHANGES EVERY FIELD IT LATER ASSERTS, which is closure 2 of this suite's
+//! anti-vacuous-pass design: the objective is re-committed at a different place with a different
+//! KIND, both tick counters are driven to small values, both success counters and the whole forward
+//! base are wiped by that re-commit, and a third blacklist entry is added. A reload that restores
+//! nothing leaves all of that in place and the case goes red on the first assertion it reaches.
+//! Closure 3 holds too: none of the saved values is one a campaign start produces - a fresh phase
+//! entry arms the timeout at the configured maximum, not at 137, and it zeroes the operation cadence
+//! rather than setting it to 91.
+//!
+//! ⚠ THE TWO TICK COUNTERS ARE ASSERTED AS A BAND, NOT AS AN EXACT VALUE, and deliberately: the
+//! director really is ticking during the seconds this case spends waiting for an asynchronous save,
+//! and each of those ticks legitimately serves one round off both counters. The band is
+//! (dirty value, saved value] - above the dirty value proves the reload restored something, and at or
+//! below the saved value proves it restored THIS save rather than a phase re-armed from scratch. That
+//! is the "assert deltas, not absolutes" rule this tier is built on.
+//!
+//! ⚠ THE FIXTURE NAMES A FORWARD-BASE DEPLOYMENT THAT DOES NOT EXIST, on purpose - the deployment
+//! half of the forward base is a later build phase and there is nothing to link to yet. The director
+//! gives a restored forward base a few ticks to find its deployment again before it tears the
+//! objective down, so the assertions below run inside that grace window (they are one frame after the
+//! re-application, and a tick is a whole in-game minute). The case tears its own fixture down at the
+//! end regardless, so nothing is left holding a bogus objective.
+//!
+//! PROVEN ABLE TO FAIL: the objective director's entry was removed from the ComponentSerializers
+//! block of Configs/Systems/Persistence/Overthrow.conf - the exact thing a merge is most likely to
+//! drop, since it is one line in a config no compiler reads. The tree recompiled CLEAN
+//! (tools/compile-check.sh exit 0) and the case then reports "the objective did not survive the round
+//! trip: the dirty BASE objective is still there", because with the director unregistered nothing is
+//! written and nothing comes back. Entry restored, tree recompiled clean.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : SCR_AutotestCaseBase
+{
+	//! Tolerance for every position comparison, in metres. vector.Distance is not correctly rounded at
+	//! campaign ranges, so a stored position is never compared with ==.
+	static const float POSITION_TOLERANCE = 1.0;
+
+	static const int SAVED_PHASE_TICKS = 137;
+	static const int SAVED_OP_TICKS = 91;
+	static const int SAVED_HARASSMENT_SUCCESSES = 3;
+	static const int SAVED_SABOTAGE_SUCCESSES = 2;
+	static const int SAVED_FOB_SPENT = 777;
+	static const int SAVED_FOB_STARVATION = 11;
+	static const int SAVED_BLACKLIST_A_ROUNDS = 2;
+	static const int SAVED_BLACKLIST_B_ROUNDS = 5;
+
+	//! Config name of the forward base's deployment. Arbitrary, and deliberately not a shipped config
+	//! name - what is being asserted is that the STRING round-trips, not that it resolves.
+	static const string SAVED_FOB_DEPLOYMENT = "ObjectiveRoundTripFOB";
+
+	static const int DIRTY_PHASE_TICKS = 3;
+	static const int DIRTY_OP_TICKS = 4;
+	static const int DIRTY_BLACKLIST_ROUNDS = 9;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected vector m_vSavedObjective;
+	protected vector m_vSavedFOB;
+	protected vector m_vSavedFOBSource;
+	protected vector m_vBlacklistA;
+	protected vector m_vBlacklistB;
+	protected vector m_vDirtyObjective;
+	protected vector m_vDirtyBlacklist;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+			if (!director)
+			{
+				SetFailure("OVT_Global.GetObjectiveDirector() is null");
+				return true;
+			}
+
+			SetUpFixturePositions();
+
+			// A whole ramp mid-flight: the target, the phase, the operations already completed, every
+			// timer, two places serving cooldowns, and a standing forward base with a spend history.
+			director.CommitObjective(OVT_EObjectiveKind.TOWN, m_vSavedObjective, "objective round trip fixture");
+
+			for (int h = 0; h < SAVED_HARASSMENT_SUCCESSES; h++)
+			{
+				director.OnHarassmentSuccess();
+			}
+
+			for (int s = 0; s < SAVED_SABOTAGE_SUCCESSES; s++)
+			{
+				director.OnSabotageSuccess();
+			}
+
+			// ⚠ THE TWO TIMERS ARE PLANTED LAST, AFTER THE SUCCESS COUNTERS, AND THE ORDER IS LOAD-BEARING
+			// SINCE THE IDLE-CLOCK REWORK (2026-08-19). The phase timeout is now an IDLE clock: a director
+			// tick that sees a success counter move since the clock was last set treats it as fresh
+			// progress and re-arms the clock to its full authored budget. This world runs a live director
+			// on a repeating timer, and this step spans several frames before the save settles - so with
+			// the successes counted AFTER the plant, one background tick would re-arm SAVED_PHASE_TICKS to
+			// 240 and the band assertion below would (correctly) report a value higher than the one that
+			// was saved. SetPhaseTimeout() re-baselines the progress marks with the clock, which is exactly
+			// the "this is the state as of now" declaration a fixture is making. This is a REORDER, not a
+			// weakened claim: every value asserted after the reload is the same one.
+			director.SetPhaseTimeout(SAVED_PHASE_TICKS);
+			director.SetOperationCountdown(SAVED_OP_TICKS);
+
+			director.RecordFOB(m_vSavedFOB, m_vSavedFOBSource, SAVED_FOB_DEPLOYMENT);
+			director.AddFOBSpend(SAVED_FOB_SPENT);
+			director.SetFOBStarvationTicks(SAVED_FOB_STARVATION);
+
+			director.BlacklistPosition(m_vBlacklistA, SAVED_BLACKLIST_A_ROUNDS);
+			director.BlacklistPosition(m_vBlacklistB, SAVED_BLACKLIST_B_ROUNDS);
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+			if (!director)
+			{
+				SetFailure("OVT_Global.GetObjectiveDirector() is null before the reload");
+				return true;
+			}
+
+			// DIRTY EVERY ASSERTED FIELD. Committing a different objective changes the kind and the
+			// place, zeroes both success counters and clears the whole forward-base record in one call;
+			// the two timers and a third blacklist entry are set on top of it.
+			director.CommitObjective(OVT_EObjectiveKind.BASE, m_vDirtyObjective, "dirty");
+			director.SetPhaseTimeout(DIRTY_PHASE_TICKS);
+			director.SetOperationCountdown(DIRTY_OP_TICKS);
+			director.BlacklistPosition(m_vDirtyBlacklist, DIRTY_BLACKLIST_ROUNDS);
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if (!director)
+		{
+			SetFailure("OVT_Global.GetObjectiveDirector() is null after the reload");
+			return true;
+		}
+
+		string failure = AssertRestored(director);
+
+		if (failure == "")
+			failure = AssertStrandedObjectiveIsTornDown(director);
+
+		// Tear the fixture down whatever the verdict: this campaign keeps running for the rest of the
+		// suite and must not be left aiming at a place the case invented.
+		director.ResetObjective("objective round-trip fixture torn down", false);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A restored forward base whose deployment is nowhere to be found ENDS THE OBJECTIVE, and does not
+	//! leave it pointing at nothing.
+	//!
+	//! WHY THIS IS ASSERTED HERE RATHER THAN IN ITS OWN CASE. The fixture already produces exactly the
+	//! state being described: it saves a forward base naming a deployment that has never existed, which
+	//! is what a real campaign looks like when the marker was destroyed while the save sat on disk. The
+	//! restore deliberately does NOT believe a first empty look - load order between a game-mode
+	//! component's payload and the separately-tracked deployment entities is never assumed - so the
+	//! director gives it a few ticks before it gives up. Driving those ticks here is the only way to see
+	//! the far side of that grace window.
+	//!
+	//! ⚠ THE ALTERNATIVE TO GIVING UP IS AN OBJECTIVE THAT NEVER PROGRESSES AGAIN. A forward-base phase
+	//! whose base cannot be found cannot reach the counter-attack gate and cannot raise a second base -
+	//! it would sit until the phase timeout with nothing in the log to say why. Tearing it down puts the
+	//! reason in the log and lets the machine choose again.
+	//!
+	//! ⚠ IT DRIVES THE TICK DIRECTLY, AND IT DRIVES EXACTLY THE GRACE WINDOW AND NOT ONE TICK MORE. The
+	//! tick that gives up also leaves the machine IDLE, and the IDLE branch of the very next tick would
+	//! select a real objective and enter its first phase with the operation countdown armed to ZERO -
+	//! so a further tick would buy a real deployment, in a real campaign, with real resources, and
+	//! nothing refunds a deleted deployment. The objective the giving-up tick selects is torn down by
+	//! this case's own reset, in the same frame, before anything else can run.
+	//! \param[in] director The restored director.
+	//! \return An empty string when the objective was torn down, otherwise the failure.
+	protected string AssertStrandedObjectiveIsTornDown(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		int ticks = OVT_ObjectiveDirectorComponent.FOB_RELINK_ATTEMPTS;
+		for (int i = 0; i < ticks; i++)
+		{
+			director.DirectorTick();
+		}
+
+		// Belt and braces against the cadence trap described above: whatever the giving-up tick went on
+		// to select, it does not get to spend on the next one.
+		director.SetOperationCountdown(SAVED_OP_TICKS);
+
+		if (director.IsFOBUp())
+			return string.Format("after %1 ticks the director still reports a forward base whose deployment does not exist - the objective is stranded in a phase it can never leave, and nothing in the log says so",
+				ticks.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Picks fixture positions that cannot collide with anything the campaign chose for itself.
+	//!
+	//! They are far apart and far from each other so a position assertion cannot pass by accidentally
+	//! matching the wrong one, and they are never resolved against the world - the objective's position
+	//! is a key, not a spawn instruction.
+	protected void SetUpFixturePositions()
+	{
+		m_vSavedObjective = "1500 20 2500";
+		m_vSavedFOB = "1600 21 2400";
+		m_vSavedFOBSource = "1200 15 2200";
+		m_vBlacklistA = "3000 10 4000";
+		m_vBlacklistB = "5000 10 6000";
+		m_vDirtyObjective = "9000 30 9500";
+		m_vDirtyBlacklist = "7000 10 8000";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads every saved value back through the director's public getters.
+	//! \param[in] director The restored director.
+	//! \return An empty string when everything came back, otherwise the first failure.
+	protected string AssertRestored(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		if (director.GetObjectiveKind() == OVT_EObjectiveKind.BASE)
+			return "the objective did not survive the round trip: the dirty BASE objective is still there";
+
+		if (director.GetObjectiveKind() != OVT_EObjectiveKind.TOWN)
+		{
+			int kind = director.GetObjectiveKind();
+			return string.Format("the restored objective is kind %1, not the town that was saved", kind.ToString());
+		}
+
+		float objectiveDrift = vector.Distance(director.GetObjectivePosition(), m_vSavedObjective);
+		if (objectiveDrift > POSITION_TOLERANCE)
+			return string.Format("the restored objective is %1 m from the one that was saved", objectiveDrift.ToString());
+
+		if (director.GetPhase() != OVT_EObjectivePhase.HARASSMENT)
+		{
+			int phase = director.GetPhase();
+			return string.Format("the restored objective is in phase %1, not the harassment phase it was saved in", phase.ToString());
+		}
+
+		if (director.GetHarassmentSuccesses() != SAVED_HARASSMENT_SUCCESSES)
+			return string.Format("harassment successes did not survive: expected %1, read back %2",
+				SAVED_HARASSMENT_SUCCESSES.ToString(), director.GetHarassmentSuccesses().ToString());
+
+		if (director.GetSabotageSuccesses() != SAVED_SABOTAGE_SUCCESSES)
+			return string.Format("sabotage successes did not survive: expected %1, read back %2",
+				SAVED_SABOTAGE_SUCCESSES.ToString(), director.GetSabotageSuccesses().ToString());
+
+		string phaseBand = AssertBand(director.GetPhaseTicks(), DIRTY_PHASE_TICKS, SAVED_PHASE_TICKS, "the phase timeout");
+		if (phaseBand != "")
+			return phaseBand;
+
+		string opBand = AssertBand(director.GetNextOpTicks(), DIRTY_OP_TICKS, SAVED_OP_TICKS, "the operation cadence");
+		if (opBand != "")
+			return opBand;
+
+		if (!director.IsFOBUp())
+			return "the forward operating base did not survive the round trip - the restored objective has none";
+
+		float fobDrift = vector.Distance(director.GetFOBPosition(), m_vSavedFOB);
+		if (fobDrift > POSITION_TOLERANCE)
+			return string.Format("the restored forward base is %1 m from where it was saved", fobDrift.ToString());
+
+		float sourceDrift = vector.Distance(director.GetFOBSourceBasePosition(), m_vSavedFOBSource);
+		if (sourceDrift > POSITION_TOLERANCE)
+			return string.Format("the restored forward base's source base is %1 m from where it was saved", sourceDrift.ToString());
+
+		if (director.GetFOBSpent() != SAVED_FOB_SPENT)
+			return string.Format("the forward base's spend against its ceiling did not survive: expected %1, read back %2",
+				SAVED_FOB_SPENT.ToString(), director.GetFOBSpent().ToString());
+
+		if (director.GetFOBStarvationTicks() != SAVED_FOB_STARVATION)
+			return string.Format("the forward base's starvation count did not survive: expected %1, read back %2",
+				SAVED_FOB_STARVATION.ToString(), director.GetFOBStarvationTicks().ToString());
+
+		if (director.GetFOBDeploymentName() != SAVED_FOB_DEPLOYMENT)
+			return string.Format("the forward base's re-link key did not survive: expected '%1', read back '%2'",
+				SAVED_FOB_DEPLOYMENT, director.GetFOBDeploymentName());
+
+		return AssertBlacklist(director);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts a tick counter is inside the band (dirty, saved].
+	//! \param[in] actual The restored value.
+	//! \param[in] dirty The value the dirty step left behind.
+	//! \param[in] saved The value that was saved.
+	//! \param[in] label What the counter is, for the failure message.
+	//! \return An empty string when it is inside the band, otherwise the failure.
+	protected string AssertBand(int actual, int dirty, int saved, string label)
+	{
+		if (actual <= dirty)
+			return string.Format("%1 did not survive the round trip: it is still on the dirty value or below it (%2, dirtied to %3)",
+				label, actual.ToString(), dirty.ToString());
+
+		if (actual > saved)
+			return string.Format("%1 came back HIGHER than the value that was saved (%2 against %3), so it was re-armed from scratch rather than restored",
+				label, actual.ToString(), saved.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the blacklist came back as the two saved entries and nothing else.
+	//! \param[in] director The restored director.
+	//! \return An empty string when it matched, otherwise the failure.
+	protected string AssertBlacklist(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		if (director.GetBlacklistCount() != 2)
+			return string.Format("the restored blacklist holds %1 entries, not the two that were saved - the dirty third entry was not cleared, or the saved pair did not come back",
+				director.GetBlacklistCount().ToString());
+
+		int roundsA = FindBlacklistRounds(director, m_vBlacklistA);
+		if (roundsA != SAVED_BLACKLIST_A_ROUNDS)
+			return string.Format("the first blacklisted place came back with %1 rounds left instead of %2",
+				roundsA.ToString(), SAVED_BLACKLIST_A_ROUNDS.ToString());
+
+		int roundsB = FindBlacklistRounds(director, m_vBlacklistB);
+		if (roundsB != SAVED_BLACKLIST_B_ROUNDS)
+			return string.Format("the second blacklisted place came back with %1 rounds left instead of %2",
+				roundsB.ToString(), SAVED_BLACKLIST_B_ROUNDS.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rounds left on the blacklist entry nearest a position.
+	//! \param[in] director The restored director.
+	//! \param[in] position The place to look for.
+	//! \return Its rounds, or -1 when no entry is at that place.
+	protected int FindBlacklistRounds(notnull OVT_ObjectiveDirectorComponent director, vector position)
+	{
+		int count = director.GetBlacklistCount();
+		for (int i = 0; i < count; i++)
+		{
+			if (vector.Distance(director.GetBlacklistPosition(i), position) <= POSITION_TOLERANCE)
+				return director.GetBlacklistRounds(i);
+		}
+
+		return -1;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A restored forward operating base FINDS ITS DEPLOYMENT AGAIN, by name and position, on the first
+//! tick after the load.
+//!
+//! WHAT THIS COVERS THAT CASE 15 DOES NOT. Case 15 saves a forward base naming a deployment that has
+//! never existed, and proves the machine gives up cleanly on the far side of the grace window. This
+//! one is the other half: a forward base whose deployment IS standing must be re-adopted rather than
+//! abandoned. Both halves are needed, and they cannot be the same case - the state is established by
+//! the payload, and a case gets one reload.
+//!
+//! WHY IT MATTERS. The forward base is two separate persisted things that come back independently:
+//! the STRUCTURE (a tracked world entity, restored by vanilla persistence) and the DEPLOYMENT MARKER
+//! (a tracked entity of its own, restored by the deployment serializer), while the director's RECORD
+//! of both comes back through the director's own payload. Nothing orders those three, which is why
+//! the re-link is a tick-time job rather than something the deserializer does. If it went wrong, a
+//! continued campaign would tear down a perfectly good forward base a few in-game minutes after every
+//! load, refund nothing, and start the middle phase again - visible in play as "the enemy keeps
+//! rebuilding the same base" and attributable to nothing.
+//!
+//! ⚠ THE FIXTURE DEPLOYMENT IS MADE INERT THE INSTANT IT EXISTS - SetSpawnedUnitsEliminated(true) on
+//! the deployment AND on every spawning module, re-asserted on every poll - and its REINFORCEMENT
+//! MODULE IS REMOVED. Its config is the real forward-base one, which carries the raise module: left
+//! live it would put a persisted flagpole into the campaign this suite is running in. The
+//! reinforcement module has to go for two separate reasons - its rebuy CLEARS the eliminated flags,
+//! and its m_bDeleteOnConditionFail collects the deployment the moment its objective condition fails.
+//! It is deleted on every path including the red ones.
+//!
+//! ==========================================================================================
+//! 🔴 THE DIRTY STEP MAY NOT COMMIT AN OBJECTIVE, AND THIS COST THE CASE ITS FIRST RED RUN.
+//! ==========================================================================================
+//! The obvious way to dirty a director - CommitObjective() at a different place, which is what case 15
+//! does - destroys the very fixture this case depends on, TWICE OVER, and both of those are the
+//! product behaving correctly:
+//!   1. CommitObjective() runs the director's own forward-base teardown, because a new objective must
+//!      never leave the previous one's forward base standing in the world. That sweep deletes any
+//!      forward-base or garrison deployment within the teardown radius of the recorded position.
+//!   2. Even without that, CommitObjective() enters the HARASSMENT phase, so this deployment's
+//!      OVT_ObjectiveConditionDeploymentModule (authored m_iRequiredPhase 2) starts failing and the
+//!      reinforcement module's m_bDeleteOnConditionFail collects it on the next update.
+//! And the reload seam CANNOT put a deployment marker back - see below - so once it is gone the case
+//! can never pass. The dirty step therefore rewrites the forward-base RECORD instead: a different
+//! position, a different supplying base, a different re-link key and more spent, with the objective
+//! left exactly where it was so the fixture keeps qualifying.
+//!
+//! ⚠ WHAT THAT COSTS, STATED RATHER THAN HIDDEN. Two values the case reads cannot be dirtied without
+//! destroying the fixture, so they are PRECONDITIONS here and not round-trip claims:
+//!   - IsFOBUp() before the ticks. The dirty state also has a forward base up, so a reload that
+//!     restored nothing would still satisfy it. What has real closure is its POSITION, SOURCE,
+//!     RE-LINK KEY and SPEND, every one of which the dirty step changes.
+//!   - the objective's own position, which only CommitObjective() can move. Case 15 owns that round
+//!     trip. The post-tick check on it here is a different claim - "the machine did not give up and
+//!     choose again" - and it is closed by the red path, where giving up selects somewhere else.
+//!
+//! ⚠ THE RELOAD SEAM ONLY RE-APPLIES GAME-MODE COMPONENT RECORDS, so the deployment marker's own
+//! Deserialize is never re-run by it - which is exactly the shape being tested: the marker is the LIVE
+//! one that was there before the save, and the director's payload has to match itself back to it. A
+//! real save is taken alongside so the write half runs over live state. It is also why the fixture
+//! surviving the dirty step is not optional: nothing can bring it back.
+//!
+//! ⚠ EVERY VALUE IS WRITTEN AND READ THROUGH THE DIRECTOR'S PUBLIC API. The case names no storage
+//! type, no payload and no restore entry point.
+//!
+//! PROVEN ABLE TO FAIL: OVT_ObjectiveDirectorComponent.FOB_RELINK_RADIUS reduced from 150 to 1, so the
+//! re-link cannot match a marker it is standing beside. The tree recompiled CLEAN
+//! (tools/compile-check.sh exit 0) and the case then reports "the restored forward base was torn down
+//! even though its deployment was standing". Constant restored, tree recompiled clean.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_AutotestCaseBase
+{
+	//! Tolerance for every position comparison, in metres. vector.Distance is not correctly rounded at
+	//! campaign ranges, so a stored position is never compared with ==.
+	static const float POSITION_TOLERANCE = 1.0;
+
+	//! Far from every town, base and tower the campaign has, so the fixture deployment cannot be
+	//! confused with a real one and the objective cannot accidentally name a real place.
+	static const vector FIXTURE_OBJECTIVE = "15500 20 15500";
+	static const vector FIXTURE_FOB = "15000 20 15000";
+	static const vector FIXTURE_SOURCE = "14500 20 14500";
+
+	//! Where the dirty step SAYS the forward base is. Far enough from FIXTURE_FOB that the position
+	//! assertion has teeth, and deliberately outside the teardown's own area radius of it so nothing
+	//! the dirty state implies could reach the fixture deployment.
+	static const vector DIRTY_FOB = "16500 20 16500";
+	static const vector DIRTY_SOURCE = "17000 20 17000";
+
+	//! What the dirty step SAYS is carrying the forward base. Not a registered config name: the point
+	//! is that the re-link key round-trips as a string.
+	static const string DIRTY_FOB_DEPLOYMENT = "ObjectiveRelinkDirtyName";
+
+	static const int SAVED_PHASE_TICKS = 151;
+	static const int SAVED_OP_TICKS = 87;
+	static const int SAVED_FOB_SPENT = 313;
+
+	static const int DIRTY_PHASE_TICKS = 5;
+	static const int DIRTY_OP_TICKS = 6;
+
+	//! Added to the spend by the dirty step, so the restored total cannot match the dirty one.
+	static const int DIRTY_FOB_SPEND_DELTA = 640;
+
+	//! How far the assertions look for the fixture deployment.
+	static const float LOOKUP_RADIUS = 100;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected OVT_DeploymentComponent m_Fixture;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// EVERY POLL, AND CHEAP. The fixture lives across tens of seconds of asynchronous save and
+		// re-application, during which its own update loop keeps running; re-asserting the eliminated
+		// flags costs a short list walk and closes the window in which anything could have cleared them.
+		if (m_Fixture)
+			MakeInert(m_Fixture);
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			string setup = SetUpFixture();
+			if (setup != "")
+			{
+				Cleanup();
+				SetFailure(setup);
+				return true;
+			}
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				Cleanup();
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				Cleanup();
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					Cleanup();
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+			if (!director)
+			{
+				Cleanup();
+				SetFailure("OVT_Global.GetObjectiveDirector() is null before the reload");
+				return true;
+			}
+
+			// 🔴 THE FORWARD-BASE RECORD IS REWRITTEN. THE OBJECTIVE IS NOT TOUCHED. See the class
+			// header: CommitObjective() would destroy the fixture deployment twice over, and the reload
+			// seam cannot bring a deployment marker back, so the case could never pass afterwards.
+			director.RecordFOB(DIRTY_FOB, DIRTY_SOURCE, DIRTY_FOB_DEPLOYMENT);
+			director.AddFOBSpend(DIRTY_FOB_SPEND_DELTA);
+			director.SetPhaseTimeout(DIRTY_PHASE_TICKS);
+			director.SetOperationCountdown(DIRTY_OP_TICKS);
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				Cleanup();
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					Cleanup();
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			Cleanup();
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if (!director)
+		{
+			Cleanup();
+			SetFailure("OVT_Global.GetObjectiveDirector() is null after the reload");
+			return true;
+		}
+
+		string failure = AssertRelinked(director);
+
+		// Tear the fixture down whatever the verdict. ⚠ THE OBJECTIVE FIRST: resetting it runs the
+		// director's own teardown, which is what takes the fixture deployment away; Cleanup() is the
+		// belt-and-braces half for the paths where the reset never happened.
+		director.ResetObjective("forward-base re-link fixture torn down", false);
+		Cleanup();
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a real, inert forward-base deployment in the world and tells the director about it.
+	//! \return An empty string when the fixture stands, otherwise why it does not.
+	protected string SetUpFixture()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		if (!deployments || !director || !config)
+			return "the deployment framework, the objective director or the campaign config did not resolve";
+
+		OVT_DeploymentConfig fobConfig = deployments.FindConfigByName(OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		if (!fobConfig)
+			return string.Format("'%1' is not registered, so there is no forward-base deployment to re-link to", OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+
+		m_Fixture = deployments.CreateDeployment(fobConfig, FIXTURE_FOB, config.GetOccupyingFactionIndex(), 0, 0);
+		if (!m_Fixture)
+			return "the fixture forward-base deployment could not be created";
+
+		// IMMEDIATELY. This config carries the raise module; left live for even one update it would put
+		// a persisted structure into the campaign this suite is running in.
+		MakeInert(m_Fixture);
+
+		// ⚠ AND THE REBUY HAS TO GO, for two separate reasons. Its rebuy CLEARS the eliminated flags,
+		// which would un-do MakeInert() and let the raise module build after all; and its
+		// m_bDeleteOnConditionFail is what collects an objective deployment whose condition stops
+		// holding, which is a live risk over the tens of seconds a save and a re-application take.
+		m_Fixture.RemoveModule(OVT_ReinforcementBehaviorDeploymentModule);
+
+		director.CommitObjective(OVT_EObjectiveKind.TOWN, FIXTURE_OBJECTIVE, "forward-base re-link fixture");
+		director.EnterPhase(OVT_EObjectivePhase.FOB);
+		director.SetPhaseTimeout(SAVED_PHASE_TICKS);
+		director.SetOperationCountdown(SAVED_OP_TICKS);
+
+		director.RecordFOB(FIXTURE_FOB, FIXTURE_SOURCE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		director.AddFOBSpend(SAVED_FOB_SPENT);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reads the forward base back and proves the director kept it.
+	//! \param[in] director The restored director.
+	//! \return An empty string when it re-linked, otherwise the first failure.
+	protected string AssertRelinked(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+			return "the deployment framework did not resolve after the reload";
+
+		// PRECONDITION, NOT AN ASSERTION ABOUT THE DIRECTOR. If the marker is gone the case is testing
+		// the opposite claim by accident, and it has to say so rather than go green.
+		//
+		// ⚠ IF THIS IS WHAT BROKE, LOOK AT WHAT DELETED IT BEFORE LOOKING AT THE RESTORE. The reload
+		// seam cannot remove a deployment marker and cannot put one back, so a missing fixture was
+		// deleted by something in this session - the director's forward-base teardown (reached from any
+		// CommitObjective or ResetObjective) or the deployment's own reinforcement module reacting to a
+		// failed objective condition. Both are the product working; the case's job is to not provoke
+		// them. That is why the dirty step rewrites the forward-base record instead of committing an
+		// objective, and why the reinforcement module is removed from the fixture.
+		if (!deployments.GetDeploymentNearPosition(OVT_ObjectiveDirectorComponent.FOB_CONFIG, FIXTURE_FOB, LOOKUP_RADIUS))
+			return "the fixture forward-base deployment is no longer standing after the reload, so the re-link had nothing to find and this case cannot say anything about it";
+
+		// PRECONDITION TOO, AND DELIBERATELY LABELLED AS ONE. The dirty state also has a forward base
+		// up, so a reload that restored nothing at all would still satisfy this. The four fields below
+		// are what carry the round-trip claim.
+		if (!director.IsFOBUp())
+			return "the forward base did not survive the round trip - the restored objective has none, so the re-link cannot even be attempted";
+
+		float fobDrift = vector.Distance(director.GetFOBPosition(), FIXTURE_FOB);
+		if (fobDrift > POSITION_TOLERANCE)
+			return string.Format("the restored forward base is %1 m from where it was saved", fobDrift.ToString());
+
+		float sourceDrift = vector.Distance(director.GetFOBSourceBasePosition(), FIXTURE_SOURCE);
+		if (sourceDrift > POSITION_TOLERANCE)
+			return string.Format("the restored forward base's supplying base is %1 m from where it was saved", sourceDrift.ToString());
+
+		if (director.GetFOBSpent() != SAVED_FOB_SPENT)
+			return string.Format("the forward base's spend against its ceiling did not survive: expected %1, read back %2 - a ceiling that resets on every load is not a ceiling",
+				SAVED_FOB_SPENT.ToString(), director.GetFOBSpent().ToString());
+
+		if (director.GetFOBDeploymentName() != OVT_ObjectiveDirectorComponent.FOB_CONFIG)
+			return string.Format("the forward base's re-link key did not survive: expected '%1', read back '%2'",
+				OVT_ObjectiveDirectorComponent.FOB_CONFIG, director.GetFOBDeploymentName());
+
+		// 🔴 THE CLAIM. The whole grace window is driven, so a director that merely had not got round to
+		// giving up yet cannot pass this.
+		//
+		// ⚠ EXACTLY THE WINDOW AND NOT ONE TICK MORE. On the RED path the last of these ticks abandons
+		// the objective and leaves the machine IDLE, and the IDLE branch of a further tick would select
+		// a real objective and enter its first phase with the operation countdown armed to ZERO - so one
+		// extra tick would buy a real deployment with real resources in a real campaign, and nothing
+		// refunds a deleted deployment.
+		int ticks = OVT_ObjectiveDirectorComponent.FOB_RELINK_ATTEMPTS;
+		for (int i = 0; i < ticks; i++)
+		{
+			director.DirectorTick();
+		}
+
+		director.SetOperationCountdown(SAVED_OP_TICKS);
+
+		// ⚠ THE FORWARD BASE, NOT THE OBJECTIVE, IS THE ASSERTION. A director that gave up re-linking
+		// abandons the objective and then immediately selects a NEW one on the same tick, so
+		// HasObjective() is true either way; only the forward base tells the two apart.
+		if (!director.IsFOBUp())
+			return string.Format("the restored forward base was torn down within %1 ticks even though its deployment was standing the whole time - the re-link did not match the marker it was sitting on, and a continued campaign would lose its forward base a few in-game minutes after every load",
+				ticks.ToString());
+
+		// ⚠ NOT A ROUND-TRIP ASSERTION - the dirty step cannot move the objective without destroying the
+		// fixture, so this value was never dirtied and case 15 owns that round trip. It is a DIFFERENT
+		// claim, and it is closed by the red path: a director that gives up re-linking abandons the
+		// objective and selects a real one on the same tick, which lands somewhere else entirely.
+		float drift = vector.Distance(director.GetObjectivePosition(), FIXTURE_OBJECTIVE);
+		if (drift > POSITION_TOLERANCE)
+			return string.Format("the director is no longer working on the restored objective after the re-link ticks - it is %1 m away, so something abandoned it and chose again",
+				drift.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes the fixture deployment unable to register or build anything.
+	//! \param[in] deployment The deployment to disarm.
+	protected void MakeInert(notnull OVT_DeploymentComponent deployment)
+	{
+		deployment.SetSpawnedUnitsEliminated(true);
+
+		array<OVT_BaseSpawningDeploymentModule> modules = deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : modules)
+		{
+			if (module)
+				module.SetSpawnedUnitsEliminated(true);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Deletes the fixture deployment if the director's own teardown has not already taken it.
+	protected void Cleanup()
+	{
+		if (!m_Fixture)
+			return;
+
+		MakeInert(m_Fixture);
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (deployments)
+			deployments.DeleteDeployment(m_Fixture);
+
+		m_Fixture = null;
 	}
 }

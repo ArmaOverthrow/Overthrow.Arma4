@@ -48,6 +48,8 @@ OVT_OverthrowGameMode {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
    }
   }
+  OVT_ObjectiveDirectorComponent "{6B5D1A2C00000010}" {
+  }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }

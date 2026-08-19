@@ -60,6 +60,8 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 	protected Widget m_wDetailSection;
 
 	protected TextWidget m_wValueThreat;
+	protected TextWidget m_wValueObjective;
+	protected TextWidget m_wValuePhase;
 	protected TextWidget m_wValueOFResources;
 	protected TextWidget m_wValueOFDeployment;
 	protected TextWidget m_wValueDistribution;
@@ -135,6 +137,8 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 		m_wDetailSection = null;
 
 		m_wValueThreat = null;
+		m_wValueObjective = null;
+		m_wValuePhase = null;
 		m_wValueOFResources = null;
 		m_wValueOFDeployment = null;
 		m_wValueDistribution = null;
@@ -160,6 +164,8 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 		m_wDetailSection = m_wRoot.FindAnyWidget("DetailSection");
 
 		m_wValueThreat = FindText("Value_Threat");
+		m_wValueObjective = FindText("Value_Objective");
+		m_wValuePhase = FindText("Value_Phase");
 		m_wValueOFResources = FindText("Value_OFResources");
 		m_wValueOFDeployment = FindText("Value_OFDeployment");
 		m_wValueDistribution = FindText("Value_Distribution");
@@ -401,6 +407,15 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 		if (m_wValueThreat)
 			m_wValueThreat.SetText(OVT_GMPanelFormat.FormatThreat(state.m_fThreat));
 
+		// SetText, never SetTextFormat: the objective value is either a localization key
+		// (#OVT-GMPanel_ObjectiveNone) or a live town/base name, and a name must never be
+		// interpreted as a format string. SetText still resolves a leading '#' key.
+		if (m_wValueObjective)
+			m_wValueObjective.SetText(OVT_GMPanelFormat.FormatObjectiveName(state.m_sObjectiveName));
+
+		if (m_wValuePhase)
+			m_wValuePhase.SetText(OVT_GMPanelFormat.FormatObjectivePhase(state.m_iObjectivePhase));
+
 		if (m_wValueOFResources)
 			m_wValueOFResources.SetText(state.m_iOFResources.ToString());
 
@@ -528,6 +543,10 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 		if (!m_wValueQRF)
 			return;
 
+		// ⚠ DELIBERATELY **NOT** CONJOINED WITH m_bQRFRevealed (occupying/counter-attacks D15/§3.9).
+		// The four player-facing rules gained that conjunct so a counter-attack's silent encirclement
+		// stays silent; a Game Master is MEANT to see the siege forming - that is the whole purpose of
+		// this panel - so this row stays on "a battle exists".
 		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
 		if (!of || !of.m_bQRFActive)
 		{

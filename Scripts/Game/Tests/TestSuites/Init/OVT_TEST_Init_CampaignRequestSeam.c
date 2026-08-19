@@ -89,3 +89,109 @@ class OVT_TEST_Init_Controller_CampaignRequestResolves : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The forward-base dismantle verb is on the seam and calling it is safe.
+//!
+//! ⚠ THIS IS THE ONLY MECHANICAL DEFENCE AGAINST THE Rpc() ARITY BLIND SPOT FOR THIS VERB (BUG-090).
+//! Rpc() takes an untyped variadic argument list, so `Rpc(RpcAsk_DismantleEnemyFOB, somethingExtra)`
+//! or a handler that later grows a parameter the sender does not pass COMPILES CLEAN and then dies
+//! silently at the wire - the request is marshalled, nothing arrives, and no log line anywhere says
+//! so. There is no way to inspect an RPC's arity from script, so what this case does instead is drive
+//! the PUBLIC entry point on the authority, where the same handler is reached by a direct call: a
+//! sender and a handler that have drifted apart cannot both still be callable this way.
+//!
+//! IT IS ALSO THE WIRING CHECK. occupying/counter-attacks Phase 7 appended a fifth verb to a component
+//! that already had four; if OVT_CampaignRequestComponent were ever dropped from the controller
+//! prefab, the held action on the enemy's forward base would do nothing at all, with no error, and the
+//! only forward base the resistance can remove would become unremovable.
+//!
+//! ⚠ IT IS SAFE TO ACTUALLY CALL, AND THAT IS CHECKED RATHER THAN ASSUMED. The initialisation world's
+//! director has no forward base, so the server-side handler refuses on its first real condition and
+//! nothing is torn down, no resources move and no objective changes. The case asserts the director is
+//! in the same state afterwards, so a future change that made this verb do something on a campaign
+//! with no forward base would fail here rather than in a play-test.
+//!
+//! PROVEN ABLE TO FAIL: the OVT_CampaignRequestComponent block removed from
+//! Prefabs/GameMode/OVT_OverthrowController.et - the same defect the case above catches - fails on
+//! "returned null while a controller entity exists". Compiled clean (exit 0) in that state; block
+//! restored, it passes.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Controller_CampaignDismantleFOBIsWired : SCR_AutotestCaseBase
+{
+	//! Frame polls allowed for the local player's controller to be spawned and registered.
+	static const int MAX_POLLS = 300;
+
+	protected int m_iPolls;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowController controller = OVT_Global.GetController();
+		if (!controller)
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetFailure("OVT_Global.GetController() was still null after %1 polls (local player id %2), so the dismantle verb could not be reached either way.",
+					m_iPolls.ToString(),
+					SCR_PlayerController.GetLocalPlayerId().ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+		if (!campaign)
+		{
+			SetFailure("OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get() returned null while a controller entity exists. The held action on the occupying faction's forward operating base would then do nothing at all - no error, no log line - and the one enemy structure the resistance can remove becomes unremovable.");
+			return true;
+		}
+
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if (!director)
+		{
+			SetFailure("OVT_Global.GetObjectiveDirector() returned null, so the dismantle verb has nothing authoritative to ask and this case cannot say whether calling it is safe.");
+			return true;
+		}
+
+		if (director.IsFOBUp())
+		{
+			SetFailure("the director already reports a forward base standing before this case ran - some earlier case left one recorded, and driving the dismantle verb here would tear it down rather than refuse.");
+			return true;
+		}
+
+		OVT_EObjectivePhase phaseBefore = director.GetPhase();
+		int spentBefore = director.GetFOBSpent();
+
+		// THE CALL. On the authority the public entry point runs the handler directly, so a sender and
+		// a handler that had drifted apart could not both be reached by this one line.
+		campaign.DismantleEnemyFOB();
+
+		if (director.IsFOBUp())
+		{
+			SetFailure("the dismantle verb PUT A FORWARD BASE UP - it is wired to the wrong thing entirely.");
+			return true;
+		}
+
+		if (director.GetPhase() != phaseBefore)
+		{
+			SetFailure("the dismantle verb changed the objective phase on a campaign with no forward base: was %1, now %2. Every refusal must leave the machine exactly as it found it.",
+				phaseBefore.ToString(), director.GetPhase().ToString());
+			return true;
+		}
+
+		if (director.GetFOBSpent() != spentBefore)
+		{
+			SetFailure("the dismantle verb moved the forward base's spend counter on a campaign with no forward base: was %1, now %2.",
+				spentBefore.ToString(), director.GetFOBSpent().ToString());
+			return true;
+		}
+
+		PrintFormat("Controller seam: OVT_CampaignRequestComponent.DismantleEnemyFOB() is reachable off the local controller and refuses cleanly with no forward base standing (found after %1 poll(s))", m_iPolls.ToString());
+		return true;
+	}
+}

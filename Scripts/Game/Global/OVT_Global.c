@@ -85,11 +85,14 @@ class OVT_Global : Managed
 	//------------------------------------------------------------------------------------------------
 	//! FAST PATH ONLY for GetController(), never the truth on its own.
 	//!
-	//! Set by OVT_OverthrowController.RpcDo_NotifyOwnerAssignment, i.e. only on a machine that actually
-	//! RECEIVES that RplRcver.Owner RPC. A listen-server host does not receive its own owner-targeted
-	//! RPCs (the BUG-090 family), and in RplMode.None nothing is replicated at all, so on those machines
-	//! this field is null forever and the map lookup below is the only route that works.
-	//! It is therefore a cache in front of the lookup and NEVER a replacement for it (decision D9).
+	//! Set by OVT_OverthrowController.RpcDo_NotifyOwnerAssignment, i.e. only on the machine that OWNS
+	//! that controller. That includes a single-player session and (inferred from the engine routing
+	//! table, see the corrected note on RpcDo_NotifyOwnerAssignment) a listen host, where the owner is
+	//! the sending machine and the engine invokes the RPC body directly - the older claim here, that
+	//! this field is "null forever" on those machines, was wrong.
+	//!
+	//! It is still a cache in front of the lookup and NEVER a replacement for it (decision D9): it is
+	//! unset before ownership is assigned, and any machine that is not the owner never sets it at all.
 	static OVT_OverthrowController s_LocalController;
 
 	//------------------------------------------------------------------------------------------------
@@ -112,8 +115,8 @@ class OVT_Global : Managed
 	//! The controlled-entity route is kept first among the lookups and unchanged so the living path
 	//! cannot regress. The fallback exists because a dead player awaiting respawn may control nothing,
 	//! and without it every controller component - and therefore every client->server request - is
-	//! unreachable while dead. Neither may be removed: on a listen host and in single player the cache
-	//! is never populated at all.
+	//! unreachable while dead. Neither may be removed: the cache is empty until ownership is assigned,
+	//! and on any machine that does not own the controller it is never populated at all.
 	//! \return Controller entity or null if not found/on server
 	static OVT_OverthrowController GetController()
 	{
@@ -243,7 +246,19 @@ class OVT_Global : Managed
 	{
 		return OVT_DeploymentManagerComponent.GetInstance();
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! The occupying faction's objective director - what it has decided to take back, and how far
+	//! along the ramp it is.
+	//! Present on clients too (the game mode entity exists there), but every entry point on it is
+	//! server-gated: the objective is a server-side decision and nothing about it replicates except
+	//! two read-only rows on the GM panel.
+	//! \return The objective director, or null before the game mode exists.
+	static OVT_ObjectiveDirectorComponent GetObjectiveDirector()
+	{
+		return OVT_ObjectiveDirectorComponent.GetInstance();
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! The server-side registry of virtualized AI groups and ambient spawn sources.
 	//! Present on clients too (the game mode entity exists there), but every entry point on it is

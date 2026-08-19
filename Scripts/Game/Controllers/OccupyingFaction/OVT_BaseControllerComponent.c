@@ -516,8 +516,48 @@ class OVT_BaseControllerComponent: OVT_Component
 		// Get position and angles
 		outPosition = spawnEntity.GetOrigin();
 		outAngles = spawnEntity.GetAngles();
-		
+
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every authored OVT_VehiclePatrolSpawn marker at this base, resolved to live entities.
+	//!
+	//! ⚠ THE LIST IS ALREADY DISCOVERED - do not re-query the world for these. FindSlots() sweeps
+	//! baseRange around the base marker once at base init and FilterSlotEntities() caches every marker
+	//! it finds; this is that cache, resolved and pruned. A caller that wants to CHOOSE between the
+	//! markers (rather than take a random one, which GetRandomVehiclePatrolSpawn does) needs them all.
+	//!
+	//! Stale ids are dropped as they are found, exactly as GetRandomVehiclePatrolSpawn does: a marker
+	//! is an ordinary world entity and nothing tells this component when one goes away.
+	//! \param[in] results Filled with the live marker entities. Cleared first.
+	void CollectVehiclePatrolSpawns(notnull array<IEntity> results)
+	{
+		results.Clear();
+
+		if (!m_aVehiclePatrolSpawns)
+			return;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return;
+
+		// FORWARD, so the results keep the order the markers were discovered in - a caller that breaks a
+		// tie by index (OVT_InsertionGeometry.ChooseSpawnMarker does) would otherwise silently prefer the
+		// other one of a symmetric pair.
+		int i = 0;
+		while (i < m_aVehiclePatrolSpawns.Count())
+		{
+			IEntity marker = world.FindEntityByID(m_aVehiclePatrolSpawns[i]);
+			if (!marker)
+			{
+				m_aVehiclePatrolSpawns.Remove(i);
+				continue;
+			}
+
+			results.Insert(marker);
+			i++;
+		}
 	}
 
 

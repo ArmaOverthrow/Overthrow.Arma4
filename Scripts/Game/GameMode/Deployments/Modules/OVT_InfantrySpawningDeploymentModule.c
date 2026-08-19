@@ -317,7 +317,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			OVT_VirtualWaypointPlan plan = ResolveVirtualPlan(spawnPos);
 
 			int handle = virtualization.RegisterGroup(OWNER_SYSTEM, ownerKey, factionKey, m_sGroupType,
-				spawnPos, plan, SPAWN_DISTANCE_GLOBAL, m_eImportance);
+				spawnPos, plan, ResolveRegistrationSpawnDistance(), m_eImportance);
 
 			if (handle == -1)
 			{
@@ -427,6 +427,25 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! THE RING THIS MODULE'S GROUPS ARE REGISTERED AT. The single seam a subclass overrides when its
+	//! groups need to be materialised somewhere other than the global proximity rule puts them.
+	//!
+	//! SPAWN_DISTANCE_GLOBAL IS THE SHIPPED ANSWER AND MUST STAY THE DEFAULT: every config that existed
+	//! before this seam did registers exactly where and when it always did, because this returns the
+	//! literal that used to be written inline at the one call site.
+	//!
+	//! The one override that exists is the insertion module, whose passengers have to be physically in
+	//! a truck that may be driving through country with no player anywhere near it - a group at the
+	//! global ring would simply not exist to be seated. It is a heavy thing to ask for (an
+	//! always-materialised group costs AI budget for as long as it is registered), which is why it is a
+	//! deliberate per-subclass answer and not an attribute anybody can turn on by accident.
+	//! \return The spawnDistanceOverride to register with. -1 uses the global virtualization distance.
+	protected int ResolveRegistrationSpawnDistance()
+	{
+		return SPAWN_DISTANCE_GLOBAL;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! One group has just been registered under this module's owner key.
 	//!
 	//! Empty by design. It is the hook the placement subclass uses to remember a group's post and
@@ -524,6 +543,25 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			return false;
 
 		int factionIndex = m_ParentDeployment.GetControllingFaction();
+
+		// ⚠ NOT WHILE A BATTLE IS BEING FOUGHT HERE (occupying/counter-attacks, 2026-08-19). A rebuy is
+		// the one path in this framework that puts a NEW force on the ground during a battle, and it is
+		// the reason a base can grow fresh tower guards while the player is still fighting for it: the
+		// player wipes a module, the reinforcement behaviour notices 60 s later, and the replacement
+		// materialises on the spot because the player is standing right there.
+		//
+		// Refused HERE rather than in the behaviour module because this is the choke point - Reinforce()
+		// consults it itself, so every caller present and future is covered by one guard - and refusing
+		// before anything is charged is what keeps the pool honest: the manager's suppression tick would
+		// pin the new groups dormant anyway, so buying them would be resources leaving the pool with
+		// nothing to show for them (BUG-027's shape).
+		//
+		// SCOPED TO THE BATTLE CIRCLE, so a deployment on the other side of the island rebuys normally.
+		// The whole map is NOT frozen - that is the rule the base-defense migration deliberately
+		// replaced; see OVT_DeploymentBattleSuppression for why local-only is the decision.
+		if (manager.IsBattleSuppressedAt(m_ParentDeployment.GetPosition(), factionIndex))
+			return false;
+
 		int availableResources = manager.GetFactionResources(factionIndex);
 		int totalCost = groupsNeeded * m_iReinforcementCost;
 
@@ -639,6 +677,21 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			return 0;
 
 		return GetGroupCount();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Appends every handle this module holds. Guarded for the same reason the count above is: the
+	//! caller may be walking a deployment in any state.
+	//! \param[inout] handles The caller's list, appended to. Never cleared.
+	override void CollectRegisteredHandles(notnull array<int> handles)
+	{
+		if (!m_aHandles)
+			return;
+
+		foreach (int handle : m_aHandles)
+		{
+			handles.Insert(handle);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

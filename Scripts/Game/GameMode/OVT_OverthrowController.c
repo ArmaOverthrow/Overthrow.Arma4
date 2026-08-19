@@ -37,10 +37,27 @@ class OVT_OverthrowController : GenericEntity
 	//! double-fire by trying to make this fire once: a reconnecting player genuinely needs the
 	//! re-assignment, and the second delivery is the only thing that re-establishes their client state.
 	//!
-	//! It runs ONLY on a machine that actually receives an RplRcver.Owner RPC: a remote owning client.
-	//! A listen-server host does not receive its own owner-targeted RPCs, and in RplMode.None (single
-	//! player) nothing is replicated at all - which is why nothing here may be the ONLY route to any
-	//! state it establishes. Both consumers below are caches/registrations with working fallbacks.
+	//! WHERE IT ACTUALLY RUNS - corrected 2026-08-19, this used to say "a remote owning client ONLY".
+	//! It runs on whichever machine OWNS this controller, and on a listen host or in single player that
+	//! is the SENDING machine itself. The engine's own routing table settles it (ArmaReforger
+	//! scripts/GameLib/replication/RplDocs.c:549-557, and the worked example at :1844-1853): for an RPC
+	//! invoked on the server, RplRcver.Owner is delivered "On Client Owner" when some client owns the
+	//! item, but "On Server" - i.e. invoked directly, as a plain method call - when the SERVER is the
+	//! owner. NotifyOwnerAssignment() sends it right after GiveExt() hands ownership to the target
+	//! player's RplIdentity, which on a host/SP session is the local identity.
+	//!
+	//! OBSERVED: in a Workbench single-player play-test the admin chat commands registered by the third
+	//! consumer below exist and work (user report, 2026-08-19) - which is only possible if this body
+	//! ran. INFERRED from the same table, not yet observed: the identical thing on a listen host.
+	//!
+	//! (That third consumer now refuses to register in a SHIPPED offline session - a product rule, not
+	//! a replication one, enforced inside OVT_AdminCommandsComponent.RegisterChatCommands() rather than
+	//! here. This handler still runs there; the component simply declines. Do not read a missing
+	//! "/give-money" in a released single-player game as a delivery failure of this RPC.)
+	//!
+	//! Keep every consumer here idempotent and non-exclusive anyway. Nothing about the above guarantees
+	//! delivery on a machine that is NOT the owner, so state that other machines need still has to have
+	//! another route (the two caches below both do; see their notes).
 	//! \param[in] playerId The runtime player id this controller was assigned to.
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	void RpcDo_NotifyOwnerAssignment(int playerId)

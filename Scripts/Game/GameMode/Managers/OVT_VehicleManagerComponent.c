@@ -1506,12 +1506,19 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether another vehicle is standing on a prospective spawn spot (BUG-129).
+	//!
+	//! PUBLIC because it is the tree's ONE answer to "is something already parked here": the vehicle
+	//! respawn path asks it of a persisted record's spot, and OVT_InsertionSpawningDeploymentModule asks
+	//! it of an authored OVT_VehiclePatrolSpawn marker, which is shared with the vehicle-patrol
+	//! deployments and can legitimately be occupied. Two spellings of this test would drift.
 	//! \param[in] pos The spot to test.
+	//! \param[in] radius How far around the spot counts as "on" it. The default is the car-sized 3 m the
+	//!            respawn path has always used; a caller placing something longer should widen it.
 	//! \return True when any Vehicle overlaps the spot.
-	protected bool IsSpotBlockedByVehicle(vector pos)
+	bool IsSpotBlockedByVehicle(vector pos, float radius = 3)
 	{
 		m_bSpotBlockedByVehicle = false;
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 3, null, FilterSpotBlockingVehicle, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, radius, null, FilterSpotBlockingVehicle, EQueryEntitiesFlags.ALL);
 		return m_bSpotBlockedByVehicle;
 	}
 

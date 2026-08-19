@@ -1,0 +1,59 @@
+GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et" {
+ ID "6B8C3F5D000000A0"
+ components {
+  ActionsManagerComponent "{6B8C3F5D000000A1}" {
+   ActionContexts {
+    UserActionContext "{6B8C3F5D000000A2}" {
+     ContextName "default"
+     Position PointInfo "{6B8C3F5D000000A3}" {
+      Offset 0 1.2 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_DismantleEnemyFOBAction "{6B8C3F5D000000A4}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6B8C3F5D000000A5}" {
+      Name "#OVT-DismantleEnemyFOB"
+     }
+     Duration 15
+    }
+   }
+  }
+  RplComponent "{6B8C3F5D000000A6}" {
+  }
+ }
+ coords 0 0 0
+ {
+  GenericEntity : "{A817454D4372DBCA}Prefabs/Structures/Military/CamoNets/Soviet/CamoNet_Tent_Soviet.et" {
+   ID "6B8C3F5D000000B0"
+   coords 0 0 -4.5
+  }
+  GenericEntity : "{7030822F7A54F479}Prefabs/Props/Crates/CrateWooden_01_base.et" {
+   ID "6B8C3F5D000000B1"
+   coords 1.8 0 -3.1
+  }
+  GenericEntity : "{E17324998DE1BB87}Prefabs/Props/Military/MilitaryCrates/ShellContainerstack_01/ShellContainerstack_01_pile_big.et" {
+   ID "6B8C3F5D000000B2"
+   coords -2.2 0 -2.6
+   angleY 90
+  }
+  GenericEntity : "{7F8D6A0D827EA34B}Prefabs/Props/Military/Fortification/CzechHedgehog_01_base.et" {
+   ID "6B8C3F5D000000B3"
+   coords 3.6 0 1.4
+   angleY 25
+  }
+  GenericEntity : "{7F8D6A0D827EA34B}Prefabs/Props/Military/Fortification/CzechHedgehog_01_base.et" {
+   ID "6B8C3F5D000000B4"
+   coords -3.6 0 1.9
+   angleY -40
+  }
+  GenericEntity : "{BE7B5BAFE1A16A50}Prefabs/Props/Military/Fortification/BarbedTape_Coil.et" {
+   ID "6B8C3F5D000000B5"
+   coords 0.4 0 3.4
+  }
+ }
+}

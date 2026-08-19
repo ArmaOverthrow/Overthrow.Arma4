@@ -22,6 +22,77 @@ class OVT_GMPanelFormat
 	protected static const string ZERO_THREAT = "0.0";
 
 	//------------------------------------------------------------------------------------------------
+	// THE OBJECTIVE ROWS
+	//
+	// Two rows on the Game Master panel: what the occupying faction is working toward, and how far
+	// along the ramp it is. Both are handed the raw values off the snapshot store and both answer a
+	// string that is safe to hand straight to a widget.
+	//
+	// ⚠ THE ANSWERS ARE LOCALIZATION KEYS, NOT ENGLISH. A '#'-prefixed string is resolved by the widget
+	// when it is set, and a proper noun (a town or base name) is passed through unchanged - so the two
+	// cases below need no branch at the call site and no world access here.
+	//------------------------------------------------------------------------------------------------
+
+	//! Shown in the objective row when the occupying faction has no target. A normal state, not an
+	//! error: an early campaign in which the resistance holds nothing has no objective by design.
+	protected static const string NO_OBJECTIVE = "#OVT-GMPanel_ObjectiveNone";
+
+	//! Phase row, no objective.
+	protected static const string PHASE_NONE = "#OVT-GMPanel_ObjectivePhaseNone";
+
+	//! Phase row, phase 1 - operations at the objective softening it up.
+	protected static const string PHASE_HARASSMENT = "#OVT-GMPanel_ObjectivePhaseHarassment";
+
+	//! Phase row, phase 2 - the forward operating base.
+	protected static const string PHASE_FOB = "#OVT-GMPanel_ObjectivePhaseForwardBase";
+
+	//! Phase row, phase 3 - the counter-attack itself.
+	protected static const string PHASE_COUNTER_ATTACK = "#OVT-GMPanel_ObjectivePhaseCounterAttack";
+
+	//! Phase row, a value this build has never heard of. See FormatObjectivePhase() for why this is not
+	//! folded into PHASE_NONE.
+	protected static const string PHASE_UNKNOWN = "#OVT-GMPanel_ObjectivePhaseUnknown";
+
+	//------------------------------------------------------------------------------------------------
+	//! The objective row's value: the place the occupying faction is working toward.
+	//! \param[in] name The display name off the snapshot store. Empty means there is no objective.
+	//! \return The name, or the "no objective" key. Never empty - a blank row is indistinguishable from
+	//! a row that failed to draw.
+	static string FormatObjectiveName(string name)
+	{
+		if (name == "")
+			return NO_OBJECTIVE;
+
+		return name;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The phase row's value.
+	//!
+	//! ⚠ AN UNRECOGNISED VALUE IS ITS OWN ANSWER, NOT "no objective". The phase crosses the wire as an
+	//! integer and a newer server may name a phase this build has never heard of; reporting that as
+	//! "None" would tell a Game Master the campaign has no target while it is actively being attacked.
+	//! An explicit "unknown" is a symptom somebody can act on.
+	//! \param[in] phase OVT_EObjectivePhase's integer, exactly as it arrived.
+	//! \return A localization key. Never empty.
+	static string FormatObjectivePhase(int phase)
+	{
+		if (phase == OVT_EObjectivePhase.IDLE)
+			return PHASE_NONE;
+
+		if (phase == OVT_EObjectivePhase.HARASSMENT)
+			return PHASE_HARASSMENT;
+
+		if (phase == OVT_EObjectivePhase.FOB)
+			return PHASE_FOB;
+
+		if (phase == OVT_EObjectivePhase.COUNTER_QRF)
+			return PHASE_COUNTER_ATTACK;
+
+		return PHASE_UNKNOWN;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! A duration as a clock string: "1:23:45" from an hour up, "12:34" below one, "0:07" below one
 	//! minute. Seconds are always two digits; minutes and hours never carry a leading zero, so a
 	//! reader can tell "12:34" (minutes) from "1:23:45" (hours) at a glance.

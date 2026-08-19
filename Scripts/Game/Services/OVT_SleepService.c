@@ -223,6 +223,13 @@ class OVT_SleepService
 
 		// A QRF is a battle: the player is needed awake, and eight hours of catch-up in the middle of
 		// one would resolve it off-screen.
+		//
+		// ⚠ DELIBERATELY **NOT** CONJOINED WITH m_bQRFRevealed (occupying/counter-attacks D15/§3.9).
+		// Every other client-facing rule gained that conjunct so a counter-attack's silent encirclement
+		// stays silent; this one did not, because sleeping through an incoming assault should be
+		// refused from the moment it is incoming, not from the moment the player is told. It costs a
+		// very faint tell to somebody who tries to sleep at the wrong minute, which is a far better
+		// trade than skipping eight hours into a battle that is already surrounding them.
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		if (occupying && occupying.m_bQRFActive)
 		{

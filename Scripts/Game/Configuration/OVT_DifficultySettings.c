@@ -47,8 +47,40 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float baseRange;
 	[Attribute("220", category: "Occupying Faction")]
 	float baseCloseRange;
-	[Attribute("120", category: "Occupying Faction")]
-	float counterAttackTimeout;
+	//------------------------------------------------------------------------------------------------
+	// OBJECTIVE DIRECTOR (occupying/counter-attacks)
+	//
+	// These replace the retired counter-attack cooldown field. The occupying faction no longer rolls a
+	// random hourly counter-attack; it picks ONE objective and works toward it in three phases, and
+	// every knob below tunes some part of that ramp. Larger numbers generally mean a SLOWER, more
+	// readable build-up - except objectiveSabotageMissionsRequired, which is deliberately INVERTED
+	// (easier difficulties demand MORE successful sabotage missions, so a new player gets more
+	// warning before the counter-attack lands).
+	//------------------------------------------------------------------------------------------------
+	[Attribute(defvalue: "45", desc: "In-game minutes between operations sent at the current objective. Lower = the occupying faction presses harder", category: "Occupying Faction")]
+	int objectiveHarassmentIntervalMinutes;
+	[Attribute(defvalue: "2", desc: "Maximum harassment/sabotage operations alive at the current objective at once", category: "Occupying Faction")]
+	int objectiveHarassmentMaxConcurrent;
+	[Attribute(defvalue: "180", desc: "Seconds a harassment group must hold a town centre before it applies its support debuff", category: "Occupying Faction")]
+	int objectiveHarassmentHoldSeconds;
+	[Attribute(defvalue: "4", desc: "Successful sabotage missions required before a base objective may be counter-attacked. INVERTED: easier difficulties require MORE, giving the player more warning", category: "Occupying Faction")]
+	int objectiveSabotageMissionsRequired;
+	[Attribute(defvalue: "120", desc: "Seconds a sabotage team must hold a base uncontested before it demolishes a structure", category: "Occupying Faction")]
+	int objectiveSabotageHoldSeconds;
+	[Attribute(defvalue: "2", desc: "Structures demolished per completed sabotage mission (smallest first)", category: "Occupying Faction")]
+	int objectiveSabotageStructuresPerMission;
+	[Attribute(defvalue: "600", desc: "Seconds a specops team must hold a radio tower before control flips back to the occupying faction", category: "Occupying Faction")]
+	int objectiveTowerRecaptureHoldSeconds;
+	[Attribute(defvalue: "3", desc: "Maximum garrison groups at an occupying forward operating base", category: "Occupying Faction")]
+	int objectiveFOBGarrisonMax;
+	[Attribute(defvalue: "400", desc: "Resource cost of raising an occupying forward operating base. Its spend ceiling is three times this, and dismantling one costs the occupying faction this much again", category: "Occupying Faction")]
+	int objectiveFOBCost;
+	[Attribute(defvalue: "2", desc: "Maximum live insertion convoys (trucks driving reinforcements to an objective) at once", category: "Occupying Faction")]
+	int objectiveMaxConcurrentInsertions;
+	[Attribute(defvalue: "30", desc: "In-game minutes an occupying FOB may stay cut off (source base lost, garrison dead or players camped on it) before it is abandoned", category: "Occupying Faction")]
+	int objectiveStarvationMinutes;
+	[Attribute(defvalue: "1500", desc: "Reserve resources the occupying faction must hold before it will launch the counter-attack QRF", category: "Occupying Faction")]
+	int objectiveQRFResourceGate;
 	
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]

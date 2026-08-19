@@ -1,4 +1,4 @@
-[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative campaign actions (base capture, medical supplies, loot wanted check, save) for one player")]
+[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative campaign actions (base capture, enemy forward-base dismantle, medical supplies, loot wanted check, save) for one player")]
 class OVT_CampaignRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
@@ -34,6 +34,12 @@ class OVT_CampaignRequestComponentClass : OVT_ControllerRequestComponentClass {}
 //!    LISTEN-SERVER HOST - who is the authority - capturing a base, delivering medical supplies and
 //!    REQUESTING A SAVE FROM THE MENU were all RplRcver.Server Rpc()s marshalled by the server and
 //!    therefore delivered to nobody. Same class of defect as P2-5.
+//!
+//! ADDED LATER: occupying/counter-attacks Phase 7 appended a FIFTH verb, DismantleEnemyFOB, for the
+//! held action on the occupying faction's forward operating base. It belongs here for the same reason
+//! base capture does - it is a campaign-level verb that ends a whole objective - and it is built to the
+//! same rule: no arguments, so the payload cannot carry a lie, and every condition re-derived on the
+//! server from the server's own director.
 //------------------------------------------------------------------------------------------------
 class OVT_CampaignRequestComponent : OVT_ControllerRequestComponent
 {
@@ -89,6 +95,24 @@ class OVT_CampaignRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_DeliverMedicalSupplies(rpl.Id());
 		}else{
 			Rpc(RpcAsk_DeliverMedicalSupplies, rpl.Id());
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server to pull down the occupying faction's forward operating base.
+	//!
+	//! ⚠ TAKES NOTHING, ON PURPOSE, exactly like StartBaseCapture above. The server resolves WHICH
+	//! forward base from its own director (there is only ever one) and WHERE the caller is from its own
+	//! copy of that caller's character, so the payload cannot express a lie. This is the third verb on
+	//! this component and it is deliberately the same shape as the first: BUG-025 was a client-supplied
+	//! position being trusted, and there is now no way to supply one.
+	void DismantleEnemyFOB()
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_DismantleEnemyFOB();
+		}else{
+			Rpc(RpcAsk_DismantleEnemyFOB);
 		}
 	}
 
@@ -175,6 +199,55 @@ class OVT_CampaignRequestComponent : OVT_ControllerRequestComponent
 		if(!base) return;
 
 		of.StartBaseQRF(base);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: pull down the occupying faction's forward operating base.
+	//!
+	//! ⚠ SIX CHECKS, EVERY ONE OF THEM RE-DERIVED HERE AND NONE OF THEM TRUSTED FROM THE CLIENT. The
+	//! user action makes the same tests so the prompt can explain itself, but this handler asks the
+	//! SERVER'S director, using the SERVER'S copy of where the caller is:
+	//!   1. this is the server;
+	//!   2. the caller resolves to a real player id;
+	//!   3. that player has a character and is not dead - a corpse does not dismantle anything;
+	//!   4. there is an objective director at all;
+	//!   5. a forward base is actually standing (director.CanDismantleFOB);
+	//!   6. the caller is within the SERVER'S dismantle range of it, and no occupying-faction soldier is
+	//!      still alive inside the clear radius (both also director.CanDismantleFOB).
+	//!
+	//! CHECKS 5 AND 6 ARE ONE CALL ON PURPOSE. The rule a player is shown and the rule the server
+	//! enforces are the same method, so they cannot drift into disagreeing - which is how "the action
+	//! was available and did nothing" happens.
+	//!
+	//! Every refusal is logged in the shape the rest of this component uses (Q9: a rejection is never
+	//! indistinguishable from a dropped packet).
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_DismantleEnemyFOB()
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		ChimeraCharacter character = ChimeraCharacter.Cast(GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId));
+		if(!character) return;
+
+		CharacterControllerComponent characterController = character.GetCharacterController();
+		if(characterController && characterController.IsDead()) return;
+
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if(!director)
+		{
+			RejectCampaignRequest(playerId, "dismantle enemy forward base", "there is no objective director on this server");
+			return;
+		}
+
+		string refusal = director.OnFOBDismantledByPlayer(character.GetOrigin());
+		if(refusal != "")
+		{
+			RejectCampaignRequest(playerId, "dismantle enemy forward base", refusal);
+			return;
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

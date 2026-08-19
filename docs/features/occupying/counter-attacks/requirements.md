@@ -134,6 +134,44 @@ existing QRF controller remains the battle-resolution layer; changes to it are l
 No matter the battle's outcome, the objective is reset, the FOB pulled down, and objective
 selection restarts.
 
+### Phase 3 addendum — the counter-attack QRF mode (added by the user, 2026-08-19)
+
+A counter-attack QRF is **not** the battle a player starts. The QRF controller gains a **mode**, and
+in counter-attack mode the battle runs in three stages. Player-initiated battles are unchanged.
+
+1. **Silent deployment.** The battle begins with **no notification and no scoring UI**. The OF spends
+   the **full cost of the QRF in one pass — no waves** — and moves those groups into position around
+   the objective centre on a **perimeter of roughly 100–150 m**. Throughout this stage the resistance
+   **cannot start a QRF of its own** (there is technically one active already). That restriction may
+   alert an attentive player, and that is **accepted**.
+2. **Muster.** The moment the **last group is spawned**, the resistance is notified and a
+   **30-minute timer** begins. **Nothing is scored** during this window — it is time for the
+   resistance to mount up and do something.
+3. **Battle.** When the timer expires, normal zone scoring resumes and the battle is decided exactly
+   as it is today. **If every spawned attacker is neutralised during the 30-minute window the timer
+   ends early** and scoring begins immediately.
+
+**The OF does not start a counter-attack at night** — only in the window from roughly **05:00 to
+15:00**. A gate that ripens outside the window waits for morning; it is never a reason to abandon an
+objective.
+
+Design decisions taken with the user on 2026-08-19 while planning this addendum:
+
+- The 30 minutes are **real minutes**, not in-game minutes — the window exists so players can
+  physically travel to the fight, so `timeMul` must not shrink it.
+- The world **keeps living** until the battle proper: civilians, garrisons, deployments and the OF
+  economy are not suppressed during the silent and muster stages. Suppressing them would empty the
+  target town half an hour before anyone was told, which is the loudest possible tell.
+- Fast-travel and respawn restrictions apply **from the reveal**, not from the silent stage — a
+  travel refusal before the notification is a free reveal, and blocking travel during a window meant
+  for mustering is counterproductive.
+- Groups spawn at the **usual landing zones** (250–750 m out) and **walk into** the perimeter, rather
+  than appearing on it — the encirclement forms visibly, and nothing pops in beside a player standing
+  in the objective.
+
+The implementation plan's [§3.9](implementation.md) is the authority for how this is built; where it
+and this document disagree in detail, §3.9 wins.
+
 ## Mid-phase objective changes
 
 Objectives can only change during **Phase 1**. Once an FOB is deployed the OF is invested and sees
@@ -175,8 +213,9 @@ command, entrenched positions, etc.).
   upgrade class; this feature rebuilds the offensive behaviors specops used to own. Neither
   feature blocks the other, but the specops removal should be recorded there as
   "dropped — replaced by occupying/counter-attacks".
-- QRF controller (`OVT_QRFControllerComponent`) reused as-is for Phase 3, plus the two changes
-  listed above.
+- QRF controller (`OVT_QRFControllerComponent`) reused for Phase 3, plus the two changes listed
+  above **and the counter-attack mode of the Phase 3 addendum** (2026-08-19). It remains the only
+  thing that resolves a battle, and the player-initiated path through it is unchanged.
 
 ## Out of Scope
 

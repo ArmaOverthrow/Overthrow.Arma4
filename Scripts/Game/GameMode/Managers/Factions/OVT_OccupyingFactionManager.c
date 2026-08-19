@@ -167,13 +167,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected OVT_TownData m_CurrentQRFTown;
 
 	bool m_bQRFActive = false;
+
+	//------------------------------------------------------------------------------------------------
+	// THREE FLAGS, BECAUSE THERE ARE THREE QUESTIONS (occupying/counter-attacks D15)
+	//
+	// Before the counter-attack siege there was one question with three answers, and it worked because
+	// a battle became all three at once. A siege breaks that: it EXISTS for up to 31 minutes before it
+	// is FOUGHT, and it is fought in secret for up to a minute before anyone is TOLD.
+	//
+	//   m_bQRFActive   - "may a new battle start? may this player capture, or rise up?"
+	//                    Set for the whole siege, from the moment the first truck rolls. UNCHANGED.
+	//   m_bQRFRevealed - "does the client know?"  HUD panel, map circle, fast travel, respawn.
+	//   IsQRFEngaged() - "is the shooting on?"    Economy tick, deployments, the town's civilians.
+	//
+	// ⚠ EVERY ONE OF THEM IS SET SO THAT A **STANDARD** BATTLE BEHAVES EXACTLY AS IT DOES TODAY:
+	// revealed at creation, engaged at creation. A player-initiated battle must be incapable of taking
+	// a new code path.
+	//------------------------------------------------------------------------------------------------
+
+	//! Whether the resistance has been told about the current battle. TRUE FROM CREATION for a standard
+	//! battle; true at the MUSTER transition for a counter-attack siege (see RevealQRF).
+	//!
+	//! Replicated the same way m_bQRFActive is - broadcast RPC on change, plus the JIP payload.
+	bool m_bQRFRevealed = false;
+
 	vector m_vQRFLocation = "0 0 0";
 	int m_iCurrentQRFBase = -1;
 	int m_iCurrentQRFTown = -1;
 	int m_iQRFPoints = 0;
 	int m_iQRFTimer = 0;
-
-	int m_bCounterAttackTimeout = 0;
 
 	//------------------------------------------------------------------------------------------------
 	// TICK LATCHES (2026-08-19 review fix)
@@ -950,6 +972,69 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Every base a given faction currently holds.
+	//!
+	//! A PURE READ - it allocates a list and copies references into it, and changes nothing. Added for
+	//! the objective director, which enumerates resistance-held bases as candidates and occupying-held
+	//! bases as supply sources, and which had no way to ask that question: GetNearestOccupiedBase()
+	//! answers about ONE base and hard-codes the occupying faction.
+	//!
+	//! ⚠ THE RETURNED LIST BORROWS. The elements are the manager's own live records, not copies, so a
+	//! caller reads through them and never holds them past the current frame.
+	//! \param[in] factionIndex The faction to filter by.
+	//! \return A new list, empty when the faction holds nothing. Never null.
+	array<OVT_BaseData> GetBasesControlledBy(int factionIndex)
+	{
+		array<OVT_BaseData> controlled = new array<OVT_BaseData>();
+
+		foreach(OVT_BaseData base : m_Bases)
+		{
+			if(!base) continue;
+			if(base.faction != factionIndex) continue;
+
+			controlled.Insert(base);
+		}
+
+		return controlled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every radio tower whose broadcast still reaches a position, whoever holds it.
+	//!
+	//! A PURE READ. Two rules are baked in, and both are the rules the campaign already used:
+	//!  - RANGE is OVT_InfluenceRules.IsProximitySource() against the difficulty's radioTowerRange, the
+	//!    same predicate the town support tick has always used, so "in range" means one thing;
+	//!  - A SABOTAGED TOWER IS NOT IN RANGE OF ANYTHING. A tower that is off the air broadcasts nothing
+	//!    for either side, so it is skipped outright rather than returned for the caller to remember to
+	//!    filter.
+	//!
+	//! THIS DE-DUPLICATES THE TOWN SUPPORT TICK'S OWN INLINE LOOP, which is now its first caller. The
+	//! objective director is the second: an objective the occupying faction can still broadcast over is
+	//! easier for it to hold, which is one of the selection inputs.
+	//! \param[in] position The position to test coverage at.
+	//! \return A new list of towers on the air within range. Empty, never null.
+	array<OVT_RadioTowerData> GetRadioTowersAffecting(vector position)
+	{
+		array<OVT_RadioTowerData> affecting = new array<OVT_RadioTowerData>();
+
+		float range = 0;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(difficulty) range = difficulty.radioTowerRange;
+		if(range <= 0) return affecting;
+
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if(!tower) continue;
+			if(tower.IsDisabled()) continue;
+			if(!OVT_InfluenceRules.IsProximitySource(position, tower.location, range)) continue;
+
+			affecting.Insert(tower);
+		}
+
+		return affecting;
+	}
+
 	void InitializeBases()
 	{
 		#ifdef OVERTHROW_DEBUG
@@ -1073,23 +1158,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Rpc(RpcDo_SetQRFPoints, points);
 	}
 
-	void StartBaseQRF(OVT_BaseControllerComponent base)
+	//------------------------------------------------------------------------------------------------
+	//! Starts a battle for a base.
+	//!
+	//! ⚠ THE MODE IS CONFIGURED BEFORE Start(), following the SpawnQRFController -> configure -> Start()
+	//! order the landing-zone fields already use. Start() takes no arguments on purpose (D14).
+	//! \param[in] base The base being fought over.
+	//! \param[in] mode STANDARD for a player-initiated battle - the default, and the only value any
+	//! shipped caller but the objective director passes. COUNTER_ATTACK makes it a silent siege.
+	void StartBaseQRF(OVT_BaseControllerComponent base, OVT_EQRFMode mode = OVT_EQRFMode.STANDARD)
 	{
 		if(m_CurrentQRF) return;
 
 		OVT_BaseData data = GetNearestBase(base.GetOwner().GetOrigin());
 
 		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
+		m_CurrentQRF.m_eMode = mode;
 		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
 		m_CurrentQRF.m_iDirectionVariance = base.m_iAttackDirectionVariance;
-		
+
 		if(base.m_iAttackPreferredDirection > -1)
 			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString() + " +/- " + base.m_iAttackDirectionVariance.ToString());
-		
+
 		m_CurrentQRF.Start();
-		
+
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
@@ -1099,21 +1193,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
 
-		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
-		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
+		// A standard battle is announced the instant it starts, exactly as it always has been. A siege
+		// says nothing until its encirclement is complete - RevealQRF() sends the notification then.
+		m_bQRFRevealed = false;
+		if(mode == OVT_EQRFMode.STANDARD)
+		{
+			m_bQRFRevealed = true;
+
+			OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
+		}
 
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		Rpc(RpcDo_SetQRFRevealed, m_bQRFRevealed);
 	}
 
-	void StartTownQRF(OVT_TownData town)
+	//------------------------------------------------------------------------------------------------
+	//! Starts a battle for a town or city. See StartBaseQRF for the mode argument.
+	//! \param[in] town The town being fought over.
+	//! \param[in] mode STANDARD for a player-initiated uprising; COUNTER_ATTACK for a silent siege.
+	void StartTownQRF(OVT_TownData town, OVT_EQRFMode mode = OVT_EQRFMode.STANDARD)
 	{
 		if(m_CurrentQRF) return;
 
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 
 		m_CurrentQRF = SpawnQRFController(town.location);
-		
+		m_CurrentQRF.m_eMode = mode;
+
 		// Find the town controller to get QRF parameters
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
 		EntityID townControllerID;
@@ -1149,17 +1257,116 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = town.location;
 		m_iCurrentQRFTown = townID;
 
-		string type = "Village";
-		if(town.size == 2) type = "Town";
-		if(town.size == 3) type = "City";
-		OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
-		OVT_Global.GetNotify().SendExternalNotifications(type + "Battle", OVT_Global.GetTowns().GetTownName(townID));
+		// A standard battle is announced the instant it starts. A siege says nothing until RevealQRF().
+		m_bQRFRevealed = false;
+		if(mode == OVT_EQRFMode.STANDARD)
+		{
+			m_bQRFRevealed = true;
+
+			string type = "Village";
+			if(town.size == 2) type = "Town";
+			if(town.size == 3) type = "City";
+			OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
+			OVT_Global.GetNotify().SendExternalNotifications(type + "Battle", OVT_Global.GetTowns().GetTownName(townID));
+		}
 
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		Rpc(RpcDo_SetQRFRevealed, m_bQRFRevealed);
 
 		// Town-local suppression (D6): only THIS town's ambient crowd goes away.
-		m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
+		//
+		// ⚠ THIS IS THE FIRST HALF OF A PAIRED TRANSITION - OnQRFFinishedTown fires the matching -1.
+		// In counter-attack mode it moves to the BATTLE transition (OnQRFEngaged), because emptying the
+		// target town of civilians half an hour before the resistance is told anything is the loudest
+		// possible tell. The pairing survives BY CONSTRUCTION: a siege cannot resolve without passing
+		// through BATTLE (see OVT_QRFControllerComponent.EnterBattle), and nothing may ever introduce a
+		// path that lets it.
+		if(mode == OVT_EQRFMode.STANDARD)
+			m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Is the current battle actually being FOUGHT, as opposed to merely existing? (D15)
+	//!
+	//! The three server-side world-suppression gates - the occupying economy tick, deployment
+	//! evaluation and the objective town's civilian crowd - all ask this rather than `m_CurrentQRF`,
+	//! so that a silent siege leaves the world running until its assault begins.
+	//!
+	//! ⚠ SERVER-ONLY. m_CurrentQRF is never set on a client; a client asking this always gets false,
+	//! which is why the client-facing rules are on m_bQRFRevealed instead.
+	//!
+	//! ⚠ TRUE FROM CREATION FOR A STANDARD BATTLE, so nothing about a player-initiated battle changes.
+	//! \return True while shots are being fired over the objective.
+	bool IsQRFEngaged()
+	{
+		if(!m_CurrentQRF) return false;
+
+		return m_CurrentQRF.IsEngaged();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the resistance that a counter-attack has surrounded one of their places.
+	//!
+	//! Called by the battle controller at the SILENT_DEPLOY -> MUSTER transition, once, when the last
+	//! group is on the ground. Flips m_bQRFRevealed - which is what turns the HUD panel, the map circle
+	//! and the travel/respawn restrictions on - and sends the notification the siege has been holding.
+	//!
+	//! ⚠ IDEMPOTENT AND SELF-GUARDING. A standard battle is already revealed and this is a no-op for
+	//! it, so a future caller cannot accidentally send a counter-attack notification for a player's own
+	//! battle.
+	void RevealQRF()
+	{
+		if(!m_CurrentQRF) return;
+		if(m_bQRFRevealed) return;
+
+		m_bQRFRevealed = true;
+		Rpc(RpcDo_SetQRFRevealed, true);
+
+		// ⚠ WHICH KIND OF BATTLE THIS IS COMES OFF THE **INDICES**, NOT OFF m_CurrentQRFBase /
+		// m_CurrentQRFTown. Those two object handles are set by the starters and are NEVER CLEARED -
+		// neither finish handler touches them, only the indices beside them are reset to -1. Reading
+		// the handles would make a base siege announce the name of whatever town was fought over last,
+		// which is a confident lie about where the enemy is.
+		//
+		// Cities use the town tag; villages are never counter-attack objectives (the objective director
+		// only ever selects a town or a base), so there is no size branch here.
+		if(m_iCurrentQRFTown > -1)
+		{
+			string townName = OVT_Global.GetTowns().GetTownName(m_iCurrentQRFTown);
+			OVT_Global.GetNotify().SendTextNotification("CounterAttackTown", -1, townName);
+			OVT_Global.GetNotify().SendExternalNotifications("CounterAttackTown", townName);
+
+			Print("[Overthrow] Counter-attack revealed at town " + townName);
+			return;
+		}
+
+		// The handle is still what carries the base's NAME, so it is read - but only behind the index,
+		// and only when it is actually there.
+		if(m_iCurrentQRFBase > -1 && m_CurrentQRFBase)
+		{
+			OVT_Global.GetNotify().SendTextNotification("CounterAttackBase", -1, m_CurrentQRFBase.m_sName);
+			OVT_Global.GetNotify().SendExternalNotifications("CounterAttackBase", m_CurrentQRFBase.m_sName);
+
+			Print("[Overthrow] Counter-attack revealed at base " + m_CurrentQRFBase.m_sName);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The world stops living around the objective: the battle controller calls this at the MUSTER ->
+	//! BATTLE transition of a counter-attack siege.
+	//!
+	//! The economy tick and the deployment evaluator need nothing - they poll IsQRFEngaged() and pick
+	//! the change up on their own next tick. The civilian crowd is a TRANSITION rather than a poll, so
+	//! it has to be pushed, and this is the first half of the pair StartTownQRF fires for a standard
+	//! battle.
+	//!
+	//! ⚠ COUNTER-ATTACK ONLY. A standard battle has already invoked this in StartTownQRF and must never
+	//! reach here, or a town would be announced twice.
+	void OnQRFEngaged()
+	{
+		if(m_iCurrentQRFTown > -1)
+			m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
 	void OnQRFFinishedBase()
@@ -1173,12 +1380,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF = null;
 
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
 	}
-	
+
 	void ChangeBaseControl(OVT_BaseControllerComponent base, int newFactionIndex)
 	{
 		string townName = OVT_Global.GetTowns().GetTownName(base.GetOwner().GetOrigin());
@@ -1240,12 +1448,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF = null;
 
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
 
 		// No town is under attack any more - whatever suppressed itself for this battle comes back.
+		// The SECOND HALF of the paired transition; the first is in StartTownQRF for a standard battle
+		// and in OnQRFEngaged for a counter-attack siege.
 		m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
@@ -1384,9 +1595,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void CheckUpdate()
 	{
-		m_bCounterAttackTimeout--;
-		if(m_bCounterAttackTimeout < 0) m_bCounterAttackTimeout = 0;
-		
 		if(!m_Time)
 		{
 			ChimeraWorld world = GetOwner().GetWorld();
@@ -1415,7 +1623,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		TimeContainer time = m_Time.GetTime();
 
 		//We dont get/spend resources or reduce threat during a QRF
-		if(m_CurrentQRF) return;
+		//
+		// ⚠ ENGAGED, NOT MERELY EXISTING (D15). A counter-attack siege exists for up to 31 minutes
+		// before it fights, and stalling the faction's whole income for half an hour before the
+		// resistance has been told anything would be both a dead world and a tell.
+		if(IsQRFEngaged()) return;
 
 		//Every 6 hrs get more resources
 		if((time.m_iHours == 0
@@ -1431,54 +1643,19 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			GainAndSpendResources();
 		}
-		//If we have a surplus of resources, try to take a random base back
-		float rand = s_AIRandomGenerator.RandFloat01();
-		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
-		{
-			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
-			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count())];
-			if(!randomBase.IsOccupyingFaction())
-			{
-				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
-				StartBaseQRF(base);
-				int timeout = Math.RandomIntInclusive(m_Config.m_Difficulty.counterAttackTimeout - 20, m_Config.m_Difficulty.counterAttackTimeout + 20);
-				m_bCounterAttackTimeout = timeout; //Hold off counter attacks for a little
-				return;
-			}
-		}
-
-		//Every 15 mins reduce threat and check if we wanna start a battle for a town
+		//Every 15 mins reduce threat
 		if(time.m_iMinutes == 0
 			|| time.m_iMinutes == 15
 			|| time.m_iMinutes == 30
 			|| time.m_iMinutes == 45)
 		{
-			//THE LATCH IS ON THE DECAY ONLY, deliberately NOT on the town-uprising scan below it: the
-			//scan is world-side and PlayerInRange-gated rather than a payload owed once per boundary,
-			//so it keeps exactly the behaviour it has always had. Only the accounting is latched.
+			//THE LATCH IS ON THE DECAY: the payload is owed exactly once per quarter-hour boundary,
+			//and a second visit to the same boundary (a longer tick, a sleep replay) must not pay twice.
 			if(m_iMinuteDecayedThreat != time.m_iMinutes)
 			{
 				m_iMinuteDecayedThreat = time.m_iMinutes;
 
 				DecayThreatStep();
-			}
-
-			int playerFaction = m_Config.GetPlayerFactionIndex();
-			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
-
-			foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
-			{
-				if(town.size == 1) continue;
-				if(!OVT_Global.PlayerInRange(town.location, 300)) continue;
-
-				// Uprisings in occupied towns are player-initiated via the town flag action
-				if(town.IsOccupyingFaction()) continue;
-
-				if(town.SupportPercentage() < 25)
-				{
-					StartTownQRF(town);
-					break;
-				}
 			}
 		}
 	}
@@ -1520,8 +1697,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//   - the proximity skip -> OVT_NoPlayersNearbyConditionDeploymentModule, as a CREATION gate;
 		//   - the 1..19 priority sweep -> each config's m_iPriority and the escalation selection.
 		//
-		// The other 20 % stays in m_iResources, which remains the QRF sizing and counter-attack
-		// reserve - both epic-level exclusions, both untouched by this migration.
+		// The other 20 % stays in m_iResources, which remains the QRF sizing reserve. That reserve is
+		// now spent deliberately rather than by dice: OVT_ObjectiveDirectorComponent gates its
+		// counter-attack on objectiveQRFResourceGate (occupying/counter-attacks Phase 1 retired the
+		// hourly random roll that used to draw on it).
 		TransferDefenseShareToPool(newResources);
 
 		Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
@@ -1610,9 +1789,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int startAbsoluteMinute = (startHour * OVT_SleepSchedule.MINUTES_PER_HOUR) + startMinute;
 
 		//1. THE OPEN START, CLOSED. The economy manager settles this by calling its own CheckUpdate()
-		//   once (implementation.md D3), which is not available here - this CheckUpdate also rolls the
-		//   counter-attack, scans towns for uprisings and returns early on a QRF, none of which the
-		//   replay is allowed to do. So the two boundaries that CAN be owed exactly at the start are
+		//   once (implementation.md D3), which is not available here - this CheckUpdate returns early
+		//   on a live QRF, which the replay is not allowed to do. So the two boundaries that CAN be
+		//   owed exactly at the start are
 		//   flushed explicitly instead, each behind its own latch so a live tick that already took it
 		//   is not paid twice. Without this a sleep beginning exactly at 12:00 loses the 12:00 payday
 		//   the live tick still owed (Q2), and one beginning on a quarter hour loses a decay step.
@@ -1838,6 +2017,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! DEBUG ENTRY POINT - the "/give-resources" admin chat command and nothing else.
+	//!
+	//! IT CREDITS THE RESERVE, NOT THE POOL. This is deliberately NOT a pool credit path: it adds to
+	//! m_iResources exactly the way GainResources() does, and the resources reach the deployment pool
+	//! by the only route they ever take - TransferDefenseShareToPool() on the next resource tick, which
+	//! moves 80 % of the reserve across. AllocateDeploymentResources() still has three callers and must
+	//! not gain a fourth (see its header); calling it from here would break the "resource accounting is
+	//! closed" grep that the deployments feature is checked against.
+	//!
+	//! Server-only by contract - the caller (OVT_AdminCommandsComponent.RpcAsk_GiveResources) is the
+	//! admin gate and the authority check; this method performs neither.
+	//! \param[in] amount Resources to add to the reserve. A non-positive amount is a no-op.
+	//! \return The reserve total after the credit.
+	int DebugCreditReserve(int amount)
+	{
+		if (amount <= 0)
+			return m_iResources;
+
+		m_iResources += amount;
+
+		Print(string.Format("[Overthrow.OccupyingFactionManager] DEBUG: credited %1 to the reserve, reserve is now %2 (reaches the deployment pool on the next resource tick)", amount, m_iResources), LogLevel.NORMAL);
+
+		return m_iResources;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! THE SINGLE POINT AT WHICH THE OCCUPYING FACTION'S DEPLOYMENT POOL IS CREDITED. Three callers,
 	//! and there must never be a fourth without a reason written down:
 	//!   - SeedOpeningDeploymentResources()  the opening budget, once per new campaign;
@@ -1901,6 +2106,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		writer.WriteInt(m_iQRFTimer);
 		writer.WriteBool(m_bQRFActive);
 
+		// ⚠ APPENDED, AND POSITIONAL LIKE EVERYTHING ELSE HERE. RplLoad reads these in the same order;
+		// the two halves must be edited together or a joining client mis-parses the whole tail.
+		//
+		// ⚠ m_iCurrentQRFBase AND m_iCurrentQRFTown ARE **ALREADY** MISSING FROM THIS PAYLOAD, and they
+		// stay missing: a client that joins mid-battle gets m_bQRFActive and m_vQRFLocation but neither
+		// index, so the map's "don't draw the objective base's own restricted circle" rule reads -1
+		// until the next RpcDo_SetQRFBase/Town, which never comes. That is a PRE-EXISTING defect, not
+		// this feature's, and widening the payload contract beyond the one flag it needs is exactly the
+		// sort of drive-by that makes a wire format unreviewable. Recorded rather than fixed.
+		writer.WriteBool(m_bQRFRevealed);
+
 		return true;
 	}
 
@@ -1949,6 +2165,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (!reader.ReadInt(m_iQRFPoints)) return false;
 		if (!reader.ReadInt(m_iQRFTimer)) return false;
 		if (!reader.ReadBool(m_bQRFActive)) return false;
+		// Appended with the matching write in RplSave - see the note there.
+		if (!reader.ReadBool(m_bQRFRevealed)) return false;
 
 		return true;
 	}
@@ -2004,10 +2222,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iQRFTimer = timer;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Publishes m_bQRFRevealed - whether the resistance has been told about the current battle.
+	//!
+	//! ⚠ A NEW PAIR, NOT A WIDENED ONE, and its arity was DIFFED BY EYE against RpcDo_SetQRFTimer
+	//! immediately above. Rpc() is an untyped variadic prototype: a wrong argument count compiles
+	//! perfectly cleanly and then dies silently at the wire (BUG-090), so the only check that exists is
+	//! this one. `Rpc(RpcDo_SetQRFRevealed, revealed)` is ONE payload argument and
+	//! `RpcDo_SetQRFRevealed(bool)` takes ONE. There are three send sites: both battle starters and
+	//! RevealQRF.
+	//! \param[in] revealed Whether the client should show the battle.
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFRevealed(bool revealed)
+	{
+		m_bQRFRevealed = revealed;
+	}
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetQRFInactive()
 	{
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 	}
