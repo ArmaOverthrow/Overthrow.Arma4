@@ -59,7 +59,7 @@ It was designed to **replace** the BaseUpgrades system. In practice exactly one 
 - **occupying/qrf** (sibling): evaluation freezes while `m_CurrentQRF` is set (one-way); QRF counts deployment AI in its zone tally (unintended); `HasRecentBattleNearby` is a TODO stub returning false.
 - **occupying/base-upgrades** (sibling): designated successor, one migration done (TownPatrol — commit `d62e441` moved it and added `OVT_PatrolHarassmentStabilityModifier`); everything else still BaseUpgrades. Deployments use the new faction group/vehicle registries; upgrades use the legacy prefab-slot arrays.
 - **Towns:** candidate positions + `TownConditional` gates; `OVT_PatrolHarassmentStabilityModifier` is the **only consumer** of deployment state anywhere — it looks up the deployment *by the string literal "Town Patrol"* and toggles a town stability modifier while the patrol lives.
-- **Bases:** `GetRandomVehiclePatrolSpawn()` for vehicle spawn transforms.
+- **Bases:** `GetRandomVehiclePatrolSpawn()` for vehicle spawn points. It answers a position plus a **float heading** (yaw only, pitch/roll discarded) — a vehicle spawn must be upright, and a float cannot be handed to `Math3D.AnglesToMatrix` in the wrong slot the way a `GetAngles()` vector can. The heading goes into the **spawn transform** via `OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation()`; never re-orient a spawned vehicle with `SetAngles()` (that desynchronises the rigid body and is what put patrol vehicles on their noses).
 - Nothing resistance-side ever creates a deployment despite the faction-agnostic design. `OVT_DeployFOBAction`/`OVT_UndeployFOBAction` are unrelated resistance FOB actions — naming overlap only (verified).
 
 ---

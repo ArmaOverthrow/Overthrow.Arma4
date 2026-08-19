@@ -487,10 +487,25 @@ class OVT_BaseControllerComponent: OVT_Component
 
 	//------------------------------------------------------------------------------------------------
 	//! Get a random vehicle patrol spawn point from the base
-	//! Returns true if a spawn point was found, false if none exist
-	//! @param[out] outPosition The spawn position
-	//! @param[out] outAngles The spawn angles in format "yaw pitch roll"
-	bool GetRandomVehiclePatrolSpawn(out vector outPosition, out vector outAngles)
+	//!
+	//! Answers the marker's HEADING ONLY, as a plain float, and that is deliberate on both counts.
+	//!
+	//! UPRIGHT: a patrol vehicle has exactly one correct attitude - level, pointing the way the marker
+	//! points. The authored markers already carry a few degrees of terrain pitch (Eden has several
+	//! between 1.6 and 4.7 degrees) and nothing stops a hand-placed one carrying much more, so any
+	//! contract that could hand a caller a pitch or a roll is a contract that can put a vehicle on its
+	//! nose. Discarding them here means no consumer has to remember to.
+	//!
+	//! A FLOAT, NOT AN ANGLE VECTOR: the two engine APIs a caller would reach for disagree on ordering -
+	//! IEntity.GetAngles()/SetAngles() are (X=pitch, Y=yaw, Z=roll) while Math3D.AnglesToMatrix() wants
+	//! (yaw, pitch, roll). A vector crossing that boundary in the wrong order silently turns this
+	//! marker's heading into a pitch, which is precisely a vehicle standing on its nose. A float named
+	//! for what it is cannot be put in the wrong slot.
+	//!
+	//! \param[out] outPosition The spawn position
+	//! \param[out] outYaw The marker's heading in degrees (rotation about the world Y axis)
+	//! \return True if a spawn point was found, false if none exist
+	bool GetRandomVehiclePatrolSpawn(out vector outPosition, out float outYaw)
 	{
 		// Check if we have any vehicle patrol spawns
 		if (m_aVehiclePatrolSpawns.IsEmpty())
@@ -508,14 +523,15 @@ class OVT_BaseControllerComponent: OVT_Component
 			
 			// Try again if we still have spawns
 			if (!m_aVehiclePatrolSpawns.IsEmpty())
-				return GetRandomVehiclePatrolSpawn(outPosition, outAngles);
-			
+				return GetRandomVehiclePatrolSpawn(outPosition, outYaw);
+
 			return false;
 		}
-		
-		// Get position and angles
+
+		// Get position and heading. GetYawPitchRoll()[0] IS the yaw - the pitch and roll the marker
+		// carries are dropped here rather than passed on, see the contract note above.
 		outPosition = spawnEntity.GetOrigin();
-		outAngles = spawnEntity.GetAngles();
+		outYaw = spawnEntity.GetYawPitchRoll()[0];
 
 		return true;
 	}

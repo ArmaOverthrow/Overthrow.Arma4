@@ -639,14 +639,19 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		for (int i = 0; i < count; i++)
 		{
-			vector spawnAngles;
-			vector spawnPos = GetRandomSpawnPosition(deploymentPos, spawnAngles);
+			float spawnYaw;
+			vector spawnPos = GetRandomSpawnPosition(deploymentPos, spawnYaw);
 
 			// NOTE: the marker entity is deliberately NOT moved to the vehicle. It is the persisted
 			// record of this deployment and what GetDeploymentNearPosition measures - it must stay put.
+			// (main carried a m_ParentDeployment.GetOwner().SetOrigin(spawnPos) here; v1.5 removed it
+			// deliberately and that removal is kept through this merge.)
 
-			// Spawn vehicle
-			Vehicle vehicle = Vehicle.Cast(SpawnEntity(vehiclePrefab, spawnPos));
+			// Spawn vehicle ALREADY FACING the right way. The orientation belongs in the spawn
+			// transform: this used to spawn level and then call vehicle.SetAngles() on the result,
+			// which rotates a live rigid body out from under the physics solver and is what left
+			// patrol vehicles standing on their noses at base markers.
+			Vehicle vehicle = Vehicle.Cast(SpawnEntity(vehiclePrefab, spawnPos, GetUprightSpawnRotation(spawnYaw)));
 			if (!vehicle)
 			{
 				Print(string.Format("Failed to spawn vehicle %1 (%2)", i + 1, m_sVehicleType), LogLevel.ERROR);
@@ -663,12 +668,6 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				carMovementComp.SetCruiseSpeed(m_fMaxCruiseSpeed);
 			}
 			*/
-
-			// Apply spawn angles if we got them from a vehicle patrol spawn
-			if (spawnAngles != vector.Zero)
-			{
-				vehicle.SetAngles(spawnAngles);
-			}
 
 			m_aSpawnedVehicles.Insert(vehicle);
 			m_iSpawnedCount++;
@@ -886,10 +885,15 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
-	protected vector GetRandomSpawnPosition(vector center, out vector spawnAngles)
+	//! Pick where a patrol vehicle starts, and which way it faces.
+	//! \param[in] center Deployment position to search from.
+	//! \param[out] spawnYaw Heading in degrees. Zero on the road fallback, which is what an
+	//!             unoriented spawn has always produced.
+	//! \return The spawn position.
+	protected vector GetRandomSpawnPosition(vector center, out float spawnYaw)
 	{
-		// Initialize spawn angles to zero
-		spawnAngles = vector.Zero;
+		// No heading unless a marker gives us one
+		spawnYaw = 0;
 
 		// Try to get a vehicle patrol spawn from the nearest base
 		OVT_BaseData nearestBase = OVT_Global.GetOccupyingFaction().GetNearestBase(center);
@@ -902,7 +906,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				if (baseController)
 				{
 					vector spawnPos;
-					if (baseController.GetRandomVehiclePatrolSpawn(spawnPos, spawnAngles))
+					if (baseController.GetRandomVehiclePatrolSpawn(spawnPos, spawnYaw))
 					{
 						return spawnPos;
 					}
