@@ -1022,7 +1022,18 @@ class OVT_TEST_Logic_ObjectiveScaling_CeilingAndTickDown : SCR_AutotestCaseBase
 	bool Execute()
 	{
 		// --- The ceiling derives from the authored cost, at every shipped value of it.
-		if (!ExpectCeiling(400, 1200, "the shipped forward-base cost yields three times itself"))
+		//
+		// ⚠ THE EXPECTATION IS A LITERAL ON PURPOSE, and is worth keeping that way. Writing it as
+		// 400 * FOB_CEILING_MULTIPLIER would make it a tautology - it would restate the implementation
+		// rather than pin it, and would pass no matter what the multiplier became. A hardcoded number
+		// is what catches an UNINTENDED change to the ceiling; a deliberate one is expected to come
+		// here and edit this line, which is exactly what happened below.
+		//
+		// UPDATED 3 -> 4 (1200 -> 1600) on 2026-08-19 with the author-approved multiplier change: the
+		// ceiling now has to cover the whole ramp, not just the base and its garrison, because Phase 1
+		// operations continue through the forward-base phase. The assertion is not weakened - the same
+		// claim is made about a different authored number.
+		if (!ExpectCeiling(400, 1600, "the shipped forward-base cost yields four times itself"))
 			return true;
 
 		if (!ExpectCeiling(1, OVT_ObjectivePhaseRules.FOB_CEILING_MULTIPLIER, "the multiplier is applied, not added"))
@@ -1298,6 +1309,42 @@ class OVT_TEST_Logic_ObjectiveScaling_Scoring_TermsAreBoundedAndComparable : SCR
 //!       zero. Compiled clean (exit 0). The case then fails on
 //!       "a site below its objective scores nothing for elevation rather than a penalty: got
 //!       -0.333333, expected 0".
+//!   S6. 🔴 THE CORRIDOR WIDENED BY ACCIDENT - LateralOffset reverted to returning the raw ring index
+//!       (`return -magnitude;` / `return magnitude;`), which is the pre-2026-08-19 mapping and is
+//!       INDISTINGUISHABLE FROM CORRECT while there are only three lanes. Compiled clean (exit 0). The
+//!       case then fails on "with five lanes the inner ring sits HALFWAY out ...: got -1, expected
+//!       -0.5", and CheckNoLaneExceedsTheSpread() fails on every lattice from five lanes up with
+//!       "lane 3 of a 5-lane lattice sits at -2 x the authored lateral spread". ⚠ This is the fault the
+//!       lane increase was one edit away from shipping: the user authored 400 m either side and the old
+//!       mapping would have produced 800 m, with no error and no visible symptom beyond forward bases
+//!       turning up somewhere nobody agreed to.
+//!   S7. THE CORRIDOR NARROWED INSTEAD - `int outermost = lanes;` (rather than `lanes / 2`), so no lane
+//!       ever reaches the authored spread. Compiled clean (exit 0). Caught by the second half of
+//!       CheckNoLaneExceedsTheSpread(): "no lane of a 2-lane lattice reaches the authored lateral
+//!       spread (the widest is 0.5 x)". Both directions are asserted because a bound satisfied by never
+//!       approaching it is the other way to make the lanes stop doing their job.
+//!   S8. THE INT DIVISION LEFT TRUNCATING - `float fraction = ring / outermost;` in place of the two
+//!       explicit float locals. Compiled clean (exit 0). Every inner ring collapses to 0, putting five
+//!       lanes on three positions; caught on the same inner-ring row as S6, got 0 rather than -0.5.
+//!   S9. THE ATAN2 ARGUMENTS SWAPPED - `Math.Atan2(dz, dx)` in FacingYaw, which is the OTHER convention
+//!       in the engine's own scripts (SCR_ShapeAnalyserEntity.c uses both orders on CONSECUTIVE LINES,
+//!       186 and 187). Compiled clean (exit 0). Every forward base is turned to 90 - t instead of t, so
+//!       the wire faces across the objective rather than at it. Fails on the first row,
+//!       "a target straight down +Z leaves the structure unturned: got 90, expected 0", and on the
+//!       matrix property.
+//!  S10. 🔴 THE COMPASS CONVENTION BORROWED - `Math.Atan2(dx, -dz)`, which is exactly what
+//!       OVT_QRFBearing.PreferredDegreesFromSource does one directory away and is the single most
+//!       plausible wrong answer here. Compiled clean (exit 0). It is a bearing in the 0 = North = -Z
+//!       frame rather than an entity yaw, so EVERY forward base ends up facing 180 degrees from its
+//!       objective - back down its own supply line, wire pointed at the base that sent it. Fails on
+//!       "a target straight down +Z leaves the structure unturned: got 180, expected 0" and, decisively,
+//!       on CheckFacingDrivesTheSpawnTransform(), which measures the actual matrix row.
+//!
+//! ⚠ WHAT THE FACING ROWS DO **NOT** COVER, and it is not small: nothing here proves that the director
+//! passes the right two positions to FacingYaw(), that the yaw survives onto the deployment marker, or
+//! that the raise reads it back out of the marker rather than off something else. That whole chain is
+//! world state - a marker entity, a spawned deployment, a spawned structure - and the honest answer is
+//! that it is a manual check. The pure part is pinned here; the wiring is play-tested.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
 class OVT_TEST_Logic_ObjectiveScaling_FOBSiting : SCR_AutotestCaseBase
@@ -1318,7 +1365,201 @@ class OVT_TEST_Logic_ObjectiveScaling_FOBSiting : SCR_AutotestCaseBase
 		if (!CheckLattice())
 			return true;
 
-		Print("FOBSiting: the band is inclusive at both ends and a collapsed one accepts nothing; exclusions refuse a ragged pair outright and treat the boundary itself as too close; the score is bounded by its three weights and reads the no-road sentinel as no road; the sampling lattice is deterministic, on-line first, and never runs off either end");
+		if (!CheckFacing())
+			return true;
+
+		Print("FOBSiting: the band is inclusive at both ends and a collapsed one accepts nothing; exclusions refuse a ragged pair outright and treat the boundary itself as too close; the score is bounded by its three weights and reads the no-road sentinel as no road; the sampling lattice is deterministic, on-line first, and never runs off either end; and a site's facing is an entity yaw that really does turn a spawn transform towards what it was aimed at");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tolerance for a yaw in DEGREES, which the tier's own EPSILON is far too tight for.
+	//!
+	//! ⚠ 1e-4 WOULD FLAKE HERE AND IT WOULD NOT BE THE SUBJECT'S FAULT. atan2 and RAD2DEG are both
+	//! float32 operations on a quantity that runs to 360, so a relative error of one part in ten million
+	//! shows up as a few ten-thousandths of a degree in the answer - inside a general float epsilon by
+	//! luck rather than by construction. A hundredth of a degree is a hundred times the arithmetic noise
+	//! and is still four orders of magnitude finer than anything a building's heading could express.
+	protected const float FACING_EPSILON_DEGREES = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	//! Tolerance per component when a facing is checked against a real rotation matrix. Looser than the
+	//! degree tolerance because it has been through a sine and a cosine as well.
+	protected const float FACING_EPSILON_AXIS = 0.001;
+
+	//------------------------------------------------------------------------------------------------
+	//! WHICH WAY A FORWARD BASE IS TURNED.
+	//!
+	//! ⚠ THIS IS AN ENTITY YAW, NOT A COMPASS BEARING, and the difference is the whole case. Until
+	//! 2026-08-19 nothing in the siting chain produced a heading at all and every forward base in the
+	//! campaign stood unrotated - including one raised on an authored marker whose Workbench arrow the
+	//! author had aimed by hand. The fix has to answer in the frame Math3D.AnglesToMatrix uses, and the
+	//! nearest existing answer in the tree (OVT_QRFBearing, one directory away) is in the OTHER frame and
+	//! is out by 180 degrees for the same delta. Borrowing it would point every base back down its own
+	//! supply line, which looks deliberate and is not.
+	//! \return True when every row held.
+	protected bool CheckFacing()
+	{
+		// --- The four axes. Named by axis rather than by compass point on purpose: the answer is a
+		//     rotation about world +Y in the engine's own frame, and dressing it up as north/east invites
+		//     exactly the bearing confusion this function exists to avoid.
+		if (!ExpectYaw("0 0 0", "0 0 100", 0, "a target straight down +Z leaves the structure unturned"))
+			return false;
+
+		if (!ExpectYaw("0 0 0", "100 0 0", 90, "a target due +X of the site turns it a quarter circle"))
+			return false;
+
+		if (!ExpectYaw("0 0 0", "0 0 -100", 180, "a target down -Z turns it about"))
+			return false;
+
+		if (!ExpectYaw("0 0 0", "-100 0 0", 270, "a target due -X turns it three quarters, wrapped into [0, 360)"))
+			return false;
+
+		// --- The diagonals, which are what a real band produces: nothing lands on an axis.
+		if (!ExpectYaw("0 0 0", "100 0 100", 45, "an equal +X/+Z delta splits the two axes"))
+			return false;
+
+		if (!ExpectYaw("0 0 0", "-100 0 100", 315, "an equal -X/+Z delta splits them the other way"))
+			return false;
+
+		// --- Somewhere that is not the origin, because a subject that quietly used only one of its two
+		//     arguments would pass every row above.
+		if (!ExpectYaw("7336 123 5150", "7336 123 5250", 0, "the facing is measured from the SITE, not from the world origin"))
+			return false;
+
+		if (!ExpectYaw("7336 123 5150", "7236 123 5150", 270, "and it is the delta between them that decides, wherever they are"))
+			return false;
+
+		// --- Height is discarded. An objective 250 m up a hill must not tip the structure, and the yaw
+		//     it produces must be identical to the flat case.
+		if (!ExpectYaw("0 0 0", "0 250 100", 0, "an objective far above the site gives the same heading as one level with it"))
+			return false;
+
+		if (!ExpectYaw("0 400 0", "100 -80 0", 90, "and so does one far below it"))
+			return false;
+
+		// --- The degenerate case. See OVT_FOBSiting.NO_FACING: a yaw that is not a number goes straight
+		//     into a spawn transform and takes every basis vector with it.
+		if (!ExpectYaw("512 40 512", "512 40 512", OVT_FOBSiting.NO_FACING, "a site standing on its own objective answers a defined heading rather than atan2(0, 0)"))
+			return false;
+
+		if (!ExpectYaw("512 40 512", "512 99 512", OVT_FOBSiting.NO_FACING, "and so does one directly above or below it, where the flat delta is still nothing"))
+			return false;
+
+		return CheckFacingDrivesTheSpawnTransform();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 THE PROPERTY, RATHER THAN THE NUMBERS: a structure spawned with this yaw REALLY DOES END UP
+	//! LOOKING AT WHAT IT WAS AIMED AT.
+	//!
+	//! Every row above could be satisfied by a function that is self-consistently wrong - a sign flip, a
+	//! swapped atan2 pair or the compass frame all produce a perfectly tidy set of degrees. This runs the
+	//! answer through the same two calls the live path does (GetUprightSpawnRotation, then
+	//! Math3D.AnglesToMatrix, which is what OVT_WorldUtils.SpawnEntityPrefab builds its transform with)
+	//! and measures the forward row of the resulting matrix against the direction to the target.
+	//!
+	//! ⚠ mat[2] IS THE FORWARD AXIS AND THAT IS GROUNDED, NOT ASSUMED: the engine's own documented
+	//! example for AnglesToMatrix (Core/generated/Math/Math3D.c) gives yaw 70, pitch 15 a third row of
+	//! <0.9077, 0.2588, 0.3304>, which is (sin y cos p, sin p, cos y cos p). It is also the axis
+	//! OVT_FOBPosition's Workbench arrow is drawn along (transform[2]), so "the marker's arrow" and "the
+	//! structure's front" are the same axis by construction.
+	//!
+	//! ⚠ AND mat[1] MUST STILL BE WORLD UP. The shared helper zeroes pitch and roll precisely so an
+	//! authored marker carrying a few degrees of terrain tilt cannot lean a building; that is asserted
+	//! here as well, on the same matrix, because a facing fix is exactly the change that would reach for
+	//! the marker's whole angle vector instead of its yaw.
+	//! \return True when every direction held.
+	protected bool CheckFacingDrivesTheSpawnTransform()
+	{
+		if (!ExpectFacesTarget("0 0 0", "0 0 100", "straight down +Z"))
+			return false;
+
+		if (!ExpectFacesTarget("0 0 0", "100 0 0", "due +X"))
+			return false;
+
+		if (!ExpectFacesTarget("0 0 0", "0 0 -100", "down -Z"))
+			return false;
+
+		if (!ExpectFacesTarget("0 0 0", "-100 0 0", "due -X"))
+			return false;
+
+		if (!ExpectFacesTarget("0 0 0", "137 0 -412", "on an arbitrary diagonal"))
+			return false;
+
+		// A real band: a site 900 m out from an objective, pushed 400 m off the supply line, with 60 m of
+		// hill between them. This is the shape the sampler actually produces.
+		if (!ExpectFacesTarget("6900 180 5000", "7336 123 5790", "at a real siting distance, across a height difference"))
+			return false;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one facing row, in degrees.
+	//! \param[in] from Where the structure stands.
+	//! \param[in] to What it is aimed at.
+	//! \param[in] expected The yaw claimed.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectYaw(vector from, vector to, float expected, string label)
+	{
+		float actual = OVT_FOBSiting.FacingYaw(from, to);
+
+		if (Math.AbsFloat(actual - expected) <= FACING_EPSILON_DEGREES)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, actual.ToString(), expected.ToString());
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts that the spawn transform built from this facing points at the target.
+	//! \param[in] from Where the structure stands.
+	//! \param[in] to What it is aimed at.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectFacesTarget(vector from, vector to, string label)
+	{
+		float yaw = OVT_FOBSiting.FacingYaw(from, to);
+
+		vector mat[3];
+		Math3D.AnglesToMatrix(OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation(yaw), mat);
+
+		// The direction the structure is supposed to look in, flattened the same way the subject flattens
+		// it - a heading has no vertical component.
+		vector wanted = to - from;
+		wanted[1] = 0;
+		wanted.Normalize();
+
+		vector forward = mat[2];
+
+		float dx = forward[0] - wanted[0];
+		float dy = forward[1];
+		float dz = forward[2] - wanted[2];
+
+		if (Math.AbsFloat(dx) > FACING_EPSILON_AXIS || Math.AbsFloat(dy) > FACING_EPSILON_AXIS || Math.AbsFloat(dz) > FACING_EPSILON_AXIS)
+		{
+			// ⚠ THREE SUBSTITUTIONS IS THE FRAMEWORK'S LIMIT - SCR_AutotestCaseBase.SetFailure takes
+			// exactly three optional params - so the yaw is folded into the label rather than passed.
+			SetFailure("a structure aimed %1 does not end up looking that way: the spawn transform's forward axis is %2, wanted %3",
+				label + " (yaw " + yaw.ToString() + ")", forward.ToString(), wanted.ToString());
+
+			return false;
+		}
+
+		// Pitch and roll dropped: the up axis of the transform must be world up whatever the heading.
+		vector up = mat[1];
+
+		if (Math.AbsFloat(up[0]) > FACING_EPSILON_AXIS || Math.AbsFloat(up[1] - 1) > FACING_EPSILON_AXIS || Math.AbsFloat(up[2]) > FACING_EPSILON_AXIS)
+		{
+			SetFailure("a structure aimed %1 comes out leaning: the spawn transform's up axis is %2, wanted world up",
+				label, up.ToString());
+
+			return false;
+		}
 
 		return true;
 	}
@@ -1574,16 +1815,28 @@ class OVT_TEST_Logic_ObjectiveScaling_FOBSiting : SCR_AutotestCaseBase
 		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(0, 3), 0, "the first lane sits on the supply line itself"))
 			return false;
 
-		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(1, 3), -1, "the second lane steps one spread to one side"))
+		// --- THREE LANES: one ring, so it is the full spread either side.
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(1, 3), -1, "with three lanes the second lane is the full spread to one side"))
 			return false;
 
-		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(2, 3), 1, "the third lane steps one spread to the other side"))
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(2, 3), 1, "with three lanes the third lane is the full spread to the other side"))
 			return false;
 
-		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(3, 5), -2, "the fourth lane steps two spreads out"))
+		// --- 🔴 FIVE LANES: TWO RINGS EVENLY DISTRIBUTED ACROSS THE SAME SPAN, NOT TWO SPREADS OUT.
+		//     The offset is a FRACTION of the caller's maximum spread, so five lanes at a 400 m spread
+		//     are 0, +-200, +-400. Before 2026-08-19 this returned the raw ring index and these two rows
+		//     read -2 and +2 - identical while there were three lanes, and a corridor SILENTLY TWICE AS
+		//     WIDE as the "400 m either side" that was asked for the moment a fourth and fifth appeared.
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(1, 5), -0.5, "with five lanes the inner ring sits HALFWAY out, not at the full spread - the lanes fill the corridor in rather than extend it"))
 			return false;
 
-		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(4, 5), 2, "the fifth lane steps two spreads out the other way"))
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(2, 5), 0.5, "with five lanes the inner ring is symmetric about the line"))
+			return false;
+
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(3, 5), -1, "with five lanes the OUTER ring is the full spread and no more - a fourth lane must not put a forward base at twice the authored offset"))
+			return false;
+
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(4, 5), 1, "with five lanes the outer ring is symmetric about the line"))
 			return false;
 
 		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(9, 3), 1, "a lane past the lattice is clamped to the last one"))
@@ -1594,6 +1847,76 @@ class OVT_TEST_Logic_ObjectiveScaling_FOBSiting : SCR_AutotestCaseBase
 
 		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(2, 1), 0, "a single-lane lattice never leaves the line"))
 			return false;
+
+		// --- 🔴 AND THE PROPERTY THAT SURVIVES ANY FUTURE LANE COUNT. The rows above pin the two counts
+		//     that ship; this pins every count, so raising FOB_SITING_LANES again cannot widen the
+		//     corridor past FOB_LATERAL_SPREAD without going red here first.
+		return CheckNoLaneExceedsTheSpread();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 NO LANE, AT ANY LANE COUNT, MAY SIT FURTHER OFF THE SUPPLY LINE THAN THE CALLER'S SPREAD - AND
+	//! THE OUTERMOST LANE OF ANY REAL LATTICE MUST SIT EXACTLY ON IT.
+	//!
+	//! The first half is the safety property: FOB_LATERAL_SPREAD is a MAXIMUM the user authored in
+	//! metres ("400m either side of the line"), and a mapping that treated it as a per-lane STEP would
+	//! put forward bases at two or three times that with no error, no warning and no symptom anybody
+	//! would trace back to a lane count. The second half stops the opposite failure - a mapping that
+	//! satisfied the bound by simply never reaching it would quietly narrow the corridor instead, and
+	//! the lanes would stop finding the field behind the treeline they exist for.
+	//!
+	//! ⚠ EVEN LANE COUNTS ARE INCLUDED AND ARE LOPSIDED BY CONSTRUCTION - four lanes are 0, -0.5, +0.5,
+	//! -1, because the sequence pairs outward and runs out mid-pair. Bounded, which is what is asserted;
+	//! symmetry is not claimed and is not required.
+	//! \return True when every lane count held.
+	protected bool CheckNoLaneExceedsTheSpread()
+	{
+		// ⚠ THE DEGENERATE COUNTS ARE ASSERTED SEPARATELY BECAUSE THEY INVERT THE SECOND HALF. A lattice
+		// with no lanes, or one lane, has no outermost ring to sit on the spread - it must sit on the
+		// supply line and must NOT divide by a zero span reaching for the corridor. They are in this case
+		// rather than left to the rows above because the failure being guarded against is a lane-count
+		// change, and 0 and 1 are the counts a normalisation gets wrong first.
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(0, 0), 0, "a lattice with no lanes at all stays on the supply line rather than dividing by zero"))
+			return false;
+
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(1, 0), 0, "a lane index inside no lattice at all stays on the supply line"))
+			return false;
+
+		if (!ExpectFloat(OVT_FOBSiting.LateralOffset(0, 1), 0, "the only lane of a one-lane lattice is the supply line itself"))
+			return false;
+
+		for (int lanes = 2; lanes <= 11; lanes++)
+		{
+			float outermost = 0;
+
+			for (int lane = 0; lane < lanes; lane++)
+			{
+				float offset = OVT_FOBSiting.LateralOffset(lane, lanes);
+
+				float magnitude = offset;
+				if (magnitude < 0)
+					magnitude = -magnitude;
+
+				if (magnitude > 1 + OVT_TEST_LogicFixture.EPSILON)
+				{
+					SetFailure("lane %1 of a %2-lane lattice sits at %3 x the authored lateral spread - the spread is a MAXIMUM, not a per-lane step, so this widens the corridor past what was asked for with no other symptom",
+						lane.ToString(), lanes.ToString(), offset.ToString());
+
+					return false;
+				}
+
+				if (magnitude > outermost)
+					outermost = magnitude;
+			}
+
+			if (outermost < 1 - OVT_TEST_LogicFixture.EPSILON)
+			{
+				SetFailure("no lane of a %1-lane lattice reaches the authored lateral spread (the widest is %2 x) - the corridor is narrower than it was authored to be and the outer lanes stop finding ground the centre lane cannot",
+					lanes.ToString(), outermost.ToString());
+
+				return false;
+			}
+		}
 
 		return true;
 	}
@@ -1837,6 +2160,203 @@ class OVT_TEST_Logic_ObjectiveScaling_CounterAttackWindow : SCR_AutotestCaseBase
 	protected bool ExpectWindow(int hour, int startHour, int endHour, bool expected, string label)
 	{
 		bool actual = OVT_ObjectivePhaseRules.IsCounterAttackWindow(hour, startHour, endHour);
+
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, actual.ToString(), expected.ToString());
+
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! OVT_ObjectivePhaseRules.PhaseInRange - WHICH PHASES A DEPLOYMENT BELONGS TO, on both edges.
+//!
+//! 🔴 THIS PREDICATE EXISTS BECAUSE ITS PREDECESSOR DEADLOCKED THE FEATURE. Until 2026-08-19 a config
+//! named ONE phase and the module compared with ==. A base objective is promoted out of harassment by
+//! its FIRST completed sabotage mission and needs six of them on Easy to earn its counter-attack, so
+//! the promotion itself made the remaining five unsendable: the counter froze at one, the objective
+//! sat until its idle clock ran out, and the counter-attack - the headline promise of the feature -
+//! was unreachable for either kind of objective. Towns deadlocked one step later, because the stacking
+//! support debuff that drives support under 25 % is applied by harassment operations.
+//!
+//! THE TWO EDGES ARE THE WHOLE OF THE CLAIM AND THEY FAIL IN OPPOSITE DIRECTIONS:
+//!   THE LOWER EDGE, TOO TIGHT, IS THE DEADLOCK ITSELF. A range that stops at its first phase is the
+//!   equality test back again, and nothing in play distinguishes it from "the occupying faction never
+//!   counter-attacks" - the exact symptom this whole feature was written to end.
+//!   THE UPPER EDGE, TOO LOOSE, IS THE OPPOSITE MISTAKE. "Phase N or later" keeps sending harassment
+//!   and sabotage teams into the counter-attack, where men walking in to soften a place that is
+//!   already being stormed are noise. A minimum-phase semantic cannot say no to that; a range can.
+//!
+//! ⚠ THE COLLAPSE ROWS ARE THE BACK-COMPATIBILITY CLAIM, AND THEY ARE NOT DECORATION. An unauthored
+//! upper bound holds 0, and 0 has to mean "the first phase only" or every config that says nothing
+//! about a range silently gains phases it was never scoped to. Both the attribute defvalue and the
+//! script member default are 0 precisely so it cannot matter which of them a .conf load applies.
+//!
+//! ⚠ THE SHIPPED SPANS ARE ASSERTED AS SPANS, NOT AS THE CONFIGS THAT CARRY THEM. Whether
+//! Deployment_ObjectiveSabotage.conf actually authors 1 -> 2 is an initialisation-tier question
+//! (OVT_TEST_Init_ObjectiveOperations' phase-range case); what is asserted here is that a 1 -> 2 span
+//! means what the ramp needs it to mean.
+//!
+//! CAN-FAIL, four faults, injected into OVT_ObjectivePhaseRules.c one at a time. All four exited
+//! tools/compile-check.sh with 0:
+//!   P1. DROP THE UPPER BOUND - `return phase >= firstPhase;`, a pure minimum-phase semantic. Compiled
+//!       clean (exit 0). The case then fails on "the counter-attack is OUTSIDE a 1 -> 2 ramp span:
+//!       got 1, expected 0".
+//!   P2. RESTORE THE EQUALITY TEST - `return phase == firstPhase;`, which is the pre-2026-08-19 code.
+//!       Compiled clean (exit 0). The case then fails on "the forward-base phase is INSIDE a 1 -> 2
+//!       ramp span - this row IS the deadlock: got 0, expected 1".
+//!   P3. DROP THE COLLAPSE - EffectiveLastPhase() returning `lastPhase` unconditionally. Compiled
+//!       clean (exit 0). The case then fails on "an unauthored upper bound means the first phase only:
+//!       got 0, expected 1" (the 1 -> 0 row, whose effective span must be 1 -> 1).
+//!   P4. DROP THE IDLE-AUTHORED GUARD - `if (firstPhase <= NO_PHASE) return false;` deleted. Compiled
+//!       clean (exit 0). The case then fails on "a config authored for IDLE belongs to no phase at
+//!       all: got 1, expected 0".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ObjectiveScaling_PhaseRangeSpansTheRampAndStopsAtTheBattle : SCR_AutotestCaseBase
+{
+	//! The shipped phase numbers, restated rather than read off OVT_EObjectivePhase for the reason the
+	//! window case restates its bounds: a row that read the production enum could not catch it moving.
+	//! They are also a wire format that may never be renumbered - see OVT_ObjectiveRecords.
+	protected const int IDLE = 0;
+	protected const int HARASSMENT = 1;
+	protected const int FOB = 2;
+	protected const int COUNTER_QRF = 3;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// --- THE SHIPPED RAMP SPAN, 1 -> 2. Every phase, in order, so no edge is inferred from another.
+		if (!ExpectRange(HARASSMENT, HARASSMENT, FOB, true, "harassment is inside a 1 -> 2 ramp span"))
+			return true;
+
+		if (!ExpectRange(FOB, HARASSMENT, FOB, true, "the forward-base phase is INSIDE a 1 -> 2 ramp span - this row IS the deadlock"))
+			return true;
+
+		if (!ExpectRange(COUNTER_QRF, HARASSMENT, FOB, false, "the counter-attack is OUTSIDE a 1 -> 2 ramp span"))
+			return true;
+
+		if (!ExpectRange(IDLE, HARASSMENT, FOB, false, "there is no objective to be at in IDLE, so nothing belongs to one"))
+			return true;
+
+		// --- THE SHIPPED FORWARD-BASE SPAN, 2 -> 2. It must NOT have gained the harassment phase: the
+		//     forward base and its garrison are created in the phase they belong to and nowhere else.
+		if (!ExpectRange(FOB, FOB, FOB, true, "the forward base belongs to its own phase"))
+			return true;
+
+		if (!ExpectRange(HARASSMENT, FOB, FOB, false, "a forward-base config may not be created during harassment"))
+			return true;
+
+		if (!ExpectRange(COUNTER_QRF, FOB, FOB, false, "a forward-base config is collected when the battle starts"))
+			return true;
+
+		// --- THE COLLAPSE: an unauthored upper bound is the pre-range behaviour, exactly.
+		if (!ExpectRange(HARASSMENT, HARASSMENT, 0, true, "an unauthored upper bound means the first phase only"))
+			return true;
+
+		if (!ExpectRange(FOB, HARASSMENT, 0, false, "an unauthored upper bound does NOT extend the span - that is the equality test, preserved"))
+			return true;
+
+		if (!ExpectRange(FOB, FOB, 0, true, "an unauthored upper bound on a phase-2 config still matches phase 2"))
+			return true;
+
+		// --- The same collapse from the other direction: an upper bound BELOW the first phase is not a
+		//     backwards range, it is one phase. An empty span would refuse a config its own phase.
+		if (!ExpectRange(FOB, FOB, HARASSMENT, true, "an upper bound below the first phase collapses rather than emptying the span"))
+			return true;
+
+		// --- A SPAN THAT DOES REACH THE BATTLE, because nothing ships one and the predicate must still
+		//     be able to express it. This is the row that proves the upper bound is authored data rather
+		//     than a hard-coded refusal of phase 3.
+		if (!ExpectRange(COUNTER_QRF, FOB, COUNTER_QRF, true, "a 2 -> 3 span reaches the counter-attack, so the bound is authored and not hard-coded"))
+			return true;
+
+		// --- A config authored for IDLE belongs to no phase at all, whatever its upper bound says.
+		if (!ExpectRange(HARASSMENT, IDLE, COUNTER_QRF, false, "a config authored for IDLE belongs to no phase at all"))
+			return true;
+
+		if (!ExpectRange(IDLE, IDLE, IDLE, false, "an all-IDLE range matches nothing, including IDLE"))
+			return true;
+
+		if (!ExpectRange(HARASSMENT, -1, COUNTER_QRF, false, "a negative first phase is not a phase anyone authored"))
+			return true;
+
+		// --- The effective span, reported rather than re-derived. The debug print and the initialisation
+		//     case that pins every shipped config both read this, so a drift between it and the predicate
+		//     would let a config pass a check the live gate refuses.
+		if (!ExpectLast(HARASSMENT, FOB, FOB, "an authored upper bound is reported as it stands"))
+			return true;
+
+		if (!ExpectLast(HARASSMENT, 0, HARASSMENT, "an unauthored upper bound reports as the first phase"))
+			return true;
+
+		if (!ExpectLast(FOB, HARASSMENT, FOB, "an upper bound below the first phase reports as the first phase"))
+			return true;
+
+		// --- AND THE TWO HAVE TO AGREE, walked exhaustively over every phase and every authorable span.
+		//     A row-by-row case can miss a disagreement at a combination nobody thought to write down.
+		for (int first = 0; first <= COUNTER_QRF; first++)
+		{
+			for (int last = 0; last <= COUNTER_QRF; last++)
+			{
+				for (int phase = 0; phase <= COUNTER_QRF; phase++)
+				{
+					bool inRange = OVT_ObjectivePhaseRules.PhaseInRange(phase, first, last);
+
+					bool reported = first > IDLE && phase >= first && phase <= OVT_ObjectivePhaseRules.EffectiveLastPhase(first, last);
+
+					if (inRange == reported)
+						continue;
+
+					string span = first.ToString() + " -> " + last.ToString();
+					string verdicts = inRange.ToString() + " and the reported span says " + reported.ToString();
+
+					SetFailure("PhaseInRange and EffectiveLastPhase disagree at phase %1 for a %2 span: the predicate says %3",
+						phase.ToString(), span, verdicts);
+
+					return true;
+				}
+			}
+		}
+
+		Print("ObjectivePhaseRules: a phase range spans the ramp through the forward-base phase, stops before the counter-attack, collapses to a single phase when nobody authored an upper bound, and reports the same span it enforces");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one phase against one authored span.
+	//! \param[in] phase The phase the objective is in.
+	//! \param[in] firstPhase The first phase of the span.
+	//! \param[in] lastPhase The authored upper bound.
+	//! \param[in] expected What the predicate must answer.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectRange(int phase, int firstPhase, int lastPhase, bool expected, string label)
+	{
+		bool actual = OVT_ObjectivePhaseRules.PhaseInRange(phase, firstPhase, lastPhase);
+
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, actual.ToString(), expected.ToString());
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the effective upper bound of one authored span.
+	//! \param[in] firstPhase The first phase of the span.
+	//! \param[in] lastPhase The authored upper bound.
+	//! \param[in] expected The bound that must be reported.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectLast(int firstPhase, int lastPhase, int expected, string label)
+	{
+		int actual = OVT_ObjectivePhaseRules.EffectiveLastPhase(firstPhase, lastPhase);
 
 		if (actual == expected)
 			return true;

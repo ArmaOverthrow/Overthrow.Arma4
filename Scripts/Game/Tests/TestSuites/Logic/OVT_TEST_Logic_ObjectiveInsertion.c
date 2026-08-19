@@ -24,7 +24,13 @@
 //!                     poisons every distance test made against it for the rest of the drive and
 //!                     leaves the convoy driving forever.
 //!   HasArrived        never true means a convoy that circles its drop point until it is called
-//!                     stuck; always true means a force dumped at the base it set out from.
+//!                     stuck; always true means a force dumped at the base it set out from. Arriving
+//!                     the instant the radius is entered - before the transport has stopped - drops
+//!                     men out of a braking truck and injures the force it just delivered.
+//!   IsSettleGraceExpired
+//!                     the bound on waiting for that stop. Never expiring is an insertion that never
+//!                     delivers at all, which is worse than any rough drop: the men exist, they cost
+//!                     resources, and they never appear.
 //!   IsStuck           the arrival test inside it is the load-bearing part: every convoy that ever
 //!                     succeeds stands still on its landing zone for at least one tick, so without
 //!                     it EVERY successful insertion also reports as stranded and dumps its men.
@@ -32,6 +38,10 @@
 //!                     paused at a junction.
 //!   SpeedFromTravel   dividing by a zero elapsed time on the first observation is the difference
 //!                     between a number and an infinity.
+//!   IsAbandonedTruckCollectable
+//!                     collecting too eagerly deletes a transport in front of the player walking
+//!                     towards it; never collecting at all silts a route up with every truck it ever
+//!                     stranded, which is what the forward base's never-ending deployment did.
 //!
 //! CAN-FAIL PROOFS. Running a suite is the orchestrator's job, not an implementation agent's
 //! (.claude/test-policy.md), so each proof below is a fault that was injected into the subject one at
@@ -335,7 +345,29 @@ class OVT_TEST_Logic_ObjectiveInsertion_LandingZoneStaysOnTheSegment : SCR_Autot
 //! difference between consecutive and cumulative only shows up on a truck that paused once - which is
 //! every truck at every junction, and none of the ones a developer watches.
 //!
-//! CAN-FAIL, five faults, injected and compiled separately. All five exited compile-check 0:
+//! ⚠ ARRIVING IS PLACE AND STILLNESS, AND THE STILLNESS HALF IS NOT COSMETIC. A passenger is teleported
+//! out of a vehicle carrying that vehicle's velocity, so opening the doors on the first tick the truck
+//! is inside the radius - which is the tick it is braking hardest - throws the force across the road and
+//! injures it (user play-test, 2026-08-19, after the transport prefab's friction was raised). The rows
+//! below claim both halves independently: stopped-but-far is not arrived, and close-but-moving is not
+//! arrived either.
+//!
+//! ⚠ AND THE WAIT FOR THAT STILLNESS IS BOUNDED, WHICH IS THE ROW THAT MATTERS MOST IN THIS FILE. A
+//! speed condition with no deadline is an insertion that hangs on a slope, on a nudge or on plain
+//! physics jitter, with its force still in the truck, forever - a failure with no log line and no
+//! symptom except reinforcements that never come. IsSettleGraceExpired is that deadline, it spends the
+//! stall test's own tick budget rather than a second clock, and a DISABLED budget means "do not wait at
+//! all" rather than "wait forever" - which is the direction the off-switch has to fail in, and is
+//! asserted directly.
+//!
+//! ⚠ THE STALL TEST'S EXEMPTION IS THE RADIUS, NOT THE ARRIVAL TEST, and one row exists purely to hold
+//! that line. Once arriving requires stillness, an exemption written in terms of arriving would stop
+//! exempting a truck that is inside the radius and still creeping - and a creeping truck trips the
+//! stationary-for-N-ticks counter, so the settling transport would be called stranded and dump its men
+//! at the very drop point it had already reached. The exemption must therefore be about WHERE the truck
+//! is and nothing else.
+//!
+//! CAN-FAIL, nine faults, injected and compiled separately. All nine exited compile-check 0:
 //!   D1. DROP THE ARRIVAL EXEMPTION FROM IsStuck - remove the `if (HasArrived(...)) return false;`.
 //!       Compiled clean. Fails on "a transport standing still ON its landing zone has arrived, not
 //!       stalled: got stuck, expected not stuck".
@@ -350,15 +382,40 @@ class OVT_TEST_Logic_ObjectiveInsertion_LandingZoneStaysOnTheSegment : SCR_Autot
 //!   D5. DIVIDE REGARDLESS IN SpeedFromTravel - remove `if (elapsedSeconds <= 0) return 0;`.
 //!       Compiled clean. Fails on "the first observation of a transport, with no elapsed time, must
 //!       read as no speed rather than as an infinity".
+//!   D6. DROP THE SPEED CONDITION FROM HasArrived - `return IsInsideArrivalRadius(...)`, i.e. the
+//!       distance-only test this function used to be. Compiled clean. Fails on "a transport braking
+//!       hard into its landing zone has not arrived yet: got arrived, expected not arrived", which is
+//!       the injury bug itself.
+//!   D7. DROP HasArrived's SPEED OFF-SWITCH - remove `if (settleSpeedThreshold <= 0) return true;`.
+//!       Compiled clean. Fails on "with the speed condition disabled, a transport inside the radius
+//!       arrives however fast it is going: got not arrived, expected arrived" - the caller that passes
+//!       no threshold (the return leg) would silently stop arriving.
+//!   D8. MAKE A DISABLED SETTLE BUDGET WAIT FOREVER - `if (graceTicks <= 0) return false;` in
+//!       IsSettleGraceExpired. Compiled clean. Fails on "a disabled tick budget means no settling wait
+//!       at all, never an unbounded one: got still settling, expected grace expired". This is the
+//!       hang, and it is the fault the whole function exists to make impossible.
+//!   D9. MAKE THE STALL EXEMPTION SPEED-AWARE - `if (HasArrived(distanceToLZ, arrivalRadius, speed,
+//!       0.5)) return false;` in IsStuck, which reads as the tighter and therefore safer test and is
+//!       neither. Compiled clean. Fails on "a transport still creeping ON its landing zone is settling,
+//!       not stalled: got stuck, expected not stuck".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
 class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_AutotestCaseBase
 {
+	//! The settling speed the rows below are written around, in m/s. Mirrors the module's shipped
+	//! OVT_InsertionSpawningDeploymentModule.ARRIVAL_SETTLE_SPEED_MS rather than reading it, because the
+	//! subject is the pure function and it takes the threshold as an argument: these rows must go on
+	//! claiming what `<=` means at a boundary even if the module retunes what it passes.
+	static const float SETTLE_SPEED = 0.5;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		if (!VerifyArrival())
+			return true;
+
+		if (!VerifySettleGrace())
 			return true;
 
 		if (!VerifyStuck())
@@ -370,7 +427,7 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 		if (!VerifySpeed())
 			return true;
 
-		Print("HasArrived / IsStuck: arrival wins over stalling, a zero tick limit disables the stall test, the stall counter is consecutive and not cumulative, and a first observation reads as no speed rather than as an infinity");
+		Print("HasArrived / IsSettleGraceExpired / IsStuck: arriving needs the transport to be stopped as well as close, the wait for it to stop is bounded by the stall tick budget and a disabled budget never waits, being at the landing zone wins over stalling, the stall counter is consecutive and not cumulative, and a first observation reads as no speed rather than as an infinity");
 
 		return true;
 	}
@@ -379,27 +436,103 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 	//! \return True when every arrival row held.
 	protected bool VerifyArrival()
 	{
-		if (!ExpectArrived(0, 40, true, "a transport on top of its landing zone has arrived"))
+		// --- THE PLACE HALF, on a transport that has already stopped. These are the rows that predate
+		// the speed condition and every one of them still claims exactly what it claimed before.
+		if (!ExpectArrived(0, 40, 0, SETTLE_SPEED, true, "a transport stopped on top of its landing zone has arrived"))
 			return false;
 
-		if (!ExpectArrived(39.5, 40, true, "a transport just inside the arrival radius has arrived"))
+		if (!ExpectArrived(39.5, 40, 0, SETTLE_SPEED, true, "a stopped transport just inside the arrival radius has arrived"))
 			return false;
 
-		if (!ExpectArrived(40, 40, true, "a transport exactly on the edge of the arrival radius has arrived"))
+		if (!ExpectArrived(40, 40, 0, SETTLE_SPEED, true, "a stopped transport exactly on the edge of the arrival radius has arrived"))
 			return false;
 
-		if (!ExpectArrived(40.5, 40, false, "a transport just outside the arrival radius has not arrived"))
+		if (!ExpectArrived(40.5, 40, 0, SETTLE_SPEED, false, "a stopped transport just outside the arrival radius has not arrived"))
 			return false;
 
-		if (!ExpectArrived(750, 40, false, "a transport still on the road has not arrived"))
+		if (!ExpectArrived(750, 40, 0, SETTLE_SPEED, false, "a transport still on the road has not arrived"))
 			return false;
 
 		// An unauthored radius must not make every convoy arrive the moment it sets off, and must not
 		// stop one that is exactly on the spot from ever arriving either.
-		if (!ExpectArrived(0, 0, true, "with no arrival radius, a transport exactly on the landing zone still arrives"))
+		if (!ExpectArrived(0, 0, 0, SETTLE_SPEED, true, "with no arrival radius, a stopped transport exactly on the landing zone still arrives"))
 			return false;
 
-		if (!ExpectArrived(5, 0, false, "with no arrival radius, a transport five metres away has not arrived"))
+		if (!ExpectArrived(5, 0, 0, SETTLE_SPEED, false, "with no arrival radius, a transport five metres away has not arrived"))
+			return false;
+
+		// --- THE STILLNESS HALF, all of it well inside the radius so only the speed can decide. THE row
+		// is the first one: that is a transport braking into its drop point, and answering "arrived" to
+		// it is the bug this condition exists for - the men come out of a moving vehicle with its
+		// velocity on them.
+		if (!ExpectArrived(12, 40, 7.5, SETTLE_SPEED, false, "a transport braking hard into its landing zone has not arrived yet"))
+			return false;
+
+		if (!ExpectArrived(12, 40, 1.4, SETTLE_SPEED, false, "a transport still rolling at walking pace has not arrived yet"))
+			return false;
+
+		if (!ExpectArrived(12, 40, 0.55, SETTLE_SPEED, false, "a transport just above the settling speed has not arrived yet"))
+			return false;
+
+		// The boundary in both directions - at a settling speed expressed as a bool, `<=` and `<` differ.
+		if (!ExpectArrived(12, 40, SETTLE_SPEED, SETTLE_SPEED, true, "a transport exactly at the settling speed has arrived"))
+			return false;
+
+		if (!ExpectArrived(12, 40, 0.2, SETTLE_SPEED, true, "a transport shuffling below the settling speed has arrived"))
+			return false;
+
+		// Stillness NEVER substitutes for place. A transport parked halfway down the road has not
+		// arrived however long it has been parked there - that case belongs to the stall test.
+		if (!ExpectArrived(750, 40, 0, SETTLE_SPEED, false, "a transport stopped nine hundred metres short has not arrived, it has stalled"))
+			return false;
+
+		// --- THE OFF-SWITCH. A non-positive threshold is the distance-only test, which is what the
+		// return leg passes: an empty truck rolling into its own base at speed has got home, because
+		// nobody is being put on the ground there.
+		if (!ExpectArrived(12, 40, 12, 0, true, "with the speed condition disabled, a transport inside the radius arrives however fast it is going"))
+			return false;
+
+		if (!ExpectArrived(12, 40, 12, -1, true, "a negative speed threshold disables the speed condition as well"))
+			return false;
+
+		// A speed can only arrive at this function through SpeedFromTravel, which never answers below
+		// zero - but a negative one must read as stopped rather than as a transport that can never
+		// settle, for the same reason every other input in this file is clamped.
+		if (!ExpectArrived(12, 40, -3, SETTLE_SPEED, true, "a negative speed reads as stopped rather than as never settling"))
+			return false;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE BOUND ON THE WAIT. See the case header: without it the speed condition above is an insertion
+	//! that can hang with its force still in the truck.
+	//! \return True when every settle-grace row held.
+	protected bool VerifySettleGrace()
+	{
+		// --- THE CLAIM THAT MAKES THE WAIT SAFE. A disabled tick budget - the operator's stall off-switch
+		// - must mean "do not wait", not "wait forever". Getting this backwards is the hang.
+		if (!ExpectSettleExpired(1, 0, true, "a disabled tick budget means no settling wait at all, never an unbounded one"))
+			return false;
+
+		if (!ExpectSettleExpired(1, -4, true, "a negative tick budget means no settling wait either"))
+			return false;
+
+		// --- The ordinary budget, on both sides of its limit.
+		if (!ExpectSettleExpired(1, 6, false, "a transport on its first tick at the landing zone is given time to stop"))
+			return false;
+
+		if (!ExpectSettleExpired(5, 6, false, "a transport one tick short of the budget is still given time to stop"))
+			return false;
+
+		if (!ExpectSettleExpired(6, 6, true, "a transport that has spent the whole budget without stopping is put down anyway"))
+			return false;
+
+		if (!ExpectSettleExpired(30, 6, true, "a transport well past the budget is long overdue to be put down"))
+			return false;
+
+		// A counter that somehow arrived negative must not read as a wait already served.
+		if (!ExpectSettleExpired(-5, 6, false, "a counter that arrived negative has not served the budget"))
 			return false;
 
 		return true;
@@ -411,6 +544,16 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 	{
 		// --- THE CLAIM. A stationary transport, at its limit, sitting ON the landing zone.
 		if (!ExpectStuck(0, 1, 5, 3, 10, 40, false, "a transport standing still ON its landing zone has arrived, not stalled"))
+			return false;
+
+		// --- THE ROW THAT HOLDS THE EXEMPTION TO THE RADIUS. This transport is ON its landing zone and
+		// still creeping: below the stall test's own speed threshold, so its stall counter is running and
+		// at the limit, but ABOVE the settling speed, so it has not arrived yet either. It is a truck
+		// coming to a stop at its drop point, and it must not be called stranded - if it were, the settle
+		// wait would end by dumping the force and abandoning the transport at the very place both were
+		// supposed to arrive. An exemption written as "has arrived" instead of "is inside the radius"
+		// fails exactly here and nowhere else.
+		if (!ExpectStuck(0.9, 1, 5, 3, 10, 40, false, "a transport still creeping ON its landing zone is settling, not stalled"))
 			return false;
 
 		// --- The same transport, the same stillness, one metre outside the radius: now it is stalled.
@@ -513,16 +656,36 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 	//------------------------------------------------------------------------------------------------
 	//! \param[in] distanceToLZ Distance from the landing zone.
 	//! \param[in] arrivalRadius The arrival radius.
+	//! \param[in] speed How fast the transport is going, in m/s.
+	//! \param[in] settleSpeedThreshold At or below this it counts as stopped; non-positive disables.
 	//! \param[in] expected The answer this row claims.
 	//! \param[in] label Human description of the row.
 	//! \return True when it matched; false after recording the failure.
-	protected bool ExpectArrived(float distanceToLZ, float arrivalRadius, bool expected, string label)
+	protected bool ExpectArrived(float distanceToLZ, float arrivalRadius, float speed, float settleSpeedThreshold,
+		bool expected, string label)
 	{
-		bool actual = OVT_InsertionGeometry.HasArrived(distanceToLZ, arrivalRadius);
+		bool actual = OVT_InsertionGeometry.HasArrived(distanceToLZ, arrivalRadius, speed, settleSpeedThreshold);
 		if (actual == expected)
 			return true;
 
 		SetFailure("%1: got %2, expected %3", label, DescribeArrived(actual), DescribeArrived(expected));
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] ticksInsideRadius Consecutive ticks the transport has been at the landing zone.
+	//! \param[in] graceTicks The budget it may spend settling.
+	//! \param[in] expected The answer this row claims.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectSettleExpired(int ticksInsideRadius, int graceTicks, bool expected, string label)
+	{
+		bool actual = OVT_InsertionGeometry.IsSettleGraceExpired(ticksInsideRadius, graceTicks);
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, DescribeSettle(actual), DescribeSettle(expected));
 
 		return false;
 	}
@@ -576,6 +739,17 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 			return "arrived";
 
 		return "not arrived";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] expired The answer to describe.
+	//! \return "grace expired" or "still settling".
+	protected string DescribeSettle(bool expired)
+	{
+		if (expired)
+			return "grace expired";
+
+		return "still settling";
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -722,5 +896,147 @@ class OVT_TEST_Logic_ObjectiveInsertion_ChoosesNearestFreeVehicleSpawn : SCR_Aut
 			return "-1 (the road)";
 
 		return choice.ToString();
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! WHEN A TRANSPORT NOBODY IS COMING BACK FOR IS TAKEN AWAY.
+//!
+//! WHY THIS CASE EXISTS. The insertion module deliberately does NOT delete a stranded truck at the
+//! moment it strands - "a stuck one is a landmark and a lootable, and it is released with everything
+//! else when the deployment ends" - and that reasoning is sound right up until the deployment does not
+//! end. The forward base's stands for as long as the base does, so on the one route that reliably
+//! strands trucks they piled up with nothing ever collecting them (user play-test, 2026-08-19). The
+//! deadline below is what turns "never" into "eventually", and every one of its three inputs is a
+//! different way to get it wrong:
+//!
+//!   THE DEADLINE ITSELF     too eager and the landmark is gone before anyone can walk to it; the
+//!                           whole reason the truck was left standing is thrown away and the only
+//!                           symptom is that players stop finding abandoned enemy transports.
+//!   THE PROXIMITY HOLD      the one that must never fail open. A truck deleted in front of somebody
+//!                           looting it, fighting over it or driving towards it is an object vanishing
+//!                           on screen, which reads as a bug in a way that "it is still there" never
+//!                           does. It is an absolute hold rather than a delay: it must not expire.
+//!   THE OFF-SWITCH          a non-positive limit is the old behaviour, written down. Getting it
+//!                           backwards - collecting IMMEDIATELY when the limit is zero - is the worst
+//!                           available failure, because zero is what an unset field holds.
+//!
+//! ⚠ WHAT THIS DOES **NOT** COVER, said plainly. Only the DECISION is pure. Whether the countdown is
+//! armed on the right paths, whether it is disarmed when the vehicle goes away by other means, whether
+//! the ownership veto still wins, and whether the collection actually deletes anything are all
+//! properties of a live module holding a live Vehicle, and there is no honest way to assert them in
+//! this tier. They are manual checks, and the module carries the argument for why the counter cannot
+//! leak in place of a test.
+//!
+//! CAN-FAIL, three faults injected into OVT_InsertionGeometry.IsAbandonedTruckCollectable one at a time
+//! and compiled separately. All three exited tools/compile-check.sh with 0 - none is a syntax error and
+//! nothing else in the tree would stop them reaching players. The subject was restored and re-compiled
+//! clean (exit 0) afterwards.
+//!   D1. DROP THE PROXIMITY HOLD - remove `if (playerNearby) return false;`. Compiled clean. Fails on
+//!       "a player standing next to an overdue transport holds it: got collect, expected keep".
+//!   D2. STRICTLY PAST THE DEADLINE - `ticksSinceAbandoned > ticksLimit`. Compiled clean. Every row but
+//!       one passes; fails on "a transport exactly at the deadline is collected: got keep, expected
+//!       collect", which is the row the arming tick makes reachable in practice.
+//!   D3. DROP THE OFF-SWITCH - remove `if (ticksLimit <= 0) return false;`. Compiled clean. A limit of
+//!       zero then collects on the very first tick; fails on "a limit of zero never collects, however
+//!       long the transport has stood: got collect, expected keep".
+//!
+//! No maxAttempts: the subject is a pure function of two ints and a bool, with no clock, no RNG and no
+//! world.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ObjectiveInsertion_CollectsAbandonedTransportsOnlyWhenDue : SCR_AutotestCaseBase
+{
+	//! The shipped budget, so the rows read against the real number rather than a made-up one. It is
+	//! deliberately referenced rather than copied: raising the timeout must not silently move the
+	//! boundary these rows claim.
+	protected const int LIMIT = OVT_InsertionSpawningDeploymentModule.ABANDONED_TRUCK_TIMEOUT_TICKS;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// --- The countdown, with nobody about.
+		if (!Expect(0, LIMIT, false, "a transport abandoned this very tick is kept"))
+			return true;
+
+		if (!Expect(LIMIT - 1, LIMIT, false, "a transport one tick short of the deadline is kept"))
+			return true;
+
+		if (!Expect(LIMIT, LIMIT, true, "a transport exactly at the deadline is collected"))
+			return true;
+
+		if (!Expect(LIMIT + 40, LIMIT, true, "a transport well past the deadline is collected"))
+			return true;
+
+		// --- The proximity hold. See the header: this is the row that matters.
+		if (!Expect(LIMIT, LIMIT, true, false, "a player standing next to an overdue transport holds it"))
+			return true;
+
+		if (!Expect(LIMIT * 9, LIMIT, true, false, "and the hold does not expire, however long he stays"))
+			return true;
+
+		if (!Expect(4, LIMIT, true, false, "a player near a transport that is not yet due changes nothing"))
+			return true;
+
+		// --- The off-switch, which is the pre-2026-08-19 behaviour written down. ⚠ Zero is what an
+		//     unset budget holds, so "collect nothing" and "collect everything immediately" are the two
+		//     readings and only one of them is safe.
+		if (!Expect(LIMIT * 9, 0, false, "a limit of zero never collects, however long the transport has stood"))
+			return true;
+
+		if (!Expect(LIMIT * 9, -30, false, "and neither does a negative one"))
+			return true;
+
+		// --- A caller that has not counted anything yet, or has counted backwards. The subject takes bare
+		//     ints and cannot check its caller.
+		if (!Expect(-7, LIMIT, false, "a negative count never collects"))
+			return true;
+
+		Print("IsAbandonedTruckCollectable: an abandoned transport is collected once its tick budget is spent and never while a player is near it, and a non-positive budget collects nothing at all");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one row with nobody nearby, which is the ordinary case.
+	//! \param[in] ticks Ticks since the transport was abandoned.
+	//! \param[in] limit The tick budget.
+	//! \param[in] expected Whether it must be collected.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool Expect(int ticks, int limit, bool expected, string label)
+	{
+		return Expect(ticks, limit, false, expected, label);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one row.
+	//! \param[in] ticks Ticks since the transport was abandoned.
+	//! \param[in] limit The tick budget.
+	//! \param[in] playerNearby Whether a live player is close enough to notice it go.
+	//! \param[in] expected Whether it must be collected.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool Expect(int ticks, int limit, bool playerNearby, bool expected, string label)
+	{
+		bool actual = OVT_InsertionGeometry.IsAbandonedTruckCollectable(ticks, limit, playerNearby);
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, DescribeOutcome(actual), DescribeOutcome(expected));
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] collect The answer to describe.
+	//! \return "collect" or "keep".
+	protected string DescribeOutcome(bool collect)
+	{
+		if (collect)
+			return "collect";
+
+		return "keep";
 	}
 }

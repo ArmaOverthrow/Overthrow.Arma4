@@ -5,7 +5,7 @@
 //! HARD RULE: NOTHING IN THIS FILE MAY TOUCH A SYSTEM, THE GAME MODE OR ANY LIVE STATE.
 //! ===========================================================================================
 //!
-//! One question lives here, and it is the question a base fortifying itself keeps asking:
+//! TWO questions live here. The first is the one a base fortifying itself keeps asking:
 //!
 //!     given the configs that are SUITABLE at a place, and the names of the ones that place
 //!     ALREADY HOLDS, which one does it buy next?
@@ -20,6 +20,15 @@
 //! "is one of these standing within 250 m of here" needs the live deployment list, which is exactly
 //! the kind of state this file may not see. The caller asks that question per config and hands the
 //! answers in.
+//!
+//! The second question was added 2026-08-19 with the objective RESERVE FLOOR (D18):
+//!
+//!     given a faction pool, and an amount somebody else has earmarked out of it, how much may the
+//!     ROUTINE evaluator spend?
+//!
+//! Same rule about arguments, for the same reason: who earmarked it, why, and whether they still
+//! mean it are questions about a live component this file may not see. The caller looks the number
+//! up and hands it in. See SpendableResources().
 //------------------------------------------------------------------------------------------------
 class OVT_DeploymentSelection
 {
@@ -93,5 +102,95 @@ class OVT_DeploymentSelection
 		}
 
 		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// THE OBJECTIVE RESERVE FLOOR - what the ROUTINE evaluator may spend out of an earmarked pool
+	//------------------------------------------------------------------------------------------------
+
+	//! "Nothing is earmarked", which is the state of every faction in every campaign that never starts
+	//! an objective, and of an occupying faction whose director is not currently short of money.
+	static const int NO_RESERVE = 0;
+
+	//------------------------------------------------------------------------------------------------
+	//! How much of a faction's deployment pool the ROUTINE evaluator is allowed to spend.
+	//!
+	//! ================================ THE TWO INVARIANTS ======================================
+	//!
+	//!  1. NO RESERVE IS BYTE-IDENTICAL TO TODAY. A non-positive reserve returns the caller's own
+	//!     integer, having performed no arithmetic on it at all - not pool - 0, not Math.Max(0, pool),
+	//!     the same int. That is what makes every faction nobody earmarks for, every campaign with no
+	//!     objective and every world that never starts one spend exactly what it spent before this
+	//!     existed. It is also why the branch is written as an early return rather than as a clamp
+	//!     that happens to be a no-op: "happens to be a no-op" is an argument, and an early return is
+	//!     a fact.
+	//!
+	//!  2. IT NEVER ANSWERS MORE THAN THE POOL AND NEVER ANSWERS LESS THAN NOTHING. A reserve bigger
+	//!     than the pool means "this pass buys nothing", not "this pass is in debt": the caller
+	//!     subtracts the answer from a real pool, and a negative answer would CREDIT it. That is the
+	//!     one way this function could break the conserved-total identity (G5), so it is clamped here
+	//!     rather than at the call site.
+	//!
+	//! ==========================================================================================
+	//!
+	//! ⚠ IT MOVES NO MONEY AND KNOWS OF NO SECOND POOL. There is exactly one pool
+	//! (OVT_DeploymentManagerComponent.m_mFactionResources) and this function does not touch it; it
+	//! answers a question about a number. The reserve is a CEILING ON ONE SPENDER, not a wallet, not a
+	//! transfer and not a balance - nothing is ever added to it, drawn from it, or carried over.
+	//! \param[in] pool What the faction actually holds.
+	//! \param[in] reserve What is earmarked out of it. Non-positive means nothing is.
+	//! \return What the routine evaluator may spend, in [0, pool].
+	static int SpendableResources(int pool, int reserve)
+	{
+		// INVARIANT 1. No arithmetic, no clamp, no re-derivation - the caller's own int back.
+		if (reserve <= NO_RESERVE)
+			return pool;
+
+		int spendable = pool - reserve;
+
+		// INVARIANT 2. A reserve larger than the pool is the NORMAL case while a faction saves up for
+		// an operation it cannot yet afford, and it must read as "spend nothing".
+		if (spendable < 0)
+			return 0;
+
+		return spendable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the routine evaluator may buy something of this price out of an earmarked pool.
+	//!
+	//! Written out rather than left as an inline `>=` at the one call site because it is the whole
+	//! decidable content of the reserve floor - "is this spend allowed given a pool, a cost and a
+	//! floor" - and the cheapest test tier can only assert a decision that has a name.
+	//! \param[in] pool What the faction actually holds.
+	//! \param[in] reserve What is earmarked out of it. Non-positive means nothing is.
+	//! \param[in] cost What the evaluator wants to buy.
+	//! \return True when the purchase leaves the reserve intact.
+	static bool MayEvaluatorSpend(int pool, int reserve, int cost)
+	{
+		return SpendableResources(pool, reserve) >= cost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether two reserves are the same earmark, and therefore whether the second one is silenced by
+	//! the first.
+	//!
+	//! ⚠ THE SAME SHAPE AS THE DIRECTOR'S (config, reason) REFUSAL KEY, AND FOR THE SAME REASON. The
+	//! owner of an earmark re-pushes it on EVERY one of its ticks for as long as it is short - that
+	//! re-push is what stops the floor outliving the intent - so an unlatched announcement would be one
+	//! log line every ten real seconds, indefinitely. Keyed on the pair, only a genuinely identical
+	//! repeat is silenced: a different operation, or the same operation at a different price, is news
+	//! and gets its own line.
+	//! \param[in] operationA First earmark's operation name.
+	//! \param[in] costA First earmark's cost.
+	//! \param[in] operationB Second earmark's operation name.
+	//! \param[in] costB Second earmark's cost.
+	//! \return True only when both halves match.
+	static bool IsSameReserve(string operationA, int costA, string operationB, int costB)
+	{
+		if (operationA != operationB)
+			return false;
+
+		return costA == costB;
 	}
 }

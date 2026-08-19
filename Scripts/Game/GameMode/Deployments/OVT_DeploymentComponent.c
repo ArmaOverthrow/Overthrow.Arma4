@@ -550,6 +550,15 @@ class OVT_DeploymentComponent : OVT_Component
 	int GetResourcesInvested() { return m_iResourcesInvested; }
 	bool IsDeploymentActive() { return m_bActive; }
 	vector GetPosition() { return GetOwner().GetOrigin(); }
+	//! Which way this deployment's marker was created facing, in degrees.
+	//!
+	//! ⚠ GetYawPitchRoll()[0], NOT GetAngles()[0]. The two engine angle APIs use different orders and
+	//! GetAngles() puts PITCH in slot 0, so the wrong one answers ~0 on every marker on flat ground and
+	//! looks like it works. See OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation.
+	//!
+	//! ZERO IS THE ANSWER FOR ALMOST EVERY DEPLOYMENT and means "unrotated", not "unset" - see
+	//! OVT_DeploymentManagerComponent.CreateDeployment for which caller passes a heading and why.
+	float GetYaw() { return GetOwner().GetYawPitchRoll()[0]; }
 	OVT_DeploymentConfig GetConfig() { return m_DeploymentConfig; }
 	//! The virtualization key AS IT STANDS - empty until EnsureVirtualKey() has derived one. Read this
 	//! when the answer "not derived yet" matters (the serializer, a collision probe); call

@@ -45,6 +45,66 @@ class OVT_FOBSiting
 	//! it found, not to distinguish "bad" from "broken".
 	static const float NO_SCORE = 0;
 
+	//! One turn, for the one place a negative angle has to be brought back into range.
+	static const float FULL_CIRCLE = 360;
+
+	//! What FacingYaw() answers when there is no direction to face - an UNROTATED structure.
+	//!
+	//! ⚠ A DEFINED ANSWER, NOT A SENTINEL, for the reason OVT_QRFBearing.DEFAULT_DEGREES records:
+	//! atan2(0, 0) is not specified to be anything, and a yaw that is not a number goes straight into a
+	//! spawn transform, where every basis vector becomes NaN and the structure is placed nowhere at all.
+	//! Zero is the value the forward base had before it was ever turned, so the degenerate case is
+	//! exactly the old behaviour rather than a new failure.
+	static const float NO_FACING = 0;
+
+	//------------------------------------------------------------------------------------------------
+	//! WHICH WAY A STRUCTURE STANDING AT `from` HAS TO BE TURNED TO LOOK AT `to`.
+	//!
+	//! ⚠ THE ANSWER IS AN ENTITY YAW IN THE Math3D.AnglesToMatrix FRAME - the (yaw, pitch, roll) vector
+	//! OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation() builds - AND NOT A COMPASS BEARING.
+	//! The two differ by the axis they measure from and by their sign, and OVT_QRFBearing next door
+	//! answers the other one: it exists to lay a wave's landing zone out on a SIDE of a town and works
+	//! in the 0 = North = -Z convention, so borrowing it here would turn every forward base a quarter
+	//! circle and nothing would say so. Grounded rather than assumed: AnglesToMatrix's own documented
+	//! example (Core/generated/Math/Math3D.c) shows yaw 70, pitch 15 producing a forward row of
+	//! <0.9077, 0.2588, 0.3304> = (sin y cos p, sin p, cos y cos p), so an entity at yaw t faces
+	//! (sin t, 0, cos t) and the yaw that faces a delta is atan2(dx, dz).
+	//!
+	//! WHAT "FACE" MEANS FOR THE THING BEING TURNED: the entity's own +Z, which is the axis
+	//! OVT_FOBPosition's Workbench arrow draws (transform[2]) and the axis the shipped forward-base
+	//! prefab puts its hedgehogs and barbed wire on, with the tent and the stores behind at -Z. So a
+	//! base turned by this function has its wire towards whatever it was pointed at.
+	//!
+	//! HEIGHT IS DISCARDED. A structure's heading is a flat rotation; the objective being 200 m up a
+	//! hill must not tip it.
+	//!
+	//! PURE, TOTAL AND DETERMINISTIC, like everything else in this file - which is what lets the
+	//! generated path pick a facing at all. The old behaviour was an identity rotation on every
+	//! unauthored forward base in the campaign, and "the prefab happens to be unrotated" is not a
+	//! decision anybody made.
+	//! \param[in] from Where the structure stands.
+	//! \param[in] to What it should look at.
+	//! \return A yaw in [0, 360) for GetUprightSpawnRotation(); NO_FACING when the two coincide.
+	static float FacingYaw(vector from, vector to)
+	{
+		float dx = to[0] - from[0];
+		float dz = to[2] - from[2];
+
+		// Before the transcendental, never after it. See NO_FACING.
+		if (dx == 0 && dz == 0)
+			return NO_FACING;
+
+		float degrees = Math.Atan2(dx, dz) * Math.RAD2DEG;
+
+		// atan2 answers (-180, 180], so ONE addition is enough and the range is closed by construction -
+		// no loop, nothing to run away. Wrapped rather than left signed only so a log line and a test row
+		// read the same way round as a compass does.
+		if (degrees < 0)
+			degrees = degrees + FULL_CIRCLE;
+
+		return degrees;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Whether a candidate sits in the band between the supplying base and the objective.
 	//!
@@ -237,7 +297,7 @@ class OVT_FOBSiting
 
 		// ⚠ BOTH OPERANDS ARE MADE FLOATS EXPLICITLY. An int/int division in this language truncates
 		// inside a pure-int expression, and a lattice whose every step evaluated to 0 or 1 would sample
-		// the two ends of the band twenty-four times and nothing in between - with no symptom beyond
+		// the two ends of the band once per lattice point and nothing in between - with no symptom beyond
 		// forward bases always landing at exactly one of two distances.
 		float position = clamped;
 		float span = steps - 1;
@@ -246,16 +306,34 @@ class OVT_FOBSiting
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How far to push one attempt off the supply line, in multiples of the caller's lateral spread.
+	//! How far to push one attempt off the supply line, as a FRACTION of the caller's lateral spread.
 	//!
-	//! THREE OFFSETS PER STEP: on the line, and one spread to each side. A forward base sitting exactly
-	//! on the road between two places is the first thing a player drives into; the lateral offsets are
-	//! what let the sampler find the field behind the treeline instead. The zero offset is FIRST so a
-	//! band with clear ground straight down the middle uses it and the base ends up where the supply
-	//! run is shortest.
-	//! \param[in] lane Which lateral lane, 0-based.
+	//! ON THE LINE FIRST, THEN OUTWARD IN ALTERNATING PAIRS. A forward base sitting exactly on the road
+	//! between two places is the first thing a player drives into; the lateral offsets are what let the
+	//! sampler find the field behind the treeline instead. The zero offset is lane 0 so a band with clear
+	//! ground straight down the middle uses it and the base ends up where the supply run is shortest.
+	//!
+	//! 🔴 THE RETURN IS A FRACTION IN [-1, +1] AND THE CALLER'S SPREAD IS A MAXIMUM, NOT A STEP. This
+	//! used to return the raw ring index - 0, -1, +1, -2, +2 - which is the same thing only while there
+	//! are exactly three lanes. It was written when there were, and going to five (user, 2026-08-19)
+	//! would have produced offsets of 0, +-spread, +-2*spread: a corridor SILENTLY TWICE AS WIDE as the
+	//! "400 m either side" that was asked for, with forward bases 800 m off the supply line and nothing
+	//! anywhere saying so. The lanes are now distributed EVENLY across the full span, so five lanes at a
+	//! 400 m spread are 0, +-200, +-400 and the outermost lane is the spread exactly - whatever the lane
+	//! count becomes.
+	//!
+	//! ⚠ THE INVARIANT A FUTURE LANE CHANGE MUST NOT BREAK: |LateralOffset(lane, lanes)| <= 1 for every
+	//! lane and every lane count, and == 1 for the outermost lane of any lattice with more than one.
+	//! Both halves are asserted in OVT_TEST_Logic_ObjectiveScaling's lattice case, precisely because
+	//! widening the corridor by accident produces no error, no warning and no visible symptom beyond
+	//! forward bases turning up somewhere nobody agreed to.
+	//!
+	//! AN EVEN LANE COUNT IS LOPSIDED, NOT WRONG. Four lanes give 0, -0.5, +0.5, -1: the sequence pairs
+	//! low-to-high and simply runs out mid-pair, so one side gets the extra ring. Still bounded by the
+	//! spread, which is the property that matters; the shipped count is odd.
+	//! \param[in] lane Which lateral lane, 0-based. Clamped into the lattice.
 	//! \param[in] lanes How many lanes the lattice has.
-	//! \return A signed multiplier: 0, then -1, +1, -2, +2 and so on.
+	//! \return A signed fraction of the caller's maximum spread, in [-1, +1].
 	static float LateralOffset(int lane, int lanes)
 	{
 		if (lanes <= 1 || lane <= 0)
@@ -265,12 +343,29 @@ class OVT_FOBSiting
 		if (clamped > lanes - 1)
 			clamped = lanes - 1;
 
-		int magnitude = (clamped + 1) / 2;
+		// Which ring out from the line this lane sits on: lanes 1 and 2 are the first ring either side,
+		// 3 and 4 the second, and so on.
+		int ring = (clamped + 1) / 2;
+
+		// The outermost ring this lattice can produce, which is what the fraction is measured against.
+		// It is what lane == lanes - 1 evaluates to above, written directly so the normalisation cannot
+		// drift away from the sequence it normalises.
+		int outermost = lanes / 2;
+		if (outermost < 1)
+			return 0;
+
+		// ⚠ BOTH OPERANDS MADE FLOATS EXPLICITLY, for the reason BandFraction() records: an int/int
+		// division truncates inside a pure-int expression, and every inner ring would collapse to 0 -
+		// putting five lanes back on three positions with no symptom at all.
+		float position = ring;
+		float span = outermost;
+
+		float fraction = position / span;
 
 		if (clamped % 2 == 1)
-			return -magnitude;
+			return -fraction;
 
-		return magnitude;
+		return fraction;
 	}
 
 	//------------------------------------------------------------------------------------------------

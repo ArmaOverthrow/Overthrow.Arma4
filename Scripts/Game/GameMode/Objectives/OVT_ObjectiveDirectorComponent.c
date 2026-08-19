@@ -191,6 +191,45 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	static const string FOB_GARRISON_CONFIG = "Objective Forward Base Garrison";
 
 	//------------------------------------------------------------------------------------------------
+	// WHY A CREATE WAS REFUSED (2026-08-19)
+	//
+	// 🔴 EVERY WAY OUT OF CreateObjectiveDeployment() THAT IS NOT A CREATE HAS A REASON HERE, AND THE
+	// REASON IS THE LATCH KEY. A play-test watched the forward-base phase re-site the same point every
+	// ten seconds for five minutes with not one line to say why: the create was refused for want of
+	// resources, and the only affordability line in the component was latched ONCE PER OBJECTIVE and had
+	// already been spent twelve minutes earlier on a sabotage operation in the previous phase. A latch
+	// that coarse does not quieten a log, it hides the second fault behind the first.
+	//
+	// ⚠ THE STRINGS ARE THE KEYS. LogOperationRefusal() latches on the PAIR (config, reason), so two
+	// different operations refused for the same reason both speak, and one operation refused for a new
+	// reason speaks again. Reusing a constant for two different situations silently merges them.
+	//------------------------------------------------------------------------------------------------
+
+	//! The name resolved nothing in the deployment registry - a config renamed in overthrowDeployments.conf.
+	static const string REFUSAL_UNREGISTERED = "no deployment config by that name is registered";
+
+	//! The one refusal that is not the objective's fault. See CreateObjectiveDeployment().
+	static const string REFUSAL_POOL_SHORT = "the occupying faction's deployment pool cannot cover it";
+
+	//! The forward base has had its share. A decision the director made about itself.
+	static const string REFUSAL_FOB_CEILING = "the forward base's spend ceiling is already spent";
+
+	//! The framework declined the create - an invalid config, a missing prefab, a spawn that failed.
+	static const string REFUSAL_FRAMEWORK_DECLINED = "the deployment framework declined to create it";
+
+	//! There is no base to run a supply line from, so there is nowhere to site a forward base between.
+	static const string REFUSAL_NO_SOURCE_BASE = "the occupying faction holds no base to supply it from";
+
+	//! In-game minutes between repeats of the "still cannot afford it" line while the idle clock is held.
+	//!
+	//! ⚠ A HEARTBEAT, NOT A ONE-SHOT, AND NOT PER TICK EITHER. The affordability hold is DESIGNED to
+	//! persist - being broke is not a failure of the objective and the clock is held for as long as it
+	//! lasts - so a one-shot line leaves a reader unable to tell "held, still broke" from "wedged, no
+	//! idea", which is what the play-test could not tell. Sixty in-game minutes is one line per real
+	//! ten minutes at the shipped 6x day multiplier: visible on a scroll-back, invisible as spam.
+	static const int AFFORDABILITY_HEARTBEAT_TICKS = 60;
+
+	//------------------------------------------------------------------------------------------------
 	// THE COUNTER-ATTACK WINDOW (D17)
 	//------------------------------------------------------------------------------------------------
 
@@ -260,22 +299,65 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! band, which is finer than the clearance box the trace tests with.
 	static const int FOB_SITING_STEPS = 8;
 
-	//! Lateral lanes sampled at each step: on the line, then one spread either side of it. Three,
-	//! because a site straight down the supply road is the shortest resupply and should be tried first,
-	//! and the two offsets are what find the field behind the treeline when it is not clear.
-	static const int FOB_SITING_LANES = 3;
+	//! Lateral lanes sampled at each step: on the line, then evenly spaced out to FOB_LATERAL_SPREAD
+	//! either side of it. A site straight down the supply road is the shortest resupply and is lane 0
+	//! so it is tried first; the offsets are what find the field behind the treeline when it is not.
+	//!
+	//! ⚠ RAISED FROM 3 TO 5 (user, 2026-08-19), TOGETHER WITH FOB_LATERAL_SPREAD - "some more room to
+	//! choose a spot". Five lanes at a 400 m spread are 0, +-200, +-400, so the corridor is the same
+	//! width the spread names and the extra pair fills in between rather than extending past it. That is
+	//! a property of OVT_FOBSiting.LateralOffset() rather than of this number: read its header before
+	//! changing either, because the pre-2026-08-19 mapping would have made this 0, +-400, +-800.
+	//!
+	//! ⚠ THIS IS THE KNOB THAT COSTS CANDIDATES, and it costs FOB_SITING_STEPS of them apiece - eight,
+	//! here. Widening the spread relocates lanes; adding one creates a whole new column of samples.
+	static const int FOB_SITING_LANES = 5;
 
-	//! ⚠ THE ATTEMPT BOUND, AND IT IS THE PRODUCT OF THE TWO ABOVE RATHER THAN A NUMBER SOMEBODY LIKED.
-	//! Twenty-four is FOB_SITING_STEPS x FOB_SITING_LANES: the sampler walks a deterministic lattice and
-	//! this is simply how many points are in it. It is a BOUND, not a budget - the search returns on the
-	//! first candidate that passes every hard test, which on open terrain is usually the first or
-	//! second. It is small on purpose: each attempt costs an ocean read, a TraceBox and five surface
-	//! samples, and this runs on the director's once-a-minute tick, where a few hundred attempts would
-	//! be a visible hitch on a dedicated server for a decision that is made once per objective.
+	//! ⚠ THE ATTEMPT COUNT, AND IT IS THE PRODUCT OF THE TWO ABOVE RATHER THAN A NUMBER SOMEBODY LIKED.
+	//! Forty is FOB_SITING_STEPS x FOB_SITING_LANES: the sampler walks a deterministic lattice and this
+	//! is simply how many points are in it.
+	//!
+	//! 🔴 IT IS A BUDGET, NOT A BOUND, AND THIS COMMENT SAID THE OPPOSITE UNTIL 2026-08-19. It claimed
+	//! "the search returns on the first candidate that passes every hard test, which on open terrain is
+	//! usually the first or second". SampleGeneratedFOBSite() does no such thing and never has: it
+	//! evaluates EVERY point and keeps the highest-scoring one, which is the whole reason a site is
+	//! chosen by flatness, elevation and road proximity rather than by lattice order - and the reason
+	//! the log line quotes a score. Every raise pays for all of these, so the number is a real cost.
+	//!
+	//! WHAT ONE ATTEMPT ACTUALLY COSTS, cheapest test first, because most candidates never reach the
+	//! expensive half: a band test (arithmetic), an ocean read, and one loop over the exclusion list -
+	//! and only then, for a survivor, five GetSurfaceY probes, a TraceBox and a nearest-road query.
+	//!
+	//! ⚠ AND IT RUNS ONCE PER OBJECTIVE, WHICH IT DID NOT BEFORE. Until the same day's affordability fix
+	//! this whole lattice ran on EVERY tick of a forward-base phase that could not pay - six times a real
+	//! minute, indefinitely. The pre-flight in SendFOBOperation() now refuses before the search, so the
+	//! forty points are walked once, on the tick that actually raises the base. Sixteen more samples on a
+	//! search that went from ~180 runs per real hour to one is a straight reduction, not a new cost.
 	static const int FOB_SITING_ATTEMPTS = FOB_SITING_STEPS * FOB_SITING_LANES;
 
 	//! How far each lateral lane pushes a sample off the supply line, in metres.
-	static const float FOB_LATERAL_SPREAD = 250;
+	//!
+	//! ⚠ WIDENED FROM 250 TO 400 (user, 2026-08-19) - "some more room to choose a spot". A play-test's
+	//! chosen site was in an OUTER lane at the old 250, which says the centre lane down the supply road
+	//! was rejected there and the sampler was already living on the edge of its own lattice.
+	//!
+	//! ⚠ IT IS A MAXIMUM, NOT A PER-LANE STEP, AND THIS NUMBER ON ITS OWN ADDS NO CANDIDATES. The lattice
+	//! size is FOB_SITING_STEPS x FOB_SITING_LANES; widening the spread relocates the outer lanes rather
+	//! than sampling anywhere new. FOB_SITING_LANES is the knob that adds chances, at FOB_SITING_STEPS
+	//! candidates apiece, and it was raised to 5 in the same change - so the corridor is this wide either
+	//! way and the extra pair of lanes fills it in at +-200 rather than reaching past it. That last part
+	//! is OVT_FOBSiting.LateralOffset()'s doing, not this constant's; read its header before touching
+	//! either.
+	//!
+	//! ⚠ AND IT INTERACTS WITH THE BAND, WHICH IS WHY IT CANNOT GROW WITHOUT LIMIT. A lane offset makes
+	//! a candidate FURTHER from the objective than its step's standoff - sqrt(standoff^2 + offset^2) -
+	//! and EvaluateFOBCandidate() re-tests that distance against the band. Widening therefore costs the
+	//! OUTERMOST lanes their outermost step or two on a long supply line, and on a SHORT one (where the
+	//! band collapses towards FOB_MIN_STANDOFF) it makes them unusable entirely - as 250 already did, so
+	//! this is not a regression. It bites the SAME distance off the line as before, so the lanes it bites
+	//! are still the +-400 pair; the new +-200 pair sits where the old +-250 lanes did and loses less than
+	//! they used to. The centre lane is unaffected at any spread.
+	static const float FOB_LATERAL_SPREAD = 400;
 
 	//! Radius of the four ground probes that judge how level a candidate is, in metres. Slightly wider
 	//! than the structure's own footprint so a site straddling the lip of a ditch is caught.
@@ -381,9 +463,16 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! logged once rather than once per in-game minute.
 	protected bool m_bStarvationLogged;
 
-	//! True once the "the ceiling is spent" line has been logged for the current forward base. Cleared
-	//! whenever the forward-base record is.
-	protected bool m_bCeilingLogged;
+	//! Refusals already said out loud, config half. Parallel to m_aRefusalReasons and never re-ordered:
+	//! index i of one is the same refusal as index i of the other.
+	//!
+	//! ⚠ TWO PARALLEL ARRAYS RATHER THAN ONE COMPOSITE KEY, deliberately. A successful create clears its
+	//! own config's entries and nothing else's (ForgetOperationRefusals), which with a composite key
+	//! would be prefix surgery on a string; with a pair it is an equality test.
+	protected ref array<string> m_aRefusalConfigs;
+
+	//! Refusals already said out loud, reason half. One of the REFUSAL_* constants.
+	protected ref array<string> m_aRefusalReasons;
 
 	//! True once the "waiting for daylight" line has been logged for the current objective.
 	//!
@@ -397,16 +486,22 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! every one of its refusals persists until the objective ends.
 	protected bool m_bCounterAttackRefusalLogged;
 
-	//! True once the "it cannot afford its next operation" line has been logged for the current
-	//! objective.
+	//! Consecutive in-game minutes the idle clock has been HELD because the pool was short.
 	//!
-	//! ⚠ ONCE PER OBJECTIVE, NOT ONCE PER TICK, and it is MANDATORY rather than a nicety. A refused
-	//! create leaves the cadence at zero so the next tick asks again a minute later, which means poverty
-	//! is retried every in-game minute for as long as it lasts - unlatched this would be hundreds of
-	//! identical lines. Latched away entirely it would be what the play-test actually saw: 31 real minutes
-	//! of a director doing nothing with not one line in the log to say why. Cleared with the objective
-	//! record. The RESUME marker is the ordinary "Sent '<config>' ... for N resources" line that follows.
-	protected bool m_bAffordabilityBlockLogged;
+	//! ⚠ A COUNTER, NOT A LATCH, AND THAT IS THE 2026-08-19 CORRECTION. It was a bool: one line per
+	//! objective, then silence for as long as the poverty lasted. A reader could not tell "held, still
+	//! broke" from "wedged, nobody knows" - which is precisely the question the second play-test was left
+	//! asking. The line now repeats every AFFORDABILITY_HEARTBEAT_TICKS and carries the elapsed count and
+	//! the operation being waited for, so the log answers it without being spammed. Zeroed by any
+	//! progress and cleared with the objective record. The RESUME marker is still the ordinary
+	//! "Sent '<config>' ... for N resources" line.
+	protected int m_iAffordabilityHeldTicks;
+
+	//! What the last refused create was trying to buy, and what it cost. Written beside
+	//! m_bBlockedOnAffordability so the heartbeat can name the operation the phase is stuck on rather
+	//! than saying only that something, somewhere, was too dear.
+	protected string m_sBlockedOnConfig;
+	protected int m_iBlockedOnCost;
 
 	//! Set during a tick on which a create was refused because the faction pool was short, and consumed
 	//! by that same tick's idle clock.
@@ -417,6 +512,18 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! a ceiling that is spent is a decision the director made about itself, and a phase that can no
 	//! longer buy anything for that reason SHOULD time out.
 	protected bool m_bBlockedOnAffordability;
+
+	//! True while this component believes it is holding a RESERVE FLOOR on the deployment pool.
+	//!
+	//! ⚠ A CACHE OVER THE FRAMEWORK'S STORE, KEPT ONLY SO THE TOP-OF-TICK DROP IS FREE. DirectorTick()
+	//! clears the floor on every single tick before anything can re-push it (see PushObjectiveReserve()
+	//! for why that is the design and not a bug), and the overwhelming majority of ticks have no floor
+	//! to clear - so this bool turns "resolve two managers and remove from a map, six times a real
+	//! minute, forever" into a bool test. This component is the only thing that ever pushes one.
+	//!
+	//! ⚠ RUNTIME-ONLY AND NOT PERSISTED, like the floor it mirrors. A load starts with it false and the
+	//! store empty, which agree; the framework's own restore empties the store as well.
+	protected bool m_bReserveHeld;
 
 	//! What m_Objective.harassmentSuccesses read the last time the idle clock was re-armed.
 	//!
@@ -505,6 +612,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_FOB = new OVT_ObjectiveFOBRecord();
 		m_aBlacklist = new array<ref OVT_ObjectiveBlacklistEntry>();
 		m_aCreatedDeployments = new array<ref OVT_ObjectiveDeploymentRef>();
+		m_aRefusalConfigs = new array<string>();
+		m_aRefusalReasons = new array<string>();
 
 		ClearObjectiveRecordFields();
 		ClearFOBRecord();
@@ -598,10 +707,22 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!     advances, no operation is sent, and because every timer is a TICK COUNT rather than a
 	//!     deadline (D4), not one of them moves either. There is no catching up to do afterwards
 	//!     because nothing fell behind.
+	//!
+	//! ⚠ AND ONE THING THAT HAPPENS BEFORE ALL THREE OF THEM (D18). The reserve floor is DROPPED on the
+	//! first line and re-earned during the tick, so it is only ever what the most recent COMPLETED tick
+	//! concluded. That ordering is the whole of the "the floor cannot outlive the intent" argument, and
+	//! it costs nothing to reason about because callqueue callbacks do not interleave: the clear and the
+	//! re-push happen inside one synchronous call, and no evaluation pass can run between them. Putting
+	//! it ABOVE the early returns is deliberate as well - a battle starting, a server emptying, or an
+	//! objective machine that stops being ticked at all must each give the pool straight back rather
+	//! than leave routine spending held off by a director that is no longer deciding anything.
 	void DirectorTick()
 	{
 		if (!Replication.IsServer())
 			return;
+
+		// See the note above. Free on every tick that is not holding one - see m_bReserveHeld.
+		DropObjectiveReserve();
 
 		PlayerManager players = GetGame().GetPlayerManager();
 		if (!players || players.GetPlayerCount() == 0)
@@ -749,6 +870,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! whole interval for a condition that may have cleared immediately. That retry is also what makes
 	//! the affordability hold cover a whole poverty spell rather than one tick in forty-five: every
 	//! minute of it reaches the spender and is refused again.
+	//!
+	//! ⚠ THE THREE SENDERS ARE CALLED FROM THE FORWARD-BASE PHASE TOO, since 2026-08-19. This is no
+	//! longer their only caller: SendNextFOBOperation() chains the same three after its own two, so the
+	//! ramp continues while the forward base is up. Nothing here has to know that - the senders are
+	//! phase-agnostic and always were, and the other caller arms the same countdown with the same
+	//! interval - but a change to any of the three now affects both phases.
 	//! \return True when an operation was created and paid for - which is PROGRESS, and re-arms the idle
 	//!         clock.
 	protected bool SendNextOperation()
@@ -909,45 +1036,36 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! ⚠ DEBIT ONLY AFTER A SUCCESSFUL CREATE. A create can be refused (an unregistered config name, a
 	//! missing deployment prefab, a spawn that failed), and debiting a refusal would burn the faction's
 	//! reserve on nothing, every tick, silently.
+	//!
+	//! 🔴 AND EVERY WAY OUT OF HERE THAT IS NOT A CREATE SAYS WHY (2026-08-19). Two of the four used to
+	//! say nothing at all and a third said it once per objective; the phase machine retries a refusal
+	//! every in-game minute forever, so silence here is a director that appears to have stopped. See the
+	//! REFUSAL_* constants for the play-test that produced this rule, and CanSendObjectiveDeployment()
+	//! for the three refusals a caller may ask about BEFORE it does any work.
 	//! \param[in] deployments The deployment framework.
 	//! \param[in] configName The registered config to run.
 	//! \param[in] position Where to put it.
 	//! \param[in] factionIndex The occupying faction.
+	//! \param[in] yaw Which way the deployment marker faces. DEFAULTS TO UNROTATED, which is what every
+	//!            operation but the forward base wants: a harassment, recapture or sabotage marker is a
+	//!            point on the map and has no front. Only the forward base passes one, because only the
+	//!            forward base builds something with a front (see SendFOBOperation).
 	//! \return True when a deployment was created and the pool debited for it.
-	protected bool CreateObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, vector position, int factionIndex)
+	protected bool CreateObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, vector position, int factionIndex, float yaw = 0)
 	{
-		OVT_DeploymentConfig config = deployments.FindConfigByName(configName);
+		int cost;
+		OVT_DeploymentConfig config = CanSendObjectiveDeployment(deployments, configName, factionIndex, cost);
 		if (!config)
-		{
-			Print(LOG + "No deployment config named '" + configName + "' is registered - the operation cannot be sent", LogLevel.WARNING);
-			return false;
-		}
-
-		int cost = config.GetTotalResourceCost();
-
-		// ⚠ THE ONE REFUSAL THAT IS NOT THE OBJECTIVE'S FAULT, AND THE ONLY ONE THAT RAISES THE FLAG.
-		// Being broke is a fact about the FACTION, and abandoning this objective for it would find the
-		// next one exactly as unaffordable - which is the treadmill a play-test walked for 31 real
-		// minutes. The flag holds this tick's idle clock; see TickObjectiveIdleClock(). Every other
-		// refusal below (a missing config, the forward base's own spend ceiling, a create the framework
-		// declined) is either a fault to be fixed or a decision the director made about itself, and a
-		// phase that can only ever hit one of those SHOULD time out.
-		if (deployments.GetFactionResources(factionIndex) < cost)
-		{
-			m_bBlockedOnAffordability = true;
-			return false;
-		}
-
-		// ⚠ TWO TESTS, NOT ONE, AND THEY ASK DIFFERENT QUESTIONS. The pool test is "can the faction
-		// afford this at all"; the ceiling test is "has this forward base already had its share". The
-		// second is inactive during harassment, so Phase 1 behaves exactly as it did before the forward
-		// base existed. See WithinFOBBudget() for why neither of them moves any money.
-		if (!WithinFOBBudget(cost))
 			return false;
 
-		OVT_DeploymentComponent created = deployments.ForceCreateDeployment(config, position, factionIndex, cost, 0);
+		OVT_DeploymentComponent created = deployments.ForceCreateDeployment(config, position, factionIndex, cost, 0, yaw);
 		if (!created)
+		{
+			// A fault, not a decision: an invalid config, a missing deployment prefab, a spawn the world
+			// refused. ERROR rather than WARNING because nothing about it will clear on its own.
+			LogOperationRefusal(configName, REFUSAL_FRAMEWORK_DECLINED, "at " + position.ToString(), LogLevel.ERROR);
 			return false;
+		}
 
 		// ⚠ THE LINE THE WHOLE ACCOUNTING IDENTITY RESTS ON. See the header.
 		deployments.SubtractFactionResources(factionIndex, cost);
@@ -957,9 +1075,216 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		TrackObjectiveDeployment(configName, position);
 
+		// The RESUME marker. Whatever stopped this config being bought has cleared, so the ledger forgets
+		// its refusals and a later one - the same reason or a different one - is heard again rather than
+		// swallowed by a latch set an hour ago.
+		ForgetOperationRefusals(configName);
+
 		Print(LOG + "Sent '" + configName + "' at " + position.ToString() + " for " + cost.ToString() + " resources", LogLevel.NORMAL);
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! EVERY REASON THE DIRECTOR MAY NOT BUY THIS OPERATION RIGHT NOW, ASKED IN ONE PLACE AND ANSWERED
+	//! OUT LOUD. Lifted out of CreateObjectiveDeployment() so a caller with expensive preparation to do
+	//! can ask BEFORE it does it - see SendFOBOperation(), which used to run the whole FOB_SITING_ATTEMPTS
+	//! point terrain search, log a site, and only then discover the faction was twenty resources short. Every in-game
+	//! minute. Forever.
+	//!
+	//! ⚠ THE THREE REFUSALS ARE ORDERED CHEAPEST-QUESTION-FIRST and each is latched on its own (config,
+	//! reason) pair, so the pool being short on a sabotage team in Phase 1 can never silence the pool
+	//! being short on a forward base in Phase 2. That masking is the defect this method exists for.
+	//!
+	//! ⚠ IT MOVES NO MONEY AND CREATES NOTHING. It reads the pool, it reads the ceiling, and it writes
+	//! only the per-tick affordability flag and the refusal ledger. Asking twice in one tick is harmless
+	//! (the second ask is silent - the latch is already set) and is exactly what SendFOBOperation() does.
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] configName The registered config the caller wants to run.
+	//! \param[in] factionIndex The occupying faction.
+	//! \param[out] cost What it would cost. Zero when this returns null.
+	//! \return The config to hand to ForceCreateDeployment(), or null when it may not be bought now.
+	protected OVT_DeploymentConfig CanSendObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, int factionIndex, out int cost)
+	{
+		cost = 0;
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(configName);
+		if (!config)
+		{
+			// ⚠ A FAULT, AND THE RAMP STOPS DEAD ON IT. A rung renamed in overthrowDeployments.conf and
+			// not in HARASSMENT_LADDER lands here every in-game minute for the rest of the campaign.
+			LogOperationRefusal(configName, REFUSAL_UNREGISTERED, "check overthrowDeployments.conf against the director's config-name constants", LogLevel.ERROR);
+			return null;
+		}
+
+		cost = config.GetTotalResourceCost();
+
+		// ⚠ THE ONE REFUSAL THAT IS NOT THE OBJECTIVE'S FAULT, AND THE ONLY ONE THAT RAISES THE FLAG.
+		// Being broke is a fact about the FACTION, and abandoning this objective for it would find the
+		// next one exactly as unaffordable - which is the treadmill a play-test walked for 31 real
+		// minutes. The flag holds this tick's idle clock; see TickObjectiveIdleClock(). The other two
+		// refusals here are either a fault to be fixed or a decision the director made about itself, and
+		// a phase that can only ever hit one of those SHOULD time out.
+		int pool = deployments.GetFactionResources(factionIndex);
+		if (pool < cost)
+		{
+			m_bBlockedOnAffordability = true;
+
+			// Named and priced, so the heartbeat below can say WHAT the phase is waiting to buy.
+			m_sBlockedOnConfig = configName;
+			m_iBlockedOnCost = cost;
+
+			// 🔴 AND THE RESERVE FLOOR, WHICH IS WHAT MAKES THE WAIT FINITE (D18). Without it the
+			// routine evaluator drains every six-hourly credit within 30 seconds of its landing and the
+			// pool never reaches this price - the play-test sat at 20 against a 120-cost forward base
+			// indefinitely. The floor is exactly this cost, is asserted only for as long as this ask
+			// keeps being refused, and governs nothing this component itself buys. See
+			// PushObjectiveReserve() for how it lapses on every teardown path.
+			PushObjectiveReserve(configName, cost);
+
+			LogOperationRefusal(configName, REFUSAL_POOL_SHORT, "it costs " + cost.ToString() + " and the pool holds " + pool.ToString(), LogLevel.WARNING);
+
+			cost = 0;
+			return null;
+		}
+
+		// ⚠ TWO TESTS, NOT ONE, AND THEY ASK DIFFERENT QUESTIONS. The pool test is "can the faction
+		// afford this at all"; the ceiling test is "has this forward base already had its share".
+		//
+		// ⚠ THE CEILING IS KEYED ON THE PHASE, NEVER ON WHICH OPERATION IS ASKING. It is inactive for the
+		// whole of harassment, so Phase 1 spends against the pool alone exactly as it did before the
+		// forward base existed - and it is active for the whole of the forward-base phase, INCLUDING the
+		// Phase 1 ramp operations that now continue into it (2026-08-19). That is what makes §3.2's
+		// "spending against a CEILING inside the deployment pool" true of the ramp without a second rule
+		// anywhere. See WithinFOBBudget() for why neither of them moves any money.
+		if (!WithinFOBBudget(configName, cost))
+		{
+			cost = 0;
+			return null;
+		}
+
+		return config;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHETHER TWO REFUSALS ARE THE SAME ENTRY IN THE LEDGER, and therefore whether the second one is
+	//! silenced by the first.
+	//!
+	//! 🔴 THE WHOLE CORRECTION IS IN THIS ONE PREDICATE, WHICH IS WHY IT IS A PURE STATIC AND NOT AN
+	//! INLINE `&&`. The latch it replaced was keyed on the OBJECTIVE, so "the pool is short" said about a
+	//! sabotage team in Phase 1 silenced "the pool is short" said about a forward base in Phase 2, twelve
+	//! in-game hours later - and a five-minute play-test loop had no explanation anywhere in the log.
+	//! Keyed on the pair, only a genuinely identical repeat is silenced.
+	//!
+	//! ⚠ IT IS DELIBERATELY ASSERTABLE WITH NO WORLD, NO DIRECTOR AND NO CAMPAIGN, on the precedent every
+	//! other decision in this machine follows: the arithmetic and the predicates are separable from the
+	//! looking-up. See OVT_TEST_Init_ObjectiveDirector's refusal-key case.
+	//! \param[in] configA First refusal's operation.
+	//! \param[in] reasonA First refusal's reason.
+	//! \param[in] configB Second refusal's operation.
+	//! \param[in] reasonB Second refusal's reason.
+	//! \return True only when both halves match - so a different operation, or a different reason for the
+	//!         same operation, is a new entry that gets its own line.
+	static bool IsSameRefusal(string configA, string reasonA, string configB, string reasonB)
+	{
+		if (configA != configB)
+			return false;
+
+		return reasonA == reasonB;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says ONCE, per objective AND per (config, reason), why an operation could not be sent.
+	//!
+	//! 🔴 THE KEY IS THE PAIR, AND A COARSER KEY IS WHAT THE 2026-08-19 PLAY-TEST CAUGHT. The forward-base
+	//! phase re-sited the same point every ten seconds for five real minutes with nothing in the log: the
+	//! create was refused for want of resources, and the only affordability line in the component was
+	//! latched once per OBJECTIVE and had already been spent twelve minutes earlier, in the previous
+	//! phase, on a sabotage operation. A latch keyed on the objective does not quieten a log - it hides
+	//! the second fault behind the first.
+	//!
+	//! ⚠ LATCHED AT ALL BECAUSE EVERY REFUSAL IS RETRIED EVERY IN-GAME MINUTE. A refused create leaves
+	//! the cadence at zero on purpose (see SendNextOperation), so an unlatched line is hundreds of
+	//! identical entries. The ledger is cleared when the objective ends and when the same config is
+	//! successfully bought - never on any other schedule.
+	//! \param[in] configName The operation that could not be sent.
+	//! \param[in] reason One of the REFUSAL_* constants, and the second half of the latch key.
+	//! \param[in] detail Numbers or advice for a reader. May be empty.
+	//! \param[in] level What kind of entry this is.
+	protected void LogOperationRefusal(string configName, string reason, string detail, LogLevel level)
+	{
+		if (!m_aRefusalConfigs || !m_aRefusalReasons)
+			return;
+
+		for (int i = 0; i < m_aRefusalConfigs.Count(); i++)
+		{
+			if (IsSameRefusal(m_aRefusalConfigs[i], m_aRefusalReasons[i], configName, reason))
+				return;
+		}
+
+		m_aRefusalConfigs.Insert(configName);
+		m_aRefusalReasons.Insert(reason);
+
+		string line = LOG + "Objective '" + m_Objective.name + "' could not send '" + configName + "': " + reason;
+
+		if (detail != "")
+			line = line + " (" + detail + ")";
+
+		Print(line + ". It will keep asking every in-game minute; this line repeats only if the reason changes or the operation is bought and then refused again", level);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Forgets every refusal recorded against one config, so the next one is heard.
+	//!
+	//! ⚠ WALKED BACKWARDS. Both arrays are index-parallel and Remove() shifts everything after the hole,
+	//! so a forward loop would step over the entry that moved into the gap.
+	//! \param[in] configName The config whose refusals are no longer true.
+	protected void ForgetOperationRefusals(string configName)
+	{
+		if (!m_aRefusalConfigs || !m_aRefusalReasons)
+			return;
+
+		for (int i = m_aRefusalConfigs.Count() - 1; i >= 0; i--)
+		{
+			if (m_aRefusalConfigs[i] != configName)
+				continue;
+
+			m_aRefusalConfigs.Remove(i);
+			m_aRefusalReasons.Remove(i);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many refusals are currently latched. Public so a running campaign can be interrogated about
+	//! why its ramp is quiet without reading the log back; the KEYING itself is asserted through the pure
+	//! IsSameRefusal() predicate rather than by driving this ledger.
+	//! \return The ledger's size.
+	int GetLoggedRefusalCount()
+	{
+		if (!m_aRefusalConfigs)
+			return 0;
+
+		return m_aRefusalConfigs.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether one particular refusal has already been said out loud for this objective. Public for the
+	//! same reason the count is.
+	//! \param[in] configName The operation.
+	//! \param[in] reason One of the REFUSAL_* constants.
+	//! \return True when that exact pair is latched.
+	bool HasLoggedRefusal(string configName, string reason)
+	{
+		if (!m_aRefusalConfigs || !m_aRefusalReasons)
+			return false;
+
+		for (int i = 0; i < m_aRefusalConfigs.Count(); i++)
+		{
+			if (m_aRefusalConfigs[i] == configName && m_aRefusalReasons[i] == reason)
+				return true;
+		}
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1241,13 +1566,26 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! against itself must not be spent on a block that is not the objective's fault. The affordability
 	//! hold below is that same argument applied to an empty pool.
 	//!
-	//! ⚠ PHASE 1 OPERATIONS DO NOT CONTINUE INTO THIS PHASE, and that is a deliberate deferral rather
-	//! than an oversight. §3.2's diagram has the forward base becoming the insertion source for further
-	//! harassment; every Phase 1 config authors OVT_ObjectiveConditionDeploymentModule with
-	//! m_iRequiredPhase 1, so those deployments are collected the moment the ramp advances, and changing
-	//! that is a Phase 5 contract with initialisation cases pinned to it. What DOES launch from the
-	//! forward base is its own garrison, through OVT_ObjectiveAnchorSourceProvider - which is the seam
-	//! any later phase needs to make the rest of it true.
+	//! 🔴 PHASE 1 OPERATIONS DO CONTINUE INTO THIS PHASE, AND THE DEFERRAL THAT SAID OTHERWISE WAS A
+	//! DEADLOCK (2026-08-19). This header used to record "Phase 1 operations do not continue into this
+	//! phase" as a deliberate deferral. A play-test proved it load-bearing: BasePhase2Gate() promotes a
+	//! base objective on its FIRST completed sabotage mission and BasePhase3Gate() demands six of them on
+	//! Easy, so the promotion itself made the remaining five unsendable - the counter froze at one and
+	//! the counter-attack, the headline promise of the whole feature, was unreachable. Towns deadlocked
+	//! identically: the stacking support debuff that drives support under 25 % is applied by harassment
+	//! operations, so it stopped stacking, timed out, and support recovered. §3.2's diagram always said
+	//! the forward base "becomes the insertion source for FURTHER Phase 1 operations, spending against a
+	//! CEILING inside the deployment pool"; that is now what happens. See SendNextFOBOperation() for the
+	//! chain and OVT_ObjectivePhaseRules.PhaseInRange() for how a config says which phases it spans.
+	//!
+	//! ⚠ AND THE BACKSTOP STILL WORKS, WHICH IS THE ONE THING THE CONTINUATION COULD HAVE COST. A ramp
+	//! operation IS an in-flight operation (IsObjectiveOperationConfig()) and therefore HOLDS the idle
+	//! clock while its men are walking - so the question "can this phase still time out" has to be
+	//! answered rather than assumed. It can: the ceiling is finite, every operation either completes or
+	//! dies, and a forward base that has spent its whole ceiling creates nothing, holds nothing and runs
+	//! the clock down to a reset exactly as before. What is NOT new is a mission that can never finish
+	//! and never dies holding the clock open - the harassment phase has always had that shape, with the
+	//! same senders and the same behaviour modules.
 	protected void TickFOB()
 	{
 		int gate = EvaluateCounterAttackGate();
@@ -1554,15 +1892,40 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Sends ONE forward-base operation, and re-arms the cadence only if one was actually sent.
 	//!
-	//! THE BASE BEFORE ITS GARRISON, because there is nothing to garrison until the flag is up and the
-	//! garrison's own source provider resolves to the forward base only once it is standing. Both
-	//! refuse on their first line when it is not their turn, so the order they are asked in is the only
+	//! THE BASE, THEN ITS GARRISON, THEN THE RAMP - five senders chained, at most one of which may
+	//! answer, and the order is a priority rather than a sequence:
+	//!   1. THE FORWARD BASE ITSELF. Nothing else in this phase means anything until the flag is up, and
+	//!      the garrison's own source provider resolves to the forward base only once it is standing.
+	//!   2. ITS GARRISON, up to objectiveFOBGarrisonMax. A base that cannot hold itself is a base the
+	//!      resistance starves on the next tick, and starvation ends the objective outright.
+	//!   3-5. THE PHASE 1 RAMP - tower recapture, harassment, sabotage - in the same order and through
+	//!      the same senders TickHarassment() uses. This is what makes the counter-attack reachable:
+	//!      see TickFOB()'s header for the deadlock that not doing it caused.
+	//! Every one of them refuses on its first line when it is not its turn, so the order is the only
 	//! sequencing this phase needs.
 	//!
+	//! ⚠ THE ORDER IS A PRIORITY IN ONE MORE SENSE SINCE 2026-08-20: when the forward base is refused
+	//! FOR MONEY, the chain stops there rather than falling through to a cheaper ramp operation that
+	//! would spend the pool the base is saving toward. See the block at that return - it is the fix for
+	//! a livelock the author play-tested, not a tidy-up.
+	//!
+	//! ⚠ IT IS THE SAME ONE-OPERATION-PER-INTERVAL SPENDER, WIDENED, NOT A SECOND ONE. The chain is `&&`
+	//! of refusals, so exactly one create can happen per call and the countdown below is armed once. A
+	//! separate ramp spender beside this one would reopen the unbounded-per-tick hole tower recapture was
+	//! moved out of in TickHarassment(), and would do it in the phase that also has a spend CEILING to
+	//! respect.
+	//!
+	//! ⚠ THE CEILING AND THE RESERVE FLOOR ARE NOT RE-IMPLEMENTED HERE AND MUST NOT BE. Every one of the
+	//! five goes through CreateObjectiveDeployment() -> CanSendObjectiveDeployment(), which asks the pool,
+	//! pushes the reserve floor when it is short, and refuses past the forward base's ceiling - and the
+	//! ceiling is ARMED for the whole of this phase (IsFOBBudgetActive()), so §3.2's "spending against a
+	//! CEILING inside the deployment pool" is true of the ramp operations by construction rather than by
+	//! a rule anybody has to apply here.
+	//!
 	//! ⚠ THE COUNTDOWN IS ONLY RE-ARMED ON A SUCCESSFUL CREATE, exactly as in harassment. Every refusal
-	//! - no site, the pool is short, the ceiling is spent, the garrison is full - leaves nextOpTicks at
-	//! zero so the next tick asks again a minute later instead of waiting out a whole interval for a
-	//! condition that may have cleared immediately.
+	//! - no site, the pool is short, the ceiling is spent, the garrison is full, nothing left to sabotage
+	//! - leaves nextOpTicks at zero so the next tick asks again a minute later instead of waiting out a
+	//! whole interval for a condition that may have cleared immediately.
 	//! \return True when an operation was created and paid for - which is PROGRESS, and re-arms the idle
 	//!         clock.
 	protected bool SendNextFOBOperation()
@@ -1571,7 +1934,46 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (!difficulty)
 			return false;
 
-		if (!SendFOBOperation() && !SendFOBGarrisonOperation())
+		if (SendFOBOperation())
+		{
+			SetOperationCountdown(difficulty.objectiveHarassmentIntervalMinutes);
+			return true;
+		}
+
+		// 🔴 THE FORWARD BASE HAS FIRST CLAIM ON THE POOL, AND WITHOUT THIS THE PHASE LIVELOCKS.
+		//
+		// Play-test, 2026-08-20: a base objective was promoted to this phase, the forward base was
+		// refused at 120 against a pool of 56, the chain fell through to sabotage at 100 - and from then
+		// on the faction bought a sabotage mission every time the pool passed 100 and NEVER reached the
+		// 120 the base costs. No forward base, no supply party, and Phase 1 operations running in Phase 2
+		// forever. The author's report was exactly that: "I dont see one or a team going to put one up,
+		// and now the director is calling for sabotage in phase 2".
+		//
+		// TWO THINGS WERE WRONG AND THIS ONE RETURN FIXES BOTH:
+		//   - THE RESERVE FLOOR NAMED THE WRONG OPERATION. Every affordability refusal pushes the floor
+		//     (CanSendObjectiveDeployment), so the LAST refusal in the chain overwrote the first: the
+		//     faction was saving up 100 for sabotage while the thing the phase exists for cost 120. The
+		//     log said so plainly - "held to 0 of 56 because 100 is reserved for 'Objective Sabotage'".
+		//   - AND THE FLOOR ALONE WOULD NOT HAVE BEEN ENOUGH, because it deliberately does not govern
+		//     this component's own spending (see PushObjectiveReserve) - the sabotage sender reads the
+		//     RAW pool and would still have taken the money at 100 on its way past 120.
+		// Returning here leaves the FIRST refusal's floor standing and spends nothing below it, so the
+		// pool actually accumulates to the forward base's price.
+		//
+		// ⚠ ONLY AN AFFORDABILITY REFUSAL HOLDS THE CHAIN, AND THAT IS THE WHOLE SAFETY ARGUMENT. Every
+		// other reason SendFOBOperation() answers false - no source base, no site, a supply party already
+		// on the road, the base already standing - leaves m_bBlockedOnAffordability false and falls
+		// through to the ramp exactly as before. So this cannot re-create the deadlock TickFOB()'s header
+		// describes: that one was Phase 1 operations stopping PERMANENTLY, and this is them pausing while
+		// the faction saves up for a ONE-TIME purchase it can always eventually afford.
+		//
+		// ⚠ AND THE IDLE CLOCK IS HELD, NOT SPENT, because m_bBlockedOnAffordability is still true when
+		// TickObjectiveIdleClock() reads it. Being broke is not a failure of the objective - the same
+		// rule the harassment phase already applies - so the phase does not time out while it waits.
+		if (m_bBlockedOnAffordability && !m_FOB.up && !m_bFOBDeploymentSent)
+			return false;
+
+		if (!SendFOBGarrisonOperation() && !SendTowerRecaptureOperation() && !SendHarassmentOperation() && !SendSabotageOperation())
 			return false;
 
 		SetOperationCountdown(difficulty.objectiveHarassmentIntervalMinutes);
@@ -1582,11 +1984,20 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Sends the supply truck that raises the forward operating base, once per objective.
 	//!
-	//! ⚠ IT ARMS THE CEILING BEFORE THE CREATE AND DISARMS IT AGAIN ON FAILURE. m_bFOBDeploymentSent is
-	//! what makes IsFOBBudgetActive() true, and the ceiling has to already be active when the forward
-	//! base's OWN cost is checked and counted - §3.7 is explicit that the budget covers "the structure
-	//! itself". A create that is refused must leave the flag down, or the phase would believe a base was
-	//! on its way and never send another.
+	//! ⚠ IT ARMS THE CEILING BEFORE IT ASKS WHETHER IT MAY BUY ANYTHING, AND DISARMS IT AGAIN ON EVERY
+	//! FAILURE EXIT. m_bFOBDeploymentSent is what makes IsFOBBudgetActive() true, and the ceiling has to
+	//! already be active when the forward base's OWN cost is checked and counted - §3.7 is explicit that
+	//! the budget covers "the structure itself". A refusal must leave the flag down, or the phase would
+	//! believe a base was on its way and never send another. There are FOUR such exits below (the
+	//! pre-flight, no source base, no site, the create itself) and every one of them clears it.
+	//!
+	//! 🔴 THE PRE-FLIGHT COMES BEFORE THE SITING, AND THAT ORDER IS A BUG FIX (2026-08-19). It used to
+	//! site first: a play-test with twenty resources in the pool ran the full FOB_SITING_ATTEMPTS lattice -
+	//! an ocean read, a TraceBox and five surface samples each - resolved the same deterministic site,
+	//! printed the same "sited at" line, and only then discovered it could not afford the 120 the base
+	//! costs. Every ten seconds. Indefinitely, because the affordability hold means the phase never times
+	//! out. Asking the cheap question first makes a poverty spell in this phase cost exactly what one in
+	//! the harassment phase costs: one map lookup and nothing else.
 	//! \return True when a deployment was created and paid for.
 	protected bool SendFOBOperation()
 	{
@@ -1632,28 +2043,52 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			return false;
 		}
 
+		// THE CEILING IS ARMED FROM HERE TO THE END OF THE METHOD. See the header.
+		m_bFOBDeploymentSent = true;
+
+		// 🔴 THE CHEAP QUESTION FIRST. Nothing below this line is worth doing if the faction cannot pay
+		// for the base, and everything below it is expensive, noisy or both.
+		int preflightCost;
+		if (!CanSendObjectiveDeployment(deployments, FOB_CONFIG, occupyingIndex, preflightCost))
+		{
+			m_bFOBDeploymentSent = false;
+			return false;
+		}
+
 		vector source;
 		if (!ResolveFOBSourceBase(occupyingIndex, source))
 		{
-			Print(LOG + "Objective '" + m_Objective.name + "' cannot raise a forward base: the occupying faction holds no base to supply one from", LogLevel.WARNING);
+			m_bFOBDeploymentSent = false;
+
+			// Latched with the rest: it is re-asked every in-game minute and stays true until the faction
+			// takes a base back, which the campaign log will say on its own.
+			LogOperationRefusal(FOB_CONFIG, REFUSAL_NO_SOURCE_BASE, "there is no supply line to site one along", LogLevel.WARNING);
 			return false;
 		}
 
 		vector site;
-		if (!ResolveFOBSite(source, m_Objective.position, site))
+		float siteYaw;
+		if (!ResolveFOBSite(source, m_Objective.position, site, siteYaw))
 		{
 			// ⚠ NOT A RETRY. The band, the exclusions and the terrain do not change from one in-game
 			// minute to the next, so an objective with nowhere to put a forward base has nowhere to put
 			// one for as long as it is the objective. It sits out a selection round and something else
 			// gets picked - T7.4.
+			//
+			// ⚠ THE FLAG IS DROPPED BEFORE THE RESET, not after: TearDownFOB() reads it to decide whether
+			// there is anything to sweep, and nothing was ever sent.
+			m_bFOBDeploymentSent = false;
+
 			Print(LOG + "Objective '" + m_Objective.name + "' has nowhere to put a forward base: " + FOB_SITING_ATTEMPTS.ToString() + " generated candidate(s) and every authored site in the band were rejected. Abandoning it for one selection round", LogLevel.WARNING);
 			ResetObjective("no forward-base site could be found anywhere in its band", true);
 			return false;
 		}
 
-		m_bFOBDeploymentSent = true;
-
-		if (!CreateObjectiveDeployment(deployments, FOB_CONFIG, site, occupyingIndex))
+		// ⚠ THE FACING GOES ON THE DEPLOYMENT MARKER, WHICH IS HOW IT REACHES THE RAISE. The raise module
+		// already takes its position from m_ParentDeployment; taking the heading from the same object is
+		// the one arrangement in which the two can never disagree, and it needs no lookup back into this
+		// component from inside a deployment module. See OVT_DeploymentManagerComponent.CreateDeployment.
+		if (!CreateObjectiveDeployment(deployments, FOB_CONFIG, site, occupyingIndex, siteYaw))
 		{
 			m_bFOBDeploymentSent = false;
 			return false;
@@ -1807,34 +2242,54 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! faction's intent; a forward base that lands somewhere different every time the same campaign
 	//! reaches the same state is the unpredictability being retired. It also means a bad placement is a
 	//! reproducible tuning question rather than a roll.
+	//! ⚠ A SITE IS A POSITION AND A FACING, AND THE FACING TRAVELS WITH IT FROM HERE TO THE SPAWN
+	//! TRANSFORM. It did not until 2026-08-19: nothing in this chain read a heading, the raise spawned
+	//! with an identity rotation, and every forward base in the campaign - authored or generated - stood
+	//! unrotated. A map author's OVT_FOBPosition arrow was simply not consulted. The two branches answer
+	//! the heading differently and both answers are deliberate; see each of them.
 	//! \param[in] source Where the supply line starts - the nearest base the faction holds.
 	//! \param[in] objective Where it is going.
 	//! \param[out] site The chosen position, written only when this returns true.
+	//! \param[out] yaw Which way the structure faces there, in the Math3D.AnglesToMatrix frame.
 	//! \return False when nothing in the band qualifies.
-	protected bool ResolveFOBSite(vector source, vector objective, out vector site)
+	protected bool ResolveFOBSite(vector source, vector objective, out vector site, out float yaw)
 	{
 		site = vector.Zero;
+		yaw = OVT_FOBSiting.NO_FACING;
 
 		array<vector> exclusions = new array<vector>();
 		array<float> radii = new array<float>();
 		CollectFOBExclusions(exclusions, radii);
 
 		float bestScore = 0;
-		bool found = SampleGeneratedFOBSite(source, objective, exclusions, radii, site, bestScore);
+		bool found = SampleGeneratedFOBSite(source, objective, exclusions, radii, site, bestScore, yaw);
 
 		vector authored;
 		float authoredScore = 0;
-		if (FindAuthoredFOBSite(source, objective, exclusions, radii, authored, authoredScore))
+		float authoredYaw = OVT_FOBSiting.NO_FACING;
+		if (FindAuthoredFOBSite(source, objective, exclusions, radii, authored, authoredScore, authoredYaw))
 		{
+			// ⚠ THE FACING IS TAKEN OVER WITH THE POSITION, IN THE SAME BREATH. Keeping the generated
+			// heading here would point an authored base wherever the sampler's best guess happened to
+			// look, which is the one thing a marker exists to override.
 			site = authored;
+			yaw = authoredYaw;
 
-			Print(LOG + "Forward base for objective '" + m_Objective.name + "' will use an authored site at " + authored.ToString(), LogLevel.NORMAL);
+			// Rounded through an int the way every other bearing and distance in this component is:
+			// Math.Round answers a float, and a float's ToString puts six decimal places in the log line.
+			int authoredFacing = Math.Round(yaw);
+
+			Print(LOG + "Forward base for objective '" + m_Objective.name + "' will use an authored site at " + authored.ToString() + " facing " + authoredFacing.ToString() + " deg (the marker's own)", LogLevel.NORMAL);
 
 			return true;
 		}
 
 		if (found)
-			Print(LOG + "Forward base for objective '" + m_Objective.name + "' sited at " + site.ToString() + " (generated, score " + bestScore.ToString() + ")", LogLevel.NORMAL);
+		{
+			int generatedFacing = Math.Round(yaw);
+
+			Print(LOG + "Forward base for objective '" + m_Objective.name + "' sited at " + site.ToString() + " facing " + generatedFacing.ToString() + " deg towards the objective (generated, score " + bestScore.ToString() + ")", LogLevel.NORMAL);
+		}
 
 		return found;
 	}
@@ -1932,13 +2387,23 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \param[in] objective Where it is going.
 	//! \param[in] exclusions Places to stay clear of.
 	//! \param[in] radii How far from each, same order.
+	//! ⚠ A GENERATED SITE FACES ITS OBJECTIVE, AND THAT IS A DECISION RATHER THAN A DEFAULT. There is no
+	//! author to ask, so the only readable answer is the one the base exists for: a forward base looking
+	//! at the thing it was sent to advance on puts the shipped prefab's hedgehogs and wire between the
+	//! flag and the town, and a player who finds it can tell at a glance which way it is pointed. It is
+	//! also DERIVED FROM TWO POSITIONS, so it is as deterministic as the site itself - which the whole
+	//! siting design is built on - and assertable in the cheapest tier. The alternative that was NOT
+	//! chosen is "face back along the supply line": the same axis in most bands, but reversed, and it
+	//! would put the base's back to the fight in every one of them.
 	//! \param[out] best The best candidate found.
 	//! \param[out] bestScore Its score.
+	//! \param[out] bestYaw The heading that faces the objective from `best`.
 	//! \return False when no candidate passed.
-	protected bool SampleGeneratedFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore)
+	protected bool SampleGeneratedFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore, out float bestYaw)
 	{
 		best = vector.Zero;
 		bestScore = 0;
+		bestYaw = OVT_FOBSiting.NO_FACING;
 
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
@@ -1993,6 +2458,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			found = true;
 			bestScore = score;
 			best = accepted;
+
+			// Measured from the ACCEPTED point rather than from the raw lattice candidate. They differ
+			// only in height today, which a flat heading discards - but the accepted point is the one the
+			// structure is actually put on, and deriving the facing from anything else is how the two
+			// would quietly drift apart if the clamp ever moved a candidate sideways.
+			bestYaw = OVT_FOBSiting.FacingYaw(accepted, objective);
 		}
 
 		return found;
@@ -2009,13 +2480,23 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \param[in] objective Where it is going.
 	//! \param[in] exclusions Places to stay clear of.
 	//! \param[in] radii How far from each, same order.
+	//! ⚠ AN AUTHORED SITE USES THE MARKER'S OWN FACING, WHICH IS THE HALF OF A MARKER THAT WAS BEING
+	//! THROWN AWAY. OVT_FOBPosition draws a Workbench arrow along its transform[2] precisely so an author
+	//! can aim the base, and until 2026-08-19 nothing read it - the arrow was decoration. It is read as
+	//! GetYawPitchRoll()[0] and NOT as GetAngles()[0]: the two engine angle APIs use different orders
+	//! (see OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation), GetAngles() puts PITCH in slot 0,
+	//! and the shipped Eden marker is authored "angles 0 44.43 0" - so the wrong read would answer 0 on
+	//! it and look exactly like the bug being fixed. Pitch and roll are dropped by the shared helper at
+	//! the spawn: a marker with a few degrees of terrain tilt must not lean the structure.
 	//! \param[out] best The best marker found.
 	//! \param[out] bestScore Its score.
+	//! \param[out] bestYaw That marker's own heading.
 	//! \return False when no marker qualifies.
-	protected bool FindAuthoredFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore)
+	protected bool FindAuthoredFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore, out float bestYaw)
 	{
 		best = vector.Zero;
 		bestScore = 0;
+		bestYaw = OVT_FOBSiting.NO_FACING;
 
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
@@ -2059,6 +2540,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			found = true;
 			bestScore = score;
 			best = accepted;
+			bestYaw = marker.GetYawPitchRoll()[0];
 		}
 
 		m_aFoundFOBMarkers = null;
@@ -2505,7 +2987,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_bFOBDeploymentSent = false;
 		m_vFOBSite = vector.Zero;
 		m_bStarvationLogged = false;
-		m_bCeilingLogged = false;
+
+		// ⚠ THE CEILING'S OWN "already said" LATCH IS NO LONGER HERE. It is one entry in the (config,
+		// reason) refusal ledger now, which is cleared with the OBJECTIVE record rather than with the
+		// forward-base record - and correctly so: every path that tears a forward base down ends the
+		// objective too (see TearDownFOB), so the two clears happen in the same breath, while a ledger
+		// tied to the FOB record alone would be silently reset by a teardown that kept the objective.
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2789,9 +3276,17 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! ⚠ THE PROSPECTIVE SPEND IS ADDED BEFORE THE TEST, because OVT_ObjectivePhaseRules.WithinFOBCeiling
 	//! asks "would this total take me past the ceiling" and is inclusive at it. Its two-argument
 	//! signature is pinned by Phase 2's logic cases and is deliberately not widened here.
+	//!
+	//! ⚠ THE CEILING MUST BE ABLE TO COVER THE FORWARD BASE ITSELF, and that is an authored-data
+	//! invariant rather than something this method can enforce: the ceiling is objectiveFOBCost x
+	//! FOB_CEILING_MULTIPLIER while the base's own price is Deployment_ObjectiveFOB's total resource
+	//! cost, and the two are authored in different files. Misauthored the wrong way round, the very first
+	//! spend of the phase is refused and the phase can never make progress - an initialisation case pins
+	//! it across all five shipped presets for exactly that reason.
+	//! \param[in] configName What is being bought, for the refusal ledger's latch key.
 	//! \param[in] cost What is about to be spent.
 	//! \return True when the spend is permitted.
-	protected bool WithinFOBBudget(int cost)
+	protected bool WithinFOBBudget(string configName, int cost)
 	{
 		if (!IsFOBBudgetActive())
 			return true;
@@ -2805,11 +3300,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (OVT_ObjectivePhaseRules.WithinFOBCeiling(m_FOB.spent + cost, ceiling))
 			return true;
 
-		if (!m_bCeilingLogged)
-		{
-			m_bCeilingLogged = true;
-			Print(LOG + "The forward base for objective '" + m_Objective.name + "' has spent its ceiling (" + m_FOB.spent.ToString() + " of " + ceiling.ToString() + ") and will buy nothing more", LogLevel.NORMAL);
-		}
+		LogOperationRefusal(configName, REFUSAL_FOB_CEILING, m_FOB.spent.ToString() + " of " + ceiling.ToString() + " already spent, and this would add " + cost.ToString(), LogLevel.NORMAL);
 
 		return false;
 	}
@@ -2919,7 +3410,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!  3. AN OPERATION IN FLIGHT - men this director sent are alive and on their way. That IS the
 	//!     objective working, and it is the headline half of this fix: deleting a team five minutes short
 	//!     of its target is wrong however the clock came to run out.
-	//!  4. BLOCKED ONLY BY THE POOL - held, and said out loud once. See LogAffordabilityBlock().
+	//!  4. BLOCKED ONLY BY THE POOL - held, and said out loud on a heartbeat. See LogAffordabilityBlock().
 	//! Only a tick that is none of those four serves a round, and only such a tick can end an objective.
 	//!
 	//! ⚠ WHAT HAPPENS TO AN OBJECTIVE THAT CAN NEVER BE AFFORDED, WRITTEN DOWN BECAUSE IT IS THE ONE
@@ -2927,11 +3418,16 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! and it is never abandoned because the next objective would be exactly as unaffordable, so churning
 	//! through targets would achieve nothing but noise. While it sits, NOTHING ACCUMULATES AND NOTHING
 	//! LEAKS - no deployment is created, no resource moves in either direction, the teardown ledger does
-	//! not grow, the cadence stays at zero so the next tick simply asks again, and the log line is latched
-	//! to exactly one per objective. The moment the pool can cover an operation the very next tick creates
-	//! one, that create is progress, the clock is re-armed and the ramp carries on from where it stopped.
-	//! It is diagnosable from the log alone: one WARNING naming the objective, then silence, then the
-	//! ordinary "Sent '<config>' ... for N resources" line that marks the recovery.
+	//! not grow, and the cadence stays at zero so the next tick simply asks again. The moment the pool can
+	//! cover an operation the very next tick creates one, that create is progress, the clock is re-armed
+	//! and the ramp carries on from where it stopped.
+	//!
+	//! ⚠ IT IS DIAGNOSABLE FROM THE LOG ALONE, AND THAT CLAIM HAD TO BE MADE TRUE TWICE. The first
+	//! version said it once per objective and then went quiet, which a second play-test found
+	//! indistinguishable from a machine that had stopped - one WARNING at 15:30 explains nothing about
+	//! what the phase is doing at 15:45. The hold now reports on a heartbeat and names what it is waiting
+	//! to buy, and the refusal that caused it is itself latched per (config, reason) rather than per
+	//! objective, so a second operation blocked by the same empty pool still gets its own line.
 	//!
 	//! ⚠ IT DECIDES NOTHING BY ITSELF. It returns a verdict and the CALLER resets, so every ending stays
 	//! on DirectorTick() behind its three early returns like every other transition in this machine.
@@ -2941,6 +3437,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	{
 		bool blocked = m_bBlockedOnAffordability;
 		m_bBlockedOnAffordability = false;
+
+		// ⚠ THE HEARTBEAT COUNTS CONSECUTIVE HELD TICKS, so a tick that was not blocked at all breaks the
+		// run wherever it lands - before any of the early returns below, because the run has to be broken
+		// even on a tick that returns for some other reason entirely.
+		if (!blocked)
+			m_iAffordabilityHeldTicks = 0;
 
 		if (m_Objective.kind == OVT_EObjectiveKind.NONE)
 			return false;
@@ -2996,8 +3498,14 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//! Puts the idle clock back to its full budget and re-baselines the success marks with it.
+	//!
+	//! ⚠ AND BREAKS THE AFFORDABILITY HEARTBEAT'S RUN. A tick can be BOTH blocked and productive - the
+	//! tower recapture sender can be refused on cost and the sabotage sender succeed in the same call
+	//! chain - and a heartbeat that kept counting through that would report a hold that is not happening.
 	protected void RearmObjectiveIdleClock()
 	{
+		m_iAffordabilityHeldTicks = 0;
+
 		SetPhaseTimeout(m_iPhaseTimeoutTicks);
 	}
 
@@ -3020,6 +3528,12 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! standing forward base or its garrison counted, the forward-base phase could never time out at all
 	//! and R1 would be gone - a base that is up with a full garrison and a counter-attack gate that will
 	//! never open is EXACTLY the wedge the backstop exists to catch.
+	//!
+	//! ⚠ RAMP OPERATIONS DO COUNT IN THE FORWARD-BASE PHASE, since they continue into it (2026-08-19),
+	//! AND THE PHASE CAN STILL TIME OUT. The difference from the two above is that an operation is
+	//! TRANSIENT: it completes, it is wiped out, or its condition collects it, and each of those ends the
+	//! hold. A forward base that has spent its whole ceiling then creates nothing more, holds nothing, and
+	//! runs the clock down to a reset. See TickFOB()'s header.
 	//!
 	//! ⚠ A FORCE THAT WAS WIPED OUT IS NOT IN FLIGHT. Its marker can outlive it (the condition module
 	//! collects it a frame or a minute later), and reading a dead team as work in progress would hold the
@@ -3105,21 +3619,37 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Says once, per objective, that the ramp is working but the faction cannot pay for it.
+	//! Says, on a heartbeat, that the ramp is working but the faction cannot pay for it.
 	//!
-	//! ⚠ MANDATORY, AND ONCE. The play-test this whole change came out of spent 31 real minutes watching
-	//! a director that had selected a target and then appeared to do nothing, with not one line in the log
-	//! to explain it - because a refused create is silent and the retry is silent too. This is that line.
-	//! It is latched per objective for the reason every other latch in this file is: a refused create
-	//! leaves the cadence at zero, so poverty is re-tested every single in-game minute.
+	//! ⚠ MANDATORY. The first play-test this came out of spent 31 real minutes watching a director that
+	//! had selected a target and then appeared to do nothing, with not one line in the log to explain it,
+	//! because a refused create was silent and the retry was silent too.
+	//!
+	//! 🔴 AND A HEARTBEAT RATHER THAN A ONE-SHOT, BECAUSE ONCE WAS NOT ENOUGH EITHER (2026-08-19). The
+	//! second play-test had this line at 15:30:44 and then a forward-base phase that sat visibly broken
+	//! from 15:43 onward. Both facts were true and neither was legible: the objective HAD said it could
+	//! not afford something, twelve in-game hours of campaign earlier, about a completely different
+	//! operation. A line that is said once at the start of an open-ended wait is a line a reader has
+	//! already scrolled past by the time they have a question. The repeat carries the elapsed count and
+	//! the operation being waited for, which is what makes "held, still broke" readable as a state rather
+	//! than inferable from an absence.
+	//!
+	//! ⚠ IT REPORTS THE HOLD, NOT THE REFUSAL. Which operation was refused and why is
+	//! LogOperationRefusal()'s line, latched per (config, reason) at the moment of refusal; this one is
+	//! about the CLOCK, is about the objective as a whole, and would be wrong to key on a config.
 	protected void LogAffordabilityBlock()
 	{
-		if (m_bAffordabilityBlockLogged)
+		m_iAffordabilityHeldTicks = m_iAffordabilityHeldTicks + 1;
+
+		// The first held tick speaks, then one in every AFFORDABILITY_HEARTBEAT_TICKS after it.
+		if (m_iAffordabilityHeldTicks > 1 && (m_iAffordabilityHeldTicks - 1) % AFFORDABILITY_HEARTBEAT_TICKS != 0)
 			return;
 
-		m_bAffordabilityBlockLogged = true;
+		string waiting = "its next operation";
+		if (m_sBlockedOnConfig != "")
+			waiting = "'" + m_sBlockedOnConfig + "' (" + m_iBlockedOnCost.ToString() + " resources)";
 
-		Print(LOG + "Objective '" + m_Objective.name + "' cannot afford its next operation: the occupying faction's deployment pool is short of what the operation costs. Its idle clock is HELD while it waits - being broke is not a failure of the objective, and abandoning it would only find the next objective just as unaffordable. It resumes on the first tick the pool can cover one; the next \"Sent ...\" line is that moment", LogLevel.WARNING);
+		Print(LOG + "Objective '" + m_Objective.name + "' has been unable to afford " + waiting + " for " + m_iAffordabilityHeldTicks.ToString() + " in-game minute(s). Its idle clock is HELD while it waits - being broke is not a failure of the objective, and abandoning it would only find the next objective just as unaffordable. It resumes on the first tick the pool can cover one; the next \"Sent ...\" line is that moment", LogLevel.WARNING);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3554,6 +4084,115 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			return;
 
 		deployments.ClearObjectiveAnchor(occupyingIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// THE RESERVE FLOOR - HOW THE OBJECTIVE STOPS ROUTINE SPENDING OUTBIDDING IT
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Keeps the price of the operation this director just tried and failed to buy out of the ROUTINE
+	//! evaluator's reach, until it can buy it or stops wanting it.
+	//!
+	//! 🔴 THE PRIORITY INVERSION THIS CLOSES (D18, play-test 2026-08-19). The pool is credited in a lump
+	//! every six in-game hours and two spenders race for it. The routine evaluator may create ten
+	//! deployments in one 30-second pass; this director takes one operation per cadence interval. With
+	//! nothing earmarked, routine garrisoning drained each credit before the pool ever reached the price
+	//! of the forward base - 20 resources in the pool against a 120-cost operation, indefinitely, with
+	//! the phase held open by the affordability hold and nothing failing anywhere. The faction quietly
+	//! never pursued its objective.
+	//!
+	//! ⚠ WHERE THE NUMBER COMES FROM, AND WHY IT CANNOT DRIFT. It is the `cost` local of the ask that
+	//! was just refused, in CanSendObjectiveDeployment() - the same integer that would have been spent
+	//! had the pool been able to cover it. This component does not compute, predict or duplicate "what
+	//! would I like to buy next": it reserves for something it ALREADY ASKED FOR and was told it could
+	//! not afford. A phase whose senders all decline for some other reason (nothing to recapture, the
+	//! concurrency cap is full, the garrison is at its maximum) never reaches the ask, so it never
+	//! reserves - which is correct, because it has no next intended operation.
+	//!
+	//! ⚠ ONE OPERATION DEEP AND RE-EARNED EVERY TICK, WHICH IS WHAT MAKES A DEADLOCK IMPOSSIBLE.
+	//! DirectorTick() DROPS the floor on its first line, before anything can push one, and the only way
+	//! one exists at the end of a tick is that this tick asked and was refused for money. So:
+	//!   - the objective is torn down, reset, blacklisted or goes idle -> the phase machine is IDLE on
+	//!     the next tick, nothing asks, nothing pushes, the floor is gone (and ClearObjectiveRecord()
+	//!     drops it in the same breath as the anchor, so it lapses immediately rather than a tick later);
+	//!   - the phase has no next operation, or its cadence has not elapsed -> nothing asks, no floor.
+	//!     The evaluator has the whole pool back for the whole interval, which is the point: this is not
+	//!     a war chest and the faction is meant to spend what it has;
+	//!   - the refusal changes to one that is NOT about money (an unregistered config, the forward
+	//!     base's own spend ceiling) -> that branch does not push, so the floor lapses on that tick;
+	//!   - a battle starts, everyone disconnects, the campaign is saved and reloaded -> DirectorTick()'s
+	//!     early returns and the framework's restore all leave the store empty.
+	//! A floor can therefore never outlive the intent by more than the one tick it is asserted on, and
+	//! the re-push cadence (once per in-game minute, ten real seconds at 6x) is three times the
+	//! evaluator's own 30-second pass, so a genuinely blocked director never leaves it a hole to spend
+	//! through.
+	//!
+	//! ⚠ IT DOES NOT GOVERN THIS COMPONENT'S OWN SPENDING, AND MUST NOT. The director buys through
+	//! ForceCreateDeployment() + SubtractFactionResources(), neither of which consults the floor;
+	//! CanSendObjectiveDeployment() reads the RAW pool. Reserving against itself would be a deadlock by
+	//! construction - the floor exists so that the money is there when the director asks again.
+	//! \param[in] configName What the money is being kept for. Diagnostics only, but always supplied.
+	//! \param[in] cost The price of that operation.
+	protected void PushObjectiveReserve(string configName, int cost)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (cost <= 0)
+		{
+			DropObjectiveReserve();
+			return;
+		}
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!deployments || !config)
+			return;
+
+		// A NEGATIVE INDEX IS NOT A FACTION - the same guard, for the same reason, as the anchor push.
+		// A floor filed under an impossible key would never be read and never be cleared.
+		int occupyingIndex = config.GetOccupyingFactionIndex();
+		if (occupyingIndex < 0)
+			return;
+
+		deployments.SetObjectiveReserve(occupyingIndex, configName, cost);
+
+		m_bReserveHeld = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gives the whole pool back to routine spending.
+	//!
+	//! Idempotent and safe with no objective, no deployment framework and no campaign - it is called on
+	//! the first line of every tick and from the one place the objective record is cleared.
+	//!
+	//! ⚠ THE CACHE IS DROPPED WHATEVER HAPPENS, INCLUDING ON THE PATHS THAT COULD NOT REACH THE STORE.
+	//! Leaving it set after a failed resolve would make the NEXT drop skip itself, which is the one way
+	//! a floor could survive a teardown. Clearing it optimistically is safe in the other direction: a
+	//! spurious clear only ever costs one redundant Remove() on the next tick that pushes.
+	protected void DropObjectiveReserve()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		// Nothing has ever been pushed, so there is nothing to resolve two managers for. See
+		// m_bReserveHeld - this is the branch that runs on almost every tick of almost every campaign.
+		if (!m_bReserveHeld)
+			return;
+
+		m_bReserveHeld = false;
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!deployments || !config)
+			return;
+
+		int occupyingIndex = config.GetOccupyingFactionIndex();
+		if (occupyingIndex < 0)
+			return;
+
+		deployments.ClearObjectiveReserve(occupyingIndex);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4241,6 +4880,15 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	{
 		DropObjectiveAnchor();
 
+		// ⚠ AND THE RESERVE FLOOR, THROUGH THE SAME FUNNEL AND FOR A SHARPER VERSION OF THE SAME REASON
+		// (D18). A stale anchor leans routine spending toward a place nothing is working on; a stale
+		// floor STOPS routine spending outright, for an operation nobody intends to send. DirectorTick()
+		// would clear it on its next pass anyway - that is the structural guarantee - but "next pass" is
+		// an in-game minute in which the evaluator may run twice, and every path that ends an objective
+		// already comes through here. Belt and braces, on the one funnel that is known to catch both the
+		// reset and the re-selection-found-nothing idle path.
+		DropObjectiveReserve();
+
 		ClearObjectiveRecordFields();
 	}
 
@@ -4267,11 +4915,23 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// silence its line for the NEXT objective as well.
 		m_bDaylightWaitLogged = false;
 		m_bCounterAttackRefusalLogged = false;
-		m_bAffordabilityBlockLogged = false;
+		m_iAffordabilityHeldTicks = 0;
+
+		// ⚠ AND EVERY (CONFIG, REASON) REFUSAL LATCH WITH THEM. A refusal is a fact about ONE objective's
+		// attempt to buy something; carried into the next objective it would silence the same refusal for
+		// a target that has not yet said it once. Guarded because OnPostInit() reaches this body, and the
+		// world editor constructs components in an order nothing here may assume.
+		if (m_aRefusalConfigs)
+			m_aRefusalConfigs.Clear();
+
+		if (m_aRefusalReasons)
+			m_aRefusalReasons.Clear();
 
 		// The idle clock's own state. The per-tick flag is dropped with the rest so a refusal seen on the
 		// tick that ended an objective cannot hold the NEXT objective's first clock.
 		m_bBlockedOnAffordability = false;
+		m_sBlockedOnConfig = "";
+		m_iBlockedOnCost = 0;
 		m_iProgressHarassmentMark = 0;
 		m_iProgressSabotageMark = 0;
 	}

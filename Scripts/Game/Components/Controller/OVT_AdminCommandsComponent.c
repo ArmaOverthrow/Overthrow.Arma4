@@ -8,6 +8,8 @@ class OVT_AdminCommandsComponentClass : OVT_ControllerRequestComponentClass {};
 //!   "/give-money <amount>"      adds money to the calling player's account (admin-gated);
 //!   "/give-resources [amount]"  credits the occupying faction's RESERVE (admin-gated) - see
 //!                               OnGiveResourcesCommand for why the reserve and not the pool;
+//!   "/tick-resources"           the same, but for exactly one tick's worth, computed rather than
+//!                               typed (admin-gated) - see OnTickResourcesCommand;
 //!   "/respawn-screen"           toggles the local respawn screen (no gate, no state change).
 //!
 //! First command: "/givemoney <amount>" adds money to the calling player's account so server
@@ -151,6 +153,22 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 		{
 			invoker.Remove(OnGiveResourcesCommand);
 			invoker.Insert(OnGiveResourcesCommand);
+		}
+
+		// "/tick-resources" - no argument, so nothing to mistype, but it creates resources exactly as
+		// "/give-resources" does and therefore needs the same Remove()-then-Insert() discipline.
+		invoker = chat.GetCommandInvoker("tick-resources");
+		if (invoker)
+		{
+			invoker.Remove(OnTickResourcesCommand);
+			invoker.Insert(OnTickResourcesCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("tickresources");
+		if (invoker)
+		{
+			invoker.Remove(OnTickResourcesCommand);
+			invoker.Insert(OnTickResourcesCommand);
 		}
 
 		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
@@ -420,27 +438,158 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 		if (!occupying)
 			return;
 
+		CreditAndDistribute(occupying, amount, playerId, "/give-resources", notify);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/tick-resources". Runs on the typing player's client. Takes no argument.
+	//!
+	//! WHY IT TAKES NO ARGUMENT AND CANNOT. The amount is one resource tick's gain, and that is a
+	//! function of live SERVER state - the campaign's threat and the connected player count - so the
+	//! client typing the command is not in a position to compute it. It is therefore resolved inside the
+	//! RPC, on the server, and the client sends nothing but the request.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word. Ignored, but reported if present rather than
+	//!            silently swallowed - a tester who types "/tick-resources 500" expecting an amount
+	//!            should be told it did something else.
+	protected void OnTickResourcesCommand(SCR_ChatPanel panel, string data)
+	{
+		data.TrimInPlace();
+
+		if (data != "")
+			Print(string.Format("[Overthrow] /tick-resources takes no amount - ignoring '%1' and crediting exactly one tick's worth. Use /give-resources <amount> to choose the figure", data), LogLevel.WARNING);
+
+		RequestTickResources();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to credit exactly one resource tick's worth. Admin-gated server-side.
+	void RequestTickResources()
+	{
+		if (Replication.IsServer())
+		{
+			RpcAsk_TickResources();
+		}
+		else
+		{
+			Rpc(RpcAsk_TickResources);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Credits and distributes exactly what the next resource tick would pay.
+	//!
+	//! ⚠ THE AMOUNT IS THE GM PANEL'S "Next Distribution" FIGURE, BY CONSTRUCTION RATHER THAN BY
+	//! COINCIDENCE. It calls OVT_GMSchedule.PredictResourceGain() with the same four arguments
+	//! OVT_GMRequestComponent hands it when building a snapshot - the difficulty's two per-tick
+	//! numbers, the campaign threat and the connected player count - so the number credited here and
+	//! the number on the panel cannot drift apart without one of them being edited. That is the whole
+	//! request: "give what they would get on the next tick, as reported by Next Distribution".
+	//!
+	//! ⚠ AND IT IS THE SAME FUNCTION THE REAL TICK USES, not a reimplementation of it.
+	//! OVT_OccupyingFactionManager.GainResources() calls PredictResourceGain() too - the prediction
+	//! seam exists precisely so the panel can show what the tick will pay without running it. So this
+	//! command is a real tick's worth, not an approximation of one.
+	//!
+	//! ⚠ IT DOES NOT HONOUR THE QRF SUPPRESSION, DELIBERATELY. A real tick is skipped while a battle is
+	//! engaged (the panel flags this separately), but an admin asking for a tick has asked for one; a
+	//! debug command that silently did nothing would be worse than one that overrides. The override is
+	//! reported in the audit line rather than hidden.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_TickResources()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+
+		// The one gate that counts: the engine's own role flags for this connection.
+		if (!SCR_Global.IsAdmin(playerId))
+		{
+			Print(string.Format("[Overthrow] Player %1 used /tick-resources without admin rights - refused", playerId), LogLevel.WARNING);
+			if (notify)
+				notify.SendTextNotification("AdminCommandRefused", playerId);
+			return;
+		}
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_Difficulty)
+			return;
+
+		int playerCount = 0;
+		PlayerManager playerManager = GetGame().GetPlayerManager();
+		if (playerManager)
+			playerCount = playerManager.GetPlayerCount();
+
+		int amount = OVT_GMSchedule.PredictResourceGain(
+			config.m_Difficulty.baseResourcesPerTick,
+			config.m_Difficulty.resourcesPerTick,
+			occupying.GetThreatFloat(),
+			playerCount);
+
+		// A difficulty authored with no income at all is a legitimate configuration, and "the next tick
+		// pays nothing" is the honest answer to it rather than an error - but crediting zero and
+		// printing an audit line about it would read as a broken command, so say so instead.
+		if (amount <= 0)
+		{
+			Print(string.Format("[Overthrow] /tick-resources: the next tick would pay %1 - nothing credited. Threat is %2 with %3 player(s) online", amount, occupying.GetThreatFloat(), playerCount), LogLevel.WARNING);
+			return;
+		}
+
+		if (amount > GIVE_RESOURCES_MAX)
+			amount = GIVE_RESOURCES_MAX;
+
+		if (occupying.m_CurrentQRF)
+			Print("[Overthrow] /tick-resources: a battle is live, so the REAL tick would currently be suppressed - crediting anyway because an admin asked for it", LogLevel.WARNING);
+
+		CreditAndDistribute(occupying, amount, playerId, "/tick-resources", notify);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE CREDIT PATH BOTH RESOURCE COMMANDS TAKE. Credits the reserve, then distributes it as if a
+	//! resource tick had just happened.
+	//!
+	//! AND DISTRIBUTE IT IMMEDIATELY, as if a resource tick had just happened.
+	//!
+	//! Crediting the reserve alone made "/give-resources" nearly useless for its actual purpose (user,
+	//! during play-test): the deployment pool is what every visible thing spends, so a tester who
+	//! wants the occupying faction to DO something had to credit, then wait out an in-game minute
+	//! for the transfer, with nothing on screen explaining the delay.
+	//!
+	//! This is the organic path, not a shortcut past it: TransferDefenseShareToPool() is the same
+	//! method the live tick and the sleep replay both call, it takes the tick's gain, applies the
+	//! authored defense share, clamps to the reserve and moves the money through the one sanctioned
+	//! credit point. So the accounting identity holds exactly as it does on any other tick, and this
+	//! adds NO new caller to AllocateDeploymentResources - which is the thing that must never grow a
+	//! fourth one without a reason written down.
+	//!
+	//! ⚠ EXTRACTED RATHER THAN COPIED when "/tick-resources" was added (2026-08-19). The two commands
+	//! differ ONLY in where the number comes from - one is typed, one is computed - and a second copy of
+	//! the credit-then-transfer pair is exactly the kind of duplication that lets one of them quietly
+	//! stop matching a real tick.
+	//! \param[in] occupying The occupying faction manager.
+	//! \param[in] amount How much to credit. Already validated and clamped by the caller.
+	//! \param[in] playerId The admin who asked, for the audit line and the notification.
+	//! \param[in] via Which command did this, for the audit line.
+	//! \param[in] notify The notification manager, or null.
+	protected void CreditAndDistribute(notnull OVT_OccupyingFactionManager occupying, int amount, int playerId, string via, OVT_NotificationManagerComponent notify)
+	{
 		occupying.DebugCreditReserve(amount);
 
-		// AND DISTRIBUTE IT IMMEDIATELY, as if a resource tick had just happened.
-		//
-		// Crediting the reserve alone made this command nearly useless for its actual purpose (user,
-		// during play-test): the deployment pool is what every visible thing spends, so a tester who
-		// wants the occupying faction to DO something had to credit, then wait out an in-game minute
-		// for the transfer, with nothing on screen explaining the delay.
-		//
-		// This is the organic path, not a shortcut past it: TransferDefenseShareToPool() is the same
-		// method the live tick and the sleep replay both call, it takes the tick's gain, applies the
-		// authored defense share, clamps to the reserve and moves the money through the one sanctioned
-		// credit point. So the accounting identity holds exactly as it does on any other tick, and this
-		// adds NO new caller to AllocateDeploymentResources - which is the thing that must never grow a
-		// fourth one without a reason written down.
 		occupying.TransferDefenseShareToPool(amount);
 
 		int reserve = occupying.m_iResources;
 
 		// Server console record: resources were created from nothing, an audit line is the least it costs.
-		Print(string.Format("[Overthrow] Admin (player %1) credited %2 resources to the occupying faction and ran a distribution via /give-resources - reserve is now %3", playerId, amount, reserve), LogLevel.NORMAL);
+		Print(string.Format("[Overthrow] Admin (player %1) credited %2 resources to the occupying faction and ran a distribution via %3 - reserve is now %4", playerId, amount, via, reserve), LogLevel.NORMAL);
 
 		if (notify)
 			notify.SendTextNotification("AdminResourcesAdded", playerId, amount.ToString(), reserve.ToString());

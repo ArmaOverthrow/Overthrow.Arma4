@@ -5,6 +5,15 @@ Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
    MaxCumulativeVolume 200000
    m_fMaxWeight 1000
   }
+  ChimeraAIVehicleControlComponent "{61C2E46781A66E82}" {
+   components {
+    AICarMovementComponent "{61C2E46796C28D80}" {
+     "Min Prediction Distance" 2
+     FrictionCoefficient 0.1
+     MaxReverseTravelDistance 30
+    }
+   }
+  }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
     OVT_LootIntoVehicleAction "{5D82242977899C58}" {

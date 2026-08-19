@@ -1,7 +1,7 @@
 # Counter Attacks - Task Checklist
 
-**Last Updated:** 2026-08-19 (all 10 phases built; T8.9 verified present and ticked; wiki blocked)
-**Progress:** 105/111 tasks complete (95%) — the 11 open are 1 blocked (wiki) and 10 human-verification / play-test items
+**Last Updated:** 2026-08-20 (all 10 phases built + the 2026-08-20 play-test sweep; **All 385/385 green**; `main` merged in as 2c07a624)
+**Progress:** 125/137 complete (91%). The 12 open are **1 blocked** (T10.3 wiki — no MCP server), **1 open decision** (the Easy operation interval), and **10 human-verification / play-test items** that no tier can cover.
 
 > **Agent routing:** phases **2, 3, 4, 6, 7, 8, 9** are **ADVANCED** (`component-developer-advanced`); phases **1** and **5** are STANDARD (`component-developer`); phase **10** is `help-docs-sync`. Phase 8's `.layout` slice goes to `ui-developer`.
 > **Suite per phase:** 1–9 → **All** `{6A6E2A002F53A581}` (every one of them touches campaign/economy/persistence state); 10 → **skipped** (docs-only).
@@ -572,6 +572,41 @@
   - Description: Add `counter-attacks` to the epic feature table, refresh the epic Tech Debt section, update the epic's row in `docs/overview.md`.
   - File(s): `docs/features/occupying/epic-overview.md`, `docs/overview.md`
   - Estimate: 0.5 h
+
+---
+
+## Play-test fixes (2026-08-19, after all 10 phases were built)
+
+Defects found by the author play-testing, not by the suites. All fixed, all green at **All 383/383**.
+These were not planned tasks — they are recorded here so the count reflects the work that exists.
+
+- [x] ✅ **World Editor crash on world load** — six unguarded `GetGame().GetFactionManager()` dereferences in `OVT_OverthrowConfigComponent`; the director's `OnPostInit` was the first caller to reach one before the manager exists. Guarded all six; construction no longer does anchor work. **Lesson: `OnPostInit` runs in the World Editor, where the game's managers do not exist.**
+- [x] ✅ **QRF waypoints buried in / floating above terrain** — every waypoint carried the objective entity's Y. Clamped at `CreateWaypoint()`, the one funnel all QRF waypoints are born through. Pre-existing.
+- [x] ✅ **Deployments materialising inside a live battle** — 750 m suppression on `IsQRFEngaged()`, occupying faction only, Manual lifecycle policy rather than despawn.
+- [x] ✅ **`/give-resources` admin command** + the Workbench-SP-only guard on the whole admin command class (`RplSession.Mode() == RplMode.None` inside `#ifndef WORKBENCH`)
+- [x] ✅ **`/give-resources` did not distribute** — now runs `TransferDefenseShareToPool` immediately, through the sanctioned path
+- [x] ✅ **`/tick-resources` admin command** — credits exactly one resource tick's worth, computed from the same `PredictResourceGain()` seam the GM panel's "Next Distribution" reads, then distributes it through the same path as `/give-resources`
+- [x] ✅ **The insertion transport carried the flipped-vehicle bug** — `GetAngles()` into an `AnglesToMatrix` parameter; the same defect `main` was being fixed for the same day
+- [x] ✅ **Authored `OVT_VehiclePatrolSpawn` markers now used for insertion spawns**, nearest free first, occupancy reusing the BUG-129 spot test
+- [x] ✅ **The idle-timeout trio** — phase timeout became an idle clock, an in-flight operation holds it, a recalled operation is refunded through the framework (Q6 amended with its reason)
+- [x] ✅ **The forward-base phase re-sited forever, silently** — affordability refusal masked by a per-objective latch; latch is now per (config, reason), and the 24-point lattice no longer runs before the pay check
+- [x] ✅ **The evaluator was buying the director's operations** — new `m_bDirectorOnly` flag on all eight objective configs
+- [x] ✅ **Ammoboxes spared from sabotage** (author's call, pending gear recovery)
+- [x] ✅ **The forward base flew a US flag** — the prefab inherited the plain vanilla pole; the flag now resolves from the occupying-faction setting
+- [x] ✅ **The objective RESERVE FLOOR (D18)** — routine garrisoning can no longer drain a credit and starve the director
+- [x] ✅ **🔴 The Phase-3 deadlock** — Phase 1 operations now continue through the forward-base phase (inclusive phase range). Before this, **the counter-attack was unreachable for either objective kind.**
+- [x] ✅ **🔴 The Phase-2 LIVELOCK (the deadlock fix's own side-effect)** — a forward base refused for money fell through to a cheaper Phase-1 operation, which spent the pool and overwrote the reserve floor with its own price. The base was never affordable, so it was never raised. The chain now stops on an affordability refusal of the FOB
+- [x] ✅ **Intact groups are refunded on a successful operation** — new `CollectDeployment()` pays back `m_iCostPerGroup` per group that came through at FULL strength; the transport and the config's base cost are deliberately not refunded
+- [x] ✅ **Forward-base siting widened** — lateral spread 250 → 400 m, lanes 3 → 5, with the offset mapping normalised so the outermost lane equals the spread whatever the lane count
+- [x] ✅ **The forward base ignored its authored yaw** — the facing was never read at all; generated sites now face the objective rather than north
+- [x] ✅ **Stranded insertion trucks accumulated** — bounded cleanup (~20 real min), player-proximity hold, steal-it-and-it's-yours veto intact
+- [x] ✅ **Sabotage targets buildables only** — placeables (5–250) always undercut the 750 buildable floor, so cheapest-first could never run the designed ladder
+- [x] ✅ **Insertion arrival gated on speed as well as distance** — hard braking was injuring passengers at the drop-off
+- [x] ✅ **...and then the drop was ~20 s late** — the speed gate was reading a 10 s tick average, which cannot answer "has it stopped yet". Arrival now reads the transport's live physics velocity; the stall test keeps the average
+- [x] ✅ **The second crewman rode in the back** — seating is per-materialisation, so passengers won the cab seats by arriving first. The co-driver's seat is now claimed explicitly for the crew (he is the man who dismounts to open gates) and the force fills the bed first
+- [x] ✅ **The transport drove home to the base centre** — the return leg targeted `m_vSource` (the base) rather than the spawn it left from; it now returns to its own `OVT_VehiclePatrolSpawn` marker
+- [x] ✅ **Balance: `objectiveQRFResourceGate` = maxQRF floored at 750; `FOB_CEILING_MULTIPLIER` 3 → 4** (author-authorised)
+- [ ] ❓ **OPEN: `objectiveHarassmentIntervalMinutes` on Easy** — 90 in-game minutes makes the full ramp 90+ real minutes. Recommended 20–30 for the testing period. **Author's call, not yet made.**
 
 ---
 

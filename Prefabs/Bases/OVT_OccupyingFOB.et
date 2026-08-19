@@ -1,6 +1,8 @@
 GenericEntity : "{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et" {
  ID "6B8C3F5D000000A0"
  components {
+  OVT_OccupyingFlagComponent "{6B8C3F5D000000A7}" {
+  }
   ActionsManagerComponent "{6B8C3F5D000000A1}" {
    ActionContexts {
     UserActionContext "{6B8C3F5D000000A2}" {

@@ -10473,7 +10473,14 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 
 	//! The threat floor and acquisition priority the AT section is authored with. Both are behaviour a
 	//! player feels (when the base buys it, and in what order) and neither logs anything if it drifts.
-	static const int AT_MINIMUM_THREAT = 50;
+	//!
+	//! ⚠ RE-SCALED 50 -> 20 ON 2026-08-20 WITH THE THREAT SCALE ITSELF, not because the intent changed.
+	//! Candidate scores used to carry the GLOBAL campaign threat added to every position on the map
+	//! (~420 in the campaign that exposed it), so a floor of 50 passed everywhere and gated nothing at
+	//! all. CalculateThreatLevel() now returns the SPATIAL score alone, which runs roughly 0-60, and 20
+	//! is the same intent expressed on the scale that is actually compared against it: a notably hot
+	//! area rather than a number no position could fail. See OVT_DeploymentManager.CalculateThreatLevel.
+	static const int AT_MINIMUM_THREAT = 20;
 	static const int AT_PRIORITY = 6;
 
 	//------------------------------------------------------------------------------------------------

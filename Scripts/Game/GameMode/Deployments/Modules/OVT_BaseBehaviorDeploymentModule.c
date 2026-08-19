@@ -260,6 +260,12 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 
 	//------------------------------------------------------------------------------------------------
 	//! Takes the deployment down, one frame after the behavior asked. Runs outside any module walk.
+	//!
+	//! ⚠ CollectDeployment, NOT DeleteDeployment (2026-08-20). Everything that reaches here has SUCCEEDED
+	//! - it is the behaviour module's own "my job is done" - so the groups that are still at full
+	//! strength are paid back for. A delete here wrote off men who had walked in, done the job and met no
+	//! resistance at all, which is what the author raised during play-test. See CollectDeployment for
+	//! which parts of the price come back and which do not.
 	protected void CollectParentDeployment()
 	{
 		m_bCollectionRequested = false;
@@ -271,7 +277,7 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 		if (!manager)
 			return;
 
-		manager.DeleteDeployment(m_ParentDeployment);
+		manager.CollectDeployment(m_ParentDeployment);
 	}
 
 	//------------------------------------------------------------------------------------------------

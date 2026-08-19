@@ -467,6 +467,9 @@ class OVT_TEST_Init_ObjectiveOperations_EHoldDecisionsFireOnceAndPause : SCR_Aut
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
 //!   C1. `clone.m_fHoldRadius = m_fHoldRadius;` deleted from the harassment clone.
 //!   C2. `clone.m_iRequiredPhase = m_iRequiredPhase;` deleted from the objective condition clone.
+//!   C5. `clone.m_iThroughPhase = m_iThroughPhase;` deleted from the objective condition clone. Fails
+//!       on "dropped m_iThroughPhase" - every range would collapse to a single phase, which is the
+//!       2026-08-19 deadlock restored one clone at a time.
 //!   C3. `clone.m_fMaxDistance = m_fMaxDistance;` deleted from the recapture clone.
 //!   C4. `clone.m_bHoldFired = m_bHoldFired;` ADDED to the harassment clone. Fails on "a clone must
 //!       not inherit a fired latch".
@@ -582,6 +585,11 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 
 		source.m_sModuleName = "fixture condition";
 		source.m_iRequiredPhase = OVT_EObjectivePhase.FOB;
+
+		// ⚠ DELIBERATELY DIFFERENT FROM m_iRequiredPhase, and deliberately not a value any shipped config
+		// authors. A clone that copied the first phase into both fields, or dropped the upper bound and
+		// let it collapse back onto the first, would pass an assertion that used the same number twice.
+		source.m_iThroughPhase = OVT_EObjectivePhase.COUNTER_QRF;
 		source.m_fMaxDistanceFromObjective = 933;
 
 		OVT_ObjectiveConditionDeploymentModule clone = OVT_ObjectiveConditionDeploymentModule.Cast(source.CloneModule());
@@ -594,6 +602,14 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 		if (clone.m_iRequiredPhase != source.m_iRequiredPhase)
 			return string.Format("the objective condition clone dropped m_iRequiredPhase: %1, expected %2 - every objective deployment would believe it belonged to the harassment phase",
 				clone.m_iRequiredPhase.ToString(), source.m_iRequiredPhase.ToString());
+
+		if (clone.m_iThroughPhase != source.m_iThroughPhase)
+			return string.Format("the objective condition clone dropped m_iThroughPhase: %1, expected %2 - every range would collapse to a single phase, which is the 2026-08-19 deadlock restored one clone at a time: the ramp's operations would be collected on the promotion tick and the counter-attack would be unreachable again",
+				clone.m_iThroughPhase.ToString(), source.m_iThroughPhase.ToString());
+
+		if (clone.ResolveThroughPhase() != source.ResolveThroughPhase())
+			return string.Format("the objective condition clone reports a different span from its source: up to %1, expected up to %2",
+				clone.ResolveThroughPhase().ToString(), source.ResolveThroughPhase().ToString());
 
 		if (clone.m_fMaxDistanceFromObjective != source.m_fMaxDistanceFromObjective)
 			return string.Format("the objective condition clone dropped m_fMaxDistanceFromObjective: %1, expected %2 - it would refuse every position but the objective's exact centre",
@@ -855,5 +871,338 @@ class OVT_TEST_Init_ObjectiveOperations_ModifierIsLastAndStacks : SCR_AutotestCa
 			index.ToString()));
 
 		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 EVERY CONFIG THE OBJECTIVE DIRECTOR OWNS IS INVISIBLE TO THE ORDINARY EVALUATOR, AND NOTHING ELSE
+//! IS.
+//!
+//! WHAT WENT WRONG WITHOUT IT (play-test, 2026-08-19). The director's operations are registered configs
+//! like any other - they have to be, because the cost model, the Game Master panel, the reinforcement
+//! rebuy and the save all read a CONFIG. That made them candidates for the 30 s evaluator's own
+//! FindBestDeploymentConfig(), and it duly bought one: an "Objective Harassment (Patrol)" created at a
+//! town beside a BASE objective, with no "[ObjectiveDirector] Sent ..." line above it because the
+//! director had not sent it. The harassment force stood at the flag doing nothing - it was not the
+//! director's operation and its objective condition had never made it one - and the faction pool was
+//! charged for it outside the director's accounting, which is precisely the single-decision-maker
+//! property (G1) the director exists to hold.
+//!
+//! WHY A FLAG AND NOT A MASK. Neither existing gate can express this. Every one of these configs is
+//! legitimately an OCCUPYING_FACTION config sent to a TOWN, a BASE, a RADIO_TOWER or OPEN_TERRAIN -
+//! that is where the director sends it - and m_iAllowedLocationTypes 0 means "no restrictions", not
+//! "nowhere". See OVT_DeploymentConfig.IsSelectableByEvaluator().
+//!
+//! THREE CLAIMS:
+//!   1. All EIGHT director-owned configs resolve. The four harassment rungs and the FOB pair are easy to
+//!      forget when a new one is added.
+//!   2. Every one of them is director-only. A rung added to overthrowDeployments.conf without the flag
+//!      is bought by the evaluator on the next 30 s pass, at some place the director never chose.
+//!   3. NOTHING ELSE is. The flag silently removes a config from the only path that creates it, so a
+//!      base garrison or a town patrol marked by mistake simply stops existing in the world with no
+//!      error anywhere - which is the failure mode this half exists to catch.
+//!
+//! ⚠ IT DOES NOT ASSERT THAT ForceCreateDeployment() STILL WORKS ON THEM, because the flag is not
+//! consulted there by construction - the director's own send path is exercised by the play-test and by
+//! OVT_TEST_Init_ObjectiveDirector's spender cases.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; each exited tools/compile-check.sh
+//! 0, and the subject was restored and re-compiled clean):
+//!   D1. `m_bDirectorOnly 1` removed from Deployment_ObjectiveHarassment.conf. Fails on "is not marked
+//!       director-only" for all four rungs, which inherit it from that file.
+//!   D2. `m_bDirectorOnly 1` added to Deployment_TownPatrol.conf. Fails on "'Town Patrol' is marked
+//!       director-only but the objective director never sends it".
+//!   D3. `IsSelectableByEvaluator()` returning `m_bDirectorOnly` rather than its negation. Fails both
+//!       halves at once.
+//! No polling, no waiting, no world state touched, no maxAttempts.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments || !deployments.m_DeploymentRegistry || !deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			SetFailure("The deployment framework or its registry did not resolve");
+			return true;
+		}
+
+		array<string> directorOwned = CollectDirectorOwnedNames();
+
+		string failure = CheckOwnedAreExcluded(deployments, directorOwned);
+		if (failure == "")
+			failure = CheckNothingElseIs(deployments, directorOwned);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective operations: all " + directorOwned.Count().ToString() + " director-owned configs are excluded from the evaluator's own candidate selection, and no other registered config is");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every config name the objective director creates by hand, read off the director's own constants
+	//! rather than re-typed here - a rung renamed in one place and not the other is a different case's
+	//! job (case A), and duplicating the list would hide it from both.
+	//! \return The eight names.
+	protected array<string> CollectDirectorOwnedNames()
+	{
+		array<string> directorOwned = new array<string>();
+
+		foreach (string rung : OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER)
+		{
+			directorOwned.Insert(rung);
+		}
+
+		directorOwned.Insert(OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG);
+		directorOwned.Insert(OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+		directorOwned.Insert(OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		directorOwned.Insert(OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+
+		return directorOwned;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] directorOwned Every config the director sends.
+	//! \return An empty string when every one is excluded, or the first that is not.
+	protected string CheckOwnedAreExcluded(notnull OVT_DeploymentManagerComponent deployments, notnull array<string> directorOwned)
+	{
+		if (directorOwned.Count() < 8)
+			return string.Format("only %1 director-owned config names were collected - the ladder or the constants have shrunk and this case would pass without checking the missing ones", directorOwned.Count().ToString());
+
+		foreach (string name : directorOwned)
+		{
+			OVT_DeploymentConfig config = deployments.FindConfigByName(name);
+			if (!config)
+				return string.Format("'%1' is not registered in overthrowDeployments.conf - the director cannot send it at all", name);
+
+			if (config.IsSelectableByEvaluator())
+				return string.Format("'%1' is not marked director-only, so the 30 s evaluator may buy one of its own accord at any place its location mask happens to match - outside the director's accounting and with no objective behind it", name);
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] directorOwned Every config the director sends.
+	//! \return An empty string when no other config carries the flag, or which one does.
+	protected string CheckNothingElseIs(notnull OVT_DeploymentManagerComponent deployments, notnull array<string> directorOwned)
+	{
+		foreach (OVT_DeploymentConfig config : deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			if (!config || config.IsSelectableByEvaluator())
+				continue;
+
+			if (directorOwned.Contains(config.m_sDeploymentName))
+				continue;
+
+			return string.Format("'%1' is marked director-only but the objective director never sends it - nothing else in the campaign creates configs by hand, so it would simply never appear in the world, silently", config.m_sDeploymentName);
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 EVERY PHASE 1 OPERATION SPANS HARASSMENT **AND** THE FORWARD-BASE PHASE, AND NONE OF THEM
+//! REACHES THE COUNTER-ATTACK. This is the authored half of the 2026-08-19 deadlock fix, and it is the
+//! half nothing else can see.
+//!
+//! WHAT WENT WRONG, AND WHY A CONFIG FILE IS THE ONLY PLACE IT SHOWS. All six Phase 1 configs - the
+//! four harassment rungs, tower recapture and sabotage - authored
+//! OVT_ObjectiveConditionDeploymentModule with `m_iRequiredPhase 1` and nothing else, and the module
+//! compared with ==. BasePhase2Gate() promotes a base objective on its FIRST completed sabotage
+//! mission, and BasePhase3Gate() demands six of them on Easy; so the promotion made the remaining five
+//! unsendable, the counter froze at one, and the counter-attack - the headline promise of the whole
+//! feature - could never fire. The town side deadlocked one step later, because the stacking support
+//! debuff that has to drive support under 25 % is applied by harassment operations. Nothing errored.
+//! Nothing warned. The play-test symptom was an objective that sat in the forward-base phase until its
+//! idle clock ran out, over and over.
+//!
+//! ⚠ IT ASSERTS THE EFFECTIVE SPAN, NOT THE RAW FIELD, and that distinction is the case. Reading
+//! m_iThroughPhase directly would accept a config that authored 0 on the strength of the number being
+//! present; ResolveThroughPhase() applies the same collapse the live predicate applies, so a config
+//! whose span the gate refuses is a config this case refuses.
+//!
+//! ⚠ AND THE UPPER BOUND IS ASSERTED AS A REFUSAL, not merely as a number. Authored 3, harassment and
+//! sabotage teams would keep walking into a battle that is already being fought. It is the SECOND line
+//! of defence rather than the first - DirectorTick() early-returns for the whole of a live battle, so
+//! nothing can be created in that phase whatever a config says - but it decides whether teams already
+//! in the world are collected when the battle starts, and they must be.
+//!
+//! WHY IT LIVES BESIDE THE RAMP RATHER THAN WITH THE FORWARD BASE. The two forward-base configs are
+//! pinned at 2 -> 2 by OVT_TEST_Init_ObjectiveFOB's config case, which owns them; duplicating them here
+//! would mean two places to update and two chances to update only one.
+//!
+//! 🔴 AND THE SECOND HALF OF THE SAME SENTENCE: THE RAMP LAUNCHES FROM THE FORWARD BASE. §3.2 reads
+//! "the FOB becomes the insertion source for further Phase 1 operations, spending against a CEILING
+//! inside the deployment pool". Continuing to send them is the first half; sourcing them from the
+//! forward base is the second, and without it the base is a flag in a field with a garrison round it
+//! while every truck still drives the whole way from the rear. OVT_ObjectiveAnchorSourceProvider is the
+//! one line that makes it true, and it is asserted here rather than left to a reader.
+//!
+//! ⚠ THE PROVIDER SWAP IS A NO-OP UNTIL A FORWARD BASE STANDS, which is why it is safe on configs that
+//! spend most of their life in harassment. Its fallback IS OVT_NearestControlledBaseSourceProvider with
+//! no distance limit - exactly what these configs authored before - so with no director, no objective or
+//! no forward base the answer is byte-identical to the old one. What it can never do is strand a force:
+//! it falls through rather than failing.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
+//! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
+//!   P1. `m_iThroughPhase 2` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
+//!       Fails on "'Objective Sabotage' must span the forward-base phase".
+//!   P2. `m_iThroughPhase 2` deleted from Deployment_ObjectiveHarassment.conf, which all four rungs
+//!       inherit. Fails on the same claim for the first rung walked, 'Objective Harassment (Patrol)'.
+//!   P3. `m_iThroughPhase 3` authored on Deployment_ObjectiveTowerRecapture.conf. Fails on "must NOT
+//!       reach the counter-attack phase".
+//!   P4. `m_iRequiredPhase 2` authored on Deployment_ObjectiveSabotage.conf. Fails on "must be
+//!       creatable during harassment".
+//!   P5. m_Source on Deployment_ObjectiveHarassment.conf reverted to
+//!       OVT_NearestControlledBaseSourceProvider - the pre-fix authoring, inherited by all four rungs.
+//!       Fails on "must be sourced from the forward base" for the first rung walked.
+//! No polling, no waiting, no world state touched, no maxAttempts.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveOperations_RampSpansTheForwardBasePhaseAndLaunchesFromIt : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null - the deployment framework did not resolve");
+			return true;
+		}
+
+		array<string> rampConfigs = CollectRampConfigNames();
+
+		// The ladder is read off the director's own constant, so a rung deleted there would silently
+		// shrink what this case checks. Six is four rungs plus recapture plus sabotage.
+		if (rampConfigs.Count() < 6)
+		{
+			SetFailure("only %1 Phase 1 config names were collected - the harassment ladder or the director's constants have shrunk, and this case would pass without checking the missing ones",
+				rampConfigs.Count().ToString());
+			return true;
+		}
+
+		foreach (string name : rampConfigs)
+		{
+			string failure = CheckSpan(deployments, name);
+			if (failure == "")
+				failure = CheckSource(deployments, name);
+
+			if (failure != "")
+			{
+				SetFailure(failure);
+				return true;
+			}
+		}
+
+		Print("Objective operations: all " + rampConfigs.Count().ToString() + " Phase 1 configs span harassment through the forward-base phase and are sourced from the forward base once one stands, so the ramp continues AND shortens the supply line - and not one of them reaches the counter-attack");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every config the director sends as Phase 1 work, read off the director's own constants rather
+	//! than re-typed - a rung renamed in one place and not the other is case A's job, and duplicating
+	//! the list would hide it from both.
+	//! \return The six names.
+	protected array<string> CollectRampConfigNames()
+	{
+		array<string> names = new array<string>();
+
+		foreach (string rung : OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER)
+		{
+			names.Insert(rung);
+		}
+
+		names.Insert(OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG);
+		names.Insert(OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+
+		return names;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] name The config to check.
+	//! \return An empty string when its span is exactly harassment through the forward-base phase, or
+	//!         which half of that is wrong.
+	protected string CheckSpan(notnull OVT_DeploymentManagerComponent deployments, string name)
+	{
+		OVT_DeploymentConfig config = deployments.FindConfigByName(name);
+		if (!config)
+			return string.Format("'%1' is not registered in overthrowDeployments.conf, so there is no span to check", name);
+
+		OVT_ObjectiveConditionDeploymentModule condition;
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			condition = OVT_ObjectiveConditionDeploymentModule.Cast(module);
+			if (condition)
+				break;
+		}
+
+		if (!condition)
+			return string.Format("'%1' authors no objective condition at all - the evaluator could create it anywhere and nothing would collect it when the objective ends", name);
+
+		if (condition.m_iRequiredPhase != OVT_EObjectivePhase.HARASSMENT)
+			return string.Format("'%1' must be creatable during harassment and its first phase is %2 - a ramp operation that cannot be sent in the phase the ramp runs in is a phase that does nothing",
+				name, condition.m_iRequiredPhase.ToString());
+
+		int through = condition.ResolveThroughPhase();
+
+		if (through < OVT_EObjectivePhase.FOB)
+			return string.Format("'%1' must span the forward-base phase and stops at %2. THIS IS THE 2026-08-19 DEADLOCK: one sabotage success promotes a base objective out of harassment, so a ramp scoped to harassment alone can never reach the six missions the counter-attack demands, and a town's support debuff stops stacking and times out",
+				name, through.ToString());
+
+		if (through > OVT_EObjectivePhase.FOB)
+			return string.Format("'%1' must NOT reach the counter-attack phase and spans up to %2 - once the battle is on, harassment and sabotage teams walking in are noise, and a team already in the world must be collected rather than kept",
+				name, through.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] name The config to check.
+	//! \return An empty string when it is sourced from the forward base, or why that matters.
+	protected string CheckSource(notnull OVT_DeploymentManagerComponent deployments, string name)
+	{
+		OVT_DeploymentConfig config = deployments.FindConfigByName(name);
+		if (!config)
+			return string.Format("'%1' is not registered in overthrowDeployments.conf, so there is no source provider to check", name);
+
+		OVT_InsertionSpawningDeploymentModule insertion;
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			insertion = OVT_InsertionSpawningDeploymentModule.Cast(module);
+			if (insertion)
+				break;
+		}
+
+		if (!insertion)
+			return string.Format("'%1' has no insertion spawning module - its force would appear at the objective out of thin air", name);
+
+		if (!insertion.m_Source)
+			return string.Format("'%1' authors no source provider at all, so its insertion module registers nothing", name);
+
+		// 🔴 THE LINE THAT MAKES A FORWARD BASE A SUPPLY SOURCE RATHER THAN SCENERY, for the RAMP and not
+		// only for its own garrison. Its fallback is the provider this replaced, so nothing changes until
+		// one is standing.
+		if (!OVT_ObjectiveAnchorSourceProvider.Cast(insertion.m_Source))
+			return string.Format("'%1' must be sourced from the forward base (OVT_ObjectiveAnchorSourceProvider) - with any other provider the ramp keeps driving the whole way from the rear even once a forward base is standing, which is half of §3.2 unimplemented and makes the middle phase cost the occupying faction resources for nothing but a garrison", name);
+
+		return "";
 	}
 }

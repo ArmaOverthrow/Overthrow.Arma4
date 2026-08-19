@@ -32,6 +32,22 @@
 //! about most is the last to go - which is the difference between "I have time to respond" and "I
 //! logged in and the garage was gone".
 //!
+//! ⚠ BUILDABLES ONLY. PLACEABLES ARE NOT TARGETS, AND THAT IS WHAT MAKES THE LADDER ABOVE THE ONE
+//! THAT ACTUALLY RUNS (user, 2026-08-19: "placeables dont actually make any sense to sabotage, they
+//! are just sandbags, furniture, lights, etc"). The filter used to take EITHER ownership component,
+//! and because placeables are priced 5-250 while the cheapest buildable is a 750 bunker, "cheapest
+//! first" meant a base's clutter - sandbags (20), signs (20), furniture (25), cots (30), hedgehogs
+//! (60), camps (250), floodlights (250) - was ALWAYS demolished before a single built structure. A
+//! play-test watched a team take an 80-resource ammobox while a recruitment tent stood untouched.
+//! Restricting the filter to OVT_BuildableComponent is therefore not a narrowing of scope for its own
+//! sake: it is what makes the demolition ladder land on the things the player built and cares about.
+//!
+//! ⚠ THE COST OF THAT: A BASE WITH NOTHING BUILT ON IT NOW YIELDS NO CANDIDATES AT ALL, so its
+//! mission completes on the first interval as "there was nothing left to demolish" - a SUCCESS that
+//! advances the counter-attack ramp on a base that visibly has objects on it. That behaviour is
+//! unchanged and deliberate (see DemolishNextStructure), but dropping placeables widens the set of
+//! bases it applies to from "bases with nothing on them" to "bases with nothing BUILT on them".
+//!
 //! ⚠ IT NEITHER DELETES NOR TOUCHES THE NAVMESH ITSELF. Removal goes through
 //! OVT_ResistanceFactionManager.DestroyPlacedItem(), the one shared path that captures the navmesh
 //! carve BEFORE the entity stops existing. Copying those two lines here would be the same mistake in
@@ -209,6 +225,60 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! 🔴 ANYTHING THE PLAYER KEEPS GEAR IN IS OFF LIMITS, AND THIS IS A GAMEPLAY DECISION RATHER THAN
+	//! A TECHNICAL EXCLUSION (user, 2026-08-19).
+	//!
+	//! A play-test watched a sabotage team demolish an ammobox - the cheapest thing on the base, so the
+	//! first thing taken - and with it every weapon, magazine and piece of kit the player had stored in
+	//! it. Losing a structure you paid 750 for is a setback you can see coming and rebuild; losing the
+	//! contents of a box is losing the campaign's accumulated loot with no warning, no wreck to loot back
+	//! and no notification that named the box. The user's decision was explicit: the mechanics for
+	//! recovering gear from a destroyed container will be developed later, and until they exist a
+	//! sabotage team simply leaves the boxes alone.
+	//!
+	//! ⚠ THE TEST IS THE STORAGE COMPONENT, NOT THE PREFAB AND NOT THE PLACEABLE TYPE STRING. A prefab
+	//! list would have to be maintained in parallel with placeables.conf, and the type string
+	//! ("Ammobox") is authored per prefab and is exactly the kind of join that already disagrees with
+	//! itself elsewhere in this tree - GetStructureCost()'s header records seven of the eight buildables
+	//! whose type string does NOT match their config entry. BaseInventoryStorageComponent is the
+	//! CATEGORY: it is what makes a thing a container at all, it is what every future gear box will have
+	//! without anybody remembering to add it to a list, and it is the same component the inventory menu
+	//! opens.
+	//!
+	//! WHAT IT CATCHES, verified against the shipped data (2026-08-19): all four prefabs of the
+	//! "Ammobox" placeable entry - OVT_AmmoBox_Placed (through OVT_AmmoBox_Base),
+	//! OVT_CabinetMetal_01_grey_V1, and the two FIA equipment boxes - each of which authors an
+	//! SCR_UniversalInventoryStorageComponent, which derives from this class.
+	//!
+	//! WHAT IT DOES NOT CATCH, verified the same way: every other shipped placeable (posters, camps,
+	//! sandbags, hedgehogs, floodlights, signs, furniture, cots, the pirate radio) and every shipped
+	//! buildable (guard tower, both tents, the maintenance ramp, bunkers, garage, helipad, fuel depot)
+	//! carries no storage component on its root at all. The exclusion therefore costs the mission nothing
+	//! it was meant to have.
+	//!
+	//! 🔴 AND AS OF THE BUILDABLES-ONLY FILTER IT IS UNREACHABLE ON SHIPPED DATA, DELIBERATELY KEPT
+	//! (2026-08-19). All four containers it was written for are Ammobox PLACEABLES, and a placeable is no
+	//! longer a candidate at all, so re-checking every buildable prefab and its vanilla parents found not
+	//! one with storage on its root - nothing this can currently refuse ever gets this far. It stays for
+	//! two reasons and neither is sentiment: it is the STANDING STATEMENT of a decision that is coming
+	//! back ("when its done right", once destroyed containers give their contents up somehow), and it is
+	//! the automatic guard for the first buildable that IS a container - a weapon cache, a supply crate,
+	//! a modded armoury - which would otherwise be priced, sorted and demolished with a player's kit
+	//! inside it before anybody remembered this conversation. Deleting it would cost a component lookup's
+	//! worth of nothing and buy a silent regression.
+	//! \param[in] entity The candidate structure.
+	//! \return True when the structure is a container and must be left standing.
+	static bool IsGearContainer(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		BaseInventoryStorageComponent storage = BaseInventoryStorageComponent.Cast(entity.FindComponent(BaseInventoryStorageComponent));
+
+		return storage != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Takes exactly one structure, and decides whether the mission is over.
 	//!
 	//! ⚠ THE CANDIDATE LIST IS REBUILT EVERY TIME rather than cached across intervals. Two minutes pass
@@ -230,6 +300,11 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 			// NOTHING LEFT TO TAKE IS STILL A COMPLETED MISSION. A base the resistance built nothing on
 			// would otherwise send mission after mission for the whole phase and never open the gate -
 			// a ramp that cannot finish, with no log line to explain it.
+			//
+			// ⚠ "NOTHING LEFT" NOW MEANS "NOTHING BUILT LEFT". Since the filter dropped placeables, a base
+			// carrying only sandbags, lights and furniture reports this on its first interval, so the
+			// player sees a sabotage objective succeed against a base that visibly still has things on it.
+			// That is the accepted price of not demolishing clutter; the log line below is the only trace.
 			CompleteMission("there was nothing left to demolish");
 			return;
 		}
@@ -261,9 +336,9 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	//------------------------------------------------------------------------------------------------
 	//! Finds every player structure this mission may take, cheapest-first ordering supplied separately.
 	//!
-	//! THE SHAPE IS OVT_ItemLimitChecker.CountItemsForLocation, COLLECTING INSTEAD OF COUNTING - there
-	//! is no registry of placed structures anywhere in the tree, so a sphere query with the
-	//! either-component filter is the only enumerator that exists. The radius matches that method's own
+	//! THE SHAPE IS OVT_ItemLimitChecker.CountItemsForLocation, COLLECTING INSTEAD OF COUNTING and with
+	//! the filter narrowed to buildables - there is no registry of placed structures anywhere in the
+	//! tree, so a sphere query is the only enumerator that exists. The radius matches that method's own
 	//! figure for EOVTBaseType.BASE (500 m): the two have to agree, because a structure the placement
 	//! limit counted towards this base and this module could not find would be an object the player was
 	//! charged for and can never lose.
@@ -300,7 +375,29 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Filter callback - the OVT_ItemLimitChecker.FilterItemCallback shape: either ownership component.
+	//! WHETHER A STRUCTURE IS THE KIND OF THING A SABOTAGE TEAM DEMOLISHES AT ALL, with both inputs
+	//! passed in so the rule is answerable without a world, a prefab or a spawned entity.
+	//!
+	//! ⚠ A BUILDABLE IS A TARGET; A PLACEABLE IS NOT. This is the whole rule, and it is a GAMEPLAY
+	//! decision rather than a technical one - see the class header. A placeable is sandbags, a sign, a
+	//! lamp, a chair; blowing one up is not an attack on the base, it is vandalism, and because
+	//! placeables are all cheaper than every buildable the cost sort meant they were the only thing
+	//! that ever came down.
+	//!
+	//! ⚠ AN ENTITY CARRYING BOTH COMPONENTS IS A TARGET. Nothing shipped is authored that way, but a
+	//! thing that can be BUILT is a built structure whatever else it also is, and the alternative -
+	//! letting a placeable component veto a buildable one - would give a mod a way to make a
+	//! structure permanently immune by adding a component that means nothing here.
+	//! \param[in] hasPlaceable Whether the entity carries OVT_PlaceableComponent.
+	//! \param[in] hasBuildable Whether the entity carries OVT_BuildableComponent.
+	//! \return True when the structure may be considered at all.
+	static bool IsCandidateStructure(bool hasPlaceable, bool hasBuildable)
+	{
+		return hasBuildable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Filter callback - the OVT_ItemLimitChecker.FilterItemCallback shape, narrowed to buildables.
 	//! \param[in] entity The entity being offered.
 	//! \return True to pass it to the collect callback.
 	protected bool FilterStructureCallback(IEntity entity)
@@ -308,13 +405,10 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		if (!entity)
 			return false;
 
-		if (OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent)))
-			return true;
+		bool hasPlaceable = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent)) != null;
+		bool hasBuildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent)) != null;
 
-		if (OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent)))
-			return true;
-
-		return false;
+		return IsCandidateStructure(hasPlaceable, hasBuildable);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -326,26 +420,24 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		if (!entity)
 			return true;
 
-		string associatedId;
-		EOVTBaseType associatedType = EOVTBaseType.NONE;
+		// ⚠ THE BUILDABLE COMPONENT IS RE-RESOLVED RATHER THAN TRUSTED FROM THE FILTER. The filter is a
+		// separate callback with no channel back to this one, and an entity that reaches here without it
+		// is simply not this mission's business.
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (!buildable)
+			return true;
 
-		OVT_PlaceableComponent placeable = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
-		if (placeable)
-		{
-			associatedId = placeable.GetAssociatedBaseId();
-			associatedType = placeable.GetBaseType();
-		}
-		else
-		{
-			OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
-			if (!buildable)
-				return true;
-
-			associatedId = buildable.GetAssociatedBaseId();
-			associatedType = buildable.GetBaseType();
-		}
+		string associatedId = buildable.GetAssociatedBaseId();
+		EOVTBaseType associatedType = buildable.GetBaseType();
 
 		if (!IsSabotageTarget(associatedId, associatedType, m_sTargetBaseId, m_iTargetBaseFaction, m_iMyFaction))
+			return true;
+
+		// 🔴 THE PLAYER'S GEAR IS NOT COLLATERAL. See IsGearContainer() - a deliberate carve-out pending
+		// a gear-recovery mechanic, not a bug in the cost sort. Excluded HERE rather than in
+		// FilterStructureCallback() so the exclusion sits beside the target rule it qualifies, where the
+		// next person reading "what may this mission take" will find it.
+		if (IsGearContainer(entity))
 			return true;
 
 		if (!m_QueryResistance)

@@ -91,6 +91,76 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! THE FORWARD BASE HAS NO MOTOR POOL, so anything setting out from it walks.
+	//!
+	//! ⚠ IT COMPARES THE POSITION RATHER THAN TRUSTING THE CALLER, because this provider answers TWO
+	//! different origins and only one of them is on foot. An operation that resolved the FALLBACK - no
+	//! forward base standing, or one torn down between two passes - set out from a real base with real
+	//! vehicle spawns, and must still get its truck. Handing back a flat "no transport" for everything
+	//! this provider answers would ground every insertion the objective director sends, including the
+	//! 2.4 km opening drive from the rear.
+	//!
+	//! THE TOLERANCE IS WHAT MAKES THE COMPARISON HONEST. The origin travels out through
+	//! ResolveSource()'s `out` parameter and back in here as a float vector, and the director's own
+	//! record is the authority in between; an exact `==` on two float vectors is the kind of test that
+	//! works until something rounds. A metre is far tighter than the distance between a forward base and
+	//! any real base - they are hundreds of metres apart by construction - so nothing can be mistaken
+	//! for the other.
+	//! \param[in] sourcePosition The origin this provider resolved.
+	//! \param[in] factionIndex The deployment's controlling faction. Unused: the forward base belongs to
+	//!            the occupying faction and the director only ever has one.
+	//! \return False when the resolved origin is the forward base, true for the fallback.
+	override bool SourceProvidesTransport(vector sourcePosition, int factionIndex)
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_ObjectiveDirectorComponent.GetInstance();
+		if (!director)
+			return true;
+
+		if (!director.IsFOBUp())
+			return true;
+
+		vector forward = director.GetFOBPosition();
+		if (forward == vector.Zero)
+			return true;
+
+		return vector.Distance(forward, sourcePosition) > FORWARD_BASE_MATCH_TOLERANCE_M;
+	}
+
+	//! How close a resolved origin has to be to the forward base to BE it. See SourceProvidesTransport.
+	static const float FORWARD_BASE_MATCH_TOLERANCE_M = 1;
+
+	//------------------------------------------------------------------------------------------------
+	//! WHILE THE FORWARD BASE IS STANDING, OPERATIONS PRICED FROM THIS PROVIDER DO NOT BUDGET A TRUCK.
+	//!
+	//! This is what makes the forward base an actual ADVANTAGE rather than only a shorter drive: every
+	//! operation the director sends while it stands is cheaper by m_iTruckCostOverride, and goes back to
+	//! full price the moment a player finds the camp and dismantles it. Author intent, 2026-08-19: *"the
+	//! whole point is that FOB gives them advantages until you find it and dismantle it"*.
+	//!
+	//! ⚠ IT RE-PRICES LIVE, AND THAT IS THE POINT RATHER THAN A HAZARD. Nothing persists a deployment's
+	//! price and GetTotalResourceCost() recomputes on every ask, so raising the base drops the price of
+	//! the next operation and dismantling it restores the price - including the objective reserve floor,
+	//! which is explicitly built to be re-priced.
+	//!
+	//! ⚠ THE ONE IMPRECISION, STATED RATHER THAN HIDDEN. With m_fMaxForwardDistance authored above zero
+	//! this can answer false while a particular deployment is far enough from the camp that
+	//! ResolveSource() falls back to a real base and DOES spawn a truck. That is the benign direction
+	//! named in the seam's header - the faction gets a truck it was not charged for, and nothing fails -
+	//! and it cannot happen at all on the shipped configs, every one of which authors 0 (no limit).
+	//! \return False while the forward base is up, true otherwise.
+	override bool MayProvideTransport()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_ObjectiveDirectorComponent.GetInstance();
+		if (!director)
+			return true;
+
+		if (!director.IsFOBUp())
+			return true;
+
+		return director.GetFOBPosition() == vector.Zero;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override string GetProviderName()
 	{
 		return "objective forward base, then nearest controlled base";

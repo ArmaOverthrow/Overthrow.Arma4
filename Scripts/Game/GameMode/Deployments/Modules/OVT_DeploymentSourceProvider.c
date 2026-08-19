@@ -42,6 +42,65 @@ class OVT_DeploymentSourceProvider
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! WHETHER A FORCE SETTING OUT FROM THIS ORIGIN CAN BE GIVEN A TRUCK AT ALL.
+	//!
+	//! ⚠ THIS IS A PROPERTY OF THE PLACE, NOT A DISTANCE, WHICH IS WHY IT IS NOT m_fWalkThresholdDistance.
+	//! The threshold answers "is this hop short enough to walk"; this answers "is there anything here to
+	//! drive". They are different questions and a config cannot express the second with the first: raising
+	//! the threshold high enough to make a forward base walk would also make every insertion from a REAL
+	//! base walk, including the 2.4 km opening drive that is exactly what the trucks are for.
+	//!
+	//! WHY IT EXISTS. The occupying faction's forward operating base is a field camp raised on a lattice
+	//! point between the rear and the objective. It has no motor pool, no authored vehicle spawn and no
+	//! guarantee of a road within a kilometre - so a truck spawned there does not just look wrong, it
+	//! reliably strands: on the play-test that prompted this (2026-08-19) the transport stopped making
+	//! progress 583 m short of its landing zone about a minute after setting off, the force walked in
+	//! anyway, and a stranded truck was left beside the camp for the collector to sweep up. The convoy
+	//! cost was spent to make the insertion slower and messier than the walk it fell back to.
+	//!
+	//! ⚠ IT TAKES THE RESOLVED POSITION RATHER THAN REMEMBERING THE LAST ONE, and that is contract point 2
+	//! rather than an inconvenience. A provider is a stateless answerer; a "did my last call resolve the
+	//! forward base" flag would be exactly the cache across calls that point forbids, and it would be
+	//! read on a later pass than the one that set it.
+	//!
+	//! THE DEFAULT IS TRUE, so every existing provider and every mod's provider keeps today's behaviour
+	//! without touching this. Only an origin that genuinely has no vehicles overrides it.
+	//! \param[in] sourcePosition An origin this provider resolved.
+	//! \param[in] factionIndex The deployment's controlling faction.
+	//! \return True when a transport may be spawned at that origin.
+	bool SourceProvidesTransport(vector sourcePosition, int factionIndex)
+	{
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE SAME QUESTION AS SourceProvidesTransport, ASKED WITH NO CONTEXT, AT PRICING TIME.
+	//!
+	//! ⚠ IT IS A SEPARATE METHOD BECAUSE THE PRICING PATH HAS NOTHING TO PASS IT, and that is structural
+	//! rather than an oversight. A deployment's price comes from GetTotalResourceCost() walking the
+	//! CONFIG TEMPLATE's modules - there is no deployment, no position and no faction at that point, so
+	//! the precise question cannot be asked. This one is answerable anyway, because a provider can look
+	//! at the world and say "right now, everything I would resolve is on foot".
+	//!
+	//! THE TWO MUST AGREE, and the direction of any disagreement matters:
+	//!   - FALSE HERE, TRUE THERE (priced for no truck, then given one) is BENIGN. The transport cost is
+	//!     a budget line and nothing debits it at spawn time - see m_iTruckCostOverride - so the faction
+	//!     simply got a truck cheaply. Nothing fails.
+	//!   - TRUE HERE, FALSE THERE (priced for a truck, then walks) is the ORIGINAL DEFECT this pair was
+	//!     written to fix: money charged for a vehicle that is never spawned.
+	//! So an implementation that is unsure must answer TRUE here, never false: over-charging is a
+	//! balance question and under-delivering is a bug.
+	//!
+	//! ⚠ ANSWER FROM THE WORLD, LIKE EVERYTHING ELSE ON THIS SEAM. The price is recomputed each time it
+	//! is asked, so a forward base going up or being dismantled re-prices the very next pass. Nothing
+	//! persists a deployment's price, so there is no stale figure to reconcile.
+	//! \return True when an operation priced from this provider should budget for a transport.
+	bool MayProvideTransport()
+	{
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Human-readable name for warnings and debug output.
 	//! \return The provider's name.
 	string GetProviderName()

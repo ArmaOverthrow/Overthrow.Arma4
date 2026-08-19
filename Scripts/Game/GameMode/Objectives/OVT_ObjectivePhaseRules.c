@@ -12,7 +12,9 @@
 //! landed with them: how many sabotage missions a base objective owes before it may be counter-attacked,
 //! and which rung of the harassment group ladder a given success count buys. Phase 2 added the rest -
 //! the three phase gates, the starvation predicate, the FOB budget ceiling and the tick-down - so the
-//! whole progression of the objective machine is now decidable from integers alone.
+//! whole progression of the objective machine is now decidable from integers alone. 2026-08-19 added
+//! PhaseInRange(), which is how a deployment says WHICH PHASES it belongs to rather than which single
+//! phase - see its header for the deadlock that made a range necessary.
 //!
 //! ⚠ EVERY DURATION THE MACHINE TRACKS IS A TICK COUNT, NEVER A DEADLINE (D4). TickDown() below is
 //! the only way any of them moves. That is what makes "all objective timers freeze while a battle is
@@ -51,10 +53,32 @@ class OVT_ObjectivePhaseRules
 	//! place once it has taken it.
 	static const int TOWN_QRF_SUPPORT_THRESHOLD = 25;
 
+	//! The phase number that means "there is no objective" - OVT_EObjectivePhase.IDLE, restated as an
+	//! integer because this class may not name a type it would then have to be kept in step with.
+	//!
+	//! ⚠ IT IS AN AUTHORED-DATA FLOOR, NOT A RUNTIME ONE. A config that says it belongs to IDLE belongs
+	//! to no phase at all and PhaseInRange() refuses it outright; the runtime half needs no guard,
+	//! because a range that starts at 1 or above already refuses every phase below it.
+	static const int NO_PHASE = 0;
+
 	//! The FOB spend ceiling, as a multiple of one FOB's cost. Derived rather than authored (§3.6):
 	//! a separate difficulty knob nobody ever tunes is a knob that goes stale, and the ceiling is only
 	//! ever meaningful relative to what the structure itself cost.
-	static const int FOB_CEILING_MULTIPLIER = 3;
+	//!
+	//! RAISED 3 -> 4 (author-approved, 2026-08-19), i.e. 1200 -> 1600 at the shipped objectiveFOBCost
+	//! of 400. Three was set before Phase 1 operations were allowed to continue through the
+	//! forward-base phase, when the ceiling only had to cover the base and its garrison. It now has to
+	//! cover the rest of the ramp as well: the walk-through to six sabotage missions on Easy spends
+	//! ~710, which left barely four more operations of headroom before the objective ran dry and was
+	//! abandoned for want of anything to do while its reserve filled.
+	//!
+	//! ⚠ IT IS A CEILING, NOT A BUDGET THE FACTION HOLDS. Raising it does not create resources; it
+	//! raises how much of the shared pool ONE objective may consume before it must stop. The reserve
+	//! floor decides who may spend what is there, this decides how long one objective may keep
+	//! spending it, and routine garrisoning gets whatever is left - so raising it further trades
+	//! map-wide upkeep for a single objective's persistence. Four is a deliberate small step for that
+	//! reason, and reverting it is a one-character change.
+	static const int FOB_CEILING_MULTIPLIER = 4;
 
 	//------------------------------------------------------------------------------------------------
 	//! How many completed sabotage missions a base objective owes before Phase 3 may fire.
@@ -102,6 +126,72 @@ class OVT_ObjectivePhaseRules
 			return rungs - 1;
 
 		return successes;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHICH PHASES A DEPLOYMENT BELONGS TO: an INCLUSIVE range, asked once and answered the same way by
+	//! the creation gate and the runtime gate.
+	//!
+	//! 🔴 THE DEADLOCK THIS EXISTS TO END (play-test, 2026-08-19). Every Phase 1 config was scoped to
+	//! phase 1 by an EQUALITY test, and BasePhase2Gate() promotes a base objective on its FIRST completed
+	//! sabotage mission. So one success moved the objective into the forward-base phase, from which no
+	//! sabotage operation could ever be sent again - and BasePhase3Gate() demands six of them on Easy.
+	//! The counter froze at one, the objective sat until its idle clock ran out, and the headline
+	//! promise of the whole feature was unreachable for either kind of objective. The town side deadlocks
+	//! identically one step later: the stacking support debuff that drives support under 25 % is applied
+	//! by harassment operations, and those stopped for the same reason. §3.2 always said the forward base
+	//! "becomes the insertion source for FURTHER Phase 1 operations"; an equality test cannot express that.
+	//!
+	//! ⚠ A RANGE, NOT A MINIMUM, AND THE UPPER BOUND IS THE POINT. "Phase N or later" would keep sending
+	//! harassment and sabotage teams into the counter-attack, where men walking in to soften a place that
+	//! is already being stormed are noise. The bound is AUTHORED, so a config states its own span and an
+	//! initialisation case pins what every shipped one may say.
+	//!
+	//! ⚠ AN UNAUTHORED UPPER BOUND IS THE PRE-RANGE BEHAVIOUR, EXACTLY. lastPhase below firstPhase -
+	//! which includes the 0 an unauthored field holds - collapses the range to firstPhase alone, so a
+	//! config that says nothing about a range is scoped to one phase by equality just as it was before
+	//! this function existed. That is what makes the change byte-identical for anything nobody re-authored.
+	//! ⚠ THERE IS NO SEPARATE "THE OBJECTIVE IS IDLE" GUARD, AND ADDING ONE WOULD BE DEAD CODE. Every
+	//! range that survives the firstPhase test below starts at 1 or above, so `phase < firstPhase`
+	//! already refuses IDLE and anything under it - a guard on `phase` could not be made to fail and
+	//! would be the only line in this class that no row could pin.
+	//! \param[in] phase The phase the objective is in right now.
+	//! \param[in] firstPhase The first phase this deployment belongs to.
+	//! \param[in] lastPhase The last phase it may continue working in, inclusive. Below firstPhase (and
+	//!            0, which is what an unauthored field holds) means "firstPhase only".
+	//! \return True when the deployment belongs to the phase the objective is in.
+	static bool PhaseInRange(int phase, int firstPhase, int lastPhase)
+	{
+		// A config authored for IDLE names no phase at all, so nothing belongs to it. That is also what
+		// the equality test this replaced did with the same authored value: an objective in IDLE does not
+		// exist, so a config scoped to IDLE could never match anything.
+		if (firstPhase <= NO_PHASE)
+			return false;
+
+		if (phase < firstPhase)
+			return false;
+
+		return phase <= EffectiveLastPhase(firstPhase, lastPhase);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The last phase a range actually spans, with the "an unauthored upper bound means the first phase
+	//! only" collapse applied.
+	//!
+	//! ⚠ SPLIT OUT OF PhaseInRange() SO THE COLLAPSE HAS EXACTLY ONE STATEMENT. A reader that needs to
+	//! REPORT a config's span - the debug print, and the initialisation case that pins every shipped
+	//! objective config - would otherwise re-derive it, and a re-derivation that drifted would pass a
+	//! config whose span the live predicate refuses.
+	//! \param[in] firstPhase The first phase of the range.
+	//! \param[in] lastPhase The authored upper bound. Below firstPhase (including an unauthored 0) means
+	//!            "firstPhase only".
+	//! \return The inclusive last phase, never below firstPhase.
+	static int EffectiveLastPhase(int firstPhase, int lastPhase)
+	{
+		if (lastPhase < firstPhase)
+			return firstPhase;
+
+		return lastPhase;
 	}
 
 	//------------------------------------------------------------------------------------------------

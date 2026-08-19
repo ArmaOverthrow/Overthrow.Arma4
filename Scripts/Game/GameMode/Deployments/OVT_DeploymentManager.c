@@ -55,6 +55,50 @@ class OVT_DeploymentObjectiveAnchor : Managed
 	float weight;
 }
 
+//------------------------------------------------------------------------------------------------
+//! One faction's objective RESERVE FLOOR: how much of its pool the routine evaluator may not touch,
+//! and what that money is being kept for.
+//!
+//! 🔴 WHY THIS EXISTS - THE PRIORITY INVERSION (D18, play-test 2026-08-19). The occupying faction's
+//! pool is credited in a LUMP every six in-game hours, and two spenders race for it. The routine
+//! evaluator runs every 30 real seconds and may create MAX_DEPLOYMENTS_PER_EVALUATION deployments in
+//! ONE pass; the objective director takes at most one operation per cadence interval. Nothing
+//! earmarked anything, so routine garrisoning drained each credit before the pool ever reached the
+//! price of the strategic operation - the play-test sat at 20 resources with a 120-cost forward base
+//! it could never afford, indefinitely, with nothing in the log to say why. That is a priority
+//! inversion, not a shortage.
+//!
+//! ⚠ IT GATES SPENDING. IT MOVES NO MONEY. There is still exactly one pool, still exactly one credit
+//! path and still exactly one debit per create. A reserve is a CEILING ON ONE SPENDER for as long as
+//! somebody is holding it up - see OVT_DeploymentSelection.SpendableResources(), where the whole of
+//! the arithmetic lives, and EvaluateFactionDeployments(), where it is the whole of the effect.
+//!
+//! PUSHED IN, NEVER PULLED OUT, exactly as OVT_DeploymentObjectiveAnchor is. This manager never asks
+//! anybody whether an objective exists or what it would like to buy next; whoever owns the intent
+//! pushes a name and a price and clears them again.
+//!
+//! ⚠ ONE OPERATION DEEP, AND IT MUST NOT OUTLIVE THE INTENT. The pusher re-pushes on every one of its
+//! own ticks for as long as it is genuinely short, and drops it the moment it is not - so an entry
+//! here is at most one tick old. It is not a growing war chest, it is not a percentage of income, and
+//! nothing accumulates in it: an owner that stops asking stops reserving, and the evaluator has the
+//! whole pool back on its very next pass.
+//------------------------------------------------------------------------------------------------
+class OVT_DeploymentObjectiveReserve : Managed
+{
+	//! What the money is being kept for. DIAGNOSTICS ONLY - nothing branches on it. It is in the
+	//! record because "the evaluator was held off" is useless in a log without "for what".
+	string operation;
+
+	//! How much is withheld from the routine evaluator. Always positive: SetObjectiveReserve() clears
+	//! rather than storing a dead one, so an entry in the store is always a live floor.
+	int cost;
+
+	//! True once this exact (operation, cost) earmark has been said out loud. The latch that keeps a
+	//! floor re-pushed every ten real seconds from being a log line every ten real seconds; see
+	//! OVT_DeploymentSelection.IsSameReserve() for why the key is the pair.
+	bool announced;
+}
+
 [EntityEditorProps(category: "Overthrow/Managers", description: "Manages all deployments across factions")]
 class OVT_DeploymentManagerComponentClass : OVT_ComponentClass
 {
@@ -102,6 +146,18 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! wholesale on a restore - see ClearAllObjectiveAnchors().
 	protected ref map<int, ref OVT_DeploymentObjectiveAnchor> m_mObjectiveAnchors;
 
+	//! factionIndex -> that faction's objective reserve floor. An absent entry is the normal state and
+	//! means "nothing is earmarked"; see OVT_DeploymentObjectiveReserve and GetObjectiveReserveCost().
+	//!
+	//! ⚠ RUNTIME-ONLY, AND DELIBERATELY NOT PERSISTED, for a stronger reason than the anchor's. A
+	//! reserve is a restatement of "the thing that owns this faction's intent asked to buy something on
+	//! its last tick and could not pay for it" - a statement about ONE tick, not about a campaign. A
+	//! saved one would be a floor asserted by a director that has not run yet, held against an operation
+	//! a load may abandon on its first tick, and nothing would ever clear it if it did. So it is emptied
+	//! with the rest of the per-faction state on a restore (ClearAllObjectiveReserves()) and re-earned
+	//! from scratch, which costs at most one unfloored evaluation pass.
+	protected ref map<int, ref OVT_DeploymentObjectiveReserve> m_mObjectiveReserves;
+
 	//! factionIndex -> how many live insertion convoys that faction currently holds.
 	//!
 	//! ⚠ RUNTIME-ONLY, AND A LEAK HERE PERMANENTLY STARVES INSERTION. Nothing in this map survives a
@@ -137,6 +193,25 @@ class OVT_DeploymentManagerComponent : OVT_Component
 
 	static const float THREAT_EVALUATION_RADIUS = 2000; // 2km
 	static const int MAX_DEPLOYMENTS_PER_EVALUATION = 10; // Maximum deployments per evaluation cycle
+
+	//! THE LOCAL-THREAT FLOOR FOR ROUTINE SPENDING: below this, a place is not worth fortifying and the
+	//! faction keeps its money instead.
+	//!
+	//! ⚠ IT IS ON THE SPATIAL SCALE, WHICH IS ROUGHLY 0-60 - see CalculateThreatLevel() for where those
+	//! figures come from and why the scale changed on 2026-08-20. A number that looks tiny beside the old
+	//! ~420 candidate scores is a meaningful fraction of the new ones.
+	//!
+	//! WHY 5, AND WHY DELIBERATELY LOW. It is set to exclude the case the author actually reported -
+	//! ground with NOTHING near it, which scores 0 to 4 because there is no known enemy target within a
+	//! kilometre and no town within three times its range - while leaving anywhere with a town or a
+	//! known target still able to develop. A higher floor would start refusing to garrison real places
+	//! early in a campaign, when support is high and stability is intact and every score is naturally
+	//! small; that is a much worse failure than the one being fixed, because an undefended map is not
+	//! recoverable by waiting.
+	//!
+	//! ⚠ RAISE THIS ONLY AGAINST PLAY-TEST EVIDENCE, and expect the effect to be non-linear: the town
+	//! terms scale with town SIZE, so raising the floor prunes villages long before it prunes cities.
+	static const float MIN_LOCAL_THREAT_TO_DEPLOY = 5;
 
 	//! ⚠ There is no longer a blanket minimum distance between deployments. The 100 m veto that used
 	//! to live here was removed with the base-defense migration: it made a place that already held one
@@ -209,6 +284,10 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// this component is built for. A second campaign in one client session gets a second
 		// component and so a second, empty store.
 		m_mObjectiveAnchors = new map<int, ref OVT_DeploymentObjectiveAnchor>;
+
+		// Same reasoning, and empty is the only safe starting state: an entry here holds the routine
+		// evaluator off, and a fresh component has never been asked to hold anybody off by anybody.
+		m_mObjectiveReserves = new map<int, ref OVT_DeploymentObjectiveReserve>;
 
 		// Same reasoning, and the same lifetime: a second campaign in one client session gets a second
 		// component and so an empty reservation count, which is the only thing that could otherwise
@@ -800,6 +879,12 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			if (!config || !config.m_bFreeAtGameStart)
 				continue;
 
+			// BELT AND BRACES, and deliberately not relying on the two flags never being authored
+			// together. "A director-only config is created by the director and by nothing else" is an
+			// invariant of this framework, not a property of today's .conf files.
+			if (!config.IsSelectableByEvaluator())
+				continue;
+
 			if (!config.IsValidConfig() || !config.CanFactionUse(factionType))
 				continue;
 
@@ -1021,6 +1106,16 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! ONE faction's routine spending for one pass.
+	//!
+	//! 🔴 THE ONE SPENDER THE OBJECTIVE RESERVE FLOOR GOVERNS, AND THE ONLY ONE (D18). Everything else
+	//! that takes money out of the pool goes past this method and is deliberately unaffected: the
+	//! director's own operations (ForceCreateDeployment + SubtractFactionResources, which never read
+	//! m_mFactionResources through here and must not be blocked by the director's own floor), the
+	//! forward base's dismantle penalty, an existing deployment's reinforcement, and the free-at-game-
+	//! start seeding pass, which charges nothing at all. This is where routine, opportunistic
+	//! garrisoning is decided, and routine garrisoning outbidding the campaign's strategic intent is
+	//! the whole of the defect.
 	protected void EvaluateFactionDeployments(int factionIndex)
 	{
 		array<ref EntityID> factionDeployments = EnsureFactionDeploymentList(factionIndex);
@@ -1028,9 +1123,20 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// Skip if faction has reached deployment limit
 		if (factionDeployments.Count() >= m_iMaxDeploymentsPerFaction)
 			return;
-		
-		int availableResources = m_mFactionResources.Get(factionIndex);
-		
+
+		// ⚠ TWO NUMBERS NOW, AND THEY ARE NOT INTERCHANGEABLE. `pool` is what the faction HOLDS and is
+		// the only thing ever written back to m_mFactionResources; `availableResources` is what this
+		// pass may SPEND. They are seeded from the same integer and are decremented in lockstep, so a
+		// faction nobody earmarks for behaves exactly as it always has - see SpendableResources(),
+		// which is the identity on a zero reserve and performs no arithmetic at all.
+		int pool = m_mFactionResources.Get(factionIndex);
+
+		int reserve = GetObjectiveReserveCost(factionIndex);
+		int availableResources = OVT_DeploymentSelection.SpendableResources(pool, reserve);
+
+		// Said once per (operation, price), never per pass. Nothing branches on it.
+		AnnounceObjectiveReserve(factionIndex, pool, availableResources);
+
 		// Find potential deployment locations
 		array<vector> candidatePositions = FindDeploymentCandidates(factionIndex);
 
@@ -1059,10 +1165,30 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		candidatesWithThreat.Sort(true);
 		
 		int numDeployments = 0;
-		
+		int suppressedByFloor = 0;
+
 		// Evaluate each candidate position in order of threat level
 		foreach (OVT_CandidatePosition candidate : candidatesWithThreat)
 		{
+			// 🔴 THE SPEND FLOOR: A QUIET PLACE IS NOT WORTH FORTIFYING, AND SAVING THE MONEY IS A BETTER
+			// ANSWER THAN SPENDING IT BADLY. Author, 2026-08-20: "id rather the manager saved resources
+			// than just spend where it isnt needed".
+			//
+			// ⚠ IT READS candidate.threatLevel, WHICH IS THE UNBIASED SCORE, and that is load-bearing
+			// rather than incidental. The objective anchor writes only to sortBy (D5: it biases ORDERING,
+			// never ELIGIBILITY), so an objective cannot make a dead corner of the map worth garrisoning -
+			// it can only change which of the places that ARE worth it gets bought first.
+			//
+			// ⚠ THE FREE-AT-GAME-START SEEDING DOES NOT COME THROUGH HERE and must not be floored: a
+			// fresh campaign has no known targets and quiet towns, so every position would score near
+			// zero and the map would start completely undefended. That path is SeedFreeDeployments(),
+			// which asks PassesSeedConditions() instead.
+			if (candidate.threatLevel < MIN_LOCAL_THREAT_TO_DEPLOY)
+			{
+				suppressedByFloor++;
+				continue;
+			}
+
 			// Find suitable deployment config for this position and threat level
 			OVT_DeploymentConfig bestConfig = FindBestDeploymentConfig(candidate.position, factionIndex, candidate.threatLevel, availableResources);
 			if (bestConfig)
@@ -1086,13 +1212,32 @@ class OVT_DeploymentManagerComponent : OVT_Component
 				{
 					CreateDeployment(bestConfig, candidate.position, factionIndex, deploymentCost, candidate.threatLevel);
 					availableResources -= deploymentCost;
-					m_mFactionResources.Set(factionIndex, availableResources);
+
+					// ⚠ THE POOL IS WHAT IS DEBITED AND THE POOL IS WHAT IS WRITTEN BACK. Writing the
+					// SPENDABLE figure here would silently DESTROY the reserve on the first purchase of
+					// the pass - the faction would lose the earmarked resources outright rather than
+					// keep them for the operation they are being kept for, which is a hole in the
+					// "every resource leaves the pool exactly once" identity (G5) and not merely a
+					// behaviour change. With no reserve the two decrement in lockstep from the same
+					// starting integer, so this line writes exactly what it wrote before D18.
+					pool -= deploymentCost;
+					m_mFactionResources.Set(factionIndex, pool);
 					numDeployments++;
 				}
 			}
 
 			if (numDeployments >= MAX_DEPLOYMENTS_PER_EVALUATION)
 				break;
+		}
+
+		// THE ONE CASE WORTH A LINE: the faction had money, looked at every place it holds, and decided
+		// none of them needed anything. That is the floor doing its job rather than a stall, and without
+		// a line saying so it is indistinguishable from a broken evaluator. Bounded to the pass that
+		// bought NOTHING, so a normal pass that skips a few dead corners and buys elsewhere stays silent.
+		if (numDeployments == 0 && suppressedByFloor > 0)
+		{
+			Print(string.Format("[Overthrow] Deployment pool for faction %1: bought nothing and kept %2 resources - %3 candidate position(s) are below the local-threat floor of %4, i.e. nothing is happening near them. The faction is saving rather than fortifying quiet ground",
+				factionIndex.ToString(), pool.ToString(), suppressedByFloor.ToString(), MIN_LOCAL_THREAT_TO_DEPLOY.ToString()), LogLevel.NORMAL);
 		}
 	}
 	
@@ -1109,6 +1254,12 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		OVT_LocationTypeFlag neededLocationTypes = 0;
 		foreach (OVT_DeploymentConfig config : m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
+			// ⚠ A DIRECTOR-ONLY CONFIG MUST NOT EVEN WIDEN THE CANDIDATE SEARCH. Its location mask is a
+			// statement about where the DIRECTOR sends it, not a request for this pass to go and find
+			// places of that kind. See OVT_DeploymentConfig.IsSelectableByEvaluator().
+			if (!config.IsSelectableByEvaluator())
+				continue;
+
 			if (config.IsValidConfig() && config.CanFactionUse(factionType))
 			{
 				neededLocationTypes = neededLocationTypes | config.m_iAllowedLocationTypes;
@@ -1410,17 +1561,47 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! HOW MUCH THIS PARTICULAR PLACE NEEDS DEFENDING. Spatial, and ONLY spatial.
+	//!
+	//! ==========================================================================================
+	//! 🔴 IT USED TO ADD THE GLOBAL CAMPAIGN THREAT TO THIS, AND THAT MADE THE EVALUATOR PICK PLACES AT
+	//! RANDOM (fixed 2026-08-20, author play-test: "a lot of spending going on where it doesnt make
+	//! sense... building up bases far from the frontline").
+	//!
+	//! The arithmetic, with the figures from the campaign that exposed it:
+	//!   - GetThreatLevel() is the GLOBAL escalation scalar - the SAME NUMBER at every position on the
+	//!     map. It was ~420.
+	//!   - GetThreatByLocation() is the only term that knows where you are, and it is SMALL by
+	//!     construction: a known enemy base within 1 km is worth 10, a tower or FOB 5, a warehouse 1,
+	//!     and a town up to 5 x its size per component. Realistic spread across a whole map: 0-60.
+	//!   - The caller then jitters the TOTAL by +/-20%, which at 420 is +/-84.
+	//! So the ordering was a constant, plus noise nearly TWICE the size of the entire signal, plus the
+	//! signal. Sorting that is sorting the noise.
+	//!
+	//! IT ALSO SILENTLY KILLED EVERY AUTHORED m_iMinimumThreatLevel. Those thresholds are compared
+	//! against this number: with 420 added to every position, "only deploy where local threat exceeds
+	//! 50" passed EVERYWHERE, permanently, from the moment global threat first passed 50.
+	//!
+	//! THE EPIC ALREADY NAMED THIS AND WAS HALF RIGHT: "two threat concepts - the global escalation
+	//! scalar and the spatial GetThreatByLocation score - share a name but never interact". They did
+	//! interact, in exactly one place, by addition, and this was it.
+	//! ==========================================================================================
+	//!
+	//! ⚠ THE GLOBAL SCALAR IS NOT LOST, IT IS BACK WHERE IT BELONGS. It already governs HOW MUCH the
+	//! faction has to spend - PredictResourceGain() multiplies income by it - which is what an
+	//! escalation scalar should do. Deciding WHERE to spend is a different question and it was never
+	//! qualified to answer it.
+	//! \param[in] position The candidate position.
+	//! \param[in] factionIndex The faction being deployed for. Unused: threat is a property of the
+	//!            place, and the occupying faction is the only one that scores places.
+	//! \return The spatial threat score, 0 for a position with nothing of interest near it.
 	protected float CalculateThreatLevel(vector position, int factionIndex)
 	{
-		float threat = 0;
-		
-		// Base threat level
 		OVT_OccupyingFactionManager ofManager = OVT_Global.GetOccupyingFaction();
-		threat += ofManager.GetThreatLevel();
-		
-		threat += ofManager.GetThreatByLocation(position);
-		
-		return threat;
+		if (!ofManager)
+			return 0;
+
+		return ofManager.GetThreatByLocation(position);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1482,7 +1663,16 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		{
 			if (!config.IsValidConfig())
 				continue;
-			
+
+			// 🔴 THE OBJECTIVE DIRECTOR'S OWN OPERATIONS ARE NOT CANDIDATES. They are registered here so
+			// that everything which reads a CONFIG keeps working, not so that this pass can buy them: a
+			// play-test found the evaluator sending an "Objective Harassment (Patrol)" of its own accord
+			// at a base objective, outside the director's accounting and with no objective behind it. The
+			// director reaches them through FindConfigByName() + ForceCreateDeployment(), which do not
+			// consult this flag. See OVT_DeploymentConfig.IsSelectableByEvaluator().
+			if (!config.IsSelectableByEvaluator())
+				continue;
+
 			// Check if faction can use this config
 			OVT_FactionTypeFlag factionType = GetFactionType(factionIndex);
 			if (!config.CanFactionUse(factionType))
@@ -1715,12 +1905,26 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Create a deployment marker and initialize it from a config.
+	//!
+	//! ⚠ THE MARKER CARRIES A HEADING AS WELL AS A POSITION, AND IT IS UNROTATED BY DEFAULT. Almost
+	//! every deployment is a point on the map with no front, and those pass nothing and behave exactly
+	//! as they always have. The one caller that does pass a yaw is the objective director's forward-base
+	//! operation, because the thing that deployment raises is a STRUCTURE with a front, and the marker's
+	//! transform is the only channel between "the director chose a facing" and "a spawning module builds
+	//! something" that cannot go stale, cannot be read off the wrong objective, and is visible in the
+	//! Game Master. It is read back through OVT_DeploymentComponent.GetYaw().
+	//!
+	//! ⚠ NOT PERSISTED SEPARATELY, AND IT DOES NOT NEED TO BE: the marker entity itself is tracked, so
+	//! vanilla persistence saves the transform it was spawned with. Nothing re-derives the heading on a
+	//! load and nothing has to - a restored deployment builds nothing (D7/D11).
 	//! \param[in] config Deployment config to run.
 	//! \param[in] position World position for the marker entity.
 	//! \param[in] factionIndex Owning faction.
 	//! \param[in] resourcesInvested Resources spent creating it (stamped so RecoverResources and the GM snapshot are non-zero).
 	//! \param[in] threatLevel Threat level the candidate position scored at.
-	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0)
+	//! \param[in] yaw Heading for the marker, in degrees. 0 leaves it unrotated, as every deployment was
+	//!            before 2026-08-19.
+	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0)
 	{
 		if (config)
 			Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
@@ -1742,11 +1946,14 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			return null;
 		}
 		
-		// Create transform matrix
+		// Create transform matrix. The heading goes in HERE, in the spawn transform, and is never applied
+		// afterwards - OVT_BaseSpawningDeploymentModule.SpawnEntity records why in full, and
+		// GetUprightSpawnRotation() is the one place the (yaw, pitch, roll) conversion lives. A yaw of 0
+		// produces the identity this used to build unconditionally.
 		vector mat[4];
-		Math3D.MatrixIdentity4(mat);
+		Math3D.AnglesToMatrix(OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation(yaw), mat);
 		mat[3] = position;
-		
+
 		// Spawn deployment entity
 		IEntity deploymentEntity = OVT_WorldUtils.SpawnEntityPrefabMatrix(deploymentPrefab.GetResource().GetResourceName(), mat);
 		if (!deploymentEntity)
@@ -1926,6 +2133,15 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// anchor again on its own first tick after a load, so there is nothing to preserve here and
 		// at most one evaluation pass runs unbiased in between.
 		ClearAllObjectiveAnchors();
+
+		// AND THE SAME TEARDOWN FOR THE RESERVE FLOOR, for a stronger reason than the anchor's. A stale
+		// anchor biases spending at a place that no longer matters; a stale floor STOPS spending, held
+		// against an operation nobody has intended since the campaign that ended. Nothing here needs its
+		// own re-push on the way back in either - unlike the anchor, which a restored objective has to
+		// re-assert on its first tick - because a floor is a restatement of "the owner asked and could
+		// not pay ON ITS LAST TICK", and the first tick after a load either re-asks and re-pushes or
+		// does not want it any more. At most one evaluation pass runs unfloored in between.
+		ClearAllObjectiveReserves();
 
 		// AND THE SAME TEARDOWN FOR THE CONVOY COUNT, for a stronger reason than the anchor's. An
 		// anchor left behind biases spending at a place that no longer matters; a reservation left
@@ -2182,6 +2398,151 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	// The objective reserve floor - a pushed, per-faction CEILING on the routine evaluator
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Keeps part of a faction's pool out of the ROUTINE evaluator's reach, for one named operation.
+	//!
+	//! A NON-POSITIVE COST CLEARS INSTEAD OF STORING, exactly as SetObjectiveAnchor() does with a dead
+	//! radius, so an entry in the store is always a live floor and "is there a reserve?" is the whole
+	//! test at the call site. A caller that means "stop reserving" may say so either way.
+	//!
+	//! ⚠ AN UNCHANGED RE-PUSH KEEPS THE EXISTING RECORD, AND THAT IS LOAD-BEARING RATHER THAN AN
+	//! OPTIMISATION. The owner of the intent re-pushes on EVERY one of its ticks - once every ten real
+	//! seconds at 6x - because a floor that is not continuously re-earned is a floor that outlives the
+	//! intent. Replacing the record each time would reset the `announced` latch each time, and the
+	//! diagnostic below would become one WARNING every ten seconds for as long as the faction is
+	//! saving up. Keyed on the pair through OVT_DeploymentSelection.IsSameReserve(), so a different
+	//! operation or a changed price is heard immediately and an identical repeat is silent.
+	//!
+	//! IDEMPOTENT. A faction has at most one objective, so it has at most one floor.
+	//! \param[in] factionIndex The faction whose routine spending is being floored.
+	//! \param[in] operation What the money is being kept for. Diagnostics only; may be empty.
+	//! \param[in] cost How much to withhold. Non-positive clears.
+	void SetObjectiveReserve(int factionIndex, string operation, int cost)
+	{
+		// Server-only component: the collections are not allocated on clients.
+		if (!m_mObjectiveReserves)
+			return;
+
+		if (cost <= OVT_DeploymentSelection.NO_RESERVE)
+		{
+			ClearObjectiveReserve(factionIndex);
+			return;
+		}
+
+		OVT_DeploymentObjectiveReserve existing = m_mObjectiveReserves.Get(factionIndex);
+		if (existing && OVT_DeploymentSelection.IsSameReserve(existing.operation, existing.cost, operation, cost))
+			return;
+
+		OVT_DeploymentObjectiveReserve reserve = new OVT_DeploymentObjectiveReserve();
+		reserve.operation = operation;
+		reserve.cost = cost;
+		reserve.announced = false;
+
+		m_mObjectiveReserves.Set(factionIndex, reserve);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Gives a faction's whole pool back to the routine evaluator.
+	//!
+	//! Safe on a faction that never had a floor, which every teardown path relies on. Every path that
+	//! ends an objective, and every tick on which its owner is NOT short of money, has to reach this -
+	//! or routine spending would be held off for an operation nobody intends to send any more.
+	//! \param[in] factionIndex The faction to stop flooring.
+	void ClearObjectiveReserve(int factionIndex)
+	{
+		if (!m_mObjectiveReserves)
+			return;
+
+		m_mObjectiveReserves.Remove(factionIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops every faction's floor at once. See the call in ApplyPersistedFactionResources().
+	void ClearAllObjectiveReserves()
+	{
+		if (!m_mObjectiveReserves)
+			return;
+
+		m_mObjectiveReserves.Clear();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A faction's objective reserve floor.
+	//!
+	//! ⚠ PUBLIC for the same reason GetObjectiveAnchor() is: "no faction in this world is floored, so
+	//! the evaluator is spending exactly what it spent before the floor existed" is a claim the
+	//! initialisation tier can make as a live one, and an inspection of a diff is not.
+	//! \param[in] factionIndex The faction to look up.
+	//! \return The reserve, or null when that faction is not floored - which is the normal state.
+	OVT_DeploymentObjectiveReserve GetObjectiveReserve(int factionIndex)
+	{
+		if (!m_mObjectiveReserves)
+			return null;
+
+		return m_mObjectiveReserves.Get(factionIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How much of a faction's pool is earmarked, as the plain integer the arithmetic wants.
+	//!
+	//! ZERO IS THE DEFAULT AND ZERO IS THE IDENTITY. Every faction with no entry - which is every
+	//! faction in every campaign that never starts an objective - answers
+	//! OVT_DeploymentSelection.NO_RESERVE, and SpendableResources() hands the pool straight back.
+	//! \param[in] factionIndex The faction to look up.
+	//! \return The reserved amount, or NO_RESERVE.
+	int GetObjectiveReserveCost(int factionIndex)
+	{
+		OVT_DeploymentObjectiveReserve reserve = GetObjectiveReserve(factionIndex);
+		if (!reserve)
+			return OVT_DeploymentSelection.NO_RESERVE;
+
+		return reserve.cost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says, ONCE per (operation, price), that this pass is spending less than the faction holds and
+	//! what the difference is being kept for.
+	//!
+	//! ⚠ MANDATORY, AND IT IS THE WHOLE REASON THE OPERATION NAME IS IN THE RECORD. A floor is
+	//! invisible from the outside: nothing errors, no deployment fails, the faction simply buys less
+	//! than it could and a reader has no way to tell that from a quiet campaign. The line answers all
+	//! three questions a reader has - that the evaluator was held off, why, and for what.
+	//!
+	//! ⚠ LATCHED PER (OPERATION, PRICE), NOT PER PASS AND NOT PER FACTION. Per pass would be a line
+	//! every 30 seconds for hours. Per faction would hide the second earmark behind the first, which is
+	//! exactly the masking the director's own refusal ledger was re-keyed to avoid on 2026-08-19: the
+	//! forward base being unaffordable must not be silenced by a sabotage team having been unaffordable
+	//! twelve in-game hours earlier. The latch lives on the record, so it is dropped for free by every
+	//! path that clears or re-prices the floor.
+	//! \param[in] factionIndex The faction being evaluated.
+	//! \param[in] pool What that faction holds.
+	//! \param[in] spendable What this pass may spend out of it.
+	protected void AnnounceObjectiveReserve(int factionIndex, int pool, int spendable)
+	{
+		OVT_DeploymentObjectiveReserve reserve = GetObjectiveReserve(factionIndex);
+		if (!reserve || reserve.announced)
+			return;
+
+		reserve.announced = true;
+
+		string what = "its next objective operation";
+		if (reserve.operation != "")
+			what = "'" + reserve.operation + "'";
+
+		string line = "[Overthrow] Deployment pool for faction " + factionIndex.ToString() + ": routine spending is held to " + spendable.ToString() + " of " + pool.ToString() + " because " + reserve.cost.ToString() + " is reserved for " + what;
+
+		if (spendable <= 0)
+			line = line + ". This pass will buy nothing at all - the faction is saving up, and routine garrisoning resumes the moment the operation is sent or abandoned";
+		else
+			line = line + ". Routine garrisoning continues out of the remainder";
+
+		Print(line + ". This line repeats only if the operation or its price changes", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// Utility methods
 	//------------------------------------------------------------------------------------------------
 	array<OVT_DeploymentComponent> GetDeploymentsInRadius(vector position, float radius)
@@ -2316,12 +2677,14 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! \param[in] factionIndex The owning faction.
 	//! \param[in] resourcesInvested What the caller is about to debit. Stamped, not moved.
 	//! \param[in] threatLevel Threat to stamp on the deployment.
+	//! \param[in] yaw Heading for the marker. See CreateDeployment - only the forward-base operation
+	//!            passes one, and 0 is the unrotated marker every other caller gets.
 	//! \return The created deployment, or null when it could not be built. RETURNED so a forcing
 	//!         caller can tell "created, now debit" from "refused, debit nothing" - the difference
 	//!         between an accounting identity that holds and one that leaks on every failed create.
-	OVT_DeploymentComponent ForceCreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0)
+	OVT_DeploymentComponent ForceCreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0)
 	{
-		return CreateDeployment(config, position, factionIndex, resourcesInvested, threatLevel);
+		return CreateDeployment(config, position, factionIndex, resourcesInvested, threatLevel, yaw);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2355,6 +2718,67 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	{
 		if (deployment)
 			deployment.DestroyDeployment();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! TAKES A DEPLOYMENT DOWN THAT HAS FINISHED ITS JOB, AND PAYS BACK FOR THE MEN WHO SURVIVED IT.
+	//!
+	//! THE THIRD OF THREE TEARDOWNS, AND THE DIFFERENCE IS AGAIN WHOSE DECISION IT WAS AND HOW IT WENT:
+	//!   - DeleteDeployment()  "this force no longer exists"        - pays nothing;
+	//!   - RecallDeployment()  "we changed our mind, come back"     - pays back the whole investment;
+	//!   - CollectDeployment() "the job is done, come home"         - pays back the men, not the mission.
+	//! A completed operation is not a recall: the money that bought the transport, the composition and
+	//! the operation's own overhead was genuinely spent on doing the thing. What was NOT spent is the
+	//! men, if they are all still standing - and before this method they were written off with
+	//! everything else, so a sabotage team that met no resistance at all cost the faction its full price
+	//! (author, play-test 2026-08-20: *"Im feeling the OF is owed those resources if they literally
+	//! encounter no resistance"*).
+	//!
+	//! ⚠ THE REFUND IS ASKED OF THE MODULES, NOT COMPUTED HERE. Each spawning module knows its own price
+	//! per group and its own groups; the manager only sums and credits. That is what keeps "what is
+	//! refundable" a property of the thing that was bought - a composition and a truck answer zero
+	//! without this method needing to know they exist. See
+	//! OVT_BaseSpawningDeploymentModule.GetIntactGroupRefund().
+	//!
+	//! ⚠ IT CREDITS THROUGH AddFactionResources LIKE THE RECALL DOES, and for the same reason: "resource
+	//! accounting is closed" is checked by grepping for callers of that method, and the answer it is
+	//! allowed to give is the occupying faction manager's single credit point plus the deployment
+	//! framework's own refunds. This is a third framework refund, in the framework, beside the other two.
+	//!
+	//! ⚠ IT CANNOT DOUBLE-PAY. The refund is read from live group records, and DeleteDeployment() below
+	//! unregisters every one of them on the same call stack - so a second call against the same component
+	//! finds no modules, no handles and nothing to refund. There is no stamp to zero because there is no
+	//! stored figure: the answer is derived from the world each time it is asked.
+	//! \param[in] deployment The deployment to collect. Null is a no-op.
+	//! \return What was credited back to the controlling faction's pool.
+	int CollectDeployment(OVT_DeploymentComponent deployment)
+	{
+		if (!deployment)
+			return 0;
+
+		int refund = 0;
+
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
+		{
+			if (!module)
+				continue;
+
+			refund += module.GetIntactGroupRefund();
+		}
+
+		if (refund > 0)
+		{
+			int factionIndex = deployment.GetControllingFaction();
+			AddFactionResources(factionIndex, refund);
+
+			Print(string.Format("[Overthrow] Collected deployment '%1' after it finished its job - %2 resources returned to faction %3's pool for the groups that came through it intact",
+				deployment.GetDeploymentName(), refund.ToString(), factionIndex.ToString()), LogLevel.NORMAL);
+		}
+
+		DeleteDeployment(deployment);
+
+		return refund;
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -16,9 +16,14 @@
 //!      by string against the registry - to resolve a config, to count live garrisons, to sweep the
 //!      teardown and to re-link a restored save. Renamed in one place and not the other, the whole
 //!      middle phase does nothing and times out with one WARNING line per in-game minute.
-//!   2. THE PHASE NUMBER. Both configs author OVT_ObjectiveConditionDeploymentModule with
-//!      m_iRequiredPhase 2. Authored as 1 they are collected the instant the ramp advances into the
+//!   2. THE PHASE SPAN. Both configs author OVT_ObjectiveConditionDeploymentModule scoped to phase 2
+//!      AND to phase 2 only. Authored as 1 they are collected the instant the ramp advances into the
 //!      phase they belong to - the forward base would be raised and then immediately taken away.
+//!      Authored to span 3 as well, the base's garrison would still be standing while the
+//!      counter-attack controller spawns its own siege waves at the same place. ⚠ The upper bound
+//!      matters here in the OPPOSITE direction to the Phase 1 ramp, whose configs must span 1 -> 2 for
+//!      the counter-attack to be reachable at all (the 2026-08-19 deadlock; pinned by
+//!      OVT_TEST_Init_ObjectiveOperations' phase-range case).
 //!   3. THE SOURCE PROVIDER. The garrison is what makes the forward base a real supply source rather
 //!      than scenery, and it does that through OVT_ObjectiveAnchorSourceProvider. Authored with the
 //!      default provider instead, every garrison truck still drives from the rear and the base changes
@@ -52,6 +57,8 @@
 //!       Fails on "'Objective Forward Base' is not registered".
 //!   A2. m_iRequiredPhase changed from 2 to 1 on the forward-base config's objective condition. Fails
 //!       on "must be scoped to phase 2".
+//!   A6. m_iThroughPhase changed from 2 to 3 on the garrison config's objective condition. Fails on
+//!       "must span up to phase 2 and spans up to 3".
 //!   A3. The reinforcement module moved ABOVE the raise module in Deployment_ObjectiveFOB.conf. Fails
 //!       on "authors its spawning module AFTER the reinforcement module".
 //!   A4. m_Source on the garrison config swapped from OVT_ObjectiveAnchorSourceProvider to
@@ -105,7 +112,7 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 		if (ordering != "")
 			return ordering;
 
-		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB);
+		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB, OVT_EObjectivePhase.FOB);
 		if (phase != "")
 			return phase;
 
@@ -146,7 +153,7 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 		if (ordering != "")
 			return ordering;
 
-		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB);
+		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB, OVT_EObjectivePhase.FOB);
 		if (phase != "")
 			return phase;
 
@@ -205,10 +212,20 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! ⚠ BOTH ENDS OF THE SPAN, since the objective condition became a RANGE on 2026-08-19. The two
+	//! forward-base configs are the only objective configs that must NOT span more than one phase: the
+	//! Phase 1 ramp now continues through this phase (that is the deadlock fix), while the base and its
+	//! garrison belong to it and to nothing else. Asserting only the first phase would let a
+	//! `m_iThroughPhase 3` slip through and keep the garrison standing into the battle the counter-attack
+	//! controller is already spawning its own waves for.
+	//!
+	//! ⚠ THE UPPER BOUND IS READ THROUGH ResolveThroughPhase(), NOT OFF THE FIELD, so an unauthored 0 is
+	//! judged as the span it actually means rather than as the number that is written down.
 	//! \param[in] config The config to walk.
-	//! \param[in] required The phase it must be scoped to.
+	//! \param[in] required The first phase it must be scoped to.
+	//! \param[in] through The last phase it may span, inclusive.
 	//! \return An empty string when it is, or why it is not.
-	protected string CheckObjectivePhase(notnull OVT_DeploymentConfig config, int required)
+	protected string CheckObjectivePhase(notnull OVT_DeploymentConfig config, int required, int through)
 	{
 		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
 		{
@@ -219,6 +236,10 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 			if (condition.m_iRequiredPhase != required)
 				return string.Format("'%1' must be scoped to phase %2 and is scoped to %3 - a config scoped to the wrong phase is collected on the tick the ramp reaches the phase it belongs to",
 					config.m_sDeploymentName, required.ToString(), condition.m_iRequiredPhase.ToString());
+
+			if (condition.ResolveThroughPhase() != through)
+				return string.Format("'%1' must span up to phase %2 and spans up to %3 - the forward base and its garrison belong to their own phase alone, and a wider span keeps them standing into the counter-attack while a narrower one is a span the ramp's own fix would have to be undone to produce",
+					config.m_sDeploymentName, through.ToString(), condition.ResolveThroughPhase().ToString());
 
 			if (condition.m_fMaxDistanceFromObjective <= 0)
 				return string.Format("'%1' authors no working radius around the objective, which refuses every position but its exact centre", config.m_sDeploymentName);
@@ -961,5 +982,325 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 		if (clone.m_fRaiseOnFootRadius != subject.m_fRaiseOnFootRadius) return "m_fRaiseOnFootRadius";
 
 		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 THE FORWARD BASE'S SPEND CEILING CAN ALWAYS BUY THE FORWARD BASE. Two numbers authored in two
+//! different files have to agree, and nothing but this case looks at both:
+//!
+//!   the ceiling  = objectiveFOBCost x FOB_CEILING_MULTIPLIER   Configs/Difficulty/Difficulty_*.conf
+//!   the price    = Deployment_ObjectiveFOB's total resource cost   Configs/Deployment/*.conf
+//!
+//! WHAT HAPPENS IF THEY DISAGREE, AND WHY NOTHING ELSE WOULD CATCH IT. SendFOBOperation() arms the
+//! ceiling BEFORE it asks whether it may buy the base, deliberately - §3.7 requires the structure's own
+//! cost to be inside its own budget. So a ceiling smaller than the price refuses the phase's very first
+//! spend, and refuses it identically on every subsequent tick, forever: the objective is locked against
+//! re-selection from this phase onward, so it can neither advance nor be replaced. It is a permanent
+//! deadlock produced entirely by arithmetic, with no syntax error, no failed lookup and nothing in a
+//! play-test to point at except a phase that does nothing.
+//!
+//! THE SECOND CLAIM: THE CEILING MUST LEAVE ROOM FOR AT LEAST ONE GARRISON after the base is paid for,
+//! or objectiveFOBGarrisonMax is a dead knob on that preset - the phase would raise a flag it can never
+//! reinforce, on a preset whose difficulty file says it may have up to N garrisons.
+//!
+//! ⚠ IT DOES NOT ASSERT THAT THE WHOLE AUTHORED PLAN FITS (base + max garrisons), and must not. The
+//! garrison cap is a CONCURRENCY cap, not a purchase cap: garrisons are wiped and rebought, so cumulative
+//! spend legitimately exceeds cap x price and the ceiling is SUPPOSED to bite eventually. That is the
+//! whole point of a ceiling.
+//!
+//! PRESETS ARE FOUND BY NAME, NEVER BY INDEX, and Test World is excluded - both for the reasons
+//! OVT_TEST_Init_DifficultyObjectiveSabotageInversion records.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; each exited tools/compile-check.sh
+//! 0, and the subject was restored and re-compiled clean):
+//!   C1. Difficulty_Easy.conf's objectiveFOBCost set to 30 (ceiling 90, base 120). Fails on "the forward
+//!       base's own deployment costs more than the whole ceiling".
+//!   C2. Deployment_ObjectiveFOB.conf's m_iBaseCost raised to 1200. Fails the same way on every preset.
+//!   C3. FOB_CEILING_MULTIPLIER set to 1 with objectiveFOBCost at 130. Fails on the garrison headroom
+//!       claim - the base fits and nothing else ever can.
+//! No polling, no world state touched, no maxAttempts: every value is read off a loaded config.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_CeilingCanCoverTheForwardBase : SCR_AutotestCaseBase
+{
+	//! The shipped ramp. Difficulty_TestWorld.conf authors none of the objective fields and is not part
+	//! of it.
+	protected static const ref array<string> SHIPPED_PRESETS = {"Easy", "Normal", "Hard", "Extreme", "Insane"};
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+
+		if (!config || !deployments)
+		{
+			SetFailure("The campaign config or the deployment framework did not resolve");
+			return true;
+		}
+
+		if (!config.m_aDifficultyPresets || config.m_aDifficultyPresets.IsEmpty())
+		{
+			SetFailure("The config component carries no difficulty presets, so no ceiling can be computed");
+			return true;
+		}
+
+		OVT_DeploymentConfig fob = deployments.FindConfigByName(OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		if (!fob)
+		{
+			SetFailure("'%1' is not registered in overthrowDeployments.conf - no forward base can ever be raised", OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+			return true;
+		}
+
+		OVT_DeploymentConfig garrison = deployments.FindConfigByName(OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+		if (!garrison)
+		{
+			SetFailure("'%1' is not registered in overthrowDeployments.conf - a forward base could never be reinforced", OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+			return true;
+		}
+
+		int fobPrice = fob.GetTotalResourceCost();
+		int garrisonPrice = garrison.GetTotalResourceCost();
+
+		// A free forward base would make every claim below vacuously true.
+		if (fobPrice <= 0)
+		{
+			SetFailure("the forward base's deployment costs %1 - a free operation makes the whole spend ceiling meaningless", fobPrice.ToString());
+			return true;
+		}
+
+		string failure = CheckEveryPreset(config, fobPrice, garrisonPrice);
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective FOB: every shipped preset's spend ceiling covers the forward base itself (" + fobPrice.ToString() + ") with room for at least one garrison (" + garrisonPrice.ToString() + ")");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config component holding the presets.
+	//! \param[in] fobPrice What the forward base's own deployment costs.
+	//! \param[in] garrisonPrice What one garrison costs.
+	//! \return An empty string when every preset held, or the first that did not.
+	protected string CheckEveryPreset(notnull OVT_OverthrowConfigComponent config, int fobPrice, int garrisonPrice)
+	{
+		foreach (string presetName : SHIPPED_PRESETS)
+		{
+			OVT_DifficultySettings preset = FindPreset(config, presetName);
+			if (!preset)
+				return string.Format("No shipped difficulty preset named '%1' is loaded", presetName);
+
+			int ceiling = OVT_ObjectivePhaseRules.FOBBudgetCeiling(preset.objectiveFOBCost);
+
+			// --- THE DEADLOCK. See the header: this refusal repeats forever and ends nothing.
+			if (ceiling < fobPrice)
+				return string.Format("preset '%1': the forward base's own deployment costs %2 but its whole spend ceiling is %3 (objectiveFOBCost %4) - the forward-base phase could never make its first spend and the objective would be locked in it permanently",
+					presetName, fobPrice.ToString(), ceiling.ToString(), preset.objectiveFOBCost.ToString());
+
+			// --- AND THE GARRISON KNOB HAS TO MEAN SOMETHING.
+			if (preset.objectiveFOBGarrisonMax > 0 && ceiling < fobPrice + garrisonPrice)
+				return string.Format("preset '%1' allows %2 garrison(s) at a forward base, but its ceiling of %3 has only %4 left after the base itself and one garrison costs %5 - the knob is dead on this preset",
+					presetName, preset.objectiveFOBGarrisonMax.ToString(), ceiling.ToString(), (ceiling - fobPrice).ToString(), garrisonPrice.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds a loaded difficulty preset by its configured name.
+	//! \param[in] config The Overthrow config component holding the preset list.
+	//! \param[in] presetName Name to match exactly.
+	//! \return The matching preset, or null.
+	protected OVT_DifficultySettings FindPreset(notnull OVT_OverthrowConfigComponent config, string presetName)
+	{
+		foreach (OVT_DifficultySettings preset : config.m_aDifficultyPresets)
+		{
+			if (preset && preset.name == presetName)
+				return preset;
+		}
+
+		return null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 A PHASE 1 OPERATION IS NOT COLLECTED WHEN THE OBJECTIVE IS PROMOTED INTO THE FORWARD-BASE PHASE,
+//! AND IS COLLECTED WHEN THE BATTLE STARTS. The behavioural half of the 2026-08-19 deadlock fix, driven
+//! against the LIVE director and the LOADED configs rather than against hand-built modules.
+//!
+//! WHAT THIS ASSERTS THAT THE CONFIG CASES CANNOT. OVT_TEST_Init_ObjectiveOperations' phase-range case
+//! reads the authored numbers; this one asks the shipped module the question the game asks it, in each
+//! phase in turn, with a real objective committed on the real director. The distinction matters because
+//! the collection path is not a number: OVT_ReinforcementBehaviorDeploymentModule with
+//! m_bDeleteOnConditionFail 1 walks every condition module once per check interval and DELETES the
+//! deployment on the first refusal. A sabotage team that answers false on the promotion tick is a team
+//! deleted mid-mission - which this feature has already done once, to a team with 1561 m left to walk.
+//!
+//! ⚠ THE PREDICATE IS THE SAME ONE BOTH SIDES ASK, WHICH IS WHY ONE CASE COVERS BOTH DIRECTIONS.
+//! EvaluateCondition() (runtime, the collection gate) and EvaluateStaticCondition() (creation) both call
+//! IsAtCurrentObjective(), which is what is driven here. "A new sabotage operation may be sent in phase
+//! 2" and "a live one is kept in phase 2" are one statement about one predicate; they cannot disagree.
+//!
+//! ⚠ THE GARRISON IS THE NEGATIVE CONTROL AND IT IS NOT PADDING. If the range had been made too loose -
+//! a minimum-phase semantic, say - every row about the ramp would still pass. The garrison's 2 -> 2 span
+//! is the row that fails if "belongs to phase N" ever quietly became "phase N or later".
+//!
+//! ⚠ NOTHING IS CREATED, SPENT OR SPAWNED. The case commits an objective record, plants the operation
+//! cadence HIGH so no tick that lands afterwards can reach the spend path, drives EnterPhase() directly,
+//! and resets the objective on every path including the red ones. It never calls DirectorTick() and
+//! never touches the deployment pool.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
+//! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
+//!   B1. `m_iThroughPhase 2` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
+//!       Fails on "a sabotage team must survive the promotion into the forward-base phase". THIS ROW IS
+//!       THE DEADLOCK, observed from the collection side.
+//!   B2. IsAtCurrentObjective() reverted to `if (phase != m_iRequiredPhase) return false;`. Fails on the
+//!       same row, from the code side rather than the data side.
+//!   B3. PhaseInRange() relaxed to `return phase >= firstPhase;` (a pure minimum). Fails on "a sabotage
+//!       team must be collected once the counter-attack has begun".
+//!   B4. The distance test dropped from IsAtCurrentObjective(). Fails on "a position 5 km from the
+//!       objective is not AT it".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion : SCR_AutotestCaseBase
+{
+	//! Where the fixture objective sits. Arbitrary and world-independent: the predicate under test only
+	//! measures distance from it, and nothing here resolves a base, a town or a structure.
+	static const vector OBJECTIVE = "13000 40 13000";
+
+	//! Far enough outside every authored working radius (600 m for sabotage, 2500 m for the garrison)
+	//! that no config could legitimately accept it.
+	static const float FAR_AWAY = 5000;
+
+	//! Planted operation cadence. HIGH ON PURPOSE - see the class header and
+	//! OVT_TEST_Init_ObjectiveOperations' gate case. Nothing may be spent.
+	static const int PLANTED_OP_TICKS = 44;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+
+		if (!director || !deployments)
+		{
+			SetFailure("The objective director or the deployment framework did not resolve");
+			return true;
+		}
+
+		OVT_ObjectiveConditionDeploymentModule ramp = FindCondition(deployments, OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+		OVT_ObjectiveConditionDeploymentModule garrison = FindCondition(deployments, OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+
+		if (!ramp || !garrison)
+		{
+			SetFailure("The sabotage config or the forward-base garrison config is not registered, or authors no objective condition - there is nothing to ask");
+			return true;
+		}
+
+		director.CommitObjective(OVT_EObjectiveKind.BASE, OBJECTIVE, "phase range fixture");
+		director.SetOperationCountdown(PLANTED_OP_TICKS);
+
+		string failure = Check(director, ramp, garrison);
+
+		// ALWAYS, INCLUDING ON THE RED PATHS. A committed objective left on the live director would
+		// change what every later case sees, and would leave an anchor biasing the evaluator.
+		director.ResetObjective("OVT_TEST_Init_ObjectiveFOB_B finished", false);
+
+		if (failure == "")
+			failure = CheckNoObjectiveRefuses(ramp);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective forward base: a Phase 1 operation is kept through the promotion into the forward-base phase and collected when the counter-attack begins, while a forward-base config is refused during harassment - the ramp continues, the battle is not walked into, and the counter-attack is reachable");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] director The live director, with the fixture objective committed.
+	//! \param[in] ramp The sabotage config's objective condition, as authored.
+	//! \param[in] garrison The garrison config's objective condition, as authored.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string Check(notnull OVT_ObjectiveDirectorComponent director, notnull OVT_ObjectiveConditionDeploymentModule ramp, notnull OVT_ObjectiveConditionDeploymentModule garrison)
+	{
+		// --- HARASSMENT. The ramp works; the forward base's garrison does not exist yet.
+		if (director.GetPhase() != OVT_EObjectivePhase.HARASSMENT)
+			return string.Format("committing an objective must enter the harassment phase, and the director is in phase %1", director.GetPhase().ToString());
+
+		if (!ramp.IsAtCurrentObjective(OBJECTIVE))
+			return "a sabotage team must be sendable and keepable during harassment - that is the phase the ramp runs in";
+
+		if (garrison.IsAtCurrentObjective(OBJECTIVE))
+			return "a forward-base garrison must NOT be accepted during harassment - there is no forward base to garrison, and a config that answers yes here has a span that has stopped meaning anything";
+
+		// --- THE PROMOTION. The row this whole case exists for.
+		director.EnterPhase(OVT_EObjectivePhase.FOB);
+
+		if (!ramp.IsAtCurrentObjective(OBJECTIVE))
+			return "a sabotage team must survive the promotion into the forward-base phase. THIS IS THE 2026-08-19 DEADLOCK: one sabotage success promotes a base objective out of harassment, the reinforcement module's m_bDeleteOnConditionFail collects every team that answers false, and no further mission can ever be sent - so the six the counter-attack demands on Easy can never be reached and the objective sits until its idle clock runs out";
+
+		if (!garrison.IsAtCurrentObjective(OBJECTIVE))
+			return "a forward-base garrison must be accepted in the phase it belongs to - the forward base would stand with only the party that raised it";
+
+		if (ramp.IsAtCurrentObjective(OBJECTIVE + Vector(FAR_AWAY, 0, 0)))
+			return "a position 5 km from the objective is not AT it, in any phase - the working radius is what stops an objective config being accepted anywhere on the map";
+
+		// --- THE BATTLE. Both are collected: teams walking in to soften a place already being stormed
+		//     are noise, and the garrison's own phase is over.
+		director.EnterPhase(OVT_EObjectivePhase.COUNTER_QRF);
+
+		if (ramp.IsAtCurrentObjective(OBJECTIVE))
+			return "a sabotage team must be collected once the counter-attack has begun - a span that reaches the battle is a minimum-phase semantic wearing a range's clothes";
+
+		if (garrison.IsAtCurrentObjective(OBJECTIVE))
+			return "a forward-base garrison must be collected once the counter-attack has begun - the counter-attack controller spawns its own siege force at the same place";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Run AFTER the objective has been reset, so it is a statement about the reset rather than about a
+	//! phase: no objective is a refusal, never a pass.
+	//! \param[in] ramp The sabotage config's objective condition.
+	//! \return An empty string when it refused, or why that matters.
+	protected string CheckNoObjectiveRefuses(notnull OVT_ObjectiveConditionDeploymentModule ramp)
+	{
+		if (ramp.IsAtCurrentObjective(OBJECTIVE))
+			return "with no objective committed the condition must refuse - the evaluator considers every registered config at every candidate position it generates, and an objective config that answers yes with no objective would be created by it, anywhere, outside the director's accounting entirely";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The objective condition module a registered config authors, as loaded.
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] name The config's registered name.
+	//! \return The module, or null when the config is missing or authors none.
+	protected OVT_ObjectiveConditionDeploymentModule FindCondition(notnull OVT_DeploymentManagerComponent deployments, string name)
+	{
+		OVT_DeploymentConfig config = deployments.FindConfigByName(name);
+		if (!config)
+			return null;
+
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			OVT_ObjectiveConditionDeploymentModule condition = OVT_ObjectiveConditionDeploymentModule.Cast(module);
+			if (condition)
+				return condition;
+		}
+
+		return null;
 	}
 }

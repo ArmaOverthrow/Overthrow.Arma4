@@ -1,8 +1,8 @@
 # Counter Attacks - Context & Decisions
 
-**Last Updated:** 2026-08-19 (Phase 10 built bar the wiki; the suites and a localization re-export owed. ⚠ A **play-test pacing fix** landed after everything below — the phase timeout is now an IDLE clock, an operation in flight holds it, and an unfinished operation is refunded through the deployment framework; **Q6 was amended with its reason**. Top of Session Notes. T8.9 looks DONE in the working tree - see the Phase 10 note. ⚠ A **World Editor crash** reported against this feature was fixed the same day, and a **play-test fix for deployments materialising inside a live battle** landed after it - both are at the top of Session Notes and both owe a suite run)
-**Current Phase:** Phase 10 — help & documentation sync (T10.3 wiki BLOCKED, see the session note)
-**Status:** 🟡 In Progress
+**Last Updated:** 2026-08-19 (end of the first play-test day — all 10 phases built, `main` merged in, twelve play-test defects fixed, **All 383/383**)
+**Current Phase:** Post-build play-testing. Every phase is built; work is now driven by what the author finds in game.
+**Status:** 🟡 In Progress — feature-complete and green, awaiting play-test of the QRF phase
 
 ---
 
@@ -101,14 +101,18 @@
   Logic, one Init); **six can-fail faults injected and compiled**. `tools/compile-check.sh` exit 0.
 
 **What's Next:**
-- 📋 **T10.3** — the wiki sync. The page content is drafted in the Phase 10 session note below and needs a
-  session in which the wikijs MCP tools are actually available.
-- ⚠ **T8.9 looks COMPLETE but its checkbox is still unticked.** `UI/Layouts/GM/GMPanel.layout` now carries
-  `Row_Objective`/`Label_Objective`/`Value_Objective` and `Row_Phase`/`Label_Phase`/`Value_Phase`, and
-  `OVT_GMPanelUIComponent.c` has both `FindText` calls (`:167`) and both `SetText` calls (`:413-417`) through
-  `OVT_GMPanelFormat`. Phase 10 did **not** tick the box - it is another agent's slice and may be mid-flight.
-  Whoever owns it should confirm and tick, or say what is still missing.
-- 📋 **Phase 10** — help & documentation sync. `help-docs-sync`.
+- 🎮 **Play-test the QRF phase** — the ramp can now reach it for the first time (the Phase-3 deadlock was
+  fixed 2026-08-19). Watch for: the sabotage ladder taking a **bunker (750) first**, not a placeable; the
+  counter-attack actually firing once the reserve passes the gate; and the forward base's wire facing the town.
+- ❓ **OPEN DECISION — `objectiveHarassmentIntervalMinutes` on Easy is 90 in-game minutes (15 real at 6×).**
+  Six sabotage missions therefore need **90 real minutes minimum** before Phase 3 can fire, before any
+  affordability waits. Recommended for the testing period: drop it to 20–30. It is a tuning value with no
+  test pinned to it. **Author has not decided; do not change it unilaterally.**
+- 📋 **T10.3, the wiki sync** — still blocked; no wikijs MCP server has been attached to any session. Page
+  content is drafted in the Phase 10 note below and needs a session where the tools exist.
+- ⏸️ **A Workbench localization re-export is owed** — Phases 5, 6, 8, 9, 10 plus the amended
+  `OVT-Msg-AdminResourcesAdded`. Until then those strings render as raw `#OVT-` keys, which is the export
+  being stale, **not** a bug.
 
 **Blockers:**
 - None
@@ -1819,8 +1823,8 @@ does all the world work and hands it numbers.
 | `FOB_BAND_MAX_FRACTION` | 0.75 | Further than three quarters and it is a second flag beside the one the faction already has, which is not what a FORWARD base is |
 | `FOB_MIN_STANDOFF` | 350 m | Absolute floor. A short supply line would otherwise put the base 80 m outside a town |
 | `FOB_MAX_STANDOFF` | 2500 m | Absolute ceiling, and also the radius the teardown and the stranded-marker lookup search |
-| `FOB_SITING_STEPS` × `FOB_SITING_LANES` | 8 × 3 | ⚠ **`FOB_SITING_ATTEMPTS` is the PRODUCT, not a retry budget.** The sampler walks a deterministic lattice and 24 is how many points are in it. Each attempt costs an ocean read, a `TraceBox` and five surface samples, on a once-a-minute tick |
-| `FOB_LATERAL_SPREAD` | 250 m | Lane 0 is **on the line** (shortest resupply, tried first), then one spread each side — enough to find the field behind the treeline |
+| `FOB_SITING_STEPS` × `FOB_SITING_LANES` | 8 × ~~3~~ **5** (user, 2026-08-19) | ⚠ **`FOB_SITING_ATTEMPTS` is the PRODUCT, not a retry budget** — ~~24~~ **40** points. 🔴 And it is a **budget, not a bound**: `SampleGeneratedFOBSite()` evaluates *every* point and keeps the best-scoring one. The old note here and on the constant both claimed it returned on the first pass; **it never did**, which is why the log quotes a score |
+| `FOB_LATERAL_SPREAD` | ~~250 m~~ **400 m** (user, 2026-08-19) | The **maximum** lateral offset, not a per-lane step. Lane 0 is **on the line** (shortest resupply, tried first); the rest are spread evenly across ±400 m → `0, ±200, ±400`. 🔴 `OVT_FOBSiting.LateralOffset()` returns a **fraction of** this, never a multiple — see below |
 | `FOB_FLATNESS_PROBE_RADIUS` / `_TOLERANCE` | 8 m / 2.5 m | ~1-in-6 over a 16 m span. Past it the structure floats at one corner — the one siting failure everybody can see |
 | `FOB_ELEVATION_USEFUL_GAIN` | 30 m | Where the height preference saturates |
 | `FOB_CLEAR_BOX_HALF` / `_HEIGHT` | 6 m / 8 m | The `TraceBox` clearance volume |
@@ -3354,3 +3358,1839 @@ They are right, and the original design note was wrong about what a tester needs
 ⚠ **The reported reserve total changed meaning.** It is now read *after* the transfer, so it is the remainder rather than the credited amount — a tester crediting 2000 sees roughly 400 left in reserve and ~1600 in the pool, which is correct and will look wrong to anyone expecting the old number. The `.st` `Comment` records this.
 
 **Owed:** the localization re-export now also covers the amended `OVT-Msg-AdminResourcesAdded` text.
+
+### 2026-08-19 — the insertion transport carried the flipped-vehicle bug too (fixed same day)
+
+The authored-spawn change earlier today took the transport's facing from `marker.GetAngles()` and handed it to `SpawnEntity(prefab, position, rotation)`. **That is the exact defect `main` was being fixed for at the same moment**, and it is worth recording as a worked example because the wrong version looks completely reasonable:
+
+- `IEntity.GetAngles()` — *"rotation around **X, Y and Z** axis"* → `(pitch, yaw, roll)`
+- `Math3D.AnglesToMatrix` — *"angles (**yaw, pitch, roll**)"*, and `SpawnEntity`'s `rotation` parameter goes straight into it
+
+So the marker's **yaw lands in the matrix's pitch slot** and the transport spawns on its nose. Eden's markers are yaw-only by authoring (`angleY`), which is precisely why the symptom is a clean ~90–180° nose-stand rather than a subtle lean.
+
+**Fixed here by reading `GetYawPitchRoll()[0]`** — whose `[0]` *is* yaw, so the reader never has to work out which slot they are in — and building `Vector(yaw, 0, 0)` in `AnglesToMatrix` order. Pitch and roll are dropped outright: an authored marker can legitimately carry a few degrees of terrain pitch (Eden's steepest is 4.745°) and nothing about a heading should be able to tip a truck.
+
+Two things this branch inherits from `main`'s fix (`ed14ba9d`, *"OF vehicles would spawn flipped"*) when it merges:
+1. `GetRandomVehiclePatrolSpawn` returns **`out float outYaw`** instead of a vector — a float cannot be put in the wrong slot, and pitch/roll become unrepresentable rather than merely zeroed. **Done 2026-08-19, immediately after the merge (`2c07a624`):** the conversion now calls the shared `OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation(float)` rather than keeping a second copy — a second copy is how this class of bug returns.
+2. `main`'s root cause was different from this one and is worth not confusing: there, a physics vehicle was rotated with a bare `SetAngles()` *after* spawning onto terrain, which the solver ejected. The insertion path never had that half — it always spawned through the transform — so only the convention half applied here.
+
+⚠ **A claim in the `main` investigation was wrong and is corrected here:** it inferred that `OVT_VehiclePatrolSpawn._WB_AfterWorldUpdate`'s bad `super.` call meant the Workbench direction arrows were not drawing. **The author confirms the arrows do draw.** The `super.` call is still malformed and the compile-check blind spot around `super.<engine event>(...)` is still real, but the visible consequence was inferred, not observed, and did not happen.
+
+### 2026-08-19 — the forward base flew a US flag (play-test report), and why no prefab can bake the right one
+
+**What it actually referenced.** `Prefabs/Bases/OVT_OccupyingFOB.et` said nothing about flags at all. Phase 7 inherited `{90B7CEB4C665B1E2}Prefabs/Structures/Military/Flags/FlagPole_02_V1.et`, which is the *plain* vanilla pole: `FlagPole_02_V1` → `FlagPole_02_base`, and the base prefab carries `SCR_FlagComponent.m_sDefaultMaterial = Flag_1_2_USA.emat` plus a Flag slot holding `Flag_1_2_US_01.et`. So the FOB was not given a US flag by mistake — **the US flag is the vanilla default any un-overridden pole flies**, and `FlagPole_02_V1_US.et` is a no-op prefab for exactly that reason.
+
+**Why the fix is not "override the slot to USSR like the other two prefabs do".** `OVT_BaseController.et` and `OVT_TownController.et` do override `SlotManagerComponent {55DAE04E55ECE7FA}` to `Flag_1_2_USSR_01.et` — but the occupier is a **campaign setting**, not a constant (`Overthrow_Config.json` on dedicated, the start-game menu otherwise; `OVT_OverthrowConfigComponent.SetOccupyingFaction`). Baking USSR in is wrong for every US-occupied campaign; it just moves which half of the campaigns is broken. Note also *why* those two prefabs override the slot at all: they inherit the **FIA** pole, whose slot holds a 2:3 flag — the wrong **shape**, which no material swap can fix. A plain `FlagPole_02_V1` already slots a 1:2 flag, the same shape as both faction flags.
+
+**How it is resolved now.** New `Scripts/Game/Components/OVT_OccupyingFlagComponent.c`, attached to the FOB prefab. It reads `OVT_Global.GetConfig().GetOccupyingFactionData()` and calls `SCR_FlagComponent.ChangeMaterial(scrFaction.GetFactionFlagMaterial())` — the same mechanism `OVT_TownControllerComponent.CheckUpdateFlag()` and `OVT_BaseControllerComponent.UpdateFlagMaterial()` already use. Nothing faction-specific is written into the prefab; the slot stays inherited.
+
+⚠ **The 10-second re-check is copied deliberately and must not be latched into a one-shot.** A flag material is a local visual, so this runs on every machine off the key each machine already holds — and a client gets the campaign's occupying faction through `OVT_OccupyingFactionManager`'s JIP bitstream (`RplSave`/`RplLoad` write `m_Config.m_sOccupyingFaction`). Until that arrives the client's config still holds its **born-with default `"USSR"`**, which is non-null and resolves to a real faction, so a first-read latch would happily freeze the *wrong* flag forever on a US-occupied campaign. Re-checking makes the early read self-correcting; once settled it is a single integer compare. The timer is removed in `OnDelete` because a forward base is torn down mid-session.
+
+**Also faction-flavoured, NOT changed.** The camp composition still uses `CamoNet_Tent_Soviet.et` on both occupier factions (vanilla ships `CamoNets/US/` and `CamoNets/FIA/` equivalents). Cosmetic and arguably fine as generic dressing, so left alone and recorded rather than fixed. The crates, hedgehogs and barbed wire are faction-neutral vanilla props.
+
+**Verification is visual — there is no honest assertion for this.** A prefab's *rendered* flag material is not readable in any test tier (`ChangeMaterial` walks the slotted flag entity's `VObject` at runtime), so no case was written. Manual check: start a campaign with **USSR** as occupier, drive a counter-attack to the FOB-raise phase, and confirm the pole flies the Soviet flag; then start one with the **US** as occupier and confirm the same pole flies the US flag. The second half is the one that matters — it is what distinguishes this fix from baking USSR in.
+
+### 2026-08-19 — two play-test defects: a forward-base phase that re-sited forever, and an evaluator buying the director's operations
+
+Session log, abridged, one campaign, one objective (`#OVT-Base_Levie`):
+
+```
+15:30:44 (W) Objective '#OVT-Base_Levie' cannot afford its next operation ... idle clock is HELD
+15:31:14      [ObjectiveDirector] Sent 'Objective Sabotage' at <7463,164,4306> for 100 resources
+15:31:34      Created deployment 'Objective Harassment (Patrol)' near #AR-MapLocation_Levie   <-- nobody sent this
+15:42:35      [ObjectiveDirector] ... has taken 1 sabotage mission(s) - raising a forward operating base
+15:43:26 -->  [ObjectiveDirector] Forward base ... sited at <7213,123,5294> (generated, score 2.9401)
+              ... identical line every 10 seconds, indefinitely
+```
+
+#### Bug 1 — which of the three refusals it was, and how it was established
+
+`CreateObjectiveDeployment()` had four ways out and **two of them printed nothing**. The log settles which one fired without any instrumentation:
+
+| refusal | what it printed | consistent with the log? |
+|---|---|---|
+| config not registered | a WARNING, every tick | ✗ no such line |
+| **the pool is short** | **nothing** (the one latch had been spent at 15:30:44) | **✓** |
+| the FOB spend ceiling | a NORMAL line, once | ✗ no such line, **and arithmetically impossible** |
+| `ForceCreateDeployment` returned null | nothing here, but `CreateDeployment()` prints `Creating deployment '<name>'` *unconditionally* on entry | ✗ no such line |
+
+The ceiling was the leading hypothesis and it is **excluded by arithmetic**: the ceiling is `objectiveFOBCost x FOB_CEILING_MULTIPLIER` = `400 x 3` = **1200** on every shipped preset, and `Deployment_ObjectiveFOB` costs **120** (base 40 + one `light_fireteam` at 40 + the 40 truck override). `0 + 120 <= 1200` can never refuse a fresh forward base. The author subsequently confirmed the pool held **20**.
+
+So: **the affordability refusal, made invisible by a latch keyed on the objective.** The sabotage operation had spent that latch in the previous phase, twelve in-game hours of campaign earlier.
+
+**Why it repeated forever rather than timing out.** The affordability refusal is the one that sets `m_bBlockedOnAffordability`, which HOLDS the idle clock by design (an objective that cannot be afforded sits rather than churning through equally unaffordable targets). Correct — but combined with the silence it produced a phase that was, from the log, indistinguishable from a wedge.
+
+**Three things changed.**
+
+1. **The pre-flight moved in front of the siting.** `SendFOBOperation()` used to run the full 24-point lattice — an ocean read, a `TraceBox` and five surface samples each — resolve the same deterministic site, print `sited at ...`, and only *then* discover it could not pay. New `CanSendObjectiveDeployment()` holds all three spend refusals and is asked first, so a poverty spell in this phase now costs exactly what one in harassment costs: a map lookup. ⚠ `m_bFOBDeploymentSent` is now armed *before* the pre-flight (the ceiling has to be active when the base's own cost is tested, §3.7) and cleared on **all four** failure exits — including *before* `ResetObjective()` in the no-site branch, because `TearDownFOB()` reads it.
+
+2. **Every exit says why, latched per `(config, reason)`.** Five `REFUSAL_*` constants; `IsSameRefusal()` is the pure predicate the ledger keys on and it is asserted directly. A successful create calls `ForgetOperationRefusals(configName)`, so the same refusal after a successful purchase is heard again rather than swallowed by an hour-old latch. `m_bCeilingLogged` was folded into the same ledger.
+
+3. **The affordability hold reports on a heartbeat.** `m_bAffordabilityBlockLogged` (bool) became `m_iAffordabilityHeldTicks` (int). The line is said on the first held tick and every 60 after it — one line per real 10 minutes at 6x — and carries the elapsed count *and* the operation being waited for (`m_sBlockedOnConfig` / `m_iBlockedOnCost`). "Held, still broke" is now a state you can read rather than infer from an absence.
+
+⚠ **The underlying scarcity is NOT fixed and is a balance question for the author.** The deployment pool is credited only on the occupying faction's **six-hour** resource boundary (one real hour at 6x), and the 30 s evaluator drains it within a pass or two of each credit. The director asks once per in-game minute and loses that race almost always. Fixing Bug 2 returns some of that pool to the director, but the cadence mismatch between a six-hourly income and a thirty-second spender is untouched.
+
+#### Bug 2 — the evaluator was buying director-owned configs
+
+`Objective Harassment (Patrol)` at 15:31:34 has the deployment manager's own `Creating`/`Created` pair and **no** `[ObjectiveDirector] Sent ...` line above it. `SendHarassmentOperation()` returns false unless `kind == TOWN` and the objective was a BASE, so the director cannot have sent it. `FindBestDeploymentConfig()` did: the config is registered like any other, its mask allows TOWN, the town of Levie sits inside the objective condition's 600 m, and the cost fitted. The force stood at the flag doing nothing and the pool was charged outside the director's accounting — a direct breach of G1.
+
+**Mechanism chosen: a new named flag, `OVT_DeploymentConfig.m_bDirectorOnly`, read through `IsSelectableByEvaluator()`.** Neither existing mask can express it — every objective config is legitimately an OCCUPYING_FACTION config sent to a TOWN/BASE/RADIO_TOWER/OPEN_TERRAIN, and `m_iAllowedLocationTypes 0` means "no restrictions", not "nowhere". No existing opt-out fitted (`m_bFreeAtGameStart` is an opt-*in* to a different pass; `m_fChance 0` still rolls; `m_iMinimumThreatLevel` is a tuning knob, not a ban).
+
+Honoured at **all three** registry-walking creation paths — `FindBestDeploymentConfig()`, `FindDeploymentCandidates()`'s location-mask accumulation, and `SeedFactionFreeDeployments()` (belt and braces; the flags are independent). ⚠ **`ForceCreateDeployment()` does not consult it and must not** — that is the director's own door.
+
+Applied to all eight director-owned configs, via five `.conf` files: `Deployment_ObjectiveHarassment.conf` (which the three registry rung deltas inherit), `_TowerRecapture`, `_Sabotage`, `_FOB`, `_FOBGarrison`.
+
+#### The "worth 80" structure — an ammobox, and the author's decision to spare it
+
+80 is the **`Ammobox` placeable** (`Configs/Resistance/placeables.conf`). Nothing was picking up something it should not: the target filter takes `OVT_PlaceableComponent` **or** `OVT_BuildableComponent` by design, so a base's placed clutter is a candidate as well as its built structures — and every placeable (5–250) is cheaper than the 750 the buildable table starts at, so cheapest-first means **placeables always go first**. The buildable price table in the module header made that look like a fault; it is now written down there.
+
+**The author's decision (2026-08-19): ammoboxes are spared** pending a future gear-recovery mechanic — "losing your gear is never fun".
+
+**Implemented as a category test, not a prefab list and not the placeable type string:** `IsGearContainer()` asks for `BaseInventoryStorageComponent`. A prefab list would have to be maintained beside `placeables.conf`, and the type string is exactly the kind of join that already disagrees with itself in this tree (`GetStructureCost()` records seven of eight buildables whose type string does not match their config entry). The storage component *is* the category — it is what makes a thing a container, and what any future gear box will have without anyone remembering a list.
+
+**Verified against the shipped data by walking every prefab in both configs and following each `.et`'s inheritance chain: exactly 4 of 65 carry an inventory storage component, and they are precisely the four prefabs of the `Ammobox` entry** — `OVT_AmmoBox_Placed` (through `OVT_AmmoBox_Base`), `OVT_CabinetMetal_01_grey_V1`, and the two FIA equipment boxes. Every other placeable and every buildable is clean. (17 chains terminate at `Prefabs/Props/Core/Destructible_Props_Base.et`, which is not in the extracted reference tree; it is the generic destructible-prop base for lamps, chairs and tables and carries no storage.)
+
+⚠ **A base whose only structures are ammoboxes now completes its sabotage mission as "there was nothing left to demolish"** — which still counts as a success and still advances the ramp. That is the pre-existing empty-base behaviour and is correct, but it is now reachable on a base that visibly has things on it.
+
+#### Tests added
+
+| tier | case | pins |
+|---|---|---|
+| Init | `OVT_TEST_Init_ObjectiveDirector_RefusalsAreLatchedPerConfigAndReason` | the exact masking defect, through the pure `IsSameRefusal()`; plus the five reason constants being distinct strings |
+| Init | `OVT_TEST_Init_ObjectiveFOB_CeilingCanCoverTheForwardBase` | ceiling >= FOB price on all five shipped presets, and headroom for one garrison — the permanent deadlock the ceiling hypothesis described, which nothing else looks at because the two numbers live in different files |
+| Init | `OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates` | all eight director-owned configs excluded, and **nothing else** — the second half catches a garrison marked by mistake, which would simply stop existing with no error |
+
+Each carries its recorded can-fail proof in its header. **No case was written for `IsGearContainer()`**: it needs a live entity, this suite's established doctrine is that a structure cannot be conjured without spawning one, and prefab-reflection over inherited components is not a claim worth risking a red suite on. The exclusion was verified by data inspection instead, above.
+
+#### Play-test procedure owed (none of this is covered by the suites)
+
+1. **The silence fix.** Start a campaign, let the director select a base objective, and drive it to the forward-base phase. With a poor pool, the log must now carry a `could not send 'Objective Forward Base': the occupying faction's deployment pool cannot cover it (it costs 120 and the pool holds N)` line, **and** an affordability heartbeat roughly every 10 real minutes naming that operation — and must **not** carry a repeating `sited at ...` line.
+2. **The recovery.** `/give-resources 2000`, then confirm the very next director tick prints `Sent 'Objective Forward Base' ... for 120 resources` and the supply party line, with no further refusal lines for that config.
+3. **The exclusion.** Over a full campaign hour, confirm no `Creating deployment 'Objective <anything>'` line ever appears without an `[ObjectiveDirector] Sent ...` line beside it.
+4. **Nothing else stopped being bought.** Confirm town patrols, tower garrisons and base defense deployments still appear as before — the `m_bDirectorOnly` guard is in the shared evaluator path and a mis-scoped guard would silently empty the map.
+5. **The ammobox.** Place an ammobox and something cheap-but-not-a-container (sandbags, 20) on a captured base, let a sabotage mission run, and confirm the sandbags go and the box stays.
+
+### 2026-08-19 — forward-base siting widened: spread 250 → 400 m and lanes 3 → 5
+
+**Requested by the user:** *"lets widen that to 400m either side of the line just to allow some more room to choose a spot"*, then the lane increase approved alongside it. Both knobs moved together.
+
+**Supporting evidence:** in the play-test the separation was 2421 m (band 847–1815 m) and the site the sampler chose was in an **outer lane at the full 250 m** — the centre lane, straight down the supply road, had been rejected there. The lattice was already living on its own edge.
+
+#### 🔴 The lane distribution was one edit away from silently doubling the corridor
+
+`OVT_FOBSiting.LateralOffset(lane, lanes)` returned the **raw ring index** — `0, −1, +1, −2, +2` — which the caller multiplied by `FOB_LATERAL_SPREAD`. That is only correct **while there are exactly three lanes**, and it was written when there were. Bumping the count without touching it would have produced:
+
+| | lane offsets at spread 400 |
+|---|---|
+| old mapping, 5 lanes | `0, ±400, ±800` ← **800 m corridor** |
+| what was asked for | `0, ±200, ±400` |
+
+The user authored 400 m as a **maximum** ("either side of the line"), not a per-lane step. The wrong version has no error, no warning and no symptom beyond forward bases turning up 800 m off the supply line — the same class of silent widening this feature was bitten by twice already today.
+
+**`LateralOffset` now returns a signed FRACTION in `[-1, +1]`**, distributed evenly across the span: ring index over `lanes / 2` (the outermost ring the sequence can produce, written directly so the normalisation cannot drift from the sequence it normalises). The call site is unchanged — the return was always a multiplier of the spread, it is now a fraction of it. ⚠ Both operands are made floats explicitly, for the reason `BandFraction()` already records: a truncating int/int would collapse every inner ring to 0 and put five lanes back on three positions.
+
+Three-lane behaviour is **bit-identical** to before, which is exactly why the old mapping looked correct.
+
+#### Effect on candidates — the point of the change
+
+Viable candidates (in band after the lateral offset is applied, `sqrt(standoff² + offset²)` re-tested by `EvaluateFOBCandidate`):
+
+| separation | band | old `3 × 250` | new `5 × 400` |
+|---|---|---|---|
+| 500 m | 350–375 | 8 / 24 | 8 / 40 |
+| 700 m | 350–525 | 18 / 24 | 20 / 40 |
+| 900 m | 350–675 | 20 / 24 | **32 / 40** |
+| 2421 m (the play-test) | 847–1816 | 22 / 24 | **36 / 40** |
+| 4000 m | 1400–2500 | 22 / 24 | **36 / 40** |
+
+⚠ **On a short supply line only the centre lane ever works, before and after.** When the band collapses toward `FOB_MIN_STANDOFF` (350 m) any lateral offset pushes a candidate past `bandMax` — `sqrt(350² + 250²) = 430 > 375` at 500 m separation, and 400 fares no worse. Not a regression, and the new 200 m inner ring actually becomes usable slightly *earlier* (from ~537 m separation, against ~574 m for the old 250 m ring).
+
+#### 🔴 Cost, reported honestly — and a comment that was lying about it
+
+**The old comment on `FOB_SITING_ATTEMPTS` claimed the search "returns on the first candidate that passes every hard test, which on open terrain is usually the first or second". It does not, and never did.** `SampleGeneratedFOBSite()` evaluates **every** point and keeps the highest-scoring one — which is the whole reason a site is chosen by flatness, elevation and road proximity rather than by lattice order, and the reason the log line quotes a score (`score 2.9401`). Corrected on the constant. So the attempt count is a real per-raise cost, not a worst case.
+
+**What 40 attempts actually cost**, cheapest test first — most candidates never reach the expensive half:
+
+1. band test (arithmetic) → 2. ocean read → 3. one loop over the exclusion list
+4. …and only for a survivor: 5 × `GetSurfaceY`, one `TraceBox`, one nearest-road query.
+
+At the play-test geometry that is 40 cheap rejections-or-passes and ~36 expensive evaluations, once.
+
+**Is that too much? No, and it is a large net reduction.** Until the same day's affordability fix this entire lattice ran on **every tick of a forward-base phase that could not pay** — six times a real minute, indefinitely, ~180 runs per real hour. The pre-flight in `SendFOBOperation()` now refuses *before* the search, so the lattice is walked **once per objective**, on the tick that actually raises the base. 40 candidates once is cheaper than 24 candidates 180 times by more than two orders of magnitude. If the lane count is ever raised again the arithmetic changes — each extra lane is `FOB_SITING_STEPS` (8) more samples — but at 40, on a once-per-objective decision, this does not read as too much.
+
+#### Tests
+
+`OVT_TEST_Logic_ObjectiveScaling_FOBSiting`'s lattice check gains the five-lane rows (`±0.5`, `±1`) and a new `CheckNoLaneExceedsTheSpread()` that sweeps **every lane count from 2 to 11** and asserts both halves of the invariant:
+
+- **no lane exceeds the spread** — the safety property that stops a future lane-count change from widening the corridor by accident;
+- **the outermost lane reaches it exactly** — the opposite failure, a mapping that satisfies the bound by never approaching it, which would quietly *narrow* the corridor and stop the outer lanes finding ground the centre lane cannot.
+
+Three new can-fail proofs recorded in the case header (S6 the old raw-index mapping, S7 a narrowed corridor, S8 the truncating int division). The two pre-existing rows that read `−2`/`+2` for `LateralOffset(3, 5)` / `(4, 5)` now read `−1`/`+1` — that is the contract change, and those rows were the only ones that moved.
+
+⚠ **The author has since authored an `OVT_FOBPosition` marker** ~1019 m from the objective at 250 m lateral. Authored sites beat anything generated (subject to the same band, exclusion and clearance tests), so **on the next run the lane change will not be what they see** — the generated lattice becomes the fallback it was always designed to be.
+
+##### Addendum — the degenerate lane counts, and three stale prose references
+
+Two follow-ups on the same change, both small and both in the "would go stale silently" class:
+
+- **`CheckNoLaneExceedsTheSpread()` now asserts lane counts 0 and 1 before the 2–11 sweep.** The sweep
+  cannot include them, because its second half ("the outermost lane reaches the spread exactly") is
+  *false* for a lattice with no outermost ring — so the degenerate counts get three explicit rows
+  instead (`LateralOffset(0, 0)`, `(1, 0)`, `(0, 1)`, all `0`). They are the counts a normalisation gets
+  wrong first: `outermost = lanes / 2` is `0` for both, and the guard that returns before dividing by it
+  is the only thing standing between a one-lane lattice and a division by zero. Nothing in the sweep
+  would have caught its removal.
+- **Three narrative comments still said the lattice was twenty-four points** — two in
+  `OVT_ObjectiveDirectorComponent.c` (the pre-flight header and the siting-order bug-fix note, both
+  describing the *old* behaviour, where 24 was accurate at the time of writing) and one in
+  `OVT_FOBSiting.BandFraction()`'s int-division warning (where it was an illustrative count). All three
+  now quote `FOB_SITING_ATTEMPTS` or are phrased per-lattice-point, so the next lane-count change does
+  not have to find them.
+
+Also re-checked: `LateralOffset` and `FOB_SITING_LANES` have **exactly two consumers between them** —
+`SampleGeneratedFOBSite()`'s lattice loop (`attempt / LANES`, `attempt % LANES`, and the
+`LateralOffset(...) * FOB_LATERAL_SPREAD` scaling) and this Logic case. `FOB_SITING_ATTEMPTS` follows the
+product to 40 on its own and has no independent definition; its two other uses are the "nowhere to put a
+forward base" warning (which prints the constant rather than a literal) and the loop bound. Nothing
+assumed 24 in code.
+
+⚠ **Where the band-vs-lane interaction now bites.** It bites at the same *distance from the line* as
+before, so it is still the ±400 pair that loses its outermost step or two on a short supply line — the
+new ±200 pair sits roughly where the old ±250 lanes did and loses less than they used to. The widening
+therefore did not push the cost onto any lane that was previously safe. Recorded on `FOB_LATERAL_SPREAD`.
+
+### 2026-08-19 — D18: the objective RESERVE FLOOR (the priority inversion between routine garrisoning and the director)
+
+**A balance/architecture change, approved by the author, landing on `v1.5` only.** Not a bug fix, and
+deliberately not ported to `main` — `main` ships as-is with the 1.5 update.
+
+#### The defect, and what it is NOT
+
+The occupying faction's deployment pool is credited in a **lump every six in-game hours**
+(`OVT_OccupyingFactionManager.c` → `TransferDefenseShareToPool`). Two spenders race for it:
+
+| spender | cadence | appetite per turn |
+|---|---|---|
+| `EvaluateDeployments` (routine) | fixed 30 real s | up to `MAX_DEPLOYMENTS_PER_EVALUATION` = **10** creates |
+| `OVT_ObjectiveDirectorComponent` | `DIRECTOR_UPDATE_FREQUENCY / timeMul` = 10 real s at 6× | **one** operation |
+
+⚠ **The cadence is not the problem, and reading it as one sends you the wrong way.** The director
+actually asks *three times as often in real time*. The problem is that **nothing earmarked anything**:
+a routine pass could drain a whole six-hour credit before the pool ever crossed the price of the
+strategic operation. The author's play-test sat at **20 resources against a 120-cost forward base,
+indefinitely** — and the affordability hold (correctly) refuses to abandon an objective for being
+broke, so the phase never timed out either. Nothing errored. The faction just quietly never pursued
+its objective. A **priority inversion**, and an invisible one.
+
+#### The mechanism, in one sentence
+
+**While the objective machine is actually being refused an operation for want of money, the routine
+evaluator may not take the pool below that operation's price.** Nothing else changes.
+
+#### Where the number comes from — and why it cannot drift
+
+Not from a phase table, not from a prediction, and **not by the evaluator reaching into the director**
+(the dependency still points one way — `grep -rn "OVT_ObjectiveDirector" Scripts/Game/GameMode/Deployments/`
+is still **empty**). It is the `cost` local of the ask that was **just refused**, in
+`CanSendObjectiveDeployment()`'s `pool < cost` branch — the same integer that would have been spent had
+the pool been able to cover it, pushed one line below the existing `m_sBlockedOnConfig` / `m_iBlockedOnCost`
+diagnostics.
+
+This is the whole reason the design is *reactive* rather than *predictive*. A predictive version — "the
+director works out what it would like to buy next and reserves for it" — was considered and rejected on
+three counts:
+
+1. it would **duplicate the sender chain** (tower recapture → harassment rung → sabotage; forward base →
+   forward-base garrison), which is exactly the kind of second copy that drifts;
+2. it would **reserve during the cadence countdown**, holding a floor for up to 45 in-game minutes on an
+   operation that is not being asked for — *"a floor that outlives the intent is wrong"*;
+3. it could reserve for something the phase would then decline for a non-money reason, which is a
+   deadlock the reactive version cannot express (see below).
+
+Reserving for something you *already asked for and were told you could not afford* is definitionally
+"the next intended operation", and it costs no new logic to know.
+
+#### The seam: pushed in, never pulled out — the anchor's pattern exactly
+
+| anchor | reserve |
+|---|---|
+| `SetObjectiveAnchor(faction, pos, radius, weight)` | `SetObjectiveReserve(faction, operation, cost)` |
+| `ClearObjectiveAnchor(faction)` | `ClearObjectiveReserve(faction)` |
+| `ClearAllObjectiveAnchors()` (restore teardown) | `ClearAllObjectiveReserves()` (same call site) |
+| `GetObjectiveAnchor(faction)` → record or null | `GetObjectiveReserve(faction)` → record or null |
+| non-positive radius/weight **clears** rather than storing | non-positive cost **clears** rather than storing |
+| director's `PushObjectiveAnchor` / `DropObjectiveAnchor` | director's `PushObjectiveReserve` / `DropObjectiveReserve` |
+| negative faction index refused | negative faction index refused |
+
+Runtime-only and **not persisted**, for a *stronger* reason than the anchor's: a reserve is a statement
+about **one tick** ("the owner asked and could not pay"), not about a campaign. And unlike the anchor it
+needs **no re-push in `ResolveRestoredObjective()`** — the first tick after a load either re-asks and
+re-pushes, or does not want it any more. At most one evaluation pass runs unfloored in between.
+
+#### Byte-identical with no objective — a structural proof, not an argument
+
+`OVT_DeploymentSelection.SpendableResources(pool, reserve)` **returns early** on a non-positive reserve
+(`return pool;` — no arithmetic, no clamp, no re-derivation). Then, in `EvaluateFactionDeployments()`:
+
+- `pool` and `availableResources` are seeded from the **same integer** when `reserve == 0`;
+- both are decremented by **the same value at the same moment** inside the loop;
+- therefore `m_mFactionResources.Set(factionIndex, pool)` writes exactly the integer the old
+  `Set(factionIndex, availableResources)` wrote, at every iteration.
+
+Everything else in the pass — `FindDeploymentCandidates`, the anchor bias, the sort, the dedup,
+`FindBestDeploymentConfig`'s budget argument, `MAX_DEPLOYMENTS_PER_EVALUATION` — is untouched and is
+handed the same numbers.
+
+🔴 **The single most dangerous line in the change is the write-back**, and it is commented as such.
+Writing the *spendable* figure back (the one-line "obvious" edit) would **destroy the reserved
+resources outright** on the first purchase of the pass — a hole in G5, not a behaviour change. The two
+locals exist so that cannot be written by accident.
+
+#### How the floor lapses on every teardown path — and why it cannot deadlock
+
+The guarantee is an **ordering**, not a list of clears: `DirectorTick()` **drops** the floor on its
+first line, above all three early returns, and the only way one exists at the end of a tick is that
+*that tick* asked and was refused for money. EnforceScript is single-threaded and callqueue callbacks do
+not interleave, so the clear and the re-push happen inside one synchronous call and **no evaluation pass
+can observe the gap**. Enumerated:
+
+| how the intent ends | what lapses it |
+|---|---|
+| `ResetObjective` (timeout, starvation, no FOB site, player dismantle, restore relink failure) | `ClearObjectiveRecord()` drops it beside the anchor — **immediately**, not a tick later |
+| re-selection during harassment finds nothing → `EnterIdle()` | same funnel (`ClearObjectiveRecord`) |
+| blacklisted and re-selected | same funnel, then IDLE asks nothing |
+| phase advances to one with no next operation, or all senders decline for a **non-money** reason | that branch never reaches the push → next tick's drop stands |
+| the cadence has not elapsed (`nextOpTicks > 0`) | nothing asks → **no floor for the whole interval**, which is the "spend what you have, don't sit on it" requirement |
+| refusal changes to `REFUSAL_UNREGISTERED` or the FOB spend ceiling | neither branch pushes → lapses that tick |
+| a QRF starts / the server empties / the machine stops being ticked | the drop is **above** those early returns |
+| save + load, or a second campaign in one client session | `ClearAllObjectiveReserves()` in `ApplyPersistedFactionResources()` |
+| the world editor / a client | both push and drop are behind `Replication.IsServer()` |
+
+**Why a blocked director cannot leave the evaluator a hole to spend through:** a pool-short refusal
+deliberately does **not** re-arm the cadence (`SendNextOperation`'s contract), so a broke director
+re-asks — and re-pushes — every in-game minute. At 6× that is every 10 real seconds against the
+evaluator's 30, so **~3 re-pushes per evaluation pass**.
+
+**Why the director cannot deadlock behind its own floor:** it never reads it.
+`CanSendObjectiveDeployment()` reads the **raw** pool; `ForceCreateDeployment()` + `SubtractFactionResources()`
+consult nothing. The floor exists *so that* the money is there when the director asks again.
+
+#### Which paths respect the floor, and which bypass it
+
+| path | floor? | why |
+|---|---|---|
+| `EvaluateFactionDeployments()` — the 30 s routine pass | ✅ **respects** | the only opportunistic spender, and the whole of the defect |
+| `ForceCreateDeployment()` + `SubtractFactionResources()` — the director's own operations | ❌ bypasses | reserving against itself is a deadlock by construction |
+| `OnFOBDismantledByPlayer()` — the forward-base penalty | ❌ bypasses | a penalty, not a purchase; `SubtractFactionResources` already floors at 0 |
+| `OVT_InfantrySpawningDeploymentModule.Reinforce()` | ❌ bypasses | **deliberate scope call.** Maintenance of a force already bought, bounded by `m_iReinforcementCost × groupsNeeded` and only on losses — not the ten-creates-a-pass appetite that caused the inversion. Widening the floor to cover it is a bigger behaviour change than was approved; noted here so a future session can revisit rather than rediscover |
+| `SeedFreeDeployments()` — free-at-game-start | ❌ **irrelevant, not exempted** | see below |
+
+**Free-seeding verdict: the floor cannot apply, because there is no spend to gate.** `SeedFreeConfig()`
+never reads `m_mFactionResources`, never debits, and stamps `resourcesInvested = 0` so a collected seed
+refunds nothing. Its documented "no player-count guard and no QRF guard" exception is about *decisions
+to spend a budget*; seeding is the world's opening state and touches no budget at all. Timing confirms
+it independently: seeding fires at **+9 s** and the first evaluation at **+10 s**, long before any
+director could have pushed anything.
+
+#### Diagnosability — the per-(config, reason) convention, applied
+
+A floor is invisible from outside: nothing errors, no deployment fails, the faction just buys less.
+`AnnounceObjectiveReserve()` says, at `NORMAL`, that routine spending is held to *N* of a pool of *M*
+because *R* is reserved for `'<operation>'`, plus an explicit "this pass will buy nothing at all — the
+faction is saving up" clause when the reserve exceeds the pool.
+
+⚠ **Latched on the pair `(operation, price)`, exactly as `LogOperationRefusal` is on `(config, reason)`.**
+The latch lives on the record, and `SetObjectiveReserve()` **keeps an unchanged record rather than
+replacing it** — that line is load-bearing, not an optimisation: the owner re-pushes six times a real
+minute, and a replaced record would re-arm the latch each time and turn one explanatory line into a
+flood. A re-price or a different operation is news and gets its own line. Per-faction keying was
+rejected for the same reason the director's per-objective key was on 2026-08-19: it hides the second
+fact behind the first.
+
+#### Tests
+
+**Logic tier** — `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_ObjectiveReserveFloor.c`, three cases
+over the pure statics in `OVT_DeploymentSelection`: the budget arithmetic (identity/withholding/clamp),
+the spend gate (including the row that *is* the feature — affordable out of the pool, refused out of the
+budget — and the boundary both ways), and the latch key.
+
+⚠ **One claim is honestly NOT made, and the header says so.** The "no reserve is the identity" early
+return is **unobservable for a reserve of exactly zero**, because integer subtraction of zero is exact —
+unlike the sibling anchor arithmetic, whose float identity claim genuinely needs an `==`. What the rows
+pin instead is the same guard's observable half: a **negative** reserve must not *inflate* the budget.
+
+**Init tier** — `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_ObjectiveReserve.c`, two cases:
+absent-for-every-faction-by-default (plus store round-trip, re-price, dead-floor refusal, latch
+retention, idempotent clear), and the driving case. The driving case empties the occupying faction's
+pool through the live map (`GetAllFactionResources()`, **not** the credit/debit methods — those are the
+campaign's accounting and an acceptance grep's subject), commits an objective, plants the cadence at 1
+so the senders run, ticks, and requires a floor that **names a config the registry knows and is priced
+at exactly that config's `GetTotalResourceCost()`** — the "one operation deep, and the one it actually
+asked for" claim, stated world-independently rather than by hard-coding an operation name. Then it plants
+the cadence high, ticks once more with **nothing torn down**, and requires the floor to be gone.
+
+🔴 That last assertion is the highest-value one in the file: it pins the *ordering* that makes the floor
+un-deadlockable, and an ordering is exactly what a refactor reverses without noticing.
+
+**Can-fail proofs — eight faults, injected one at a time, each compiled and restored. Every one exited
+`tools/compile-check.sh` 0:** L1 drop the reserve guard, L2 drop the negative clamp, L3 ignore the
+earmark (`return pool >= cost` — literally the pre-D18 code), L4 tighten the boundary to `>`, L5 drop the
+price half of the latch key, LATCH always-allocate a fresh record, R1 delete the push from the pool-short
+branch, R2 delete the drop from `DirectorTick()`'s first line. None is a script error; every one would
+reach players.
+
+#### Files
+
+- `Scripts/Game/GameMode/Deployments/OVT_DeploymentSelection.c` — `NO_RESERVE`, `SpendableResources()`,
+  `MayEvaluatorSpend()`, `IsSameReserve()`
+- `Scripts/Game/GameMode/Deployments/OVT_DeploymentManager.c` — `OVT_DeploymentObjectiveReserve`,
+  `m_mObjectiveReserves`, the Set/Clear/ClearAll/Get/GetCost API, `AnnounceObjectiveReserve()`, the
+  two-local evaluator, the restore teardown
+- `Scripts/Game/GameMode/Objectives/OVT_ObjectiveDirectorComponent.c` — `m_bReserveHeld`,
+  `PushObjectiveReserve()` / `DropObjectiveReserve()`, the push in `CanSendObjectiveDeployment()`, the
+  drop on `DirectorTick()`'s first line and in `ClearObjectiveRecord()`
+
+`m_bReserveHeld` is a cache over the framework's store, kept **only** so the top-of-tick drop is free on
+the overwhelming majority of ticks (a bool test instead of two manager resolves, six times a real
+minute, forever). ⚠ It also means the machine only drops floors **it believes it pushed** — safe today
+because it is the only pusher in the tree, and worth knowing before adding a second one.
+
+#### Still owed
+
+- **Play-test**: the confirming observation is a campaign whose forward-base phase, having logged
+  `could not send 'Objective Forward Base': the faction pool is short`, then logs
+  `routine spending is held to 0 of N …` and **eventually sends the base** instead of sitting at 20
+  forever. Also worth watching: routine garrisoning visibly resuming afterwards.
+- **Multiplayer / dedicated**: untested. Both halves are server-only and nothing replicates, so the
+  expected result is "no difference", but the reserve is per-faction runtime state on a
+  server-authoritative component and has never been observed under a real client load.
+- **Save/reload**: the reserve is deliberately not persisted; a load should show at most one unfloored
+  evaluation pass before the machine re-earns it.
+
+### 2026-08-19 — 🔴 THE PHASE-3 DEADLOCK: Phase 1 operations now continue into the forward-base phase
+
+**The headline promise of the feature was unreachable for either kind of objective.** Found by reading a
+live play-test log against the gates, not by a failing test — nothing errored, nothing warned, and the
+symptom was an objective that sat in the forward-base phase until its idle clock ran out, over and over.
+
+#### The deadlock, stated exactly
+
+| | |
+|---|---|
+| `Deployment_ObjectiveSabotage.conf`, `Deployment_ObjectiveHarassment.conf`, `Deployment_ObjectiveTowerRecapture.conf` | authored `m_iRequiredPhase 1` |
+| `OVT_ObjectiveConditionDeploymentModule` | compared with `!=`, i.e. **equality** |
+| `BasePhase2Gate(successes)` | promotes at `successes >= BASE_FOB_SABOTAGE_THRESHOLD`, which is **1** |
+| `BasePhase3Gate(...)` | demands `objectiveSabotageMissionsRequired`, which is **6 on Easy** |
+
+So the **first** completed sabotage mission promoted the objective into the forward-base phase, and from
+that instant no further sabotage operation could be sent. The counter froze at 1 and could never reach 6.
+
+**TOWN objectives deadlock identically, one step later.** `TownPhase3Gate` needs support below 25 %, and
+the only thing that drives support down is the stacking `ObjectiveHarassment` debuff applied by
+harassment operations — which stopped for the same reason. Each stack lasts `timeout 7200`, which
+`OVT_TownModifierSystem` decrements by `MODIFIER_FREQUENCY / 1000` every 10 real seconds, i.e. **7200 real
+seconds = 2 real hours = 720 in-game minutes at 6x**. The stacks then expired and support recovered.
+
+⚠ **This was a recorded deferral, and the deferral was load-bearing.** `TickFOB()`'s header said "Phase 1
+operations do not continue into this phase … changing that is a Phase 5 contract with initialisation cases
+pinned to it and is outside T7.1–T7.14." §3.2's own diagram had always said the opposite — *"the FOB
+becomes the insertion source for further Phase 1 operations, spending against a CEILING inside the
+deployment pool"* — so this is an implementation gap being closed, not a design change.
+
+#### The mechanism: an INCLUSIVE PHASE RANGE, not a minimum
+
+`OVT_ObjectiveConditionDeploymentModule` gains **`m_iThroughPhase`** beside `m_iRequiredPhase`, and the
+arithmetic goes where all the other phase arithmetic lives:
+
+```
+OVT_ObjectivePhaseRules
+  + static const int NO_PHASE = 0
+  + static bool PhaseInRange(int phase, int firstPhase, int lastPhase)
+  + static int  EffectiveLastPhase(int firstPhase, int lastPhase)
+```
+
+**Why a range and not the alternatives:**
+
+- **A minimum-phase semantic was rejected outright.** "Phase N or later" cannot say no to `COUNTER_QRF`,
+  and harassment and sabotage teams walking in while the battle they built up to is being fought are
+  noise. The upper bound is the whole reason this is not a one-line comparison change.
+- **A bitmask/flags set was rejected** because `OVT_EObjectivePhase` is `0,1,2,3` — not powers of two —
+  and its members are **a wire format that may never be renumbered** (the save payload holds one). A
+  flags enum would have to be a *second* list of phases, kept in step with the first by hand.
+- **A range keeps `m_iRequiredPhase`'s name and meaning**, so the four Init/Persistence references to it
+  stay true and the diff stays reviewable.
+
+⚠ **AN UNAUTHORED UPPER BOUND IS THE PRE-RANGE BEHAVIOUR, EXACTLY.** `EffectiveLastPhase` collapses any
+`lastPhase < firstPhase` (including the `0` an unauthored field holds) to `firstPhase`, so a config that
+says nothing about a range is still scoped to one phase by equality. **The attribute defvalue is `"0"` and
+the script member default is `0`**, deliberately the same, so it cannot matter whether a `.conf` load
+applies the defvalue or the member default — the two say the same thing either way.
+
+⚠ **There is no separate "the objective is IDLE" guard, and adding one would be dead code.** Every range
+that survives the `firstPhase <= NO_PHASE` test starts at 1 or above, so `phase < firstPhase` already
+refuses IDLE. A guard on `phase` could not be made to fail, and this class does not carry lines no row can
+pin.
+
+#### How COUNTER_QRF is excluded — two independent mechanisms
+
+1. **Authored data.** Every ramp config is authored `m_iRequiredPhase 1` / `m_iThroughPhase 2`, and an
+   Init case refuses any other span for all six of them (four ladder rungs, recapture, sabotage). The two
+   forward-base configs are pinned at `2 -> 2` by `OVT_TEST_Init_ObjectiveFOB`'s config case, which owns
+   them — asserted through `ResolveThroughPhase()`, so an authored `0` is judged as the span it *means*
+   rather than as the number that is written down.
+2. **Structure, and this one needs no config to be right.** `FireCounterAttack()` only calls
+   `EnterPhase(COUNTER_QRF)` **after** `occupying.m_CurrentQRF != null`, and `DirectorTick()`'s third
+   early return fires for the whole of a live battle. **No operation of any kind can be created while the
+   objective is in COUNTER_QRF, whatever a config says.** What the authored bound actually decides is
+   whether a team already in the world is *collected* when the battle starts — and it must be.
+
+#### Proof that an in-flight operation is NOT collected on the Phase 2 transition
+
+The collection path is `OVT_ReinforcementBehaviorDeploymentModule` with `m_bDeleteOnConditionFail 1`:
+`CheckReinforcement()` → `EvaluateReinforcementConditions()` walks every condition module's
+`EvaluateCondition()` and calls `RequestDeploymentDeletion()` on the first refusal.
+
+`EvaluateCondition()` (runtime) and `EvaluateStaticCondition()` (creation) **both call
+`IsAtCurrentObjective()`**, which is one call to `PhaseInRange()` on one authored range. So *"a new
+sabotage operation may be sent in phase 2"* and *"a live one is kept in phase 2"* are **the same statement
+about the same predicate** — they cannot disagree, and there is no second rule to keep in step with the
+first. That symmetry was already the module's stated design; the range simply widened what both sides
+answer. It is asserted end-to-end by `OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion`, which drives
+the **loaded** sabotage and garrison modules against the **live** director through
+HARASSMENT → FOB → COUNTER_QRF.
+
+#### Spending: the ceiling, the floor and the cadence are all reused, not re-implemented
+
+`SendNextFOBOperation()` chains five senders, `&&`-of-refusals, so **exactly one create per call**:
+
+```
+SendFOBOperation() → SendFOBGarrisonOperation() → SendTowerRecaptureOperation()
+                                                → SendHarassmentOperation() → SendSabotageOperation()
+```
+
+- **One operation per interval.** The same `SetOperationCountdown(objectiveHarassmentIntervalMinutes)`,
+  armed once, only on a successful create. A separate ramp spender beside this one would reopen the
+  unbounded-per-tick hole tower recapture was moved out of in `TickHarassment()`.
+- **The FOB ceiling.** Every one of the five goes through `CreateObjectiveDeployment()` →
+  `CanSendObjectiveDeployment()` → `WithinFOBBudget()`, and `IsFOBBudgetActive()` is keyed on the
+  **phase**, never on which operation is asking. §3.2's "spending against a CEILING inside the deployment
+  pool" is therefore true of the ramp by construction.
+- **The reserve floor (D18).** Unchanged: the pool-short branch of `CanSendObjectiveDeployment()` pushes
+  it, `DirectorTick()`'s first line drops it. A ramp operation refused on cost in phase 2 pushes a floor
+  exactly as one refused in phase 1 does.
+
+#### The second half of §3.2: the ramp now LAUNCHES from the forward base
+
+All three ramp configs move from `OVT_NearestControlledBaseSourceProvider` to
+**`OVT_ObjectiveAnchorSourceProvider`** — the provider whose own header says it exists for "the garrison
+that reinforces it, **and every later operation the design wants launched from it rather than from the
+rear**".
+
+⚠ **This is a strict no-op until a forward base stands.** The provider's fallback *is*
+`OVT_NearestControlledBaseSourceProvider` with `m_fMaxSourceDistance 0` — byte-identical to what these
+configs authored before — and it falls through rather than failing, so no force can ever be stranded.
+Without it the middle phase costs the occupying faction resources for a flag and a garrison and changes
+nothing about how it fights. **It is separable from the deadlock fix**: reverting the three `m_Source`
+blocks alone leaves the counter-attack reachable.
+
+#### Does the backstop still work? Yes, and it had to be answered rather than assumed
+
+A ramp operation **is** an operation by `IsObjectiveOperationConfig()`, so it now HOLDS the idle clock
+during the forward-base phase. R1 survives because an operation is **transient**: it completes, is wiped
+out, or its condition collects it. A forward base that has spent its whole ceiling creates nothing, holds
+nothing, and runs the 240-minute clock down to a reset exactly as before.
+
+⚠ **Not new, and worth watching in play:** a mission that can *never* finish and never dies (a player
+parked permanently inside the sabotage module's 150 m clear radius) holds the clock open indefinitely.
+The harassment phase has always had that shape, with the same senders and the same behaviour modules.
+
+#### Easy-preset reachability — the arithmetic, walked
+
+Costs are `GetTotalResourceCost()` = `m_iBaseCost` + Σ module costs, where the insertion module charges
+`m_iMaxGroupCount * m_iCostPerGroup + m_iTruckCostOverride`:
+
+| Config | Cost |
+|---|---|
+| Objective Forward Base | 40 + (40 + 40) = **120** |
+| Objective Forward Base Garrison | 20 + (30 + 40) = **90** |
+| Objective Sabotage | 20 + (40 + 40) = **100** |
+| Objective Tower Recapture | 20 + (40 + 40) = **100** |
+| Harassment rungs | **90 / 105 / 125 / 125** |
+
+Easy: interval **90**, concurrency **1**, missions required **6**, `objectiveFOBGarrisonMax` **1**,
+`objectiveFOBCost` **400** → ceiling `400 × 3` = **1200**, idle clock **240**, window **05:00–14:59**.
+
+**BASE objective, in-game minutes from the Phase 2 entry tick** (the cadence is armed to 0 by
+`EnterPhase`, and `AdvanceOperationCadence()` runs before the send test, so sends land 90 apart):
+
+| t | Operation | Cost | Ceiling spend | Successes |
+|---|---|---|---|---|
+| 1 | Forward base | 120 | 120 | 1 |
+| 91 | Garrison (cap 1, then refuses forever) | 90 | 210 | 1 |
+| 181 | Sabotage | 100 | 310 | → 2 |
+| 271 | Sabotage | 100 | 410 | → 3 |
+| 361 | Sabotage | 100 | 510 | → 4 |
+| 451 | Sabotage | 100 | 610 | → 5 |
+| 541 | Sabotage | 100 | **710** | **→ 6, gate met** |
+
+**Six missions at one per 90 in-game minutes DO complete inside the idle budget, and the reason is that
+240 is not a total budget — it is a "nothing happened" budget.** `TickObjectiveIdleClock()` re-arms to full
+on every create and on every success counter movement, and is HELD entirely while an operation is in
+flight. The worst gap in the table above is the 89 idle ticks between the garrison (not an operation, so
+no hold) and the first phase-2 sabotage. 89 < 240, with margin, and every other gap is shorter because a
+walking team holds the clock. **The idle clock never reaches zero on this ramp.**
+
+The ceiling is not binding either: 710 of 1200, leaving room for four more sabotage missions
+(810/910/1010/1110; a fifth would be 1210 and is refused). The **first** sabotage success — the one that
+caused the promotion — was bought during harassment, when `IsFOBBudgetActive()` is false, so it does not
+count against the ceiling.
+
+`objectiveSabotageStructuresPerMission 1` and `objectiveSabotageHoldSeconds 180` mean a mission is ~3 real
+minutes of holding after the team arrives, and a mission still **completes** when there is nothing left to
+demolish (`DemolishNextStructure` → `CompleteMission("there was nothing left to demolish")`), so an empty
+base cannot stall the ramp.
+
+**Total: ~541 in-game minutes ≈ 9 in-game hours ≈ 90 real minutes at the shipped 6x**, from Phase 2 entry
+to the sixth mission.
+
+🔴 **THE ONE GATE THAT MAY STILL NOT CONVERGE, AND IT IS NOT THE ONE THAT WAS BROKEN:
+`objectiveQRFResourceGate 2000`.** This reads `OVT_OccupyingFactionManager.m_iResources`, the **reserve**,
+not the deployment pool. The reserve starts at `maxQRF` (500 on Easy) and grows only at the six-hourly
+boundary, by the 20 % of each payout that `TransferDefenseShareToPool()` does *not* move into the pool:
+
+```
+gain    = baseResourcesPerTick + resourcesPerTick × min(threat/1000, 4)   = 150 + 250·f
+retained = 20 % of gain
+```
+
+| Threat | Gain / 6 h | Retained | Ticks to +1500 | In-game days | Real hours @6x |
+|---|---|---|---|---|---|
+| 0 | 150 | 30 | 50 | 12.5 | ~50 |
+| 500 | 275 | 55 | 28 | 7 | ~28 |
+| 1000 | 400 | 80 | 19 | ~4.75 | ~19 |
+| 2000 | 650 | 130 | 12 | 3 | ~12 |
+| 4000+ (cap) | 1150 | 230 | 7 | ~1.75 | ~7 |
+
+⚠ **It is a campaign-lifetime accumulator, not a per-objective one** — it survives every reset and is
+drained only by QRF waves (`OVT_QRFControllerComponent` debits `m_iResources` by what each wave commits) —
+so in a campaign that has run long enough for the resistance to hold a base worth attacking, it is
+plausibly already met. But **at low threat it is slow**, and the failure mode is specific and worth
+naming: if the ceiling is spent while the reserve is still short, `MeetsCounterAttackRamp` answers
+`NOT_READY` rather than `WAIT_FOR_DAYLIGHT`, so the idle clock is **not** held, no operation can be
+created, and the objective is abandoned after 240 in-game minutes.
+
+**No difficulty preset was retuned. That is the author's call.** If it needs one, the two candidates are
+`objectiveQRFResourceGate` on Easy (2000 against a 500 starting reserve and a 30/tick trickle) and
+`FOB_CEILING_MULTIPLIER`.
+
+**Daylight is a wait, never a failure**: a gate met at 21:00 waits for 05:00 with the phase timeout held
+and untested, while starvation and the cadence keep running. Worst case is 14 in-game hours; the ceiling
+is what bounds what it spends meanwhile.
+
+#### Tests changed, and why each one had to change
+
+| File | Change |
+|---|---|
+| `Logic/OVT_TEST_Logic_ObjectiveScaling.c` | **NEW case** `PhaseRangeSpansTheRampAndStopsAtTheBattle` — 16 rows on both edges plus an exhaustive 4×4×4 walk asserting `PhaseInRange` and `EffectiveLastPhase` agree. Four faults (P1 minimum-only, P2 equality restored, P3 collapse dropped, P4 IDLE guard dropped), each compiled clean. |
+| `Init/OVT_TEST_Init_ObjectiveOperations.c` | **NEW case** `RampSpansTheForwardBasePhaseAndLaunchesFromIt` — all six ramp configs must span `1 -> 2` and must be sourced from `OVT_ObjectiveAnchorSourceProvider`. Five faults (P1–P5), each compiled clean. |
+| `Init/OVT_TEST_Init_ObjectiveOperations.c` | **STRENGTHENED** `CloneFidelity` — `m_iThroughPhase` is set to a value *different from* `m_iRequiredPhase` in the fixture, so a clone that copied the first phase into both would still fail. Fault C5 recorded. |
+| `Init/OVT_TEST_Init_ObjectiveFOB.c` | **STRENGTHENED** `AConfigsResolveAndAreScoped` — `CheckObjectivePhase()` widened from `(config, required)` to `(config, required, through)`; both forward-base configs must span `2 -> 2` and no more. Fault A6 recorded. |
+| `Init/OVT_TEST_Init_ObjectiveFOB.c` | **NEW case** `BRampSurvivesThePromotion` — the behavioural proof, driven against the live director and the loaded configs. Four faults (B1–B4), each compiled clean. |
+
+⚠ **No assertion was weakened to make anything pass.** The Phase 5 contract that pinned "phase 1 only" was
+pinned in **two** places and both were *strengthened* rather than relaxed: `CheckObjectivePhase()` gained a
+second bound (the FOB configs' `m_iRequiredPhase 2` claim is untouched, and they now also have to prove
+they do **not** span further), and the clone case gained a field plus a fixture value chosen so the new
+assertion cannot pass by coincidence. Nothing in `OVT_TEST_Init_ObjectiveSabotage.c` needed changing — it
+only ever asserted that an objective condition **exists**. The Persistence suite's reference to
+`m_iRequiredPhase 2` is a comment about the garrison config and is still accurate.
+
+#### Files
+
+- `Scripts/Game/GameMode/Objectives/OVT_ObjectivePhaseRules.c` — `NO_PHASE`, `PhaseInRange()`,
+  `EffectiveLastPhase()`
+- `Scripts/Game/GameMode/Objectives/Modules/OVT_ObjectiveConditionDeploymentModule.c` —
+  `m_iThroughPhase`, `ResolveThroughPhase()`, the range in `IsAtCurrentObjective()`, the clone line
+- `Scripts/Game/GameMode/Objectives/OVT_ObjectiveDirectorComponent.c` — the five-sender chain in
+  `SendNextFOBOperation()`; the deferral in `TickFOB()`'s header replaced by the deadlock record
+- `Configs/Deployment/Deployment_Objective{Harassment,Sabotage,TowerRecapture}.conf` —
+  `m_iThroughPhase 2`, and `m_Source` → `OVT_ObjectiveAnchorSourceProvider`
+- `Configs/Deployment/Deployment_Objective{FOB,FOBGarrison}.conf` — `m_iThroughPhase 2`, explicit
+
+`tools/compile-check.sh` exit 0. Suites not run (test policy: the orchestrator runs them once per phase).
+
+#### Still owed
+
+- **Play-test, and it is the confirming observation for the whole feature**: a base objective that
+  promotes on its first sabotage mission and then keeps sending them — `Sent 'Objective Sabotage' …` lines
+  at 90-in-game-minute intervals *while the forward base is standing* — reaching six and firing the
+  counter-attack. The log line to watch for and NOT see is a collection of the sabotage deployment on the
+  promotion tick.
+- **Watch the reserve** alongside it: `Reserve Resources: N` every six in-game hours against the 2000 gate.
+  If the ceiling is spent and the reserve is still short, the objective will be abandoned after 240
+  in-game minutes with `the forward-base phase did nothing at all …` — which would be the tuning question
+  above, not a regression.
+- **Watch where the trucks come from** once the forward base is up: a sabotage convoy that still departs
+  from the rear base means the provider swap did not take.
+- **Save/reload across the promotion** is untested. `m_iThroughPhase` is authored config data and is never
+  persisted, so a restored deployment re-clones it from the registry; the risk is nil in principle and
+  unobserved in practice.
+
+### 2026-08-19 — Two play-test fixes: the forward base's facing, and stranded insertion trucks
+
+Both reported by the mod author from a live session. Neither is a regression from the phase-range work
+above; both are original omissions in Phase 4/6.
+
+---
+
+#### Fix 1 — "the FOB didnt use my authored yaw, seems to just be north facing"
+
+**It was not mishandled, it was never read.** The whole siting chain carried a POSITION and nothing else
+— `ResolveFOBSite(.., out vector site)`, `SampleGeneratedFOBSite(.., out vector best, ..)`,
+`FindAuthoredFOBSite(.., out vector best, ..)` — and the raise called
+`OVT_WorldUtils.SpawnEntityPrefab(m_rFOBPrefab, site)` with the default `"0 0 0"` orientation. "North
+facing" was simply an unrotated prefab. `OVT_FOBPosition` has drawn a Workbench facing arrow since the
+day it was written (`_WB_AfterWorldUpdate`, along `transform[2]`) and **nothing had ever consumed it** —
+the arrow was decoration.
+
+**How the yaw is carried, end to end:**
+
+```
+OVT_FOBSiting.FacingYaw(from, to)          NEW pure static. atan2(dx, dz) in degrees, wrapped to
+                                           [0, 360). NO_FACING (0) for a coincident pair.
+        |
+ResolveFOBSite(source, objective,          out float yaw added. Picks a branch and hands back BOTH.
+               out site, out yaw)
+        |-- SampleGeneratedFOBSite(.., out bestYaw)   generated -> FacingYaw(accepted, objective)
+        |-- FindAuthoredFOBSite(..,   out bestYaw)    authored  -> marker.GetYawPitchRoll()[0]
+        |
+CreateObjectiveDeployment(.., float yaw = 0)          only the FOB operation passes one
+        |
+OVT_DeploymentManagerComponent.CreateDeployment(.., float yaw = 0)
+        |   Math3D.AnglesToMatrix(GetUprightSpawnRotation(yaw), mat); mat[3] = position;
+        |   -> the deployment MARKER is spawned rotated
+        |
+OVT_DeploymentComponent.GetYaw()           NEW. GetOwner().GetYawPitchRoll()[0].
+        |
+OVT_FOBRaiseSpawningDeploymentModule.TryRaiseStructure()
+            OVT_WorldUtils.SpawnEntityPrefab(m_rFOBPrefab, site, GetUprightSpawnRotation(yaw))
+```
+
+⚠ **WHY THE DEPLOYMENT MARKER IS THE CARRIER, and not a getter on the director.** The raise module
+already takes its POSITION from `m_ParentDeployment`; taking the heading from the same object is the one
+arrangement in which the two cannot disagree. A `director.GetFOBSiteYaw()` would be a singleton read
+performed minutes after the siting decision, against a component whose `m_vFOBSite` is cleared and
+rewritten as objectives come and go — a stale-yaw window for no benefit. It also keeps the raise module's
+only director call the one it already had (`OnFOBRaised`). The marker's transform is persisted for free
+(the marker entity is `OVT_PersistenceTracking.Track`ed) and needs no serializer field; a restored
+deployment raises nothing anyway (D11), so nothing depends on that.
+
+⚠ **`GetYawPitchRoll()[0]`, NEVER `GetAngles()[0]`.** The two engine angle APIs use different orders —
+`GetAngles()` is `(pitch, yaw, roll)`. The author's own marker is authored `angles 0 44.43 0` in
+`fob.layer`, so a `GetAngles()[0]` read would have answered **0** on it and looked exactly like the bug
+being fixed. Same trap main's `ed14ba9d` ("OF vehicles would spawn flipped") and this file's own
+`ResolveAuthoredTruckSpawn()` record.
+
+⚠ **It goes through the SPAWN TRANSFORM, never a post-spawn `SetAngles`.** `SpawnEntityPrefab` builds
+`EntitySpawnParams.Transform` from the orientation via `AnglesToMatrix` and hands it to the engine at
+creation. Rotating an existing entity desynchronises its rigid body from its entity node; a building is
+the last thing that should be arguing with the solver on the frame it appears. `GetUprightSpawnRotation()`
+is reused rather than hand-rolled, which is also what **drops pitch and roll** — a marker with a few
+degrees of terrain tilt cannot lean the structure.
+
+**What a generated site faces: THE OBJECTIVE.** Not north, and not back down the supply line.
+- It is what the base is *for*: the shipped `OVT_OccupyingFOB.et` puts its Czech hedgehogs (`z 1.4`,
+  `z 1.9`) and its barbed tape (`z 3.4`) on **+Z** and its camo-net tent (`z -4.5`) and crates behind, so
+  turning +Z at the objective puts the wire between the flag and the town. +Z is also the axis the marker's
+  Workbench arrow is drawn along, so "the arrow" and "the front" are the same axis by construction.
+- It is **derived from two positions**, so it is as deterministic as the site itself — the property the
+  whole siting design rests on — and assertable in the cheapest tier.
+- The rejected alternative, "face back along the supply line", is the same axis in most bands but reversed:
+  wire pointed at the base that sent it, in every single case.
+
+🔴 **THE TRAP THAT WAS ONE LINE AWAY.** `OVT_QRFBearing.PreferredDegreesFromSource()` lives one directory
+over, takes exactly these two arguments and answers `atan2(dx, -dz)`. It is a **compass bearing in the
+0 = North = -Z frame**, not an entity yaw, and for the same delta it is **180 degrees out**. Borrowing it
+would have pointed every forward base away from its objective and looked completely deliberate. The
+grounding used instead is the engine's own documented `AnglesToMatrix` example
+(`Core/generated/Math/Math3D.c`: yaw 70/pitch 15 gives a forward row of `<0.9077, 0.2588, 0.3304>` =
+`(sin y cos p, sin p, cos y cos p)`), corroborated by `OVT_WorldUtils.FindNearestRoadSpawn()`, which
+builds road-aligned spawn angles with `DirectionAndUpMatrix` + `MatrixToAngles` and is play-test-proven.
+
+**Blast radius of the shared-code change.** `CreateDeployment` / `ForceCreateDeployment` gained a trailing
+`float yaw = 0`; every existing caller (the evaluator at two sites, the four other director operations,
+six test fixtures) is unchanged and still spawns an identity marker. Nothing in the tree reads a
+deployment entity's rotation — grepped for `GetTransform`/`GetAngles`/`GetYawPitchRoll`/`CoordToLocal`
+across `Deployments/` and `Objectives/` before the change; `OVT_DeploymentPlacementProvider` answers from
+world markers, not from the deployment.
+
+---
+
+#### Fix 2 — "should their insertion vehicle be cleaned up? … thats gonna cause pile ups"
+
+**The author is right and the previous reasoning was mine.** `DismountAndWalk()` called
+`ReleaseConvoy(reason, deleteTruck: false)` on the argument that a stuck truck is "a landmark and a
+lootable … released with everything else when the deployment ends". That holds for a deployment that
+**ends**. The forward base's does not — it stands for as long as the base does — so its stranded truck was
+never collected at all, and `Deployment_ObjectiveFOBGarrison` drives the same road to the same place behind
+it.
+
+⚠ **The successful path was already correct and is untouched.** `CompleteInsertion()` sends the transport
+home and `TickReturn()` releases it there (`"its transport is home"`, `deleteTruck: true`). Only the
+stuck/abandoned path left wreckage.
+
+**What was built: a bounded collection countdown.**
+
+| | |
+|---|---|
+| **Delay** | `ABANDONED_TRUCK_TIMEOUT_TICKS = RETURN_TIMEOUT_TICKS * 2` = **120 ticks ≈ 20 real minutes** (16–24 with the deployment's 0.8–1.2× update stagger) |
+| **Proximity hold** | `ABANDONED_TRUCK_PLAYER_RADIUS_M = 320`, via `OVT_WorldUtils.PlayerInRange` (all live players, server-side) |
+| **Ownership veto** | unchanged — routed through the existing `ReleaseTruck()` / `TruckDeletionVeto()` |
+| **Armed at** | `ReleaseConvoy(reason, deleteTruck: false)`, the one place a truck is left standing |
+| **Decision** | `OVT_InsertionGeometry.IsAbandonedTruckCollectable(ticks, limit, playerNearby)` — pure |
+
+**Why 20 minutes.** It is *derived*, not picked: `RETURN_TIMEOUT_TICKS` (60 ≈ 10 min) is this file's
+existing answer to "how long before we stop caring about an empty truck", and an abandoned one gets
+**twice** that because it may still hold kit, it is somewhere a player might plausibly walk, and it is the
+thing the header calls a landmark. Deriving keeps the two in a stated relationship instead of letting them
+drift. On the long side: a player who watches a convoy stall and drives to it from the nearest town —
+typically 1–3 km, so 3–8 minutes — arrives with time to spare, and the proximity hold then keeps it for as
+long as he is there, so the delay does not have to cover the case it protects. On the short side: a route
+that strands a truck per insertion now carries at most a couple at a time instead of every one it ever
+stranded.
+
+**The proximity hold is an absolute hold, not a delay.** It does **not** reset the count — the moment the
+last player leaves the 320 m ring, an overdue transport goes — so camping beside one does not earn it a
+second full lifetime, and arriving at minute 19 keeps it for as long as you stay. 320 m is the framework's
+existing "a player would notice that" distance (`OVT_NoPlayersNearbyConditionDeploymentModule`'s default,
+itself legacy `baseCloseRange` 220 + 100), used here for the mirror-image reason: that module refuses to
+make things **appear** inside it, this one refuses to make things **disappear** inside it.
+
+**Wrecks are included, deliberately.** A truck destroyed on its way home also arms the countdown. That is
+consistent rather than new: `OnCleanup` → `ReleaseConvoy(.., true)` → `ReleaseTruck()` has always deleted
+whatever was left, wreck included. The sweep is simply that teardown, applied to the truck alone, for a
+deployment that never reaches one. Reversing it is a one-line change (arm only when `IsTruckOperational()`).
+
+🔴 **HOW THE TIMER CANNOT LEAK, against the 17-exit release audit above.** It is **a counter on the module,
+ticked from `OnUpdate()`** — deliberately *not* a `CallLater`. A queued call would be a real leak: the
+module is thrown away on every one of those seventeen paths, and a queued callback holding a pointer into
+it would have to be cancelled on all of them; one miss is a callback into a dead module. The counter
+cannot do that:
+
+- **survives nothing** — no serializer touches it, and a save taken mid-countdown comes back with no truck
+  at all (vehicles are not persisted here) and no countdown, which is the same answer by a shorter route;
+- **cancelled by the truck going away, whatever took it** — the tick reads `m_Truck` fresh and disarms on
+  null (an entity handle nulls itself), and `ReleaseTruck()` disarms explicitly on **both** its branches;
+- **cannot fire against a stale handle** — it only runs from a live update of a live module, and the module
+  and the counter die together;
+- **adds no exit to the audit** — it calls `ReleaseTruck()` and nothing else. The convoy slot, the crew
+  registration and the owned waypoints were all handed back by the `ReleaseConvoy` that armed it, and
+  `ReleaseTruck()` touches none of them. Exits 1–17 are unchanged, and `ReleaseReservation()` is still
+  reached by every one of them.
+
+`ReleaseTruck()` gained a `bool` return (true = actually deleted) so the sweep's log line cannot claim to
+have collected a truck a player had just claimed. Every other caller ignores it.
+
+⚠ **`grep -rn "OVT_ObjectiveDirector" Scripts/Game/GameMode/Deployments/` is still empty**, comments
+included. The insertion module's new prose says "the forward base's deployment" and never names the
+component.
+
+---
+
+#### Tests
+
+| File | Change |
+|---|---|
+| `Logic/OVT_TEST_Logic_ObjectiveScaling.c` | **EXTENDED** `FOBSiting` with `CheckFacing()` (12 rows: four axes, two diagonals, a non-origin pair both ways, height discarded above and below, and both degenerate pairs) and `CheckFacingDrivesTheSpawnTransform()` (6 directions). Faults **S9** (atan2 args swapped) and **S10** (🔴 the compass convention borrowed) injected and compiled clean. |
+| `Logic/OVT_TEST_Logic_ObjectiveInsertion.c` | **NEW case** `CollectsAbandonedTransportsOnlyWhenDue` — 10 rows over the deadline, the proximity hold and the off-switch. Faults **D1** (hold dropped), **D2** (strict `>`), **D3** (off-switch dropped) injected and compiled clean. |
+
+🔴 **`CheckFacingDrivesTheSpawnTransform()` is the one that would have caught the compass mistake.** The
+degree rows can all be satisfied by a function that is *self-consistently* wrong; this one runs the answer
+through the same two calls the live path does (`GetUprightSpawnRotation` → `Math3D.AnglesToMatrix`) and
+measures the resulting matrix's **forward row** against the direction to the target, plus asserts the **up
+row is still world up** so a future "use the marker's whole angle vector" cannot lean a building.
+
+⚠ Yaws are compared with a **0.01 degree** tolerance, not `OVT_TEST_LogicFixture.EPSILON` (1e-4). atan2 and
+`RAD2DEG` are float32 operations on a quantity running to 360, so the arithmetic noise is a few
+ten-thousandths of a degree — inside a general float epsilon by luck rather than by construction. Matrix
+components use 0.001.
+
+**What the tests do NOT cover, said plainly:**
+- **Fix 1's wiring is not covered at all.** Nothing asserts that the director passes the right two
+  positions, that the yaw survives onto the deployment marker, or that the raise reads it back off the
+  marker. That chain is a marker entity, a spawned deployment and a spawned structure — world state. It is
+  a manual check.
+- **Fix 2's arming, disarming, veto and deletion are not covered.** Only the *decision* is pure. Whether
+  the countdown arms on the right paths, disarms when the vehicle goes away by other means, and actually
+  deletes anything are properties of a live module holding a live `Vehicle`. The module carries the
+  leak argument in place of a test.
+
+`tools/compile-check.sh` exit 0. Suites not run (test policy: the orchestrator runs them once per phase).
+
+#### Files
+
+- `Scripts/Game/GameMode/Objectives/OVT_FOBSiting.c` — `FULL_CIRCLE`, `NO_FACING`, `FacingYaw()`
+- `Scripts/Game/GameMode/Objectives/OVT_ObjectiveDirectorComponent.c` — `out float yaw` through
+  `ResolveFOBSite` / `SampleGeneratedFOBSite` / `FindAuthoredFOBSite`; `CreateObjectiveDeployment`'s
+  optional `yaw`; the two siting log lines now quote the facing
+- `Scripts/Game/GameMode/Deployments/OVT_DeploymentManager.c` — `CreateDeployment` /
+  `ForceCreateDeployment` optional `yaw`; the marker's transform is built from it instead of the identity
+- `Scripts/Game/GameMode/Deployments/OVT_DeploymentComponent.c` — `GetYaw()`
+- `Scripts/Game/GameMode/Objectives/Modules/OVT_FOBRaiseSpawningDeploymentModule.c` — the spawn rotation,
+  and the facing in the raise log line
+- `Scripts/Game/GameMode/Deployments/OVT_InsertionGeometry.c` — `IsAbandonedTruckCollectable()`
+- `Scripts/Game/GameMode/Deployments/Modules/OVT_InsertionSpawningDeploymentModule.c` — the two constants,
+  three members, `TickAbandonedTruck()` / `ArmAbandonedTruck()` / `DisarmAbandonedTruck()` /
+  `LogAbandonedHold()` / `AbandonedTruckTimeoutMinutes()`; `ReleaseTruck()` returns a bool; the
+  `DismountAndWalk` comment corrected; debug print extended
+
+#### Still owed — the manual checks, because neither fix's wiring is assertable
+
+**Facing, authored path.** The Eden marker in `fob.layer` is at `7336.215 123.263 5150.842`,
+`angles 0 44.43 0`. Drive an objective into its band and watch for
+`… will use an authored site at … facing 44 deg (the marker's own)`, then
+`Forward base '…' raised at … facing 44 deg`. **Stand at the flagpole and check the hedgehogs and barbed
+wire are on the side the Workbench arrow pointed**, and that the base is level rather than leaning.
+
+**Facing, generated path — this is the one with an unverified assumption.** Every unauthored forward base
+should now face its objective. Watch for `… sited at … facing N deg towards the objective (generated,
+score …)` and then **stand behind the flagpole and confirm the wire is between you and the town**. ⚠ The
+claim "+Z is the front" is read off the prefab's child offsets, not observed in game; if the wire comes out
+facing *away*, the fix is `FacingYaw(objective, accepted)` in `SampleGeneratedFOBSite` (one line) and NOT a
+change to `FacingYaw` itself, which the matrix case pins.
+
+**Truck collection.** Provoke a strand (the author's route does it reliably) and watch for the VERBOSE
+`its transport is left standing at … It will be collected in about 20 minutes if nobody is near it`,
+then ~20 minutes later the NORMAL `its abandoned transport at … was collected after about 20 minutes with
+nobody near it`. **Then check the three holds:**
+1. stand within 320 m past the deadline → the VERBOSE `overdue for collection but a player is within 320 m`
+   line once, and the truck stays; walk away → it goes on the next tick;
+2. **drive it** → `transport left standing - a player owns it` and it is **never** collected, at any later
+   time — the steal must still be permanent;
+3. sit in it as a passenger → `a player is riding in it`, same outcome.
+
+**Pile-up, the actual report.** Over a long forward-base phase with garrison runs behind it, the same road
+should carry at most a couple of derelicts rather than one per insertion.
+
+**MP/JIP is uncovered, as it is for the rest of this feature.** `PlayerInRange` walks every connected
+player and is server-side, so the hold is correct in principle on a dedicated server; unobserved.
+
+**Save/reload.** The structure's rotation is vanilla entity persistence and should round-trip; the
+countdown intentionally does not persist (no truck comes back either). Neither is observed.
+
+---
+
+## 2026-08-19 — Sabotage targets buildables only (placeables dropped from the filter)
+
+**Approved from live play-testing.** The author, verbatim: *"placeables dont actually make any sense to
+sabotage, they are just sandbags, furniture, lights, etc"*.
+
+### What changed
+
+`OVT_BaseSabotageBehaviorDeploymentModule`'s candidate filter accepted an entity carrying **either**
+`OVT_PlaceableComponent` **or** `OVT_BuildableComponent`. It now accepts **buildables only**.
+
+⚠ **This is not a cosmetic narrowing — it changes what the cost sort picks, and that is the whole point.**
+Placeables are priced 5–250; the cheapest buildable is a 750 bunker. Under "cheapest first" a placeable
+therefore *always* sorted ahead of every built structure, so a mission's two-structure quota was routinely
+spent on clutter. The play-test that triggered this watched a team demolish an ammobox worth 80 while a
+recruitment tent stood untouched. With placeables gone, the ladder the design always described —
+**Bunkers 750 → Recruitment/Medical Tent 1000 → Guard Tower 1200 → Maintenance Ramp / Helipad 1500 →
+Fuel Depot 2000 → Garage 8000** — is the ladder that actually runs. At a typical base the first thing to
+come down is now a **bunker**, and if there are none, a **tent**.
+
+The rule was extracted to a static predicate so it is assertable at the same seam `IsSabotageTarget` is:
+
+```
+static bool IsCandidateStructure(bool hasPlaceable, bool hasBuildable)
+```
+
+An entity carrying **both** components is still a target — a thing that can be *built* is a built
+structure whatever else it is, and letting a placeable component veto a buildable one would hand a mod a
+way to make a structure permanently immune. `CollectTargetCallback` lost its placeable branch and now
+resolves the buildable component directly.
+
+### 🔴 The empty-base consequence is now more likely, and it is unchanged behaviour
+
+A base that yields no candidates completes its mission on the first interval as *"there was nothing left
+to demolish"* — a **success that still advances the counter-attack ramp**, on a base the player can see
+objects standing on. That behaviour is pre-existing and deliberate (see `DemolishNextStructure`) and was
+**not** touched here. What this change does is **widen the set of bases it applies to**: from "bases with
+nothing on them" to "bases with nothing **built** on them". A base decorated with sandbags, floodlights,
+signs, furniture and ammoboxes but carrying no tent, tower, bunker, ramp, helipad, garage or fuel depot
+now reports the empty-base success. If that reads badly in play, the fix belongs in the empty-base branch
+(report a *failure*, or refuse to send the mission at all), not in the filter.
+
+### Decisions taken, with the reasoning
+
+**1. The ammobox exclusion (`IsGearContainer`) is KEPT, and is now unreachable on shipped data.**
+Re-verified against `placeables.conf`, `buildables.conf` and the vanilla reference tree: all four prefabs
+that carry inventory storage (`OVT_AmmoBox_Placed`, `OVT_CabinetMetal_01_grey_V1` and the two FIA
+equipment boxes) belong to the **"Ammobox" placeable entry**, and **none of the eight buildables** — nor
+the vanilla parents they inherit from (`TentUSSR_01_base`, `TentUSSRMedical_01`, `GuardTower_01_base`,
+`Garage_E_02`, the sandbag bunker, `FuelTank_02_green`) — authors a `BaseInventoryStorageComponent` on its
+root. Nothing the guard can currently refuse ever reaches it.
+
+It stays, with a header comment saying exactly that and why. Two reasons: it is the **standing statement**
+of a decision that is coming back (the author wants ammoboxes targetable *"when its done right"*, once
+destroyed containers give their contents up somehow), and it is the **automatic guard for the first
+buildable that IS a container** — a weapon cache, a supply crate, a modded armoury — which would otherwise
+be priced, sorted and demolished with a player's kit inside it before anybody remembered this
+conversation. Removing it costs one component lookup's worth of nothing and buys a silent regression.
+
+**2. `OVT_ResistanceFactionManager.GetStructureCost()` is LEFT GENERAL.** It still joins by prefab across
+both configs. It is correct as written, it is the only prefab→price answer in the tree, and narrowing it
+to buildables to match its one current caller would have hidden a real data fault: a prefab appearing in
+both configs still makes one entry unreachable for every other caller. The J case's duplicate check
+therefore still spans both configs, and its header now records why.
+
+### Tests
+
+**`OVT_TEST_Init_ObjectiveSabotage_GCandidateFilterTakesBuildablesOnly` — NEW.** Four rows against
+`IsCandidateStructure`, and the second one is the **inverted expectation**: the suite previously had no
+case pinning what *kind* of thing may be demolished, and the module's own header asserted in prose that
+placeables were targets. That prose expectation is now asserted, inverted, in code.
+- *buildable only → target* (asserted **first**, so a filter that refuses everything cannot pass);
+- *placeable only → NOT a target* — the inverted row, with the failure message naming the real
+  consequence (accepting one means it is demolished first and nothing built ever comes down);
+- *both → target* — the over-correction guard;
+- *neither → not a target* — the rest of a 500 m sphere query.
+
+Inputs are booleans rather than entities on purpose: the alternative in an initialisation-tier world is
+spawning a real buildable and a real placeable into the **shared** map to look at their components, which
+is the one thing this suite's header promises no case does.
+
+**Can-fail proof (recorded in the case header, faults injected one at a time, each compiled, subject
+restored and re-compiled clean):**
+- **G1** `return hasBuildable;` → `return hasPlaceable || hasBuildable;` (the exact pre-change rule) —
+  compile-check exit **0**; fails on "a placeable is not a sabotage target".
+- **G2** → `return !hasPlaceable && hasBuildable;` (the plausible over-correction) — exit **0**; fails on
+  "a structure carrying both components is still a built structure".
+- **G3** → `return false;` — exit **0**; fails on "a buildable IS a sabotage target".
+- Restored subject: exit **0**.
+
+**Existing cases: none weakened, none deleted.** The F case (`IsSabotageTarget`) is untouched — it only
+ever asserted *whose* a structure is, never what kind — and its header now says so and points at G. The J
+case is untouched in code; only its header gained the note about staying cross-config.
+
+### Not covered
+
+The filter's **wiring** — that `FilterStructureCallback` is the predicate the sphere query actually runs,
+and that a live placeable is therefore never offered to `CollectTargetCallback` — is world state and stays
+a manual check. **Play-test:** build a bunker and a tent at a captured base, place sandbags, a floodlight
+and an ammobox beside them, let a sabotage mission run to its quota, and confirm the log reads
+`demolishing a structure worth 750` then `worth 1000` and that **every placeable is still standing**.
+Then strip the base to placeables only and confirm the mission reports
+`Sabotage mission complete after 0 structure(s): there was nothing left to demolish` rather than looping.
+
+`tools/compile-check.sh` exit **0**. Suites not run (test policy: the orchestrator runs them once per
+phase).
+
+#### Files
+
+- `Scripts/Game/GameMode/Objectives/Modules/OVT_BaseSabotageBehaviorDeploymentModule.c` —
+  `IsCandidateStructure()` added; `FilterStructureCallback` narrowed to it; `CollectTargetCallback`'s
+  placeable branch removed; class header's "placeables are targets too" block replaced with the
+  buildables-only rule and the widened empty-base consequence; `IsGearContainer` header records that it is
+  now unreachable and why it stays; `DemolishNextStructure`'s empty-base comment records the widening
+- `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_ObjectiveSabotage.c` — new G case; file header item 4
+  split into the two halves; F and J case headers annotated
+
+## 2026-08-19 — Arrival is gated on SPEED as well as distance (the drop-off injuries)
+
+### The report
+
+The transport prefab's `frictionCoefficient` was raised to stop insertion trucks getting stuck. It worked,
+and the trucks now **brake much harder** — and the force arrived at the drop point **injured**. Cause: a
+passenger is teleported out of a vehicle *carrying that vehicle's velocity*, and `TickDrive` disembarked
+everybody on the **first tick the truck was inside the arrival radius**, which is precisely the tick it is
+decelerating hardest. The drop was only ever safe by luck; nothing about it depended on the friction
+change except how much luck it needed.
+
+### What changed
+
+**Arriving is now two conditions, place AND stillness.** `OVT_InsertionGeometry.HasArrived` gained
+`speed` and `settleSpeedThreshold`; inside the radius but still moving is **"not arrived yet, keep
+watching"**, so the truck gets a tick or two to come to a stop before the doors open. This is a property
+of the *drop*, not of the current tuning: any future change to the driving is covered by it.
+
+Three pure functions instead of one, because three different callers want different halves:
+
+| function | question | who asks |
+|---|---|---|
+| `IsInsideArrivalRadius(d, r)` | are we AT the drop point? | `IsStuck`'s exemption, the settle counter, the **return leg** |
+| `HasArrived(d, r, speed, settle)` | are we there AND stopped? | the outbound drop, and only it |
+| `IsSettleGraceExpired(ticksInside, grace)` | have we waited long enough for it to stop? | the outbound drop, ORed with the above |
+
+`IsInsideArrivalRadius` is the old `HasArrived` body, unchanged, extracted. The **return leg** keeps the
+distance-only test on purpose: nobody gets out of an empty truck going home, so there is nothing to throw
+about, and it is bounded by `RETURN_TIMEOUT_TICKS` anyway.
+
+### The threshold: `ARRIVAL_SETTLE_SPEED_MS = 0.5` m/s, and why
+
+The speed handed in is `SpeedFromTravel`'s — two origins one ~10 s deployment update apart — so it is an
+**average over the whole tick**, not an instantaneous reading. That decides the number from both sides:
+
+- **Lower would be noise.** 0.5 m/s is 5 m over a tick. An AI driver squaring up at a waypoint, or a truck
+  settling on its suspension on a slope, covers a metre or two — 0.1–0.2 m/s by this measure. Much under
+  0.5 and the gate starts refusing to arrive for movement that is not motion, leaving the settle grace to
+  do all the work.
+- **It is far stricter than it looks, because it is an average.** A truck doing any real speed at the start
+  of the tick and braking to a halt halfway through still averages several m/s. 0.5 m/s across a full tick
+  means it was essentially stationary for essentially all of it — "stopped", not "slow", which is what the
+  drop needs. Walking pace is 1.4 m/s, and being put on the ground at walking pace is harmless.
+- It is also **half the default `m_fStuckSpeedThreshold` (1 m/s)**, so a truck this test calls "still
+  moving" is one the stall test also calls moving; the two knobs cannot disagree about a creeping truck.
+
+A `static const`, not an attribute — nobody tunes "how stopped is stopped", and one more authored field is
+one more thing `CloneModule` can drop (the reasoning `RETURN_TIMEOUT_TICKS` already carries).
+
+### 🔴 What stops "inside the radius but never slow enough" hanging forever
+
+**Nothing waits on physics.** Inside the radius there are exactly **two** exits and **both are
+`CompleteInsertion()`** — the successful path, force down at the LZ, truck sent home:
+
+1. it settled (`HasArrived`), or
+2. it was given the whole **settle grace** and did not (`IsSettleGraceExpired`), which drops the force
+   anyway with a NORMAL log line saying so.
+
+The grace spends the module's **existing stall budget** `m_iStuckTicks` (default 6 ≈ 60 s) rather than a
+new authored number or a new clock — one knob, one meaning: "how long we are prepared to watch a transport
+not do what it should". `IsSettleGraceExpired` returns **true** on a non-positive budget, so the operator's
+stall off-switch means *no settling wait at all* — byte-for-byte the pre-change behaviour — and can never
+mean "wait forever". That direction is asserted directly (row D8's fault is exactly the reverse).
+
+**The counter is a new int, and it has to be.** `m_iInsideRadiusTicks` counts up on every tick inside the
+radius and resets only on leaving it. Reading `m_iStuckTicksElapsed` instead would not bound anything:
+`AdvanceStuckTicks` resets that counter on *any* observation of movement, so a truck jittering
+fast-slow-fast on its landing zone would reset it forever. It is a second counter, not a second timer:
+plain module state, ticked from `OnUpdate`, dies with the module, no serializer, nothing to cancel.
+
+### The stuck detector's arrival exemption is NOT a hole — the exemption stays the RADIUS
+
+The two conditions now overlap ("inside the radius, not moving" is both an arrival and a stall reading), so
+the ordering was the risky part:
+
+- `IsStuck` keeps exempting **`IsInsideArrivalRadius`**, *not* `HasArrived`. Making it speed-aware looks
+  tighter and is the trap: a truck inside the radius still creeping at 0.9 m/s is below the stall speed
+  threshold, so its stall counter is running — a speed-aware exemption would call the **settling** truck
+  **stranded**, dumping the force and abandoning the transport at the very place both had already reached.
+- `TickDrive`'s inside-the-radius branch **returns**, so the stall test is never even asked about a truck at
+  its landing zone. The exemption is therefore strictly stronger than before, not weaker: two independent
+  guards where there was one.
+- The stall path (outside the radius) is byte-for-byte unchanged, including its counter.
+
+**The successful-delivery path is intact**: `CompleteInsertion()` → `RETURNING` → truck drives home →
+despawns there. Neither new exit changes it; the grace-expiry exit uses the same call.
+
+The first-observation case is preserved too. With no previous position the speed reads 0, which is the
+truthful answer for a truck that has just spawned, so the degenerate LZ-collapses-onto-the-source case
+(standoff ≥ separation) still arrives on tick 1 exactly as before.
+
+### Tests
+
+Extended `OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy` (Logic tier, pure, no
+`maxAttempts` — no clock, no RNG, no world):
+
+- **`ExpectArrived` gained the two new parameters.** Every pre-existing row is kept and passes speed `0`,
+  i.e. a stopped transport: each one still claims exactly what it claimed before. None weakened, none
+  deleted.
+- **New arrival rows:** braking hard (7.5 m/s) inside the radius is *not* arrived — the bug itself; walking
+  pace is not arrived; just above the settling speed is not arrived; **exactly at** it is arrived and just
+  above is not (the `<=` boundary in both directions); shuffling below it is arrived; stopped 750 m short
+  is *not* arrived (stillness never substitutes for place); a non-positive threshold is the distance-only
+  off-switch, however fast the truck is going; a negative speed reads as stopped.
+- **New `VerifySettleGrace`** over `IsSettleGraceExpired`: disabled budget expires immediately (the
+  anti-hang claim), negative budget likewise, first tick and one-short-of-budget still settling, at and past
+  the budget expired, a negative counter has not served the budget.
+- **New stall row:** `ExpectStuck(0.9, 1, 5, 3, 10, 40, false)` — a transport still creeping ON its landing
+  zone is settling, not stalled. This is the row that holds the exemption to the radius; it is the only row
+  a speed-aware exemption fails.
+
+**Can-fail proofs** (faults injected one at a time, each compiled, subject restored and re-compiled clean —
+recorded in the case header as D6–D9):
+
+- **D6** `HasArrived` → `return IsInsideArrivalRadius(...)` (the distance-only test it used to be) —
+  compile-check exit **0**; fails on "a transport braking hard into its landing zone has not arrived yet".
+- **D7** remove `if (settleSpeedThreshold <= 0) return true;` — exit **0**; fails on "with the speed
+  condition disabled, a transport inside the radius arrives however fast it is going".
+- **D8** `IsSettleGraceExpired`'s disabled budget → `return false;` (the hang) — exit **0**; fails on "a
+  disabled tick budget means no settling wait at all, never an unbounded one".
+- **D9** `IsStuck`'s exemption → `HasArrived(distanceToLZ, arrivalRadius, speed, 0.5)` — exit **0**; fails
+  on "a transport still creeping ON its landing zone is settling, not stalled".
+- Restored subject: exit **0**.
+
+### Not covered
+
+The wiring is world state: that a real truck's tick-to-tick average actually falls under 0.5 m/s within a
+tick or two of stopping, and that the disembark is then gentle. **Play-test:** watch an insertion in to a
+counter-attack, confirm the log reads `delivered N group(s) at ...` (not the new
+`reached the landing zone but never came to a stop in N update(s)` line) and that the force is **unhurt and
+on its feet** at the LZ, then that the transport drives home and despawns. The grace-expiry line appearing
+routinely would mean 0.5 m/s is too strict for the real measurement and should be raised — it is one
+constant.
+
+`tools/compile-check.sh` exit **0**. Suites not run (test policy: the orchestrator runs them once per
+phase).
+
+#### Files
+
+- `Scripts/Game/GameMode/Deployments/OVT_InsertionGeometry.c` — `IsInsideArrivalRadius()` extracted from the
+  old `HasArrived`; `HasArrived()` gained `speed`/`settleSpeedThreshold` and the "not yet" semantics;
+  `IsSettleGraceExpired()` added; `IsStuck()`'s exemption re-pointed at the radius with the reasoning; file
+  header's question list now seven
+- `Scripts/Game/GameMode/Deployments/Modules/OVT_InsertionSpawningDeploymentModule.c` —
+  `ARRIVAL_SETTLE_SPEED_MS` const; `m_iInsideRadiusTicks` state (reset alongside `m_iStuckTicksElapsed` in
+  both places); `TickDrive()` restructured so the speed reading is taken first and the whole
+  inside-the-radius case is a self-contained branch with two `CompleteInsertion()` exits; `TickReturn()`
+  switched to the distance-only test; `TickDrive`'s header records the two-condition arrival
+- `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_ObjectiveInsertion.c` — arrival rows extended,
+  stillness rows and `VerifySettleGrace` added, creeping-on-the-LZ stall row added, `SETTLE_SPEED` const,
+  `ExpectSettleExpired`/`DescribeSettle` helpers, file and case headers updated with D6–D9
+
+---
+
+### 2026-08-19 — ORCHESTRATOR ROLL-UP: the first play-test day
+
+Written by the orchestrator rather than an implementing agent, because it is the view no single agent had. Every item below has its own detailed note above; this is the shape of the day and the things that only make sense across notes.
+
+**The merge.** `main` was merged into `v1.5` as **`2c07a624`**, bringing `ed14ba9d` *"(fix) OF vehicles would spawn flipped"* and the Lemmi11 localization PR. Three conflicts, none resolved by hunk — the `OVT_VehicleSpawningDeploymentModule` one **combined both sides**, taking main's fix while keeping v1.5's deliberate deletion of the marker `SetOrigin` (taking main's hunk whole would have reintroduced the marker-teleport bug v1.5 had already fixed). Full reasoning is in the commit message.
+
+**Twelve defects found by play-testing in one day, and the pattern in them is worth naming.** Almost none was a logic error inside a phase. They were **seam** faults — a value that was never read (the FOB's facing), a value read from the wrong slot (`GetAngles()` vs `GetYawPitchRoll()`), two subsystems disagreeing about who owns a resource (the priority inversion), a config visible to a system that should not have seen it (the evaluator buying director operations), a refusal that logged nothing (the forward-base loop), and a gate that could never be satisfied (the Phase-3 deadlock). **The automated spine cannot see any of those**, and it was green throughout. That is the honest measure of what 383 passing cases buy and what they do not.
+
+**Balance values set by the orchestrator on the author's explicit authorisation** ("feel free to set them to what you think"):
+- `objectiveQRFResourceGate` → **maxQRF, floored at 750** (750 / 750 / 1200 / 2000 / 3000). The old values were the wrong *shape*: measured against `maxQRF` they ran from **4.0× on Easy to 0.27× on Insane**, because the gate had been inverted on difficulty philosophy when its actual job is a readiness question. ⚠ The warning lever already exists and is properly inverted — `objectiveSabotageMissionsRequired`, 6 → 2. **Do not re-invert the resource gate; that is what produced the outlier.**
+- `FOB_CEILING_MULTIPLIER` **3 → 4**. Reasoned at the constant; it is a ceiling, not a budget, so raising it trades map-wide upkeep for one objective's persistence.
+
+**Suite discipline learned the hard way.** The All group is **~84 s clean**. Runs of **111 s** and **287 s** both produced timeout failures with **no assertion text**, in domains the change never touched. The cause was found: a 7.2 GB Workbench process competing. **Run time is a better contention signal than the failures are** — a red with no assertion text and an inflated wall clock is the host, and the correct response is to close Workbench, not to re-roll until green. Four separate occurrences today, all cleared on a clean re-run.
+
+**Deferred with the author, recorded in `docs/features/occupying/epic-overview.md`** (not here, so they survive this feature closing): gear recovery before ammoboxes become targets again; wreck/ruin variants plus an explosion on sabotage, designed together; sabotage targeting illegal vehicles; and dripping the defense-share **transfer** into the pool rather than smoothing income — that last one carries the trap that `resistance/sleep` replays income through the same methods, which is BUG-183's family.
+
+**State at end of day:** all 10 phases built, All **383/383**, compile 0, everything **uncommitted** on `v1.5` except the merge commit. The author's own edits are in the tree too (spetsnaz registry entry, `de_de` strings, `misc.layer`, a new `fob.layer` carrying their authored `OVT_FOBPosition` at `angles 0 44.43 0`) and were untouched by every agent.
+
+### 2026-08-19 — PLAY-TEST FIX: the drop was ~20 s late, and the stuck gate was innocent
+
+**The report.** *"the recent bug we fixed to let the truck stop first did work, but they dont get out for a long
+time, most likely just the 'stuck' gate."* Author-measured at **about twenty seconds**.
+
+**The stuck gate was not involved, and ruling it out first mattered** — it is the knob that would otherwise
+have been tuned. Two pieces of evidence from `logs_2026-08-19_21-14-11/script.log`:
+
+```
+21:31:08  Insertion 'Objective Sabotage/Sabotage Team': driving 2426 m ... to a landing zone at <7544.35, 145.236, 4655.05>
+21:38:22  Insertion 'Objective Sabotage/Sabotage Team' delivered 1 group(s) ...; its transport is going home
+```
+
+Neither `is on foot:` nor `never came to a stop in N update(s)` appears anywhere in the session. So the convoy
+completed through `HasArrived` — not through the stall path (which ends in a walk, not a delivery) and not
+through the settle-grace expiry (which logs its own line). `IsStuck` could not have fired in any case: it is
+exempted inside the arrival radius by construction, which is the invariant its own header defends at length.
+
+**The real cause: an average was being asked an instantaneous question.** `HasArrived` needs speed ≤
+`ARRIVAL_SETTLE_SPEED_MS` (0.5 m/s), and the speed it was handed was `SpeedFromTravel` — two truck origins
+one ~10 s deployment update apart, divided by ten. That is an average over the whole tick, so:
+
+- the tick in which the transport brakes from road speed to a standstill still averages several m/s → not arrived;
+- the earliest a genuinely stopped truck could be recognised was therefore the tick **after** the one it
+  stopped in — one full update late, by construction, on every successful insertion;
+- ~20 s is exactly two ticks, which is what the author measured.
+
+Dismount itself was never the delay: `DisembarkAgent` teleports rather than playing an animated exit, so the
+`delivered` log line and the men hitting the ground are the same instant.
+
+**The fix.** New `TruckGroundSpeed(float fallbackSpeed)` on the module reads the transport's live velocity
+(`m_Truck.GetPhysics().GetVelocity().Length()` — the vanilla pattern, e.g. `SCR_VehicleDustComponent.c:175`),
+and the arrival test alone consumes it. **The stall test still uses the tick average, deliberately:** there the
+question is "is this convoy covering ground", and an average of two origins is the only reading a truck
+spinning its wheels against a wall cannot fool — which is the exact case that test's header says it must not
+be fooled by. Two questions, two readings; a future caller that passes the same number to both has
+reintroduced this defect, and `HasArrived`'s header now says so.
+
+**Decisions taken, with the reasoning:**
+
+- **0.5 m/s kept, but its justification rewritten.** The old doc block argued the threshold was safe *because*
+  it was an average ("far stricter than it looks"), and that argument dies with the change. It survives on
+  different grounds: as an instantaneous reading 0.5 m/s is a third of a walking man's 1.4 m/s, it no longer
+  has to absorb the 0.1–0.2 m/s that suspension settle and waypoint shuffling showed up as in a 10 s position
+  delta, and it stays exactly half `m_fStuckSpeedThreshold` so the two knobs cannot disagree about a creeping
+  transport. ⚠ Leaving the number while leaving the old reasoning in place would have been the worst outcome —
+  a comment that is a lie about why a constant is what it is.
+- **🔴 NO sub-10 s poll, and this is the one that was tempting.** The residual latency is now the update tick:
+  a truck that stops just after one waits up to 10 s, average 5. Closing that means a `CallLater` owned by this
+  module, and `TickAbandonedTruck()`'s header sets out at length why this module deliberately owns none — it
+  is thrown away on **seventeen** audited release paths, and a queued call holding a pointer into it would
+  have to be removed on every one of them. Five seconds of latency is not worth a dangling-pointer class of
+  bug. Recorded here so the trade is not silently re-litigated.
+- **The fallback is the caller's average, not zero.** A transport with no physics object is one the engine is
+  not simulating (most likely mid-despawn); answering "stopped" for it would open the doors on what the tick
+  average still calls a moving vehicle. Falling back to the average restores exactly the pre-fix behaviour for
+  that case — later, never unsafe, still bounded by the settle grace.
+
+**Tests: none added, and that is the honest answer.** The change is *which reading the caller passes*. The
+pure tier cannot see it (`HasArrived` takes a float and its behaviour is byte-identical — every existing Logic
+case still passes unchanged), and the Init tier cannot construct a physics-simulated moving truck. This is the
+same seam class the first play-test day's roll-up named: green suites throughout, and not one of them could
+have caught it. `tools/compile-check.sh` exit 0.
+
+⚠ **Suites not run:** the author was in Workbench play-testing at the time, which the project has repeatedly
+found makes suite results untrustworthy (contention inflates wall clock and produces assertion-less reds).
+Owed on the next clean run.
+
+### 2026-08-19 — PLAY-TEST FIX: the crew claims the co-driver's seat, and the transport goes home to its own spawn
+
+Two author reports, both about the insertion convoy looking wrong rather than behaving wrong, and both fixed in
+`OVT_InsertionSpawningDeploymentModule.c`.
+
+---
+
+#### 1. "the vehicle is spawned with a 'driver' group and its 2 soldiers, but 1 always ends up in the back seat"
+
+**Why it happened, which is not what the seating code looks like it does.** `SeatRider()` already ordered crew
+PILOT → TURRET → CARGO, and vanilla's picker returns the *first free* cargo compartment, which on a Ural is the
+co-driver's seat. On paper the second crewman gets the cab. What defeats it is that **this module seats men as
+they materialise**, one at a time, off `GetOnAgentAdded()` — so the order they are seated in is the order the AI
+spawn queue happens to produce them, not crew-then-force. Two passengers materialising ahead of the second
+crewman took both cab seats and put him in the bed. The author saw it **every** time, which is what you would
+expect: the force is six to eight men and the crew is two, so the crew almost always loses the race.
+
+⚠ **This is a race, and the fix removes it rather than winning it.** Re-ordering the seating calls, or seating
+the crew "first", would only have made the crew *usually* win — the materialisation order is not this module's
+to control. The seat is now claimed by name (by slot, rather) instead of competed for.
+
+**Why the co-driver's seat specifically matters:** he is the man who gets out to open gates. A crew sitting in
+the cargo bed is a convoy that stops at the first closed gate on its route, which is a stall the stuck detector
+would eventually paper over by dumping the force on foot — the symptom would have been "insertions sometimes
+walk the last kilometre for no reason", a long way from its cause.
+
+**How cab and bed are told apart, without reading a seat name.** `CollectCargoSlots()` returns the cargo
+compartments in scan order **and the count that belong to the vehicle itself**. That boundary *is* the cab/bed
+line on a covered truck: `Ural4320.et` authors its two cab seats on the vehicle (`Passenger_r01` at pivot
+`codriver_01_idle`, `Passenger_m01` at `codriver_02_idle`) and hangs the bed benches off the `Cargo` child slot
+that `Ural4320_transport.et` fills. So index 0 is the co-driver, `[0, cabCount)` is the cab and
+`[cabCount, ...)` is the back — with no per-vehicle authoring knowledge and no pivot transforms. On a vehicle
+with no child seating the count equals the total, there is no "back", and the bed-first preference simply falls
+through to the cab, which is the right answer for a car rather than a case to guard.
+
+⚠ **`GetCompartments()` is NOT recursive** — vanilla's own `SCR_CompartmentAccessComponent` carries a
+"ToDo: Remove once GetCompartments is recursive" beside the identical child walk. Reading only the vehicle's own
+compartments would have found the two cab seats and nothing else, and the force would have been turned away
+from a truck with eight free seats in the back.
+
+**The resulting order:**
+
+| Rider | Seat preference |
+|---|---|
+| Crew | PILOT → **co-driver (cargo index 0)** → TURRET → any cargo |
+| Force | the bed (`cabCount` onwards) → remaining cab seats (index 1 up) → any cargo |
+
+- **The co-driver's seat is taken BEFORE the turret**, which is a deliberate reversal for the crew: a gunner is
+  a fighting role and this convoy exists to avoid fights, so the man who can open a gate is worth more to it
+  than the man who can shoot. Only relevant on a transport that has a turret; the Ural has none.
+- **The reservation is a preference, not a rule.** A force that exactly fills every other seat still gets the
+  co-driver's rather than leaving a man standing in the open at the source base — by the time any passenger
+  reaches that fallback the crew has already been seated, or there is no crew.
+- `FillSlot()` passes the **transport** as the vehicle even for a slot on a child, which is safe by
+  construction rather than by luck: with a custom slot `MoveInVehicle()` never looks the compartment up from
+  the vehicle, it validates the slot it was handed and addresses the RPC to `slot.GetOwner()`.
+
+---
+
+#### 2. "on return it seems to be wanting to go to the base center"
+
+It was. `CompleteInsertion()` issued `IssueCrewMove(m_vSource)` and `TickReturn()` measured against `m_vSource`
+— and **`m_vSource` is the base, not the spawn**. `ResolveTruckSpawn()` had already answered "where does a
+vehicle belong at this base" properly (an authored `OVT_VehiclePatrolSpawn` if one is free, the nearest road if
+not, *including the facing*), and the return leg then ignored that answer and drove at the middle of the
+compound through whatever was standing there.
+
+New `m_vHome`, recorded from `spawnPosition` at the moment the transport spawns, and read through
+`HomePosition()` by both the move order and the arrival test.
+
+⚠ **Recorded at spawn, NOT re-derived on the way home**, and that is the load-bearing half. By the time the
+truck turns for home the marker it left from may well be occupied — quite possibly by this same deployment's
+next convoy — and `ResolveAuthoredTruckSpawn()` would hand back a different spot, or refuse and fall through to
+the road snap. Where it actually started is a fact; anything recomputed is a guess.
+
+`HomePosition()` falls back to `m_vSource` when `m_vHome` is zero. That is not padding: `m_vHome` is zero for
+the whole of every walk-path insertion, and a zero vector is the origin of the map rather than an obviously
+wrong value. The fallback is exactly the old behaviour — worse, never absurd.
+
+---
+
+**Tests: none added, and the honest reason is the same as the settle-speed fix above.** Both changes are about
+which world object a decision is aimed at, and neither has a pure part: seat choice needs a real vehicle with a
+real compartment hierarchy, and the return target needs a spawned transport. `tools/compile-check.sh` exit 0.
+⚠ **Suites not run** — the author was in Workbench play-testing. Owed on the next clean run, together with the
+settle-speed fix.
+
+**Not done, deliberately:** nothing forces a man already seated in the wrong place to move. `SeatRider()`
+returns early for anyone already in a compartment (`access.IsInCompartment()`), which is what stops the module
+fighting the AI over a man it ordered aboard, and it is also why the reservation had to be a *claim* rather
+than a *correction*. A convoy that somehow ends up mis-seated stays mis-seated for that run.
+
+### 2026-08-19 — NEW: an unrest-driven tower recapture, bought by the EVALUATOR rather than the director
+
+Author request: *"a deployment that can trigger if a town or city (not village) go over 50% support while OF
+controlled and are under the influence of a radio tower, then send specops to try and retake that tower if
+theres enough resources and obviously prioritising towns near to the objective. this is separate to the
+director just another possible random deployment."*
+
+**What it is.** `Deployment_TowerRecaptureUnrest.conf` — a near-copy of the director's
+`Deployment_ObjectiveTowerRecapture.conf` with **`m_bDirectorOnly 0`**, so the ordinary 30 s evaluator buys it.
+One genuinely new class: `OVT_TownUnrestConditionDeploymentModule`.
+
+**Three of the four requirements needed no new code, which is the useful finding:**
+
+| Requirement | Where it already lives |
+|---|---|
+| "if there's enough resources" | the evaluator's existing pool/affordability check, plus D18's objective reserve floor |
+| "prioritising towns near to the objective" | **the Phase 3 objective anchor**. The bias is applied to every candidate the evaluator scores, per faction, not per config — so tower candidates near the current objective already sort first, and fall back to unbiased ordering when the director is idle. Nothing was added |
+| "under the influence of a radio tower" | the config is anchored on `RADIO_TOWER` candidates, so *every* position it is offered is a tower |
+| "town or city, OF-controlled, over 50 % support" | 🆕 the new condition module |
+
+**Why the module is anchored on the TOWER and looks up towns, not the reverse.** The deployment is created at
+the candidate position, and that position is what the specops team's spawn radius, the recapture module's
+`m_fMaxDistance` and its hold radius are all measured from. A `TOWN`-anchored config that went looking for a
+tower would put all three around the town square instead of the mast. The towns are the *reason*, not the
+*place*.
+
+**🔴 The runtime evaluation deliberately does NOT re-ask the question**, which is the opposite of every other
+condition module in the tree and the decision most likely to be read as a bug. Support is a live, noisy number
+that the operation itself does not move: a team inserted at 51 % and re-checked at 49 % would be deleted
+in flight, already paid for, tower still enemy-held — then re-created when it ticked back up. That is a
+resource leak with a 30 s period, not a gate. `EvaluateCondition()` is therefore left inherited (always true)
+and the *ending* is owned entirely by `OVT_RadioTowerControlConditionDeploymentModule` (`m_bRequireControl 0`),
+which already collects the deployment the moment the tower is ours. `m_iMaxInstances 1` bounds the failure
+path so a team that cannot take its tower ties up one slot rather than the budget.
+
+**Authored values, all tuning knobs:** `m_iBaseCost 20`, `m_iPriority 2` (between the tower garrison's 1 and
+the objective recapture's 3), `m_fChance 60`, `m_iMaxInstances 1`, support threshold **exceeded** not met (the
+brief is "over 50 %", so an evenly-split town does not qualify), `m_iMinTownSize 2` = `OVT_TownSize.TOWN`.
+
+**Verification chain checked by reading, since the suite could not be run:** the config is evaluator-selectable
+→ contributes `RADIO_TOWER` to `neededLocationTypes` (`OVT_DeploymentManager.c:1210`) → tower positions become
+candidates (`GetRadioTowerPositions`, and `IsPositionRelevantToFaction` returns true unconditionally for the
+occupying faction, so **enemy-held** towers are offered) → `CanUseLocationType` matches →
+`CheckDeploymentConditions` (`OVT_DeploymentComponent.c:509`) runs **both** condition modules.
+
+**Tests: two Init cases added** (`OVT_TEST_Init_TowerUnrestRecapture.c`) — config wiring and clone fidelity.
+⚠ **Neither has been proven able to fail and neither has been RUN**: the author was play-testing in Workbench,
+where suite results are untrustworthy. Both fault injections are written down at their case headers. `.conf`
+authoring is not parsed by any gate either, so the whole config rests on those cases actually executing.
+`tools/compile-check.sh` exit 0 (6189 files).
+
+⚠ **Not play-tested at all.** In particular nobody has yet seen whether the conditions are ever *simultaneously*
+true in a real campaign — an OF-held town above 50 % support, inside radio range of a tower the resistance has
+taken. If it turns out to be vanishingly rare, `m_iMinSupportPercent` is the knob, not the structure.
+
+### 2026-08-19 — PLAY-TEST FIX: operations launched FROM the forward base now always walk
+
+**The report.** *"another sabotage insertion just happened but I see a truck. they should be spawning at the
+FOB and never need a truck."*
+
+**The source resolution was working perfectly; the walk rule was the wrong shape.** From
+`logs_2026-08-19_21-14-11`:
+
+```
+22:25:24  Insertion 'Objective Sabotage/Sabotage Team': driving 855 m from <7336.21, 122.796, 5150.84> ...
+22:26:31  Insertion 'Objective Sabotage/Sabotage Team' is on foot: its transport stopped making progress 583 m short of the landing zone
+```
+
+`<7336.21, 122.796, 5150.84>` **is** the forward base (compare the "forward operating base is standing at"
+line at 21:52:56), so `OVT_ObjectiveAnchorSourceProvider` had correctly preferred it over the rear base — the
+supply line really had shortened, from 2 426 m on the opening drive to 855 m. The defect is that 855 m is over
+`m_fWalkThresholdDistance 400`, so the module bought a truck.
+
+**Why that is not just cosmetic.** The forward base is a field camp on a siting-lattice point: no motor pool,
+no authored vehicle spawn, no guarantee of a road within a kilometre. The truck stranded **67 seconds** after
+setting off, 583 m short; the team walked in anyway; a dead transport was left beside the camp for the
+abandoned-truck collector. **The convoy cost bought a slower, messier version of the walk it fell back to.**
+
+**The fix, and why it is not a threshold change.** Raising `m_fWalkThresholdDistance` past 855 would also
+ground the 2 426 m opening drive from the rear base, which is exactly what the trucks exist for. The
+threshold answers *"is this hop short enough to walk"*; what was needed is *"is there anything here to
+drive"* — a property of the **place**, not the distance. New virtual on the source-provider seam:
+
+```
+bool SourceProvidesTransport(vector sourcePosition, int factionIndex)   // default TRUE
+```
+
+`OVT_ObjectiveAnchorSourceProvider` overrides it to answer false **only when the resolved origin is the
+forward base**, and the insertion module consults it as a sixth route onto the walk path.
+
+**Decisions taken, with the reasoning:**
+
+- ⚠ **It compares the resolved POSITION rather than returning a flat "no transport"**, because this provider
+  answers two different origins. An operation that took the *fallback* — no forward base standing, or one
+  torn down between passes — set out from a real base with real vehicle spawns and must still get its truck.
+  A blanket refusal would ground every insertion the director sends.
+- ⚠ **It takes the position rather than remembering the last call.** The seam's contract point 2 is "nothing
+  may be cached across calls"; a `did my last resolve return the FOB` flag is precisely that cache, and would
+  be read on a later pass than the one that set it. A 1 m match tolerance keeps the comparison honest without
+  an exact float `==`; a forward base and any real base are hundreds of metres apart by construction.
+- **Asked AFTER the distance threshold and BEFORE the convoy reservation.** After, so a short hop still
+  reports the reason a reader expects. Before, so an origin with no vehicles never claims a convoy slot it
+  would hold for the length of a march while refusing a real convoy that could have used it.
+- **The default is TRUE**, so every other provider — and any mod's — keeps today's behaviour untouched.
+
+**⚠ KNOWN AND DELIBERATELY NOT FIXED: the truck is still PAID FOR.** `m_iTruckCostOverride` (40) is added to
+the module's cost from the **config template**, before the deployment exists and long before anything knows
+which origin will resolve — see its own attribute header, which says so and calls it "a budgeted cost, not a
+receipt". So every forward-base operation is still charged 40 for a truck it will never spawn: 40 % on top of
+a 100-cost sabotage mission, for the whole of the forward-base phase. Fixing it means moving when a
+deployment's price is computed, which is the pool accounting that G5/Q6 guard, and is not a thing to change
+mid-play-test. **Recorded as a real cost, not dismissed.**
+
+**Tests: none added.** The decision is one provider call in a live insertion; the pure tier cannot see it and
+the Init tier cannot stand up a forward base plus a resolved provider without a campaign.
+`tools/compile-check.sh` exit 0. ⚠ Suites still not run — the author is still in Workbench.
+
+#### Follow-up the same day: and they no longer PAY for the truck either
+
+Author, on reading the "known and deliberately not fixed" note above: *"yeh I dont think they should pay for
+the truck if its from an FOB, the whole point is that FOB gives them advantages until you find it and
+dismantle it."* So the discount is now real, not just the spawn.
+
+**Why it needed a SECOND method on the seam rather than reusing the first.** `SourceProvidesTransport(position,
+faction)` is asked at insertion time, when an origin has been resolved. A **price** is computed by
+`OVT_DeploymentConfig.GetTotalResourceCost()` walking the config TEMPLATE's modules — there is no deployment,
+no position and no faction at that point, so the precise question cannot be asked at all. `MayProvideTransport()`
+is the same question with no context: *"right now, is everything this provider would resolve on foot?"*
+
+**Which way a disagreement between the two is allowed to fall, because they can disagree:**
+
+| | Consequence |
+|---|---|
+| Priced for **no** truck, then given one | **Benign.** The transport cost is a budget line and nothing debits it at spawn time — the faction just got a truck cheaply. Nothing fails. |
+| Priced **for** a truck, then walks | 🔴 **The original defect** — money charged for a vehicle never spawned. |
+
+So an implementation that is unsure must answer **true**. It can only disagree at all if a config authors
+`m_fMaxForwardDistance` above zero (a deployment far enough from the camp that `ResolveSource` falls back to a
+real base); every shipped config authors 0, so on the shipped set the two are exactly equivalent.
+
+**What it actually costs the occupying faction now** — the figures reconcile exactly with the play-test log,
+which is how the cost path was confirmed rather than assumed:
+
+| Operation | Price (no FOB) | Price (FOB standing) |
+|---|---|---|
+| Objective Sabotage | 20 + 40 + **40** = 100 | **60** |
+| Objective Forward Base Garrison | 20 + 30 + **40** = 90 | **50** |
+| Objective Harassment / Tower Recapture | as authored, + **40** | −40 |
+| **Objective Forward Base** (the raise party) | 40 + 40 + **40** = 120 | **unchanged — 120** |
+
+⚠ **The raise party is deliberately still charged**, and it falls out of the design rather than needing a
+special case: `Deployment_ObjectiveFOB.conf` is the one objective config authored with
+`OVT_NearestControlledBaseSourceProvider`, because the party that builds the camp by definition drives from the
+rear before the camp exists. `MayProvideTransport()` is only overridden on the anchor provider, so the raise
+keeps its truck and its price.
+
+**It re-prices live, which is the mechanism the advantage rests on.** Nothing persists a deployment's price and
+`GetTotalResourceCost()` recomputes on every ask, so raising the base cuts the next operation's price and a
+player dismantling it restores full price on the very next pass — including the D18 objective reserve floor,
+which is explicitly built to be re-priced. **"Advantages until you find it and dismantle it" is therefore
+literally true**, with no bookkeeping to unwind on teardown.
+
+**Invariants re-checked after the change:** `grep -rn "AddFactionResources" Scripts/Game/GameMode/Objectives/`
+still empty (G5/Q6 — the director gains nothing, it only costs less), and the frozen-neighbour diff
+(`Virtualization/`, `VirtualMovement/`, `api.md`) still empty. `tools/compile-check.sh` exit 0.
+
+⚠ Still no tests and still no suite run, for the same reasons. The pricing half is closer to testable than the
+spawn half — `GetResourceCost()` on a template with a stubbed provider is an Init-tier case — and is worth
+adding on the next clean pass.
+
+### 2026-08-20 — `/tick-resources`: one tick's worth, computed rather than typed
+
+Author request, on switching to a Normal playthrough: *"a quick /tick-resources admin command that works
+exactly like /give-resources but gives what they would get on the next tick (as reported by the 'Next
+Distribution' field in GM)."*
+
+**It takes no argument, and cannot.** The amount is a function of live SERVER state — campaign threat and the
+connected player count — so the client typing the command is not in a position to compute it. The figure is
+resolved inside the RPC, server-side; the client sends nothing but the request. A typed argument is not
+silently swallowed, it is reported ("use `/give-resources <amount>` to choose the figure").
+
+**Why the number cannot drift from the panel.** It calls `OVT_GMSchedule.PredictResourceGain()` with the same
+four arguments `OVT_GMRequestComponent` hands it when building a snapshot — `baseResourcesPerTick`,
+`resourcesPerTick`, `GetThreatFloat()` and the player count. That is also the function
+`OVT_OccupyingFactionManager.GainResources()` calls for a real tick: **the prediction seam exists precisely so
+the panel can show what the tick will pay without running it**, so all three read the same number by
+construction rather than by coincidence. Reimplementing the formula here would have been the obvious way to
+get a value that quietly stops matching.
+
+**Decisions taken:**
+- ⚠ **The credit path was EXTRACTED, not copied.** `CreditAndDistribute()` is now the one path both resource
+  commands take; they differ only in where the number comes from. A second copy of the
+  credit-then-`TransferDefenseShareToPool` pair is exactly the duplication that lets one of them stop matching
+  a real tick. **No new caller of `AllocateDeploymentResources` was added** — the rule that it must never grow
+  a fourth one still holds.
+- ⚠ **It does NOT honour the QRF suppression, deliberately.** A real tick is skipped while a battle is engaged
+  (the panel flags that separately), but an admin asking for a tick has asked for one, and a debug command
+  that silently did nothing is worse than one that overrides. The override is *reported* in the audit line
+  rather than hidden.
+- **A predicted zero is refused rather than credited**, with the threat and player count in the message: a
+  difficulty authored with no income is legitimate, but crediting 0 and printing a success line would read as
+  a broken command.
+- **The notification reuses `AdminResourcesAdded`** rather than adding a key. The `.st` exports are already
+  stale pending a Workbench re-export, and this did not need to add to that debt; the server console line
+  names which command ran.
+
+**Inherited for free, and both checked rather than assumed:** the registration sits after the
+`RplSession.Mode() == RplMode.None` guard, so a shipped single-player campaign still registers nothing and a
+Workbench play-test still gets it; and `Rpc(RpcAsk_TickResources)` is zero-argument against a zero-parameter
+method, which matters because `Rpc()` arity is a compile blind spot (BUG-090) that would have died silently at
+the wire.
+
+`tools/compile-check.sh` exit 0. ⚠ No test and no suite run — chat-command registration needs a chat manager
+and an admin connection, which no tier stands up.
+
+### 2026-08-20 — 🔴 THE PHASE-2 LIVELOCK: a forward base that could never be afforded, because the ramp kept spending its money
+
+**The report.** *"you said theres an FOB? I dont see one or a team going to put one up, and now the director is
+calling for sabotage in phase 2"*. All three observations were correct, and they are one defect.
+
+**What the log shows, in order:**
+
+```
+00:10:31  Objective '#OVT-Base_Levie' has taken 1 sabotage mission(s) - raising a forward operating base
+00:10:38  credited 461 ... Allocated 368 resources to deployment manager
+00:10:41  Creating deployment 'Base Checkpoints' ... Creating deployment 'Base Fortifications'
+00:10:41  could not send 'Objective Forward Base': it costs 120 and the pool holds 56
+00:11:11  routine spending is held to 0 of 56 because 100 is reserved for 'Objective Sabotage'
+```
+
+The phase advanced. The forward base was asked for **once**, refused, and — because the refusal line is latched
+— never mentioned again. It was never sent.
+
+**The mechanism, which is a livelock rather than a deadlock.** `SendNextFOBOperation()` chains five senders as
+`&&` of refusals, in priority order, the forward base first. On a tick where the pool is short:
+
+1. `SendFOBOperation()` refuses at **120** → `CanSendObjectiveDeployment()` pushes the reserve floor for
+   **Objective Forward Base, 120**;
+2. …the chain falls through…
+3. `SendSabotageOperation()` refuses at **100** → pushes the floor again, **overwriting** it with
+   **Objective Sabotage, 100**.
+
+So the faction saved up **100**, bought a sabotage mission, dropped back under 120, and repeated — forever.
+Two independent things were wrong and both had to be true for the livelock:
+
+- **The reserve floor named the wrong operation.** Last write wins, and the last ask in the chain is the
+  cheapest. The log states it outright: *held … because 100 is reserved for 'Objective Sabotage'*.
+- **Fixing only the floor would not have been enough.** The floor deliberately does not govern the director's
+  own spending (`PushObjectiveReserve`'s header: reserving against itself would be a deadlock by
+  construction), so the sabotage sender reads the **raw** pool and would still have taken the money at 100 on
+  the way past 120.
+
+**The fix is one early return:** when the forward base is refused **for money**, the chain stops instead of
+falling through. That leaves the *first* refusal's floor standing and spends nothing beneath it, so the pool
+accumulates to 120.
+
+**⚠ Why this cannot re-create the Phase-3 deadlock it superficially resembles.** That one was Phase 1
+operations stopping **permanently** in this phase, which froze the sabotage counter below its Phase 3
+requirement. This stops them **only while an affordability refusal is live**, and only for a **one-time**
+purchase the faction can always eventually afford. Every other reason `SendFOBOperation()` answers false — no
+source base, no site, a party already on the road, the base already standing — leaves
+`m_bBlockedOnAffordability` false and falls through to the ramp exactly as before. The guard is
+`m_bBlockedOnAffordability && !m_FOB.up && !m_bFOBDeploymentSent`.
+
+**⚠ The idle clock is held, not spent.** `m_bBlockedOnAffordability` is still true when
+`TickObjectiveIdleClock()` reads it, so the phase does not time out while it saves — the same "being broke is
+not a failure of the objective" rule the harassment phase already applies.
+
+**Related, and NOT fixed here — two findings from the same log worth their own decision:**
+
+- 🔴 **A sabotage mission "succeeds" having destroyed nothing.** Twice: *"Sabotage mission complete after 0
+  structure(s): there was nothing left to demolish"*, and the first one **promoted the objective to this
+  phase**. Levie has no player-built structures, so the ramp advances toward the counter-attack with nothing
+  happening at the base and nothing for the player to see or prevent — which contradicts the feature's
+  legibility premise. The design question is whether an empty base should be a valid objective at all, or
+  whether "nothing to demolish" should abandon the objective rather than count as progress.
+- **A completed operation is a total write-off.** The collection path is `DeleteDeployment`, which refunds
+  nothing, while `RecallDeployment` (already used when the director abandons an objective) refunds
+  `GetResourcesInvested()` for a force that was not eliminated. Author wants a refund for surviving groups.
+
+`tools/compile-check.sh` exit 0. ⚠ No test yet — this is a Logic-tier-shaped claim (the chain's priority under
+a short pool) but the senders are all world-facing; the honest place for it is an Init case that drives a
+director with a stubbed pool. Owed, with the suites.
+
+### 2026-08-20 — A successful operation now refunds the men who came through it intact
+
+**Author's rule**, after the empty-base discussion: *"Im feeling the OF is owed those resources if they
+literally encounter no resistance. A fully alive group with all members should get a refund if they were
+successful... they still lose the insertion cost of the truck if there was one, and the base cost (admin
+costs), but the per-group cost goes back into the deployment pool."*
+
+⚠ **The empty-base half of that conversation is CLOSED with no code change**, and the reason is worth keeping:
+an empty base is a **valid objective**. The situation in the play-test (the only resistance-held base, with
+nothing built on it) is an artefact of a cadence test, not a gameplay case. The player not being told anything
+is real, but it **belongs to the intel epic**, not here. Do not "fix" the 0-structure success.
+
+**The third teardown.** The framework now has three, and the difference is whose decision it was and how it
+went:
+
+| | Meaning | Pays back |
+|---|---|---|
+| `DeleteDeployment()` | this force no longer exists | nothing |
+| `RecallDeployment()` | we changed our mind, come back | the whole investment |
+| **`CollectDeployment()`** | **the job is done, come home** | **the men, not the mission** |
+
+`OVT_BaseBehaviorDeploymentModule.CollectParentDeployment()` — the one-frame-deferred teardown every
+"my job is done" behaviour reaches — now calls the new one. Today that is base sabotage and town harassment.
+
+**What comes back, and what deliberately does not.** The refund is `m_iCostPerGroup` x the number of groups
+still at **full strength**; on the shipped sabotage config that is **40 of the 100**:
+
+| Component | Sabotage config | Refunded? |
+|---|---|---|
+| `m_iBaseCost` (operation overhead) | 20 | ✗ |
+| `m_iCostPerGroup` x intact groups | 40 | **✓** |
+| `m_iTruckCostOverride` (the transport) | 40 | ✗ |
+
+Both exclusions fall out of using the per-group figure alone — neither needs a subtraction, and neither can
+drift if the config is re-priced.
+
+**Decisions taken, with the reasoning:**
+
+- ⚠ **All-or-nothing per group, not pro-rata per man.** A group that took casualties has been *fought*, and
+  the faction does not get its money back for a fight it had. Refunding four fifths of a squad that lost a man
+  would pay the occupying faction for losing him — the same principle `RecallDeployment` already applies when
+  it refuses to refund an eliminated force.
+- ⚠ **The modules are asked, the manager only sums.** `GetIntactGroupRefund()` is virtual on
+  `OVT_BaseSpawningDeploymentModule`, returns **0** there, and is overridden only on the infantry module. A
+  composition, a parked vehicle and a transport therefore answer zero **without the manager needing to know
+  they exist** — "what is refundable" stays a property of the thing that was bought.
+- ⚠ **Survivors are read from the virtualization core, not from agent counts.** `GetAliveMemberCount()`
+  consults the per-slot survivor mask *before* any engine count, precisely because the engine's dormant counts
+  corrupt themselves when a despawn lands mid-refill. Counting live agents would have paid out on whatever
+  happened to be materialised at the moment the mission ended. **Core is read-only here — the frozen-neighbour
+  diff is still empty.**
+- ⚠ **A roster of zero is not "intact".** `GetMemberCount()` answers 0 until the group entity has existed and
+  core has captured its roster, so a registered-but-never-materialised group reads 0 alive of 0 — and `0 == 0`
+  would have refunded full price for men who were never there. An explicit `> 0` guards it.
+- **No double-pay, structurally.** Nothing is stamped or zeroed: the figure is derived from live group records
+  each time it is asked, and `DeleteDeployment()` unregisters every one of them on the same call stack.
+
+**⚠ Known gap, not fixed: the tower recapture does NOT refund.** Its success is a *tower flip*, after which
+`OVT_RadioTowerControlConditionDeploymentModule` turns false and the reinforcement module tears the deployment
+down through `DeleteDeployment` (`OVT_ReinforcementBehaviorDeploymentModule.c:245`) — a different route that
+never reaches `CollectParentDeployment()`. Pointing that call at `CollectDeployment` would also refund every
+condition-driven teardown in the framework, including base garrisons whose base changed hands, which is a
+**much** wider behaviour change than was asked for. Left alone deliberately.
+
+**Invariants re-checked:** `grep -rn "AddFactionResources" Scripts/Game/GameMode/Objectives/` still empty; the
+production callers are now the occupying faction manager's single credit point plus **three** framework
+refunds (recall, collect, the patrol module's recovery), which is the documented allowed set widened by one
+and written down here. Frozen-neighbour diff empty. `tools/compile-check.sh` exit 0.
+
+⚠ No test yet. This one IS properly testable and should be done on the next clean pass: `GetIntactGroupRefund()`
+against a fixture module with planted handles is an Init case, and the all-or-nothing rule (full roster vs one
+casualty vs zero roster) is exactly the kind of boundary the cheap tier exists for.
+
+### 2026-08-20 — (cross-feature) the deployment evaluator's threat scale was fixed
+
+Not a counter-attacks change, but it moves this feature's ground and the note lives in the feature that owns
+the evaluator: **`docs/features/occupying/deployments/context.md`, "The evaluator was choosing positions at
+RANDOM"**.
+
+Two things from it matter here:
+
+- **The objective anchor was effectively inert until now.** `m_fObjectiveAnchorWeight` is 25, and candidate
+  scores carried the global campaign threat (~420) plus a ±20% jitter (±84) — so the Phase 3 anchor bias was
+  a third the size of the noise it was competing with. It is a real pull for the first time against the new
+  0–60 spatial scale. **Any earlier impression that objective-adjacent deployments were or were not being
+  favoured was formed against a bias that was not really operating.**
+- **The floor cannot strand an objective.** It reads the unbiased `candidate.threatLevel`, so D5's "the anchor
+  biases ordering, never eligibility" still holds exactly: an objective cannot buy its way into dead ground,
+  and dead ground near an objective is still dead ground.
+
+### 2026-08-20 — PLAY-TEST FIX: a passenger took the wheel and drove the convoy to the objective
+
+**The report.** *"an insertion team ended up with the squad leader driving somehow and therefore is driving
+straight into the objective rather than to the LZ."*
+
+**The "somehow" is vanilla AI, and the module was holding the door open for it.** Two facts combine:
+
+1. **The force rides with a live move order.** This module deliberately never clears the behaviour module's
+   plan — the header of `CompleteInsertion()` says why: *"The force needs no new orders. It has held a plan
+   pointing at the objective since the moment it was registered... which is precisely why every failure path
+   below can simply open the doors and walk away."* That property is load-bearing and must not be traded away.
+2. **Reforger AI boards and DRIVES a vehicle to satisfy a move order.** A squad leader who materialises beside
+   an empty driver's seat, holding an order to be at the objective, takes the wheel — and then the truck is
+   fulfilling *the force's* waypoint (the objective) rather than the crew's (the landing zone).
+
+And `SeatRider()` then **left him there**, because its first act for anyone already seated was
+`if (access.IsInCompartment()) return false;` — "he is aboard something, leave him alone". That one-line early
+return is what turned an AI quirk into a hijacked convoy.
+
+**The fix.** A passenger found in the PILOT compartment of **our own truck** is moved to a passenger seat, by
+the same `SeatPassengerInCargo()` preference an ordinary passenger uses (extracted for exactly that reason -
+a second, subtly different order here would drift). The per-tick `SeatEveryone()` sweep already runs, so it
+self-corrects within one update.
+
+**Decisions taken:**
+
+- ⚠ **Scoped three ways: passenger only, PILOT only, OUR vehicle only.** A man in a turret is not steering
+  anything, and a man driving some other vehicle entirely is not this module's business - reaching outside its
+  own convoy is how a per-tick sweep becomes dangerous.
+- ⚠ **He is MOVED, never thrown out.** The truck is at road speed by the time anyone notices, and
+  `DisembarkAgent()` teleports - putting him on the ground here would hand him the truck's velocity, which is
+  the exact injury the arrival speed gate was added to prevent. `FillSlot()` re-seats him inside the vehicle.
+- ⚠ **If there is nowhere to put him he STAYS at the wheel**, and it logs at WARNING. A full truck with a
+  passenger driving is bad; a man dumped on a moving road is worse; a truck with nobody driving is worse
+  still. There is no safe automatic recovery, so the honest answer is a line worth reading.
+- **The root-cause fix was considered and REJECTED.** Suspending the force's waypoints while aboard would stop
+  the AI wanting to drive, but it is exactly the property quoted above - it is what makes every walk fallback
+  work. Treating the symptom is correct here.
+
+⚠ **Author follow-up, partially open:** *"were gonna need to force the driving team into the driver +
+gunner/passenger, and squad into passenger"*. The force half is done (bed first, cab only as leftovers, and
+now enforced against hijacking). The crew half is done **but with co-driver ordered BEFORE turret**, which was
+an explicit earlier instruction (*"he needs to get out to open gates etc so he needs to be in passenger"*);
+"gunner/passenger" may mean the opposite order is wanted on a transport that HAS a turret. No shipped
+insertion transport has one, so nothing observable turns on it today. **Flagged, not silently chosen.**
+
+`tools/compile-check.sh` exit 0. ⚠ No test - it needs a live vehicle, a live AI group and a hijack to occur.
+Suites still owed.
+
+### 2026-08-20 — THE SUITES, FINALLY RUN: All 385/385 green, and the flake pattern confirmed a third time
+
+Every note above this one carried "⚠ suites not run - the author is in Workbench". That debt is now
+**discharged**. The author closed Workbench; the host was verified empty of Arma processes before each launch.
+
+**Three runs, and the shape of them is the point:**
+
+| Run | Wall clock | Result |
+|---|---|---|
+| 1 | 284 s | 1 failure — `VirtualMovement_StationaryPlanIsNeverAdvanced` |
+| 2 | 118 s | 5 failures — objective director, objective operations, persistence, two ambient virtualization |
+| 3 | 141 s | ✅ **385/385** |
+
+**Every single failure across both red runs was `TestResultTimeout` with `Output: <none>`** — no assertion text
+anywhere — and **the two red runs share not one failing case between them.** A real regression fails in the
+same place every time; this is the host-contention signature the 2026-08-19 roll-up already documented
+("a red with no assertion text and an inflated wall clock is the host"). Recorded again because the temptation
+each time is to debug the named case, and twice now that would have been wasted effort.
+
+⚠ **Two of run 2's failures were squarely in the day's blast radius** (`ObjectiveDirector_IdleClockRearms...`
+and `ObjectiveOperations_GateNeedsTheRampsOwnDebuff` — the livelock fix touches exactly that machinery), so
+this was NOT dismissed as flake on the pattern alone. The assertion text was read first, and it was a 500 ms
+step timeout in both cases, not a claim about behaviour.
+
+**385, not 383:** the two new `OVT_TEST_Init_TowerUnrestRecapture` cases are in and green.
+
+### Both owed fault injections are now DONE
+
+The unrest-recapture cases shipped flagged "NOT YET PROVEN ABLE TO FAIL". Both injections have now been run on
+the clean host and **both notices in the file have been replaced with the real result**:
+
+- **`m_bDirectorOnly` flipped 0 → 1** in `Deployment_TowerRecaptureUnrest.conf`. Compiled **clean** — a config
+  no caller selects is not a script error, which is the entire reason the case exists — and the case reported
+  *"...the evaluator will never buy it and nothing else ever creates it - the operation can never happen"*.
+- **`clone.m_iMinTownSize = m_iMinTownSize;` deleted** from `CloneModule()`. Compiled **clean** — a missing
+  copy is not a script error either — and the case reported *"CloneModule() dropped m_iMinTownSize - expected
+  3, got 0. A clone reading 0 lets villages trigger the operation"*.
+
+Both faults reverted, both verified back in the tree by grep, compile green, and the full suite green after.
+
+**Still genuinely owed** (unchanged by this run): tests for the day's world-facing fixes — the settle-speed
+reading, the FOB-sourced walk, the hijack eviction, the Phase-2 livelock and the intact-group refund. The
+refund is the most testable of them and should be first.

@@ -15,9 +15,10 @@
 //!      bases the OCCUPYING faction already holds - a config that strips its own side's structures.
 //!   3. THE MODULE ORDER. `.conf` files cannot carry comments, so "the mission behaviour is authored
 //!      BEFORE the reinforcement module" is recorded only in class headers and checked only here.
-//!   4. THE TARGET FILTER. Three exclusions decide which structures may be destroyed at all, and each
-//!      of them is the difference between demolishing this base's buildings and demolishing a nearby
-//!      camp's, a different base's, or the occupying faction's own.
+//!   4. THE TARGET FILTER, IN TWO HALVES. WHAT KIND of thing may be demolished (buildables, never
+//!      placeables) and WHOSE it has to be (three exclusions, each the difference between demolishing
+//!      this base's buildings and demolishing a nearby camp's, a different base's, or the occupying
+//!      faction's own).
 //!   5. THE COST JOIN'S DATA. The join is by PREFAB, and it is only unambiguous while no prefab
 //!      appears in two config entries. Nothing else in the tree would notice a duplicate.
 //!   6. THE CLONE. CloneModule copies by hand and is not chained; a dropped line ships the class
@@ -29,7 +30,7 @@
 //! case that arranged one would be the only case in the suite that could not be re-run.
 //!
 //! ⚠ CASE ORDER: cases run alphabetically by class name and none of these writes anything, so the
-//! order is free. The names are still prefixed A/C/D/F/J for readability of a run log.
+//! order is free. The names are still prefixed A/C/D/F/G/J for readability of a run log.
 //!
 //! No polling, no waiting, no maxAttempts: every subject is a synchronous read or a hand-built object.
 //------------------------------------------------------------------------------------------------
@@ -334,6 +335,10 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 //------------------------------------------------------------------------------------------------
 //! The target filter excludes everything that is not this base's player-built property.
 //!
+//! ⚠ THIS IS THE OWNERSHIP HALF OF THE FILTER ONLY - "whose is it". The other half, "what KIND of
+//! thing is it", is OVT_BaseSabotageBehaviorDeploymentModule.IsCandidateStructure and is asserted by
+//! the G case below. A structure has to pass BOTH.
+//!
 //! 🔴 THIS IS THE GUARD ON WHAT GETS DESTROYED, and every row is a real way to demolish the wrong
 //! thing. A sabotage team's search radius is 500 m around a base centre - large enough to contain a
 //! neighbouring camp, a forward base, a house's furniture and, on a dense map, another base's outlying
@@ -431,6 +436,83 @@ class OVT_TEST_Init_ObjectiveSabotage_FTargetFilterExcludesEverythingElse : SCR_
 }
 
 //------------------------------------------------------------------------------------------------
+//! ONLY BUILT STRUCTURES ARE CANDIDATES AT ALL. A PLACEABLE IS NOT A TARGET.
+//!
+//! 🔴 THIS EXPECTATION IS THE EXACT INVERSE OF WHAT THE MODULE DID UNTIL 2026-08-19, and the inversion
+//! is the reason the case exists rather than a tightening of an old one. The filter used to accept
+//! EITHER ownership component; the user's decision from a play-test was explicit - "placeables dont
+//! actually make any sense to sabotage, they are just sandbags, furniture, lights, etc".
+//!
+//! ⚠ IT IS NOT A COSMETIC NARROWING, IT IS WHAT DECIDES WHAT THE COST SORT PICKS. Placeables are
+//! priced 5-250 and the cheapest buildable is a 750 bunker, so under the old filter "cheapest first"
+//! meant a base's clutter came down FIRST, every time, and a mission's two-structure quota was
+//! routinely spent on a sign and a sandbag while the recruitment tent stood untouched. Re-admitting
+//! placeables here would silently restore that - no error, no warning, just a demolition ladder that
+//! never reaches anything the player built. That is what this case is here to catch.
+//!
+//! ⚠ THE INPUTS ARE BOOLEANS AND NOT ENTITIES, ON PURPOSE. The rule is asserted at the same seam
+//! IsSabotageTarget is - every input passed in - because the alternative in an initialisation-tier
+//! world is spawning a real buildable and a real placeable into the shared map to look at their
+//! components, which is the one thing the header of this suite promises no case does.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
+//! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
+//!   G1. `return hasBuildable;` changed back to `return hasPlaceable || hasBuildable;` - the exact
+//!       pre-2026-08-19 rule. Fails on "a placeable is not a sabotage target".
+//!   G2. `return hasBuildable;` changed to `return !hasPlaceable && hasBuildable;`, the plausible
+//!       over-correction. Fails on "a structure carrying both components is still a built structure".
+//!   G3. `return hasBuildable;` changed to `return false;`. Fails on "a buildable IS a sabotage
+//!       target", the row asserted first so a filter that refuses everything cannot pass by accident.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveSabotage_GCandidateFilterTakesBuildablesOnly : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// --- The one row that must be accepted, asserted first.
+		if (!Expect(false, true, true, "a buildable IS a sabotage target - the tents, the tower, the garage and the fuel depot are the whole point of the mission"))
+			return true;
+
+		// --- 🔴 THE INVERTED ROW. Sandbags, signs, lamps, chairs, cots, hedgehogs, posters.
+		if (!Expect(true, false, false, "a placeable is not a sabotage target - it is clutter, and because every placeable is cheaper than every buildable, accepting one means it is demolished FIRST and the built structures never come down at all"))
+			return true;
+
+		// --- Both. Nothing shipped is authored this way; a thing that can be BUILT is a built structure.
+		if (!Expect(true, true, true, "a structure carrying both components is still a built structure - letting a placeable component veto a buildable one would be a way to make a structure permanently immune"))
+			return true;
+
+		// --- Neither: the rest of a 500 m sphere query. Houses, trees, vehicles, people.
+		if (!Expect(false, false, false, "an entity that is neither a buildable nor a placeable is not player property and is never a target"))
+			return true;
+
+		Print("Objective sabotage: only BUILT structures are candidates - placeables are excluded, so the cheapest-first ladder starts at the 750 bunker instead of at a 20-resource sandbag");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts one candidate row, naming it in the failure message.
+	//! \param[in] hasPlaceable Whether the entity carries OVT_PlaceableComponent.
+	//! \param[in] hasBuildable Whether the entity carries OVT_BuildableComponent.
+	//! \param[in] expected Whether it must be considered as a target.
+	//! \param[in] label Human description of the row, used only in the failure message.
+	//! \return True when it matched; false after recording the failure.
+	protected bool Expect(bool hasPlaceable, bool hasBuildable, bool expected, string label)
+	{
+		bool actual = OVT_BaseSabotageBehaviorDeploymentModule.IsCandidateStructure(hasPlaceable, hasBuildable);
+
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, actual.ToString(), expected.ToString());
+
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! THE COST JOIN'S DATA: every priced structure is reachable from its prefab, unambiguously, and an
 //! unpriced one sorts last.
 //!
@@ -447,6 +529,12 @@ class OVT_TEST_Init_ObjectiveSabotage_FTargetFilterExcludesEverythingElse : SCR_
 //!   2. NO PREFAB APPEARS IN TWO ENTRIES, across buildables AND placeables together. This is the join's
 //!      whole precondition: a duplicate makes the price of that structure depend on iteration order,
 //!      and nothing else in the tree would ever notice.
+//!      ⚠ IT STILL SPANS BOTH CONFIGS EVEN THOUGH SABOTAGE NO LONGER TARGETS PLACEABLES.
+//!      GetStructureCost was deliberately left as a GENERAL price lookup rather than narrowed to
+//!      buildables - it is correct as written, it is the only prefab->price answer in the tree, and a
+//!      cross-config duplicate would still make one of the two entries unreachable for every other
+//!      caller. Narrowing the helper to match this one caller would have moved a data fault out of
+//!      sight rather than fixing it.
 //!   3. UNKNOWN_STRUCTURE_COST IS GREATER THAN EVERY AUTHORED COST, which is what makes an unpriced
 //!      structure sort LAST rather than first. Sorting first would make anything a mod adds the very
 //!      first thing a sabotage team destroys.

@@ -99,6 +99,62 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! THE PER-GROUP PRICE OF EVERY GROUP THAT IS STILL AT FULL STRENGTH.
+	//!
+	//! Author's rule, 2026-08-20: *"A fully alive group with all members should get a refund if they were
+	//! successful... they still lose the insertion cost of the truck if there was one, and the base cost
+	//! (admin costs), but the per-group cost goes back into the deployment pool."*
+	//!
+	//! ⚠ ALL-OR-NOTHING PER GROUP, NOT PRO-RATA PER MAN, and that is the author's rule rather than a
+	//! simplification of it. A group that took casualties has been fought, and the faction does not get
+	//! its money back for a fight it had; a group that walked in and out untouched is the one that
+	//! genuinely encountered no resistance. Refunding four fifths of a squad that lost a man would pay
+	//! the occupying faction for losing him, which is the same principle
+	//! OVT_DeploymentManagerComponent.RecallDeployment() applies when it refuses to refund a force that
+	//! was eliminated.
+	//!
+	//! ⚠ WHAT IS DELIBERATELY NOT REFUNDED, because it is not in m_iCostPerGroup and must not be added:
+	//! the transport (m_iTruckCostOverride, on the insertion subclass - the truck was spent getting them
+	//! there and is often abandoned at the far end) and the config's m_iBaseCost, which is the operation's
+	//! overhead. Both fall out of using the per-group figure alone; neither needs a subtraction.
+	//!
+	//! ⚠ THE ROSTER SIZE MUST BE NON-ZERO FOR A GROUP TO COUNT AS INTACT. GetMemberCount() answers 0
+	//! until the group entity has existed and core has captured its roster, so a group registered but
+	//! never materialised reads 0 alive of 0 - and `0 == 0` would refund a full price for men who were
+	//! never there. The explicit `> 0` is that guard.
+	//!
+	//! ⚠ IT READS CORE, WHICH IS THE AUTHORITATIVE SURVIVOR TRUTH. GetAliveMemberCount() consults the
+	//! per-slot survivor mask before it consults any engine count, precisely because the engine's dormant
+	//! counts corrupt themselves when a despawn lands mid-refill. Counting agents here instead would pay
+	//! out on whatever happened to be materialised at the moment the mission finished.
+	//! \return Resources to return: intact groups x m_iCostPerGroup.
+	override int GetIntactGroupRefund()
+	{
+		if (m_iCostPerGroup <= 0)
+			return 0;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return 0;
+
+		int intact = 0;
+
+		foreach (int handle : m_aHandles)
+		{
+			int roster = virtualization.GetMemberCount(handle);
+			if (roster <= 0)
+				continue;
+
+			if (virtualization.GetAliveMemberCount(handle) < roster)
+				continue;
+
+			intact++;
+		}
+
+		return intact * m_iCostPerGroup;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override void OnActivate()
 	{
 		super.OnActivate();

@@ -4,6 +4,26 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	protected ref array<ref EntityID> m_aSpawnedEntities;
 	protected bool m_bSpawnedUnitsEliminated; // Flag to track if all spawned units have been killed
 
+	//------------------------------------------------------------------------------------------------
+	//! WHAT THIS MODULE WOULD HAND BACK if the deployment were collected having SUCCEEDED - the price of
+	//! the men who are walking away from it intact.
+	//!
+	//! ⚠ ZERO HERE IS THE RIGHT ANSWER FOR EVERYTHING THAT IS NOT A GROUP OF MEN, and it is a decision
+	//! rather than a stub. A composition, a parked vehicle or a transport is CONSUMED by the operation:
+	//! it was built, or driven somewhere, or abandoned, and the faction does not get it back because the
+	//! mission went well. Only a group that could march home again is worth refunding, which is why the
+	//! only override is on the infantry module.
+	//!
+	//! ⚠ AND IT IS NOT GetResourceCost() RUN BACKWARDS. That answers "what was this budgeted at", from
+	//! the config TEMPLATE and at full strength; this answers "what is still standing", from the live
+	//! roster. A wiped force refunds nothing and a half-dead one refunds nothing for the half that died -
+	//! see the override for why partial groups pay nothing at all.
+	//! \return Resources to return to the controlling faction's pool. Never negative.
+	int GetIntactGroupRefund()
+	{
+		return 0;
+	}
+
 	//! Owner system tag every deployment-registered group carries. ONE system for the whole framework -
 	//! town patrols, tower garrisons and vehicle crews - separated by owner keys, not by a tag per
 	//! config. It lives on the base class because every spawning module that registers anything has to

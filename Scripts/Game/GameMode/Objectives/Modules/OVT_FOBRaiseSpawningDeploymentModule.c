@@ -219,7 +219,20 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 
 		vector site = m_ParentDeployment.GetPosition();
 
-		IEntity structure = OVT_WorldUtils.SpawnEntityPrefab(m_rFOBPrefab, site);
+		// ⚠ POSITION AND FACING BOTH COME OFF THE DEPLOYMENT MARKER, AND THE FACING GOES INTO THE SPAWN
+		// TRANSFORM - never into a SetAngles() afterwards. Rotating an entity that already exists
+		// desynchronises its rigid body from its entity node, which is how main's ed14ba9d ("OF vehicles
+		// would spawn flipped") happened; a structure is the last thing that should be arguing with the
+		// physics solver on the frame it appears. GetUprightSpawnRotation() is the ONE place the
+		// (yaw, pitch, roll) conversion lives and it discards pitch and roll, so an authored marker
+		// carrying a few degrees of terrain tilt cannot lean the base.
+		//
+		// The director decided this heading when it sited the base - a curated marker's own arrow, or a
+		// generated site turned to look at its objective - and stamped it on the marker precisely so the
+		// two can never disagree. See OVT_ObjectiveDirectorComponent.ResolveFOBSite.
+		float yaw = m_ParentDeployment.GetYaw();
+
+		IEntity structure = OVT_WorldUtils.SpawnEntityPrefab(m_rFOBPrefab, site, GetUprightSpawnRotation(yaw));
 		if (!structure)
 		{
 			Print(string.Format("[Overthrow] Forward base '%1': the structure failed to spawn at %2",
@@ -241,8 +254,10 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 
 		NotifyDirector(site);
 
-		Print(string.Format("[Overthrow] Forward base '%1' raised at %2 - %3",
-			DescribeSelf(), site.ToString(), arrival), LogLevel.NORMAL);
+		int facingDegrees = Math.Round(yaw);
+
+		Print(string.Format("[Overthrow] Forward base '%1' raised at %2 facing %3 deg - %4",
+			DescribeSelf(), site.ToString(), facingDegrees.ToString(), arrival), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------

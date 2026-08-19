@@ -52,6 +52,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(defvalue: "0", desc: "Seeded free of charge at campaign start at every eligible location (bypasses the resource pool, the player-count guard and the QRF guard; dedup and MaxInstances still apply)")]
 	bool m_bFreeAtGameStart;
 
+	[Attribute(defvalue: "0", desc: "Only a deliberate caller may create this - the objective director's own operations. The 30 s evaluator will never pick it as a candidate and the free-at-game-start pass will never seed it, whatever its location mask, priority or cost say. ForceCreateDeployment() is unaffected")]
+	bool m_bDirectorOnly;
+
 	//------------------------------------------------------------------------------------------------
 	void OVT_DeploymentConfig()
 	{
@@ -94,6 +97,32 @@ class OVT_DeploymentConfig : ScriptAndConfig
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether the ORDINARY EVALUATOR may pick this config out of the registry on its own initiative.
+	//!
+	//! 🔴 WHY THIS EXISTS AT ALL, AND WHY NEITHER EXISTING MASK COULD SAY IT (occupying/counter-attacks,
+	//! 2026-08-19 play-test). The objective director's operations are registered configs like any other,
+	//! because everything else in the framework - the cost model, the Game Master panel, the
+	//! reinforcement rebuy, the save - reads a CONFIG. That made them candidates for
+	//! FindBestDeploymentConfig(), and a play-test caught the consequence: an "Objective Harassment
+	//! (Patrol)" deployment created at a town by the 30 s evaluator, with no director line above it. It
+	//! stood at the flag doing nothing (it was not the director's operation, and its objective condition
+	//! had never made it one) and the faction pool was charged for it outside the director's accounting,
+	//! which is exactly the single-decision-maker property (G1) the director exists to hold.
+	//!
+	//! ⚠ NEITHER m_iAllowedFactionTypes NOR m_iAllowedLocationTypes CAN EXPRESS THIS. Every objective
+	//! config is legitimately an OCCUPYING_FACTION config sent to a TOWN, a BASE or a RADIO_TOWER - that
+	//! is where the director sends it - and a zero location mask means "no restrictions", not "nowhere".
+	//! An explicitly named opt-out is the only honest way to say "a caller has to mean it".
+	//!
+	//! ⚠ IT IS NOT A BAN ON CREATION. ForceCreateDeployment() does not consult this and must not: it is
+	//! the director's own door, and closing it would leave the ramp unable to send anything at all.
+	//! \return True when the evaluator and the free-at-game-start pass may consider this config.
+	bool IsSelectableByEvaluator()
+	{
+		return !m_bDirectorOnly;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	bool CanFactionUse(OVT_FactionTypeFlag factionType)
 	{
@@ -209,6 +238,9 @@ class OVT_DeploymentConfig : ScriptAndConfig
 
 		if (m_bFreeAtGameStart)
 			Print("  Free at game start: yes (seeded at every eligible location, nothing charged)");
+
+		if (m_bDirectorOnly)
+			Print("  Director only: yes (the evaluator will never pick this - only a deliberate ForceCreateDeployment caller)");
 		
 		foreach (OVT_BaseDeploymentModule module : m_aModules)
 		{

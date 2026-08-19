@@ -769,8 +769,9 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 //!   P1. The `if (blocked) { LogAffordabilityBlock(); return false; }` branch deleted from
 //!       TickObjectiveIdleClock(). Reports "a tick blocked only by an empty pool must not serve a round
 //!       off the idle clock: held at 52, read back 51".
-//!   P2. `m_bBlockedOnAffordability = true;` deleted from CreateObjectiveDeployment()'s pool test. Same
-//!       failure - the flag is the whole signal.
+//!   P2. `m_bBlockedOnAffordability = true;` deleted from the pool test (CanSendObjectiveDeployment()
+//!       since 2026-08-19, CreateObjectiveDeployment() before it). Same failure - the flag is the whole
+//!       signal.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_ObjectiveDirector_IdleClockHoldsWhileTheFactionCannotPay : SCR_AutotestCaseBase
@@ -1341,5 +1342,120 @@ class OVT_TEST_Init_ObjectiveDirector_InFlightOperationIsHeldThenRefunded : SCR_
 			deployments.SubtractFactionResources(factionIndex, current - originalPool);
 		else if (current < originalPool)
 			deployments.AddFactionResources(factionIndex, originalPool - current);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 A SECOND, DIFFERENT REFUSAL IS NEVER SWALLOWED BY THE FIRST. The director latches every "why the
+//! operation could not be sent" line so that a refusal retried once per in-game minute does not fill
+//! the log with itself; the KEY that latch uses is what this case pins.
+//!
+//! WHAT WENT WRONG WITHOUT IT (play-test, 2026-08-19). The latch was one bool per OBJECTIVE. At 15:30
+//! the ramp could not afford a sabotage team and said so; the bool went up. At 15:43 the same objective
+//! entered the forward-base phase, could not afford the forward base either, and said NOTHING - the bool
+//! was already up. What the author then watched was a phase re-siting the same point every ten seconds
+//! for five real minutes with no explanation anywhere in the log, and the actual cause (twenty resources
+//! in a pool that needed a hundred and twenty) invisible.
+//!
+//! THREE CLAIMS, AND THE MIDDLE ONE IS THE BUG:
+//!   1. The same operation refused for the same reason is ONE entry - or the log fills up, which is the
+//!      reason a latch exists at all.
+//!   2. A DIFFERENT operation refused for the same reason is a DIFFERENT entry. This is the play-test.
+//!   3. The same operation refused for a DIFFERENT reason is a DIFFERENT entry - the second half of the
+//!      same rule, and the one that catches a config whose refusal changes from "the pool is short" to
+//!      "the framework declined it" partway through a campaign.
+//!
+//! AND THE FIVE REASONS ARE DISTINCT STRINGS, which is what makes claim 3 mean anything: two constants
+//! that happened to carry the same text would silently merge into one ledger entry.
+//!
+//! WHY THIS TIER RATHER THAN A LIVE DIRECTOR. IsSameRefusal() is a pure static, deliberately - driving
+//! the real ledger would mean writing into the running campaign's director, whose objective is live in
+//! this world, and leaving it able to suppress a genuine line later in the session.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; each exited tools/compile-check.sh
+//! 0, and the subject was restored and re-compiled clean):
+//!   R1. `IsSameRefusal` returning `reasonA == reasonB` alone - the pre-fix behaviour, keyed on the
+//!       reason. Fails on "two DIFFERENT operations refused for the same reason must each get a line".
+//!   R2. `IsSameRefusal` returning `configA == configB` alone. Fails on "the same operation refused for
+//!       a DIFFERENT reason must get a second line".
+//!   R3. REFUSAL_FOB_CEILING given the same text as REFUSAL_POOL_SHORT. Fails on "two refusal reasons
+//!       share the same text".
+//! No polling, no world, no fixture state, no maxAttempts.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveDirector_RefusalsAreLatchedPerConfigAndReason : SCR_AutotestCaseBase
+{
+	//! Two operation names that cannot collide with a registered config.
+	static const string OPERATION_A = "OVT_TEST Refusal Operation A";
+	static const string OPERATION_B = "OVT_TEST Refusal Operation B";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string pool = OVT_ObjectiveDirectorComponent.REFUSAL_POOL_SHORT;
+		string ceiling = OVT_ObjectiveDirectorComponent.REFUSAL_FOB_CEILING;
+
+		// --- 1. THE SAME REFUSAL IS ONE ENTRY.
+		if (!OVT_ObjectiveDirectorComponent.IsSameRefusal(OPERATION_A, pool, OPERATION_A, pool))
+		{
+			SetFailure("the same operation refused for the same reason must be ONE ledger entry, or every in-game minute of a poverty spell puts another identical line in the log");
+			return true;
+		}
+
+		// --- 2. THE PLAY-TEST. Two operations, one empty pool, two lines.
+		if (OVT_ObjectiveDirectorComponent.IsSameRefusal(OPERATION_A, pool, OPERATION_B, pool))
+		{
+			SetFailure("two DIFFERENT operations refused for the same reason must each get a line - this is the 2026-08-19 defect exactly: '%1' was refused for want of resources in Phase 1 and that silenced the identical refusal of '%2' in Phase 2", OPERATION_A, OPERATION_B);
+			return true;
+		}
+
+		// --- 3. THE OTHER HALF OF THE SAME RULE.
+		if (OVT_ObjectiveDirectorComponent.IsSameRefusal(OPERATION_A, pool, OPERATION_A, ceiling))
+		{
+			SetFailure("the same operation refused for a DIFFERENT reason must get a second line - a refusal that changes from '%1' to '%2' is new information", pool, ceiling);
+			return true;
+		}
+
+		// --- AND THE REASONS THEMSELVES HAVE TO BE TELLABLE APART.
+		string clash = CheckReasonsAreDistinct();
+		if (clash != "")
+		{
+			SetFailure(clash);
+			return true;
+		}
+
+		Print("Objective director: refusals latch on the (operation, reason) PAIR - the same refusal is said once, a different operation or a different reason is said again, and the five reason constants are distinct strings");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every REFUSAL_* constant must be a distinct, non-empty string: the reason is half the latch key,
+	//! so two constants carrying the same text are one ledger entry however different they read in code.
+	//! \return An empty string when they are all distinct, or which pair is not.
+	protected string CheckReasonsAreDistinct()
+	{
+		array<string> reasons = {
+			OVT_ObjectiveDirectorComponent.REFUSAL_UNREGISTERED,
+			OVT_ObjectiveDirectorComponent.REFUSAL_POOL_SHORT,
+			OVT_ObjectiveDirectorComponent.REFUSAL_FOB_CEILING,
+			OVT_ObjectiveDirectorComponent.REFUSAL_FRAMEWORK_DECLINED,
+			OVT_ObjectiveDirectorComponent.REFUSAL_NO_SOURCE_BASE
+		};
+
+		for (int i = 0; i < reasons.Count(); i++)
+		{
+			if (reasons[i] == "")
+				return string.Format("refusal reason %1 is an empty string - it would latch against every other empty reason", i.ToString());
+
+			for (int j = i + 1; j < reasons.Count(); j++)
+			{
+				if (reasons[i] == reasons[j])
+					return string.Format("two refusal reasons share the same text ('%1') - they are one ledger entry, so the second situation would never be reported", reasons[i]);
+			}
+		}
+
+		return "";
 	}
 }
