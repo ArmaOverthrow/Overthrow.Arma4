@@ -10,6 +10,8 @@ SCR_ChimeraCharacter : "{99F600AD4C6BA6A4}Prefabs/Characters/Factions/CIV/Charac
   }
   OVT_PlayerOwnerComponent "{65EE39558CBDEB47}" {
   }
+  OVT_ReservationSyncComponent "{6B0F52A100000004}" {
+  }
   OVT_PlayerWantedComponent "{65A2A8A715A0DB47}" {
   }
   ActionsManagerComponent "{520EA1D2F659CE02}" {
