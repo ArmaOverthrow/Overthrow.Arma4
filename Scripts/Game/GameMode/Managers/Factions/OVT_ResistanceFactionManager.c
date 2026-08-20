@@ -1169,7 +1169,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		fob.location = pos;
 		m_FOBs.Insert(fob);
 
-		Rpc(RpcDo_RegisterFOB, pos, fob.name, playerId, fob.persistentId);
+		Rpc(RpcDo_RegisterFOB, pos, fob.name, persId, fob.persistentId);
 		OVT_Global.GetNotify().SendTextNotification("DeployedFOB",-1,OVT_Global.GetPlayers().GetPlayerName(playerId),OVT_Global.GetTowns().GetTownName(pos));
 	}
 
@@ -1362,17 +1362,19 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 
+	// The owner arrives as the persistent id string resolved ONCE on the server, exactly as
+	// RpcDo_RegisterCamp receives it - re-deriving it here from the runtime playerId raced the
+	// player-id table's own replication and could permanently record owner "" (the BUG-173 defect,
+	// left unfixed on the FOB path until BUG-188)
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_RegisterFOB(vector pos, string name, int playerId, string persistentId)
-	{		
+	protected void RpcDo_RegisterFOB(vector pos, string name, string ownerPersistentId, string persistentId)
+	{
 		OVT_FOBData fob = new OVT_FOBData;
 		fob.location = pos;
 		fob.name = name;
 		fob.persistentId = persistentId;
+		fob.owner = ownerPersistentId;
 		m_FOBs.Insert(fob);
-
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		fob.owner = persId;
 	}
 
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
