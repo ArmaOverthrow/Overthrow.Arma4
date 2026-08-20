@@ -1,8 +1,8 @@
 # Base Upgrades - Context & Decisions
 
-**Last Updated:** 2026-08-13
-**Current Phase:** Enhancements
-**Status:** ✅ Documented (Existing Feature) + enhancements landing
+**Last Updated:** 2026-08-20 (CLOSED)
+**Current Phase:** CLOSED — retired in code
+**Status:** 🗄️ CLOSED 2026-08-20 — retired in code by `virtualization/base-defense-migration` (2026-08-18); only the legacy save-payload classes remain so pre-migration saves load. Docs kept as history; no further work. BUG-109 (specops at camps/FOBs) closed as obsolete with it.
 
 ---
 

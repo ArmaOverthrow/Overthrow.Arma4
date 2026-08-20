@@ -1,8 +1,8 @@
 # QRF - Context & Decisions
 
-**Last Updated:** 2026-08-18
-**Current Phase:** Enhancements
-**Status:** ✅ Documented (Existing Feature) + player-initiated uprisings landed
+**Last Updated:** 2026-08-20 (CLOSED)
+**Current Phase:** CLOSED — legacy
+**Status:** 🗄️ CLOSED 2026-08-20 — legacy. `OVT_QRFControllerComponent` still resolves every battle (standard + the `counter-attacks` siege mode) and is consumed as-is by `occupying/objectives`' `StartBattle` module; no further feature work here. Open retrospective debt (JIP payload gaps, live battle rolls back on load) is tracked in the epic's Tech Debt, not here.
 
 ---
 

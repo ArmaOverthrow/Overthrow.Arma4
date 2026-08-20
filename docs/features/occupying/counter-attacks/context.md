@@ -1,8 +1,8 @@
 # Counter Attacks - Context & Decisions
 
-**Last Updated:** 2026-08-19 (end of the first play-test day — all 10 phases built, `main` merged in, twelve play-test defects fixed, **All 383/383**)
-**Current Phase:** Post-build play-testing. Every phase is built; work is now driven by what the author finds in game.
-**Status:** 🟡 In Progress — feature-complete and green, awaiting play-test of the QRF phase
+**Last Updated:** 2026-08-20 (**CLOSED** — superseded by `occupying/objectives`; all 10 phases built, two play-test days of fixes, **All 385/385**)
+**Current Phase:** CLOSED 2026-08-20 — proof of concept for `occupying/objectives`
+**Status:** ✅ Complete — CLOSED 2026-08-20. Every rule here is play-tested and kept; `occupying/objectives` moves them into a config-driven registry of plans/phases/modules and takes over ownership of `Scripts/Game/GameMode/Objectives/**`, the `Deployment_Objective*` configs, the serializer and the tests. This `context.md` remains the authoritative record of *why* each rule exists.
 
 ---
 
@@ -100,19 +100,7 @@
   the deployment manager, and one guard on the rebuy. Frozen core untouched. Three cases added (two
   Logic, one Init); **six can-fail faults injected and compiled**. `tools/compile-check.sh` exit 0.
 
-**What's Next:**
-- 🎮 **Play-test the QRF phase** — the ramp can now reach it for the first time (the Phase-3 deadlock was
-  fixed 2026-08-19). Watch for: the sabotage ladder taking a **bunker (750) first**, not a placeable; the
-  counter-attack actually firing once the reserve passes the gate; and the forward base's wire facing the town.
-- ❓ **OPEN DECISION — `objectiveHarassmentIntervalMinutes` on Easy is 90 in-game minutes (15 real at 6×).**
-  Six sabotage missions therefore need **90 real minutes minimum** before Phase 3 can fire, before any
-  affordability waits. Recommended for the testing period: drop it to 20–30. It is a tuning value with no
-  test pinned to it. **Author has not decided; do not change it unilaterally.**
-- 📋 **T10.3, the wiki sync** — still blocked; no wikijs MCP server has been attached to any session. Page
-  content is drafted in the Phase 10 note below and needs a session where the tools exist.
-- ⏸️ **A Workbench localization re-export is owed** — Phases 5, 6, 8, 9, 10 plus the amended
-  `OVT-Msg-AdminResourcesAdded`. Until then those strings render as raw `#OVT-` keys, which is the export
-  being stale, **not** a bug.
+**Closed out 2026-08-20 (author's call):** nothing further is owed on this feature. The items that were open — the QRF-phase play-test criteria, the Easy `objectiveHarassmentIntervalMinutes` decision, T10.3 wiki sync, the Workbench localization re-export, and the Init-tier tests for the 08-20 world-facing fixes — are **dropped here, not transferred as debt**. `occupying/objectives` (requirements written 2026-08-20) rebuilds the director as a modular, declarative brain; its parity requirement re-runs the same F-criteria, and it owns any re-export/wiki work its own strings need.
 
 **Blockers:**
 - None

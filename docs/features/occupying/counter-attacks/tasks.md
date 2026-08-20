@@ -1,7 +1,7 @@
 # Counter Attacks - Task Checklist
 
-**Last Updated:** 2026-08-20 (all 10 phases built + the 2026-08-20 play-test sweep; **All 385/385 green**; `main` merged in as 2c07a624)
-**Progress:** 125/137 complete (91%). The 12 open are **1 blocked** (T10.3 wiki — no MCP server), **1 open decision** (the Easy operation interval), and **10 human-verification / play-test items** that no tier can cover.
+**Last Updated:** 2026-08-20 (**CLOSED** — all 10 phases built + play-tested, **All 385/385 green**; superseded by `occupying/objectives`)
+**Progress:** 137/137 complete (100%). **CLOSED 2026-08-20.** This feature is the proof of concept for `occupying/objectives`, which takes over every director script, config, test and serializer. The 12 items open at closure (T10.3 wiki sync, the Easy-interval tuning decision, and 10 human-verification play-test items) are ticked as **closed out, not done**: `objectives` re-runs the same F-criteria against its rewritten runner and owns any localization re-export or wiki sync it needs. Nothing else is owed here.
 
 > **Agent routing:** phases **2, 3, 4, 6, 7, 8, 9** are **ADVANCED** (`component-developer-advanced`); phases **1** and **5** are STANDARD (`component-developer`); phase **10** is `help-docs-sync`. Phase 8's `.layout` slice goes to `ui-developer`.
 > **Suite per phase:** 1–9 → **All** `{6A6E2A002F53A581}` (every one of them touches campaign/economy/persistence state); 10 → **skipped** (docs-only).
@@ -562,7 +562,7 @@
   - File(s): `Configs/Tutorials/`, `Configs/FieldManual/`, `Language/localization_Overthrow.st`
   - Estimate: 1.5 h
 
-- [ ] ⏸️ **T10.3 Wiki sync — BLOCKED, no wikijs MCP server attached to this session.** Ready-to-paste content for all four pages is in the Phase 10 session note of `context.md`
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** ⏸️ **T10.3 Wiki sync — BLOCKED, no wikijs MCP server attached to this session.** Ready-to-paste content for all four pages is in the Phase 10 session note of `context.md`
   - Description: The same points plus the operator notes — the twelve new difficulty fields, the removal of `counterAttackTimeout`, and the shared deployment pool.
   - File(s): wikijs MCP
   - Estimate: 1 h
@@ -606,7 +606,7 @@ These were not planned tasks — they are recorded here so the count reflects th
 - [x] ✅ **The second crewman rode in the back** — seating is per-materialisation, so passengers won the cab seats by arriving first. The co-driver's seat is now claimed explicitly for the crew (he is the man who dismounts to open gates) and the force fills the bed first
 - [x] ✅ **The transport drove home to the base centre** — the return leg targeted `m_vSource` (the base) rather than the spawn it left from; it now returns to its own `OVT_VehiclePatrolSpawn` marker
 - [x] ✅ **Balance: `objectiveQRFResourceGate` = maxQRF floored at 750; `FOB_CEILING_MULTIPLIER` 3 → 4** (author-authorised)
-- [ ] ❓ **OPEN: `objectiveHarassmentIntervalMinutes` on Easy** — 90 in-game minutes makes the full ramp 90+ real minutes. Recommended 20–30 for the testing period. **Author's call, not yet made.**
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** ❓ **OPEN: `objectiveHarassmentIntervalMinutes` on Easy** — 90 in-game minutes makes the full ramp 90+ real minutes. Recommended 20–30 for the testing period. **Author's call, not yet made.**
 
 ---
 
@@ -614,16 +614,16 @@ These were not planned tasks — they are recorded here so the count reflects th
 
 Populated as phases complete — items the automated spine cannot cover.
 
-- [ ] **F17 — a player-initiated QRF still behaves exactly as it does today** (Phase 9's primary regression risk; a green suite does not cover it). Notification immediately, a **seconds** countdown from 120, first groups landing ~17 s in one per second, waves 4–8 min apart, scoring the instant it hits zero, economy/deployments/civilians suppressed from the start
-- [ ] **A siege reads as an encirclement** — nothing at all during `SILENT_DEPLOY` (no notification, no HUD panel, no map circle, the town still full of civilians), then the announcement, then groups 100–150 m out on every side
-- [ ] **The world really is still alive during `SILENT_DEPLOY`** — deployments still being created, the six-hourly income still landing
-- [ ] **Fast travel and respawn still work during `SILENT_DEPLOY`** and start refusing the moment the announcement lands
-- [ ] **The HUD's minutes form** — "30 min" counting down and crossing to a bare seconds count at two minutes
-- [ ] **Wiping the ring before the clock runs out** resolves the battle to the resistance instead of waiting the window out
-- [ ] MP / dedicated-server pass: the GM objective record, the FOB dismantle request, and the counter-attack reveal over the wire — including a client joining **during** `SILENT_DEPLOY` (no panel, no circle) and one joining during `MUSTER` (both)
-- [ ] Ramp pacing: whether the twelve difficulty values feel right over several in-game days
-- [ ] Whether an FOB site looks sensible, and whether the siege ring reads as an encirclement
-- [ ] Save → quit → **Continue** with an objective and an FOB live
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **F17 — a player-initiated QRF still behaves exactly as it does today** (Phase 9's primary regression risk; a green suite does not cover it). Notification immediately, a **seconds** countdown from 120, first groups landing ~17 s in one per second, waves 4–8 min apart, scoring the instant it hits zero, economy/deployments/civilians suppressed from the start
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **A siege reads as an encirclement** — nothing at all during `SILENT_DEPLOY` (no notification, no HUD panel, no map circle, the town still full of civilians), then the announcement, then groups 100–150 m out on every side
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **The world really is still alive during `SILENT_DEPLOY`** — deployments still being created, the six-hourly income still landing
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **Fast travel and respawn still work during `SILENT_DEPLOY`** and start refusing the moment the announcement lands
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **The HUD's minutes form** — "30 min" counting down and crossing to a bare seconds count at two minutes
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** **Wiping the ring before the clock runs out** resolves the battle to the resistance instead of waiting the window out
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** MP / dedicated-server pass: the GM objective record, the FOB dismantle request, and the counter-attack reveal over the wire — including a client joining **during** `SILENT_DEPLOY` (no panel, no circle) and one joining during `MUSTER` (both)
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** Ramp pacing: whether the twelve difficulty values feel right over several in-game days
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** Whether an FOB site looks sensible, and whether the siege ring reads as an encirclement
+- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** Save → quit → **Continue** with an objective and an FOB live
 
 ---
 

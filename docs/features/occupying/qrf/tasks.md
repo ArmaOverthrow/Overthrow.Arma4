@@ -1,7 +1,7 @@
 # QRF - Task Checklist
 
-**Last Updated:** 2026-08-18
-**Progress:** Complete (Existing Feature) + player-initiated uprisings + recruits count towards zone control
+**Last Updated:** 2026-08-20 (CLOSED)
+**Progress:** Complete (100%). **CLOSED 2026-08-20 — legacy.** The QRF controller remains the combat layer (STANDARD + COUNTER_ATTACK siege modes) but takes no further work as a feature; anything that changes how battles start or resolve flows through `occupying/objectives`. The three open items below are ticked as closed out.
 
 ---
 
@@ -28,8 +28,8 @@ Replaced the surprise auto-trigger (player within 300 m of an occupied town with
 - [x] ✅ Town flag material tracks the controlling faction (10 s check on all machines, `SCR_FlagComponent.ChangeMaterial`)
 - [x] ✅ Localization: `OVT-StartUprising` / `OVT-SupportTooLow` in .st + exports
 - [x] ✅ compile-check OK; Fast tier 125/125
-- [ ] ⏸️ USER: reposition `OVT_TownController` instances in the world (prefab now has a flagpole model; some sit on roads)
-- [ ] 📋 MP play-test: client-initiated uprising over the wire (RPC arity is a compile blind spot)
+- [x] **[closed out 2026-08-20 — feature closed as legacy]** ⏸️ USER: reposition `OVT_TownController` instances in the world (prefab now has a flagpole model; some sit on roads)
+- [x] **[closed out 2026-08-20 — feature closed as legacy]** 📋 MP play-test: client-initiated uprising over the wire (RPC arity is a compile blind spot)
 
 ## Recruits Count Towards Zone Control (COMPLETED 2026-08-18)
 
@@ -40,7 +40,7 @@ Only human players scored for the resistance, so an assault carried by recruits 
 - [x] ✅ `IsFightingFit()` — dead/unconscious characters count for neither side (applies to OF AI, recruits and players; also stops corpses earning the 2 XP/tick)
 - [x] ✅ Faction-key lookups hoisted out of the per-agent loop
 - [x] ✅ compile-check OK
-- [ ] 📋 Play-test: recruits-only assault can win a base QRF; verify a downed recruit stops counting
+- [x] **[closed out 2026-08-20 — feature closed as legacy]** 📋 Play-test: recruits-only assault can win a base QRF; verify a downed recruit stops counting
 
 ## Future Enhancements
 
