@@ -107,7 +107,13 @@ class OVT_PortContext : OVT_UIContext
 
 		prefabs.Clear();
 
-		if(m_PlayerData && m_PlayerData.HasPermission("IllegalImports"))
+		// Trade L5 unlocks the extended catalogue anywhere; a resistance-held port area (closest
+		// town or base to the port, whichever is nearer) unlocks it for everyone at that port.
+		bool illegalImports = m_PlayerData && m_PlayerData.HasPermission("IllegalImports");
+		if(!illegalImports && m_Owner)
+			illegalImports = m_Economy.ResistanceControlsNearestPort(m_Owner.GetOrigin());
+
+		if(illegalImports)
 		{
 			array<ResourceName> resources();
 			m_Economy.GetAllNonOccupyingFactionItems(resources);
