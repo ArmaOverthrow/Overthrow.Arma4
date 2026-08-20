@@ -1,0 +1,496 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  HorizontalLayoutWidgetClass "{6A8E2C1000001001}" {
+   Name "Window"
+   Slot FrameWidgetSlot "{56EEDE05AD6DF1E2}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
+   }
+   {
+    OverlayWidgetClass "{6A8E2C1000001002}" {
+     Name "Content"
+     Slot LayoutSlot "{56EEDE05BFED5D35}" {
+      SizeMode Fill
+     }
+     {
+      ImageWidgetClass "{6A8E2C1000001003}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C871C02C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Opacity 0.5
+       Color 0 0 0 1
+      }
+      BlurWidgetClass "{6A8E2C1000001004}" {
+       Name "Blur"
+       Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.305 0.305 0.305 1
+       Intensity 0.7
+      }
+      HorizontalLayoutWidgetClass "{6A8E2C1000001005}" {
+       Name "SpaceLayout"
+       Slot OverlayWidgetSlot "{5720DE53ABB7CBED}" {
+        Padding 0 72 0 72
+       }
+       {
+        FrameWidgetClass "{6A8E2C1000001006}" {
+         Name "SpaceLeft"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+        SizeLayoutWidgetClass "{6A8E2C1000001007}" {
+         Name "Alignment"
+         Slot LayoutSlot "{5720DE53A848E0CC}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 1344
+         AllowHeightOverride 1
+         HeightOverride 936
+         {
+          VerticalLayoutWidgetClass "{6A8E2C1000001008}" {
+           Name "ContentLayout"
+           Slot AlignableSlot "{56EEDE0403BED8AE}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Fill Origin" Center
+           {
+            HorizontalLayoutWidgetClass "{6A8E2C1000001009}" {
+             Name "TitleRow"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+             }
+             {
+              TextWidgetClass "{6A8E2C100000100A}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "Title"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+               }
+               Text "#OVT-Transfer_Title"
+              }
+              SizeLayoutWidgetClass "{6A8E2C100000100B}" {
+               Name "TitleFill"
+               Slot LayoutSlot "{5D48A6A577ADBED5}" {
+                SizeMode Fill
+               }
+              }
+              TextWidgetClass "{6A8E2C100000100C}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "PlayerMoney"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+               }
+               Text ""
+               "Min Font Size" 20
+               "Vertical Alignment" Center
+              }
+             }
+            }
+            HorizontalLayoutWidgetClass "{6A8E2C100000100D}" {
+             Name "HeaderRow"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+              Padding 0 0 0 8
+             }
+             {
+              ButtonWidgetClass "{6A8E2C100000100E}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Mode1Button"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferMode1"
+                 m_sLabel "#OVT-Transfer_Mode1"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A8E2C100000100F}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Mode2Button"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 24 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferMode2"
+                 m_sLabel "#OVT-Transfer_Mode2"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A8E2C1000001010}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "PrevCategoryButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferPrevCategory"
+                 m_sLabel "#OVT-Transfer_PrevCategory"
+                }
+               }
+              }
+              HorizontalLayoutWidgetClass "{6A8E2C1000001011}" {
+               Name "Tabs"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 10 0
+                SizeMode Fill
+               }
+              }
+              ButtonWidgetClass "{6A8E2C1000001012}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "NextCategoryButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferNextCategory"
+                 m_sLabel "#OVT-Transfer_NextCategory"
+                }
+               }
+              }
+             }
+            }
+            ImageWidgetClass "{6A8E2C1000001013}" {
+             Name "UpperStripe"
+             Slot LayoutSlot "{56EEDE07C9F827C2}" {
+              Padding 0 0 0 12
+             }
+             Color 0.761 0.392 0.08 1
+             Image ""
+             Size 128 2
+            }
+            HorizontalLayoutWidgetClass "{6A8E2C1000001014}" {
+             Name "Columns"
+             Slot LayoutSlot "{56EF0B1E79FE7342}" {
+              Padding 0 12 0 0
+              SizeMode Fill
+             }
+             {
+              OverlayWidgetClass "{6A8E2C1000001015}" {
+               Name "ListPanel"
+               Slot LayoutSlot "{5D48A6A414E1ECEA}" {
+                Padding 0 0 12 0
+                SizeMode Fill
+                FillWeight 0.55
+               }
+               {
+                ImageWidgetClass "{6A8E2C1000001016}" {
+                 Name "ListBackground"
+                 Slot OverlayWidgetSlot "{56EEDE05C99AA714}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 Opacity 0.5
+                 Color 0 0 0 1
+                }
+                ScrollLayoutWidgetClass "{6A8E2C1000001017}" {
+                 Name "ListScroll"
+                 Slot OverlayWidgetSlot "{5D48CA0180A2AB4A}" {
+                  HorizontalAlign 3
+                  VerticalAlign 3
+                 }
+                 {
+                  VerticalLayoutWidgetClass "{6A8E2C1000001018}" {
+                   Name "ListRows"
+                   Slot AlignableSlot "{5D48A6A99D3C9502}" {
+                    HorizontalAlign 3
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              VerticalLayoutWidgetClass "{6A8E2C1000001019}" {
+               Name "RightColumn"
+               Slot LayoutSlot "{5D48A6A414E1ECEA}" {
+                SizeMode Fill
+                FillWeight 0.45
+               }
+               {
+                VerticalLayoutWidgetClass "{6A8E2C100000101A}" {
+                 Name "DetailsPanel"
+                 Slot LayoutSlot "{599083DDE2349E32}" {
+                  Padding 8 0 8 8
+                 }
+                 {
+                  SizeLayoutWidgetClass "{6A8E2C100000101B}" {
+                   Name "DetailsImageSlot"
+                   Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
+                   }
+                   AllowHeightOverride 1
+                   HeightOverride 250
+                   MinDesiredHeight 0
+                   {
+                    OverlayWidgetClass "{6A8E2C100000101C}" {
+                     Name "DetailsImageOverlay"
+                     Slot AlignableSlot "{5D48CA00E4215D49}" {
+                      HorizontalAlign 3
+                      VerticalAlign 3
+                     }
+                     {
+                      ItemPreviewWidgetClass "{6A8E2C100000101D}" {
+                       Name "DetailsPreview"
+                       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+                        HorizontalAlign 3
+                        VerticalAlign 3
+                       }
+                      }
+                      ImageWidgetClass "{6A8E2C100000101E}" {
+                       Name "DetailsImage"
+                       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+                        HorizontalAlign 3
+                        VerticalAlign 3
+                       }
+                       "Is Visible" 0
+                       Image ""
+                      }
+                     }
+                    }
+                   }
+                  }
+                  TextWidgetClass "{6A8E2C100000101F}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                   Name "DetailsName"
+                   Slot LayoutSlot "{56EEDE046853BD3D}" {
+                    Padding 0 8 0 4
+                   }
+                   Text ""
+                   "Font Size" 28
+                   "Min Font Size" 20
+                  }
+                  TextWidgetClass "{6A8E2C1000001020}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                   Name "DetailsValue"
+                   Slot LayoutSlot "{56EEDE046853BD3D}" {
+                    Padding 0 0 0 8
+                   }
+                   Text ""
+                   "Font Size" 25
+                   "Min Font Size" 18
+                  }
+                  TextWidgetClass "{6A8E2C1000001021}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                   Name "DetailsText"
+                   Slot LayoutSlot "{56EEDE046853BD3D}" {
+                    Padding 0 0 0 8
+                   }
+                   Text ""
+                   Wrap 1
+                  }
+                 }
+                }
+                OverlayWidgetClass "{6A8E2C1000001033}" {
+                 Name "CartPanel"
+                 Slot LayoutSlot "{5D48A6A414E1ECEA}" {
+                  Padding 8 0 8 0
+                  SizeMode Fill
+                 }
+                 {
+                  ImageWidgetClass "{6A8E2C1000001034}" {
+                   Name "CartBackground"
+                   Slot OverlayWidgetSlot "{56EEDE05C99AA714}" {
+                    HorizontalAlign 3
+                    VerticalAlign 3
+                   }
+                   Opacity 0.3
+                   Color 0 0 0 1
+                  }
+                  VerticalLayoutWidgetClass "{6A8E2C1000001035}" {
+                   Name "CartContent"
+                   Slot OverlayWidgetSlot "{5D48CA0180A2AB4A}" {
+                    HorizontalAlign 3
+                    VerticalAlign 3
+                   }
+                   {
+                    ScrollLayoutWidgetClass "{6A8E2C1000001022}" {
+                     Name "CartScroll"
+                     Slot LayoutSlot "{5D48A6A414E1ECEA}" {
+                      SizeMode Fill
+                     }
+                     {
+                      VerticalLayoutWidgetClass "{6A8E2C1000001023}" {
+                       Name "CartLines"
+                       Slot AlignableSlot "{5D48A6A99D3C9502}" {
+                        HorizontalAlign 3
+                       }
+                      }
+                     }
+                    }
+                    TextWidgetClass "{6A8E2C1000001024}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                     Name "CartEmptyLabel"
+                     Slot LayoutSlot "{56EEDE046853BD3D}" {
+                      Padding 8 8 8 8
+                     }
+                     Text "#OVT-Transfer_CartEmpty"
+                     "Horizontal Alignment" Center
+                     "Vertical Alignment" Center
+                     Opacity 0.6
+                    }
+                   }
+                  }
+                 }
+                }
+                ButtonWidgetClass "{6A8E2C1000001025}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+                 Name "DestinationSpin"
+                 Slot LayoutSlot "{56EEDE046853BD3D}" {
+                  Padding 8 4 8 4
+                 }
+                 "Is Visible" 0
+                }
+                VerticalLayoutWidgetClass "{6A8E2C1000001026}" {
+                 Name "CheckoutPanel"
+                 Slot LayoutSlot "{599083DDE2349E32}" {
+                  Padding 8 4 8 0
+                 }
+                 {
+                  TextWidgetClass "{6A8E2C1000001027}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                   Name "SummaryText"
+                   Slot LayoutSlot "{56EEDE046853BD3D}" {
+                    Padding 0 0 0 4
+                   }
+                   Text ""
+                   "Vertical Alignment" Center
+                  }
+                  TextWidgetClass "{6A8E2C1000001028}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                   Name "MessageText"
+                   Slot LayoutSlot "{56EEDE046853BD3D}" {
+                    Padding 0 0 0 4
+                   }
+                   "Is Visible" 0
+                   Opacity 0
+                   Text ""
+                   Wrap 1
+                   Color 0.761 0.392 0.08 1
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+            ImageWidgetClass "{6A8E2C1000001029}" {
+             Name "LowerStripe"
+             Slot LayoutSlot "{56EEDE06187FACF9}" {
+              Padding 0 12 0 24
+             }
+             Opacity 0.1
+             Size 2 2
+            }
+            HorizontalLayoutWidgetClass "{6A8E2C100000102A}" {
+             Name "Footer"
+             Slot LayoutSlot "{56EEDE03DE14A911}" {
+             }
+             {
+              ButtonWidgetClass "{6A8E2C100000102B}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Qty1Button"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferQtyOne"
+                 m_sLabel "#OVT-Transfer_Add1"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A8E2C100000102C}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "Qty10Button"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferQtyTen"
+                 m_sLabel "#OVT-Transfer_Add10"
+                }
+               }
+              }
+              ButtonWidgetClass "{6A8E2C100000102D}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "QtyAllButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferQtyAll"
+                 m_sLabel "#OVT-Transfer_AddAll"
+                }
+               }
+              }
+              SizeLayoutWidgetClass "{6A8E2C100000102E}" {
+               Name "FooterFill"
+               Slot LayoutSlot "{5D48A6A577ADBED5}" {
+                SizeMode Fill
+               }
+              }
+              ButtonWidgetClass "{6A8E2C100000102F}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "AcceptButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "OverthrowTransferAccept"
+                 m_sLabel "#OVT-Transfer_Accept"
+                }
+               }
+               "no focus" 0
+              }
+              ButtonWidgetClass "{6A8E2C1000001030}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "SelectHint"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 10 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "MenuSelect"
+                 m_sLabel "#AR-Menu_Select"
+                }
+                SCR_DeviceSpecificComponent "{56EEDE01335EDAD4}" {
+                 m_bControllerOnly 1
+                }
+               }
+              }
+              ButtonWidgetClass "{6A8E2C1000001031}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+               Name "CloseButton"
+               Slot LayoutSlot "{56EEDE01982D053A}" {
+                Padding 0 0 0 0
+               }
+               components {
+                SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                 m_sActionName "MenuBack"
+                 m_sLabel "#AR-Menu_Back"
+                }
+               }
+               "no focus" 0
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{6A8E2C1000001032}" {
+         Name "SpaceRight"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

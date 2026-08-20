@@ -1,105 +1,154 @@
-class OVT_PortContext : OVT_UIContext
-{	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Inventory Item Layout", params: "layout")]
-	ResourceName m_ItemLayout;
-	
-	protected int m_SelectedResource = -1;
-	protected ResourceName m_SelectedResourceName;
+//------------------------------------------------------------------------------------------------
+//! The port Import screen: one mode, a priced import list, and the occupied vehicle as the only
+//! destination. All widget work belongs to OVT_TransferContext.
+//------------------------------------------------------------------------------------------------
+class OVT_PortContext : OVT_TransferContext
+{
+	//! OVT_VehicleRequestComponent.IMPORT_MAX_QUANTITY (:64) is protected, so the cap is mirrored
+	//! here; the server rejects anything above it.
+	protected const int IMPORT_MAX_QUANTITY = 100;
 
 	//! Prefab -> localized display name. UIInfo resolution loads and scans a prefab container, which is
 	//! far too expensive to repeat per row per sort comparison; names never change.
 	protected ref map<string, string> m_mDisplayNames = new map<string, string>();
 
-	override void PostInit()
+	//------------------------------------------------------------------------------------------------
+	override void BuildModes(out array<int> modes, out array<string> labelKeys)
 	{
-		if(SCR_Global.IsEditMode()) return;
-		m_Economy.m_OnPlayerMoneyChanged.Insert(OnPlayerMoneyChanged);
+		modes.Clear();
+		labelKeys.Clear();
+
+		modes.Insert(0);
+		labelKeys.Insert("#OVT-Import");
 	}
-	
-	protected void OnPlayerMoneyChanged(string playerId, int amount)
+
+	//------------------------------------------------------------------------------------------------
+	override void BuildEntries(int mode, OVT_TransferListModel model)
 	{
-		if(playerId == m_sPlayerID && m_bIsActive)
-		{
-			TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));
-			if(money) money.SetText(OVT_MoneyFormat.FormatMoney(amount));
-		}
-	}
-	
-	override void OnShow()
-	{	
-		Widget ww = m_wRoot.FindAnyWidget("Buy10Button");
-		SCR_InputButtonComponent btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
-		btn.m_OnActivated.Insert(BuyTen);
-		
-		ww = m_wRoot.FindAnyWidget("Buy100Button");
-		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
-		btn.m_OnActivated.Insert(BuyHundred);
-		
-		ww = m_wRoot.FindAnyWidget("CloseButton");
-		btn = SCR_InputButtonComponent.Cast(ww.FindHandler(SCR_InputButtonComponent));		
-		btn.m_OnActivated.Insert(CloseLayout);		
-		
-		Refresh();		
-	}
-	
-	void Refresh()
-	{
-		if(!m_wRoot) return;
+		if(!model || !m_Economy) return;
 
-		Widget container = m_wRoot.FindAnyWidget("Inventory");
-		if(!container) return;
-
-		WorkspaceWidget workspace = GetGame().GetWorkspace();
-
-		TextWidget money = TextWidget.Cast(m_wRoot.FindAnyWidget("PlayerMoney"));
-		if(money) money.SetText(OVT_MoneyFormat.FormatMoney(m_Economy.GetPlayerMoney(m_sPlayerID)));
-
-		int wi = 0;
-
-		while(container.GetChildren())
-			container.RemoveChild(container.GetChildren());
-
-		Widget firstCard;
-
-		// Collect first, sort second, draw third. The importable set is assembled from two unrelated
-		// sources (the illegal-imports permission list, or every non-vehicle shop config rule), and the
-		// player reads one alphabetical list either way (Phase 7.2).
 		array<ResourceName> prefabs = new array<ResourceName>();
 		CollectImportables(prefabs);
-		SortByDisplayName(prefabs);
 
 		foreach(ResourceName prefab : prefabs)
 		{
-			if(wi == 0 && m_SelectedResource == -1){
-				SelectItem(prefab);
-			}
-
-			Widget ww = workspace.CreateWidgets(m_ItemLayout, container);
-			if(!ww) continue;
-
-			OVT_PortItemComponent card = OVT_PortItemComponent.Cast(ww.FindHandler(OVT_PortItemComponent));
-			if(!card) continue;
-
 			int id = m_Economy.GetInventoryId(prefab);
 
-			card.Init(prefab, m_Economy.GetPrice(id), this);
+			OVT_TransferEntry entry = new OVT_TransferEntry();
+			entry.m_sId = prefab;
+			entry.m_sDisplayName = ResolveDisplayName(prefab);
+			entry.m_eImageKind = EOVT_TransferImageKind.PREFAB;
+			entry.m_sImage = prefab;
+			entry.m_iValue = m_Economy.GetPrice(id);
+			entry.m_eValueKind = EOVT_TransferValueKind.PRICE;
+			entry.m_iMaxQuantity = IMPORT_MAX_QUANTITY;
+			entry.m_iCategoryId = ResolveCategory(prefab, id);
+			entry.m_bEnabled = true;
+			entry.m_sDisabledReasonKey = "";
 
-			if(!firstCard)
-				firstCard = ww;
+			model.Add(entry);
+		}
+	}
 
-			wi++;
+	//------------------------------------------------------------------------------------------------
+	//! \return The shop browse category for a prefab. An unregistered prefab would resolve to id 0,
+	//! i.e. some other item's category, so it is filed under OTHER instead.
+	protected int ResolveCategory(ResourceName prefab, int id)
+	{
+		if(!m_Economy.IsRegisteredResource(prefab)) return OVT_ShopCategory.OTHER;
+
+		return m_Economy.GetItemCategory(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override string GetCategoryLabelKey(int categoryId)
+	{
+		OVT_ShopCategory category = categoryId;
+		return OVT_ShopCategoryHelper.GetLabelKey(category);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void FillDetails(OVT_TransferEntry entry, out string name, out string value, out string body)
+	{
+		name = entry.m_sDisplayName;
+		value = FormatValue(entry.m_iValue, entry.m_eValueKind);
+		body = "";
+
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(entry.m_sImage);
+		if(info) body = info.GetDescription();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Import buys; there is no "Add all" for something the player pays for by the unit.
+	override bool IsAddAllAllowed(int mode)
+	{
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override void BuildDestinations(out array<ref OVT_TransferDestination> dests)
+	{
+		dests.Clear();
+
+		IEntity vehicle = GetOccupiedVehicle();
+		if(!vehicle) return;
+
+		OVT_TransferDestination dest = new OVT_TransferDestination();
+		dest.m_sId = "vehicle";
+		dest.m_sLabel = "#OVT-Transfer_DestinationVehicle";
+		dest.m_Entity = vehicle;
+
+		dests.Insert(dest);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	override string ValidateCart(array<ref OVT_TransferCartLine> lines, OVT_TransferDestination dest)
+	{
+		if(!dest || !dest.m_Entity) return "#OVT-Transfer_NoVehicle";
+
+		if(m_Economy && m_Cart.TotalValue() > m_Economy.GetPlayerMoney(m_sPlayerID))
+			return "#OVT-CannotAfford";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One existing ImportToVehicle per line - no batching, no new RPC (D10). The port has no change
+	//! invoker, so the one coalesced refresh is what repaints money and prices.
+	override void OnAccept(array<ref OVT_TransferCartLine> lines, OVT_TransferDestination dest)
+	{
+		if(!lines || !dest || !dest.m_Entity) return;
+		if(!m_Economy) return;
+
+		OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+		if(!vehicles) return;
+
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(line.m_iQuantity <= 0) continue;
+
+			int id = m_Economy.GetInventoryId(line.m_sId);
+			vehicles.ImportToVehicle(id, line.m_iQuantity, dest.m_Entity);
 		}
 
-		//! Initial gamepad focus - without it a controller player opens the import menu with nothing
-		//! focused, and since the cards only take focus on mouse-over, MenuUp/MenuDown have nothing to
-		//! navigate from and the list is mouse-only. Same pattern as OVT_MainMenuContext.OnShow.
-		if(firstCard)
-			GetGame().GetWorkspace().SetFocusedWidget(firstCard);
+		ScheduleRefresh();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The vehicle the player occupies, or null.
+	protected IEntity GetOccupiedVehicle()
+	{
+		if(!m_Owner) return null;
+
+		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
+		if(!compartment) return null;
+
+		return compartment.GetVehicle();
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Lists every prefab this player may import, de-duplicated. Same two branches and same membership
-	//! rules as before Phase 7 - only the drawing moved out.
+	//! rules as the pre-transfer-UI port screen - only the drawing moved out.
 	//! \param[out] prefabs Receives the importable prefabs. Cleared first.
 	protected void CollectImportables(out array<ResourceName> prefabs)
 	{
@@ -125,11 +174,8 @@ class OVT_PortContext : OVT_UIContext
 			return;
 		}
 
-		// The IllegalImports branch above already excludes occupying-faction items, and this branch has
-		// to as well: RpcAsk_ImportToVehicle rejects them outright (BUG-033's faction gate), so listing
-		// them offered a row whose only possible outcome was a click that did nothing (BUG-102). The
-		// shop rules that build this list carry m_bIncludeOccupyingFactionItems per entry, but the port
-		// is not a shop - the server applies ONE flat rule here, and this is it.
+		// Occupying-faction items must be excluded here too: RpcAsk_ImportToVehicle rejects them
+		// outright, so listing them offers a row that can only ever do nothing (BUG-033, BUG-102).
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 
 		foreach(OVT_ShopInventoryConfig shop : m_Economy.m_ShopConfig.m_aShopConfigs)
@@ -146,10 +192,8 @@ class OVT_PortContext : OVT_UIContext
 					ResourceName prefab = entry.GetPrefab();
 					if(prefabs.Contains(prefab)) continue;
 
-					// GetInventoryId is a bare map index - an unregistered prefab resolves to id 0, i.e.
-					// some other item's faction (R7). Unregistered entries keep their old behaviour of
-					// being listed rather than being hidden by a lookup that answered about a different
-					// item entirely.
+					// GetInventoryId is a bare map index: an unregistered prefab resolves to id 0, i.e.
+					// some other item's faction. Only ask about registered ones.
 					if(m_Economy.IsRegisteredResource(prefab))
 					{
 						int id = m_Economy.GetInventoryId(prefab);
@@ -163,37 +207,8 @@ class OVT_PortContext : OVT_UIContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Sorts prefabs alphabetically by their localized display name, case-insensitively and stably.
-	//!
-	//! Insertion sort with a strictly-greater comparison, the same idiom (and stability guarantee) as
-	//! OVT_ShopBrowserModel.SortByDisplayName. The model itself is not reused because these rows are
-	//! bare prefabs, not browser items.
-	//! \param[inout] prefabs The list to order in place.
-	protected void SortByDisplayName(inout array<ResourceName> prefabs)
-	{
-		int count = prefabs.Count();
-
-		for(int i = 1; i < count; i++)
-		{
-			ResourceName moving = prefabs[i];
-			string movingName = ResolveDisplayName(moving);
-			int j = i - 1;
-
-			while(j >= 0 && ResolveDisplayName(prefabs[j]).Compare(movingName, false) > 0)
-			{
-				prefabs[j + 1] = prefabs[j];
-				j--;
-			}
-
-			prefabs[j + 1] = moving;
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Localized display name for a prefab, memoised for the life of this context.
-	//!
-	//! Translated rather than raw, because the sort is supposed to be alphabetical by what the player
-	//! READS - sorting raw "#AR-Item_..." keys would produce an order with no relation to the list.
+	//! Localized display name for a prefab, memoised for the life of this context. Translated, not
+	//! raw: the sort must order by what the player reads, not by "#AR-Item_..." keys.
 	//! \param[in] res The prefab to resolve.
 	//! \return A non-empty, sortable name.
 	protected string ResolveDisplayName(ResourceName res)
@@ -213,73 +228,4 @@ class OVT_PortContext : OVT_UIContext
 		m_mDisplayNames[res] = name;
 		return name;
 	}
-	
-	override void SelectItem(ResourceName res)
-	{
-		int id = m_Economy.GetInventoryId(res);
-		m_SelectedResource = id;
-		m_SelectedResourceName = res;
-		TextWidget typeName = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedTypeName"));
-		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("SelectedTypeImage"));
-		TextWidget details = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDetails"));
-		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
-		img.SetResolutionScale(1, 1);
-		
-		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
-		if(info)
-		{
-			typeName.SetText(info.GetName());
-			details.SetText(OVT_MoneyFormat.FormatMoney(m_Economy.GetPrice(id)));
-			desc.SetText(info.GetDescription());
-		}	
-		ChimeraWorld world = GetGame().GetWorld();
-		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
-		if (!manager)
-			return;
-		
-		manager.SetPreviewItemFromPrefab(img, res);		
-	}
-	
-	override void RegisterInputs()
-	{
-		super.RegisterInputs();
-		if(!m_InputManager) return;
-				
-		m_InputManager.AddActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
-	}
-	
-	override void UnregisterInputs()
-	{
-		super.UnregisterInputs();
-		if(!m_InputManager) return;
-				
-		m_InputManager.RemoveActionListener("MenuBack", EActionTrigger.DOWN, CloseLayout);
-	}	
-	
-	void Buy(int qty)
-	{		
-		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
-		if(!compartment) return;
-			
-		IEntity entity = compartment.GetVehicle();
-		if(entity)
-		{
-			// The importing player is no longer named in the request - the server takes it from the
-			// controller the request arrives on.
-			OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
-			if(vehicles)
-				vehicles.ImportToVehicle(m_SelectedResource, qty, entity);
-		}
-	}	
-	
-	void BuyTen(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
-	{
-		Buy(10);
-	}
-	
-	void BuyHundred(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
-	{
-		Buy(100);
-	}
-	
 }

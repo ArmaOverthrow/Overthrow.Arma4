@@ -1,9 +1,9 @@
 # Transfer UI — Implementation Plan
 
-**Status:** Planning
-**Started:** 2026-08-20
+**Status:** ✅ **Play-test GREEN 2026-08-21** — the user confirmed both consumers (port Import and warehouse Take) work correctly. Three polish items they raised are applied and re-gated: the duplicate empty-cart message removed, the cart panel given its own background, and Accept given a real binding (`KC_F` / `left_trigger`, superseding D5 — see the amendment in §5). **Owed:** a short re-check of those three tweaks, the `.st` re-export (Workbench, user), the wiki pass (blocked — no `wikijs` MCP server), and a clean Fast-group verdict (blocked on an unrelated virtualization/movement hang).
+**Started:** 2026-08-21
 **Target Completion:** TBD
-**Last Updated:** 2026-08-20 18:19
+**Last Updated:** 2026-08-21
 
 **Epic:** `logistics` (feature #1 of 4 — see `docs/features/logistics/epic-overview.md`)
 **Requirements:** `docs/features/logistics/ui/requirements.md` (authoritative for scope; 8 user decisions recorded there, none re-opened here)
@@ -126,7 +126,7 @@ Modelled directly on `Scripts/Game/Data/OVT_ShopBrowserModel.c` (same file, same
 | `m_iCategoryId` | Consumer-defined; **never** `CATEGORY_ALL`. |
 | `m_bEnabled` / `m_sDisabledReasonKey` | Dim the row and name why. |
 
-**`OVT_TransferListModel : Managed`** — `Add` / `Clear` / `Count` / `GetEntries` / `FindById` / `SortByDisplayName` (stable, case-insensitive insertion sort — lift verbatim from `OVT_ShopBrowserModel.SortByDisplayName`, whose stability rationale applies here too) / `HasCategory` / `GetPopulatedCategories(out array<int>)` / `FilterByCategory(int, out array<ref OVT_TransferEntry>)`. `CATEGORY_ALL = -1` is a base-owned constant and is never a member of `GetPopulatedCategories`, exactly as `OVT_ShopCategory.ALL` is never returned by `GetPopulatedCategories()`. **`-1` rather than `0`** because `OVT_ShopCategory.ALL` *is* `0` and the port maps its category ids straight onto that enum — a `0` sentinel would collide.
+**`OVT_TransferListModel : Managed`** — `Add` / `Clear` / `Count` / `GetEntries` / `FindById` / `SortByDisplayName` (stable, case-insensitive insertion sort — lift verbatim from `OVT_ShopBrowserModel.SortByDisplayName`, whose stability rationale applies here too) / `HasCategory` / `GetPopulatedCategories(out array<int>)` / `FilterByCategory(int, out array<ref OVT_TransferEntry>)`. `CATEGORY_ALL = -1` is a base-owned constant and is never a member of `GetPopulatedCategories`, exactly as `OVT_ShopCategory.ALL` is never returned by `GetPopulatedCategories()`. **`GetPopulatedCategories` returns ids ASCENDING** (corrected 2026-08-21; it originally shipped first-seen). Consumer category ids are declaration-ordered enums, so ascending reproduces `OVT_ShopCategoryHelper.GetDisplayOrder` exactly at the port without the model reaching for a UI class; and it is stable, whereas first-seen order changes whenever the alphabetically-first row of a category changes — which would make `TabOrderMatches` see a reordered list with unchanged membership and rebuild the tab widgets, destroying gamepad focus. **`-1` rather than `0`** because `OVT_ShopCategory.ALL` *is* `0` and the port maps its category ids straight onto that enum — a `0` sentinel would collide.
 
 **`OVT_TransferCartModel : Managed`** — holds `OVT_TransferCartLine` (id, display name, unit value, value kind, quantity, max quantity). A line **copies** the display fields it needs rather than pointing into the list model, because the warehouse rebuilds its list model on every invoker refresh and a cart holding stale entry pointers is a class of bug this design should not have.
 
@@ -178,7 +178,7 @@ Notes that are load-bearing:
 
 - **Two image widgets, one visible.** `DetailsPreview`/`DetailsImage` and `RowPreview`/`RowImage` are siblings in an overlay; the base shows exactly one per `m_eImageKind`. This is the whole of the epic's "must display item prefabs *and* resources" requirement — one enum and a `SetVisible` pair, no resource-shaped API.
 - **No placeholder rows.** `PortMenu.layout:138-173` and `WarehouseMenu.layout:92-127` author eight dead rows each that `Refresh()` deletes on first draw. Both containers here start empty.
-- **`AcceptButton` is a `WLib_NavigationButton` with an EMPTY `m_sActionName`.** Verified: `SCR_InputButtonComponent.OnClick → OnInput → m_OnActivated.Invoke` (`SCR_InputButtonComponent.c:245-257`, `:726-743`) fires on mouse and on `MenuSelect`-while-focused, while `RegisterActionListeners` short-circuits on an empty action name (`:602`). So the button works, draws no glyph, and takes no input. Binding it to `MenuSelect` instead would be a bug: `OnInput` does **not** require focus, so `a` pressed on a *list row* would also fire Accept. `SelectHint` reproduces `PortMenu.layout:355`'s controller-only `#AR-Menu_Select` hint (`SCR_DeviceSpecificComponent m_bControllerOnly 1`) so pad players still see the `a` glyph.
+- **`AcceptButton` is a `WLib_NavigationButton` with an EMPTY `m_sActionName`.** Verified: `SCR_InputButtonComponent.OnClick → OnInput → m_OnActivated.Invoke` (`SCR_InputButtonComponent.c:245-257`, `:726-743`) fires on mouse and on `MenuSelect`-while-focused, while `RegisterActionListeners` short-circuits on an empty action name (`:602`). So the button works, draws no glyph, and takes no input. Binding it to `MenuSelect` instead would be a bug: `OnInput` does **not** require focus, so `a` pressed on a *list row* would also fire Accept. `SelectHint` reproduces `PortMenu.layout:355`'s controller-only `#AR-Menu_Select` hint (`SCR_DeviceSpecificComponent m_bControllerOnly 1`) so pad players still see the `a` glyph. **Superseded 2026-08-21:** `AcceptButton` now carries `m_sActionName "OverthrowTransferAccept"` and draws its own glyph — see the D5 amendment in §5. `SelectHint` stays, advertising `MenuSelect` on the focused row.
 - **`CloseButton`** copies `PortMenu.layout:341` — `SCR_InputButtonComponent` with `m_sLabel "#AR-Menu_Back"` plus `ButtonActionComponent m_bActionName "MenuBack"`, wired to `CloseLayout` via `m_OnActivated`.
 - **Row layout** (`TransferMenu_Row.layout`) is `WarehouseInventoryItem.layout` restructured: `ButtonWidgetClass` + `SCR_ButtonComponent` (`m_bMouseOverToFocus 1`, `m_bShowBackgroundOnFocus 1`, `m_bShowBorderOnHover 1`) + `OVT_TransferRowComponent`, height 50, children `RowPreview`/`RowImage` (50 px), `RowName`, `Fill`, `RowValue` (right-aligned). **Cart-line layout** is the same shape with `LineName`, `Fill`, `LineQuantity`, `LineValue` and no image.
 - `AlignableSlot` vertical padding is not measured — use the sibling `Slot` types the copied widgets already use, and do not add vertical padding to an `AlignableSlot` expecting it to show.
@@ -262,6 +262,7 @@ class OVT_TabHostContext : OVT_UIContext
 |---|---|
 | consumer defines < 2 modes | `Mode1Button` / `Mode2Button` hidden → their keybinds die with them |
 | < 2 populated categories | tab row hidden, steppers hidden → `Q`/`E`/`L3`/`R3` die with them |
+| ≥ 2 populated categories | `CATEGORY_ALL` first, then the populated ids **ascending** (§3.2) |
 | both of the above | whole `HeaderRow` hidden |
 | active mode | accent `0xFFC26414` label + opacity 1.0; inactive 0.6, **never disabled** |
 
@@ -279,6 +280,7 @@ ActionContext OverthrowTransferContext {
   "OverthrowTransferMode1" "OverthrowTransferMode2"
   "OverthrowTransferPrevCategory" "OverthrowTransferNextCategory"
   "OverthrowTransferQtyOne" "OverthrowTransferQtyTen" "OverthrowTransferQtyAll"
+  "OverthrowTransferAccept"
   "MenuUp" "MenuDown" "MenuLeft" "MenuRight" "MenuSelect" "MenuBack"
  }
 }
@@ -293,7 +295,7 @@ ActionContext OverthrowTransferContext {
 | Add/Remove 1 | `Qty1Button` | `OverthrowTransferQtyOne` | `KC_COMMA` | `x` | warehouse `TakeOne` (`:3`) |
 | Add/Remove 10 | `Qty10Button` | `OverthrowTransferQtyTen` | `KC_PERIOD` | `y` | warehouse `TakeTen` (`:20`) |
 | Add/Remove all | `QtyAllButton` | `OverthrowTransferQtyAll` | `KC_SEMICOLON` | `right_trigger` | warehouse `TakeAll` (`:404`) |
-| Accept | `AcceptButton` | *(none)* | `RETURN` via `MenuSelect` on focus | `a` via `MenuSelect` on focus | `PortMenu.layout:355` |
+| Accept | `AcceptButton` | `OverthrowTransferAccept` *(2026-08-21; was none — see the D5 amendment)* | `KC_F` | `left_trigger` | shop `Sell` / jobs `Accept` / loadouts `Apply` (all `KC_F`) |
 | Close | `CloseButton` | `MenuBack` | `ESC` | `b` | every screen |
 | Browse / swap pane | — | `MenuUp/Down/Left/Right` | arrows + `WASD` | d-pad + left stick | — |
 
@@ -443,6 +445,8 @@ Every phase: `tools/compile-check.sh` exit 0 before hand-back. `tools/run-tests.
 
 **D5 — Accept is focus-activated with an empty `m_sActionName`.** Requirement 43 puts Accept on `MenuSelect`/`a`. Binding the button's `m_sActionName` to `"MenuSelect"` would be a trap: `SCR_InputButtonComponent.OnInput()` does not check focus, so `a` pressed to select a *list row* would also fire Accept. An empty action name gives mouse + focus-`MenuSelect` activation via `m_OnActivated` with no listener registered (`SCR_InputButtonComponent.c:245-257`, `:602`, `:726-743`), and the controller-only `#AR-Menu_Select` hint from `PortMenu.layout:355` keeps the glyph on screen.
 
+> **Amendment, 2026-08-21 (post-play-test).** D5's *reasoning* stands — Accept must never carry `"MenuSelect"` — but its *conclusion* (an empty `m_sActionName`) is superseded. Accept now has its own action, `OverthrowTransferAccept` (`keyboard:KC_F` / `gamepad0:left_trigger`, `InputSourceSum {6A8E2C1100000080}`), listed in `ActionContext OverthrowTransferContext`. A dedicated action cannot collide with `MenuSelect`, so the trap does not apply, and the cost D5 accepted — no pad binding and no glyph — is paid off: `IsKeybindAvailable` now returns true and the button draws its own chrome. `SCR_InputButtonComponent` registers the listener itself (`:602-613`), so the context adds no second path; `m_bCanBeDisabled` defaults to 1, so `RefreshCheckout`'s `SetEnabled(false)` still gates the press (`:731`). `KC_F` matches `OverthrowShopSell` / `OverthrowJobsAccept` / `OverthrowLoadoutsApply`. `SelectHint` is kept — it advertises a different action (`MenuSelect` activates the focused row), not Accept's.
+
 **D6 — The base yields `MenuLeft`/`MenuRight` to the focused picker.** `SCR_SpinBoxComponent` installs its own listeners on focus and self-gates on focus; the base's do not, so without an explicit "is the picker focused?" early return, one d-pad press would both change the destination and jump the focus column. Named here because it is invisible in the conf and in the layout, and only a pad play-test would find it.
 
 **D7 — Three quantity buttons, two label sets, no rebinding.** Relabelling with `SetLabel()` and retiring "Add all" with `SetVisible(false)` (which kills the keybind too) keeps the action set at three and the conf honest. "Remove all" stays visible in every mode — `IsAddAllAllowed` is a statement about adding, and removing a cart line is always meaningful.
@@ -532,7 +536,7 @@ Every phase: `tools/compile-check.sh` exit 0 before hand-back. `tools/run-tests.
 | Case | Claim | Proof it can fail |
 |---|---|---|
 | `ListSortAlphabetical` | case-insensitive, **stable** for equal names | reverse the comparison |
-| `ListCategoryPopulation` | `GetPopulatedCategories` omits empty categories and never returns `CATEGORY_ALL` | make it return every id it has seen |
+| `ListCategoryPopulation` | `GetPopulatedCategories` omits empty categories, never returns `CATEGORY_ALL`, and returns ids **ascending** | drop the insertion sort (rows are added in descending category order, so first-seen fails) |
 | `ListFilterByCategory` | `CATEGORY_ALL` returns everything; a real id returns only its own; order preserved | drop the `CATEGORY_ALL` branch |
 | `CartAddMerges` | adding an id twice yields one line with the summed quantity | insert instead of merge |
 | `CartClampsToMax` | a merged total above `m_iMaxQuantity` is clamped, not rejected | remove the clamp |

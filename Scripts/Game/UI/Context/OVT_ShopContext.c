@@ -26,7 +26,7 @@ enum OVT_ShopMenuMode
 //! cache would grey out every row at the game's most used sell destination (D3, and the Phase 3
 //! deviation recorded in the feature's context notes).
 //------------------------------------------------------------------------------------------------
-class OVT_ShopContext : OVT_UIContext
+class OVT_ShopContext : OVT_TabHostContext
 {
 	[Attribute("{6A7C4E1C77B31E40}UI/Layouts/Menu/ShopMenu/ShopMenu_Tab.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for one category tab", params: "layout")]
 	ResourceName m_TabLayout;
@@ -471,6 +471,18 @@ class OVT_ShopContext : OVT_UIContext
 	OVT_ShopMenuMode GetMode()
 	{
 		return m_eMode;
+	}
+
+	//! OVT_TabHostContext: tab pick and active-tab query, forwarded to the category tab.
+	override void SelectTabId(int tabId)
+	{
+		OVT_ShopCategory category = tabId;
+		SelectTab(category);
+	}
+
+	override bool IsTabIdActive(int tabId)
+	{
+		return m_eTab == tabId;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -998,7 +1010,7 @@ class OVT_ShopContext : OVT_UIContext
 		OVT_ShopMenuTabComponent tab = OVT_ShopMenuTabComponent.Cast(w.FindHandler(OVT_ShopMenuTabComponent));
 		if(!tab) return false;
 
-		tab.Init(category, this, category == m_eTab);
+		tab.Init(category, OVT_ShopCategoryHelper.GetLabelKey(category), this, category == m_eTab);
 		return true;
 	}
 
@@ -1012,7 +1024,7 @@ class OVT_ShopContext : OVT_UIContext
 		while(child)
 		{
 			OVT_ShopMenuTabComponent tab = OVT_ShopMenuTabComponent.Cast(child.FindHandler(OVT_ShopMenuTabComponent));
-			if(tab) tab.SetSelected(tab.GetCategory() == m_eTab);
+			if(tab) tab.SetSelected(tab.GetTabId() == m_eTab);
 
 			child = child.GetSibling();
 		}

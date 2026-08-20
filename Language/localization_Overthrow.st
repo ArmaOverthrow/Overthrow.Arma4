@@ -672,7 +672,7 @@ StringTable {
    Target_ko_kr "돈이 충분하지 않습니다."
    Target_zh_cn "你负担不起"
    Target_uk_ua "Ви не можете собі цього дозволити"
-   Comment ""
+   Comment "Transfer screen checkout: shown when the cart total exceeds what the player can pay, and Accept is refused."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -5691,7 +5691,7 @@ StringTable {
    Target_ko_kr "가져오기"
    Target_zh_cn "进口"
    Target_uk_ua "Імпорт"
-   Comment ""
+   Comment "Transfer screen mode label for the port Import list."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15384,7 +15384,7 @@ StringTable {
    Target_ko_kr "창고에서 가져오기"
    Target_zh_cn "从仓库取出"
    Target_uk_ua "Взяти зі складу"
-   Comment ""
+   Comment "Warehouse transfer screen - the mode label and screen title for taking stock out of a warehouse"
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15584,6 +15584,346 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1754265600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000001}" {
+   Id "OVT-Transfer_Accept"
+   Target_en_us "Accept"
+   Comment "Transfer screen footer - commits the whole order (the cart) in one press"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000002}" {
+   Id "OVT-Transfer_Accepted"
+   Target_en_us "Sent %1 item(s) in %2 line(s)"
+   Comment "Transfer screen - confirmation after Accept. %1 is the total item count, %2 the number of cart lines"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000003}" {
+   Id "OVT-Transfer_Add1"
+   Target_en_us "Add 1"
+   Comment "Transfer screen footer - adds one of the focused list row to the order"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000004}" {
+   Id "OVT-Transfer_Add10"
+   Target_en_us "Add 10"
+   Comment "Transfer screen footer - adds ten of the focused list row to the order"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000005}" {
+   Id "OVT-Transfer_AddAll"
+   Target_en_us "Add all"
+   Comment "Transfer screen footer - fills the order line for the focused row up to its maximum. Hidden where adding a whole stack is not offered"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000006}" {
+   Id "OVT-Transfer_CartEmpty"
+   Target_en_us "Nothing added yet"
+   Comment "Transfer screen - shown in place of the order list while the order is empty"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000007}" {
+   Id "OVT-Transfer_CategoryAll"
+   Target_en_us "All"
+   Comment "Transfer screen - the always-present first category tab, meaning no category filter"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000014}" {
+   Id "OVT-Transfer_DestinationVehicle"
+   Target_en_us "Vehicle"
+   Comment "Transfer screen destination picker - the vehicle the player is currently occupying"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000008}" {
+   Id "OVT-Transfer_Mode1"
+   Target_en_us "Mode 1"
+   Comment "Transfer screen header - placeholder label for the first mode button. Replaced at runtime by the screen's own mode name"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000009}" {
+   Id "OVT-Transfer_Mode2"
+   Target_en_us "Mode 2"
+   Comment "Transfer screen header - placeholder label for the second mode button. Replaced at runtime by the screen's own mode name"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000A}" {
+   Id "OVT-Transfer_NextCategory"
+   Target_en_us "Next"
+   Comment "Transfer screen header - steps to the next category tab, wrapping at the end"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000B}" {
+   Id "OVT-Transfer_NoVehicle"
+   Target_en_us "Get in a vehicle to receive this"
+   Comment "Transfer screen - the order cannot be sent because the player is not in a vehicle to put it in"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000C}" {
+   Id "OVT-Transfer_PrevCategory"
+   Target_en_us "Previous"
+   Comment "Transfer screen header - steps to the previous category tab, wrapping at the start"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000D}" {
+   Id "OVT-Transfer_Remove1"
+   Target_en_us "Remove 1"
+   Comment "Transfer screen footer - takes one off the focused order line. Same button as Add 1, relabelled"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000E}" {
+   Id "OVT-Transfer_Remove10"
+   Target_en_us "Remove 10"
+   Comment "Transfer screen footer - takes ten off the focused order line. Same button as Add 10, relabelled"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D0000000F}" {
+   Id "OVT-Transfer_RemoveAll"
+   Target_en_us "Remove all"
+   Comment "Transfer screen footer - drops the focused order line entirely. Same button as Add all, relabelled"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000010}" {
+   Id "OVT-Transfer_SummaryEmpty"
+   Target_en_us "Nothing ordered yet"
+   Comment "Transfer screen checkout - the running total while the order is empty"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000011}" {
+   Id "OVT-Transfer_SummaryPrice"
+   Target_en_us "Total %1 in %2 line(s)"
+   Comment "Transfer screen checkout - running total when the value column is money. %1 is the formatted cost, %2 the number of order lines"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000012}" {
+   Id "OVT-Transfer_SummaryQuantity"
+   Target_en_us "%1 item(s) in %2 line(s)"
+   Comment "Transfer screen checkout - running total when the value column is a stock count. %1 is the total item count, %2 the number of order lines"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2C1D00000013}" {
+   Id "OVT-Transfer_Title"
+   Target_en_us "Transfer"
+   Comment "Transfer screen - window title when the screen does not name its own mode"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
    Author "Claude"
    LastChanged "Lemmi"
    ImageLink ""
@@ -15848,10 +16188,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000102}" {
    Id "OVT-Tutorial_HomeFirstOpen_Body"
-   Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Various warehouses can also be bought via this screen and allow mass storage and retireval of items."
+   Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Various warehouses can also be bought via this screen and allow mass storage and retrieval of items."
    Target_de_de "Immobilien können gekauft, gemietet und verkauft werden. Nicht alle Gebäude können gekauft werden, die meisten Häuser jedoch schon. Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter wiedereinsteigt, und Gebäude in deinem Besitz oder von dir gemietete Gebäude gelten als Schnellreiseziele. Basen und FOBs können ebenfalls als \"Zuhause\" festgelegt werden. Über diesen Bildschirm können außerdem verschiedene Lagerhäuser gekauft werden, die das Lagern und Entnehmen großer Mengen von Gegenständen ermöglichen."
    Target_uk_ua "Нерухомість можна купувати, орендувати та продавати. Не всі будівлі можна придбати, але більшість будинків — можна. Будівля, встановлена як ваш дім, є місцем відродження вашого персонажа, а будівлі, якими ви володієте або які орендуєте, доступні як точки швидкого переміщення. Бази та FOB також можна встановити як «Дім». Через цей екран також можна купувати різні склади, які дають змогу зберігати та забирати велику кількість предметів."
-   Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2."
+   Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2. TYPO FIX 2026-08-21: en_us 'retireval' -> 'retrieval'; wording unchanged otherwise, the de_de and uk_ua targets already read correctly and were not touched. Reviewed 2026-08-21 against the logistics/ui transfer screen: the warehouse sentence stays accurate (taking now goes through the shared transfer screen, but this tip never described the buttons)."
    DevNote ""
    Repro ""
    ActorGender NONE
