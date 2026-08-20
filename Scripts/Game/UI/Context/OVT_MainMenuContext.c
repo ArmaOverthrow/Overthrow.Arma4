@@ -63,7 +63,7 @@ class OVT_MainMenuContext : OVT_UIContext
 	protected bool FindOverride(IEntity entity)
 	{
 		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
-		if(found) {
+		if(found && found.IsOwnerUsable()) {
 			float dist = vector.Distance(entity.GetOrigin(),m_Owner.GetOrigin());
 			if(dist > found.m_fRange) return false;
 			if(m_fFoundRange == -1 || m_fFoundRange > dist)

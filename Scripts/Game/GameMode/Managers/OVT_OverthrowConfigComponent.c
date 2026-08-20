@@ -705,7 +705,13 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! without it a client would draw its own preset's price and refuse (or offer) a refuel the
 	//! server prices differently, which is the gate disagreeing with the authority, not a cosmetic
 	//! difference.
-	protected const int CONFIG_STREAM_VERSION = 4;
+	//!
+	//! Version 5 appended repairCostMultiplier to the difficulty block, for the same reason version 4
+	//! appended the fuel price: the repair action draws the price in its own label and greys itself out
+	//! locally when the player cannot pay it. Without it a client would price a repair from whatever
+	//! preset its game-mode prefab happened to instantiate, and offer (or refuse) a repair the server
+	//! charges differently for.
+	protected const int CONFIG_STREAM_VERSION = 5;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -735,6 +741,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.baseSupportRange);
 		writer.WriteBool(m_Difficulty.allowFOBDuringQRF);
 		writer.WriteFloat(m_Difficulty.fuelPricePerLitre);
+		writer.WriteFloat(m_Difficulty.repairCostMultiplier);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -829,6 +836,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.fuelPricePerLitre = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.repairCostMultiplier = f;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

@@ -14,9 +14,13 @@ class OVT_ParkingComponent : ScriptComponent
 	protected ref array<ref Shape> m_aParkingBoxes = {};
 #endif
 	
+	//! ! A RUIN HANDS OUT NO SPOTS (core/damage D15). This is the one choke point every consumer goes
+	//! through - buying a vehicle, fast travel, the occupying faction's parked-vehicle deployments - so
+	//! the gate lives here rather than in each of them. Non-destructible buildings are unaffected.
 	bool GetParkingSpot(out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR, bool skipObstructionCheck = false)
 	{
 		if(m_aParkingSpots.Count() == 0) return false;
+		if(!OVT_StructureDamage.IsUsable(GetOwner())) return false;
 		
 		foreach(OVT_ParkingPointInfo point : m_aParkingSpots)
 		{

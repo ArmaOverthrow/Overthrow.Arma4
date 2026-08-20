@@ -145,6 +145,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		
 		OVT_MainMenuContextOverrideComponent m_overrideComponent = OVT_MainMenuContextOverrideComponent.Cast(m_foundComponent);
 		if(!m_overrideComponent) return false;
+		if(!m_overrideComponent.IsOwnerUsable()) return false;
 		
 		float dist = vector.Distance(entity.GetOrigin(),m_player.GetOrigin());
 		if(dist > m_overrideComponent.m_fRange) return false;

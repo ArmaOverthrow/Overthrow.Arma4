@@ -968,29 +968,48 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! buildables ("GuardTower" vs "Guard Tower", "Bunker" vs "Bunkers", "VehicleGarage" vs "Garage");
 	//! only "Helipad" happens to line up. A join on the type string would silently price most of the
 	//! game's structures at nothing. The prefab resource name is exact, needs no data to be re-authored,
-	//! and is what PlaceItem()/BuildItem() spawned the thing from in the first place.
+	//! and is what BuildItem() spawned the thing from in the first place.
+	//! \param[in] entity The live structure.
+	//! \return The buildables-config entry that claims its prefab, or null.
+	OVT_Buildable FindBuildableForEntity(IEntity entity)
+	{
+		if(!entity) return null;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(entity);
+		if(prefab == ResourceName.Empty) return null;
+
+		if(!m_BuildablesConfig || !m_BuildablesConfig.m_aBuildables) return null;
+
+		foreach(OVT_Buildable buildable : m_BuildablesConfig.m_aBuildables)
+		{
+			if(!buildable || !buildable.m_aPrefabs) continue;
+			if(buildable.m_aPrefabs.Contains(prefab)) return buildable;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The authored price of a live structure, buildable or placeable.
 	//!
-	//! ⚠ THE RAW AUTHORED m_iCost, NOT the difficulty-multiplied one. The only consumer today orders
-	//! structures by price, and the multiplier is uniform, so applying it would change nothing except
-	//! to add a config dependency to a pure lookup. A caller that wants what a PLAYER would pay must
-	//! ask OVT_OverthrowConfigComponent.GetPlaceableCost/GetBuildableCost itself.
+	//! ⚠ THE RAW AUTHORED m_iCost, NOT the difficulty-multiplied one. Sabotage orders structures by
+	//! price and the multiplier is uniform, so applying it would change nothing except to add a config
+	//! dependency to a pure lookup. A caller that wants what a PLAYER would pay must ask
+	//! OVT_OverthrowConfigComponent.GetPlaceableCost/GetBuildableCost, or GetRepairCost() below.
+	//!
+	//! The buildable half of the join lives in FindBuildableForEntity() above - see its header for why
+	//! the join is on the prefab and never on the type string.
 	//! \param[in] entity The live structure.
 	//! \return Its authored cost, or UNKNOWN_STRUCTURE_COST when no config entry claims its prefab.
 	int GetStructureCost(IEntity entity)
 	{
 		if(!entity) return UNKNOWN_STRUCTURE_COST;
 
+		OVT_Buildable buildable = FindBuildableForEntity(entity);
+		if(buildable) return buildable.m_iCost;
+
 		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(entity);
 		if(prefab == ResourceName.Empty) return UNKNOWN_STRUCTURE_COST;
-
-		if(m_BuildablesConfig && m_BuildablesConfig.m_aBuildables)
-		{
-			foreach(OVT_Buildable buildable : m_BuildablesConfig.m_aBuildables)
-			{
-				if(!buildable || !buildable.m_aPrefabs) continue;
-				if(buildable.m_aPrefabs.Contains(prefab)) return buildable.m_iCost;
-			}
-		}
 
 		if(m_PlaceablesConfig && m_PlaceablesConfig.m_aPlaceables)
 		{
@@ -1002,6 +1021,76 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		return UNKNOWN_STRUCTURE_COST;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What a player pays to put this ruined structure back.
+	//!
+	//! One expression, evaluated on both machines: the client draws this in the action label and greys
+	//! the action out with it, and the server re-derives it here before taking the money. Only
+	//! BUILDABLES are repairable - a placeable has no ruined phase to come back from - so an entity the
+	//! buildables config does not claim is refused rather than priced.
+	//! \param[in] entity The structure (the root; its destruction component may sit on a child).
+	//! \return Dollars owed, or -1 when this structure cannot be priced for repair at all.
+	int GetRepairCost(IEntity entity)
+	{
+		OVT_Buildable buildable = FindBuildableForEntity(entity);
+		if(!buildable) return -1;
+
+		if(!OVT_RepairPricing.IsRepairable(buildable.m_iCost)) return -1;
+
+		OVT_OverthrowConfigComponent config = m_Config;
+		if(!config) config = OVT_Global.GetConfig();
+		if(!config || !config.m_Difficulty) return -1;
+
+		return OVT_RepairPricing.RepairCost(buildable.m_iCost, config.m_Difficulty.buildableCostMultiplier, config.m_Difficulty.repairCostMultiplier);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: repair a ruined structure, charging the asking player.
+	//!
+	//! CHARGE AFTER PERFORMING, NEVER BEFORE - the shape RpcAsk_RearmVehicle uses: check
+	//! PlayerHasMoney, do the thing, then TakePlayerMoney. DoTakePlayerMoney clamps at zero, so the
+	//! explicit funds check is mandatory rather than defensive.
+	//!
+	//! playerId == -1 MEANS SERVER-INITIATED AND FREE, the convention BuildItem() and ChargeForGarrison()
+	//! already use. That is how the occupying faction's repair module and the admin command repair
+	//! without a wallet.
+	//! \param[in] entity The ruined structure.
+	//! \param[in] playerId The paying player, or -1 for a free server-initiated repair.
+	//! \return True when the structure was repaired.
+	bool RepairStructure(IEntity entity, int playerId)
+	{
+		if(!entity) return false;
+		if(!Replication.IsServer()) return false;
+
+		if(!OVT_StructureDamage.IsRuined(entity)) return false;
+
+		int cost = 0;
+		if(playerId > -1)
+		{
+			cost = GetRepairCost(entity);
+			if(cost < 0) return false;
+
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			if(!economy) return false;
+
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return false;
+			}
+
+			if(!OVT_StructureDamage.Repair(entity)) return false;
+
+			economy.TakePlayerMoney(playerId, cost);
+			OVT_Global.GetNotify().SendTextNotification("RepairedStructure", playerId);
+
+			return true;
+		}
+
+		return OVT_StructureDamage.Repair(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------

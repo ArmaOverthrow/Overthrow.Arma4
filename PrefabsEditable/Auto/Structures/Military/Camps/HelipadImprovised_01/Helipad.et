@@ -59,7 +59,52 @@ StaticModelEntity : "{CF1FFB7BAA1A0769}Prefabs/Structures/Military/Camps/Helipad
     }
    }
   }
+  ActionsManagerComponent "{6B70D00000000031}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000032}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D00000000033}" {
+      Offset 0 1 0
+     }
+     Radius 6
+    }
+   }
+   additionalActions {
+    OVT_RepairStructureAction "{6B70D00000000034}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000035}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6B70D0000000000C}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+    }
+   }
+   m_fBaseHealth 100000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D0000000000D}" {
+     m_fPhaseHealth 100000
+     m_PhaseModel "{0335D6B08DBE867E}Assets/Structures/Debris/DebrisPiles/DebrisPile_Concrete_01_Medium.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_WOOD_SOLID
+  }
   RplComponent "{5D748E174E08BEBB}" : "{B193E926C1935A4C}Prefabs/Editor/Components/Default_RplComponent.ct" {
+   Enabled 1
   }
  }
  placement none

@@ -980,10 +980,20 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 
 	//------------------------------------------------------------------------------------------------
 	//! Resolves a shop component from a networked entity reference. Every step null-guarded (Q7).
+	//!
+	//! A RUINED SHOP RESOLVES TO NOTHING (core/damage D15). This is the server-side half of the gate -
+	//! the menu cannot be opened at a ruin at all, so reaching here means a stale menu or a lying
+	//! client - and it is the only per-request hook the three shop handlers share.
 	protected OVT_ShopComponent ResolveShop(RplId shopId)
 	{
 		IEntity shopEntity = ResolveEntity(shopId);
 		if(!shopEntity) return null;
+
+		if(!OVT_StructureDamage.IsUsable(shopEntity))
+		{
+			Print("[OVT_ShopTransactionComponent] Shop request refused: the structure is a ruin", LogLevel.WARNING);
+			return null;
+		}
 
 		return OVT_ShopComponent.Cast(shopEntity.FindComponent(OVT_ShopComponent));
 	}

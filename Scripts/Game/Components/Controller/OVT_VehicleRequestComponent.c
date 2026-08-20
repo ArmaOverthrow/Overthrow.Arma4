@@ -531,6 +531,14 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 		OVT_ShopComponent shop = OVT_ShopComponent.Cast(shopEntity.FindComponent(OVT_ShopComponent));
 		if(!shop || !shop.GetOwner()) return;
 
+		// A flattened garage or helipad sells nothing (core/damage D15). Server-side half of the gate:
+		// the menu cannot be opened at a ruin, so reaching here is a stale menu or a lying client.
+		if(!OVT_StructureDamage.IsUsable(shop.GetOwner()))
+		{
+			Print(string.Format("[OVT_VehicleRequestComponent] Player %1 asked to buy a vehicle from a ruined structure - refused", playerId), LogLevel.WARNING);
+			return;
+		}
+
 		// The shop UI's proximity gate is client-side only - re-check it here
 		if(vector.Distance(player.GetOrigin(), shop.GetOwner().GetOrigin()) > SHOP_MAX_DISTANCE) return;
 

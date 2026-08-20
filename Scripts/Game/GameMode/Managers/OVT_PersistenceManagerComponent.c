@@ -481,8 +481,9 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! what re-runs every component serializer bound to it.
 	//!
 	//! WHAT IT DOES NOT COVER. Anything outside the game mode entity's record - world entities,
-	//! characters, vehicles, placeables. Restoring those means restarting the session, which is
-	//! LoadLatestSave().
+	//! characters, vehicles, placeables. Each of those is its own tracked instance; one of them can be
+	//! asked for by name with ReapplyEntitySaveData() below, and restoring ALL of them means
+	//! restarting the session, which is LoadLatestSave().
 	//!
 	//! Every serializer reached this way runs against an ALREADY RUNNING campaign, so each one must
 	//! be idempotent on a live session; see OVT_OverthrowGameModeSerializer's Deserialize and
@@ -491,6 +492,28 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! Poll IsReapplyInProgress() for completion and read GetLastReapplyDiagnostic() afterwards - it
 	//! is empty exactly when the re-application succeeded.
 	void ReapplyLatestSaveData()
+	{
+		RequestReapply(GetOwner(), "the game mode entity is not tracked, so it has no stored record - check the Persistence component on the game mode prefab");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-reads the persisted record for ONE live tracked entity and applies it to that entity.
+	//!
+	//! Same mechanism and the same contract as ReapplyLatestSaveData() - poll IsReapplyInProgress(),
+	//! then read GetLastReapplyDiagnostic() - for a world entity that owns its own record rather than
+	//! riding the game mode's: a buildable, a placeable, a vehicle. The serializer runs against a live
+	//! instance, so it must be idempotent.
+	//! \param[in] entity The tracked entity to re-read.
+	void ReapplyEntitySaveData(IEntity entity)
+	{
+		RequestReapply(entity, "that entity is not tracked, so it has no stored record");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The shared body of both re-applications.
+	//! \param[in] instance The tracked instance to re-read.
+	//! \param[in] untrackedDiagnostic What to report when the instance carries no stored record.
+	protected void RequestReapply(IEntity instance, string untrackedDiagnostic)
 	{
 		m_sLastReapplyDiagnostic = "";
 
@@ -515,23 +538,22 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			return;
 		}
 
-		IEntity owner = GetOwner();
-		if (!owner)
+		if (!instance)
 		{
-			m_sLastReapplyDiagnostic = "the persistence manager has no owner entity";
-			Print("[Overthrow] Cannot re-apply saved data - no owner entity", LogLevel.ERROR);
+			m_sLastReapplyDiagnostic = "there is no instance to re-apply saved data to";
+			Print("[Overthrow] Cannot re-apply saved data - no instance", LogLevel.ERROR);
 			return;
 		}
 
-		if (!m_PersistenceSystem.IsTracked(owner))
+		if (!m_PersistenceSystem.IsTracked(instance))
 		{
-			m_sLastReapplyDiagnostic = "the game mode entity is not tracked, so it has no stored record - check the Persistence component on the game mode prefab";
-			Print("[Overthrow] Cannot re-apply saved data - the game mode entity is not tracked", LogLevel.ERROR);
+			m_sLastReapplyDiagnostic = untrackedDiagnostic;
+			Print("[Overthrow] Cannot re-apply saved data - " + untrackedDiagnostic, LogLevel.ERROR);
 			return;
 		}
 
 		PersistenceLoadRequest request();
-		request.Instances = {owner};
+		request.Instances = {instance};
 
 		m_bReapplyInProgress = true;
 		m_PersistenceSystem.RequestLoad(request, new PersistenceResultCallback(OnReapplyResult));
@@ -553,7 +575,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		}
 		else
 		{
-			m_sLastReapplyDiagnostic = string.Format("the persistence system answered %1 when re-reading the stored game mode record",
+			m_sLastReapplyDiagnostic = string.Format("the persistence system answered %1 when re-reading a stored record",
 				typename.EnumToString(EPersistenceStatusCode, statusCode));
 			Print("[Overthrow] Re-applying saved data FAILED: " + m_sLastReapplyDiagnostic, LogLevel.ERROR);
 		}

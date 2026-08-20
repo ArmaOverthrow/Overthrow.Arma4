@@ -1,6 +1,21 @@
 //------------------------------------------------------------------------------------------------
 modded class SCR_OpenStorageAction : SCR_InventoryAction
 {
+	//------------------------------------------------------------------------------------------------
+	//! Hidden while the structure this storage belongs to is a ruin (core/damage D15). This is the
+	//! GENERIC container action - it appears on anything that carries a storage - so it is the one
+	//! that would show up first on a buildable that gains one. Contents are untouched by a phase
+	//! change; repairing is how they come back.
+	//! \param[in] user The acting character.
+	//! \return True unless the owner is a ruined structure.
+	override bool CanBeShownScript(IEntity user)
+	{
+		if (!OVT_StructureDamage.IsUsable(GetOwner()))
+			return false;
+
+		return super.CanBeShownScript(user);
+	}
+
 	override bool CanBePerformedScript(IEntity user)
  	{
 		if (!user)

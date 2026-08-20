@@ -318,8 +318,12 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		Print(string.Format("[Overthrow] Sabotage: demolishing a structure worth %1 at %2",
 			m_aTargetCosts[index], target.GetOrigin().ToString()), LogLevel.NORMAL);
 
-		// ⚠ THE SHARED REMOVAL PATH, NOT A RAW DELETE. See the class header.
-		resistance.DestroyPlacedItem(target);
+		// ⚠ RUIN FIRST, REMOVE ONLY IF IT CANNOT BE RUINED. A retrofitted structure stays in the world as
+		// wreckage the resistance can repair; anything without a destruction component is removed exactly
+		// the way it always was. DestroyPlacedItem stays the only path that takes a structure out of the
+		// world - see the class header.
+		if (!OVT_StructureDamage.Ruin(target))
+			resistance.DestroyPlacedItem(target);
 
 		m_iDestroyed = m_iDestroyed + 1;
 
@@ -438,6 +442,12 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		// FilterStructureCallback() so the exclusion sits beside the target rule it qualifies, where the
 		// next person reading "what may this mission take" will find it.
 		if (IsGearContainer(entity))
+			return true;
+
+		// ⚠ A RUIN IS NOT A TARGET. Demolishing one again would burn a mission interval and a quota slot
+		// on a structure that is already down, and a base whose only buildable is a ruin would never
+		// report "nothing left to demolish".
+		if (OVT_StructureDamage.IsRuined(entity))
 			return true;
 
 		if (!m_QueryResistance)

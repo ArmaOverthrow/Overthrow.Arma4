@@ -63,6 +63,12 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 	//! Minimum ms between conversion attempts per player. Carried verbatim (BUG-063).
 	protected const int CONVERT_COOLDOWN_MS = 2000;
 
+	//! How far the caller may be from a ruin before the server refuses to repair it. An INTERACTION
+	//! radius, not a build radius: the player is standing at the structure holding an action on it, so
+	//! this is the conversion number (10 m, interaction range plus latency/movement slack) rather than
+	//! BUILD_MAX_DISTANCE's 250 m, which exists only because the build camera detaches from the body.
+	protected const float REPAIR_MAX_DISTANCE = 10;
+
 	//! Server-side timestamp of this player's last conversion attempt. Per-player because there is one
 	//! controller entity - and therefore one of these components - per player, exactly as the monolith
 	//! had one per character.
@@ -169,6 +175,19 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_ConvertSupporter(civilianId);
 		}else{
 			Rpc(RpcAsk_ConvertSupporter, civilianId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server to repair a ruined structure, charging the local player for it.
+	//! \param[in] entityId The structure's networked id.
+	void RepairStructure(RplId entityId)
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_RepairStructure(entityId);
+		}else{
+			Rpc(RpcAsk_RepairStructure, entityId);
 		}
 	}
 
@@ -417,6 +436,51 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 			hints.ShowCustom("#OVT-ConvertedSupporter");
 		}else{
 			hints.ShowCustom("#OVT-NotConvertedSupporter");
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: repair a ruined structure for the caller.
+	//!
+	//! NO IDENTITY PARAMETER, like every other handler here: the payer is the controller's owner. The
+	//! price is re-derived server-side in OVT_ResistanceFactionManager.GetRepairCost() - the client's
+	//! copy exists only to draw the label and grey the action out, and is never trusted.
+	//!
+	//! The "already intact" refusal is not pedantry: two players holding the action on the same ruin
+	//! both send, and without it the second one pays full price for a structure that is already back.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RepairStructure(RplId entityId)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if(!resistance) return;
+
+		IEntity entity = ResolveEntity(entityId);
+		if(!entity)
+		{
+			RejectResistanceRequest(playerId, "repair structure", "no replicated entity with that id");
+			return;
+		}
+
+		if(!OVT_StructureDamage.IsRuined(entity))
+		{
+			RejectResistanceRequest(playerId, "repair structure", "the structure is not ruined");
+			return;
+		}
+
+		if(!CallerIsWithin(playerId, entity.GetOrigin(), REPAIR_MAX_DISTANCE))
+		{
+			RejectResistanceRequest(playerId, "repair structure", "the caller is not at the structure");
+			return;
+		}
+
+		if(!resistance.RepairStructure(entity, playerId))
+		{
+			RejectResistanceRequest(playerId, "repair structure", "the manager refused the repair (unpriceable structure or insufficient funds)");
 		}
 	}
 

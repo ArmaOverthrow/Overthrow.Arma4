@@ -25,10 +25,14 @@
 //!    reviewer must be able to grep this tree for those type names and find at most the one
 //!    annotated trigger line."
 //!
-//! THERE ARE NOW TWO ANNOTATED TRIGGERS, NOT ONE, AND BOTH ARE IN THE GATE CLASS BELOW:
+//! THERE ARE NOW THREE ANNOTATED TRIGGERS, NOT ONE, AND ALL THREE ARE IN THE GATE CLASS BELOW:
 //!
-//!   1. OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce()      - the SAVE trigger.
-//!   2. OVT_TEST_PersistenceRoundTripGate.RequestSessionReload() - the LOAD trigger.
+//!   1. OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce()       - the SAVE trigger.
+//!   2. OVT_TEST_PersistenceRoundTripGate.RequestSessionReload()  - the LOAD trigger.
+//!   3. OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload() - the LOAD trigger for ONE world
+//!      entity that owns its own record (added 2026-08-20 for core/damage). Trigger 2 can only ask
+//!      for the game mode entity; a buildable is a tracked instance in its own right, so a case that
+//!      wants a real round trip on one has to name it. Same terms as the other two.
 //!
 //! The second one is new and is what makes this suite a round trip at all. The original draft
 //! reloaded by re-requesting the test world through the autotest framework, which boots a FRESH
@@ -200,6 +204,13 @@
 //!                                                the deployment pool exactly once. Takes a real save
 //!                                                (which is what runs the rewritten write path) but
 //!                                                uses NEITHER reload seam
+//!   1g. StructureDamage_RuinSurvivesSave      - the two core/damage cases. A real storage round trip
+//!   1h. StructureDamage_RepairSurvivesSave      on a BUILDABLE, which trigger 3 above is what makes
+//!                                               possible: build a Guard Tower, ruin (or repair) it,
+//!                                               save, dirty the phase to the opposite state, re-read
+//!                                               the entity's own record, assert the saved phase came
+//!                                               back. The second one runs both directions in
+//!                                               sequence, its repair overwriting a stored ruin
 //!   2. PlayerMoney_SurvivesSaveAndReload
 //!   2a. PlayerSleepCooldown_SurvivesSaveAndReload - the sleep action's game-clock cooldown stamp
 //!   3. PlayerSkills_SurvivesSaveAndReload
@@ -424,6 +435,44 @@ class OVT_TEST_PersistenceRoundTripGate
 			return "Persisted data could not be re-applied: " + persistence.GetLastReapplyDiagnostic() + ". The vanilla-persistence migration is not complete.";
 
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Requests the in-session re-application of ONE tracked entity's own stored record.
+	//!
+	//! The seam above can only ever ask for the game mode entity, which is why the FuelDepot case is a
+	//! save-only degradation: a buildable owns its record rather than riding the game mode's. This asks
+	//! for that record by instance, which is what makes a world-entity round trip possible at all.
+	//! \param[in] entity The tracked entity whose record should be re-read.
+	//! \return An empty string when the re-application was requested, otherwise a diagnostic.
+	static string RequestInstanceReload(IEntity entity)
+	{
+		string diagnostic;
+		OVT_PersistenceManagerComponent persistence = ResolvePersistence(diagnostic);
+		if (!persistence)
+			return diagnostic;
+
+		// ===========================================================================================
+		// PERMITTED PERSISTENCE-LAYER SEAM 3 OF 3 IN THE ENTIRE TEST TREE (Decision 4) - THE LOAD, FOR
+		// ONE WORLD ENTITY. Same terms as the other two: Overthrow's public manager API, no storage
+		// type named, no engine save API touched.
+		persistence.ReapplyEntitySaveData(entity);
+		// ===========================================================================================
+
+		if (!persistence.IsReapplyInProgress() && persistence.GetLastReapplyDiagnostic() != "")
+			return "The entity's persisted data could not be re-applied: " + persistence.GetLastReapplyDiagnostic();
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an entity has a stored record of its own yet. Registration is asynchronous, so a case
+	//! that saves a freshly spawned subject waits on this first.
+	//! \param[in] entity The entity to ask about.
+	//! \return True when the entity is tracked.
+	static bool InstanceIsTracked(IEntity entity)
+	{
+		return OVT_PersistenceTracking.IsTracked(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -8255,6 +8304,757 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 
 		m_FoundDepot = entity;
 		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared machinery for the two StructureDamage round-trip cases: build a Guard Tower beside a base,
+//! and find it again from scratch by prefab type and radius.
+//!
+//! The Guard Tower is the subject because it is the retrofitted buildable with a REAL ruin model and
+//! an active RplComponent (docs/features/core/damage/context.md, task 1.4/1.5) - the two cases assert
+//! the persisted PHASE, but a subject whose ruin mesh does not exist would make a green run mean less
+//! than it says.
+//!
+//! Nothing here is cached across phases: every phase looks the structure up again the way a consumer
+//! would, so an entity that quietly stopped existing fails its case instead of being read through a
+//! stale reference.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_StructureDamageRoundTripFixture
+{
+	//! Resolved by name out of the buildables config. Never an index - entries get appended.
+	static const string BUILDABLE_NAME = "Guard Tower";
+
+	//! OVT_BuildableComponent.m_sBuildableType authored on OVT_GuardTower_01.et. Deliberately not the
+	//! same string as the menu name above.
+	static const string BUILDABLE_TYPE = "GuardTower";
+
+	//! Metres searched around a build position when finding the structure again.
+	static const float REFIND_RADIUS = 12;
+
+	protected IEntity m_Found;
+
+	//------------------------------------------------------------------------------------------------
+	//! Picks a base and offsets from it. The two cases pass different offsets so their re-find queries
+	//! can never see each other's tower.
+	//! \param[in] offset Metres from the chosen base.
+	//! \param[out] position Where the structure should be built.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	string ChooseBuildPosition(vector offset, out vector position)
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return "OVT_Global.GetOccupyingFaction() is null, so there is no base to build beside";
+
+		foreach (OVT_BaseData candidate : occupying.m_Bases)
+		{
+			if (candidate)
+			{
+				position = candidate.location + offset;
+				return "";
+			}
+		}
+
+		return "The campaign has no bases, so there is nowhere to put a base buildable";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds one Guard Tower through the server-side build path.
+	//! \param[in] position Where to build it.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	string Build(vector position)
+	{
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance)
+			return "OVT_Global.GetResistanceFaction() is null";
+
+		if (!resistance.m_BuildablesConfig || !resistance.m_BuildablesConfig.m_aBuildables)
+			return "The resistance faction has no buildables config loaded";
+
+		int index = -1;
+		for (int i = 0; i < resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
+		{
+			OVT_Buildable candidate = resistance.m_BuildablesConfig.m_aBuildables[i];
+			if (candidate && candidate.m_sName == BUILDABLE_NAME)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index < 0)
+		{
+			return string.Format("No buildable named '%1' in the buildables config - the entry is missing or renamed",
+				BUILDABLE_NAME);
+		}
+
+		// playerId -1 is BuildItem()'s own server-initiated marker: it waives the funds, distance and
+		// item-limit checks.
+		IEntity structure = resistance.BuildItem(index, 0, position, vector.Zero, -1);
+		if (!structure)
+		{
+			return string.Format("BuildItem() built no Guard Tower at %1 - the prefab failed to spawn, or the build was refused",
+				position.ToString());
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the structure again by a fresh world query.
+	//! \param[in] position The build position to search around.
+	//! \return The structure, or null.
+	IEntity Find(vector position)
+	{
+		m_Found = null;
+		GetGame().GetWorld().QueryEntitiesBySphere(position, REFIND_RADIUS, Collect, null, EQueryEntitiesFlags.ALL);
+
+		IEntity found = m_Found;
+		m_Found = null;
+
+		return found;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The sentence a case fails with when Find() answers null.
+	//! \param[in] position The build position that was searched.
+	//! \return The diagnostic.
+	string NotFoundDiagnostic(vector position)
+	{
+		return string.Format("No buildable of type '%1' within %2 m of %3 - the structure is not in the world",
+			BUILDABLE_TYPE, REFIND_RADIUS.ToString(), position.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! World-query collector: keeps the first entity carrying a Guard Tower buildable component.
+	//! \param[in] entity Candidate from the sphere query.
+	//! \return False once the structure is found, which stops the query.
+	protected bool Collect(IEntity entity)
+	{
+		if (!entity)
+			return true;
+
+		OVT_BuildableComponent buildable = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
+		if (!buildable || buildable.GetBuildableType() != BUILDABLE_TYPE)
+			return true;
+
+		m_Found = entity;
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A RUINED structure comes back ruined: build a Guard Tower, ruin it, save, REPAIR it in memory,
+//! re-read its stored record, and it is a ruin again.
+//!
+//! WHAT IS AT STAKE. Destruction is only meaningful if it lasts. Before this feature a sabotaged
+//! structure was deleted, and a deleted entity is trivially "still gone" after a load; a ruin is a
+//! surviving entity holding one integer, and if that integer is not written or not read the campaign
+//! quietly repairs every ruin for free on every continue.
+//!
+//! THIS IS A REAL STORAGE ROUND TRIP, unlike the FuelDepot case above it, and the difference is the
+//! third seam in the gate class: a buildable owns its own persistence record, so it can be asked for
+//! BY INSTANCE. The save-point seam writes it, the phase is dirtied in memory, and the instance seam
+//! reads it back. Closures 2 and 3 of this suite's anti-vacuous design both hold: the dirty step
+//! repairs the structure through the same public facade the game uses, so a reload that restores
+//! nothing leaves an intact structure and the case fails; and "ruined" is not a state any build or
+//! campaign start produces - a freshly built structure is intact by definition, which the case
+//! asserts before it ruins anything.
+//!
+//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `StructureDamage*`
+//! does. It sorts after the Objective* cases and before the Town* ones, and disturbs neither: it
+//! changes no town, no deployment and no objective.
+//!
+//! THE TOWER IS LEFT STANDING (as a ruin) ON PURPOSE, for the FuelDepot case's reason: deleting a
+//! persistence-tracked entity mid-suite drives the transient-untrack retry queue (BUG-118), which is
+//! far likelier to disturb later cases than an inert prop is.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - drop the `if (version >= 2)` block from OVT_BuildableComponentSerializer.Deserialize() and
+//!     nothing restores the phase: the case reports the structure came back intact;
+//!   - make RestorePhase() return early for a ruined phase (or leave its authority guard inverted)
+//!     and the same assertion goes red, with the dirty repair still in place.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_StructureDamage_RuinSurvivesSave : SCR_AutotestCaseBase
+{
+	//! Offset from the chosen base. Well clear of the FuelDepot case's own build position.
+	static const vector BUILD_OFFSET = "45 0 -45";
+
+	static const int PHASE_BUILD = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_RUIN_AND_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_DIRTY_AND_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT = 6;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+	protected vector m_vBuildPos;
+
+	protected ref OVT_TEST_StructureDamageRoundTripFixture m_Fixture = new OVT_TEST_StructureDamageRoundTripFixture();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_BUILD)
+			return Build();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_RUIN_AND_SAVE)
+			return RuinAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Build()
+	{
+		string diagnostic = m_Fixture.ChooseBuildPosition(BUILD_OFFSET, m_vBuildPos);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = m_Fixture.Build(m_vBuildPos);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A structure's persistence registration is asynchronous, so the case waits for its record to
+	//! exist before it saves - otherwise a save could legitimately contain nothing to read back and
+	//! the failure would name the wrong half. Bounded, and expiry fails.
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(structure))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure("The built Guard Tower never became persistence-tracked, so it has no stored record and nothing about its state can survive a save");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_RUIN_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool RuinAndSave()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (!OVT_StructureDamage.IsDestructible(structure))
+		{
+			SetFailure("The built Guard Tower carries no destruction component, so it cannot be ruined at all - the prefab retrofit is missing");
+			return true;
+		}
+
+		// Closure 3: a freshly built structure is intact, so "ruined" is never a state the build path
+		// or a campaign start could have produced on its own.
+		if (OVT_StructureDamage.IsRuined(structure))
+		{
+			SetFailure("The Guard Tower was already a ruin the moment it was built");
+			return true;
+		}
+
+		if (!OVT_StructureDamage.Ruin(structure, false))
+		{
+			SetFailure("Ruin() refused the built Guard Tower");
+			return true;
+		}
+
+		if (!OVT_StructureDamage.IsRuined(structure))
+		{
+			SetFailure("The Guard Tower was still intact after Ruin(), so there was nothing ruined to save");
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Closure 2: the saved state is destroyed in memory before anything is read back, through the same
+	//! public facade the repair action will use.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (!OVT_StructureDamage.Repair(structure))
+		{
+			SetFailure("Repair() refused the ruined Guard Tower, so the live state could not be dirtied and the reload would prove nothing");
+			return true;
+		}
+
+		if (OVT_StructureDamage.IsRuined(structure))
+		{
+			SetFailure("The Guard Tower was still a ruin after the dirtying repair, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(structure);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (!OVT_StructureDamage.IsRuined(structure))
+		{
+			SetFailure("The Guard Tower was ruined and saved, then repaired in memory, and came back INTACT from its stored record - a ruin does not survive a save, so every destroyed structure repairs itself for free on the next continue");
+			return true;
+		}
+
+		Print("A ruined structure's damage phase survived a real save and came back out of storage");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! And the inverse, which is the assertion the requirements ask for by name: a REPAIRED structure
+//! does not revert. Build, ruin, save, re-read (it is a ruin), repair, save again, ruin it in memory,
+//! re-read - and it is intact.
+//!
+//! WHY BOTH DIRECTIONS NEED THEIR OWN CASE. The phase is one integer, so a serializer that wrote a
+//! constant 1 - or a RestorePhase() that only ever drives the ruin branch - would pass the ruin case
+//! above and lose every repair the player paid for. The second half here is written over the top of
+//! the first: the structure is genuinely a ruin in storage before it is repaired, so the second save
+//! has to overwrite a value that was already there rather than write a field for the first time.
+//!
+//! The dirty step of each half is the opposite of what it asserts, so neither can pass by accident:
+//! a reload that restores nothing leaves the case looking at the value it deliberately destroyed.
+//!
+//! ⚠ TAKES TWO REAL SAVES. Same sort-order requirement as the case above, which the name satisfies.
+//! It builds its tower on the other side of the base, so the two cases can never find each other's.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - hardcode the serializer's written phase to 1 and the second half reports the structure came
+//!     back ruined after a repair, while the ruin case above stays green - which is the whole reason
+//!     this case exists;
+//!   - remove the phase-0 branch from RestorePhase() and the same assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 120)]
+class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_AutotestCaseBase
+{
+	//! The other side of the base from the ruin case's tower.
+	static const vector BUILD_OFFSET = "-45 0 45";
+
+	static const int PHASE_BUILD = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_RUIN_AND_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT_HALF = 6;
+	static const int PHASE_DONE = 7;
+
+	//! Which half is running: 0 = the ruin was saved, 1 = the repair was saved.
+	protected int m_iHalf;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+	protected vector m_vBuildPos;
+
+	protected ref OVT_TEST_StructureDamageRoundTripFixture m_Fixture = new OVT_TEST_StructureDamageRoundTripFixture();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_BUILD)
+			return Build();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_RUIN_AND_SAVE)
+			return ChangeAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return AssertHalf();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Build()
+	{
+		string diagnostic = m_Fixture.ChooseBuildPosition(BUILD_OFFSET, m_vBuildPos);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = m_Fixture.Build(m_vBuildPos);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(structure))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure("The built Guard Tower never became persistence-tracked, so it has no stored record and nothing about its state can survive a save");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_RUIN_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Half 0 ruins the structure and saves; half 1 repairs it and saves over that record.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool ChangeAndSave()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (m_iHalf == 0)
+		{
+			if (!OVT_StructureDamage.IsDestructible(structure))
+			{
+				SetFailure("The built Guard Tower carries no destruction component, so it cannot be ruined at all - the prefab retrofit is missing");
+				return true;
+			}
+
+			if (!OVT_StructureDamage.Ruin(structure, false))
+			{
+				SetFailure("Ruin() refused the built Guard Tower");
+				return true;
+			}
+
+			if (!OVT_StructureDamage.IsRuined(structure))
+			{
+				SetFailure("The Guard Tower was still intact after Ruin(), so there was nothing ruined to save");
+				return true;
+			}
+		}
+		else
+		{
+			if (!OVT_StructureDamage.Repair(structure))
+			{
+				SetFailure("Repair() refused the ruined Guard Tower, so there was no repair to save");
+				return true;
+			}
+
+			if (OVT_StructureDamage.IsRuined(structure))
+			{
+				SetFailure("The Guard Tower was still a ruin after Repair(), so there was no repair to save");
+				return true;
+			}
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iSavePolls = 0;
+		m_iPhase = PHASE_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Destroys the saved state in memory - the opposite of what this half asserts - and re-reads the
+	//! stored record.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (m_iHalf == 0)
+		{
+			if (!OVT_StructureDamage.Repair(structure) || OVT_StructureDamage.IsRuined(structure))
+			{
+				SetFailure("The saved ruin could not be dirtied back to intact, so the reload would prove nothing");
+				return true;
+			}
+		}
+		else
+		{
+			if (!OVT_StructureDamage.Ruin(structure, false) || !OVT_StructureDamage.IsRuined(structure))
+			{
+				SetFailure("The saved repair could not be dirtied back to a ruin, so the reload would prove nothing");
+				return true;
+			}
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(structure);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iReloadPolls = 0;
+		m_iPhase = PHASE_ASSERT_HALF;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the half that just ran, then either starts the repair half or ends the case.
+	//! \return True when the case is finished; false to advance.
+	protected bool AssertHalf()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		IEntity structure = m_Fixture.Find(m_vBuildPos);
+		if (!structure)
+		{
+			SetFailure(m_Fixture.NotFoundDiagnostic(m_vBuildPos));
+			return true;
+		}
+
+		if (m_iHalf == 0)
+		{
+			if (!OVT_StructureDamage.IsRuined(structure))
+			{
+				SetFailure("The saved ruin came back intact, so there is no ruined record for the repair half to overwrite");
+				return true;
+			}
+
+			m_iHalf = 1;
+			m_iPhase = PHASE_RUIN_AND_SAVE;
+			return false;
+		}
+
+		if (OVT_StructureDamage.IsRuined(structure))
+		{
+			SetFailure("The Guard Tower was repaired and saved, then ruined in memory, and came back RUINED from its stored record - a repair does not survive a save, so a player's paid repair reverts on the next continue");
+			return true;
+		}
+
+		Print("A repaired structure stayed repaired through a save that overwrote a ruined record");
+
+		return true;
 	}
 }
 

@@ -2104,8 +2104,8 @@ StringTable {
   }
   CustomStringTableItem "{6B8C3F5D00000207}" {
    Id "OVT-FieldManual_CounterAttacks_Text3"
-   Target_en_us "What saboteurs pull down at a base is gone for good. There is no rubble, no repair, no salvage and no refund, and it does not come back when the campaign is loaded again: the money and the work that went into it are simply lost. They take the cheapest thing standing first and work upward, so bunkers and tents go before the garage does, and only what belongs to that base is ever at risk. A single player inside the base stops the demolitions where they are, and one message goes out per mission, on the first thing destroyed."
-   Comment "Field Manual - Counter Attacks page, body paragraph under 'What Sabotage Costs'. This paragraph is the T6.9 statement of permanent loss and is deliberately blunt. Four sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10. FACT-CHECKED against OVT_BaseSabotageBehaviorDeploymentModule.c: the removal goes through OVT_ResistanceFactionManager.DestroyPlacedItem(), which is OVT_NavmeshRebuild.Queue() then SCR_EntityHelper.DeleteEntityAndChildren() and nothing else - no refund call, no rubble prefab, and a deleted entity is never written to a save. Cheapest first is the ordering by OVT_ResistanceFactionManager.GetStructureCost(), joined BY PREFAB RESOURCE NAME against Configs/Resistance/buildables.conf and placeables (an unpriced prefab answers UNKNOWN_STRUCTURE_COST 1000000 and therefore sorts LAST, never first). The shipped buildable prices, in the order they go: Bunkers 750, Recruitment Tent 1000, Medical Tent 1000, Guard Tower 1200, Vehicle Maintenance Ramp 1500, Helipad 1500, Fuel Depot 2000, Garage 8000 - 'bunkers and tents before the garage' is that list, not a guess. Scope: the enumerator matches on association id AND type, so only structures associated with THAT base are candidates (a camp's, a FOB's, a house's and another base's are all excluded). The player block is m_fClearRadius 150 in Deployment_ObjectiveSabotage.conf and it PAUSES rather than resets (EvaluateDemolition leaves m_iTicksLeft alone). The notification is NotifyOnce() at :372-383 behind the m_bNotified latch, sending the ObjectiveSabotage broadcast preset once per mission on the first structure. How many go per mission and how long between them are difficulty settings (objectiveSabotageStructuresPerMission, objectiveSabotageHoldSeconds) and are deliberately not quoted."
+   Target_en_us "What saboteurs pull down at a base stays where it stood. The structure is wrecked rather than taken away, with an explosion and smoke to mark it, and the ruin can be put back for a share of what it cost to build; a campaign saved and loaded again brings it back as a ruin. Gear stored inside survives the demolition, though nothing about the place works until it is repaired. They take the cheapest thing standing first and work upward, so bunkers and tents go before the garage does, and only what belongs to that base is ever at risk. A single player inside the base stops the demolitions where they are, and one message goes out per mission, on the first thing destroyed."
+   Comment "Field Manual - Counter Attacks page, body paragraph under 'What Sabotage Costs'. Reference voice: describes, never instructs. Five sentences, no rich-text markup. ADDED 2026-08-19 by occupying/counter-attacks Phase 10; REWRITTEN 2026-08-20 by core/damage Phase 8 - the old text said losses were permanent with no rubble and no repair, which core/damage replaced. FACT-CHECKED against OVT_BaseSabotageBehaviorDeploymentModule.DemolishNextStructure():325, which now calls OVT_StructureDamage.Ruin(target) and only falls back to OVT_ResistanceFactionManager.DestroyPlacedItem() for a structure with no destruction component - all eight shipped buildables carry one after the core/damage retrofit, so on shipped data a demolished structure always becomes a ruin. The entity is never deleted, so it stays in the world and its persistence record survives; the phase round-trips through OVT_BuildableComponentSerializer version 2. The explosion particle, smoke particle and positional sound are OVT_StructureDestructionComponent.RaiseEffects():291-301. Repair is OVT_RepairStructureAction priced by OVT_RepairPricing.RepairCost(baseCost, buildableCostMultiplier, repairCostMultiplier) - see OVT-FieldManual_Ruins_Text4 for the difficulty numbers, which are deliberately not repeated here. Gear survival: a phase change swaps the mesh and touches nothing else (implementation.md §3.8); only the storage ACTIONS are gated, at OVT_OpenStorageAction.c:37 and Modded/SCR_OpenStorageAction.c:13. Cheapest first is the ordering by OVT_ResistanceFactionManager.GetStructureCost(), joined BY PREFAB RESOURCE NAME against Configs/Resistance/buildables.conf (an unpriced prefab answers UNKNOWN_STRUCTURE_COST 1000000 and therefore sorts LAST). Shipped buildable prices, in the order they go: Bunkers 750, Recruitment Tent 1000, Medical Tent 1000, Guard Tower 1200, Vehicle Maintenance Ramp 1500, Helipad 1500, Fuel Depot 2000, Garage 8000. Scope: the enumerator matches on association id AND type, so only structures associated with THAT base are candidates. The player block is m_fClearRadius 150 in Deployment_ObjectiveSabotage.conf and it PAUSES rather than resets. The notification is NotifyOnce() behind the m_bNotified latch, once per mission on the first structure. How many go per mission and how long between them are difficulty settings and are deliberately not quoted."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3655,6 +3655,176 @@ StringTable {
    Modified 1706583682
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000049}" {
+   Id "OVT-FieldManual_Ruins_Head"
+   Target_en_us "A Ruin Does Nothing"
+   Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004A}" {
+   Id "OVT-FieldManual_Ruins_Head2"
+   Target_en_us "The Gear Inside Survives"
+   Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004B}" {
+   Id "OVT-FieldManual_Ruins_Head3"
+   Target_en_us "Putting It Back"
+   Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004C}" {
+   Id "OVT-FieldManual_Ruins_Head4"
+   Target_en_us "The Other Side Repairs Too"
+   Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004D}" {
+   Id "OVT-FieldManual_Ruins_Text"
+   Target_en_us "A structure the occupying faction wrecks at one of your bases does not vanish. It goes up with an explosion and a column of smoke, and what is left stands where it stood, on the same ground, as a ruin. A campaign saved and loaded again brings a ruin back as a ruin, and a structure that has been put back comes back repaired."
+   Comment "Field Manual - Ruins and Repair page, opening paragraph. Reference voice: describes, never instructs. Three sentences, no rich-text markup. ADDED 2026-08-20 by core/damage Phase 8. FACT-CHECKED: sabotage ruins instead of deleting at OVT_BaseSabotageBehaviorDeploymentModule.c:325 (Ruin first, DestroyPlacedItem only as the fallback for a structure with no destruction component - all eight shipped buildables carry one). The entity is never deleted, so it stays in place; the explosion particle, the smoke particle and the positional one-shot sound are OVT_StructureDestructionComponent.RaiseEffects():291-301 and RaiseSound():309, raised on every machine by the broadcast RpcDo_ApplyPhase. Save/load is OVT_BuildableComponentSerializer version 2, which appends the damage phase and restores it through RestorePhase()."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004E}" {
+   Id "OVT-FieldManual_Ruins_Text2"
+   Target_en_us "A ruin is inert. There is no refuelling at a wrecked fuel depot, no recruiting from a collapsed tent, no treatment at a flattened medical tent, no shop at a ruined garage, no parking, and no reaching into the rubble for what was stored there. Pumps and repair bays stop answering from a vehicle's side as well, so nothing about the place works while it is wreckage."
+   Comment "Field Manual - Ruins and Repair page, body paragraph under 'A Ruin Does Nothing'. Three sentences, no rich-text markup. ADDED 2026-08-20 by core/damage Phase 8. FACT-CHECKED against the phase-0 gates (core/damage D15), each of which asks OVT_StructureDamage.IsUsable(): OVT_FillFuelAction.c:127 (refuel), OVT_RecruitFromTentAction.c:80 (recruiting), OVT_HealAction.c:28 (treatment), OVT_OpenStorageAction.c:37 and Modded/SCR_OpenStorageAction.c:13 (storage), OVT_ParkingComponent.c:23 (parking), plus the shop/menu gates on OVT_ShopTransactionComponent, OVT_MainMenuContext and OVT_MainMenuContextOverrideComponent. The vehicle-side half is OVT_StructureDestructionComponent.ApplySupportStationState():185, which switches every SCR_BaseSupportStationComponent on the structure and its children off with the ruin and back on with the repair. NOTE: contents are untouched - only the ACTIONS are hidden (see Ruins_Text3)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D0000000004F}" {
+   Id "OVT-FieldManual_Ruins_Text3"
+   Target_en_us "Nothing stored in a structure is lost when it is wrecked. Containers and their contents come through the destruction untouched, and only the way in is closed. Putting the structure back opens them again with everything where it was left."
+   Comment "Field Manual - Ruins and Repair page, body paragraph under 'The Gear Inside Survives'. Three sentences, no rich-text markup. ADDED 2026-08-20 by core/damage Phase 8. FACT-CHECKED: a multi-phase change swaps the mesh and touches nothing else, so the entity, its BaseInventoryStorageComponent and its contents survive (implementation.md §3.8). The closed way in is the storage gate at OVT_OpenStorageAction.c:37 and Modded/SCR_OpenStorageAction.c:13. Proven automatically by OVT_TEST_Init_StructureDamage case D, which parents an ammo box to a built Guard Tower, ruins it, repairs it and asserts the contents are unchanged."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000050}" {
+   Id "OVT-FieldManual_Ruins_Text4"
+   Target_en_us "A ruin carries a repair action, held for twenty seconds, and the action itself shows the price. Repair costs a share of what the structure cost to build, scaled by the same difficulty that priced the build: half on Easy and Normal, three quarters on Hard, and the full build price at Extreme and Insane. The money is checked before the work counts and taken when it finishes, so a repair beyond your means is turned down rather than left half done."
+   Comment "Field Manual - Ruins and Repair page, body paragraph under 'Putting It Back'. Three sentences, no rich-text markup. ADDED 2026-08-20 by core/damage Phase 8. FACT-CHECKED: the action is OVT_RepairStructureAction, shown only on a ruin, with Duration 20 authored on all eight buildable prefabs (OVT_GuardTower_01.et:32, OVT_RecruitmentTent.et:49, OVT_MedicalTent.et:39, OVT_VehicleMaintenanceRamp.et:48, OVT_FuelDepot.et:73, Garage_E_02.et:80, E_Sandbag_01_bunker_plastic_foundation_camonet.et:33, Helipad.et:80). The label is GetActionNameScript at OVT_RepairStructureAction.c:102 ('#OVT-RepairStructure ($N)'). The price is OVT_RepairPricing.RepairCost = Math.Round(baseCost * buildableCostMultiplier * repairCostMultiplier), called from OVT_ResistanceFactionManager.c:1046. repairCostMultiplier: Difficulty_Easy.conf:31 0.5, Difficulty_Normal.conf:25 0.5, Difficulty_Hard.conf:31 0.75, Difficulty_Extreme.conf:32 1, Difficulty_Insane.conf:32 1. Charge order is OVT_ResistanceFactionManager.RepairStructure(): PlayerHasMoney check (CannotAfford notification and refusal when short), then repair, then TakePlayerMoney. Exact dollar figures are deliberately not quoted because they depend on the difficulty preset."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000051}" {
+   Id "OVT-FieldManual_Ruins_Text5"
+   Target_en_us "The occupying faction does the same on ground it holds. A repair detail is sent to a base of theirs where something stands wrecked, and it puts structures back one at a time, cheapest first, without announcing anything. The work only goes on while nobody is close: a player within about a hundred and fifty metres of the base centre pauses it where it is."
+   Comment "Field Manual - Ruins and Repair page, body paragraph under 'The Other Side Repairs Too'. Three sentences, no rich-text markup. ADDED 2026-08-20 by core/damage Phase 8. FACT-CHECKED against OVT_BaseRepairBehaviorDeploymentModule and Configs/Deployment/Deployment_ObjectiveRepair.conf ('Base Repair Detail'): m_bRequireControl 1 (:50) so it only deploys at a base the occupying faction holds; targets are RUINED buildables associated with that base (IsRepairTarget), cheapest first via OVT_ObjectiveSelection.NextTargetIndex at :166; one per interval (m_iHoldSeconds 120, m_iStructuresPerMission 2 in the conf, both overridden by difficulty when loaded). The pause is EvaluateRepair():111 returning false on enemyPresent, where enemyPresent is NearestPlayerDistance(base.location) <= m_fClearRadius and m_fClearRadius is 150 (conf :33); it PAUSES rather than resets. No notification is sent by this module at all, unlike sabotage. Interval seconds and structures-per-mission are deliberately not quoted."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000052}" {
+   Id "OVT-FieldManual_Ruins_Title"
+   Target_en_us "Ruins and Repair"
+   Comment "Field Manual - page title for the Ruins and Repair entry in the Overthrow category, sitting between 'FOBs and Building' and 'Capturing a Base'. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1786924800
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -12981,6 +13151,20 @@ StringTable {
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000036}" {
+   Id "OVT-RepairStructure"
+   Target_en_us "Repair Structure"
+   Comment "Held user action on a RUINED Overthrow buildable (guard tower, tent, ramp, bunker, garage, helipad, fuel depot). Drawn by OVT_RepairStructureAction.GetActionNameScript as '#OVT-RepairStructure ($500)' - the price is appended in code, so this string must NOT contain a parameter or a price of its own. The action only exists on a ruin; repairing costs the build price scaled by the difficulty's repairCostMultiplier (half on Easy/Normal, three quarters on Hard, full at Extreme/Insane). Distinct from #OVT-RepairVehicle, which is the maintenance ramp's vehicle repair."
+   Modified 1787184000
+   Author "Claude"
+  }
+  CustomStringTableItem "{6B70D00000000037}" {
+   Id "OVT-RepairStructure-Repaired"
+   Target_en_us "Structure repaired"
+   Comment "Notification sent to the paying player only when a repair succeeds (preset tag 'RepairedStructure' in Configs/overthrowBroadcastMessages.conf, sent from OVT_ResistanceFactionManager.RepairStructure). NO PARAMETERS - the player is standing at the structure and just watched it come back, so naming it would add nothing. A server-initiated repair (playerId -1: the occupying faction's repair module, the admin command) sends nothing at all."
+   Modified 1787184000
+   Author "Claude"
   }
   CustomStringTableItem "{59D0228A8D1E8EE6}" {
    Id "OVT-RepairVehicle"

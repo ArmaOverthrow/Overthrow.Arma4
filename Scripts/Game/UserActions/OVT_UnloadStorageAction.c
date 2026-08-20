@@ -71,6 +71,20 @@ class OVT_UnloadStorageAction : SCR_InventoryAction
 		}	
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Hidden while the structure this storage belongs to is a ruin (core/damage D15): the contents are
+	//! untouched by a phase change and come back on repair, but nobody reaches into rubble for them.
+	//! No buildable carries storage today - this one lives on ammo boxes - so this changes nothing until one does.
+	//! \param[in] user The acting character.
+	//! \return True unless the owner is a ruined structure.
+	override bool CanBeShownScript(IEntity user)
+	{
+		if (!OVT_StructureDamage.IsUsable(GetOwner()))
+			return false;
+
+		return super.CanBeShownScript(user);
+	}
+	
 	override bool CanBePerformedScript(IEntity user)
  	{
 		if (!user)

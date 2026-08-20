@@ -75,7 +75,9 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 	}	
 	
 	override bool CanBeShownScript(IEntity user) {
-		return true;
+		// PHASE-0 GATE (core/damage D15): a ruin offers nothing. IsUsable() answers true for every
+		// owner that is not a retrofitted structure, so this costs the other contexts nothing.
+		return OVT_StructureDamage.IsUsable(GetOwner());
 	}
 
 	override bool HasLocalEffectOnlyScript() { return true; }

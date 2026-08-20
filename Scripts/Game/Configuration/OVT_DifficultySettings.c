@@ -114,6 +114,11 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float placeableCostMultiplier;
 	[Attribute(defvalue: "1", desc: "Cost of buildables is multiplied by this value", category: "Economy")]
 	float buildableCostMultiplier;
+	//! Repairing a ruined structure costs its build price multiplied by this again, so a repair is
+	//! never dearer than a rebuild. Authored explicitly in all five ladder presets - nothing depends
+	//! on this default (implementation.md D11/G6).
+	[Attribute(defvalue: "0.5", desc: "Repair cost as a fraction of the build cost", category: "Economy")]
+	float repairCostMultiplier;
 	[Attribute(defvalue: "0.5", desc: "Cost of Real Estate is multiplied by this value", category: "Economy")]
 	float realEstateCostMultiplier;
 	[Attribute(defvalue: "10", desc: "Donation income per civilian supporter", category: "Economy")]

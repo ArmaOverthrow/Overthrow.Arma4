@@ -10,6 +10,8 @@ class OVT_AdminCommandsComponentClass : OVT_ControllerRequestComponentClass {};
 //!                               OnGiveResourcesCommand for why the reserve and not the pool;
 //!   "/tick-resources"           the same, but for exactly one tick's worth, computed rather than
 //!                               typed (admin-gated) - see OnTickResourcesCommand;
+//!   "/ruin-structure"           ruins the nearest built structure to the caller (admin-gated);
+//!   "/repair-structure"         restores it (admin-gated);
 //!   "/respawn-screen"           toggles the local respawn screen (no gate, no state change).
 //!
 //! First command: "/givemoney <amount>" adds money to the calling player's account so server
@@ -45,6 +47,11 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 	//! What "/give-resources" credits when the tester types no amount - roughly a couple of deployments'
 	//! worth, enough to see the occupying faction react without flooding the pool.
 	protected const int GIVE_RESOURCES_DEFAULT = 2000;
+
+	//! How far "/ruin-structure" and "/repair-structure" look for a structure, measured from the
+	//! caller's own character on the SERVER. Interaction range, not build range: the command is meant
+	//! for the thing the admin is standing at.
+	protected const float STRUCTURE_COMMAND_RADIUS = 15;
 
 	//! Whether this component has already put its callbacks into the chat command invokers.
 	//!
@@ -169,6 +176,36 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 		{
 			invoker.Remove(OnTickResourcesCommand);
 			invoker.Insert(OnTickResourcesCommand);
+		}
+
+		// "/ruin-structure" and "/repair-structure" - same hyphenated/unhyphenated pairs and the same
+		// Remove()-then-Insert() discipline as everything else here.
+		invoker = chat.GetCommandInvoker("ruin-structure");
+		if (invoker)
+		{
+			invoker.Remove(OnRuinStructureCommand);
+			invoker.Insert(OnRuinStructureCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("ruinstructure");
+		if (invoker)
+		{
+			invoker.Remove(OnRuinStructureCommand);
+			invoker.Insert(OnRuinStructureCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("repair-structure");
+		if (invoker)
+		{
+			invoker.Remove(OnRepairStructureCommand);
+			invoker.Insert(OnRepairStructureCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("repairstructure");
+		if (invoker)
+		{
+			invoker.Remove(OnRepairStructureCommand);
+			invoker.Insert(OnRepairStructureCommand);
 		}
 
 		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
@@ -593,5 +630,213 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 
 		if (notify)
 			notify.SendTextNotification("AdminResourcesAdded", playerId, amount.ToString(), reserve.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// STRUCTURE DESTRUCTION - "/ruin-structure" and "/repair-structure".
+	//
+	// The admin route into core/damage: they drive OVT_StructureDamage exactly as sabotage and the
+	// repair action do, so a ruin made from chat is the same ruin in every respect - it saves, it
+	// replicates and it repairs. They are also how the feature is play-tested at all, since a ruin
+	// otherwise only appears after the occupying faction sabotages a built structure.
+	//------------------------------------------------------------------------------------------------
+
+	//! Best structure found by the query in flight, and how far away it was. One command runs at a time.
+	protected IEntity m_QueryStructure;
+	protected vector m_vQueryOrigin;
+	protected float m_fQueryBestDistance;
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/ruin-structure". Takes no argument: the target is resolved server-side from
+	//! the caller's own character, never from client-supplied aim.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnRuinStructureCommand(SCR_ChatPanel panel, string data)
+	{
+		RequestRuinStructure();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to ruin the structure the caller is standing at. Admin-gated server-side.
+	void RequestRuinStructure()
+	{
+		if (Replication.IsServer())
+		{
+			RpcAsk_RuinStructure();
+		}
+		else
+		{
+			Rpc(RpcAsk_RuinStructure);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RuinStructure()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+
+		// The one gate that counts: the engine's own role flags for this connection.
+		if (!SCR_Global.IsAdmin(playerId))
+		{
+			Print(string.Format("[Overthrow] Player %1 used /ruin-structure without admin rights - refused", playerId), LogLevel.WARNING);
+			if (notify)
+				notify.SendTextNotification("AdminCommandRefused", playerId);
+			return;
+		}
+
+		IEntity structure = FindNearestStructure(playerId);
+		if (!structure)
+		{
+			Print(string.Format("[Overthrow] /ruin-structure: player %1 has no destructible built structure within %2 m", playerId, STRUCTURE_COMMAND_RADIUS), LogLevel.WARNING);
+			return;
+		}
+
+		if (OVT_StructureDamage.IsRuined(structure))
+		{
+			Print(string.Format("[Overthrow] /ruin-structure: the nearest structure to player %1 is already a ruin", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		OVT_StructureDamage.Ruin(structure);
+
+		Print(string.Format("[Overthrow] Admin (player %1) ruined a structure via /ruin-structure", playerId), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/repair-structure". Same target resolution as "/ruin-structure".
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnRepairStructureCommand(SCR_ChatPanel panel, string data)
+	{
+		RequestRepairStructure();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to repair the ruin the caller is standing at. Admin-gated server-side.
+	void RequestRepairStructure()
+	{
+		if (Replication.IsServer())
+		{
+			RpcAsk_RepairStructure();
+		}
+		else
+		{
+			Rpc(RpcAsk_RepairStructure);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RepairStructure()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+
+		// The one gate that counts: the engine's own role flags for this connection.
+		if (!SCR_Global.IsAdmin(playerId))
+		{
+			Print(string.Format("[Overthrow] Player %1 used /repair-structure without admin rights - refused", playerId), LogLevel.WARNING);
+			if (notify)
+				notify.SendTextNotification("AdminCommandRefused", playerId);
+			return;
+		}
+
+		IEntity structure = FindNearestStructure(playerId);
+		if (!structure)
+		{
+			Print(string.Format("[Overthrow] /repair-structure: player %1 has no destructible built structure within %2 m", playerId, STRUCTURE_COMMAND_RADIUS), LogLevel.WARNING);
+			return;
+		}
+
+		if (!OVT_StructureDamage.IsRuined(structure))
+		{
+			Print(string.Format("[Overthrow] /repair-structure: the nearest structure to player %1 is not a ruin", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		OVT_StructureDamage.Repair(structure);
+
+		Print(string.Format("[Overthrow] Admin (player %1) repaired a structure via /repair-structure", playerId), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER-SIDE TARGET RESOLUTION. Nearest built structure to the caller's own character that
+	//! actually carries a destruction component. No entity parameter and no client-supplied position:
+	//! no command in this class takes one and none should start.
+	//! \param[in] playerId The calling admin.
+	//! \return The structure to drive through OVT_StructureDamage, or null.
+	protected IEntity FindNearestStructure(int playerId)
+	{
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!character)
+			return null;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return null;
+
+		m_QueryStructure = null;
+		m_vQueryOrigin = character.GetOrigin();
+		m_fQueryBestDistance = STRUCTURE_COMMAND_RADIUS + 1;
+
+		world.QueryEntitiesBySphere(
+			m_vQueryOrigin,
+			STRUCTURE_COMMAND_RADIUS,
+			CollectStructureCallback,
+			FilterBuildableCallback,
+			EQueryEntitiesFlags.ALL);
+
+		IEntity found = m_QueryStructure;
+		m_QueryStructure = null;
+
+		return found;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Filter callback - built structures only.
+	//! \param[in] entity The entity being offered.
+	//! \return True to pass it to the collect callback.
+	protected bool FilterBuildableCallback(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		return OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent)) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Collect callback - keeps the nearest structure that has something to drive.
+	//! \param[in] entity The entity that passed the filter.
+	//! \return Always true, to keep searching.
+	protected bool CollectStructureCallback(IEntity entity)
+	{
+		if (!entity)
+			return true;
+
+		float distance = vector.Distance(entity.GetOrigin(), m_vQueryOrigin);
+		if (distance >= m_fQueryBestDistance)
+			return true;
+
+		if (!OVT_StructureDamage.IsDestructible(entity))
+			return true;
+
+		m_fQueryBestDistance = distance;
+		m_QueryStructure = entity;
+
+		return true;
 	}
 }
