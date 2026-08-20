@@ -1,9 +1,9 @@
 # Damage & Destruction — Implementation Plan
 
-**Status:** Ready for Review
+**Status:** ✅ Complete
 **Started:** 2026-08-20
-**Target Completion:** TBD
-**Last Updated:** 2026-08-20 19:55
+**Target Completion:** 2026-08-20 (complete)
+**Last Updated:** 2026-08-20 21:30
 
 **Epic:** `core` (feature #8 — see `docs/features/core/epic-overview.md:31`)
 **Requirements:** `docs/features/core/damage/requirements.md` (authoritative for scope)

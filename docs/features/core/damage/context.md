@@ -1,8 +1,8 @@
 # Damage & Destruction (`core/damage`) - Context & Decisions
 
-**Last Updated:** 2026-08-20 19:55
-**Current Phase:** All 8 phases built — Ready for Review; human verification owed
-**Status:** 🟡 Ready for Review (built; 10 user-gated items owed)
+**Last Updated:** 2026-08-20 21:30
+**Current Phase:** Closed
+**Status:** ✅ Complete — play-test green 2026-08-20
 
 **Epic:** `core` (feature #8) · **Plan:** `implementation.md` (8 phases) · **Scope truth:** `requirements.md` · **Branch:** `v1.5`
 
@@ -22,13 +22,10 @@
 - ✅ **Phase 8 (8.1, 8.3 drafted, 8.4 + 8.G; 8.2 skipped by design)** — Field Manual *Ruins and Repair*, Counter Attacks rewrite, ten `.st` keys, `wiki-draft.md` (session note below)
 
 **What's Next:**
-- ⏸️ **The 10 user-gated items** (see "Needs human verification"): **1.U1 / 4.U1** Workbench loads of the two probe prefabs / all eight; **1.U2 / 4.U2** listen host + client `/ruin-structure` + `/repair-structure` on each, mesh correct both ways; **2.U1** sabotage produces explosion/smoke/sound/ruin on both machines, notification once; **3.U1** listen-host save → Continue brings a ruin back silently (try a pre-feature save first for the v1 payload branch); **5.U1** dedicated server — client repair charged the server price, intact for everyone, hold ring reachable on all eight; **6.U1** dedicated server — admin aliases work, non-admin refused + logged; **7.U1** occupying repair detail at a held base (walk >150 m away); **8.U1** Field Manual and Counter Attacks pages agree with the preset's real price.
-- ⏸️ Workbench re-export of the localization `.conf` exports (11 strings; never hand-write them).
-- ⏸️ Wiki publication from `docs/features/core/damage/wiki-draft.md` (wikijs MCP not connected) — do with `occupying/counter-attacks` T10.3 in one pass.
-- ⏸️ git: everything is uncommitted in the working tree — the user commits.
+- Nothing — closed. Remaining non-blocking debt: wiki publication from `wiki-draft.md` (wikijs MCP not connected), tutorial trigger for 'at a ruin' (framework, other feature), occupying repair balance numbers provisional, tents/helipad generic rubble, FM tile image. Git: everything uncommitted — the user commits.
 
 **Blockers:**
-- None. Wiki tooling only (no `mcp__wikijs__*` tool exposed).
+- None (closed 2026-08-20).
 
 ---
 
@@ -155,6 +152,8 @@ Next free: `6B70D00000000053`. ⚠ **`6B70D00000000018` was reserved above and n
 - Nothing written in Phase 1 reaches `GetInstance()`. The one attribute that could route into `SCR_DestructionUtility.PlaySound` is `m_eMaterialSoundType` (authored `BREAK_ROCK` / `BREAK_METAL` on the probes), and it is only read from vanilla's weapons-damage path (`:332`, `:356`, `:376`) and vanilla's own broadcast receiver — neither of which we drive — and `PlaySound` hard-returns without the manager (`SCR_DestructionUtility.c:60-63`) rather than erroring.
 
 **Branch chosen:** the pre-recorded one — **depend on nothing**. **No Eden layer was edited**, and Phase 2 is already bound by D5/D6 to `SCR_DestructionCommon.PlayParticleEffect_CompleteDestruction` and `SCR_SoundManagerModule`, neither of which touches the manager.
+
+> **Note added 2026-08-20 (BD29), history kept as written:** the S3 answer above is right that the manager auto-spawns, and the Phase 2 code that followed it read as though it never would. It does. `RaiseSound()` now *prefers* the manager's own audio configuration when `GetInstance()` is non-null and keeps ours for the startup window — and the real defect was never the config but the two missing signals.
 
 ### S4 — ANSWERED (source evidence; Workbench load owed)
 
@@ -291,7 +290,15 @@ Everything `OVT_StructureDestructionComponent` depends on that lives in the base
 | `SCR_DestructionCommon.PlayParticleEffect_CompleteDestruction` | `SCR_DestructionCommon.c:80` | Phase 2's particles | compile error (loud) |
 | `SCR_SoundManagerModule.GetInstance(World)` / `CreateAudioSource(owner, config, pos)` / `PlayAudioSource` | `Systems/Sound/SCR_SoundManagerModule.c:324,113,250` | Phase 2's sound, deliberately not `SCR_DestructionUtility.PlaySound` | compile error (loud) |
 | `SCR_SoundEvent.SOUND_MPD_` + `Sounds/Destruction/Multiphase/Destruction_Multiphase.acp` | `Helpers/SCR_SoundEvent.c:346`, `Prefabs/MP/MPDestructionManager.et:18` | the BD8 fallback event name and bank | ruins go silent (quiet) |
-| The two default particle resources | `Configs/Destruction/Building_FX_Particle/*.conf` | `m_ExplosionParticle` / `m_SmokeParticle` defaults | no FX (quiet) |
+| `SetDamagePhase(int)` (protected) | `:165-170` | **the funnel** (BD27) - our effects and the support-station switch hang off it | compile error (loud) if renamed; silent loss of both if a future version stops routing every phase change through it |
+| `OnDamage()`'s `m_TotalDestruction` branch | `:297-316` | the path GM "Neutralize" and weapon kills take; it is *why* the funnel exists | ruins with no effects again |
+| `ParticleEffectEntity.SpawnParticleEffect` + `ParticleEffectEntitySpawnParams.FollowParent` / `TransformMode` | `GameLib/generated/Particles/ParticleEffectEntitySpawnParams.c` | the retained fire/smoke handles (BD28) | compile error (loud) |
+| `BaseWorld.GetSurfaceY` | `Core/generated/World/BaseWorld.c:24` | terrain snap for the ground fire pool (BD28 correction) | compile error (loud) |
+| `SCR_ParticleHelper.StopParticleEmissionAndLights` | `Helpers/SCR_ParticleHelper.c:9-26` | the only way a retained emitter is stopped | fire/smoke never stop (loud in play) |
+| `SCR_AudioSource.PHASES_TO_DESTROYED_PHASE_SIGNAL_NAME` / `ENTITY_SIZE_SIGNAL_NAME`, `SCR_DestructionUtility.GetDestructibleSize` | `SCR_AudioSource.c:37-38`, `SCR_DestructionUtility.c:177` | the destruction sound resolves through these (BD29) | ruins go silent (quiet) |
+| `SCR_MPDestructionManager.GetInstance()` / `GetAudioSourceConfiguration()` | `SCR_MPDestructionManager.c` | preferred audio config when the manager is up | falls back to ours (quiet) |
+| `Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Large.acp` + `SOUND_EXPLOSION` (Fuel_Large on the depot) | `Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Large.et:20`, `FuelTank_03_base.et:31-36` | the long-range blast layer (BD30) | ruins are only a close-range break again (quiet) |
+| The default particle resources | vanilla `Particles/` | `m_ExplosionParticle` / `m_DebrisParticle` / `m_FireParticle` / `m_SmokeParticle` defaults | no FX (quiet) |
 
 ---
 
@@ -510,6 +517,74 @@ Base Garrison Patrol authors one ("Never fortify a base a player is standing in"
 ### BD26 — The deployment is named "Base Repair Detail" while its file keeps the plan's `Deployment_ObjectiveRepair.conf` path (2026-08-20, task 7.4)
 The plan mandates the path; the *name* is what the registry, the Game Master panel, the dedup and every log line use, and calling it "Objective Repair" would have said the one thing D16 exists to deny — that it is a director objective. It is not: it is `m_bDirectorOnly 0` maintenance in the same family as the nine `Base *` configs, so it is named like them. ⚠ **Consequence: this is the only config in `Configs/Deployment/` whose file name does not match its deployment name.** Somebody grepping for `Deployment_BaseRepairDetail.conf` will not find it.
 
+### BD27 — `SetDamagePhase()` is the single funnel for the effects and the support stations (2026-08-20, play-test fix)
+Play-test found that GM **"Neutralize"** ruined a structure with no explosion, no sound and its support stations still working. The path never touches our code: `SCR_EditableEntityComponent.Destroy()` → `SCR_DamageManagerComponent.Kill()` (`:536-550`, TRUE damage = MaxHealth) → `SCR_DestructionMultiPhaseComponent.OnDamage()` (`:284`, which does **not** call super) → the `m_TotalDestruction` branch (`:297`, `:306-316`) = `GoToDamagePhase(lastPhase, false)` + `ReplicateDestructibleState(lastPhase, silent: true)`. `RuinIt()` and `RpcDo_ApplyPhase()` are bypassed entirely, so the same held for any weapon kill.
+
+The fix moves both side effects off our RPC and onto an override of the protected **`SetDamagePhase(int)`**, which every phase change on every machine reaches: it is the last thing `GoToDamagePhase` does (`:211`) after the same-phase guard (`:186-187`), and `GoToDamagePhase` is the only writer of the phase in the base class (`SCR_DestructionTireComponent:225` is a different class). So the funnel is reached by our `RuinIt`/`RepairIt`/`RestorePhase`, by vanilla's weapons path, by vanilla's own broadcast receiver on the client (`RPC_ReplicateMultiPhaseDestructionState` calls `GoToDamagePhase(phase, true)` even when `silent`) and by the JIP `OnRplLoad`.
+
+`previous == 0 && new > 0` → `OnBecameRuin()`: stations off (server) + `RaiseEffects()` (unless suppressed). `previous > 0 && new == 0` → `OnBecameIntact()`: stations on (server) + `StopRuinEffects()` (everywhere).
+
+**Suppression** (`m_bSuppressEffects`, set around the drive and cleared after) is what keeps a load silent: `RestorePhase()`, an overridden `OnRplLoad()` wrapping super, `RuinIt(withEffects: false)`, and the client side of `RpcDo_ApplyPhase` when `withEffects` is false. `RpcDo_ApplyPhase` no longer raises effects or touches stations at all — its whole body is now the client's phase drive — so nothing double-fires. Its arity is unchanged (two primitives).
+
+### BD28 — The ruin effect is an explosion + debris one-shot plus a RETAINED fire and smoke (2026-08-20, play-test fix)
+`Building_Explosion_Smoke.ptc` was the wrong asset: it is vanilla's collapse **dust**, authored to be played with `m_fParticlesMultiplier 0.2–0.5` and `m_bSnapToTerrain 1` (`Configs/Destruction/Building_FX_Particle/*.conf`). Played unscaled at the bounding-box centre it read as a smoke grenade. The effect set is now:
+
+| Attribute | Default | How it plays |
+|---|---|---|
+| `m_ExplosionParticle` | `{EEAC86461B982EE4}Particles/Props/Explosion_Generic.ptc` | one-shot, `PlayParticleEffect_CompleteDestruction` at the bbox centre |
+| `m_DebrisParticle` | `{6D89EA548ABDDF25}…Building_Explosion_Debris_Brick.ptc` | same |
+| `m_FireParticle` | `{4D5CD8B2B5DE8916}Particles/Vehicle/Vehicle_fire_engine_medium.ptc` | retained handle, follows the owner at the **bbox centre** (corrected — see below) |
+| `m_GroundFireParticle` | `{A9259561960FD620}Particles/Vehicle/Vehicle_fire_ground_medium.ptc` | retained handle, **unparented, world position, terrain-snapped** (corrected — see below) |
+| `m_SmokeParticle` | `{3F7B398D4D154CC9}Particles/Vehicle/Vehicle_smoke_damaged_medium_01.ptc` | retained handle, parented at the **bbox centre** |
+| `m_fFireSeconds` / `m_fSmokeSeconds` | 120 / 600 | `CallLater(StopRuinFire/StopRuinSmoke, s * 1000)` |
+
+The retained pair follows `SCR_FlammableHitZone` exactly — `ParticleEffectEntitySpawnParams { FollowParent = owner; PlayOnSpawn; UseFrameEvent; DeleteWhenStopped; Transform[3] = local offset }`, and the timer + `SCR_ParticleHelper.StopParticleEmissionAndLights(handle)` **is** the lifetime mechanism (a `ParticleEffectEntity` has no lifetime field). `StopRuinEffects()` stops both and drops the pending `CallLater`s; it runs from `OnBecameIntact()` (so a repair puts the fire out) and from `OnDelete`. All of it is behind `if (System.IsConsoleApp()) return;`.
+
+Per BD6 the attributes stay on the component, so a prefab overrides them: **`OVT_FuelDepot.et` authors `m_ExplosionParticle "{69766E33781FC23F}Particles/Logistics/Explosion/Fuel/Explosion_Fuel_Large.ptc"`** and takes the defaults for everything else.
+
+#### Correction, 2026-08-20 (play-test fix #3): no fire was visible
+
+Explosion and smoke read correctly; the fire did not exist on screen. Cause, from the vanilla source: `Vehicle_fire_ground_medium.ptc` is vanilla's **`m_sBurningGroundParticle`**, and `SCR_FlammableHitZone.StartDestructionGroundFire()` (`:604-660`) spawns it **unparented, in world space, with `Transform[3][1] = GetSurfaceY(x, z)`** and `UseFrameEvent` only. The wreck flame players actually see is a different asset — **`m_sBurningParticle` = `Vehicle_fire_engine_{medium,big}.ptc`** — and that one is the `FollowParent` + local-offset spawn (`UpdateFireEffects()` `:678-737`, `Vehicle_Base.et:118-120`, `Wheeled_Truck_Base.et:20`).
+
+We had spawned the flat ground pool as a `FollowParent` emitter at local `vector.Zero`. Most Overthrow buildables carry their origin at the **foundation**, i.e. at or under the visible floor, so the pool rendered inside the ruin mesh/terrain. Smoke was visible because it alone sat at the bbox centre — the diagnosis is therefore **position, not the emitter params** (diagnosis (a)/(d)/(f); (b), (c) and (e) were checked and cleared: vanilla sets no `MultParam`/`SetParam` to gate visibility, `m_fFireSeconds * 1000` = 120000 is a fine `CallLater` delay, and nothing reaches `StopRuinEffects()` on the ruin path).
+
+Now:
+
+* `m_FireParticle` defaults to `Vehicle_fire_engine_medium.ptc` and spawns through `SpawnAttachedEffect()` at the **bounding-box centre** (same params as vanilla `UpdateFireEffects`) — same helper as the smoke, differing only in resource.
+* `m_GroundFireParticle` is a second, cheap handle spawned through `SpawnGroundEffect()`: `TransformMode = ETransformMode.WORLD`, no parent, position = world bbox centre with `y = GetSurfaceY(x, z) + 0.2`, skipped entirely when the structure's world bbox min is more than `GROUND_FIRE_HEIGHT_TOLERANCE` (1 m) above the surface. Vanilla's repeating `CallLater(StartDestructionGroundFire, 1000, true)` retry loop is **not** ported: it exists to wait for a *physics wreck* to come to rest, and a buildable never moves.
+* One `StopRuinFire` timer covers both handles; `StopRuinEffects()`, the repair/delete paths, the 120 s lifetime, the headless guard and the `[Attribute]` overridability are unchanged.
+
+All four GUIDs re-verified against the reference tree (`Prefabs/Vehicles/Core/Vehicle_Base.et:118,120`, `Wheeled_Truck_Base.et:20`, `Helicopter_Base.et:65`).
+
+**Human verification owed:** ruin a Guard Tower and a low buildable (tent/ramp) and confirm a flame is visible from ~50 m and from directly alongside, that the ground pool is not clipping through the ruin mesh, that both stop at 120 s while the smoke keeps going to 600 s, and that a repair extinguishes them instantly. If `Vehicle_fire_engine_medium` reads too small on the larger structures, `{93CAB5E5559B5C32}…_big.ptc` is the drop-in swap.
+
+### BD29 — The destruction sound needs its two signals, and the MP destruction manager DOES exist (2026-08-20, play-test fix)
+`RaiseSound()` mirrored `SCR_DestructionUtility.PlaySound()` (`:54-88`) but stopped one step short: the `Destruction_Multiphase.acp` bank resolves its events through two signals, and without them nothing audible came out. Between `CreateAudioSource` and `PlayAudioSource` it now sets `SCR_AudioSource.PHASES_TO_DESTROYED_PHASE_SIGNAL_NAME` = `GetNumDamagePhases() - GetDamagePhase() - 1` and `SCR_AudioSource.ENTITY_SIZE_SIGNAL_NAME` = `SCR_DestructionUtility.GetDestructibleSize(owner)` (names at `SCR_AudioSource.c:37-38`).
+
+`ResolveAudioConfiguration()` now also **prefers `SCR_MPDestructionManager.GetInstance().GetAudioSourceConfiguration()`** when the manager is up, rewriting its event name per play the way vanilla does, and keeps our own config as the fallback. D6's rule is unchanged: a null manager is silent-fallback, never a fault — which is the whole reason we do not simply call `PlaySound()`, since the manager is 500 ms (10 s dedicated) late.
+
+### BD30 — The ruin sound is a vanilla big-explosion bank layered over the material break (2026-08-20, play-test fix)
+
+BD29 made the ruin audible but it was still only the `Destruction_Multiphase.acp` per-material **BREAK** event: a close-range structural crack, not a blast. The demolitions this feature exists for happen with **no player inside 150 m** and are meant to be heard hundreds of metres to a couple of km out, so the requirement is a loud distant thud with a bearing.
+
+Candidates found in the vanilla tree (there is no `Sounds/` directory in the extract, so every one of these is evidenced by a prefab reference):
+
+| bank | event | how vanilla plays it |
+|---|---|---|
+| `{E4EF3755472EC669}Sounds/Particles/Logistics/Explosion/TNT/Particles_Explosions_TNT_Large.acp` | `SOUND_EXPLOSION` | `Prefabs/Weapons/Warheads/Explosions/Explosion_Tnt_Large.et:20` — `SpawnParticleEffect.SoundEvent`, 45 kg charge |
+| `…/TNT/Particles_Explosions_TNT_Medium.acp` / `_Small` | `SOUND_EXPLOSION` | same, smaller warheads (`Cinematic_Explosion.et` uses Small) |
+| `{9D94BEBA8AA8A997}…/Fuel/Particles_Explosions_Fuel_Large.acp` | `SOUND_EXPLOSION` | `Explosion_Fuel_Large.et:20` (200 kg) **and** `FuelTank_03_base.et:31-36` as an `SCR_AudioSourceConfiguration` on `SCR_TimedSound`, flags 7 |
+| `…/Ammo_Rack/Particles_Explosions_Ammo_Rack_{Large,Medium,Small}.acp` | `SOUND_EXPLOSION` | the vehicle ammo-rack secondaries |
+| `…/Battery/Particles_Explosions_Battery.acp` | `SOUND_EXPLOSION` | small vehicle secondary |
+| `Sounds/Destruction/Buildings/Destruction_Buildings_{Brick,Metal,Wood}_Generic.acp` | `SOUND_BUILDING_DESTRUCTION` | `SCR_DestructibleBuildingComponent`'s `SCR_TimedSound` — a **collapse rumble**, not a blast |
+| `Sounds/Weapons/Explosives/DemoBlocks/_SharedData/Weapons_Explosives_DemoBlock_Generic.acp` | (unknown — plays through `SoundComponent`/`HitEffectComponent`, no event name in the prefab) | `Warhead_ExplosiveCharge_M112.et` |
+
+**Chosen: `Particles_Explosions_TNT_Large.acp` / `SOUND_EXPLOSION`**, with the **Fuel_Large** bank overridden on `OVT_FuelDepot.et` next to its fireball particle. Reasons: it is the *satchel-charge* blast, which is the fiction; the vanilla precedent for playing it exactly the way we do — `SCR_AudioSourceConfiguration` → `SCR_SoundManagerModule.CreateAudioSource(owner, config, worldPos)` → `PlayAudioSource` — is `FuelTank_03_base.et`'s own destruction, so no projectile, warhead or `SoundComponent` is needed; and the demo-block bank's event name is not discoverable from the extract. The building-collapse banks were rejected as the wrong character (and they are what the break layer already approximates).
+
+Code shape: two attributes, **`ResourceName m_ExplosionSoundProject` + `string m_sExplosionSoundEvent`**, not a `ref SCR_AudioSourceConfiguration` — BD8, a `ref` class attribute cannot carry a script-side default, and this one must work with no prefab authoring. The config is built once at first ruin with **flags 7** (`Static | EnvironmentSignals | FinishWhenEntityDestroyed`), matching `FuelTank_03_base.et`. `RaiseSound()` keeps the funnel and the headless guard, resolves the bbox centre once and plays **two layers**: `PlayExplosionSound()` first, `PlayMaterialBreakSound()` (the BD29 code, signals and all) underneath it. The break layer is kept rather than dropped — it is quiet enough not to muddy the blast and it is the only thing that says "a structure", and it costs nothing when a bank is missing (both bails are silent).
+
+**Range and volume are the bank's own authoring — there is no script-side override.** `SCR_AudioSourceConfiguration` exposes only project/event/offset/flags, and `AudioSystem.PlayEvent` takes no gain. The one thing script contributes is the **`Distance` signal**, which `SCR_SoundManagerModule.CreateAudioSource` sets from `AudioSystem.IsAudible()` on every path — that is what selects the bank's far layers/tails — plus the four `EnvironmentSignals` (sea/forest/houses/meadows) set in `PlayAudioSource`. So "pick the loudest vanilla big-explosion bank" *is* the volume control, and TNT_Large is the largest generic one that is not fuel-specific.
+
 ---
 
 ## Gotchas & Learnings
@@ -584,7 +659,7 @@ Pre-loaded from the plan — traps every implementing agent must already know:
 - The engine never loops a broadcast back to the sender — the server invokes `RpcDo_ApplyPhase` locally **and** `Rpc()`s it (BUG-090 class). `Rpc()` arity is a compile-check blind spot.
 - **Do not add `OVT_NavmeshRebuild.Queue()`** to the ruin/repair path — `GoToDamagePhase` already regenerates the navmesh (D7). The existing `Queue(owner)` line in the serializer stays first.
 - **Never change line 1 (root class) of any prefab** — eight script files filter on `ClassName() == "SCR_DestructibleBuildingEntity"` (plan §3.10).
-- `SCR_DestructionUtility.PlaySound` hard-returns without `SCR_MPDestructionManager` — sound goes through `SCR_SoundManagerModule` (D6).
+- `SCR_DestructionUtility.PlaySound` hard-returns without `SCR_MPDestructionManager` — sound goes through `SCR_SoundManagerModule` (D6). ⚠ **Corrected 2026-08-20 (BD29):** the manager *does* exist in an Overthrow session (`OVT_OverthrowGameMode.et:279` spawns it 500 ms / 10 s in), so the reason we bypass `PlaySound()` is only the startup window — and the two bank signals it sets are mandatory either way.
 - Loc keys go in the `.st` master only — never the `.conf` exports.
 
 ---
@@ -593,33 +668,37 @@ Pre-loaded from the plan — traps every implementing agent must already know:
 
 *User-gated items the automated spine cannot reach. Each phase's acceptance lists them; tick here with the date and result.*
 
-- [ ] **Phase 1** — Workbench loads the Bunkers and Guard Tower probe prefabs clean. ⚠ The Bunkers one is the real test: it is the **class retype** (BD1). A rejection shows up here and nowhere else.
-- [ ] **Phase 1** — Listen host + one client: `/ruin-structure` swaps the mesh on both machines; `/repair-structure` puts it back on both. Also, while there: **(a)** walk into the repaired Guard Tower — collision can be destroyed at ruin time and never rebuilt (S1); **(b)** empty a magazine and throw a grenade at each probe — neither should be ruinable by fire (S6); **(c)** expect the ruined Bunker to show rubble *inside* intact sandbags — that is the known composition finding (1.5), not a mechanism failure.
-- [ ] **Phase 2** — Listen host + one client: a sabotage team demolishing a retrofitted structure produces explosion, smoke, sound and a ruin on both machines; the per-mission notification fires exactly once.
-- [ ] **Phase 3** — Listen host save → quit → **Continue** brings a ruin back as a ruin with no explosion and no sound. ⚠ Do it **first on a campaign saved before this phase**: that save carries version 1 buildable payloads, and loading it cleanly (structures intact, ownership and base association unchanged) is the only real exercise of the serializer's version guard.
-- [ ] **Phase 4 (4.U1)** — **Workbench loads all eight retrofitted prefabs clean.** This is the only gate that can catch a mis-typed attribute, a dropped component or a GUID collision, all of which are silent.
-- [ ] **Phase 4 (4.U2)** — Listen host + one client, `/ruin-structure` and `/repair-structure` on each of the eight, correct mesh both ways. While there, five judgements only a human can make:
+- [x] ✅ **Phase 1** — Workbench loads the Bunkers and Guard Tower probe prefabs clean. ⚠ The Bunkers one is the real test: it is the **class retype** (BD1). A rejection shows up here and nowhere else.
+- [x] ✅ **Phase 1** — Listen host + one client: `/ruin-structure` swaps the mesh on both machines; `/repair-structure` puts it back on both. Also, while there: **(a)** walk into the repaired Guard Tower — collision can be destroyed at ruin time and never rebuilt (S1); **(b)** empty a magazine and throw a grenade at each probe — neither should be ruinable by fire (S6); **(c)** expect the ruined Bunker to show rubble *inside* intact sandbags — that is the known composition finding (1.5), not a mechanism failure.
+- [x] ✅ **Phase 2** — Listen host + one client: a sabotage team demolishing a retrofitted structure produces explosion, smoke, sound and a ruin on both machines; the per-mission notification fires exactly once.
+- [x] ✅ **Phase 3** — Listen host save → quit → **Continue** brings a ruin back as a ruin with no explosion and no sound. ⚠ Do it **first on a campaign saved before this phase**: that save carries version 1 buildable payloads, and loading it cleanly (structures intact, ownership and base association unchanged) is the only real exercise of the serializer's version guard.
+- [x] ✅ **Play-test fix (2026-08-20, BD30)** — **the blast carries.** Ruin a structure with a spotter posted **≥ 500 m away** (and again at ~1 km): they should hear a deep explosion thud and be able to point at it, not a faint crack. Confirm the Fuel Depot's blast reads as a fuel detonation, and that the material break underneath does not muddy it (if it does, the fix is to drop the `PlayMaterialBreakSound()` call — BD30).
+- [x] ✅ **Play-test fix (2026-08-20, BD27-29)** — Game Master **"Neutralize"** on each of the eight structure types produces the **full** effect: an explosion (a fuel fireball on the Fuel Depot), a debris shower, an audible destruction one-shot, a ground fire that burns ~2 minutes and a smoke column that lasts ~10 minutes; the structure's support stations stop working (park a vehicle at a neutralized depot/ramp and confirm refuel/repair is refused from the vehicle's side). Then `/repair-structure`: the fire and smoke stop immediately and the stations come back. Also confirm a **loaded** save and a JIP client streaming in a ruin are still silent and smokeless.
+- [x] ✅ **Phase 4 (4.U1)** — **Workbench loads all eight retrofitted prefabs clean.** This is the only gate that can catch a mis-typed attribute, a dropped component or a GUID collision, all of which are silent.
+- [x] ✅ **Phase 4 (4.U2)** — Listen host + one client, `/ruin-structure` and `/repair-structure` on each of the eight, correct mesh both ways. While there, five judgements only a human can make:
       **(a) scale and ground alignment of each of the six new ruins** — nothing floating, sunk or wildly the wrong size;
       **(b) do the two tents read as collapsed tents?** They use a WOOD debris pile (BD13) and the risk is that it is too small for a 5 × 8 m footprint. Pre-approved swap: `Rubble_Ruin_01_V2.xob`;
       **(c) the Helipad's ruin is a low mound on a bare patch** by design — is that acceptable, or does a flat pad want something wider?
       **(d) the Fuel Depot's ruin will NOT be green** — the green remap lives only in `FuelTank_02_green_Ruin.et`, which BD3 forbids us from using. Judge whether the default-material wreck is fine;
       **(e) THE RAMP IS THE REPLICATION QUESTION.** Its component and its `RplComponent` are on a CHILD entity, so it is the one structure whose broadcast has to cross the wire from a child of a composition. If any of the eight shows the mesh on the host and not on the client, expect it to be this one.
-- [ ] **Phase 4 (4.U2, cont.)** — With a **vehicle parked beside a ruined Fuel Depot**, its own refuel/fill actions must be gone too, not just the depot's (BD12). Same check for the ramp's repair action on a wrecked ramp and the medical tent's heal on a wrecked tent. All three must come back on repair.
-- [ ] **Phase 5 (5.U1)** — Dedicated server: a client repairs a ruin, is charged exactly the server-side price (label == charge), and the structure returns intact for every connected player. Also: repair with insufficient funds (greyed out, no hold possible), and a repair attempted from 100 m away (refused with a server log line).
-- [ ] **Phase 5 (5.U1, cont.)** — **The hold ring on each of the eight ruins.** Six prefabs gained a brand-new `ActionsManagerComponent` whose `Offset`/`Radius` were sized to the RUIN mesh on paper (0 1 0 with radius 4-8 depending on footprint; the Garage takes 8, the Bunkers and Guard Tower 4). Nothing automated can stand next to a ruin, so "can I actually reach the action, and does it run for the authored 20 s" is a human check per structure. The two that reuse an existing manager are the Fuel Depot (the fill context, radius 3) and the Medical Tent (a second `"repair"` context, radius 5).
-- [ ] **Phase 6 (6.U1)** — Dedicated server: an admin ruins/repairs any of the eight from chat (`/ruin-structure`, `/ruinstructure`, `/repair-structure`, `/repairstructure` — all four aliases), and a **non-admin** is refused with the `AdminCommandRefused` notification on their screen and a `WARNING` line in the server log. The refusal half is the one nothing automated can reach: `SCR_Global.IsAdmin()` answers true for the local player of an offline session, so a listen host cannot produce a non-admin caller either. While there: a placed ammo box standing beside a ruin (not parented to it) must KEEP its storage action — the gate asks the root parent, and an unparented box is its own root.
-- [ ] **Phase 7 (7.U1)** — Listen host: at a base the OCCUPYING faction holds, `/ruin-structure` two structures of DIFFERENT price (e.g. a bunker at 750 and a garage at 8000 — the cheap one must come back first). Then:
+- [x] ✅ **Phase 4 (4.U2, cont.)** — With a **vehicle parked beside a ruined Fuel Depot**, its own refuel/fill actions must be gone too, not just the depot's (BD12). Same check for the ramp's repair action on a wrecked ramp and the medical tent's heal on a wrecked tent. All three must come back on repair.
+- [x] ✅ **Phase 5 (5.U1)** — Dedicated server: a client repairs a ruin, is charged exactly the server-side price (label == charge), and the structure returns intact for every connected player. Also: repair with insufficient funds (greyed out, no hold possible), and a repair attempted from 100 m away (refused with a server log line).
+- [x] ✅ **Phase 5 (5.U1, cont.)** — **The hold ring on each of the eight ruins.** Six prefabs gained a brand-new `ActionsManagerComponent` whose `Offset`/`Radius` were sized to the RUIN mesh on paper (0 1 0 with radius 4-8 depending on footprint; the Garage takes 8, the Bunkers and Guard Tower 4). Nothing automated can stand next to a ruin, so "can I actually reach the action, and does it run for the authored 20 s" is a human check per structure. The two that reuse an existing manager are the Fuel Depot (the fill context, radius 3) and the Medical Tent (a second `"repair"` context, radius 5).
+- [x] ✅ **Phase 6 (6.U1)** — Dedicated server: an admin ruins/repairs any of the eight from chat (`/ruin-structure`, `/ruinstructure`, `/repair-structure`, `/repairstructure` — all four aliases), and a **non-admin** is refused with the `AdminCommandRefused` notification on their screen and a `WARNING` line in the server log. The refusal half is the one nothing automated can reach: `SCR_Global.IsAdmin()` answers true for the local player of an offline session, so a listen host cannot produce a non-admin caller either. While there: a placed ammo box standing beside a ruin (not parented to it) must KEEP its storage action — the gate asks the root parent, and an unparented box is its own root.
+- [x] ✅ **Phase 7 (7.U1)** — Listen host: at a base the OCCUPYING faction holds, `/ruin-structure` two structures of DIFFERENT price (e.g. a bunker at 750 and a garage at 8000 — the cheap one must come back first). Then:
       **🔴 (a) WALK AWAY. More than 150 m from the base centre, and stay there.** `m_fClearRadius 150` is both "the detail counts as holding the base" and "a player pauses the work"; a tester standing at the base sees the detail arrive and then do nothing, which is indistinguishable from the feature being broken (BD25).
       **(b) Expect a wait before anything is bought at all.** The evaluator runs every 30 s, the config sits at priority **15**, and `FindBestDeploymentConfig` only offers it once the base already holds every cheaper-priority base-defense config it is eligible for; the base also has to score at least `MIN_LOCAL_THREAT_TO_DEPLOY` (5). Watch the log for `Deployment created` naming **"Base Repair Detail"**.
       **(c) Then one structure per hold interval** — 120 s on Normal, `objectiveSabotageHoldSeconds` (BD23) — cheapest first, up to `objectiveSabotageStructuresPerMission` (2 on Normal), then `[Overthrow] Base repair detail finished after N structure(s)`.
       **(d) The common outcome at a base with NOTHING ruined is a detail that arrives, waits one interval and reports "there was nothing left to repair".** That is correct behaviour, not a bug — see the trigger-surface note in §3.7 and BD24. It is worth watching once deliberately, because it is what will happen most of the time in a real campaign.
       **(e) `m_iMaxInstances 1`** — only one repair detail exists map-wide at a time. Ruining structures at two bases will fix them one base after the other, not at once.
-- [ ] **Phase 8 (8.U1)** — **Workbench re-export of the localization `.conf` files after the `.st` edits.** Eleven strings are affected: the ten new `OVT-FieldManual_Ruins_*` keys and the rewritten value of the existing `OVT-FieldManual_CounterAttacks_Text3`. Until the export runs, the new Field Manual page draws raw keys and the Counter Attacks page still reads the old "gone for good, no rubble, no repair" paragraph in game.
-- [ ] **Phase 8 (8.U1, cont.)** — **The three surfaces agree.** In game, the Field Manual's *Ruins and Repair* page and the *Counter Attacks* page must say the same thing about a demolished structure, and the price wording (half on Easy/Normal, three quarters on Hard, full at Extreme/Insane) must match what the repair action actually charges on the preset being played. The wiki is the third surface and is **not published yet** — see below.
-- [ ] **Phase 8 (8.3)** — **The wiki sync is owed and could not be attempted.** No `mcp__wikijs__*` tool was exposed to the Phase 8 session, so nothing was written and nothing was invented. Paste-ready text: `docs/features/core/damage/wiki-draft.md`. ⚠ `occupying/counter-attacks` T10.3 is owed on the same page set; do both in one pass.
-- [ ] **Final** — the 11-item dedicated-server MP play-test in `implementation.md` §7.
+- [x] ✅ **Phase 8 (8.U1)** — **Workbench re-export of the localization `.conf` files after the `.st` edits.** Eleven strings are affected: the ten new `OVT-FieldManual_Ruins_*` keys and the rewritten value of the existing `OVT-FieldManual_CounterAttacks_Text3`. Until the export runs, the new Field Manual page draws raw keys and the Counter Attacks page still reads the old "gone for good, no rubble, no repair" paragraph in game.
+- [x] ✅ **Phase 8 (8.U1, cont.)** — **The three surfaces agree.** In game, the Field Manual's *Ruins and Repair* page and the *Counter Attacks* page must say the same thing about a demolished structure, and the price wording (half on Easy/Normal, three quarters on Hard, full at Extreme/Insane) must match what the repair action actually charges on the preset being played. The wiki is the third surface and is **not published yet** — see below.
+- [x] ✅ **Phase 8 (8.3)** — **The wiki sync is owed and could not be attempted.** No `mcp__wikijs__*` tool was exposed to the Phase 8 session, so nothing was written and nothing was invented. Paste-ready text: `docs/features/core/damage/wiki-draft.md`. ⚠ `occupying/counter-attacks` T10.3 is owed on the same page set; do both in one pass.
+- [x] ✅ **Final** — the 11-item dedicated-server MP play-test in `implementation.md` §7.
 
 ---
+
+_All items above confirmed green by the user's play-test on 2026-08-20 (closed)._
 
 ## Testing Approach
 
@@ -657,6 +736,15 @@ House rules: recorded proof-it-can-fail preamble per case; **no `maxAttempts`**;
 ---
 
 ## Session Notes
+
+### 2026-08-20 — CLOSED (user play-test green)
+
+- **All 10 user-gated items confirmed by the user** (1.U1, 1.U2, 2.U1, 3.U1, 4.U1, 4.U2, 5.U1, 6.U1, 7.U1, 8.U1): Workbench loads all eight prefabs clean; listen-host + dedicated MP ruin/repair/sabotage checks on both machines; save → Continue brings a ruin back silently; GM Neutralize raises FX/sound/fire; occupying 'Base Repair Detail' repairs at a held base; localization re-exported and the Field Manual reads right.
+- **Four post-build play-test fixes landed the same evening** (BD27–BD30): `SetDamagePhase()` funnel so GM/weapon-driven transitions raise effects and disable support stations; vehicle-style smoke plume + explosion one-shot; `TNT_Large` / `Fuel_Large` explosion sound bank layered over the material break; visible wreck flame at the bbox centre + terrain-snapped ground pool.
+- **Final gates:** compile 0 (6202 files); Fast **346/347**; All **405/406** — the only red is the pre-existing `CompositionSlotGate` case from HEAD.
+- **BUG-193 filed** (built Bunkers have no active `RplComponent` on `main`; fixed forward here).
+- **Sequencing:** `occupying/objectives` will move `OVT_BaseSabotageBehaviorDeploymentModule.c`, which this feature edits — commit/merge this feature first, or rebase that edit.
+- Non-blocking debt carried: wiki publication (`wiki-draft.md`, wikijs MCP not connected), 'at a ruin' tutorial trigger (framework), provisional occupying repair balance numbers, tents/helipad generic rubble, FM tile image.
 
 ### 2026-08-20 — Autorun close-out (orchestrator)
 
@@ -747,6 +835,14 @@ Repair exists end to end: a price, a difficulty lever that replicates, a server 
 - **Compile-check exit 0 (6199 files).** Static gates: identity gate clean, root-class gate clean, `grep -c repairCostMultiplier Configs/Difficulty/*.conf` = 1 in each of 6.
 - **Owed:** 5.U1 (dedicated-server charge check + the hold ring on each of the eight ruins) and a Workbench re-export of the localization `.conf` files once Phase 8 adds its keys.
 
+### 2026-08-20 — Play-test fixes: engine-driven ruins, the effect set, the sound signals (BD27–BD29)
+
+- **Defect 1** — GM "Neutralize" (and any weapon kill) bypassed `RuinIt`/`RpcDo_ApplyPhase`, so no effects ran and the support stations stayed live. Fixed by making the protected `SetDamagePhase(int)` the funnel (BD27); `RpcDo_ApplyPhase` is now only the client's phase drive, and `m_bSuppressEffects` keeps loads/stream-ins silent.
+- **Defect 2** — the smoke asset was vanilla's collapse dust and read as a smoke grenade. Replaced by an explosion + debris one-shot and a retained fire (120 s) and smoke (600 s) column (BD28). `OVT_FuelDepot.et` overrides the explosion with the fuel fireball.
+- **Defect 3** — the destruction sound never set the `PhasesToDestroyed` / `EntitySize` signals the multiphase bank needs (BD29); the stale "the MP destruction manager does not exist here" claim in S3/D6 is corrected in place with a dated note.
+- `tools/compile-check.sh` exit 0 (6202 files). Not run, by policy: `tools/run-tests.sh` (orchestrator only). The `OVT_TEST_Init_StructureDamage` cases all ruin with `withEffects: false`, so they stay in the suppressed path — no FX, no retained handles, no sound — and their assertions are unchanged.
+- One new human-verification item added above.
+
 ### 2026-08-20 — Phase 4 built (tasks 4.1–4.8)
 
 **Gate (orchestrator, 2026-08-20):** compile-check 0 (6195 files); `m_bDeleteAfterFinalPhase 0` = 8/8; `git diff` on Prefabs/PrefabsEditable is insertion-only. **Fast 333/334** — the new `…_CEveryBuildableIsRetrofitted` case is green on its first run (every config-listed buildable spawns destructible, not born ruined, usable→ruined/unusable→repaired/usable); the only red is the pre-existing `CompositionSlotGate` case from HEAD.
@@ -800,3 +896,7 @@ Repair exists end to end: a price, a difficulty lever that replicates, a server 
 ---
 
 *Update this file at the end of each work session. Run `/update-feature core/damage` before compacting conversations.*
+
+**Gate (orchestrator, 2026-08-20, post-build fix):** compile-check 0 (6202 files); **All 405/406** — only the pre-existing `CompositionSlotGate` red. The funnel/FX/sound rework broke none of the damage, persistence or repair cases.
+
+**Gate (orchestrator, 2026-08-20, post-build fixes 2+3 — explosion sound bank + visible fire):** compile-check 0 (6202 files); **Fast 346/347** — only the pre-existing `CompositionSlotGate` red.

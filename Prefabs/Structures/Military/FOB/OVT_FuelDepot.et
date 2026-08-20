@@ -85,6 +85,8 @@ SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industria
   }
   OVT_StructureDestructionComponent "{6B70D0000000000A}" {
    Enabled 1
+   m_ExplosionParticle "{69766E33781FC23F}Particles/Logistics/Explosion/Fuel/Explosion_Fuel_Large.ptc"
+   m_ExplosionSoundProject "{9D94BEBA8AA8A997}Sounds/Particles/Logistics/Explosion/Fuel/Particles_Explosions_Fuel_Large.acp"
    "Additional hit zones" {
     SCR_HitZone Default {
      HZDefault 1

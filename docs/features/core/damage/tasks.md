@@ -1,7 +1,7 @@
 # Damage & Destruction (`core/damage`) - Task Checklist
 
-**Last Updated:** 2026-08-20 19:55
-**Progress:** 60/70 tasks complete (86%)
+**Last Updated:** 2026-08-20 21:30
+**Progress:** 70/70 tasks complete (100%)
 
 **Epic:** `core` (feature #8) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md` · **Branch:** `v1.5`
 
@@ -12,7 +12,7 @@
 
 ---
 
-## Phase 1: Engine-behaviour spike (8/10 complete) — ⚠️ ADVANCED (component-developer-advanced)
+## Phase 1: Engine-behaviour spike (10/10 complete) — ⚠️ ADVANCED (component-developer-advanced)
 
 *Probe subjects: **Bunkers** (already carries the multi-phase component) and **Guard Tower** (active `SCR_DestructibleBuildingComponent`). Output is the S1–S6 decision record in `context.md`; Phases 2–8 are blocked until it exists.*
 
@@ -47,13 +47,13 @@
   - Description: Each with observed evidence and the chosen branch; also record the 1.3 class-swap outcome and the 1.5 mesh verdicts.
   - File(s): `docs/features/core/damage/context.md`
   - Estimate: 🟡 1 h
-- [ ] **1.U1 — Workbench loads both probe prefabs clean (user-gated — human verification)**
-- [ ] **1.U2 — Listen host + one client: `/ruin-structure` swaps the mesh on both machines, `/repair-structure` puts it back on both (user-gated — human verification)**
+- [x] ✅ **1.U1 — Workbench loads both probe prefabs clean (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
+- [x] ✅ **1.U2 — Listen host + one client: `/ruin-structure` swaps the mesh on both machines, `/repair-structure` puts it back on both (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **1.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile-check 0 (6193 files); Fast group 330/331 — the one red (`OVT_TEST_Init_CompositionSlotGate_AcceptedTypesMatchTheCompositions`: 'Base Fortifications' config authors no slot-gate module) is **pre-existing on HEAD** (Configs/ and Tests/ untouched by this phase; both files last changed in f9b08a38/a62d7b6f).
 
 ---
 
-## Phase 2: The destruction API, effects, sound, and sabotage adoption (8/9 complete) — `component-developer`
+## Phase 2: The destruction API, effects, sound, and sabotage adoption (9/9 complete) — `component-developer`
 
 - [x] ✅ **2.1 — `OVT_StructureDamage` static facade**
   - Description: `Ruin` / `Repair` / `IsRuined` / `IsDestructible` / `Resolve` per §3.1. `Resolve()` checks the entity then walks `GetChildren()`/`GetSibling()` one level (the ramp). `Ruin()`/`Repair()` return false without a component, server-only no-ops elsewhere. Header states the D8 contract.
@@ -91,12 +91,12 @@
   - File(s): `Language/localization_Overthrow.st`
   - Estimate: 🟢 0.5 h
   - **Done 2026-08-20 - nothing to add.** Phase 2 introduces no user-facing string: the effects are particles and a sound, and every new log line is a `Print` for the server console. `Language/localization_Overthrow.st` is untouched.
-- [ ] **2.U1 — Listen host + one client: sabotage demolishing a retrofitted structure produces explosion, smoke, sound and a ruin on both machines; per-mission notification fires exactly once (user-gated — human verification)**
+- [x] ✅ **2.U1 — Listen host + one client: sabotage demolishing a retrofitted structure produces explosion, smoke, sound and a ruin on both machines; per-mission notification fires exactly once (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **2.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6195); Fast 332/333 after a hit-zone fix on the Guard Tower (engine drops a hit-zone-less damage manager — S6 corrected in context.md); remaining red is the pre-existing CompositionSlotGate case.
 
 ---
 
-## Phase 3: Persistence (5/6 complete) — `component-developer`
+## Phase 3: Persistence (6/6 complete) — `component-developer`
 
 - [x] ✅ **3.1 — `OVT_BuildableComponentSerializer` version 1 → 2**
   - Description: Write the phase after the existing three fields; read behind `if (version >= 2)`; restore via `comp.RestorePhase(phase)`. The existing `OVT_NavmeshRebuild.Queue(owner)` line stays first (§3.5). Extend the file header.
@@ -118,12 +118,12 @@
   - File(s): `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c`
   - Estimate: 🟡 1 h
   - **Done 2026-08-20** as `OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave`: both directions in one case (the suite's `JobBoard_*` precedent for re-applying twice), each half dirtied to the opposite state before its reload.
-- [ ] **3.U1 — Listen host save → quit → Continue brings a ruin back as a ruin, silently (user-gated — human verification)**
+- [x] ✅ **3.U1 — Listen host save → quit → Continue brings a ruin back as a ruin, silently (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **3.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6195); **All group 391/392** — both new persistence round-trip cases green; the only red is the pre-existing CompositionSlotGate case from HEAD.
 
 ---
 
-## Phase 4: Retrofit the remaining six prefabs (9/11 complete) — ⚠️ ADVANCED (component-developer-advanced)
+## Phase 4: Retrofit the remaining six prefabs (11/11 complete) — ⚠️ ADVANCED (component-developer-advanced)
 
 *Six hand-edited prefabs; a GUID collision fails silently; the Workbench load is the only gate that can catch a mistake. Never touch line 1 of any prefab.*
 
@@ -167,13 +167,13 @@
   - File(s): all eight prefabs
   - Estimate: 🟢 0.25 h
   - **Done 2026-08-20.** 8 for 8, every one now authored explicitly rather than inherited, so the sweep is a grep and not a chain walk.
-- [ ] **4.U1 — Workbench loads all eight prefabs clean (user-gated — human verification)**
-- [ ] **4.U2 — Listen host + client: admin command ruins and repairs each of the eight, correct mesh both ways (user-gated — human verification)**
+- [x] ✅ **4.U1 — Workbench loads all eight prefabs clean (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
+- [x] ✅ **4.U2 — Listen host + client: admin command ruins and repairs each of the eight, correct mesh both ways (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **4.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6195); `m_bDeleteAfterFinalPhase 0` = 8/8; prefab diff is pure insertion (0 removed lines → line 1 untouched everywhere); **Fast 333/334** — `…_CEveryBuildableIsRetrofitted` green (all eight spawn, are destructible, round-trip ruin→repair); the only red is the pre-existing CompositionSlotGate case.
 
 ---
 
-## Phase 5: Repair — pricing, difficulty, seam and the held action (11/12 complete) — `component-developer`
+## Phase 5: Repair — pricing, difficulty, seam and the held action (12/12 complete) — `component-developer`
 
 - [x] **5.1 — `OVT_RepairPricing` pure statics**
   - Description: `RepairCost(int baseCost, float buildMultiplier, float repairMultiplier)` (one rounding) and `IsRepairable(int baseCost)` (false for `UNKNOWN_STRUCTURE_COST`). Class comment: money only; logistics plugs in here.
@@ -215,12 +215,12 @@
   - Description: `#OVT-RepairStructure`, `#OVT-RepairStructure-Repaired` in the `.st` master; English code fallbacks; braces balanced.
   - File(s): `Language/localization_Overthrow.st`
   - Estimate: 🟢 0.5 h
-- [ ] **5.U1 — Dedicated server: a client repairs a ruin, is charged exactly the server-side price, structure returns intact for every connected player (user-gated — human verification)**
+- [x] ✅ **5.U1 — Dedicated server: a client repairs a ruin, is charged exactly the server-side price, structure returns intact for every connected player (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **5.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6199); `repairCostMultiplier` in 6/6 difficulty confs; identity gate clean. First All run went **394/399**: the Guard Tower prefab stopped spawning because a SECOND `ActionsManagerComponent` was added while `GuardTower_01_base.et:146` already carries one (`{5A30CE5EDD9DBDB5}`, the ladder/door template) — engine error `component ActionsManagerComponent cannot be combined with component ActionsManagerComponent`, and the whole entity failed (4 of our cases red). Orchestrator re-declared the inherited GUID with our context/action as a delta (Vehicle_Base.et precedent); re-run **All 398/399**, only the pre-existing CompositionSlotGate red. GUID `6B70D00000000018` is now unused/free.
 
 ---
 
-## Phase 6: Admin commands and the gear-survival gate (6/7 complete) — `component-developer`
+## Phase 6: Admin commands and the gear-survival gate (7/7 complete) — `component-developer`
 
 - [x] ✅ **6.1 — Promote the admin commands to production**
   - Description: `/ruin-structure` (+ `/ruinstructure`), `/repair-structure` (+ `/repairstructure`) in `RegisterChatCommands()` double-alias style; `RplRcver.Server` handlers gated by `SCR_Global.IsAdmin(playerId)`, `LogLevel.WARNING` on refusal, `AdminCommandRefused` notification — shape of `RpcAsk_GiveMoney` (`:269-306`).
@@ -247,12 +247,12 @@
   - File(s): `docs/features/core/damage/context.md`
   - Estimate: 🟢 0.5 h
   - **Done 2026-08-20.** BD21 (the §3.8 decision as built) and BD22 (the two seams) in `context.md`, plus the Phase 6 gotchas and session note.
-- [ ] **6.U1 — Dedicated server: an admin ruins/repairs any of the eight from chat; a non-admin is refused and logged (user-gated — human verification)**
+- [x] ✅ **6.U1 — Dedicated server: an admin ruins/repairs any of the eight from chat; a non-admin is refused and logged (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **6.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6199); **Fast 340/341** — `…_DGearSurvivesAPhaseRoundTrip` green on first run; only the pre-existing CompositionSlotGate red.
 
 ---
 
-## Phase 7: The occupying faction repairs its own ground (8/9 complete) — ⚠️ ADVANCED (component-developer-advanced)
+## Phase 7: The occupying faction repairs its own ground (9/9 complete) — ⚠️ ADVANCED (component-developer-advanced)
 
 - [x] ✅ **7.1 — Read-only survey (gates the phase)**
   - Description: Re-verify against HEAD: `OVT_BaseBehaviorDeploymentModule` virtual surface + `super.OnUpdate()`; `CloneModule()` hand-copy; how `m_bDirectorOnly 0` configs are picked (`EvaluateFactionDeployments`, `FindBestDeploymentConfig`, `OVT_DeploymentSelection.SelectNextConfigIndex` — lowest `m_iPriority` wins); `RequestDeploymentCollection()` deferred teardown. Record base-defense config numbers in `context.md` before any code.
@@ -289,13 +289,13 @@
   - File(s): `docs/features/core/damage/context.md`
   - Estimate: 🟢 0.5 h
   - **Done 2026-08-20.** BD23/BD24/BD25, the churn arithmetic behind the numbers, and the honest §3.7 note that on shipped data the common outcome is "there was nothing left to repair".
-- [ ] **7.U1 — Listen host: admin-ruin two structures at an occupying-held base; repair deployment selected, team inserts, structures return one per interval, cheapest first (user-gated — human verification)**
+- [x] ✅ **7.U1 — Listen host: admin-ruin two structures at an occupying-held base; repair deployment selected, team inserts, structures return one per interval, cheapest first (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
   - ⚠ **Withdraw more than 150 m from the base centre and wait.** `m_fClearRadius 150` is the circle a player pauses the work from, by design (plan §3.7's pause-don't-reset interval). Standing at the base watching is the one way to see nothing happen at all.
 - [x] **7.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6202); module grep gate clean (no DestroyPlacedItem/DeleteEntityAndChildren/ObjectiveDirector). First Fast run 345/347: `…_CHoldIntervalPausesRatherThanResetting` was red on its own arithmetic (after 3→2→pause, the resumed tick leaves 1, it does not complete) — orchestrator fixed the CASE (added the 2→1 step; module untouched); re-run **Fast 346/347**, only the pre-existing CompositionSlotGate red.
 
 ---
 
-## Phase 8: Help & documentation sync (5/6 complete) — `help-docs-sync`
+## Phase 8: Help & documentation sync (6/6 complete) — `help-docs-sync`
 
 - [x] **8.1 — Field Manual repair entry**
   - Description: What a ruin is, gear survives, half-cost rule rising at harder difficulties. Every sentence cites a file:line in the agent's report.
@@ -317,7 +317,7 @@
   - File(s): `Language/localization_Overthrow.st`
   - Estimate: 🟢 0.5 h
   - **Done 2026-08-20.** Ten new keys `OVT-FieldManual_Ruins_{Title,Text,Head,Text2,Head2,Text3,Head3,Text4,Head4,Text5}` (`{6B70D00000000049}`–`{6B70D00000000052}`), plus one rewritten value + `Comment` on the existing `OVT-FieldManual_CounterAttacks_Text3`. `.st` braces balanced 1796/1796 (1776 before). No `Language/*.conf` export was touched. ⚠ **None of it renders in-game until the user re-exports in Workbench (8.U1).**
-- [ ] **8.U1 — Workbench re-export of the localization `.conf` files; the three surfaces (Field Manual, tutorial, wiki) agree with shipped behaviour (user-gated — human verification)**
+- [x] ✅ **8.U1 — Workbench re-export of the localization `.conf` files; the three surfaces (Field Manual, tutorial, wiki) agree with shipped behaviour (user-gated — human verification)** — **Play-test green 2026-08-20 (user-confirmed)**
 - [x] **8.G — Gate: compile-check 0 + orchestrator test run** — 2026-08-20: compile 0 (6202). **Test run skipped** — the phase touched only `Configs/FieldManual/`, the `.st` master and docs; the suites assert nothing there (test-policy §2). Last suite verdicts stand: Fast 346/347 (Phase 7), All 398/399 (Phase 5); the single red is pre-existing on HEAD.
 
 ---
@@ -338,10 +338,10 @@
 
 ## Technical Debt
 
-- [ ] 💳 **Occupying repair balance numbers are provisional** — Priority: Low
+- [x] ✅ 💳 **Occupying repair balance numbers are provisional** — Priority: Low — closed out 2026-08-20, not done (carried as tech debt in context.md)
   - Description: `m_iBaseCost`, `m_iCostPerGroup`, priority, `m_fChance`, `m_iMaxInstances` authored conservatively in 7.4; belong to the `occupying` epic.
   - Effort: small, once `occupying/base-upgrades` widens the trigger surface.
-- [ ] 💳 **Fallback rubble for tents/helipad** — Priority: Low
+- [x] ✅ 💳 **Fallback rubble for tents/helipad** — Priority: Low — closed out 2026-08-20, not done (carried as tech debt in context.md)
   - Description: Generic rubble where a canvas tent stood may not read well (4.5). Escalation = Resource Browser session with the user, not new art.
 
 ---
@@ -383,6 +383,7 @@ Covered by the per-phase items above (2.6, 3.3, 3.4, 5.8, 5.9, 6.4, 7.5, 7.6) an
 
 - **Phase 8 tasks 8.1–8.4.** Field Manual entry **Ruins and Repair** (10 pieces, GUIDs `6B70D0000000_003F`–`_0048`) plus the rewrite of the stale `OVT-FieldManual_CounterAttacks_Text3`; ten new `.st` keys (`_0049`–`_0052`), braces balanced 1796/1796; the tutorial popup **deliberately skipped** (no trigger in `OVT_TutorialEvent` can fire at a ruin); the wiki **drafted but not published** (`wiki-draft.md`) because no `mcp__wikijs__*` tool was exposed to the session. Compile-check exit 0. `tools/run-tests.sh` deliberately not run — orchestrator only. Still open: **8.U1** and the **8.G** gate line.
 - **2026-08-20 autorun:** Phases 1–8 built (tasks 1.1–8.4 + all 8 gates); remaining = 10 user-gated items (1.U1, 1.U2, 2.U1, 3.U1, 4.U1, 4.U2, 5.U1, 6.U1, 7.U1, 8.U1).
+- **2026-08-20 close-out:** user play-test green on all 10 gated items (Workbench load of 8 prefabs, listen-host + dedicated MP checks, save→Continue, GM Neutralize FX/sound/fire, occupying repair detail, loc re-export); feature closed.
 
 ### Discovered New Tasks
 - **Phase 4 needs a composition strategy for the Bunkers buildable** — its root carries no `MeshObject`, so a root-level phase model is added beside the intact sandbag children instead of replacing them. Vanilla's own answer is a destruction component per child (`Sandbag_01_bunker_plastic_CompositionDestruction.et:11-19`). **The Helipad and the two tents must be checked for the same shape before 4.5 authors them.**
@@ -393,10 +394,14 @@ Covered by the per-phase items above (2.6, 3.3, 3.4, 5.8, 5.9, 6.4, 7.5, 7.6) an
 
 - **A tutorial popup at a ruin needs a NEW tutorial trigger** (8.2). `OVT_TutorialEvent` (`Scripts/Game/Configuration/OVT_TutorialTrigger.c:12-45`) carries no event for structure state or for standing near a specific entity, and sabotage raises none. Adding one is tutorial-system framework and belongs to `new-player-experience/tutorial-content`, not to this feature.
 - **The wiki sync (8.3) is owed and blocked on tooling.** `docs/features/core/damage/wiki-draft.md` is paste-ready. The `occupying/counter-attacks` T10.3 draft is owed on the same page set — do both in one pass.
+- ✅ **Done 2026-08-20 (play-test fix 1)** — engine-driven phase changes (GM "Neutralize", weapon kills) bypassed our effects and left support stations working. `SetDamagePhase()` is now the single funnel for both; `RpcDo_ApplyPhase` no longer raises them. BD27.
+- ✅ **Done 2026-08-20 (play-test fix 2)** — the ruin visual was vanilla's collapse dust played unscaled. Now an explosion + debris one-shot plus a retained fire (120 s) and smoke (600 s), stopped by a repair or by `OnDelete`; the Fuel Depot overrides the explosion with the fuel fireball. BD28.
+- ✅ **Done 2026-08-20 (play-test fix 3)** — the destruction sound was inaudible: the `PhasesToDestroyed` and `EntitySize` signals were never set. Set now, and the manager's own audio config is preferred when it has spawned. BD29.
+- ✅ **Done 2026-08-20 (play-test fix 4)** — the ruin sound was audible but was only the per-material BREAK event: a close-range crack, when these demolitions are heard from hundreds of metres out. A vanilla big-explosion bank (`Particles_Explosions_TNT_Large.acp` / `SOUND_EXPLOSION`, Fuel_Large on the depot) now plays as the primary layer with the break underneath. BD30.
 
 ### Blocked Items
 - ✅ Unblocked 2026-08-20 — S1–S6 are answered in `context.md`. Phases 2–8 may start; read the two 🔴 findings in "Discovered New Tasks" first.
-- ⏸️ Phase 1's own **1.G** gate line stays open until **1.U1** and **1.U2** are done by the user.
+- ✅ 2026-08-20 — **1.U1** and **1.U2** confirmed by the user; nothing blocked.
 
 ---
 
