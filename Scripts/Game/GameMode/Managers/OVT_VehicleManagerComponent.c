@@ -150,10 +150,45 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		m_mVehicleRecords = new map<string, ref OVT_PersistedPlayerVehicle>();
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Moves the vehicle registry's per-player data from one persistent id to another, on top of the
+	//! base class's ownership maps. See OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords.
+	//! \param[in] oldId Persistent id the data is currently keyed to.
+	//! \param[in] newId Persistent id it should be keyed to.
+	override void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		super.RekeyPlayerPersistentId(oldId, newId);
+
+		if (m_mPlayerVehicleIds && m_mPlayerVehicleIds.Contains(oldId) && !m_mPlayerVehicleIds.Contains(newId))
+		{
+			m_mPlayerVehicleIds[newId] = m_mPlayerVehicleIds[oldId];
+			m_mPlayerVehicleIds.Remove(oldId);
+		}
+
+		if (m_mOfflinePlayerTimers && m_mOfflinePlayerTimers.Contains(oldId) && !m_mOfflinePlayerTimers.Contains(newId))
+		{
+			m_mOfflinePlayerTimers[newId] = m_mOfflinePlayerTimers[oldId];
+			m_mOfflinePlayerTimers.Remove(oldId);
+		}
+
+		if (m_mVehicleRecords)
+		{
+			for (int i = 0; i < m_mVehicleRecords.Count(); i++)
+			{
+				OVT_PersistedPlayerVehicle record = m_mVehicleRecords.GetElement(i);
+				if (record && record.ownerUid == oldId)
+					record.ownerUid = newId;
+			}
+		}
+	}
+
 	void Init(IEntity owner)
-	{			
+	{
 		m_RealEstate = OVT_Global.GetRealEstate();
-		
+
 		if(!Replication.IsServer())
 			return;
 		

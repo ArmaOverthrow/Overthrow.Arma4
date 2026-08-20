@@ -50,18 +50,38 @@ class OVT_ParkingComponent : ScriptComponent
 				trace.Exclude = GetOwner();
 				
 				float result = GetOwner().GetWorld().TracePosition(trace, null);
-					
+
 				if (result < 0)
-				{				
+				{
 					continue;
-				}			
+				}
+
+				// The trace above cannot see a reserved (offline-owner) vehicle - the reservation
+				// clears TRACEABLE - so cars were spawned INSIDE the invisible ones (BUG-189). Ask
+				// the spatial query as well, which does not care about trace flags.
+				m_bFoundObstacle = false;
+				GetOwner().GetWorld().QueryEntitiesBySphere(outMat[3], 3, null, FilterVehicleObstacle, EQueryEntitiesFlags.ALL);
+				if (m_bFoundObstacle)
+				{
+					continue;
+				}
 			}
-			
+
 			return true;
 		}		
 		return false;
 	}	
 	
+	//! Query filter for GetParkingSpot's reserved-vehicle check. Side-effect filter: always answers
+	//! false so the query keeps iterating (same pattern as OVT_VehicleManagerComponent's
+	//! FilterSpotBlockingVehicle).
+	protected bool FilterVehicleObstacle(IEntity entity)
+	{
+		if (Vehicle.Cast(entity))
+			m_bFoundObstacle = true;
+		return false;
+	}
+
 	bool GetParkingTypes(array<OVT_ParkingType> outTypes)
 	{
 		foreach(OVT_ParkingPointInfo point : m_aParkingSpots)

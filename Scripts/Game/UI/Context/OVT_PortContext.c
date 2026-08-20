@@ -59,6 +59,8 @@ class OVT_PortContext : OVT_UIContext
 		while(container.GetChildren())
 			container.RemoveChild(container.GetChildren());
 
+		Widget firstCard;
+
 		// Collect first, sort second, draw third. The importable set is assembled from two unrelated
 		// sources (the illegal-imports permission list, or every non-vehicle shop config rule), and the
 		// player reads one alphabetical list either way (Phase 7.2).
@@ -82,8 +84,17 @@ class OVT_PortContext : OVT_UIContext
 
 			card.Init(prefab, m_Economy.GetPrice(id), this);
 
+			if(!firstCard)
+				firstCard = ww;
+
 			wi++;
 		}
+
+		//! Initial gamepad focus - without it a controller player opens the import menu with nothing
+		//! focused, and since the cards only take focus on mouse-over, MenuUp/MenuDown have nothing to
+		//! navigate from and the list is mouse-only. Same pattern as OVT_MainMenuContext.OnShow.
+		if(firstCard)
+			GetGame().GetWorkspace().SetFocusedWidget(firstCard);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -96,7 +107,13 @@ class OVT_PortContext : OVT_UIContext
 
 		prefabs.Clear();
 
-		if(m_PlayerData && m_PlayerData.HasPermission("IllegalImports"))
+		// Trade L5 unlocks the extended catalogue anywhere; a resistance-held port area (closest
+		// town or base to the port, whichever is nearer) unlocks it for everyone at that port.
+		bool illegalImports = m_PlayerData && m_PlayerData.HasPermission("IllegalImports");
+		if(!illegalImports && m_Owner)
+			illegalImports = m_Economy.ResistanceControlsNearestPort(m_Owner.GetOrigin());
+
+		if(illegalImports)
 		{
 			array<ResourceName> resources();
 			m_Economy.GetAllNonOccupyingFactionItems(resources);

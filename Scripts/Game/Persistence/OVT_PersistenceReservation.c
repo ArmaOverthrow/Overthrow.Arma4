@@ -44,6 +44,13 @@
 //! included) and applies VISIBLE|TRACEABLE locally there. The component is OPTIONAL: an entity
 //! without it keeps the old authority-only behaviour.
 //!
+//! THE COLLISION HALF (BUG-189, closed 2026-08-20). None of the three flags touches the PHYSICS
+//! body - a sleeping rigid body still collides - so a reserved vehicle stayed a solid, invisible
+//! obstacle on every machine. OVT_ReservationSyncComponent.ApplyPhysicsState() is that half: it
+//! zeroes the body's interaction layer (saved and restored per machine) on the authority from
+//! SetReserved() and on proxies from the replication callback. An entity WITHOUT the sync component
+//! therefore still collides while reserved - there is nowhere stateless to save its layer.
+//!
 //! NON-RECURSIVE ON PURPOSE. `recursively: true` would also clear VISIBLE on every child entity - the
 //! character's clothing, weapons and the items inside them - and the restore could not be exact,
 //! because GetFlags() only reports the root. Re-showing an item that the inventory system had

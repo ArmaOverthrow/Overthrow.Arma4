@@ -65,9 +65,31 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Moves warehouse ownership from one persistent id to another, on top of the base class's
+	//! ownership maps. See OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords.
+	//! \param[in] oldId Persistent id the data is currently keyed to.
+	//! \param[in] newId Persistent id it should be keyed to.
+	override void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		super.RekeyPlayerPersistentId(oldId, newId);
+
+		if (m_aWarehouses)
+		{
+			foreach (OVT_WarehouseData warehouse : m_aWarehouses)
+			{
+				if (warehouse && warehouse.owner == oldId)
+					warehouse.owner = newId;
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Called after the entity loading process. Finds potential starting homes across the map.
 	//! \param[in] owner The entity this component is attached to
-	void OnPostLoad(IEntity owner)	
+	void OnPostLoad(IEntity owner)
 	{
 		#ifdef OVERTHROW_DEBUG
 		Print("Finding starting homes");

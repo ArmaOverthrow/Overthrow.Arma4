@@ -225,6 +225,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 				continue;
 			}
 
+			// A record keyed to the NULL UUID is a campaign written under the zero-identity backend
+			// flake. It is KEPT (dropping it would delete the player's progress from the next save),
+			// and on a non-dedicated session SetupPlayer() adopts it for the local player. On a
+			// dedicated server nothing can claim it, so say so once per load.
+			UUID recordUuid = record.persistentId;
+			if (recordUuid.IsNull())
+				Print("[Overthrow] Loaded a player record keyed to the NULL UUID (name: " + record.name + ") - orphaned by the zero-identity flake; a non-dedicated host will adopt it on spawn", LogLevel.WARNING);
+
 			OVT_PlayerData player = GetPlayer(record.persistentId);
 			if (!player)
 			{
@@ -622,6 +630,89 @@ class OVT_PlayerManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Adopts campaign data keyed to the NULL UUID for the local (host/SP) player.
+	//!
+	//! WHY ORPHANED DATA EXISTS. The backend can transiently answer a player-identity lookup with
+	//! the NULL UUID instead of an empty string. Before GetPlayerUID() guarded against it, a session
+	//! started under that flake keyed EVERYTHING - the player record, house ownership, vehicles,
+	//! recruits, loadouts, camps - to "00000000-...", an identity no player can ever present. On the
+	//! next (healthy) session the player was prepared as brand new while their real progress sat
+	//! unreachable under the zero key, and the reservation sweep hid their stored body forever.
+	//!
+	//! WHO MAY ADOPT, AND WHY ONLY THEM. Only the HOST's own player on a NON-DEDICATED session. The
+	//! flake was only ever observed keying a local (SP/Workbench) session, the host is the only
+	//! player whose claim to a single orphaned record is unambiguous, and a dedicated server must
+	//! never hand one connecting stranger another player's campaign.
+	//!
+	//! ADOPTION IS SKIPPED when the connecting identity already has a record of its own: by then a
+	//! healthy session has already progressed under the real id, and silently merging or replacing
+	//! either record is a decision only the player can make.
+	//!
+	//! Timing: called from SetupPlayer(), which on every path (fresh connect via DoSpawn_S, continued
+	//! campaign via PrepareConnectedPlayers) runs AFTER the managers' persisted state was applied, so
+	//! the zero-keyed data is already sitting in the maps this re-keys.
+	//! \param[in] playerId Runtime player id being set up.
+	//! \param[in] persistentId The real identity the player presented.
+	protected void TryAdoptNullIdentityRecords(int playerId, string persistentId)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		if (RplSession.Mode() == RplMode.Dedicated)
+			return;
+
+		if (playerId != SCR_PlayerController.GetLocalPlayerId())
+			return;
+
+		if (m_mPlayers.Contains(persistentId))
+			return;
+
+		string nullId = UUID.NULL_UUID;
+		if (!m_mPlayers.Contains(nullId))
+			return;
+
+		Print("[Overthrow] Adopting campaign data keyed to the NULL UUID for player " + playerId + " (" + persistentId + ")", LogLevel.WARNING);
+
+		RekeyPlayerPersistentId(nullId, persistentId);
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if (realEstate)
+			realEstate.RekeyPlayerPersistentId(nullId, persistentId);
+
+		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
+		if (vehicles)
+			vehicles.RekeyPlayerPersistentId(nullId, persistentId);
+
+		OVT_RecruitManagerComponent recruits = OVT_Global.GetRecruits();
+		if (recruits)
+			recruits.RekeyPlayerPersistentId(nullId, persistentId);
+
+		OVT_LoadoutManagerComponent loadouts = OVT_Global.GetLoadouts();
+		if (loadouts)
+			loadouts.RekeyPlayerPersistentId(nullId, persistentId);
+
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (resistance)
+			resistance.RekeyPlayerPersistentId(nullId, persistentId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves this manager's player record from one persistent id to another.
+	//!
+	//! Only the record map is touched: the runtime id maps are written by SetupPlayer() moments
+	//! later, and nothing else here keys on the persistent id.
+	//! \param[in] oldId Persistent id the data is currently keyed to.
+	//! \param[in] newId Persistent id it should be keyed to. Must not already have a record.
+	void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (!m_mPlayers || !m_mPlayers.Contains(oldId) || m_mPlayers.Contains(newId))
+			return;
+
+		m_mPlayers[newId] = m_mPlayers[oldId];
+		m_mPlayers.Remove(oldId);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Sets up the player's data mappings and initializes their OVT_PlayerData if it doesn't exist.
 	//! Stores the mapping between runtime ID and persistent ID, retrieves the player name, and assigns the runtime ID to the data object.
 	//! If running on the server, it replicates this registration to all clients.
@@ -635,8 +726,26 @@ class OVT_PlayerManagerComponent: OVT_Component
 			Print("[Overthrow] ERROR: SetupPlayer called with empty/null persistentId for playerId: " + playerId);
 			return;
 		}
-		
+
+		// The NULL UUID stringifies to "00000000-..." and therefore passes the empty check above.
+		// It is never a real player: a campaign keyed to it is orphaned data no session can claim
+		// (observed 2026-08-20 when the backend transiently answered the zero id and a whole SP
+		// campaign - player record, home, vehicle, body - was keyed to it). GetPlayerUID() now
+		// recovers an identity instead of handing the zero id out, so reaching this line means a
+		// new caller bypassed it - refuse loudly rather than let the corruption class back in.
+		UUID persistentUuid = persistentId;
+		if (persistentUuid.IsNull())
+		{
+			Print("[Overthrow] ERROR: SetupPlayer called with the NULL UUID for playerId: " + playerId + " - refusing to key player data to it", LogLevel.ERROR);
+			return;
+		}
+
 		Print("Setting up player: " + persistentId + " with playerId: " + playerId);
+
+		// A save written under the zero-identity flake keys its records to the NULL UUID. When the
+		// local (host/SP) player sets up with a real identity that has no record of its own, adopt
+		// the orphaned data instead of preparing them as a brand-new player.
+		TryAdoptNullIdentityRecords(playerId, persistentId);
 		
 		// Check if this persistent ID is already mapped to a different player ID
 		if(m_mPlayerIDs.Contains(persistentId))

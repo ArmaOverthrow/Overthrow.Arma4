@@ -1010,6 +1010,32 @@ class OVT_EconomyManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! True when the resistance controls the location nearest to the port serving the given
+	//! position - the closest town or the closest base, whichever is nearer to the port itself.
+	//! A resistance-held port area lifts the IllegalImports (Trade L5) requirement for everyone.
+	//! \param[in] pos A position at or near the port (the caller's proximity gate decides "near").
+	//! \return True when the closest town/base to that port is resistance-controlled.
+	bool ResistanceControlsNearestPort(vector pos)
+	{
+		RplId portId = GetNearestPort(pos);
+		RplComponent rpl = RplComponent.Cast(Replication.FindItem(portId));
+		if(!rpl) return false;
+		vector portPos = rpl.GetEntity().GetOrigin();
+
+		OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(portPos);
+		OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(portPos);
+		if(!town && !base) return false;
+
+		int controllingFaction;
+		if(!base || (town && vector.Distance(town.location, portPos) <= vector.Distance(base.location, portPos)))
+			controllingFaction = town.faction;
+		else
+			controllingFaction = base.faction;
+
+		return controllingFaction == OVT_Global.GetConfig().GetPlayerFactionIndex();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Finds the nearest registered shop to a position.
 	//!
 	//! Scans BOTH m_aAllShops and m_aGunDealers: FilterShopEntities deliberately excludes gun dealers

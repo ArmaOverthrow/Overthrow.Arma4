@@ -1032,10 +1032,14 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 //! WHAT THIS CASE PINS, there being no client in the autotest world to observe:
 //!  1. the WIRING - the ownable-vehicle prefab chain still carries the component (a prefab entry
 //!     that is dropped or renamed fails silently: everything compiles, clients just see ghosts
-//!     again), and the player-character prefab still carries it, checked through the spawn
-//!     logic's own default-prefab attribute;
+//!     again), the player-character prefab still carries it, checked through the spawn
+//!     logic's own default-prefab attribute, and the recruit prefab likewise through the recruit
+//!     manager's attribute (BUG-191 - the one reservable prefab the original fix missed);
 //!  2. the MIRROR - Reserve() drives the component's replicated state true and Release() drives
-//!     it false, on a live entity, through the production seams and not by poking the component.
+//!     it false, on a live entity, through the production seams and not by poking the component;
+//!  3. the COLLISION half (BUG-189) - Reserve() zeroes the authority body's interaction layer
+//!     (the entity flags alone left a sleeping body colliding: invisible cars with hitboxes) and
+//!     Release() restores the exact layer it saved.
 //! What replication then does with the prop is vanilla's RplProp contract
 //! (SCR_ResourceComponent.m_bIsVisible is the same pattern) and is play-test territory.
 //!
@@ -1090,6 +1094,23 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 			return FinishAndCleanUp();
 		}
 
+		// The collision half (BUG-189) is pinned against the authority's own body, which is the one
+		// this world has: reserve must take the body out of collision, release must put it back with
+		// the layer it had. A vehicle prefab without physics would be a test-world defect worth
+		// hearing about, so that is a failure too.
+		Physics phys = m_Vehicle.GetPhysics();
+		if (!phys)
+		{
+			SetFailure("The spawned vehicle has no Physics body - the BUG-189 collision half cannot be pinned");
+			return FinishAndCleanUp();
+		}
+		int layerBefore = phys.GetInteractionLayer();
+		if (layerBefore == 0)
+		{
+			SetFailure("A freshly spawned vehicle already has interaction layer 0 - the restore assertion below would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
 		if (!OVT_PersistenceReservation.Reserve(m_Vehicle))
 		{
 			SetFailure("Reserve() refused a live vehicle");
@@ -1102,6 +1123,12 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 			return FinishAndCleanUp();
 		}
 
+		if (phys.GetInteractionLayer() != 0)
+		{
+			SetFailure("Reserve() hid the vehicle but its physics body still has interaction layer %1 - the invisible car still collides (BUG-189)", phys.GetInteractionLayer().ToString());
+			return FinishAndCleanUp();
+		}
+
 		if (!OVT_PersistenceReservation.Release(m_Vehicle))
 		{
 			SetFailure("Release() refused a reserved vehicle");
@@ -1111,6 +1138,12 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 		if (sync.IsReserved())
 		{
 			SetFailure("Release() put the vehicle back in play but left the replicated state reserved - clients would hide a vehicle its returning owner is standing next to");
+			return FinishAndCleanUp();
+		}
+
+		if (phys.GetInteractionLayer() != layerBefore)
+		{
+			SetFailure("Release() did not restore the physics interaction layer (%1, expected %2) - a returned vehicle would collide wrongly or not at all", phys.GetInteractionLayer().ToString(), layerBefore.ToString());
 			return FinishAndCleanUp();
 		}
 
@@ -1131,7 +1164,23 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 			return FinishAndCleanUp();
 		}
 
-		Print("Reservation state reaches the clients: prefab wiring intact on the vehicle and character chains, and Reserve()/Release() drive the replicated flag both ways");
+		// Wiring, recruit half (BUG-191): reserved recruit bodies go through the same Reserve()
+		// path, and the recruit prefab was the one reservable prefab BUG-185's fix missed. Reached
+		// through the manager's own attribute for the same reason as the player prefab above.
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (!recruits || recruits.m_sRecruitPrefab.IsEmpty())
+		{
+			SetFailure("No recruit manager instance (or no recruit prefab) - the recruit half of the wiring cannot be checked");
+			return FinishAndCleanUp();
+		}
+
+		if (!SCR_BaseContainerTools.FindComponentSource(Resource.Load(recruits.m_sRecruitPrefab), OVT_ReservationSyncComponent))
+		{
+			SetFailure("The recruit prefab (%1) has no OVT_ReservationSyncComponent - a parked recruit's body is a visible ghost on every client (BUG-191)", recruits.m_sRecruitPrefab);
+			return FinishAndCleanUp();
+		}
+
+		Print("Reservation state reaches the clients: prefab wiring intact on the vehicle, character and recruit chains, Reserve()/Release() drive the replicated flag both ways, and the physics body leaves and re-enters collision with them (BUG-189)");
 		return FinishAndCleanUp();
 	}
 

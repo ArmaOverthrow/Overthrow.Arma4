@@ -439,15 +439,18 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		// Items no standard shop stocks are the extended catalogue the port only offers at Trade L5
-		if(!economy.IsSoldAtAnyNonVehicleShop(res) && !player.HasPermission("IllegalImports"))
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character) return;
+
+		// Items no standard shop stocks are the extended catalogue the port offers at Trade L5, or
+		// to anyone when the resistance controls the port area (closest town or base to the port).
+		// The port-distance gate below still applies, so a faraway sender can't pick its own port.
+		if(!economy.IsSoldAtAnyNonVehicleShop(res) && !player.HasPermission("IllegalImports")
+			&& !economy.ResistanceControlsNearestPort(character.GetOrigin()))
 		{
 			SendBuyFailureNotification(playerId, "ImportNotAvailable");
 			return;
 		}
-
-		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if(!character) return;
 
 		if(economy.DistanceToNearestPort(character.GetOrigin()) > IMPORT_MAX_PORT_DISTANCE)
 		{

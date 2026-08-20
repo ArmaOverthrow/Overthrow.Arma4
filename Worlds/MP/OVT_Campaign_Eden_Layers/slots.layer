@@ -271,6 +271,10 @@ $grp SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRo
   }
  }
 }
+GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
+ coords 7572.693 2.155 6704.786
+ angles 0 37.013 0
+}
 $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRoadMedium.et" {
  {
   coords 3918.89 13.609 8518.963
