@@ -52,6 +52,18 @@ class OVT_Global : Managed
 	static string GetPlayerUID(int playerId)
 	{
 		string identity = SCR_PlayerIdentityUtils.GetPlayerIdentityId(playerId);
+
+		// The backend can transiently answer the per-player lookup with the NULL UUID
+		// ("00000000-0000-...") instead of an empty string - observed in a Workbench session
+		// 2026-08-20, where the engine's own "### Updating player" line already carried the zero id.
+		// It is non-empty, so it defeats both vanilla's name-hash fallback (SCR_PlayerIdentityUtils
+		// fires it only on EMPTY) and the empty-identity guards below, and a whole campaign ends up
+		// keyed to "00000000-..." - a player no session can ever be. Treat it as "no identity" and
+		// recover one.
+		UUID identityUuid = identity;
+		if (identity != string.Empty && identityUuid.IsNull())
+			identity = RecoverNullIdentity(playerId);
+
 		if (identity != string.Empty)
 			return identity;
 
@@ -62,6 +74,61 @@ class OVT_Global : Managed
 			return string.Empty;
 
 		return DEV_UID_PREFIX + playerId.ToString();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Recovers a usable identity for a player whose backend lookup answered the NULL UUID.
+	//!
+	//! Order matters, and each step is chosen to reproduce the id the player would have had in a
+	//! healthy session:
+	//!
+	//!   1. On a NON-DEDICATED session, the HOST's own player gets the local authenticator identity
+	//!      (BackendAuthenticatorApi.GetIdentityId()) - the same profile identity the per-player
+	//!      lookup returns when it is not misbehaving, so a campaign started under a flaked session
+	//!      and one started under a healthy session key to the SAME id.
+	//!   2. Failing that, the name-hash UUID vanilla itself derives for an EMPTY identity on
+	//!      non-dedicated sessions (SCR_PlayerIdentityUtils.c:26-36) - that fallback is unreachable
+	//!      when the backend answers the zero id rather than an empty string, so it is reproduced
+	//!      here verbatim. Deterministic per player name, therefore stable across sessions.
+	//!   3. A DEDICATED server never synthesises: a real identity may still arrive, and handing a
+	//!      joining player a made-up record would be worse than making them wait. Empty string means
+	//!      "not ready", which every caller already handles.
+	//! \param[in] playerId Runtime player id whose backend identity came back as the NULL UUID.
+	//! \return A stable identity id, or an empty string when none can be recovered.
+	protected static string RecoverNullIdentity(int playerId)
+	{
+		if (RplSession.Mode() == RplMode.Dedicated)
+		{
+			Print("[Overthrow] Backend answered the NULL UUID for player " + playerId + " on a dedicated server - treating the identity as not ready", LogLevel.ERROR);
+			return string.Empty;
+		}
+
+		if (playerId == SCR_PlayerController.GetLocalPlayerId())
+		{
+			string localIdentity = BackendAuthenticatorApi.GetIdentityId();
+			UUID localUuid = localIdentity;
+			if (localIdentity != string.Empty && !localUuid.IsNull())
+			{
+				Print("[Overthrow] Backend answered the NULL UUID for player " + playerId + " - recovered the local profile identity " + localIdentity, LogLevel.WARNING);
+				return localIdentity;
+			}
+		}
+
+		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		if (playerName.IsEmpty())
+			return string.Empty;
+
+		// Vanilla's own name-hash derivation, byte for byte (SCR_PlayerIdentityUtils.c:26-36).
+		int splitLength = Math.Max(1, playerName.Length() / 3);
+		string split1 = Math.AbsInt(playerName.Substring(0, splitLength).Hash()).ToString(8, true);
+		string split2 = Math.AbsInt(playerName.Substring(splitLength, splitLength).Hash()).ToString(8, true);
+		int doubleSplit = splitLength * 2;
+		string split3 = Math.AbsInt(playerName.Substring(doubleSplit, playerName.Length() - doubleSplit).Hash()).ToString(8, true);
+		string derived = string.Format("00bbbddd-%1-%2-%3-%4%5", split1.Substring(0, 4), split1.Substring(4, 4), split2.Substring(0, 4), split2.Substring(4, 4), split3);
+		derived.ToLower();
+
+		Print("[Overthrow] Backend answered the NULL UUID for player " + playerId + " - derived the name-hash identity " + derived, LogLevel.WARNING);
+		return derived;
 	}
 
 	static OVT_PlayerCommsComponent GetServer()

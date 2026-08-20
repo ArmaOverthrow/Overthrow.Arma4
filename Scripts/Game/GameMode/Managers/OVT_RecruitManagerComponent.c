@@ -174,10 +174,43 @@ class OVT_RecruitManagerComponent : OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Moves every recruit this manager holds from one owner persistent id to another.
+	//! See OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords.
+	//! \param[in] oldId Persistent id the recruits are currently keyed to.
+	//! \param[in] newId Persistent id they should be keyed to.
+	void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		if (m_mRecruitsByOwner && m_mRecruitsByOwner.Contains(oldId) && !m_mRecruitsByOwner.Contains(newId))
+		{
+			m_mRecruitsByOwner[newId] = m_mRecruitsByOwner[oldId];
+			m_mRecruitsByOwner.Remove(oldId);
+		}
+
+		if (m_mOfflinePlayerTimers && m_mOfflinePlayerTimers.Contains(oldId) && !m_mOfflinePlayerTimers.Contains(newId))
+		{
+			m_mOfflinePlayerTimers[newId] = m_mOfflinePlayerTimers[oldId];
+			m_mOfflinePlayerTimers.Remove(oldId);
+		}
+
+		if (m_mRecruits)
+		{
+			for (int i = 0; i < m_mRecruits.Count(); i++)
+			{
+				OVT_RecruitData recruit = m_mRecruits.GetElement(i);
+				if (recruit && recruit.m_sOwnerPersistentId == oldId)
+					recruit.m_sOwnerPersistentId = newId;
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override void OnPostInit(IEntity owner)
 	{
 		super.OnPostInit(owner);
-		
+
 		s_Instance = this;
 		
 		m_mRecruits = new map<string, ref OVT_RecruitData>;

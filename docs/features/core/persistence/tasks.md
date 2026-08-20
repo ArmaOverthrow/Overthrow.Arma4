@@ -1,7 +1,7 @@
 # Vanilla Persistence Migration - Task Checklist (v2)
 
-**Last Updated:** 2026-08-18 (Phase 12 — BUG-180 vehicle pose drift on load, BUG-181 reserved bodies visible on clients)
-**Progress:** 55/55 tasks complete (100%) — **feature SHIPPED**, in maintenance. SP and MP/dedicated play-tests green as of ship; Phase 12 fixes are compile-verified with suite runs + play-tests owed (see Phase 12)
+**Last Updated:** 2026-08-20 (Phase 13 — BUG-183 NULL-UUID identity flake: guard + tripwire + adoption)
+**Progress:** 56/56 tasks complete (100%) — **feature SHIPPED**, in maintenance. SP and MP/dedicated play-tests green as of ship; Phase 12 fixes are compile-verified with suite runs + play-tests owed (see Phase 12); Phase 13 is suite-verified (Init 26/26, All group 182/182) with its recovery/adoption play-test owed (see Phase 13)
 
 > Plan v1's 67 tasks (6 marked complete) are void — the "completed" Phase 1 never compiled and targeted a nonexistent API. This list implements `implementation.md` v2. API truth: `vanilla-api-reference.md`. Field truth: the EPF SaveData classes in-repo.
 
@@ -184,10 +184,14 @@ Two server-owner reports, both investigated and fixed 2026-08-18. Full reasoning
 
 **Owed from this phase:** run both suites (this session's environment could not launch the harness — classifier-blocked); exercise each case's recorded can-fail method once and stamp the headers; play-test BUG-180's real repro (ramp, save, restart, continue) and BUG-181's dedicated-server visibility (watcher + JIP + reconnect, body and locked vehicle).
 
+## Phase 13: BUG-183 — the NULL-UUID identity flake (1/1) ✅ (verified: compile clean 6064 files, Init 26/26, All group 182/182, tripwire proven able to fail)
+
+- [x] ✅ **BUG-183 — backend answered a player-identity lookup with the NULL UUID and a whole campaign was keyed to `00000000-…`** — the zero form is non-empty, so it defeated vanilla's name-hash fallback (fires only on `IsEmpty()`) and every Overthrow empty-string guard; decoding the savepoint proved the player's real identity appeared nowhere in the blob. Fix in three layers: (1) `OVT_Global.GetPlayerUID()` treats a NULL-UUID identity as "no identity" and recovers one via `RecoverNullIdentity()` — local authenticator identity for the non-dedicated host (`BackendAuthenticatorApi.GetIdentityId()`), else vanilla's name-hash derivation reproduced verbatim, and a dedicated server returns empty ("not ready") rather than synthesising; (2) `SetupPlayer()` tripwire refuses the NULL UUID; (3) `TryAdoptNullIdentityRecords()` re-keys a zero-keyed save to the non-dedicated host player on spawn via per-manager `RekeyPlayerPersistentId()` (player record, real-estate ownership incl. warehouses, vehicle registry, recruits, loadouts, camps/FOBs), only when the real identity has no record of its own. New case `OVT_TEST_Init_Persistence_NullIdentityRekey` (Init 25 → 26), **proven able to fail** with the tripwire disabled. Play-test of the recovery chain and adoption owed — see context.md
+
 ## Bugs & Issues
 
 **Active:** none.
-**Resolved:** BUG-002, BUG-006 (no working save path in either system — Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest); **BUG-086** (records are not durable → the reservation model, Phase 10); **BUG-085** (loadout apply destroyed everything inside clothing/backpacks — pre-existing, affected ordinary loadouts too); **BUG-018** (corpses across a continue); **BUG-104** (a Continue left every connected player unmapped — Phase 11); **BUG-180** (vehicles load rotated on top of persisted objects — Phase 12); **BUG-181** (reserved bodies visible on clients — Phase 12). Next door on `core/controller-migration`: **BUG-087** (unvalidated vehicle lock), which BUG-086's locked/unlocked split depended on, is also closed.
+**Resolved:** BUG-002, BUG-006 (no working save path in either system — Phase 1-2 by design, confirmed by the 2026-08-03 SP playtest); **BUG-086** (records are not durable → the reservation model, Phase 10); **BUG-085** (loadout apply destroyed everything inside clothing/backpacks — pre-existing, affected ordinary loadouts too); **BUG-018** (corpses across a continue); **BUG-104** (a Continue left every connected player unmapped — Phase 11); **BUG-180** (vehicles load rotated on top of persisted objects — Phase 12); **BUG-181** (reserved bodies visible on clients — Phase 12); **BUG-183** (NULL-UUID identity flake keyed a campaign to `00000000-…` — Phase 13). Next door on `core/controller-migration`: **BUG-087** (unvalidated vehicle lock), which BUG-086's locked/unlocked split depended on, is also closed.
 
 ## Technical Debt
 

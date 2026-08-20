@@ -159,6 +159,35 @@ class OVT_ResistanceFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Moves camp and FOB ownership from one persistent id to another.
+	//! See OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords.
+	//! \param[in] oldId Persistent id the camps/FOBs are currently keyed to.
+	//! \param[in] newId Persistent id they should be keyed to.
+	void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		if (m_Camps)
+		{
+			foreach (OVT_CampData camp : m_Camps)
+			{
+				if (camp && camp.owner == oldId)
+					camp.owner = newId;
+			}
+		}
+
+		if (m_FOBs)
+		{
+			foreach (OVT_FOBData fob : m_FOBs)
+			{
+				if (fob && fob.owner == oldId)
+					fob.owner = newId;
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Recovers the shared FOB operation state if the initiating player disconnects mid-transfer
 	protected void OnPlayerDisconnectedFOBRecovery(string playerPersistentId, int playerId)
 	{

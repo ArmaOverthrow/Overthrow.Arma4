@@ -55,6 +55,52 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		SetEventMask(owner, EntityEvent.INIT);
 	}
 		
+	//------------------------------------------------------------------------------------------------
+	//! Moves every loadout this manager holds from one owner persistent id to another.
+	//!
+	//! Loadouts are keyed "<playerId>_<loadoutName>" (GetLoadoutKey), so both the store and the
+	//! storage-id index are re-keyed by prefix, and the loadout's own owner field follows.
+	//! See OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords.
+	//! \param[in] oldId Persistent id the loadouts are currently keyed to.
+	//! \param[in] newId Persistent id they should be keyed to.
+	void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		string oldPrefix = oldId + "_";
+
+		if (m_mActiveLoadouts)
+		{
+			array<string> oldKeys = {};
+			for (int i = 0; i < m_mActiveLoadouts.Count(); i++)
+			{
+				if (m_mActiveLoadouts.GetKey(i).IndexOf(oldPrefix) == 0)
+					oldKeys.Insert(m_mActiveLoadouts.GetKey(i));
+			}
+
+			foreach (string oldKey : oldKeys)
+			{
+				string newKey = newId + "_" + oldKey.Substring(oldPrefix.Length(), oldKey.Length() - oldPrefix.Length());
+				if (m_mActiveLoadouts.Contains(newKey))
+					continue;
+
+				OVT_PlayerLoadout loadout = m_mActiveLoadouts[oldKey];
+				if (loadout && loadout.m_sPlayerId == oldId)
+					loadout.m_sPlayerId = newId;
+
+				m_mActiveLoadouts[newKey] = loadout;
+				m_mActiveLoadouts.Remove(oldKey);
+
+				if (m_mLoadoutIdMapping && m_mLoadoutIdMapping.Contains(oldKey) && !m_mLoadoutIdMapping.Contains(newKey))
+				{
+					m_mLoadoutIdMapping[newKey] = m_mLoadoutIdMapping[oldKey];
+					m_mLoadoutIdMapping.Remove(oldKey);
+				}
+			}
+		}
+	}
+
 	//! Save current equipment of entity as a loadout
 	void SaveLoadout(string playerId, string loadoutName, IEntity sourceEntity, string description = "", bool isOfficerTemplate = false)
 	{

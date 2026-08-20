@@ -1,9 +1,9 @@
 # Vanilla Persistence Migration - Context & Decisions
 
-**Last Updated:** 2026-08-18 (BUG-180 load-drift snap-back + BUG-181 reservation client sync; see the latest session note)
+**Last Updated:** 2026-08-20 (BUG-183 NULL-UUID identity corruption: guard + tripwire + adoption; see the latest session note)
 **Current Phase:** ✅ **SHIPPED** — maintenance only
 **Status:** ✅ **COMPLETE.** All build phases done and gate-verified; **SP play-test green 2026-08-03 (items 1–15)** and the **MP/dedicated half (section D) green**, with every linked bug closed — BUG-002, BUG-006, BUG-018, BUG-085, BUG-086 (and BUG-087 next door on `controller-migration`). Compile clean (5924 files, Overthrow addon only). Fast 38 · All **68**. Zero `EPF_`/`EDF_` references repo-wide.
-**Post-ship:** BUG-104 fixed 2026-08-08 (SP/listen-host Continue: the session ID maps were never rebuilt after the world transition, so the HUD read $0). BUG-180 + BUG-181 fixed 2026-08-18 (vehicles rotated after load on top of persisted objects; reserved bodies visible on clients). Play-test re-checks and the 2026-08-18 suite runs owed — see the session notes.
+**Post-ship:** BUG-104 fixed 2026-08-08 (SP/listen-host Continue: the session ID maps were never rebuilt after the world transition, so the HUD read $0). BUG-180 + BUG-181 fixed 2026-08-18 (vehicles rotated after load on top of persisted objects; reserved bodies visible on clients). BUG-183 fixed 2026-08-20 (backend handed out the NULL UUID as an identity — whole campaign keyed to 00000000-…; guard + tripwire + adoption, All 182/182). Play-test re-checks owed — see the session notes.
 
 ---
 
@@ -75,6 +75,18 @@ The dividing line for "should this entity persist?" is not "is it important" but
 ---
 
 ## Session Notes
+
+### 2026-08-20 (BUG-183 FIXED) — the backend handed out the NULL UUID as an identity, and a whole campaign was keyed to it
+
+**Two SP Workbench symptoms, one cause.** "Reserved 1 offline player body/bodies logs in single player" + "loading this save spawned me at home, not where I saved". The save blob settled it (decode first, argue later): the player's real identity `d13d3018-…` appeared NOWHERE in the savepoint; the NULL UUID appeared 6 times. The writing session's engine log carried `### Updating player: … IdentityId=00000000-0000-0000-0000-000000000000` — the backend transiently answered the per-player identity lookup with the ZERO UUID, which is non-empty and therefore sailed past vanilla's name-hash fallback (fires only on `IsEmpty()`, `SCR_PlayerIdentityUtils.c:21`) and every Overthrow empty-string guard. The whole campaign — player record, house, vehicle registry row, stored body — was keyed to `00000000-…`, an identity no session can ever present. The next (healthy) session prepared the player as brand new, and the reservation sweep correctly hid the orphaned body as "offline" forever. The classic `""` vs `"0000…"` UUID trap, at the identity seam.
+
+**Fix, three layers:** (1) `OVT_Global.GetPlayerUID()` treats a NULL-UUID identity as "no identity" and recovers one — local authenticator identity for the host (`BackendAuthenticatorApi.GetIdentityId()`, the same profile identity healthy sessions return, so keys match across sessions), else vanilla's name-hash derivation reproduced verbatim; a dedicated server never synthesises (empty = "not ready"). (2) `SetupPlayer()` tripwire refuses the NULL UUID outright. (3) `TryAdoptNullIdentityRecords()` — a save already written under the flake is adopted on load by the non-dedicated HOST player when their real identity has no record yet: per-manager `RekeyPlayerPersistentId()` moves the player record, real-estate ownership (incl. warehouses), vehicle registry, recruits, loadouts and camps/FOBs off the zero key. Adoption deliberately skips a save where the real identity ALREADY has a record (both a zero record and a real one exist — merging is the player's decision, not code's).
+
+**New case:** `OVT_TEST_Init_Persistence_NullIdentityRekey` — tripwire + all five rekey surfaces + never-clobber. **Proven able to fail** (tripwire disabled → red on "created a player record keyed to the zero id"). Init 26/26, **All group 182/182**, compile clean 6064 files.
+
+**Residual, un-pinned (recorded in BUG-183):** something re-sets VISIBLE on a reserved character in-session — the sweep re-reserved the same body 7× in ~50 min, twice 8 s apart, two of them right after a GM editor open. `IsReserved()` reads VISIBLE, so a reserved body can flicker visible on the authority between sweeps. Matters for servers with GM-using admins; probe: `FindById(<bodyId>)` → watch `GetFlags()` across an editor open/close.
+
+**Owed:** play-test — start a fresh session, confirm identity is non-zero (`Setting up player:` line); continue the orphaned playthrough005 in Workbench and confirm the adoption log line fires and money/home/body come back. Note that campaign was ALSO continued under the real id on 2026-08-20 before this fix, so it now holds BOTH records and adoption will skip it — verification needs a fresh flake-written save or manual record surgery.
 
 ### 2026-08-18 (BUG-180 + BUG-181 FIXED) — two server reports against the shipped feature, one physics, one replication
 

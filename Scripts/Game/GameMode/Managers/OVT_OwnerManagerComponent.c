@@ -27,6 +27,51 @@ class OVT_OwnerManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Moves every ownership and rental this manager holds from one persistent id to another.
+	//!
+	//! Exists for the NULL-UUID adoption path (OVT_PlayerManagerComponent.TryAdoptNullIdentityRecords):
+	//! a campaign written under the zero-identity backend flake keys its data to "00000000-..." and
+	//! the local player claims it on spawn. Server-side, before any client is connected, so no RPC -
+	//! JIP clients receive the corrected state through the normal full-state snapshot.
+	//! \param[in] oldId Persistent id the data is currently keyed to.
+	//! \param[in] newId Persistent id it should be keyed to.
+	void RekeyPlayerPersistentId(string oldId, string newId)
+	{
+		if (oldId == newId || newId.IsEmpty())
+			return;
+
+		if (m_mOwned && m_mOwned.Contains(oldId) && !m_mOwned.Contains(newId))
+		{
+			m_mOwned[newId] = m_mOwned[oldId];
+			m_mOwned.Remove(oldId);
+		}
+
+		if (m_mRented && m_mRented.Contains(oldId) && !m_mRented.Contains(newId))
+		{
+			m_mRented[newId] = m_mRented[oldId];
+			m_mRented.Remove(oldId);
+		}
+
+		if (m_mOwners)
+		{
+			for (int i = 0; i < m_mOwners.Count(); i++)
+			{
+				if (m_mOwners.GetElement(i) == oldId)
+					m_mOwners.Set(m_mOwners.GetKey(i), newId);
+			}
+		}
+
+		if (m_mRenters)
+		{
+			for (int i = 0; i < m_mRenters.Count(); i++)
+			{
+				if (m_mRenters.GetElement(i) == oldId)
+					m_mRenters.Set(m_mRenters.GetKey(i), newId);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Sets the owner of a building entity. Also sends an RPC to update other clients.
 	//! \param[in] playerId The ID of the player who will own the building. -1 to remove ownership.
 	//! \param[in] building The building entity to set the owner for.
