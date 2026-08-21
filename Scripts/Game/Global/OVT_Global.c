@@ -267,6 +267,17 @@ class OVT_Global : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Convenience method to get the illegal-action (wanted escalation) relay component
+	//! \return Illegal action component or null
+	static OVT_IllegalActionComponent GetIllegalActions()
+	{
+		OVT_OverthrowController controller = GetController();
+		if (!controller) return null;
+
+		return OVT_IllegalActionComponent.Cast(controller.FindComponent(OVT_IllegalActionComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Convenience method to get the recruit command relay component
 	//!
 	//! CLIENT-ONLY, like every other accessor built on GetController(), and null until

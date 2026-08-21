@@ -27,40 +27,14 @@ class OVT_CivilianDeathStabilityModifier : OVT_StabilityModifier
 			overthrowGameMode.GetOnCharacterKilled().Remove(OnCharacterKilled);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Any character death in the world. Only an AI civilian's counts here - see
+	//! OVT_Modifier.IsCivilianCharacterDeath for what a player death used to cost the player.
 	protected void OnCharacterKilled(IEntity victim, IEntity instigator)
 	{
-		if (!victim)
-			return;
-			
-		// Skip players
-		SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(victim);
-		if (!character)
-			return;
-			
-		// Check if it's a player
-		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(victim);
-		if (playerId > 0)
-			return;
-			
-		// Check if it's a recruit
-		OVT_RecruitManagerComponent recruitManager = OVT_Global.GetRecruits();
-		if (recruitManager && recruitManager.GetRecruitFromEntity(victim))
-			return;
-			
-		// Check faction
-		FactionAffiliationComponent factionComp = FactionAffiliationComponent.Cast(victim.FindComponent(FactionAffiliationComponent));
-		if (!factionComp)
-			return;
-			
-		Faction faction = factionComp.GetAffiliatedFaction();
-		if (!faction)
-			return;
-			
-		// Only apply for civilian faction
-		if (faction.GetFactionKey() == "CIV")
-		{
-			AddModifierToNearestTownInRange(victim.GetOrigin());
-		}
+		if(!IsCivilianCharacterDeath(victim)) return;
+
+		AddModifierToNearestTownInRange(victim.GetOrigin());
 	}
 	
 	protected void OnPlayerKilled(notnull SCR_InstigatorContextData instigatorContextData)
