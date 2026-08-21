@@ -92,7 +92,7 @@ class OVT_TEST_Init_Controller_ComponentsResolve : SCR_AutotestCaseBase
 			return true;
 		}
 
-		PrintFormat("Controller seam: all 8 asserted controller components resolve through OVT_ControllerComponent<T>.Get() (controller found after %1 poll(s))", m_iPolls.ToString());
+		PrintFormat("Controller seam: all 9 asserted controller components resolve through OVT_ControllerComponent<T>.Get() (controller found after %1 poll(s))", m_iPolls.ToString());
 		return true;
 	}
 
@@ -110,6 +110,7 @@ class OVT_TEST_Init_Controller_ComponentsResolve : SCR_AutotestCaseBase
 		if (!OVT_ControllerComponent<OVT_TravelRequestComponent>.Get()) return "OVT_TravelRequestComponent";
 		if (!OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get()) return "OVT_RespawnRequestComponent";
 		if (!OVT_ControllerComponent<OVT_FuelRequestComponent>.Get()) return "OVT_FuelRequestComponent";
+		if (!OVT_ControllerComponent<OVT_IllegalActionComponent>.Get()) return "OVT_IllegalActionComponent";
 
 		return "";
 	}

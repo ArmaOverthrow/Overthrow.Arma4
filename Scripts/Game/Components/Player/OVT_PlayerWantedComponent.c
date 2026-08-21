@@ -18,6 +18,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	int m_iWantedTimer = 0;
 	int m_iLastSeen;
+
+	// An illegal act that takes time to commit (a hold action) is judged for its whole duration, not
+	// only at the instant it started - both counted in CheckUpdate ticks, server-side only.
+	protected int m_iIllegalActionTicks = 0;
+	protected string m_sIllegalActionReason;
 	
 	protected bool m_bTempSeen = false;
 	protected float m_fStealthMultiplier = 1.0;
@@ -394,6 +399,35 @@ class OVT_PlayerWantedComponent: OVT_Component
 		RecordSuspiciousActivity("illegal_action", GetOwner().GetOrigin());
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Server-side: open a window during which this character is committing an illegal act that
+	//! takes time - a hold action such as calling an uprising or an assault on a base.
+	//!
+	//! A one-shot OnIllegalActionSeen would only ask "is anyone watching right now", which for a
+	//! 15-second hold is the wrong question: what matters is whether anyone sees you AT ANY POINT
+	//! while you do it. So the window is re-judged on every detection tick until it runs out, and
+	//! the immediate call below covers the case where someone is already watching as it begins.
+	//! \param[in] reason Notification tag for the escalation (see SendWantedNotification)
+	//! \param[in] seconds How long the act takes; ticks down at WANTED_SYSTEM_FREQUENCY
+	void BeginIllegalAction(string reason, int seconds)
+	{
+		if(seconds <= 0) return;
+
+		m_sIllegalActionReason = reason;
+		m_iIllegalActionTicks = (seconds * 1000) / WANTED_SYSTEM_FREQUENCY;
+
+		OnIllegalActionSeen(reason);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server-side: close the window early, because the act was abandoned. Nobody stays wanted-able
+	//! for a hold they cancelled two seconds in.
+	void EndIllegalAction()
+	{
+		m_iIllegalActionTicks = 0;
+		m_sIllegalActionReason = "";
+	}
+
 	//! Records suspicious activity for area heat tracking
 	protected void RecordSuspiciousActivity(string activityType, vector location)
 	{
@@ -638,6 +672,16 @@ class OVT_PlayerWantedComponent: OVT_Component
 					SetBaseWantedLevel(2, "WantedBaseProximity");
 				}		
 			}
+		}
+		
+		// An illegal act still in progress: seen at any tick of it is seen doing it. m_bTempSeen is
+		// this tick's fresh answer (m_bIsSeen is only written at the end of CheckUpdate), and
+		// SetBaseWantedLevel is a no-op once already at 2, so repeating it costs nothing.
+		if(m_iIllegalActionTicks > 0)
+		{
+			m_iIllegalActionTicks--;
+			if(m_bTempSeen)
+				SetBaseWantedLevel(2, m_sIllegalActionReason);
 		}
 		
 		//Print("Last seen is: " + m_iLastSeen);
