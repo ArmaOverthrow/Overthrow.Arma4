@@ -21,10 +21,11 @@
 //! impossible to finish on a busy server, which reads in play as "the occupying faction never does
 //! anything" and has no other diagnosis.
 //!
-//! ⚠ THE HOLD LENGTH COMES FROM DIFFICULTY, NOT FROM THE CONFIG, when there is a campaign to ask.
-//! objectiveHarassmentHoldSeconds is the authored knob (240 on Easy down to 90 on Insane) and the
-//! module's own attribute is the fallback for a world with no difficulty settings loaded - which is
-//! every initialisation-tier subject built with `new`.
+//! ⚠ THE HOLD LENGTH COMES FROM DIFFICULTY BECAUSE THE SHIPPED CONFIG ASKS IT TO (-1), NOT BECAUSE
+//! DIFFICULTY OUTRANKS THE CONFIG. The convention was flipped on 2026-08-21 and the config re-authored
+//! in the same change - see m_iHoldSeconds. objectiveHarassmentHoldSeconds is the campaign's knob (240
+//! on Easy down to 90 on Insane); a server owner who wants this one operation to differ authors a
+//! number and it is honoured.
 //!
 //! ⚠ AUTHOR THIS MODULE BEFORE THE REINFORCEMENT MODULE IN A CONFIG'S m_aModules, the same ordering
 //! constraint OVT_RadioTowerCaptureBehaviorDeploymentModule's header records. Behavior modules are
@@ -46,7 +47,25 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	[Attribute(defvalue: "120", desc: "How close to the town centre a group has to be to count as holding it. Also the circle a player has to be inside to interrupt the hold")]
 	float m_fHoldRadius;
 
-	[Attribute(defvalue: "180", desc: "Seconds the town must be held before the support debuff lands. FALLBACK ONLY - the campaign's objectiveHarassmentHoldSeconds is used whenever difficulty settings are loaded")]
+	//! =============================================================================================
+	//! ⚠ THE DIFFICULTY CONVENTION IS "-1 MEANS ASK THE CAMPAIGN", AND IT WAS FLIPPED HERE ON
+	//! 2026-08-21 (occupying/objectives build phase 4).
+	//! =============================================================================================
+	//! It used to be the opposite - "FALLBACK ONLY: the campaign's value is used WHENEVER difficulty
+	//! settings are loaded" - which meant an authored number was silently IGNORED in every real
+	//! campaign. A .conf field a server owner can tune and that then does nothing is worse than a
+	//! missing one, because the whole authored surface loses its credibility with it.
+	//!
+	//! ⚠ THE FLIP IS BEHAVIOUR-NEUTRAL ONLY BECAUSE THE SHIPPED CONFIG WAS RE-AUTHORED TO -1 IN THE
+	//! SAME CHANGE. A config left holding its old positive number would now be HONOURED instead of
+	//! overridden, and the campaign would stop scaling with difficulty. That is exactly why
+	//! OVT_TowerRecaptureBehaviorDeploymentModule was NOT flipped with the other two - see its own
+	//! header - and why OVT_BaseRepairBehaviorDeploymentModule, which left for the deployments
+	//! framework as a pure relocation, is excluded as well.
+	//!
+	//! ⚠ AN AUTHORED ZERO IS NOW AN AUTHORED ZERO, not "unauthored". Every resolver below still clamps
+	//! to its own floor, so a zero reads as the smallest sane value rather than as a divide-by-nothing.
+	[Attribute(defvalue: "-1", desc: "Seconds the town must be held before the support debuff lands. -1 = the campaign's objectiveHarassmentHoldSeconds difficulty setting (240 on Easy down to 90 on Insane), which is what the shipped config authors. Any other value OVERRIDES difficulty for this config")]
 	int m_iHoldSeconds;
 
 	[Attribute(defvalue: "ObjectiveHarassment", desc: "Name of the support modifier stacked onto the town on success, as authored in Configs/Modifiers/supportModifiers.conf")]
@@ -89,7 +108,9 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		vector centre = ResolveTownCentre();
 
 		int aliveInside = CountAliveRegisteredMembersWithin(centre, m_fHoldRadius);
-		bool enemyPresent = NearestPlayerDistance(centre) <= m_fHoldRadius;
+				// ⚠ THE RESISTANCE, NOT JUST PLAYERS (author, 2026-08-21). Recruits and - when they arrive -
+		// high command groups contest this place exactly as a player does. See DefenderWithin().
+		bool enemyPresent = DefenderWithin(centre, m_fHoldRadius);
 
 		if (!EvaluateHold(aliveInside, enemyPresent, m_iTicksLeft))
 			return;
@@ -158,14 +179,20 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 			}
 		}
 
-		// ⚠ THE DEBUFF IS APPLIED FIRST AND THE DIRECTOR IS TOLD SECOND. It is free either way today -
-		// OnHarassmentSuccess() only counts, and the director re-reads the town's support on its own
-		// next tick - but the order is the honest one: the operation's EFFECT lands, and only then is
-		// the operation reported as completed. Told first, a gate that ever moved back onto this call
-		// would read the support from before the debuff.
+		// ⚠ THE DEBUFF IS APPLIED FIRST AND THE OBJECTIVE IS TOLD SECOND. It is free either way today -
+		// reporting only COUNTS, and the objective's own gate re-reads the town's support on the next
+		// director tick - but the order is the honest one: the operation's EFFECT lands, and only then
+		// is the operation reported as completed. Told first, a gate that ever moved back onto this
+		// call would read the support from before the debuff.
+		//
+		// 🔴 IT REPORTS INTO THE OBJECTIVE'S BAG AND DOES NOTHING ELSE. The signal is PULLED by the
+		// director's tick, which compares the counter against a mark; a report that advanced a phase or
+		// re-armed a timer would put a transition somewhere other than behind the tick's three early
+		// returns, and that cost two red cases in two suites once already. See
+		// OVT_ObjectiveDirectorComponent.ReportObjectiveProgress().
 		OVT_ObjectiveDirectorComponent director = OVT_ObjectiveDirectorComponent.GetInstance();
 		if (director)
-			director.OnHarassmentSuccess();
+			director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES, 1);
 
 		// The operation is over. Collected NEXT FRAME rather than here - see
 		// OVT_BaseBehaviorDeploymentModule.RequestDeploymentCollection for why an inline delete from a
@@ -174,15 +201,24 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How many updates the hold is worth, difficulty first and the authored attribute as the fallback.
+	//! How many updates the hold is worth: the authored attribute, or the campaign's setting when the
+	//! attribute is the -1 sentinel. See the attribute's own note for the convention and for why it was
+	//! flipped.
+	//!
+	//! ⚠ A WORLD WITH NO DIFFICULTY SETTINGS - which is every initialisation-tier subject built with
+	//! `new` - resolves the sentinel to zero, and the clamp below turns that into one update. A hold of
+	//! one update is not the campaign's pacing, but it is a bounded, non-zero answer for a world that
+	//! has no campaign in it.
 	//! \return At least one update.
 	protected int ResolveHoldTicks()
 	{
-		int seconds = m_iHoldSeconds;
+		int difficultyValue = -1;
 
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (difficulty && difficulty.objectiveHarassmentHoldSeconds > 0)
-			seconds = difficulty.objectiveHarassmentHoldSeconds;
+		if (difficulty)
+			difficultyValue = difficulty.objectiveHarassmentHoldSeconds;
+
+		int seconds = OVT_ObjectivePlanRules.ResolveWithDifficulty(m_iHoldSeconds, difficultyValue);
 
 		if (seconds < UPDATE_SECONDS)
 			return 1;

@@ -9,11 +9,11 @@
 //! ==========================================================================================
 //! ⚠ NOTHING HERE MAY ASK THE DIRECTOR WHERE THE FORWARD BASE IS. NONE OF THE DIRECTOR'S STATE
 //! REPLICATES - deliberately, G12: this feature adds no RplProp and no client-visible surface beyond
-//! the Game Master panel. On a dedicated server's client, IsFOBUp() is false and GetFOBPosition() is
-//! the zero vector, so an action gated on either would be invisible or permanently refused for every
-//! player who is not the host. The flag this action is attached to IS the forward base, on every
-//! machine, so every client-side question is asked about the OWNER ENTITY and the server re-derives
-//! the same questions from its own record.
+//! the Game Master panel. On a dedicated server's client, IsAssetUp(ASSET_FOB) is false and
+//! GetAssetPosition(ASSET_FOB) is the zero vector, so an action gated on either would be invisible or
+//! permanently refused for every player who is not the host. The flag this action is attached to IS
+//! the forward base, on every machine, so every client-side question is asked about the OWNER ENTITY
+//! and the server re-derives the same questions from its own record.
 //! ==========================================================================================
 //!
 //! ⚠ EVERYTHING THIS CLASS DECIDES, THE SERVER DECIDES AGAIN. CanBePerformedScript runs on the client

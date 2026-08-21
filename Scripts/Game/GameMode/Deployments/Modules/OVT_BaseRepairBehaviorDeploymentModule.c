@@ -85,7 +85,9 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		}
 
 		int aliveInside = CountAliveRegisteredMembersWithin(base.location, m_fClearRadius);
-		bool enemyPresent = NearestPlayerDistance(base.location) <= m_fClearRadius;
+				// ⚠ THE RESISTANCE, NOT JUST PLAYERS (author, 2026-08-21). Recruits and - when they arrive -
+		// high command groups contest this place exactly as a player does. See DefenderWithin().
+		bool enemyPresent = DefenderWithin(base.location, m_fClearRadius);
 
 		if (!EvaluateRepair(aliveInside, enemyPresent, m_iTicksLeft))
 			return;

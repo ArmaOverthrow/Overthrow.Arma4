@@ -413,8 +413,12 @@ class OVT_GMPanelUIComponent : SCR_ScriptedWidgetComponent
 		if (m_wValueObjective)
 			m_wValueObjective.SetText(OVT_GMPanelFormat.FormatObjectiveName(state.m_sObjectiveName));
 
+		// The phase row carries BOTH authored names - "Town Offensive: Harassment" - because the panel
+		// has two text rows and three things worth saying, and the plan is the one that tells a Game
+		// Master WHY the faction is doing what it is doing. The formatter drops the plan half rather
+		// than concatenating when either name is a localization key; see FormatPhaseRow().
 		if (m_wValuePhase)
-			m_wValuePhase.SetText(OVT_GMPanelFormat.FormatObjectivePhase(state.m_iObjectivePhase));
+			m_wValuePhase.SetText(OVT_GMPanelFormat.FormatPhaseRow(state.m_sObjectivePlanName, state.m_sObjectivePhaseName));
 
 		if (m_wValueOFResources)
 			m_wValueOFResources.SetText(state.m_iOFResources.ToString());

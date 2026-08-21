@@ -364,7 +364,7 @@ class OVT_TEST_Init_ObjectiveReserve_DirectorFloorsOnlyWhileBrokeAndLapsesWhenIt
 		director.DirectorTick();
 
 		bool lapsed = deployments.GetObjectiveReserve(occupyingIndex) == null;
-		int phaseAfterLapse = director.GetPhase();
+		string phaseAfterLapse = director.GetObjectivePhaseName();
 
 		// --- ACT, HALF THREE: floored again, and then torn down. Every runtime path that ends an
 		//     objective funnels through the record clear, which drops the floor in the same breath as
@@ -426,10 +426,10 @@ class OVT_TEST_Init_ObjectiveReserve_DirectorFloorsOnlyWhileBrokeAndLapsesWhenIt
 			return true;
 		}
 
-		if (phaseAfterLapse != OVT_EObjectivePhase.HARASSMENT)
+		if (phaseAfterLapse != "Harassment")
 		{
 			SetFailure(string.Format("the lapse must be a lapse and not a teardown: the objective left the harassment phase (now %1), so the claim above may be about an objective that ended rather than about a tick that did not ask",
-				phaseAfterLapse.ToString()));
+				phaseAfterLapse));
 			return true;
 		}
 

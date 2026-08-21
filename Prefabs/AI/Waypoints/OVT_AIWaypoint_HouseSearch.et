@@ -1,0 +1,6 @@
+SCR_SearchAndDestroyWaypoint : "{B3E7B8DC2BAB8ACC}Prefabs/AI/Waypoints/AIWaypoint_SearchAndDestroy.et" {
+ ID "5F2C1A7E9B3D4C60"
+ AIBehaviorTree "{A086847134FE94FF}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt"
+ AIBehaviorTreeMoveTo "{ACFFFA96E11FDA0F}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt"
+ Title "Overthrow House Search Waypoint"
+}

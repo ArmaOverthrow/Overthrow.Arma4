@@ -78,6 +78,56 @@ modded class SCR_AIGroup
 	protected bool m_bOVT_ManualSpawnArmed;
 
 	//------------------------------------------------------------------------------------------------
+	// SPAWN-QUEUE INSTRUMENTATION (insertion investigation, 2026-08-21)
+	//
+	// ==========================================================================================
+	// 🔴 THE ONE QUESTION THREE ROUNDS OF PLAY-TESTING COULD NOT ANSWER: was this group ASKED and
+	// REFUSED, or was it NEVER ASKED?
+	// ==========================================================================================
+	// A transport crew registered on a 100 km ring sat at zero members for a minute at a time while
+	// every observable we had said it should be spawning: the ring was fine, an observer was inside it,
+	// the AI budget allowed it, no evictions, the pop-in band was clear, the mask read 2 of 2 and the
+	// refill seam still had slots to fill. Every one of those is a statement about the group's
+	// ELIGIBILITY. None of them says whether ChimeraAIWorld's spawn queue ever actually dispatched it,
+	// and "eligible but never dispatched" and "dispatched but refused every time" are completely
+	// different bugs with no overlap in their fixes.
+	//
+	// These counters answer it in one play-test:
+	//   requests HIGH, expands ZERO  - the queue is taking our requests and never coming back to us.
+	//                                  A throughput/ordering problem, not a script one. See
+	//                                  OVT_InsertionSpawningDeploymentModule.CREW_IMPORTANCE.
+	//   requests HIGH, expands HIGH  - we ARE being dispatched and refusing. The refusal string names
+	//                                  which branch, and every one of them is ours to fix.
+	//   requests ZERO                - nothing is asking at all: the lifecycle tick is not running on
+	//                                  this entity. A completely different investigation.
+	//
+	// ⚠ THEY COUNT EVERY GROUP IN THE WORLD, NOT JUST OURS, and that is deliberate - four ints and a
+	// string per group entity, incremented on paths that already exist, with no allocation and no work
+	// unless somebody asks for the string. Scoping them to masked groups would have made the "requests
+	// ZERO" case unreadable, because a group core does not own is exactly what a comparison needs.
+	//------------------------------------------------------------------------------------------------
+
+	//! How many times RequestSpawn has been called on this group - i.e. how many times somebody asked
+	//! the engine queue for members. The lifecycle tick alone contributes about one per second while a
+	//! ProximityDriven group is empty and in range.
+	protected int m_iOVT_SpawnRequests;
+
+	//! How many times the queue has actually dispatched ExpandOneMember at this group. THE number.
+	protected int m_iOVT_ExpandCalls;
+
+	//! Of those, how many produced no member.
+	protected int m_iOVT_ExpandRefusals;
+
+	//! Of the refusals, how many got all the way to SpawnGroupMember and had IT refuse. That call has
+	//! exactly two false returns in vanilla and both are the navmesh tile branch
+	//! (SCR_AIGroup.c:1692-1719), so a non-zero count here reads "the navmesh under the spawn point is
+	//! not loaded" and nothing else.
+	protected int m_iOVT_SpawnMemberFailures;
+
+	//! Which branch refused most recently, in words.
+	protected string m_sOVT_LastExpandRefusal;
+
+	//------------------------------------------------------------------------------------------------
 	//! Arms the persistence exemption for the NEXT group entity that runs EOnInit.
 	//!
 	//! Mirrors SCR_AIGroup.IgnoreSpawning: a static one-shot rather than a per-entity call, because
@@ -196,28 +246,75 @@ modded class SCR_AIGroup
 			&& !m_bOVT_ManualSpawnArmed;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! ONE LINE THAT SEPARATES "never dispatched" FROM "dispatched and refused". See the counter block
+	//! above for why those two are the whole question.
+	//! \return A compact human-readable state of this group's dealings with the engine spawn queue.
+	string GetOVTSpawnQueueDiagnostic()
+	{
+		string refusal = m_sOVT_LastExpandRefusal;
+		if (refusal.IsEmpty())
+			refusal = "none";
+
+		return string.Format("%1 spawn request(s) made, queue dispatched %2, %3 refused (%4 at SpawnGroupMember, i.e. navmesh), last refusal: %5",
+			m_iOVT_SpawnRequests.ToString(), m_iOVT_ExpandCalls.ToString(), m_iOVT_ExpandRefusals.ToString(),
+			m_iOVT_SpawnMemberFailures.ToString(), refusal);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Counts every ask, then hands straight on to vanilla.
+	//!
+	//! ⚠ IT CHANGES NOTHING AND MUST NOT. The whole value of the count is that it is taken on the real
+	//! path with the real arguments; a wrapper that filtered, throttled or deduplicated would be
+	//! measuring itself. The defaults are repeated verbatim from SCR_AIGroup.c:2678 so a caller that
+	//! omits them reaches vanilla with exactly what it would have had.
+	//! \param[in] slotsWanted How many members the queue should ultimately spawn; -1 derives it.
+	//! \param[in] observerRange Drop the request when no observer is within this at dispatch time.
+	override void RequestSpawn(int slotsWanted = -1, float observerRange = 0)
+	{
+		m_iOVT_SpawnRequests = m_iOVT_SpawnRequests + 1;
+
+		super.RequestSpawn(slotsWanted, observerRange);
+	}
+
 	override bool ExpandOneMember()
 	{
 		if (!HasOVTSlotMask())
-			return super.ExpandOneMember();
+		{
+			// ⚠ COUNTED FOR UNMASKED GROUPS TOO. A group core does not own is the control sample: if
+			// garrisons are being dispatched and registered crews are not, that comparison IS the bug
+			// report, and it is unavailable if only our own groups are counted.
+			m_iOVT_ExpandCalls = m_iOVT_ExpandCalls + 1;
+
+			bool vanillaSpawned = super.ExpandOneMember();
+			if (!vanillaSpawned)
+			{
+				m_iOVT_ExpandRefusals = m_iOVT_ExpandRefusals + 1;
+				m_sOVT_LastExpandRefusal = "vanilla refused (no mask on this group)";
+			}
+
+			return vanillaSpawned;
+		}
+
+		m_iOVT_ExpandCalls = m_iOVT_ExpandCalls + 1;
 
 		// Manual-policy guard: refuse the dispatch outright. IsExpandComplete answers TRUE for the
 		// same condition so the dispatcher books the request as complete and drops it, rather than
 		// retrying a group that will never accept.
 		if (RefusesUnrequestedManualSpawn())
-			return false;
+			return RefuseExpand("Manual policy and no force spawn armed");
 
 		if (!m_aUnitPrefabSlots || m_aUnitPrefabSlots.IsEmpty())
-			return false;
+			return RefuseExpand("the group prefab declares no member slots");
 
 		int slotIndex = OVT_VirtualizationMath.NextSlotToSpawn(m_aOVT_SlotAlive, m_aOVT_SpawnedSlots);
 		if (slotIndex < 0)
-			return false;
+			return RefuseExpand("every slot the mask calls alive has already been materialised");
 
 		// A mask longer than the roster can only mean the prefab changed under a persisted record.
 		// Refuse rather than index out of bounds; the record is corrected on the next relink.
 		if (slotIndex >= m_aUnitPrefabSlots.Count())
-			return false;
+			return RefuseExpand("the mask is longer than the prefab roster");
 
 		bool snapToTerrain = true;
 		if (s_bIgnoreSnapToTerrain)
@@ -231,7 +328,17 @@ modded class SCR_AIGroup
 		m_iOVT_PendingSlot = -1;
 
 		if (!spawned)
-			return false;
+		{
+			// ⚠ VANILLA HAS EXACTLY TWO false RETURNS IN SpawnGroupMember AND BOTH ARE THE NAVMESH TILE
+			// BRANCH (SCR_AIGroup.c:1692-1719); a prefab that fails to spawn returns TRUE (:1740). So this
+			// counter reads "the navmesh under the spawn point was not loaded" and nothing else - and that
+			// branch gives up and spawns anyway after NAVMESH_STALL_LIMIT (30) attempts, so a count that
+			// keeps climbing past 30 means something has reset the stall counter, which only
+			// DespawnMembers does.
+			m_iOVT_SpawnMemberFailures = m_iOVT_SpawnMemberFailures + 1;
+
+			return RefuseExpand("SpawnGroupMember refused - the navmesh tile under the spawn point");
+		}
 
 		m_aOVT_SpawnedSlots.Insert(slotIndex);
 
@@ -246,6 +353,21 @@ modded class SCR_AIGroup
 		}
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Books a refusal and its reason, and answers false so the caller can `return RefuseExpand(...)`.
+	//!
+	//! A helper rather than four copies of two lines, because the reason strings are the entire point:
+	//! a refusal count with no reason is the same dead end the whole investigation has been stuck in.
+	//! \param[in] reason Why this dispatch produced nobody.
+	//! \return False, always.
+	protected bool RefuseExpand(string reason)
+	{
+		m_iOVT_ExpandRefusals = m_iOVT_ExpandRefusals + 1;
+		m_sOVT_LastExpandRefusal = reason;
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------

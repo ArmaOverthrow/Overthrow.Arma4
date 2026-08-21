@@ -800,6 +800,13 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 		group.AddWaypoint(cycle);
 	}
 
+	//! Completion radius of a planned SEARCH waypoint, in metres. The vanilla Search & Destroy
+	//! activity lays its investigation grid over exactly this square around the point, so it is "how
+	//! much of the ground around one building the men poke into" - one house and its yard, not the
+	//! street behind it. The plan cannot carry it (one parameter per point, and that one is the hold),
+	//! so it is core's constant rather than a consumer's attribute.
+	static const float SEARCH_WAYPOINT_RADIUS_M = 15;
+
 	//------------------------------------------------------------------------------------------------
 	//! Builds one planned waypoint through the centralized helpers on the config component.
 	//!
@@ -845,11 +852,30 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 			case OVT_EVirtualWaypointType.CYCLE:
 				waypoint = config.SpawnBasicCycleWaypoint(position);
 				break;
+
+			case OVT_EVirtualWaypointType.SEARCH:
+				// The RELAXED house search (OVT_AIWaypoint_HouseSearch.et, see OVT_HouseSearchAI.c) - vanilla's
+				// Search & Destroy with the threat posture removed; the helper falls back to vanilla S&D if
+				// the game-mode prefab does not author it.
+				waypoint = config.SpawnHouseSearchWaypoint(position);
+				if (waypoint)
+				{
+					// The vanilla prefab authors a 30 m radius and a 600 s hold - an area sweep. A
+					// SEARCH point is one building: the radius is pinned to the footprint and the hold
+					// comes from the plan, like WAIT's. Both are set BEFORE the waypoint is added to the
+					// group, because the activity reads the radius once, when it builds its grid.
+					waypoint.SetCompletionRadius(SEARCH_WAYPOINT_RADIUS_M);
+
+					SCR_TimedWaypoint timed = SCR_TimedWaypoint.Cast(waypoint);
+					if (timed && waypointParam > 0)
+						timed.SetHoldingTime(waypointParam);
+				}
+				break;
 		}
 
-		// WAIT's parameter is a duration, not a radius - applying it as a completion radius would
-		// give a 45-second wait a 45 m radius.
-		if (waypoint && waypointParam > 0 && type != OVT_EVirtualWaypointType.WAIT)
+		// WAIT's and SEARCH's parameter is a duration, not a radius - applying it as a completion
+		// radius would give a 45-second wait a 45 m radius.
+		if (waypoint && waypointParam > 0 && type != OVT_EVirtualWaypointType.WAIT && type != OVT_EVirtualWaypointType.SEARCH)
 			waypoint.SetCompletionRadius(waypointParam);
 
 		return waypoint;

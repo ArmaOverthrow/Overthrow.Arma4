@@ -1,121 +1,144 @@
 //------------------------------------------------------------------------------------------------
-//! TIER B - the gate that stops a composition deployment being bought at a base that has nowhere to
-//! put it, and the one thing about it that can silently rot.
+//! TIER B - THE RULE THAT A DEPLOYMENT IS NEVER CHARGED FOR A COMPOSITION IT CANNOT PLACE.
 //!
-//! WHAT THIS EXISTS TO CATCH. OVT_CompositionSlotConditionDeploymentModule cannot read its own
-//! config's composition modules - it is asked at CREATION time, against the config TEMPLATE, with no
-//! deployment and no route to its siblings - so the slot types it gates on are AUTHORED separately
-//! from the m_eSlotType each composition module authors. That duplication is deliberate and explained
-//! at the attribute, but it is exactly the kind of pair that drifts: change a composition to
-//! ROAD_MEDIUM, forget the condition, and the gate quietly starts testing a pool that has nothing to
-//! do with what would be built. Nothing fails, nothing logs, and the deployment is either bought where
-//! it cannot build or refused where it could.
+//! ==========================================================================================
+//! 🔴 WHAT THIS CASE USED TO ASSERT, AND WHY THAT RULE IS GONE (2026-08-22).
+//! ==========================================================================================
+//! It used to require that every config building compositions ALSO authored an
+//! OVT_CompositionSlotConditionDeploymentModule, on the grounds that "the cost is paid before the slot
+//! is ever looked up". That was true, and the author refused the config-level answer to it:
 //!
-//! So this case asserts the two SETS match exactly, on every shipped config that carries both.
+//!     "They shouldn't have to pay for unplaceable positions, some bases simply don't have the slots
+//!      or anywhere to put them."
 //!
-//! ⚠ SET EQUALITY, NOT ORDER. The condition's list is a set of acceptable types and several
-//! composition modules legitimately share one type (Base Fortifications authors SMALL three times), so
-//! the assertion is "every type a composition module wants is accepted, and every type accepted is
-//! wanted by some composition module" - not a positional comparison.
+//! So the FRAMEWORK was fixed instead of the configs. A deployment is now priced for the position it is
+//! about to be built at (OVT_DeploymentConfig.GetTotalResourceCost(mult, position) ->
+//! OVT_BaseDeploymentModule.GetResourceCostAt), and a config whose compositions are ALL unplaceable
+//! there is not offered at that place at all (CanPlaceCompositionsAt). Authoring a slot-condition
+//! module is now one way to express a preference, not a requirement - so a case demanding one was
+//! pinning a config decision, which is the same mistake as pinning m_iPriority.
 //!
-//! NOT ASSERTED HERE: whether any base actually HAS such a slot. That is world authoring, it changes
-//! every time a slot is placed in slots.layer, and it is what the base controller's own inventory log
-//! reports at runtime. A test that pinned it would fail on every edit to the world.
+//! ==========================================================================================
+//! WHAT IS ASSERTED INSTEAD - THREE INVARIANTS, NONE OF THEM A TUNING VALUE.
+//! ==========================================================================================
+//!   NEVER DEARER        pricing a module FOR A PLACE may only ever reduce its cost. If a position
+//!                       could make something cost MORE, the manager would debit a figure it never
+//!                       checked against the pool, and nothing would say so.
+//!   ALL OR NOTHING      the difference between a module's template price and its priced-for-here price
+//!                       is either zero or EXACTLY the composition's own m_iCost. That is the author's
+//!                       rule stated as arithmetic: you are charged for the structure or you are not,
+//!                       never a fraction of it, and never for something else.
+//!   ONLY COMPOSITIONS   a module that builds no composition prices identically everywhere. Infantry
+//!                       and vehicles are delivered wherever they are sent; if their price ever became
+//!                       position-dependent, the "never dearer" guarantee would be silently load-bearing
+//!                       somewhere nobody had looked.
+//!
+//! ⚠ EVERY ONE OF THESE IS SILENT WHEN BROKEN, which is what earns them a test. A wrong charge does not
+//! error, does not log, and looks exactly like a correct one - that is the entire reason the leak
+//! survived to a play-test.
+//!
+//! ⚠ IT PRICES AGAINST THE REAL BASES, not a fixture, because the whole question is what the world's
+//! slots say - so it also exercises HasFreeSlotAt() against real controllers.
+//!
+//! ⚠ NOT YET PROVEN ABLE TO FAIL - the fault injection is OWED. The intended injection: drop the
+//! HasFreeSlotAt() test from OVT_CompositionSpawningDeploymentModule.GetResourceCostAt so it always
+//! adds the composition price, and require the ALL-OR-NOTHING row to stay silent while... it would not:
+//! the honest injection is to make GetResourceCostAt add HALF the composition price, and require
+//! "the charge for a structure must be all or nothing" to go red.
+//!
+//! NOT ASSERTED HERE: whether any particular base has any particular slot. That is world authoring, it
+//! changes every time slots.layer is edited, and pinning it would fail on every edit to the map.
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------
-//! Every config with composition modules also carries a slot gate, and the gate accepts exactly the
-//! slot types its compositions need.
-//!
-//! ⚠ NOT YET PROVEN ABLE TO FAIL - the fault injection is OWED. The intended injection: change one
-//! m_eSlotType in Deployment_BaseCheckpoints.conf (ROAD_LARGE -> LARGE) without touching
-//! m_aAcceptedSlotTypes, and require this case to name the unaccepted type.
+//! Pricing a deployment for a place may only ever make it cheaper, and only ever by whole compositions.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_CompositionSlotGate_AcceptedTypesMatchTheCompositions : SCR_AutotestCaseBase
+class OVT_TEST_Init_CompositionSlotGate_NothingIsChargedForAnUnplaceableComposition : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
 	{
 		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		if (!deployments)
+		if (!deployments || !deployments.m_DeploymentRegistry || !deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null - the deployment framework did not resolve");
+			SetFailure("the deployment registry did not resolve, so no config could be priced");
 			return true;
 		}
 
-		if (!deployments.m_DeploymentRegistry || !deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
 		{
-			SetFailure("the deployment registry did not resolve, so no config could be checked");
+			SetFailure("no bases resolved, so there is nowhere to price a composition against");
 			return true;
 		}
 
-		int checkedConfigs = 0;
+		int checkedModules = 0;
 
 		foreach (OVT_DeploymentConfig config : deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
 			if (!config || !config.m_aModules)
 				continue;
 
-			array<int> wanted = {};
-			OVT_CompositionSlotConditionDeploymentModule gate;
-
-			foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+			foreach (OVT_BaseData base : occupying.m_Bases)
 			{
-				OVT_CompositionSpawningDeploymentModule composition = OVT_CompositionSpawningDeploymentModule.Cast(module);
-				if (composition)
-				{
-					if (!wanted.Contains(composition.m_eSlotType))
-						wanted.Insert(composition.m_eSlotType);
-
+				if (!base)
 					continue;
-				}
 
-				if (!gate)
-					gate = OVT_CompositionSlotConditionDeploymentModule.Cast(module);
-			}
-
-			if (wanted.IsEmpty())
-				continue;
-
-			checkedConfigs++;
-
-			if (!gate)
-			{
-				SetFailure(string.Format("config '%1' builds compositions but authors no OVT_CompositionSlotConditionDeploymentModule - it can be bought at a base with nowhere to put them, and the cost is paid before the slot is ever looked up", config.m_sDeploymentName));
-				return true;
-			}
-
-			if (!gate.m_aAcceptedSlotTypes || gate.m_aAcceptedSlotTypes.IsEmpty())
-			{
-				SetFailure(string.Format("config '%1' authors a slot gate with an EMPTY m_aAcceptedSlotTypes, which the gate treats as 'allow everything' - so it gates nothing at all", config.m_sDeploymentName));
-				return true;
-			}
-
-			foreach (int want : wanted)
-			{
-				if (!gate.m_aAcceptedSlotTypes.Contains(want))
+				foreach (OVT_BaseDeploymentModule module : config.m_aModules)
 				{
-					SetFailure(string.Format("config '%1' builds a %2 composition but its slot gate does not accept that type - the gate is testing the wrong pool of slots", config.m_sDeploymentName, typename.EnumToString(OVT_EDeploymentSlotType, want)));
-					return true;
-				}
-			}
+					if (!module)
+						continue;
 
-			foreach (int accepted : gate.m_aAcceptedSlotTypes)
-			{
-				if (!wanted.Contains(accepted))
-				{
-					SetFailure(string.Format("config '%1' accepts %2 slots but builds no composition of that type - a free slot of it would let the deployment be bought when nothing it carries can use one", config.m_sDeploymentName, typename.EnumToString(OVT_EDeploymentSlotType, accepted)));
-					return true;
+					int template = module.GetResourceCost();
+					int here = module.GetResourceCostAt(base.location);
+
+					// --- NEVER DEARER.
+					if (here > template)
+					{
+						SetFailure(string.Format("config '%1': a module prices %2 at a base and %3 from the template - pricing for a PLACE may only ever reduce a cost, never raise one, or the manager debits a figure it never checked against the pool",
+							config.m_sDeploymentName, here.ToString(), template.ToString()));
+						return true;
+					}
+
+					OVT_CompositionSpawningDeploymentModule composition = OVT_CompositionSpawningDeploymentModule.Cast(module);
+					if (!composition)
+					{
+						// --- ONLY COMPOSITIONS are position-dependent.
+						if (here != template)
+						{
+							SetFailure(string.Format("config '%1': a NON-composition module prices differently at a base (%2) than from the template (%3) - only a composition's delivery can be refused by the ground",
+								config.m_sDeploymentName, here.ToString(), template.ToString()));
+							return true;
+						}
+
+						continue;
+					}
+
+					checkedModules++;
+
+					// --- ALL OR NOTHING.
+					int dropped = template - here;
+					if (dropped == 0)
+						continue;
+
+					int price = composition.GetCompositionCost();
+
+					if (dropped != price)
+					{
+						SetFailure(string.Format("config '%1': pricing at a base dropped %2 from a composition module whose composition costs %3 - the charge for a structure must be all or nothing",
+							config.m_sDeploymentName, dropped.ToString(), price.ToString()));
+						return true;
+					}
 				}
 			}
 		}
 
-		// A pass that checked nothing is a pass that proves nothing: the shipped set carries two such
-		// configs (Base Checkpoints and Base Fortifications), so zero means the walk found no
-		// composition modules at all and the assertions above never ran.
-		if (checkedConfigs == 0)
+		// A pass that priced no composition module proves nothing: the shipped set carries them (Base
+		// Checkpoints, Base Fortifications), so zero means the registry or the module type has changed
+		// under this case.
+		if (checkedModules == 0)
 		{
 			SetFailure("no registered config carries a composition module, so this case asserted nothing - the registry or the module type has changed");
 			return true;

@@ -53,12 +53,12 @@ class OVT_ObjectivePhaseRules
 	//! place once it has taken it.
 	static const int TOWN_QRF_SUPPORT_THRESHOLD = 25;
 
-	//! The phase number that means "there is no objective" - OVT_EObjectivePhase.IDLE, restated as an
-	//! integer because this class may not name a type it would then have to be kept in step with.
+	//! The phase number that means "there is no objective" - zero, which is what an unset authored field
+	//! reads as and what the deleted phase enum's IDLE member used to be.
 	//!
-	//! ⚠ IT IS AN AUTHORED-DATA FLOOR, NOT A RUNTIME ONE. A config that says it belongs to IDLE belongs
-	//! to no phase at all and PhaseInRange() refuses it outright; the runtime half needs no guard,
-	//! because a range that starts at 1 or above already refuses every phase below it.
+	//! ⚠ IT IS AN AUTHORED-DATA FLOOR, NOT A RUNTIME ONE. A config that says it belongs to phase zero
+	//! belongs to no phase at all and PhaseInRange() refuses it outright; the runtime half needs no
+	//! guard, because a range that starts at 1 or above already refuses every phase below it.
 	static const int NO_PHASE = 0;
 
 	//! The FOB spend ceiling, as a multiple of one FOB's cost. Derived rather than authored (§3.6):

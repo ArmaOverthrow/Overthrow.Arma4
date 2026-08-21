@@ -1,8 +1,8 @@
 # Damage & Destruction (`core/damage`) - Context & Decisions
 
-**Last Updated:** 2026-08-20 21:30
-**Current Phase:** Closed
-**Status:** ✅ Complete — play-test green 2026-08-20
+**Last Updated:** 2026-08-21 21:00 (post-close fix: structures died to single bullets — 16-bit hit-zone cap + repair never restored health; fuel depot made deliberately fragile)
+**Current Phase:** Closed (post-close fix landed 2026-08-21, play-test of it owed)
+**Status:** ✅ Complete — play-test green 2026-08-20; **post-close fix 2026-08-21 suite-green, one play-test item owed (see Needs human verification)**
 
 **Epic:** `core` (feature #8) · **Plan:** `implementation.md` (8 phases) · **Scope truth:** `requirements.md` · **Branch:** `v1.5`
 
@@ -24,8 +24,10 @@
 **What's Next:**
 - Nothing — closed. Remaining non-blocking debt: wiki publication from `wiki-draft.md` (wikijs MCP not connected), tutorial trigger for 'at a ruin' (framework, other feature), occupying repair balance numbers provisional, tents/helipad generic rubble, FM tile image. Git: everything uncommitted — the user commits.
 
+**Post-close fix (2026-08-21):** a built Recruitment Tent was ruined by stray small-arms fire with no sabotage involved. Root cause was TWO holes, both now closed and both pinned by new Init cases E/F (`OVT_TEST_Init_StructureDamage.c`): **(1) the engine clamps a hit zone's max health to 65 535**, so the authored 100 000 + 100 000 landed at 65 535 while vanilla's phase line sat at 100 000 — every buildable spawned already past its ruin line and the first registering round ruined it (BD31); **(2) vanilla zeroes the hit zone at the final phase and `GoToDamagePhase(0)` never restores it**, so any repaired structure was a one-hit kill (BD32). Numbers are now 32 000 + 32 000 with `DamageThreshold 50` (rifle/HMG rounds are a true no-op), repair restores full health with `ESetMaxHealthFlags.FULLHEAL`, and the **Fuel Depot is the deliberate exception** — 250 + 250 at kinetic ×1 / collision ×0, ~4 rifle rounds set it off, a vehicle bump does not (BD33). Bunkers' inherited explosive ×90 is now ×1 like the rest.
+
 **Blockers:**
-- None (closed 2026-08-20).
+- None (closed 2026-08-20; post-close fix 2026-08-21).
 
 ---
 
@@ -37,7 +39,7 @@
 - ✅ `PrefabsEditable/Auto/Props/Military/Sandbags/E_Sandbag_01_bunker_plastic_foundation_camonet.et` — probe 1 (task 1.3/1.5)
 - ✅ `Prefabs/Structures/Military/Houses/GuardTower_01/OVT_GuardTower_01.et` — probe 2 (task 1.4/1.5)
 - ✅ `Scripts/Game/Utilities/OVT_StructureDamage.c` — static facade `Ruin` / `Repair` / `IsRuined` / `IsDestructible` / `Resolve` (Phase 2)
-- ✅ `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_StructureDamage.c` — two Init cases (Phase 2)
+- ✅ `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_StructureDamage.c` — Init cases A–D (Phases 2/4/6) + **E/F and the `OVT_TEST_StructureDamageHits.Hit()` weapons-path helper (post-close fix 2026-08-21)**
 - ✅ `Scripts/Game/Persistence/Serializers/Components/OVT_BuildableComponentSerializer.c` — version 2: the damage phase, appended (Phase 3)
 - ✅ `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c` — `StructureDamage_RuinSurvivesSave` + `StructureDamage_RepairSurvivesSave`, their shared fixture, and the gate's third seam (Phase 3)
 - ✅ `Scripts/Game/GameMode/Managers/OVT_PersistenceManagerComponent.c` — `ReapplyEntitySaveData()`, the per-instance re-application those cases reload with (Phase 3, BD10)
@@ -381,6 +383,8 @@ The plan's **D1–D18** (`implementation.md` §5) are the decision record and ar
 Chosen because vanilla proves a delta can re-declare an inherited component's instance GUID under a subclass (S4 evidence), and because it leaves exactly one damage manager on the entity, which removes the S4 coexistence question from that prefab entirely. Pre-planned fallback if the Workbench load rejects it: fresh GUID + `SCR_DestructionMultiPhaseComponent "{5E76C88E922E8914}" { Enabled 0 }` beside it.
 
 ### BD2 — `m_fDamageThresholdMaximum 50000` is authored on both probes; it is a THIRD D18 lever (2026-08-20, task 1.5)
+> **⚠️ CORRECTED 2026-08-21 (BD31):** the "100 000 + 100 000" half of lever (ii) never worked — the engine clamps hit-zone max health to **65 535**, so vanilla's phase line (`m_iOriginalHealth − m_fBaseHealth` = 100 000) sat ABOVE the real health and the first registering hit ruined the structure. The numbers are 32 000 + 32 000 now. `m_fDamageThresholdMaximum 50000` itself stands.
+
 D18 names two levers (no hit zone; high `m_fBaseHealth`/`m_fPhaseHealth`). Neither is sufficient on its own, because `SCR_DestructionMultiPhaseComponent.OnDamage:302-325` short-circuits the whole health ladder when a single hit exceeds `m_fDamageThresholdMaximum` (class default **3000**) — one satchel would ruin a 200000-health structure. 50000 is vanilla's own number for a fortification-sized destructible (`BrickGate_01_base.et:29`). **Phase 4 must author it on the other six.**
 
 ### BD3 — Ruin models are authored as bare `.xob`, not as `…_Ruin.et` prefabs, unless the prefab carries its own inline `MeshObject` (2026-08-20, task 1.5)
@@ -585,9 +589,26 @@ Code shape: two attributes, **`ResourceName m_ExplosionSoundProject` + `string m
 
 **Range and volume are the bank's own authoring — there is no script-side override.** `SCR_AudioSourceConfiguration` exposes only project/event/offset/flags, and `AudioSystem.PlayEvent` takes no gain. The one thing script contributes is the **`Distance` signal**, which `SCR_SoundManagerModule.CreateAudioSource` sets from `AudioSystem.IsAudible()` on every path — that is what selects the bank's far layers/tails — plus the four `EnvironmentSignals` (sea/forest/houses/meadows) set in `PlayAudioSource`. So "pick the loudest vanilla big-explosion bank" *is* the volume control, and TNT_Large is the largest generic one that is not fuel-specific.
 
+### BD31 — Hit-zone health is capped at 65 535 by the engine, so base + phase health must stay under it (2026-08-21, post-close fix)
+The first run of the new case E read `GetMaxHealth() == 65535` on a freshly spawned tent authored `m_fBaseHealth 100000` + `m_fPhaseHealth 100000`. `SetHitZoneHealth(200000)` (vanilla `OnPostInit`) clamps to a 16-bit value, but `m_fNextPhaseHealth = m_iOriginalHealth − m_fBaseHealth` is computed from the authored numbers = **100 000** — above the health the structure actually has — so `currentHealth <= m_fNextPhaseHealth` is true on the very first `OnDamage`, whatever the hit. That is how a tent died to "a couple of stray shots" on 2026-08-21 with no sabotage notification. **Rule: `m_fBaseHealth + Σ m_fPhaseHealth ≤ 65 535`, and the phase line (`total − base`) must be well below the total.** Authored now: 32 000 + 32 000 = 64 000 total, ruin at ≤ 32 000 effective. The 2026-08-20 1.U2 (b) "empty a magazine" tick cannot have exercised this — the first registering round would have ruined the probe.
+
+### BD32 — Repair restores the hit zone with `SetMaxHealth(…, FULLHEAL)`; vanilla's two-step helper does not bring a zeroed hit zone back (2026-08-21, post-close fix)
+Vanilla's last-phase branch ends with `SetHitZoneHealth(0)` (`SCR_DestructionMultiPhaseComponent.OnDamage:389-392`) — max 0, health 0 — and GM Neutralize lands in the same state; `GoToDamagePhase(0)` restores the phase and never the health. So every repaired-after-damage structure was a one-hit kill (`currentHealth <= 0` on the next `OnDamage`). `RepairToIntact()` now restores `m_iOriginalHealth` on the authority. ⚠ The obvious call, vanilla's own `SetHitZoneHealth(m_iOriginalHealth)` (`SetMaxHealth` then `SetHealth`), left the zone at **0 / 64000** in the gate run — `SetHealth` on a hit zone coming from 0/0 did not stick. `hitZone.SetMaxHealth(value, ESetMaxHealthFlags.FULLHEAL)` (documented "sets the hitzone HP to the new maxHP value") does, with a `SetHealthScaled(1)` fallback behind it. Scripted ruins (`RuinIt`, sabotage, a restored save) never touch the health, so for them the restore is a no-op.
+
+### BD33 — The Fuel Depot is the one deliberately fragile buildable; the other seven ignore small arms outright (2026-08-21, user balance call)
+User call 2026-08-21: "up the HP of all our buildables a lot, apart from fuel depots (it makes sense a few shots blow those up)". Applied as: **seven** structures — 32 000 + 32 000, kinetic ×0.1, explosive ×1, plus `DamageThreshold 50` on the hit zone so any effective hit under 50 is discarded (a 5.45 round is 76 × 0.1 = 7.6, a .50 is 340 × 0.1 = 34 — both a true no-op, not a chip; a 14.5 mm at ~60 still registers). Bunkers, which inherited vanilla's explosive ×90, now author the same block as the rest (explosive ×1). **Fuel Depot** — `m_fBaseHealth 250` + `m_fPhaseHealth 250`, kinetic/fragmentation/explosive/incendiary/fire ×1 and **collision ×0** (`OnFilteredContact` deals `momentum × 0.05` as `EDamageType.COLLISION` — a parking bump would otherwise be hundreds of damage against 500); ~4 rifle rounds (4 × 76 = 304 ≥ 250) set it off, a grenade or a burning wreck beside it does too, a truck nudging it does not. Both halves are pinned by case F against the LIVE buildables config (every listed prefab: a 5 000 collision hit ruins nothing; five 76 kinetic rounds ruin only the depot and do not move the others' health). `m_fDamageThresholdMaximum 50000` is unchanged everywhere.
+
 ---
 
 ## Gotchas & Learnings
+
+### Found post-close (2026-08-21)
+
+- 🔴 **Hit-zone max health is a 16-bit value — `SetMaxHealth(200000)` reads back 65 535.** Any multi-phase authoring whose `total − base` exceeds 65 535 is ruined by its first hit. (BD31)
+- 🔴 **`SCR_DestructionMultiPhaseComponent` never restores health on the way back to phase 0**, and vanilla's `SetHitZoneHealth()` cannot lift a hit zone out of 0 / 0 — use `SetMaxHealth(v, ESetMaxHealthFlags.FULLHEAL)`. (BD32)
+- ⚠ **`OnDamage()` is handed the PRE-hit health** (or early-returns once the manager is DESTROYED — same effect): one overkill hit never crosses the phase line, only a sequence of hits does. Case E's first draft fired a single 10 000 000 hit and the tent stayed intact. Tests that drive the weapons path must loop.
+- ℹ **`DamageManagerComponent.HandleDamage(SCR_DamageContext)` with `struckHitZone = GetDefaultHitZone()` and `Instigator.CreateInstigator(null)` is a faithful stand-in for a projectile in the Init tier** — multipliers, threshold and `OnDamage` all run. `OVT_TEST_StructureDamageHits.Hit()` wraps it.
+
 
 ### Found in Phase 1 (2026-08-20)
 
@@ -695,10 +716,11 @@ Pre-loaded from the plan — traps every implementing agent must already know:
 - [x] ✅ **Phase 8 (8.U1, cont.)** — **The three surfaces agree.** In game, the Field Manual's *Ruins and Repair* page and the *Counter Attacks* page must say the same thing about a demolished structure, and the price wording (half on Easy/Normal, three quarters on Hard, full at Extreme/Insane) must match what the repair action actually charges on the preset being played. The wiki is the third surface and is **not published yet** — see below.
 - [x] ✅ **Phase 8 (8.3)** — **The wiki sync is owed and could not be attempted.** No `mcp__wikijs__*` tool was exposed to the Phase 8 session, so nothing was written and nothing was invented. Paste-ready text: `docs/features/core/damage/wiki-draft.md`. ⚠ `occupying/counter-attacks` T10.3 is owed on the same page set; do both in one pass.
 - [x] ✅ **Final** — the 11-item dedicated-server MP play-test in `implementation.md` §7.
+- [ ] **Post-close fix (2026-08-21, BD31–33)** — in a campaign (listen host is enough): **(a)** empty two magazines of rifle fire and a belt of .50 into a built tent/tower/garage/bunker — nothing happens, no phase change, `/repair-structure` is not even offered; **(b)** four or five rifle rounds into a built **Fuel Depot** — fireball, ruin; park a truck against an intact depot and nudge it — nothing; **(c)** GM **Neutralize** a tent, `/repair-structure` it, then shoot it once — it must stay standing (this is the repair-health hole); **(d)** a campaign saved BEFORE this fix loads with its structures intact and they obey (a)–(c). ⚠ Built structures in an EXISTING campaign keep their new numbers only because health is re-derived on load (buildables do not persist hit-zone health), so no migration is needed.
 
 ---
 
-_All items above confirmed green by the user's play-test on 2026-08-20 (closed)._
+_All items above except the 2026-08-21 post-close fix confirmed green by the user's play-test on 2026-08-20 (closed)._
 
 ## Testing Approach
 
@@ -736,6 +758,15 @@ House rules: recorded proof-it-can-fail preamble per case; **no `maxAttempts`**;
 ---
 
 ## Session Notes
+
+### 2026-08-21 — Post-close fix: buildables died to single bullets (BD31–33)
+
+- **Report:** a built Recruitment Tent was ruined by "a couple of stray shots", no sabotage notification. User's first instinct was "up the HP a lot, except fuel depots".
+- **Diagnosis (suite-proven, not inferred):** the new case E's very first assertion read **max health 65 535** on a freshly spawned tent — the engine caps hit-zone health at 16 bits, so with vanilla's phase line at 100 000 every structure was past its ruin line from spawn and the first registering round ruined it (BD31). A second hole behind it: vanilla leaves a damage-ruined hit zone at 0 / 0 and `GoToDamagePhase(0)` never restores it, so a repaired structure was a one-hit kill (BD32). The 2026-08-20 1.U2 (b) tick ("neither should be ruinable by fire") cannot have been a real magazine-emptying.
+- **Fix:** seven prefabs 100 000 + 100 000 → **32 000 + 32 000** with `DamageThreshold 50` on the hit zone; Bunkers get the same explicit hit-zone block (explosive ×90 → ×1); `RepairToIntact()` restores `m_iOriginalHealth` via `SetMaxHealth(…, FULLHEAL)` (vanilla's `SetHitZoneHealth` left it at 0 / 64000 — gate-proven); Fuel Depot **250 + 250**, kinetic ×1, collision ×0 (BD33, the user's "a few shots blow those up").
+- **Tests:** `OVT_TEST_Init_StructureDamage.c` cases **E** (weapons-path ruin → repair restores full health → one rifle round is shrugged off; proven able to fail twice — on 65 535 and on 0 / 64000) and **F** (LIVE buildables config: a 5 000 collision hit ruins nothing; five 76 kinetic rounds ruin only the depot and leave the others' health untouched), plus the shared `OVT_TEST_StructureDamageHits.Hit()` helper. Init suite **182/184** (the two reds: E before its fix, now green; `CompositionSlotGate` pre-existing); E standalone green; All group run recorded below when it finishes.
+- **Not changed:** `m_fDamageThresholdMaximum 50000`, FX, repair pricing, the occupying repair detail. FM text does not mention gunfire, so no `.st` edit; a "fuel depots are fragile" line is optional.
+- **Play-test owed:** the new item in "Needs human verification".
 
 ### 2026-08-20 — CLOSED (user play-test green)
 

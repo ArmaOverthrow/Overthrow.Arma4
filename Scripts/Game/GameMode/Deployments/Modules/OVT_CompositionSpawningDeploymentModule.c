@@ -191,6 +191,63 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! THE SAME PRICE, MINUS ANYTHING THIS BASE CANNOT ACTUALLY TAKE.
+	//!
+	//! ⚠ THE COMPOSITION'S PRICE IS THE ONLY PART THAT IS CONDITIONAL. Everything else this module is
+	//! charged for - its groups, the base cost - is bought and delivered whatever the slots look like,
+	//! so only the structure's own m_iCost is dropped. A config with two composition modules and one
+	//! free slot therefore pays for one of them, which is exactly what the author asked for: not a
+	//! refusal, not a full charge, a bill for what can land.
+	//! \param[in] position Where the deployment would be created.
+	//! \return The cost this module should be charged at that position.
+	override int GetResourceCostAt(vector position)
+	{
+		int cost = super.GetResourceCostAt(position);
+
+		OVT_FactionComposition composition = ResolveComposition();
+		if (composition && HasFreeSlotAt(position, m_eSlotType))
+			cost += composition.m_iCost;
+
+		return cost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHAT THIS MODULE'S STRUCTURE COSTS - the conditional part of its price, on its own.
+	//!
+	//! ⚠ PUBLIC BECAUSE THE INVARIANT IS, and ResolveComposition() stays protected. The rule
+	//! OVT_TEST_Init_CompositionSlotGate_NothingIsChargedForAnUnplaceableComposition pins is that the
+	//! difference between this module's template price and its priced-for-here price is either zero or
+	//! EXACTLY this number - all or nothing. Asserting that needs the number, not the composition, so
+	//! this is the narrowest thing that can be exposed rather than opening the resolver.
+	//! \return The composition's m_iCost, or 0 when the tag resolves to nothing for this faction.
+	int GetCompositionCost()
+	{
+		OVT_FactionComposition composition = ResolveComposition();
+		if (!composition)
+			return 0;
+
+		return composition.m_iCost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True - this module is the one that needs a slot.
+	override bool WantsCompositionSlot()
+	{
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] position Where the deployment would be created.
+	//! \return True when this module's composition could be placed there.
+	override bool CanPlaceCompositionAt(vector position)
+	{
+		if (!ResolveComposition())
+			return false;
+
+		return HasFreeSlotAt(position, m_eSlotType);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Build the composition (once, ever), then converge the guard group on it.
 	//!
 	//! ORDER IS LOAD-BEARING: the structure goes in first so the guards can be anchored on it, and
@@ -381,8 +438,15 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 			else
 				reason = string.Format("all %1 slot(s) of that kind at this base are already taken", slotCount.ToString());
 
-			Print(string.Format("[Overthrow] Deployment '%1' could not place composition '%2': it needs a %3 slot and %4",
-				m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), reason), LogLevel.WARNING);
+			// ⚠ NORMAL, NOT WARNING, SINCE 2026-08-22, AND THE DOWNGRADE IS THE POINT OF THE WHOLE CHANGE.
+			// This used to be a fault: the faction had PAID for a structure and got nothing. It is not a
+			// fault any more - the price is taken per position now, so an unplaceable composition is not
+			// charged for (OVT_BaseDeploymentModule.GetResourceCostAt), and a base with no free slot of
+			// this kind is an ordinary property of the terrain the author called out by name: *"some
+			// bases simply don't have the slots or anywhere to put them"*. A WARNING on every base
+			// startup for a normal condition is noise that hides real ones.
+			Print(string.Format("[Overthrow] Deployment '%1' did not place composition '%2': it needs a %3 slot and %4 - nothing was charged for it",
+				m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), reason), LogLevel.NORMAL);
 
 			m_bCompositionAttempted = true;
 			return;
@@ -536,6 +600,70 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 	//! \param[in] controller The base whose slots to read.
 	//! \param[in] slotType Which size and kind.
 	//! \return That base's list for the type, or null for an unrecognised type.
+	//------------------------------------------------------------------------------------------------
+	//! THE BASE CONTROLLER A DEPLOYMENT AT THIS POSITION WOULD BUILD INTO.
+	//!
+	//! The static twin of FindNearestBaseController(), which asks the same question of a LIVE module's
+	//! own position. This one takes the position because the pricing gate has to ask it BEFORE any
+	//! deployment exists - see GetResourceCostAt().
+	//! \param[in] position Where the deployment would be created.
+	//! \return The controller, or null when there is no base there or its marker is not in the world.
+	static OVT_BaseControllerComponent FindBaseControllerAt(vector position)
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return null;
+
+		OVT_BaseData nearest = occupying.GetNearestBase(position);
+		if (!nearest)
+			return null;
+
+		IEntity marker = GetGame().GetWorld().FindEntityByID(nearest.entId);
+		if (!marker)
+			return null;
+
+		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! COULD A COMPOSITION OF THIS SLOT KIND BE PLACED AT THIS POSITION AT ALL?
+	//!
+	//! ==========================================================================================
+	//! 🔴 "They shouldn't have to pay for unplaceable positions, some bases simply don't have the
+	//! slots or anywhere to put them." (author, 2026-08-22.)
+	//! ==========================================================================================
+	//! A deployment's price is taken from the CONFIG TEMPLATE before the deployment exists, and the
+	//! composition is placed much later, from TryBuildComposition(). Nothing joined the two, so a base
+	//! with no free slot of the right kind was charged in full for a structure that could never appear -
+	//! silently, because a refusal to place is not an error. The author's own log has it happening at
+	//! three separate bases inside one second of startup:
+	//!
+	//!     Deployment 'Base Fortifications' built composition 'SmallBunker' at <3839.09, ...>
+	//!     Deployment 'Base Fortifications' could not place composition 'MGNest': it needs a SMALL slot
+	//!     and all 1 slot(s) of that kind at this base are already taken
+	//!
+	//! ⚠ A DETERMINISTIC SCAN, DELIBERATELY, WHERE FindFreeSlot() ROLLS. That one rolls SLOT_TRIES times
+	//! because picking a random free slot is what it is FOR; this one has to answer "is there one" and a
+	//! roll that misses would price a placeable composition as unplaceable and hand the faction a
+	//! discount it had not earned. Both read the SAME two lists - GetSlotListFor() and the controller's
+	//! m_aSlotsFilled - so the price and the placement can never disagree about what "free" means.
+	//! \param[in] position Where the deployment would be created.
+	//! \param[in] slotType The kind of slot the composition needs.
+	//! \return True when at least one slot of that kind is free at the base there.
+	static bool HasFreeSlotAt(vector position, OVT_EDeploymentSlotType slotType)
+	{
+		OVT_BaseControllerComponent controller = FindBaseControllerAt(position);
+		if (!controller)
+			return false;
+
+		// ⚠ THE SCAN ITSELF IS HasFreeSlot(), NOT A SECOND COPY OF IT. That static already exists, is
+		// already asserted by OVT_TEST_Init_CompositionSlotGate_FreeSlotScanIsExhaustive - including the
+		// asymmetry that a missing CLAIM list means "no free slot" rather than "nothing is claimed" - and
+		// duplicating it here is exactly the drift this file keeps warning about. All this method adds is
+		// resolving the two lists from a position.
+		return HasFreeSlot(GetSlotListFor(controller, slotType), controller.m_aSlotsFilled);
+	}
+
 	static array<ref EntityID> GetSlotListFor(notnull OVT_BaseControllerComponent controller, OVT_EDeploymentSlotType slotType)
 	{
 		switch (slotType)

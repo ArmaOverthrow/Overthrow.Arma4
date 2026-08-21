@@ -223,12 +223,98 @@ class OVT_VirtualPlanFactory
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! One SEARCH point per site, each holding for its own rolled duration, cycling.
+	//!
+	//! THE TOWN SWEEP'S HOUSE ROUTE. A SEARCH point is the vanilla Search & Destroy waypoint pinned to one
+	//! building (core fixes the radius; the plan carries the hold), so a group walking this plan goes
+	//! house to house, pokes around and inside each one for its hold, and moves on - and while dormant
+	//! the movement tick treats SEARCH as a WAIT, so the patrol keeps touring the houses with nobody
+	//! watching and materialises AT one rather than on a road corner.
+	//!
+	//! NO WAIT FOLLOWS A SEARCH. The hold IS the pause; a WAIT after it would stand the men outside the
+	//! house they just searched for a second spell, which is the road-corner loitering this replaces.
+	//!
+	//! THE SITES ARE TAKEN IN THE ORDER GIVEN - the caller decides the route (OrderNearestNeighbour is
+	//! the shipped answer) because the caller knows where the group starts. Holds are passed in rather
+	//! than rolled, so the shape is assertable and the caller owns the band.
+	//!
+	//! CYCLES, like the perimeter: a sweep that searched its last house and stopped would be a garrison
+	//! on somebody's doorstep for the rest of the campaign. An EMPTY site list builds an empty plan,
+	//! which is legal ("no waypoints") - the shipped caller never hands one in, it falls back to the
+	//! loose ring instead.
+	//! \param[in] sites Building positions, in route order.
+	//! \param[in] holdSeconds One duration per site; missing or short entries hold for 0.
+	//! \return A cycling plan with one SEARCH entry per site.
+	static OVT_VirtualWaypointPlan BuildSearchPlan(array<vector> sites, array<float> holdSeconds)
+	{
+		OVT_VirtualWaypointPlan plan = new OVT_VirtualWaypointPlan();
+		plan.m_bCycle = true;
+
+		if (!sites)
+			return plan;
+
+		for (int i = 0; i < sites.Count(); i++)
+		{
+			AddPoint(plan, sites[i], OVT_EVirtualWaypointType.SEARCH, WaitAt(holdSeconds, i));
+		}
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Orders a set of sites into a walkable route: from `start`, always the nearest unvisited next.
+	//!
+	//! A handful of houses rolled at random from a whole town, taken in roll order, is a zig-zag that
+	//! crosses the town between every pair - the men spend the patrol commuting. Nearest-neighbour from
+	//! where the group actually starts is the cheapest ordering that reads as a ROUTE, and for five or
+	//! six sites it is within a few percent of optimal; anything cleverer would be unassertable for no
+	//! visible gain. Ties keep input order.
+	//!
+	//! PURE: a new array is returned, the input is untouched, and a null or empty input answers an
+	//! empty array.
+	//! \param[in] start Where the group sets off from.
+	//! \param[in] sites The positions to order.
+	//! \return The same positions, nearest-neighbour ordered from `start`.
+	static array<vector> OrderNearestNeighbour(vector start, array<vector> sites)
+	{
+		array<vector> ordered = new array<vector>();
+		if (!sites || sites.IsEmpty())
+			return ordered;
+
+		array<vector> remaining = new array<vector>();
+		remaining.Copy(sites);
+
+		vector current = start;
+		while (!remaining.IsEmpty())
+		{
+			int nearestIndex = 0;
+			float nearestDistance = vector.DistanceSq(current, remaining[0]);
+
+			for (int i = 1; i < remaining.Count(); i++)
+			{
+				float distance = vector.DistanceSq(current, remaining[i]);
+				if (distance < nearestDistance)
+				{
+					nearestDistance = distance;
+					nearestIndex = i;
+				}
+			}
+
+			current = remaining[nearestIndex];
+			ordered.Insert(current);
+			remaining.RemoveOrdered(nearestIndex);
+		}
+
+		return ordered;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Appends to all three arrays at once. The ONE place a point is added, so the arrays cannot
 	//! drift out of step and hand core a ragged plan.
 	//! \param[in] plan The plan being built.
 	//! \param[in] position Where the point goes.
 	//! \param[in] type An OVT_EVirtualWaypointType.
-	//! \param[in] waypointParam Wait seconds for WAIT, completion radius for everything else.
+	//! \param[in] waypointParam Wait seconds for WAIT and SEARCH, completion radius for everything else.
 	protected static void AddPoint(notnull OVT_VirtualWaypointPlan plan, vector position, int type, float waypointParam)
 	{
 		plan.m_aPositions.Insert(position);

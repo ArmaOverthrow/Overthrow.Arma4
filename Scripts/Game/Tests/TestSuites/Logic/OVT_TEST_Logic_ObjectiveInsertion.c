@@ -367,6 +367,19 @@ class OVT_TEST_Logic_ObjectiveInsertion_LandingZoneStaysOnTheSegment : SCR_Autot
 //! at the very drop point it had already reached. The exemption must therefore be about WHERE the truck
 //! is and nothing else.
 //!
+//! ⚠ AND "NOBODY IS DRIVING" IS A DIFFERENT FAILURE FROM "THE DRIVER GAVE UP" (added 2026-08-21).
+//! IsStuck's whole question - has the road AI given up - presupposes a road AI. A transport whose crew
+//! never materialised, never boarded, or materialised into max LOD with its behaviour trees switched
+//! off has none, and counting that on the stall clock produced a log line that contradicted itself
+//! ("never left its spawn point" AND "stopped making progress 1994 m short of the landing zone") and
+//! sent a diagnosis after the driving instead of after the driver. IsUncrewedGraceExpired is the second
+//! clock, and the rows below pin the two properties that matter about it: it is BOUNDED, so a convoy
+//! whose crew is never coming still walks its force in, and its off-switch fails the OPPOSITE way to
+//! IsSettleGraceExpired's - a disabled budget means "wait indefinitely for a driver" here and "do not
+//! wait at all" there, because expiring means "abandon the drive" here and "arrive now" there. Getting
+//! that polarity backwards would abandon every convoy on its first tick on a server that had disabled
+//! the stall test, and it is asserted directly.
+//!
 //! CAN-FAIL, nine faults, injected and compiled separately. All nine exited compile-check 0:
 //!   D1. DROP THE ARRIVAL EXEMPTION FROM IsStuck - remove the `if (HasArrived(...)) return false;`.
 //!       Compiled clean. Fails on "a transport standing still ON its landing zone has arrived, not
@@ -398,6 +411,14 @@ class OVT_TEST_Logic_ObjectiveInsertion_LandingZoneStaysOnTheSegment : SCR_Autot
 //!       0.5)) return false;` in IsStuck, which reads as the tighter and therefore safer test and is
 //!       neither. Compiled clean. Fails on "a transport still creeping ON its landing zone is settling,
 //!       not stalled: got stuck, expected not stuck".
+//!
+//! ⚠ THE UNCREWED ROWS HAVE NOT BEEN FAULT-INJECTED YET, and this note is here rather than a tenth
+//! entry above because the list above is a record of work actually done and must not be padded with
+//! work that was not. They were written while the author was mid play-test and the suite could not be
+//! run; the two faults they are designed to catch are (a) inverting the disabled-budget guard to
+//! `return true`, which the "a disabled tick budget waits indefinitely for a driver" row catches, and
+//! (b) dropping the bound entirely (`return false`), which the "a transport that has spent the whole
+//! budget without a driver gives up" row catches. Injecting both is owed on the next suite run.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
 class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_AutotestCaseBase
@@ -424,10 +445,13 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 		if (!VerifyStuckTicks())
 			return true;
 
+		if (!VerifyUncrewedGrace())
+			return true;
+
 		if (!VerifySpeed())
 			return true;
 
-		Print("HasArrived / IsSettleGraceExpired / IsStuck: arriving needs the transport to be stopped as well as close, the wait for it to stop is bounded by the stall tick budget and a disabled budget never waits, being at the landing zone wins over stalling, the stall counter is consecutive and not cumulative, and a first observation reads as no speed rather than as an infinity");
+		Print("HasArrived / IsSettleGraceExpired / IsStuck / IsUncrewedGraceExpired: arriving needs the transport to be stopped as well as close, the wait for it to stop is bounded by the stall tick budget and a disabled budget never waits, being at the landing zone wins over stalling, the stall counter is consecutive and not cumulative, a transport nobody is driving is given the same bounded budget on its own clock with the opposite off-switch polarity, and a first observation reads as no speed rather than as an infinity");
 
 		return true;
 	}
@@ -674,6 +698,47 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! \return True when every uncrewed-grace row held.
+	protected bool VerifyUncrewedGrace()
+	{
+		// --- THE BOUND. A convoy that never gets a driver must still end, because every road out of a
+		// failed drive in this feature puts the force on the ground holding its plan.
+		if (!ExpectUncrewed(6, 6, true, "a transport that has spent the whole budget without a driver gives up"))
+			return false;
+
+		if (!ExpectUncrewed(30, 6, true, "a transport long past the budget without a driver gives up"))
+			return false;
+
+		// --- Below the budget it is still boarding. m_iStuckTicks' own header records that a transport
+		// legitimately stands still while its crew materialises through the AI spawn queue; that time is
+		// exactly what this budget is for, and spending it must not be an error.
+		if (!ExpectUncrewed(0, 6, false, "a transport on its first driverless observation is still boarding"))
+			return false;
+
+		if (!ExpectUncrewed(5, 6, false, "a transport one tick short of the budget is still given time to board"))
+			return false;
+
+		// --- 🔴 THE POLARITY ROW, AND THE ONE WORTH THE WHOLE BLOCK. IsSettleGraceExpired returns TRUE on
+		// a non-positive budget, because there expiring means "put the force down at the landing zone it
+		// has reached" and that is the safe answer. Here expiring means "abandon the drive and dump the
+		// force where it stands", so the same off-switch has to fail the other way. Copying the settle
+		// function's guard across - which is what a reader would do, since the two functions are
+		// otherwise identical - would abandon EVERY convoy on its first tick on any server that had
+		// disabled the stall test.
+		if (!ExpectUncrewed(500, 0, false, "a disabled tick budget waits indefinitely for a driver, it never abandons the drive"))
+			return false;
+
+		if (!ExpectUncrewed(500, -3, false, "a negative tick budget disables the test exactly as a zero one does"))
+			return false;
+
+		// --- A counter that somehow arrived negative must not read as a budget already spent.
+		if (!ExpectUncrewed(-5, 6, false, "a counter that arrived negative has not served the budget"))
+			return false;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \param[in] ticksInsideRadius Consecutive ticks the transport has been at the landing zone.
 	//! \param[in] graceTicks The budget it may spend settling.
 	//! \param[in] expected The answer this row claims.
@@ -686,6 +751,23 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 			return true;
 
 		SetFailure("%1: got %2, expected %3", label, DescribeSettle(actual), DescribeSettle(expected));
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] ticksUncrewed Consecutive ticks with nobody at the wheel.
+	//! \param[in] ticksLimit The budget the transport may spend without a driver.
+	//! \param[in] expected The answer this row claims.
+	//! \param[in] label Human description of the row.
+	//! \return True when it matched; false after recording the failure.
+	protected bool ExpectUncrewed(int ticksUncrewed, int ticksLimit, bool expected, string label)
+	{
+		bool actual = OVT_InsertionGeometry.IsUncrewedGraceExpired(ticksUncrewed, ticksLimit);
+		if (actual == expected)
+			return true;
+
+		SetFailure("%1: got %2, expected %3", label, DescribeUncrewed(actual), DescribeUncrewed(expected));
 
 		return false;
 	}
@@ -750,6 +832,17 @@ class OVT_TEST_Logic_ObjectiveInsertion_StuckNeverFiresOnAnArrivedConvoy : SCR_A
 			return "grace expired";
 
 		return "still settling";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] expired The answer to describe.
+	//! \return "gave up on the driver" or "still waiting for a driver".
+	protected string DescribeUncrewed(bool expired)
+	{
+		if (expired)
+			return "gave up on the driver";
+
+		return "still waiting for a driver";
 	}
 
 	//------------------------------------------------------------------------------------------------

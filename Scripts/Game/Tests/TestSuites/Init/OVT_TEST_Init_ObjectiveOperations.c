@@ -31,7 +31,7 @@
 //! live manager. (If a later phase does need one: SetSpawnedUnitsEliminated(true) on the DEPLOYMENT
 //! and on EVERY spawning module, in the creating frame, before anything can tick.)
 //!
-//! ⚠ NOTHING HERE DRIVES THE DIRECTOR EITHER. TickHarassment() spends the occupying faction's real
+//! ⚠ NOTHING HERE DRIVES THE DIRECTOR EITHER. A harassment tick spends the occupying faction's real
 //! pool and puts real deployments on the shared initialisation world's map. The parts of it worth
 //! pinning are the rung table (case A, against the live registry) and the two behaviour decisions
 //! (case E, driven directly); the spending path itself is a play-test item and says so in context.md.
@@ -466,9 +466,9 @@ class OVT_TEST_Init_ObjectiveOperations_EHoldDecisionsFireOnceAndPause : SCR_Aut
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
 //!   C1. `clone.m_fHoldRadius = m_fHoldRadius;` deleted from the harassment clone.
-//!   C2. `clone.m_iRequiredPhase = m_iRequiredPhase;` deleted from the objective condition clone.
-//!   C5. `clone.m_iThroughPhase = m_iThroughPhase;` deleted from the objective condition clone. Fails
-//!       on "dropped m_iThroughPhase" - every range would collapse to a single phase, which is the
+//!   C2. `clone.m_sFromPhase = m_sFromPhase;` deleted from the objective condition clone.
+//!   C5. `clone.m_sThroughPhase = m_sThroughPhase;` deleted from the objective condition clone. Fails
+//!       on "dropped m_sThroughPhase" - every range would collapse to a single phase, which is the
 //!       2026-08-19 deadlock restored one clone at a time.
 //!   C3. `clone.m_fMaxDistance = m_fMaxDistance;` deleted from the recapture clone.
 //!   C4. `clone.m_bHoldFired = m_bHoldFired;` ADDED to the harassment clone. Fails on "a clone must
@@ -584,12 +584,12 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 		OVT_ObjectiveConditionDeploymentModule source = new OVT_ObjectiveConditionDeploymentModule();
 
 		source.m_sModuleName = "fixture condition";
-		source.m_iRequiredPhase = OVT_EObjectivePhase.FOB;
+		source.m_sFromPhase = "FixtureFirstPhase";
 
-		// ⚠ DELIBERATELY DIFFERENT FROM m_iRequiredPhase, and deliberately not a value any shipped config
+		// ⚠ DELIBERATELY DIFFERENT FROM m_sFromPhase, and deliberately not a name any shipped plan
 		// authors. A clone that copied the first phase into both fields, or dropped the upper bound and
-		// let it collapse back onto the first, would pass an assertion that used the same number twice.
-		source.m_iThroughPhase = OVT_EObjectivePhase.COUNTER_QRF;
+		// let it collapse back onto the first, would pass an assertion that used the same string twice.
+		source.m_sThroughPhase = "FixtureLastPhase";
 		source.m_fMaxDistanceFromObjective = 933;
 
 		OVT_ObjectiveConditionDeploymentModule clone = OVT_ObjectiveConditionDeploymentModule.Cast(source.CloneModule());
@@ -599,17 +599,17 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 		if (clone.m_sModuleName != source.m_sModuleName)
 			return "the objective condition clone dropped m_sModuleName";
 
-		if (clone.m_iRequiredPhase != source.m_iRequiredPhase)
-			return string.Format("the objective condition clone dropped m_iRequiredPhase: %1, expected %2 - every objective deployment would believe it belonged to the harassment phase",
-				clone.m_iRequiredPhase.ToString(), source.m_iRequiredPhase.ToString());
+		if (clone.m_sFromPhase != source.m_sFromPhase)
+			return string.Format("the objective condition clone dropped m_sFromPhase: '%1', expected '%2' - an empty first phase resolves to no phase at all, so every objective deployment in the campaign would be refused and collected on its first reinforcement check",
+				clone.m_sFromPhase, source.m_sFromPhase);
 
-		if (clone.m_iThroughPhase != source.m_iThroughPhase)
-			return string.Format("the objective condition clone dropped m_iThroughPhase: %1, expected %2 - every range would collapse to a single phase, which is the 2026-08-19 deadlock restored one clone at a time: the ramp's operations would be collected on the promotion tick and the counter-attack would be unreachable again",
-				clone.m_iThroughPhase.ToString(), source.m_iThroughPhase.ToString());
+		if (clone.m_sThroughPhase != source.m_sThroughPhase)
+			return string.Format("the objective condition clone dropped m_sThroughPhase: '%1', expected '%2' - every range would collapse to a single phase, which is the 2026-08-19 deadlock restored one clone at a time: the ramp's operations would be collected on the promotion tick and the counter-attack would be unreachable again",
+				clone.m_sThroughPhase, source.m_sThroughPhase);
 
-		if (clone.ResolveThroughPhase() != source.ResolveThroughPhase())
-			return string.Format("the objective condition clone reports a different span from its source: up to %1, expected up to %2",
-				clone.ResolveThroughPhase().ToString(), source.ResolveThroughPhase().ToString());
+		if (clone.EffectiveThroughPhase() != source.EffectiveThroughPhase())
+			return string.Format("the objective condition clone reports a different span from its source: up to '%1', expected up to '%2'",
+				clone.EffectiveThroughPhase(), source.EffectiveThroughPhase());
 
 		if (clone.m_fMaxDistanceFromObjective != source.m_fMaxDistanceFromObjective)
 			return string.Format("the objective condition clone dropped m_fMaxDistanceFromObjective: %1, expected %2 - it would refuse every position but the objective's exact centre",
@@ -626,8 +626,8 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 //! ⚠ THIS CASE EXISTS BECAUSE THE FIRST CUT OF PHASE 5 BROKE TWO EARLIER PHASES' CONTRACTS AT ONCE,
 //! with one mistake, and neither breakage was visible from the code that caused it:
 //!
-//!   THE MISTAKE. TickHarassment() gained a real Phase-2 gate check, and OnHarassmentSuccess() gained
-//!   one too (T5.8 asked for it). The gate was the plan's diagram taken literally - "town: support
+//!   THE MISTAKE. The harassment tick gained a real Phase-2 gate check, and the public success counter
+//!   gained one too (T5.8 asked for it). The gate was the plan's diagram taken literally - "town: support
 //!   < 50 %" and nothing else - so it fired on the FIRST tick of the phase for any town already under
 //!   the threshold, and it fired from a public counter-bumping method that is not a tick at all.
 //!
@@ -637,7 +637,7 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 //!       timeout, and 240 is a fresh harassment timeout rather than a failed decrement. That is D4:
 //!       every timer is a tick counter that only a tick may move.
 //!     - Persistence "the restored objective is in phase 2, not the harassment phase it was saved in"
-//!       - the fixture's three OnHarassmentSuccess() calls promoted the objective to FOB BEFORE the
+//!       - the fixture's three success reports promoted the objective to FOB BEFORE the
 //!       save, so FOB was what got saved. That is G6: the whole objective survives a save unchanged.
 //!
 //!   ⚠ THE SUCCESS COUNTER IS NOT A SUFFICIENT GUARD, WHICH IS WHY THIS CASE TESTS THE DEBUFF. The
@@ -654,11 +654,18 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
-//!   G1. `CheckHarassmentGate()` re-added to OnHarassmentSuccess(). Fails on "counting a harassment
+//!   G1. A gate check re-added to the public success counter. Fails on "counting a harassment
 //!       success must not change the phase".
-//!   G2. The `ObjectiveTownCarriesHarassmentDebuff()` conjunct deleted from CheckHarassmentGate().
-//!       Fails on "a tick must not open the forward-base gate for a town this ramp never debuffed"
-//!       (and, on a town whose support is already low, on the phase-timeout claim too).
+//!   G2. The world-fact conjunct deleted from the forward-base gate. Fails on "a tick must not open
+//!       the forward-base gate for a town this ramp never debuffed" (and, on a town whose support is
+//!       already low, on the phase-timeout claim too).
+//!
+//! ⚠ BOTH FAULTS MOVED IN BUILD PHASE 4 AND THE CASE DID NOT. The gate is now
+//! OVT_SupportBelowObjectiveCondition and the conjunct is its m_sRequiredTownModifier; G2's modern
+//! form is clearing that attribute in Configs/Objective/Objective_TownOffensive.conf, which compiles
+//! clean because no compiler reads a .conf. The claim this case makes - a tick does not open the gate
+//! for a town this ramp never debuffed - is unchanged, which is why it is driven through
+//! DirectorTick() and not through whatever owns the gate this month.
 //!
 //! ⚠ ONE LINE WAS ADDED TO THIS FIXTURE ON 2026-08-19 AND IT IS NOT PADDING - see the comment at the
 //! re-plant, below the counting half. The phase timeout became an IDLE clock that a tick re-arms when
@@ -708,10 +715,10 @@ class OVT_TEST_Init_ObjectiveOperations_GateNeedsTheRampsOwnDebuff : SCR_Autotes
 		// --- HALF ONE: counting is not deciding.
 		for (int i = 0; i < SUCCESSES_TO_COUNT; i++)
 		{
-			director.OnHarassmentSuccess();
+			director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES, 1);
 		}
 
-		int phaseAfterCounting = director.GetPhase();
+		string phaseAfterCounting = director.GetObjectivePhaseName();
 		int successes = director.GetHarassmentSuccesses();
 		int phaseTicksAfterCounting = director.GetPhaseTicks();
 
@@ -732,7 +739,7 @@ class OVT_TEST_Init_ObjectiveOperations_GateNeedsTheRampsOwnDebuff : SCR_Autotes
 		// --- HALF TWO: a tick does not open the gate either, because nothing debuffed this town.
 		director.DirectorTick();
 
-		int phaseAfterTick = director.GetPhase();
+		string phaseAfterTick = director.GetObjectivePhaseName();
 		int phaseTicksAfterTick = director.GetPhaseTicks();
 
 		// --- RESTORE before asserting, so a red case leaves the campaign alone.
@@ -746,10 +753,10 @@ class OVT_TEST_Init_ObjectiveOperations_GateNeedsTheRampsOwnDebuff : SCR_Autotes
 			return true;
 		}
 
-		if (phaseAfterCounting != OVT_EObjectivePhase.HARASSMENT)
+		if (phaseAfterCounting != "Harassment")
 		{
-			SetFailure("counting a harassment success must not change the phase: read back phase %1, expected HARASSMENT. A counter increment is not a tick, and this method is called from deployments, restores and fixtures",
-				phaseAfterCounting.ToString());
+			SetFailure("counting a harassment success must not change the phase: read back phase %1, expected the plan's first phase. A counter increment is not a tick, and this method is called from deployments, restores and fixtures",
+				phaseAfterCounting);
 			return true;
 		}
 
@@ -760,10 +767,10 @@ class OVT_TEST_Init_ObjectiveOperations_GateNeedsTheRampsOwnDebuff : SCR_Autotes
 			return true;
 		}
 
-		if (phaseAfterTick != OVT_EObjectivePhase.HARASSMENT)
+		if (phaseAfterTick != "Harassment")
 		{
-			SetFailure("a tick must not open the forward-base gate for a town this ramp never debuffed: read back phase %1, expected HARASSMENT. Being already unpopular is not the same as having been harassed",
-				phaseAfterTick.ToString());
+			SetFailure("a tick must not open the forward-base gate for a town this ramp never debuffed: read back phase %1, expected the plan's first phase. Being already unpopular is not the same as having been harassed",
+				phaseAfterTick);
 			return true;
 		}
 
@@ -1019,7 +1026,7 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 //!
 //! WHAT WENT WRONG, AND WHY A CONFIG FILE IS THE ONLY PLACE IT SHOWS. All six Phase 1 configs - the
 //! four harassment rungs, tower recapture and sabotage - authored
-//! OVT_ObjectiveConditionDeploymentModule with `m_iRequiredPhase 1` and nothing else, and the module
+//! OVT_ObjectiveConditionDeploymentModule with `m_sFromPhase "Harassment"` and nothing else, and the module
 //! compared with ==. BasePhase2Gate() promotes a base objective on its FIRST completed sabotage
 //! mission, and BasePhase3Gate() demands six of them on Easy; so the promotion made the remaining five
 //! unsendable, the counter froze at one, and the counter-attack - the headline promise of the whole
@@ -1029,8 +1036,8 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 //! idle clock ran out, over and over.
 //!
 //! ⚠ IT ASSERTS THE EFFECTIVE SPAN, NOT THE RAW FIELD, and that distinction is the case. Reading
-//! m_iThroughPhase directly would accept a config that authored 0 on the strength of the number being
-//! present; ResolveThroughPhase() applies the same collapse the live predicate applies, so a config
+//! m_sThroughPhase directly would accept a config that authored an empty string on the strength of the
+//! line being present; EffectiveThroughPhase() applies the same collapse the live predicate applies, so a config
 //! whose span the gate refuses is a config this case refuses.
 //!
 //! ⚠ AND THE UPPER BOUND IS ASSERTED AS A REFUSAL, not merely as a number. Authored 3, harassment and
@@ -1058,13 +1065,13 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
-//!   P1. `m_iThroughPhase 2` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
+//!   P1. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
 //!       Fails on "'Objective Sabotage' must span the forward-base phase".
-//!   P2. `m_iThroughPhase 2` deleted from Deployment_ObjectiveHarassment.conf, which all four rungs
+//!   P2. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveHarassment.conf, which all four rungs
 //!       inherit. Fails on the same claim for the first rung walked, 'Objective Harassment (Patrol)'.
-//!   P3. `m_iThroughPhase 3` authored on Deployment_ObjectiveTowerRecapture.conf. Fails on "must NOT
+//!   P3. `m_sThroughPhase "CounterAttack"` authored on Deployment_ObjectiveTowerRecapture.conf. Fails on "must
 //!       reach the counter-attack phase".
-//!   P4. `m_iRequiredPhase 2` authored on Deployment_ObjectiveSabotage.conf. Fails on "must be
+//!   P4. `m_sFromPhase "ForwardBase"` authored on Deployment_ObjectiveSabotage.conf. Fails on "must be
 //!       creatable during harassment".
 //!   P5. m_Source on Deployment_ObjectiveHarassment.conf reverted to
 //!       OVT_NearestControlledBaseSourceProvider - the pre-fix authoring, inherited by all four rungs.
@@ -1156,19 +1163,19 @@ class OVT_TEST_Init_ObjectiveOperations_RampSpansTheForwardBasePhaseAndLaunchesF
 		if (!condition)
 			return string.Format("'%1' authors no objective condition at all - the evaluator could create it anywhere and nothing would collect it when the objective ends", name);
 
-		if (condition.m_iRequiredPhase != OVT_EObjectivePhase.HARASSMENT)
-			return string.Format("'%1' must be creatable during harassment and its first phase is %2 - a ramp operation that cannot be sent in the phase the ramp runs in is a phase that does nothing",
-				name, condition.m_iRequiredPhase.ToString());
+		if (condition.m_sFromPhase != "Harassment")
+			return string.Format("'%1' must be creatable during harassment and its first phase is '%2' - a ramp operation that cannot be sent in the phase the ramp runs in is a phase that does nothing",
+				name, condition.m_sFromPhase);
 
-		int through = condition.ResolveThroughPhase();
+		string through = condition.EffectiveThroughPhase();
 
-		if (through < OVT_EObjectivePhase.FOB)
-			return string.Format("'%1' must span the forward-base phase and stops at %2. THIS IS THE 2026-08-19 DEADLOCK: one sabotage success promotes a base objective out of harassment, so a ramp scoped to harassment alone can never reach the six missions the counter-attack demands, and a town's support debuff stops stacking and times out",
-				name, through.ToString());
+		if (through == "Harassment")
+			return string.Format("'%1' stops at the harassment phase. THIS IS THE 2026-08-19 DEADLOCK: one sabotage success promotes a base objective out of harassment, so a ramp scoped to harassment alone can never reach the six missions the counter-attack demands, and a town's support debuff stops stacking and times out",
+				name);
 
-		if (through > OVT_EObjectivePhase.FOB)
-			return string.Format("'%1' must NOT reach the counter-attack phase and spans up to %2 - once the battle is on, harassment and sabotage teams walking in are noise, and a team already in the world must be collected rather than kept",
-				name, through.ToString());
+		if (through != "ForwardBase")
+			return string.Format("'%1' must span up to the forward-base phase and spans up to '%2' - once the battle is on, harassment and sabotage teams walking in are noise, and a team already in the world must be collected rather than kept",
+				name, through);
 
 		return "";
 	}

@@ -48,7 +48,30 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	[Attribute(defvalue: "80", desc: "How close to the tower a group has to be to count as holding it. Also the circle a player has to be inside to interrupt the hold")]
 	float m_fHoldRadius;
 
-	[Attribute(defvalue: "600", desc: "Seconds the tower must be held before it changes hands. FALLBACK ONLY - the campaign's objectiveTowerRecaptureHoldSeconds is used whenever difficulty settings are loaded")]
+	//! =============================================================================================
+	//! ⚠ THIS ONE KEEPS THE OLD "FALLBACK ONLY" CONVENTION, AND THE INCONSISTENCY IS DELIBERATE
+	//! (occupying/objectives build phase 4, 2026-08-21).
+	//! =============================================================================================
+	//! The two purely objective-side behaviour modules - town harassment and base sabotage - were
+	//! flipped to "-1 = ask the campaign" and their configs re-authored to -1 in the same change, which
+	//! is what makes a flip behaviour-neutral. THIS MODULE COULD NOT BE, because it is authored in TWO
+	//! configs and only one of them is objective doctrine:
+	//!
+	//!   Deployment_ObjectiveTowerRecapture.conf   the ramp's recapture operation  (this feature's)
+	//!   Deployment_TowerRecaptureUnrest.conf      the standalone unrest response  (NOT this feature's)
+	//!
+	//! Flipping the convention while leaving the second config holding its authored 600 would HONOUR
+	//! that 600 instead of overriding it, so the unrest recapture would take 600 s on Easy (where the
+	//! campaign says 900) and 600 s on Insane (where it says 300) - a real behaviour change to a shipped
+	//! deployment this feature is not allowed to touch. Re-authoring that config instead is the same
+	//! statement made in a file this feature must leave byte-identical.
+	//!
+	//! ⚠ SO THE RESIDUAL INCONSISTENCY IS ACCEPTED AND RECORDED RATHER THAN PAPERED OVER. Whoever
+	//! separates the two configs - or decides the unrest recapture should scale with difficulty like
+	//! everything else - can flip this in one commit with both configs. The same exclusion, for the same
+	//! reason, applies to OVT_BaseRepairBehaviorDeploymentModule, which left for the deployments
+	//! framework as a pure relocation.
+	[Attribute(defvalue: "600", desc: "Seconds the tower must be held before it changes hands. FALLBACK ONLY - the campaign's objectiveTowerRecaptureHoldSeconds is used whenever difficulty settings are loaded. ⚠ Deliberately NOT on the -1 convention the other objective behaviour modules use - see the note above this attribute")]
 	int m_iHoldSeconds;
 
 	//! HOW CLOSE THE TEAM HAS TO GET BEFORE THE PLAYER IS TOLD THEY ARE COMING.
@@ -129,7 +152,9 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		int myFaction = m_ParentDeployment.GetControllingFaction();
 
 		bool holding = CountAliveRegisteredMembersWithin(tower.location, m_fHoldRadius) >= 1;
-		bool enemyPresent = NearestPlayerDistance(tower.location) <= m_fHoldRadius;
+				// ⚠ THE RESISTANCE, NOT JUST PLAYERS (author, 2026-08-21). Recruits and - when they arrive -
+		// high command groups contest this place exactly as a player does. See DefenderWithin().
+		bool enemyPresent = DefenderWithin(tower.location, m_fHoldRadius);
 
 		if (!EvaluateRecapture(holding, enemyPresent, tower.faction, myFaction, m_iTicksLeft))
 			return;

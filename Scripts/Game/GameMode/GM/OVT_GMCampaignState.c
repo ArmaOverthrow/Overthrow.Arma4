@@ -94,12 +94,25 @@ class OVT_GMCampaignState : Managed
 	//! game that ended.
 	string m_sObjectiveName;
 
-	//! Which phase of the ramp that objective is in, as OVT_EObjectivePhase's INTEGER.
+	//! The PLAN that objective is running, by its authored name - the m_sObjectiveName of an entry in
+	//! Configs/Objective/overthrowObjectives.conf. EMPTY MEANS NO PLAN RESOLVED, which is either "there
+	//! is no objective" or a registry that did not load on the server.
 	//!
-	//! Stored as the ordinal that crossed the wire rather than as the enum: the sending build may be
-	//! older or newer than this one, and a value this build does not recognise must be displayable as
-	//! "unknown" rather than silently read as whichever member happens to share its number.
-	int m_iObjectivePhase;
+	//! ⚠ APPENDED, and the same three places apply: the declaration here, CopyFrom() and Clear().
+	string m_sObjectivePlanName;
+
+	//! Which of that plan's phases the objective is in, by its authored m_sPhaseName.
+	//!
+	//! ⚠ A NAME, NOT AN ORDINAL, AND THAT IS THE WHOLE POINT OF IT. The phase used to cross the wire as
+	//! an enum integer, which meant every phase a Game Master could ever be shown had to exist as an
+	//! enum member and a localization key in THIS build - so a mod adding a doctrine had a panel row
+	//! reading "Unknown" for phases it had authored perfectly. The name is the persistence key on both
+	//! sides (OVT_ObjectivePhase.m_sPhaseName), it is what the save payload already carries, and the
+	//! panel displays it verbatim.
+	//!
+	//! EMPTY MEANS NO PHASE NAME ARRIVED. With no plan either that is simply "no objective"; with a plan
+	//! it is a fault, and the panel says "unknown" rather than "none" for exactly that case.
+	string m_sObjectivePhaseName;
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether a snapshot has ever been committed into this store.
@@ -200,12 +213,13 @@ class OVT_GMCampaignState : Managed
 		m_fPayoutSeconds = other.m_fPayoutSeconds;
 		m_iReportedRecordCount = other.m_iReportedRecordCount;
 
-		// ⚠ THE OBJECTIVE PAIR BELONGS HERE AND NOT IN CopyRecords(). That method copies the four
-		// PER-ENTITY record arrays; these two are campaign-wide scalars of exactly the same kind as
+		// ⚠ THE OBJECTIVE TRIO BELONGS HERE AND NOT IN CopyRecords(). That method copies the four
+		// PER-ENTITY record arrays; these three are campaign-wide scalars of exactly the same kind as
 		// threat and the resource pools above, and they arrive on their own campaign record, not on the
 		// per-entity fan.
 		m_sObjectiveName = other.m_sObjectiveName;
-		m_iObjectivePhase = other.m_iObjectivePhase;
+		m_sObjectivePlanName = other.m_sObjectivePlanName;
+		m_sObjectivePhaseName = other.m_sObjectivePhaseName;
 
 		// Element copies, not array-object swaps: the staging store keeps its arrays for the next fan
 		// and refills them with FRESH record objects, so the two stores never alias a record that is
@@ -264,7 +278,8 @@ class OVT_GMCampaignState : Managed
 		// no symptom until a second campaign starts in the same client session, at which point the panel
 		// labels it with the previous campaign's objective until the first snapshot lands.
 		m_sObjectiveName = "";
-		m_iObjectivePhase = OVT_EObjectivePhase.IDLE;
+		m_sObjectivePlanName = "";
+		m_sObjectivePhaseName = "";
 
 		m_aBases.Clear();
 		m_aBaseUpgrades.Clear();

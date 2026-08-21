@@ -312,7 +312,7 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 		// --- Once the MISSION is over, nothing more comes down.
 		//
 		// ⚠ THROUGH AbortMission(), NOT CompleteMission(). CompleteMission calls the LIVE director's
-		// OnSabotageSuccess(), which in a shared initialisation world would bank a sabotage success
+		// the progress reporter, which in a shared initialisation world would bank a sabotage success
 		// against whatever objective happens to be running - a case that mutates campaign state it did
 		// not create. AbortMission sets the same latch and nothing else, which is exactly the state
 		// under test.
@@ -669,10 +669,19 @@ class OVT_TEST_Init_ObjectiveSabotage_JCostJoinIsUnambiguous : SCR_AutotestCaseB
 //! 0, so every mission finds nothing, reports "there was nothing left to demolish" on its first
 //! interval, and opens the forward-base gate without a single structure having been destroyed.
 //!
-//! ⚠ THE DIFFICULTY PRECEDENCE IS PART OF THE SAME CLAIM. Both figures are authored twice - once on
-//! the module as a fallback for a world with no campaign, once per difficulty preset - and difficulty
-//! must win. A module that used its own attribute instead would ignore every preset, so Insane and
-//! Easy would demolish at exactly the same rate.
+//! 🔴 THE DIFFICULTY CONVENTION IS PART OF THE SAME CLAIM, AND IT WAS FLIPPED ON 2026-08-21
+//! (occupying/objectives build phase 4). It used to be "the campaign's value wins WHENEVER difficulty
+//! is loaded", which meant an authored number was silently ignored in every real campaign - a .conf
+//! field a server owner can tune and that then does nothing. It is now "-1 means ask the campaign",
+//! and the shipped config was re-authored to -1 in the same change so the campaign's behaviour did not
+//! move.
+//!
+//! ⚠ WHICH MAKES THE THIRD HALF OF THIS CASE MANDATORY, NOT DECORATIVE. The flip is behaviour-neutral
+//! ONLY because Deployment_ObjectiveSabotage.conf authors the sentinel. A config left holding its old
+//! positive number would now be HONOURED instead of overridden, and the sabotage ramp would stop
+//! scaling with difficulty entirely - Insane and Easy would demolish at the same rate, which is the
+//! exact failure the old convention was there to prevent. No compiler reads a .conf, so this case is
+//! the only thing standing between that and a shipped release.
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
@@ -681,12 +690,14 @@ class OVT_TEST_Init_ObjectiveSabotage_JCostJoinIsUnambiguous : SCR_AutotestCaseB
 //!       m_iStructuresPerMission".
 //!   C3. `clone.m_bMissionReported = m_bMissionReported;` ADDED. Fails on "a clone must not inherit a
 //!       reported mission".
-//!   C4. ResolveStructuresPerMission's difficulty branch deleted, leaving only the attribute. Fails on
-//!       "the per-mission quota must come from difficulty".
+//!   C4. ResolveStructuresPerMission() made to return the difficulty value unconditionally, ignoring
+//!       the authored attribute. Fails on "an AUTHORED per-mission quota must OVERRIDE difficulty".
 //!   C5. `objectiveSabotageStructuresPerMission`'s defvalue set to 0 in OVT_DifficultySettings.c. The
 //!       autotest world's Difficulty_TestWorld.conf authors NONE of the objective fields and inherits
 //!       every default, so this is what a zero authored anywhere looks like from here. Fails on "must
 //!       be at least one".
+//!   C6. `m_iStructuresPerMission -1` in Deployment_ObjectiveSabotage.conf changed back to 2. Compiles
+//!       clean - no compiler reads a .conf - and fails on "must author the -1 sentinel".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_ObjectiveSabotage_CCloneFidelityAndDifficultyPrecedence : SCR_AutotestCaseBase
@@ -698,6 +709,8 @@ class OVT_TEST_Init_ObjectiveSabotage_CCloneFidelityAndDifficultyPrecedence : SC
 		string failure = CheckClone();
 		if (failure == "")
 			failure = CheckDifficultyPrecedence();
+		if (failure == "")
+			failure = CheckShippedConfigAsksForDifficulty();
 
 		if (failure != "")
 		{
@@ -705,7 +718,7 @@ class OVT_TEST_Init_ObjectiveSabotage_CCloneFidelityAndDifficultyPrecedence : SC
 			return true;
 		}
 
-		Print("Objective sabotage: the module clone carries every authored attribute, never inherits a reported mission, and takes its interval and its quota from the campaign's difficulty rather than from its own fallbacks");
+		Print("Objective sabotage: the module clone carries every authored attribute, never inherits a reported mission, resolves the -1 sentinel to the campaign's difficulty while honouring an authored override, and the shipped config authors the sentinel");
 
 		return true;
 	}
@@ -782,29 +795,84 @@ class OVT_TEST_Init_ObjectiveSabotage_CCloneFidelityAndDifficultyPrecedence : SC
 			return string.Format("the campaign's objectiveSabotageHoldSeconds must be at least one: it is %1",
 				difficulty.objectiveSabotageHoldSeconds.ToString());
 
-		OVT_BaseSabotageBehaviorDeploymentModule module = new OVT_BaseSabotageBehaviorDeploymentModule();
+		// --- HALF ONE: THE SENTINEL DEFERS TO THE CAMPAIGN. This is what the shipped config authors and
+		//     it is what keeps the ramp scaling with difficulty.
+		OVT_BaseSabotageBehaviorDeploymentModule deferring = new OVT_BaseSabotageBehaviorDeploymentModule();
 
-		// ⚠ DELIBERATELY DIFFERENT FROM EVERY AUTHORED PRESET. `new` applies no [Attribute()] default,
-		// so these are the only values the fallback path could produce - if either shows up in the
-		// answer, difficulty lost.
-		module.m_iStructuresPerMission = 91;
-		module.m_iHoldSeconds = 9130;
+		deferring.m_iStructuresPerMission = OVT_ObjectivePlanRules.USE_DIFFICULTY;
+		deferring.m_iHoldSeconds = OVT_ObjectivePlanRules.USE_DIFFICULTY;
 
-		if (module.ResolveStructuresPerMission() != difficulty.objectiveSabotageStructuresPerMission)
-			return string.Format("the per-mission quota must come from difficulty, not from the module's fallback: got %1, expected %2",
-				module.ResolveStructuresPerMission().ToString(), difficulty.objectiveSabotageStructuresPerMission.ToString());
+		if (deferring.ResolveStructuresPerMission() != difficulty.objectiveSabotageStructuresPerMission)
+			return string.Format("a module authoring the -1 sentinel must take its per-mission quota from the campaign: got %1, expected %2",
+				deferring.ResolveStructuresPerMission().ToString(), difficulty.objectiveSabotageStructuresPerMission.ToString());
 
 		int expectedTicks = difficulty.objectiveSabotageHoldSeconds / OVT_BaseSabotageBehaviorDeploymentModule.UPDATE_SECONDS;
 		if (expectedTicks < 1)
 			expectedTicks = 1;
 
-		if (module.ResolveIntervalTicks() != expectedTicks)
-			return string.Format("the demolition interval must come from difficulty, not from the module's fallback: got %1 update(s), expected %2",
-				module.ResolveIntervalTicks().ToString(), expectedTicks.ToString());
+		if (deferring.ResolveIntervalTicks() != expectedTicks)
+			return string.Format("a module authoring the -1 sentinel must take its demolition interval from the campaign: got %1 update(s), expected %2",
+				deferring.ResolveIntervalTicks().ToString(), expectedTicks.ToString());
 
-		if (module.ResolveIntervalTicks() < 1)
+		if (deferring.ResolveIntervalTicks() < 1)
 			return "a demolition interval must be at least one update, or a structure comes down on the update the team is registered";
 
+		// --- HALF TWO: AN AUTHORED VALUE OVERRIDES IT. This is the half the convention was flipped FOR:
+		//     a field a server owner can tune and that then does nothing costs the whole authored
+		//     surface its credibility.
+		OVT_BaseSabotageBehaviorDeploymentModule overriding = new OVT_BaseSabotageBehaviorDeploymentModule();
+
+		// ⚠ DELIBERATELY DIFFERENT FROM EVERY AUTHORED PRESET, so a value that came from difficulty is
+		// unmistakable. `new` applies no [Attribute()] default, so these are the only values in play.
+		overriding.m_iStructuresPerMission = 91;
+		overriding.m_iHoldSeconds = 9130;
+
+		if (overriding.ResolveStructuresPerMission() != 91)
+			return string.Format("an AUTHORED per-mission quota must OVERRIDE difficulty: authored 91, got %1. A .conf field a server owner tunes and that then does nothing is worse than a missing one",
+				overriding.ResolveStructuresPerMission().ToString());
+
+		int overriddenTicks = 9130 / OVT_BaseSabotageBehaviorDeploymentModule.UPDATE_SECONDS;
+		if (overriding.ResolveIntervalTicks() != overriddenTicks)
+			return string.Format("an AUTHORED demolition interval must OVERRIDE difficulty: authored 9130 s, expected %1 update(s), got %2",
+				overriddenTicks.ToString(), overriding.ResolveIntervalTicks().ToString());
+
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 THE SHIPPED CONFIG MUST ASK FOR DIFFICULTY, and this is the only thing that says so.
+	//!
+	//! The convention flip is behaviour-neutral ONLY because Deployment_ObjectiveSabotage.conf was
+	//! re-authored to -1 in the same change. A config holding a positive number is now HONOURED, so the
+	//! sabotage ramp would silently stop scaling across the five presets. No compiler reads a .conf.
+	//! \return An empty string when the shipped config authors the sentinel, or why it does not.
+	protected string CheckShippedConfigAsksForDifficulty()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+			return "the deployment framework did not resolve, so the shipped sabotage config could not be read";
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+		if (!config || !config.m_aModules)
+			return string.Format("'%1' is not registered, so the shipped authoring could not be read", OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			OVT_BaseSabotageBehaviorDeploymentModule sabotage = OVT_BaseSabotageBehaviorDeploymentModule.Cast(module);
+			if (!sabotage)
+				continue;
+
+			if (sabotage.m_iHoldSeconds > OVT_ObjectivePlanRules.USE_DIFFICULTY)
+				return string.Format("the shipped sabotage config authors m_iHoldSeconds %1 instead of the -1 sentinel. Since the convention flipped, that number is HONOURED - the demolition interval would be the same on Easy and on Insane",
+					sabotage.m_iHoldSeconds.ToString());
+
+			if (sabotage.m_iStructuresPerMission > OVT_ObjectivePlanRules.USE_DIFFICULTY)
+				return string.Format("the shipped sabotage config authors m_iStructuresPerMission %1 instead of the -1 sentinel. Since the convention flipped, that number is HONOURED - the per-mission quota would be the same on Easy and on Insane",
+					sabotage.m_iStructuresPerMission.ToString());
+
+			return "";
+		}
+
+		return string.Format("'%1' authors no sabotage behaviour module at all", OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
 	}
 }

@@ -7574,6 +7574,12 @@ class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBas
 //------------------------------------------------------------------------------------------------
 //! The SHIPPED "Town Patrol" config resolves, and its patrol module answers with a real, CYCLING plan.
 //!
+//! SINCE 2026-08-21 THE TYPE IS TOWN_SWEEP and the plan is ROLLED PER GROUP: a house-to-house SEARCH
+//! route or a loose un-snapped ring. Both cycle and both are movable, so the shape assertions below hold
+//! whichever half the roll lands on; the printout names which one this run got. The exact geometry is
+//! the Logic tier's (SearchPlan, NearestNeighbourRoute, PerimeterPlan) - the world-bound half (which
+//! houses, which radius) is a property of the terrain and the roll and is deliberately not asserted.
+//!
 //! This is the claim the whole town-patrol migration rests on and nothing else in the tree makes it.
 //! The Logic tier pins the plan factory's geometry, but the factory is world-free statics that know
 //! nothing about which config is shipped: between the two sits the authored config, whose patrol type,
@@ -7651,15 +7657,34 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 			return true;
 		}
 
-		// ⚠ PLAIN PERIMETER, NOT PERIMETER_BASE. Amendment A1 (2026-08-18) split the two: PERIMETER is
-		// the ROAD-SNAPPED ring and is what a town patrol wants (a town's roads run around it), while
-		// PERIMETER_BASE walks a base's authored square and looks for a base controller within 250 m -
-		// which a town centre does not have. Authoring the wrong one here would log a warning per plan
-		// and put every town patrol on a square around the town centre instead of on its roads.
-		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER)
+		// ⚠ TOWN_SWEEP, since 2026-08-21 - NOT PERIMETER and NOT PERIMETER_BASE. PERIMETER is the old
+		// ROAD-SNAPPED ring, which parked every town patrol in the middle of a road at each corner (in the
+		// way of every convoy, in front of every player's bumper) and is the behaviour this replaced;
+		// PERIMETER_BASE looks for a base controller within 250 m, which a town centre does not have, and
+		// would warn per plan and walk a square. TOWN_SWEEP rolls per group between a house-to-house
+		// SEARCH route and a loose un-snapped ring sized to the town's own range. A config silently
+		// reverting to PERIMETER would put the patrols back on the tarmac and nothing else would say so.
+		if (patrol.m_ePatrolType != OVT_PatrolType.TOWN_SWEEP)
 		{
-			SetFailure("Config '%1' authors patrol type %2, not PERIMETER - the town patrol's corners would stop being pulled onto the town's roads", CONFIG_NAME,
+			SetFailure("Config '%1' authors patrol type %2, not TOWN_SWEEP - the town patrol would go back to standing on road corners instead of sweeping the town's houses", CONFIG_NAME,
 				typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
+			return true;
+		}
+
+		// The sweep's two authored knobs. A house count of 0 rolls the ring every time (the house branch
+		// picks nothing and falls through), and a chance of 0 never enters it; either silently turns the
+		// sweep back into a plain ring, so both are pinned against the shipped config.
+		if (patrol.m_iSweepHouseCount <= 0)
+		{
+			SetFailure("Config '%1' authors m_iSweepHouseCount %2 - no house would ever be searched and every group would walk the ring", CONFIG_NAME,
+				patrol.m_iSweepHouseCount.ToString());
+			return true;
+		}
+
+		if (patrol.m_fSweepHouseChance <= 0)
+		{
+			SetFailure("Config '%1' authors m_fSweepHouseChance %2 - the house route could never be rolled", CONFIG_NAME,
+				patrol.m_fSweepHouseChance.ToString());
 			return true;
 		}
 
@@ -7673,8 +7698,8 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 			return true;
 		}
 
-		PrintFormat("'%1' builds a %2-point cycling plan with %3 movable point(s)", CONFIG_NAME,
-			plan.m_aPositions.Count().ToString(), CountMovable(plan).ToString());
+		Print(string.Format("'%1' builds a %2-point cycling plan with %3 movable point(s) (%4)", CONFIG_NAME,
+			plan.m_aPositions.Count().ToString(), CountMovable(plan).ToString(), DescribeShape(plan)));
 		return true;
 	}
 
@@ -7721,17 +7746,32 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 
 	//------------------------------------------------------------------------------------------------
 	//! \param[in] plan The plan to count.
-	//! \return How many of its points the movement tick would advance along.
+	//! \return How many of its points the movement tick would advance along. SEARCH counts: it is walked
+	//! to and then held, exactly as a PATROL corner with its WAIT is.
 	protected int CountMovable(notnull OVT_VirtualWaypointPlan plan)
 	{
 		int movable = 0;
 		foreach (int type : plan.m_aTypes)
 		{
-			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
+			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE || type == OVT_EVirtualWaypointType.SEARCH)
 				movable++;
 		}
 
 		return movable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which half of the sweep this plan is - the roll is per group, so either is a correct answer, and
+	//! the printout says which one this run got. The shape itself is what VerifyPlan checks.
+	protected string DescribeShape(notnull OVT_VirtualWaypointPlan plan)
+	{
+		foreach (int type : plan.m_aTypes)
+		{
+			if (type == OVT_EVirtualWaypointType.SEARCH)
+				return "house route";
+		}
+
+		return "loose ring";
 	}
 }
 
@@ -10530,8 +10570,6 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 	//! is the same intent expressed on the scale that is actually compared against it: a notably hot
 	//! area rather than a number no position could fail. See OVT_DeploymentManager.CalculateThreatLevel.
 	static const int AT_MINIMUM_THREAT = 20;
-	static const int AT_PRIORITY = 6;
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -10722,9 +10760,25 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			return string.Format("Config '%1' authors a minimum threat of %2, expected %3 - an AT section is a late-campaign answer to armour and this is when a base starts buying one",
 				AT_CONFIG, config.m_iMinimumThreatLevel.ToString(), AT_MINIMUM_THREAT.ToString());
 
-		if (config.m_iPriority != AT_PRIORITY)
-			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place, so a base would buy this concern at the wrong point in its escalation",
-				AT_CONFIG, config.m_iPriority.ToString(), AT_PRIORITY.ToString());
+		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		//
+		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
+		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
+		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
+		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
+		// order" became indistinguishable.
+		//
+		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
+		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
+		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
+		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
+		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
+		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
+		// version of the same mistake kept alive for its own sake.
+		//
+		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
+		// is valid, that it carries a placed module with a placement provider, and that it is offered at
+		// bases at all. Those are silent when violated, which is what earns a test.
 
 		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
 		if (!placed)
@@ -11129,10 +11183,6 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 	static const string TOWER_CONFIG = "Base Tower Guards";
 	static const string SNIPER_CONFIG = "Base Sniper Positions";
 
-	//! Every base-defense concern the legacy conf authored at priority 2 keeps that priority, because
-	//! the evaluator's escalation order IS the old per-base priority sweep, re-expressed.
-	static const int EXPECTED_PRIORITY = 2;
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -11240,9 +11290,25 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 		if (!config.IsValidConfig())
 			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
 
-		if (config.m_iPriority != EXPECTED_PRIORITY)
-			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place now, so a base would buy this concern at the wrong point in its escalation",
-				configName, config.m_iPriority.ToString(), EXPECTED_PRIORITY.ToString());
+		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		//
+		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
+		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
+		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
+		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
+		// order" became indistinguishable.
+		//
+		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
+		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
+		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
+		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
+		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
+		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
+		// version of the same mistake kept alive for its own sake.
+		//
+		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
+		// is valid, that it carries a placed module with a placement provider, and that it is offered at
+		// bases at all. Those are silent when violated, which is what earns a test.
 
 		if ((config.m_iAllowedLocationTypes & OVT_LocationTypeFlag.BASE) == 0)
 			return string.Format("Config '%1' does not allow the BASE location type (%2) - it would never be offered at a base at all",
@@ -13126,5 +13192,110 @@ class OVT_TEST_Init_Deployments_DefenseFundingLandsInThePool : SCR_AutotestCaseB
 			manager.SubtractFactionResources(factionIndex, current - target);
 		else if (current < target)
 			manager.AddFactionResources(factionIndex, target - current);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The relaxed house-search waypoint is WIRED END TO END: the game-mode prefab authors it, it spawns as a
+//! timed Search & Destroy waypoint, and all THREE hand-authored behaviour trees (waypoint, soldier, move-to) are
+//! registered resources.
+//!
+//! WHY THE TREES ARE THE CLAIM. OVT_AIWaypoint_HouseSearch.et, WP_HouseSearch.bt and HouseSearch.bt were
+//! written as TEXT with hand-minted GUIDs and a .meta whose resource class (BehaviorTreeResourceClass) was
+//! read out of the engine binary, not a Workbench save. If the database refuses either tree the waypoint
+//! still spawns and the group still walks to the house - and then stands there until the hold expires,
+//! which in play looks like "the search is broken" with nothing in the log naming the tree. Resource.Load
+//! on the GUID'd name is the cheapest honest check that the registration took.
+//!
+//! PROVEN ABLE TO FAIL (fail proof recorded): blank m_pHouseSearchWaypointPrefab on the game-mode prefab and
+//! the first assertion goes red; change a digit of either GUID in the .meta and that tree's load assertion
+//! goes red; point the prefab's parent at AIWaypoint_Wait.et and the class assertion goes red.
+//!
+//! CLEANED UP: the spawned waypoint is untracked and deleted on every path, as core's DeleteOwnedWaypoints
+//! does, so no persistence record outlives the case.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBase
+{
+	static const ResourceName WAYPOINT_TREE = "{A086847134FE94FF}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt";
+	static const ResourceName SOLDIER_TREE = "{7ABD3B8D152B6DBA}AI/BehaviorTrees/Overthrow/Soldier/HouseSearch.bt";
+	static const ResourceName MOVE_TO_TREE = "{ACFFFA96E11FDA0F}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		if (!config.m_pHouseSearchWaypointPrefab)
+		{
+			SetFailure("The game-mode prefab does not author m_pHouseSearchWaypointPrefab - every town sweep would fall back to the tactical vanilla Search & Destroy");
+			return true;
+		}
+
+		if (OVT_AIHouseSearchBehavior.HOUSE_SEARCH_TREE != SOLDIER_TREE)
+		{
+			SetFailure("OVT_AIHouseSearchBehavior.HOUSE_SEARCH_TREE is '%1', not the registered soldier tree this case checks", OVT_AIHouseSearchBehavior.HOUSE_SEARCH_TREE);
+			return true;
+		}
+
+		Resource waypointTree = Resource.Load(WAYPOINT_TREE);
+		if (!waypointTree || !waypointTree.IsValid())
+		{
+			SetFailure("The waypoint tree '%1' does not load - the hand-authored .bt or its .meta is not a registered resource, and a house-search waypoint would never start its activity", WAYPOINT_TREE);
+			return true;
+		}
+
+		Resource soldierTree = Resource.Load(SOLDIER_TREE);
+		if (!soldierTree || !soldierTree.IsValid())
+		{
+			SetFailure("The soldier tree '%1' does not load - the hand-authored .bt or its .meta is not a registered resource, and every searching soldier would stand still", SOLDIER_TREE);
+			return true;
+		}
+
+		Resource moveToTree = Resource.Load(MOVE_TO_TREE);
+		if (!moveToTree || !moveToTree.IsValid())
+		{
+			SetFailure("The move-to tree '%1' does not load - the group would fall back to nothing for the leg between houses", MOVE_TO_TREE);
+			return true;
+		}
+
+		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
+		AIWaypoint waypoint = config.SpawnHouseSearchWaypoint(position);
+		if (!waypoint)
+		{
+			SetFailure("SpawnHouseSearchWaypoint() spawned nothing from '%1'", config.m_pHouseSearchWaypointPrefab);
+			return true;
+		}
+
+		string failure = "";
+		if (!SCR_SearchAndDestroyWaypoint.Cast(waypoint))
+			failure = "The house-search waypoint is not an SCR_SearchAndDestroyWaypoint - the activity's grid, holding time and completion all come from that class";
+
+		SCR_TimedWaypoint timed = SCR_TimedWaypoint.Cast(waypoint);
+		if (failure == "" && timed)
+		{
+			timed.SetHoldingTime(77);
+			if (Math.AbsFloat(timed.GetHoldingTime() - 77) > 0.01)
+				failure = "SetHoldingTime() did not take on the house-search waypoint - the prefab lost m_TimedWaypointParameters, so every search would run the prefab's default hold";
+		}
+
+		OVT_PersistenceManagerComponent.CancelUntrackTransient(waypoint);
+		OVT_PersistenceTracking.Untrack(waypoint, false);
+		SCR_EntityHelper.DeleteEntityAndChildren(waypoint);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("The house-search waypoint is authored on the game mode, spawns as a timed Search & Destroy waypoint, and all three Overthrow behaviour trees are registered resources");
+		return true;
 	}
 }

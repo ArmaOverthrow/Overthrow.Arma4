@@ -71,7 +71,16 @@ enum OVT_EInsertionState
 //!     - the passenger groups. They are the deployment's actual force, registered under the base
 //!       class's owner key, reclaimed by it and released by its OnCleanup.
 //!
-//! ⚠ A CONVOY IS NEVER RESUMED ACROSS A LOAD. Vehicles are not persisted, so a save taken mid-drive
+//! ⚠ A LIVE CONVOY NEEDS TWO STAMPS AND NOT ONE, AND THE SECOND ONE IS NEW (2026-08-21). The crew has
+//! to EXIST wherever the players are - that is the 100 km riding ring, RIDING_SPAWN_DISTANCE - and it
+//! also has to be RUNNING, which no ring can deliver: the per-agent LOD system switches an agent's
+//! behaviour tree off entirely at max LOD, roughly a kilometre from the nearest observer. A crew with
+//! only the first stamp is a materialised driver asleep at the wheel, and a convoy that "never left its
+//! spawn point" with a perfectly alive crew, which is exactly what a play-test produced from 2.4 km
+//! away. OVT_MountedGroupActivation is the second stamp; HoldRidersActive() applies it and
+//! ReleaseRidersActive() hands it back, from ReleaseConvoy, on every exit path this file has.
+//!
+//! //! ⚠ A CONVOY IS NEVER RESUMED ACROSS A LOAD. Vehicles are not persisted, so a save taken mid-drive
 //! comes back with the force somewhere along a road and no truck under it. Re-spawning a truck at the
 //! source and expecting men who are three kilometres away to board it is not a restore, it is a
 //! second insertion. A restored deployment therefore walks, always - which is the fallback, working.
@@ -187,7 +196,55 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! AI spawn-budget tier for the transport crew. NEVER leave a registration unstamped: an unstamped
 	//! group inherits vanilla's LOW tier, is capped at half the AI budget and is evicted first - which
 	//! for a crew means a truck with nobody in it.
-	static const SCR_EAISpawnImportance CREW_IMPORTANCE = SCR_EAISpawnImportance.NORMAL;
+	//!
+	//! ⚠ HIGH SINCE 2026-08-21, AND IT WAS NORMAL. The tier is not only a budget cap - the engine's spawn
+	//! queue DRAINS IN IMPORTANCE ORDER (SCR_AIGroup.RequestSpawn's own doc, :2668-2670), so at NORMAL a
+	//! transport crew queues level with every scripted patrol, town garrison and remnant in a live
+	//! campaign and is served in turn with them.
+	//!
+	//! TWO MEN WHOSE ABSENCE COSTS A WHOLE INSERTION ARE NOT LEVEL WITH A GARRISON RIFLEMAN. A garrison
+	//! that materialises a minute late is a garrison that materialised; a crew that materialises a minute
+	//! late is a convoy that has already been written off as driverless, a force dumped at its source,
+	//! and a truck abandoned on a vehicle spawn the next insertion needs. HIGH (capRatio 0.90, vanilla's
+	//! "base defenders" tier - SCR_EAISpawnImportance) puts them ahead of the crowd they were queuing
+	//! behind and costs at most two men of headroom per live convoy, which the per-faction convoy cap
+	//! already bounds.
+	//!
+	//! ⚠ IT IS NOT OFFERED AS THE FIX FOR THE UNMATERIALISED CREWS OF 2026-08-21, and must not be read
+	//! as one. Whether the queue was SLOW (ordering, which this changes) or NEVER DISPATCHING (which this
+	//! would not touch) is the exact thing the instrumentation in modded SCR_AIGroup was added to settle.
+	//! This is defensible on its own terms either way; it is not evidence and it is not a diagnosis.
+	static const SCR_EAISpawnImportance CREW_IMPORTANCE = SCR_EAISpawnImportance.HIGH;
+
+	//! How many update ticks a crew is given to MATERIALISE before the insertion gives up and walks.
+	//!
+	//! ==========================================================================================
+	//! 🔴 A CREW THAT HAS NOT SPAWNED YET IS NOT A CREW THAT REFUSES TO DRIVE, AND UNTIL 2026-08-21
+	//! THIS FILE COUNTED THEM ON THE SAME CLOCK.
+	//! ==========================================================================================
+	//! *"You understand that spawning AI groups do not spawn the members on the same frame usually?"*
+	//! (author, 2026-08-21.) Member spawning is asynchronous: a registration hands ChimeraAIWorld a
+	//! request, the queue re-validates and dispatches it in importance order over following frames, and
+	//! the men appear when it gets to them. Zero members shortly after registering is the NORMAL state
+	//! of a group, not a fault.
+	//!
+	//! The uncrewed budget (m_iStuckTicks, 6 ticks, ~60 s) was written for "a man is standing beside the
+	//! truck and will not get in" and was being spent on "the queue has not reached us yet". Those want
+	//! completely different deadlines, and 60 s is not obviously generous for the second one on a live
+	//! campaign - it is a guess that a play-test has now failed three times.
+	//!
+	//! 18 ticks is ~3 real minutes. Deliberately far beyond anything a healthy queue needs, because the
+	//! cost of being too SHORT is the visible one the author keeps reporting (every insertion after the
+	//! first walks), while the cost of being too long is a force standing at its own base for two extra
+	//! minutes, 1.4 km from anybody, before doing exactly what it would have done anyway. It is still a
+	//! bound: nothing waits forever, and the outcome remains the walk fallback, which is the system
+	//! working.
+	//!
+	//! ⚠ IT IS SEPARATE FROM m_iStuckTicks ON PURPOSE and must not be folded back into it. See
+	//! m_iUnmaterialisedTicksElapsed - this file's own header already makes exactly this argument for
+	//! why the stall clock and the uncrewed clock are two counters, and this is the third question in
+	//! that family: "is anyone there yet" is not "is anyone driving" is not "is it moving".
+	static const int CREW_MATERIALISE_TICKS = 18;
 
 	//! ALWAYS MATERIALISED. Both the crew and, while they are riding, the passengers register at this
 	//! ring. It is not a luxury and it is not tunable:
@@ -199,6 +256,22 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//!     theatre.
 	//! The passengers are dropped back to the global ring the moment they are on the ground - see
 	//! RestoreGlobalSpawnRing(), which is the one place in this file that writes to a core record.
+	//!
+	//! ==========================================================================================
+	//! 🔴 THIS RING IS NECESSARY AND IS NOT SUFFICIENT, AND BELIEVING OTHERWISE COST A PLAY-TEST.
+	//! ==========================================================================================
+	//! A ring answers "do these men exist". It says NOTHING about whether anything is running inside
+	//! them. The per-agent LOD system deactivates an agent outright at max LOD - roughly a kilometre
+	//! from the nearest observer, and independent of every spawn ring - so a crew registered here is a
+	//! materialised driver in a materialised truck with no behaviour tree, holding the move waypoint
+	//! this module gave him and never executing it. That is precisely what a convoy that "never left
+	//! its spawn point" while IsCrewAlive() answers true looks like, and it is what the author saw from
+	//! 2.4 km away on 2026-08-21.
+	//!
+	//! ⚠ DO NOT RAISE THIS NUMBER IN RESPONSE TO A CONVOY THAT WOULD NOT MOVE. It is already 100 km;
+	//! there is no larger ring. The second gate is OVT_MountedGroupActivation, which is stamped on the
+	//! crew by HoldRidersActive() and released on every exit path - read that file's header before
+	//! touching this constant.
 	static const int RIDING_SPAWN_DISTANCE = 100000;
 
 	//! Mirrors OVT_VirtualizationManagerComponent's own m_fDespawnHysteresis default. It is protected
@@ -213,6 +286,10 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! convergence, so a crew under the same key would be reclaimed as a passenger, counted towards the
 	//! force size, driven off in its own truck and released by the wrong teardown.
 	static const string CREW_KEY_SUFFIX = "crew";
+
+	//! Separates the deployment-scoped part of a crew key from the per-insertion serial appended to it.
+	//! See GetCrewOwnerKey() for why the serial exists at all.
+	static const string CREW_INSTANCE_MARK = "i";
 
 	//! How many update ticks an empty truck gets to reach home before it is released where it stands.
 	//! A const rather than an attribute: nobody tunes "how long before we stop caring about an empty
@@ -235,7 +312,54 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! a time instead of every one it ever stranded: the forward-base deployment STANDS INDEFINITELY, so
 	//! before this its truck was never collected at all, and the garrison runs behind it drive the same
 	//! road to the same place (user play-test, 2026-08-19).
+	//!
+	//! ==========================================================================================
+	//! ⚠ SUPERSEDED AS THE LIVE BUDGET ON 2026-08-21 - SEE STUCK_TRUCK_TIMEOUT_TICKS. THE REASONING
+	//! ABOVE IS KEPT BECAUSE IT IS WHAT THE NEW RULE OVERRULED, AND A READER NEEDS TO KNOW THAT.
+	//! ==========================================================================================
+	//! Nothing arms a countdown with this any more. It remains declared as the module's statement of
+	//! what a NON-failed-drive abandonment would be worth, and it is the realistic limit the Logic case
+	//! OVT_TEST_Logic_ObjectiveInsertion_CollectsAbandonedTransportsOnlyWhenDue exercises the pure
+	//! predicate against - that case asserts IsAbandonedTruckCollectable, not this module's choice of
+	//! budget, and is untouched.
 	static const int ABANDONED_TRUCK_TIMEOUT_TICKS = RETURN_TIMEOUT_TICKS * 2;
+
+	//! How many update ticks a transport ABANDONED BY A FAILED DRIVE is left standing before it is
+	//! collected, once nobody can see it go.
+	//!
+	//! ==========================================================================================
+	//! 🔴 A STUCK TRUCK IS NOT A LANDMARK, IT IS THE NEXT CONVOY'S ROADBLOCK (author, 2026-08-21).
+	//! ==========================================================================================
+	//! *"We do want to clean up the truck though. In my opinion if an insertion gets stuck and there's no
+	//! players around anywhere we can just delete the truck and its crew to minimize pile ups on that
+	//! route."*
+	//!
+	//! ABANDONED_TRUCK_TIMEOUT_TICKS above was written around the idea that a stranded transport is worth
+	//! something as scenery and as loot, and gave it twenty real minutes. What that misses is that every
+	//! insertion from a given base drives the SAME ROAD to the same objective, so a transport stranded on
+	//! that road is still there when the next one comes down it - and the next one now has to path around
+	//! it, which is one of the things that strands trucks. Failures compound into a queue of wrecks on one
+	//! route. ArmAbandonedTruck's own header already recorded the same compounding at the vehicle spawn
+	//! end of the road; this is that argument applied to the rest of it.
+	//!
+	//! ONE TICK, NOT ZERO, AND THE DIFFERENCE IS NOT COSMETIC. A non-positive budget means "never collect"
+	//! to OVT_InsertionGeometry.IsAbandonedTruckCollectable - deliberately, it is that function's
+	//! documented off-switch - so 1 is the smallest budget that means "as soon as possible". In practice
+	//! that is the very next deployment update, i.e. within ten seconds of the drive being written off.
+	//!
+	//! ⚠ THE PLAYER HOLD IS UNCHANGED AND IS STILL ABSOLUTE. This shortens the DELAY; it does not touch
+	//! the rule that a transport is never taken away while somebody is within
+	//! ABANDONED_TRUCK_PLAYER_RADIUS_M of it, and that hold still never expires. Both of those are
+	//! asserted by the shipped Logic case and neither assertion was altered - the change here is which
+	//! number this module hands the predicate, not what the predicate does.
+	//!
+	//! ⚠ AND THE COST, STATED RATHER THAN DISCOVERED LATER. The old twenty minutes also protected a case
+	//! the 320 m test cannot see: a player who watches a convoy stall from a kilometre away and drives
+	//! out to loot it. He is far outside the radius, so the transport is now gone before he arrives. That
+	//! is a real loss and it is the price of the pile-up fix; if it matters more than the roadblocks,
+	//! the knob is ABANDONED_TRUCK_PLAYER_RADIUS_M rather than this one, because the question is "who
+	//! counts as watching", not "how long do we wait".
+	static const int STUCK_TRUCK_TIMEOUT_TICKS = 1;
 
 	//! How close a live player has to be for an abandoned truck to be left exactly where it is.
 	//!
@@ -308,6 +432,17 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 	protected int m_iCrewHandle;
 
+	//! THIS INSERTION'S OWN crew owner key, minted once on first use and never recomputed. See
+	//! GetCrewOwnerKey() - the whole point is that no other insertion, ever, can compose this string.
+	protected string m_sCrewOwnerKey;
+
+	//! Session-wide serial handed to crew keys, one per insertion that ever asks for one.
+	//!
+	//! A plain static rather than anything cleverer: it never has to survive a load (a convoy is never
+	//! resumed across one - see the class header - so no restored module asks for a crew key at all),
+	//! it never has to be dense, and it only has to be different from the last one.
+	static int s_iCrewKeySerial;
+
 	protected bool m_bReserved;
 
 	protected int m_iStuckTicksElapsed;
@@ -323,6 +458,43 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! one only ever counts up while the truck is at the landing zone. It borrows the stall test's
 	//! BUDGET (m_iStuckTicks) rather than adding a second authored number - see IsSettleGraceExpired.
 	protected int m_iInsideRadiusTicks;
+
+	//! Consecutive update ticks the transport has been standing on the road WITH NOBODY DRIVING IT.
+	//!
+	//! ==========================================================================================
+	//! ⚠ WHY A TRUCK WITH NO DRIVER IS NOT A STUCK TRUCK, AND WHY THE OLD MESSAGE WAS A LIE.
+	//! ==========================================================================================
+	//! The stall test measures ground covered and concludes "the road AI has given up". That conclusion
+	//! requires there to BE a road AI: a transport whose crew has not materialised, has not boarded, or
+	//! has materialised into max LOD with its behaviour tree switched off is not failing to drive, it is
+	//! failing to have a driver, and those two want different messages and different remedies. Counting
+	//! them on the same clock is how the log came to say "its transport NEVER LEFT ITS SPAWN POINT - its
+	//! transport stopped making progress 1994 m SHORT OF THE LANDING ZONE" in one sentence, which reads
+	//! as a contradiction because it is one.
+	//!
+	//! ⚠ IT BORROWS m_iStuckTicks AS ITS BUDGET rather than adding a second authored number, exactly as
+	//! the settle grace does. "How long do we wait for nothing at all to happen" is one question with one
+	//! right answer, and a config that disables the stall test (0) disables this with it - which is
+	//! correct: an author who has switched off "give up on this convoy" has switched off both reasons to.
+	protected int m_iUncrewedTicksElapsed;
+
+	//! Consecutive update ticks the transport's crew has had NO MEN IN IT AT ALL.
+	//!
+	//! ==========================================================================================
+	//! ⚠ THE THIRD COUNTER, AND IT EXISTS FOR EXACTLY THE REASON THE SECOND ONE DOES.
+	//! ==========================================================================================
+	//! m_iUncrewedTicksElapsed's own header argues that "the road AI has given up" and "there is no
+	//! driver" are different failures wanting different messages, and that counting them on one clock
+	//! produced a log line that contradicted itself. This is the same argument one step further back:
+	//! "nobody has spawned yet" is not "nobody will drive". AI group members are produced by
+	//! ChimeraAIWorld's queue over following frames, so an empty crew immediately after registration is
+	//! the ordinary state of a new group - and charging it against a 60 s "he will not get in the truck"
+	//! budget wrote off three insertions in a row on 2026-08-21.
+	//!
+	//! Its budget is CREW_MATERIALISE_TICKS, which is much larger, and the two are mutually exclusive by
+	//! construction: on any tick either the crew has men (the uncrewed clock runs) or it does not (this
+	//! one runs). Neither ever runs while somebody is at the wheel.
+	protected int m_iUnmaterialisedTicksElapsed;
 
 	protected vector m_vLastTruckPosition;
 
@@ -342,7 +514,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! deleted out from under a convoy that was still using it.
 	protected bool m_bTruckAbandoned;
 
-	//! Update ticks since the abandonment. Counts UP to ABANDONED_TRUCK_TIMEOUT_TICKS.
+	//! Update ticks since the abandonment. Counts UP to STUCK_TRUCK_TIMEOUT_TICKS, which is 1 - so on
+	//! every abandonment this module makes, the only thing between the transport and collection is the
+	//! player-proximity hold.
 	protected int m_iAbandonedTicksElapsed;
 
 	//! Latches the one VERBOSE line explaining that an overdue transport is being kept because somebody
@@ -362,6 +536,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! Latches the "nowhere to come from" warning so a faction that has lost every base does not fill
 	//! the log at one line per module per update.
 	protected bool m_bSourceWarned;
+
 
 	//------------------------------------------------------------------------------------------------
 	void OVT_InsertionSpawningDeploymentModule()
@@ -417,10 +592,16 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! ⚠ THIS IS NOT A PERIODIC METHOD, AND KNOWING THAT IS LOAD-BEARING. Nothing in the framework ticks
 	//! it: it is reached from the deployment's ONE activation and from the manager's records-restored
 	//! fan-out, and that is all (grep `EnsureGroups()` - there is no third caller). Everything this
-	//! module has to keep doing while a convoy runs - seating late arrivals, watching for arrival, the
-	//! stall test - therefore lives in OnUpdate(), and the ONE case that needs the convergence itself to
-	//! run again (an insertion with nowhere yet to come from) is re-driven from there explicitly. Writing
-	//! a retry here and assuming something would call it again is the mistake this note exists to stop.
+	//! module has to keep doing while a convoy runs - watching for arrival, the stall and uncrewed
+	//! tests, holding the crew's AI awake - therefore lives in OnUpdate(), and the ONE case that needs
+	//! the convergence itself to run again (an insertion with nowhere yet to come from) is re-driven
+	//! from there explicitly. Writing a retry here and assuming something would call it again is the
+	//! mistake this note exists to stop.
+	//!
+	//! ⚠ SEATING IS NOT ON THAT LIST ANY MORE, AND ITS ABSENCE IS DELIBERATE (2026-08-21). "Seating late
+	//! arrivals" used to be an OnUpdate job and is now an ARRIVAL job - OnRiderAgentAdded seats each man
+	//! as the spawn queue produces him. The convergence still runs one boarding sweep, precisely because
+	//! it is not periodic; see BoardEveryone() for what a periodic one did to a convoy at a gate.
 	override void EnsureGroups()
 	{
 		if (!m_ParentDeployment)
@@ -448,7 +629,17 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		if (m_eState == OVT_EInsertionState.DRIVING)
 		{
-			SeatEveryone();
+			// ⚠ THE ONLY SEATING SWEEP LEFT, AND IT IS SAFE HERE BECAUSE THIS METHOD IS NOT PERIODIC.
+			// See EnsureGroups' own header: nothing ticks it - it is reached from the deployment's ONE
+			// activation and from the records-restored fan-out, and that is all. So this fires when the
+			// convoy is committed and essentially never again, which is exactly the "only when the team
+			// spawns" contract. The per-tick sweep that used to sit in TickDrive is gone; see
+			// BoardEveryone() for what it cost and what replaced it.
+			BoardEveryone();
+
+			// Every path that seats also pins, so the two can never drift apart. Reached on the
+			// records-restored fan-out as well as on activation, and idempotent on both.
+			HoldRidersActive();
 			return;
 		}
 
@@ -539,14 +730,24 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		m_eState = OVT_EInsertionState.DRIVING;
 		m_iStuckTicksElapsed = 0;
+		m_iUncrewedTicksElapsed = 0;
+		m_iUnmaterialisedTicksElapsed = 0;
 		m_iInsideRadiusTicks = 0;
 		m_bHaveLastTruckPosition = false;
 		m_iReturnTicksElapsed = 0;
 
-		int driveMetres = Math.Round(separation);
+		// ⚠ THE DISTANCE QUOTED IS THE DRIVE, NOT THE SEPARATION, AND IT USED TO BE THE WRONG ONE. This
+		// line said "driving <separation> m ... to a landing zone at <LZ>" while the landing zone sits
+		// m_fLZStandoffDistance SHORT of the objective, so it over-reported the journey by the standoff -
+		// 2418 m claimed for a 2070 m drive on 2026-08-21 - and every later line that measures a shortfall
+		// against the LZ then disagreed with it by exactly that gap. A reader chasing a convoy that stopped
+		// short should not have to work out which of two numbers the log meant.
+		int driveMetres = Math.Round(vector.Distance(m_vSource, m_vLZ));
+		int standoffMetres = Math.Round(vector.Distance(m_vLZ, target));
 
-		Print(string.Format("[Overthrow] Insertion '%1': driving %2 m from %3 to a landing zone at %4",
-			DescribeSelf(), driveMetres.ToString(), m_vSource.ToString(), m_vLZ.ToString()), LogLevel.NORMAL);
+		Print(string.Format("[Overthrow] Insertion '%1': driving %2 m from %3 to a landing zone at %4, %5 m short of the objective",
+			DescribeSelf(), driveMetres.ToString(), m_vSource.ToString(), m_vLZ.ToString(),
+			standoffMetres.ToString()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -803,7 +1004,13 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Registers the transport crew under its OWN owner key, beside the truck, always materialised.
+	//! Registers the transport crew under its OWN owner key, beside the truck, always materialised AND
+	//! always running.
+	//!
+	//! ⚠ TWO STAMPS, NOT ONE, AND THE SECOND ONE IS THE ONE PEOPLE FORGET. RIDING_SPAWN_DISTANCE makes
+	//! the men EXIST from anywhere on the map; OVT_MountedGroupActivation makes their behaviour trees
+	//! RUN from anywhere on the map. A crew with only the first is a driver asleep at the wheel - see
+	//! that file's header, and see RIDING_SPAWN_DISTANCE for the play-test that proved it.
 	//!
 	//! ⚠ A NULL PLAN, DELIBERATELY, AND NOT THE BEHAVIOUR MODULES' ONE. ResolveVirtualPlan() asks the
 	//! deployment's behaviour modules what a group of this deployment should do, and for the FORCE that
@@ -830,11 +1037,31 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// Reclaim before registering, exactly as everything else in this framework does: a convergence
 		// that ran twice, or one that follows a records-restored fan-out, must not put a second crew in
 		// a truck that already has one.
+		//
+		// ⚠ AND IT CAN ONLY EVER FIND THIS INSERTION'S OWN CREW, which is a property of the KEY and not
+		// of this loop - see GetCrewOwnerKey() for the serial that guarantees it and for the play-test
+		// that made it necessary. Read this as "reclaim my crew", never as "reclaim a crew".
 		array<int> found = virtualization.FindGroupsByOwner(OWNER_SYSTEM, crewKey);
 		foreach (int foundHandle : found)
 		{
 			if (!virtualization.IsRegistered(foundHandle))
 				continue;
+
+			// ⚠ NEVER ADOPT A CREW THAT CAN NEVER BE REPOPULATED. A group with no men whose refill seam
+			// reports COMPLETE is a husk: the engine's spawn queue books every request against it as
+			// satisfied and drops it, so it will sit at 0 materialised for the rest of the campaign
+			// while IsCrewAlive() answers true off the survivor mask - a truck that never gets a driver
+			// and a force that walks, every single time. Inheriting one is strictly worse than the
+			// double crew the reclaim exists to prevent, because a husk has nobody in it to be doubled.
+			// Hand it back and register a fresh one below.
+			if (IsCrewHusk(virtualization, foundHandle))
+			{
+				Print(string.Format("[Overthrow] Insertion '%1': crew handle %2 has no men and cannot be refilled - unregistering it and crewing the transport fresh",
+					DescribeSelf(), foundHandle.ToString()), LogLevel.WARNING);
+
+				virtualization.UnregisterGroup(foundHandle);
+				continue;
+			}
 
 			m_iCrewHandle = foundHandle;
 			break;
@@ -868,9 +1095,46 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		{
 			TagForGameMaster(crew);
 			PairRider(crew, true);
+
+			// Whoever is already standing. Everyone who arrives after this is pinned by
+			// OnRiderAgentAdded as the spawn queue produces him, and the whole crew is re-pinned on
+			// every drive tick - a crew fills PROGRESSIVELY, so one pass over it is never enough.
+			OVT_MountedGroupActivation.HoldGroupActive(crew);
 		}
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! IS THIS REGISTERED CREW AN UNREPOPULATABLE CORPSE?
+	//!
+	//! Two conditions, and BOTH are needed or the answer is a lie:
+	//!   NOBODY IS STANDING     - a crew that has men is obviously fine, and a crew that is merely
+	//!                            DORMANT also has none. Dormancy is not the question.
+	//!   THE REFILL SEAM IS DONE - SCR_AIGroup.IsExpandComplete() is what the engine's spawn queue asks
+	//!                            to decide "at capacity, drop this request" versus "transient failure,
+	//!                            retry". TRUE with nobody in the group means every future request is
+	//!                            dropped on arrival: for a core-owned group that is the survivor mask
+	//!                            and the per-activation slot list out of agreement (modded
+	//!                            SCR_AIGroup.ExpandOneMember), and for a vanilla one it is dormant
+	//!                            counts saying the roster is spent.
+	//!
+	//! ⚠ A DORMANT CREW IS NOT A HUSK AND MUST NOT BE CALLED ONE. A group core has despawned reports
+	//! IsExpandComplete() against a CLEARED slot list, so it answers "still has slots to fill" - which is
+	//! exactly right, and is why this test does not need a dormancy clause of its own.
+	//! \param[in] virtualization The virtualization manager.
+	//! \param[in] handle A registered crew handle.
+	//! \return True when the handle names a group that will never have men in it again.
+	protected bool IsCrewHusk(notnull OVT_VirtualizationManagerComponent virtualization, int handle)
+	{
+		SCR_AIGroup group = virtualization.GetGroup(handle);
+		if (!group)
+			return true;
+
+		if (group.GetAgentsCount() > 0)
+			return false;
+
+		return group.IsExpandComplete();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1004,6 +1268,18 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			return;
 		}
 
+		// ⚠ BEFORE ANY TEST, EVERY TICK. A crew fills progressively through the engine's spawn queue and
+		// the LOD system is free to push a man back towards max LOD at any moment, so the pin is a
+		// re-assert rather than a one-shot - and it has to land BEFORE the stall accounting below, or a
+		// crewman who arrived this tick would be measured as "not driving" in the same tick he was
+		// pinned. See OVT_MountedGroupActivation.
+		HoldRidersActive();
+
+		// And the gate BEFORE the pin: men who do not exist cannot be held awake. A no-op on every tick
+		// of every convoy that has a crew - see NudgeCrewMaterialisation for the pop-in clause it exists
+		// to get past.
+		NudgeCrewMaterialisation();
+
 		vector truckPosition = m_Truck.GetOrigin();
 		float distanceToLZ = vector.Distance(truckPosition, m_vLZ);
 
@@ -1060,15 +1336,96 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 				return;
 			}
 
-			// Still braking. Keep watching, and keep everyone aboard while it does.
+			// ⚠ STILL BRAKING - AND WHAT KEEPS EVERYONE ABOARD IS THIS `return`, NOT A SEATING SWEEP.
+			// This branch used to end with SeatEveryone() under the comment "keep everyone aboard while
+			// it does", which read as though the sweep were what held the force in the truck. It was
+			// not: nothing in this module takes anybody OUT until CompleteInsertion(), so simply not
+			// completing is the whole mechanism. The sweep was a redundant re-assert, and it carried the
+			// gate hazard (see EvictHijackers) into the one place a reader would least expect it - the
+			// landing zone is road-snapped and only m_fLZStandoffDistance short of an enemy base, so a
+			// gate beside it is an ordinary thing rather than a hypothetical.
 			m_vLastTruckPosition = truckPosition;
 			m_bHaveLastTruckPosition = true;
 
-			SeatEveryone();
 			return;
 		}
 
 		m_iInsideRadiusTicks = 0;
+
+		// ==========================================================================================
+		// ⚠ THE STALL CLOCK ONLY RUNS WHILE THERE IS SOMEBODY TO STALL. See m_iUncrewedTicksElapsed for
+		// why an uncrewed transport is a different failure from a stuck one, and why saying so out loud
+		// is worth a second counter.
+		// ==========================================================================================
+		if (!CrewIsAtTheWheel())
+		{
+			m_iStuckTicksElapsed = 0;
+
+			// ==========================================================================================
+			// 🔴 TWO CLOCKS, AND WHICH ONE RUNS DEPENDS ON WHETHER THERE IS ANYBODY THERE AT ALL.
+			// ==========================================================================================
+			// See m_iUnmaterialisedTicksElapsed. An AI group's members are produced by ChimeraAIWorld's
+			// spawn queue over following frames, not on the frame it was registered, so an empty crew is
+			// the ordinary state of a new group and NOT a transport that has failed to get a driver.
+			// Charging it against the 60 s "he will not get in the truck" budget is what wrote off every
+			// insertion after the first on 2026-08-21.
+			if (CrewMaterialisedCount() == 0)
+			{
+				m_iUnmaterialisedTicksElapsed = m_iUnmaterialisedTicksElapsed + 1;
+
+				// ⚠ ONE LINE PER TICK, ON PURPOSE, AND IT IS THE MEASUREMENT THAT SHOULD HAVE BEEN TAKEN
+				// THREE ROUNDS AGO. A single line at the end of the window cannot tell "the queue is slow
+				// and the count is climbing" from "the count was flat at zero the whole time", and those
+				// are different bugs with different fixes. It is bounded by CREW_MATERIALISE_TICKS and only
+				// ever appears while an insertion is actually failing to fill its cab.
+				Print(string.Format("[Overthrow] Insertion '%1': waiting for its crew, update %2 of %3 - %4",
+					DescribeSelf(), m_iUnmaterialisedTicksElapsed.ToString(), ResolveMaterialiseTicks().ToString(),
+					DescribeCrewFill()), LogLevel.NORMAL);
+
+				if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUnmaterialisedTicksElapsed, ResolveMaterialiseTicks()))
+				{
+					Print(string.Format("[Overthrow] Insertion '%1': its crew never materialised in %2 update(s) - %3",
+						DescribeSelf(), m_iUnmaterialisedTicksElapsed.ToString(), DescribeCrewLiveness()), LogLevel.WARNING);
+
+					DismountAndWalk("its transport's crew never materialised");
+					return;
+				}
+			}
+			else
+			{
+				m_iUncrewedTicksElapsed = m_iUncrewedTicksElapsed + 1;
+
+				// BOUNDED BY THE SAME BUDGET, so an insertion whose crew turns up and then will not board
+				// is still written off in about a minute and still walks - the fallback, working - rather
+				// than standing beside a driverless truck for the rest of the campaign. A disabled stall
+				// budget disables this too.
+				if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUncrewedTicksElapsed, m_iStuckTicks))
+				{
+					Print(string.Format("[Overthrow] Insertion '%1': its crew is on the ground but nobody took the wheel in %2 update(s) - %3",
+						DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
+
+					DismountAndWalk("its transport never got a driver");
+					return;
+				}
+			}
+
+			// Keep the observation fresh so the tick the crew DOES board is measured against where the
+			// truck is now, not against wherever it was when it was last driven.
+			//
+			// ⚠ AND NO RE-SEAT HERE EITHER, THOUGH IT IS THE MOST TEMPTING PLACE FOR ONE. "Nobody is in
+			// the driver's seat" looks like the unambiguous licence to put somebody back in it - but
+			// SCR_AISelectDoorOperatorAgent scores PILOT (+200) above TURRET (0), so on a crew whose only
+			// spare man is a gunner, or whose co-driver is dead, THE DRIVER is the one it sends to open
+			// the gate. A re-seat here would teleport exactly that man back into his seat mid-task, over
+			// and over, which is the jam this whole change exists to remove.
+			m_vLastTruckPosition = truckPosition;
+			m_bHaveLastTruckPosition = true;
+
+			return;
+		}
+
+		m_iUncrewedTicksElapsed = 0;
+		m_iUnmaterialisedTicksElapsed = 0;
 
 		if (m_bHaveLastTruckPosition)
 		{
@@ -1077,6 +1434,17 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			if (OVT_InsertionGeometry.IsStuck(speed, m_fStuckSpeedThreshold, m_iStuckTicksElapsed, m_iStuckTicks, distanceToLZ, m_fArrivalRadius))
 			{
 				int shortfallMetres = Math.Round(distanceToLZ);
+
+				// ⚠ THE STATE OF THE CREW GOES IN THE LOG ON ITS OWN LINE, ALWAYS, AND THIS IS THE LINE
+				// THAT DID NOT EXIST. "its transport never left its spawn point" was true and useless:
+				// it could equally have meant an unmaterialised crew, a crew whose AI the LOD system had
+				// switched off, a driver who never boarded, or a transport genuinely wedged against a
+				// wall, and separating those took a play-test, a log dive and a read of vanilla's LOD
+				// notes. One line here answers it. It is a SEPARATE line rather than part of the reason
+				// string on purpose: the reason is repeated by three downstream messages and none of
+				// them wants a paragraph.
+				Print(string.Format("[Overthrow] Insertion '%1': its transport stalled at %2 - %3",
+					DescribeSelf(), truckPosition.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
 
 				DismountAndWalk(string.Format("its transport stopped making progress %1 m short of the landing zone",
 					shortfallMetres.ToString()));
@@ -1087,9 +1455,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		m_vLastTruckPosition = truckPosition;
 		m_bHaveLastTruckPosition = true;
 
-		// Anybody who materialised, fell out or was pulled out mid-drive gets back aboard. Cheap: the
-		// seating call refuses anyone already in a compartment, which is almost everybody almost always.
-		SeatEveryone();
+		// The only thing this module still polices on a moving truck: a member of the FORCE at the
+		// wheel. Never anybody on foot - see EvictHijackers().
+		EvictHijackers();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1122,6 +1490,372 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
+	// The two liveness gates - see RIDING_SPAWN_DISTANCE and OVT_MountedGroupActivation
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Keeps the transport CREW out of max LOD, so its behaviour tree keeps running whatever the
+	//! distance to the nearest observer.
+	//!
+	//! ==========================================================================================
+	//! ⚠ THE CREW ONLY, AND THE PASSENGERS' OMISSION IS A DECISION RATHER THAN AN OVERSIGHT.
+	//! ==========================================================================================
+	//! The rule the author asked for is that a vehicle drives the road network and is ACTIVE, and it is
+	//! the crew that drives. A pinned passenger is worse than a wasted one:
+	//!   - HE HAS A PLAN AND IT POINTS AT THE OBJECTIVE. The force is deliberately registered holding
+	//!     the behaviour module's plan for the whole ride - that is what lets every failure path just
+	//!     open the doors and walk away - so an ACTIVE passenger is an AI with a live move order sitting
+	//!     next to an empty seat. SeatRider's header records what that produced on 2026-08-20: a squad
+	//!     leader took the wheel and drove the convoy to the objective instead of the landing zone.
+	//!     Waking the whole squad up would make that race harder, not easier, and the eviction guard
+	//!     only runs on the ~10 s update.
+	//!   - HE MAY REACT TO A FIGHT HE CANNOT SEE THE POINT OF. Cargo at max LOD is inert; cargo with a
+	//!     behaviour tree perceives, evaluates and can decide to get out.
+	//!   - AND HE COSTS SIMULATION FOR NOTHING. A squad plus a crew, per live convoy, on a map where
+	//!     nobody is within a kilometre of any of them.
+	//! Passengers still ride ALWAYS-MATERIALISED (RIDING_SPAWN_DISTANCE), which is what seating them
+	//! needs; they simply do not need to be awake to be carried.
+	//!
+	//! ⚠ AND IT IS A RE-ASSERT, NOT A ONE-SHOT. Called from the drive tick, the return tick and the
+	//! convergence, because a core-registered group fills progressively through the AI spawn queue and
+	//! the man who arrives on the third dispatch was not there to be pinned on the first.
+	protected void HoldRidersActive()
+	{
+		if (m_iCrewHandle == -1)
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		OVT_MountedGroupActivation.HoldGroupActive(virtualization.GetGroup(m_iCrewHandle));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ASKS THE ENGINE, DIRECTLY, FOR A CREW THAT IS REGISTERED AND HAS NOBODY IN IT.
+	//!
+	//! ==========================================================================================
+	//! 🔴 A 100 km RING IS A STATEMENT OF INTENT, AND THE ONLY THING THAT ACTS ON IT CAN REFUSE.
+	//! ==========================================================================================
+	//! RIDING_SPAWN_DISTANCE does not spawn anybody. What spawns a ProximityDriven group is
+	//! SCR_AIGroup.LifecycleTick, once a second, and between "an observer is inside the ring" and "ask
+	//! the queue for a man" that tick has a POP-IN CLAUSE (:3036-3044): an observer within
+	//! m_fVeryNearBlockDistance - 150 m, and NOT settable through the -1 core passes
+	//! SetLifecyclePolicy - makes it return having enqueued nothing, so men never appear in somebody's
+	//! face. It is skipped only for an observer who arrived SUDDENLY, judged by this tick's
+	//! inside-the-ring bit against last tick's.
+	//!
+	//! ⚠ A GROUP ON A 100 km RING IS PERMANENTLY INSIDE ITS OWN RING, so that bit is true from the first
+	//! tick and the arrival is always judged gradual. The escape hatch is unreachable, and the result is
+	//! that ANY observer within 150 m of where the crew was registered - a player at the motor pool, or
+	//! a Game Master free camera, which is an observer too (SCR_DefenderSpawnerComponent:604) - stops
+	//! that crew materialising for as long as he stands there, silently. A truck at its spawn with 2 of 2
+	//! alive in the mask and 0 materialised is what that looks like from the log, and it is what a
+	//! play-test produced twice in a row on 2026-08-21 after the first insertion of the session worked.
+	//!
+	//! WHY ForceSpawn IS THE RIGHT LEVER AND NOT A WORKAROUND. Core's ForceSpawn is
+	//! SCR_AIGroup.RequestSpawn() with observerRange 0 - it goes into the same importance-ordered,
+	//! budget-respecting queue as everything else, it is subject to the same AI cap, and it simply does
+	//! not come from the lifecycle tick, so neither the pop-in clause nor the dispatch-time observer
+	//! re-check applies to it. "This crew must exist wherever anybody is standing" is precisely what the
+	//! registration already said; this is the API that says it to the engine.
+	//!
+	//! ⚠ IT IS ALSO WHAT MAKES THE DIAGNOSIS UNNECESSARY. Several different engine-side refusals produce
+	//! the identical "0 materialised" line - the pop-in block, a request dropped at dispatch, a queue
+	//! that never got round to it - and a fix aimed at one of them would be a guess. A direct request
+	//! every tick answers all three without needing to know which.
+	//!
+	//! CHEAP AND IDEMPOTENT BY CONSTRUCTION: it returns on the first line for a crew that has men, which
+	//! is every tick of every convoy that is working, and a request against a group already at capacity
+	//! is dropped by the queue's own IsExpandComplete test.
+	//!
+	//! ⚠ THE ONE SIDE EFFECT, NAMED SO NOBODY REDISCOVERS IT: RequestSpawn also re-runs
+	//! AddVehiclesStatic / AddWaypointsStatic / AddWaypointsDynamic from the group PREFAB
+	//! (SCR_AIGroup.c:2706-2709), and a prefab naming a waypoint that does not exist in this world adds
+	//! a NULL one - which is where the "Group contains null waypoints!" warnings in every Overthrow log
+	//! come from. It is not introduced here: the engine's own LifecycleTick already calls RequestSpawn
+	//! ONCE A SECOND for any empty in-range group, so this adds the same thing at a tenth of the rate,
+	//! and only in the state where the tick has stopped calling it at all.
+	//!
+	//! ⚠ IT LOGS NOTHING OF ITS OWN, AND IT USED TO. The latched line it printed said "this crew has
+	//! nobody in it" on the FIRST empty tick - which, now that it is understood that member spawning is
+	//! asynchronous, is the ordinary state of every new group and was pure alarm. The per-tick trend line
+	//! in TickDrive supersedes it completely and says strictly more.
+	//!
+	//! ⚠ AND THE HONEST ACCOUNTING OF WHAT THIS IS WORTH, measured rather than argued (play-test
+	//! 2026-08-21, three insertions): it FIRED on all three failing crews and NONE of them materialised,
+	//! so it is not the fix and is not claimed to be. It is also not the churn: SCR_AIGroup.LifecycleTick
+	//! enqueues the identical request for the identical group ONCE PER SECOND while it is empty and in
+	//! range, and this adds one per ten-second update - about a tenth of what vanilla is already doing to
+	//! that queue on its own. It is kept because it is the only caller left on any path where the
+	//! lifecycle tick returns early, and because a tenth of an existing cost is not a reason to remove a
+	//! guarantee.
+	protected void NudgeCrewMaterialisation()
+	{
+		if (m_iCrewHandle == -1)
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		if (!virtualization.IsRegistered(m_iCrewHandle))
+			return;
+
+		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
+		if (!crew || crew.GetAgentsCount() > 0)
+			return;
+
+		virtualization.ForceSpawn(m_iCrewHandle);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Hands EVERY rider back to the LOD system - the crew and the force alike, whatever this module
+	//! thought their roles were.
+	//!
+	//! ⚠ WIDER THAN THE PIN, DELIBERATELY. AllowMaxLOD on a man who was never pinned is a no-op, so
+	//! releasing everybody costs nothing and makes a role misclassification unable to strand a pin.
+	//! "Pin narrowly, release widely" - see OVT_MountedGroupActivation's header.
+	//!
+	//! ⚠ THE ONE CALLER IS ReleaseConvoy(), AND THAT IS THE POINT. That method is this file's single
+	//! audited teardown - every non-arrival exit reaches it and so does the successful one, by way of
+	//! TickReturn - so there is exactly one release to keep correct rather than five. The ordinary
+	//! proximity ring is the backstop underneath it: a group returned to it goes dormant, dormancy
+	//! DELETES the member entities, and a pin cannot outlive the man carrying it.
+	protected void ReleaseRidersActive()
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		if (m_iCrewHandle != -1)
+			OVT_MountedGroupActivation.ReleaseGroupActive(virtualization.GetGroup(m_iCrewHandle));
+
+		foreach (int handle : m_aHandles)
+		{
+			OVT_MountedGroupActivation.ReleaseGroupActive(virtualization.GetGroup(handle));
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! IS ANYBODY DRIVING THIS THING: a crewman with his AI running, in THIS transport's PILOT seat.
+	//!
+	//! ==========================================================================================
+	//! ⚠ THE DRIVER'S SEAT SPECIFICALLY, NOT "ANY CREWMAN ABOARD". This was the looser test for a few
+	//! hours on 2026-08-21 and the looser test is wrong, for a reason that only shows up once you know
+	//! what vanilla does at a gate.
+	//! ==========================================================================================
+	//! SCR_AISelectDoorOperatorAgent picks a group member to get out and open a gate, and it scores
+	//! CARGO (+400) above PILOT (+200): the man who leaves is the CO-DRIVER, and the driver stays where
+	//! he is. So during a gate operation "any crewman aboard" and "somebody is driving" happen to agree -
+	//! but they disagree in the case the counter actually exists for. A crew that materialised and never
+	//! boarded properly can easily have a man in a CARGO seat and nobody at the wheel; that convoy is
+	//! not being driven and the loose test would call it driven forever, which is the unbounded hang the
+	//! uncrewed counter was added to make impossible.
+	//!
+	//! ⚠ THE PRICE, STATED PLAINLY: a truck whose DRIVER is the one out opening a gate reads as "no
+	//! driver" for the duration. That happens when the picker has no better candidate - a two-man crew
+	//! whose co-driver is dead, or one whose only other man is in a turret (scored 0, "gunner should be
+	//! last to leave"). It costs uncrewed ticks, it is bounded by the same ~60 s budget as everything
+	//! else here, and if the gate really takes longer than that the outcome is the walk fallback with a
+	//! full liveness line in the log - not a hang. The alternative, deferring the bound whenever any
+	//! crewman is on foot near the truck, cannot tell a man opening a gate from a man who failed to
+	//! board and is standing beside it forever, and that ambiguity is exactly what the bound exists to
+	//! refuse.
+	//!
+	//! ⚠ IsAIActivated() IS ASKED OF THE AGENT, NOT INFERRED FROM DISTANCE. It is the same bit vanilla's
+	//! own HasHeldMember() consults, and it is the only honest answer to "is there a behaviour tree
+	//! running in there".
+	//!
+	//! THE SEAT IS TESTED BY CAST, not by comparing GetType(), because PilotCompartmentSlot.Cast() is
+	//! how the rest of the engine asks this question (SCR_ChimeraCharacter, SCR_BaseGameMode,
+	//! CharacterCamera3rdPersonVehicle and SCR_AIDecoTestCanGroupDriveVehicle all do exactly this). And
+	//! it is checked against OUR transport through GetVehicle(), which walks up to the root vehicle -
+	//! a crewman who has climbed into somebody else's truck is not driving ours.
+	//! \return True when the transport has a working driver in its driver's seat.
+	protected bool CrewIsAtTheWheel()
+	{
+		if (!m_Truck)
+			return false;
+
+		if (m_iCrewHandle == -1)
+			return false;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return false;
+
+		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
+		if (!crew)
+			return false;
+
+		array<AIAgent> agents = {};
+		crew.GetAgents(agents);
+
+		foreach (AIAgent agent : agents)
+		{
+			if (!agent)
+				continue;
+
+			if (!agent.IsAIActivated())
+				continue;
+
+			IEntity character = agent.GetControlledEntity();
+			if (!character)
+				continue;
+
+			CompartmentAccessComponent access = CompartmentAccessComponent.Cast(character.FindComponent(CompartmentAccessComponent));
+			if (!access)
+				continue;
+
+			BaseCompartmentSlot slot = access.GetCompartment();
+			if (!slot)
+				continue;
+
+			if (!PilotCompartmentSlot.Cast(slot))
+				continue;
+
+			if (slot.GetVehicle() != m_Truck)
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE LINE THAT SAYS WHY A CONVOY IS NOT MOVING, covering both gates and the distance that drives
+	//! the second one.
+	//!
+	//! WHAT EACH SHAPE MEANS, because the whole value of the line is that a reader does not have to
+	//! guess:
+	//!   "0 materialised"                   - the group exists but has no men: a spawn-ring, AI-budget
+	//!                                        or spawn-queue problem. Check the ring it reports.
+	//!   "2 materialised, 0 AI-active"      - the men exist and nothing is running in them. That is the
+	//!                                        LOD gate; OVT_MountedGroupActivation is not holding, or is
+	//!                                        not being called. Compare the worst LOD against its max.
+	//!   "2 materialised, 2 AI-active"      - both gates are open and the convoy is genuinely stuck.
+	//!                                        Now it is a driving, navmesh or vehicle-tuning question.
+	//! \return A compact human-readable description of the crew's liveness.
+	//! The materialisation deadline AS IT APPLIES TO THIS CONFIG.
+	//!
+	//! ⚠ IT INHERITS m_iStuckTicks' OFF-SWITCH WITHOUT INHERITING ITS VALUE, and both halves are
+	//! deliberate. The value has to be its own (see CREW_MATERIALISE_TICKS - waiting for a spawn queue
+	//! and waiting for a man to open a door are not the same duration), but the OFF-SWITCH has to be
+	//! shared, because this file already states the rule for the sibling counter: *"an author who has
+	//! switched off 'give up on this convoy' has switched off both reasons to"*. A config with
+	//! m_iStuckTicks 0 would otherwise still walk its force after three minutes, which is precisely the
+	//! give-up it asked not to have.
+	//! \return CREW_MATERIALISE_TICKS, or 0 when this config has disabled giving up altogether.
+	protected int ResolveMaterialiseTicks()
+	{
+		if (m_iStuckTicks <= 0)
+			return 0;
+
+		return CREW_MATERIALISE_TICKS;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return How many of this crew's men are standing in the world right now.
+	protected int CrewMaterialisedCount()
+	{
+		if (m_iCrewHandle == -1)
+			return 0;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return 0;
+
+		return OVT_MountedGroupActivation.MaterialisedCount(virtualization.GetGroup(m_iCrewHandle));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE PER-TICK TREND LINE: how full the cab is right now and what the engine's spawn queue has done
+	//! about it, short enough to print once every ten seconds without burying the log.
+	//!
+	//! ⚠ DELIBERATELY NOT DescribeCrewLiveness(). That one is a paragraph and is right for the ONE line
+	//! at the end of a window; eighteen of them would be unreadable. What a trend needs is the two
+	//! numbers that move - how many men exist, and how many times the queue has actually dispatched this
+	//! group - because "0, 0, 0, 0" and "0, 1, 1, 2" are different bugs and no snapshot can tell them
+	//! apart.
+	//! \return A compact fill state.
+	protected string DescribeCrewFill()
+	{
+		if (m_iCrewHandle == -1)
+			return "no crew is registered";
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return "the virtualization manager could not be resolved";
+
+		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
+		if (!crew)
+			return string.Format("crew handle %1 has no group entity", m_iCrewHandle.ToString());
+
+		return string.Format("crew handle %1: %2 of %3 materialised, %4 alive in the mask; %5",
+			m_iCrewHandle.ToString(),
+			OVT_MountedGroupActivation.MaterialisedCount(crew).ToString(),
+			virtualization.GetMemberCount(m_iCrewHandle).ToString(),
+			virtualization.GetAliveMemberCount(m_iCrewHandle).ToString(),
+			crew.GetOVTSpawnQueueDiagnostic());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected string DescribeCrewLiveness()
+	{
+		if (m_iCrewHandle == -1)
+			return "no crew is registered";
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return "the virtualization manager could not be resolved";
+
+		if (!virtualization.IsRegistered(m_iCrewHandle))
+			return string.Format("crew handle %1 is no longer registered", m_iCrewHandle.ToString());
+
+		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
+
+		string policy = "no group entity";
+		if (crew)
+			policy = typename.EnumToString(SCR_EAIGroupLifecyclePolicy, crew.GetLifecyclePolicy());
+
+		string nearest = "no live players";
+		if (m_Truck)
+		{
+			float nearestDistance = OVT_MountedGroupActivation.NearestPlayerDistance(m_Truck.GetOrigin());
+			if (nearestDistance >= 0)
+			{
+				int nearestMetres = Math.Round(nearestDistance);
+				nearest = nearestMetres.ToString() + " m";
+			}
+		}
+
+		int ring = virtualization.GetSpawnDistance(m_iCrewHandle);
+
+		// ⚠ THE WHY-CLAUSE IS ONLY ADDED WHEN THERE IS NOTHING TO SEE, and that is the point: a crew with
+		// men in it does not need three sentences about the spawn queue, and a crew with none is useless
+		// without them. See OVT_MountedGroupActivation.DescribeSpawnState for how to read it.
+		string why = "";
+		if (OVT_MountedGroupActivation.MaterialisedCount(crew) == 0)
+		{
+			why = string.Format(" [%1; %2]",
+				OVT_MountedGroupActivation.DescribeSpawnState(crew, ring),
+				OVT_MountedGroupActivation.DescribeAiBudget(crew));
+		}
+
+		return string.Format("crew handle %1: %2 of %3 alive in the mask, %4%5; lifecycle %6 on a %7 m ring, nearest player %8",
+			m_iCrewHandle.ToString(),
+			virtualization.GetAliveMemberCount(m_iCrewHandle).ToString(),
+			virtualization.GetMemberCount(m_iCrewHandle).ToString(),
+			OVT_MountedGroupActivation.DescribeActivation(crew),
+			why,
+			policy,
+			ring.ToString(),
+			nearest);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! WHERE HOME IS for a transport that has delivered: the spot it was spawned on.
 	//!
 	//! THE FALLBACK IS THE SOURCE, and it is a real case rather than defensive padding - a module can be
@@ -1150,6 +1884,14 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			return;
 		}
 
+		// ⚠ THE RETURN LEG IS STILL A DRIVE. The force is on the ground and back on the ordinary ring,
+		// but the crew is doing exactly what it was doing on the way out and needs exactly the same
+		// pin - an empty truck whose driver has gone to sleep at max LOD never gets home, holds its
+		// spawn marker out of service and is eventually collected by the abandoned-transport sweep for
+		// a reason nobody would guess. This is why the pin follows the RIDE and not the DRIVING state.
+		HoldRidersActive();
+		NudgeCrewMaterialisation();
+
 		// ⚠ THE RADIUS ALONE, NOT THE SPEED-AWARE ARRIVAL TEST. Nobody gets out here - the truck is empty
 		// and is about to be deleted - so there is nothing to throw about, and a transport that rolls
 		// through its own spawn at walking pace has got home. Bounded anyway by RETURN_TIMEOUT_TICKS below.
@@ -1158,6 +1900,62 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			ReleaseConvoy("its transport is home", true);
 			m_eState = OVT_EInsertionState.FINISHED;
 			return;
+		}
+
+		// ==========================================================================================
+		// 🔴 THE CREW CAN GET OUT AND WALK HOME, AND UNTIL 2026-08-21 NOTHING HERE NOTICED FOR TEN
+		// MINUTES. IT IS VANILLA DOING IT, ON PURPOSE, AND THE LOD PIN IS WHAT LET IT START.
+		// ==========================================================================================
+		// SCR_AIVehicleCombatActivity is the group activity that runs when a group with a non-static
+		// vehicle perceives a dangerous enough target cluster (:13-49). Its first branch is
+		// `if (!vehicle.HasWeapon())` - a transport truck - and it then sends EVERY member of the crew
+		// fireteams a dismount message (:164-176), plus every cargo member (:222-232). That is vanilla's
+		// "get out of the soft-skin, it is a coffin" reaction and it is correct behaviour; what it leaves
+		// behind is a truck standing in the road with its engine running and a crew that still holds the
+		// MOVE order this module gave them, which they then execute ON FOOT. The author watched exactly
+		// that: *"driver crew started walking home and left the truck there running"*.
+		//
+		// ⚠ AND IT IS NEW BECAUSE OF OVT_MountedGroupActivation. A crew at max LOD has no behaviour tree,
+		// so it PERCEIVES NOTHING and no combat activity can ever evaluate for it - the whole reaction was
+		// unreachable for an unobserved convoy before the pin existed. Pinning crews below max LOD is what
+		// makes convoys drive at all, and it also switched their perception on. The two arrived together.
+		//
+		// ⚠ AND THERE IS A SECOND VANILLA DOOR ONTO THE SAME SYMPTOM, which this one test also covers.
+		// SCR_AILeaveStaticVehicles dismounts a group from any vehicle that answers false to CanMove()
+		// (:104-109), and that is SCR_AIUtils.VehicleCanMove - `GetMovementDamage() < 1` plus a not-on-fire
+		// test (:264-293). An IMMOBILISED truck is therefore abandoned by its crew while
+		// IsTruckOperational() above still calls it fine, because that one asks IsDestroyed() and a
+		// truck with dead wheels is not destroyed. Both doors present identically from here - nobody at
+		// the wheel - and both want the same answer, so neither is tested for separately.
+		//
+		// WHAT IT COST BEFORE THIS TEST. Nothing in TickReturn asked about the crew at all, so an
+		// abandoned return leg sat here until RETURN_TIMEOUT_TICKS - about ten real minutes - with two
+		// LOD-PINNED, registered, materialised men walking across the map and a truck standing wherever
+		// they left it. Per insertion. This is the same budget the outbound leg gives the same question
+		// (see m_iUncrewedTicksElapsed), so both legs now write a driverless transport off in about a
+		// minute and hand its crew back.
+		//
+		// ⚠ THE TRUCK IS LEFT STANDING RATHER THAN DELETED, unlike the timeout below, and deliberately:
+		// this one fires while a player may well be looking at it (a fight is the usual reason the crew
+		// bailed out), so it goes onto the same bounded, player-aware collection countdown that a truck
+		// stranded on the way OUT gets. See ArmAbandonedTruck and TickAbandonedTruck.
+		if (!CrewIsAtTheWheel())
+		{
+			m_iUncrewedTicksElapsed = m_iUncrewedTicksElapsed + 1;
+
+			if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUncrewedTicksElapsed, m_iStuckTicks))
+			{
+				Print(string.Format("[Overthrow] Insertion '%1': nobody is driving its empty transport home after %2 update(s) - %3",
+					DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
+
+				ReleaseConvoy("nobody is driving its transport home - the crew left it", false);
+				m_eState = OVT_EInsertionState.FINISHED;
+				return;
+			}
+		}
+		else
+		{
+			m_iUncrewedTicksElapsed = 0;
 		}
 
 		m_iReturnTicksElapsed++;
@@ -1213,7 +2011,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// in one pure call is worth more than saving them.
 		bool playerNearby = OVT_WorldUtils.PlayerInRange(m_Truck.GetOrigin(), ABANDONED_TRUCK_PLAYER_RADIUS_M);
 
-		if (!OVT_InsertionGeometry.IsAbandonedTruckCollectable(m_iAbandonedTicksElapsed, ABANDONED_TRUCK_TIMEOUT_TICKS, playerNearby))
+		if (!OVT_InsertionGeometry.IsAbandonedTruckCollectable(m_iAbandonedTicksElapsed, STUCK_TRUCK_TIMEOUT_TICKS, playerNearby))
 		{
 			LogAbandonedHold(playerNearby);
 			return;
@@ -1228,24 +2026,26 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (!ReleaseTruck())
 			return;
 
-		int minutes = AbandonedTruckTimeoutMinutes();
-
-		Print(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 was collected after about %3 minutes with nobody near it",
-			DescribeSelf(), where.ToString(), minutes.ToString()), LogLevel.NORMAL);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The collection delay in whole real minutes, for the two log lines that quote it. Derived from the
-	//! tick budget and the deployment's own update period rather than written out twice, so changing
-	//! either cannot leave the log saying something the code does not do.
-	//! \return Minutes, rounded down.
-	protected int AbandonedTruckTimeoutMinutes()
-	{
-		return (ABANDONED_TRUCK_TIMEOUT_TICKS * OVT_DeploymentComponent.UPDATE_FREQUENCY) / 60000;
+		Print(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 was collected after %3 update(s) - nobody was within %4 m of it, and a transport left on this road is the next convoy's obstacle",
+			DescribeSelf(), where.ToString(), m_iAbandonedTicksElapsed.ToString(),
+			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Arms the collection countdown on a transport that has just been left standing.
+	//!
+	//! ⚠ THE CREW IS ALREADY GONE BY THE TIME THIS RUNS, AND NOTHING HERE SHOULD TRY TO REMOVE IT AGAIN.
+	//! The author's rule for a stuck insertion is "delete the truck AND its crew", and the second half is
+	//! satisfied before the first: this is reached only from ReleaseConvoy()'s else branch, and
+	//! ReleaseConvoy stands the crew down and unregisters it UNCONDITIONALLY - the deleteTruck flag
+	//! selects what happens to the VEHICLE and nothing else. Read the ordering there: ReleaseRidersActive
+	//! hands back the LOD pin, StandDownCrew empties the group (which is what steers UnregisterGroup onto
+	//! its despawn-and-delete branch instead of retiring the men in place), UnregisterGroup drops the
+	//! record, and the owner-key sweep catches any straggler. All of that has happened several lines
+	//! above this call. A second release here would be dead code that looked load-bearing.
+	//!
+	//! What is left to decide is therefore only the transport, and since 2026-08-21 the answer is "as
+	//! soon as nobody can see it go" - see STUCK_TRUCK_TIMEOUT_TICKS.
 	//! \param[in] reason Why it was left, for the log line.
 	protected void ArmAbandonedTruck(string reason)
 	{
@@ -1284,8 +2084,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// ==========================================================================================
 		if (m_vHome != vector.Zero && vector.Distance(m_Truck.GetOrigin(), m_vHome) <= ABANDONED_AT_SPAWN_RADIUS_M)
 		{
-			Print(string.Format("[Overthrow] Insertion '%1': its transport never left its spawn point - %2. Collecting it now rather than in %3 minutes, because it is standing on a vehicle spawn the next insertion needs",
-				DescribeSelf(), reason, AbandonedTruckTimeoutMinutes().ToString()), LogLevel.NORMAL);
+			Print(string.Format("[Overthrow] Insertion '%1': its transport never left its spawn point - %2. Collecting it immediately, without even waiting for the coast to clear, because it is standing on a vehicle spawn the next insertion needs",
+				DescribeSelf(), reason), LogLevel.NORMAL);
 
 			ReleaseTruck();
 			return;
@@ -1295,10 +2095,15 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		m_iAbandonedTicksElapsed = 0;
 		m_bAbandonedHoldLogged = false;
 
-		int minutes = AbandonedTruckTimeoutMinutes();
-
-		Print(string.Format("[Overthrow] Insertion '%1': its transport is left standing at %2 - %3. It will be collected in about %4 minutes if nobody is near it",
-			DescribeSelf(), m_Truck.GetOrigin().ToString(), reason, minutes.ToString()), LogLevel.VERBOSE);
+		// ⚠ NORMAL, NOT VERBOSE, AND THE LEVEL IS THE WHOLE POINT OF THE LINE. "That truck never
+		// despawns" was reported as a defect on 2026-08-21 against a truck that was in fact on a
+		// perfectly healthy countdown - and the log said NOTHING at all, because this line was filtered
+		// out. A reader has to be able to tell "it is waiting for the coast to clear" apart from
+		// "nothing is watching it" without attaching a debugger, and one line per abandoned truck is not
+		// noise.
+		Print(string.Format("[Overthrow] Insertion '%1': its transport is left standing at %2 - %3. It will be collected on the next update once nobody is within %4 m of it",
+			DescribeSelf(), m_Truck.GetOrigin().ToString(), reason,
+			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1321,13 +2126,16 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (!playerNearby)
 			return;
 
-		if (m_iAbandonedTicksElapsed < ABANDONED_TRUCK_TIMEOUT_TICKS)
+		if (m_iAbandonedTicksElapsed < STUCK_TRUCK_TIMEOUT_TICKS)
 			return;
 
 		m_bAbandonedHoldLogged = true;
 
+		// NORMAL for the same reason ArmAbandonedTruck's line is: this is the answer to "why is that
+		// truck still standing there", it is latched to exactly one line per abandoned transport, and a
+		// reader who cannot see it concludes the countdown is broken.
 		Print(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 is overdue for collection but a player is within %3 m, so it stays until nobody is",
-			DescribeSelf(), m_Truck.GetOrigin().ToString(), ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.VERBOSE);
+			DescribeSelf(), m_Truck.GetOrigin().ToString(), ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1351,6 +2159,13 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		m_eState = OVT_EInsertionState.RETURNING;
 		m_iReturnTicksElapsed = 0;
+
+		// The return leg has its own uncrewed test now (see TickReturn), and it must start from zero
+		// rather than from whatever the outbound drive left behind - a convoy that spent five ticks
+		// waiting for its crew to board and then delivered perfectly must not arrive on the return leg
+		// one tick from being written off.
+		m_iUncrewedTicksElapsed = 0;
+		m_iUnmaterialisedTicksElapsed = 0;
 
 		IssueCrewMove(HomePosition());
 
@@ -1436,16 +2251,56 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		ClearOwnedWaypoints(crew);
 
+		// ⚠ BEFORE THE UNREGISTER AND BEFORE UnsubscribeRiders(), because both of those take away the
+		// handles this reads. It is the single release point for the activation pin - see
+		// ReleaseRidersActive() for why there is exactly one and why it is wider than the pin.
+		ReleaseRidersActive();
+
 		UnsubscribeRiders();
 
 		if (virtualization && m_iCrewHandle != -1)
 		{
+			// ⚠ TAKE THE MEN OUT AND PUT THEM AWAY BEFORE HANDING THE REGISTRATION BACK. See
+			// StandDownCrew() - without this the truck is deleted a few lines below with a live crew
+			// inside it, and the registration is retired around men who never despawn.
+			StandDownCrew(virtualization, m_iCrewHandle);
+
 			// UnregisterGroup respects held members: a crewman still sitting in the truck retires the
-			// group in place rather than having it deleted out from under him.
+			// group in place rather than having it deleted out from under him. StandDownCrew() has
+			// already emptied the group, so the ordinary branch - despawn and delete - is the one taken.
 			virtualization.UnregisterGroup(m_iCrewHandle);
 		}
 
 		m_iCrewHandle = -1;
+
+		// ⚠ AND THEN SWEEP THE KEY, WHICH IS NEW AND IS THE PRICE OF THE PER-INSERTION KEY.
+		//
+		// A crew key is now unique to ONE insertion (see GetCrewOwnerKey), which is what stops the next
+		// one inheriting these men - and the flip side is that NOTHING WILL EVER LOOK UNDER THIS KEY
+		// AGAIN once this module is gone. Under the old shared key a record this module lost track of
+		// was at least reclaimable by the next insertion of the same config; now it would be a
+		// registered, permanently-materialised two-man group with no owner for the rest of the campaign.
+		//
+		// The one way to lose track of it is a handle this module has already dropped: OnVirtualGroupWiped
+		// sets m_iCrewHandle to -1 as it hands the wipe on, and any future path that clears it early
+		// would do the same. Asking the registry rather than trusting the field costs one map lookup on a
+		// teardown and closes the whole class.
+		if (virtualization && !m_sCrewOwnerKey.IsEmpty())
+		{
+			array<int> strays = virtualization.FindGroupsByOwner(OWNER_SYSTEM, m_sCrewOwnerKey);
+			foreach (int strayHandle : strays)
+			{
+				if (!virtualization.IsRegistered(strayHandle))
+					continue;
+
+				Print(string.Format("[Overthrow] Insertion '%1': crew handle %2 was still registered under this insertion's key at teardown - releasing it",
+					DescribeSelf(), strayHandle.ToString()), LogLevel.WARNING);
+
+				StandDownCrew(virtualization, strayHandle);
+
+				virtualization.UnregisterGroup(strayHandle);
+			}
+		}
 
 		if (deleteTruck)
 		{
@@ -1456,7 +2311,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			// ⚠ THE ONE PLACE THE COLLECTION COUNTDOWN IS ARMED, and it is here rather than in
 			// DismountAndWalk() so that BOTH paths which leave a transport standing are covered by one
 			// line: a stranded truck mid-drive, and one destroyed on its way home. See TickAbandonedTruck()
-			// for why a counter and not a timer, and ABANDONED_TRUCK_TIMEOUT_TICKS for the delay.
+			// for why a counter and not a timer, and STUCK_TRUCK_TIMEOUT_TICKS for why the delay is now
+			// one tick and what that is trying to stop happening on the road.
 			ArmAbandonedTruck(reason);
 		}
 
@@ -1464,10 +2320,84 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		m_bHaveLastTruckPosition = false;
 		m_iStuckTicksElapsed = 0;
+		m_iUncrewedTicksElapsed = 0;
+		m_iUnmaterialisedTicksElapsed = 0;
 		m_iInsideRadiusTicks = 0;
 
 		if (!reason.IsEmpty())
 			Print(string.Format("[Overthrow] Insertion '%1': convoy stood down - %2", DescribeSelf(), reason), LogLevel.VERBOSE);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WINDS THE TRANSPORT CREW UP FOR GOOD: out of the truck, off the map, ready to be unregistered.
+	//!
+	//! ==========================================================================================
+	//! 🔴 WHY THIS EXISTS - TWO FAULTS THAT ONLY APPEAR TOGETHER, BOTH SEEN ON 2026-08-21.
+	//! ==========================================================================================
+	//! FAULT 1: A TRANSPORT IS DELETED UNDER ITS OWN CREW. A deployment is collected the moment its
+	//! force has done its job - CollectDeployment() settles the accounts and leaves the delivered force
+	//! alive and working, which is correct - but the TRANSPORT may still be halfway home. Collection
+	//! reaches OnCleanup -> ReleaseConvoy(deleteTruck: true) -> ReleaseTruck(), and TruckDeletionVeto()
+	//! protects a vehicle a PLAYER owns or is riding in and says nothing at all about the men this
+	//! module put in it. The truck therefore evaporated around a seated, driving crew (author play-test:
+	//! *"the truck did drive away from the LZ I saw it, both crew were seated. But a bit later I saw them
+	//! on foot. I can't find their truck anywhere."*).
+	//!
+	//! ⚠ AND IT CANNOT BE FIXED BY LETTING THE TRUCK FINISH ITS JOURNEY, WHICH WAS THE FIRST INSTINCT.
+	//! OVT_DeploymentComponent.DestroyDeployment() removes the update timer, cleans up every module and
+	//! deletes the owning entity on one call stack - so a collected deployment's modules are NEVER
+	//! TICKED AGAIN. There is nothing left to drive the transport home, nothing left to notice it
+	//! arrived, and nothing left to collect it if it does not: the abandoned-transport countdown is
+	//! module state and dies with the module. A transport left standing at collection is litter forever.
+	//! Deleting it at teardown is therefore right; deleting it WITH PEOPLE IN IT is the bug.
+	//!
+	//! FAULT 2: THE REGISTRATION IS RETIRED AROUND LIVE MEN, AND THAT ONE IS THIS FEATURE'S OWN DOING.
+	//! UnregisterGroup() asks HasHeldMember(), which is true for any AI-ACTIVATED member, and retires
+	//! such a group in place instead of deleting it - a sound rule, written when a crew far from any
+	//! player was at max LOD and therefore NOT activated, so the branch fired only for a crew somebody
+	//! was actually using. OVT_MountedGroupActivation pins crews below max LOD so they will drive, which
+	//! makes them permanently AI-activated, which makes the retire-in-place branch fire EVERY TIME. A
+	//! retired group keeps its members, keeps its 100 km ring, and its lifecycle tick therefore never
+	//! despawns them: two men materialised for the rest of the campaign, per insertion, wandering
+	//! wherever their truck was taken from under them. That is precisely the leak the riding ring's own
+	//! header warns about, arriving by a door nobody was watching.
+	//!
+	//! Both are closed by the same three lines, in this order:
+	//!   1. HAND BACK THE LOD PIN so nothing this module did keeps the men awake after it is finished
+	//!      with them (ReleaseRidersActive has already done it; this is the belt to that braces);
+	//!   2. GET THEM OUT OF THE TRUCK, so the vehicle deletion below cannot take them with it and so a
+	//!      transport that is being LEFT standing is not left with corpses of a group in its seats;
+	//!   3. DESPAWN THE MEMBERS, which empties the group and steers UnregisterGroup onto its ordinary
+	//!      despawn-and-delete branch instead of retire-in-place.
+	//!
+	//! ⚠ THIS IS A RESTORATION, NOT A NEW POLICY. Before the LOD pin, a crew being unregistered at
+	//! teardown was almost always unheld and was despawned and deleted by core exactly like this. All
+	//! this does is stop the pin changing the answer.
+	//! \param[in] virtualization The virtualization manager.
+	//! \param[in] handle The crew registration to wind up. Passed in rather than read off m_iCrewHandle
+	//!            because the teardown sweep in ReleaseConvoy() stands down crews this module has
+	//!            already stopped tracking - see the sweep for why one can exist.
+	protected void StandDownCrew(notnull OVT_VirtualizationManagerComponent virtualization, int handle)
+	{
+		if (handle == -1)
+			return;
+
+		SCR_AIGroup crew = virtualization.GetGroup(handle);
+		if (!crew)
+			return;
+
+		OVT_MountedGroupActivation.ReleaseGroupActive(crew);
+
+		array<AIAgent> agents = {};
+		crew.GetAgents(agents);
+
+		foreach (AIAgent agent : agents)
+		{
+			DisembarkAgent(agent);
+		}
+
+		if (crew.GetAgentsCount() > 0)
+			crew.DespawnMembers();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1519,6 +2449,17 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			return false;
 		}
 
+		// ⚠ THE LAST LINE OF DEFENCE AGAINST DELETING A VEHICLE OVER ITS OCCUPANTS, and it is deliberately
+		// here rather than only at the one call site that got it wrong. TruckDeletionVeto() above answers
+		// "is this somebody else's property" - a player owner, a player or a player's recruit riding in
+		// it - and that is a question about OWNERSHIP, not about safety. It has nothing to say about the
+		// men this module itself put in the cab, which is exactly how a transport came to be deleted
+		// around its own seated crew mid-return on 2026-08-21. Every AI still aboard is put on the ground
+		// first, so the class of fault becomes impossible rather than merely unlikely on the path that
+		// was noticed. On the ordinary teardown path StandDownCrew() has already emptied the crew and
+		// this finds nobody - it costs one compartment walk on a vehicle that is about to stop existing.
+		EvacuateAiOccupants(m_Truck);
+
 		SCR_EntityHelper.DeleteEntityAndChildren(m_Truck);
 		m_Truck = null;
 		DisarmAbandonedTruck();
@@ -1527,6 +2468,65 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Puts every AI still aboard on the ground, immediately before the vehicle stops existing.
+	//!
+	//! DELIBERATELY NOT A VETO. Refusing to delete a transport because some stray AI wandered into it
+	//! would leave the vehicle standing forever - the module that owns it is about to be destroyed and
+	//! nothing else will ever look at it again (see StandDownCrew for why a collected deployment is
+	//! never ticked). Getting the man out and proceeding is the answer that leaves neither a stranded
+	//! vehicle nor a deleted passenger.
+	//!
+	//! ⚠ PLAYERS AND PLAYER RECRUITS NEVER REACH HERE. TruckDeletionVeto() has already refused the
+	//! deletion outright for both, so this only ever sees faction AI.
+	//! \param[in] vehicle The transport about to be deleted.
+	protected void EvacuateAiOccupants(notnull Vehicle vehicle)
+	{
+		BaseCompartmentManagerComponent compartments = BaseCompartmentManagerComponent.Cast(
+			vehicle.FindComponent(BaseCompartmentManagerComponent)
+		);
+
+		if (!compartments)
+			return;
+
+		array<BaseCompartmentSlot> slots = {};
+		compartments.GetCompartments(slots);
+
+		int evacuated = 0;
+
+		foreach (BaseCompartmentSlot slot : slots)
+		{
+			if (!slot)
+				continue;
+
+			IEntity occupant = slot.GetOccupant();
+			if (!occupant)
+				continue;
+
+			CompartmentAccessComponent access = CompartmentAccessComponent.Cast(
+				occupant.FindComponent(CompartmentAccessComponent)
+			);
+
+			if (!access || !access.IsInCompartment())
+				continue;
+
+			access.GetOutVehicle(EGetOutType.TELEPORT, 0, ECloseDoorAfterActions.LEAVE_OPEN, true);
+			evacuated = evacuated + 1;
+		}
+
+		if (evacuated > 0)
+		{
+			Print(string.Format("[Overthrow] Insertion '%1': %2 AI occupant(s) put on the ground before their transport was removed",
+				DescribeSelf(), evacuated.ToString()), LogLevel.NORMAL);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ IT IS A TEST OF OWNERSHIP AND NOT OF SAFETY, AND THE DIFFERENCE MATTERED ONCE. It answers "has
+	//! somebody else a claim on this vehicle" - a player owner, a player aboard, a player's recruit
+	//! aboard - and it deliberately says NOTHING about this module's own crew, because a crew we are
+	//! winding up is not a claim. That blind spot let a transport be deleted around its own seated crew
+	//! on 2026-08-21; the fix is NOT to add a fourth veto here (which would leave the vehicle standing
+	//! forever - see EvacuateAiOccupants) but to empty the vehicle first. Keep the two jobs apart.
 	//! \param[in] vehicle The transport to judge.
 	//! \return An empty string when it is safe to delete, or the reason it is not.
 	protected string TruckDeletionVeto(notnull Vehicle vehicle)
@@ -1654,19 +2654,38 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! \return The world position to register at.
 	override protected vector ResolveSpawnPosition(vector anchor, int index)
 	{
-		if (m_eState == OVT_EInsertionState.DRIVING && m_Truck)
+		if (IsForceMounted())
 			return m_Truck.GetOrigin() + Vector(PASSENGER_SPAWN_OFFSET_M, 0, 0);
 
 		return super.ResolveSpawnPosition(anchor, index);
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! IS THERE A VEHICLE UNDER THIS FORCE RIGHT NOW - the one question both registration seams and the
+	//! ring sweep should be asking.
+	//!
+	//! ⚠ IT IS ABOUT THE RIDE AND NOT ABOUT THE ENUM, DELIBERATELY. "m_eState == DRIVING" was a proxy
+	//! for "mounted" that happens to be right for the FORCE and wrong for anything else that rides: the
+	//! crew is mounted in RETURNING too, and a DRIVING module whose transport has just been destroyed is
+	//! not mounted at all until the next tick notices. Asking about the truck makes those cases answer
+	//! correctly without anyone having to remember to add a state to a list.
+	//!
+	//! The FORCE specifically is only ever aboard on the way out - CompleteInsertion and DismountAndWalk
+	//! both open the doors and put it back on the ordinary ring before the state moves on - so the
+	//! DRIVING term stays. What it no longer does is stand in for "there is a vehicle".
+	//! \return True while the force is riding a transport that exists.
+	protected bool IsForceMounted()
+	{
+		return m_eState == OVT_EInsertionState.DRIVING && m_Truck;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! THE RING: always-materialised while riding, ordinary otherwise. See RIDING_SPAWN_DISTANCE for
-	//! why a dormant passenger cannot be seated.
+	//! why a dormant passenger cannot be seated - and for why a ring alone was never the whole answer.
 	//! \return The spawnDistanceOverride to register with.
 	override protected int ResolveRegistrationSpawnDistance()
 	{
-		if (m_eState == OVT_EInsertionState.DRIVING)
+		if (IsForceMounted())
 			return RIDING_SPAWN_DISTANCE;
 
 		return super.ResolveRegistrationSpawnDistance();
@@ -1802,7 +2821,10 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (!agent)
 			return;
 
-		if (m_eState != OVT_EInsertionState.DRIVING)
+		// ⚠ RETURNING COUNTS NOW, AND IT DID NOT USED TO. A crewman who materialises on the way home is
+		// as much a driver as one who materialises on the way out, and refusing him here left the empty
+		// truck's replacement crew unpinned and unseated.
+		if (m_eState != OVT_EInsertionState.DRIVING && m_eState != OVT_EInsertionState.RETURNING)
 			return;
 
 		AIGroup parent = agent.GetParentGroup();
@@ -1813,18 +2835,68 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (!m_mRiderIsCrew.Contains(groupId))
 			return;
 
+		bool isCrew = m_mRiderIsCrew.Get(groupId);
+
+		// THE PIN FIRST AND UNCONDITIONALLY FOR A CREWMAN, before any test that can bail out. It is what
+		// makes him drive; losing it to a transport that has just gone would leave a live crew asleep
+		// while ReleaseConvoy is still a tick away. Releasing it again there is free.
+		if (isCrew)
+			OVT_MountedGroupActivation.HoldAgentActive(agent);
+
 		if (!m_Truck)
 		{
 			m_mRiderIsCrew.Remove(groupId);
 			return;
 		}
 
-		SeatRider(m_Truck, agent, m_mRiderIsCrew.Get(groupId));
+		// Passengers are only ever seated on the way OUT. The way home is the empty truck's leg, and
+		// putting a member of a force that has already been delivered back into it would carry him away
+		// from the objective he was dropped for.
+		if (!isCrew && m_eState != OVT_EInsertionState.DRIVING)
+			return;
+
+		SeatRider(m_Truck, agent, isCrew);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Seats everybody who is on their feet right now: the crew, then the force.
-	protected void SeatEveryone()
+	//! BOARDING: seats everybody who is already on their feet - the crew, then the force.
+	//!
+	//! ==========================================================================================
+	//! 🔴 THIS IS A BOARDING SWEEP AND NOT A TICK SWEEP, AND THE DIFFERENCE IS A JAMMED CONVOY.
+	//! ==========================================================================================
+	//! Until 2026-08-21 this ran on EVERY drive update under the comment "anybody who materialised, fell
+	//! out or was pulled out mid-drive gets back aboard". That is a sweep with no way of telling a man
+	//! who FELL out from a man who GOT out on purpose - and vanilla AI gets a man out on purpose all the
+	//! time. SCR_AISelectDoorOperatorAgent sends a crewman to open a gate the convoy has to drive
+	//! through, and this sweep teleported him back into the cab before he reached it, every ten seconds,
+	//! forever. The gate never opened, the truck never moved, and the crew was materialised and fully
+	//! AI-active throughout - so it read as "genuinely stuck" in the log and in the liveness diagnostic
+	//! (user play-test, 2026-08-21: "the co-driver gets out to open it, but we detect that and force
+	//! them back in").
+	//!
+	//! ⚠ THE GATE CASE IS NEW BECAUSE THE LOD FIX MADE IT REAL. SCR_AISelectDoorOperatorAgent has a
+	//! TELEKINESIS branch it takes when the chosen man is at max LOD - a distant convoy used to open
+	//! gates with nobody getting out at all. Now that crews are pinned below max LOD so they will drive
+	//! (see OVT_MountedGroupActivation), they walk to gates like anyone else, and this sweep started
+	//! fighting them. The two changes belong to one another.
+	//!
+	//! ⚠ SO WHERE DOES SEATING HAPPEN NOW: on ARRIVAL IN THE WORLD, never on a clock.
+	//!   - OnRiderAgentAdded() seats each man as the AI spawn queue produces him - that IS "when the
+	//!     team spawns", and it is per-member rather than per-group for the reason PairRider records;
+	//!   - AdoptPassenger() seats a whole group at the moment it is committed to the ride;
+	//!   - this method seats whoever is already standing when the convergence commits the convoy.
+	//! All three are events. None of them can fire on a man in the middle of a task, because a man in
+	//! the middle of a task is not being spawned or adopted.
+	//!
+	//! ⚠ AND THE HALF THAT IS KNOWINGLY GIVEN UP, because it must not be re-added by accident: a man
+	//! who is thrown, dragged or otherwise DISPLACED from a moving truck is no longer put back. He is
+	//! left standing on the road holding the plan he was registered with, and he walks to the objective
+	//! from wherever he landed. That is the author's explicit trade (2026-08-21) and it is the right way
+	//! round: a squad member left behind is visible, recoverable and arrives late, whereas a convoy
+	//! permanently jammed at a gate is invisible and arrives never. Anyone tempted to restore the sweep
+	//! must first find a test that separates "displaced and idle" from "out of the truck doing a job" -
+	//! and note that proximity does not do it, because the gate is a few metres from the truck.
+	protected void BoardEveryone()
 	{
 		if (!m_Truck)
 			return;
@@ -1845,6 +2917,74 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			SCR_AIGroup group = virtualization.GetGroup(handle);
 			if (group)
 				SeatExistingRiders(group, false);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE THING STILL POLICED ON A MOVING TRUCK: a member of the FORCE sitting in the driver's seat.
+	//!
+	//! ==========================================================================================
+	//! ⚠ WHY THIS SURVIVED THE SWEEP'S REMOVAL WHEN NOTHING ELSE DID.
+	//! ==========================================================================================
+	//! The hijack it prevents is documented at length on SeatRider(): the force rides holding the
+	//! behaviour module's plan, which points at the OBJECTIVE, so a squad leader who finds the pilot
+	//! seat empty takes it and drives the convoy past its landing zone (author play-test, 2026-08-20).
+	//! Removing the tick sweep outright would have handed that bug straight back - and worse than
+	//! before, because the pilot seat is now reliably empty at exactly one moment: while the driver is
+	//! out opening a gate. Gate opens, hijacker drives off, and the crew is left standing at the gate.
+	//!
+	//! ⚠ IT CANNOT FIGHT A MAN PERFORMING A TASK, AND THAT IS THE WHOLE DESIGN CONSTRAINT IT WAS BUILT
+	//! TO SATISFY. Two properties, both structural rather than heuristic:
+	//!   1. IT ONLY EVER LOOKS AT MEN WHO ARE INSIDE A COMPARTMENT. Anybody on foot - which is what
+	//!      every gate operator, every displaced man and every casualty is - is invisible to it. It has
+	//!      no code path that puts a man INTO a truck he is not already in.
+	//!   2. IT ONLY EVER LOOKS AT THE FORCE, NEVER AT THE CREW. m_aHandles is the passengers; the crew
+	//!      is under its own owner key and is not iterated here at all. A crewman in the driver's seat
+	//!      is a crewman doing his job.
+	//! A passenger sitting in the pilot compartment is never "out of the truck doing a job" - he is in
+	//! the truck doing the wrong one - so there is no task to interrupt.
+	//!
+	//! Delegates to EvictPassengerFromPilotSeat(), which re-checks the compartment type and that the
+	//! seat belongs to THIS transport, moves him by exactly the ordinary passenger rule, and refuses to
+	//! put a man on a moving road when there is no free seat to move him to.
+	protected void EvictHijackers()
+	{
+		if (!m_Truck)
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		foreach (int handle : m_aHandles)
+		{
+			SCR_AIGroup group = virtualization.GetGroup(handle);
+			if (!group)
+				continue;
+
+			array<AIAgent> agents = {};
+			group.GetAgents(agents);
+
+			foreach (AIAgent agent : agents)
+			{
+				if (!agent)
+					continue;
+
+				IEntity character = agent.GetControlledEntity();
+				if (!character)
+					continue;
+
+				CompartmentAccessComponent access = CompartmentAccessComponent.Cast(character.FindComponent(CompartmentAccessComponent));
+				if (!access)
+					continue;
+
+				// ⚠ THE GUARD THAT MAKES THIS SAFE. A man on foot is somebody else's business - the
+				// spawn hook's, or nobody's.
+				if (!access.IsInCompartment())
+					continue;
+
+				EvictPassengerFromPilotSeat(m_Truck, agent, access);
+			}
 		}
 	}
 
@@ -1908,6 +3048,12 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			return false;
 
 		// Already aboard something - this truck, or one he was ordered into. Leave him there.
+		//
+		// ⚠ AND NOTE WHAT IS NOT HERE: no "not aboard anything, so put him in" clause on a timer. Since
+		// 2026-08-21 this method is only ever reached with a man who has just materialised or a group
+		// that has just been adopted, so "he is on foot" always means "he has not boarded yet" and never
+		// "he got out to open a gate". The periodic caller that made those two indistinguishable is
+		// gone - see BoardEveryone().
 		//
 		// ⚠ WITH ONE EXCEPTION, AND IT IS A REAL ONE: A PASSENGER WHO HAS TAKEN THE WHEEL. Vanilla AI
 		// will board and DRIVE a vehicle to satisfy a move order, and the force is riding with exactly
@@ -2361,6 +3507,12 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 	//------------------------------------------------------------------------------------------------
 	//! \return Whether the transport is still a working vehicle.
+	//! ⚠ IT ASKS "IS IT A WRECK", NOT "CAN IT DRIVE", AND THE GAP IS REAL BUT COVERED ELSEWHERE. A truck
+	//! whose wheels or engine are dead answers IsDestroyed() false and passes this test, while vanilla's
+	//! own SCR_AIUtils.VehicleCanMove (`GetMovementDamage() < 1`) calls it unusable and
+	//! SCR_AILeaveStaticVehicles walks its crew out of it. Widening this test would be a second way to
+	//! reach the same conclusion: the uncrewed test on BOTH legs already writes an immobilised transport
+	//! off within about a minute of its crew leaving, with an honest log line saying nobody is driving it.
 	protected bool IsTruckOperational()
 	{
 		if (!m_Truck)
@@ -2394,12 +3546,50 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The owner key the CREW is registered under. See CREW_KEY_SUFFIX for why it must differ from the
-	//! passengers'.
+	//! The owner key the CREW is registered under - UNIQUE TO THIS ONE INSERTION, not to its deployment
+	//! and not to its config. See CREW_KEY_SUFFIX for why it must also differ from the passengers'.
+	//!
+	//! ==========================================================================================
+	//! 🔴 A CREW IS NEVER INHERITED. "It shouldn't matter anyway, just spawn a new crew." (author,
+	//! 2026-08-21.)
+	//! ==========================================================================================
+	//! A crew exists to drive ONE truck. Every insertion spawns its own truck, so there is no reading
+	//! of "reuse the last crew" that is ever the right answer - the men it would inherit are somewhere
+	//! else entirely, usually walking home from the last drop, and the new truck sits at its spawn with
+	//! nobody in it until the uncrewed grace runs out and the whole force walks.
+	//!
+	//! ⚠ AND THE DEPLOYMENT KEY IS NOT ENOUGH TO PREVENT THAT, WHICH IS THE POINT OF THE SERIAL. The
+	//! deployment half comes from OVT_DeploymentVirtualKey.DeriveKey(configName, x, z) plus a collision
+	//! ORDINAL, and that ordinal is PROBED AGAINST LIVE DEPLOYMENTS (OVT_DeploymentManagerComponent
+	//! .NextKeyOrdinal) - deliberately, so it is self-healing across saves. The consequence is that the
+	//! ordinal is FREED when a deployment ends: an objective that sends 'Objective Sabotage' to the same
+	//! base twice, the second time after the first has been collected, composes byte-for-byte the same
+	//! deployment key, hence the same crew key, hence a reclaim that adopts whatever the first one left
+	//! behind. That is not a hypothetical shape - it is the ordinary rhythm of an objective plan.
+	//!
+	//! ⚠ THE RECLAIM IN EnsureCrew() IS NOT DELETED, AND MUST NOT BE. It is what makes the convergence
+	//! idempotent WITHIN one insertion (see its own comment). Scoping the key to the instance keeps that
+	//! property while making a cross-insertion match impossible to compose, which is the only change
+	//! wanted here.
+	//!
+	//! ⚠ NOTHING IS MINTED UNTIL THERE IS A DEPLOYMENT TO KEY AGAINST. BuildOwnerKey answers empty before
+	//! the parent deployment has a virtual key; caching that - or burning a serial on it - would give
+	//! this insertion a key that never matches the one its own crew was registered under.
 	//! \return The key, or an empty string when there is no deployment to key against.
 	protected string GetCrewOwnerKey()
 	{
-		return BuildOwnerKey(m_sModuleName + CREW_KEY_SUFFIX);
+		if (!m_sCrewOwnerKey.IsEmpty())
+			return m_sCrewOwnerKey;
+
+		string deploymentScoped = BuildOwnerKey(m_sModuleName + CREW_KEY_SUFFIX);
+		if (deploymentScoped.IsEmpty())
+			return "";
+
+		s_iCrewKeySerial = s_iCrewKeySerial + 1;
+
+		m_sCrewOwnerKey = deploymentScoped + CREW_INSTANCE_MARK + s_iCrewKeySerial.ToString();
+
+		return m_sCrewOwnerKey;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2539,12 +3729,21 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		Print(string.Format("  Holds a convoy slot: %1", reservation));
 		Print(string.Format("  Crew handle: %1  Stuck ticks: %2  Return ticks: %3",
 			m_iCrewHandle.ToString(), m_iStuckTicksElapsed.ToString(), m_iReturnTicksElapsed.ToString()));
+		string crewKey = m_sCrewOwnerKey;
+		if (crewKey.IsEmpty())
+			crewKey = "not minted - this insertion has never asked for a crew";
+		Print(string.Format("  Crew owner key: %1", crewKey));
 		string abandoned = "no";
 		if (m_bTruckAbandoned)
 			abandoned = "yes";
 		Print(string.Format("  Transport abandoned: %1  Ticks towards collection: %2 of %3",
-			abandoned, m_iAbandonedTicksElapsed.ToString(), ABANDONED_TRUCK_TIMEOUT_TICKS.ToString()));
+			abandoned, m_iAbandonedTicksElapsed.ToString(), STUCK_TRUCK_TIMEOUT_TICKS.ToString()));
 		Print(string.Format("  Owned waypoints: %1  Riders paired: %2",
 			m_aOwnedWaypoints.Count().ToString(), m_mRiderIsCrew.Count().ToString()));
+		Print(string.Format("  Uncrewed ticks: %1 of %2  At the wheel: %3",
+			m_iUncrewedTicksElapsed.ToString(), m_iStuckTicks.ToString(), CrewIsAtTheWheel().ToString()));
+
+		// The same line the stall path prints, on demand. See DescribeCrewLiveness() for how to read it.
+		Print(string.Format("  Crew liveness: %1", DescribeCrewLiveness()));
 	}
 }

@@ -142,17 +142,80 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	int GetTotalResourceCost(int difficultyMultiplier = 1)
+	//------------------------------------------------------------------------------------------------
+	//! WHAT THIS CONFIG COSTS, optionally priced for the PLACE it is about to be built at.
+	//!
+	//! ⚠ vector.Zero MEANS "no position known" AND KEEPS THE OLD ANSWER EXACTLY. Several callers price a
+	//! config with no place in mind - the registry's affordability sweep, the objective director's
+	//! budget question - and for them nothing about this method has changed. Only the two call sites
+	//! that are about to create a deployment AT a position hand one in.
+	//!
+	//! ⚠ AND THE POSITION ONLY EVER MAKES IT CHEAPER, NEVER DEARER. GetResourceCostAt() defaults to
+	//! GetResourceCost() on every module but the composition one, which drops its structure's price when
+	//! the base has no free slot for it - see OVT_BaseDeploymentModule.GetResourceCostAt() for the
+	//! resource leak this closes. A caller that passes a position can therefore never be charged more
+	//! than one that does not.
+	//! \param[in] difficultyMultiplier Applied to the config's own base cost.
+	//! \param[in] position Where it would be created, or vector.Zero when that is not known yet.
+	//! \return The total to charge.
+	int GetTotalResourceCost(int difficultyMultiplier = 1, vector position = vector.Zero)
 	{
 		int totalCost = m_iBaseCost * difficultyMultiplier;
-		
+
+		bool priceForPlace = position != vector.Zero;
+
 		// Add module-specific costs
 		foreach (OVT_BaseDeploymentModule module : m_aModules)
 		{
-			totalCost += module.GetResourceCost();
+			if (priceForPlace)
+				totalCost += module.GetResourceCostAt(position);
+			else
+				totalCost += module.GetResourceCost();
 		}
 		
 		return totalCost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CAN THIS CONFIG BUILD ANYTHING AT ALL AT THIS PLACE?
+	//!
+	//! ==========================================================================================
+	//! ⚠ A CLEAN REFUSAL, NOT AN ERROR, AND NOT AN EDGE CASE. *"Some bases simply don't have the slots
+	//! or anywhere to put them"* (author, 2026-08-22) - so a base that cannot take a fortification is
+	//! ORDINARY, and the framework's answer has to be to quietly offer that base something else. This
+	//! logs nothing and warns nothing; it just makes the config unsuitable here, exactly like an
+	//! unsuitable location type.
+	//! ==========================================================================================
+	//!
+	//! ⚠ ALL-OR-NOTHING, AND ONLY ALL. A config with two composition modules and one free slot is NOT
+	//! refused - it is created and charged for the one that lands, which is GetTotalResourceCost()'s
+	//! job above. This refuses only the case where NOTHING it wants to build can be built, because that
+	//! deployment would exist to do nothing.
+	//!
+	//! ⚠ A CONFIG THAT BUILDS NO COMPOSITIONS IS ALWAYS SUITABLE. Infantry, vehicles and everything else
+	//! are delivered wherever they are sent; the slots have nothing to say about them.
+	//! \param[in] position Where it would be created.
+	//! \return False only when every composition this config wants is unplaceable there.
+	bool CanPlaceCompositionsAt(vector position)
+	{
+		int wanted = 0;
+		int placeable = 0;
+
+		foreach (OVT_BaseDeploymentModule module : m_aModules)
+		{
+			if (!module || !module.WantsCompositionSlot())
+				continue;
+
+			wanted++;
+
+			if (module.CanPlaceCompositionAt(position))
+				placeable++;
+		}
+
+		if (wanted == 0)
+			return true;
+
+		return placeable > 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------

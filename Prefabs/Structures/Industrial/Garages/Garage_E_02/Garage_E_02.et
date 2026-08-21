@@ -90,14 +90,15 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
      "Kinetic multiplier" 0.1
      "Explosive multiplier" 1
      "Incendiary multiplier" 0.1
+     DamageThreshold 50
     }
    }
-   m_fBaseHealth 100000
+   m_fBaseHealth 32000
    m_fDamageThresholdMaximum 50000
    m_bDeleteAfterFinalPhase 0
    m_aDamagePhases {
     SCR_DamagePhaseData "{6B70D00000000009}" {
-     m_fPhaseHealth 100000
+     m_fPhaseHealth 32000
      m_PhaseModel "{B405E1CD1596AA90}Assets/Structures/Industrial/Garages/Garage_E_02/Garage_E_02_Ruin.xob"
     }
    }

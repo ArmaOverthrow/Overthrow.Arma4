@@ -1268,7 +1268,11 @@ class OVT_DeploymentManagerComponent : OVT_Component
 					continue; // Skip this position, deployment already exists nearby
 				}
 
-				int deploymentCost = bestConfig.GetTotalResourceCost();
+				// ⚠ PRICED FOR THIS PLACE, NOT FROM THE TEMPLATE. A composition the base has no free slot
+				// for is dropped from the bill here rather than bought and then silently not built - see
+				// OVT_BaseDeploymentModule.GetResourceCostAt(). The figure handed to CreateDeployment is
+				// the one actually debited, so the deployment's own record of what it cost stays honest.
+				int deploymentCost = bestConfig.GetTotalResourceCost(1, candidate.position);
 				if (availableResources >= deploymentCost)
 				{
 					CreateDeployment(bestConfig, candidate.position, factionIndex, deploymentCost, candidate.threatLevel);
@@ -1760,8 +1764,18 @@ class OVT_DeploymentManagerComponent : OVT_Component
 				continue;
 			}
 			
-			// Check resource cost
-			int cost = config.GetTotalResourceCost();
+			// ⚠ A BASE THAT CANNOT TAKE ANY OF THIS CONFIG'S STRUCTURES IS NOT A CANDIDATE FOR IT. This
+			// sits beside the location-type test above because it is the same kind of question - "is this
+			// config suitable HERE" - and it is deliberately silent: some bases simply have no slots, and
+			// that is ordinary rather than a fault. See OVT_DeploymentConfig.CanPlaceCompositionsAt().
+			if (!config.CanPlaceCompositionsAt(position))
+			{
+				continue;
+			}
+
+			// Check resource cost, priced for THIS position so an unplaceable composition is never part
+			// of the affordability question either.
+			int cost = config.GetTotalResourceCost(1, position);
 			if (cost > availableResources)
 				continue;
 			

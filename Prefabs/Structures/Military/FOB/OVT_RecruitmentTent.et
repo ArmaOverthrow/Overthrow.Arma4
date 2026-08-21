@@ -59,14 +59,15 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
      "Kinetic multiplier" 0.1
      "Explosive multiplier" 1
      "Incendiary multiplier" 0.1
+     DamageThreshold 50
     }
    }
-   m_fBaseHealth 100000
+   m_fBaseHealth 32000
    m_fDamageThresholdMaximum 50000
    m_bDeleteAfterFinalPhase 0
    m_aDamagePhases {
     SCR_DamagePhaseData "{6B70D00000000005}" {
-     m_fPhaseHealth 100000
+     m_fPhaseHealth 32000
      m_PhaseModel "{0F7DDAB5C669F262}Assets/Structures/Debris/DebrisPiles/DebrisPile_Wood_01.xob"
     }
    }

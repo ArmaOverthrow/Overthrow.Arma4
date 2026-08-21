@@ -123,7 +123,7 @@ class OVT_VirtualizationMath
 
 		for (int i = 0; i < types.Count(); i++)
 		{
-			if (types[i] < OVT_EVirtualWaypointType.MOVE || types[i] > OVT_EVirtualWaypointType.CYCLE)
+			if (types[i] < OVT_EVirtualWaypointType.MOVE || types[i] > OVT_EVirtualWaypointType.SEARCH)
 				return false;
 		}
 

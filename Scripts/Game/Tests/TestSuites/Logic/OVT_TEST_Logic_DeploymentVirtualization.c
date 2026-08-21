@@ -1021,3 +1021,196 @@ class OVT_TEST_Logic_DeploymentVirtualization_RoutePlan : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! BuildSearchPlan: one SEARCH entry per site, in the order given, each carrying its own hold, cycling.
+//!
+//! This is the town sweep's house route, and the four things that make it a sweep rather than a
+//! garrison are pinned separately: the point count is the site count (no WAIT is appended after a
+//! SEARCH - the hold IS the pause, a trailing WAIT would stand the men outside the house they just
+//! searched); every entry is SEARCH, which core maps onto the Search & Destroy prefab and movement
+//! treats as a WAIT; the parameters are the holds, by index; and the plan cycles, or the last house
+//! becomes somebody's permanent doorstep guard. An empty site list answers an empty, LEGAL plan.
+//!
+//! FAIL PROOF (edit recorded): add a WAIT after each SEARCH in BuildSearchPlan and the count assertion
+//! goes red (6 for 3). Insert PATROL instead of SEARCH and the type assertion goes red on entry 0.
+//! Drop `plan.m_bCycle = true` and the cycle assertion goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_DeploymentVirtualization_SearchPlan : SCR_AutotestCaseBase
+{
+	protected const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		array<vector> sites = {};
+		sites.Insert(Vector(100, 5, 100));
+		sites.Insert(Vector(160, 5, 120));
+		sites.Insert(Vector(140, 5, 180));
+
+		array<float> holds = {60, 90, 120};
+
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildSearchPlan(sites, holds);
+		if (!plan)
+		{
+			SetFailure("BuildSearchPlan answered nothing at all");
+			return true;
+		}
+
+		if (plan.m_aPositions.Count() != 3 || plan.m_aTypes.Count() != 3 || plan.m_aParams.Count() != 3)
+		{
+			string counts = plan.m_aPositions.Count().ToString() + "/" + plan.m_aTypes.Count().ToString() + "/" + plan.m_aParams.Count().ToString();
+			SetFailure("A 3-site search plan carried (positions/types/parameters) %1, expected 3/3/3 - one SEARCH per site and nothing else", counts);
+			return true;
+		}
+
+		for (int i = 0; i < 3; i++)
+		{
+			if (plan.m_aTypes[i] != OVT_EVirtualWaypointType.SEARCH)
+			{
+				SetFailure("Search plan entry %1 is type %2, expected SEARCH", i.ToString(), plan.m_aTypes[i].ToString());
+				return true;
+			}
+
+			if (vector.Distance(plan.m_aPositions[i], sites[i]) > EPSILON)
+			{
+				SetFailure("Search plan entry %1 sits at %2, expected the site it was given (%3) - the factory must not reorder, the caller owns the route", i.ToString(), plan.m_aPositions[i].ToString(), sites[i].ToString());
+				return true;
+			}
+
+			if (Math.AbsFloat(plan.m_aParams[i] - holds[i]) > EPSILON)
+			{
+				SetFailure("Search plan entry %1 holds for %2 s, expected %3", i.ToString(), plan.m_aParams[i].ToString(), holds[i].ToString());
+				return true;
+			}
+		}
+
+		if (!plan.m_bCycle)
+		{
+			SetFailure("A search plan does not cycle - the patrol would search its last house and guard its doorstep for the rest of the campaign");
+			return true;
+		}
+
+		// A short hold list holds for 0 on the missing entries rather than refusing the plan.
+		array<float> oneHold = {45};
+		OVT_VirtualWaypointPlan shortHolds = OVT_VirtualPlanFactory.BuildSearchPlan(sites, oneHold);
+		if (shortHolds.m_aParams.Count() != 3 || Math.AbsFloat(shortHolds.m_aParams[0] - 45) > EPSILON || shortHolds.m_aParams[2] != 0)
+		{
+			SetFailure("A search plan with 3 sites and 1 hold did not pad the missing holds with 0");
+			return true;
+		}
+
+		// No sites is a legal, empty plan - the caller falls back to the ring, the factory does not refuse.
+		array<vector> noSites = {};
+		OVT_VirtualWaypointPlan nowhere = OVT_VirtualPlanFactory.BuildSearchPlan(noSites, holds);
+		if (!nowhere || !nowhere.m_aPositions.IsEmpty() || !nowhere.m_aTypes.IsEmpty() || !nowhere.m_aParams.IsEmpty())
+		{
+			SetFailure("A search plan with no sites was not an empty plan");
+			return true;
+		}
+
+		OVT_VirtualWaypointPlan nullSites = OVT_VirtualPlanFactory.BuildSearchPlan(null, holds);
+		if (!nullSites || !nullSites.m_aPositions.IsEmpty())
+		{
+			SetFailure("A search plan with a null site list was not an empty plan");
+			return true;
+		}
+
+		Print("The search plan is one SEARCH per site in the order given, holds by index padded with 0, cycling, and empty for no sites");
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! OrderNearestNeighbour: from the start, always the nearest unvisited site next; pure; empty for empty.
+//!
+//! The sites are laid out so that INPUT order and DISTANCE order disagree at every step, which is the
+//! only way the assertion can tell a nearest-neighbour walk from "returned them as given": the start
+//! is at the origin, the input lists the far site first, and the correct walk is far-input-last.
+//! A second check proves the input array is untouched (it is COPIED, not consumed), and the
+//! null/empty inputs answer an empty array rather than null.
+//!
+//! FAIL PROOF (edit recorded): return `sites` unchanged and the first ordering assertion goes red
+//! (entry 0 is the 300 m site). Use `>` instead of `<` in the nearest comparison and it goes red the
+//! other way round (farthest-first).
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_DeploymentVirtualization_NearestNeighbourRoute : SCR_AutotestCaseBase
+{
+	protected const float EPSILON = 0.01;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector start = Vector(0, 0, 0);
+
+		// Input order: 300 m, 100 m, 200 m along +X - deliberately not by distance.
+		array<vector> sites = {};
+		sites.Insert(Vector(300, 0, 0));
+		sites.Insert(Vector(100, 0, 0));
+		sites.Insert(Vector(200, 0, 0));
+
+		array<vector> route = OVT_VirtualPlanFactory.OrderNearestNeighbour(start, sites);
+		if (!route)
+		{
+			SetFailure("OrderNearestNeighbour answered null");
+			return true;
+		}
+
+		if (route.Count() != 3)
+		{
+			SetFailure("A 3-site route came back with %1 entries", route.Count().ToString());
+			return true;
+		}
+
+		array<vector> expected = {};
+		expected.Insert(Vector(100, 0, 0));
+		expected.Insert(Vector(200, 0, 0));
+		expected.Insert(Vector(300, 0, 0));
+
+		for (int i = 0; i < 3; i++)
+		{
+			if (vector.Distance(route[i], expected[i]) > EPSILON)
+			{
+				SetFailure("Route entry %1 is %2, expected %3 - the walk is not nearest-unvisited-next from the start", i.ToString(), route[i].ToString(), expected[i].ToString());
+				return true;
+			}
+		}
+
+		// The input is untouched.
+		if (sites.Count() != 3 || vector.Distance(sites[0], Vector(300, 0, 0)) > EPSILON)
+		{
+			SetFailure("OrderNearestNeighbour mutated its input array");
+			return true;
+		}
+
+		// A start on the FAR side flips the walk - the order follows the start, not the data.
+		array<vector> reversed = OVT_VirtualPlanFactory.OrderNearestNeighbour(Vector(400, 0, 0), sites);
+		if (reversed.Count() != 3 || vector.Distance(reversed[0], Vector(300, 0, 0)) > EPSILON || vector.Distance(reversed[2], Vector(100, 0, 0)) > EPSILON)
+		{
+			SetFailure("A route started from the far end did not walk back the other way");
+			return true;
+		}
+
+		array<vector> none = {};
+		array<vector> emptyRoute = OVT_VirtualPlanFactory.OrderNearestNeighbour(start, none);
+		if (!emptyRoute || !emptyRoute.IsEmpty())
+		{
+			SetFailure("An empty site list did not answer an empty route");
+			return true;
+		}
+
+		array<vector> nullRoute = OVT_VirtualPlanFactory.OrderNearestNeighbour(start, null);
+		if (!nullRoute || !nullRoute.IsEmpty())
+		{
+			SetFailure("A null site list did not answer an empty route");
+			return true;
+		}
+
+		Print("OrderNearestNeighbour walks nearest-unvisited-next from the start, follows the start not the input, leaves the input alone, and answers empty for empty");
+		return true;
+	}
+}

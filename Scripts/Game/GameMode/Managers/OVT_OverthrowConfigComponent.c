@@ -29,7 +29,14 @@ enum OVT_PatrolType {
 	//! Circle the nearest base's AUTHORED PERIMETER SQUARE (OVT_BaseControllerComponent's
 	//! m_fPerimeterRadius / m_fPerimeterRotation, jittered a little per patrol), NOT road-snapped.
 	//! Appended 2026-08-18 by amendment A1 of virtualization/base-defense-migration.
-	PERIMETER_BASE
+	PERIMETER_BASE,
+	//! The town sweep: rolled PER GROUP between searching a handful of the town's houses one after
+	//! another (the vanilla Search & Destroy waypoint on each, so the men poke around and inside it)
+	//! and a loose ring of random radius up to the town's own range, ground-snapped and NOT pulled
+	//! onto roads. Replaces PERIMETER as the town patrol's type: a road-snapped ring parks four men in
+	//! the middle of a road at every corner, in the way of every convoy and in front of every player's
+	//! bumper. Appended 2026-08-21 (occupying/deployments).
+	TOWN_SWEEP
 }
 
 class OVT_OverthrowConfigStruct
@@ -205,6 +212,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Search and Destroy Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pSearchAndDestroyWaypointPrefab;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "House Search Waypoint Prefab - the RELAXED search (walk, stand, weapon down) a town sweep uses on each house; falls back to the Search and Destroy prefab when unset", params: "et", category: "Waypoints")]
+	ResourceName m_pHouseSearchWaypointPrefab;
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get In Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pGetInWaypointPrefab;
@@ -548,6 +558,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		AIWaypoint wp = SpawnWaypoint(m_pMoveWaypointPrefab, pos);
 		return wp;
+	}
+
+	//! The relaxed house search (OVT_AIWaypoint_HouseSearch.et). Falls back to the vanilla Search and
+	//! Destroy prefab when none is authored, so an old game-mode prefab still searches - tactically.
+	AIWaypoint SpawnHouseSearchWaypoint(vector pos)
+	{
+		if (m_pHouseSearchWaypointPrefab)
+			return SpawnWaypoint(m_pHouseSearchWaypointPrefab, pos);
+
+		return SpawnSearchAndDestroyWaypoint(pos);
 	}
 
 	AIWaypoint SpawnSearchAndDestroyWaypoint(vector pos)

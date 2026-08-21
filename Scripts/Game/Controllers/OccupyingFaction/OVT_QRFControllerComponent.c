@@ -631,9 +631,9 @@ class OVT_QRFControllerComponent: OVT_Component
 		// PRE-EXISTING and is deliberately left alone here: fixing it changes player-initiated battles
 		// too and belongs to whoever owns this file next (D9's excluded list).
 		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
-		if(director && director.IsFOBUp())
+		if(director && director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 		{
-			vector fobpos = director.GetFOBPosition();
+			vector fobpos = director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB);
 			if(vector.Distance(fobpos, qrfpos) >= 20)
 			{
 				m_Bases.Insert(fobpos);

@@ -17,6 +17,16 @@
 //! configs already ship m_bEnableProximityActivation 0, so their crews were never despawned - and it is
 //! bounded by m_iMaxInstances 1 on both of them.
 //!
+//! ⚠ AND ALWAYS-MATERIALISED IS ONLY HALF OF IT (2026-08-21). A ring decides whether a crew's men
+//! EXIST; the per-agent LOD system decides whether anything is RUNNING inside them, and it switches
+//! their behaviour trees off outright at max LOD - roughly a kilometre from the nearest observer,
+//! whatever ring they were registered on. A crew with only the ring is a materialised driver asleep at
+//! the wheel: the vehicle sits at its spawn holding orders nobody executes. That is what stranded an
+//! insertion convoy 2.4 km from the only player on the map, and a patrol vehicle has the identical
+//! failure mode. HoldCrewsActive() stamps the second gate every update through
+//! OVT_MountedGroupActivation, and UnsubscribeCrew() - the single point at which a crew leaves this
+//! module's hands - hands it back.
+//!
 //! THE STOLEN-VEHICLE GUARANTEE (D11) NO LONGER NEEDS A DISTANCE RULE. Teardown used to delete every
 //! vehicle and every crewman within 40 m of the deployment marker, and the 40 m was there purely so a
 //! vehicle a player had driven away was spared. There is no periodic teardown any more - OnDeactivate
@@ -179,8 +189,35 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		// Check for destroyed vehicles
 		CheckVehicleStatus();
 
+		// A crew that exists but is not running is a vehicle that never moves. See the class header.
+		HoldCrewsActive();
+
 		// An armed patrol vehicle whose gun nobody is manning is not a patrol. See the method.
 		EnsureTurretsManned();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Keeps every crew this module owns out of max LOD, so their behaviour trees keep running however
+	//! far away the nearest observer is.
+	//!
+	//! ⚠ A RE-ASSERT ON EVERY UPDATE, NOT A ONE-SHOT AT PAIRING TIME. A core-registered crew fills
+	//! PROGRESSIVELY through the engine's AI spawn queue and can go dormant and back again over a
+	//! campaign, so the man in the driver's seat two minutes from now may not have existed when the crew
+	//! was paired. Both calls behind this are no-ops on an agent that is already held, which is what
+	//! makes running it every tick free.
+	protected void HoldCrewsActive()
+	{
+		if (m_aCrewHandles.IsEmpty())
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		foreach (int handle : m_aCrewHandles)
+		{
+			OVT_MountedGroupActivation.HoldGroupActive(virtualization.GetGroup(handle));
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -526,8 +563,10 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			AnchorCrewToVehicle(virtualization, handle, vehicle);
 
 		// GetOnAgentAdded only fires for members that arrive AFTER this point, and a reclaimed crew is
-		// usually already standing, so anyone present is seated now.
+		// usually already standing, so anyone present is seated now - and woken now. Seating a man whose
+		// AI is switched off puts a passenger in the driver's seat, not a driver.
 		SeatExistingAgents(group, vehicle);
+		OVT_MountedGroupActivation.HoldGroupActive(group);
 
 		return true;
 	}
@@ -572,6 +611,11 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		EntityID groupId = parent.GetID();
 		if (!m_mCrewVehicles.Contains(groupId))
 			return;
+
+		// BEFORE THE VEHICLE LOOKUP, because a crewman whose vehicle has gone still fights on foot and
+		// the pairing is dropped below - losing the pin on that path would leave a live group asleep
+		// until something else woke it. UnsubscribeCrew() hands it back either way.
+		OVT_MountedGroupActivation.HoldAgentActive(agent);
 
 		Vehicle vehicle = Vehicle.Cast(GetGame().GetWorld().FindEntityByID(m_mCrewVehicles.Get(groupId)));
 		if (!vehicle)
@@ -678,6 +722,13 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			return;
 
 		group.GetOnAgentAdded().Remove(OnCrewAgentAdded);
+
+		// ⚠ THE ONE PLACE THE ACTIVATION PIN IS HANDED BACK, and it is here for exactly the reason this
+		// method exists: both teardown paths (OnCleanup and OnVirtualGroupWiped) already funnel through
+		// it, so there is one release to keep correct rather than two. AllowMaxLOD on a man who was never
+		// pinned is a no-op, so this is safe on any group. The ordinary proximity ring is the backstop
+		// underneath it - dormancy deletes the member entities, and a pin cannot outlive its man.
+		OVT_MountedGroupActivation.ReleaseGroupActive(group);
 	}
 
 	//------------------------------------------------------------------------------------------------

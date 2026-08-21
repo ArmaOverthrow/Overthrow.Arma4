@@ -593,7 +593,9 @@ class OVT_VirtualMovementManagerComponent : OVT_Component
 			return;
 		}
 
-		if (type == OVT_EVirtualWaypointType.WAIT)
+		// SEARCH is a WAIT to the dormant walk: nobody can see the men poke around the house, so the
+		// only thing worth simulating is how long they are there before they move on.
+		if (type == OVT_EVirtualWaypointType.WAIT || type == OVT_EVirtualWaypointType.SEARCH)
 		{
 			float wait = 0;
 			if (plan.m_aParams && index >= 0 && index < plan.m_aParams.Count())

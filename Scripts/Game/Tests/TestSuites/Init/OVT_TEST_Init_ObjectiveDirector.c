@@ -73,12 +73,12 @@ class OVT_TEST_Init_ObjectiveDirector_ComponentResolvesAndIsIdle : SCR_AutotestC
 			return true;
 		}
 
-		if (direct.GetPhase() != OVT_EObjectivePhase.IDLE)
+		if (direct.GetObjectivePhaseName() != "")
 		{
-			// The phase is read into an int before it is printed: an enum member is an integer on the
-			// wire and in a log, and formatting one directly is not something this dialect promises.
-			int phase = direct.GetPhase();
-			SetFailure("A director in a world with no started campaign must be idle, but it reports phase %1", phase.ToString());
+			// The phase is an AUTHORED NAME now, not an ordinal, so an idle director answers an empty
+			// string rather than a zero - and the failure line quotes whatever it did answer.
+			string phase = direct.GetObjectivePhaseName();
+			SetFailure("A director in a world with no started campaign must be idle, but it reports phase %1", phase);
 			return true;
 		}
 
@@ -88,7 +88,7 @@ class OVT_TEST_Init_ObjectiveDirector_ComponentResolvesAndIsIdle : SCR_AutotestC
 			return true;
 		}
 
-		if (direct.IsFOBUp())
+		if (direct.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 		{
 			SetFailure("A director with no objective must have no forward operating base recorded");
 			return true;
@@ -118,10 +118,18 @@ class OVT_TEST_Init_ObjectiveDirector_ComponentResolvesAndIsIdle : SCR_AutotestC
 //! resistance, and asserts that this exact town is what comes out - twice. Every faction and size it
 //! touched is restored before it returns.
 //!
-//! PROVEN ABLE TO FAIL: the size guard in CollectTownCandidates was changed to skip TOWN instead of
-//! VILLAGE. The tree recompiled CLEAN (exit 0) and the case then reports "selection found no
-//! objective at all, with one resistance-held town standing" - which is also exactly what a director
-//! that silently stopped enumerating towns would look like in play.
+//! ⚠ THE SUBJECT MOVED IN PHASE 3 AND THE ASSERTIONS DID NOT. Selection is plan-driven now: the
+//! collection lives on OVT_ObjectiveCandidateSet and the scoring on the two shipped selectors, but
+//! SelectObjective() is still the entry point, still takes no arguments and still commits through
+//! CommitObjective(). That is why this case reads exactly as it did before - which is itself the
+//! parity claim, made structurally. The claim that the two forms AGREE on the same fixture is a
+//! different case: ..._PlanDrivenSelectionReproducesTheSingleListPick.
+//!
+//! PROVEN ABLE TO FAIL: the size guard in the candidate collection
+//! (OVT_ObjectiveCandidateSet.AddResistanceTowns) was changed to skip TOWN instead of VILLAGE. The
+//! tree recompiled CLEAN (exit 0) and the case then reports "selection found no objective at all,
+//! with one resistance-held town standing" - which is also exactly what a director that silently
+//! stopped enumerating towns would look like in play.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_ObjectiveDirector_DeterministicSelectionPicksTheSameCandidate : SCR_AutotestCaseBase
@@ -244,10 +252,10 @@ class OVT_TEST_Init_ObjectiveDirector_DeterministicSelectionPicksTheSameCandidat
 			return true;
 		}
 
-		if (director.GetPhase() != OVT_EObjectivePhase.IDLE)
+		if (director.GetObjectivePhaseName() != "")
 		{
-			int phaseAfterTeardown = director.GetPhase();
-			SetFailure("the fixture teardown left the director in phase %1 instead of idle", phaseAfterTeardown.ToString());
+			string phaseAfterTeardown = director.GetObjectivePhaseName();
+			SetFailure("the fixture teardown left the director in phase %1 instead of idle", phaseAfterTeardown);
 			return true;
 		}
 
@@ -449,13 +457,13 @@ class OVT_TEST_Init_ObjectiveDirector_FreezesEveryTimerWhileABattleIsLive : SCR_
 //! BEFORE the forward-base, insertion, operations and sabotage cases.
 //!
 //! PROVEN ABLE TO FAIL, both ways round (record the runs in context.md when the suite is next driven):
-//!   - drop the `if (!waitingForDaylight)` guard on AdvancePhaseTimeout() in TickFOB(), so the wait
-//!     spends the objective's patience. The tree compiles clean - a missing guard is not a script error
-//!     - and the case reports "a gate blocked only by the clock must not serve a round off the phase
-//!     timeout".
-//!   - restore the ORIGINAL, over-broad reading by returning from TickFOB() as soon as the gate answers
-//!     WAIT_FOR_DAYLIGHT. Also compiles clean, and the case reports "the starvation rule must be
-//!     evaluated through a daylight wait" - which is the F7 regression the correction was made for.
+//!   - make OVT_DaylightWindowObjectiveCondition.HoldsIdleClock() answer false, so the wait spends the
+//!     objective's patience. The tree compiles clean - a wrong answer is not a script error - and the
+//!     case reports "a gate blocked only by the clock must not serve a round off the phase timeout".
+//!   - restore the ORIGINAL, over-broad reading of D17 by returning from the runner as soon as a
+//!     condition holds the clock, before the aborts and the operations. Also compiles clean, and the
+//!     case reports "the starvation rule must be evaluated through a daylight wait" - which is the F7
+//!     regression the correction was made for.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_AutotestCaseBase
@@ -536,13 +544,13 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 		occupying.m_iResources = gateResources + 1000;
 
 		director.CommitObjective(OVT_EObjectiveKind.BASE, fixture.location, "counter-attack gate fixture");
-		director.EnterPhase(OVT_EObjectivePhase.FOB);
-		director.RecordFOB(fixture.location, fixture.location, "counter-attack gate fixture base");
+		director.EnterPhase("ForwardBase");
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, fixture.location, fixture.location, "counter-attack gate fixture base");
 
 		int required = OVT_ObjectivePhaseRules.RequiredSabotageMissions(difficulty.objectiveSabotageMissionsRequired, OVT_ObjectivePhaseRules.DEFAULT_SABOTAGE_MISSIONS);
 		for (int i = 0; i < required; i++)
 		{
-			director.OnSabotageSuccess();
+			director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_SABOTAGE_SUCCESSES, 1);
 		}
 
 		director.SetPhaseTimeout(PLANTED_PHASE_TICKS);
@@ -551,8 +559,16 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 		// --- HALF ONE: NIGHT. The ramp is finished and only the clock is in the way.
 		clock.SetTimeOfTheDay(NIGHT_HOUR, true);
 
-		bool nightPlanted = !director.IsCounterAttackDaylight();
-		bool waitingForDaylight = director.IsWaitingForCounterAttackDaylight();
+		// 🔴 THE GATE IS READ OFF THE RUNNING PHASE'S OWN AUTHORED CONDITIONS, and that is build phase
+		//    6's re-point. The three read-only director methods this case used to ask - "is it daylight",
+		//    "is the gate waiting only for daylight", "would the battle start now" - were a second
+		//    implementation of the gate's arithmetic living beside the modules, and they were deleted
+		//    with the hard-coded three-answer gate they wrapped. Asking the conditions themselves is a
+		//    STRONGER claim than those readers made: it asserts the DECOMPOSITION ("everything but the
+		//    clock is satisfied, and the clock is not") against the modules the .conf actually authored.
+		bool nightPlanted = !IsDaylightConjunctMet(director);
+		int nightBlockers;
+		bool waitingForDaylight = EveryConjunctExceptDaylightIsMet(director, nightBlockers) && nightPlanted;
 
 		director.DirectorTick();
 
@@ -561,27 +577,44 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 		int starvationAfterNight = director.GetFOBStarvationTicks();
 		bool starvingDuringWait = director.IsFOBStarving();
 		bool battleAfterNight = occupying.m_CurrentQRF != null;
-		int phaseIdAfterNight = director.GetPhase();
+		string phaseIdAfterNight = director.GetObjectivePhaseName();
 
 		// --- HALF TWO: DAY. Nothing else about the fixture changes.
 		clock.SetTimeOfTheDay(DAY_HOUR, true);
 
-		bool dayPlanted = director.IsCounterAttackDaylight();
-		bool readyToFire = director.IsCounterAttackReady();
+		bool dayPlanted = IsDaylightConjunctMet(director);
+		int dayBlockers;
+		bool readyToFire = EveryConjunctExceptDaylightIsMet(director, dayBlockers) && dayPlanted;
 
+		director.DirectorTick();
+
+		string phaseIdAfterAdvance = director.GetObjectivePhaseName();
+
+		// ⚠ THE ADVANCE AND THE BATTLE ARE ONE IN-GAME MINUTE APART SINCE BUILD PHASE 5, AND THAT IS THE
+		// SHAPE THE FEATURE SHIPS. The forward-base handler used to own the whole gate and start the
+		// battle itself, advancing only if one started; the gate is now four authored CONDITIONS, and a
+		// condition can only advance a phase. So the tick above moves the objective into the battle
+		// phase and the tick below is the one that starts the battle - which is exactly where build
+		// phase 6's terminal operation module will start it from.
 		director.DirectorTick();
 
 		OVT_QRFControllerComponent firstBattle = occupying.m_CurrentQRF;
-		int phaseIdAfterFire = director.GetPhase();
+		string phaseIdAfterFire = director.GetObjectivePhaseName();
 
-		// --- HALF THREE: a second tick, with the battle still running.
+		// --- HALF THREE: a further tick, with the battle still running.
 		director.DirectorTick();
 
 		OVT_QRFControllerComponent secondBattle = occupying.m_CurrentQRF;
-		int phaseIdAfterSecond = director.GetPhase();
+		string phaseIdAfterSecond = director.GetObjectivePhaseName();
 
-		// --- RESTORE before asserting, so a red case does not leave a battle running for every case
-		//     that follows.
+		// --- HALF FOUR: THE BATTLE RESOLVES. Emptying the campaign's battle slot is exactly what the
+		//     occupying faction manager's own finish handlers do, and it is the ONLY signal the objective
+		//     machine gets - the end of a battle is POLLED by the runner's third early return letting a
+		//     tick through again, never subscribed to (the manager deletes the controller's entity from
+		//     inside the invoker's own dispatch, so a second subscriber would run against a deleted one).
+		//     The very next tick must therefore end the objective, and end it WITHOUT blacklisting: a
+		//     resolved battle is not a failure of the objective, and the place is re-evaluated on its
+		//     merits next round.
 		if (occupying.m_CurrentQRF)
 		{
 			IEntity battleOwner = occupying.m_CurrentQRF.GetOwner();
@@ -590,6 +623,15 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 				SCR_EntityHelper.DeleteEntityAndChildren(battleOwner);
 		}
 
+		int blacklistBeforeResolution = director.GetBlacklistCount();
+
+		director.DirectorTick();
+
+		bool objectiveEndedOnResolution = !director.HasObjective();
+		int blacklistAfterResolution = director.GetBlacklistCount();
+
+		// --- RESTORE before asserting, so a red case does not leave state behind for every case that
+		//     follows.
 		occupying.m_bQRFActive = savedQRFActive;
 		occupying.m_iResources = savedResources;
 		fixture.faction = savedFaction;
@@ -607,7 +649,7 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 
 		if (!waitingForDaylight)
 		{
-			SetFailure("with the ramp arranged as complete and the clock at night, the gate should have answered WAIT_FOR_DAYLIGHT - so either the fixture does not satisfy the ramp or the daylight conjunct is not on the gate at all");
+			SetFailure("with the ramp arranged as complete and the clock at night, every conjunct of the phase's gate except the daylight window should have been satisfied, and the daylight window should not: %1 non-daylight conjunct(s) answered false. Either the fixture does not satisfy the ramp or the daylight conjunct is not on the gate at all", nightBlockers.ToString());
 			return true;
 		}
 
@@ -618,9 +660,9 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 			return true;
 		}
 
-		if (phaseIdAfterNight != OVT_EObjectivePhase.FOB)
+		if (phaseIdAfterNight != "ForwardBase")
 		{
-			SetFailure("a night tick moved the objective out of the forward-base phase, to %1", phaseIdAfterNight.ToString());
+			SetFailure("a night tick moved the objective out of the forward-base phase, to %1", phaseIdAfterNight);
 			return true;
 		}
 
@@ -659,7 +701,13 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 
 		if (!readyToFire)
 		{
-			SetFailure("with the ramp complete and the clock inside the window, the gate should have answered FIRE");
+			SetFailure("with the ramp complete and the clock inside the window, EVERY conjunct of the phase's gate should have been satisfied: %1 non-daylight conjunct(s) answered false and the daylight conjunct answered %2", dayBlockers.ToString(), dayPlanted.ToString());
+			return true;
+		}
+
+		if (phaseIdAfterAdvance != "CounterAttack")
+		{
+			SetFailure("the daylight tick did not advance the objective out of the forward-base phase: phase %1. Every conjunct of the counter-attack gate is an authored condition now, so a phase that does not advance here means one of them is false with the fixture arranged as complete", phaseIdAfterAdvance);
 			return true;
 		}
 
@@ -669,9 +717,9 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 			return true;
 		}
 
-		if (phaseIdAfterFire != OVT_EObjectivePhase.COUNTER_QRF)
+		if (phaseIdAfterFire != "CounterAttack")
 		{
-			SetFailure("the objective did not advance to the counter-attack phase after the battle started: phase %1", phaseIdAfterFire.ToString());
+			SetFailure("the objective did not advance to the counter-attack phase after the battle started: phase %1", phaseIdAfterFire);
 			return true;
 		}
 
@@ -682,15 +730,99 @@ class OVT_TEST_Init_ObjectiveDirector_GateWaitsForDaylightThenFiresOnce : SCR_Au
 			return true;
 		}
 
-		if (phaseIdAfterSecond != OVT_EObjectivePhase.COUNTER_QRF)
+		if (phaseIdAfterSecond != "CounterAttack")
 		{
-			SetFailure("a tick taken while the battle was running moved the objective to phase %1 - the freeze should have returned before the phase machine ran at all", phaseIdAfterSecond.ToString());
+			SetFailure("a tick taken while the battle was running moved the objective to phase %1 - the freeze should have returned before the phase machine ran at all", phaseIdAfterSecond);
 			return true;
 		}
 
-		Print("Objective director: a counter-attack gate met at night holds the phase timeout and NOTHING else - the cadence runs and the forward base can still be starved out - the same gate fires exactly one battle in daylight, and the tick after it does nothing");
+		// --- ...and the battle resolving ends the objective, on the one reset path, without blacklisting.
+		if (!objectiveEndedOnResolution)
+		{
+			SetFailure("the battle resolved and the very next tick did not end the objective. The end of a battle is POLLED - the campaign's battle slot going empty is the whole signal - so an objective left standing here would hold the machine's one objective slot and the deployment bias until its idle clock ran out, hours of in-game time after the fighting stopped");
+			return true;
+		}
+
+		if (blacklistAfterResolution != blacklistBeforeResolution)
+		{
+			SetFailure("a RESOLVED battle blacklisted its place: the blacklist went from %1 entries to %2. A resolved battle is not a failure of the objective - whether the occupying faction took the place or not, the place is re-evaluated on its merits next round, and only the FAILURE arm of this phase (no battle could be started at all, and the idle clock ran out) sits it out",
+				blacklistBeforeResolution.ToString(), blacklistAfterResolution.ToString());
+			return true;
+		}
+
+		Print("Objective director: a counter-attack gate met at night holds the phase timeout and NOTHING else - the cadence runs and the forward base can still be starved out - the same gate fires exactly one battle in daylight, the tick after it does nothing, and the tick after the battle RESOLVES ends the objective without blacklisting its place");
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the running phase's authored daylight conjunct is satisfied right now.
+	//!
+	//! ⚠ IT ASKS THE PHASE'S OWN MODULE, not a hand-built one, so it reads the hours the .conf authored
+	//! rather than the ones this case would have assumed. A phase with no daylight condition answers
+	//! true, which is what "there is no daylight restriction" means - and the case's own precondition
+	//! rows are what stop that reading as a pass.
+	//! \param[in] director The director, for the objective it is running.
+	//! \return True when the clock is inside the authored window, or when nothing gates it.
+	protected bool IsDaylightConjunctMet(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		OVT_ObjectiveInstance instance = director.GetObjectiveInstance(0);
+		if (!instance)
+			return true;
+
+		int count = instance.GetRuntimeModuleCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_DaylightWindowObjectiveCondition daylight = OVT_DaylightWindowObjectiveCondition.Cast(instance.GetRuntimeModule(i));
+			if (daylight)
+				return daylight.IsInWindow();
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether every conjunct of the running phase's gate EXCEPT the daylight window is satisfied.
+	//!
+	//! This is the port of the hard-coded gate's "not yet" / "not now" distinction, asked of the authored
+	//! conditions: NOT_READY was "the ramp is unfinished", WAIT_FOR_DAYLIGHT was "the ramp is finished and
+	//! only the clock is in the way", and FIRE was both. Evaluate() is side-effect free by contract, so
+	//! asking is free and asking twice changes nothing.
+	//! \param[in] director The director, for the objective it is running.
+	//! \param[out] blockers How many non-daylight conjuncts answered false.
+	//! \return True when nothing but the clock can be in the way.
+	protected bool EveryConjunctExceptDaylightIsMet(notnull OVT_ObjectiveDirectorComponent director, out int blockers)
+	{
+		blockers = 0;
+
+		OVT_ObjectiveInstance instance = director.GetObjectiveInstance(0);
+		if (!instance)
+			return false;
+
+		int count = instance.GetRuntimeModuleCount();
+		int conditions = 0;
+
+		for (int i = 0; i < count; i++)
+		{
+			OVT_BaseObjectiveConditionModule condition = OVT_BaseObjectiveConditionModule.Cast(instance.GetRuntimeModule(i));
+			if (!condition)
+				continue;
+
+			if (OVT_DaylightWindowObjectiveCondition.Cast(condition))
+				continue;
+
+			conditions++;
+
+			if (!condition.Evaluate())
+				blockers++;
+		}
+
+		// A phase with no material conjuncts at all is not "ready" - it is unauthored, and reporting it
+		// as ready would let every row below pass against a plan that had lost its gate.
+		if (conditions == 0)
+			return false;
+
+		return blockers == 0;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -859,7 +991,7 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockHoldsWhileTheFactionCannotPay : S
 
 		int phaseAfterBrokeTick = director.GetPhaseTicks();
 		int poolAfterBrokeTick = deployments.GetFactionResources(occupyingIndex);
-		int phaseIdAfterBrokeTick = director.GetPhase();
+		string phaseIdAfterBrokeTick = director.GetObjectivePhaseName();
 		bool stillHasObjective = director.HasObjective();
 
 		// --- RESTORE before asserting, on every path.
@@ -893,9 +1025,9 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockHoldsWhileTheFactionCannotPay : S
 			return true;
 		}
 
-		if (!stillHasObjective || phaseIdAfterBrokeTick != OVT_EObjectivePhase.HARASSMENT)
+		if (!stillHasObjective || phaseIdAfterBrokeTick != "Harassment")
 		{
-			SetFailure("the objective did not survive a tick it could not pay for: phase %1", phaseIdAfterBrokeTick.ToString());
+			SetFailure("the objective did not survive a tick it could not pay for: phase %1", phaseIdAfterBrokeTick);
 			return true;
 		}
 
@@ -924,7 +1056,7 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockHoldsWhileTheFactionCannotPay : S
 //! A COMPLETED OPERATION RE-ARMS THE IDLE CLOCK - ONCE, ON A TICK, AND NEVER FROM THE COUNTER ITSELF.
 //!
 //! THREE CLAIMS, AND THE MIDDLE ONE IS THE OLDEST CONTRACT IN THIS FILE:
-//!   1. Counting a success moves NO timer. OnHarassmentSuccess() is public and is called from a
+//!   1. Counting a success moves NO timer. ReportObjectiveProgress() is public and is called from a
 //!      deployment's own update, from a restore and from fixtures arranging a state; Phase 5 shipped a
 //!      version that decided things from there and broke two suites at once (D4 - only a tick may move
 //!      a timer). The idle-clock rework had every opportunity to reintroduce it and did not: the tick
@@ -942,7 +1074,7 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockHoldsWhileTheFactionCannotPay : S
 //!       sees a completed operation must re-arm the idle clock: read back 51, expected 240".
 //!   R2. SyncProgressMarks() deleted from ConsumeReportedOperations(), so the news is never consumed.
 //!       Reports "the second tick must serve an ordinary round: read back 240, expected 239".
-//!   R3. A re-arm added to OnHarassmentSuccess() itself. Reports "counting a harassment success moved
+//!   R3. A re-arm added to ReportObjectiveProgress() itself. Reports "counting a harassment success moved
 //!       the idle clock" - the D4 guard, still live.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
@@ -994,7 +1126,7 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockRearmsWhenAnOperationReports : SC
 		int phaseAfterIdleTick = director.GetPhaseTicks();
 
 		// --- HALF TWO: an operation reports. The COUNTER may not move a timer.
-		director.OnHarassmentSuccess();
+		director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES, 1);
 
 		int phaseAfterCounting = director.GetPhaseTicks();
 
@@ -1007,7 +1139,7 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockRearmsWhenAnOperationReports : SC
 		director.DirectorTick();
 
 		int phaseAfterSecondTick = director.GetPhaseTicks();
-		int phaseIdAtEnd = director.GetPhase();
+		string phaseIdAtEnd = director.GetObjectivePhaseName();
 
 		// --- RESTORE before asserting.
 		director.ResetObjective("initialisation-tier reported-operation fixture torn down", false);
@@ -1041,9 +1173,9 @@ class OVT_TEST_Init_ObjectiveDirector_IdleClockRearmsWhenAnOperationReports : SC
 			return true;
 		}
 
-		if (phaseIdAtEnd != OVT_EObjectivePhase.HARASSMENT)
+		if (phaseIdAtEnd != "Harassment")
 		{
-			SetFailure("the fixture left the harassment phase, so the clock readings above belong to some other phase: %1", phaseIdAtEnd.ToString());
+			SetFailure("the fixture left the harassment phase, so the clock readings above belong to some other phase: %1", phaseIdAtEnd);
 			return true;
 		}
 
@@ -1190,6 +1322,7 @@ class OVT_TEST_Init_ObjectiveDirector_InFlightOperationIsHeldThenRefunded : SCR_
 		int poolAfterCreate = deployments.GetFactionResources(factionIndex);
 		int spent = poolBeforeCreate - poolAfterCreate;
 		int phaseAfterCreateTick = director.GetPhaseTicks();
+		int opAfterCreateTick = director.GetNextOpTicks();
 		bool inFlightAfterCreate = director.IsOperationInFlight();
 
 		if (spent <= 0)
@@ -1238,6 +1371,15 @@ class OVT_TEST_Init_ObjectiveDirector_InFlightOperationIsHeldThenRefunded : SCR_
 		if (phaseAfterCreateTick != budget)
 			return string.Format("a tick that creates an operation must re-arm the idle clock rather than serve a round off it: planted 1, read back %1, expected the authored budget %2",
 				phaseAfterCreateTick.ToString(), budget.ToString());
+
+		// 🔴 AND THE CADENCE IS CONSUMED BY THE OPERATION THAT ACTED. The countdown was planted at ZERO
+		// for this half, so a value still at zero means the create did not re-arm it - and an objective
+		// whose cadence never re-arms buys an operation EVERY in-game minute for as long as the pool
+		// lasts, which is the unpaced lurch the whole one-spender-one-interval rule exists to prevent.
+		// Every refusal is meant to leave it at zero; only a SUCCESSFUL create may move it.
+		if (opAfterCreateTick <= 0)
+			return string.Format("a tick that created and paid for an operation must re-arm the operation cadence: it was planted at 0 and reads back %1. An objective whose cadence is never re-armed spends on every single tick",
+				opAfterCreateTick.ToString());
 
 		if (!inFlightAfterCreate)
 			return "the director does not report the operation it just created as in flight, so the hold below would prove nothing about a walking team";
@@ -1457,5 +1599,922 @@ class OVT_TEST_Init_ObjectiveDirector_RefusalsAreLatchedPerConfigAndReason : SCR
 		}
 
 		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 THE PHASE-3 PARITY CASE: THE TWO SHIPPED PLANS REPRODUCE THE SINGLE-LIST PICK.
+//!
+//! ==========================================================================================
+//! WHY THIS CASE IS ONLY POSSIBLE NOW, AND WHY IT IS THE MOST IMPORTANT ONE IN THE FILE.
+//! ==========================================================================================
+//! Until this build phase, selection was ONE list: every resistance-held town, then every
+//! resistance-held base, each scored by OVT_ObjectiveSelection.ScoreTown/ScoreBase, highest wins,
+//! ties to the earlier entry. It is now TWO doctrines, each with its own selector, its own weights
+//! and its own priority multiplier, compared through OVT_ObjectivePlanRules. That fork is the one
+//! decision this whole feature exists to make, and getting it wrong has NO symptom: nothing errors,
+//! nothing warns, the occupying faction simply attacks a different place than it used to and every
+//! log line still reads as though it were working.
+//!
+//! The old arithmetic is still in the tree - the pure statics were deliberately NOT edited when
+//! their weights were lifted to selector attributes - so for exactly this one build phase both
+//! answers can be computed side by side on one fixture and compared. That is what this case does.
+//! ⚠ IT CANNOT BE WRITTEN LATER. The statics keep their constants, but once the shipped .conf can
+//! author weights that differ from them, "the two agree" stops being a parity claim and becomes a
+//! statement about whatever the .conf happens to say.
+//!
+//! FOUR PROPERTIES MAKE THE TWO FORMS AGREE, AND ALL FOUR ARE ASSERTED BELOW:
+//!   1. ONE CANDIDATE COLLECTION, IN THE SAME ORDER - towns then bases (half B collects it from the
+//!      live world and half A hands it in by hand, in that order).
+//!   2. THE SELECTORS ARE THOSE SCORERS, TERM FOR TERM. Half A compares the .conf-loaded selector's
+//!      score against the untouched static's, per candidate.
+//!   3. EQUAL PRIORITIES MULTIPLY BY ONE, which is exact in binary floating point, so a plan's rank
+//!      IS its selector's score.
+//!   4. THE TIE-BREAKS AGREE - and the third arrangement is an EXACT float tie between the best town
+//!      and the best base, built out of values that are exactly representable, which both forms must
+//!      resolve to the town. That row is the crux: it is the only place the "town plan is authored
+//!      first exactly as towns were collected first" argument is checked rather than asserted in
+//!      prose.
+//!
+//! ⚠ HALF A USES THE SHIPPED SELECTORS OFF THE REGISTRY, NOT HAND-BUILT ONES. `new` applies no
+//! [Attribute()] defvalues, so a hand-built selector would score every candidate at zero - but more
+//! importantly, a hand-built one could not see a weight a .conf got wrong. Reading them off the
+//! loaded registry is what makes this case fail when Objective_BaseOffensive.conf authors the wrong
+//! number, which is the fault with no other detector in the tree.
+//!
+//! ⚠ HALF B DRIVES THE REAL SelectObjective() AND ASSERTS ON THE COMMITTED POSITION. Half A proves
+//! the arithmetic; half B proves the plumbing around it - the collection order, the blacklist mask,
+//! the plan loop and the commit - reproduces the single list on the live world. Neither half is
+//! sufficient alone: half A would pass on a runner that never called a selector, and half B would
+//! pass on a fixture with only one candidate.
+//!
+//! CAN-FAIL (the phase's own required proof): m_fBasePrizeWeight was changed from 45 to 5 in
+//! Configs/Objective/Objective_BaseOffensive.conf. The tree recompiled CLEAN (tools/compile-check.sh
+//! exit 0) - no compiler reads a .conf, which is the whole reason this case exists - and the first
+//! arrangement then inverts: the base doctrine's best candidate falls from 60 to 20, the town
+//! doctrine's 47.5 wins the plan comparison, and the case reports "the plan-driven pick and the
+//! single-list pick chose DIFFERENT places". Value restored, tree recompiled clean.
+//!
+//! EVERY FIXTURE VALUE IN HALF A IS EXACTLY REPRESENTABLE IN BINARY FLOATING POINT - halves,
+//! quarters and sixteenths - so the expected scores below are exact rather than approximate, and the
+//! tie row is a real tie rather than two numbers that happen to be close.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveDirector_PlanDrivenSelectionReproducesTheSingleListPick : SCR_AutotestCaseBase
+{
+	//! Tolerance for comparing a position that has been round-tripped through the record, in metres.
+	//! vector.Distance is not correctly rounded at campaign ranges, so positions are never compared
+	//! with ==.
+	static const float POSITION_TOLERANCE = 1.0;
+
+	//! Tolerance for comparing two scores. Both sides compute the same terms in the same order out of
+	//! exactly-representable inputs, so the difference should be zero; the epsilon is here because a
+	//! float is never compared with == in this tree, not because drift is expected.
+	static const float SCORE_EPSILON = 0.0001;
+
+	//! The maximum useful distance half A's hand-built set declares. Chosen so that every fixture
+	//! distance divides it exactly.
+	static const float FIXTURE_MAX_USEFUL = 5000;
+
+	//! The two shipped plans, as literals - a constant naming a constant cannot catch a rename.
+	static const string TOWN_PLAN = "Town Offensive";
+
+	//! As above.
+	static const string BASE_PLAN = "Base Offensive";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if (!director)
+		{
+			SetFailure("OVT_Global.GetObjectiveDirector() is null - the component is not declared on the game mode prefab");
+			return true;
+		}
+
+		OVT_ObjectiveRegistry registry = director.GetRegistry();
+		if (!registry)
+		{
+			SetFailure("The objective director has NO plan registry, so there are no plans to compare against the single list");
+			return true;
+		}
+
+		string failure = AssertRegistryOrder(registry);
+
+		if (failure == "")
+			failure = RunArithmeticParity(registry);
+
+		if (failure == "")
+			failure = RunExtraClaims(registry);
+
+		if (failure == "")
+			failure = RunWorldParity(director);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective director: the two shipped plans reproduce the single-list pick - on a hand-built fixture where the base wins, where the town wins, and on an exact tie; and on the live world, driven through the real selection round");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The town doctrine is authored FIRST, which is what makes the tie-break parity claim true.
+	//!
+	//! ⚠ THIS IS NOT COSMETIC ORDERING. The single list collected every town before every base, so a
+	//! town and a base of identical score resolved to the town. The plan comparison ties to the
+	//! earlier PLAN, so the same tie resolves to the town only while the town plan is authored first
+	//! in overthrowObjectives.conf. Swapping the two entries in that .conf would compile, load, and
+	//! silently change which of two equally attractive places the occupying faction attacks.
+	//! \param[in] registry The loaded plan registry.
+	//! \return An empty string when the order is as authored, otherwise the failure.
+	protected string AssertRegistryOrder(notnull OVT_ObjectiveRegistry registry)
+	{
+		OVT_ObjectiveConfig first = registry.GetConfig(0);
+		if (!first)
+			return "the objective registry has no plan at index 0";
+
+		if (first.m_sObjectiveName != TOWN_PLAN)
+			return "the plan at registry index 0 is '" + first.m_sObjectiveName + "', not '" + TOWN_PLAN + "' - the single list collected towns first, so a tie between an equally-scored town and base only still resolves to the town while the town doctrine is authored first";
+
+		OVT_ObjectiveConfig second = registry.GetConfig(1);
+		if (!second)
+			return "the objective registry has no plan at index 1";
+
+		if (second.m_sObjectiveName != BASE_PLAN)
+			return "the plan at registry index 1 is '" + second.m_sObjectiveName + "', not '" + BASE_PLAN + "'";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! HALF A - three hand-built candidate sets, each decided both ways.
+	//! \param[in] registry The loaded plan registry, for the shipped selectors.
+	//! \return An empty string when every arrangement agreed, otherwise the failure.
+	protected string RunArithmeticParity(notnull OVT_ObjectiveRegistry registry)
+	{
+		// --- Arrangement 1: the BASE doctrine wins, narrowly enough that one wrong weight inverts it.
+		//     town A  40*(200/400) + 30*(1-0.50) + 25*(1-2500/5000) + 0   = 20 + 15 + 12.5      = 47.5
+		//     town B  40*(100/400) + 30*(1-0.80) + 25*(1-4000/5000) + 0   = 10 +  6 +  5        = 21
+		//     base A  45 + 25*(8/40) + 25*(1-3000/5000) + 0               = 45 +  5 + 10        = 60
+		//     base B  45 + 0 + 0 + 0                                                            = 45
+		OVT_ObjectiveCandidateSet baseWins = new OVT_ObjectiveCandidateSet();
+		baseWins.SetMaxUsefulDistance(FIXTURE_MAX_USEFUL);
+		baseWins.Add(OVT_EObjectiveKind.TOWN, "100 0 100", "fixture town A", 200, 50, 0, 2500, false);
+		baseWins.Add(OVT_EObjectiveKind.TOWN, "200 0 200", "fixture town B", 100, 80, 0, 4000, false);
+		baseWins.Add(OVT_EObjectiveKind.BASE, "300 0 300", "fixture base A", 0, 0, 8, 3000, false);
+		baseWins.Add(OVT_EObjectiveKind.BASE, "400 0 400", "fixture base B", 0, 0, 0, 5000, false);
+
+		string failure = CompareBothForms(registry, baseWins, 2, "the base doctrine's target out-scores every town");
+		if (failure != "")
+			return failure;
+
+		// --- Arrangement 2: the TOWN doctrine wins, at the town ceiling. Without this row the case
+		//     would pass on a machine that always answered "base".
+		//     town A  40*(400/400) + 30*(1-0) + 25*(1-0/5000) + 10        = 40 + 30 + 25 + 10   = 105
+		//     base A  45 + 0 + 0 + 0                                                            = 45
+		OVT_ObjectiveCandidateSet townWins = new OVT_ObjectiveCandidateSet();
+		townWins.SetMaxUsefulDistance(FIXTURE_MAX_USEFUL);
+		townWins.Add(OVT_EObjectiveKind.TOWN, "500 0 500", "fixture capital", 400, 0, 0, 0, true);
+		townWins.Add(OVT_EObjectiveKind.BASE, "600 0 600", "fixture distant base", 0, 0, 0, 5000, false);
+
+		failure = CompareBothForms(registry, townWins, 0, "a collapsed capital next door out-scores a distant base");
+		if (failure != "")
+			return failure;
+
+		// --- Arrangement 3: an EXACT tie, which both forms must resolve to the town.
+		//     town   40*(275/400) + 30*(1-0) + 25*(1-2500/5000) + 0       = 27.5 + 30 + 12.5    = 70
+		//     base   45 + 25*(20/40) + 25*(1-2500/5000) + 0               = 45 + 12.5 + 12.5    = 70
+		//     Every quotient here is a sixteenth or a half, so both totals are exactly 70.
+		OVT_ObjectiveCandidateSet tie = new OVT_ObjectiveCandidateSet();
+		tie.SetMaxUsefulDistance(FIXTURE_MAX_USEFUL);
+		tie.Add(OVT_EObjectiveKind.TOWN, "700 0 700", "fixture tied town", 275, 0, 0, 2500, false);
+		tie.Add(OVT_EObjectiveKind.BASE, "800 0 800", "fixture tied base", 0, 0, 20, 2500, false);
+
+		return CompareBothForms(registry, tie, 0, "an exact tie between a town and a base resolves to the town");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Decides one candidate set BOTH ways and asserts they agree with each other and with the
+	//! expected index.
+	//!
+	//! ⚠ THE EXPECTED INDEX IS ASSERTED TOO, NOT JUST "THE TWO AGREE". Two identical implementations
+	//! of the wrong rule agree perfectly; the hand-computed index in the caller's comment block is
+	//! what stops this case from proving only that the code is consistent with itself.
+	//! \param[in] registry The loaded plan registry.
+	//! \param[in] candidates The hand-built candidate set.
+	//! \param[in] expected The candidate index both forms must choose.
+	//! \param[in] label Human description of the arrangement, used only in failure messages.
+	//! \return An empty string when both forms chose the expected candidate, otherwise the failure.
+	protected string CompareBothForms(notnull OVT_ObjectiveRegistry registry, notnull OVT_ObjectiveCandidateSet candidates, int expected, string label)
+	{
+		array<float> singleListScores = new array<float>();
+		ScoreWithTheStatics(candidates, singleListScores);
+
+		int singleList = OVT_ObjectiveSelection.SelectBestIndex(singleListScores, null);
+
+		array<float> planRanks = new array<float>();
+		int planDriven = PickWithThePlans(registry, candidates, planRanks);
+
+		if (singleList == OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+			return label + ": the single-list form picked NOTHING out of " + candidates.Count().ToString() + " candidates";
+
+		if (planDriven == OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+			return label + ": the plan-driven form picked NOTHING out of " + candidates.Count().ToString() + " candidates, while the single list chose '" + candidates.GetName(singleList) + "'";
+
+		if (singleList != planDriven)
+			return label + ": the plan-driven pick and the single-list pick chose DIFFERENT places - '" + candidates.GetName(planDriven) + "' at rank " + planRanks[planDriven].ToString() + " against '" + candidates.GetName(singleList) + "' at score " + singleListScores[singleList].ToString();
+
+		if (vector.Distance(candidates.GetPosition(singleList), candidates.GetPosition(planDriven)) > POSITION_TOLERANCE)
+			return label + ": the two forms agreed on an index but not on a position, which means the candidate set is ragged";
+
+		if (planDriven != expected)
+			return label + ": both forms chose '" + candidates.GetName(planDriven) + "' (index " + planDriven.ToString() + "), but the hand-computed answer is index " + expected.ToString() + " - two identical implementations of the WRONG rule agree perfectly";
+
+		// The per-candidate scores have to match too, not merely the argmax: a selector whose weights
+		// were all doubled would pick the same target on most fixtures and be completely wrong.
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (Math.AbsFloat(planRanks[i] - singleListScores[i]) > SCORE_EPSILON)
+				return label + ": '" + candidates.GetName(i) + "' scored " + planRanks[i].ToString() + " under its plan and " + singleListScores[i].ToString() + " under the single list - the shipped .conf authors a weight the pure statics do not carry";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE OLD FORM: one list, scored by the untouched pure statics, highest wins.
+	//!
+	//! This is the pre-Phase-3 selection arithmetic verbatim - the collection and the name resolution
+	//! moved to OVT_ObjectiveCandidateSet and the pick is what is left, which is why it can be written
+	//! out in five lines here.
+	//! \param[in] candidates The candidate set.
+	//! \param[out] scores Receives one score per candidate. Cleared first.
+	protected void ScoreWithTheStatics(notnull OVT_ObjectiveCandidateSet candidates, notnull array<float> scores)
+	{
+		scores.Clear();
+
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (candidates.GetKind(i) == OVT_EObjectiveKind.BASE)
+				scores.Insert(OVT_ObjectiveSelection.ScoreBase(candidates.GetThreat(i), candidates.GetReach(i), candidates.GetMaxUsefulDistance(), candidates.HasTowerCoverage(i)));
+			else
+				scores.Insert(OVT_ObjectiveSelection.ScoreTown(candidates.GetPopulation(i), candidates.GetSupportPercentage(i), candidates.GetReach(i), candidates.GetMaxUsefulDistance(), candidates.HasTowerCoverage(i)));
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE NEW FORM: every shipped plan scores the set with its own selector, the scores are scaled by
+	//! the plan's priority, and the plans are compared - exactly as SelectObjective() composes them.
+	//! \param[in] registry The loaded plan registry.
+	//! \param[in] candidates The candidate set.
+	//! \param[out] ranks Receives the best plan-scaled rank each candidate was given. Cleared first.
+	//! \return The winning candidate index, or NOTHING_TO_SELECT.
+	protected int PickWithThePlans(notnull OVT_ObjectiveRegistry registry, notnull OVT_ObjectiveCandidateSet candidates, notnull array<float> ranks)
+	{
+		ranks.Clear();
+
+		int candidateCount = candidates.Count();
+		for (int c = 0; c < candidateCount; c++)
+		{
+			ranks.Insert(0);
+		}
+
+		array<float> planScores = new array<float>();
+		array<bool> planEligible = new array<bool>();
+		array<int> planPick = new array<int>();
+
+		int planCount = registry.GetConfigCount();
+		for (int p = 0; p < planCount; p++)
+		{
+			OVT_ObjectiveConfig plan = registry.GetConfig(p);
+			if (!plan || !plan.m_Selector)
+				continue;
+
+			array<float> scores = new array<float>();
+			plan.m_Selector.ScoreCandidates(candidates, scores);
+
+			array<bool> mask = new array<bool>();
+			candidates.BuildSelectionMask(plan.GetCandidateSources(), mask);
+
+			int best = OVT_ObjectiveSelection.NOTHING_TO_SELECT;
+			if (scores.Count() == mask.Count())
+				best = OVT_ObjectiveSelection.SelectBestIndex(scores, mask);
+
+			float rank = 0;
+			if (best != OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+				rank = OVT_ObjectivePlanRules.ResolvePlanScore(scores[best], plan.m_fPriority);
+
+			planScores.Insert(rank);
+			planEligible.Insert(best != OVT_ObjectiveSelection.NOTHING_TO_SELECT);
+			planPick.Insert(best);
+
+			for (int i = 0; i < candidateCount; i++)
+			{
+				if (mask[i])
+					continue;
+
+				ranks[i] = OVT_ObjectivePlanRules.ResolvePlanScore(scores[i], plan.m_fPriority);
+			}
+		}
+
+		int winningPlan = OVT_ObjectivePlanRules.SelectBestPlanIndex(planScores, planEligible);
+		if (winningPlan == OVT_ObjectivePlanRules.NOTHING_TO_SELECT)
+			return OVT_ObjectiveSelection.NOTHING_TO_SELECT;
+
+		return planPick[winningPlan];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The three smaller Phase-3 claims: an empty set, the blacklist mask, and the shipped cadence.
+	//! \param[in] registry The loaded plan registry.
+	//! \return An empty string when all three held, otherwise the failure.
+	protected string RunExtraClaims(notnull OVT_ObjectiveRegistry registry)
+	{
+		// --- A selector handed nothing answers nothing, rather than an index into an empty list.
+		OVT_ObjectiveConfig townPlan = registry.FindConfigByName(TOWN_PLAN);
+		if (!townPlan || !townPlan.m_Selector)
+			return "the '" + TOWN_PLAN + "' plan has no selector - Objective_TownOffensive.conf did not author m_Selector, so the doctrine can never be ranked";
+
+		OVT_ObjectiveCandidateSet nothing = new OVT_ObjectiveCandidateSet();
+		nothing.SetMaxUsefulDistance(FIXTURE_MAX_USEFUL);
+
+		array<float> emptyScores = new array<float>();
+		if (townPlan.m_Selector.ScoreCandidates(nothing, emptyScores))
+			return "a selector claimed a candidate out of an EMPTY set";
+
+		if (!emptyScores.IsEmpty())
+			return "a selector wrote " + emptyScores.Count().ToString() + " score(s) for an empty candidate set, which would leave every later array ragged";
+
+		// --- The mask excludes a blacklisted candidate AND a candidate of a kind the plan does not
+		//     claim, and those two exclusions are different statements.
+		OVT_ObjectiveCandidateSet masked = new OVT_ObjectiveCandidateSet();
+		masked.SetMaxUsefulDistance(FIXTURE_MAX_USEFUL);
+		masked.Add(OVT_EObjectiveKind.TOWN, "900 0 900", "blacklisted town", 400, 0, 0, 0, true);
+		masked.Add(OVT_EObjectiveKind.TOWN, "1000 0 1000", "available town", 200, 50, 0, 2500, false);
+		masked.Add(OVT_EObjectiveKind.BASE, "1100 0 1100", "a base the town plan may not take", 0, 0, 40, 0, true);
+
+		array<string> keys = {OVT_ObjectiveSelection.PositionKey("900 0 900")};
+		array<int> rounds = {1};
+		masked.ApplyBlacklist(keys, rounds);
+
+		if (!masked.IsBlacklisted(0))
+			return "the blacklist mask did not mark the candidate whose position key was blacklisted";
+
+		if (masked.IsBlacklisted(1))
+			return "the blacklist mask marked a candidate that was never blacklisted";
+
+		array<float> maskedScores = new array<float>();
+		townPlan.m_Selector.ScoreCandidates(masked, maskedScores);
+
+		array<bool> townMask = new array<bool>();
+		masked.BuildSelectionMask(townPlan.GetCandidateSources(), townMask);
+
+		if (!townMask[2])
+			return "the town doctrine's selection mask left a BASE selectable - a selector must not be able to win a candidate it has no doctrine for, and scoring it zero is not the same statement";
+
+		int pick = OVT_ObjectiveSelection.SelectBestIndex(maskedScores, townMask);
+		if (pick != 1)
+			return "with the best town sitting out its blacklist round the town doctrine must fall back to the next one (index 1), but it chose index " + pick.ToString();
+
+		// --- The shipped cadence is every idle minute, which is what the campaign has always done.
+		//     The COUNTER half of that claim is asserted in half B, immediately after this case has run
+		//     a round itself: asserting it here would be reading a counter some earlier case in the
+		//     tier happened to leave at zero.
+		if (registry.GetSelectionCooldownTicks() != 1)
+			return "the objective registry authors a selection cooldown of " + registry.GetSelectionCooldownTicks().ToString() + " in-game minute(s); the shipped value is 1, which is the every-idle-minute selection the campaign has always run";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! HALF B - the live world, driven through the real selection round.
+	//!
+	//! THE FIXTURE IS BUILT, NOT FOUND, so the case cannot pass vacuously: the whole map is handed to
+	//! the occupying faction and exactly one town and one base are handed back, which is the smallest
+	//! arrangement in which "one list" and "two doctrines" could possibly disagree.
+	//!
+	//! ⚠ THE REFERENCE IS COMPUTED BEFORE SelectObjective() RUNS, because a selection round SERVES a
+	//! blacklist round - computing the reference afterwards would measure a blacklist one round older
+	//! than the one the director actually used.
+	//!
+	//! EVERY FACTION, SIZE, POPULATION AND SUPPORT VALUE IT TOUCHES IS RESTORED BEFORE IT ASSERTS, so
+	//! a red case does not leave the world rearranged for the cases that follow.
+	//! \param[in] director The director.
+	//! \return An empty string when the live round matched the single-list reference, otherwise the failure.
+	protected string RunWorldParity(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		if (!occupying || !towns || !config)
+			return "the occupying faction manager, the town manager or the campaign config did not resolve";
+
+		if (!towns.m_Towns || towns.m_Towns.IsEmpty())
+			return "the world produced no towns, so there is nothing to build a selection fixture out of";
+
+		if (!occupying.m_Bases || occupying.m_Bases.IsEmpty())
+			return "the world produced no bases, so a town-against-base comparison cannot be built";
+
+		int occupyingIndex = config.GetOccupyingFactionIndex();
+		int resistanceIndex = config.GetPlayerFactionIndex();
+
+		if (occupyingIndex == resistanceIndex)
+			return "the occupying and resistance faction indices are the same (" + occupyingIndex.ToString() + "), so 'resistance-held' cannot be expressed";
+
+		// --- ARRANGE.
+		array<int> townFactions = new array<int>();
+		array<OVT_TownSize> townSizes = new array<OVT_TownSize>();
+		foreach (OVT_TownData town : towns.m_Towns)
+		{
+			townFactions.Insert(town.faction);
+			townSizes.Insert(town.size);
+			town.faction = occupyingIndex;
+		}
+
+		array<int> baseFactions = new array<int>();
+		foreach (OVT_BaseData base : occupying.m_Bases)
+		{
+			baseFactions.Insert(base.faction);
+			base.faction = occupyingIndex;
+		}
+
+		OVT_TownData townFixture = towns.m_Towns[0];
+		townFixture.faction = resistanceIndex;
+		townFixture.size = OVT_TownSize.TOWN;
+
+		OVT_BaseData baseFixture = occupying.m_Bases[0];
+		baseFixture.faction = resistanceIndex;
+
+		// --- The single-list reference, computed over the SAME collection the runner will use, and
+		//     BEFORE the runner serves a blacklist round off it.
+		OVT_ObjectiveCandidateSet candidates = new OVT_ObjectiveCandidateSet();
+		int sources = OVT_EObjectiveCandidateSource.RESISTANCE_TOWNS | OVT_EObjectiveCandidateSource.RESISTANCE_BASES;
+		candidates.Collect(occupying, towns, sources, resistanceIndex, director.GetMaxUsefulDistance());
+
+		array<string> blacklistKeys = new array<string>();
+		array<int> blacklistRounds = new array<int>();
+		ReadDirectorBlacklist(director, blacklistKeys, blacklistRounds);
+		candidates.ApplyBlacklist(blacklistKeys, blacklistRounds);
+
+		array<float> referenceScores = new array<float>();
+		ScoreWithTheStatics(candidates, referenceScores);
+
+		array<bool> referenceMask = new array<bool>();
+		int collected = candidates.Count();
+		for (int i = 0; i < collected; i++)
+		{
+			referenceMask.Insert(candidates.IsBlacklisted(i));
+		}
+
+		int referenceBest = OVT_ObjectiveSelection.SelectBestIndex(referenceScores, referenceMask);
+
+		// ⚠ THE COLLECTION ORDER IS A CONTRACT, NOT AN IMPLEMENTATION DETAIL, and this is the only
+		// place it is produced rather than handed in. The single list collected every town before every
+		// base, so an equally-scored town and base resolved to the town; the plan comparison reproduces
+		// that by authoring the town doctrine first. Swapping the collection order compiles, loads, and
+		// changes which of two equally attractive places the occupying faction attacks.
+		string orderFault = AssertTownsBeforeBases(candidates);
+
+		vector referencePosition = vector.Zero;
+		string referenceName = "";
+		if (referenceBest != OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+		{
+			referencePosition = candidates.GetPosition(referenceBest);
+			referenceName = candidates.GetName(referenceBest);
+		}
+
+		// --- ACT: the real thing.
+		director.SelectObjective();
+
+		OVT_EObjectiveKind committedKind = director.GetObjectiveKind();
+		vector committedPosition = director.GetObjectivePosition();
+		string committedPlan = director.GetObjectiveConfigName();
+		int cooldownAfterARound = director.GetSelectionCooldown();
+
+		// --- RESTORE before asserting.
+		for (int t = 0; t < towns.m_Towns.Count(); t++)
+		{
+			towns.m_Towns[t].faction = townFactions[t];
+			towns.m_Towns[t].size = townSizes[t];
+		}
+
+		for (int b = 0; b < occupying.m_Bases.Count(); b++)
+		{
+			occupying.m_Bases[b].faction = baseFactions[b];
+		}
+
+		director.ResetObjective("initialisation-tier plan parity fixture torn down", false);
+
+		// --- ASSERT.
+		if (orderFault != "")
+			return orderFault;
+
+		// At the shipped cadence of 1 the counter never leaves zero, which is what makes the whole
+		// cooldown mechanism a no-op by default and the pre-plan selection cadence byte-identical.
+		if (cooldownAfterARound != 0)
+			return "after one selection round the cooldown counter is at " + cooldownAfterARound.ToString() + "; at the shipped cadence of 1 it must never leave zero, or the campaign would stop selecting on every idle minute";
+
+		if (collected < 2)
+			return "the fixture collected " + collected.ToString() + " candidate(s); with fewer than two the case cannot tell one list from two doctrines apart";
+
+		if (referenceBest == OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+			return "the single-list reference found nothing to pick out of " + collected.ToString() + " candidates";
+
+		if (committedKind == OVT_EObjectiveKind.NONE)
+			return "the plan-driven round committed to NOTHING, while the single-list reference chose '" + referenceName + "'";
+
+		if (vector.Distance(committedPosition, referencePosition) > POSITION_TOLERANCE)
+			return "the live plan-driven round committed to a place " + vector.Distance(committedPosition, referencePosition).ToString() + " m from the single-list reference '" + referenceName + "' - the fork from one list into two doctrines changed the answer";
+
+		if (committedPlan == "")
+			return "the live round committed to '" + referenceName + "' but bound NO plan to it, so the objective would run on the hard-coded fallback";
+
+		if (committedKind == OVT_EObjectiveKind.TOWN && committedPlan != TOWN_PLAN)
+			return "a TOWN objective was committed under the plan '" + committedPlan + "' instead of '" + TOWN_PLAN + "'";
+
+		if (committedKind == OVT_EObjectiveKind.BASE && committedPlan != BASE_PLAN)
+			return "a BASE objective was committed under the plan '" + committedPlan + "' instead of '" + BASE_PLAN + "'";
+
+		if (director.GetObjectivePhaseName() != "")
+		{
+			// The phase is an authored NAME now: an idle director answers an empty string, and the line
+			// below quotes whatever it actually answered.
+			string phaseAfterTeardown = director.GetObjectivePhaseName();
+			return "the fixture teardown left the director in phase " + phaseAfterTeardown + " instead of idle";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts that the collection listed every town before every base.
+	//! \param[in] candidates The collected candidate set.
+	//! \return An empty string when the order holds, otherwise the failure.
+	protected string AssertTownsBeforeBases(notnull OVT_ObjectiveCandidateSet candidates)
+	{
+		bool seenABase = false;
+
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (candidates.GetKind(i) == OVT_EObjectiveKind.BASE)
+			{
+				seenABase = true;
+				continue;
+			}
+
+			if (seenABase)
+				return "the candidate collection listed a base before the town '" + candidates.GetName(i) + "' at index " + i.ToString() + " - towns come first, and that ordering IS the tie-break the single list used";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Flattens the director's blacklist into the parallel arrays the pure statics take.
+	//!
+	//! ⚠ IT IS READ RATHER THAN ASSUMED EMPTY. The initialisation world is shared with every other
+	//! Tier B case and any of them may have blacklisted a place; a reference computed without the
+	//! mask would disagree with the runner for a reason that has nothing to do with plans.
+	//! \param[in] director The director.
+	//! \param[out] keys Receives one position key per entry.
+	//! \param[out] rounds Receives the matching rounds.
+	protected void ReadDirectorBlacklist(notnull OVT_ObjectiveDirectorComponent director, notnull array<string> keys, notnull array<int> rounds)
+	{
+		keys.Clear();
+		rounds.Clear();
+
+		int count = director.GetBlacklistCount();
+		for (int i = 0; i < count; i++)
+		{
+			keys.Insert(OVT_ObjectiveSelection.PositionKey(director.GetBlacklistPosition(i)));
+			rounds.Insert(director.GetBlacklistRounds(i));
+		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE LAST PHASE OF A PLAN ENDS THE OBJECTIVE THROUGH ONE PATH, AND THE PATH CARRIES THE BLACKLIST
+//! FLAG THE MODULE CHOSE (R1).
+//!
+//! 🔴 WHAT THIS CASE IS FOR. Build phase 6 turned the battle phase into two authored modules, and the
+//! two of them are the only difference between an ending that is a FAILURE and one that is not:
+//!
+//!   THE BATTLE COULD NOT BE STARTED. The base was retaken by some other route, its marker no longer
+//!     resolves, or the objective's recorded position has nothing under it. Every one of those lasts
+//!     until the objective ends, so the module says so once and refuses on every tick; the phase's
+//!     OVT_IdleForObjectiveAbort is what finally ends it, and it BLACKLISTS - the place just failed,
+//!     and picking it again immediately would fail the same way.
+//!   THE BATTLE RESOLVED. Ends the objective and does NOT blacklist. That half is driven end to end,
+//!     on a real battle, by ...GateWaitsForDaylightThenFiresOnce.
+//!
+//! ⚠ THIS CASE DRIVES THE FAILURE HALF, AND IT NEVER STARTS A BATTLE. Its fixture is a BASE objective
+//! at a synthetic position 12 km from anything, so the battle module's own precondition - the recorded
+//! position must still BE a resistance-held base, within its authored resolve radius - refuses it and
+//! nothing is spawned, announced or spent. That is what makes the two halves cheap enough to assert in
+//! two different cases rather than fighting two battles in a shared world.
+//!
+//! ⚠ IT LEAVES ONE BLACKLIST ENTRY BEHIND AND THAT IS DELIBERATE - it is the thing being asserted. The
+//! entry names the synthetic position, which no candidate collection in this world can ever produce, so
+//! it masks out nothing; it decays on the next selection round like any other. The case asserts the
+//! DELTA rather than the count, because the initialisation world is shared and any earlier case may
+//! have blacklisted something.
+//!
+//! ⚠ IT SORTS LAST AMONG THE OBJECTIVE-DIRECTOR CASES, ON PURPOSE. Cases run alphabetically by class
+//! name, and the two that drive a real selection round - ...DeterministicSelectionPicksTheSameCandidate
+//! and ...PlanDrivenSelectionReproducesTheSingleListPick - both sort before "Terminal".
+//!
+//! ⚠ AND IT DRIVES DirectorTick(), NOT THE MODULES. The reset is the runner's, behind the tick's three
+//! early returns, and a module that ended an objective from anywhere else would pass a direct call and
+//! still be wrong.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time, each compiled at tools/compile-check.sh exit 0,
+//! each reverted and recompiled clean):
+//!   T1. m_bBlacklist dropped from the battle phase's OVT_IdleForObjectiveAbort in both plan .confs.
+//!       The case reports "the battle phase gave up without blacklisting the place".
+//!   T2. OVT_StartBattleObjectiveOperation.IsTerminal() answers false. The registry's wedge rule then
+//!       skips both shipped plans, the fixture commits with no plan behind it, and the case reports
+//!       that the objective's battle phase carries no modules at all.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveDirector_TerminalPhaseEndsTheObjectiveOnOnePath : SCR_AutotestCaseBase
+{
+	//! Where the fixture objective is. Deliberately nowhere near anything: a BASE objective this far
+	//! from any real base cannot have a battle mounted on it, which is the refusal this case needs, and
+	//! the blacklist entry it leaves behind can never mask a real candidate.
+	static const vector FIXTURE_POSITION = "12000 0 12000";
+
+	//! Planted idle clock for the first tick: high enough that the abort cannot fire on it, and
+	//! deliberately not a value any phase entry produces.
+	static const int PLANTED_PHASE_TICKS = 53;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+
+		if (!director || !occupying)
+		{
+			SetFailure("The director or the occupying faction manager did not resolve");
+			return true;
+		}
+
+		if (occupying.m_CurrentQRF)
+		{
+			SetFailure("A battle is already running in the shared world, so this case cannot tell its own refusal from somebody else's battle");
+			return true;
+		}
+
+		// --- ARRANGE: a base objective in the middle of nowhere, in its battle phase.
+		director.CommitObjective(OVT_EObjectiveKind.BASE, FIXTURE_POSITION, "terminal phase fixture");
+		director.EnterPhase("CounterAttack");
+
+		int modulesInBattlePhase = director.GetRuntimeModuleCount();
+		string phaseName = director.GetObjectivePhaseName();
+
+		director.SetPhaseTimeout(PLANTED_PHASE_TICKS);
+
+		// --- ACT ONE: a tick on which the battle cannot be started and the clock has not run out.
+		director.DirectorTick();
+
+		bool battleStarted = occupying.m_CurrentQRF != null;
+		bool aliveAfterRefusal = director.HasObjective();
+		int ticksAfterRefusal = director.GetPhaseTicks();
+
+		// --- ACT TWO: the same refusal, on the tick the idle clock reaches zero.
+		int blacklistBefore = director.GetBlacklistCount();
+
+		director.SetPhaseTimeout(1);
+		director.DirectorTick();
+
+		bool endedOnTimeout = !director.HasObjective();
+		int blacklistAfter = director.GetBlacklistCount();
+		bool blacklistedThePlace = HasBlacklistEntryAt(director, FIXTURE_POSITION);
+
+		// --- RESTORE before asserting. The blacklist entry stays, by design - see the case header.
+		director.ResetObjective("initialisation-tier terminal-phase fixture torn down", false);
+
+		// --- ASSERT. The preconditions first.
+		if (modulesInBattlePhase < 2)
+		{
+			SetFailure("the objective's battle phase carries %1 runtime module(s) on plan '%2' phase '%3'; the shipped phase authors a terminal battle operation AND an idle abort, and with fewer than both this case would be asserting against a phase that cannot do anything at all",
+				modulesInBattlePhase.ToString(), director.GetObjectiveConfigName(), phaseName);
+			return true;
+		}
+
+		if (battleStarted)
+		{
+			SetFailure("a battle was mounted on a BASE objective 12 km from any base. The recorded position must still BE a resistance-held base within the operation's authored resolve radius, or a restored payload naming a base that has since gone would drop a real siege on whichever base happened to be nearest on the map");
+			return true;
+		}
+
+		// --- The refusal sits out the phase rather than ending it on the spot.
+		if (!aliveAfterRefusal)
+		{
+			SetFailure("a refused battle ended the objective on its FIRST refusal. Resetting there throws a whole ramp - the harassment, the forward base, the demolition quota - away for one bad tick; the phase's idle clock is what ends it, and the refusal is explained once in the log while it runs down");
+			return true;
+		}
+
+		if (ticksAfterRefusal != PLANTED_PHASE_TICKS - 1)
+		{
+			SetFailure("the battle phase's idle clock must run while no battle can be started: planted %1, read back %2. A phase whose clock is held here would sit on a place it can never attack for the rest of the campaign",
+				PLANTED_PHASE_TICKS.ToString(), ticksAfterRefusal.ToString());
+			return true;
+		}
+
+		// --- ...and the clock running out ends it, through the one reset path, WITH the blacklist.
+		if (!endedOnTimeout)
+		{
+			SetFailure("the battle phase's idle clock reached zero and the objective was not ended. Since the doctrine became authored data a phase with no abort module cannot time out AT ALL, so this is what an OVT_IdleForObjectiveAbort missing from the shipped battle phase looks like");
+			return true;
+		}
+
+		if (blacklistAfter != blacklistBefore + 1)
+		{
+			SetFailure("the battle phase gave up without blacklisting the place: the blacklist went from %1 entries to %2. This is the FAILURE arm of the phase - no battle could be started at all - and a place that just failed must sit out a selection round, or the machine picks it again immediately and fails the same way",
+				blacklistBefore.ToString(), blacklistAfter.ToString());
+			return true;
+		}
+
+		if (!blacklistedThePlace)
+		{
+			SetFailure("the blacklist grew but no entry names the objective's own position, so something other than this objective's place was sat out");
+			return true;
+		}
+
+		Print("Objective director: a battle phase that cannot start its battle refuses once per tick, runs its idle clock down and ends the objective through the one reset path WITH the blacklist - and no battle is mounted on a position with no base under it");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the director's blacklist carries an entry at a position.
+	//! \param[in] director The director.
+	//! \param[in] position The place.
+	//! \return True when one of the entries names it.
+	protected bool HasBlacklistEntryAt(notnull OVT_ObjectiveDirectorComponent director, vector position)
+	{
+		string wanted = OVT_ObjectiveSelection.PositionKey(position);
+
+		int count = director.GetBlacklistCount();
+		for (int i = 0; i < count; i++)
+		{
+			if (OVT_ObjectiveSelection.PositionKey(director.GetBlacklistPosition(i)) == wanted)
+				return true;
+		}
+
+		return false;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE REFUSAL LEDGER ITSELF, DRIVEN THROUGH THE DOOR THE MODULES USE.
+//!
+//! 🔴 WHY A SECOND REFUSAL CASE EXISTS, BESIDE THE PURE-STATIC ONE. IsSameRefusal() proves the KEY is
+//! the (config, reason) pair; it proves nothing about the ledger that key is supposed to govern, and
+//! the ledger is what actually quietens the log. The two halves also live in different places now: the
+//! create choke point still refuses inside the director, but the forward base's raise module refuses
+//! through the PUBLIC door (LogObjectiveRefusal) from outside it, and both write the same list. A dedup
+//! that worked only for the internal caller would look perfect in every unit-level reading and would
+//! still put one line per in-game minute in a live log.
+//!
+//! ⚠ IT IS ALSO WHAT GIVES GetLoggedRefusalCount() AND HasLoggedRefusal() THEIR FIRST CALLERS. Both
+//! were public with no caller anywhere in the repo, tests included - which is the state in which a
+//! public reader quietly stops being true. They are the only way to interrogate a running campaign
+//! about why its ramp is quiet without reading the log back, so they are asserted rather than deleted.
+//!
+//! ⚠ THE LEDGER IS PER OBJECTIVE, AND THE TEARDOWN IS PART OF THE CLAIM. Ending the objective must
+//! empty it: a refusal carried into the next objective would silence the same refusal for a target that
+//! has not said it once. The reset at the end is therefore both the fixture teardown and the last
+//! assertion's arrangement - which is also why this case may drive the live director at all.
+//!
+//! CAN-FAIL: make LogOperationRefusal() insert unconditionally (drop the IsSameRefusal loop). The tree
+//! compiles clean and the case reports "the same operation refused twice for the same reason wrote TWO
+//! ledger entries". Make it key on the config alone and it reports the different-reason row instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_ObjectiveDirector_TheRefusalLedgerDedupsAcrossItsCallers : SCR_AutotestCaseBase
+{
+	//! Two operation names no deployment registry carries, so nothing here can be confused with a real
+	//! refusal the campaign made for itself.
+	static const string OPERATION_A = "OVT_TEST Ledger Operation A";
+	static const string OPERATION_B = "OVT_TEST Ledger Operation B";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+
+		if (!director || !towns || !towns.m_Towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("The director or the town manager did not resolve, or the world produced no towns to hang an objective on");
+			return true;
+		}
+
+		string poolShort = OVT_ObjectiveDirectorComponent.REFUSAL_POOL_SHORT;
+		string noSourceBase = OVT_ObjectiveDirectorComponent.REFUSAL_NO_SOURCE_BASE;
+
+		// --- ARRANGE. The ledger is per OBJECTIVE, so there has to be one - and it is emptied by ENDING
+		//     an objective, not by starting one, which is why the reset comes first: a refusal latched by
+		//     whatever ran before this case would otherwise be counted as one of ours.
+		director.ResetObjective("initialisation-tier refusal ledger fixture arranged", false);
+		director.CommitObjective(OVT_EObjectiveKind.TOWN, towns.m_Towns[0].location, "refusal ledger fixture");
+
+		int atStart = director.GetLoggedRefusalCount();
+
+		// --- ACT. Every call goes through the PUBLIC door, which is the one the modules use.
+		director.LogObjectiveRefusal(OPERATION_A, poolShort, "first time", LogLevel.NORMAL);
+		int afterFirst = director.GetLoggedRefusalCount();
+
+		director.LogObjectiveRefusal(OPERATION_A, poolShort, "the same refusal, one in-game minute later", LogLevel.NORMAL);
+		int afterRepeat = director.GetLoggedRefusalCount();
+
+		director.LogObjectiveRefusal(OPERATION_A, noSourceBase, "same operation, different reason", LogLevel.NORMAL);
+		int afterNewReason = director.GetLoggedRefusalCount();
+
+		director.LogObjectiveRefusal(OPERATION_B, poolShort, "different operation, same reason", LogLevel.NORMAL);
+		int afterOtherOperation = director.GetLoggedRefusalCount();
+
+		bool knowsAPool = director.HasLoggedRefusal(OPERATION_A, poolShort);
+		bool knowsANoSource = director.HasLoggedRefusal(OPERATION_A, noSourceBase);
+		bool knowsBPool = director.HasLoggedRefusal(OPERATION_B, poolShort);
+		bool knowsBNoSource = director.HasLoggedRefusal(OPERATION_B, noSourceBase);
+
+		// --- RESTORE, which is itself the last claim: the ledger belongs to the objective that made it.
+		director.ResetObjective("initialisation-tier refusal ledger fixture torn down", false);
+
+		int afterTeardown = director.GetLoggedRefusalCount();
+		bool remembersAfterTeardown = director.HasLoggedRefusal(OPERATION_A, poolShort);
+
+		// --- ASSERT.
+		if (atStart != 0)
+		{
+			SetFailure("committing an objective must start it with an EMPTY refusal ledger, but %1 entries were already latched - a refusal made about the previous objective would silence the same refusal about this one", atStart.ToString());
+			return true;
+		}
+
+		if (afterFirst != 1)
+		{
+			SetFailure("the first refusal must be recorded: the ledger holds %1 entries, expected 1", afterFirst.ToString());
+			return true;
+		}
+
+		if (afterRepeat != 1)
+		{
+			SetFailure("the same operation refused twice for the same reason wrote TWO ledger entries (%1) - every refusal is retried every in-game minute, so an unlatched line is hundreds of identical entries in one campaign", afterRepeat.ToString());
+			return true;
+		}
+
+		if (afterNewReason != 2)
+		{
+			SetFailure("the same operation refused for a DIFFERENT reason must get its own entry: the ledger holds %1, expected 2. A latch that coarse hides the second fault behind the first", afterNewReason.ToString());
+			return true;
+		}
+
+		if (afterOtherOperation != 3)
+		{
+			SetFailure("a DIFFERENT operation refused for the same reason must get its own entry: the ledger holds %1, expected 3. This is the 2026-08-19 play-test defect exactly - the pool being short on a sabotage team silencing the pool being short on a forward base", afterOtherOperation.ToString());
+			return true;
+		}
+
+		if (!knowsAPool || !knowsANoSource || !knowsBPool)
+		{
+			SetFailure("HasLoggedRefusal() cannot find a pair that was just recorded (A/pool %1, A/no-source %2, B/pool %3) - a reader that answers 'no' for a latched refusal would tell a server owner the ramp is quiet for some other reason", knowsAPool.ToString(), knowsANoSource.ToString(), knowsBPool.ToString());
+			return true;
+		}
+
+		if (knowsBNoSource)
+		{
+			SetFailure("HasLoggedRefusal() claims a pair that was never recorded (operation B refused for want of a source base) - it is matching on half the key, so every reading of the ledger is wrong in the same direction");
+			return true;
+		}
+
+		if (afterTeardown != 0)
+		{
+			SetFailure("ending the objective left %1 refusal(s) latched - the next objective would be told, silently, that it had already said things it has never said", afterTeardown.ToString());
+			return true;
+		}
+
+		if (remembersAfterTeardown)
+		{
+			SetFailure("ending the objective left a (config, reason) pair still latched, so the next objective's first refusal for that pair would never be spoken");
+			return true;
+		}
+
+		Print("Objective director: the refusal ledger is keyed on the (operation, reason) pair through the public door the modules refuse by - a repeat is silent, a new reason speaks, a different operation speaks, and ending the objective forgets all of it");
+
+		return true;
 	}
 }

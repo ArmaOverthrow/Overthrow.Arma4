@@ -411,7 +411,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	{
 		return FindRecruitEntity(recruitId);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Get recruits owned by a player within a specified radius of a position
 	//!

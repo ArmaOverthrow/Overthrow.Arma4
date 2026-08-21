@@ -91,7 +91,8 @@ enum OVT_EVirtualWaypointType
     PATROL,
     WAIT,
     DEFEND,
-    CYCLE
+    CYCLE,
+    SEARCH   // appended 2026-08-21 (occupying/deployments town sweep) - ADDITIVE, at the end; persisted plans are unaffected
 }
 
 //! Registration-time INPUT ONLY. Core turns it into real AIWaypoint entities owned by the record.
