@@ -548,7 +548,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000072}" {
    Id "OVT-BuyEquippedRecruit"
    Target_en_us "Buy Equipped Recruit"
-   Target_de_de "Ausrüstung für Rekruten kaufen"
+   Target_de_de "Kaufe Ausgerüsteten Rekruten"
    Target_uk_ua "Найняти спорядженого рекрута"
    Comment "Name of the second held action on a recruitment tent - opens the loadouts screen in purchase mode. The prefab carries the literal English until the runtime exports are regenerated (decision D14)"
    DevNote ""
