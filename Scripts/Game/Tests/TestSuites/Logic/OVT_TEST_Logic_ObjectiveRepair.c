@@ -7,8 +7,16 @@
 //!
 //! ⚠ THE PRECEDENCE IS SPLIT INTO PURE STATICS SO THIS TIER CAN REACH IT AT ALL - the live resolvers
 //! read campaign settings this suite may not touch, and the precedence itself is two integers and a
-//! comparison. The other half of the claim, that the module reads the CAMPAIGN'S numbers, is
-//! OVT_TEST_Init_BaseRepair case D.
+//! comparison.
+//!
+//! ⚠ THE OTHER HALF OF THAT CLAIM IS NO LONGER ASSERTED ANYWHERE, AND THAT IS DELIBERATE (2026-08-22).
+//! It used to be OVT_TEST_Init_BaseRepair case D, which read the campaign's numbers off a LIVE repair
+//! deployment. The author has removed base repair from the deployment registry - *"it doesn't make
+//! sense they spawn repair teams when there's nothing to repair"* - so that suite was asserting the
+//! shape of a feature the campaign no longer runs and was deleted with it. What survives here is the
+//! ARITHMETIC, which is still reachable because OVT_BaseRepairBehaviorDeploymentModule itself still
+//! exists: a `new` module and three pure statics need no registry entry. If repair is ever restored to
+//! the registry, the live half is worth restoring with it.
 //!
 //! ⚠ A NON-POSITIVE "campaign figure" MEANS "NOT LOADED, OR NOT AUTHORED", which is exactly the state
 //! a hand-built module in a world with no campaign is in - so the fallback path has to work.

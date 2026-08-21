@@ -10570,8 +10570,6 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 	//! is the same intent expressed on the scale that is actually compared against it: a notably hot
 	//! area rather than a number no position could fail. See OVT_DeploymentManager.CalculateThreatLevel.
 	static const int AT_MINIMUM_THREAT = 20;
-	static const int AT_PRIORITY = 6;
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -10762,9 +10760,25 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			return string.Format("Config '%1' authors a minimum threat of %2, expected %3 - an AT section is a late-campaign answer to armour and this is when a base starts buying one",
 				AT_CONFIG, config.m_iMinimumThreatLevel.ToString(), AT_MINIMUM_THREAT.ToString());
 
-		if (config.m_iPriority != AT_PRIORITY)
-			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place, so a base would buy this concern at the wrong point in its escalation",
-				AT_CONFIG, config.m_iPriority.ToString(), AT_PRIORITY.ToString());
+		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		//
+		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
+		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
+		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
+		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
+		// order" became indistinguishable.
+		//
+		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
+		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
+		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
+		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
+		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
+		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
+		// version of the same mistake kept alive for its own sake.
+		//
+		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
+		// is valid, that it carries a placed module with a placement provider, and that it is offered at
+		// bases at all. Those are silent when violated, which is what earns a test.
 
 		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
 		if (!placed)
@@ -11169,10 +11183,6 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 	static const string TOWER_CONFIG = "Base Tower Guards";
 	static const string SNIPER_CONFIG = "Base Sniper Positions";
 
-	//! Every base-defense concern the legacy conf authored at priority 2 keeps that priority, because
-	//! the evaluator's escalation order IS the old per-base priority sweep, re-expressed.
-	static const int EXPECTED_PRIORITY = 2;
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -11280,9 +11290,25 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 		if (!config.IsValidConfig())
 			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
 
-		if (config.m_iPriority != EXPECTED_PRIORITY)
-			return string.Format("Config '%1' authors priority %2, expected %3 - priority is the ORDER OF ACQUISITION at one place now, so a base would buy this concern at the wrong point in its escalation",
-				configName, config.m_iPriority.ToString(), EXPECTED_PRIORITY.ToString());
+		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		//
+		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
+		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
+		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
+		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
+		// order" became indistinguishable.
+		//
+		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
+		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
+		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
+		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
+		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
+		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
+		// version of the same mistake kept alive for its own sake.
+		//
+		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
+		// is valid, that it carries a placed module with a placement provider, and that it is offered at
+		// bases at all. Those are silent when violated, which is what earns a test.
 
 		if ((config.m_iAllowedLocationTypes & OVT_LocationTypeFlag.BASE) == 0)
 			return string.Format("Config '%1' does not allow the BASE location type (%2) - it would never be offered at a base at all",
