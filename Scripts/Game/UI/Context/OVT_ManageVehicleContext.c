@@ -74,7 +74,7 @@ class OVT_ManageVehicleContext : OVT_UIContext
 		
 		float health = 1;
 		SCR_VehicleDamageManagerComponent dmg = SCR_VehicleDamageManagerComponent.Cast(m_Vehicle.FindComponent(SCR_VehicleDamageManagerComponent));
-		if(dmg)
+		if(dmg && dmg.GetMaxHealth() > 0)
 		{
 			health = dmg.GetHealth() / dmg.GetMaxHealth();
 		}		
@@ -84,11 +84,14 @@ class OVT_ManageVehicleContext : OVT_UIContext
 		SCR_WLibProgressBarComponent fuelBar = SCR_WLibProgressBarComponent.Cast(fuelWidget.FindHandler(SCR_WLibProgressBarComponent));		
 		float fuel = 1;
 		
-		SCR_FuelConsumptionComponent f = SCR_FuelConsumptionComponent.Cast(m_Vehicle.FindComponent(SCR_FuelConsumptionComponent));
-		if(f)
+		FuelManagerComponent fuelManager = FuelManagerComponent.Cast(m_Vehicle.FindComponent(FuelManagerComponent));
+		if(fuelManager)
 		{
-			BaseFuelNode node = f.GetCurrentFuelTank();
-			fuel = node.GetFuel() / node.GetMaxFuel();
+			float maxFuel = fuelManager.GetTotalMaxFuel();
+			if(maxFuel > 0)
+				fuel = fuelManager.GetTotalFuel() / maxFuel;
+			else
+				fuel = 0;
 		}		
 		fuelBar.SetValue(fuel);
 		
