@@ -1,5 +1,29 @@
+//------------------------------------------------------------------------------------------------
+//! Raising the flag on an occupied town. A long hold, in the open, in the middle of a town the
+//! occupying faction still holds - so it is ILLEGAL, and being seen at any point during the hold
+//! makes the player wanted (OVT_IllegalActionComponent opens the window server-side; the escalation
+//! itself is OVT_PlayerWantedComponent's, gated on actually being observed).
+//------------------------------------------------------------------------------------------------
 class OVT_StartUprisingAction : ScriptedUserAction
 {
+	//---------------------------------------------------------
+	//! Report the illegal act as it BEGINS, not when it completes - the hold is what gets seen.
+	override void OnActionStart(IEntity pUserEntity)
+	{
+		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		if(illegal)
+			illegal.ReportActionStarted(OVT_EIllegalAction.UPRISING);
+	}
+
+	//---------------------------------------------------------
+	//! Let go of it early and nobody has anything on you.
+	override void OnActionCanceled(IEntity pOwnerEntity, IEntity pUserEntity)
+	{
+		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		if(illegal)
+			illegal.ReportActionCancelled();
+	}
+
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
  	{

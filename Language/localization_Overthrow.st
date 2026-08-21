@@ -8535,6 +8535,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{68A0C7D24B913A75}" {
+   Id "OVT-Msg-WantedUprising"
+   Target_en_us "You were seen calling the uprising!"
+   Comment "Wanted notification - seen raising the flag to start a town uprising"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{68A0C7D24B913A76}" {
+   Id "OVT-Msg-WantedBaseAssault"
+   Target_en_us "You were seen calling the attack on this base!"
+   Comment "Wanted notification - seen starting a base capture battle"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E0000002A}" {
    Id "OVT-Msg-WantedSabotage"
    Target_en_us "You were seen committing sabotage!"
