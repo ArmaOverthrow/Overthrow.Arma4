@@ -189,7 +189,7 @@ class OVT_BuildContext : OVT_UIContext
 			string reason;
 			bool canBuild = CanBuild(buildable, player.GetOrigin(), reason);
 			
-			card.Init(buildable, this, canBuild, reason);
+			card.Init(buildable, this, canBuild, reason, BuildRequirementSummary(buildable));
 			w.SetOpacity(1);
 			
 			done++;
@@ -201,6 +201,32 @@ class OVT_BuildContext : OVT_UIContext
 			Widget w = root.FindWidget("BuildMenu_Card" + i);
 			w.SetOpacity(0);
 		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! The resource requirement rows for one build card, at THIS difficulty.
+	//!
+	//! The figures come from OVT_ResourceRequirements.ScaleForDifficulty(), which is the same call the
+	//! construction site consumes by - what a card shows and what a site takes cannot drift apart.
+	//! \param[in] buildable The config entry.
+	//! \return A translated block, or "" for a money-only buildable.
+	protected string BuildRequirementSummary(OVT_Buildable buildable)
+	{
+		if(!buildable || !buildable.m_aResourceRequirements) return "";
+
+		array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+		OVT_ResourceRequirements.ScaleForDifficulty(buildable.m_aResourceRequirements, need);
+
+		if(need.IsEmpty()) return "";
+
+		string rows = "";
+		foreach(OVT_ResourceAmount amount : need)
+		{
+			if(rows != "") rows = rows + "\n";
+			rows = rows + WidgetManager.Translate("#OVT-Resource_BuildRequirementRow", amount.m_iQuantity.ToString(), OVT_ResourceUtils.ResolveResourceTitle(amount.m_sId));
+		}
+
+		return WidgetManager.Translate("#OVT-Resource_BuildRequires") + "\n" + rows;
 	}
 	
 	override void RegisterInputs()
@@ -314,7 +340,13 @@ class OVT_BuildContext : OVT_UIContext
 			if(town.size < 3) range = m_Towns.m_iTownRange;
 			if(dist < range)
 			{
-				return true;
+				// The server re-checks this through the same predicate in BuildItem(). Not terminal:
+				// a buildable that also allows a camp or an FOB can still qualify below, and the
+				// reason set here is the one a fall-through refusal reports.
+				if(OVT_ResourceRules.TownControlAllowsBuild(town.faction, OVT_Global.GetConfig().GetPlayerFactionIndex(), vector.DistanceSq(town.location, pos), range * range))
+					return true;
+
+				reason = "#OVT-CannotBuildUncontrolledTown";
 			}
 		}
 		

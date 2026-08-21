@@ -163,6 +163,11 @@ OVT_OverthrowGameMode {
    m_sRecruitPrefab "{F38D366DDC666132}Prefabs/Characters/Factions/CIV/Character_CIV_Recruit.et"
    m_sInactiveGroupPrefab "{6B4C000000000001}Prefabs/Groups/INDFOR/OVT_Group_InactiveRecruits.et"
   }
+  OVT_ResourceManagerComponent "{6A8E2E0000000001}" {
+   m_rResourcesConfigFile "{6A8E2E3000000001}Configs/Resistance/resources.conf"
+   m_rPilePrefab "{6A8E2E0000000100}Prefabs/Props/Resources/OVT_ResourcePile.et"
+   m_rDefaultSitePrefab "{6A8E2E0000000101}Prefabs/Structures/OVT_ConstructionSite.et"
+  }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
    m_rBuildablesConfigFile "{430C71DF4386D868}Configs/Resistance/buildables.conf"

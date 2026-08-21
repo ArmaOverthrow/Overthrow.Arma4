@@ -10,6 +10,11 @@
 //!
 //! The Import half is unchanged: same catalogue, same illegal gate, same max-100 cap, same shop
 //! category mapping, one ImportToVehicle per line.
+//!
+//! RESOURCES ARE A CATEGORY, NOT A MODE (D9). Both shipped modes gain rows whose ids carry the
+//! "res:" prefix, filed under CATEGORY_RESOURCES so GetPopulatedCategories lands them on the last
+//! tab. Every line-consuming hook partitions on that prefix BEFORE it reaches GetInventoryId, which
+//! maps an unknown string to id 0 - i.e. some other item's identity.
 //------------------------------------------------------------------------------------------------
 class OVT_PortContext : OVT_TransferContext
 {
@@ -22,6 +27,15 @@ class OVT_PortContext : OVT_TransferContext
 	protected const int MODE_IMPORT = 0;
 	protected const int MODE_EXPORT = 1;
 
+	//! One past OVT_ShopCategory.OTHER, so the resource tab sorts last in both modes.
+	protected const int CATEGORY_RESOURCES = 9;
+
+	//! Live price bands for the drift readout, as a fraction of base.
+	protected const float DRIFT_FAR_BELOW = 0.75;
+	protected const float DRIFT_BELOW = 0.95;
+	protected const float DRIFT_ABOVE = 1.05;
+	protected const float DRIFT_FAR_ABOVE = 1.5;
+
 	//! The vehicle Export is selling, and its holder id. Re-resolved every build: the player can
 	//! leave the vehicle with the screen open.
 	protected IEntity m_ExportHolder;
@@ -29,6 +43,13 @@ class OVT_PortContext : OVT_TransferContext
 
 	//! The request component this screen subscribed to. Cached for OnClose - it outlives the layout.
 	protected OVT_StorageRequestComponent m_SubscribedRequests;
+
+	//! The resource request component this screen subscribed to, for the same reason.
+	protected OVT_ResourceRequestComponent m_SubscribedResourceRequests;
+
+	//! THE RESOURCE LATCH. True between an opened resource checkout and its single reply; set before
+	//! the ask, because on a listen host the whole reply fan runs inside it.
+	protected bool m_bResourceCheckoutPending;
 
 	//! THE LATCH. True when the snapshot in hand (if any) is not trusted and a pull is owed.
 	protected bool m_bWantPull;
@@ -66,6 +87,7 @@ class OVT_PortContext : OVT_TransferContext
 		m_bWantPull = true;
 		m_bPullFailed = false;
 		m_bBuildingEntries = false;
+		m_bResourceCheckoutPending = false;
 		m_sPendingError = "";
 		m_ExportHolder = null;
 		m_ExportHolderId = RplId.Invalid();
@@ -89,6 +111,7 @@ class OVT_PortContext : OVT_TransferContext
 		m_bWantPull = false;
 		m_bBuildingEntries = false;
 		m_bPullFailed = false;
+		m_bResourceCheckoutPending = false;
 		m_sPendingError = "";
 	}
 
@@ -136,7 +159,10 @@ class OVT_PortContext : OVT_TransferContext
 
 		if(mode == MODE_EXPORT)
 		{
+			// Appended outside BuildExportEntries: that method returns early while the item snapshot is
+			// in flight, and a replicated resource ledger has nothing to wait for.
 			BuildExportEntries(model);
+			AppendExportResourceRows(model);
 			return;
 		}
 
@@ -161,6 +187,8 @@ class OVT_PortContext : OVT_TransferContext
 
 			model.Add(entry);
 		}
+
+		AppendImportResourceRows(model);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -176,6 +204,10 @@ class OVT_PortContext : OVT_TransferContext
 	//------------------------------------------------------------------------------------------------
 	override string GetCategoryLabelKey(int categoryId)
 	{
+		// Ahead of the helper, whose fall-through answers "#OVT-ShopCategory_Other" for any id it does
+		// not know - and it does not know this one.
+		if(categoryId == CATEGORY_RESOURCES) return "#OVT-ShopCategory_Resources";
+
 		OVT_ShopCategory category = categoryId;
 		return OVT_ShopCategoryHelper.GetLabelKey(category);
 	}
@@ -186,6 +218,12 @@ class OVT_PortContext : OVT_TransferContext
 		name = entry.m_sDisplayName;
 		value = FormatValue(entry.m_iValue, entry.m_eValueKind);
 		body = "";
+
+		if(IsResourceId(entry.m_sId))
+		{
+			FillResourceDetails(entry, body);
+			return;
+		}
 
 		// A refused row leaves the body empty so the base can put the reason there instead.
 		if(m_iMode == MODE_EXPORT)
@@ -234,13 +272,17 @@ class OVT_PortContext : OVT_TransferContext
 		if(m_Economy && m_Cart.TotalValue() > m_Economy.GetPlayerMoney(m_sPlayerID))
 			return "#OVT-CannotAfford";
 
+		array<ref OVT_TransferCartLine> itemLines = new array<ref OVT_TransferCartLine>();
+		array<ref OVT_TransferCartLine> resourceLines = new array<ref OVT_TransferCartLine>();
+		PartitionLines(lines, itemLines, resourceLines);
+
 		// The server clamps a too-large import to what fitted and charges only for that, which reads as
 		// a half-broken purchase. Refusing the whole cart up front is the honest version.
 		int free = FreeSpaceIn(dest.m_Entity);
-		if(free >= 0 && m_Cart.TotalQuantity() > free)
+		if(free >= 0 && TotalQuantityOf(itemLines) > free)
 			return "#OVT-Transfer_NoSpace";
 
-		return "";
+		return ValidateResourceImportCart(resourceLines);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -267,16 +309,25 @@ class OVT_PortContext : OVT_TransferContext
 		if(!lines || !dest || !dest.m_Entity) return;
 		if(!m_Economy) return;
 
+		// THE ROUTING COMES FIRST. GetInventoryId below is a bare map index: a "res:" id would resolve
+		// to 0, i.e. some other item's identity, and import that instead.
+		array<ref OVT_TransferCartLine> itemLines = new array<ref OVT_TransferCartLine>();
+		array<ref OVT_TransferCartLine> resourceLines = new array<ref OVT_TransferCartLine>();
+		PartitionLines(lines, itemLines, resourceLines);
+
 		if(m_iMode == MODE_EXPORT)
 		{
-			AcceptExport(lines);
+			AcceptExport(itemLines);
+			AcceptResourcePort(resourceLines, EOVT_ResourceOp.PORT_EXPORT);
 			return;
 		}
+
+		AcceptResourcePort(resourceLines, EOVT_ResourceOp.PORT_IMPORT);
 
 		OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
 		if(!vehicles) return;
 
-		foreach(OVT_TransferCartLine line : lines)
+		foreach(OVT_TransferCartLine line : itemLines)
 		{
 			if(line.m_iQuantity <= 0) continue;
 
@@ -311,9 +362,9 @@ class OVT_PortContext : OVT_TransferContext
 
 		// Trade L5 unlocks the extended catalogue anywhere; a resistance-held port area (closest
 		// town or base to the port, whichever is nearer) unlocks it for everyone at that port.
-		bool illegalImports = m_PlayerData && m_PlayerData.HasPermission("IllegalImports");
-		if(!illegalImports && m_Owner)
-			illegalImports = m_Economy.ResistanceControlsNearestPort(m_Owner.GetOrigin());
+		bool illegalImports = HasIllegalImportsPermission();
+		if(!illegalImports)
+			illegalImports = ResistanceHoldsPort();
 
 		if(illegalImports)
 		{
@@ -465,7 +516,11 @@ class OVT_PortContext : OVT_TransferContext
 
 		vector pos = dest.m_Entity.GetOrigin();
 
-		foreach(OVT_TransferCartLine line : lines)
+		array<ref OVT_TransferCartLine> itemLines = new array<ref OVT_TransferCartLine>();
+		array<ref OVT_TransferCartLine> resourceLines = new array<ref OVT_TransferCartLine>();
+		PartitionLines(lines, itemLines, resourceLines);
+
+		foreach(OVT_TransferCartLine line : itemLines)
 		{
 			if(!line) continue;
 
@@ -473,7 +528,7 @@ class OVT_PortContext : OVT_TransferContext
 				return "#OVT-Export_NotSellable";
 		}
 
-		return "";
+		return ValidateResourceExportCart(resourceLines);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -504,7 +559,7 @@ class OVT_PortContext : OVT_TransferContext
 	//! \param[in] lines The cart.
 	protected void AcceptExport(array<ref OVT_TransferCartLine> lines)
 	{
-		if(lines.IsEmpty()) return;
+		if(!lines || lines.IsEmpty()) return;
 		if(!m_ExportHolderId.IsValid()) return;
 
 		OVT_StorageRequestComponent requests = GetRequests();
@@ -624,12 +679,21 @@ class OVT_PortContext : OVT_TransferContext
 	protected void Subscribe()
 	{
 		OVT_StorageRequestComponent requests = OVT_ControllerComponent<OVT_StorageRequestComponent>.Get();
-		if(!requests) return;
+		if(requests)
+		{
+			m_SubscribedRequests = requests;
+			m_SubscribedRequests.GetOnContentsUpdated().Insert(OnContentsUpdated);
+			m_SubscribedRequests.GetOnStorageError().Insert(OnStorageError);
+			m_SubscribedRequests.GetOnBatchResult().Insert(OnBatchResult);
+		}
 
-		m_SubscribedRequests = requests;
-		m_SubscribedRequests.GetOnContentsUpdated().Insert(OnContentsUpdated);
-		m_SubscribedRequests.GetOnStorageError().Insert(OnStorageError);
-		m_SubscribedRequests.GetOnBatchResult().Insert(OnBatchResult);
+		OVT_ResourceRequestComponent resourceRequests = OVT_ControllerComponent<OVT_ResourceRequestComponent>.Get();
+		if(resourceRequests)
+		{
+			m_SubscribedResourceRequests = resourceRequests;
+			m_SubscribedResourceRequests.GetOnTransferResult().Insert(OnResourceTransferResult);
+			m_SubscribedResourceRequests.GetOnResourceError().Insert(OnResourceRequestError);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -642,7 +706,14 @@ class OVT_PortContext : OVT_TransferContext
 			m_SubscribedRequests.GetOnBatchResult().Remove(OnBatchResult);
 		}
 
+		if(m_SubscribedResourceRequests)
+		{
+			m_SubscribedResourceRequests.GetOnTransferResult().Remove(OnResourceTransferResult);
+			m_SubscribedResourceRequests.GetOnResourceError().Remove(OnResourceRequestError);
+		}
+
 		m_SubscribedRequests = null;
+		m_SubscribedResourceRequests = null;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -652,5 +723,496 @@ class OVT_PortContext : OVT_TransferContext
 		if(m_SubscribedRequests) return m_SubscribedRequests;
 
 		return OVT_ControllerComponent<OVT_StorageRequestComponent>.Get();
+	}
+
+	//-----------------------------------------------------------------------
+	// RESOURCES
+	//-----------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! One Import row per resource this player may actually buy here. A resource the port will never
+	//! sell is NOT listed - a row whose only outcome is a no-op click is a bug (BUG-102) - but a
+	//! resource the player simply has nowhere to put IS, disabled and with the reason on it.
+	//! \param[in] model The model to append to.
+	protected void AppendImportResourceRows(OVT_TransferListModel model)
+	{
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return;
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return;
+
+		bool hasPermission = HasIllegalImportsPermission();
+		bool resistancePort = false;
+		if(!hasPermission) resistancePort = ResistanceHoldsPort();
+
+		OVT_ResourceStoreComponent store = OVT_ResourceUtils.GetStore(GetOccupiedVehicle());
+
+		int freeLitres = 0;
+		if(store) freeLitres = store.GetFreeLitres();
+
+		for(int i = 0; i < defs.Count(); i++)
+		{
+			if(!OVT_ResourceRules.MayImport(defs, i)) continue;
+			if(!OVT_ResourceRules.IllegalGateOpen(defs, i, hasPermission, resistancePort)) continue;
+
+			string id = defs.IdAt(i);
+			int litres = defs.LitresAt(i);
+
+			int maxQuantity = IMPORT_MAX_QUANTITY;
+			if(litres > 0) maxQuantity = Math.Min(IMPORT_MAX_QUANTITY, freeLitres / litres);
+
+			OVT_TransferEntry entry = new OVT_TransferEntry();
+			entry.m_sId = OVT_ResourceTransferContext.RES_PREFIX + id;
+			entry.m_sDisplayName = ResolveResourceName(id);
+			entry.m_eImageKind = EOVT_TransferImageKind.TEXTURE;
+			entry.m_sImage = ResolveResourceIcon(id);
+			entry.m_iValue = resources.GetPrice(i);
+			entry.m_eValueKind = EOVT_TransferValueKind.PRICE;
+			entry.m_iMaxQuantity = maxQuantity;
+			entry.m_iCategoryId = CATEGORY_RESOURCES;
+			entry.m_bEnabled = true;
+			entry.m_sDisabledReasonKey = "";
+
+			if(!store)
+			{
+				entry.m_bEnabled = false;
+				entry.m_sDisabledReasonKey = "#OVT-Resource_NeedTruck";
+			}
+			else if(maxQuantity <= 0)
+			{
+				entry.m_bEnabled = false;
+				entry.m_sDisabledReasonKey = "#OVT-Resource_NoCargoSpace";
+			}
+
+			model.Add(entry);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One Export row per resource the occupied vehicle is carrying, importable or not - hauling home
+	//! something the port will not sell you is the point of a non-importable resource.
+	//! \param[in] model The model to append to.
+	protected void AppendExportResourceRows(OVT_TransferListModel model)
+	{
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return;
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return;
+
+		OVT_ResourceStoreComponent store = OVT_ResourceUtils.GetStore(GetOccupiedVehicle());
+		if(!store) return;
+
+		OVT_ResourceLedger ledger = store.GetLedger();
+		if(!ledger) return;
+
+		bool hasPermission = HasIllegalImportsPermission();
+		bool resistancePort = false;
+		if(!hasPermission) resistancePort = ResistanceHoldsPort();
+
+		array<string> ids = new array<string>();
+		array<int> quantities = new array<int>();
+		ledger.GetLines(ids, quantities);
+
+		for(int i = 0; i < ids.Count(); i++)
+		{
+			string id = ids[i];
+			int qty = quantities[i];
+			if(qty <= 0) continue;
+
+			int index = defs.IndexOf(id);
+			if(index < 0) continue;
+
+			OVT_TransferEntry entry = new OVT_TransferEntry();
+			entry.m_sId = OVT_ResourceTransferContext.RES_PREFIX + id;
+			entry.m_sDisplayName = ResolveResourceName(id);
+			entry.m_eImageKind = EOVT_TransferImageKind.TEXTURE;
+			entry.m_sImage = ResolveResourceIcon(id);
+			entry.m_iValue = resources.GetSellPrice(index);
+			entry.m_eValueKind = EOVT_TransferValueKind.PRICE;
+			entry.m_iMaxQuantity = qty;
+			entry.m_iCategoryId = CATEGORY_RESOURCES;
+			entry.m_bEnabled = true;
+			entry.m_sDisabledReasonKey = "";
+
+			if(!OVT_ResourceRules.MayExport(defs, index))
+			{
+				entry.m_bEnabled = false;
+				entry.m_sDisabledReasonKey = "#OVT-Resource_NotSellable";
+			}
+			else if(!OVT_ResourceRules.IllegalGateOpen(defs, index, hasPermission, resistancePort))
+			{
+				entry.m_bEnabled = false;
+				entry.m_sDisabledReasonKey = "#OVT-Resource_Illegal";
+			}
+
+			model.Add(entry);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The description plus one line of drift, in words (D10 - FillDetails has no image channel and
+	//! the row image already carries the resource icon). A refused row leaves the body empty so the
+	//! base can put the reason there instead.
+	//! \param[in] entry The resource row.
+	//! \param[out] body Receives the details body.
+	protected void FillResourceDetails(OVT_TransferEntry entry, out string body)
+	{
+		body = "";
+
+		if(!entry.m_bEnabled) return;
+
+		string id = ResourceIdOf(entry.m_sId);
+
+		OVT_Resource res = FindResource(id);
+		if(res && res.m_sDescription != "") body = WidgetManager.Translate(res.m_sDescription);
+
+		string drift = DriftText(id);
+		if(drift == "") return;
+
+		if(body == "")
+		{
+			body = drift;
+			return;
+		}
+
+		body = body + "\n" + drift;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where the DRIFTED price sits against the config base. Reads the stored (band-clamped) price,
+	//! not GetPrice: the difficulty level multiplier is a flat scaling applied at read time, so on
+	//! Hard or Insane it would peg every resource "above base" forever and describe no drift at all.
+	//! Neither figure is ever quoted as a price.
+	//! \param[in] id A bare resource id.
+	//! \return A localization key, or "" when the resource or its base price is unknown.
+	protected string DriftText(string id)
+	{
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return "";
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return "";
+
+		int index = defs.IndexOf(id);
+		if(index < 0) return "";
+
+		int basePrice = resources.GetBasePrice(index);
+		if(basePrice <= 0) return "";
+
+		float ratio = resources.GetStoredPrice(index);
+		ratio = ratio / basePrice;
+
+		if(ratio < DRIFT_FAR_BELOW) return "#OVT-Resource_PriceFarBelow";
+		if(ratio < DRIFT_BELOW) return "#OVT-Resource_PriceBelow";
+		if(ratio <= DRIFT_ABOVE) return "#OVT-Resource_PriceNormal";
+		if(ratio <= DRIFT_FAR_ABOVE) return "#OVT-Resource_PriceAbove";
+
+		return "#OVT-Resource_PriceFarAbove";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whole-cart fit for the resource half of an Import (D1). Nothing clamps: a cart that does not
+	//! fit is refused entire, exactly as the item half is.
+	//! \param[in] lines The resource lines of the cart.
+	//! \return "" when the resources may be bought, otherwise a reason.
+	protected string ValidateResourceImportCart(array<ref OVT_TransferCartLine> lines)
+	{
+		if(!lines || lines.IsEmpty()) return "";
+
+		OVT_ResourceStoreComponent store = OVT_ResourceUtils.GetStore(GetOccupiedVehicle());
+		if(!store) return "#OVT-Resource_NeedTruck";
+
+		int freeLitres = store.GetFreeLitres();
+		int cartLitres = ResourceCartLitres(lines);
+
+		if(cartLitres <= freeLitres) return "";
+
+		return WidgetManager.Translate("#OVT-Resource_NoSpaceVolume",
+			FormatCubicMetres(cartLitres), FormatCubicMetres(freeLitres));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The per-line gate for the resource half of an Export, re-checked at commit time. The server
+	//! enforces the same two rules; this is the courtesy message, not the protection.
+	//! \param[in] lines The resource lines of the cart.
+	//! \return "" when the resources may be sold, otherwise a reason.
+	protected string ValidateResourceExportCart(array<ref OVT_TransferCartLine> lines)
+	{
+		if(!lines || lines.IsEmpty()) return "";
+
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return "#OVT-Resource_NoCatalogue";
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return "#OVT-Resource_NoCatalogue";
+
+		bool hasPermission = HasIllegalImportsPermission();
+		bool resistancePort = false;
+		if(!hasPermission) resistancePort = ResistanceHoldsPort();
+
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(!line) continue;
+
+			int index = defs.IndexOf(ResourceIdOf(line.m_sId));
+
+			if(!OVT_ResourceRules.MayExport(defs, index)) return "#OVT-Resource_NotSellable";
+			if(!OVT_ResourceRules.IllegalGateOpen(defs, index, hasPermission, resistancePort))
+				return "#OVT-Resource_Illegal";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE CHECKOUT for the whole resource half of the cart: TransferBegin, one TransferLine per line,
+	//! TransferCommit. Both RplId slots carry the vehicle; the op kind decides which one is read.
+	//!
+	//! ⚠ On a listen host the entire checkout runs inside this method - every ask invokes its handler
+	//! directly - so THE LATCH IS SET BEFORE THE FIRST ASK. Setting it after would latch over a reply
+	//! that already cleared it.
+	//! \param[in] lines The resource lines of the cart.
+	//! \param[in] opKind EOVT_ResourceOp.PORT_IMPORT or PORT_EXPORT.
+	protected void AcceptResourcePort(array<ref OVT_TransferCartLine> lines, int opKind)
+	{
+		if(!lines || lines.IsEmpty()) return;
+		if(m_bResourceCheckoutPending) return;
+
+		OVT_ResourceRequestComponent requests = GetResourceRequests();
+		if(!requests) return;
+
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return;
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return;
+
+		RplId holderId = OVT_ResourceUtils.GetHolderId(GetOccupiedVehicle());
+		if(!holderId.IsValid())
+		{
+			ShowResourceRefusal("#OVT-Resource_NeedTruck");
+			return;
+		}
+
+		m_bResourceCheckoutPending = true;
+
+		int seq = requests.RequestTransferBegin(holderId, holderId, opKind, lines.Count());
+		if(seq == OVT_ResourceRequestComponent.SEQ_NONE)
+		{
+			m_bResourceCheckoutPending = false;
+			return;
+		}
+
+		for(int i = 0; i < lines.Count(); i++)
+		{
+			OVT_TransferCartLine line = lines[i];
+			if(!line) continue;
+
+			requests.RequestTransferLine(seq, i, defs.IndexOf(ResourceIdOf(line.m_sId)), line.m_iQuantity);
+		}
+
+		requests.RequestTransferCommit(seq, lines.Count());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A resource checkout finished.
+	//! \param[in] movedLitres Litres that moved.
+	//! \param[in] earned Money paid to the player.
+	//! \param[in] spent Money charged to the player.
+	protected void OnResourceTransferResult(int movedLitres, int earned, int spent)
+	{
+		m_bResourceCheckoutPending = false;
+
+		if(!m_bIsActive || !m_wRoot) return;
+
+		ScheduleRefresh();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A resource request was refused. Drawn deferred for the reason OnStorageError documents.
+	//! \param[in] messageKey Localization key naming the refusal.
+	protected void OnResourceRequestError(string messageKey)
+	{
+		m_bResourceCheckoutPending = false;
+
+		if(!m_bIsActive || !m_wRoot) return;
+
+		ShowResourceRefusal(messageKey);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Queues a refusal for the next call-queue pass. Never draws here: on a listen host this runs
+	//! inside Accept(), which prints its own "order placed" message afterwards.
+	//! \param[in] messageKey Localization key naming the refusal.
+	protected void ShowResourceRefusal(string messageKey)
+	{
+		m_sPendingError = messageKey;
+
+		GetGame().GetCallqueue().Remove(ShowStorageError);
+		GetGame().GetCallqueue().CallLater(ShowStorageError, 0, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Splits a cart on the "res:" prefix. Every hook that consumes lines calls this BEFORE it does
+	//! anything else with an id.
+	//! \param[in] lines The whole cart.
+	//! \param[out] itemLines Receives the prefab lines. Cleared first.
+	//! \param[out] resourceLines Receives the resource lines. Cleared first.
+	protected void PartitionLines(array<ref OVT_TransferCartLine> lines, out array<ref OVT_TransferCartLine> itemLines, out array<ref OVT_TransferCartLine> resourceLines)
+	{
+		if(!itemLines || !resourceLines) return;
+
+		itemLines.Clear();
+		resourceLines.Clear();
+
+		if(!lines) return;
+
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(!line) continue;
+
+			if(IsResourceId(line.m_sId))
+			{
+				resourceLines.Insert(line);
+				continue;
+			}
+
+			itemLines.Insert(line);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] lines Some cart lines.
+	//! \return How many units they order in total.
+	protected int TotalQuantityOf(array<ref OVT_TransferCartLine> lines)
+	{
+		if(!lines) return 0;
+
+		int total = 0;
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(!line) continue;
+
+			total += line.m_iQuantity;
+		}
+
+		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] lines The resource lines of a cart.
+	//! \return Their volume in litres.
+	protected int ResourceCartLitres(array<ref OVT_TransferCartLine> lines)
+	{
+		if(!lines) return 0;
+
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return 0;
+
+		OVT_ResourceDefs defs = resources.GetDefs();
+		if(!defs) return 0;
+
+		int total = 0;
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(!line) continue;
+
+			total += line.m_iQuantity * defs.LitresPerUnit(ResourceIdOf(line.m_sId));
+		}
+
+		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entryId A row or cart-line id.
+	//! \return True when it names a resource rather than a prefab.
+	protected bool IsResourceId(string entryId)
+	{
+		return entryId.StartsWith(OVT_ResourceTransferContext.RES_PREFIX);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entryId A row or cart-line id.
+	//! \return The bare resource id behind it.
+	protected string ResourceIdOf(string entryId)
+	{
+		if(!IsResourceId(entryId)) return entryId;
+
+		int prefix = OVT_ResourceTransferContext.RES_PREFIX.Length();
+
+		return entryId.Substring(prefix, entryId.Length() - prefix);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] id A bare resource id.
+	//! \return Its catalogue entry, or null when the catalogue does not know it.
+	protected OVT_Resource FindResource(string id)
+	{
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return null;
+
+		OVT_ResourcesConfig config = resources.GetResourcesConfig();
+		if(!config || !config.m_aResources) return null;
+
+		foreach(OVT_Resource res : config.m_aResources)
+		{
+			if(res && res.m_sId == id) return res;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] id A bare resource id.
+	//! \return The translated title, falling back to the id so a row is never blank.
+	protected string ResolveResourceName(string id)
+	{
+		return OVT_ResourceUtils.ResolveResourceTitle(id);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] id A bare resource id.
+	//! \return The row icon, or "" when the catalogue authors none.
+	protected ResourceName ResolveResourceIcon(string id)
+	{
+		OVT_Resource res = FindResource(id);
+		if(!res) return "";
+
+		return res.m_tIcon;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] litres A volume in integer litres.
+	//! \return The same volume in m3, one decimal.
+	protected string FormatCubicMetres(int litres)
+	{
+		return OVT_ResourceUtils.FormatCubicMetres(litres);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Whether the player carries the smuggling permission.
+	protected bool HasIllegalImportsPermission()
+	{
+		return m_PlayerData && m_PlayerData.HasPermission("IllegalImports");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Whether the resistance holds the port area the player is standing in.
+	protected bool ResistanceHoldsPort()
+	{
+		if(!m_Economy || !m_Owner) return false;
+
+		return m_Economy.ResistanceControlsNearestPort(m_Owner.GetOrigin());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The local player's resource request component, or null.
+	protected OVT_ResourceRequestComponent GetResourceRequests()
+	{
+		if(m_SubscribedResourceRequests) return m_SubscribedResourceRequests;
+
+		return OVT_ControllerComponent<OVT_ResourceRequestComponent>.Get();
 	}
 }

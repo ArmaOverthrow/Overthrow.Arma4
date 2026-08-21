@@ -5,6 +5,10 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
    m_eCapacityMode UNLIMITED
    m_sDefaultNameKey "#OVT-Warehouse"
   }
+  OVT_ResourceStoreComponent "{6A8E2E0000000011}" {
+   m_fCargoVolume -1
+   m_sDefaultNameKey "#OVT-Warehouse"
+  }
   ActionsManagerComponent "{6A8E2D0000000030}" {
    ActionContexts {
     UserActionContext "{6A8E2D0000000031}" {
@@ -35,6 +39,16 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
      }
      Duration 0
      "Sort Priority" 2
+    }
+    OVT_OpenResourceStoreAction "{6A8E2E1000000014}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2E1000000015}" {
+      Name "#OVT-Warehouse"
+     }
+     Duration 0
+     "Sort Priority" 3
     }
    }
   }

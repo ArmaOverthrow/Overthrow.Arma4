@@ -45,6 +45,8 @@ OVT_OverthrowController {
   }
   OVT_StorageRequestComponent "{6A8E2D0000000004}" {
   }
+  OVT_ResourceRequestComponent "{6A8E2E0000000020}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

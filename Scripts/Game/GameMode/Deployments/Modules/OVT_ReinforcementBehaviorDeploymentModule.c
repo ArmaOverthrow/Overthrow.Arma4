@@ -109,8 +109,7 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		if (!EvaluateReinforcementConditions())
 		{
 			if (m_bDeleteOnConditionFail)
-			{
-				Print("Reinforcement behavior: Conditions no longer met, requesting deployment deletion", LogLevel.NORMAL);
+			{				
 				RequestDeploymentDeletion();
 			}
 			return;

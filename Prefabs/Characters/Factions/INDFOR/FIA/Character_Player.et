@@ -127,6 +127,15 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_CartLineLayout "{6A8E2C1000000003}UI/Layouts/Menu/TransferMenu/TransferMenu_CartLine.layout"
      m_TabLayout "{6A7C4E1C77B31E40}UI/Layouts/Menu/ShopMenu/ShopMenu_Tab.layout"
     }
+    OVT_ResourceTransferContext "{6A8E2E1000000001}" {
+     m_Layout "{6A8E2C1000000001}UI/Layouts/Menu/TransferMenu.layout"
+     m_sContextName "OverthrowTransferContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_RowLayout "{6A8E2C1000000002}UI/Layouts/Menu/TransferMenu/TransferMenu_Row.layout"
+     m_CartLineLayout "{6A8E2C1000000003}UI/Layouts/Menu/TransferMenu/TransferMenu_CartLine.layout"
+     m_TabLayout "{6A7C4E1C77B31E40}UI/Layouts/Menu/ShopMenu/ShopMenu_Tab.layout"
+    }
     OVT_CharacterSheetContext "{5D90EE00B7B5784B}" {
      m_Layout "{3FAB6AC939AA912E}UI/Layouts/Menu/CharacterSheet.layout"
      m_sContextName "OverthrowCharacterSheetContext"

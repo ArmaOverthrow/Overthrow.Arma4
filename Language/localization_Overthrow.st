@@ -545,6 +545,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E2000000038}" {
+   Id "OVT-Build_Warehouse"
+   Target_en_us "Warehouse"
+   Comment "Build-menu title of the Warehouse buildable (Configs/Resistance/buildables.conf). One word, title case, sits in the same list as Guard Tower / Garage / Fuel Depot. Keep it consistent with #OVT-Warehouse, which names the same building on its storage screens and in the map layer filter."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000039}" {
+   Id "OVT-Build_Warehouse_Description"
+   Target_en_us "Stores items and resources"
+   Comment "Build-menu description of the Warehouse. Four words, matching the shortened #OVT-Build_FuelDepot_Description - the description panel is narrow, so do not restore a longer form without asking. FACT-CHECKED 2026-08-21 against Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et: the building carries OVT_StorageComponent UNLIMITED (items) and OVT_ResourceStoreComponent m_fCargoVolume -1 (resources), which is what 'items and resources' means. Deliberately silent about ownership, access and where it may be built - the build menu only offers it where it is allowed, and the access rule lives in OVT_RealEstateManagerComponent.PlayerMayUseWarehouse. Renders in the build menu's description panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B4C000000000072}" {
    Id "OVT-BuyEquippedRecruit"
    Target_en_us "Buy Equipped Recruit"
@@ -752,6 +786,23 @@ StringTable {
    Modified 1780505135
    Author "Aaron Static"
    LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000003A}" {
+   Id "OVT-CannotBuildUncontrolledTown"
+   Target_en_us "You can only build that in a town the resistance controls"
+   Comment "Refusal hint in the build menu when a town-buildable is placed inside a town the occupying faction still holds. Shown by OVT_BuildContext.CanBuild; the server re-checks the same rule in OVT_ResistanceFactionManager.BuildItem and refuses silently, so this is the only wording the player ever reads for it. Sits beside #OVT-CannotBuildVillage and #OVT-CannotBuildTown and should read like them - one sentence, no markup, no place name."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -2288,10 +2339,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000108}" {
    Id "OVT-FieldManual_FOBs_Text"
-   Target_en_us "A FOB is a forward operating base the resistance can deploy in the field, and it has to be sited clear of bases and radio towers. Building adds structures at a base the resistance holds, at a FOB or at a camp, and what is on offer depends on which of those you are standing in."
+   Target_en_us "A FOB is a forward operating base the resistance can deploy in the field, and it has to be sited clear of bases and radio towers. Building adds structures at a base the resistance holds, at a FOB, at a camp or, in the warehouse's case alone, inside a town the resistance controls, and what is on offer depends on which of those you are standing in."
    Target_de_de "Ein FOB ist eine vorgeschobene Operationsbasis, die der Widerstand im Feld errichten kann. Sie muss in ausreichendem Abstand zu Basen und Funktürmen platziert werden. Durch Bauen können an einer vom Widerstand gehaltenen Basis, an einem FOB oder in einem Camp Strukturen hinzugefügt werden; was verfügbar ist, hängt davon ab, an welchem dieser Orte du dich befindest."
    Target_uk_ua "FOB — це передова оперативна база, яку опір може розгорнути в польових умовах. Її потрібно розміщувати подалі від баз і радіовеж. Будівництво дозволяє зводити споруди на базі, яку контролює опір, на FOB або в таборі, а доступні споруди залежать від того, де саме ви перебуваєте."
-   Comment "Field Manual - opening paragraph of the FOBs and Building page, shown as body prose under the page heading. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup. CORRECTED 2026-08-08: the earlier wording said structures could be built 'at a town', which no shipped buildable allows - Configs/Resistance/buildables.conf has no m_bBuildInTown or m_bBuildInVillage entry, and the exclusion of occupying-held bases is checked in OVT_BuildContext.CanBuild:294-303."
+   Comment "Field Manual - opening paragraph of the FOBs and Building page, shown as body prose under the page heading. FOB is an established in-game abbreviation and is left untranslated elsewhere in this table. Reference voice: it describes the system, it does not instruct the player. One to three sentences, no rich-text markup. CORRECTED 2026-08-08: the earlier wording said structures could be built 'at a town', which no shipped buildable allows - Configs/Resistance/buildables.conf has no m_bBuildInTown or m_bBuildInVillage entry, and the exclusion of occupying-held bases is checked in OVT_BuildContext.CanBuild:294-303. REVISED 2026-08-21 for logistics/resources: the town case was added because Warehouse (Configs/Resistance/buildables.conf:142-172) is the first shipped buildable to set m_bBuildInTown, handled by OVT_BuildContext.CanBuild:330-348 and re-checked server-side at OVT_ResistanceFactionManager.TownControlAllowsBuild:1031-1046. ⚠ Target_de_de and Target_uk_ua predate the town clause and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2345,10 +2396,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B00000000015D}" {
    Id "OVT-FieldManual_FOBs_Text4"
-   Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. A structure costs money and nothing else: there is no separate stock of materials to gather first. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base."
+   Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. Most structures cost money alone and appear the moment they are placed. The Guard Tower, the Helipad, the Garage and the Warehouse want construction resources as well: placing one of those charges the money and raises a construction site, which stands where it was put until the materials are brought to it. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base. The Resources page covers the materials side."
    Target_de_de "\"Bauen\" im Overthrow-Hauptmenü öffnet eine Liste von Strukturen sowie eine Kamera, mit der sie in kurzer Entfernung von deinem Standort platziert werden können. Eine Struktur kostet nur Geld: Es gibt keinen separaten Materialvorrat, den du vorher sammeln musst. Jede Struktur hat eigene Regeln dafür, wo sie platziert werden darf, und der Großteil der Liste erfordert eine vom Widerstand gehaltene Basis oder einen FOB. Deshalb bietet dasselbe Menü in einem Camp weniger Möglichkeiten als in einer eroberten Basis."
    Target_uk_ua "«Будівництво» в головному меню Overthrow відкриває список споруд і камеру для вибору місця їх розташування неподалік від вас. Споруда коштує лише грошей: не потрібно заздалегідь збирати окремі запаси матеріалів. Кожна споруда має власні вимоги до місця розміщення, а для більшості з них потрібна база, контрольована опором, або FOB, тому в таборі це меню пропонує менше варіантів, ніж на захопленій базі."
-   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources - the previous text said a structure costs money and nothing else, which construction sites made false. Money-only buildables are unchanged: OVT_ResistanceFactionManager.BuildItem:896-899 only branches to PlaceConstructionSite when HasResourceRequirements() is true. The four that do: Configs/Resistance/buildables.conf:15 Guard Tower, :87 Garage, :116 Helipad, :153 Warehouse; no other entry authors m_aResourceRequirements. Money charged at placement, not at completion: PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The site stands as an entity until built: Prefabs/Structures/OVT_ConstructionSite.et with OVT_BuildFromSiteAction.c and OVT_SiteRequirementsAction.c on it. Quantities are not quoted because OVT_ResourceRequirements.ScaleForDifficulty:33 applies buildableResourceCostMultiplier (OVT_DifficultySettings.c:151-152). ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -4586,8 +4637,8 @@ StringTable {
   }
   CustomStringTableItem "{6B5A2E010000001A}" {
    Id "OVT-FieldManual_Storage_Text6"
-   Target_en_us "A warehouse building shows the same Storage action as anything else, and a vehicle parked at one can reach it from the vehicle menu as well: Take from warehouse opens the same screen, and Put in warehouse converts what the vehicle is carrying and moves its whole list into the building. A warehouse nobody has bought opens to nobody, a private one opens only to its owner, and a rented one only to the player renting it."
-   Comment "Field Manual - Storage page, body paragraph under 'Warehouses'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. The building is an action host with Storage and Rename on it: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:19-34. Vehicle menu: OVT_VehicleMenuContext.TakeFromWarehouse now shows OVT_StorageContext on the building, and PutInWarehouse calls RequestMoveAllToHolder(vehicle, building, true) - the true is the sweep (OVT_StorageRequestComponent.c:639-656). Accessibility: OVT_RealEstateManagerComponent.PlayerMayUseWarehouse:624-659 - unowned returns false, rented returns renter-only (a 'resistance' rental returns true for everybody, cut for length), private returns owner-only, public owned returns true. The old warehouse-only screen no longer exists (OVT_WarehouseContext.c deleted)."
+   Target_en_us "A warehouse building shows the same Storage action as anything else, and a vehicle parked at one can reach it from the vehicle menu as well: Take from warehouse opens the same screen, and Put in warehouse converts what the vehicle is carrying and moves its whole list into the building. A warehouse nobody has bought opens to nobody, a private one opens only to its owner, and a rented one only to the player renting it. A warehouse also holds construction resources, on an action and a list of their own, which the Resources page covers."
+   Comment "Field Manual - Storage page, body paragraph under 'Warehouses'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. The building is an action host with Storage and Rename on it: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:19-34. Vehicle menu: OVT_VehicleMenuContext.TakeFromWarehouse now shows OVT_StorageContext on the building, and PutInWarehouse calls RequestMoveAllToHolder(vehicle, building, true) - the true is the sweep (OVT_StorageRequestComponent.c:639-656). Accessibility: OVT_RealEstateManagerComponent.PlayerMayUseWarehouse:624-659 - unowned returns false, rented returns renter-only (a 'resistance' rental returns true for everybody, cut for length), private returns owner-only, public owned returns true. The old warehouse-only screen no longer exists (OVT_WarehouseContext.c deleted). REVISED 2026-08-21 for logistics/resources: the final sentence was appended to point at the Resources page. The resource store and its own action at Sort Priority 3 are on Warehouse_01_Base.et:8-11 and :43-52, and are a separate component and a separate ledger from the item storage above them (OVT_ResourceStoreComponent vs OVT_StorageComponent)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -14889,6 +14940,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E2000000023}" {
+   Id "OVT-ShopCategory_Resources"
+   Target_en_us "Resources"
+   Comment "Browse-category tab holding the bulk construction resources (timber, cement, steel, hardware) on the port screen, in both Import and Export. OVT_PortContext.CATEGORY_RESOURCES is 9, one past OVT_ShopCategory.OTHER, so the tab sorts last. Returned by OVT_PortContext.GetCategoryLabelKey ahead of OVT_ShopCategoryHelper, which does not know this id."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7C4E1E00000016}" {
    Id "OVT-ShopCategory_Weapons"
    Target_en_us "Weapons"
@@ -16888,10 +16956,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000110}" {
    Id "OVT-Tutorial_BuildFirstStructure_Body"
-   Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB or a camp. What the build menu offers depends on which of those you are in, and a structure costs money and nothing else."
+   Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB, a camp, or a town it controls in the warehouse's case. Most cost money alone and appear as soon as they are placed, while the Guard Tower, Helipad, Garage and Warehouse want construction resources too and raise a construction site to be supplied first."
    Target_de_de "Durch Bauen werden Strukturen dort hinzugefügt, wo der Widerstand bereits Gebiet hält: an einer von ihm kontrollierten Basis, einem FOB oder einem Camp. Was das Baumenü anbietet, hängt davon ab, an welchem dieser Orte du dich befindest. Eine Struktur kostet ausschließlich Geld."
    Target_uk_ua "Будівництво додає споруди там, де опір уже контролює територію: на підконтрольній базі, FOB або в таборі. Вміст меню будівництва залежить від того, де саме ви перебуваєте, а споруди коштують лише грошей."
-   Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting."
+   Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources. The old last clause ('costs money and nothing else', and the old comment's DO NOT write that building costs materials) is superseded: OVT_ResistanceFactionManager.BuildItem:896-899 raises a construction site for any buildable that authors m_aResourceRequirements, which is Guard Tower (buildables.conf:15), Garage (:87), Helipad (:116) and Warehouse (:153) and nothing else. Money is taken at placement: PlaceConstructionSite:1106. Town ground: Warehouse is the only entry setting m_bBuildInTown (:152), gated by OVT_BuildContext.CanBuild:330-348 and re-checked at TownControlAllowsBuild:1031-1046. Quantities deliberately unquoted (buildableResourceCostMultiplier, OVT_DifficultySettings.c:151-152). Tone unchanged: still describes the system, still no imperative, still safe whichever order the player met these things in. The longer version is the Field Manual Resources page. ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -18193,6 +18261,1315 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "Lemmi"
+  }
+  CustomStringTableItem "{6A8E2E2000000001}" {
+   Id "OVT-Resource_Take"
+   Target_en_us "Take"
+   Comment "Mode 1 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Take moves resources OUT of the holder you opened, into a nearby holder or onto the ground. Paired with #OVT-Resource_Put; the vocabulary is deliberately not Load/Unload, which logistics/storage already uses on its ammo-box actions."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000002}" {
+   Id "OVT-Resource_Put"
+   Target_en_us "Put"
+   Comment "Mode 2 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Put moves resources INTO the holder you opened, out of a nearby holder chosen in the destination picker."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000003}" {
+   Id "OVT-Resource_DestGround"
+   Target_en_us "Drop on the ground"
+   Comment "Last entry in the resource transfer screen's destination picker, in Take mode only. Drops the cart as a crate pile at the player's feet; the pile merges into an existing pile if one is close enough."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000004}" {
+   Id "OVT-Resource_Cargo"
+   Target_en_us "Cargo"
+   Comment "Name of the 'open resource store' action on a truck. Rendered with the volume appended by OVT_OpenResourceStoreAction, e.g. 'Cargo (12.5 / 20 m³)'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000005}" {
+   Id "OVT-Resource_OpenStore"
+   Target_en_us "Resources"
+   Comment "Fallback name of the 'open resource store' action when the holder's store cannot be read (a worldless preview instance, or a prefab whose component failed to initialise). The normal labels are #OVT-Resource_Cargo for a truck and the holder's own name for a pile or a warehouse."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000006}" {
+   Id "OVT-Resource_Pile"
+   Target_en_us "Crate pile"
+   Comment "Display name of a dropped resource crate pile: the action label, the destination picker entry and the transfer screen title. Rendered with the volume appended, e.g. 'Crate pile (4.4 m³)'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000007}" {
+   Id "OVT-Resource_PerUnit"
+   Target_en_us "%1 m³ · %2 kg per unit"
+   Comment "Details-panel line on the resource transfer screen. %1 is the cubic metres one unit occupies (two decimals), %2 its display weight in kilograms. Volume gates capacity; weight is display only."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000008}" {
+   Id "OVT-Resource_SummaryVolume"
+   Target_en_us "%1 m³ of %2 m³"
+   Comment "Running checkout summary on the resource transfer screen when the receiving holder has a capacity. %1 is what it would hold once the cart lands, %2 its capacity, both in cubic metres to one decimal."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000009}" {
+   Id "OVT-Resource_SummaryUnlimited"
+   Target_en_us "%1 m³"
+   Comment "Running checkout summary on the resource transfer screen when the receiver has no capacity limit - a crate pile, a warehouse or the ground. %1 is the cart's own volume in cubic metres to one decimal; there is no denominator to show."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000A}" {
+   Id "OVT-Resource_NoDestination"
+   Target_en_us "Pick a destination"
+   Comment "Resource transfer screen checkout refusal: the destination picker is empty, so there is nowhere for the cart to go (Take) or nothing to take it from (Put). Disables Accept."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000B}" {
+   Id "OVT-Resource_NoCargoSpace"
+   Target_en_us "No room in the destination"
+   Comment "Shown on a dimmed row of the resource transfer screen: the destination cannot take even one unit of that resource. The row is listed rather than hidden so the reason is visible."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000C}" {
+   Id "OVT-Resource_NoSpaceVolume"
+   Target_en_us "Not enough room: %1 m³ ordered, %2 m³ free"
+   Comment "Resource transfer screen checkout refusal when the whole cart will not fit. %1 is the cart's volume, %2 what the destination can still take, both in cubic metres to one decimal. The WHOLE cart is refused - nothing is ever clamped to a partial load."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000D}" {
+   Id "OVT-Resource_Timber"
+   Target_en_us "Timber"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Sawn wood; the cheapest and bulkiest construction resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000E}" {
+   Id "OVT-Resource_Timber_Description"
+   Target_en_us "Sawn planks and beams. Bulky and cheap - the backbone of every field structure."
+   Comment "Details-panel description of the Timber resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000F}" {
+   Id "OVT-Resource_Cement"
+   Target_en_us "Cement"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Bagged cement; dense and mid-priced."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000010}" {
+   Id "OVT-Resource_Cement_Description"
+   Target_en_us "Bagged cement. Heavy for its volume, and needed wherever something has to stay put."
+   Comment "Details-panel description of the Cement resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000011}" {
+   Id "OVT-Resource_Steel"
+   Target_en_us "Steel"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Steel stock; compact, heavy and expensive."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000012}" {
+   Id "OVT-Resource_Steel_Description"
+   Target_en_us "Girders, plate and rebar. Compact, very heavy, and not cheap."
+   Comment "Details-panel description of the Steel resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000013}" {
+   Id "OVT-Resource_Hardware"
+   Target_en_us "Hardware"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Fittings and fixings; the smallest and most valuable resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000014}" {
+   Id "OVT-Resource_Hardware_Description"
+   Target_en_us "Fittings, fixings, wiring and tools. Takes almost no space and costs the most."
+   Comment "Details-panel description of the Hardware resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000015}" {
+   Id "OVT-Resource_NoPlayer"
+   Target_en_us "You are not a player here"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 1: the request arrived with no resolvable player identity. Should never be seen in normal play; it names the failure rather than dropping the request silently."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000016}" {
+   Id "OVT-Resource_NoStore"
+   Target_en_us "That cannot hold resources"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 2: the holder named by the request carries no resource store. Also raised client-side when the holder has no RplComponent and therefore cannot be named across the network."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000017}" {
+   Id "OVT-Resource_Ruined"
+   Target_en_us "That is wrecked"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 3: the holder is a ruin. Ruined structures offer no actions at all, so this is the race where it was destroyed with the screen open."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000018}" {
+   Id "OVT-Resource_TooFar"
+   Target_en_us "You are too far away"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 4: the caller has walked or driven out of the holder's use radius since the screen was opened."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000019}" {
+   Id "OVT-Resource_Locked"
+   Target_en_us "That is locked"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 5: the holder is a locked vehicle, or is owned by another player. Also used by the open-store action's client-side mirror of the same rule."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001A}" {
+   Id "OVT-Resource_NoAccess"
+   Target_en_us "You do not have access to this warehouse"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 6: the holder is a warehouse this player may not use. Also used by the open-store action's client-side mirror of the same rule."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001B}" {
+   Id "OVT-Resource_NoCatalogue"
+   Target_en_us "The resource catalogue is unavailable"
+   Comment "Server refusal when the resource manager or its catalogue could not be reached while running a checkout. A configuration failure, not a player one; it aborts the order rather than moving nothing quietly."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001C}" {
+   Id "OVT-Resource_BadRequest"
+   Target_en_us "That order was malformed"
+   Comment "Server refusal for a checkout whose streamed lines do not match what was announced: a short or long stream, an unknown resource index, a quantity outside the allowed bounds, or the same resource listed twice. Refused once, whole, at commit."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001D}" {
+   Id "OVT-Resource_NotEnough"
+   Target_en_us "There is not that much left"
+   Comment "Server refusal at commit: the source holder no longer holds everything the cart ordered, because somebody else took it first. The WHOLE cart is refused - nothing is ever clamped to what is left."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001E}" {
+   Id "OVT-Resource_NoSpace"
+   Target_en_us "Not enough room in the destination"
+   Comment "Server refusal at commit: the destination cannot take the whole cart. The client shows #OVT-Resource_NoSpaceVolume with the figures before it gets this far; this is the answer when the destination filled up in between."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001F}" {
+   Id "OVT-Resource_NoPosition"
+   Target_en_us "There is nowhere to put it down"
+   Comment "Server refusal for a drop on the ground: the caller's position could not be resolved, so the crate pile has nowhere to land. Refused before anything leaves the source holder."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000020}" {
+   Id "OVT-Resource_NoPilePrefab"
+   Target_en_us "Dropping resources is not configured"
+   Comment "Server refusal for a drop on the ground: no crate pile prefab is wired on the resource manager. A configuration failure, refused before anything leaves the source holder."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000021}" {
+   Id "OVT-Resource_DropFailed"
+   Target_en_us "The load could not be put down"
+   Comment "Server refusal for a drop on the ground: the crate pile could not be spawned or merged. The pile is filled before the source is emptied, so a failure here costs the player nothing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000022}" {
+   Id "OVT-Resource_Failed"
+   Target_en_us "That did not work"
+   Comment "Server refusal of last resort when a resource request failed for a reason with no more specific key. Every refusal answers with a key; a silent return would be the defect."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000024}" {
+   Id "OVT-Resource_NeedTruck"
+   Target_en_us "You need a vehicle with cargo space"
+   Comment "Reason shown on a DISABLED resource row in the port's Import list when the player is on foot, or in a vehicle that carries no resource store. The row is listed rather than hidden so the player can see the price and learn what is missing (requirement C). Also the client-side refusal when a resource import is accepted with no store to put it in."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000025}" {
+   Id "OVT-Resource_NotImportable"
+   Target_en_us "That cannot be bought here"
+   Comment "Server refusal at commit for a PORT_IMPORT line naming a resource the catalogue does not flag importable. The Import list never offers one, so this only answers a hand-crafted or stale request."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000026}" {
+   Id "OVT-Resource_NotSellable"
+   Target_en_us "That cannot be sold here"
+   Comment "Refusal for a PORT_EXPORT line naming a resource the catalogue does not know. Also the reason on a disabled Export row for a resource the vehicle carries that the port will not buy."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000027}" {
+   Id "OVT-Resource_Illegal"
+   Target_en_us "Smuggling that needs the right contacts"
+   Comment "Refusal for a port trade in a resource flagged illegal when the player has neither the IllegalImports permission nor a port the resistance controls. Also the reason on a disabled Export row for such a resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000028}" {
+   Id "OVT-Resource_NoMoney"
+   Target_en_us "You cannot afford that"
+   Comment "Server refusal at commit for a PORT_IMPORT whose whole-cart cost exceeds the player's money. The cart is refused entire; nothing is clamped and nothing is bought."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000029}" {
+   Id "OVT-Resource_NotAtPort"
+   Target_en_us "You are not at a port"
+   Comment "Server refusal for a PORT_IMPORT or PORT_EXPORT when the caller or the holder is outside the port radius. The screen cannot be opened away from a port, so this answers a player who drove off mid-order."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002A}" {
+   Id "OVT-Resource_PriceFarBelow"
+   Target_en_us "Prices are far below normal here"
+   Comment "Drift readout on the port screen's resource details, shown when the live price is under 75 percent of the config base. Text and not an icon (D10): FillDetails has no image channel and the row image is already the resource icon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002B}" {
+   Id "OVT-Resource_PriceBelow"
+   Target_en_us "Prices are below normal here"
+   Comment "Drift readout on the port screen's resource details, live price between 75 and 95 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002C}" {
+   Id "OVT-Resource_PriceNormal"
+   Target_en_us "Prices are about normal here"
+   Comment "Drift readout on the port screen's resource details, live price within 5 percent of the config base either way."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002D}" {
+   Id "OVT-Resource_PriceAbove"
+   Target_en_us "Prices are above normal here"
+   Comment "Drift readout on the port screen's resource details, live price between 105 and 150 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002E}" {
+   Id "OVT-Resource_PriceFarAbove"
+   Target_en_us "Prices are far above normal here"
+   Comment "Drift readout on the port screen's resource details, live price over 150 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002F}" {
+   Id "OVT-Resource_NoSite"
+   Target_en_us "That is not a construction site"
+   Comment "Server refusal from OVT_ResourceRequestComponent.RpcAsk_BuildFromSite. Shown as a hint when the entity a build request names is not a construction site - normally because the site was demolished between the click and the request arriving."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000030}" {
+   Id "OVT-Resource_ConstructionSite"
+   Target_en_us "Construction Site"
+   Comment "Generic name of a construction site, used as the requirements dialog title and as the build action's label when the site cannot name the building it will become (a buildables.conf edit removed its entry)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000031}" {
+   Id "OVT-Resource_SiteRequirements"
+   Target_en_us "Requirements"
+   Comment "Name of the user action on a construction site that opens the requirements readout, and the placeholder message of the SITE_REQUIREMENTS dialog before OVT_SiteRequirementsAction fills it in."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000032}" {
+   Id "OVT-Resource_BuildFromSite"
+   Target_en_us "Build"
+   Comment "Fallback name of the 'finish this construction site' user action, authored on the prefab. The action rewrites it every second with #OVT-Resource_BuildNow or #OVT-Resource_ShortOf, so this only shows if that rewrite fails."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000033}" {
+   Id "OVT-Resource_BuildNow"
+   Target_en_us "Build %1"
+   Comment "Name of the 'finish this construction site' user action when the crate piles around it cover every requirement. %1 is the building's name, e.g. 'Build Guard Tower'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000034}" {
+   Id "OVT-Resource_ShortOf"
+   Target_en_us "Need %1 more %2"
+   Comment "Name of the 'finish this construction site' user action when the nearby crate piles are short. %1 is how many units are missing, %2 the resource's name, e.g. 'Need 28 more Timber'. Only the FIRST shortfall is named; the requirements action lists them all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000035}" {
+   Id "OVT-Resource_Short"
+   Target_en_us "short"
+   Comment "One word, used inside a construction site's requirements readout to mark a line that is not covered, e.g. 'Timber: 12 / 40 (short 28)'. The numbers around it are built in code."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000036}" {
+   Id "OVT-Resource_BuildRequires"
+   Target_en_us "Requires:"
+   Comment "Heading above the resource requirement rows on a build menu card. The rows below it are the figures for the CURRENT difficulty, which are the same figures the construction site will consume."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000037}" {
+   Id "OVT-Resource_BuildRequirementRow"
+   Target_en_us "%1 x %2"
+   Comment "One resource requirement row on a build menu card. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000040}" {
+   Id "OVT-Cargo_Title"
+   Target_en_us "Cargo"
+   Comment "Header of the cargo panel on a truck's HUD, shown only while the local player occupies a truck that carries a resource store. One word, title case; the volume and the resource lines are drawn underneath it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000041}" {
+   Id "OVT-Cargo_Volume"
+   Target_en_us "%1 / %2 m³"
+   Comment "Volume line on the truck cargo HUD when the truck has a capacity. %1 is the cubic metres currently loaded, %2 the truck's capacity, both to one decimal. Keep the unit as m³ - it matches every other resource readout in the mod."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000042}" {
+   Id "OVT-Cargo_VolumeUnlimited"
+   Target_en_us "%1 m³"
+   Comment "Volume line on the truck cargo HUD when the holder has no capacity limit. %1 is the cubic metres currently loaded, to one decimal. No shipped truck is unlimited; this is the defensive branch for a modded or mis-authored capacity of -1."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000043}" {
+   Id "OVT-Cargo_Line"
+   Target_en_us "%1 x %2"
+   Comment "One resource line on the truck cargo HUD. %1 is the unit count, %2 the resource's name, e.g. '40 x Timber'. Same order and shape as the build-menu requirement row #OVT-Resource_BuildRequirementRow."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000044}" {
+   Id "OVT-Cargo_More"
+   Target_en_us "+%1 more"
+   Comment "Overflow line on the truck cargo HUD, replacing the last resource line when the truck holds more kinds of resource than the panel has rows. %1 is how many kinds are not listed, including the one the row displaced."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000045}" {
+   Id "OVT-Map_Category_ResourcePiles"
+   Target_en_us "Crate Piles"
+   Comment "Category name in the map layer-filter panel - the row that switches dropped resource crate pile markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Resource_Pile and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000046}" {
+   Id "OVT-Map_PileVolume"
+   Target_en_us "Volume"
+   Comment "Map info panel row label on a crate pile marker - the caption for the pile's total loaded volume. The value is #OVT-Map_PileVolumeValue. Appears below one row per resource the pile holds."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000047}" {
+   Id "OVT-Map_PileVolumeValue"
+   Target_en_us "%1 m³"
+   Comment "Value of the volume row on a crate pile's map info panel. %1 is the pile's total loaded volume in cubic metres to one decimal. A pile has no capacity, so there is no denominator to show."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000048}" {
+   Id "OVT-Map_PileEmpty"
+   Target_en_us "Empty"
+   Comment "Full-width line on a crate pile's map info panel when the pile holds nothing. Replaces the per-resource rows and the volume row entirely. An empty pile is normally short-lived, so this reads as a state, not an error."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A0}" {
+   Id "OVT-FieldManual_Resources_Title"
+   Target_en_us "Resources"
+   Comment "Field Manual - Resources page title, shown on the entry tile in the Money and Trade category. One word, no rich-text markup. Matches the port screen's Resources tab label (#OVT-ShopCategory_Resources)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A1}" {
+   Id "OVT-FieldManual_Resources_Text"
+   Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
+   Comment "Field Manual - Resources page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. The four resources and their per-unit figures: Configs/Resistance/resources.conf:3-42 - timber 0.1 cubic metres and 40 dollars base, cement 0.05 and 60, steel 0.04 and 120, hardware 0.02 and 200. Held as a quantity rather than as entities: Scripts/Game/Data/OVT_ResourceLedger.c (id to quantity, no entity anywhere). Cubic metres as the unit of capacity: OVT_ResourceStoreComponent.c:285 converts the authored m_fCargoVolume to integer litres. Holders: Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6, Prefabs/Props/Resources/OVT_ResourcePile.et:4-7, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11. Structures that require them: Configs/Resistance/buildables.conf:15, :87, :116, :153."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A2}" {
+   Id "OVT-FieldManual_Resources_Head"
+   Target_en_us "Buying and Selling at a Port"
+   Comment "Field Manual - Resources page, section header above the port paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A3}" {
+   Id "OVT-FieldManual_Resources_Text2"
+   Target_en_us "The port screen carries a Resources tab on both the Import and the Export side. What a resource costs there is a live price that moves over the campaign rather than the fixed one a shop uses: it changes at most once in each six-hour window of game time, stays inside a band around its base price, and the details panel says whether it currently sits below, near or above that base. Occupying pressure pushes prices up and resistance control of the ports pushes them down. A port pays half the going price to take a resource back off you. Either way the trade runs through the store of the truck you are sitting in, so a resource is listed disabled with a reason when there is no truck under you or no room left in it. Difficulty scales both the price and how far it swings."
+   Comment "Field Manual - Resources page, body paragraph under 'Buying and Selling at a Port'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Live price: OVT_PortContext.c:778 reads resources.GetPrice(i), never the config base. Six-hour window: OVT_ResourceRules.c:54-83 (IsDriftWindowHour plus the one-drift-per-window latch) driven by OVT_ResourceManagerComponent.CheckPrices:320-340. Band: OVT_ResourceManagerComponent.c:36-40 m_fPriceBandMin 0.5 and m_fPriceBandMax 2.0, clamped inside OVT_ResourceRules.DriftStep. Below/near/above line: OVT_PortContext.c:905-908. Direction of the pressure term: OVT_ResourceRules.WarPressure:113-120 - the threat term is positive and the controlled-port fraction is subtracted. Half: OVT_ResourceManagerComponent.c:45-46 m_fSellRatio default 0.5, applied at :227. Trade runs through the occupied vehicle's store: OVT_PortContext.c:750. Disabled with a reason: :776-786 (#OVT-Resource_NeedTruck and #OVT-Resource_NoCargoSpace). Difficulty: OVT_DifficultySettings.c resourcePriceMultiplier and resourcePriceVolatility, set per level in Configs/Difficulty/Difficulty_Easy.conf, _Hard.conf, _Extreme.conf and _Insane.conf. Numbers are not quoted because all three are difficulty settings."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A4}" {
+   Id "OVT-FieldManual_Resources_Head2"
+   Target_en_us "Hauling"
+   Comment "Field Manual - Resources page, section header above the truck paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A5}" {
+   Id "OVT-FieldManual_Resources_Text3"
+   Target_en_us "Trucks are the only vehicles with a cargo store, so no car, armoured carrier or helicopter shows a cargo action at all. An ordinary truck takes fifteen cubic metres, the transport variants of the M923A1 and the Ural take twenty, and the Mobile FOB truck takes eight because it is already carrying a base. Sitting in a truck puts a panel on the screen listing what is aboard and how much of the space is gone. A load that will not fit is refused whole, with the space left over named in the message, so nothing is ever part-bought or half-moved."
+   Comment "Field Manual - Resources page, body paragraph under 'Hauling'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Trucks only: OVT_ResourceStoreComponent and OVT_OpenResourceStoreAction are authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-21, which only ArmaReforger Prefabs/Vehicles/Wheeled/M923A1/M923A1.et and Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et inherit (grep of the vanilla tree, 2026-08-21); cars and helicopters inherit Wheeled_Base.et or another base and therefore have neither component nor action. Capacities: Wheeled_Truck_Base.et:5 is 15, M923A1_transport.et:5 and Ural4320_transport.et:5 are 20, OverthrowMobileFOB.et:5 and OverthrowMobileFOBDeployed.et:5 are 8. HUD panel: OVT_CargoInfo.c, declared on Wheeled_Truck_Base.et:32-35; it lists up to six resource lines (MAX_LINES, :20) and the used-of-total volume. Whole-cart refusal with the remaining volume: OVT_ResourceTransferContext.ValidateCart:306-320 (#OVT-Resource_NoSpaceVolume) and the server's re-check in OVT_ResourceRequestComponent. Deliberately NOT written: any claim that weight affects handling. Physics.SetMass is never called; weight is display only (OVT_ResourceLedger.TotalWeightKg)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A6}" {
+   Id "OVT-FieldManual_Resources_Head3"
+   Target_en_us "Crate Piles"
+   Comment "Field Manual - Resources page, section header above the crate pile paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A7}" {
+   Id "OVT-FieldManual_Resources_Text4"
+   Target_en_us "A cargo store opens a screen with a Take side and a Put side, and a list of everywhere nearby the load could go, nearest first. In Take, one of those destinations is the ground. Sending a load there drops a crate pile in front of you, and dropping a second load within a few metres of that pile adds to it rather than starting another. A pile has no capacity limit of its own, shows on the map with its contents and its volume, opens like any other store, and disappears once it has been emptied."
+   Comment "Field Manual - Resources page, body paragraph under 'Crate Piles'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Take and Put: OVT_ResourceTransferContext.BuildModes:131-134. Nearby destinations sorted nearest-first, within m_fHolderRadius (default 25 m, OVT_ResourceRequestComponent.c:166-167, unoverridden on Prefabs/GameMode/OVT_OverthrowController.et:48-49): OVT_ResourceTransferContext.BuildDestinations:225-241. Ground offered in Take only: :243-255. Dropped in front of the player: m_fUnloadOffset default 4 m, OVT_ResourceRequestComponent.c:178-179. Merging: OVT_ResourceManagerComponent.c:48-49 m_fMergeRadius default 6 m, selected by OVT_ResourceRules.SelectMergeTarget at :579 - 'a few metres' rather than the number because the radius is a prefab attribute. Unlimited: Prefabs/Props/Resources/OVT_ResourcePile.et:5 authors m_fCargoVolume -1. Map: OVT_MapLocationResourcePile.c:86-92 draws the contents and volume rows; the marker is the OVT_MapMarkerComponent with category RESOURCE_PILE on OVT_ResourcePile.et:11-13. Deleted when emptied: OVT_ResourceManagerComponent.DeletePileIfEmpty:629-648."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A8}" {
+   Id "OVT-FieldManual_Resources_Head4"
+   Target_en_us "Building With Resources"
+   Comment "Field Manual - Resources page, section header above the construction site paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A9}" {
+   Id "OVT-FieldManual_Resources_Text5"
+   Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Guard Tower, the Helipad, the Garage and the Warehouse want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
+   Comment "Field Manual - Resources page, body paragraph under 'Building With Resources'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Money-only buildables are byte-identical to before: OVT_ResistanceFactionManager.BuildItem:896-899 branches to PlaceConstructionSite only when HasResourceRequirements() is true, otherwise straight to FinishBuild. Which four: Configs/Resistance/buildables.conf:15 Guard Tower, :87 Garage, :116 Helipad, :153 Warehouse; no other entry authors m_aResourceRequirements. Money charged at placement: OVT_ResistanceFactionManager.PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The two actions: OVT_SiteRequirementsAction.c:60 (#OVT-Resource_SiteRequirements) and OVT_BuildFromSiteAction.c:124-129, both on Prefabs/Structures/OVT_ConstructionSite.et. Thirty metres: OVT_ResourceManagerComponent.c:51-52 m_fSupplyRadius default 30, read by OVT_ResourceRequirements.CollectPiles:281. Nearest first: OVT_ResourceRequirements.Consume:173 through OVT_ResourceRules.SortPilesForConsumption. Piles only: CollectPiles runs an OVT_ResourcePileQuery, so a truck store or a warehouse store is never counted (requirements section D). No refund: OVT_ResistanceFactionManager.c:1091-1106 states it and no refund path exists anywhere in the mod. Difficulty: OVT_DifficultySettings.c:151-152 buildableResourceCostMultiplier, applied by OVT_ResourceRequirements.ScaleForDifficulty:33 - which is why no requirement quantity is quoted here."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AA}" {
+   Id "OVT-FieldManual_Resources_Head5"
+   Target_en_us "Warehouses"
+   Comment "Field Manual - Resources page, section header above the warehouse paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AB}" {
+   Id "OVT-FieldManual_Resources_Text6"
+   Target_en_us "A warehouse building holds resources beside the items it already stores, under an action of its own, and neither side of it has a limit. A warehouse is also something the resistance can build, for money and all four resources. It can go up at a base the resistance holds, and inside a town the resistance controls, which is the only place the build list reaches beyond bases, FOBs and camps; a town the occupying faction still holds refuses it, and so does a village. Once it is up it is a warehouse like any other, on the map, in who owns it and in what it will hold."
+   Comment "Field Manual - Resources page, body paragraph under 'Warehouses'. Four sentences, no rich-text markup. Cross-references the Storage page rather than restating the item side. FACT-CHECKED 2026-08-21 for logistics/resources. The resource store and its own action at Sort Priority 3: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11 and :43-52. Both unlimited: m_eCapacityMode UNLIMITED on the item store (:4-7) and m_fCargoVolume -1 on the resource store (:9). Buildable entry: Configs/Resistance/buildables.conf:142-172 - m_iCost 12000 (not quoted, buildableCostMultiplier is a difficulty setting), m_bBuildAtBase 1, m_bBuildInTown 1, and all four resources at :153-172. Town control: OVT_BuildContext.CanBuild:330-348 refuses an uncontrolled town with #OVT-CannotBuildUncontrolledTown and a village with #OVT-CannotBuildVillage, and the server re-checks through the same pure predicate in OVT_ResistanceFactionManager.TownControlAllowsBuild:1031-1046. Warehouse is the only shipped buildable that sets m_bBuildInTown (grep of buildables.conf, 2026-08-21). Indistinguishable afterwards: OVT_ResistanceFactionManager.RegisterBuiltWarehouse:1002-1016 registers it through OVT_RealEstateManagerComponent.SetOwnerPersistentId, which is the same record a bought warehouse carries."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AC}" {
+   Id "OVT-FieldManual_Ports_Head3"
+   Target_en_us "Resources"
+   Comment "Field Manual - Ports page, section header above the resources paragraph. One word, no rich-text markup. Matches the port screen's tab label (#OVT-ShopCategory_Resources)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AD}" {
+   Id "OVT-FieldManual_Ports_Text4"
+   Target_en_us "Both sides of the port screen carry a Resources tab as well, trading bulk construction materials into and out of the cargo store of the truck you are sitting in. Those are priced separately from everything else here, and their price moves over the campaign instead of holding still. The Resources page covers them in full."
+   Comment "Field Manual - Ports page, body paragraph under 'Resources'. Three sentences, no rich-text markup. Deliberately short: it exists to point at the Resources page, which owns the detail, so nothing here is repeated there. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Cargo store of the occupied vehicle, not its item storage: OVT_PortContext.c:750 resolves OVT_ResourceUtils.GetStore(GetOccupiedVehicle()), which is the OVT_ResourceStoreComponent authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6. Live price rather than the fixed catalogue one: :778 reads resources.GetPrice(i), drifted by OVT_ResourceManagerComponent.CheckPrices:320-340."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
   }
  }
 }

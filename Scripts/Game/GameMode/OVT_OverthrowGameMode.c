@@ -42,6 +42,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	//! Reference to the economy manager component.
 	protected OVT_EconomyManagerComponent m_EconomyManager;
+	//! Reference to the resource manager component.
+	protected OVT_ResourceManagerComponent m_ResourceManager;
 	//! Reference to the player manager component.
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	//! Reference to the job manager component.
@@ -1443,6 +1445,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		{
 			Print("[Overthrow] Initializing Economy");
 			m_EconomyManager.Init(this);
+		}
+
+		// AFTER Economy: the price drift tick reads the port registry, and the threat off the occupying
+		// faction. Both are resolved lazily inside the tick, which first fires a minute of game time
+		// after this line, so only the registration order below it matters.
+		m_ResourceManager = OVT_ResourceManagerComponent.Cast(FindComponent(OVT_ResourceManagerComponent));
+		if(m_ResourceManager)
+		{
+			Print("[Overthrow] Initializing Resources");
+
+			m_ResourceManager.Init(this);
 		}
 
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));

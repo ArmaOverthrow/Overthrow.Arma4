@@ -835,6 +835,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Build a structure from the buildables config. THE ONE DOOR every caller already uses; its
+	//! signature is unchanged.
+	//!
+	//! A buildable that authors resource requirements and is being built BY A PLAYER puts a
+	//! construction site down instead and charges the money there (D2). Everything else - every
+	//! money-only buildable, and every server-initiated build at playerId -1 - goes straight to
+	//! FinishBuild() exactly as it did before construction sites existed.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where to put it.
+	//! \param[in] angles Its yaw/pitch/roll.
+	//! \param[in] playerId The builder, or -1 for a server-initiated build (free of money AND of
+	//! resources, and never a site).
+	//! \param[in] runHandler Whether the buildable's handler runs.
+	//! \return The structure, the construction site, or null.
 	IEntity BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
@@ -868,6 +884,48 @@ class OVT_ResistanceFactionManager: OVT_Component
 			string reason;
 			if(!limits.CanBuildItem(pos, reason)) return null;
 		}
+
+		// The server half of OVT_BuildContext.CanBuild's town branch, through the same pure predicate.
+		// Player-initiated only, like every check in the block above: -1 is the server's own
+		// "free and unvalidated" marker. Refuses silently, as the item-limit check does - the client
+		// already named the reason before it ever sent this.
+		if(playerId > -1 && !TownControlAllowsBuild(buildable, pos)) return null;
+
+		// A player building something that costs resources gets a SITE, and pays for it now (D2).
+		// playerId -1 never reaches here, so a server-initiated build is never a site.
+		if(playerId > -1 && HasResourceRequirements(buildable))
+			return PlaceConstructionSite(buildableIndex, prefabIndex, pos, angles, playerId);
+
+		return FinishBuild(buildableIndex, prefabIndex, pos, angles, playerId, runHandler, true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE SPAWN/REGISTER/HANDLER/NAVMESH/INVOKE/TRACK PATH, and therefore the one ordering (D13).
+	//!
+	//! ⚠ THE ORDER IN HERE HAS A BUG HISTORY. A failed handler deletes the structure and returns
+	//! BEFORE any charge; m_OnBuild fires exactly once, when the building appears, so XP and the
+	//! tutorial land then and not when a site is placed; Track() runs last, so a rejected build is
+	//! never registered. Nothing was reordered when the site path was added - the only difference
+	//! between the two entries is the charge flag.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where to put it.
+	//! \param[in] angles Its yaw/pitch/roll.
+	//! \param[in] playerId The builder, or -1.
+	//! \param[in] runHandler Whether the buildable's handler runs.
+	//! \param[in] charge Whether the money is taken here. False when a construction site already
+	//! charged it at placement.
+	//! \return The structure, or null when the handler rejected it.
+	protected IEntity FinishBuild(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler, bool charge)
+	{
+		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
+		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = m_Config.GetBuildableCost(buildable);
 
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
 
@@ -909,7 +967,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		// Charge server-side - the client no longer pays via the generic money RPC
-		economy.TakePlayerMoney(playerId, cost);
+		if(charge)
+			economy.TakePlayerMoney(playerId, cost);
 
 		// Immediate - see the matching call in PlaceItem().
 		OVT_NavmeshRebuild.RebuildNow(entity);
@@ -919,7 +978,273 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Include the built structure in save points - see the matching call in PlaceItem().
 		OVT_PersistenceTracking.Track(entity);
 
+		// AFTER Track(), and deliberately not an m_OnBuild subscriber: an exception inside an invoker
+		// aborts the whole chain, and this one would run before the line above.
+		RegisterBuiltWarehouse(entity, playerId);
+
 		return entity;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a freshly built warehouse with real estate, so it is indistinguishable from a
+	//! purchased one (D14): owned by the builder, public, on the map, and openable.
+	//!
+	//! GATED ON THE REAL-ESTATE CONFIG, not on the buildable type. SetOwnerPersistentId() also writes
+	//! ownership for the OWNER manager, so calling it for every built structure would put every garage
+	//! and guard tower in the player's owned-property list. Only a building the real-estate config
+	//! already calls a warehouse is registered.
+	//!
+	//! NOTHING IN OVT_RealEstateManagerComponent CHANGES for this - the whole path is its shipped
+	//! purchase path, reached with a different owner.
+	//! \param[in] entity The structure that was just built.
+	//! \param[in] playerId The builder, or -1 for a server-initiated build (never registered - there
+	//! is no owner to register it to).
+	protected void RegisterBuiltWarehouse(IEntity entity, int playerId)
+	{
+		if(!entity || playerId <= -1) return;
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(!realEstate) return;
+
+		OVT_RealEstateConfig config = realEstate.GetConfig(entity);
+		if(!config || !config.m_IsWarehouse) return;
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(persId == "") return;
+
+		// isPrivate is left at its default false, so the warehouse is PUBLIC (D14).
+		realEstate.SetOwnerPersistentId(persId, entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The server half of OVT_BuildContext.CanBuild's town branch.
+	//!
+	//! Mirrors the client exactly - the same nearest town, the same size-to-range table, the same pure
+	//! predicate - so a position the client offered can never be refused here for a different reason.
+	//! Villages are excluded (the client refuses a town-buildable in one outright, for a different
+	//! reason this has no business restating), and so is every buildable that is not town-buildable.
+	//! \param[in] buildable The config entry.
+	//! \param[in] pos Where it was ordered.
+	//! \return True unless the position sits inside a town the resistance does not hold.
+	//! Mirrors OVT_BuildContext.CanBuild's base branch so both sides of the wire agree.
+	//! \param[in] pos The requested build position.
+	//! \return True when a resistance-held base is close enough to authorise the build.
+	protected bool BaseAllowsBuild(vector pos)
+	{
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		if(!occupyingFaction) return false;
+
+		OVT_BaseData base = occupyingFaction.GetNearestBase(pos);
+		if(!base || base.IsOccupyingFaction()) return false;
+
+		return vector.Distance(base.location, pos) < OVT_Global.GetConfig().m_Difficulty.baseRange;
+	}
+
+	protected bool TownControlAllowsBuild(OVT_Buildable buildable, vector pos)
+	{
+		if(!buildable || !buildable.m_bBuildInTown) return true;
+
+		// A qualifying base wins outright, exactly as OVT_BuildContext.CanBuild's base branch returns
+		// before its town branch. Without this the client offers a build the server refuses in silence.
+		if(buildable.m_bBuildAtBase && BaseAllowsBuild(pos)) return true;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return true;
+
+		OVT_TownData town = towns.GetNearestTown(pos);
+		if(!town || town.size == 1) return true;
+
+		int range = towns.m_iCityRange;
+		if(town.size < 3) range = towns.m_iTownRange;
+
+		return OVT_ResourceRules.TownControlAllowsBuild(town.faction, OVT_Global.GetConfig().GetPlayerFactionIndex(), vector.DistanceSq(town.location, pos), range * range);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a construction site where a building was ordered, and takes the money for it (D2).
+	//!
+	//! Money is charged HERE and refunded nowhere - removing a site refunds nothing, because no refund
+	//! path exists anywhere in the mod. m_OnBuild does NOT fire: a site is not a building, so no XP is
+	//! awarded and no tutorial step completes until it is finished.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where the building was ordered.
+	//! \param[in] angles The orientation it will be built at.
+	//! \param[in] playerId The builder. Never -1 - BuildItem() gates on that.
+	//! \return The site, or null when nothing was placed and nothing was charged.
+	protected IEntity PlaceConstructionSite(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
+	{
+		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
+		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		ResourceName sitePrefab = ResolveSitePrefab(buildable);
+		if(sitePrefab == ResourceName.Empty)
+		{
+			Print("[Overthrow] A buildable authors resource requirements but there is no construction site prefab to place - neither the buildable's own m_SitePrefab nor the resource manager's generic one is wired. Nothing was built and nothing was charged.", LogLevel.ERROR);
+			return null;
+		}
+
+		vector mat[4];
+		Math3D.AnglesToMatrix(angles, mat);
+		mat[3] = pos;
+
+		IEntity site = OVT_WorldUtils.SpawnEntityPrefabMatrix(sitePrefab, mat);
+		if(!site) return null;
+
+		OVT_ConstructionSiteComponent siteComp = OVT_ComponentFinder<OVT_ConstructionSiteComponent>.Find(site);
+		if(!siteComp)
+		{
+			Print(string.Format("[Overthrow] The construction site prefab '%1' carries no OVT_ConstructionSiteComponent, so it could never be finished. Nothing was built and nothing was charged.", sitePrefab), LogLevel.ERROR);
+			SCR_EntityHelper.DeleteEntityAndChildren(site);
+			return null;
+		}
+
+		siteComp.Initialize(buildableIndex, prefabIndex, angles, buildable.m_sTitle);
+
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+		// Ownership and base association are stamped here as well as in FinishBuild(), so the shipped
+		// removal flow (owner-or-officer) works on a site the moment it exists.
+		OVT_BuildableComponent buildableComp = OVT_ComponentFinder<OVT_BuildableComponent>.Find(site);
+		if(buildableComp)
+		{
+			buildableComp.SetOwnerPersistentId(playerUid);
+
+			string baseId;
+			EOVTBaseType baseType;
+			if(FindNearestBase(pos, baseId, baseType))
+				buildableComp.SetAssociatedBase(baseId, baseType);
+		}
+
+		// The same figure BuildItem() checked the player could afford, in the same frame.
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		economy.TakePlayerMoney(playerId, m_Config.GetBuildableCost(buildable));
+
+		OVT_NavmeshRebuild.RebuildNow(site);
+
+		OVT_PersistenceTracking.Track(site);
+
+		return site;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Consumes the crate piles around a construction site and turns it into the building.
+	//!
+	//! The money was taken at placement (D2), so this re-enters FinishBuild() with charge false. The
+	//! resources are taken BEFORE the site is destroyed and the building spawned, in the order §3.8
+	//! specifies; Consume() is all-or-nothing, so a refusal leaves every pile exactly as it was.
+	//! \param[in] site The construction site.
+	//! \param[in] playerId The player finishing it. Credited with the build.
+	//! \param[out] reason Localization key naming the refusal; "" on success.
+	//! \return The finished building, or null.
+	IEntity CompleteSite(IEntity site, int playerId, out string reason)
+	{
+		reason = "";
+
+		if(!Replication.IsServer())
+		{
+			reason = "#OVT-Resource_Failed";
+			return null;
+		}
+
+		OVT_ConstructionSiteComponent siteComp = OVT_ComponentFinder<OVT_ConstructionSiteComponent>.Find(site);
+		if(!siteComp)
+		{
+			reason = "#OVT-Resource_NoSite";
+			return null;
+		}
+
+		int buildableIndex = siteComp.GetBuildableIndex();
+		int prefabIndex = siteComp.GetPrefabIndex();
+		vector angles = siteComp.GetAngles();
+		vector pos = site.GetOrigin();
+
+		OVT_Buildable buildable = GetBuildableAt(buildableIndex);
+		if(!buildable || prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count())
+		{
+			// The site outlived a buildables.conf edit that moved or removed its entry.
+			reason = "#OVT-Resource_NoSite";
+			return null;
+		}
+
+		// A .conf entry that authors no requirements leaves the array NULL, and a standing site can
+		// outlive the edit that emptied it - in which case the building now costs nothing and the site
+		// completes for free, which is what the config says.
+		array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+		if(buildable.m_aResourceRequirements)
+			OVT_ResourceRequirements.ScaleForDifficulty(buildable.m_aResourceRequirements, need);
+
+		array<ref OVT_ResourceAmount> have = new array<ref OVT_ResourceAmount>();
+		OVT_ResourceRequirements.NearbyAvailability(pos, need, have);
+
+		string shortId;
+		if(!OVT_ResourceRules.IsSatisfied(need, have, shortId))
+		{
+			reason = "#OVT-Resource_NotEnough";
+			return null;
+		}
+
+		if(!OVT_ResourceRequirements.Consume(pos, need))
+		{
+			reason = "#OVT-Resource_NotEnough";
+			return null;
+		}
+
+		// Released before the delete so the save is not left holding a record for a site that no
+		// longer exists; the building FinishBuild() spawns is tracked in its own right.
+		OVT_PersistenceTracking.Untrack(site, false);
+		DestroyPlacedItem(site);
+
+		IEntity built = FinishBuild(buildableIndex, prefabIndex, pos, angles, playerId, true, false);
+		if(!built)
+		{
+			reason = "#OVT-Resource_Failed";
+			return null;
+		}
+
+		return built;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildable The config entry.
+	//! \return True when it authors at least one non-empty resource requirement.
+	bool HasResourceRequirements(OVT_Buildable buildable)
+	{
+		if(!buildable || !buildable.m_aResourceRequirements) return false;
+
+		foreach(OVT_BuildableResourceRequirement requirement : buildable.m_aResourceRequirements)
+		{
+			if(requirement && requirement.m_sResourceId != "" && requirement.m_iQuantity > 0) return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \return The entry, or null when the index is out of range.
+	OVT_Buildable GetBuildableAt(int buildableIndex)
+	{
+		if(!m_BuildablesConfig || !m_BuildablesConfig.m_aBuildables) return null;
+		if(buildableIndex < 0 || buildableIndex >= m_BuildablesConfig.m_aBuildables.Count()) return null;
+
+		return m_BuildablesConfig.m_aBuildables[buildableIndex];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildable The config entry.
+	//! \return Its own site prefab, else the resource manager's generic one, else empty.
+	protected ResourceName ResolveSitePrefab(OVT_Buildable buildable)
+	{
+		if(buildable && buildable.m_SitePrefab != ResourceName.Empty) return buildable.m_SitePrefab;
+
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return ResourceName.Empty;
+
+		return resources.GetDefaultSitePrefab();
 	}
 	
 	//! Remove a placed item from the world. Takes an RplId - EntityIDs are not valid across the network.

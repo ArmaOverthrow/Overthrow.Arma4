@@ -1,0 +1,45 @@
+GenericEntity : "{7F59A8D992FBF5CA}Prefabs/Props/Military/MilitaryCrates/CrateStack_01/CrateStack_01_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_ResourceStoreComponent "{6A8E2E0000000012}" {
+   m_fCargoVolume -1
+   m_sDefaultNameKey "#OVT-Resource_Pile"
+  }
+  OVT_ResourcePileComponent "{6A8E2E0000000013}" {
+  }
+  OVT_MapMarkerComponent "{6A8E2E2000000071}" {
+   m_eCategory RESOURCE_PILE
+  }
+  ActionsManagerComponent "{6A8E2E0000000014}" {
+   ActionContexts {
+    UserActionContext "{6A8E2E0000000015}" {
+     ContextName "resources"
+     Position PointInfo "{6A8E2E0000000016}" {
+      Offset 0 0.8 0
+     }
+     Radius 3
+    }
+   }
+   additionalActions {
+    OVT_OpenResourceStoreAction "{6A8E2E1000000012}" {
+     ParentContextList {
+      "resources"
+     }
+     UIInfo UIInfo "{6A8E2E1000000013}" {
+      Name "#OVT-Resource_Pile"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+   }
+  }
+  SCR_DestructionMultiPhaseComponent "{5624A88D86EFE8BA}" {
+   Enabled 0
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+ }
+}

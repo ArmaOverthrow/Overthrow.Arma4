@@ -1,0 +1,48 @@
+GenericEntity : "{6A8E2E0000000101}Prefabs/Structures/OVT_ConstructionSite.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  MeshObject "{5872F0EB7FA40561}" {
+   Object "{280755F721BE9EAB}Assets/Structures/Military/Fortifications/DirtMounds/DirtCover_01_long_02.xob"
+   Materials {
+    MaterialAssignClass "{6A2AE8244C106A60}" {
+     SourceMaterial "HelipadImprovised_US_01"
+     AssignedMaterial "{E7BDA18252D3873F}Assets/Structures/Infrastructure/Roads/Data/Road_Dirt_02.emat"
+    }
+   }
+  }
+  ActionsManagerComponent "{6A8E2E0000000032}" {
+   ActionContexts {
+    UserActionContext "{6A8E2E0000000033}" {
+     Position PointInfo "{6A8E2E0000000034}" {
+      Offset 0.0808 1.3969 1.7702
+     }
+    }
+   }
+  }
+  Hierarchy "{6A2AE8244C106A0F}" {
+  }
+ }
+ {
+  GenericEntity : "{14DDB40171F949A9}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_WoodPlanks_01_USSR.et" {
+   ID "6A2AE8244C10FF63"
+   coords 2.724 0 3.985
+   angles 0 51.133 0
+  }
+  GenericEntity : "{4A34979DC19CA9ED}Prefabs/Props/Construction/ConcreteMixer_01.et" {
+   ID "6A2AE8244C10FF60"
+   coords 0 0 1.367
+  }
+  $grp GenericEntity : "{90C62D3DBDEB0759}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_MetalSheets_01_US.et" {
+   {
+    ID "6A2AE8244C106A5C"
+    coords -3.274 0 3.425
+    angles 0 -76.756 0
+   }
+   {
+    ID "6A2AE8244C10FF6F"
+    coords -0.094 0 -3.414
+    angles 0 5.234 0
+   }
+  }
+ }
+}

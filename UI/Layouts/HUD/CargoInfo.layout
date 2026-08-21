@@ -1,0 +1,131 @@
+OverlayWidgetClass {
+ Name "root"
+ Clipping False
+ {
+  FrameWidgetClass "{6A8E2E2000000051}" {
+   Name "CargoFrame"
+   Slot OverlayWidgetSlot "{6A8E2E2000000052}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   Opacity 0.9
+   {
+    OverlayWidgetClass "{6A8E2E2000000053}" {
+     Name "CargoPanel"
+     Slot FrameWidgetSlot "{6A8E2E2000000054}" {
+      Anchor 1 0 1 0
+      PositionX -20
+      OffsetLeft -20
+      PositionY 200
+      OffsetTop 200
+      SizeX 240
+      OffsetRight 20
+      SizeY 180
+      OffsetBottom -380
+      Alignment 1 0
+      SizeToContent 1
+     }
+     "Is Visible" 0
+     {
+      ImageWidgetClass "{6A8E2E2000000055}" {
+       Name "CargoBackground"
+       Slot OverlayWidgetSlot "{6A8E2E2000000056}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0 0 0 0.525
+      }
+      VerticalLayoutWidgetClass "{6A8E2E2000000057}" {
+       Name "CargoRows"
+       Slot OverlayWidgetSlot "{6A8E2E2000000058}" {
+        Padding 10 8 10 8
+       }
+       {
+        TextWidgetClass "{6A8E2E2000000059}" {
+         Name "CargoHeaderText"
+         Slot LayoutSlot "{6A8E2E200000005A}" {
+         }
+         Text "#OVT-Cargo_Title"
+         "Font Size" 14
+         "Min Font Size" 14
+         "Horizontal Alignment" 2
+         Color 0.8 0.8 0.8 1
+        }
+        TextWidgetClass "{6A8E2E200000005B}" {
+         Name "CargoVolumeText"
+         Slot LayoutSlot "{6A8E2E200000005C}" {
+          Padding 0 0 0 4
+         }
+         Text "0.0 / 20.0 m³"
+         "Font Size" 20
+         "Min Font Size" 20
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E200000005D}" {
+         Name "CargoLine0"
+         Slot LayoutSlot "{6A8E2E200000005E}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E200000005F}" {
+         Name "CargoLine1"
+         Slot LayoutSlot "{6A8E2E2000000060}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E2000000061}" {
+         Name "CargoLine2"
+         Slot LayoutSlot "{6A8E2E2000000062}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E2000000063}" {
+         Name "CargoLine3"
+         Slot LayoutSlot "{6A8E2E2000000064}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E2000000065}" {
+         Name "CargoLine4"
+         Slot LayoutSlot "{6A8E2E2000000066}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+        TextWidgetClass "{6A8E2E2000000067}" {
+         Name "CargoLine5"
+         Slot LayoutSlot "{6A8E2E2000000068}" {
+         }
+         "Is Visible" 0
+         Text "0 x Resource"
+         "Font Size" 16
+         "Min Font Size" 16
+         "Horizontal Alignment" 2
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

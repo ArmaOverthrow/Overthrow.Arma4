@@ -436,8 +436,6 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		m_bSpawnedUnitsEliminated = true;
 
-		Print(string.Format("[Overthrow] Deployment infantry module '%1' has been wiped out", m_sModuleName), LogLevel.NORMAL);
-
 		if (m_ParentDeployment)
 			m_ParentDeployment.CheckAllSpawningModulesEliminated();
 	}

@@ -605,16 +605,7 @@ class OVT_DeploymentComponent : OVT_Component
 		}
 		
 		bool previousState = m_bSpawnedUnitsEliminated;
-		m_bSpawnedUnitsEliminated = allEliminated;
-		
-		// Log state change
-		if (previousState != m_bSpawnedUnitsEliminated)
-		{
-			if (m_bSpawnedUnitsEliminated)
-				Print(string.Format("All spawned units for deployment '%1' have been eliminated", GetDeploymentName()), LogLevel.NORMAL);
-			else
-				Print(string.Format("Spawned units for deployment '%1' are no longer eliminated (reinforcements successful)", GetDeploymentName()), LogLevel.NORMAL);
-		}
+		m_bSpawnedUnitsEliminated = allEliminated;		
 	}
 	
 	//------------------------------------------------------------------------------------------------

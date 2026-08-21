@@ -332,7 +332,31 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		return Math.Round(m_Difficulty.buildableCostMultiplier * buildable.m_iCost);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Scales one authored resource requirement of a buildable to this difficulty. The single call
+	//! behind both the displayed figure and the consumed one.
+	//! \param[in] baseQty The quantity buildables.conf authors.
+	//! \return The scaled quantity; never zero unless baseQty was.
+	int GetBuildableResourceCost(int baseQty)
+	{
+		return OVT_ResourceRules.ScaleRequirement(baseQty, m_Difficulty.buildableResourceCostMultiplier);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The multiplier applied to a stored resource price at read time, after the band clamp.
+	float GetResourcePriceMultiplier()
+	{
+		return m_Difficulty.resourcePriceMultiplier;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The multiplier on one price drift step. Never touches the drift band.
+	float GetResourcePriceVolatility()
+	{
+		return m_Difficulty.resourcePriceVolatility;
+	}
+
 	int GetHouseItemLimit()
 	{
 		return m_ConfigFile.houseItemLimit;
@@ -711,7 +735,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! locally when the player cannot pay it. Without it a client would price a repair from whatever
 	//! preset its game-mode prefab happened to instantiate, and offer (or refuse) a repair the server
 	//! charges differently for.
-	protected const int CONFIG_STREAM_VERSION = 5;
+	//!
+	//! Version 6 appended the three resource multipliers to the difficulty block. The port's Resources
+	//! tab prices every row client-side from the replicated stored price times resourcePriceMultiplier,
+	//! and a construction site draws its requirement rows through buildableResourceCostMultiplier —
+	//! both are quoted locally and re-derived by the server, so a client running its own preset's
+	//! values would show a price it is not charged and a requirement it does not owe.
+	//! resourcePriceVolatility rides with them: it is server-only today (only the drift tick reads it),
+	//! but splitting one difficulty concept across two transports invites the next reader to assume it
+	//! is there.
+	protected const int CONFIG_STREAM_VERSION = 6;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -742,6 +775,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteBool(m_Difficulty.allowFOBDuringQRF);
 		writer.WriteFloat(m_Difficulty.fuelPricePerLitre);
 		writer.WriteFloat(m_Difficulty.repairCostMultiplier);
+		writer.WriteFloat(m_Difficulty.buildableResourceCostMultiplier);
+		writer.WriteFloat(m_Difficulty.resourcePriceMultiplier);
+		writer.WriteFloat(m_Difficulty.resourcePriceVolatility);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -839,6 +875,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadFloat(f)) return false;
 		m_Difficulty.repairCostMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.buildableResourceCostMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.resourcePriceMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.resourcePriceVolatility = f;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

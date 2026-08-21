@@ -146,6 +146,18 @@ class OVT_DifficultySettings : ScriptAndConfig
 	float vehiclePriceMultiplier;
 	[Attribute(defvalue: "1.0", desc: "Fuel price per litre at static fuel stations (0 disables fuel charging)", category: "Economy")]
 	float fuelPricePerLitre;
+	//! Scaled through OVT_ResourceRules.ScaleRequirement, whose floor means a non-zero requirement
+	//! never scales away to free.
+	[Attribute(defvalue: "1", desc: "Resource requirements of buildables are multiplied by this value", category: "Economy")]
+	float buildableResourceCostMultiplier;
+	//! Applied to the STORED price at read time, AFTER the drift band clamp, so on a hard preset the
+	//! live price may legitimately exceed base x the band's upper edge.
+	[Attribute(defvalue: "1", desc: "Live resource prices are multiplied by this value", category: "Economy")]
+	float resourcePriceMultiplier;
+	//! Scales one drift STEP and never the band - the clamp edges stay at base x bandMin and
+	//! base x bandMax whatever this is.
+	[Attribute(defvalue: "1", desc: "Size of one resource price drift step is multiplied by this value", category: "Economy")]
+	float resourcePriceVolatility;
 
 	//RF
 	[Attribute(defvalue: "0", desc: "Base RF threat", category: "Resistance Faction")]

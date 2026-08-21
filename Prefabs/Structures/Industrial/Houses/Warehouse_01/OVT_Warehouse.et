@@ -1,0 +1,36 @@
+SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
+ ID "51DC7DF1903152C8"
+ components {
+  OVT_BuildableComponent "{6A8E2E0000000040}" {
+   m_sBuildableType "Warehouse"
+  }
+  OVT_StructureDestructionComponent "{6A8E2E0000000041}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+    }
+   }
+   m_fBaseHealth 100000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6A8E2E0000000042}" {
+     m_fPhaseHealth 100000
+     m_PhaseModel "{4FEF9F10015F63FC}Assets/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_METAL
+  }
+  SCR_DestructibleBuildingComponent "{5D7AD0958CE7D71F}" {
+   Enabled 0
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
+}

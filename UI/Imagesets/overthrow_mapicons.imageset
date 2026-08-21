@@ -123,5 +123,10 @@ ImageSetClass {
    Size 128 128
    Flags 0 0
   }
+  ImageSetDefClass crate {
+   Pos 652 392
+   Size 128 128
+   Flags 0 0
+  }
  }
 }
