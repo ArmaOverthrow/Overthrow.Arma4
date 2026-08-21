@@ -196,12 +196,13 @@ class OVT_TransferRowComponent : SCR_ScriptedWidgetComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Tells the screen this row was picked.
+	//! Tells the screen this row was picked. Selects it AND adds one to the cart - only the click
+	//! invoker reaches here, never OnRowFocused, so a d-pad walk still just selects.
 	void Activate()
 	{
 		if(!m_Context) return;
 
-		m_Context.SelectListIndex(m_iIndex);
+		m_Context.ActivateListIndex(m_iIndex);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -166,7 +166,7 @@ class OVT_StorageContext : OVT_TransferContext
 			entry.m_iValue = line.m_iCount;
 			entry.m_eValueKind = EOVT_TransferValueKind.QUANTITY;
 			entry.m_iMaxQuantity = line.m_iCount;
-			entry.m_iCategoryId = 0;
+			entry.m_iCategoryId = ResolveCategory(line.m_sRes);
 			entry.m_bEnabled = true;
 			entry.m_sDisabledReasonKey = "";
 
@@ -175,10 +175,22 @@ class OVT_StorageContext : OVT_TransferContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! One category, so the tab row never appears.
+	//! \return The shop browse category for a prefab, the same mapping the port screen uses. Converted
+	//! battlefield loot is often unregistered, and an unregistered prefab resolves to id 0 - i.e. some
+	//! other item's category - so it is filed under OTHER instead.
+	protected int ResolveCategory(ResourceName prefab)
+	{
+		if(!m_Economy) return OVT_ShopCategory.OTHER;
+		if(!m_Economy.IsRegisteredResource(prefab)) return OVT_ShopCategory.OTHER;
+
+		return m_Economy.GetItemCategory(m_Economy.GetInventoryId(prefab));
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override string GetCategoryLabelKey(int categoryId)
 	{
-		return "";
+		OVT_ShopCategory category = categoryId;
+		return OVT_ShopCategoryHelper.GetLabelKey(category);
 	}
 
 	//------------------------------------------------------------------------------------------------

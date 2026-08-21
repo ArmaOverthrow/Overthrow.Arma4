@@ -1,8 +1,8 @@
 # Storage (logistics/storage) — Context & Decisions
 
 **Last Updated:** 2026-08-21
-**Current Phase:** ✅ Complete — all 10 phases built, cross-phase review + B5 fix pass done, every automated gate green
-**Status:** 🟢 Ready for Review — awaiting the localization re-export, the Workbench checks and three play-test sessions
+**Current Phase:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
+**Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
 
 ---
 
@@ -46,9 +46,19 @@
 - ⏸️ Workbench checks W1/W2, then play-tests A (mouse), B (gamepad-only) and C (dedicated + JIP) — 21 rows in `tasks.md`
 - ⏸️ The wiki pass, when a `wikijs` MCP server is attached
 
-**Blockers:**
-- ⏸️ **Localization re-export** (Workbench, user) — the ~43 new `#OVT-` keys render **raw** until then.
-- ⏸️ **Wiki sync** — no `wikijs` MCP server attached to this session. A 7-item hand-off is below.
+**Residuals at close (none blocking):**
+- ⏸️ **One more localization re-export, for exactly one key.** The user re-exported twice (12:34 and 13:35);
+  the 13:35 pass picked up everything including `OVT-Transfer_DestinationLabel`. **`OVT-Transfer_NoSpace`** — the
+  cart-exceeds-capacity refusal added at ~14:00 — is the only key missing from `Language/*.conf`, and it renders
+  **raw** until the next export. Verified by grepping the exports, not assumed.
+- ⏸️ **Wiki sync** — no `wikijs` MCP server was ever attached. A 7-item hand-off is at the bottom of this file.
+- ⏸️ **Multiplayer is entirely unproven at runtime.** No dedicated-server session was run. F12, JIP, concurrent
+  batches on one holder and disconnect-mid-transfer are proven by reading only. See `tasks.md` Play-test C.
+- ⏸️ **The v1 warehouse-save migration has never met a real pre-feature save.** The Persistence case covers the
+  queue and delivery; loading an actual old campaign (§6 step 18) was not done.
+- 💳 `OVT_AmmoBox_Cache` / `_Dev` carry the storage actions with no persistence binding — a Transfer-all into an
+  arms cache is silently lost on reload. Design-level, recorded in `tasks.md`.
+- 💳 `main` still carries the `OVT_Component` null-world crash fixed here as P8.
 
 ---
 
@@ -186,6 +196,17 @@ Run suites **by class name**, not by group. Established 2026-08-21 during Phase 
 | `OVT_TEST_PersistenceSuite` | **13/13** green, ~15 s | baselined 2026-08-21 after Phase 7 |
 
 Together these five are the **All group's** contents, so running all five by class name is an equivalent gate.
+
+⚠️ **The suites are NOT fully deterministic under load.** On 2026-08-21 a back-to-back five-suite sequence
+produced `OVT_TEST_InitSuite` **6 of 163** in 102 s; an isolated re-run of the same commit produced the usual
+**1 of 163** in 54 s. The five extra failures were `VirtualMovement_StationaryPlanIsNeverAdvanced`,
+`CompositionSlotGate_FreeSlotScanIsExhaustive` and four `Virtualization_*` cases — **all** of them
+`virtualization`/`occupying` cases that wait on world time or on a spawn settling, and the same family as the
+case that used to hang the Fast group. **Zero storage cases failed in either run.** Practical rule: run the
+Init suite **on its own**, not as the tail of a five-suite sequence, and treat a burst of `Virtualization_*` /
+`VirtualMovement_*` reds after a long sequence as a load artefact until an isolated run confirms it.
+(Note also that this suite's junit attaches `<failure>` elements one case out of step with the `name`
+attributes — trust `run-tests.sh`'s stdout for the failing case name, not the junit pairing.)
 
 An **exit 2 (INDETERMINATE)** from either script is `resourceDatabase.rdb` contention, not a verdict — it happened once
 on `OVT_TEST_PersistenceRoundTripSuite` after Phase 8 and went green on an immediate retry with no code change. Never

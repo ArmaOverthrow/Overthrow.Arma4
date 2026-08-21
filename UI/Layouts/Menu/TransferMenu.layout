@@ -410,7 +410,7 @@ FrameWidgetClass {
                }
                components {
                 SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
-                 m_sActionName "OverthrowTransferQtyOne"
+                 m_sActionName "MenuSelect"
                  m_sLabel "#OVT-Transfer_Add1"
                 }
                }

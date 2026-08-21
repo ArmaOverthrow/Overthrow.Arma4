@@ -269,7 +269,7 @@ class OVT_TransferContext : OVT_TabHostContext
 		if(m_Mode2Action) m_Mode2Action.m_OnActivated.Remove(Mode2);
 		if(m_PrevCategoryAction) m_PrevCategoryAction.m_OnActivated.Remove(PreviousCategory);
 		if(m_NextCategoryAction) m_NextCategoryAction.m_OnActivated.Remove(NextCategory);
-		if(m_Qty1Action) m_Qty1Action.m_OnActivated.Remove(QtyOne);
+		if(m_Qty1Action) m_Qty1Action.m_OnClicked.Remove(QtyOneClicked);
 		if(m_Qty10Action) m_Qty10Action.m_OnActivated.Remove(QtyTen);
 		if(m_QtyAllAction) m_QtyAllAction.m_OnActivated.Remove(QtyAll);
 		if(m_AcceptAction)
@@ -366,7 +366,12 @@ class OVT_TransferContext : OVT_TabHostContext
 		if(m_wQty1Button)
 		{
 			m_Qty1Action = SCR_InputButtonComponent.Cast(m_wQty1Button.FindHandler(SCR_InputButtonComponent));
-			if(m_Qty1Action) m_Qty1Action.m_OnActivated.Insert(QtyOne);
+
+			// Qty1 is bound to MenuSelect so its glyph reads "A / Enter - Add 1", which is what a row
+			// click already does. Subscribing to m_OnActivated would then fire on EVERY MenuSelect in
+			// the menu, on top of the focused row's own m_OnClicked - two adds per press. m_OnClicked
+			// fires only for a real click on THIS button, or MenuSelect while THIS button is focused.
+			if(m_Qty1Action) m_Qty1Action.m_OnClicked.Insert(QtyOneClicked);
 		}
 
 		m_wQty10Button = m_wRoot.FindAnyWidget("Qty10Button");
@@ -1087,6 +1092,23 @@ class OVT_TransferContext : OVT_TabHostContext
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! A list row was activated - a mouse click or MenuSelect on the focused row, both of which arrive
+	//! through the row's single m_OnClicked invoker. Selects the row, then adds one of it to the cart.
+	//! Focus alone must never reach here, or a d-pad walk would fill the cart.
+	//! \param[in] index The row's index in the drawn list.
+	void ActivateListIndex(int index)
+	{
+		SelectListIndex(index);
+
+		// SelectListIndex refuses an out-of-range index; without this the add would land on whatever
+		// row was selected before.
+		if(m_ePane != EOVT_TransferPane.LIST) return;
+		if(m_iListIndex != index) return;
+
+		ChangeQuantity(QTY_SMALL);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! A cart line took focus or was clicked. This is what flips the buttons to Remove.
 	//! \param[in] index The line's index in the cart.
 	void SelectCartIndex(int index)
@@ -1102,6 +1124,21 @@ class OVT_TransferContext : OVT_TabHostContext
 		PaintSelection();
 		RefreshDetails();
 		RefreshActionButtons();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A cart line was activated - the mirror of ActivateListIndex. Selects the line, then removes one
+	//! of it. Focus alone must never reach here.
+	//! \param[in] index The line's index in the drawn cart.
+	void ActivateCartIndex(int index)
+	{
+		SelectCartIndex(index);
+
+		if(m_ePane != EOVT_TransferPane.CART) return;
+		if(m_iCartIndex != index) return;
+
+		// Removing the last of a line destroys this widget; the caller is already deferred a tick.
+		ChangeQuantity(QTY_SMALL);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1374,8 +1411,8 @@ class OVT_TransferContext : OVT_TabHostContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Qty1Button / OverthrowTransferQtyOne.
-	void QtyOne(Widget src, float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
+	//! Qty1Button. Reached from m_OnClicked, not m_OnActivated - see the subscription for why.
+	void QtyOneClicked(SCR_ButtonBaseComponent button)
 	{
 		ChangeQuantity(QTY_SMALL);
 	}

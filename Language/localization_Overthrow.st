@@ -16558,6 +16558,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D2000000021}" {
+   Id "OVT-Transfer_NoSpace"
+   Target_en_us "Not enough room in the vehicle"
+   Comment "Transfer screen checkout refusal - the cart holds more items than the destination's storage can still take. Disables Accept rather than letting the server clamp the purchase and charge for a partial delivery."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2C1D00000014}" {
    Id "OVT-Transfer_DestinationVehicle"
    Target_en_us "Vehicle"

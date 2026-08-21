@@ -34,7 +34,13 @@ class OVT_Component: ScriptComponent
 			return;
 
 		m_Config = OVT_Global.GetConfig();
+
+		// ItemPreviewManagerEntity spawns a throwaway instance to render an icon, and that instance has
+		// NO world - so any OVT_Component on a previewable prefab post-inits with a null world here.
 		ChimeraWorld world = GetOwner().GetWorld();
+		if(!world)
+			return;
+
 		m_Time = world.GetTimeAndWeatherManager();
 	}
 

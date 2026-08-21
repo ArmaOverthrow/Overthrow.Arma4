@@ -127,6 +127,11 @@ class OVT_StorageComponent : OVT_Component
 		if (SCR_Global.IsEditMode())
 			return;
 
+		// An item-preview instance (the real-estate screen renders the warehouse this way) has no world.
+		// It is a throwaway icon, so it gets no ledger, no RplComponent complaint and no resolve.
+		if (!owner || !owner.GetWorld())
+			return;
+
 		m_Ledger = new OVT_StorageLedger();
 
 		// BUG-193 is exactly this failure found late: without an RplComponent the holder has no RplId,

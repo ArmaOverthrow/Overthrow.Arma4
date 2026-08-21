@@ -13,9 +13,10 @@
 //------------------------------------------------------------------------------------------------
 class OVT_PortContext : OVT_TransferContext
 {
-	//! OVT_VehicleRequestComponent.IMPORT_MAX_QUANTITY (:64) is protected, so the cap is mirrored
-	//! here; the server rejects anything above it.
-	protected const int IMPORT_MAX_QUANTITY = 100;
+	//! OVT_VehicleRequestComponent.IMPORT_MAX_QUANTITY is protected, so the cap is mirrored here; the
+	//! server rejects anything above it. It is a sanity bound on one request, NOT the real limit - what
+	//! actually stops an import is the destination's free space, enforced in ValidateCart.
+	protected const int IMPORT_MAX_QUANTITY = 10000;
 
 	//! Mode ids. Import is first, so it titles the screen and is what the port opens on.
 	protected const int MODE_IMPORT = 0;
@@ -233,7 +234,29 @@ class OVT_PortContext : OVT_TransferContext
 		if(m_Economy && m_Cart.TotalValue() > m_Economy.GetPlayerMoney(m_sPlayerID))
 			return "#OVT-CannotAfford";
 
+		// The server clamps a too-large import to what fitted and charges only for that, which reads as
+		// a half-broken purchase. Refusing the whole cart up front is the honest version.
+		int free = FreeSpaceIn(dest.m_Entity);
+		if(free >= 0 && m_Cart.TotalQuantity() > free)
+			return "#OVT-Transfer_NoSpace";
+
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] holder The destination entity.
+	//! \return Items the destination can still take, or -1 when it is unlimited or has no ledger.
+	protected int FreeSpaceIn(IEntity holder)
+	{
+		if(!holder) return -1;
+
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(holder);
+		if(!storage) return -1;
+
+		int capacity = storage.GetCapacity();
+		if(capacity < 0) return -1;
+
+		return Math.Max(0, capacity - storage.GetTotalCount());
 	}
 
 	//------------------------------------------------------------------------------------------------

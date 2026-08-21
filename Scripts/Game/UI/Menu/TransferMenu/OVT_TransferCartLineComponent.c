@@ -155,12 +155,13 @@ class OVT_TransferCartLineComponent : SCR_ScriptedWidgetComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Tells the screen this line was picked.
+	//! Tells the screen this line was picked. Selects it AND removes one from the cart - only the click
+	//! invoker reaches here, never OnLineFocused, so a d-pad walk still just selects.
 	void Activate()
 	{
 		if(!m_Context) return;
 
-		m_Context.SelectCartIndex(m_iIndex);
+		m_Context.ActivateCartIndex(m_iIndex);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -59,9 +59,11 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 	//! rejects an import (the port UI requires 20 m, plus latency/movement slack).
 	protected const float IMPORT_MAX_PORT_DISTANCE = 30;
 
-	//! Upper bound on one import request. Carried from BUG-033: without it a single click could ask the
-	//! server to spawn an unbounded number of prefabs into a car.
-	protected const int IMPORT_MAX_QUANTITY = 100;
+	//! Upper bound on one import request. BUG-033's original reason - a single click asking the server to
+	//! spawn an unbounded number of prefabs into a car - died with the spawn loop: an import is now one
+	//! ledger Add, already clamped by the holder's capacity. What remains is a sanity bound on a
+	//! client-supplied integer, so it is generous rather than a gameplay limit.
+	protected const int IMPORT_MAX_QUANTITY = 10000;
 
 	//------------------------------------------------------------------------------------------------
 	// PUBLIC ENTRY POINTS - client side. Each does the client-side wrapping (null guards, RplId lookup)
@@ -402,10 +404,14 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 	{
 		if(!Replication.IsServer()) return;
 
-		if(qty <= 0 || qty > IMPORT_MAX_QUANTITY) return;
-
 		int playerId = ResolveOwningPlayerId();
 		if(playerId <= 0) return;
+
+		if(qty <= 0 || qty > IMPORT_MAX_QUANTITY)
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
 
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if(!economy) return;

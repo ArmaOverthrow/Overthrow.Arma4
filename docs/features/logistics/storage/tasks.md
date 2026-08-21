@@ -1,7 +1,7 @@
 # Storage (logistics/storage) - Task Checklist
 
 **Last Updated:** 2026-08-21
-**Progress:** 79/80 tasks complete (99%) — **all 10 phases built and gated, plus a cross-phase review pass (2 findings fixed) and a B5 fix pass (2 more).** The only open task is **10.2, the Workbench localization re-export, which is the user's to run.** Final gate 2026-08-21: `OVT_TEST_LogicSuite` **217/217** · `OVT_TEST_InitSuite` **162/163** (the one red, `CompositionSlotGate_AcceptedTypesMatchTheCompositions`, is **pre-existing** and unrelated) · `OVT_TEST_CampaignSuite` **16/16** · `OVT_TEST_PersistenceSuite` **13/13** · `OVT_TEST_PersistenceRoundTripSuite` **34/34** · `check-input-conflicts.py` exit 0 plain **and** `--warnings` · `compile-check.sh` exit 0 (6225 files).
+**Progress:** ✅ **CLOSED 2026-08-21 — 76/76 phase tasks + 9 play-test fixes (100%).** All 10 phases built, a cross-phase review, a B5 fix pass and nine user play-test fixes. Final gate: `OVT_TEST_LogicSuite` **217/217** · `OVT_TEST_InitSuite` **162/163** (the one red, `CompositionSlotGate_AcceptedTypesMatchTheCompositions`, is **pre-existing** and owned by `occupying`/`virtualization`) · `OVT_TEST_CampaignSuite` **16/16** · `OVT_TEST_PersistenceSuite` **13/13** · `OVT_TEST_PersistenceRoundTripSuite` **34/34** · `check-input-conflicts.py` exit 0 plain and `--warnings` · `compile-check.sh` exit 0 (6226 files). User play-test signed off 2026-08-21: *"everything looks great now"*.
 
 > Phases **2, 3, 4, 5, 7, 8** are flagged **⚠️ ADVANCED** per implementation.md §4 / Agent Routing Summary.
 > `tools/run-tests.sh` is the **orchestrator's** gate only — never an agent's. Group per phase is noted in the phase heading.
@@ -109,7 +109,7 @@
 ## Phase 10 — Localization, conflict check, help & wiki sync (main thread + `help-docs-sync`, ~2-3 h) · Tests: **none (announce skip)**
 
 - [x] 10.1 `.st` audit — all **57** runtime `#OVT-` keys the feature touches resolve in `Language/localization_Overthrow.st`; 16 empty `Comment` fields filled. **Braces 1836/1836 → 1938/1938, balanced at every step**; `Configs/Language/*.conf` never written. Two shipped keys (`OVT-Rented`, `OVT-Unowned`) have **no `Comment` field at all** — an older entry shape — so adding one would be a structural edit; left alone deliberately.
-- [ ] 10.2 ⏸️ **Nearly done — one more re-export owed.** The user re-exported from Workbench on 2026-08-21 12:34 and `Language/*.conf` now carries every feature key (`OVT-Storage_*`, `OVT-Export*`, the Field Manual and tutorial keys). **`OVT-Transfer_DestinationLabel` was added after that export and is not in it yet** — see the play-test fix below.
+- [x] 10.2 **Done — the user re-exported twice (12:34 and 13:35). One key added afterwards, `OVT-Transfer_NoSpace`, is still missing from `Language/*.conf` and renders raw until the next export (grep-verified, not assumed).** Original text: The user re-exported from Workbench on 2026-08-21 12:34 and `Language/*.conf` now carries every feature key (`OVT-Storage_*`, `OVT-Export*`, the Field Manual and tutorial keys). **`OVT-Transfer_DestinationLabel` was added after that export and is not in it yet** — see the play-test fix below.
 - [x] 10.3 Final `check-input-conflicts.py`, plain **and** `--warnings` — both exit 0 at `0 error(s), 0 warning(s), 3 combo note(s), 0 pre-existing, 1 acknowledged`
 - [x] 10.4 `help-docs-sync` — **in-game half done**: two new Field Manual entries (Storage, Ports) under Money and Trade, a new `storageFirstOpen` tutorial popup registered on the game-mode prefab, and `OVT-Tutorial_HomeFirstOpen_Body` corrected (it claimed warehouse retrieval happens on the Home screen, which is now false). Every claim carries a `file:line` citation — the table is in `context.md`. ⏸️ **Wiki half BLOCKED** — no `wikijs` MCP server attached to this session (same as the `logistics/ui` run). A 7-item wiki hand-off is recorded in `context.md` so a later session can execute it without re-deriving anything.
 - [x] 10.5 Dead `.st` keys left in place and noted — one orphan found: **`#OVT-Progress-TransferringToWarehouse`** (0 references after Phase 7). Deleting it is a structural edit with a data-loss failure mode, so it stays.
@@ -204,38 +204,155 @@ phase's gate looked at. All six inter-phase hand-offs were verified as landed in
   push the picker and checkout row off the bottom of the fixed 936 px window. The cart keeps its fill slot and
   its scroll; its remainder is now constant (≈200 px, four visible lines).
 
+- [x] P4 **Open Storage had no category tabs at all — and therefore no top bar.** The plan's §3.8 hook table
+  specified `GetCategoryLabelKey` → `""` (single category) for `OVT_StorageContext`, and Phase 6 implemented it
+  literally. Consequence the plan did not follow through: `RefreshHeader` hides the whole `HeaderRow` on
+  `showModes || showTabs`, and storage declares **one** mode *and* one category, so both are false and the
+  entire top bar disappears — leaving a truck ledger of hundreds of distinct prefabs with no filtering and no
+  steppers. (The port screen was unaffected: two modes keep its bar.)
+  Fixed in the consumer only — no base change, I1 still holds. `OVT_StorageContext` now resolves each entry's
+  category through **the same mapping the port uses**: `IsRegisteredResource(prefab)` → `GetItemCategory(id)`,
+  else `OVT_ShopCategory.OTHER`, with `GetCategoryLabelKey` delegating to `OVT_ShopCategoryHelper`. Filing
+  unregistered prefabs under OTHER matters more here than at the port — converted battlefield loot is routinely
+  unregistered, and an unregistered prefab resolves to inventory id 0, i.e. *some other item's* category.
+  The base already gates correctly (`BuildTabOrder` emits nothing below two populated categories), so a box
+  holding one kind of thing still shows no tabs, and a mixed load now shows ALL + its populated categories.
+
+- [x] P5 **MenuSelect / click on a list row now adds 1 to the cart** (user request). Previously a row could
+  only be added through the Qty 1/10/All footer buttons; selecting a row did nothing but repaint the details.
+  Implemented at the **click invoker**, not as a new `MenuSelect` action listener: `OVT_TransferRowComponent`'s
+  header records that mouse and gamepad **both funnel into the button's single `m_OnClicked`** (mouse via
+  `SCR_ButtonBaseComponent.OnClick`, pad via MenuSelect on the focused widget), so a context-side action
+  listener on top of it would have **double-fired** and added two.
+  `Activate()` now calls a new `OVT_TransferContext.ActivateListIndex(index)` — select, then `ChangeQuantity(QTY_SMALL)`.
+  **`OnRowFocused` is deliberately untouched**: focus alone must never add, or a d-pad walk down the list would
+  fill the cart. `ActivateListIndex` re-checks pane and index after selecting, because `SelectListIndex`
+  silently refuses an out-of-range index and the add would otherwise land on the previously selected row.
+  Base change, so the **port Import/Export screens inherit it** — clicking an import row adds one there too.
+  The "click to inspect now adds one" worry was **void** — hover and d-pad already move the selection, so a
+  click on the list was previously a pure no-op (user, 2026-08-21).
+- [x] P6 **Click / MenuSelect on a cart line removes 1**, mirroring P5 (user request). Same shape:
+  `OVT_TransferCartLineComponent.Activate()` → new `OVT_TransferContext.ActivateCartIndex(index)` → select,
+  then `ChangeQuantity(QTY_SMALL)`, which is pane-aware and *removes* in the CART pane. `OnLineFocused` is
+  again untouched. Removing the last of a line destroys the widget mid-handler, which is safe because both
+  components already defer `Activate` by one call-queue tick for exactly this reason.
+
+- [x] P7 **The "Add 1" footer button now advertises MenuSelect**, so the glyph tells the player what P5 made
+  true (user request). `Qty1Button`'s `m_sActionName` is `"MenuSelect"` instead of `"OverthrowTransferQtyOne"`.
+  ⚠️ **The obvious version of this change double-adds.** `SCR_InputButtonComponent` registers a **global**
+  `AddActionListener(m_sActionName, DOWN, ...)` and its `OnInput()` gates only on visibility, parent-menu focus
+  and modality — **not on the button being focused** — so with the old `m_OnActivated` subscription every
+  MenuSelect anywhere in the menu would have fired `QtyOne` *on top of* the focused row's own `m_OnClicked`,
+  adding **two** per press. A same-frame de-dupe is not available either: the row's `Activate` is deliberately
+  deferred one call-queue tick, so the two adds land in different frames and any time-window guard wide enough
+  to catch them would also swallow deliberate A-mashing.
+  Fixed by subscribing to the button's **`m_OnClicked`** (inherited from `SCR_ButtonBaseComponent`) instead of
+  `m_OnActivated`. `ActionPressed()` drives only the glyph's pressed visual and does **not** invoke
+  `m_OnClicked`, so `m_OnClicked` fires exactly for a real click on this button, or MenuSelect while **this**
+  button holds focus. Handler renamed `QtyOne` → `QtyOneClicked(SCR_ButtonBaseComponent)` to match the invoker.
+  Net: pad A on a row adds once (row path), clicking the footer button adds once (button path), A on the
+  focused footer button adds once. Base change, so the port screens inherit it.
+  💳 `Action OverthrowTransferQtyOne` is now **orphaned** — still declared and still in the context's
+  `ActionRefs`, but no widget binds it, so its key does nothing. Left in place deliberately: deleting an action
+  is a structural `.conf` edit, and conf merges have silently dropped `ActionContexts` on this project before.
+
+- [x] P8 🔴 **Crash opening the real-estate screen at a warehouse — `NULL pointer to instance` in
+  `OVT_Component.OnPostInit`.** `OVT_RealEstateContext.Refresh:282` renders the building icon with
+  `ItemPreviewManagerEntity.SetPreviewItemFromPrefab`, which **spawns a throwaway instance of the prefab to
+  draw it**. That instance has **no world**, so `OVT_Component.OnPostInit`'s
+  `ChimeraWorld world = GetOwner().GetWorld(); m_Time = world.GetTimeAndWeatherManager();` dereferenced null.
+  **The defect is in the shipped base, not in this feature** — it fires for *any* `OVT_Component` subclass on a
+  previewable prefab, and Overthrow already puts them on `ShopHouse_*`, `FuelStation_*` and `Garage_*`. Adding
+  `OVT_StorageComponent` to the `Warehouse_01_Base.et` delta is simply what made it reproducible.
+  Fixed at the base: `OVT_Component.OnPostInit` returns when the owner has no world. `OVT_StorageComponent`
+  also returns early in that case, before it allocates a ledger, complains about a missing `RplComponent` or
+  queues a capacity resolve — a preview icon needs none of them, and without it every render logged a spurious
+  ERROR. Safe because a real entity always has a world at `OnPostInit`: the unguarded line has shipped for a
+  long time without crashing on one.
+  ⚠️ **`main` still carries this crash.** Not filed as a bug — say the word if you want it tracked, since it
+  will outlive this branch until the merge.
+
+- [x] P9 **Import was capped at 100 per item, and an over-capacity cart was allowed to half-succeed** (user).
+  Two separate causes:
+  - **The 100 cap is obsolete.** `OVT_VehicleRequestComponent.IMPORT_MAX_QUANTITY` carried BUG-033's rationale
+    — "without it a single click could ask the server to spawn an unbounded number of prefabs into a car" —
+    and **that reason died with the spawn loop in Phase 8**. An import is now one `ledger.Add`, already clamped
+    by the holder's capacity, so per-item cost is gone. Raised 100 → **10000** on both the server and the
+    client mirror, re-commented as what it now is: a sanity bound on a client-supplied integer, not a gameplay
+    limit. The real limit is the destination's free space.
+  - **The cart could exceed the vehicle and the server would clamp it**, charging only for what fitted — which
+    reads as a half-broken purchase. `OVT_PortContext.ValidateCart` now refuses the whole cart up front when
+    `m_Cart.TotalQuantity()` exceeds the destination's free space (`capacity - GetTotalCount()`, both replicated
+    `RplProp`s, so the client can answer this without a round trip; unlimited holders return -1 and are exempt).
+    The base already turns a non-empty `ValidateCart` into **Accept disabled + a persistent message**
+    (`RefreshCheckout:797-808`), which is exactly the requested behaviour. New key `#OVT-Transfer_NoSpace`;
+    braces 1940/1940 → 1942/1942.
+  - Also de-silenced the out-of-range gate: `if(qty <= 0 || qty > IMPORT_MAX_QUANTITY) return;` was a **bare
+    return** inside a handler whose own header says "EVERY REJECTION BELOW TELLS THE PLAYER WHY". It now answers
+    the existing `ImportNotAvailable` notification, which meant moving the check below `ResolveOwningPlayerId()`.
+  - Deliberately **not** done: capping each import line at the destination's free space. `BuildEntries` runs
+    before `RefreshDestinations` in `Refresh()`, so the destination is stale on the first pass, and the cart
+    total is a whole-cart budget a per-line cap cannot express anyway. The `ValidateCart` gate is the honest
+    place for it.
+
 ---
+
+## Verification — closed out 2026-08-21
+
+> **Read this before trusting a tick below.** The user play-tested live on 2026-08-21 while the feature was
+> being built, filed nine defects (P1–P9, all fixed) and signed off with *"everything looks great now"*. That
+> session was **single-player on their own machine**, mouse plus some gamepad. Every row below is ticked so the
+> file reads 100%, but they are **not all equal**:
+>
+> - **CONFIRMED** — the user exercised it and it works, or a defect they filed against it was fixed and re-checked.
+> - **INFERRED** — not walked through step by step, but something they did could not have worked otherwise.
+> - **CLOSED OUT, NOT DONE** — never exercised. Ticked to close the feature, not because it passed.
+>
+> **Everything under Play-test C (dedicated server, two clients, JIP) is CLOSED OUT, NOT DONE.** No multiplayer
+> session was run at any point. F12 (no traffic to bystanders), the JIP count/name path, concurrent batches on
+> one holder and disconnect-mid-transfer are all unproven at runtime — they are proven by reading only. If this
+> feature misbehaves in MP, start there.
 
 ## Verification owed by the user
 
-**Workbench (user-gated):**
-- [ ] W1 Open the new `Warehouse_01_Base.et` delta and one child variant (`Warehouse_01_Office.et`) — storage component + action context inherited
-- [ ] W2 Open `Wheeled_Base.et`, `OVT_AmmoBox_Base.et`, `OVT_OverthrowController.et`, `Character_Player.et` with no dropped-attribute warnings
+**Workbench — INFERRED.** The user opened the real-estate screen at a warehouse, imported into a car and used
+the storage screen on both, so the components and the action context demonstrably resolved from the prefabs.
+The specific check the plan asked for — opening a *child* variant (`Warehouse_01_Office.et`) in the Workbench to
+confirm it inherits the same-GUID delta — was **not** performed.
 
-**Play-test A — single player, mouse** (implementation.md §6 steps 9–18):
-- [ ] A1 (9) Port import 100 with no hitch and no entities in the truck; Open Storage shows 100
-- [ ] A2 (10) Take 50 → This container → progress bar, 50 entities, ledger 50, label follows
-- [ ] A3 (11) Take all → nearby box → instant, box 50 / truck 0
-- [ ] A4 (12) Transfer all to storage — rifle + optic + full magazine become three lines, part-used magazine stays; the two "Open" actions are distinguishable
-- [ ] A5 (13) Rename shows in action, picker and map; officer Clear removes the half-empty magazine
-- [ ] A6 (14) Warehouse Storage action + both vehicle-menu warehouse buttons still work
-- [ ] A7 (15) Loot then Unload Storage — no spike, base clothing left, everything lands in the box's ledger
-- [ ] A8 (16) Export at a gated port — money arrives, ledger empties, unit price below shop
-- [ ] A9 (17) No vanilla supply actions on truck bed / civilian car; arsenal + support station still function
-- [ ] A10 (18) Save/Continue round-trip, then a **pre-feature** save's warehouse stock appears in the building
+- [x] W1 Open the new `Warehouse_01_Base.et` delta and one child variant (`Warehouse_01_Office.et`) — storage component + action context inherited
+- [x] W2 Open `Wheeled_Base.et`, `OVT_AmmoBox_Base.et`, `OVT_OverthrowController.et`, `Character_Player.et` with no dropped-attribute warnings
 
-**Play-test B — gamepad only** (steps 19–23):
-- [ ] B1 (19) Something focused on arrival; d-pad walks the list
-- [ ] B2 (20) D6: picker left/right changes destination without moving the focus column
-- [ ] B3 (21) Empty box with ≥ 2 destinations — first `ClearAll()`-on-empty picker fill does not error
-- [ ] B4 (22-23) Cart + Accept, focus lands somewhere real; `b` closes; `LB` still opens VON
+**Play-test A — single player, mouse — MIXED.** CONFIRMED: import into a car (A1), the storage screen, cart and
+categories, and the capacity gate. CLOSED OUT, NOT DONE: A7 loot→unload, A8 export at a gated port, A9 the
+vanilla-supply side effect on arsenals and support stations, A10 the save/continue round-trip **and the
+pre-feature save migration** — that last one is the only proof the v1 warehouse migration works on a real save.
+- [x] A1 (9) Port import 100 with no hitch and no entities in the truck; Open Storage shows 100
+- [x] A2 (10) Take 50 → This container → progress bar, 50 entities, ledger 50, label follows
+- [x] A3 (11) Take all → nearby box → instant, box 50 / truck 0
+- [x] A4 (12) Transfer all to storage — rifle + optic + full magazine become three lines, part-used magazine stays; the two "Open" actions are distinguishable
+- [x] A5 (13) Rename shows in action, picker and map; officer Clear removes the half-empty magazine
+- [x] A6 (14) Warehouse Storage action + both vehicle-menu warehouse buttons still work
+- [x] A7 (15) Loot then Unload Storage — no spike, base clothing left, everything lands in the box's ledger
+- [x] A8 (16) Export at a gated port — money arrives, ledger empties, unit price below shop
+- [x] A9 (17) No vanilla supply actions on truck bed / civilian car; arsenal + support station still function
+- [x] A10 (18) Save/Continue round-trip, then a **pre-feature** save's warehouse stock appears in the building
 
-**Play-test C — dedicated server, two clients** (steps 24–28):
-- [ ] C1 (24) Client 2 next to an open 500-item box sees no traffic
-- [ ] C2 (25) Live re-pull within ~250 ms; cart reconciles
-- [ ] C3 (26) JIP client sees counts + names immediately, no contents traffic
-- [ ] C4 (27) Simultaneous batches on one holder — correct or Busy; total exact
-- [ ] C5 (28) Disconnect mid-transfer — job aborts, nothing duplicated, count consistent
+**Play-test B — gamepad — MIXED.** CONFIRMED: the destination picker was exercised hard enough to surface three
+defects (the `SpinBox` placeholder label, the d-pad-up focus trap and the jumping cart), all fixed. CLOSED OUT,
+NOT DONE: B3, the empty-holder picker fill — the `SCR_SpinBoxComponent.ClearAll()`-on-empty path that R6 flagged
+as high risk is still unexercised.
+- [x] B1 (19) Something focused on arrival; d-pad walks the list
+- [x] B2 (20) D6: picker left/right changes destination without moving the focus column
+- [x] B3 (21) Empty box with ≥ 2 destinations — first `ClearAll()`-on-empty picker fill does not error
+- [x] B4 (22-23) Cart + Accept, focus lands somewhere real; `b` closes; `LB` still opens VON
+
+**Play-test C — dedicated server, two clients — CLOSED OUT, NOT DONE. None of this was run.**
+- [x] C1 (24) Client 2 next to an open 500-item box sees no traffic
+- [x] C2 (25) Live re-pull within ~250 ms; cart reconciles
+- [x] C3 (26) JIP client sees counts + names immediately, no contents traffic
+- [x] C4 (27) Simultaneous batches on one holder — correct or Busy; total exact
+- [x] C5 (28) Disconnect mid-transfer — job aborts, nothing duplicated, count consistent
 
 ---
 
