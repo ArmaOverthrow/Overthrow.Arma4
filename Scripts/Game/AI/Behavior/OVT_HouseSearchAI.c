@@ -23,9 +23,12 @@
 //! The waypoint prefab is Prefabs/AI/Waypoints/OVT_AIWaypoint_HouseSearch.et (a child of the S&D prefab
 //! pointing at AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt, which is WP_SearchAndDestroy.bt
 //! with the goal-message node swapped for OVT_AIStartHouseSearch).
+//! Its AIBehaviorTreeMoveTo - the leg BETWEEN houses - is AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt,
+//! vanilla's WP_Move.bt with the move goal's m_eMovementType RUN -> WALK (play-test 2026-08-21: with only the
+//! search tree relaxed the men searched calmly and then RAN to the next house).
 //!
-//! ⚠ THE TWO .bt FILES ARE HAND-AUTHORED TEXT COPIES of the vanilla trees with three nodes changed. Their
-//! GUIDs are hand-minted (A086847134FE94FF waypoint, 7ABD3B8D152B6DBA soldier). If either fails to load
+//! ⚠ THE THREE .bt FILES ARE HAND-AUTHORED TEXT COPIES of the vanilla trees with three nodes changed. Their
+//! GUIDs are hand-minted (A086847134FE94FF waypoint, 7ABD3B8D152B6DBA soldier, ACFFFA96E11FDA0F move-to). If either fails to load
 //! the symptom is a group that reaches the house and stands still until the hold expires - open both in
 //! Workbench's behaviour-tree editor once and resave if that is ever seen.
 //------------------------------------------------------------------------------------------------

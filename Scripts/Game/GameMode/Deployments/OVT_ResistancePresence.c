@@ -53,7 +53,7 @@
 //! objection deserves an answer rather than a shrug. It said an agent sweep "would cost a sphere
 //! query on every behavior module of every deployment on the map every ten seconds". That is true and
 //! it is affordable: the query is bounded by the CONTEST RADIUS (150-320 m, not the map), it runs on
-//! the DYNAMIC layer only, it stops at the first hit rather than collecting, and the modules that ask
+//! a bounded sphere rather than the map, and the modules that ask
 //! are a handful of live objective operations plus a reinforcement check that runs once a minute. The
 //! alternative - four registries OR-ed together at five call sites, one of which does not exist yet -
 //! costs more in defects than this costs in queries.
@@ -68,6 +68,18 @@ class OVT_ResistancePresence
 	//! The faction the running search is looking for. Resolved once per search rather than once per
 	//! entity - the lookup walks the faction manager and the query may see hundreds of entities.
 	protected static Faction s_SearchFaction;
+
+	//! Where the search was centred, so a hit can report how far out it was.
+	protected static vector s_vSearchCentre;
+
+	//! WHAT CLOSED THE GATE, in words, from the last search that found something.
+	//!
+	//! 🔴 THIS EXISTS BECAUSE A SILENTLY-REFUSING GATE COSTS PLAY-TEST ROUNDS. A rule that answers only
+	//! "yes, held" tells a reader nothing about WHY, and "why" is the whole question when a gate turns
+	//! out to be permanently closed - the author lost reinforcement at four towns to exactly that and
+	//! nothing in any log said which character was holding the ground or how far away it was. One string
+	//! per search costs nothing and answers it outright.
+	protected static string s_sLastHold;
 
 	//------------------------------------------------------------------------------------------------
 	//! IS ANY LIVING RESISTANCE FORCE STANDING INSIDE THIS CIRCLE?
@@ -100,10 +112,15 @@ class OVT_ResistancePresence
 			return false;
 
 		s_bFound = false;
+		s_sLastHold = "";
+		s_vSearchCentre = position;
 
-		// DYNAMIC only: characters are dynamic entities, and asking for ALL would walk every tree, wall
-		// and rock inside the radius to find them.
-		world.QueryEntitiesBySphere(position, radius, null, FilterLivingResistance, EQueryEntitiesFlags.DYNAMIC);
+		// ⚠ ALL, NOT DYNAMIC, AND THE CHANGE WAS DELIBERATE (2026-08-22). DYNAMIC is documented as
+		// "entities without TFL_STATIC" and a character does qualify, so it SHOULD have worked - but
+		// every other character query in this mod (OVT_WorldUtils.GetNearbyBodiesAndWeapons, the base
+		// controller's parking sweep) passes ALL, and while this gate was under suspicion for refusing
+		// forever it was one variable that could be removed for free rather than argued about.
+		world.QueryEntitiesBySphere(position, radius, null, FilterLivingResistance, EQueryEntitiesFlags.ALL);
 
 		s_SearchFaction = null;
 
@@ -111,9 +128,15 @@ class OVT_ResistancePresence
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The query filter. Returns FALSE once a hit is found, which is how BaseWorld's query is told to
-	//! stop walking - this is a "does one exist" question and there is nothing to gain from counting
-	//! the rest.
+	//! The query filter.
+	//!
+	//! ⚠ THE RETURN VALUE IS NOT "keep walking", AND AN EARLIER VERSION OF THIS COMMENT CLAIMED IT WAS.
+	//! BaseWorld's filter answers whether an entity is passed on to the addEntity callback, and this
+	//! file's own model for it - OVT_WorldUtils.FilterSpawnPointEntities - returns false for EVERYTHING
+	//! while still collecting every match, which is the proof that false does not terminate the walk.
+	//! The s_bFound short-circuit at the top is therefore the only saving there is: the sphere is still
+	//! walked in full and each remaining entity costs one bool test. Correctness was never affected; the
+	//! "stops at the first hit" claim was simply wrong and is the kind of thing that gets believed.
 	//! \param[in] entity One candidate inside the sphere.
 	//! \return Whether the query should keep going.
 	protected static bool FilterLivingResistance(IEntity entity)
@@ -141,6 +164,26 @@ class OVT_ResistancePresence
 
 		s_bFound = true;
 
+		// Named, not counted. "Something resistance-flavoured is nearby" is what the caller already knows;
+		// what a reader needs is which entity, whose faction it thinks it is, and how far out - because
+		// the three failure modes are a body nobody remembers, a faction key that matches more than it
+		// should, and a radius that is simply too big.
+		int metres = Math.Round(vector.Distance(character.GetOrigin(), s_vSearchCentre));
+
+		string factionKey = "no faction key";
+		Faction held = affiliation.GetAffiliatedFaction();
+		if (held)
+			factionKey = held.GetFactionKey();
+
+		s_sLastHold = string.Format("%1 (faction %2) at %3 m", character.ClassName(), factionKey, metres.ToString());
+
 		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return What closed the gate on the last search that found something, or an empty string.
+	static string GetLastHold()
+	{
+		return s_sLastHold;
 	}
 }

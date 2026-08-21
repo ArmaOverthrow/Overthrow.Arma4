@@ -99,12 +99,32 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	[Attribute(defvalue: "90000", desc: "Milliseconds after this deployment last LOST MEN during which it refuses to buy them back. Covers an attacker too far away for the proximity gate to see - a marksman, a mortar. The force is NOT cancelled; the rebuy is retried once the cooldown expires. 0 disables this gate")]
 	float m_fContactCooldown;
 	
+	//! WHY THE LAST REINFORCEMENT DECISION WENT THE WAY IT DID, so the line is printed once per CHANGE
+	//! rather than once per check. See DescribeReinforcementDecision().
+	protected int m_iLastDecision = REBUY_DECISION_UNKNOWN;
+
 	//! World time this deployment was last seen to have LOST men, or 0 when it never has.
 	protected float m_fLastContactTime;
 
 	//! The force's total survivor count at the previous sample, or -1 before the first one. The DIFF is
 	//! the casualty signal - see SampleCasualties().
 	protected int m_iLastAliveSample = -1;
+
+	//! The decisions DescribeReinforcementDecision() distinguishes. Plain ints rather than an enum
+	//! because this is a log latch, not a contract.
+	static const int REBUY_DECISION_UNKNOWN = 0;
+	static const int REBUY_DECISION_HELD = 1;
+	static const int REBUY_DECISION_CONTACT = 2;
+	static const int REBUY_DECISION_PROCEEDING = 3;
+
+	//! ⚠ THE LAST THREE ARE NOT THIS ROUND'S GATES, AND THAT IS THE POINT. CheckReinforcement can decline
+	//! for reasons that predate both of them - no module is actually short, the faction cannot pay, or
+	//! the deployment sits inside a suppressed battle area - and every one of those was ALSO silent. A
+	//! diagnostic that covered only the new gates would have sent the next reader hunting them while the
+	//! real refusal was one of these.
+	static const int REBUY_DECISION_NOT_SHORT = 4;
+	static const int REBUY_DECISION_UNAFFORDABLE = 5;
+	static const int REBUY_DECISION_SUPPRESSED = 6;
 
 	protected float m_fLastCheckTime;
 	protected float m_fLastReinforcementTime;
@@ -210,23 +230,44 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		}
 		
 		// Check each spawning module for reinforcement needs
-		// 🔴 NOT WHILE SOMEBODY IS STANDING IN IT, AND NOT WHILE IT IS STILL BEING SHOT AT. Two
-		// independent gates, OR-ed: see m_fNoRebuyZoneMultiple and m_fContactCooldown for the play-tests
-		// this closes. Deliberately checked here, AFTER the condition evaluation above, so that a
-		// deployment whose conditions have genuinely failed is still torn down while a player is present
-		// - refusing to REBUY is not the same as refusing to DIE, and holding a dead deployment alive
-		// because somebody is nearby would strand it.
-		if (IsRebuyBlockedByDefender() || IsRebuyBlockedByContact())
+
+		
+		bool held = IsRebuyBlockedByDefender();
+		bool inContact = false;
+		if (!held)
+			inContact = IsRebuyBlockedByContact();
+
+		if (held || inContact)
+		{
+			int decision = REBUY_DECISION_CONTACT;
+			if (held)
+				decision = REBUY_DECISION_HELD;
+
+			if (decision != m_iLastDecision)
+			{
+				m_iLastDecision = decision;
+
+				Print(string.Format("[Overthrow] Reinforcement: %1", DescribeReinforcementDecision(decision)), LogLevel.NORMAL);
+			}
+
 			return;
+		}
 
 		bool anyReinforced = false;
+		bool anyShort = false;
+		bool anyAffordable = false;
+
 		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
 		{
 			if (ShouldReinforceModule(spawningModule))
 			{
+				anyShort = true;
+
 				int missingUnits = GetMissingUnitsCount(spawningModule);
 				if (missingUnits > 0 && CanAffordReinforcement(spawningModule, missingUnits))
 				{
+					anyAffordable = true;
+
 					if (TryReinforceModule(spawningModule, missingUnits))
 					{
 						anyReinforced = true;
@@ -234,7 +275,26 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 				}
 			}
 		}
-		
+
+		// The rest of the refusal chain, reported on the same latch as the two gates above. See the
+		// REBUY_DECISION_* block for why the pre-existing reasons are covered too.
+		int outcome = REBUY_DECISION_PROCEEDING;
+		if (!anyShort)
+			outcome = REBUY_DECISION_NOT_SHORT;
+		else if (!anyAffordable)
+		{
+			outcome = REBUY_DECISION_UNAFFORDABLE;
+			if (IsBattleSuppressed())
+				outcome = REBUY_DECISION_SUPPRESSED;
+		}
+
+		if (outcome != m_iLastDecision)
+		{
+			m_iLastDecision = outcome;
+
+			Print(string.Format("[Overthrow] Reinforcement: %1", DescribeReinforcementDecision(outcome)), LogLevel.NORMAL);
+		}
+
 		if (anyReinforced)
 		{
 			m_fLastReinforcementTime = GetGame().GetWorld().GetWorldTime();
@@ -242,6 +302,80 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//------------------------------------------------------------------------------------------------
+	//! ONE LINE THAT SETTLES "why is this thing not reinforcing".
+	//!
+	//! It prints the NUMBERS BEHIND EACH GATE rather than its verdict, because a verdict is what was
+	//! already available and it is what proved useless: "held" does not say by what or how far out, and
+	//! "in contact" does not say whether the cooldown is nearly over or being re-armed every tick. The
+	//! three shapes a reader is looking for are a radius that is too big, a faction key matching more
+	//! than it should, and a stamp that never expires - and each of them is visible here on sight.
+	//! \param[in] decision One of the REBUY_DECISION_* values.
+	//! \return The line, without the log prefix.
+	protected string DescribeReinforcementDecision(int decision)
+	{
+		string name = "unknown deployment";
+		if (m_ParentDeployment)
+			name = m_ParentDeployment.GetDeploymentName();
+
+		int radius = Math.Round(ResolveNoRebuyRadius());
+
+		if (decision == REBUY_DECISION_HELD)
+		{
+			string what = OVT_ResistancePresence.GetLastHold();
+			if (what == "")
+				what = "something the search did not name";
+
+			return string.Format("'%1' will NOT rebuy: the ground is held within %2 m - %3", name, radius.ToString(), what);
+		}
+
+		if (decision == REBUY_DECISION_CONTACT)
+		{
+			int since = Math.Round((GetGame().GetWorld().GetWorldTime() - m_fLastContactTime) / 1000);
+			int cooldown = Math.Round(m_fContactCooldown / 1000);
+
+			return string.Format("'%1' will NOT rebuy: %2 s since it last lost men, cooldown is %3 s (force strength %4)",
+				name, since.ToString(), cooldown.ToString(), m_iLastAliveSample.ToString());
+		}
+
+		if (decision == REBUY_DECISION_NOT_SHORT)
+			return string.Format("'%1' is not rebuying: no spawning module reports its force eliminated, so there is nothing to buy", name);
+
+		if (decision == REBUY_DECISION_SUPPRESSED)
+			return string.Format("'%1' will NOT rebuy: it is inside a suppressed battle area - nothing may materialise there while the QRF is engaged, whatever the faction can afford", name);
+
+		if (decision == REBUY_DECISION_UNAFFORDABLE)
+		{
+			int pool = -1;
+			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+			if (manager && m_ParentDeployment)
+				pool = manager.GetFactionResources(m_ParentDeployment.GetControllingFaction());
+
+			return string.Format("'%1' will NOT rebuy: its force IS eliminated and both gates are clear, but no module could be afforded - the faction pool holds %2. Either the pool is short or the module has reinforcement switched off",
+				name, pool.ToString());
+		}
+
+		return string.Format("'%1' IS rebuying: nobody holding within %2 m, out of the contact cooldown, force strength %3",
+			name, radius.ToString(), m_iLastAliveSample.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ THE ONE REFUSAL INSIDE CanReinforce() THAT IS NOT ABOUT MONEY, asked separately so the log can
+	//! tell "the faction is broke" apart from "nothing may spawn here at all". They want completely
+	//! different responses from a server owner and the old code reported neither.
+	//! \return True when a battle is suppressing materialisation at this deployment.
+	protected bool IsBattleSuppressed()
+	{
+		if (!m_ParentDeployment)
+			return false;
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+			return false;
+
+		return manager.IsBattleSuppressedAt(m_ParentDeployment.GetPosition(), m_ParentDeployment.GetControllingFaction());
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! THE REBUY RADIUS IN METRES, derived from the base restricted zone rather than typed.
 	//!

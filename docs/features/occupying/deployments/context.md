@@ -720,7 +720,14 @@ from a flag:
 
 ### Verified / owed
 
-- `compile-check.sh` OK; Init `…_HouseSearchWaypointResolves` (new) green; no tree-parse warnings in the run log.
+- **Follow-up the same evening (author: "thats all working. only thing is they run between the waypoints still"):**
+  the leg BETWEEN houses is not the search tree at all - it is the waypoint prefab's `AIBehaviorTreeMoveTo`,
+  vanilla `WP_Move.bt`, whose move goal node authors `m_eMovementType RUN` (`:100`). Vanilla's only WALK
+  waypoint tree is `WP_Patrol.bt`, a full waypoint tree that would complete the waypoint on arrival, so a third
+  text copy was authored: `AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt` (`WP_Move.bt`, RUN →
+  WALK, GUID `ACFFFA96E11FDA0F`) and set as the prefab's `AIBehaviorTreeMoveTo`. Init case extended to load it.
+- `compile-check.sh` OK; Init `…_HouseSearchWaypointResolves` green (three trees load by GUID); no tree-parse
+  warnings in the run log. Author confirmed the search posture itself is right in play.
 - ⚠ **Play-test owed**: posture (stand/walk/weapon down), that they still go inside, and whether the 15 s dwell
   reads as "having a look". Author to open both `.bt` files in the BT editor once and resave (the files are
   text copies and have never been through the editor).

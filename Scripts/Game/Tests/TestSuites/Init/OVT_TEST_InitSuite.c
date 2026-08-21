@@ -13171,7 +13171,8 @@ class OVT_TEST_Init_Deployments_DefenseFundingLandsInThePool : SCR_AutotestCaseB
 
 //------------------------------------------------------------------------------------------------
 //! The relaxed house-search waypoint is WIRED END TO END: the game-mode prefab authors it, it spawns as a
-//! timed Search & Destroy waypoint, and BOTH hand-authored behaviour trees are registered resources.
+//! timed Search & Destroy waypoint, and all THREE hand-authored behaviour trees (waypoint, soldier, move-to) are
+//! registered resources.
 //!
 //! WHY THE TREES ARE THE CLAIM. OVT_AIWaypoint_HouseSearch.et, WP_HouseSearch.bt and HouseSearch.bt were
 //! written as TEXT with hand-minted GUIDs and a .meta whose resource class (BehaviorTreeResourceClass) was
@@ -13192,6 +13193,7 @@ class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBa
 {
 	static const ResourceName WAYPOINT_TREE = "{A086847134FE94FF}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt";
 	static const ResourceName SOLDIER_TREE = "{7ABD3B8D152B6DBA}AI/BehaviorTrees/Overthrow/Soldier/HouseSearch.bt";
+	static const ResourceName MOVE_TO_TREE = "{ACFFFA96E11FDA0F}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt";
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -13230,6 +13232,13 @@ class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBa
 			return true;
 		}
 
+		Resource moveToTree = Resource.Load(MOVE_TO_TREE);
+		if (!moveToTree || !moveToTree.IsValid())
+		{
+			SetFailure("The move-to tree '%1' does not load - the group would fall back to nothing for the leg between houses", MOVE_TO_TREE);
+			return true;
+		}
+
 		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
 		AIWaypoint waypoint = config.SpawnHouseSearchWaypoint(position);
 		if (!waypoint)
@@ -13260,7 +13269,7 @@ class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBa
 			return true;
 		}
 
-		Print("The house-search waypoint is authored on the game mode, spawns as a timed Search & Destroy waypoint, and both Overthrow behaviour trees are registered resources");
+		Print("The house-search waypoint is authored on the game mode, spawns as a timed Search & Destroy waypoint, and all three Overthrow behaviour trees are registered resources");
 		return true;
 	}
 }

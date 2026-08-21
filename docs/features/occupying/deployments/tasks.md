@@ -25,8 +25,8 @@ All original implementation tasks have been completed. This feature was document
 - [x] ✅ `OVT_VirtualPlanFactory.BuildSearchPlan` + `OrderNearestNeighbour` (pure, Logic-tier pinned)
 - [x] ✅ `Deployment_TownPatrol.conf` → `TOWN_SWEEP`
 - [x] ✅ Tests: Logic `SearchPlan`, `NearestNeighbourRoute` (new, green); Init `TownPatrolPlanCycles` updated (green); `compile-check.sh` OK
-- [x] ✅ Relaxed search: `OVT_HouseSearchAI.c` (behaviour/activity/tree node), `AI/BehaviorTrees/Overthrow/{Waypoints/WP_HouseSearch,Soldier/HouseSearch}.bt` (stand/walk/weapon down), `OVT_AIWaypoint_HouseSearch.et`, `m_pHouseSearchWaypointPrefab` on the game mode; Init `…_HouseSearchWaypointResolves` green (both trees load by GUID)
-- [ ] ⏸️ Open both `.bt` files in Workbench's BT editor once and resave (hand-authored text copies)
+- [x] ✅ Relaxed search: `OVT_HouseSearchAI.c` (behaviour/activity/tree node), `AI/BehaviorTrees/Overthrow/{Waypoints/WP_HouseSearch,Waypoints/WP_HouseSearchMoveTo,Soldier/HouseSearch}.bt` (stand/walk/weapon down; WALK between houses), `OVT_AIWaypoint_HouseSearch.et`, `m_pHouseSearchWaypointPrefab` on the game mode; Init `…_HouseSearchWaypointResolves` green (all three trees load by GUID); author play-test: search posture confirmed right
+- [ ] ⏸️ Open all three `.bt` files in Workbench's BT editor once and resave (hand-authored text copies)
 - [ ] ⏸️ Play-test: do live patrols actually enter house interiors (navmesh-dependent), does the S&D posture read as a search, does the route feel like a patrol; tune `SEARCH_WAYPOINT_RADIUS_M`, hold band, `m_iSweepHouseCount`, `m_fSweepHouseChance`
 - [ ] ⏸️ Civilian reaction to a searching patrol (flee/cower) — deferred by author 2026-08-21, belongs to `virtualization/civilians` archetypes
 - [ ] ⏸️ Run the All suite before commit (single-case runs only so far; Workbench was open concurrently)
