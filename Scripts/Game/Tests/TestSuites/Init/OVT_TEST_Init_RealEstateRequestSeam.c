@@ -4,7 +4,7 @@
 //! WHY THIS CASE EXISTS. Phase 3 of the controller migration deleted eight handlers from
 //! the legacy comms monolith in the same change that created this component. There is no old path left
 //! to fall back to, so a missing prefab block means buying, selling, renting and un-renting a building,
-//! setting your home, and all three warehouse movements silently stop working - with no compile error,
+//! and setting your home silently stop working - with no compile error,
 //! no runtime error and no log line, because every call site null-guards the accessor by contract and
 //! simply returns. The plan therefore requires one Init assertion per new component, added in the phase
 //! that creates it (D11), rather than trusting a prefab edit an agent cannot make in Workbench.
@@ -56,7 +56,7 @@ class OVT_TEST_Init_Controller_RealEstateRequestResolves : SCR_AutotestCaseBase
 		OVT_RealEstateRequestComponent viaAccessor = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
 		if (!viaAccessor)
 		{
-			SetFailure("OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so buy/sell/rent/stop-renting a building, set-home and all three warehouse movements silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
+			SetFailure("OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so buy/sell/rent/stop-renting a building and set-home silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
 			return true;
 		}
 

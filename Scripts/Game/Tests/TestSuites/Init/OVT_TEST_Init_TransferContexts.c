@@ -45,10 +45,10 @@ class OVT_TEST_Init_TransferContexts_ShareOneScreen : SCR_AutotestCaseBase
 			return true;
 		}
 
-		OVT_UIContext warehouse = ui.GetContext(OVT_WarehouseContext);
-		if (!warehouse)
+		OVT_UIContext storage = ui.GetContext(OVT_StorageContext);
+		if (!storage)
 		{
-			SetFailure("OVT_UIManagerComponent.GetContext(OVT_WarehouseContext) returned null. The context is not in m_aContexts on Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et, so the warehouse Take screen can never open.");
+			SetFailure("OVT_UIManagerComponent.GetContext(OVT_StorageContext) returned null. The context is not in m_aContexts on Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et, so the Open Storage screen - which is also how a warehouse is opened - can never open.");
 			return true;
 		}
 
@@ -60,27 +60,27 @@ class OVT_TEST_Init_TransferContexts_ShareOneScreen : SCR_AutotestCaseBase
 			return true;
 		}
 
-		if (!OVT_TransferContext.Cast(warehouse))
+		if (!OVT_TransferContext.Cast(storage))
 		{
-			SetFailure("OVT_WarehouseContext is not an OVT_TransferContext subclass (it is a %1). The warehouse screen has left the shared transfer base.",
-				warehouse.ClassName());
+			SetFailure("OVT_StorageContext is not an OVT_TransferContext subclass (it is a %1). The storage screen has left the shared transfer base.",
+				storage.ClassName());
 			return true;
 		}
 
 		// Claim 3 - ONE layout and ONE ActionContext name. This is the requirement, mechanically pinned.
-		if (port.m_Layout != warehouse.m_Layout)
+		if (port.m_Layout != storage.m_Layout)
 		{
-			SetFailure("The two transfer consumers point at DIFFERENT layouts: port '%1', warehouse '%2'. logistics/ui exists to make them one screen; a second layout means a fix to one stops reaching the other.",
+			SetFailure("The two transfer consumers point at DIFFERENT layouts: port '%1', storage '%2'. logistics/ui exists to make them one screen; a second layout means a fix to one stops reaching the other.",
 				port.m_Layout,
-				warehouse.m_Layout);
+				storage.m_Layout);
 			return true;
 		}
 
-		if (port.m_sContextName != warehouse.m_sContextName)
+		if (port.m_sContextName != storage.m_sContextName)
 		{
-			SetFailure("The two transfer consumers declare DIFFERENT ActionContext names: port '%1', warehouse '%2'. One shared ActionContext is what keeps their bindings, and the conflict checker's view of them, identical.",
+			SetFailure("The two transfer consumers declare DIFFERENT ActionContext names: port '%1', storage '%2'. One shared ActionContext is what keeps their bindings, and the conflict checker's view of them, identical.",
 				port.m_sContextName,
-				warehouse.m_sContextName);
+				storage.m_sContextName);
 			return true;
 		}
 
@@ -89,7 +89,7 @@ class OVT_TEST_Init_TransferContexts_ShareOneScreen : SCR_AutotestCaseBase
 		if (!AssertSharedContextActivates(port.m_sContextName))
 			return true;
 
-		PrintFormat("Transfer contexts: OVT_PortContext and OVT_WarehouseContext both resolve, both subclass OVT_TransferContext, and both use layout '%1' / context '%2' (UI manager found after %3 poll(s))",
+		PrintFormat("Transfer contexts: OVT_PortContext and OVT_StorageContext both resolve, both subclass OVT_TransferContext, and both use layout '%1' / context '%2' (UI manager found after %3 poll(s))",
 			port.m_Layout,
 			port.m_sContextName,
 			m_iPolls.ToString());

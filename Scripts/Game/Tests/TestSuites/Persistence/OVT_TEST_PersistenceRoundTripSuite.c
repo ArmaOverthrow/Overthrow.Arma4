@@ -204,6 +204,14 @@
 //!                                                the deployment pool exactly once. Takes a real save
 //!                                                (which is what runs the rewritten write path) but
 //!                                                uses NEITHER reload seam
+//!   1f2. StorageBox_LedgerAndNameSurviveSave   ) the three logistics/storage cases, one per .conf
+//!   1f3. StorageVehicle_LedgerSurvivesSave     ) BINDING (placeable / car / building), because a
+//!   1f4. StorageWarehouse_LedgerSurvivesSaveWithExplicitTrack
+//!                                              ) serializer that is not listed is never called and
+//!                                                says nothing. The warehouse one also asserts the
+//!                                                explicit track: vanilla registers an intact
+//!                                                building never, so without it the record does not
+//!                                                exist at all. All three take a real save
 //!   1g. StructureDamage_RuinSurvivesSave      - the two core/damage cases. A real storage round trip
 //!   1h. StructureDamage_RepairSurvivesSave      on a BUILDABLE, which trigger 3 above is what makes
 //!                                               possible: build a Guard Tower, ruin (or repair) it,
@@ -9899,5 +9907,1270 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 			deployments.DeleteDeployment(m_Fixture);
 
 		m_Fixture = null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Shared machinery for the three storage round-trip cases: put a holder in the world, stock its
+//! ledger, dirty it, and say in one sentence what came back wrong.
+//!
+//! WHY THE LEDGER KEYS ARE SYNTHETIC. A holder's ledger is a plain ResourceName -> count map and
+//! there is deliberately no registry gate anywhere on the load path - a line exists because the
+//! server deleted a real entity, so gating it would delete a player's loot. Keys that no catalogue
+//! knows therefore both keep these cases independent of economy retuning AND pin that rule: if a
+//! registry check ever appears in the load path, every one of these cases goes red.
+//!
+//! Each case stocks DIFFERENT counts, so a serializer that read one holder's record onto another
+//! would be visible rather than passing three times over.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_StorageRoundTripFixture
+{
+	static const string KEY_A = "OVT_TEST/StorageRoundTrip/ItemA.et";
+	static const string KEY_B = "OVT_TEST/StorageRoundTrip/ItemB.et";
+
+	//! Written over the saved ledger before the reload. A holder that comes back holding this is a
+	//! holder nothing was read back onto (closure 2).
+	static const string KEY_DIRT = "OVT_TEST/StorageRoundTrip/Dirt.et";
+	static const int DIRTY_COUNT = 9;
+
+	//! Resolved by name out of the placeables config. Never an index - entries get appended.
+	static const string PLACEABLE_NAME = "Ammobox";
+
+	//! Prefab path fragment every warehouse variant shares - the same fragment the real-estate config
+	//! filters on.
+	static const string WAREHOUSE_PREFAB_FRAGMENT = "Warehouse_01";
+
+	//! Metres searched for the world's warehouse building.
+	static const float WAREHOUSE_SEARCH_RADIUS = 20000;
+
+	protected IEntity m_FoundWarehouse;
+
+	//------------------------------------------------------------------------------------------------
+	//! Somewhere to put a holder, offset from wherever a test vehicle would go.
+	//! \param[in] offset Per-case separation, so no two cases put a holder in the same place.
+	//! \param[out] position Where to put it; untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string ResolveSubjectPosition(vector offset, out vector position)
+	{
+		vector anchor;
+		string diagnostic;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(anchor, diagnostic))
+			return "Nowhere to put a storage holder: " + diagnostic;
+
+		position = anchor + offset;
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts one ammo box down through the server-side placement path.
+	//!
+	//! PlaceItem() rather than a raw prefab spawn, because placement is what TRACKS the box: the placed
+	//! box prefab carries no native Persistence component, so a spawned one would have no record at all
+	//! and this case would fail on the reload for a reason that has nothing to do with storage.
+	//! \param[in] position Where to put it.
+	//! \param[out] box The placed box; untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string PlaceBox(vector position, out IEntity box)
+	{
+		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
+		if (!resistance)
+			return "OVT_Global.GetResistanceFaction() is null, so there is no placement path to put a box down with";
+
+		if (!resistance.m_PlaceablesConfig || !resistance.m_PlaceablesConfig.m_aPlaceables)
+			return "The resistance faction has no placeables config loaded";
+
+		int index = -1;
+		for (int i = 0; i < resistance.m_PlaceablesConfig.m_aPlaceables.Count(); i++)
+		{
+			OVT_Placeable candidate = resistance.m_PlaceablesConfig.m_aPlaceables[i];
+			if (candidate && candidate.m_sName == PLACEABLE_NAME)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index < 0)
+			return string.Format("No placeable named '%1' in the placeables config - the entry is missing or renamed", PLACEABLE_NAME);
+
+		// playerId -1 is PlaceItem()'s own server-initiated marker: it waives the funds, distance and
+		// item-limit checks.
+		box = resistance.PlaceItem(index, 0, position, vector.Zero, -1);
+		if (!box)
+			return string.Format("PlaceItem() placed no ammo box at %1", position.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Finds the world's warehouse building by prefab path, one accumulator per instance.
+	//! \return The first warehouse building, or null when there is none.
+	IEntity FindWarehouse()
+	{
+		m_FoundWarehouse = null;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (world)
+			world.QueryEntitiesBySphere("0 0 0", WAREHOUSE_SEARCH_RADIUS, null, FilterWarehouse, EQueryEntitiesFlags.STATIC);
+
+		return m_FoundWarehouse;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] e The entity the query offered.
+	//! \return Always false - there is no early-out with a null query callback.
+	protected bool FilterWarehouse(IEntity e)
+	{
+		if (!e || m_FoundWarehouse)
+			return false;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(e);
+		if (prefab.IndexOf(WAREHOUSE_PREFAB_FRAGMENT) > -1)
+			m_FoundWarehouse = e;
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The storage component on a holder.
+	//! \param[in] holder The holder to read.
+	//! \param[in] subject What to call it in a failure sentence.
+	//! \param[out] storage The component; untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string ResolveStorage(IEntity holder, string subject, out OVT_StorageComponent storage)
+	{
+		if (!holder)
+			return string.Format("%1 is no longer in the world", subject);
+
+		storage = OVT_StorageUtils.GetStorage(holder);
+		if (!storage)
+			return string.Format("%1 has no OVT_StorageComponent, so it has no ledger to round-trip - the prefab delta that puts one there has been lost", subject);
+
+		if (!storage.GetLedger())
+			return string.Format("%1 has a storage component with no ledger", subject);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a known ledger on a holder through the component's own public server API.
+	//!
+	//! UNLIMITED is passed explicitly rather than read from GetCapacity(), so a case never depends on
+	//! the deferred capacity resolve having landed - and capacity is not persisted anyway (D8).
+	//! PublishCount() is the documented republish, and on a building it is also what tracks the holder.
+	//! \param[in] storage The holder's storage component.
+	//! \param[in] countA How many of KEY_A to hold.
+	//! \param[in] countB How many of KEY_B to hold.
+	static void Stock(notnull OVT_StorageComponent storage, int countA, int countB)
+	{
+		OVT_StorageLedger ledger = storage.GetLedger();
+		ledger.Clear();
+		ledger.Add(KEY_A, countA, OVT_StorageComponent.UNLIMITED_CAPACITY);
+		ledger.Add(KEY_B, countB, OVT_StorageComponent.UNLIMITED_CAPACITY);
+
+		storage.PublishCount();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Destroys the saved ledger in memory (closure 2), through the same API that wrote it.
+	//! \param[in] storage The holder's storage component.
+	static void Dirty(notnull OVT_StorageComponent storage)
+	{
+		OVT_StorageLedger ledger = storage.GetLedger();
+		ledger.Clear();
+		ledger.Add(KEY_DIRT, DIRTY_COUNT, OVT_StorageComponent.UNLIMITED_CAPACITY);
+
+		storage.PublishCount();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the saved ledger came back and the dirty one did not.
+	//! \param[in] storage The holder's storage component after the reload.
+	//! \param[in] countA What KEY_A held when it was saved.
+	//! \param[in] countB What KEY_B held when it was saved.
+	//! \param[in] subject What to call the holder in a failure sentence.
+	//! \return An empty string when everything came back, otherwise the sentence to fail with.
+	static string AssertLedgerRestored(notnull OVT_StorageComponent storage, int countA, int countB, string subject)
+	{
+		OVT_StorageLedger ledger = storage.GetLedger();
+		if (!ledger)
+			return string.Format("%1 has no ledger after the reload", subject);
+
+		if (ledger.Count(KEY_DIRT) != 0)
+		{
+			return string.Format("%1 still holds the %2 dirty items written after the save, so nothing was read back over them - the stored ledger was never applied",
+				subject, DIRTY_COUNT.ToString());
+		}
+
+		if (ledger.Count(KEY_A) != countA)
+		{
+			return string.Format("%1 came back holding %2 of line A, expected the saved %3 - the ledger did not survive the round trip",
+				subject, ledger.Count(KEY_A).ToString(), countA.ToString());
+		}
+
+		if (ledger.Count(KEY_B) != countB)
+		{
+			return string.Format("%1 came back holding %2 of line B, expected the saved %3 - only part of the ledger survived, so the payload is losing lines",
+				subject, ledger.Count(KEY_B).ToString(), countB.ToString());
+		}
+
+		int expectedTotal = countA + countB;
+		if (ledger.Total() != expectedTotal)
+		{
+			return string.Format("%1 came back with a total of %2 across %3 line(s), expected %4 - the two lines are right but something else is in there",
+				subject, ledger.Total().ToString(), ledger.LineCount().ToString(), expectedTotal.ToString());
+		}
+
+		// The REPLICATED count, not the ledger's. Clear() deliberately fires no change event, so a load
+		// that rebuilds the ledger without republishing leaves every client's "Storage (N items)" label
+		// reading the pre-load number until the next job happens to touch the holder.
+		if (storage.GetTotalCount() != expectedTotal)
+		{
+			return string.Format("%1 restored a ledger of %2 items but its REPLICATED count still reads %3 - PublishCount() was not called on the load path, so the action label and the map lie to every client",
+				subject, expectedTotal.ToString(), storage.GetTotalCount().ToString());
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A placed ammo box's item ledger AND its player-set name survive a real save.
+//!
+//! WHAT IS AT STAKE. The whole feature replaces spawned stockpile entities with one map of counts.
+//! A map that does not come back is a player's entire stockpile deleted on the next continue, with
+//! nothing on screen and nothing in the log to say it happened - the entities that used to carry that
+//! stock were saved by vanilla for free, so this is a capability the feature has to REPLACE, not add.
+//!
+//! A REAL STORAGE ROUND TRIP, on the third gate seam: a placed box owns its own persistence record,
+//! so it can be asked for by instance. Both closures hold - the ledger is dirtied through the same
+//! public API that stocked it, so a reload that restores nothing leaves the dirt in place; and a
+//! four-thousand-item box with a name is not a state any placement or campaign start produces.
+//!
+//! THE NAME IS ASSERTED HERE AND ONLY HERE, because the box is the holder players actually rename.
+//! It is the second property in the payload, so a name that comes back empty while the ledger comes
+//! back correct is the specific signature of a Serialize/Deserialize local-name mismatch (R2).
+//!
+//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `StorageBox*` does.
+//! It sorts before `StructureDamage*` and before every `Town*` case and disturbs neither: it changes
+//! no town, no deployment, no objective and no base.
+//!
+//! THE BOX IS LEFT STANDING ON PURPOSE, for the StructureDamage cases' reason: deleting a
+//! persistence-tracked entity mid-suite drives the transient-untrack retry queue (BUG-118), which is
+//! far likelier to disturb later cases than an inert box is.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - drop the OVT_StorageComponentSerializer entry from the PLACEABLE configuration in
+//!     Overthrow.conf and the serializer never runs: the case reports the box still holding its dirt;
+//!   - rename Deserialize's `customName` local and the ledger comes back while the name comes back
+//!     empty, which is the assertion below the ledger ones.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_StorageBox_LedgerAndNameSurviveSave : SCR_AutotestCaseBase
+{
+	//! Offset from where a test vehicle would go, so no other case's subject is near this box.
+	static const vector PLACE_OFFSET = "14 0 0";
+
+	static const int SAVED_A = 4242;
+	static const int SAVED_B = 77;
+
+	//! Not a name any placement or campaign start produces.
+	static const string SAVED_NAME = "Depot North 4242";
+
+	//! Written over the saved name before the reload.
+	static const string DIRTY_NAME = "dirtied";
+
+	static const int PHASE_PLACE = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_STOCK_AND_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_DIRTY_AND_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT = 6;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	protected IEntity m_Box;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_PLACE)
+			return Place();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_STOCK_AND_SAVE)
+			return StockAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Place()
+	{
+		vector position;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveSubjectPosition(PLACE_OFFSET, position);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = OVT_TEST_StorageRoundTripFixture.PlaceBox(position, m_Box);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A placed object's persistence registration is asynchronous, so the case waits for its record to
+	//! exist before it saves - otherwise the save could legitimately contain nothing to read back and
+	//! the failure would name the wrong half. Bounded, and expiry fails.
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		if (!m_Box)
+		{
+			SetFailure("The placed ammo box left the world before it was registered for saving");
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Box))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure("The placed ammo box never became persistence-tracked, so it has no stored record and nothing about its contents can survive a save");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_STOCK_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool StockAndSave()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Box, "The placed ammo box", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// Closure 3: a freshly placed box is empty and unnamed, so neither saved value is one the
+		// placement path or a campaign start could have produced on its own.
+		if (storage.GetLedger().Total() != 0 || storage.GetCustomName() != "")
+		{
+			SetFailure("The ammo box was already stocked or already named the moment it was placed, so the values below would not be this case's");
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Stock(storage, SAVED_A, SAVED_B);
+		storage.SetCustomName(SAVED_NAME);
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Closure 2: the saved ledger and name are destroyed in memory before anything is read back,
+	//! through the same public API that wrote them.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Box, "The placed ammo box", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Dirty(storage);
+		storage.SetCustomName(DIRTY_NAME);
+
+		if (storage.GetLedger().Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != 0 || storage.GetCustomName() != DIRTY_NAME)
+		{
+			SetFailure("The ammo box kept its saved ledger or its saved name through the dirtying step, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(m_Box);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The ammo box's stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Box, "The placed ammo box", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = OVT_TEST_StorageRoundTripFixture.AssertLedgerRestored(storage, SAVED_A, SAVED_B, "The placed ammo box");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (storage.GetCustomName() != SAVED_NAME)
+		{
+			SetFailure(string.Format("The ammo box was renamed '%1' and saved, then renamed '%2' in memory, and came back called '%3' - a holder's name does not survive a save, so every stockpile a player labelled is anonymous again on the next continue",
+				SAVED_NAME, DIRTY_NAME, storage.GetCustomName()));
+			return true;
+		}
+
+		Print("A placed ammo box's item ledger and its name survived a real save and came back out of storage");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A wheeled vehicle's item ledger survives a real save.
+//!
+//! WHY A SECOND HOLDER CLASS NEEDS ITS OWN CASE. The serializer is one class but the BINDING is three
+//! separate .conf entries, and a serializer that is not listed is never called - silently. The box
+//! case above exercises the PLACEABLE entry; this one exercises vanilla's CAR configuration
+//! {64C6B4937723DA61}, which is the entry that carries every truck and car in the game. Dropping it
+//! loses the mod's entire mobile stock while the box case stays green.
+//!
+//! NO NAME HERE. The box case owns that assertion; repeating it would make two cases fail together
+//! for one fault and tell a reviewer nothing extra.
+//!
+//! The subject is the vehicle manager's own starting car - read from configuration rather than
+//! hardcoded, for the reason OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab documents - and
+//! it is spawned rather than registered, so this case adds nothing to any player's vehicle registry.
+//!
+//! ⚠ TAKES A REAL SAVE; `StorageVehicle*` sorts after `..._Capability_...`. The vehicle is left in the
+//! world for the same BUG-118 reason as the box.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - drop the OVT_StorageComponentSerializer entry from the CAR configuration and the case reports
+//!     the vehicle still holding its dirt while the box case stays green - which is the whole reason
+//!     this case exists separately;
+//!   - make OVT_StorageComponent.ApplyPersisted() return before it clears the ledger and the dirt
+//!     assertion fires instead.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_StorageVehicle_LedgerSurvivesSave : SCR_AutotestCaseBase
+{
+	//! Offset from where a test vehicle would go, clear of the box case's subject.
+	static const vector SPAWN_OFFSET = "0 0 14";
+
+	static const int SAVED_A = 1337;
+	static const int SAVED_B = 8;
+
+	static const int PHASE_SPAWN = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_STOCK_AND_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_DIRTY_AND_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT = 6;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	protected IEntity m_Vehicle;
+	protected ResourceName m_sPrefab;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_SPAWN)
+			return Spawn();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_STOCK_AND_SAVE)
+			return StockAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Spawn()
+	{
+		string diagnostic;
+		if (!OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab(m_sPrefab, diagnostic))
+		{
+			SetFailure("Cannot resolve a vehicle to spawn: " + diagnostic);
+			return true;
+		}
+
+		vector position;
+		diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveSubjectPosition(SPAWN_OFFSET, position);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_Vehicle = OVT_Global.SpawnEntityPrefab(m_sPrefab, position);
+		if (!m_Vehicle)
+		{
+			SetFailure(string.Format("SpawnEntityPrefab() produced no vehicle from %1", m_sPrefab));
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A vehicle is registered by the native Persistence component on its prefab, which is asynchronous
+	//! enough to be worth waiting for. Bounded, and expiry fails.
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		if (!m_Vehicle)
+		{
+			SetFailure("The spawned vehicle left the world before it was registered for saving");
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Vehicle))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(string.Format("The spawned vehicle %1 never became persistence-tracked, so it has no stored record and nothing about its cargo can survive a save", m_sPrefab));
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_STOCK_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool StockAndSave()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Vehicle, "The spawned vehicle", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// Closure 3: a freshly spawned vehicle holds nothing, so the saved ledger is never a state the
+		// spawn path could have produced.
+		if (storage.GetLedger().Total() != 0)
+		{
+			SetFailure("The spawned vehicle was already carrying a ledger the moment it appeared, so the values below would not be this case's");
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Stock(storage, SAVED_A, SAVED_B);
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Vehicle, "The spawned vehicle", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Dirty(storage);
+
+		if (storage.GetLedger().Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != 0)
+		{
+			SetFailure("The vehicle kept its saved ledger through the dirtying step, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(m_Vehicle);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The vehicle's stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Vehicle, "The spawned vehicle", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = OVT_TEST_StorageRoundTripFixture.AssertLedgerRestored(storage, SAVED_A, SAVED_B, "The spawned vehicle");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		Print("A wheeled vehicle's item ledger survived a real save and came back out of storage");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The warehouse BUILDING's item ledger survives a real save - and the building is only in the save
+//! at all because the storage component asked for it.
+//!
+//! WHY THE TRACK IS PART OF THIS CASE. Vanilla registers an INTACT building with the persistence
+//! system never; it registers one only when it is destroyed (the comment sits on the vanilla call
+//! site, "Ensure registration of destroyed building as they are otherwise not tracked by default").
+//! So the warehouse is the one holder class where a correct serializer, correctly bound, still runs
+//! zero times - and the failure is completely silent, because a building that is not tracked simply
+//! has no record and nothing anywhere says so. The explicit track fires on the first publish that
+//! leaves the ledger non-empty, and this case asserts it BEFORE it saves, so the two faults report
+//! differently: an untracked building fails here with one sentence, a broken serializer fails after
+//! the reload with another.
+//!
+//! It is also the case that covers the third .conf binding - vanilla's BUILDING configuration
+//! {65B682661F79DDBE} - which neither of the other two touches.
+//!
+//! THE SUBJECT IS THE WORLD'S OWN WAREHOUSE, found by prefab path rather than by position so that
+//! moving it in the test world's layer does not turn this case green-by-absence. Nothing is spawned
+//! and nothing is deleted; the building is left holding its restored ledger.
+//!
+//! ⚠ TAKES A REAL SAVE; `StorageWarehouse*` sorts after `..._Capability_...`.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - make OVT_StorageComponent.EnsureTracked() return immediately and the case fails BEFORE the
+//!     save with "the warehouse building is still not persistence-tracked";
+//!   - drop the {65B682661F79DDBE} block from Overthrow.conf and it fails after the reload instead,
+//!     with the building still holding its dirt.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_StorageWarehouse_LedgerSurvivesSaveWithExplicitTrack : SCR_AutotestCaseBase
+{
+	static const int SAVED_A = 9001;
+	static const int SAVED_B = 15;
+
+	static const int PHASE_STOCK_AND_TRACK = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_DIRTY_AND_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT = 6;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	protected IEntity m_Warehouse;
+	protected bool m_bWasTrackedBeforeStocking;
+
+	protected ref OVT_TEST_StorageRoundTripFixture m_Fixture = new OVT_TEST_StorageRoundTripFixture();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_STOCK_AND_TRACK)
+			return StockAndTrack();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_SAVE)
+			return Save();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool StockAndTrack()
+	{
+		m_Warehouse = m_Fixture.FindWarehouse();
+		if (!m_Warehouse)
+		{
+			SetFailure("No Warehouse_01 building exists in this world. Worlds/MP/OVT_Campaign_Test_Layers/default.layer is supposed to place one - without it neither this case nor the warehouse economy has a subject.");
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_bWasTrackedBeforeStocking = OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Warehouse);
+		if (m_bWasTrackedBeforeStocking)
+			Print("Note: the warehouse building was already persistence-tracked before it held anything, so this case's track assertion is satisfied by another route");
+
+		OVT_TEST_StorageRoundTripFixture.Stock(storage, SAVED_A, SAVED_B);
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The claim the rest of the case rests on: stocking a building holder put it in the save.
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		if (!m_Warehouse)
+		{
+			SetFailure("The warehouse building left the world mid-case");
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Warehouse))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure("The warehouse building is still not persistence-tracked after its ledger was stocked. Vanilla registers an intact building never, so without OVT_StorageComponent.EnsureTracked() the building has NO stored record: its serializer is bound, compiles and runs zero times, and every warehouse empties itself on the next continue with nothing in the log.");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Save()
+	{
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Dirty(storage);
+
+		if (storage.GetLedger().Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != 0)
+		{
+			SetFailure("The warehouse kept its saved ledger through the dirtying step, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(m_Warehouse);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The warehouse's stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = OVT_TEST_StorageRoundTripFixture.AssertLedgerRestored(storage, SAVED_A, SAVED_B, "The warehouse building");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		Print("The warehouse building's item ledger survived a real save, on a record that exists only because storing something tracked the building");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A version 1 save's warehouse stock lands in the building's OVT_StorageComponent.
+//!
+//! WHAT IS AT STAKE. Every campaign that exists today keeps its warehouse stock in
+//! OVT_WarehouseData.inventory, a map on a manager record. logistics/storage deletes that field, so
+//! the ONLY route from an existing save to the new ledger is
+//! OVT_RealEstateManagerComponent.QueueWarehouseMigration() and its drain. If the drain silently
+//! fails, every player who continues an existing campaign finds their warehouse empty, with the
+//! building intact and nothing on screen or in the log to say where the stock went (R3).
+//!
+//! WHAT THIS COVERS AND WHAT IT DOES NOT. It drives the migration queue directly, which is the whole
+//! server-side half: the deferred drain, the building match by position, the ledger credit at
+//! unlimited capacity and the republished count. It cannot cover the SERIALIZER half - a version 1
+//! payload is a binary blob written by a native SaveContext and there is no script path that
+//! produces one - so "an old save file reaches this queue" is a play-test gate, not an assertion.
+//!
+//! NO SAVE IS TAKEN, so this case is fast and cannot disturb a save-based one. The name still sorts
+//! after `..._Capability_...` because the constraint is about class-name ordering, not about which
+//! cases happen to save.
+//!
+//! IT SHARES A SUBJECT WITH `..._StorageWarehouse_...` and that is harmless in either order: both
+//! Clear() the ledger before they stock it.
+//!
+//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
+//!   - drop the CallLater from QueueWarehouseMigration and the drain never runs: the case reports the
+//!     warehouse still holding nothing after the full poll budget;
+//!   - credit the ledger without calling PublishCount() and the last assertion fires: the ledger is
+//!     right and the replicated count still reads zero.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_WarehouseMigration_Version1StockLandsInTheBuilding : SCR_AutotestCaseBase
+{
+	static const int MIGRATED_A = 137;
+	static const int MIGRATED_B = 6;
+
+	//! Frames allowed for a drain scheduled one second out. Generous: the queue re-arms itself once a
+	//! second while anything is still undelivered.
+	static const int MAX_DRAIN_POLLS = 900;
+
+	static const int PHASE_QUEUE = 0;
+	static const int PHASE_AWAIT_DRAIN = 1;
+	static const int PHASE_ASSERT = 2;
+
+	protected int m_iPhase;
+	protected int m_iDrainPolls;
+
+	protected IEntity m_Warehouse;
+
+	protected ref OVT_TEST_StorageRoundTripFixture m_Fixture = new OVT_TEST_StorageRoundTripFixture();
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_QUEUE)
+			return Queue();
+
+		if (m_iPhase == PHASE_AWAIT_DRAIN)
+			return AwaitDrain();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Empties the building's ledger, then hands the manager a version 1 record for that position.
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Queue()
+	{
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if (!realEstate)
+		{
+			SetFailure("OVT_Global.GetRealEstate() is null, so there is no migration queue to hand a version 1 warehouse to");
+			return true;
+		}
+
+		m_Warehouse = m_Fixture.FindWarehouse();
+		if (!m_Warehouse)
+		{
+			SetFailure("No Warehouse_01 building exists in this world. Worlds/MP/OVT_Campaign_Test_Layers/default.layer is supposed to place one - without it this case has no subject.");
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		storage.GetLedger().Clear();
+		storage.PublishCount();
+
+		array<string> itemIds = new array<string>();
+		itemIds.Insert(OVT_TEST_StorageRoundTripFixture.KEY_A);
+		itemIds.Insert(OVT_TEST_StorageRoundTripFixture.KEY_B);
+
+		array<int> itemCounts = new array<int>();
+		itemCounts.Insert(MIGRATED_A);
+		itemCounts.Insert(MIGRATED_B);
+
+		realEstate.QueueWarehouseMigration(m_Warehouse.GetOrigin(), itemIds, itemCounts);
+
+		if (storage.GetLedger().Total() != 0)
+		{
+			SetFailure("The migration delivered its stock synchronously, inside QueueWarehouseMigration(). It must defer: a real save is deserialized while the world is still being built, so the building it has to find frequently does not exist yet.");
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_DRAIN;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitDrain()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (storage.GetLedger().Total() > 0)
+		{
+			m_iPhase = PHASE_ASSERT;
+			return false;
+		}
+
+		m_iDrainPolls += 1;
+		if (m_iDrainPolls > MAX_DRAIN_POLLS)
+		{
+			SetFailure("The warehouse building's ledger is still empty %1 frames after a version 1 migration record was queued for its exact position. DrainWarehouseMigration() either never ran or never matched the building, so an existing campaign's entire warehouse stock is dropped on the first continue.",
+				m_iDrainPolls.ToString());
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Warehouse, "The warehouse building", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_StorageLedger ledger = storage.GetLedger();
+
+		if (ledger.Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != MIGRATED_A)
+		{
+			SetFailure("The migrated warehouse holds %1 of line A, expected the queued %2 - the version 1 stock arrived but not intact",
+				ledger.Count(OVT_TEST_StorageRoundTripFixture.KEY_A).ToString(),
+				MIGRATED_A.ToString());
+			return true;
+		}
+
+		if (ledger.Count(OVT_TEST_StorageRoundTripFixture.KEY_B) != MIGRATED_B)
+		{
+			SetFailure("The migrated warehouse holds %1 of line B, expected the queued %2 - the migration is losing lines",
+				ledger.Count(OVT_TEST_StorageRoundTripFixture.KEY_B).ToString(),
+				MIGRATED_B.ToString());
+			return true;
+		}
+
+		int expectedTotal = MIGRATED_A + MIGRATED_B;
+		if (ledger.Total() != expectedTotal)
+		{
+			SetFailure("The migrated warehouse totals %1 across %2 line(s), expected %3 - the two lines are right but something else went in with them",
+				ledger.Total().ToString(),
+				ledger.LineCount().ToString(),
+				expectedTotal.ToString());
+			return true;
+		}
+
+		// The REPLICATED count, not the ledger's. Without PublishCount() on the migration path every
+		// client's "Storage (N items)" label reads zero over a full warehouse until something else
+		// touches it - and on a building, PublishCount() is also what puts it in the save point.
+		if (storage.GetTotalCount() != expectedTotal)
+		{
+			SetFailure("The migrated warehouse holds %1 items but its REPLICATED count reads %2 - PublishCount() was not called on the migration path, so the action label and the map lie to every client and the building may not even be in the save",
+				expectedTotal.ToString(),
+				storage.GetTotalCount().ToString());
+			return true;
+		}
+
+		PrintFormat("Warehouse migration: %1 version 1 stock line(s) reached the building's OVT_StorageComponent and republished (after %2 poll(s))",
+			ledger.LineCount().ToString(),
+			m_iDrainPolls.ToString());
+
+		return true;
 	}
 }

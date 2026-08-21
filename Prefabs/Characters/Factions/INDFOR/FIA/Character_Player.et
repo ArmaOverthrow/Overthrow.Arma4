@@ -97,7 +97,7 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sOpenAction "OverthrowVehicleMenu"
      m_sCloseAction "MenuBack"
     }
-    OVT_WarehouseContext "{5D48C36A6BAF83B3}" {
+    OVT_StorageContext "{6A8E2D1000000001}" {
      m_Layout "{6A8E2C1000000001}UI/Layouts/Menu/TransferMenu.layout"
      m_sContextName "OverthrowTransferContext"
      m_sCloseAction "MenuBack"

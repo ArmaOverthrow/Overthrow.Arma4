@@ -219,73 +219,86 @@ FrameWidgetClass {
                 FillWeight 0.45
                }
                {
-                VerticalLayoutWidgetClass "{6A8E2C100000101A}" {
-                 Name "DetailsPanel"
+                SizeLayoutWidgetClass "{6A8E2C1000001036}" {
+                 Name "DetailsSizer"
                  Slot LayoutSlot "{599083DDE2349E32}" {
                   Padding 8 0 8 8
                  }
+                 AllowHeightOverride 1
+                 HeightOverride 430
+                 MinDesiredHeight 0
+                 Clipping True
                  {
-                  SizeLayoutWidgetClass "{6A8E2C100000101B}" {
-                   Name "DetailsImageSlot"
-                   Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
-                   }
-                   AllowHeightOverride 1
-                   HeightOverride 250
-                   MinDesiredHeight 0
-                   {
-                    OverlayWidgetClass "{6A8E2C100000101C}" {
-                     Name "DetailsImageOverlay"
-                     Slot AlignableSlot "{5D48CA00E4215D49}" {
-                      HorizontalAlign 3
-                      VerticalAlign 3
-                     }
-                     {
-                      ItemPreviewWidgetClass "{6A8E2C100000101D}" {
-                       Name "DetailsPreview"
-                       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
-                        HorizontalAlign 3
-                        VerticalAlign 3
-                       }
+                 VerticalLayoutWidgetClass "{6A8E2C100000101A}" {
+                  Name "DetailsPanel"
+                  Slot AlignableSlot "{5D48CA00E4215D49}" {
+                   HorizontalAlign 3
+                   VerticalAlign 3
+                  }
+                  {
+                   SizeLayoutWidgetClass "{6A8E2C100000101B}" {
+                    Name "DetailsImageSlot"
+                    Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
+                    }
+                    AllowHeightOverride 1
+                    HeightOverride 250
+                    MinDesiredHeight 0
+                    {
+                     OverlayWidgetClass "{6A8E2C100000101C}" {
+                      Name "DetailsImageOverlay"
+                      Slot AlignableSlot "{5D48CA00E4215D49}" {
+                       HorizontalAlign 3
+                       VerticalAlign 3
                       }
-                      ImageWidgetClass "{6A8E2C100000101E}" {
-                       Name "DetailsImage"
-                       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
-                        HorizontalAlign 3
-                        VerticalAlign 3
+                      {
+                       ItemPreviewWidgetClass "{6A8E2C100000101D}" {
+                        Name "DetailsPreview"
+                        Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+                         HorizontalAlign 3
+                         VerticalAlign 3
+                        }
                        }
-                       "Is Visible" 0
-                       Image ""
+                       ImageWidgetClass "{6A8E2C100000101E}" {
+                        Name "DetailsImage"
+                        Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+                         HorizontalAlign 3
+                         VerticalAlign 3
+                        }
+                        "Is Visible" 0
+                        Image ""
+                       }
                       }
                      }
                     }
                    }
-                  }
-                  TextWidgetClass "{6A8E2C100000101F}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
-                   Name "DetailsName"
-                   Slot LayoutSlot "{56EEDE046853BD3D}" {
-                    Padding 0 8 0 4
+                   TextWidgetClass "{6A8E2C100000101F}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                    Name "DetailsName"
+                    Slot LayoutSlot "{56EEDE046853BD3D}" {
+                     Padding 0 8 0 4
+                    }
+                    Text ""
+                    "Font Size" 28
+                    "Min Font Size" 20
                    }
-                   Text ""
-                   "Font Size" 28
-                   "Min Font Size" 20
-                  }
-                  TextWidgetClass "{6A8E2C1000001020}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
-                   Name "DetailsValue"
-                   Slot LayoutSlot "{56EEDE046853BD3D}" {
-                    Padding 0 0 0 8
+                   TextWidgetClass "{6A8E2C1000001020}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+                    Name "DetailsValue"
+                    Slot LayoutSlot "{56EEDE046853BD3D}" {
+                     Padding 0 0 0 8
+                    }
+                    Text ""
+                    "Font Size" 25
+                    "Min Font Size" 18
                    }
-                   Text ""
-                   "Font Size" 25
-                   "Min Font Size" 18
-                  }
-                  TextWidgetClass "{6A8E2C1000001021}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
-                   Name "DetailsText"
-                   Slot LayoutSlot "{56EEDE046853BD3D}" {
-                    Padding 0 0 0 8
+                   TextWidgetClass "{6A8E2C1000001021}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                    Name "DetailsText"
+                    Slot LayoutSlot "{56EEDE046853BD3D}" {
+                     Padding 0 0 0 8
+                    }
+                    Text ""
+                    Wrap 1
                    }
-                   Text ""
-                   Wrap 1
                   }
+                 }
                  }
                 }
                 OverlayWidgetClass "{6A8E2C1000001033}" {

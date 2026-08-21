@@ -414,8 +414,15 @@ class OVT_TransferContext : OVT_TabHostContext
 		if(m_wDestinationSpin)
 		{
 			m_DestinationSpinBox = SCR_SpinBoxComponent.Cast(m_wDestinationSpin.FindHandler(SCR_SpinBoxComponent));
-			if(m_DestinationSpinBox && m_DestinationSpinBox.m_OnChanged)
-				m_DestinationSpinBox.m_OnChanged.Insert(OnDestinationChanged);
+			if(m_DestinationSpinBox)
+			{
+				// WLib_SpinBox.layout ships m_sLabel "SpinBox" and m_bUseLabel defaults true, so an
+				// un-overridden picker draws that placeholder next to the value.
+				m_DestinationSpinBox.SetLabel("#OVT-Transfer_DestinationLabel");
+
+				if(m_DestinationSpinBox.m_OnChanged)
+					m_DestinationSpinBox.m_OnChanged.Insert(OnDestinationChanged);
+			}
 		}
 
 		ResetMessage();
@@ -1127,7 +1134,7 @@ class OVT_TransferContext : OVT_TabHostContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! MenuLeft / MenuRight listeners, added on show and removed on close. Both scopings are
+	//! MenuLeft / MenuRight / MenuUp listeners, added on show and removed on close. Both scopings are
 	//! required: MenuLeft is listed by a dozen contexts, so a character-lifetime listener would fire
 	//! under some other menu.
 	protected void AddMenuNavListeners()
@@ -1137,6 +1144,7 @@ class OVT_TransferContext : OVT_TabHostContext
 
 		m_InputManager.AddActionListener("MenuLeft", EActionTrigger.DOWN, OnMenuLeft);
 		m_InputManager.AddActionListener("MenuRight", EActionTrigger.DOWN, OnMenuRight);
+		m_InputManager.AddActionListener("MenuUp", EActionTrigger.DOWN, OnMenuUp);
 
 		m_bMenuNavListening = true;
 	}
@@ -1153,6 +1161,7 @@ class OVT_TransferContext : OVT_TabHostContext
 
 		m_InputManager.RemoveActionListener("MenuLeft", EActionTrigger.DOWN, OnMenuLeft);
 		m_InputManager.RemoveActionListener("MenuRight", EActionTrigger.DOWN, OnMenuRight);
+		m_InputManager.RemoveActionListener("MenuUp", EActionTrigger.DOWN, OnMenuUp);
 
 		m_bMenuNavListening = false;
 	}
@@ -1167,6 +1176,31 @@ class OVT_TransferContext : OVT_TabHostContext
 	protected void OnMenuRight()
 	{
 		SwapPane(EOVT_TransferPane.CART);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Escape hatch for the destination picker: with an empty cart nothing focusable sits above it, so
+	//! the engine's directional search has no target and a pad player cannot get back to the list.
+	protected void OnMenuUp()
+	{
+		if(!m_bIsActive) return;
+		if(!m_wRoot) return;
+
+		// Only the picker needs rescuing; everywhere else up belongs to the engine.
+		if(!IsPickerFocused()) return;
+
+		// With cart lines present the engine already has a target above the picker; moving focus here
+		// as well would fight it.
+		if(!m_aCartWidgets.IsEmpty()) return;
+
+		if(m_aRowWidgets.IsEmpty()) return;
+
+		m_ePane = EOVT_TransferPane.LIST;
+
+		PaintSelection();
+		RefreshDetails();
+		RefreshActionButtons();
+		FocusCurrentPane();
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -1,5 +1,9 @@
 class OVT_VehicleMenuContext : OVT_UIContext
 {
+	//! How far the vehicle may be from a warehouse RECORD for the two warehouse buttons to appear.
+	//! Unchanged; a warehouse is ~40 m long and the vehicle is parked at one end of it.
+	protected const int WAREHOUSE_SEARCH_RANGE = 40;
+	
 	OVT_TownManagerComponent m_TownManager;
 	OVT_RealEstateManagerComponent m_RealEstate;
 		
@@ -51,20 +55,7 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("VehicleInfoText"));
 		w.SetText("#OVT-Owner: " + ownerName);
 		
-		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
-		bool isAccessible = false;
-		if(warehouse)
-		{
-			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
-			if(warehouseEntity)
-			{
-				EntityID id = warehouseEntity.GetID();
-				bool isOwned = m_RealEstate.IsOwned(id);
-				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
-				bool isRented = m_RealEstate.IsRented(id);
-				isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
-			}			
-		}
+		bool isAccessible = ResolveAccessibleWarehouse(pos) != null;
 		
 		SCR_ButtonTextComponent comp = SCR_ButtonTextComponent.GetButtonText("PutInWarehouse", m_wRoot);
 		if (comp)
@@ -107,62 +98,76 @@ class OVT_VehicleMenuContext : OVT_UIContext
 		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! The nearby warehouse building this player may use, if any.
+	//!
+	//! Both warehouse buttons and the HUD prompt gate on this, and the ACCESSIBILITY half is
+	//! OVT_RealEstateManagerComponent.PlayerMayUseWarehouse() - the same body the server's
+	//! MayUseHolder gate calls (I5). The storage component is required as well: the buttons move a
+	//! ledger, so a warehouse without one is a button that can only fail.
+	//! \param[in] pos The vehicle's position.
+	//! \return The building, or null.
+	protected IEntity ResolveAccessibleWarehouse(vector pos)
+	{
+		if(!m_RealEstate) return null;
+		
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, WAREHOUSE_SEARCH_RANGE);
+		if(!warehouse) return null;
+		
+		IEntity building = m_RealEstate.GetNearestBuilding(warehouse.location, OVT_RealEstateManagerComponent.WAREHOUSE_MATCH_RANGE);
+		if(!building) return null;
+		
+		if(!OVT_StorageUtils.GetStorage(building)) return null;
+		
+		if(!m_RealEstate.PlayerMayUseWarehouse(m_sPlayerID, building)) return null;
+		
+		return building;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! The one-button truck dump, now a whole-ledger move with the vanilla inventory swept into the
+	//! vehicle's ledger first (logistics/storage D9).
 	protected void PutInWarehouse()
 	{
 		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(m_Owner.FindComponent(SCR_CompartmentAccessComponent));
 		if(!compartment) return;
 				
 		IEntity nearestVeh = compartment.GetVehicle();
+		if(!nearestVeh) return;
 		
-		SCR_VehicleInventoryStorageManagerComponent vehicleStorage = SCR_VehicleInventoryStorageManagerComponent.Cast(nearestVeh.FindComponent(SCR_VehicleInventoryStorageManagerComponent));
-		if(!vehicleStorage)
-		{
-			return;
-		}		
+		IEntity building = ResolveAccessibleWarehouse(m_Owner.GetOrigin());
+		if(!building) return;
 		
-		autoptr array<IEntity> items = new array<IEntity>;
-		vehicleStorage.GetItems(items);
-		if(items.Count() == 0) {
-			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleEmpty");
-			return;
-		}
+		RplId source = OVT_StorageUtils.GetHolderId(nearestVeh);
+		RplId dest = OVT_StorageUtils.GetHolderId(building);
+		if(!source.IsValid() || !dest.IsValid()) return;
 		
-		OVT_ContainerTransferComponent transfer = OVT_ControllerComponent<OVT_ContainerTransferComponent>.Get();
-		if (transfer && transfer.IsAvailable())
-		{
-			transfer.TransferToWarehouse(nearestVeh);
-		}	
+		OVT_StorageRequestComponent requests = OVT_ControllerComponent<OVT_StorageRequestComponent>.Get();
+		if(!requests) return;
+		
 		CloseLayout();
+		
+		// The hint goes before the request: on a listen host the request runs the server's gates
+		// inline, and a refusal hint drawn inside it would be overwritten by this one.
 		SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-VehicleUnloaded");
+		
+		requests.RequestMoveAllToHolder(source, dest, true);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Opens the shared Open Storage screen on the warehouse building. There is no warehouse-only
+	//! screen any more - the building is a holder like every box and truck.
 	protected void TakeFromWarehouse()
 	{		
-		vector pos = m_Owner.GetOrigin();
-		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
-		if(!warehouse) return;
+		IEntity building = ResolveAccessibleWarehouse(m_Owner.GetOrigin());
+		if(!building) return;
 		
-		bool isAccessible = false;
-		if(warehouse)
-		{
-			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
-			if(warehouseEntity)
-			{
-				EntityID id = warehouseEntity.GetID();
-				bool isOwned = m_RealEstate.IsOwned(id);
-				bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
-				bool isRented = m_RealEstate.IsRented(id);
-				isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
-			}			
-		}
-		if(!isAccessible) return;
-		
-		OVT_WarehouseContext context = OVT_WarehouseContext.Cast(m_UIManager.GetContext(OVT_WarehouseContext));
+		OVT_StorageContext context = OVT_StorageContext.Cast(m_UIManager.GetContext(OVT_StorageContext));
 		if(!context) return;
 		
-		context.SetWarehouse(warehouse);
+		context.SetHolder(building);
 		
-		m_UIManager.ShowContext(OVT_WarehouseContext);
+		m_UIManager.ShowContext(OVT_StorageContext);
 		
 		CloseLayout();
 	}

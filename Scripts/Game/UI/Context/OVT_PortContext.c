@@ -1,6 +1,15 @@
 //------------------------------------------------------------------------------------------------
-//! The port Import screen: one mode, a priced import list, and the occupied vehicle as the only
-//! destination. All widget work belongs to OVT_TransferContext.
+//! The port screen: Import (a priced catalogue bought into the occupied vehicle) and Export (that
+//! vehicle's own ledger sold back at the port). All widget work belongs to OVT_TransferContext.
+//!
+//! ⚠ THE EXPORT LIST IS ASYNC, for the same reason OVT_StorageContext's is: a holder's contents
+//! never replicate, they are pulled on open by the one player looking. BuildEntries fires that pull
+//! latched and returns empty on the first frame; the fan's arrival calls Refresh() again. On a
+//! listen host the whole fan lands INSIDE that call, i.e. BuildEntries re-entering itself - the
+//! latch is cleared before the ask and m_bBuildingEntries stops the inner Refresh.
+//!
+//! The Import half is unchanged: same catalogue, same illegal gate, same max-100 cap, same shop
+//! category mapping, one ImportToVehicle per line.
 //------------------------------------------------------------------------------------------------
 class OVT_PortContext : OVT_TransferContext
 {
@@ -8,9 +17,103 @@ class OVT_PortContext : OVT_TransferContext
 	//! here; the server rejects anything above it.
 	protected const int IMPORT_MAX_QUANTITY = 100;
 
+	//! Mode ids. Import is first, so it titles the screen and is what the port opens on.
+	protected const int MODE_IMPORT = 0;
+	protected const int MODE_EXPORT = 1;
+
+	//! The vehicle Export is selling, and its holder id. Re-resolved every build: the player can
+	//! leave the vehicle with the screen open.
+	protected IEntity m_ExportHolder;
+	protected RplId m_ExportHolderId;
+
+	//! The request component this screen subscribed to. Cached for OnClose - it outlives the layout.
+	protected OVT_StorageRequestComponent m_SubscribedRequests;
+
+	//! THE LATCH. True when the snapshot in hand (if any) is not trusted and a pull is owed.
+	protected bool m_bWantPull;
+
+	//! True while BuildEntries is running, so a fan that lands inside it does not re-enter Refresh.
+	protected bool m_bBuildingEntries;
+
+	//! True once a pull was refused, so the loading message stops instead of standing forever.
+	protected bool m_bPullFailed;
+
+	//! The refusal waiting to be drawn. Empty when there is none.
+	protected string m_sPendingError;
+
 	//! Prefab -> localized display name. UIInfo resolution loads and scans a prefab container, which is
 	//! far too expensive to repeat per row per sort comparison; names never change.
 	protected ref map<string, string> m_mDisplayNames = new map<string, string>();
+
+	//------------------------------------------------------------------------------------------------
+	//! An RplId member is an engine handle, not an int - it is given a value here so IsValid() is
+	//! answerable before any vehicle has been resolved.
+	void OVT_PortContext()
+	{
+		m_ExportHolderId = RplId.Invalid();
+	}
+
+	//-----------------------------------------------------------------------
+	// LIFECYCLE
+	//-----------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Subscribes BEFORE super.OnShow(), because super.OnShow() calls Refresh() and on a listen host
+	//! a contents fan lands inside that call.
+	override void OnShow()
+	{
+		m_bWantPull = true;
+		m_bPullFailed = false;
+		m_bBuildingEntries = false;
+		m_sPendingError = "";
+		m_ExportHolder = null;
+		m_ExportHolderId = RplId.Invalid();
+
+		Subscribe();
+
+		super.OnShow();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes exactly what OnShow inserted. The three request invokers and the pending refusal draw
+	//! all outlive the layout.
+	override void OnClose()
+	{
+		GetGame().GetCallqueue().Remove(ShowStorageError);
+
+		Unsubscribe();
+
+		super.OnClose();
+
+		m_bWantPull = false;
+		m_bBuildingEntries = false;
+		m_bPullFailed = false;
+		m_sPendingError = "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The loading message is set AFTER the base's refresh: RefreshCheckout() clears a persistent
+	//! message whenever the cart validates, and an empty cart always does.
+	override void Refresh()
+	{
+		super.Refresh();
+
+		if(!m_bIsActive || !m_wRoot) return;
+		if(m_iMode != MODE_EXPORT) return;
+
+		// On foot there is nothing to sell and no destination, so the empty list needs a reason.
+		if(!m_ExportHolder || !m_ExportHolderId.IsValid())
+		{
+			ShowPersistentMessage("#OVT-Transfer_NoVehicle");
+			return;
+		}
+
+		if(ExportIsLoading()) ShowPersistentMessage("#OVT-Storage_Loading");
+	}
+
+	//-----------------------------------------------------------------------
+	// THE EIGHT HOOKS
+	//-----------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
 	override void BuildModes(out array<int> modes, out array<string> labelKeys)
@@ -18,14 +121,23 @@ class OVT_PortContext : OVT_TransferContext
 		modes.Clear();
 		labelKeys.Clear();
 
-		modes.Insert(0);
+		modes.Insert(MODE_IMPORT);
 		labelKeys.Insert("#OVT-Import");
+
+		modes.Insert(MODE_EXPORT);
+		labelKeys.Insert("#OVT-Export");
 	}
 
 	//------------------------------------------------------------------------------------------------
 	override void BuildEntries(int mode, OVT_TransferListModel model)
 	{
 		if(!model || !m_Economy) return;
+
+		if(mode == MODE_EXPORT)
+		{
+			BuildExportEntries(model);
+			return;
+		}
 
 		array<ResourceName> prefabs = new array<ResourceName>();
 		CollectImportables(prefabs);
@@ -74,14 +186,24 @@ class OVT_PortContext : OVT_TransferContext
 		value = FormatValue(entry.m_iValue, entry.m_eValueKind);
 		body = "";
 
+		// A refused row leaves the body empty so the base can put the reason there instead.
+		if(m_iMode == MODE_EXPORT)
+		{
+			if(entry.m_bEnabled) body = "#OVT-Export_Body";
+			return;
+		}
+
 		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(entry.m_sImage);
 		if(info) body = info.GetDescription();
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Import buys; there is no "Add all" for something the player pays for by the unit.
+	//! Import buys, so there is no "Add all" for something the player pays for by the unit. Export
+	//! sells stock the player already owns, so a whole stack is one press.
 	override bool IsAddAllAllowed(int mode)
 	{
+		if(mode == MODE_EXPORT) return true;
+
 		return false;
 	}
 
@@ -106,6 +228,8 @@ class OVT_PortContext : OVT_TransferContext
 	{
 		if(!dest || !dest.m_Entity) return "#OVT-Transfer_NoVehicle";
 
+		if(m_iMode == MODE_EXPORT) return ValidateExportCart(lines, dest);
+
 		if(m_Economy && m_Cart.TotalValue() > m_Economy.GetPlayerMoney(m_sPlayerID))
 			return "#OVT-CannotAfford";
 
@@ -119,6 +243,12 @@ class OVT_PortContext : OVT_TransferContext
 	{
 		if(!lines || !dest || !dest.m_Entity) return;
 		if(!m_Economy) return;
+
+		if(m_iMode == MODE_EXPORT)
+		{
+			AcceptExport(lines);
+			return;
+		}
 
 		OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
 		if(!vehicles) return;
@@ -227,5 +357,277 @@ class OVT_PortContext : OVT_TransferContext
 
 		m_mDisplayNames[res] = name;
 		return name;
+	}
+
+	//-----------------------------------------------------------------------
+	// EXPORT
+	//-----------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! The occupied vehicle's ledger, priced at what the port would pay. A line the port refuses -
+	//! unregistered, or illegal without the gate - is listed DISABLED with the reason rather than
+	//! hidden, so the player can see the truck is carrying something unsellable.
+	//! \param[in] model The model to fill.
+	protected void BuildExportEntries(OVT_TransferListModel model)
+	{
+		OVT_StorageRequestComponent requests = GetRequests();
+		if(!requests) return;
+
+		ResolveExportHolder();
+		if(!m_ExportHolder || !m_ExportHolderId.IsValid()) return;
+
+		m_bBuildingEntries = true;
+		EnsureSnapshot(requests);
+		m_bBuildingEntries = false;
+
+		if(!requests.HasSnapshotFor(m_ExportHolderId)) return;
+
+		OVT_StorageSnapshot snapshot = requests.GetSnapshot();
+		if(!snapshot) return;
+
+		vector pos = m_ExportHolder.GetOrigin();
+
+		foreach(OVT_StorageLine line : snapshot.m_aLines)
+		{
+			if(!line || line.m_iCount <= 0) continue;
+
+			ResourceName prefab = line.m_sRes;
+			int unitPrice = requests.GetExportUnitPrice(m_PlayerData, pos, line.m_sRes);
+
+			OVT_TransferEntry entry = new OVT_TransferEntry();
+			entry.m_sId = line.m_sRes;
+			entry.m_sDisplayName = ResolveDisplayName(prefab);
+			entry.m_eImageKind = EOVT_TransferImageKind.PREFAB;
+			entry.m_sImage = line.m_sRes;
+			entry.m_iValue = unitPrice;
+			entry.m_eValueKind = EOVT_TransferValueKind.PRICE;
+			entry.m_iMaxQuantity = line.m_iCount;
+			entry.m_iCategoryId = ResolveCategory(prefab, m_Economy.GetInventoryId(prefab));
+			entry.m_bEnabled = unitPrice > 0;
+			entry.m_sDisabledReasonKey = "";
+
+			if(unitPrice <= 0) entry.m_sDisabledReasonKey = "#OVT-Export_NotSellable";
+
+			model.Add(entry);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Re-reads which vehicle Export is selling. A change re-arms the pull: the snapshot in hand
+	//! describes a holder the player is no longer in.
+	protected void ResolveExportHolder()
+	{
+		IEntity vehicle = GetOccupiedVehicle();
+		if(vehicle == m_ExportHolder) return;
+
+		m_ExportHolder = vehicle;
+		m_ExportHolderId = OVT_StorageUtils.GetHolderId(vehicle);
+		m_bWantPull = true;
+		m_bPullFailed = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The port gate and the per-line gate, re-checked at commit time. Both are also enforced on the
+	//! server (OVT_StorageRequestComponent.AtAPort / ResolveExportUnitPrice) - opKind arrives from a
+	//! client, so this is the courtesy message, not the protection.
+	//! \param[in] lines The cart.
+	//! \param[in] dest The chosen destination.
+	//! \return A reason key, or "" when the sale may go ahead.
+	protected string ValidateExportCart(array<ref OVT_TransferCartLine> lines, OVT_TransferDestination dest)
+	{
+		if(!AtAPort(dest.m_Entity)) return "#OVT-Storage_NotAtPort";
+
+		OVT_StorageRequestComponent requests = GetRequests();
+		if(!requests) return "#OVT-Storage_NotFound";
+
+		vector pos = dest.m_Entity.GetOrigin();
+
+		foreach(OVT_TransferCartLine line : lines)
+		{
+			if(!line) continue;
+
+			if(requests.GetExportUnitPrice(m_PlayerData, pos, line.m_sId) <= 0)
+				return "#OVT-Export_NotSellable";
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the player and the vehicle are both standing at a port, on the server's own numbers.
+	//! \param[in] holder The vehicle being sold.
+	//! \return True when the sale is in range.
+	protected bool AtAPort(IEntity holder)
+	{
+		if(!m_Economy || !m_Owner || !holder) return false;
+
+		float callerDistance = m_Economy.DistanceToNearestPort(m_Owner.GetOrigin());
+		if(callerDistance < 0 || callerDistance > OVT_StorageRequestComponent.EXPORT_MAX_PORT_DISTANCE)
+			return false;
+
+		float holderDistance = m_Economy.DistanceToNearestPort(holder.GetOrigin());
+		if(holderDistance < 0 || holderDistance > OVT_StorageRequestComponent.EXPORT_MAX_PORT_DISTANCE)
+			return false;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE CHECKOUT for the whole cart, source and destination both the vehicle.
+	//!
+	//! ⚠ On a listen host the entire sale runs inside this method - EXPORT is a one-step job - so the
+	//! batch reply has already landed before it returns. The result handler therefore schedules a
+	//! redraw rather than running one.
+	//! \param[in] lines The cart.
+	protected void AcceptExport(array<ref OVT_TransferCartLine> lines)
+	{
+		if(lines.IsEmpty()) return;
+		if(!m_ExportHolderId.IsValid()) return;
+
+		OVT_StorageRequestComponent requests = GetRequests();
+		if(!requests) return;
+
+		int seq = requests.RequestBatchBegin(m_ExportHolderId, m_ExportHolderId, EOVT_StorageOp.EXPORT, lines.Count());
+		if(seq == OVT_StorageRequestComponent.SEQ_NONE) return;
+
+		for(int i = 0; i < lines.Count(); i++)
+		{
+			OVT_TransferCartLine line = lines[i];
+			if(!line) continue;
+
+			requests.RequestBatchLine(seq, i, line.m_sId, line.m_iQuantity);
+		}
+
+		requests.RequestBatchCommit(seq, lines.Count());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Fires the contents pull at most once per (holder, sequence).
+	//!
+	//! ⚠ THE ORDER OF THE TWO STATEMENTS IS LOAD-BEARING. On a listen host RequestOpenStorage runs
+	//! the whole fan before it returns, so the invoker re-enters BuildEntries from inside this call.
+	//! Clearing the latch first is what makes that second visit find nothing to do.
+	//! \param[in] requests The local player's request component.
+	protected void EnsureSnapshot(OVT_StorageRequestComponent requests)
+	{
+		if(!m_bWantPull) return;
+
+		m_bWantPull = false;
+		m_bPullFailed = false;
+
+		int seq = requests.RequestOpenStorage(m_ExportHolderId);
+
+		if(seq == OVT_StorageRequestComponent.SEQ_NONE) m_bWantPull = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True while Export has nothing to draw and is waiting for a fan.
+	protected bool ExportIsLoading()
+	{
+		if(m_bPullFailed) return false;
+		if(!m_ExportHolderId.IsValid()) return false;
+
+		OVT_StorageRequestComponent requests = GetRequests();
+		if(!requests) return false;
+
+		return !requests.HasSnapshotFor(m_ExportHolderId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A contents fan committed.
+	protected void OnContentsUpdated()
+	{
+		if(!m_bIsActive || !m_wRoot) return;
+
+		// Listen host: this fired from inside our own BuildEntries. The Refresh already running will
+		// read the snapshot itself, so redrawing here would build the list twice.
+		if(m_bBuildingEntries) return;
+
+		Refresh();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A storage request was refused. Stops the loading message and says why.
+	//!
+	//! ⚠ THE MESSAGE IS DRAWN ON THE NEXT CALL-QUEUE PASS, NEVER HERE. On a listen host the refusal
+	//! lands inside BuildEntries (a pull) or inside OnAccept (a sale), and both sit inside a base call
+	//! that clears every persistent message before it returns - RefreshCheckout() over the emptied
+	//! cart, then Accept()'s own "#OVT-Transfer_Accepted". Drawing synchronously means the player is
+	//! told the sale succeeded when the server refused it.
+	//! \param[in] messageKey Localization key describing the refusal.
+	protected void OnStorageError(string messageKey)
+	{
+		if(!m_bIsActive || !m_wRoot) return;
+
+		m_bPullFailed = true;
+		m_sPendingError = messageKey;
+
+		GetGame().GetCallqueue().Remove(ShowStorageError);
+		GetGame().GetCallqueue().CallLater(ShowStorageError, 0, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Draws the refusal once the base call that carried it has unwound.
+	protected void ShowStorageError()
+	{
+		if(!m_bIsActive || !m_wRoot) return;
+		if(m_sPendingError == "") return;
+
+		ShowPersistentMessage(m_sPendingError);
+		m_sPendingError = "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A sale finished. Scheduled, never immediate - see AcceptExport.
+	//! \param[in] moved How many items were sold.
+	//! \param[in] shortfall How many were asked for and did not sell.
+	//! \param[in] earned Money paid out.
+	protected void OnBatchResult(int moved, int shortfall, int earned)
+	{
+		if(!m_bIsActive || !m_wRoot) return;
+
+		m_bWantPull = true;
+
+		ScheduleRefresh();
+	}
+
+	//-----------------------------------------------------------------------
+	// SUBSCRIPTIONS
+	//-----------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Every subscription here has a matching Remove in Unsubscribe(). The target outlives the
+	//! layout, so a missed Remove is an extra redraw per port visit for the rest of the session.
+	protected void Subscribe()
+	{
+		OVT_StorageRequestComponent requests = OVT_ControllerComponent<OVT_StorageRequestComponent>.Get();
+		if(!requests) return;
+
+		m_SubscribedRequests = requests;
+		m_SubscribedRequests.GetOnContentsUpdated().Insert(OnContentsUpdated);
+		m_SubscribedRequests.GetOnStorageError().Insert(OnStorageError);
+		m_SubscribedRequests.GetOnBatchResult().Insert(OnBatchResult);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void Unsubscribe()
+	{
+		if(m_SubscribedRequests)
+		{
+			m_SubscribedRequests.GetOnContentsUpdated().Remove(OnContentsUpdated);
+			m_SubscribedRequests.GetOnStorageError().Remove(OnStorageError);
+			m_SubscribedRequests.GetOnBatchResult().Remove(OnBatchResult);
+		}
+
+		m_SubscribedRequests = null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The local player's storage request component, or null.
+	protected OVT_StorageRequestComponent GetRequests()
+	{
+		if(m_SubscribedRequests) return m_SubscribedRequests;
+
+		return OVT_ControllerComponent<OVT_StorageRequestComponent>.Get();
 	}
 }

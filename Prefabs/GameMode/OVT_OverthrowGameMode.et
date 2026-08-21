@@ -251,6 +251,8 @@ OVT_OverthrowGameMode {
     }
     OVT_TutorialEntryConfig "{6B4E1F5000000004}" : "{6B4E1F5000000001}Configs/Tutorials/fuelDepotBuilt.conf" {
     }
+    OVT_TutorialEntryConfig "{6B5A2E0000000043}" : "{6B5A2E0000000040}Configs/Tutorials/storageFirstOpen.conf" {
+    }
    }
   }
   OVT_VehicleManagerComponent "{5D707B3386AF876D}" {
@@ -384,6 +386,9 @@ OVT_OverthrowGameMode {
  coords 208.286 1.001 116.919
  PlayerControllerPrefab "{FA2D004EF1C217BB}Prefabs/Characters/Core/OVT_PlayerController.et"
  m_bAutoPlayerRespawn 0
+ m_aDisabledResourceTypes {
+  0
+ }
  m_StartGameUIContext OVT_StartGameContext "{66C60C8B41B3566C}" {
   m_Layout "{4A7A8EED9F6F2A92}UI/Layouts/Menu/StartGameMenu.layout"
   m_sContextName "OverthrowStartContext"

@@ -199,7 +199,7 @@ StringTable {
    Target_ko_kr "전투 진행 중"
    Target_zh_cn "战斗正在进行"
    Target_uk_ua "Бій триває"
-   Comment ""
+   Comment "Progress bar title while the truck Loot job sweeps nearby bodies and dropped weapons into the vehicle."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -257,7 +257,7 @@ StringTable {
    Target_ko_kr "25미터 이내의 시체와 무기가 차량 안으로 약탈되었습니다."
    Target_zh_cn "25米范围内尸体和武器被洗劫到车内"
    Target_uk_ua "Спорядження та зброя в радіусі 25м завантажені в техніку"
-   Comment ""
+   Comment "Result toast after a Loot job - reports how many bodies were emptied."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -928,7 +928,7 @@ StringTable {
    Target_ko_kr "수입하려면 거래 기술 레벨 1이 필요합니다."
    Target_zh_cn "进口需要贸易技能等级1"
    Target_uk_ua "Для імпорту потрібен рівень торгових навичок 1"
-   Comment ""
+   Comment "Port import refused - the vehicle cannot receive imported stock (no storage component, or capacity 0)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -1399,7 +1399,7 @@ StringTable {
    Target_ko_kr "운전자는 먼저 차량에서 내려야 합니다"
    Target_zh_cn "驾驶员必须先下车"
    Target_uk_ua "Водій повинен спочатку залишити транспорт"
-   Comment ""
+   Comment "Load/Unload Storage refused - the nearby vehicle still has a driver in it."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3293,6 +3293,108 @@ StringTable {
    Author "Claude"
    LastChanged "Claude"
   }
+  CustomStringTableItem "{6B5A2E0100000001}" {
+   Id "OVT-FieldManual_Ports_Head"
+   Target_en_us "Importing"
+   Comment "Field Manual - Ports page, section header above the import paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000002}" {
+   Id "OVT-FieldManual_Ports_Head2"
+   Target_en_us "Exporting"
+   Comment "Field Manual - Ports page, section header above the export paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000003}" {
+   Id "OVT-FieldManual_Ports_Text"
+   Target_en_us "A port trades in bulk with the vehicle you are sitting in, and both you and the vehicle have to be within thirty metres of it. The vehicle needs storage of its own, so an illegal or armed one cannot trade there at all. The port screen has an Import side and an Export side."
+   Comment "Field Manual - Ports page, opening paragraph. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Occupied vehicle: OVT_PortContext.c:263-268 (GetOccupiedVehicle) and :410-416 (ResolveExportHolder). Thirty metres on both ends: OVT_VehicleRequestComponent.c:60 IMPORT_MAX_PORT_DISTANCE with the caller check at :55-59 and the vehicle check at :64-68, and OVT_StorageRequestComponent.c:173 EXPORT_MAX_PORT_DISTANCE set to the same number. Storage required: OVT_VehicleRequestComponent.c:70-75 refuses a vehicle whose capacity is NO_CAPACITY, which OVT_StorageRules.c:35-36 returns for an illegal or armed vehicle. Two sides: OVT_PortContext.c:117-120 inserts the Import and Export mode labels."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000004}" {
+   Id "OVT-FieldManual_Ports_Text2"
+   Target_en_us "Importing needs the first level of Trade. What you import is credited to the vehicle's storage rather than spawned into it, and you are charged only for what fitted, so a car with room for fifty more items pays for fifty. Goods no ordinary shop stocks are offered only at the fifth level of Trade, or at a port whose nearest ground the resistance controls."
+   Comment "Field Manual - Ports page, body paragraph under 'Importing'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Trade level 1: OVT_VehicleRequestComponent.c:29-33 requires the 'Import' permission, which #OVT-CannotImport already states as trade level 1. Credit instead of spawn, and charging for what fitted: OVT_VehicleRequestComponent.c:94-98 - ledger.Add clamped by the holder's capacity, then DoTakePlayerMoney for the clamped count only. Extended catalogue: OVT_VehicleRequestComponent.c:48-53 - an item no non-vehicle shop sells needs the 'IllegalImports' permission (trade level 5, as #OVT-FieldManual_Skills_Text4 already states) or economy.ResistanceControlsNearestPort."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000005}" {
+   Id "OVT-FieldManual_Ports_Text3"
+   Target_en_us "Export sells out of that same vehicle's storage. What a port pays for an item is a fraction of what importing one costs, held under what buying one there would cost, so carrying shop stock back out to a port does not pay. Goods no ordinary shop stocks carry the same condition they do on the way in, and anything the economy does not price cannot be exported at all."
+   Comment "Field Manual - Ports page, body paragraph under 'Exporting'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Sells from the vehicle's ledger: OVT_PortContext.c:363-406 builds the export list from the occupied vehicle's storage snapshot and :474-482 commits it as an EXPORT batch. Pricing: OVT_StorageRules.c:91-106 - the import price times the export ratio (0.5 by default, OVT_StorageRequestComponent.c:211-212), then clamped to one dollar under the shop buy price read at the port position, which is what stops a shop-buy/port-sell loop (the rule stated at OVT_StorageRules.c:83-86). Same illegal condition: OVT_StorageRequestComponent.c:2644-2662. Unpriced items: :2639-2640 returns 0 for a resource the economy does not know, and a unit price of 0 disables the line (OVT_PortContext.c:401)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000006}" {
+   Id "OVT-FieldManual_Ports_Title"
+   Target_en_us "Ports"
+   Comment "Field Manual - Ports page title, shown on the entry tile in the Money and Trade category. One word, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B000000000147}" {
    Id "OVT-FieldManual_Recruits_Head"
    Target_en_us "Hiring Recruits"
@@ -4311,6 +4413,210 @@ StringTable {
    Modified 1780801682
    Author "Claude"
    LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6B5A2E0100000010}" {
+   Id "OVT-FieldManual_Storage_Head"
+   Target_en_us "What Has Storage"
+   Comment "Field Manual - Storage page, section header. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000011}" {
+   Id "OVT-FieldManual_Storage_Head2"
+   Target_en_us "Taking Things Out"
+   Comment "Field Manual - Storage page, section header. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000012}" {
+   Id "OVT-FieldManual_Storage_Head3"
+   Target_en_us "Putting Things In"
+   Comment "Field Manual - Storage page, section header. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000013}" {
+   Id "OVT-FieldManual_Storage_Head4"
+   Target_en_us "Loading and Unloading"
+   Comment "Field Manual - Storage page, section header. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000014}" {
+   Id "OVT-FieldManual_Storage_Head5"
+   Target_en_us "Warehouses"
+   Comment "Field Manual - Storage page, section header. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000015}" {
+   Id "OVT-FieldManual_Storage_Text"
+   Target_en_us "Ammo boxes, warehouse buildings and most legal wheeled vehicles keep storage of their own: a list of goods the container holds, kept in the campaign save rather than sitting loose inside it. The Storage action on the container carries the number of items on that list, and opening it shows the list, a cart to fill from it, and a destination to send the cart to."
+   Comment "Field Manual - Storage page, opening paragraph. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Holders: the component sits on Prefabs/Props/Military/AmmoBoxes/OVT_AmmoBox_Base.et, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et and Prefabs/Vehicles/Core/Wheeled_Base.et:8-11. A list rather than entities: OVT_StorageLedger.c. Saved: OVT_StorageComponentSerializer.c with its bindings in Configs/Systems/Persistence/Overthrow.conf. Count on the action label: OVT_OpenStorageMenuAction.c:38-51 appends the item count in brackets. Screen shape: OVT_StorageContext.c:130 (the Take list) and :184-232 (the destination picker)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000016}" {
+   Id "OVT-FieldManual_Storage_Text2"
+   Target_en_us "A truck's storage has no limit and an ordinary car holds three hundred items, while an ammo box or a warehouse building holds as much as it is given. An illegal or armed vehicle has none at all, and neither does a helicopter, so no Storage action appears on them."
+   Comment "Field Manual - Storage page, body paragraph under 'What Has Storage'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Capacities: OVT_StorageRules.c:27-42 - a truck parking type returns unlimited, a registered legal vehicle returns the authored default, and an illegal or armed one returns 0; the default is 300 on Prefabs/Vehicles/Core/Wheeled_Base.et:10. Boxes and warehouses are unlimited (the non-vehicle branch, OVT_StorageRules.c:29-30, plus the UNLIMITED mode on those two prefabs). Helicopters: the component is authored on Wheeled_Base.et, which no helicopter inherits from, so GetStorage returns null and the action hides at OVT_StorageActionBase.c:37-52 - the same place a zero capacity hides it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000017}" {
+   Id "OVT-FieldManual_Storage_Text3"
+   Target_en_us "The cart goes to one of two sorts of destination. This container spawns the goods into the container's own inventory, where they can be picked up by hand. Any other storage standing within twenty five metres takes them straight onto its own list instead, with nothing spawned in between. A warehouse building has no inventory of its own, so it only offers the second."
+   Comment "Field Manual - Storage page, body paragraph under 'Taking Things Out'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Destinations: OVT_StorageContext.c:184-232. 'This container' is #OVT-Storage_DestinationInventory and resolves to the holder itself (:191-199), which the job engine services as TO_INVENTORY by spawning into the vanilla inventory (OVT_StorageRequestComponent.c:1811 and the spawn-then-debit ordering note at :1088). Twenty five metres: the picker searches m_fHolderRadius, whose attribute default is 25 (OVT_StorageRequestComponent.c:205) and which Prefabs/GameMode/OVT_OverthrowController.et does not override. Ledger-to-ledger with no spawn: OVT_StorageRules.c:129-162. Warehouse exception: OVT_StorageContext.c:190-191."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000018}" {
+   Id "OVT-FieldManual_Storage_Text4"
+   Target_en_us "Transfer all to storage converts everything the container is carrying into list entries in one go, a truck's bed included. Attachments and full magazines go on as items in their own right, while a part-used magazine stays where it is. An ammo box also carries an officers-only Clear inventory action for discarding what a transfer left behind, and Rename storage gives the container a name of its own, which is what the destination picker on every other container nearby shows."
+   Comment "Field Manual - Storage page, body paragraph under 'Putting Things In'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Transfer all: OVT_TransferAllToStorageAction.c, serviced by the sweep at OVT_StorageRequestComponent.c:1875-1881. Truck beds: OVT_StorageUtils.c:43-53 asks for SCR_VehicleInventoryStorageManagerComponent first, which is the only manager that registers a truck's child storages. Weapon parts detached and queued as items: OVT_StorageRequestComponent.c:2287-2305. Part-used magazines left behind: OVT_StorageRules.c:53-56, strict equality. Clear inventory is officer-only and lives on the ammo box: OVT_ClearVanillaInventoryAction.c:32-41 and OVT_AmmoBox_Base.et:88-93 (deliberately NOT on Vehicle_Base.et, so the text says ammo box). Rename: OVT_RenameStorageAction.c; the name is what the picker draws, OVT_StorageContext.c:227."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000019}" {
+   Id "OVT-FieldManual_Storage_Text5"
+   Target_en_us "An ammo box carries two more actions that work with the nearest vehicle. Unload vehicle into storage converts whatever that vehicle is carrying loose and then moves its whole list into the box, so a truck brought back from a battlefield empties in one action. Load storage into vehicle moves only the box's list and leaves the box's own inventory alone, so a weapon parked in a box stays there."
+   Comment "Field Manual - Storage page, body paragraph under 'Loading and Unloading'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Both actions are on OVT_AmmoBox_Base.et:98-113 and resolve the nearest vehicle through OVT_StorageVehicleActionBase.c. Unload sweeps first: OVT_UnloadStorageAction.c:29 passes sweepFirst true, and its header states the asymmetry. Load does not sweep: OVT_LoadStorageAction.c:32 passes false, header at :4-6. Labels are the shipped values of #OVT-UnloadStorage and #OVT-LoadStorage."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E010000001A}" {
+   Id "OVT-FieldManual_Storage_Text6"
+   Target_en_us "A warehouse building shows the same Storage action as anything else, and a vehicle parked at one can reach it from the vehicle menu as well: Take from warehouse opens the same screen, and Put in warehouse converts what the vehicle is carrying and moves its whole list into the building. A warehouse nobody has bought opens to nobody, a private one opens only to its owner, and a rented one only to the player renting it."
+   Comment "Field Manual - Storage page, body paragraph under 'Warehouses'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. The building is an action host with Storage and Rename on it: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:19-34. Vehicle menu: OVT_VehicleMenuContext.TakeFromWarehouse now shows OVT_StorageContext on the building, and PutInWarehouse calls RequestMoveAllToHolder(vehicle, building, true) - the true is the sweep (OVT_StorageRequestComponent.c:639-656). Accessibility: OVT_RealEstateManagerComponent.PlayerMayUseWarehouse:624-659 - unowned returns false, rented returns renter-only (a 'resistance' rental returns true for everybody, cut for length), private returns owner-only, public owned returns true. The old warehouse-only screen no longer exists (OVT_WarehouseContext.c deleted)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E010000001B}" {
+   Id "OVT-FieldManual_Storage_Title"
+   Target_en_us "Storage"
+   Comment "Field Manual - Storage page title, shown on the entry tile in the Money and Trade category. One word, matches the in-game action label #OVT-Storage_Open. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013F}" {
    Id "OVT-FieldManual_WantedSystem_Head"
@@ -5681,6 +5987,57 @@ StringTable {
    Modified 1708573829
    Author "Aaron Static"
    LastChanged "Lemmi"
+  }
+  CustomStringTableItem "{6A8E2D200000001D}" {
+   Id "OVT-Export"
+   Target_en_us "Export"
+   Comment "Transfer screen mode label for the port Export list, where a vehicle's storage is sold."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001E}" {
+   Id "OVT-Export_Body"
+   Target_en_us "The port pays less than any shop charges for the same item."
+   Comment "Details pane body on every sellable row of the port Export list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001F}" {
+   Id "OVT-Export_NotSellable"
+   Target_en_us "The port will not buy this"
+   Comment "Port Export row disabled - the item is unregistered, or illegal and the player lacks the import permission at a port the resistance does not hold."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
   }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
@@ -7107,14 +7464,14 @@ StringTable {
   }
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
-   Target_en_us "Load Into vehicle"
+   Target_en_us "Load storage into vehicle"
    Target_fr_fr "Charger dans le véhicule"
    Target_de_de "In Fahrzeug laden"
    Target_ru_ru "Загрузить в транспорт"
    Target_ko_kr "차량에 탑승하기"
    Target_zh_cn "装入车辆"
    Target_uk_ua "Завантажити в транспорт"
-   Comment ""
+   Comment "Ammo box user action. Moves the box's item STORAGE into the nearest vehicle's storage - it does not touch either vanilla inventory."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -7156,7 +7513,7 @@ StringTable {
    Target_ko_kr "잠김"
    Target_zh_cn "已锁"
    Target_uk_ua "Заблоковано"
-   Comment ""
+   Comment "Storage or vehicle action refused - the holder is locked to another player."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -10328,7 +10685,7 @@ StringTable {
    Target_ko_kr "25m 이내에 시체나 무기가 없습니다"
    Target_zh_cn "25米内没有尸体或武器"
    Target_uk_ua "У радіусі 25 метрів немає трупів чи зброї"
-   Comment ""
+   Comment "Loot refused - no bodies or dropped weapons inside the search radius."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -10512,7 +10869,7 @@ StringTable {
    Target_ko_kr "주변에 차량이 없습니다"
    Target_zh_cn "附近没有车辆"
    Target_uk_ua "Відсутня техніки поряд"
-   Comment ""
+   Comment "Load/Unload Storage refused - no usable vehicle within 15 m."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -10602,7 +10959,7 @@ StringTable {
    Target_ko_kr "소유됨"
    Target_zh_cn "拥有"
    Target_uk_ua "У власності"
-   Comment ""
+   Comment "Map/HUD label for a building or warehouse owned by the local player."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -10625,7 +10982,7 @@ StringTable {
    Target_ko_kr "소유자"
    Target_zh_cn "所有者"
    Target_uk_ua "Власник"
-   Comment ""
+   Comment "Map/HUD row label naming the owner of a building or warehouse."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11527,7 +11884,7 @@ StringTable {
    Target_ko_kr "컨테이너 수집 중"
    Target_zh_cn "收集容器中"
    Target_uk_ua "Збір контейнерів"
-   Comment ""
+   Comment "Progress bar title while FOB undeploy drains nearby containers into the mobile FOB's storage ledger."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11642,7 +11999,7 @@ StringTable {
    Target_ko_kr "전리품 수집 중"
    Target_zh_cn "战场搜刮中"
    Target_uk_ua "Збір трофеїв"
-   Comment ""
+   Comment "Progress bar title while the Loot job runs."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -11656,6 +12013,91 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D200000000B}" {
+   Id "OVT-Progress-StorageClearing"
+   Target_en_us "Emptying container"
+   Comment "Progress caption while the officer clear job deletes a container's vanilla inventory. The storage ledger is not touched."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000000C}" {
+   Id "OVT-Progress-StorageExporting"
+   Target_en_us "Selling storage at the port"
+   Comment "Progress caption while a storage export job sells a holder's ledger at a port."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000000D}" {
+   Id "OVT-Progress-StorageMoving"
+   Target_en_us "Moving storage"
+   Comment "Progress caption while a storage job moves items from one holder's ledger into another's. No entities are spawned."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000000E}" {
+   Id "OVT-Progress-StorageStoring"
+   Target_en_us "Moving items into storage"
+   Comment "Progress caption while a storage job converts a holder's vanilla inventory into its own ledger."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000000F}" {
+   Id "OVT-Progress-StorageTaking"
+   Target_en_us "Taking items from storage"
+   Comment "Progress caption while a storage job spawns items out of a holder's ledger into its vanilla inventory."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A1B2C3D4E5F6792}" {
    Id "OVT-Progress-TransferringItems"
    Target_en_us "Transferring items"
@@ -11665,7 +12107,7 @@ StringTable {
    Target_ko_kr "아이템 이동 중"
    Target_zh_cn "转移物品中"
    Target_uk_ua "Переміщення предметів"
-   Comment ""
+   Comment "Progress bar title for a generic item transfer between two vanilla inventories."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15105,6 +15547,397 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D2000000010}" {
+   Id "OVT-Storage_BadRequest"
+   Target_en_us "That storage request was not valid"
+   Comment "Storage request refused - the checkout was malformed, arrived short, named an operation that carries no cart lines, or named a source and destination that do not go together."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000001}" {
+   Id "OVT-Storage_Busy"
+   Target_en_us "Another storage operation is already running"
+   Comment "Storage request refused - the player already has a storage job in flight, or the batch engine is not available. One job per player."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000002}" {
+   Id "OVT-Storage_Failed"
+   Target_en_us "Storage request failed"
+   Comment "Storage request refused for a reason the player cannot act on - the server could not identify the caller, or the holder has no ledger."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000003}" {
+   Id "OVT-Storage_Locked"
+   Target_en_us "That storage is locked to someone else"
+   Comment "Storage request refused - the vehicle or container is locked and belongs to another player."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000004}" {
+   Id "OVT-Storage_NameInvalid"
+   Target_en_us "A storage name must be 1 to 32 characters"
+   Comment "Rename storage refused - the name was empty or longer than 32 characters. Enforced on the server."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000005}" {
+   Id "OVT-Storage_NoAccess"
+   Target_en_us "You do not have access to that warehouse"
+   Comment "Storage request refused - the warehouse building is not owned, rented or accessible to this player."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000006}" {
+   Id "OVT-Storage_NoCapacity"
+   Target_en_us "That container has no storage"
+   Comment "Storage request refused - the holder's capacity resolved to zero, which is what an illegal or armed vehicle gets."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000011}" {
+   Id "OVT-Storage_NotAtPort"
+   Target_en_us "You must be at a port to sell storage"
+   Comment "Storage export refused - either the player or the holder is too far from a port."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000007}" {
+   Id "OVT-Storage_NotFound"
+   Target_en_us "That storage no longer exists"
+   Comment "Storage request refused - the holder could not be resolved on the server, or it carries no storage component."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000008}" {
+   Id "OVT-Storage_NotOfficer"
+   Target_en_us "Only officers can do that"
+   Comment "Storage request refused - clearing a container's vanilla inventory is officer-only."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000009}" {
+   Id "OVT-Storage_Ruined"
+   Target_en_us "That building is ruined"
+   Comment "Storage request refused - the holder has been destroyed and cannot be used until it is repaired."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000000A}" {
+   Id "OVT-Storage_TooFar"
+   Target_en_us "You are too far from that storage"
+   Comment "Storage request refused - the player is not standing near the holder they asked to act on."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000012}" {
+   Id "OVT-Storage_NothingToMove"
+   Target_en_us "There is nothing to move"
+   Comment "Storage request refused - the holder is empty, or every line of the order clamped to zero against what the ledger actually holds."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000013}" {
+   Id "OVT-Storage_Open"
+   Target_en_us "Storage"
+   Comment "Open Storage user action label on an ammo box, a vehicle door and a warehouse. The holder's replicated item count is appended by the action as " (N)", so this value must read naturally with a number after it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000014}" {
+   Id "OVT-Storage_TransferAll"
+   Target_en_us "Transfer all to storage"
+   Comment "User action on an ammo box and a vehicle door: converts the holder's whole vanilla inventory into its storage ledger. Part-used magazines are deliberately left behind."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000015}" {
+   Id "OVT-Storage_Rename"
+   Target_en_us "Rename storage"
+   Comment "User action on an ammo box, a vehicle door and a warehouse: opens the rename dialog. The name replicates and shows in action labels, the destination picker and the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000016}" {
+   Id "OVT-Storage_ClearInventory"
+   Target_en_us "Clear inventory"
+   Comment "Officer-only user action on an ammo box: empties the holder's VANILLA inventory and never its storage ledger. This is how the leftovers a transfer refuses get discarded."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000017}" {
+   Id "OVT-Storage_RenameTitle"
+   Target_en_us "Rename Storage"
+   Comment "Title of the storage rename dialog. Overrides the recruit-rename preset's own title, which the dialog is otherwise reused from."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000018}" {
+   Id "OVT-Storage_RenameMessage"
+   Target_en_us "Enter a new name for this storage (1-32 characters)"
+   Comment "Message above the edit box in the storage rename dialog. The length rule is enforced by the server, not only here."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000019}" {
+   Id "OVT-Storage_Take"
+   Target_en_us "Take"
+   Comment "The single mode label on the Open Storage transfer screen, shown in the screen title. Open Storage has one mode, so no mode buttons are drawn."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001A}" {
+   Id "OVT-Storage_Loading"
+   Target_en_us "Loading contents..."
+   Comment "Standing message on the Open Storage screen while the holder's contents are being pulled from the server. Contents never replicate; the one player looking pulls them on open."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001B}" {
+   Id "OVT-Storage_NoDestination"
+   Target_en_us "Choose where these items should go"
+   Comment "Open Storage checkout refused before any request is sent - no destination is selected. Fit is deliberately NOT checked here; the server reports a shortfall instead."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001C}" {
+   Id "OVT-Storage_DestinationInventory"
+   Target_en_us "This container"
+   Comment "First entry in the Open Storage destination picker: the holder's own vanilla inventory, i.e. spawn the items back into the box or vehicle you are standing at."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A45C635CF39E07}" {
    Id "OVT-StorageEmpty"
    Target_en_us "Equipment Box is empty"
@@ -15114,7 +15947,7 @@ StringTable {
    Target_ko_kr "장비 상자가 비어 있습니다"
    Target_zh_cn "装备箱是空的"
    Target_uk_ua "Ящик зі спорядженням порожній"
-   Comment ""
+   Comment "Load Storage refused - the ammo box's storage ledger holds nothing to load."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15708,6 +16541,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D2000000020}" {
+   Id "OVT-Transfer_DestinationLabel"
+   Target_en_us "Send to"
+   Comment "Transfer screen - the label drawn beside the destination picker. Overrides vanilla WLib_SpinBox's placeholder m_sLabel \"SpinBox\", which would otherwise render verbatim."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2C1D00000014}" {
    Id "OVT-Transfer_DestinationVehicle"
    Target_en_us "Vehicle"
@@ -16188,10 +17038,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000102}" {
    Id "OVT-Tutorial_HomeFirstOpen_Body"
-   Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Various warehouses can also be bought via this screen and allow mass storage and retrieval of items."
+   Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Warehouses can also be bought here, and a warehouse you own keeps storage of its own, opened with the Storage action on the building."
    Target_de_de "Immobilien können gekauft, gemietet und verkauft werden. Nicht alle Gebäude können gekauft werden, die meisten Häuser jedoch schon. Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter wiedereinsteigt, und Gebäude in deinem Besitz oder von dir gemietete Gebäude gelten als Schnellreiseziele. Basen und FOBs können ebenfalls als \"Zuhause\" festgelegt werden. Über diesen Bildschirm können außerdem verschiedene Lagerhäuser gekauft werden, die das Lagern und Entnehmen großer Mengen von Gegenständen ermöglichen."
    Target_uk_ua "Нерухомість можна купувати, орендувати та продавати. Не всі будівлі можна придбати, але більшість будинків — можна. Будівля, встановлена як ваш дім, є місцем відродження вашого персонажа, а будівлі, якими ви володієте або які орендуєте, доступні як точки швидкого переміщення. Бази та FOB також можна встановити як «Дім». Через цей екран також можна купувати різні склади, які дають змогу зберігати та забирати велику кількість предметів."
-   Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2. TYPO FIX 2026-08-21: en_us 'retireval' -> 'retrieval'; wording unchanged otherwise, the de_de and uk_ua targets already read correctly and were not touched. Reviewed 2026-08-21 against the logistics/ui transfer screen: the warehouse sentence stays accurate (taking now goes through the shared transfer screen, but this tip never described the buttons)."
+   Comment "Body of the 'home-first-open' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: it describes the system and must NOT tell the player what to do, assign a goal, or assume anything about what they did before. FACT-CHECKED 2026-08-09 for tutorial-content Phase 1. Sentence 1: OVT_RealEstateManagerComponent.c:333-350 (m_mOwned is keyed by the persistent player id) and its ApplyPersisted path at :255+ called from OVT_RealEstateManagerSerializer.Deserialize, so ownership survives a save and a restart. Sentence 2: OVT_SpawnLogic.c:786-806 (player.home is the respawn position, with the logout position taking priority) and OVT_MapContext.c:93-107 (GetNearestOwned / GetNearestRented make an owned or rented building a fast travel destination). Compresses #OVT-FieldManual_YourHome_Text and _Text2. TYPO FIX 2026-08-21: en_us 'retireval' -> 'retrieval'; wording unchanged otherwise, the de_de and uk_ua targets already read correctly and were not touched. REWRITTEN 2026-08-21 for logistics/storage Phase 10: the old final clause said warehouses 'allow mass storage and retrieval of items' via the real estate screen, which is now false - the warehouse-only screen is gone (OVT_WarehouseContext.c deleted) and stock is reached from the Storage user action on the building itself (Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:19-24). Buying a warehouse through this screen is unchanged (OVT_RealEstateManagerComponent.c:225-257 creates the warehouse record on SetOwner). de_de and uk_ua still carry the OLD final clause and need re-translation."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -16660,6 +17510,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B5A2E0100000030}" {
+   Id "OVT-Tutorial_StorageFirstOpen_Body"
+   Target_en_us "Ammo boxes, warehouse buildings and most legal wheeled vehicles keep storage of their own: a list of goods the container holds rather than items sitting loose inside it. The number beside the Storage action is how many are on that list.<br/><br/>Anything on the list can be taken out into this container, where it turns back into items you can pick up, or sent straight onto the list of another container standing within twenty five metres.<br/><br/>Other actions on the container put everything it is carrying onto the list at once, or give it a name of its own."
+   Comment "Tutorial popup body for Configs/Tutorials/storageFirstOpen.conf, fired by MENU_OPENED with the filter OVT_StorageContext. RICH TEXT: the two <br/><br/> pairs are paragraph breaks and must be preserved in translation. TONE: informs, never instructs - no imperative and no implied order. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Holders and the count: OVT_AmmoBox_Base.et, Warehouse_01_Base.et, Wheeled_Base.et:8-11, and OVT_OpenStorageMenuAction.c:38-51 for the bracketed number. 'This container' spawning real items: OVT_StorageContext.c:191-199 with the TO_INVENTORY step at OVT_StorageRequestComponent.c:1811. Twenty five metres: m_fHolderRadius default 25 at OVT_StorageRequestComponent.c:205, unoverridden on OVT_OverthrowController.et. The last sentence covers Transfer all to storage (OVT_TransferAllToStorageAction.c) and Rename storage (OVT_RenameStorageAction.c) without naming a required order. The longer version is the Field Manual Storage page, which this entry links to through m_sFieldManualTitleKey."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A2E0100000031}" {
+   Id "OVT-Tutorial_StorageFirstOpen_Title"
+   Target_en_us "Storage"
+   Comment "Tutorial popup title for Configs/Tutorials/storageFirstOpen.conf. One word, matches the in-game action label #OVT-Storage_Open and the Field Manual page title. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3A000000000061}" {
    Id "OVT-Tutorial_Title"
    Target_en_us "Tip"
@@ -16842,14 +17726,14 @@ StringTable {
   }
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
-   Target_en_us "Unload from vehicle"
+   Target_en_us "Unload vehicle into storage"
    Target_fr_fr "Décharger cargaison"
    Target_de_de "Aus Fahrzeug entladen"
    Target_ru_ru "Выгрузить из транспорта"
    Target_ko_kr "차량에서 내리기"
    Target_zh_cn "从车辆上卸下"
    Target_uk_ua "Вивантажити з техніки"
-   Comment ""
+   Comment "Ammo box user action. Converts the nearest vehicle's vanilla inventory into its storage, then moves the whole lot into this box."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -16969,7 +17853,7 @@ StringTable {
    Target_ko_kr "차량이 비어 있습니다"
    Target_zh_cn "车辆是空的"
    Target_uk_ua "Техніка порожня"
-   Comment ""
+   Comment "Unload Storage refused - the vehicle's ledger and its vanilla inventory are both empty."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -17038,7 +17922,7 @@ StringTable {
    Target_ko_kr "차량이 보관소에 하역되었습니다"
    Target_zh_cn "车辆已卸入仓库"
    Target_uk_ua "Техніка була вивантажена в сховище"
-   Comment ""
+   Comment "Result toast after Unload Storage - the vehicle's contents ended up in the container's ledger."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -17093,7 +17977,7 @@ StringTable {
    Target_ko_kr "보관소"
    Target_zh_cn "仓库"
    Target_uk_ua "Склад"
-   Comment ""
+   Comment "Default display name for a warehouse building holder, shown in the Storage action label, the destination picker and on the map."
    DevNote ""
    Repro ""
    ActorGender NONE

@@ -2,12 +2,16 @@
 class OVT_RealEstateRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
-//! Server-authoritative real estate and warehouse requests, on the per-player OVT_OverthrowController.
+//! Server-authoritative real estate requests, on the per-player OVT_OverthrowController.
 //!
 //! Phase 3 of the controller migration (docs/features/core/controller-migration/implementation.md §4).
 //! Replaced eight handlers on the legacy comms monolith (deleted in Phase 10): set-home, buy/sell/rent/
-//! stop-renting a building, and the three warehouse movements. Project rule (overthrow-controller.md):
+//! stop-renting a building, and three warehouse movements. Project rule (overthrow-controller.md):
 //! every client->server RPC lives on a controller component like this one.
+//!
+//! THE THREE WAREHOUSE VERBS ARE GONE (logistics/storage Phase 7). A warehouse building is an ordinary
+//! storage holder addressed by RplId now, so every warehouse movement runs through
+//! OVT_StorageRequestComponent and the one MayUseHolder gate. No warehouse id crosses this wire.
 //!
 //! WHY BUILDING REQUESTS CARRY NO BUILDING ARGUMENT. They never did, and that is the good part of the
 //! original design: the server resolves the target with re.GetNearestBuilding(caller's origin), so the
@@ -22,18 +26,7 @@ class OVT_RealEstateRequestComponentClass : OVT_ControllerRequestComponentClass 
 //!    the caller's CONTROLLER ENTITY, so the caller is ResolveOwningPlayerId() and the parameter is
 //!    DELETED rather than ignored.
 //!
-//! 2. THE THREE WAREHOUSE HANDLERS GAIN THE VALIDATION THEY NEVER HAD. AddToWarehouse and
-//!    TakeFromWarehouse were bare one-line forwards with no checks at all: any client could push any
-//!    arbitrary string, in any quantity, into any warehouse id, or drain one. They now check count > 0,
-//!    warehouse id in range, and - the important one - that the string names a REGISTERED RESOURCE
-//!    (economy.IsRegisteredResource). Warehouse inventories are keyed by raw ResourceName string and are
-//!    persisted, so an unregistered string was a permanent, un-priced, un-spawnable row in the save.
-//!
-//! 3. THE TWO OVT_Global WAREHOUSE HELPERS ARE GONE (plan G8/T3.x). TransferToWarehouse() and
-//!    TakeFromWarehouseToVehicle() now live on OVT_RealEstateManagerComponent where the state they
-//!    mutate lives. This component delegates to the manager, never to a static.
-//!
-//! 4. RpcAsk_SetBuildingHome IS NOT HERE, AND ITS ABSENCE IS THE POINT (plan §3.7/D6). It had zero
+//! 2. RpcAsk_SetBuildingHome IS NOT HERE, AND ITS ABSENCE IS THE POINT (plan §3.7/D6). It had zero
 //!    callers repo-wide and no validation whatsoever - it let any client set any player's home to any
 //!    replicated entity on the map. Real estate's own IsHome/SetAsHome fix re-adds a validated version
 //!    when that work lands; see docs/features/economy/real-estate/context.md.
@@ -45,11 +38,6 @@ class OVT_RealEstateRequestComponentClass : OVT_ControllerRequestComponentClass 
 //------------------------------------------------------------------------------------------------
 class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 {
-	//! How far the requesting player may be from a vehicle before the server refuses to load warehouse
-	//! stock into it. The same 15 m the vehicle seam uses for lock/claim/upgrade/repair, so no request is
-	//! refused here that another seam would have accepted.
-	protected const float VEHICLE_MAX_DISTANCE = 15;
-
 	//------------------------------------------------------------------------------------------------
 	// PUBLIC ENTRY POINTS - client side.
 	//------------------------------------------------------------------------------------------------
@@ -115,55 +103,6 @@ class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_StopRentingBuilding(useResistanceFunds);
 		}else{
 			Rpc(RpcAsk_StopRentingBuilding, useResistanceFunds);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Add stock to a warehouse.
-	//! \param[in] warehouseId Index into the real estate manager's warehouse list.
-	//! \param[in] id ResourceName string of the item.
-	//! \param[in] count How many.
-	void AddToWarehouse(int warehouseId, string id, int count)
-	{
-		if(Replication.IsServer())
-		{
-			RpcAsk_AddToWarehouse(warehouseId, id, count);
-		}else{
-			Rpc(RpcAsk_AddToWarehouse, warehouseId, id, count);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Remove stock from a warehouse.
-	//! \param[in] warehouseId Index into the real estate manager's warehouse list.
-	//! \param[in] id ResourceName string of the item.
-	//! \param[in] count How many.
-	void TakeFromWarehouse(int warehouseId, string id, int count)
-	{
-		if(Replication.IsServer())
-		{
-			RpcAsk_TakeFromWarehouse(warehouseId, id, count);
-		}else{
-			Rpc(RpcAsk_TakeFromWarehouse, warehouseId, id, count);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Move stock out of a warehouse and into a vehicle's cargo.
-	//! \param[in] warehouseId Index into the real estate manager's warehouse list.
-	//! \param[in] id ResourceName string of the item.
-	//! \param[in] qty How many (clamped server-side to what the warehouse holds and what fits).
-	//! \param[in] vehicle The receiving vehicle.
-	void TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, IEntity vehicle)
-	{
-		RplComponent rpl = GetEntityRpl(vehicle);
-		if(!rpl) return;
-
-		if(Replication.IsServer())
-		{
-			RpcAsk_TakeFromWarehouseToVehicle(warehouseId, id, qty, rpl.Id());
-		}else{
-			Rpc(RpcAsk_TakeFromWarehouseToVehicle, warehouseId, id, qty, rpl.Id());
 		}
 	}
 
@@ -408,182 +347,5 @@ class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 		if(!isRenter) return;
 
 		re.SetRenter(-1, building);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	// SERVER HANDLERS - WAREHOUSES
-	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Server: add stock to a warehouse.
-	//!
-	//! ZERO VALIDATION BEFORE THIS PHASE - a bare forward to DoAddToWarehouse. The count and range checks
-	//! the manager already performs are duplicated here on purpose: a rejected request should be rejected
-	//! at the seam, where it can be logged with a reason (Q9), rather than disappearing into a manager
-	//! that returns silently. The registered-resource check is the genuinely new one; see the class
-	//! header for why an arbitrary string in a warehouse is worse than it looks.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddToWarehouse(int warehouseId, string id, int count)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		if(!re) return;
-
-		if(!ValidateWarehouseRequest(playerId, "add", re, warehouseId, id, count)) return;
-
-		re.DoAddToWarehouse(warehouseId, id, count);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Server: remove stock from a warehouse.
-	//!
-	//! Same three checks as the add path, plus a stock test: the manager floors the quantity at zero, so
-	//! an over-take was previously not a crash but it WAS a silent free deletion of another player's
-	//! stock with no trace. Refusing it makes the request auditable.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakeFromWarehouse(int warehouseId, string id, int count)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		if(!re) return;
-
-		if(!ValidateWarehouseRequest(playerId, "take", re, warehouseId, id, count)) return;
-
-		if(!WarehouseHasStock(re, warehouseId, id, count))
-		{
-			RejectWarehouseRequest(playerId, "take", "the warehouse does not hold that many");
-			return;
-		}
-
-		re.DoTakeFromWarehouse(warehouseId, id, count);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Server: move stock out of a warehouse and into a vehicle's cargo.
-	//!
-	//! Carried: qty > 0 and the warehouse-id range check (the only two the monolith had). Added: the
-	//! registered-resource check (the string is fed straight to TrySpawnPrefabToStorage, so an
-	//! unregistered one is an arbitrary client-chosen prefab spawn), the caller being AT the vehicle, and
-	//! PlayerMayUseVehicle - without which any client could unload the resistance's entire warehouse into
-	//! a stranger's locked truck on the other side of the map.
-	//!
-	//! Quantity is deliberately NOT bounded beyond what the warehouse holds: the manager clamps to stock
-	//! and pays only for what actually fitted, so a large qty costs nothing it did not deliver.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TakeFromWarehouseToVehicle(int warehouseId, string id, int qty, RplId vehicleId)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_RealEstateManagerComponent re = OVT_Global.GetRealEstate();
-		if(!re) return;
-
-		if(!ValidateWarehouseRequest(playerId, "take-to-vehicle", re, warehouseId, id, qty)) return;
-
-		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-		if(!character) return;
-
-		IEntity vehicle = ResolveEntity(vehicleId);
-		if(!vehicle) return;
-
-		if(vector.Distance(character.GetOrigin(), vehicle.GetOrigin()) > VEHICLE_MAX_DISTANCE)
-		{
-			RejectWarehouseRequest(playerId, "take-to-vehicle", "the player is not at the vehicle");
-			return;
-		}
-
-		if(!PlayerMayUseVehicle(playerId, vehicle))
-		{
-			RejectWarehouseRequest(playerId, "take-to-vehicle", "the vehicle is locked and owned by somebody else");
-			return;
-		}
-
-		re.TakeFromWarehouseToVehicle(warehouseId, id, qty, vehicleId);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	// HELPERS
-	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! The three checks every warehouse request shares: a positive quantity, a warehouse id that names a
-	//! real warehouse, and a resource string the economy actually knows about.
-	//!
-	//! IsRegisteredResource is the load-bearing one. Warehouse inventories are map<string,int> keyed by
-	//! raw ResourceName and are persisted verbatim, and the take-to-vehicle path feeds the key straight
-	//! to TrySpawnPrefabToStorage. An unregistered string was therefore both a permanent junk row in the
-	//! save and an arbitrary client-chosen prefab spawn.
-	//! \param[in] playerId Caller, for the rejection log.
-	//! \param[in] request Which request, for the rejection log.
-	//! \param[in] re The real estate manager.
-	//! \param[in] warehouseId Requested warehouse index.
-	//! \param[in] id Requested resource string.
-	//! \param[in] count Requested quantity.
-	//! \return True when the request may proceed.
-	protected bool ValidateWarehouseRequest(int playerId, string request, OVT_RealEstateManagerComponent re, int warehouseId, string id, int count)
-	{
-		if(count <= 0)
-		{
-			RejectWarehouseRequest(playerId, request, "quantity was not positive");
-			return false;
-		}
-
-		if(!re.m_aWarehouses || warehouseId < 0 || warehouseId >= re.m_aWarehouses.Count())
-		{
-			RejectWarehouseRequest(playerId, request, "no warehouse with that id");
-			return false;
-		}
-
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		if(!economy) return false;
-
-		if(!economy.IsRegisteredResource(id))
-		{
-			RejectWarehouseRequest(playerId, request, "that resource is not registered in the economy");
-			return false;
-		}
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether a warehouse currently holds at least count of a resource.
-	//! \param[in] re The real estate manager.
-	//! \param[in] warehouseId Warehouse index (already range-checked).
-	//! \param[in] id Resource string.
-	//! \param[in] count How many are wanted.
-	//! \return True when the stock is there.
-	protected bool WarehouseHasStock(OVT_RealEstateManagerComponent re, int warehouseId, string id, int count)
-	{
-		OVT_WarehouseData warehouse = re.m_aWarehouses[warehouseId];
-		if(!warehouse || !warehouse.inventory) return false;
-		if(!warehouse.inventory.Contains(id)) return false;
-
-		return warehouse.inventory[id] >= count;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Logs a rejected warehouse request with its reason.
-	//!
-	//! Quality bar Q9: a rejected request is never indistinguishable from a dropped packet. These log
-	//! rather than notify because every one of these checks is NEW in this phase and the warehouse menu
-	//! already gates the legitimate cases client-side - a player who has never seen a message here should
-	//! not start seeing one.
-	//! \param[in] playerId The rejected player.
-	//! \param[in] request Which request was rejected.
-	//! \param[in] reason Why.
-	protected void RejectWarehouseRequest(int playerId, string request, string reason)
-	{
-		Print(string.Format("[OVT_RealEstateRequestComponent] Rejected warehouse %1 request from player %2: %3", request, playerId.ToString(), reason), LogLevel.WARNING);
 	}
 }

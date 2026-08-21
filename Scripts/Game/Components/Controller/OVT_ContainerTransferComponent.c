@@ -34,8 +34,14 @@ class OVT_ContainerTransferCallback : OVT_StorageProgressCallback
 //! Component that handles all container transfer operations with progress tracking.
 //! Replaced the container transfer functionality on the legacy comms monolith (deleted in Phase 10).
 //!
+//! DOWN TO TWO VERBS as of logistics/storage Phase 8. FOB undeploy and box Load/Unload moved onto
+//! OVT_StorageRequestComponent's job engine, battlefield loot kept its wire and forwards to a LOOT
+//! job, and the two caller-less endpoints the 2026-08-14 audit flagged as deletion candidates are
+//! gone. What is left is the FOB DEPLOY transfer (vanilla inventory, mobile FOB -> deployed FOB) and
+//! the loot wire.
+//!
 //! VALIDATION (added 2026-08-14 by the pre-migration audit - see docs/bugs/BUG-166.md). This is the
-//! OLDEST controller component and it predates the §3.4 validation ladder: every one of its six
+//! OLDEST controller component and it predates the §3.4 validation ladder: every one of its
 //! RplRcver.Server handlers used to be a bare forward that trusted an RplId, a position and a radius
 //! from the client and never asked WHO was calling. That made "move the contents of any replicated
 //! storage on the map into any other" a one-packet operation for a modified client. Every handler now
@@ -55,11 +61,6 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	//! import seams already use for "the player and the vehicle are at the same place", so a transfer is
 	//! never refused where a sale at the same spot would be accepted.
 	protected const float TRANSFER_MAX_DISTANCE = 30;
-
-	//! Upper bound on a client-supplied container-collection radius. The only wrapper that sends one
-	//! defaults to 75 m; the cap exists because the value goes straight into a world sphere query on the
-	//! SERVER, so an unbounded radius from a modified client is a denial of service, not a big transfer.
-	protected const float COLLECT_MAX_RADIUS = 100;
 
 	//! Upper bound on a client-supplied battlefield-loot radius. The only caller sends 25 m.
 	protected const float LOOT_MAX_RADIUS = 50;
@@ -98,36 +99,17 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Transfer contents for FOB deployment with custom progress message
-	//! \param[in] from Source container entity (mobile FOB)
-	//! \param[in] to Target container entity (deployed FOB)
-	//! \param[in] deleteEmpty Delete source if empty after transfer
-	void TransferStorageForDeployment(IEntity from, IEntity to, bool deleteEmpty = false)
-	{
-		if (!from || !to) return;
-		
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		RplComponent toRpl = RplComponent.Cast(to.FindComponent(RplComponent));
-		
-		if (!fromRpl || !toRpl) return;
-		
-		if(Replication.IsServer())
-		{
-			RpcAsk_TransferStorageForDeployment(fromRpl.Id(),toRpl.Id(), deleteEmpty);
-		}else{
-			Rpc(RpcAsk_TransferStorageForDeployment, fromRpl.Id(), toRpl.Id(), deleteEmpty);
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
 	//! Server: move one container's contents into another.
 	//!
-	//! Also reached SERVER-SIDE from OVT_ResistanceFactionManager.DeployFOB, on the deploying player's
+	//! ITS ONE CALLER IS SERVER-SIDE: OVT_ResistanceFactionManager.DeployFOB, on the deploying player's
 	//! own controller - which is why every gate below is one the FOB seam has already applied to the
 	//! same player and the same vehicle (RpcAsk_DeployFOB: 15 m + PlayerMayUseVehicle). A refusal here
 	//! that the FOB seam would have allowed is therefore not reachable; RejectTransfer still reports
 	//! through the error channel so that if one ever is, the manager's in-flight latch clears instead of
 	//! wedging FOB operations for the whole session.
+	//!
+	//! It moves the VANILLA INVENTORY only. The deploying truck's LEDGER is moved by DeployFOB itself,
+	//! synchronously and with zero spawns, before this is called.
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_TransferStorage(RplId fromId, RplId toId, bool deleteEmpty)
 	{
@@ -170,263 +152,6 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Server: as RpcAsk_TransferStorage, with the FOB deployment progress caption.
-	//!
-	//! ! CALLER-LESS as of the 2026-08-14 audit: nothing in Scripts/ calls TransferStorageForDeployment.
-	//! It is validated rather than deleted because deleting a public entry point is outside an audit's
-	//! remit, but it is a deletion candidate - an endpoint with no callers is an attack surface with no
-	//! purpose (the same reasoning §3.7/D6 applied to three monolith RPCs).
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferStorageForDeployment(RplId fromId, RplId toId, bool deleteEmpty)
-	{
-		// Validate we're on server
-		if (!Replication.IsServer()) return;
-
-		int playerId = ResolveCallerPlayerId();
-		if (playerId <= 0)
-		{
-			RejectTransfer(playerId, "deployment transfer", "could not resolve the requesting player");
-			return;
-		}
-
-		IEntity from = GetEntityFromRplId(fromId);
-		IEntity to = GetEntityFromRplId(toId);
-		if (!from || !to)
-		{
-			RejectTransfer(playerId, "deployment transfer", "source or target no longer exists");
-			return;
-		}
-
-		if (!CallerMayReach(playerId, from, "deployment transfer")) return;
-		if (!CallerMayReach(playerId, to, "deployment transfer")) return;
-
-		// Start the operation with deployment message
-		StartOperation("#OVT-Progress-DeployingFOB");
-		
-		// Configure transfer
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
-			deleteEmpty,// skipWeaponsOnGround
-			false,      // deleteEmptyContainers
-			50,         // itemsPerBatch
-			100,        // batchDelayMs
-			-1,         // searchRadius (not needed for direct transfer)
-			1           // maxBatchesPerFrame
-		);
-		
-		// Use inventory manager with our callback
-		OVT_Global.GetInventory().TransferStorageByRplId(fromId, toId, config, GetCallback());
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Collect all containers in area and transfer to vehicle
-	//! \param[in] pos Center position for search
-	//! \param[in] targetVehicle Vehicle to transfer items to
-	//! \param[in] radius Search radius in meters
-	void CollectContainers(vector pos, IEntity targetVehicle, float radius = 75.0)
-	{
-		if (!targetVehicle) return;
-		
-		RplComponent vehicleRpl = RplComponent.Cast(targetVehicle.FindComponent(RplComponent));
-		if (!vehicleRpl) return;
-		
-		if(Replication.IsServer())
-		{
-			RpcAsk_CollectContainers(pos, vehicleRpl.Id(), radius);
-		}else{
-			Rpc(RpcAsk_CollectContainers, pos, vehicleRpl.Id(), radius);
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Server: sweep every container within a radius of a position into a vehicle.
-	//!
-	//! BOTH client-supplied numbers are checked, and they are checked for different reasons: \a pos
-	//! decides WHOSE containers get emptied (so the caller must be standing at it), \a radius decides
-	//! how much server work one packet buys (so it is capped). Neither was checked before.
-	//!
-	//! ! CALLER-LESS as of the 2026-08-14 audit - same deletion-candidate note as
-	//! RpcAsk_TransferStorageForDeployment. The FOB undeploy path uses RpcAsk_UndeployFOB, not this.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_CollectContainers(vector pos, RplId vehicleId, float radius)
-	{
-		// Validate we're on server
-		if (!Replication.IsServer()) return;
-
-		int playerId = ResolveCallerPlayerId();
-		if (playerId <= 0)
-		{
-			RejectTransfer(playerId, "collect containers", "could not resolve the requesting player");
-			return;
-		}
-
-		if (radius <= 0 || radius > COLLECT_MAX_RADIUS)
-		{
-			RejectTransfer(playerId, "collect containers", "search radius out of range");
-			return;
-		}
-
-		IEntity vehicle = GetEntityFromRplId(vehicleId);
-		if (!vehicle)
-		{
-			SendOperationError("Vehicle not found");
-			return;
-		}
-
-		if (!CallerMayReach(playerId, vehicle, "collect containers")) return;
-
-		if (!CallerIsWithin(playerId, pos, TRANSFER_MAX_DISTANCE))
-		{
-			RejectTransfer(playerId, "collect containers", "the caller is not at the claimed collection point");
-			return;
-		}
-
-		// Start the operation
-		StartOperation("#OVT-Progress-CollectingContainers");
-		
-		// Configure collection
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
-			true,       // skipWeaponsOnGround
-			true,       // deleteEmptyContainers
-			100,        // itemsPerBatch
-			300,        // batchDelayMs
-			radius,     // searchRadius
-			3           // maxBatchesPerFrame
-		);
-		
-		// Use inventory manager with our callback
-		OVT_Global.GetInventory().CollectContainersToVehicle(pos, vehicle, config, GetCallback());
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Transfer container contents to nearest warehouse
-	//! \param[in] from Source container entity
-	void TransferToWarehouse(IEntity from)
-	{
-		if (!from) return;
-		
-		RplComponent fromRpl = RplComponent.Cast(from.FindComponent(RplComponent));
-		if (!fromRpl) return;
-		
-		if(Replication.IsServer())
-		{
-			RpcAsk_TransferToWarehouse(fromRpl.Id());
-		}else{
-			Rpc(RpcAsk_TransferToWarehouse, fromRpl.Id());
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Server: empty a container into the warehouse nearest to IT (the manager's own 50 m rule).
-	//!
-	//! The warehouse's own accessibility rule (private / owned / rented) is deliberately NOT applied
-	//! here: OVT_VehicleMenuContext.PutInWarehouse does not apply it either, and adding it would refuse
-	//! deposits the menu currently offers - a gameplay change, which this audit does not make (G6).
-	//! What IS new is that the caller must be at the container and entitled to touch it, so this stops
-	//! being "empty any replicated storage on the map into the resistance's stock".
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_TransferToWarehouse(RplId fromId)
-	{
-		// Validate we're on server
-		if (!Replication.IsServer()) return;
-
-		int playerId = ResolveCallerPlayerId();
-		if (playerId <= 0)
-		{
-			RejectTransfer(playerId, "warehouse transfer", "could not resolve the requesting player");
-			return;
-		}
-
-		IEntity from = GetEntityFromRplId(fromId);
-		if (!from)
-		{
-			RejectTransfer(playerId, "warehouse transfer", "source no longer exists");
-			return;
-		}
-
-		if (!CallerMayReach(playerId, from, "warehouse transfer")) return;
-
-		// Start the operation
-		StartOperation("#OVT-Progress-TransferringToWarehouse");
-		
-		// This uses the existing warehouse transfer logic which is instant.
-		// Lives on the real estate manager since P3 of the controller migration - it was a static on
-		// OVT_Global, which is a locator, not a place for warehouse mutation.
-		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
-		if(realEstate) realEstate.TransferToWarehouse(fromId);
-		
-		// Send completion immediately as warehouse transfers are instant
-		SendOperationComplete(1, 0);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Specialized method for FOB undeployment with container collection
-	//! \param[in] deployedFOB The deployed FOB entity
-	//! \param[in] mobileFOB The mobile FOB vehicle to transfer to
-	void UndeployFOBWithCollection(IEntity deployedFOB, IEntity mobileFOB)
-	{
-		if (!deployedFOB || !mobileFOB) return;
-		
-		RplComponent fobRpl = RplComponent.Cast(deployedFOB.FindComponent(RplComponent));
-		RplComponent vehicleRpl = RplComponent.Cast(mobileFOB.FindComponent(RplComponent));
-		
-		if (!fobRpl || !vehicleRpl) return;
-		
-		if(Replication.IsServer())
-		{
-			RpcAsk_UndeployFOB(fobRpl.Id(), vehicleRpl.Id());
-		}else{
-			Rpc(RpcAsk_UndeployFOB, fobRpl.Id(), vehicleRpl.Id());
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Server: sweep everything around a deployed FOB into the mobile FOB truck.
-	//!
-	//! Reached server-side from OVT_ResistanceFactionManager.UndeployFOB on the undeploying player's own
-	//! controller, behind the FOB seam's own 15 m + PlayerMayUseVehicle gate on the deployed FOB - same
-	//! relationship as RpcAsk_TransferStorage and the deploy path.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_UndeployFOB(RplId fobId, RplId vehicleId)
-	{
-		// Validate we're on server
-		if (!Replication.IsServer()) return;
-
-		int playerId = ResolveCallerPlayerId();
-		if (playerId <= 0)
-		{
-			RejectTransfer(playerId, "undeploy FOB collection", "could not resolve the requesting player");
-			return;
-		}
-
-		IEntity fob = GetEntityFromRplId(fobId);
-		IEntity vehicle = GetEntityFromRplId(vehicleId);
-
-		if (!fob || !vehicle)
-		{
-			SendOperationError("Invalid FOB or vehicle");
-			return;
-		}
-
-		if (!CallerMayReach(playerId, fob, "undeploy FOB collection")) return;
-		if (!CallerMayReach(playerId, vehicle, "undeploy FOB collection")) return;
-
-		// Start the operation
-		StartOperation("#OVT-Progress-UndeployingFOB");
-		
-		// Use container collection which handles placeables + the deployed FOB
-		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
-			true,       // skipWeaponsOnGround
-			true,       // deleteEmptyContainers
-			100,        // itemsPerBatch
-			300,        // batchDelayMs
-			75.0,       // searchRadius
-			3           // maxBatchesPerFrame
-		);
-		
-		OVT_Global.GetInventory().CollectContainersToVehicle(fob.GetOrigin(), vehicle, config, GetCallback());
-	}
-	
-	//------------------------------------------------------------------------------------------------
 	//! Loot battlefield items (bodies and weapons) into a vehicle
 	//! \param[in] vehicle Target vehicle to loot into
 	//! \param[in] searchRadius Search radius for lootable items
@@ -446,11 +171,13 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Server: sweep nearby bodies and dropped weapons into a vehicle.
+	//! Server: hand a battlefield loot run to the storage job engine.
 	//!
-	//! The radius is bounded for the same reason as RpcAsk_CollectContainers: it drives a world query on
-	//! the server. The caller must be at the vehicle and entitled to use it - looting into somebody
-	//! else's locked truck from across the map was one packet before.
+	//! THIS IS THE WIRE, NOT THE WORK. The gates stay here because this is the handler the loot user
+	//! action has always talked to - the radius is bounded because it drives a world query on the
+	//! server, and the caller must be at the vehicle and entitled to use it. The run itself is a LOOT
+	//! job on OVT_StorageRequestComponent, which owns its own chunking, its own progress and the
+	//! typename clothing filter (R10).
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_LootBattlefield(RplId vehicleId, float searchRadius)
 	{
@@ -479,11 +206,15 @@ class OVT_ContainerTransferComponent : OVT_BaseServerProgressComponent
 
 		if (!CallerMayReach(playerId, vehicle, "loot battlefield")) return;
 
-		// Start the operation
-		StartOperation("#OVT-Progress-LootingBattlefield");
-		
-		// Use inventory manager for battlefield looting
-		OVT_Global.GetInventory().LootBattlefieldIntoVehicle(vehicle, searchRadius, GetCallback());
+		OVT_StorageRequestComponent storage = OVT_ComponentFinder<OVT_StorageRequestComponent>.Find(GetOwner());
+		if (!storage)
+		{
+			RejectTransfer(playerId, "loot battlefield", "this controller carries no storage request component");
+			return;
+		}
+
+		// StartLootJob answers its own refusals on the storage channel and lights its own progress bar.
+		storage.StartLootJob(playerId, vehicleId, searchRadius);
 	}
 	
 	//------------------------------------------------------------------------------------------------

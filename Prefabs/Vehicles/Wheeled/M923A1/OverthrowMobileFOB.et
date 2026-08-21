@@ -1,6 +1,9 @@
 Vehicle : "{14FD2616BAB3157D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_MERDC.et" {
  ID "BBCBA43A9778AE21"
  components {
+  OVT_StorageComponent "{6A8E2D0000000001}" {
+   m_eCapacityMode UNLIMITED
+  }
   SCR_EditableVehicleComponent "{50DEB7C26B5EB312}" {
    m_UIInfo SCR_EditableVehicleUIInfo "{5298E609432D192D}" {
     Name "#OVT-MobileFOB"

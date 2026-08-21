@@ -467,8 +467,15 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		InventoryStorageManagerComponent storage = InventoryStorageManagerComponent.Cast(vehicle.FindComponent(InventoryStorageManagerComponent));
-		if(!storage) return;
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(vehicle);
+		if(!storage || storage.GetCapacity() == OVT_StorageComponent.NO_CAPACITY)
+		{
+			SendBuyFailureNotification(playerId, "ImportNotAvailable");
+			return;
+		}
+
+		OVT_StorageLedger ledger = storage.GetLedger();
+		if(!ledger) return;
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		if(!players) return;
@@ -482,15 +489,18 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		int actual = 0;
-
-		for(int i = 0; i < qty; i++)
+		// F9/B3: one ledger credit, clamped by the holder's capacity. This used to be up to
+		// IMPORT_MAX_QUANTITY TrySpawnPrefabToStorage calls in a single frame.
+		int actual = ledger.Add(res, qty, storage.GetCapacity());
+		if(actual <= 0)
 		{
-			if(storage.TrySpawnPrefabToStorage(res))
-			{
-				actual++;
-			}
+			// A full holder takes nothing and is charged nothing, which without this reads as a dead
+			// Import button (D4's capacity cap makes it easy to reach).
+			SendBuyFailureNotification(playerId, "PurchaseFailedInventoryFull");
+			return;
 		}
+
+		storage.PublishCount();
 
 		// Pay for what actually fitted, not for what was asked for.
 		economy.DoTakePlayerMoney(playerId, actual * economy.GetPrice(id));

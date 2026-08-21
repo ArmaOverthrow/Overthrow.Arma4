@@ -411,6 +411,10 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		// Store old vehicle for deletion after transfer completes
 		m_pUpgradeOldVehicle = entity;
+
+		// The old vehicle's LEDGER goes across before the vanilla transfer starts - the callback
+		// deletes the entity, and an item ledger is not part of what TransferStorageByRplId moves.
+		OVT_StorageUtils.MoveWholeLedger(entity, newveh);
 		
 		// Transfer storage from old vehicle to new vehicle using inventory manager
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(

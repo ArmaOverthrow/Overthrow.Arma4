@@ -63,6 +63,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! Enforced FOB deployment exclusion radius (m) around any radio tower
 	static const int FOB_DEPLOY_TOWER_RANGE = 70;
 
+	//! Footprint (m) an undeploy collects placed containers from. The shipped number.
+	static const float FOB_UNDEPLOY_COLLECT_RADIUS = 75;
+
 	//! What GetStructureCost() answers for a live structure no config entry claims.
 	//!
 	//! ⚠ DELIBERATELY HUGE, NOT ZERO. Its only consumer orders structures cheapest-first, and an
@@ -108,7 +111,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	// The transfer component the in-flight operation subscribed to; the completion handlers must
 	// unsubscribe from this exact component (its owner is the player's controller, not this manager)
 	protected OVT_ContainerTransferComponent m_CurrentDeploymentTransfer;
-	protected OVT_ContainerTransferComponent m_CurrentCollectionTransfer;
+	// Undeploy runs on the storage job engine, not on the container transfer component: it converts
+	// every nearby container into the mobile FOB's LEDGER rather than moving entities between two
+	// vanilla storages, so the completion handlers listen there instead.
+	protected OVT_StorageRequestComponent m_CurrentCollectionTransfer;
 	// The player whose transfer component drives the in-flight FOB operation; if they disconnect
 	// mid-transfer the complete/error callbacks never fire, so the state must be recovered manually
 	protected int m_iFOBOperationPlayerId = -1;
@@ -591,10 +597,15 @@ class OVT_ResistanceFactionManager: OVT_Component
 		transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
 		transfer.m_OnOperationError.Insert(OnFOBDeploymentError);
 
+		// The truck's LEDGER goes across first, synchronously and with zero spawns. It has to happen
+		// here: OnFOBDeploymentComplete deletes the truck, and an undeploy leaves everything it
+		// collected in the ledger rather than in the vanilla inventory the transfer below moves.
+		OVT_StorageUtils.MoveWholeLedger(entity, newveh);
+
 		// Transfer items from mobile FOB to deployed FOB
 		transfer.TransferStorage(entity, newveh, false);
 	}
-	
+
 	void UndeployFOB(RplId vehicle, int playerId = -1)
 	{		
 		// SERVER-SIDE ONLY: FOB operations must happen on server
@@ -607,13 +618,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
 		
-		// Validate the initiating player and their transfer component BEFORE spawning anything -
+		// Validate the initiating player and their storage engine BEFORE spawning anything -
 		// falling through after the spawn leaves a duplicate truck and a still-registered FOB
 		if (playerId == -1) return;
 		OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
 		if (!controller) return;
-		OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-		if (!transfer || !transfer.IsAvailable()) return;
+		OVT_StorageRequestComponent storage = OVT_StorageRequestComponent.Cast(controller.FindComponent(OVT_StorageRequestComponent));
+		if (!storage || storage.IsBusy()) return;
 
 		// Only one FOB operation may be in flight - the operation state below is shared
 		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
@@ -632,6 +643,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
 		if (!newveh) return;
 
+		RplId mobileId = OVT_StorageUtils.GetHolderId(newveh);
+		if (!mobileId.IsValid())
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(newveh);
+			return;
+		}
+
 		// Deactivate physics immediately on the mobile FOB to prevent physics conflicts
 		Physics physics = newveh.GetPhysics();
 		if (physics)
@@ -642,23 +660,24 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
 
 		// Clear any existing callbacks first
-		transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-		transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-		transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-		transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+		storage.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+		storage.m_OnOperationError.Remove(OnFOBCollectionError);
 
 		// Subscribe to completion event to handle FOB cleanup
-		transfer.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
-		transfer.m_OnOperationError.Insert(OnFOBCollectionError);
+		storage.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
+		storage.m_OnOperationError.Insert(OnFOBCollectionError);
 
 		// Store FOB entities for cleanup (using member variables)
 		m_pCurrentUndeployedFOB = entity;
 		m_pCurrentMobileFOB = newveh;
-		m_CurrentCollectionTransfer = transfer;
+		m_CurrentCollectionTransfer = storage;
 		m_iFOBOperationPlayerId = playerId;
 
-		// Start container collection with the new progress system
-		transfer.UndeployFOBWithCollection(entity, newveh);
+		// The deployed FOB and every placed container around it are converted into the mobile FOB's
+		// ledger. A refusal emits nothing, so the state latched above is unwound by hand - otherwise
+		// FOB operations stay wedged for the rest of the session.
+		if (!storage.StartCollectionJob(playerId, vehicle, mobileId, FOB_UNDEPLOY_COLLECT_RADIUS, "#OVT-Progress-UndeployingFOB"))
+			OnFOBCollectionError("#OVT-Storage_Failed");
 	}
 	
 	//------------------------------------------------------------------------------------------------

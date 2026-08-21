@@ -6,6 +6,10 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
+	//! How far the vehicle may be from a warehouse RECORD for the vehicle-menu prompt to show. Matches
+	//! OVT_VehicleMenuContext.WAREHOUSE_SEARCH_RANGE, which decides whether the buttons exist.
+	protected const int WAREHOUSE_SEARCH_RANGE = 40;
+
 	//! Green for money gained, red for money lost, on the HUD delta ticker.
 	protected const int COLOR_DELTA_POSITIVE = 0xFF4CD964;
 	protected const int COLOR_DELTA_NEGATIVE = 0xFFFF4444;
@@ -171,6 +175,28 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether a warehouse the local player may use is near enough for the vehicle menu's two
+	//! warehouse buttons to appear. The same three tests OVT_VehicleMenuContext runs - a record, a
+	//! building with a storage component, and PlayerMayUseWarehouse - so the prompt never offers a menu
+	//! whose buttons are hidden.
+	//! \param[in] pos The vehicle's position.
+	//! \return True when the prompt should show.
+	protected bool HasAccessibleWarehouse(vector pos)
+	{
+		if(!m_RealEstate) return false;
+		
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, WAREHOUSE_SEARCH_RANGE);
+		if(!warehouse) return false;
+		
+		IEntity building = m_RealEstate.GetNearestBuilding(warehouse.location, OVT_RealEstateManagerComponent.WAREHOUSE_MATCH_RANGE);
+		if(!building) return false;
+		
+		if(!OVT_StorageUtils.GetStorage(building)) return false;
+		
+		return m_RealEstate.PlayerMayUseWarehouse(m_playerId, building);
+	}
+	
 	bool UpdateVehicleHint()
 	{
 		if(!m_player) return false;
@@ -184,20 +210,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		vector pos = m_player.GetOrigin();
 		bool hasButtons = false;
 		
-		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
-		if(warehouse)
-		{
-			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
-			if(warehouseEntity)
-			{
-				EntityID id = warehouseEntity.GetID();
-				bool isOwned = m_RealEstate.IsOwned(id);
-				bool isOwner = m_RealEstate.IsOwner(m_playerId, id);
-				bool isRented = m_RealEstate.IsRented(id);
-				bool isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
-				if(isAccessible) hasButtons = true;
-			}
-		}
+		if(HasAccessibleWarehouse(pos)) hasButtons = true;
 		
 		if(!hasButtons)
 		{
