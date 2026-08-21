@@ -38,6 +38,17 @@ enum OVT_EObjectiveConcurrencyLimit
 //!
 //!       1. tower recapture      2. harassment ladder      3. sabotage
 //!
+//! ⚠ THAT IS THE TOWN'S CHAIN. A BASE OBJECTIVE DROPPED TOWER RECAPTURE ON 2026-08-21 (author): *"This
+//! is a base, radio towers don't matter to a base and there are non-objective deployments built to
+//! handle radio towers that don't matter to the current objective."* Objective_BaseOffensive.conf now
+//! authors the ladder then sabotage in both of its phases; Objective_TownOffensive.conf is unchanged,
+//! because unrest at a tower is exactly what a town's ramp is fighting. A .conf cannot carry a comment,
+//! which is why the reasoning lives here and the shape is pinned by the Init suites.
+//!
+//! ⚠ AND THE ORDER IS NO LONGER THE EVALUATION ORDER. The director draws a fresh random order every
+//! cadence so its next move cannot be learned - see OVT_BaseObjectiveOperationModule.ShufflesFreely().
+//! The authored order still decides which operations are PINNED ahead of that draw.
+//!
 //! which is the hard-coded ramp spender's `recapture || harassment || sabotage` chain, term for term
 //! and in the same order. TOWER RECAPTURE IS FIRST because it is the most
 //! urgent and the most bounded of the three: a tower is a discrete thing that is either being worked on

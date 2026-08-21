@@ -2654,3 +2654,135 @@ selection fork, the module contracts, the clone fidelity of ~19 classes, the run
 v2 save round trip. They cover **no** MP, **no** real battle fought to a result, **no** real forward base raised,
 and **no** `.conf` authoring experience. Those are the human list, and they are not a formality: Phase 5's own
 report names one injected fault with no covering case (the affordability first-claim walk).
+
+---
+
+## 🔶 Design decision 2026-08-21 — transport crews KEEP vanilla combat behaviour (do not add HOLD_FIRE)
+
+**Author's call, during play-test.** A transport crew that perceives a dangerous target dismounts and fights
+(`SCR_AIVehicleCombatActivity` — a group in a vehicle with `!HasWeapon()`, i.e. a truck, bails the whole crew and
+cargo). This became reachable for the first time only when crews were LOD-pinned; at max LOD an agent has no
+behaviour tree and perceives nothing, so it never happened before 2026-08-21.
+
+**It was considered and deliberately NOT suppressed.** The lever exists — `SetCombatMode(HOLD_FIRE)` on the crew
+group while mounted makes `CustomEvaluate` return 0 — and it is **not to be applied**:
+
+> "I think players may expect a transport crew to fight and it also opens up truck theft, as long as it's not
+> binary and too easy. i.e. in Arma 3 you would fire 1 shot at a vehicle and the entire team would jump out
+> instantly to fight you so you just steal their tank and run away. For now I'm happy with whatever is the most
+> vanilla option and let them deal with it until we start digging into custom Overthrow behaviour trees."
+
+So the objection is to a **binary, instant** bail — not to bailing. A crew that fights is desirable: it meets player
+expectation and it makes truck theft a real tactic. The Arma 3 failure mode is the thing to avoid, and fixing it
+properly means tuning *when* they bail, which belongs in custom Overthrow behaviour trees, not in a blanket
+combat-mode override.
+
+🔴 **Do not "fix" a bailing crew in a future round.** It is intended. The thing that made it dangerous — a bailed
+crew leaking as two registered, LOD-pinned men walking home forever — is already handled independently:
+`TickReturn` now runs the same uncrewed test as the drive leg (~60 s), stands the crew down and arms the truck's
+collection countdown. The vanilla behaviour is safe *because* of that fix, not in spite of it.
+
+Revisit when custom behaviour trees land. Until then: most vanilla option, and let players deal with it.
+
+---
+
+## Play-test round 2026-08-21 (post-commit `1490e65f`) — the insertion convoy, seven faults
+
+The feature was committed as `1490e65f feat: occupying/objectives`. Everything below is a **separate,
+uncommitted fix round** driven by the author's live play-test, and it lives almost entirely in
+`Scripts/Game/GameMode/Deployments/` and `Scripts/Game/Modded/` — see the freeze note at the end.
+
+**Outcome: the author is satisfied with insertion.** "The last few have gone off without a hitch as designed
+(apart from getting stuck but that's just Arma, we have actually reduced the instances of getting stuck a lot
+from base game)." Testing has moved on to later phases.
+
+### The root cause nobody would have guessed, and the cascade it started
+
+🔴 **AI agents at max LOD have no behaviour tree.** The per-agent LOD system fires `EOnDeactivate` →
+`IsAIActivated = false` at LOD max (**default ≥1000 m**, `SCR_AIGroup.c:118-123`; `SCR_AIToggleMaxLOD.c:90`:
+*"prevents AIAgent to change to MAX lod - that disactivates AI"*). It is **not** distance-configurable from any
+spawn ring. So a transport crew registered on a 100 km ring was **materialised but inert** — the driver sat in
+the cab holding a move waypoint he never executed. Every convoy failed the moment the player was more than a
+kilometre away, which is most of the time.
+
+Vanilla solves this for its own long-range convoy: `SCR_ResupplyTaskSolver` calls `PreventMaxLOD()` at boarding
+(`:159`) and `AllowMaxLOD()` on **both** completion and failure (`:216`, `:243`), lifting an agent already at max
+with `SetLOD(maxLOD-1)` first (`:266-297`). `SCR_AIStaticArtilleryBehavior:93/100` does the same for a crew that
+must keep firing unobserved. **Overthrow called neither, anywhere.**
+
+**Fixing it exposed three more faults in sequence**, each invisible while the crews were inert:
+
+1. **Gates.** `SCR_AISelectDoorOperatorAgent:88-92` has a telekinesis branch — at max LOD a gate opens with
+   nobody getting out. Once crews were awake they walked to gates like anyone else, and our per-tick
+   `SeatEveryone()` sweep teleported the operator back into the cab mid-task, so the gate never opened.
+2. **Retire-in-place leak.** `UnregisterGroup` retires a group *in place* when any member is `IsAIActivated()`.
+   That rule was written when a distant crew was inert; the pin made it **permanently true**, so every teardown
+   left two materialised men standing where their truck had been. This is what the author kept finding on foot.
+3. **Crews bailing to fight.** `SCR_AIVehicleCombatActivity` dismounts a whole crew from an **unarmed** vehicle
+   that perceives danger, and `SCR_AILeaveStaticVehicles:104-109` dismounts from a vehicle failing `CanMove()`.
+   Both were unreachable before the pin. See the design decision above — this one is **intended** and stays.
+
+### The seven faults, their causes and their fixes
+
+| # | Symptom | Root cause | Fix |
+|---|---|---|---|
+| 1 | Convoys never moved | Crew at max LOD, behaviour tree off | LOD pin for the whole mounted lifetime, out **and** home |
+| 2 | Gate never opened | Per-tick `SeatEveryone()` fought the door operator | Seating became an **event** (spawn / adopt / board), never a clock; narrow `EvictHijackers()` retained on the tick |
+| 3 | Crews found walking, truck vanished | Deployment collection deleted a **returning** transport with its crew aboard; `TruckDeletionVeto()` protected a *player's* vehicle but not our own crew | Stand down + evacuate AI before deletion; a collected deployment's modules never tick again, so "let it drive home" was never possible |
+| 4 | Successful team loitered at the objective | Collection refunded but never removed the force (retire-in-place again) | `StandDownDeploymentForce()`, on the three **mission** callers only |
+| 5 | FOB raised while its party was a km away | The 80 m gate measured `GetPosition(handle)` = the `SCR_AIGroup` **marker entity**, which never follows its walking members | `OVT_VirtualGroupGeometry.IsGroupWithin()` — real member origins when materialised, record position when dormant. **Verified live.** |
+| 6 | Same authored FOB site every time | `FindAuthoredSite` was strictly highest-score | Uniform random among corridor+band eligible. ⚠ `RandInt` is **max-exclusive** |
+| 7 | Every insertion after the first failed to crew | **Importance-ordered spawn-queue starvation** — `CREW_IMPORTANCE` was NORMAL, so a two-man crew queued level with every garrison rifleman and never got its turn inside a 60 s window | `CREW_IMPORTANCE` → **HIGH**; and the clocks were split so async spawn latency is no longer charged to a "he won't get in the truck" budget |
+
+**Fault 7's diagnosis cost three rounds and two disproved hypotheses** (an owner-key reclaim collision, then a
+vanilla pop-in clause). What finally settled it: the author pointing out that **group member spawning is
+asynchronous** — members arrive over many frames, so `0 materialised` shortly after registration is normal and
+was never evidence of anything. The orchestrator had built an "asymmetry" argument on a line printed **8 seconds**
+into a drive; it was withdrawn. The lesson is in the instrumentation now: **measure the trend, not the snapshot.**
+
+### Reverted deliberately
+
+A disembark fan-out (arc placement so the force stops blocking its own transport) was built, then **removed at the
+author's instruction**. Correct placement requires knowing the men are actually out of their compartments, and
+`GetOutVehicle(TELEPORT)` is **not synchronous** — vanilla defers by a call-queue tick with the comment *"because
+person needs to be out of vehicle for sure"* (`GameCode/Vehicle/BaseCompartmentSlot.c:212-214`). Teleporting an
+occupant **drags the vehicle**, which put a truck across the road. The deferred version worked but rearranged the
+men visibly seconds later, which reads worse than the brief blocking it solved. `OVT_InsertionGeometry.c` and
+`OVT_TEST_Logic_ObjectiveInsertion.c` are byte-identical to HEAD again.
+
+### Stuck-transport cleanup (author's rule)
+
+> "If an insertion gets stuck and there's no players around anywhere we can just delete the truck and its crew to
+> minimize pile ups on that route."
+
+The reasoning is compounding: a stuck truck is an obstacle the **next** convoy must path around. Implemented by
+shortening the existing machinery, not adding a parallel one — `STUCK_TRUCK_TIMEOUT_TICKS = 1` replaces the
+120-tick (~20 min) budget handed to the *same* predicate under the *same* 320 m hold. Poll, never one-shot.
+**The force still walks**; only the transport and the men whose sole job was driving it are removed.
+
+⚠ **Accepted regression, stated so it is not rediscovered as a bug:** a player who watches a convoy stall from a
+kilometre away and drives out to loot it will find the truck already gone. The knob is
+`ABANDONED_TRUCK_PLAYER_RADIUS_M` (320) — the question is "who counts as watching", not "how long do we wait".
+⚠ An orchestrator suggestion to keep the 20-minute timer as an OR-backstop was **correctly refused** by the
+implementer: it would have deleted a truck with a player standing beside it, contradicting two shipped assertions
+in `…_CollectsAbandonedTransportsOnlyWhenDue` and the predicate's documented absolute hold.
+
+### 🔴 The `Deployments/` freeze is broken, legitimately, and the DoD grep will now fail
+
+`git diff Scripts/Game/GameMode/Deployments/` was an **acceptance criterion of Phases 2–7 and is no longer empty** —
+this round changed `OVT_InsertionSpawningDeploymentModule.c`, `OVT_BaseBehaviorDeploymentModule.c`,
+`OVT_MountedGroupActivation.c` and `Scripts/Game/Modded/SCR_AIGroup.c`. That freeze was a **build-time discipline**
+to stop the feature drifting into its neighbours; it does not bind play-test fixes to shipped code found by
+running the game. Anyone re-running the feature's DoD greps against the working tree should expect this and not
+"restore" it.
+
+### Owed
+
+- 🔴 **The suites have not run against ANY of this round.** `compile-check.sh` exit 0 is the only gate it has had,
+  and almost none of it is Logic-tier assertable — it is engine compartment / agent / AI-world state. Run **All**
+  `{6A6E2A002F53A581}` before this is committed.
+- The one stuck insertion the author saw has **no diagnosis** — the walk fallback absorbed it and nobody watched
+  it happen. If it recurs, the liveness line now distinguishes a pathing stall from a crew that bailed to fight.
+- `ABANDONED_TRUCK_TIMEOUT_TICKS` has **no live caller**; it survives only as the Logic case's realistic limit
+  value. Delete it and give the test a literal, or leave it — recorded either way.
+- MP/JIP untouched and untested throughout.

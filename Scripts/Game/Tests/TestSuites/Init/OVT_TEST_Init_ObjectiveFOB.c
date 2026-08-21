@@ -494,6 +494,12 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 		OVT_ObjectiveAnchorSourceProvider provider = new OVT_ObjectiveAnchorSourceProvider();
 		provider.m_fMaxForwardDistance = 0;
 
+		// ⚠ THE MANNED TEST IS OFF FOR THE PREFERENCE CLAIMS AND ON FOR ITS OWN. This fixture reports an
+		// asset raised WITHOUT creating a garrison deployment at it, so with the wiped-base refusal live
+		// every "the forward base wins" claim below would fall through and this case would assert nothing
+		// about preference. Check() turns it back on for the one leg that is about it.
+		provider.m_fGarrisonRadius = 0;
+
 		string failure = Check(director, provider, occupyingIndex);
 
 		// ALWAYS, INCLUDING ON THE RED PATHS. Leaving a forward base recorded on the live director would
@@ -506,7 +512,7 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 			return true;
 		}
 
-		Print("Objective forward base: the garrison's source provider answers the forward base while one is standing and falls through to the nearest controlled base when none is");
+		Print("Objective forward base: the garrison's source provider answers the forward base while one is standing and manned, falls through to the nearest controlled base when none is standing, and refuses a standing base whose garrison has been wiped");
 
 		return true;
 	}
@@ -563,6 +569,28 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 			return "a forward base outside the provider's own distance limit was still preferred - the limit does nothing";
 
 		provider.m_fMaxForwardDistance = 0;
+
+		// ==========================================================================================
+		// 🔴 A WIPED FORWARD BASE IS NOT AN ORIGIN (author, 2026-08-21: *"Should a wiped FOB be an
+		// insertion origin? No."*).
+		// ==========================================================================================
+		// The fixture is already exactly the state this rule is about: an asset the director reports as
+		// UP, with no occupying deployment standing at it - a base whose garrison has been wiped. Turning
+		// the manned test on must make the provider refuse it and fall through to the rear.
+		//
+		// ⚠ THE ASSET IS STILL UP THROUGHOUT, which is the whole point of the claim. asset.up says the
+		// STRUCTURE is standing and it stays true when the men die, so a rule written against it would
+		// pass this leg while doing nothing - that is the mistake this leg exists to catch.
+		provider.m_fGarrisonRadius = 250;
+
+		vector unmanned;
+		if (!provider.ResolveSource(SOURCE, occupyingIndex, unmanned))
+			return "a forward base with no living garrison must fall through to the rear, not answer nothing - refusing to send at all would strand every operation the objective owns";
+
+		if (unmanned == PROBE)
+			return "a forward base with NO LIVING GARRISON was still used as the origin. The only distance a force sourced there has to cover is zero, so it materialises exactly where the player who just cleared the base is standing - which is what the author watched happen on 2026-08-21";
+
+		provider.m_fGarrisonRadius = 0;
 
 		return "";
 	}
@@ -1789,9 +1817,17 @@ class OVT_TEST_Init_ObjectiveFOB_QForwardBasePhaseAuthorsTheShippedChain : SCR_A
 				operations.Insert(operation);
 		}
 
-		if (operations.Count() != 5)
-			return string.Format("plan '%1' authors %2 operation(s) in its forward-base phase; the shipped chain is exactly five - raise the base, garrison it, then the whole harassment ramp repeated. Fewer than five is the 2026-08-19 deadlock: the ramp stops the moment the objective is promoted, and the counter-attack it is ramping towards becomes unreachable",
-				plan.m_sObjectiveName, operations.Count().ToString());
+		// ⚠ DOCTRINE-SPECIFIC SINCE 2026-08-21. A base objective no longer chases radio towers - see
+		// DoctrineChasesTowers() - so its repeated ramp is the ladder and sabotage, two operations, and
+		// a town's is still three. The DEADLOCK claim is untouched: whatever the ramp is for a doctrine,
+		// all of it has to be repeated here or the objective's own gate becomes unreachable.
+		int expected = 4;
+		if (DoctrineChasesTowers(plan.m_sObjectiveName))
+			expected = 5;
+
+		if (operations.Count() != expected)
+			return string.Format("plan '%1' authors %2 operation(s) in its forward-base phase; this doctrine's shipped chain is exactly %3 - raise the base, garrison it, then its own harassment ramp repeated. Fewer is the 2026-08-19 deadlock: the ramp stops the moment the objective is promoted, and the counter-attack it is ramping towards becomes unreachable",
+				plan.m_sObjectiveName, operations.Count().ToString(), expected.ToString());
 
 		// --- 1. THE FORWARD BASE ITSELF IS FIRST. Nothing else in this phase means anything until the
 		//        flag is up: the garrison's own source provider resolves to the base only once it stands.
@@ -1855,14 +1891,51 @@ class OVT_TEST_Init_ObjectiveFOB_QForwardBasePhaseAuthorsTheShippedChain : SCR_A
 	//! \param[in] plan The plan being walked.
 	//! \param[in] operations Its forward-base phase's operations, in authored order.
 	//! \return An empty string when every claim held, or the first that did not.
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 DOES THIS DOCTRINE CHASE RADIO TOWERS? (author, 2026-08-21.)
+	//!
+	//! *"This is a base, radio towers don't matter to a base and there are non-objective deployments
+	//! built to handle radio towers that don't matter to the current objective."* A town objective still
+	//! repeats tower recapture - unrest at a tower is what its harassment ramp is fighting - and a base
+	//! objective no longer does.
+	//! \param[in] planName The plan being walked.
+	//! \return True when this doctrine repeats tower recapture in its ramp.
+	protected bool DoctrineChasesTowers(string planName)
+	{
+		return planName != "Base Offensive";
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected string CheckRampIsRepeated(notnull OVT_ObjectiveConfig plan, notnull array<OVT_BaseObjectiveOperationModule> operations)
 	{
-		OVT_SendDeploymentObjectiveOperation tower = OVT_SendDeploymentObjectiveOperation.Cast(operations[2]);
-		if (!tower || tower.m_sConfigName != OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
-			return string.Format("plan '%1' does not repeat tower recapture in its forward-base phase. A tower left in resistance hands keeps the objective easier for them to hold right through the build-up",
-				plan.m_sObjectiveName);
+		int ladderAt = 2;
+		int sabotageAt = 3;
 
-		OVT_SendDeploymentObjectiveOperation harassment = OVT_SendDeploymentObjectiveOperation.Cast(operations[3]);
+		if (DoctrineChasesTowers(plan.m_sObjectiveName))
+		{
+			ladderAt = 3;
+			sabotageAt = 4;
+
+			OVT_SendDeploymentObjectiveOperation tower = OVT_SendDeploymentObjectiveOperation.Cast(operations[2]);
+			if (!tower || tower.m_sConfigName != OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
+				return string.Format("plan '%1' does not repeat tower recapture in its forward-base phase. A tower left in resistance hands keeps the objective easier for them to hold right through the build-up",
+					plan.m_sObjectiveName);
+		}
+		else
+		{
+			// 🔴 THE BASE DOCTRINE'S POSITIVE CLAIM. The tower operation was not merely dropped from the
+			// assertions when it was dropped from the plan - its ABSENCE is now the requirement, so
+			// re-authoring one fails here rather than passing silently.
+			foreach (OVT_BaseObjectiveOperationModule operation : operations)
+			{
+				OVT_SendDeploymentObjectiveOperation send = OVT_SendDeploymentObjectiveOperation.Cast(operation);
+				if (send && send.m_sConfigName == OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
+					return string.Format("plan '%1' sends a tower recapture in its forward-base phase. Radio towers are nothing to do with a base objective and the standing non-objective tower deployments already handle them (author, 2026-08-21)",
+						plan.m_sObjectiveName);
+			}
+		}
+
+		OVT_SendDeploymentObjectiveOperation harassment = OVT_SendDeploymentObjectiveOperation.Cast(operations[ladderAt]);
 		if (!harassment || !harassment.m_aLadder || harassment.m_aLadder.IsEmpty())
 			return string.Format("plan '%1' does not repeat the harassment ladder in its forward-base phase. The stacking support debuff that drives a town under a quarter support is applied BY harassment operations, so a town objective could never reach its own counter-attack gate",
 				plan.m_sObjectiveName);
@@ -1878,7 +1951,7 @@ class OVT_TEST_Init_ObjectiveFOB_QForwardBasePhaseAuthorsTheShippedChain : SCR_A
 					plan.m_sObjectiveName, rung.ToString(), harassment.m_aLadder[rung], OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER[rung]);
 		}
 
-		OVT_SendDeploymentObjectiveOperation sabotage = OVT_SendDeploymentObjectiveOperation.Cast(operations[4]);
+		OVT_SendDeploymentObjectiveOperation sabotage = OVT_SendDeploymentObjectiveOperation.Cast(operations[sabotageAt]);
 		if (!sabotage || sabotage.m_sConfigName != OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG)
 			return string.Format("plan '%1' does not repeat sabotage in its forward-base phase. A base objective is promoted on its FIRST completed mission and its counter-attack gate demands up to six, so the remaining five would be unsendable and the battle unreachable - this is the 2026-08-19 deadlock exactly",
 				plan.m_sObjectiveName);

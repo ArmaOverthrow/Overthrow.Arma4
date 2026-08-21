@@ -207,41 +207,42 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Distance to the nearest connected player.
+	//! ⚠ THERE WAS A NearestPlayerDistance() HERE AND IT IS GONE (2026-08-21). Every caller it had was
+	//! a CONTEST test - "is this ground held" - and the author's ruling is that no such test may be
+	//! players-only: *"it's resistance always (including high command groups that will come later)."*
+	//! All five moved to DefenderWithin() below, and the method was left with no callers at all, so it
+	//! was removed rather than kept as a trap for the next person who needs a proximity test and reaches
+	//! for the first one they find.
 	//!
-	//! NOBODY CONNECTED ANSWERS float.MAX, matching OVT_BaseConditionDeploymentModule.GetPlayerProximity()
-	//! - so "is an enemy standing on this place" reads false on an empty server rather than true, and a
-	//! hold timer runs on a dedicated server nobody has joined yet.
+	//! IF YOU NEED "IS A HUMAN NEAR THIS", THE ANSWER IS OVT_WorldUtils.PlayerInRange() - which is what
+	//! IsPlayerWatchingDeployment() below already uses, and which correctly skips dead players (the
+	//! deleted helper did not). If you need "is this ground contested", it is DefenderWithin(). Picking
+	//! the wrong one of those two is the mistake this note exists to prevent.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! IS THE RESISTANCE CONTESTING THIS PLACE?
 	//!
-	//! ⚠ PLAYERS ONLY, DELIBERATELY. "Armed resistance is present" could be asked of every AI agent in
-	//! the world, and it would cost a sphere query on every behavior module of every deployment on the
-	//! map every ten seconds. A player is what the ramp is being read by and interrupted by; a resistance
-	//! patrol walking past is not what the design means by contested.
-	//! \param[in] position The place to measure from.
-	//! \return Metres to the nearest player, or float.MAX when nobody is connected.
-	protected float NearestPlayerDistance(vector position)
+	//! ==========================================================================================
+	//! 🔴 "There should never be any 'players-only' contest test, it's resistance always (including
+	//! high command groups that will come later)." (author, 2026-08-21.)
+	//! ==========================================================================================
+	//! THE ONE SEAM EVERY CONTEST TEST IN THIS FRAMEWORK GOES THROUGH, and it is deliberately a
+	//! one-line delegation rather than logic: the answer lives in OVT_ResistancePresence, which asks
+	//! the world for living characters of the resistance FACTION instead of enumerating players, then
+	//! recruits, then high command, then whatever comes next. Read that file's header before changing
+	//! anything here - it carries the reasoning, the cost argument, and the boundary below.
+	//!
+	//! ⚠ CONTESTING IS NOT WATCHING. The two rules that stay players-only - the exfiltration hold and
+	//! the abandoned-transport hold - ask whether a HUMAN would see something vanish, and neither may
+	//! be converted to this. They are named in OVT_ResistancePresence's header, which is now the only
+	//! reason any players-only test survives in this tree.
+	//! \param[in] position The place being contested.
+	//! \param[in] radius How close counts, in metres.
+	//! \return True when a living resistance force of any kind is inside the circle.
+	protected bool DefenderWithin(vector position, float radius)
 	{
-		float nearest = float.MAX;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if (!playerManager)
-			return nearest;
-
-		array<int> players = new array<int>();
-		playerManager.GetPlayers(players);
-
-		foreach (int playerId : players)
-		{
-			IEntity player = playerManager.GetPlayerControlledEntity(playerId);
-			if (!player)
-				continue;
-
-			float distance = vector.Distance(player.GetOrigin(), position);
-			if (distance < nearest)
-				nearest = distance;
-		}
-
-		return nearest;
+		return OVT_ResistancePresence.IsGroundHeld(position, radius);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -394,7 +395,93 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 
 		m_bCollectionRequested = false;
 
+		// ⚠ THE MEN COME OFF THE GROUND BEFORE THE ACCOUNTS ARE SETTLED. Without this the deployment is
+		// paid for, deleted and forgotten while its squad goes on standing at the objective for the rest
+		// of the campaign - see StandDownDeploymentForce for the engine rule that does it.
+		StandDownDeploymentForce();
+
 		manager.CollectDeployment(m_ParentDeployment);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! PUTS A FINISHED MISSION'S FORCE AWAY, so that the teardown one line later actually removes it.
+	//!
+	//! ==========================================================================================
+	//! 🔴 A DEPLOYMENT TEARDOWN DOES NOT REMOVE MEN WHO ARE AWAKE, AND NOBODY KNEW.
+	//! ==========================================================================================
+	//! Every spawning module's OnCleanup ends in OVT_VirtualizationManagerComponent.UnregisterGroup, and
+	//! that method has two branches. The ordinary one despawns the members and deletes the group entity.
+	//! The other one - taken when `group.GetAgentsCount() > 0 && group.HasHeldMember()` - RETIRES THE
+	//! GROUP IN PLACE: mask cleared, dormant counts zeroed, eliminate-when-reached set, members left
+	//! exactly where they are for the engine's own lifecycle tick to deal with later.
+	//!
+	//! ⚠ AND HasHeldMember() IS TRUE FOR ANY MEMBER WHOSE BEHAVIOUR TREE IS RUNNING. SCR_AIGroup's own
+	//! GetHeldMemberReason (:2836-2848) answers on `agent.IsAIActivated()` - which is every materialised
+	//! man within roughly a kilometre of an observer. The rule was written for a member ANOTHER SYSTEM is
+	//! holding (riding in a player's vehicle, engaged by a player) and it reads as one; what it actually
+	//! matches is "somebody is close enough for these men to be simulated at all".
+	//!
+	//! So the collection settled the accounts, refunded the men, deleted the deployment - and left the
+	//! squad standing. The author watched precisely that after a sabotage mission completed 1.6 km away:
+	//! the resources came back, the deployment went, the spec-ops team was still at the objective.
+	//!
+	//! ⚠ WHY IT IS FIXED HERE AND NOT IN UnregisterGroup, WHICH WOULD BE THE TIDIER PLACE. Retire-in-place
+	//! is the reason garrisons, patrols and tower guards do not evaporate in a player's face when their
+	//! deployment is torn down for some unrelated reason, and turning it off in the shared framework
+	//! would change all of them at once. THIS path has already earned the right to remove men: it is
+	//! reached only from a MISSION that finished its job (three callers, all missions - see
+	//! RequestDeploymentCollection), and only once IsPlayerWatchingDeployment() has confirmed nobody is
+	//! within baseCloseRange. The one reason to leave them was "a squad may not evaporate in front of a
+	//! player", and the gate above has just established that there is no player.
+	//!
+	//! ⚠ IT DOES NOT CHANGE THE REFUND. GetIntactGroupRefund counts through core's survivor MASK, not
+	//! through materialised agents, and a despawn is not a death - it does not touch the mask. The same
+	//! money comes back whether the men were standing or dormant when the mission ended.
+	//!
+	//! ⚠ THE ORDER MATTERS AND IS THE WHOLE TRICK. Despawning first empties the group, so
+	//! `GetAgentsCount() > 0` is false by the time UnregisterGroup asks, and the ordinary
+	//! despawn-and-delete branch is the one taken. Nothing about the branch itself is changed.
+	protected void StandDownDeploymentForce()
+	{
+		if (!m_ParentDeployment)
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		// ⚠ ASKED OF EVERY SPAWNING MODULE, NOT OF THIS ONE. A behaviour module owns no groups; the
+		// deployment's force is spread over however many spawning modules its config authored, and a
+		// mission that left one of them standing would be the same defect with a smaller squad.
+		array<int> handles = {};
+
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = m_ParentDeployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawning : spawningModules)
+		{
+			if (spawning)
+				spawning.CollectRegisteredHandles(handles);
+		}
+
+		int standDown = 0;
+
+		foreach (int handle : handles)
+		{
+			if (!virtualization.IsRegistered(handle))
+				continue;
+
+			SCR_AIGroup group = virtualization.GetGroup(handle);
+			if (!group || group.GetAgentsCount() == 0)
+				continue;
+
+			virtualization.ForceDespawn(handle);
+			standDown = standDown + 1;
+		}
+
+		if (standDown == 0)
+			return;
+
+		Print(string.Format("[Overthrow] Deployment '%1' has finished and nobody is watching - %2 of its group(s) were on the ground and have been taken off it before collection",
+			m_ParentDeployment.GetDeploymentName(), standDown.ToString()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------

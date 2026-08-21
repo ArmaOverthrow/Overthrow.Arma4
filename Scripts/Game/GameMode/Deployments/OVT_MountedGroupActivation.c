@@ -66,6 +66,12 @@
 //------------------------------------------------------------------------------------------------
 class OVT_MountedGroupActivation
 {
+	//! Mirrors SCR_AIGroup's own m_fVeryNearBlockDistance default (:125). It is protected there with no
+	//! getter, and this class needs it only to SAY whether a group is inside the engine's pop-in block -
+	//! nothing here branches on it. See DescribeSpawnState for why that band matters so much to a group
+	//! registered on a huge ring.
+	static const int VERY_NEAR_BLOCK_M = 150;
+
 	//------------------------------------------------------------------------------------------------
 	//! Keeps every member of a group out of max LOD, so its behaviour tree keeps running however far
 	//! away the nearest observer is.
@@ -244,10 +250,44 @@ class OVT_MountedGroupActivation
 	//!   NOT DORMANT, STILL EMPTY      the request is sitting in ChimeraAIWorld's queue waiting for a
 	//!                                 dispatch that has not come. Read the budget clause.
 	//!
+	//! ⚠ AND SINCE 2026-08-21 IT ALSO CARRIES THE ONE THING NONE OF THE THREE COULD ANSWER: whether the
+	//! engine's spawn queue has ever actually DISPATCHED this group. Every clause above describes the
+	//! group's ELIGIBILITY, and three rounds of play-testing established that a crew can be eligible on
+	//! every single one of them and still have nobody in it a minute later. See modded SCR_AIGroup's
+	//! counter block - "requests made, queue dispatched N" is the whole diagnosis in two numbers.
+	//!
 	//! ⚠ GetDormantAliveCount() == -1 IS THE "NEVER DESPAWNED" SENTINEL, not a count. A freshly
 	//! registered virtual group reads -1 because core builds it with zero members and it has never been
 	//! through a dormant transition; RequestSpawn treats that as "spawn one and let the expand pass top
 	//! it up". A 0 there is the dangerous value and is why it is printed rather than summarised.
+	//! ==========================================================================================
+	//! ⚠ AND THE FOURTH THING IT CAN MEAN, WHICH THE THREE ABOVE DO NOT COVER AND WHICH COST A SECOND
+	//! PLAY-TEST: THE POP-IN BLOCK (2026-08-21).
+	//! ==========================================================================================
+	//! SCR_AIGroup.LifecycleTick has a clause between "observer is in range" and "ask for a spawn"
+	//! (:3036-3044): an observer inside m_fVeryNearBlockDistance - 150 m by default and NOT settable
+	//! through SetLifecyclePolicy's -1 - makes it RETURN WITHOUT ENQUEUEING ANYTHING, so the men never
+	//! pop into existence in somebody's face. It is skipped only when the observer arrived suddenly,
+	//! which the tick decides by comparing this tick's "inside the spawn ring" bit against last
+	//! tick's.
+	//!
+	//! 🔴 A GROUP ON A HUGE RING CAN NEVER TAKE THAT ESCAPE HATCH. Every observer is inside a 100 km
+	//! ring on every tick, so the previous-tick bit is true from the first tick onwards and the
+	//! approach is always judged "gradual" - which means ANY observer within 150 m of the group's
+	//! registration point (a player, and also a Game Master free camera, which
+	//! SCR_DefenderSpawnerComponent:604 names as an observer) blocks that group's men from ever
+	//! materialising, permanently, and nothing anywhere logs it. That is the exact opposite of what a
+	//! 100 km ring was asked for. Reading the band is how that gets settled by measurement.
+	//!
+	//! ⚠ THE 150 IS MIRRORED, NOT READ. m_fVeryNearBlockDistance is protected on SCR_AIGroup with no
+	//! getter; this is a diagnostic string, so a server that dialled it elsewhere gets a slightly
+	//! wrong sentence rather than a wrong decision. Nothing branches on it.
+	//!
+	//! ⚠ AND THE REFILL SEAM IS ASKED TOO. IsExpandComplete() answering TRUE on a group with no
+	//! members means the queue books every request as satisfied and drops it: the group is a HUSK that
+	//! nothing will ever repopulate. For a core-owned group that is the survivor mask and the
+	//! per-activation slot list disagreeing (see modded SCR_AIGroup.ExpandOneMember), and it is the one
+	//! shape in this line that is Overthrow's bug rather than a proximity rule.
 	//! \param[in] group The group to describe; null is legal.
 	//! \param[in] spawnDistance The ring the group was registered on, in metres.
 	//! \return A compact description of WHY it has no members, or an empty string when it has some.
@@ -260,13 +300,43 @@ class OVT_MountedGroupActivation
 		if (group.IsDormant())
 			dormant = "engine says dormant";
 
-		string observer = "no observer within its ring";
+		// ⚠ THE RADIUS IS OURS, THE ANSWER IS THE ENGINE'S, AND CONFUSING THE TWO IS HOW THIS LINE COULD
+		// LIE. `spawnDistance` is what OUR RECORD says the ring should be; HasObserverInRange is a
+		// ChimeraAIGroup proto (generated/AI/ChimeraAIGroup.c:24) doing a real 2D observer query. So
+		// "observer IS within its ring" is an honest engine answer to a question WE chose the radius for -
+		// which is worth almost nothing on a 100 km ring, since everything is inside it. What the engine's
+		// own LifecycleTick actually gates on is m_fSpawnDistance, read back below.
+		string observer = "no observer within the ring OUR RECORD claims";
 		if (spawnDistance > 0 && group.HasObserverInRange(spawnDistance))
-			observer = "observer IS within its ring";
+			observer = "observer IS within the ring OUR RECORD claims";
 
-		return string.Format("%1, dormant counts alive %2 / dead %3, %4",
+		// 🔴 THE READ-BACK, AND IT IS THE ONLY THING HERE THAT CAN CATCH A RING THAT WAS NEVER APPLIED.
+		// Everything else in this line describes what we INTENDED. These two are what SCR_AIGroup is
+		// actually carrying, and they are what LifecycleTick tests against (:3003 despawn, :3016 spawn),
+		// so a disagreement between them and the record is the bug rather than a symptom of it.
+		//
+		// SetLifecyclePolicy does NOT clamp - it assigns straight through (SCR_AIGroup.c:2920-2925) - so
+		// they SHOULD read back exactly what ApplyLifecyclePolicy passed. "Should" is the reason to print
+		// them: nobody had ever confirmed the call reached this group at all.
+		string engineRings = string.Format("the engine is holding spawn %1 m / despawn %2 m",
+			Math.Round(group.GetSpawnDistance()).ToString(), Math.Round(group.GetDespawnDistance()).ToString());
+
+		string engineObserver = "and NO observer inside the engine's own spawn ring - it will not even ask";
+		if (group.GetSpawnDistance() > 0 && group.HasObserverInRange(group.GetSpawnDistance()))
+			engineObserver = "and an observer IS inside the engine's own spawn ring";
+
+		string popIn = "nobody inside the pop-in band";
+		if (group.HasObserverInRange(VERY_NEAR_BLOCK_M))
+			popIn = string.Format("an observer is INSIDE the %1 m pop-in band, which blocks the spawn request outright", VERY_NEAR_BLOCK_M.ToString());
+
+		string refill = "the refill seam still has slots to fill";
+		if (group.IsExpandComplete())
+			refill = "the refill seam says COMPLETE with nobody in it - this group is a husk and the queue will drop every request";
+
+		return string.Format("%1, dormant counts alive %2 / dead %3, %4, %5 %6, %7, %8; queue: %9",
 			dormant, group.GetDormantAliveCount().ToString(), group.GetDormantDeadCount().ToString(),
-			observer);
+			observer, engineRings, engineObserver, popIn, refill,
+			group.GetOVTSpawnQueueDiagnostic());
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -42,14 +42,15 @@ SCR_DestructibleBuildingEntity : "{33F50E1C918159AB}Prefabs/Structures/Military/
      "Kinetic multiplier" 0.1
      "Explosive multiplier" 1
      "Incendiary multiplier" 0.1
+     DamageThreshold 50
     }
    }
-   m_fBaseHealth 100000
+   m_fBaseHealth 32000
    m_fDamageThresholdMaximum 50000
    m_bDeleteAfterFinalPhase 0
    m_aDamagePhases {
     SCR_DamagePhaseData "{6B70D00000000003}" {
-     m_fPhaseHealth 100000
+     m_fPhaseHealth 32000
      m_PhaseModel "{F0FDB651ED7B2B76}Assets/Structures/Military/Houses/GuardTower_01/GuardTower_01_Ruin.xob"
     }
    }

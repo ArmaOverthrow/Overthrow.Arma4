@@ -31,6 +31,15 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 	//! it. 0 (the default) means "no limit": the director only ever creates these at its own objective,
 	//! and the forward base is by construction inside the band between that objective and the rear, so
 	//! a limit here would only ever fire on a deployment somebody else created.
+	//! How far from the forward base a living occupying group counts as ITS garrison, in metres.
+	//!
+	//! 250 m is the number the whole forward-base feature already agrees on - it is
+	//! OVT_RaiseForwardBaseObjectiveOperation.AREA_RADIUS, the garrison sender's concurrency radius, and
+	//! OVT_AssetStarvedObjectiveAbort's own m_fAreaRadius default. A .conf cannot reference a constant,
+	//! so this is the fourth place the number is written down and it must not drift from the other three.
+	[Attribute(defvalue: "250", desc: "How far from the forward base a living occupying group counts as its garrison, in metres. Used to decide whether the base is still manned enough to be an origin. 0 disables the manned test, restoring the pre-2026-08-21 behaviour")]
+	float m_fGarrisonRadius;
+
 	[Attribute(defvalue: "0", desc: "Ignore the forward operating base if it is further than this many metres from the deployment. 0 = no limit")]
 	float m_fMaxForwardDistance;
 
@@ -46,6 +55,13 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 		// is what a fallback wants: a distant base is still better than no insertion at all.
 		m_Fallback = new OVT_NearestControlledBaseSourceProvider();
 		m_Fallback.m_fMaxSourceDistance = 0;
+
+		// ⚠ AND THE MANNED TEST'S RADIUS FOR THE SAME REASON. A provider built with `new` would otherwise
+		// hold 0 here, which DISABLES the wiped-base refusal - so the guard would be live for every
+		// authored config and silently absent for anything constructed in code. A rule that depends on how
+		// its object was created is a landmine; this line removes the difference. An authored value still
+		// wins, because attributes are applied after the constructor.
+		m_fGarrisonRadius = 250;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -83,6 +99,45 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 			return false;
 
 		if (m_fMaxForwardDistance > 0 && vector.Distance(forward, deploymentPosition) > m_fMaxForwardDistance)
+			return false;
+
+		// ==========================================================================================
+		// 🔴 A WIPED FORWARD BASE IS NOT AN ORIGIN. "Should a wiped FOB be an insertion origin? No."
+		// (author, 2026-08-21.)
+		// ==========================================================================================
+		// The author cleared a forward base's garrison and, standing in it, watched a fresh team sourced
+		// FROM it. Men do not set out from a position the resistance has just taken off the faction, and
+		// a base with nobody left in it is the worst possible place to conjure a force at: the ONLY
+		// distance a force sourced here has to cover is zero, so it materialises exactly where the player
+		// who just cleared it is standing.
+		//
+		// ⚠ WHAT "WIPED" MEANS HERE, PRECISELY, BECAUSE THREE DIFFERENT CONDITIONS COULD CLAIM THE WORD
+		// AND THEY DO NOT FIRE TOGETHER:
+		//   asset.up          says the STRUCTURE is standing. It was TRUE throughout the play-test - the
+		//                     base was intact and undefended - so it cannot be the test.
+		//   "cut off"         is OVT_AssetStarvedObjectiveAbort's compound of three inputs behind a
+		//                     MINUTES-long counter. It is a decision about abandoning the objective and
+		//                     it lags reality by design: the base in the play-test was declared cut off
+		//                     seconds AFTER the team had already been sourced from it. Too slow.
+		//   ZERO LIVING       is what was actually asked for and it is immediate. If no occupying group
+		//   GROUPS AT IT      with a survivor is standing at the base, nothing is there to send anybody.
+		// The third is the test, through the same primitive the starvation abort counts with, so the two
+		// can never disagree about what "manned" means.
+		//
+		// ⚠ AND THE FALL-THROUGH IS BETTER THAN THE THING IT REPLACES, WHICH IS NOT OBVIOUS. Refusing here
+		// hands the question to m_Fallback (nearest controlled base, no distance limit), and that origin
+		// HAS a motor pool - so SourceProvidesTransport() below answers true for it and the force gets a
+		// truck. A force sourced from the forward base always walks, because the base has no vehicles. So
+		// the refusal does not sentence anybody to a two-kilometre march: it upgrades them from a march to
+		// a drive. The only case that gets worse is a faction holding no base at all, and that force was
+		// never being sent anyway.
+		//
+		// ⚠ IT IS SELF-HEALING AND DELIBERATELY SLIGHTLY CONSERVATIVE. A forward base that has been raised
+		// but whose garrison has not ARRIVED yet also reads as unmanned, so the first garrison is sourced
+		// from a real base and drives in - which is exactly the right answer, and is the shape the
+		// garrison config wants (it is one of this provider's four consumers). The moment men are standing
+		// there, the base is an origin again.
+		if (m_fGarrisonRadius > 0 && OVT_ObjectiveDirectorComponent.CountAliveOccupyingGroupsAt(forward, m_fGarrisonRadius) < 1)
 			return false;
 
 		sourcePosition = forward;

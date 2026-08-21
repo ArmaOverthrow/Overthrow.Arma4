@@ -84,6 +84,7 @@ OVT_OverthrowGameMode {
    m_pWaitWaypointPrefab "{531EC45063C1F57B}Prefabs/AI/Waypoints/AIWaypoint_Wait.et"
    m_pCycleWaypointPrefab "{35BD6541CBB8AC08}Prefabs/AI/Waypoints/AIWaypoint_Cycle.et"
    m_pSearchAndDestroyWaypointPrefab "{B3E7B8DC2BAB8ACC}Prefabs/AI/Waypoints/AIWaypoint_SearchAndDestroy.et"
+   m_pHouseSearchWaypointPrefab "{19BF9E9CE96176F0}Prefabs/AI/Waypoints/OVT_AIWaypoint_HouseSearch.et"
    m_pGetInWaypointPrefab "{712F4795CF8B91C7}Prefabs/AI/Waypoints/AIWaypoint_GetIn.et"
    m_pSmartActionWaypointPrefab "{04A06A6742FB0AF8}Prefabs/AI/Waypoints/AIWaypoint_UserAction.et"
    m_aStartingHouseFilters {

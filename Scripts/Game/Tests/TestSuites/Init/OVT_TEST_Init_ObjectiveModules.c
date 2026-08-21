@@ -455,7 +455,7 @@ class OVT_TEST_Init_ObjectiveModules_HarassmentPhaseAuthorsTheShippedChain : SCR
 			}
 		}
 
-		Print("Objective harassment phase: both shipped plans author tower recapture, then the harassment ladder, then sabotage; the ladder is the director's own four rungs in order; and every config name resolves in the live deployment registry");
+		Print("Objective harassment phase: a town authors tower recapture then the ladder then sabotage, a base authors the ladder then sabotage and no tower recapture at all; the ladder is the director's own four rungs in order; and every config name resolves in the live deployment registry");
 
 		return true;
 	}
@@ -483,26 +483,59 @@ class OVT_TEST_Init_ObjectiveModules_HarassmentPhaseAuthorsTheShippedChain : SCR
 				sends.Insert(send);
 		}
 
-		if (sends.Count() != 3)
-			return string.Format("plan '%1' authors %2 send-deployment operation(s) in its harassment phase; the shipped chain is exactly three - tower recapture, the harassment ladder, then sabotage",
-				plan.m_sObjectiveName, sends.Count().ToString());
+		// 🔴 DOCTRINE-SPECIFIC SINCE 2026-08-21 (author): *"This is a base, radio towers don't matter to a
+		// base and there are non-objective deployments built to handle radio towers that don't matter to
+		// the current objective."* A town still opens with tower recapture; a base opens with the ladder.
+		// Every claim below about the ladder and about sabotage is unchanged for both doctrines - only
+		// the index they sit at moves - and the base gains the positive claim that it sends no tower
+		// recapture at all.
+		bool chasesTowers = plan.m_sObjectiveName != "Base Offensive";
 
-		// --- 1. TOWER RECAPTURE IS FIRST. See the class header for why the order is the contract.
-		OVT_SendDeploymentObjectiveOperation tower = sends[0];
+		int expectedSends = 2;
+		int ladderAt = 0;
+		int sabotageAt = 1;
+		if (chasesTowers)
+		{
+			expectedSends = 3;
+			ladderAt = 1;
+			sabotageAt = 2;
+		}
 
-		if (tower.m_sConfigName != OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
-			return string.Format("plan '%1' does not send tower recapture FIRST: its first operation names '%2'. Tower recapture is the most urgent and the most bounded of the three, and every spend is behind one cadence, so whichever operation is asked first is the one that gets the interval",
-				plan.m_sObjectiveName, tower.m_sConfigName);
+		if (sends.Count() != expectedSends)
+			return string.Format("plan '%1' authors %2 send-deployment operation(s) in its harassment phase; this doctrine's shipped chain is exactly %3",
+				plan.m_sObjectiveName, sends.Count().ToString(), expectedSends.ToString());
 
-		if (tower.m_fDedupRadius <= 0)
-			return string.Format("plan '%1' authors no dedup radius on tower recapture, so a tower that already has a team on it is never skipped and a second contested tower is never picked up",
-				plan.m_sObjectiveName);
+		// --- 1. TOWER RECAPTURE IS FIRST - FOR A TOWN. See DoctrineChasesTowers above.
+		if (chasesTowers)
+		{
+			OVT_SendDeploymentObjectiveOperation tower = sends[0];
 
-		if (!OVT_EnemyTowersAffectingTargetResolver.Cast(tower.m_Resolver))
-			return string.Format("plan '%1' does not send tower recapture through the enemy-towers resolver, so it has no list of towers to walk", plan.m_sObjectiveName);
+			if (tower.m_sConfigName != OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
+				return string.Format("plan '%1' does not send tower recapture FIRST: its first operation names '%2'. Tower recapture is the most urgent and the most bounded of a town's three, and the authored order still decides which operations are pinned ahead of the director's per-cadence shuffle",
+					plan.m_sObjectiveName, tower.m_sConfigName);
+
+			if (tower.m_fDedupRadius <= 0)
+				return string.Format("plan '%1' authors no dedup radius on tower recapture, so a tower that already has a team on it is never skipped and a second contested tower is never picked up",
+					plan.m_sObjectiveName);
+
+			if (!OVT_EnemyTowersAffectingTargetResolver.Cast(tower.m_Resolver))
+				return string.Format("plan '%1' does not send tower recapture through the enemy-towers resolver, so it has no list of towers to walk", plan.m_sObjectiveName);
+		}
+		else
+		{
+			// 🔴 THE BASE DOCTRINE'S POSITIVE CLAIM. Re-authoring a tower recapture here must FAIL rather
+			// than merely stop being checked - a removed requirement that leaves no assertion behind is
+			// how a plan quietly grows the thing back.
+			foreach (OVT_SendDeploymentObjectiveOperation candidate : sends)
+			{
+				if (candidate.m_sConfigName == OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG || OVT_EnemyTowersAffectingTargetResolver.Cast(candidate.m_Resolver))
+					return string.Format("plan '%1' sends a tower recapture in its harassment phase. Radio towers are nothing to do with a base objective and the standing non-objective tower deployments already handle them (author, 2026-08-21)",
+						plan.m_sObjectiveName);
+			}
+		}
 
 		// --- 2. THE HARASSMENT LADDER IS SECOND, AND IS THE DIRECTOR'S OWN LADDER.
-		OVT_SendDeploymentObjectiveOperation harassment = sends[1];
+		OVT_SendDeploymentObjectiveOperation harassment = sends[ladderAt];
 
 		if (!harassment.m_aLadder || harassment.m_aLadder.IsEmpty())
 			return string.Format("plan '%1' authors an EMPTY harassment ladder. Either the .conf block did not load, or the rungs were removed; either way ResolveConfigName() answers nothing and the town ramp never sends anything again",
@@ -528,11 +561,11 @@ class OVT_TEST_Init_ObjectiveModules_HarassmentPhaseAuthorsTheShippedChain : SCR
 				plan.m_sObjectiveName);
 
 		// --- 3. SABOTAGE IS THIRD.
-		OVT_SendDeploymentObjectiveOperation sabotage = sends[2];
+		OVT_SendDeploymentObjectiveOperation sabotage = sends[sabotageAt];
 
 		if (sabotage.m_sConfigName != OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG)
-			return string.Format("plan '%1' does not send sabotage THIRD: its third operation names '%2'",
-				plan.m_sObjectiveName, sabotage.m_sConfigName);
+			return string.Format("plan '%1' does not send sabotage LAST: its operation %2 names '%3'",
+				plan.m_sObjectiveName, (sabotageAt + 1).ToString(), sabotage.m_sConfigName);
 
 		if (!deployments.FindConfigByName(sabotage.m_sConfigName))
 			return string.Format("plan '%1' names the sabotage config '%2', which the deployment registry does not carry", plan.m_sObjectiveName, sabotage.m_sConfigName);

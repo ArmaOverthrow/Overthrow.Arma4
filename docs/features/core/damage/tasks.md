@@ -1,7 +1,7 @@
 # Damage & Destruction (`core/damage`) - Task Checklist
 
-**Last Updated:** 2026-08-20 21:30
-**Progress:** 70/70 tasks complete (100%)
+**Last Updated:** 2026-08-21 21:00
+**Progress:** 74/74 tasks complete (100%) — 70 build tasks + 4 post-close fix tasks (2026-08-21)
 
 **Epic:** `core` (feature #8) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md` · **Branch:** `v1.5`
 
@@ -343,6 +343,26 @@
   - Effort: small, once `occupying/base-upgrades` widens the trigger surface.
 - [x] ✅ 💳 **Fallback rubble for tents/helipad** — Priority: Low — closed out 2026-08-20, not done (carried as tech debt in context.md)
   - Description: Generic rubble where a canvas tent stood may not read well (4.5). Escalation = Resource Browser session with the user, not new art.
+
+---
+
+## Post-close fix — buildables died to single bullets (4/4 complete, 2026-08-21)
+
+*Trigger: a built Recruitment Tent ruined by stray small-arms fire, no sabotage. Root causes BD31 (16-bit hit-zone cap put every structure past its ruin line from spawn) and BD32 (repair never restored health). User balance call BD33.*
+
+- [x] ✅ **PC.1 — Health under the engine cap + small-arms threshold on the seven sturdy buildables**
+  - Description: `m_fBaseHealth`/`m_fPhaseHealth` 100000 → 32000 on Guard Tower, both tents, ramp (child), Garage, Helipad, Bunkers; `DamageThreshold 50` on each hit zone; Bunkers author the full hit-zone block (explosive ×90 → ×1).
+  - File(s): the seven prefabs (see context.md per-prefab table)
+- [x] ✅ **PC.2 — Repair restores the hit zone's health**
+  - Description: `RepairToIntact()` → `GetDefaultHitZone().SetMaxHealth(m_iOriginalHealth, ESetMaxHealthFlags.FULLHEAL)` on the authority (vanilla's `SetHitZoneHealth` proven insufficient).
+  - File(s): `Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c`
+- [x] ✅ **PC.3 — Fuel Depot made deliberately fragile**
+  - Description: 250 + 250, kinetic/fragmentation/explosive/incendiary/fire ×1, collision ×0.
+  - File(s): `Prefabs/Structures/Military/FOB/OVT_FuelDepot.et`
+- [x] ✅ **PC.4 — Init cases E/F + weapons-path hit helper**
+  - Description: E — damage ruin → repair → full health → a rifle round is shrugged off (proven able to fail on both holes). F — live buildables config: a collision hit ruins nothing, five rifle rounds ruin only the depot and leave the rest untouched. Init suite 182/184 (pre-existing CompositionSlotGate red + E before its fix); E green standalone afterwards.
+  - File(s): `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_StructureDamage.c`
+- 🎯 **PC.U1 — user play-test** of the fix: tracked in `context.md` → "Needs human verification" (not a task — closed feature).
 
 ---
 

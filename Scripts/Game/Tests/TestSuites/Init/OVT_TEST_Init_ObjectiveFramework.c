@@ -66,6 +66,49 @@ class OVT_TEST_Init_ObjectiveFramework_ARegistryResolvesAndValidates : SCR_Autot
 	//! As above, for the base doctrine.
 	static const string BASE_PLAN = "Base Offensive";
 
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 DOES THIS DOCTRINE CHASE RADIO TOWERS? (author, 2026-08-21.)
+	//!
+	//! *"This is a base, radio towers don't matter to a base and there are non-objective deployments
+	//! built to handle radio towers that don't matter to the current objective."*
+	//!
+	//! A tower recapture was authored into BOTH phases of BOTH plans. For a town it is doctrine - a
+	//! tower in resistance hands feeds the unrest that the harassment ramp is trying to reverse - but a
+	//! base objective is about the base, and the standing non-objective tower deployments already answer
+	//! for towers whether or not an objective is running. Carrying it in the base plan spent a whole
+	//! cadence on something irrelevant to the target.
+	//!
+	//! ⚠ THE ASSERTIONS BELOW DID NOT SIMPLY GET LOOSER. The town claims are unchanged, term for term,
+	//! and the base plan gains the OPPOSITE claim - that it authors no tower recapture at all - so the
+	//! removal is pinned rather than merely permitted. See AssertNoTowerRecapture().
+	//! \param[in] planName The plan being walked.
+	//! \return True when this doctrine repeats tower recapture in its operation chains.
+	protected bool DoctrineChasesTowers(string planName)
+	{
+		return planName != BASE_PLAN;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The base doctrine's positive claim: no phase of it may send a tower recapture.
+	//! \param[in] planName The plan being walked, for the failure message.
+	//! \param[in] phaseName Which phase is being checked, for the failure message.
+	//! \param[in] operations That phase's operations.
+	//! \return An empty string when no tower recapture is authored, otherwise the failure.
+	protected string AssertNoTowerRecapture(string planName, string phaseName, notnull array<OVT_BaseObjectiveOperationModule> operations)
+	{
+		foreach (OVT_BaseObjectiveOperationModule operation : operations)
+		{
+			OVT_SendDeploymentObjectiveOperation send = OVT_SendDeploymentObjectiveOperation.Cast(operation);
+			if (!send)
+				continue;
+
+			if (send.m_sConfigName == OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG || OVT_EnemyTowersAffectingTargetResolver.Cast(send.m_Resolver))
+				return "Plan '" + planName + "' phase '" + phaseName + "' sends a TOWER RECAPTURE. Radio towers are nothing to do with a base objective and the standing non-objective tower deployments already handle them; carrying one here spends a whole cadence on the wrong target (author, 2026-08-21)";
+		}
+
+		return "";
+	}
+
 	//! How many phases each shipped plan authors.
 	static const int EXPECTED_PHASES = 3;
 
@@ -321,6 +364,19 @@ class OVT_TEST_Init_ObjectiveFramework_ARegistryResolvesAndValidates : SCR_Autot
 	{
 		OVT_ObjectivePhase phase = plan.GetPhase(0);
 
+		// ⚠ THE CHAIN IS DOCTRINE-SPECIFIC SINCE 2026-08-21 - see DoctrineChasesTowers(). A town runs
+		// tower recapture, the ladder, then sabotage; a base runs the ladder then sabotage, and is
+		// separately asserted to carry no tower recapture at all.
+		int expectedOperations = 2;
+		int ladderPosition = 1;
+		if (DoctrineChasesTowers(planName))
+		{
+			expectedOperations = 3;
+			ladderPosition = 2;
+		}
+
+		array<OVT_BaseObjectiveOperationModule> harassmentOperations = new array<OVT_BaseObjectiveOperationModule>();
+
 		int operationsSeen = 0;
 		bool hasCondition = false;
 		bool hasAbort = false;
@@ -337,29 +393,38 @@ class OVT_TEST_Init_ObjectiveFramework_ARegistryResolvesAndValidates : SCR_Autot
 				continue;
 
 			operationsSeen++;
+			harassmentOperations.Insert(OVT_BaseObjectiveOperationModule.Cast(module));
 
 			OVT_SendDeploymentObjectiveOperation send = OVT_SendDeploymentObjectiveOperation.Cast(module);
 			if (!send)
-				return "Plan '" + planName + "' phase 'Harassment' carries an operation that is not a send-deployment operation; the shipped chain is three of them";
+				return "Plan '" + planName + "' phase 'Harassment' carries an operation that is not a send-deployment operation; the shipped chain is " + expectedOperations.ToString() + " of them";
 
 			// 🔴 THE ORDER IS THE CONTRACT. Position 1 is the ladder (and only the ladder authors one);
 			// positions 0 and 2 are the two single-config sends, tower recapture then sabotage.
 			bool isLadder = send.m_aLadder && !send.m_aLadder.IsEmpty();
 
-			if (operationsSeen == 2)
+			if (operationsSeen == ladderPosition)
 			{
 				if (!isLadder)
-					return "Plan '" + planName + "' phase 'Harassment' does not author the harassment LADDER as its second operation. The shipped chain is tower recapture, then the ladder, then sabotage, and .conf order is evaluation order - the first operation that acts consumes the whole cadence interval";
+					return "Plan '" + planName + "' phase 'Harassment' does not author the harassment LADDER at operation " + ladderPosition.ToString() + ". The authored order still decides which operations are PINNED ahead of the director's per-cadence shuffle and how those are ordered, so the chain is still a contract";
 			}
 			else
 			{
 				if (isLadder)
-					return "Plan '" + planName + "' phase 'Harassment' authors the harassment ladder at operation " + operationsSeen.ToString() + ", not second. The shipped chain is tower recapture, then the ladder, then sabotage";
+					return "Plan '" + planName + "' phase 'Harassment' authors the harassment ladder at operation " + operationsSeen.ToString() + ", not " + ladderPosition.ToString();
 			}
 		}
 
-		if (operationsSeen != 3)
-			return "Plan '" + planName + "' phase 'Harassment' authors " + operationsSeen.ToString() + " operation(s); the shipped chain is exactly three - tower recapture, the harassment ladder, then sabotage";
+		if (operationsSeen != expectedOperations)
+			return "Plan '" + planName + "' phase 'Harassment' authors " + operationsSeen.ToString() + " operation(s); this doctrine's shipped chain is exactly " + expectedOperations.ToString() + " - see DoctrineChasesTowers() for why a base runs one fewer than a town";
+
+		// 🔴 THE BASE DOCTRINE'S OWN CLAIM, not merely the absence of the town's. See AssertNoTowerRecapture().
+		if (!DoctrineChasesTowers(planName))
+		{
+			string noTower = AssertNoTowerRecapture(planName, "Harassment", harassmentOperations);
+			if (noTower != "")
+				return noTower;
+		}
 
 		if (!hasCondition)
 			return "Plan '" + planName + "' phase 'Harassment' authors no condition module, so it can never advance to the forward base";
@@ -497,8 +562,23 @@ class OVT_TEST_Init_ObjectiveFramework_ARegistryResolvesAndValidates : SCR_Autot
 	//! \return An empty string when the chain is as authored, otherwise the failure.
 	protected string AssertForwardBaseChain(string planName, notnull array<OVT_BaseObjectiveOperationModule> operations)
 	{
-		if (operations.Count() != 5)
-			return "Plan '" + planName + "' phase 'ForwardBase' authors " + operations.Count().ToString() + " operation(s); the shipped chain is exactly five - raise the base, garrison it, then the whole harassment ramp repeated. FEWER THAN FIVE IS THE 2026-08-19 DEADLOCK: the ramp stops the moment the objective is promoted, and the counter-attack it is ramping towards becomes unreachable";
+		// ⚠ DOCTRINE-SPECIFIC SINCE 2026-08-21 - see DoctrineChasesTowers(). A town repeats the whole
+		// three-operation ramp (tower, ladder, sabotage); a base repeats the two that concern a base.
+		// THE DEADLOCK CLAIM IS UNCHANGED AND IS THE REASON THE RAMP MUST BE REPEATED AT ALL: a base
+		// objective is promoted on its FIRST completed mission and its counter-attack gate demands up to
+		// six, so a promotion that stopped the ramp would make the rest unsendable.
+		int expected = 4;
+		int ladderAt = 2;
+		int sabotageAt = 3;
+		if (DoctrineChasesTowers(planName))
+		{
+			expected = 5;
+			ladderAt = 3;
+			sabotageAt = 4;
+		}
+
+		if (operations.Count() != expected)
+			return "Plan '" + planName + "' phase 'ForwardBase' authors " + operations.Count().ToString() + " operation(s); this doctrine's shipped chain is exactly " + expected.ToString() + " - raise the base, garrison it, then its own harassment ramp repeated. FEWER IS THE 2026-08-19 DEADLOCK: the ramp stops the moment the objective is promoted, and the counter-attack it is ramping towards becomes unreachable";
 
 		if (!OVT_RaiseForwardBaseObjectiveOperation.Cast(operations[0]))
 			return "Plan '" + planName + "' phase 'ForwardBase' does not RAISE THE FORWARD BASE first. Every spend is behind one cadence, so whichever operation is asked first is the one that gets the interval - and everything else in this phase is for a base that is not there yet";
@@ -510,28 +590,39 @@ class OVT_TEST_Init_ObjectiveFramework_ARegistryResolvesAndValidates : SCR_Autot
 		if (!OVT_ForwardBaseTargetResolver.Cast(garrison.m_Resolver))
 			return "Plan '" + planName + "' phase 'ForwardBase' does not send its garrison through the forward-base resolver, so it would be sent at the OBJECTIVE - the place the resistance holds - rather than at the base it is supposed to be holding";
 
-		// --- 3 TO 5: THE RAMP, REPEATED. Half one of the deadlock fix.
-		for (int i = 2; i < 5; i++)
+		// --- THE RAMP, REPEATED, FROM POSITION 3 ON. Half one of the deadlock fix.
+		for (int i = 2; i < expected; i++)
 		{
 			if (!OVT_SendDeploymentObjectiveOperation.Cast(operations[i]))
-				return "Plan '" + planName + "' phase 'ForwardBase' operation " + (i + 1).ToString() + " is not a send-deployment operation; positions three to five are the harassment ramp repeated - tower recapture, the ladder, then sabotage";
+				return "Plan '" + planName + "' phase 'ForwardBase' operation " + (i + 1).ToString() + " is not a send-deployment operation; every position after the garrison is this doctrine's harassment ramp repeated";
 		}
 
-		OVT_SendDeploymentObjectiveOperation tower = OVT_SendDeploymentObjectiveOperation.Cast(operations[2]);
-		OVT_SendDeploymentObjectiveOperation ladder = OVT_SendDeploymentObjectiveOperation.Cast(operations[3]);
-		OVT_SendDeploymentObjectiveOperation sabotage = OVT_SendDeploymentObjectiveOperation.Cast(operations[4]);
+		OVT_SendDeploymentObjectiveOperation ladder = OVT_SendDeploymentObjectiveOperation.Cast(operations[ladderAt]);
+		OVT_SendDeploymentObjectiveOperation sabotage = OVT_SendDeploymentObjectiveOperation.Cast(operations[sabotageAt]);
 
-		if (!OVT_EnemyTowersAffectingTargetResolver.Cast(tower.m_Resolver))
-			return "Plan '" + planName + "' phase 'ForwardBase' does not repeat TOWER RECAPTURE as its third operation. A tower left in resistance hands keeps the objective easier for them to hold right through the build-up, and the ramp is supposed to carry on into this phase";
+		if (DoctrineChasesTowers(planName))
+		{
+			OVT_SendDeploymentObjectiveOperation tower = OVT_SendDeploymentObjectiveOperation.Cast(operations[2]);
+
+			if (!OVT_EnemyTowersAffectingTargetResolver.Cast(tower.m_Resolver))
+				return "Plan '" + planName + "' phase 'ForwardBase' does not repeat TOWER RECAPTURE as its third operation. A tower left in resistance hands keeps the objective easier for them to hold right through the build-up, and the ramp is supposed to carry on into this phase";
+		}
+		else
+		{
+			// The base doctrine's own claim, not merely the absence of the town's.
+			string noTower = AssertNoTowerRecapture(planName, "ForwardBase", operations);
+			if (noTower != "")
+				return noTower;
+		}
 
 		if (!ladder.m_aLadder || ladder.m_aLadder.IsEmpty())
-			return "Plan '" + planName + "' phase 'ForwardBase' does not repeat the HARASSMENT LADDER as its fourth operation. The stacking support debuff that drives a town under a quarter support is applied BY harassment operations, so a town objective could never reach its own counter-attack gate";
+			return "Plan '" + planName + "' phase 'ForwardBase' does not repeat the HARASSMENT LADDER at operation " + (ladderAt + 1).ToString() + ". The stacking support debuff that drives a town under a quarter support is applied BY harassment operations, so a town objective could never reach its own counter-attack gate";
 
 		if (sabotage.m_aLadder && !sabotage.m_aLadder.IsEmpty())
-			return "Plan '" + planName + "' phase 'ForwardBase' authors the harassment ladder at operation five, not fourth. The repeated chain is tower recapture, then the ladder, then sabotage - the same order the harassment phase uses, for the same reason";
+			return "Plan '" + planName + "' phase 'ForwardBase' authors the harassment ladder AFTER sabotage. The repeated chain ends ladder then sabotage - the same order the harassment phase uses, for the same reason";
 
 		if (!OVT_ObjectiveSelfTargetResolver.Cast(sabotage.m_Resolver))
-			return "Plan '" + planName + "' phase 'ForwardBase' does not repeat SABOTAGE as its fifth operation. A base objective is promoted on its FIRST completed mission and its counter-attack gate demands up to six, so the remaining five would be unsendable and the battle unreachable - the 2026-08-19 deadlock exactly";
+			return "Plan '" + planName + "' phase 'ForwardBase' does not repeat SABOTAGE as its last operation. A base objective is promoted on its FIRST completed mission and its counter-attack gate demands up to six, so the remaining five would be unsendable and the battle unreachable - the 2026-08-19 deadlock exactly";
 
 		return "";
 	}

@@ -108,7 +108,9 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		vector centre = ResolveTownCentre();
 
 		int aliveInside = CountAliveRegisteredMembersWithin(centre, m_fHoldRadius);
-		bool enemyPresent = NearestPlayerDistance(centre) <= m_fHoldRadius;
+				// ⚠ THE RESISTANCE, NOT JUST PLAYERS (author, 2026-08-21). Recruits and - when they arrive -
+		// high command groups contest this place exactly as a player does. See DefenderWithin().
+		bool enemyPresent = DefenderWithin(centre, m_fHoldRadius);
 
 		if (!EvaluateHold(aliveInside, enemyPresent, m_iTicksLeft))
 			return;

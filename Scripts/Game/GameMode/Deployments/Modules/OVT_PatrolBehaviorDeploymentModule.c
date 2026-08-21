@@ -19,15 +19,22 @@
 //! whole reason this class serves both a town patrol and (from Phase 4) a tower garrison without a
 //! flag anywhere.
 //!
-//! THREE TYPES, TWO OF THEM MOVABLE (amendment A1, 2026-08-18):
+//! FOUR TYPES, THREE OF THEM MOVABLE (amendment A1, 2026-08-18; TOWN_SWEEP 2026-08-21):
 //!   DEFEND         - one post, never walked.
-//!   PERIMETER      - a ring around the centre, EACH CORNER ROAD-SNAPPED. The town patrol.
+//!   PERIMETER      - a ring around the centre, EACH CORNER ROAD-SNAPPED. The old town patrol; kept
+//!                    for any config that still wants a road ring.
 //!   PERIMETER_BASE - the nearest base controller's AUTHORED square (m_fPerimeterRadius /
 //!                    m_fPerimeterRotation ± a few degrees of jitter), ground-snapped and NOT
 //!                    road-snapped. The base garrison.
+//!   TOWN_SWEEP     - the town patrol now. Rolled PER GROUP: usually a house-to-house SEARCH route
+//!                    through a handful of the town's houses, otherwise a LOOSE ring of random radius
+//!                    up to the town's own range, ground-snapped and not pulled onto roads. See
+//!                    BuildTownSweepPlan for why the road ring had to go.
 //! PERIMETER and PERIMETER_BASE produce plans of the SAME KIND - 4 PATROL corners, 4 WAITs, cycling -
 //! so everything downstream (the movement tick, core's waypoint builder, the GM waypoint walk) treats
-//! them identically and nothing outside this file has to know which one built a plan.
+//! them identically and nothing outside this file has to know which one built a plan. TOWN_SWEEP's
+//! ring is that kind too; its house route is N SEARCH points, cycling, and SEARCH is a WAIT to the
+//! movement tick and a Search & Destroy waypoint to live AI.
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sModuleName")]
 class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
@@ -35,7 +42,7 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
-	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior. DEFEND holds one post and is never walked; PERIMETER walks a ROAD-SNAPPED ring around the centre (towns); PERIMETER_BASE walks the nearest base controller's AUTHORED square, un-snapped (bases). The last two are both walked while dormant")]
+	[Attribute(defvalue: "1", UIWidgets.ComboBox, enums: ParamEnumArray.FromEnum(OVT_PatrolType), desc: "Type of patrol behavior. DEFEND holds one post and is never walked; PERIMETER walks a ROAD-SNAPPED ring around the centre; PERIMETER_BASE walks the nearest base controller's AUTHORED square, un-snapped (bases); TOWN_SWEEP rolls per group between searching m_iSweepHouseCount of the town's houses one after another and a loose un-snapped ring of random radius up to the town's range (towns). All but DEFEND are walked while dormant")]
 	OVT_PatrolType m_ePatrolType;
 
 	[Attribute(defvalue: "200", desc: "Patrol radius for PERIMETER patrols. PERIMETER_BASE ignores this and uses the base controller's own m_fPerimeterRadius, falling back to this only when there is no base in range")]
@@ -55,6 +62,12 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	[Attribute(defvalue: "false", desc: "Use town center as patrol center instead of deployment position")]
 	bool m_bUseNearestTownCenter;
 
+	[Attribute(defvalue: "5", desc: "TOWN_SWEEP only: how many of the town's houses one group's search route visits before it starts over. Rolled fresh per group, so two patrols in one town search different houses")]
+	int m_iSweepHouseCount;
+
+	[Attribute(defvalue: "0.7", desc: "TOWN_SWEEP only: the chance (0-1), rolled per group, that a group searches houses rather than walking the loose ring. A town with no searchable house always gets the ring")]
+	float m_fSweepHouseChance;
+
 	//! Shortest pause rolled for a perimeter corner, in seconds. The band is inherited verbatim from the
 	//! hand-authored perimeter helper on OVT_OverthrowConfigComponent that this replaces.
 	static const float WAIT_SECONDS_MIN = 45;
@@ -68,6 +81,26 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	//! square is that a designer decided where it goes, and this is the wobble around that decision,
 	//! not a second decision. The Workbench viz draws this band as two faint squares.
 	static const float PERIMETER_ROTATION_JITTER_DEG = 10;
+
+	//! Shortest time a sweep spends searching one house, in seconds. Long enough for the Search & Destroy
+	//! activity to get a fireteam through its grid once (walk up, poke the rooms, look round the yard),
+	//! short enough that a five-house route comes back round inside a quarter of an hour.
+	static const float SEARCH_SECONDS_MIN = 60;
+
+	//! Longest time a sweep spends searching one house, in seconds.
+	static const float SEARCH_SECONDS_MAX = 120;
+
+	//! The smallest loose ring, as a fraction of the town's range. A ring much tighter than this around
+	//! a village centre is four men turning on the spot in the square; much looser than the town range
+	//! is a ring through the fields outside it, which is not a town patrol.
+	static const float LOOSE_RING_MIN_FRACTION = 0.3;
+
+	//! The largest loose ring, as a fraction of the town's range - the town's own edge.
+	static const float LOOSE_RING_MAX_FRACTION = 1.0;
+
+	//! Scratch for the house query callbacks. A member because the engine's query API takes instance
+	//! methods and no context; filled and drained inside FindHousePositions, never read elsewhere.
+	protected ref array<vector> m_aHouseScratch;
 
 	//------------------------------------------------------------------------------------------------
 	//! The plan a group registered at groupPosition should carry.
@@ -137,6 +170,9 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 
 		if (m_ePatrolType == OVT_PatrolType.PERIMETER_BASE)
 			return BuildAuthoredSquarePlan(centre, groupPosition);
+
+		if (m_ePatrolType == OVT_PatrolType.TOWN_SWEEP)
+			return BuildTownSweepPlan(centre, groupPosition);
 
 		if (m_ePatrolType != OVT_PatrolType.PERIMETER)
 			return null;
@@ -213,6 +249,248 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		SnapPlanPointsToGround(plan);
 
 		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The TOWN_SWEEP plan: per group, either a house-to-house search route or a loose un-snapped ring.
+	//!
+	//! ================== WHY THE TOWN PATROL LEFT THE ROADS (2026-08-21) ==========================
+	//! From the play-test, verbatim: "right now they just do a road-snapped perimeter but its kinda
+	//! boring, as well as means they do end up standing in the middle of a road waiting on each one,
+	//! getting in the way of the director's insertion missions or giving the player an easy target for
+	//! their vehicle. Id like the town patrols to be going from house to house 'searching' them and just
+	//! being general douchebags to the civilians". So the corners stopped being road corners. What a
+	//! group gets instead is ROLLED HERE, ONCE, when its plan is built:
+	//!
+	//!   HOUSE ROUTE (m_fSweepHouseChance) - m_iSweepHouseCount houses picked at random from every
+	//!   ownable house inside the town's range (player-owned ones included - the author's call: a patrol
+	//!   that searches YOUR house is the point), nearest-neighbour ordered from where the group starts so
+	//!   it reads as a route rather than a commute, one SEARCH point per house with its own rolled hold.
+	//!   Live, SEARCH is the vanilla Search & Destroy waypoint pinned to the house (core fixes the radius
+	//!   to one building), so the men walk up, investigate navmesh spots in and around it, and leave when
+	//!   the hold runs out. Dormant, it is a WAIT, so the route keeps turning with nobody watching.
+	//!
+	//!   LOOSE RING (otherwise, and ALWAYS when the town has no searchable house) - the same four-corner
+	//!   cycling plan PERIMETER builds, at a radius rolled between LOOSE_RING_MIN_FRACTION and
+	//!   LOOSE_RING_MAX_FRACTION of the town's range, ground-snapped and NOT road-snapped. Two patrols
+	//!   on one town therefore walk rings of different sizes in different directions, and neither parks
+	//!   on the tarmac. The one exception is a corner that lands in the sea (coastal towns with a large
+	//!   range): that corner alone is pulled onto the nearest road, because a corner nobody can reach
+	//!   stalls the live patrol at it forever, and a road is the nearest thing to "still on the town".
+	//!
+	//! THE TOWN'S AUTHORED RANGE (OVT_TownControllerComponent.m_iTownRange, the one the designer set on the
+	//! placed controller and the civilian crowd already uses), NOT m_fPatrolRadius, sizes both halves,
+	//! because the point is to cover the town the patrol is in - Eden's run from 100 m to 213 m and one
+	//! authored radius fits none of them. See ResolveTownRange for the fallbacks. The radius attribute is
+	//! the last resort for a plan built with no town to ask (a template, or a marker dropped in the open),
+	//! exactly as it is for PERIMETER.
+	//! ==========================================================================================
+	//! \param[in] centre What is being swept - GetPatrolCenter()'s answer (the town centre, normally).
+	//! \param[in] groupPosition Where the group is about to be registered; the route starts here.
+	//! \return A cycling plan, never null.
+	protected OVT_VirtualWaypointPlan BuildTownSweepPlan(vector centre, vector groupPosition)
+	{
+		float range = ResolveTownRange(centre);
+
+		if (s_AIRandomGenerator.RandFloat01() < m_fSweepHouseChance)
+		{
+			array<vector> houses = FindHousePositions(centre, range);
+			if (houses && !houses.IsEmpty())
+			{
+				array<vector> picked = PickRandomSites(houses, m_iSweepHouseCount);
+				array<vector> route = OVT_VirtualPlanFactory.OrderNearestNeighbour(groupPosition, picked);
+
+				array<float> holds = new array<float>();
+				for (int i = 0; i < route.Count(); i++)
+				{
+					holds.Insert(s_AIRandomGenerator.RandFloatXY(SEARCH_SECONDS_MIN, SEARCH_SECONDS_MAX));
+				}
+
+				return OVT_VirtualPlanFactory.BuildSearchPlan(route, holds);
+			}
+		}
+
+		float radius = range * s_AIRandomGenerator.RandFloatXY(LOOSE_RING_MIN_FRACTION, LOOSE_RING_MAX_FRACTION);
+		if (radius <= 0)
+			radius = vector.Distance(groupPosition, centre);
+
+		OVT_VirtualWaypointPlan plan = OVT_VirtualPlanFactory.BuildPerimeterPlan(centre, groupPosition, radius, RollCornerWaits());
+		SnapLooseRing(plan);
+
+		return plan;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How far the town around `centre` reaches - the range AUTHORED on its town controller.
+	//!
+	//! ⚠ NOT OVT_TownManagerComponent.GetTownRange(). That is the deprecated per-SIZE fallback (250/400/
+	//! 600 by village/town/city); every shipped map places OVT_TownController prefabs in a towns.layer and
+	//! authors m_iTownRange on each (Eden's run 100-213 m), and the civilian crowd already sizes itself from
+	//! that same field. Sizing the patrol off the size table would sweep houses two to four times further
+	//! out than the town the designer drew - the first build of this did exactly that, caught by the author.
+	//! The manager's table is kept only as the fallback for a town with no controller (the deprecated
+	//! auto-detected path), and m_fPatrolRadius for no town at all.
+	//!
+	//! Asked of the town manager by POSITION rather than through the town conditional module, so a plan
+	//! built off a config template (no deployment, no sibling modules) still sizes itself to the real town
+	//! nearest the position it was handed; the Init tier relies on that.
+	//! \param[in] centre The position to size for.
+	//! \return The town's range in metres, or m_fPatrolRadius when there is no town to ask.
+	protected float ResolveTownRange(vector centre)
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+			return m_fPatrolRadius;
+
+		OVT_TownData town = towns.GetNearestTown(centre);
+		if (!town)
+			return m_fPatrolRadius;
+
+		OVT_TownControllerComponent controller = FindTownController(towns, town);
+		if (controller && controller.m_iTownRange > 0)
+			return controller.m_iTownRange;
+
+		float range = towns.GetTownRange(town);
+		if (range > 0)
+			return range;
+
+		return m_fPatrolRadius;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The town controller entity the manager keeps for `town`, index-aligned with its town list.
+	//! \param[in] towns The town manager.
+	//! \param[in] town The town.
+	//! \return Its controller component, or null when the town has none (or the ID no longer resolves).
+	protected OVT_TownControllerComponent FindTownController(notnull OVT_TownManagerComponent towns, notnull OVT_TownData town)
+	{
+		int townId = towns.GetTownID(town);
+		if (townId < 0 || !towns.m_TownControllers || townId >= towns.m_TownControllers.Count())
+			return null;
+
+		EntityID controllerId = towns.m_TownControllers[townId];
+		if (!controllerId)
+			return null;
+
+		IEntity entity = GetGame().GetWorld().FindEntityByID(controllerId);
+		if (!entity)
+			return null;
+
+		return OVT_TownControllerComponent.Cast(entity.FindComponent(OVT_TownControllerComponent));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every searchable house within `range` of `centre`, as positions.
+	//!
+	//! "Searchable" is the real-estate manager's own ownable-building filter - the same one the town
+	//! manager uses to count population and hand out homes - so a patrol searches exactly the buildings
+	//! the game already calls houses, and nothing else (no barns, no bunkers, no ruins). OWNED houses are
+	//! deliberately NOT excluded.
+	//! \param[in] centre Where to look.
+	//! \param[in] range How far, in metres.
+	//! \return House positions; empty when there are none or nothing can be queried.
+	protected array<vector> FindHousePositions(vector centre, float range)
+	{
+		m_aHouseScratch = new array<vector>();
+
+		BaseWorld world = GetGame().GetWorld();
+		if (world && range > 0)
+			world.QueryEntitiesBySphere(centre, range, AddHouseToScratch, FilterHouseEntities, EQueryEntitiesFlags.STATIC);
+
+		array<vector> houses = m_aHouseScratch;
+		m_aHouseScratch = null;
+		return houses;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Query add-callback for FindHousePositions.
+	protected bool AddHouseToScratch(IEntity entity)
+	{
+		if (m_aHouseScratch && entity)
+			m_aHouseScratch.Insert(entity.GetOrigin());
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Query filter for FindHousePositions: an ownable building, per the real-estate manager.
+	protected bool FilterHouseEntities(IEntity entity)
+	{
+		if (!entity || entity.ClassName() != "SCR_DestructibleBuildingEntity")
+			return false;
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if (!realEstate)
+			return false;
+
+		return realEstate.BuildingIsOwnable(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Up to `count` distinct sites rolled at random from `sites`, in roll order.
+	//!
+	//! A partial Fisher-Yates on a copy: each roll swaps a random unpicked entry into the next slot,
+	//! so no site is picked twice and the input is untouched. ⚠ RandInt is MAX-EXCLUSIVE, which is
+	//! why the upper bound is Count() and not Count() - 1.
+	//! \param[in] sites The pool.
+	//! \param[in] count How many to take; clamped to the pool's size, 0 or less takes none.
+	//! \return The picked sites.
+	protected array<vector> PickRandomSites(notnull array<vector> sites, int count)
+	{
+		array<vector> pool = new array<vector>();
+		pool.Copy(sites);
+
+		if (count > pool.Count())
+			count = pool.Count();
+
+		array<vector> picked = new array<vector>();
+		for (int i = 0; i < count; i++)
+		{
+			int roll = s_AIRandomGenerator.RandInt(i, pool.Count());
+			vector chosen = pool[roll];
+			pool.Set(roll, pool[i]);
+			pool.Set(i, chosen);
+			picked.Insert(chosen);
+		}
+
+		return picked;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a loose ring's corners on the ground, and pulls any corner in the sea onto the nearest road.
+	//!
+	//! Walks the plan by TYPE like SnapPatrolPointsToRoads does: a PATROL corner is checked and snapped,
+	//! and a WAIT copies whatever point came before it, so the pause stays where the patrol arrives.
+	//! \param[in] plan The plan to snap in place. Null is a no-op.
+	protected void SnapLooseRing(OVT_VirtualWaypointPlan plan)
+	{
+		if (!plan || !plan.m_aPositions || !plan.m_aTypes)
+			return;
+
+		int count = plan.m_aPositions.Count();
+		if (plan.m_aTypes.Count() < count)
+			return;
+
+		BaseWorld world = GetGame().GetWorld();
+
+		for (int i = 0; i < count; i++)
+		{
+			if (plan.m_aTypes[i] == OVT_EVirtualWaypointType.PATROL)
+			{
+				vector position = plan.m_aPositions[i];
+
+				if (OVT_WorldUtils.IsOceanAtPosition(position))
+					position = OVT_WorldUtils.FindNearestRoad(position);
+				else if (world)
+					position[1] = world.GetSurfaceY(position[0], position[2]);
+
+				plan.m_aPositions.Set(i, position);
+				continue;
+			}
+
+			if (plan.m_aTypes[i] == OVT_EVirtualWaypointType.WAIT && i > 0)
+				plan.m_aPositions.Set(i, plan.m_aPositions[i - 1]);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -318,6 +596,8 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		clone.m_fCheckInterval = m_fCheckInterval;
 		clone.m_bApplyToNewGroups = m_bApplyToNewGroups;
 		clone.m_bUseNearestTownCenter = m_bUseNearestTownCenter;
+		clone.m_iSweepHouseCount = m_iSweepHouseCount;
+		clone.m_fSweepHouseChance = m_fSweepHouseChance;
 
 		return clone;
 	}

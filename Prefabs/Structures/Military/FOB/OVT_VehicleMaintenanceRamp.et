@@ -103,14 +103,15 @@ GenericEntity {
        "Kinetic multiplier" 0.1
        "Explosive multiplier" 1
        "Incendiary multiplier" 0.1
+       DamageThreshold 50
       }
      }
-     m_fBaseHealth 100000
+     m_fBaseHealth 32000
      m_fDamageThresholdMaximum 50000
      m_bDeleteAfterFinalPhase 0
      m_aDamagePhases {
       SCR_DamagePhaseData "{6B70D0000000000F}" {
-       m_fPhaseHealth 100000
+       m_fPhaseHealth 32000
        m_PhaseModel "{F93C1C026EABAEF5}Assets/Structures/Industrial/Repair/RampVehicle_01/dst/RampVehicle_01_metal_Ruin.xob"
       }
      }

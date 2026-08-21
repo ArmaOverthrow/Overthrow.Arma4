@@ -1,8 +1,8 @@
 # Deployments - Context & Decisions
 
-**Last Updated:** 2026-08-02
-**Current Phase:** Retrospective Documentation
-**Status:** ✅ Documented (Existing Feature)
+**Last Updated:** 2026-08-21
+**Current Phase:** Retrospective documentation + incremental enhancements (dated entries below)
+**Status:** ✅ Documented (Existing Feature) — the epic's only force-placement system; 20 shipped configs
 
 ---
 
@@ -13,7 +13,8 @@
 - ✅ Retrospective documentation created (thorough code investigation, 2026-08-02)
 
 **What's Next:**
-- 📋 Review for potential improvements — the `m_mFactionDeployments` leak is the long-campaign kill switch; unset `resourcesInvested`/`threatLevel` and the world-time unit bugs follow
+- ⏸️ Play-test the **town sweep** (2026-08-21 entry at the bottom): house interiors, posture, route feel; then the civilian-reaction follow-up
+- 📋 `implementation.md` is stale (2026-08-02): BUG-028 is CLOSED (the faction list is pruned at `OVT_DeploymentManager.c:2114,2140`), the manager is ~3,000 L, 20 configs ship. The remaining retrospective items (`m_iResourcesInvested`/`m_fThreatLevel` at creation, world-time units, runtime conditions) need re-verifying against current code before anyone works them
 
 **Blockers:**
 - None
@@ -583,3 +584,144 @@ their case headers.
 **Two EnforceScript limits hit writing the inventory line, both worth remembering:** `string.Format` caps its
 parameter count ("Too many parameters for 'Format' method"), and replacing it with one long `+` chain then
 fails differently with "Formula too complex". Successive `+=` clears both.
+
+---
+
+## 2026-08-21 — Town patrols sweep houses; the road-snapped ring is gone from towns
+
+**The report** (author, play-testing `objectives`): *"right now they just do a road-snapped perimeter but its kinda
+boring, as well as means they do end up standing in the middle of a road waiting on each one, getting in the way of
+the director's insertion missions or giving the player an easy target for their vehicle. Id like the town patrols to
+be going from house to house 'searching' them and just being general douchebags to the civilians ... maybe we add a
+new waypoint mode that picks a bunch of random houses to do that, but for variety they just sometimes do a perimeter
+of random radius up to the authored town radius but not road-snapped."* Built in this session, in the deployments
+feature, deliberately away from the files the concurrent `objectives` play-test session has uncommitted
+(`OVT_InsertionSpawningDeploymentModule.c`, `OVT_BaseBehaviorDeploymentModule.c`, `OVT_MountedGroupActivation.c`,
+`Modded/SCR_AIGroup.c` — none touched).
+
+### What vanilla already had, and why it was the answer
+
+`AIWaypoint_SearchAndDestroy.et` was wired into `OVT_OverthrowConfigComponent` (`m_pSearchAndDestroyWaypointPrefab`)
+and used only by the QRF. `SCR_AISearchAndDestroyActivity` lays a grid over the waypoint's completion radius, snaps
+every cell to **navmesh** (`GetClosestPositionOnNavmesh(tile, "15 15 15")` — house interiors included wherever a
+building has interior navmesh), has each fireteam walk and *investigate* cell after cell, and `WP_SearchAndDestroy.bt`
+carries `SCR_AITaskTimerGate` + `SCR_AICompleteWaypoint` like `WP_Wait.bt`, so the waypoint **completes after its
+holding time** and the group moves on. It is a `SCR_TimedWaypoint`: hold and radius are both settable per waypoint.
+Pinned to one building with a 15 m radius it is "search this house and its yard". Nothing custom had to be written
+on the AI side.
+
+### The mechanism
+
+- **`OVT_EVirtualWaypointType.SEARCH`**, appended at the END of core's enum (additive; persisted plans carry types
+  as ints, an old save reads back unchanged). Parameter = **hold seconds**, exactly like WAIT. Core
+  (`CreatePlannedWaypoint`) spawns the S&D prefab, pins `SetCompletionRadius(SEARCH_WAYPOINT_RADIUS_M = 15)` and
+  `SetHoldingTime(param)` **before** the waypoint is added — the activity reads the radius once, when it builds
+  its grid. `ValidateWaypointPlan`'s upper bound moved to SEARCH. **Movement** treats SEARCH as WAIT (arrive, hold,
+  advance), so a dormant sweep keeps touring houses and materialises AT one, not on a road corner.
+  `docs/features/virtualization/core/api.md` and movement's §3.5 table updated.
+- **`OVT_PatrolType.TOWN_SWEEP`** on `OVT_PatrolBehaviorDeploymentModule`, rolled **per group** in
+  `BuildTownSweepPlan()`:
+  - **House route** (`m_fSweepHouseChance`, 0.7): every ownable building (`OVT_RealEstateManagerComponent.
+    BuildingIsOwnable` — the same filter the town manager counts population with; **player-owned houses
+    included**, the author's call) within `GetTownRange(town)` → `PickRandomSites` (partial Fisher–Yates,
+    `RandInt` max-exclusive) takes `m_iSweepHouseCount` (5) → `OrderNearestNeighbour` from the group's start →
+    `BuildSearchPlan` with a 60–120 s hold per house, cycling. No WAIT follows a SEARCH: the hold *is* the pause.
+  - **Loose ring** (otherwise, and always when the town has no searchable house): `BuildPerimeterPlan` at
+    `range × [0.3, 1.0]`, ground-snapped, **not road-snapped** — except a corner in the sea, which is pulled onto
+    the nearest road rather than left unreachable (`OVT_WorldUtils.IsOceanAtPosition`).
+  - Both halves size from the **town controller's authored `m_iTownRange`** (Eden's placed controllers author
+    100–213 m; the civilian crowd uses the same field), resolved through the manager's index-aligned
+    `m_TownControllers`. ⚠ The first build used `OVT_TownManagerComponent.GetTownRange()` — the **deprecated
+    per-size table** (250/400/600), 2–4× the drawn town — and the author caught it in review; that table is now
+    only the fallback for a town with no controller, and `m_fPatrolRadius` for no town at all.
+- `Deployment_TownPatrol.conf` authors `m_ePatrolType TOWN_SWEEP`. PERIMETER stays in the enum for any config
+  that still wants a road ring (none shipped does).
+
+### Decisions worth knowing
+
+- **Radius is core's constant, not a module attribute.** A plan carries one parameter per point and SEARCH's is
+  the hold; encoding two values was not worth a second array on a frozen contract. 15 m is "one house and its
+  yard"; if interiors are not being entered in play, this and the hold band are the first knobs.
+- **Per-group roll, not per-deployment.** Two patrols on one town should not walk the same ring or search the
+  same houses; the roll happens where the plan is built, once per registration, and a rebought group rolls again.
+- **The plan is fixed for the group's life** (core owns waypoints from registration). A 5-house loop of ~2 min
+  each plus walking is a 15–20 min cycle — long enough not to read as a loop from inside the town.
+- **`GivePatrolWaypoints` (legacy helper) is untouched**: it is driven by job-stage configs with their own patrol
+  types and TOWN_SWEEP never reaches it.
+
+### Verified / owed
+
+- `tools/compile-check.sh` OK (6237 files). Logic `…_SearchPlan` and `…_NearestNeighbourRoute` (new) and Init
+  `…_TownPatrolPlanCycles` (updated: TOWN_SWEEP, both knobs > 0, SEARCH counts as movable) each **green** as
+  standalone runs; a full All run is owed before commit (another Workbench was open on the machine).
+- ⚠ **Play-test owed**: whether live men enter interiors (navmesh-dependent per building), whether the S&D posture
+  reads as a search rather than an assault, and whether the route feels like a patrol.
+- ⚠ Three `PrintFormat` string params is the cap (the Init printout uses `Print(string.Format())` for four).
+- ⚠ **`GetTownRange()` is a trap for anyone sizing anything to a town**: it is the deprecated size table, not the
+  authored range. Other live callers still on it (not touched here): `OVT_UprisingRequestComponent.c:86`,
+  `OVT_RaiseForwardBaseObjectiveOperation.c:742` (FOB clearance), the jobs stages/conditions, `OVT_BuildContext.c:314`,
+  `OVT_EconomyManagerComponent.c:1144`, `OVT_OccupyingFactionManager.c:1557`.
+- Civilian reaction (flee/cower at an arriving sweep) **deferred by the author** — "patrols first" — and belongs
+  in `virtualization/civilians`' archetypes when it comes.
+
+---
+
+## 2026-08-21 — The house search is now RELAXED: Overthrow's first behaviour trees
+
+**The report** (author, play-testing the sweep): *"its not bad, they are entering homes and searching them,
+but they are acting like soldiers under threat. they crouch and sneak and run from waypoint to waypoint."*
+Asked "what are the chances of creating our own behavior tree similar but more relaxed" — good, it turned out,
+because vanilla's machinery is 90 % reusable and the posture comes from exactly two places, neither reachable
+from a flag:
+
+1. `SCR_AISearchAndDestroyActivity.AssignInvestigationPositions()` sends every soldier an Investigate with
+   `dangerous = true`, hard-coded, and `SCR_AIMoveAndInvestigateBehavior` then pins `m_fThreat` above
+   `VIGILANT_THRESHOLD` for the whole action.
+2. `AI/BehaviorTrees/Chimera/Soldier/MoveAndInvestigate.bt` **unconditionally** sets stance CROUCH, speed RUN
+   and weapon raised near its root (lines 181–201, 63), before any threat test.
+
+### What was built — one small class per layer, everything else inherited (`Scripts/Game/AI/Behavior/OVT_HouseSearchAI.c`)
+
+- **`OVT_AIHouseSearchBehavior : SCR_AIMoveAndInvestigateBehavior`** — same ports (the tree's
+  Get/SetInvestigateBehaviorParameters nodes read them off a template instance by name), `isDangerous`
+  defaults false, and `m_sBehaviorTree` = **`AI/BehaviorTrees/Overthrow/Soldier/HouseSearch.bt`**.
+- **`OVT_AIHouseSearchActivity : SCR_AISearchAndDestroyActivity`** — vanilla's grid, tile loading, fireteam
+  bookkeeping, `OnChildBehaviorFinished` and holding-time failure; only `AssignInvestigationPositions` is
+  overridden to build our behaviour and `AddAction` it on each soldier's utility directly (exactly what the
+  vanilla reaction does with the message). Per-spot dwell 15 s (vanilla 10).
+- **`OVT_AIStartHouseSearch : SCR_AISendMessageGenerated`** (waypoint-tree node) — replaces the
+  "Send Goal Message Seek And Destroy" node: fails running move activities and adds our activity to the group.
+  ⚠ **Why a node and not a new goal message:** goal messages are indexed by an engine enum and their reactions
+  are registered per prefab in `SCR_AIConfigComponent.m_aGoalReactions` on vanilla `Group_Base.et` — a new
+  message type would mean editing a vanilla prefab or `modded`-ing a vanilla reaction class. The node sidesteps
+  both.
+- **Two hand-authored trees** (text copies, three nodes changed): `AI/BehaviorTrees/Overthrow/Waypoints/
+  WP_HouseSearch.bt` (`WP_SearchAndDestroy.bt` with the goal node swapped) and `AI/BehaviorTrees/Overthrow/
+  Soldier/HouseSearch.bt` (`MoveAndInvestigate.bt`: `m_eStance STAND`, `m_eSpeed WALK`, first
+  `SCR_AISetWeaponRaised` → `m_bWeaponRaised 0`; the threat-GATED raises are untouched, so a patrol that meets
+  something still reacts as vanilla). ⚠ `ECharacterStance` is `STAND/CROUCH/PRONE` — there is no ERECT.
+- **`Prefabs/AI/Waypoints/OVT_AIWaypoint_HouseSearch.et`** — child of the S&D prefab with our tree; authored on
+  the game mode as new **`m_pHouseSearchWaypointPrefab`**; `SpawnHouseSearchWaypoint()` falls back to S&D when
+  unset; core's SEARCH case calls it. The plan/movement/persistence side is untouched.
+
+### Facts worth keeping
+
+- **`.bt.meta` resource class is `BehaviorTreeResourceClass`** — no example existed anywhere on disk (the
+  extracted reference tree carries no .meta files); it was read out of `ArmaReforgerSteamDiag.exe` with
+  `grep -a -o "[A-Za-z]*ResourceClass"`. Hand-minted GUIDs (`A086847134FE94FF` waypoint, `7ABD3B8D152B6DBA`
+  soldier, `19BF9E9CE96176F0` prefab) registered fine — **proven**, not assumed: Init
+  `…_HouseSearchWaypointResolves` does `Resource.Load()` on both GUID'd names and is green.
+- Vanilla's own behaviours reference trees by bare path (`"AI/BehaviorTrees/Chimera/Soldier/Defend.bt"`), so a
+  GUID-less ResourceName resolves too; ours carries the GUID anyway.
+- EnforceScript calls the parent constructor implicitly with the **same-named** parameters — keep the vanilla
+  parameter names verbatim in a behaviour/activity subclass or the base will be mis-constructed.
+- If a tree ever fails to load the symptom is a group that reaches the house and **stands still until the hold
+  expires**, with nothing in the log naming the tree — open both in Workbench's BT editor and resave.
+
+### Verified / owed
+
+- `compile-check.sh` OK; Init `…_HouseSearchWaypointResolves` (new) green; no tree-parse warnings in the run log.
+- ⚠ **Play-test owed**: posture (stand/walk/weapon down), that they still go inside, and whether the 15 s dwell
+  reads as "having a look". Author to open both `.bt` files in the BT editor once and resave (the files are
+  text copies and have never been through the editor).
+- Still owed from the previous entry: All-suite run before commit; civilian reaction later.

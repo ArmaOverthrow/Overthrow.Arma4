@@ -195,50 +195,11 @@ class OVT_AssetStarvedObjectiveAbort : OVT_BaseObjectiveAbortModule
 	//! \return The number of alive registered groups.
 	int CountAliveGroups(notnull OVT_ObjectiveAssetRecord asset)
 	{
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-
-		if (!deployments || !virtualization || !config)
-			return 0;
-
-		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(asset.position, m_fAreaRadius);
-		if (!nearby)
-			return 0;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-		int alive = 0;
-
-		foreach (OVT_DeploymentComponent deployment : nearby)
-		{
-			if (!deployment)
-				continue;
-
-			if (deployment.GetControllingFaction() != occupyingIndex)
-				continue;
-
-			array<int> handles = new array<int>();
-
-			array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
-			foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-			{
-				if (spawningModule)
-					spawningModule.CollectRegisteredHandles(handles);
-			}
-
-			foreach (int handle : handles)
-			{
-				if (!virtualization.IsRegistered(handle))
-					continue;
-
-				if (virtualization.GetAliveMemberCount(handle) < 1)
-					continue;
-
-				alive++;
-			}
-		}
-
-		return alive;
+		// ⚠ MOVED, NOT CHANGED (2026-08-21). The body of this method is now
+		// OVT_ObjectiveDirectorComponent.CountAliveOccupyingGroupsAt(), because the anchor source
+		// provider has to ask the identical question - "is this forward base still manned" - and two
+		// copies of a rule this specific drift. m_fAreaRadius stays authored here; the counting does not.
+		return OVT_ObjectiveDirectorComponent.CountAliveOccupyingGroupsAt(asset.position, m_fAreaRadius);
 	}
 
 	//------------------------------------------------------------------------------------------------

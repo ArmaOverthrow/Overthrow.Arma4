@@ -358,6 +358,25 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 
 		super.GoToDamagePhase(PHASE_INTACT, delayMeshChange);
 
+		// super restores the PHASE but never the HEALTH. A damage-driven ruin (weapons, GM Neutralize)
+		// leaves the hit zone at 0 - vanilla's last-phase branch calls SetHitZoneHealth(0) and the hit
+		// itself took it there anyway - so without this a repaired structure is a one-hit kill forever:
+		// the next round finds currentHealth <= 0 in OnDamage. m_iOriginalHealth is what OnPostInit
+		// pushed in (base + phase); it is 0 on proxies and in WB edit mode, where there is nothing to
+		// restore. Vanilla's SetHitZoneHealth() (SetMaxHealth then SetHealth) does NOT bring a hit zone
+		// back from 0 / 0 - the run that proved it read "0 / 64000" afterwards - so the max is set with
+		// FULLHEAL, the engine's own "max AND current" flag. (post-close fix 2026-08-21, BD31)
+		if (!IsProxy() && m_iOriginalHealth > 0)
+		{
+			HitZone hitZone = GetDefaultHitZone();
+			if (hitZone)
+			{
+				hitZone.SetMaxHealth(m_iOriginalHealth, ESetMaxHealthFlags.FULLHEAL);
+				if (hitZone.GetHealth() < hitZone.GetMaxHealth())
+					hitZone.SetHealthScaled(1);
+			}
+		}
+
 		ScriptCallQueue callQueue = GetGame().GetCallqueue();
 		if (!callQueue)
 			return;

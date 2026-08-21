@@ -19,7 +19,14 @@ enum OVT_EVirtualWaypointType
 	PATROL,
 	WAIT,
 	DEFEND,
-	CYCLE
+	CYCLE,
+	//! Walk to the point and SEARCH around it for the parameter's seconds - the vanilla Search & Destroy
+	//! waypoint, which has the men investigate navmesh positions (house interiors included, where a
+	//! building has them) inside a fixed radius until its holding time expires, then completes. The
+	//! parameter is the HOLD in seconds, exactly like WAIT; the radius is core's constant. While dormant
+	//! it is a WAIT: arrive, hold, advance. APPENDED 2026-08-21 (occupying/deployments town sweep) -
+	//! additive, at the end, so persisted plans authored before it read back unchanged.
+	SEARCH
 }
 
 //------------------------------------------------------------------------------------------------

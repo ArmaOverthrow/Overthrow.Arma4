@@ -152,7 +152,9 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		int myFaction = m_ParentDeployment.GetControllingFaction();
 
 		bool holding = CountAliveRegisteredMembersWithin(tower.location, m_fHoldRadius) >= 1;
-		bool enemyPresent = NearestPlayerDistance(tower.location) <= m_fHoldRadius;
+				// ⚠ THE RESISTANCE, NOT JUST PLAYERS (author, 2026-08-21). Recruits and - when they arrive -
+		// high command groups contest this place exactly as a player does. See DefenderWithin().
+		bool enemyPresent = DefenderWithin(tower.location, m_fHoldRadius);
 
 		if (!EvaluateRecapture(holding, enemyPresent, tower.faction, myFaction, m_iTicksLeft))
 			return;

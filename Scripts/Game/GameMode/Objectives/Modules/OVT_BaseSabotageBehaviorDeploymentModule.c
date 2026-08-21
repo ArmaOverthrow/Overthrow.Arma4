@@ -14,7 +14,9 @@
 //! WHAT IT DOES, PER UPDATE (~10 s):
 //!   resolve the base under this deployment, and REFUSE if the occupying faction already holds it;
 //!   count the living members of this deployment's force inside m_fClearRadius of the base centre;
-//!   ask whether a player is standing inside the same circle;
+//!   ask whether a DEFENDER is standing inside the same circle - a player, or any player's living
+//!     recruit (author, 2026-08-21: *"recruits should still count as well as players"* - he watched a
+//!     structure go while his squad fought over it and he sat just outside the circle);
 //!   and hand both to EvaluateDemolition(), which owns the whole decision.
 //! Every time the interval elapses, ONE structure goes and the interval restarts. At
 //! objectiveSabotageStructuresPerMission, or when there is nothing left to take, the mission reports
@@ -70,7 +72,7 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
-	[Attribute(defvalue: "150", desc: "How close to the base centre the team has to be to count as holding it. Also the circle a player has to be inside to stop the demolitions")]
+	[Attribute(defvalue: "150", desc: "How close to the base centre the team has to be to count as holding it. Also the circle a DEFENDER has to be inside to stop the demolitions - a player, or any living recruit belonging to any player")]
 	float m_fClearRadius;
 
 	[Attribute(defvalue: "500", desc: "Radius searched for player structures around the base centre. Matches OVT_ItemLimitChecker.CountItemsForLocation's own radius for EOVTBaseType.BASE - bases are large and the two must agree, or a structure the placement limit counted cannot be found again")]
@@ -164,7 +166,10 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		}
 
 		int aliveInside = CountAliveRegisteredMembersWithin(base.location, m_fClearRadius);
-		bool enemyPresent = NearestPlayerDistance(base.location) <= m_fClearRadius;
+		// ⚠ DEFENDERS, NOT JUST PLAYERS. A squad of the player's recruits fighting over this base
+		// contests it exactly as much as he would standing here - see DefenderWithin(), and see the
+		// play-test that made it necessary.
+		bool enemyPresent = DefenderWithin(base.location, m_fClearRadius);
 
 		if (!EvaluateDemolition(aliveInside, enemyPresent, m_iTicksLeft))
 			return;
@@ -180,7 +185,8 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	//! to the MISSION (m_bMissionReported), not to a single demolition. The caller re-arms the interval.
 	//!
 	//! \param[in] aliveInside Living members of this deployment's force inside the clear radius.
-	//! \param[in] enemyPresent Whether a player is standing inside the same circle.
+	//! \param[in] enemyPresent Whether a DEFENDER - a player or any player's living recruit - is standing
+	//!            inside the same circle.
 	//! \param[inout] ticksLeft Updates still owed. PAUSED, never reset, on an interrupted tick.
 	//! \return True when THIS call completed an interval and one structure may now be taken.
 	bool EvaluateDemolition(int aliveInside, bool enemyPresent, inout int ticksLeft)
@@ -192,7 +198,8 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		if (aliveInside < 1)
 			return false;
 
-		// Contested. Men being shot at are not quietly rigging charges. Pause; do not roll back.
+		// Contested - by a player or by his recruits. Men being shot at are not quietly rigging charges.
+		// Pause; do not roll back.
 		if (enemyPresent)
 			return false;
 

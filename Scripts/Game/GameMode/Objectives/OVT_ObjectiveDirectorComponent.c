@@ -1007,7 +1007,11 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Tries the phase's operation modules in the authored order, stopping at the first that acts.
+	//! Tries the phase's operation modules, stopping at the first that acts.
+	//!
+	//! ⚠ THE ORDER IS PARTLY RANDOM AND THAT IS DELIBERATE - see BuildOperationOrder() and
+	//! OVT_BaseObjectiveOperationModule.ShufflesFreely(). The authored order still decides which
+	//! operations are pinned ahead of the shuffle and how those are ordered among themselves.
 	//! \param[in] instance The objective being stepped.
 	//! \param[in] modules The phase's runtime modules, snapshotted.
 	//! \return True when an operation was created and paid for.
@@ -1015,24 +1019,177 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	{
 		m_bOperationIntervalClaimed = false;
 
+		array<OVT_BaseObjectiveOperationModule> ordered = new array<OVT_BaseObjectiveOperationModule>();
+		BuildOperationOrder(modules, ordered);
+
+		int offered = ordered.Count();
+
+		for (int position = 0; position < offered; position++)
+		{
+			OVT_BaseObjectiveOperationModule operation = ordered[position];
+
+			if (operation.TryAct())
+			{
+				// 🔴 "WHY DID IT DO THAT" MUST BE ANSWERABLE FROM THE LOG, and it stopped being so the
+				// moment the order became random: a reader who knows the authored chain can no longer
+				// derive which operation was asked first. One line per successful operation - which is at
+				// most one per cadence per objective - names the winner and how many it beat.
+				Print(LOG + "Objective '" + m_Objective.name + "' phase '" + instance.GetPhaseName() + "': ran operation '" + operation.m_sModuleName + "', drawn " + (position + 1).ToString() + " of " + offered.ToString() + " offered this cadence", LogLevel.NORMAL);
+
+				return true;
+			}
+
+			// ⚠ A REFUSAL THAT CLAIMED THE INTERVAL STOPS THE WALK, AND IT IS THE ONLY WAY ONE CAN. It
+			// answers false - nothing was created, nothing was paid for, the cadence is not re-armed and
+			// the tick counts as idle exactly as any other refusal would - but nothing later in THIS
+			// CADENCE'S DRAW gets to spend the interval it was saving. See ClaimOperationInterval(), and
+			// see BuildOperationOrder() for why every claimer is pinned ahead of the draw rather than
+			// taking its chances in it.
+			if (m_bOperationIntervalClaimed)
+				return false;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! HOW MANY LIVING OCCUPYING-FACTION GROUPS ARE STANDING AT THIS PLACE - the campaign's one answer
+	//! to "is this position still manned".
+	//!
+	//! ⚠ IT WAS TWO ANSWERS AND THAT IS WHY IT MOVED HERE (2026-08-21). The starvation abort has asked
+	//! this since the forward base shipped; the anchor source provider now has to ask it as well, and a
+	//! second copy of a rule this specific - occupying faction only, registered handles rather than
+	//! agents, the survivor mask rather than a body count - is a rule that drifts. Both callers use this.
+	//!
+	//! ⚠ HANDLES AND THE MASK, NEVER AGENTS. A dormant group has no agents and is perfectly alive; this
+	//! is the "0 agents = dead" mistake the whole virtualization migration exists to have removed, and
+	//! it is the same reason OVT_BaseSpawningDeploymentModule.CollectRegisteredHandles() exists.
+	//!
+	//! \param[in] position The place to count around.
+	//! \param[in] radius How far from it a deployment's groups count as ITS garrison, in metres.
+	//! \return The number of registered groups there with at least one survivor.
+	static int CountAliveOccupyingGroupsAt(vector position, float radius)
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		if (!deployments || !virtualization || !config)
+			return 0;
+
+		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(position, radius);
+		if (!nearby)
+			return 0;
+
+		int occupyingIndex = config.GetOccupyingFactionIndex();
+		int alive = 0;
+
+		foreach (OVT_DeploymentComponent deployment : nearby)
+		{
+			if (!deployment)
+				continue;
+
+			if (deployment.GetControllingFaction() != occupyingIndex)
+				continue;
+
+			array<int> handles = new array<int>();
+
+			array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
+			foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+			{
+				if (spawningModule)
+					spawningModule.CollectRegisteredHandles(handles);
+			}
+
+			foreach (int handle : handles)
+			{
+				if (!virtualization.IsRegistered(handle))
+					continue;
+
+				if (virtualization.GetAliveMemberCount(handle) < 1)
+					continue;
+
+				alive++;
+			}
+		}
+
+		return alive;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ORDER THE PHASE'S OPERATIONS ARE ASKED IN THIS CADENCE: the pinned ones first in authored
+	//! order, then everything else shuffled.
+	//!
+	//! ==========================================================================================
+	//! WHY THERE IS A SHUFFLE AT ALL (author, 2026-08-21).
+	//! ==========================================================================================
+	//! *"We want some unpredictability about what the director does next otherwise the player learns his
+	//! patterns and just follows a script to counter it."* A strict authored order with first-wins is a
+	//! script - and worse than a script, it STARVES: the author's own log showed a forward-base phase
+	//! where the garrison won every cadence from 19:46 to 19:56 and sabotage was never once asked,
+	//! because the raise had latched and the garrison sat immediately behind it.
+	//!
+	//! ⚠ IT IS NOT THE "no jitter" RULE BEING BROKEN. That rule governs OBJECTIVE SELECTION, where
+	//! predictability is wanted; this is operation choice WITHIN a phase. See
+	//! OVT_BaseObjectiveOperationModule.ShufflesFreely() for the full note.
+	//!
+	//! ==========================================================================================
+	//! 🔴 WHY THE HEAD IS PINNED, AND WHY THE RAISE'S OWN LATCH DOES NOT MAKE IT MOOT.
+	//! ==========================================================================================
+	//! It is tempting to say the forward base latches itself - `if (m_Asset.up) return false;` - so its
+	//! position cannot matter. That is true only AFTER the base is standing. Before it is,
+	//! OVT_RaiseForwardBaseObjectiveOperation is the one operation in the tree that calls
+	//! ClaimOperationInterval(), and that claim is POSITIONAL by construction: it stops the walk, so it
+	//! protects only what has not been asked YET.
+	//!
+	//! Shuffle the raise to the back and the 2026-08-20 money livelock returns exactly as it was
+	//! recorded: the forward base costs 120, the pool holds 100, sabotage costs 100 - so sabotage acts
+	//! first, spends the pool, and the base is never affordable on any cadence. The claim never gets to
+	//! fire because the walk stopped before it. Pinning the raise ahead of the draw is therefore
+	//! NECESSARY while the base is unraised, and FREE once it is up: from then on it answers false on
+	//! its first line and costs one cast per cadence.
+	//!
+	//! ⚠ SO THE FIX FOR THE AUTHOR'S STARVED SABOTAGE IS THE SHUFFLE OF THE TAIL, NOT A REORDER OF THE
+	//! HEAD. Garrison, harassment and sabotage all shuffle freely against each other, which is exactly
+	//! the "sometimes they garrison, sometimes they sabotage" that was asked for.
+	//!
+	//! ⚠ FISHER-YATES, AND THE BOUND IS THE TRAP. Math.RandomInt IS MAX-EXCLUSIVE, so the roll is
+	//! RandomInt(0, i + 1) to cover 0..i inclusive; RandomInt(0, 0) is an engine error and the loop
+	//! condition `i > 0` is what makes it unreachable. This project has been bitten by both.
+	//! \param[in] modules The phase's runtime modules, snapshotted, in authored order.
+	//! \param[inout] ordered The caller's list, cleared and filled with this cadence's draw.
+	protected void BuildOperationOrder(notnull array<ref OVT_BaseObjectiveModule> modules, notnull array<OVT_BaseObjectiveOperationModule> ordered)
+	{
+		ordered.Clear();
+
+		array<OVT_BaseObjectiveOperationModule> free = new array<OVT_BaseObjectiveOperationModule>();
+
 		foreach (OVT_BaseObjectiveModule module : modules)
 		{
 			OVT_BaseObjectiveOperationModule operation = OVT_BaseObjectiveOperationModule.Cast(module);
 			if (!operation)
 				continue;
 
-			if (operation.TryAct())
-				return true;
-
-			// ⚠ A REFUSAL THAT CLAIMED THE INTERVAL STOPS THE WALK, AND IT IS THE ONLY WAY ONE CAN. It
-			// answers false - nothing was created, nothing was paid for, the cadence is not re-armed and
-			// the tick counts as idle exactly as any other refusal would - but nothing later in the
-			// authored order gets to spend the interval it was saving. See ClaimOperationInterval().
-			if (m_bOperationIntervalClaimed)
-				return false;
+			// The pinned head keeps its authored order; everything else goes into the draw.
+			if (operation.ShufflesFreely())
+				free.Insert(operation);
+			else
+				ordered.Insert(operation);
 		}
 
-		return false;
+		for (int i = free.Count() - 1; i > 0; i--)
+		{
+			int j = Math.RandomInt(0, i + 1);
+
+			OVT_BaseObjectiveOperationModule swap = free[i];
+			free[i] = free[j];
+			free[j] = swap;
+		}
+
+		foreach (OVT_BaseObjectiveOperationModule drawn : free)
+		{
+			ordered.Insert(drawn);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1065,9 +1222,16 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! ⚠ IT IS PER-WALK, NOT A LATCH. RunObjectiveOperationModules() clears it before it asks anybody,
 	//! so a claim cannot leak into the next in-game minute.
 	//!
-	//! ⚠ NOTHING IN THE HARASSMENT PHASE CLAIMS, and that is why the ramp still falls through from tower
-	//! recapture to harassment to sabotage exactly as it always has. The claim is authored doctrine's,
-	//! not the runner's: the runner offers it and only the forward base takes it.
+	//! ⚠ NOTHING IN THE HARASSMENT PHASE CLAIMS, and that is why the ramp still falls through from one
+	//! operation to the next exactly as it always has. The claim is authored doctrine's, not the
+	//! runner's: the runner offers it and only the forward base takes it.
+	//!
+	//! ⚠ IT IS POSITIONAL, AND SINCE THE ORDER BECAME RANDOM THAT HAS A CONSEQUENCE WORTH STATING. "Stop
+	//! the walk" only protects what has not been asked yet, so an operation that claims MUST be asked
+	//! before the operations it is saving the interval from. That is precisely why
+	//! OVT_BaseObjectiveOperationModule.ShufflesFreely() exists and why the forward base overrides it:
+	//! a claimer drawn last claims nothing. Any future operation that calls this method must pin itself
+	//! the same way.
 	void ClaimOperationInterval()
 	{
 		m_bOperationIntervalClaimed = true;

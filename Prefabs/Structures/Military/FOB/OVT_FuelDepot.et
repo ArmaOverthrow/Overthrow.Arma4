@@ -91,17 +91,20 @@ SCR_DestructibleBuildingEntity : "{2D92D7E09B3424BC}Prefabs/Structures/Industria
     SCR_HitZone Default {
      HZDefault 1
      "Melee multiplier" 0.01
-     "Kinetic multiplier" 0.1
+     "Collision multiplier" 0
+     "Kinetic multiplier" 1
+     "Fragmentation multiplier" 1
      "Explosive multiplier" 1
-     "Incendiary multiplier" 0.1
+     "Incendiary multiplier" 1
+     "Fire multiplier" 1
     }
    }
-   m_fBaseHealth 100000
+   m_fBaseHealth 250
    m_fDamageThresholdMaximum 50000
    m_bDeleteAfterFinalPhase 0
    m_aDamagePhases {
     SCR_DamagePhaseData "{6B70D0000000000B}" {
-     m_fPhaseHealth 100000
+     m_fPhaseHealth 250
      m_PhaseModel "{9012D46112E2D3D5}Assets/Structures/Industrial/Containers/FuelTanks/FuelTank_02/Dst/FuelTank_02_Ruin.xob"
     }
    }

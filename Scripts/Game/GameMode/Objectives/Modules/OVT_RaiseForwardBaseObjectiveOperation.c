@@ -19,7 +19,9 @@
 //! cannot carry comments, so the shipped forward-base phase's order is written down HERE and in
 //! OVT_ObjectivePhase's header and nowhere else. Both shipped plans author it as:
 //!
-//!   1. RAISE THE FORWARD BASE (this module)   2. its garrison   3. tower recapture
+//!   1. RAISE THE FORWARD BASE (this module)   2. its garrison   3. tower recapture (TOWNS ONLY since
+//!      2026-08-21 - a base objective no longer chases radio towers; see
+//!      OVT_SendDeploymentObjectiveOperation's header)
 //!   4. the harassment ladder                  5. sabotage
 //!
 //! which is the hard-coded forward-base spender's five-way `&&` chain, term for term and in the same
@@ -324,6 +326,29 @@ class OVT_RaiseForwardBaseObjectiveOperation : OVT_BaseObjectiveAssetModule
 	//! Every other reason this returns false - no source base, no site, a supply party already on the
 	//! road, the base already standing - falls through to the garrison and the ramp exactly as before.
 	//! \return True when a deployment was created and paid for.
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 THE ONE OPERATION IN THE TREE THAT REFUSES TO BE SHUFFLED, AND IT IS ABOUT MONEY.
+	//!
+	//! The director draws a random order for a phase's operations every cadence, so that a player cannot
+	//! learn the sequence (OVT_ObjectiveDirectorComponent.BuildOperationOrder). This module opts out,
+	//! and the reason is the interval claim below rather than any notion of importance.
+	//!
+	//! ClaimOperationInterval() works by STOPPING THE WALK, so it can only ever protect operations that
+	//! have not been asked yet. Drawn last, this module's claim protects nothing: the play-tested
+	//! 2026-08-20 livelock is that a forward base costing 120 is never affordable because sabotage at
+	//! 100 keeps being asked first and spending the pool. Pinning it ahead of the draw is what keeps the
+	//! reserve it saves for itself.
+	//!
+	//! ⚠ AND IT COSTS THE UNPREDICTABILITY NOTHING. Once the base is standing, TryAct() answers false on
+	//! its `m_Asset.up` line - so from then on the pinned head is a single cast per cadence and the
+	//! garrison, harassment and sabotage behind it draw freely against one another, which is exactly the
+	//! variety that was asked for.
+	//! \return False - never shuffled.
+	override bool ShufflesFreely()
+	{
+		return false;
+	}
+
 	override bool TryAct()
 	{
 		OVT_ObjectiveInstance objective = GetObjective();

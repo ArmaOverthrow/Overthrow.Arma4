@@ -182,6 +182,7 @@ The plan is core's `OVT_VirtualWaypointPlan`: parallel `m_aPositions` / `m_aType
 | `PATROL` | Identical to `MOVE`: walk to the point, advance. The `m_aParams` radius is **not** simulated. | Virtual groups do not patrol a circle — nobody can observe it and live AI does the patrolling on materialisation. |
 | `WAIT` | On arrival, `m_fWaitRemaining = m_aParams[i]`; drained by dt; then advance. `<= 0` advances immediately. | **Honoured from the plan regardless of the upstream `SpawnWaitWaypoint(pos, time)` defect** (`OVT_OverthrowConfigComponent.c:503-511`, which `civilians` fixes for live AI in its Phase 3). Movement never calls that helper, so the two are independent. |
 | `DEFEND` | On arrival the group is **at its post**: latch `m_bStationary` and stop advancing, permanently. | A DEFEND-only plan is stationary from the first touch and is never advanced at all. |
+| `SEARCH` | Identical to `WAIT`: on arrival hold for `m_aParams[i]` seconds, then advance. | Appended 2026-08-21 by `occupying/deployments` (town sweep). Live AI gets a Search & Destroy waypoint; nobody can see the search while dormant, so only its duration is simulated. |
 | `CYCLE` | Treated as end-of-route: wrap to index 0. | Core also appends an `AIWaypointCycle` entity when `m_bCycle` is set (`OVT_VirtualizationManagerComponent.c:750-755`); both routes mean the same thing to movement. |
 
 **End of route** ([D8](#d8--cycling-plans-wrap-non-cycling-multi-point-routes-ping-pong)):
