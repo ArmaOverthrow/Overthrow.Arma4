@@ -1189,7 +1189,7 @@ class OVT_MapInfluenceLayer : OVT_MapCanvasLayer
 		Print(string.Format("[OVT_Influence] build %1: ring radius %2 m, %3 ms", key, m_fRingRadius, System.GetTickCount() - startTick), LogLevel.NORMAL);
 	}
 
-	//! Prints the selection ONCE PER CHANGE, never per frame.
+	//! Prints the selection ONCE PER CHANGE, never per frame, and only with m_bDebugTiming on.
 	//!
 	//! The empty key is a real value meaning "nothing is selected", so a hover-away prints too - which is
 	//! precisely the transition this phase exists to observe. Printing every frame instead would bury it.
@@ -1200,6 +1200,9 @@ class OVT_MapInfluenceLayer : OVT_MapCanvasLayer
 			return;
 
 		m_sLastSelectionKey = key;
+
+		if (!m_bDebugTiming)
+			return;
 
 		if (key == "")
 		{

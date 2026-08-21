@@ -76,7 +76,7 @@ FrameWidgetClass {
            Color 1 1 1 0.2875
            Size 200 200
           }
-          ImageWidgetClass "{56B5003E7879A6C4}" {
+          PanelWidgetClass "{56B5003E7879A6C4}" {
            Name "Highlight"
            Slot AlignableSlot "{56B5003E7879A6C7}" {
             HorizontalAlign 3
@@ -85,8 +85,6 @@ FrameWidgetClass {
            "Z Order" 0
            Opacity 0
            Color 1 1 1 0.2
-           Texture "{3262679C50EF4F01}UI/Textures/Icons/icons_wrapperUI.imageset"
-           Image "slot-primary-hover"
           }
           PanelWidgetClass "{56B5003E7879A6C5}" {
            Name "SelectionHighlight"

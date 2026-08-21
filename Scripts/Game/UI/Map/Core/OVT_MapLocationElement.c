@@ -25,7 +25,7 @@ class OVT_MapLocationElement : SCR_MapUIElement
 	protected Widget m_wFastTravelIndicator;
 	protected Widget m_wHoverOverlay;
 	protected ImageWidget m_wBackgroundGradient;
-	protected ImageWidget m_wHighlight;
+	protected Widget m_wHighlight;
 	
 	//! State tracking
 	protected bool m_bSelected = false;
@@ -90,7 +90,7 @@ class OVT_MapLocationElement : SCR_MapUIElement
 		m_wFastTravelIndicator = w.FindAnyWidget("FastTravelIndicator");
 		m_wHoverOverlay = w.FindAnyWidget("HoverOverlay");
 		m_wBackgroundGradient = ImageWidget.Cast(w.FindAnyWidget("BackgroundGradient"));
-		m_wHighlight = ImageWidget.Cast(w.FindAnyWidget("Highlight"));
+		m_wHighlight = w.FindAnyWidget("Highlight");
 		
 	}
 	
