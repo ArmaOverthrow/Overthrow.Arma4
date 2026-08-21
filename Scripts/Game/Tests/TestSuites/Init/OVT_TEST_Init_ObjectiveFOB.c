@@ -55,10 +55,11 @@
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
 //!   A1. The registry entry for Deployment_ObjectiveFOB.conf deleted from overthrowDeployments.conf.
 //!       Fails on "'Objective Forward Base' is not registered".
-//!   A2. m_iRequiredPhase changed from 2 to 1 on the forward-base config's objective condition. Fails
-//!       on "must be scoped to phase 2".
-//!   A6. m_iThroughPhase changed from 2 to 3 on the garrison config's objective condition. Fails on
-//!       "must span up to phase 2 and spans up to 3".
+//!   A2. m_sFromPhase changed from "ForwardBase" to "Harassment" on the forward-base config's objective
+//!       condition. Fails on "must be scoped to phase 'ForwardBase'".
+//!   A6. m_sThroughPhase changed from "ForwardBase" to "CounterAttack" on the garrison config's
+//!       objective condition. Fails on "must span up to phase 'ForwardBase' and spans up to
+//!       'CounterAttack'".
 //!   A3. The reinforcement module moved ABOVE the raise module in Deployment_ObjectiveFOB.conf. Fails
 //!       on "authors its spawning module AFTER the reinforcement module".
 //!   A4. m_Source on the garrison config swapped from OVT_ObjectiveAnchorSourceProvider to
@@ -112,7 +113,7 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 		if (ordering != "")
 			return ordering;
 
-		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB, OVT_EObjectivePhase.FOB);
+		string phase = CheckObjectivePhase(config, "ForwardBase", "ForwardBase");
 		if (phase != "")
 			return phase;
 
@@ -153,7 +154,7 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 		if (ordering != "")
 			return ordering;
 
-		string phase = CheckObjectivePhase(config, OVT_EObjectivePhase.FOB, OVT_EObjectivePhase.FOB);
+		string phase = CheckObjectivePhase(config, "ForwardBase", "ForwardBase");
 		if (phase != "")
 			return phase;
 
@@ -216,16 +217,21 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 	//! forward-base configs are the only objective configs that must NOT span more than one phase: the
 	//! Phase 1 ramp now continues through this phase (that is the deadlock fix), while the base and its
 	//! garrison belong to it and to nothing else. Asserting only the first phase would let a
-	//! `m_iThroughPhase 3` slip through and keep the garrison standing into the battle the counter-attack
-	//! controller is already spawning its own waves for.
+	//! `m_sThroughPhase "CounterAttack"` slip through and keep the garrison standing into the battle the
+	//! counter-attack controller is already spawning its own waves for.
 	//!
-	//! ⚠ THE UPPER BOUND IS READ THROUGH ResolveThroughPhase(), NOT OFF THE FIELD, so an unauthored 0 is
-	//! judged as the span it actually means rather than as the number that is written down.
+	//! ⚠ THE SPAN IS TWO AUTHORED PHASE NAMES NOW, NOT TWO ENUM INTEGERS (build phase 4). The names are
+	//! compared as literals against what the shipped plans author, deliberately: a constant naming a
+	//! constant passes even when both sides are renamed together, which is the exact change that abandons
+	//! every save on disk and silently unscopes every objective deployment.
+	//!
+	//! ⚠ THE UPPER BOUND IS READ THROUGH EffectiveThroughPhase(), NOT OFF THE FIELD, so an unauthored
+	//! empty string is judged as the span it actually means rather than as the text that is written down.
 	//! \param[in] config The config to walk.
-	//! \param[in] required The first phase it must be scoped to.
-	//! \param[in] through The last phase it may span, inclusive.
+	//! \param[in] required The first phase it must be scoped to, by name.
+	//! \param[in] through The last phase it may span, inclusive, by name.
 	//! \return An empty string when it is, or why it is not.
-	protected string CheckObjectivePhase(notnull OVT_DeploymentConfig config, int required, int through)
+	protected string CheckObjectivePhase(notnull OVT_DeploymentConfig config, string required, string through)
 	{
 		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
 		{
@@ -233,13 +239,13 @@ class OVT_TEST_Init_ObjectiveFOB_AConfigsResolveAndAreScoped : SCR_AutotestCaseB
 			if (!condition)
 				continue;
 
-			if (condition.m_iRequiredPhase != required)
-				return string.Format("'%1' must be scoped to phase %2 and is scoped to %3 - a config scoped to the wrong phase is collected on the tick the ramp reaches the phase it belongs to",
-					config.m_sDeploymentName, required.ToString(), condition.m_iRequiredPhase.ToString());
+			if (condition.m_sFromPhase != required)
+				return string.Format("'%1' must be scoped to phase '%2' and is scoped to '%3' - a config scoped to the wrong phase is collected on the tick the ramp reaches the phase it belongs to",
+					config.m_sDeploymentName, required, condition.m_sFromPhase);
 
-			if (condition.ResolveThroughPhase() != through)
-				return string.Format("'%1' must span up to phase %2 and spans up to %3 - the forward base and its garrison belong to their own phase alone, and a wider span keeps them standing into the counter-attack while a narrower one is a span the ramp's own fix would have to be undone to produce",
-					config.m_sDeploymentName, through.ToString(), condition.ResolveThroughPhase().ToString());
+			if (condition.EffectiveThroughPhase() != through)
+				return string.Format("'%1' must span up to phase '%2' and spans up to '%3' - the forward base and its garrison belong to their own phase alone, and a wider span keeps them standing into the counter-attack while a narrower one is a span the ramp's own fix would have to be undone to produce",
+					config.m_sDeploymentName, through, condition.EffectiveThroughPhase());
 
 			if (condition.m_fMaxDistanceFromObjective <= 0)
 				return string.Format("'%1' authors no working radius around the objective, which refuses every position but its exact centre", config.m_sDeploymentName);
@@ -446,9 +452,9 @@ class OVT_TEST_Init_ObjectiveFOB_CRaiseIsOnceAndNeverOnRestore : SCR_AutotestCas
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0):
-//!   D1. `if (!director.IsFOBUp()) return false;` deleted from ResolveForwardBase, so a director with
-//!       no forward base answers the zero vector. Fails on "with no forward base the provider must
-//!       fall through to the nearest controlled base".
+//!   D1. `if (!director.IsAssetUp(ASSET_FOB)) return false;` deleted from ResolveForwardBase, so a
+//!       director with no forward base answers the zero vector. Fails on "with no forward base the
+//!       provider must fall through to the nearest controlled base".
 //!   D2. ResolveSource's forward-base branch removed, leaving only the fallback. Fails on "a standing
 //!       forward base must be preferred over the rear".
 //!   D3. The fallback removed, so the provider answers false with no forward base. Fails on "with no
@@ -512,7 +518,7 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 	//! \return An empty string when every claim held, or the first that did not.
 	protected string Check(notnull OVT_ObjectiveDirectorComponent director, notnull OVT_ObjectiveAnchorSourceProvider provider, int occupyingIndex)
 	{
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return "the director already reports a forward base before this case recorded one - some earlier case left one standing, and neither half of this claim can be trusted";
 
 		// --- No forward base: fall through to the rear.
@@ -526,10 +532,17 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 			return "with no forward base the provider answered the deployment's own position, which is not an origin at all";
 
 		// --- Forward base standing: it wins.
-		director.RecordFOB(PROBE, SOURCE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		//
+		// ⚠ AN OBJECTIVE IS COMMITTED FIRST, AND THAT IS BUILD PHASE 5'S RE-POINT. The keyed reporter
+		// refuses to record an asset for a director that has no objective - a supply party can outlive
+		// the objective that sent it, and a base recorded onto an idle machine would make the anchor
+		// provider prefer a phantom for the rest of the campaign. So the fixture arranges the state the
+		// production caller reports from.
+		director.CommitObjective(OVT_EObjectiveKind.BASE, PROBE, "OVT_TEST_Init_ObjectiveFOB_D fixture");
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, PROBE, SOURCE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
 
-		if (!director.IsFOBUp())
-			return "RecordFOB() did not put the director's forward base up, so the preference cannot be asked about";
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
+			return "the keyed asset reporter did not put the director's forward base up, so the preference cannot be asked about";
 
 		vector preferred;
 		if (!provider.ResolveSource(SOURCE, occupyingIndex, preferred))
@@ -570,10 +583,10 @@ class OVT_TEST_Init_ObjectiveFOB_DAnchorProviderPrefersTheForwardBase : SCR_Auto
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0):
-//!   F1. The area sweep removed from TearDownFOB(), leaving only the name-scoped carrier lookup. Fails
+//!   F1. The area sweep removed from the raise module's teardown, leaving only the name-scoped carrier lookup. Fails
 //!       on "the garrison deployment is still standing after the teardown".
 //!   F2. The FOB_GARRISON_CONFIG arm of the sweep's name test removed. Fails on the same claim.
-//!   F3. The TearDownFOB() call removed from ResetObjective(). Fails on "the forward-base deployment
+//!   F3. The asset-teardown call removed from ResetObjective(). Fails on "the forward-base deployment
 //!       is still standing after the teardown".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
@@ -664,9 +677,18 @@ class OVT_TEST_Init_ObjectiveFOB_FTeardownLeavesNothingStanding : SCR_AutotestCa
 		if (!deployments.GetDeploymentNearPosition(OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG, PROBE, LOOKUP_RADIUS))
 			return "the garrison fixture deployment cannot be found at the probe it was created at";
 
-		// The director is told a forward base is standing there - which is all the teardown needs to
-		// find them - and then put through the machine's ONE reset path.
-		director.RecordFOB(PROBE, PROBE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		// The director is given an objective, put into the phase that OWNS the forward base - which is
+		// what registers the asset's module, and therefore what the one teardown path reaches through -
+		// told a forward base is standing there, and then put through the machine's ONE reset path.
+		//
+		// 🔴 ENTERING THE PHASE IS NOT SETUP DRESSING, IT IS THE CLAIM (build phase 5). The teardown is
+		// the raise module's, and the raise module is only reachable because it registered itself with
+		// the director on entry. A fixture that recorded a forward base onto an idle director would
+		// leave nothing registered, so the reset would sweep nothing at all and this case would be
+		// asserting about a machine that cannot happen.
+		director.CommitObjective(OVT_EObjectiveKind.BASE, PROBE, "OVT_TEST_Init_ObjectiveFOB_F fixture");
+		director.EnterPhase("ForwardBase");
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, PROBE, PROBE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
 		director.ResetObjective("OVT_TEST_Init_ObjectiveFOB_F is exercising the teardown", false);
 
 		if (deployments.GetDeploymentNearPosition(OVT_ObjectiveDirectorComponent.FOB_CONFIG, PROBE, LOOKUP_RADIUS))
@@ -675,7 +697,7 @@ class OVT_TEST_Init_ObjectiveFOB_FTeardownLeavesNothingStanding : SCR_AutotestCa
 		if (deployments.GetDeploymentNearPosition(OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG, PROBE, LOOKUP_RADIUS))
 			return "the garrison deployment is still standing after the teardown - the sweep must take down BOTH configs, not just the one carrying the structure";
 
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return "the director still reports a forward base after the reset";
 
 		if (director.IsFOBDeploymentSent())
@@ -790,7 +812,7 @@ class OVT_TEST_Init_ObjectiveFOB_GDismantleRefusalsAreStated : SCR_AutotestCaseB
 	//! \return An empty string when every claim held, or the first that did not.
 	protected string Check(notnull OVT_ObjectiveDirectorComponent director)
 	{
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return "the director already reports a forward base before this case recorded one - an earlier case left one standing and none of these rows can be trusted";
 
 		// --- ROW 1: nothing to dismantle.
@@ -802,10 +824,14 @@ class OVT_TEST_Init_ObjectiveFOB_GDismantleRefusalsAreStated : SCR_AutotestCaseB
 			return "the no-forward-base refusal answered no localization key, so the held action would grey out with nothing said";
 
 		// --- ROW 2: the caller is nowhere near it.
-		director.RecordFOB(PROBE, PROBE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		//
+		// ⚠ AN OBJECTIVE IS COMMITTED FIRST - see the same note in the anchor-provider case. The keyed
+		// reporter refuses to record an asset for a director that has no objective.
+		director.CommitObjective(OVT_EObjectiveKind.BASE, PROBE, "OVT_TEST_Init_ObjectiveFOB_G fixture");
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, PROBE, PROBE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
 
-		if (!director.IsFOBUp())
-			return "RecordFOB() did not put the director's forward base up, so the remaining rows cannot be asked";
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
+			return "the keyed asset reporter did not put the director's forward base up, so the remaining rows cannot be asked";
 
 		vector faraway = PROBE + Vector(1000, 0, 0);
 		if (director.CanDismantleFOB(faraway, refusal))
@@ -992,7 +1018,7 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 //!   the ceiling  = objectiveFOBCost x FOB_CEILING_MULTIPLIER   Configs/Difficulty/Difficulty_*.conf
 //!   the price    = Deployment_ObjectiveFOB's total resource cost   Configs/Deployment/*.conf
 //!
-//! WHAT HAPPENS IF THEY DISAGREE, AND WHY NOTHING ELSE WOULD CATCH IT. SendFOBOperation() arms the
+//! WHAT HAPPENS IF THEY DISAGREE, AND WHY NOTHING ELSE WOULD CATCH IT. The raise module arms the
 //! ceiling BEFORE it asks whether it may buy the base, deliberately - §3.7 requires the structure's own
 //! cost to be inside its own budget. So a ceiling smaller than the price refuses the phase's very first
 //! spend, and refuses it identically on every subsequent tick, forever: the objective is locked against
@@ -1158,12 +1184,13 @@ class OVT_TEST_Init_ObjectiveFOB_CeilingCanCoverTheForwardBase : SCR_AutotestCas
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
-//!   B1. `m_iThroughPhase 2` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
+//!   B1. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix
+//!       authoring.
 //!       Fails on "a sabotage team must survive the promotion into the forward-base phase". THIS ROW IS
 //!       THE DEADLOCK, observed from the collection side.
-//!   B2. IsAtCurrentObjective() reverted to `if (phase != m_iRequiredPhase) return false;`. Fails on the
+//!   B2. IsAtCurrentObjective() reverted to an equality test on the first phase. Fails on the
 //!       same row, from the code side rather than the data side.
-//!   B3. PhaseInRange() relaxed to `return phase >= firstPhase;` (a pure minimum). Fails on "a sabotage
+//!   B3. PhaseIndexInRange() relaxed to `return index >= fromIndex;` (a pure minimum). Fails on "a sabotage
 //!       team must be collected once the counter-attack has begun".
 //!   B4. The distance test dropped from IsAtCurrentObjective(). Fails on "a position 5 km from the
 //!       objective is not AT it".
@@ -1236,8 +1263,8 @@ class OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion : SCR_AutotestCaseBas
 	protected string Check(notnull OVT_ObjectiveDirectorComponent director, notnull OVT_ObjectiveConditionDeploymentModule ramp, notnull OVT_ObjectiveConditionDeploymentModule garrison)
 	{
 		// --- HARASSMENT. The ramp works; the forward base's garrison does not exist yet.
-		if (director.GetPhase() != OVT_EObjectivePhase.HARASSMENT)
-			return string.Format("committing an objective must enter the harassment phase, and the director is in phase %1", director.GetPhase().ToString());
+		if (director.GetObjectivePhaseName() != "Harassment")
+			return string.Format("committing an objective must enter the harassment phase, and the director is in phase %1", director.GetObjectivePhaseName());
 
 		if (!ramp.IsAtCurrentObjective(OBJECTIVE))
 			return "a sabotage team must be sendable and keepable during harassment - that is the phase the ramp runs in";
@@ -1246,7 +1273,7 @@ class OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion : SCR_AutotestCaseBas
 			return "a forward-base garrison must NOT be accepted during harassment - there is no forward base to garrison, and a config that answers yes here has a span that has stopped meaning anything";
 
 		// --- THE PROMOTION. The row this whole case exists for.
-		director.EnterPhase(OVT_EObjectivePhase.FOB);
+		director.EnterPhase("ForwardBase");
 
 		if (!ramp.IsAtCurrentObjective(OBJECTIVE))
 			return "a sabotage team must survive the promotion into the forward-base phase. THIS IS THE 2026-08-19 DEADLOCK: one sabotage success promotes a base objective out of harassment, the reinforcement module's m_bDeleteOnConditionFail collects every team that answers false, and no further mission can ever be sent - so the six the counter-attack demands on Easy can never be reached and the objective sits until its idle clock runs out";
@@ -1259,7 +1286,7 @@ class OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion : SCR_AutotestCaseBas
 
 		// --- THE BATTLE. Both are collected: teams walking in to soften a place already being stormed
 		//     are noise, and the garrison's own phase is over.
-		director.EnterPhase(OVT_EObjectivePhase.COUNTER_QRF);
+		director.EnterPhase("CounterAttack");
 
 		if (ramp.IsAtCurrentObjective(OBJECTIVE))
 			return "a sabotage team must be collected once the counter-attack has begun - a span that reaches the battle is a minimum-phase semantic wearing a range's clothes";
@@ -1302,5 +1329,842 @@ class OVT_TEST_Init_ObjectiveFOB_BRampSurvivesThePromotion : SCR_AutotestCaseBas
 		}
 
 		return null;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE RAISE OPERATION CLONES EVERY ATTRIBUTE IT AND ITS PARENTS DECLARE.
+//!
+//! 🔴 IT HAS TWELVE OF THEM AND EVERY ONE FAILS SILENTLY. CloneModule() copies by hand, is not
+//! chained, and ships the class default for whatever it forgot - which for this module is a zero, and
+//! a zero in any of the siting fields collapses the band, the lattice or the corridor into "there is
+//! nowhere to put a forward base" on every map in the campaign. Nothing errors and nothing warns; the
+//! only symptom is a forward-base phase that abandons its objective every time.
+//!
+//! ⚠ `new` DOES NOT APPLY [Attribute()] DEFVALUES, so every field is set to a DISTINCT non-default
+//! value here. A field left unset would read as zero on both sides and the comparison would pass
+//! vacuously - which is exactly the failure being tested for.
+//!
+//! ⚠ THE RUNTIME STATE IS DELIBERATELY NOT COPIED and this case pins that too: a clone is a fresh
+//! module for a fresh phase entry, so it has sent nothing and sited nothing.
+//!
+//! CAN-FAIL, BY CONSTRUCTION: delete any one of the twelve assignments in CloneModule() and the field
+//! it copied reads as zero or empty on the clone.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_KRaiseOperationCloneCarriesEveryAttribute : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_RaiseForwardBaseObjectiveOperation template = new OVT_RaiseForwardBaseObjectiveOperation();
+
+		template.m_sModuleName = "Raise Clone Fixture";
+		template.m_sAssetKey = "fixtureasset";
+		template.m_sDeploymentConfigName = "fixture carrier config";
+		template.m_sGarrisonConfigName = "fixture garrison config";
+		template.m_iBudgetCost = 137;
+		template.m_fBandMinFraction = 0.11;
+		template.m_fBandMaxFraction = 0.91;
+		template.m_fMinStandoff = 271;
+		template.m_fMaxStandoff = 3371;
+		template.m_iSitingSteps = 3;
+		template.m_iSitingLanes = 7;
+		template.m_fLateralSpread = 613;
+
+		OVT_RaiseForwardBaseObjectiveOperation clone = OVT_RaiseForwardBaseObjectiveOperation.Cast(template.CloneModule());
+		if (!clone)
+		{
+			SetFailure("OVT_RaiseForwardBaseObjectiveOperation.CloneModule() did not return an instance of its own class");
+			return true;
+		}
+
+		string failure = Compare(template, clone);
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		if (clone.IsDeploymentSent())
+		{
+			SetFailure("the clone believes a supply party has already been sent - a fresh phase entry would then never send one, and the ceiling would be armed for a forward base nobody bought");
+			return true;
+		}
+
+		if (clone.GetSite() != vector.Zero)
+		{
+			SetFailure("the clone inherited the template's site, so the first teardown would sweep a place this objective never used");
+			return true;
+		}
+
+		Print("Objective forward base: the raise operation's clone carries all twelve authored attributes and none of the template's runtime state");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] template The hand-built subject.
+	//! \param[in] clone Its clone.
+	//! \return An empty string when every field survived, or which one did not and what it costs.
+	protected string Compare(notnull OVT_RaiseForwardBaseObjectiveOperation template, notnull OVT_RaiseForwardBaseObjectiveOperation clone)
+	{
+		if (clone.m_sModuleName != template.m_sModuleName)
+			return "CloneModule() dropped m_sModuleName - every log line about this operation loses its label";
+
+		if (clone.m_sAssetKey != template.m_sAssetKey)
+			return string.Format("CloneModule() dropped m_sAssetKey - expected '%1', got '%2'. A clone with the wrong key owns no record at all, so the raise writes nothing, IsAssetUp() is false forever and the phase can never advance",
+				template.m_sAssetKey, clone.m_sAssetKey);
+
+		if (clone.m_sDeploymentConfigName != template.m_sDeploymentConfigName)
+			return string.Format("CloneModule() dropped m_sDeploymentConfigName - expected '%1', got '%2'. Nothing can be bought and nothing can be found again, so the phase sends a base every interval and never notices one standing",
+				template.m_sDeploymentConfigName, clone.m_sDeploymentConfigName);
+
+		if (clone.m_sGarrisonConfigName != template.m_sGarrisonConfigName)
+			return string.Format("CloneModule() dropped m_sGarrisonConfigName - expected '%1', got '%2'. The teardown then leaves the garrison standing in the field with no objective behind it",
+				template.m_sGarrisonConfigName, clone.m_sGarrisonConfigName);
+
+		if (clone.m_iBudgetCost != template.m_iBudgetCost)
+			return string.Format("CloneModule() dropped m_iBudgetCost - expected %1, got %2. A clone reading 0 has a ZERO ceiling, which refuses every spend, so the forward-base phase can never buy anything at all",
+				template.m_iBudgetCost.ToString(), clone.m_iBudgetCost.ToString());
+
+		if (clone.m_fBandMinFraction != template.m_fBandMinFraction)
+			return string.Format("CloneModule() dropped m_fBandMinFraction - expected %1, got %2",
+				template.m_fBandMinFraction.ToString(), clone.m_fBandMinFraction.ToString());
+
+		if (clone.m_fBandMaxFraction != template.m_fBandMaxFraction)
+			return string.Format("CloneModule() dropped m_fBandMaxFraction - expected %1, got %2. A clone reading 0 has a band that ends before it begins, so every candidate is rejected and the objective is abandoned for having nowhere to build",
+				template.m_fBandMaxFraction.ToString(), clone.m_fBandMaxFraction.ToString());
+
+		if (clone.m_fMinStandoff != template.m_fMinStandoff)
+			return string.Format("CloneModule() dropped m_fMinStandoff - expected %1, got %2. A clone reading 0 loses the absolute floor and a short supply line puts a forward base metres outside the town it is besieging",
+				template.m_fMinStandoff.ToString(), clone.m_fMinStandoff.ToString());
+
+		if (clone.m_fMaxStandoff != template.m_fMaxStandoff)
+			return string.Format("CloneModule() dropped m_fMaxStandoff - expected %1, got %2. It is ALSO the radius the teardown searches for the carrier deployment in, so a zero means the teardown finds nothing and the marker outlives the objective",
+				template.m_fMaxStandoff.ToString(), clone.m_fMaxStandoff.ToString());
+
+		if (clone.m_iSitingSteps != template.m_iSitingSteps)
+			return string.Format("CloneModule() dropped m_iSitingSteps - expected %1, got %2",
+				template.m_iSitingSteps.ToString(), clone.m_iSitingSteps.ToString());
+
+		if (clone.m_iSitingLanes != template.m_iSitingLanes)
+			return string.Format("CloneModule() dropped m_iSitingLanes - expected %1, got %2. Lanes are the knob that costs candidates; a clone reading 0 is floored to one lane, so the sampler only ever looks straight down the supply road",
+				template.m_iSitingLanes.ToString(), clone.m_iSitingLanes.ToString());
+
+		if (clone.m_fLateralSpread != template.m_fLateralSpread)
+			return string.Format("CloneModule() dropped m_fLateralSpread - expected %1, got %2. Every lane collapses onto the supply line and the authored-marker corridor closes to nothing",
+				template.m_fLateralSpread.ToString(), clone.m_fLateralSpread.ToString());
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The asset-up condition clones both of its attributes.
+//!
+//! ⚠ A DROPPED m_sAssetKey IS THE EXPENSIVE ONE: the clone asks about the empty key, no asset is ever
+//! registered under it, the conjunct is false forever and the objective runs its idle clock down
+//! rather than ever reaching its battle - with nothing in the log to say which conjunct refused.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_LAssetUpCloneCarriesEveryAttribute : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_AssetUpObjectiveCondition template = new OVT_AssetUpObjectiveCondition();
+
+		template.m_sModuleName = "Asset Up Clone Fixture";
+		template.m_sAssetKey = "fixtureasset";
+		template.m_bInverted = true;
+
+		OVT_AssetUpObjectiveCondition clone = OVT_AssetUpObjectiveCondition.Cast(template.CloneModule());
+		if (!clone)
+		{
+			SetFailure("OVT_AssetUpObjectiveCondition.CloneModule() did not return an instance of its own class");
+			return true;
+		}
+
+		if (clone.m_sModuleName != template.m_sModuleName)
+		{
+			SetFailure("CloneModule() dropped m_sModuleName");
+			return true;
+		}
+
+		if (clone.m_sAssetKey != template.m_sAssetKey)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_sAssetKey - expected '%1', got '%2'. The clone asks about a key no asset is ever registered under, so the conjunct is false forever and the plan can never advance past this phase",
+				template.m_sAssetKey, clone.m_sAssetKey));
+			return true;
+		}
+
+		if (clone.m_bInverted != template.m_bInverted)
+		{
+			SetFailure("CloneModule() dropped m_bInverted - an inverted authoring silently becomes a plain one, which passes exactly when the author meant it to fail");
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The reserve-at-least condition clones its one attribute.
+//!
+//! ⚠ A CLONE READING 0 GATES NOTHING - MeetsResourceGate() treats a non-positive gate as "no
+//! restriction" - so the battle fires the moment the rest of the ramp is done, with an empty reserve
+//! behind it and no waves to follow, on every difficulty.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_MReserveAtLeastCloneCarriesEveryAttribute : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ReserveAtLeastObjectiveCondition template = new OVT_ReserveAtLeastObjectiveCondition();
+
+		template.m_sModuleName = "Reserve Clone Fixture";
+		template.m_iGate = 4321;
+
+		OVT_ReserveAtLeastObjectiveCondition clone = OVT_ReserveAtLeastObjectiveCondition.Cast(template.CloneModule());
+		if (!clone)
+		{
+			SetFailure("OVT_ReserveAtLeastObjectiveCondition.CloneModule() did not return an instance of its own class");
+			return true;
+		}
+
+		if (clone.m_sModuleName != template.m_sModuleName)
+		{
+			SetFailure("CloneModule() dropped m_sModuleName");
+			return true;
+		}
+
+		if (clone.m_iGate != template.m_iGate)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_iGate - expected %1, got %2. A clone reading 0 gates nothing at all, so the counter-attack starts against an empty reserve with no waves behind it",
+				template.m_iGate.ToString(), clone.m_iGate.ToString()));
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The daylight-window condition clones both hours, and does NOT clone its log latch or its cached
+//! clock handle.
+//!
+//! 🔴 A DROPPED HOUR HAS NO SYMPTOM AT ALL AND THAT IS WHY THIS CASE EXISTS. Either hour reading zero
+//! makes the window 0-0, which IsCounterAttackWindow() reads as "no restriction" rather than as
+//! "never" - so the daylight gate silently leaves the campaign and counter-attacks start at night
+//! again. Nothing errors, nothing warns, and the only way to see it is to play until dark.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_NDaylightWindowCloneCarriesEveryAttribute : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_DaylightWindowObjectiveCondition template = new OVT_DaylightWindowObjectiveCondition();
+
+		template.m_sModuleName = "Daylight Clone Fixture";
+		template.m_iStartHour = 7;
+		template.m_iEndHour = 19;
+
+		OVT_DaylightWindowObjectiveCondition clone = OVT_DaylightWindowObjectiveCondition.Cast(template.CloneModule());
+		if (!clone)
+		{
+			SetFailure("OVT_DaylightWindowObjectiveCondition.CloneModule() did not return an instance of its own class");
+			return true;
+		}
+
+		if (clone.m_sModuleName != template.m_sModuleName)
+		{
+			SetFailure("CloneModule() dropped m_sModuleName");
+			return true;
+		}
+
+		if (clone.m_iStartHour != template.m_iStartHour)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_iStartHour - expected %1, got %2. A window of 0 to N is not the authored one, and a window of 0 to 0 is no window at all",
+				template.m_iStartHour.ToString(), clone.m_iStartHour.ToString()));
+			return true;
+		}
+
+		if (clone.m_iEndHour != template.m_iEndHour)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_iEndHour - expected %1, got %2. A zero-width window is read as NO RESTRICTION, so the daylight gate leaves the campaign silently and battles start at night again",
+				template.m_iEndHour.ToString(), clone.m_iEndHour.ToString()));
+			return true;
+		}
+
+		// ⚠ THE ONE RULE THE MODULE OWES ITS ROLE: a false daylight answer must not cost the objective a
+		// round off the clock it runs against itself. It is the whole of the D17 correction and it is a
+		// one-line override that a reader could "tidy" away without any other symptom.
+		if (!clone.HoldsIdleClock())
+		{
+			SetFailure("the daylight condition does not hold the idle clock. A gate met at 16:00 would then spend the objective's whole remaining patience waiting out the night, and the objective would be abandoned FOR BEING DARK");
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The starvation abort clones all three of its attributes.
+//!
+//! 🔴 EVERY ONE OF THEM FAILS TOWARDS A CAMPAIGN THAT LOOKS FINE. A dropped m_sAssetKey or a dropped
+//! m_iStarvationMinutes removes the resistance's entire counterplay - a forward base can then never be
+//! starved out, however thoroughly it is cut off. A dropped m_fAreaRadius does the opposite and is
+//! worse: no deployment is ever inside a zero radius, so the garrison always counts as dead and EVERY
+//! forward base in the campaign starves out on schedule whatever the player does.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_PAssetStarvedCloneCarriesEveryAttribute : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_AssetStarvedObjectiveAbort template = new OVT_AssetStarvedObjectiveAbort();
+
+		template.m_sModuleName = "Starvation Clone Fixture";
+		template.m_sAssetKey = "fixtureasset";
+		template.m_iStarvationMinutes = 83;
+		template.m_fAreaRadius = 417;
+
+		OVT_AssetStarvedObjectiveAbort clone = OVT_AssetStarvedObjectiveAbort.Cast(template.CloneModule());
+		if (!clone)
+		{
+			SetFailure("OVT_AssetStarvedObjectiveAbort.CloneModule() did not return an instance of its own class");
+			return true;
+		}
+
+		if (clone.m_sModuleName != template.m_sModuleName)
+		{
+			SetFailure("CloneModule() dropped m_sModuleName");
+			return true;
+		}
+
+		if (clone.m_sAssetKey != template.m_sAssetKey)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_sAssetKey - expected '%1', got '%2'. The clone asks about a key no asset is registered under, so the forward base can never be starved and the resistance's whole counterplay is gone with no symptom",
+				template.m_sAssetKey, clone.m_sAssetKey));
+			return true;
+		}
+
+		if (clone.m_iStarvationMinutes != template.m_iStarvationMinutes)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_iStarvationMinutes - expected %1, got %2. A clone reading 0 DISABLES the abort, so a base cut off for an in-game week still launches its counter-attack",
+				template.m_iStarvationMinutes.ToString(), clone.m_iStarvationMinutes.ToString()));
+			return true;
+		}
+
+		if (clone.m_fAreaRadius != template.m_fAreaRadius)
+		{
+			SetFailure(string.Format("CloneModule() dropped m_fAreaRadius - expected %1, got %2. Nothing is inside a zero radius, so the garrison always counts as dead and EVERY forward base starves out on schedule whatever the player does",
+				template.m_fAreaRadius.ToString(), clone.m_fAreaRadius.ToString()));
+			return true;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 THE FORWARD-BASE PHASE'S AUTHORED CHAIN, PINNED IN BOTH SHIPPED PLANS.
+//!
+//! Everything this case asserts is authored in a .conf that no compiler reads, and every one of the
+//! faults it catches is SILENT in play:
+//!
+//!   1. THE ORDER IS THE CONTRACT. The five operations are the hard-coded forward-base spender's
+//!      five-way chain term for term - raise, garrison, tower recapture, harassment, sabotage - and
+//!      the first module that acts consumes the interval, so re-ordering them re-tunes the phase.
+//!      Nothing else in the tree would notice.
+//!   2. 🔴 THE RAMP MUST BE REPEATED HERE AT ALL. Omitting the last three restores the 2026-08-19
+//!      DEADLOCK: a base objective is promoted on its FIRST completed sabotage mission and the
+//!      counter-attack gate demands up to six, so a promotion that stopped the ramp made the remaining
+//!      five unsendable and the battle unreachable. Towns deadlock identically - the stacking debuff
+//!      that drives support under 25 % is applied by harassment operations. THE FIX HAS TWO HALVES and
+//!      this case pins BOTH: the operations authored here, AND each ramp deployment's own condition
+//!      module spanning Harassment through ForwardBase.
+//!   3. THE NAMES ARE THE KEYS. The raise module names two deployment configs by string; the director
+//!      names the same two as constants, because IsObjectiveOperationConfig() still classifies a
+//!      tracked deployment by them. Two lists of the same names, and drift between them is silent.
+//!   4. EVERY PHASE MUST BE ABLE TO END. Since the doctrine became authored data, a phase with no idle
+//!      abort cannot time out AT ALL - the clock runs to zero and nothing answers. The validator
+//!      deliberately does not catch it (it cannot tell a terminal phase from a forgotten one), so the
+//!      shipped plans are pinned here instead.
+//!   5. THE GATE OUT IS THE COUNTER-ATTACK GATE, DECOMPOSED. Asset-up, the reserve gate, the daylight
+//!      window and each doctrine's own ramp measure. Drop any one and the battle either never starts or
+//!      starts on an unearned ramp.
+//!
+//! ⚠ IT READS ONLY. No deployment is created, no resource is spent and the live objective is not
+//! touched.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_QForwardBasePhaseAuthorsTheShippedChain : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+
+		if (!director || !deployments)
+		{
+			SetFailure("The objective director or the deployment framework did not resolve");
+			return true;
+		}
+
+		OVT_ObjectiveRegistry registry = director.GetRegistry();
+		if (!registry)
+		{
+			SetFailure("The objective registry did not resolve, so the shipped plans' forward-base phases cannot be read. The campaign would run on the strangler fallback, which no longer has a forward-base tick to fall back ON");
+			return true;
+		}
+
+		if (registry.GetConfigCount() < 2)
+		{
+			SetFailure(string.Format("the registry carries %1 plan(s); both shipped doctrines are needed here", registry.GetConfigCount().ToString()));
+			return true;
+		}
+
+		for (int i = 0; i < registry.GetConfigCount(); i++)
+		{
+			OVT_ObjectiveConfig plan = registry.GetConfig(i);
+			if (!plan)
+			{
+				SetFailure(string.Format("registry entry %1 is empty", i.ToString()));
+				return true;
+			}
+
+			string failure = CheckPlan(plan, deployments);
+			if (failure != "")
+			{
+				SetFailure(failure);
+				return true;
+			}
+		}
+
+		string spans = CheckRampSpansIntoTheForwardBasePhase(deployments);
+		if (spans != "")
+		{
+			SetFailure(spans);
+			return true;
+		}
+
+		Print("Objective forward base: both shipped plans author raise, garrison and the whole ramp repeated, in that order; the gate out is the counter-attack gate decomposed into four conjuncts; and every ramp deployment still spans Harassment through ForwardBase");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] plan The plan to walk.
+	//! \param[in] deployments The deployment framework, for the name-resolution claims.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckPlan(notnull OVT_ObjectiveConfig plan, notnull OVT_DeploymentManagerComponent deployments)
+	{
+		int index = plan.IndexOfPhase("ForwardBase");
+		if (index < 0)
+			return string.Format("plan '%1' carries no phase called 'ForwardBase' - the name is the persistence key AND the name every objective deployment's condition module spans to, so a rename here silently collects every ramp deployment on its next reinforcement check", plan.m_sObjectiveName);
+
+		OVT_ObjectivePhase phase = plan.GetPhase(index);
+		if (!phase || !phase.m_aModules)
+			return string.Format("plan '%1' has an empty forward-base phase", plan.m_sObjectiveName);
+
+		array<OVT_BaseObjectiveOperationModule> operations = new array<OVT_BaseObjectiveOperationModule>();
+
+		foreach (OVT_BaseObjectiveModule module : phase.m_aModules)
+		{
+			OVT_BaseObjectiveOperationModule operation = OVT_BaseObjectiveOperationModule.Cast(module);
+			if (operation)
+				operations.Insert(operation);
+		}
+
+		if (operations.Count() != 5)
+			return string.Format("plan '%1' authors %2 operation(s) in its forward-base phase; the shipped chain is exactly five - raise the base, garrison it, then the whole harassment ramp repeated. Fewer than five is the 2026-08-19 deadlock: the ramp stops the moment the objective is promoted, and the counter-attack it is ramping towards becomes unreachable",
+				plan.m_sObjectiveName, operations.Count().ToString());
+
+		// --- 1. THE FORWARD BASE ITSELF IS FIRST. Nothing else in this phase means anything until the
+		//        flag is up: the garrison's own source provider resolves to the base only once it stands.
+		OVT_RaiseForwardBaseObjectiveOperation raise = OVT_RaiseForwardBaseObjectiveOperation.Cast(operations[0]);
+		if (!raise)
+			return string.Format("plan '%1' does not raise the forward base FIRST in its forward-base phase. Every spend is behind one cadence, so whichever operation is asked first is the one that gets the interval - and everything else here is for a base that is not there yet",
+				plan.m_sObjectiveName);
+
+		if (raise.m_sAssetKey != OVT_ObjectiveDirectorComponent.ASSET_FOB)
+			return string.Format("plan '%1' raises its forward base under the asset key '%2' and every consumer asks about '%3'. The dismantle action, the anchor source provider, the QRF layer and the save payload all read that key",
+				plan.m_sObjectiveName, raise.m_sAssetKey, OVT_ObjectiveDirectorComponent.ASSET_FOB);
+
+		if (raise.m_sDeploymentConfigName != OVT_ObjectiveDirectorComponent.FOB_CONFIG)
+			return string.Format("plan '%1' names the forward-base carrier '%2' and the director still classifies a tracked deployment by '%3'. A name the director does not recognise buys men whose walk does not hold the idle clock and whose recall pays nothing back",
+				plan.m_sObjectiveName, raise.m_sDeploymentConfigName, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+
+		if (raise.m_sGarrisonConfigName != OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG)
+			return string.Format("plan '%1' names the forward-base garrison '%2' and the director knows it as '%3'. The teardown sweeps for BOTH names, so a mismatch leaves the garrison standing in a field with no objective behind it",
+				plan.m_sObjectiveName, raise.m_sGarrisonConfigName, OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+
+		if (!deployments.FindConfigByName(raise.m_sDeploymentConfigName))
+			return string.Format("plan '%1' names the forward-base config '%2', which the deployment registry does not carry", plan.m_sObjectiveName, raise.m_sDeploymentConfigName);
+
+		if (!deployments.FindConfigByName(raise.m_sGarrisonConfigName))
+			return string.Format("plan '%1' names the garrison config '%2', which the deployment registry does not carry", plan.m_sObjectiveName, raise.m_sGarrisonConfigName);
+
+		// --- 2. THE GARRISON IS SECOND, AND IS CAPPED AT THE BASE RATHER THAN AT THE OBJECTIVE.
+		OVT_SendDeploymentObjectiveOperation garrison = OVT_SendDeploymentObjectiveOperation.Cast(operations[1]);
+		if (!garrison)
+			return string.Format("plan '%1' does not send the forward-base garrison SECOND", plan.m_sObjectiveName);
+
+		if (garrison.m_sConfigName != OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG)
+			return string.Format("plan '%1' sends '%2' as its second forward-base operation; the garrison config is '%3'",
+				plan.m_sObjectiveName, garrison.m_sConfigName, OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
+
+		if (!OVT_ForwardBaseTargetResolver.Cast(garrison.m_Resolver))
+			return string.Format("plan '%1' does not send its garrison through the forward-base resolver, so it would be sent at the OBJECTIVE - the place the resistance holds - rather than at the base it is supposed to hold",
+				plan.m_sObjectiveName);
+
+		if (!garrison.m_bConcurrencyAtResolvedPosition)
+			return string.Format("plan '%1' counts the garrison cap around the OBJECTIVE rather than around the forward base, where the garrison actually is. The cap then counts nothing and the base is reinforced without limit",
+				plan.m_sObjectiveName);
+
+		if (garrison.m_iMaxConcurrentDifficulty != OVT_EObjectiveConcurrencyLimit.FORWARD_BASE_GARRISON)
+			return string.Format("plan '%1' defers the garrison cap to the wrong difficulty field. objectiveFOBGarrisonMax runs 1 to 6 across the presets and objectiveHarassmentMaxConcurrent runs 1 to 4; they are different numbers on every one of them",
+				plan.m_sObjectiveName);
+
+		if (garrison.m_fConcurrencyRadius <= 0)
+			return string.Format("plan '%1' authors no concurrency radius on the garrison, so nothing is ever inside it and the cap never binds", plan.m_sObjectiveName);
+
+		// --- 3-5. THE RAMP, REPEATED. See the class header for the deadlock that omitting it restores.
+		string ramp = CheckRampIsRepeated(plan, operations);
+		if (ramp != "")
+			return ramp;
+
+		return CheckGate(plan, phase);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 THE RAMP CONTINUES INTO THIS PHASE. Half one of the deadlock fix.
+	//! \param[in] plan The plan being walked.
+	//! \param[in] operations Its forward-base phase's operations, in authored order.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckRampIsRepeated(notnull OVT_ObjectiveConfig plan, notnull array<OVT_BaseObjectiveOperationModule> operations)
+	{
+		OVT_SendDeploymentObjectiveOperation tower = OVT_SendDeploymentObjectiveOperation.Cast(operations[2]);
+		if (!tower || tower.m_sConfigName != OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG)
+			return string.Format("plan '%1' does not repeat tower recapture in its forward-base phase. A tower left in resistance hands keeps the objective easier for them to hold right through the build-up",
+				plan.m_sObjectiveName);
+
+		OVT_SendDeploymentObjectiveOperation harassment = OVT_SendDeploymentObjectiveOperation.Cast(operations[3]);
+		if (!harassment || !harassment.m_aLadder || harassment.m_aLadder.IsEmpty())
+			return string.Format("plan '%1' does not repeat the harassment ladder in its forward-base phase. The stacking support debuff that drives a town under a quarter support is applied BY harassment operations, so a town objective could never reach its own counter-attack gate",
+				plan.m_sObjectiveName);
+
+		if (harassment.m_aLadder.Count() != OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER.Count())
+			return string.Format("plan '%1' repeats %2 ladder rung(s) in its forward-base phase and the director recognises %3",
+				plan.m_sObjectiveName, harassment.m_aLadder.Count().ToString(), OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER.Count().ToString());
+
+		for (int rung = 0; rung < harassment.m_aLadder.Count(); rung++)
+		{
+			if (harassment.m_aLadder[rung] != OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER[rung])
+				return string.Format("plan '%1' forward-base rung %2 is '%3' and the director's rung %2 is '%4'",
+					plan.m_sObjectiveName, rung.ToString(), harassment.m_aLadder[rung], OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER[rung]);
+		}
+
+		OVT_SendDeploymentObjectiveOperation sabotage = OVT_SendDeploymentObjectiveOperation.Cast(operations[4]);
+		if (!sabotage || sabotage.m_sConfigName != OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG)
+			return string.Format("plan '%1' does not repeat sabotage in its forward-base phase. A base objective is promoted on its FIRST completed mission and its counter-attack gate demands up to six, so the remaining five would be unsendable and the battle unreachable - this is the 2026-08-19 deadlock exactly",
+				plan.m_sObjectiveName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The gate out: the counter-attack gate, decomposed into authored conjuncts, plus the two aborts.
+	//! \param[in] plan The plan being walked.
+	//! \param[in] phase Its forward-base phase.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckGate(notnull OVT_ObjectiveConfig plan, notnull OVT_ObjectivePhase phase)
+	{
+		bool hasAssetUp = false;
+		bool hasReserve = false;
+		bool hasDaylight = false;
+		bool hasRampMeasure = false;
+		bool hasIdleAbort = false;
+		bool hasStarvationAbort = false;
+
+		foreach (OVT_BaseObjectiveModule module : phase.m_aModules)
+		{
+			OVT_AssetUpObjectiveCondition assetUp = OVT_AssetUpObjectiveCondition.Cast(module);
+			if (assetUp && assetUp.m_sAssetKey == OVT_ObjectiveDirectorComponent.ASSET_FOB && !assetUp.m_bInverted)
+				hasAssetUp = true;
+
+			if (OVT_ReserveAtLeastObjectiveCondition.Cast(module))
+				hasReserve = true;
+
+			if (OVT_DaylightWindowObjectiveCondition.Cast(module))
+				hasDaylight = true;
+
+			if (OVT_SupportBelowObjectiveCondition.Cast(module) || OVT_ProgressAtLeastObjectiveCondition.Cast(module))
+				hasRampMeasure = true;
+
+			if (OVT_IdleForObjectiveAbort.Cast(module))
+				hasIdleAbort = true;
+
+			OVT_AssetStarvedObjectiveAbort starved = OVT_AssetStarvedObjectiveAbort.Cast(module);
+			if (starved && starved.m_sAssetKey == OVT_ObjectiveDirectorComponent.ASSET_FOB)
+				hasStarvationAbort = true;
+		}
+
+		if (!hasAssetUp)
+			return string.Format("plan '%1' does not require its forward base to be STANDING before it advances. The battle would then be mounted out of thin air, which is the dice-roll attack this whole feature replaced",
+				plan.m_sObjectiveName);
+
+		if (!hasReserve)
+			return string.Format("plan '%1' does not gate its battle on the faction's reserve, so a counter-attack would start with nothing behind it and no waves to follow",
+				plan.m_sObjectiveName);
+
+		if (!hasDaylight)
+			return string.Format("plan '%1' does not carry the daylight window, so counter-attacks would begin at night again - and the wait for morning would no longer hold the objective's idle clock either",
+				plan.m_sObjectiveName);
+
+		if (!hasRampMeasure)
+			return string.Format("plan '%1' does not measure its own ramp before advancing, so the battle would fire on the phase's entry tick with none of the build-up the resistance is meant to be able to read",
+				plan.m_sObjectiveName);
+
+		if (!hasStarvationAbort)
+			return string.Format("plan '%1' authors no starvation abort in its forward-base phase - the resistance's entire counterplay is gone and a forward base could be cut off indefinitely and still launch its battle",
+				plan.m_sObjectiveName);
+
+		if (!hasIdleAbort)
+			return string.Format("plan '%1' authors no idle abort in its forward-base phase. Since the doctrine became authored data a phase with none CANNOT TIME OUT AT ALL: the clock runs to zero and nothing answers, so a wedged objective sits forever. The registry's validator deliberately does not catch this - it cannot tell a terminal phase from a forgotten one",
+				plan.m_sObjectiveName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 HALF TWO OF THE DEADLOCK FIX, IN A DIFFERENT FILE. The ramp's operations being authored in
+	//! this phase is not enough on its own: each ramp deployment carries its own condition module, and
+	//! a deployment whose span does not REACH the forward-base phase is collected on its next
+	//! reinforcement check the moment the objective is promoted. Both halves or the deadlock returns.
+	//! \param[in] deployments The deployment framework.
+	//! \return An empty string when every ramp config spans into this phase, or the first that does not.
+	protected string CheckRampSpansIntoTheForwardBasePhase(notnull OVT_DeploymentManagerComponent deployments)
+	{
+		array<string> configs = new array<string>();
+		configs.Insert(OVT_ObjectiveDirectorComponent.TOWER_RECAPTURE_CONFIG);
+		configs.Insert(OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
+
+		foreach (string rung : OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER)
+		{
+			configs.Insert(rung);
+		}
+
+		foreach (string name : configs)
+		{
+			OVT_DeploymentConfig config = deployments.FindConfigByName(name);
+			if (!config || !config.m_aModules)
+				return string.Format("the deployment registry does not carry '%1'", name);
+
+			bool spans = false;
+
+			foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+			{
+				OVT_ObjectiveConditionDeploymentModule condition = OVT_ObjectiveConditionDeploymentModule.Cast(module);
+				if (!condition)
+					continue;
+
+				if (condition.m_sThroughPhase == "ForwardBase")
+					spans = true;
+			}
+
+			if (!spans)
+				return string.Format("deployment config '%1' does not span through to the forward-base phase. Its m_sThroughPhase has to name '%2' or every one of its deployments is collected on its next reinforcement check the moment the objective is promoted - which is the 2026-08-19 deadlock, restored from the other side",
+					name, "ForwardBase");
+		}
+
+		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 THE SPEND CEILING ARMS WITH THE ASSET AND DISARMS WITH THE OBJECTIVE, AND THE RUNTIME MODULE SET
+//! IS CLONES.
+//!
+//! TWO CLAIMS, DRIVEN ON THE LIVE DIRECTOR, NEITHER OF WHICH SPENDS A RESOURCE.
+//!
+//!   1. THE CEILING IS A LATCH WITH TWO EDGES AND NEITHER HAS ANY OTHER SYMPTOM. It is INACTIVE during
+//!      harassment, so the ramp spends against the pool alone exactly as it did before the forward base
+//!      existed; it ARMS the moment the base is standing (and, in the live machine, the moment its own
+//!      deployment is SENT, so the structure's own cost is inside the budget); and it DISARMS when the
+//!      objective's record is cleared. A ceiling that failed to arm would let the forward-base phase
+//!      spend the whole faction pool; one that failed to disarm would measure the NEXT objective's very
+//!      first spend against a base that no longer exists.
+//!
+//!   2. 🔴 THE RUNTIME SET IS CLONES, NEVER THE CONFIG'S OWN TEMPLATE OBJECTS. A phase entered twice -
+//!      by two objectives, or by the same objective in two campaigns in one session - would otherwise
+//!      share one module object and one set of latches, and the second entry would inherit the first's
+//!      state: a raise module that already believes it sent a supply party sends nothing, forever. This
+//!      phase rebuilds a module set, so it repeats the assertion build phase 4 added for the harassment
+//!      phase rather than trusting it.
+//!
+//! ⚠ NO DEPLOYMENT IS CREATED AND NO RESOURCE MOVES. The asset is reported standing through the same
+//! public reporter the deployment-side raise module uses, which records and decides nothing.
+//!
+//! ⚠ IT PUTS THE DIRECTOR BACK on every path, including the red ones, because the initialisation world
+//! is shared.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_RCeilingArmsWithTheAssetAndTheSetIsClones : SCR_AutotestCaseBase
+{
+	//! Somewhere no campaign feature is, so nothing here disturbs anything and the teardown's structure
+	//! query comes back empty.
+	static const vector PROBE = "13000 40 13000";
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		if (!director)
+		{
+			SetFailure("OVT_Global.GetObjectiveDirector() is null");
+			return true;
+		}
+
+		string failure = Check(director);
+
+		// ALWAYS, INCLUDING ON THE RED PATHS.
+		director.ResetObjective("OVT_TEST_Init_ObjectiveFOB_R finished", false);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective forward base: the spend ceiling is inactive during harassment, arms with the standing asset and disarms with the objective - and the phase's runtime modules are clones of the plan's templates, never the templates themselves");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] director The live director.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string Check(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		if (director.HasObjective())
+			return "the director already has an objective before this case committed one - an earlier case left one running and neither claim here can be trusted";
+
+		// --- HARASSMENT: nothing is armed, because the raise module is not in this phase's set at all.
+		director.CommitObjective(OVT_EObjectiveKind.BASE, PROBE, "OVT_TEST_Init_ObjectiveFOB_R fixture");
+
+		if (director.IsAssetCeilingArmed())
+			return "the forward base's spend ceiling is armed during the HARASSMENT phase. The ramp would then be measured against a budget for a base nobody has bought, and the phase would stop spending long before it should";
+
+		if (director.GetAssetModule(OVT_ObjectiveDirectorComponent.ASSET_FOB))
+			return "an asset module is registered during the harassment phase, which does not author one - a module registered by the wrong phase would keep a ceiling and a teardown alive for an asset that does not exist";
+
+		// --- FORWARD BASE: the module registers on entry, and the ceiling is still down until an asset
+		//     actually exists.
+		director.EnterPhase("ForwardBase");
+
+		OVT_BaseObjectiveAssetModule owner = director.GetAssetModule(OVT_ObjectiveDirectorComponent.ASSET_FOB);
+		if (!owner)
+			return "entering the forward-base phase registered no asset module. The director would then have nothing to ask about the spend ceiling and nothing to tell to take the base down when the objective ends - a structure and a garrison left standing in the world for the rest of the campaign";
+
+		if (director.IsAssetCeilingArmed())
+			return "the spend ceiling armed on the phase ENTRY, before anything was sent. It arms when the forward base's own deployment goes out, so that the structure's own cost is inside the budget - not before";
+
+		string clones = CheckRuntimeSetIsClones(director, owner);
+		if (clones != "")
+			return clones;
+
+		// --- THE ASSET IS STANDING: armed.
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, PROBE, PROBE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
+			return "the keyed asset reporter did not put the forward base up";
+
+		if (!director.IsAssetCeilingArmed())
+			return "the spend ceiling is NOT armed with the forward base standing. Every ramp operation continuing into this phase would then spend against the faction pool alone, with no ceiling at all, which is the unbounded spender the budget exists to prevent";
+
+		// ⚠ ONLY WHEN THERE IS A DIFFICULTY PRESET TO RESOLVE AGAINST. The shipped module authors the -1
+		// sentinel, so in a world with no campaign settings loaded a zero ceiling is the honest answer
+		// rather than a defect - and a case that went red for its environment would say nothing about
+		// the product.
+		if (OVT_Global.GetDifficulty() && owner.GetCeiling() <= 0)
+			return "the registered asset module reports a ceiling of zero or less, which WithinFOBCeiling() refuses everything against - the phase could then never buy anything at all";
+
+		// --- AND IT DISARMS WITH THE OBJECTIVE.
+		director.ResetObjective("OVT_TEST_Init_ObjectiveFOB_R is exercising the disarm", false);
+
+		if (director.IsAssetCeilingArmed())
+			return "the spend ceiling is still armed after the objective ended. The NEXT objective's very first spend would be measured against a forward base that no longer exists, and the ramp would refuse operations it can afford";
+
+		if (director.GetAssetModule(OVT_ObjectiveDirectorComponent.ASSET_FOB))
+			return "the asset owner is still registered after the objective ended, so the next teardown would be handed a module whose record has already been zeroed";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! 🔴 The runtime set is CLONES. See the class header.
+	//! \param[in] director The live director.
+	//! \param[in] owner The registered asset module, which must be one of the runtime clones.
+	//! \return An empty string when the claim held, or why it did not.
+	protected string CheckRuntimeSetIsClones(notnull OVT_ObjectiveDirectorComponent director, notnull OVT_BaseObjectiveAssetModule owner)
+	{
+		OVT_ObjectiveInstance instance = director.GetObjectiveInstance(0);
+		if (!instance)
+			return "the director reports no running objective instance, so the runtime module set cannot be inspected";
+
+		OVT_ObjectiveConfig plan = instance.GetConfig();
+		if (!plan)
+			return "the running objective has no plan behind it, so there are no templates to compare the runtime set against";
+
+		OVT_ObjectivePhase phase = plan.GetPhase(instance.GetPhaseIndex());
+		if (!phase || !phase.m_aModules || phase.m_aModules.IsEmpty())
+			return "the running phase authors no modules at all";
+
+		int runtimeCount = instance.GetRuntimeModuleCount();
+		if (runtimeCount != phase.m_aModules.Count())
+			return string.Format("the phase authors %1 module(s) and the runtime set holds %2. A module that failed to clone is a rule that silently stopped applying",
+				phase.m_aModules.Count().ToString(), runtimeCount.ToString());
+
+		for (int i = 0; i < runtimeCount; i++)
+		{
+			OVT_BaseObjectiveModule runtime = instance.GetRuntimeModule(i);
+			if (!runtime)
+				return string.Format("runtime module %1 is null", i.ToString());
+
+			foreach (OVT_BaseObjectiveModule template : phase.m_aModules)
+			{
+				if (runtime == template)
+					return string.Format("runtime module %1 IS the plan's own template object rather than a clone of it. Two objectives running this plan would share one module and one set of latches, so the second would inherit the first's state - a raise module that already believes it sent a supply party sends nothing, forever",
+						i.ToString());
+			}
+		}
+
+		// The registered owner has to be one of those clones, not something built on the side.
+		bool ownerIsRuntime = false;
+		for (int j = 0; j < runtimeCount; j++)
+		{
+			if (instance.GetRuntimeModule(j) == owner)
+				ownerIsRuntime = true;
+		}
+
+		if (!ownerIsRuntime)
+			return "the registered asset owner is not one of the phase's runtime modules, so the director is holding a module nothing is ticking";
+
+		return "";
 	}
 }

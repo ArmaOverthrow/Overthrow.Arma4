@@ -9059,8 +9059,25 @@ class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_Aut
 }
 
 //------------------------------------------------------------------------------------------------
-//! The occupying faction's current objective - kind, place, phase, both counters, all three tick
-//! counters, the blacklist and the whole forward-base record - survives a save and a re-application.
+//! The occupying faction's current objective - its PLAN by name, its place, its PHASE by name, every
+//! module counter and module position, both tick counters, the blacklist and the whole forward-base
+//! record - survives a save and a re-application.
+//!
+//! 🔴 THE PLAN AND THE PHASE COME BACK BY NAME, AND THAT IS THE POINT OF THE FORMAT. The record used
+//! to carry an enum integer for the phase, which meant the ONLY thing standing between a renumbered
+//! enum and every saved objective being silently re-labelled was a comment telling future readers not
+//! to renumber it. Names replace that comment with a mechanism: a plan or a phase the running build
+//! does not carry is DETECTED on load, named in an ERROR line, and the objective abandoned cleanly so
+//! the machine chooses again - which costs a player one in-game minute instead of putting the campaign
+//! into a phase with no handler. This case pins the happy half of that mechanism; the abandon half is
+//! reachable only by editing a shipped .conf, so it is a manual check rather than an automated one.
+//!
+//! 🔴 THE BAG IS THE ONLY SAVE FORMAT AN OBJECTIVE MODULE HAS. No module writes its own record - one
+//! version number, one place to append - so if the two bags did not round-trip, the first module that
+//! needed a counter would invent a second format. Two integer keys and one position key are written
+//! here through the director's public API and read back through its public getters; the two success
+//! counters asserted separately below travel in the same map, which is why they now prove the format
+//! rather than a pair of hand-maintained fields.
 //!
 //! WHY IT MATTERS. The objective is the occupying faction's only piece of long-term intent. A
 //! campaign continued after a save has to come back mid-ramp: the same target, the same phase, the
@@ -9075,9 +9092,13 @@ class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_Aut
 //!
 //! THE DIRTY STEP CHANGES EVERY FIELD IT LATER ASSERTS, which is closure 2 of this suite's
 //! anti-vacuous-pass design: the objective is re-committed at a different place with a different
-//! KIND, both tick counters are driven to small values, both success counters and the whole forward
-//! base are wiped by that re-commit, and a third blacklist entry is added. A reload that restores
-//! nothing leaves all of that in place and the case goes red on the first assertion it reaches.
+//! KIND - which also binds the OTHER shipped plan and empties the whole bag - both tick counters are
+//! driven to small values, the whole forward base is wiped by that re-commit, a third blacklist entry
+//! is added, and the machine is walked into a differently-NAMED phase. That last step is not
+//! decoration: both shipped plans call their first phase "Harassment", so a commit alone leaves the
+//! phase name exactly where the saved objective had it, and an assertion that can pass without the
+//! value being restored is not an assertion. A reload that restores nothing leaves all of it in place
+//! and the case goes red on the first assertion it reaches.
 //! Closure 3 holds too: none of the saved values is one a campaign start produces - a fresh phase
 //! entry arms the timeout at the configured maximum, not at 137, and it zeroes the operation cadence
 //! rather than setting it to 91.
@@ -9123,6 +9144,28 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	//! name - what is being asserted is that the STRING round-trips, not that it resolves.
 	static const string SAVED_FOB_DEPLOYMENT = "ObjectiveRoundTripFOB";
 
+	//! Two bag keys no shipped module owns, plus one the vector bag owns. THE BAG IS THE SAVE FORMAT:
+	//! no objective module writes its own record, so every counter and every position a module has
+	//! accumulated travels in these two maps. Keys nothing else writes are used deliberately - the two
+	//! success counters are already asserted separately, and a key the campaign might touch for its own
+	//! reasons would make a failure ambiguous.
+	static const string SAVED_BAG_KEY_A = "roundTrip.alpha";
+	static const string SAVED_BAG_KEY_B = "roundTrip.beta";
+	static const string SAVED_BAG_VECTOR_KEY = "roundTrip.site";
+
+	static const int SAVED_BAG_VALUE_A = 61;
+	static const int SAVED_BAG_VALUE_B = 409;
+
+	//! The plan a TOWN objective runs, and the phase a fresh commit enters. Both are PERSISTENCE KEYS -
+	//! the payload carries these strings rather than enum integers - so this is also the case that would
+	//! catch a rename of either.
+	static const string SAVED_PLAN = "Town Offensive";
+	static const string SAVED_PHASE = "Harassment";
+
+	//! What the dirty step leaves behind, so a value that "survived" by never having changed cannot pass.
+	static const string DIRTY_PLAN = "Base Offensive";
+	static const string DIRTY_PHASE = "ForwardBase";
+
 	static const int DIRTY_PHASE_TICKS = 3;
 	static const int DIRTY_OP_TICKS = 4;
 	static const int DIRTY_BLACKLIST_ROUNDS = 9;
@@ -9139,6 +9182,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	protected vector m_vBlacklistB;
 	protected vector m_vDirtyObjective;
 	protected vector m_vDirtyBlacklist;
+	protected vector m_vSavedBagPosition;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -9161,12 +9205,12 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 
 			for (int h = 0; h < SAVED_HARASSMENT_SUCCESSES; h++)
 			{
-				director.OnHarassmentSuccess();
+				director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES, 1);
 			}
 
 			for (int s = 0; s < SAVED_SABOTAGE_SUCCESSES; s++)
 			{
-				director.OnSabotageSuccess();
+				director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_SABOTAGE_SUCCESSES, 1);
 			}
 
 			// ⚠ THE TWO TIMERS ARE PLANTED LAST, AFTER THE SUCCESS COUNTERS, AND THE ORDER IS LOAD-BEARING
@@ -9182,9 +9226,20 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 			director.SetPhaseTimeout(SAVED_PHASE_TICKS);
 			director.SetOperationCountdown(SAVED_OP_TICKS);
 
-			director.RecordFOB(m_vSavedFOB, m_vSavedFOBSource, SAVED_FOB_DEPLOYMENT);
-			director.AddFOBSpend(SAVED_FOB_SPENT);
-			director.SetFOBStarvationTicks(SAVED_FOB_STARVATION);
+			// ⚠ THROUGH THE KEYED ASSET API (build phase 5). The three named forward-base writers were
+			// deleted with the rest of the forward base; these three take the asset key and write the
+			// same record, which is the same object the keyed getters read.
+			director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, m_vSavedFOB, m_vSavedFOBSource, SAVED_FOB_DEPLOYMENT);
+			director.AddAssetSpend(OVT_ObjectiveDirectorComponent.ASSET_FOB, SAVED_FOB_SPENT);
+			director.SetAssetStarvationTicks(OVT_ObjectiveDirectorComponent.ASSET_FOB, SAVED_FOB_STARVATION);
+
+			// ⚠ THE BAG IS WRITTEN THROUGH THE PUBLIC API AND READ BACK THROUGH PUBLIC GETTERS, like
+			// everything else in this tier - the payload and the serializer are never named here. Two
+			// int keys and one vector key, because the two maps are separate arrays in the record and a
+			// format that wrote one and forgot the other would still round-trip half the state.
+			director.SetObjectiveBagValue(SAVED_BAG_KEY_A, SAVED_BAG_VALUE_A);
+			director.SetObjectiveBagValue(SAVED_BAG_KEY_B, SAVED_BAG_VALUE_B);
+			director.SetObjectiveBagPosition(SAVED_BAG_VECTOR_KEY, m_vSavedBagPosition);
 
 			director.BlacklistPosition(m_vBlacklistA, SAVED_BLACKLIST_A_ROUNDS);
 			director.BlacklistPosition(m_vBlacklistB, SAVED_BLACKLIST_B_ROUNDS);
@@ -9241,6 +9296,14 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 			// place, zeroes both success counters and clears the whole forward-base record in one call;
 			// the two timers and a third blacklist entry are set on top of it.
 			director.CommitObjective(OVT_EObjectiveKind.BASE, m_vDirtyObjective, "dirty");
+
+			// ⚠ AND THE PHASE NAME, WHICH THE COMMIT ALONE DOES NOT DIRTY. Both shipped plans call their
+			// first phase "Harassment", so committing a base objective leaves the phase NAME exactly
+			// where the town objective had it - and an assertion that can pass without the value being
+			// restored is not an assertion. Entering the next phase gives it a distinct name. It happens
+			// BEFORE the two timers are planted, because a phase entry re-arms the idle clock.
+			director.EnterPhase("ForwardBase");
+
 			director.SetPhaseTimeout(DIRTY_PHASE_TICKS);
 			director.SetOperationCountdown(DIRTY_OP_TICKS);
 			director.BlacklistPosition(m_vDirtyBlacklist, DIRTY_BLACKLIST_ROUNDS);
@@ -9343,7 +9406,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		// to select, it does not get to spend on the next one.
 		director.SetOperationCountdown(SAVED_OP_TICKS);
 
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return string.Format("after %1 ticks the director still reports a forward base whose deployment does not exist - the objective is stranded in a phase it can never leave, and nothing in the log says so",
 				ticks.ToString());
 
@@ -9365,6 +9428,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		m_vBlacklistB = "5000 10 6000";
 		m_vDirtyObjective = "9000 30 9500";
 		m_vDirtyBlacklist = "7000 10 8000";
+		m_vSavedBagPosition = "2100 12 3300";
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -9386,11 +9450,43 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		if (objectiveDrift > POSITION_TOLERANCE)
 			return string.Format("the restored objective is %1 m from the one that was saved", objectiveDrift.ToString());
 
-		if (director.GetPhase() != OVT_EObjectivePhase.HARASSMENT)
+		if (director.GetObjectivePhaseName() != "Harassment")
 		{
-			int phase = director.GetPhase();
-			return string.Format("the restored objective is in phase %1, not the harassment phase it was saved in", phase.ToString());
+			string phase = director.GetObjectivePhaseName();
+			return string.Format("the restored objective is in phase %1, not the harassment phase it was saved in", phase);
 		}
+
+		// 🔴 THE PLAN AND THE PHASE COME BACK BY NAME, AND THE NAMES ARE THE KEYS. The payload carries
+		// these two strings rather than an index or an enum integer, which is the whole reason a plan
+		// can grow a phase in the middle without re-labelling every objective in every save on disk -
+		// and the reason a plan or phase RENAME is detected on load and abandoned loudly instead of
+		// being silently adopted as whatever sits at that position now.
+		if (director.GetObjectiveConfigName() == DIRTY_PLAN)
+			return "the objective's PLAN did not survive the round trip: the dirty plan is still bound";
+
+		if (director.GetObjectiveConfigName() != SAVED_PLAN)
+			return string.Format("the restored objective is running plan '%1', not the '%2' it was saved under",
+				director.GetObjectiveConfigName(), SAVED_PLAN);
+
+		if (director.GetObjectivePhaseName() == DIRTY_PHASE)
+			return "the objective's PHASE NAME did not survive the round trip: the dirty phase name is still there";
+
+		if (director.GetObjectivePhaseName() != SAVED_PHASE)
+			return string.Format("the restored objective is in phase '%1', not the '%2' it was saved in",
+				director.GetObjectivePhaseName(), SAVED_PHASE);
+
+		if (director.GetObjectivePhaseIndex() != 0)
+			return string.Format("the restored objective sits at plan phase index %1, which does not agree with the phase name it came back with",
+				director.GetObjectivePhaseIndex().ToString());
+
+		// A restored objective has to be RUNNING, not merely recorded: an instance that never rejoined
+		// the live list would sit in a save-shaped state that the tick never steps.
+		if (director.GetInstanceCount() != 1)
+			return string.Format("the restored campaign holds %1 running objective(s), expected the one that was saved",
+				director.GetInstanceCount().ToString());
+
+		if (director.GetRuntimeModuleCount() == 0)
+			return "the restored objective came back with NO runtime modules, so its phase would fall through to the hard-coded fallback on every tick";
 
 		if (director.GetHarassmentSuccesses() != SAVED_HARASSMENT_SUCCESSES)
 			return string.Format("harassment successes did not survive: expected %1, read back %2",
@@ -9408,10 +9504,10 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		if (opBand != "")
 			return opBand;
 
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return "the forward operating base did not survive the round trip - the restored objective has none";
 
-		float fobDrift = vector.Distance(director.GetFOBPosition(), m_vSavedFOB);
+		float fobDrift = vector.Distance(director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB), m_vSavedFOB);
 		if (fobDrift > POSITION_TOLERANCE)
 			return string.Format("the restored forward base is %1 m from where it was saved", fobDrift.ToString());
 
@@ -9430,6 +9526,10 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		if (director.GetFOBDeploymentName() != SAVED_FOB_DEPLOYMENT)
 			return string.Format("the forward base's re-link key did not survive: expected '%1', read back '%2'",
 				SAVED_FOB_DEPLOYMENT, director.GetFOBDeploymentName());
+
+		string bag = AssertBag(director);
+		if (bag != "")
+			return bag;
 
 		return AssertBlacklist(director);
 	}
@@ -9450,6 +9550,37 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		if (actual > saved)
 			return string.Format("%1 came back HIGHER than the value that was saved (%2 against %3), so it was re-armed from scratch rather than restored",
 				label, actual.ToString(), saved.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts every module counter and every module position came back.
+	//!
+	//! ⚠ THE BAG IS THE WHOLE OF WHAT A MODULE PERSISTS (D9), so this is not a spot check of two
+	//! arbitrary keys - it is the assertion that the ONE save format every objective module shares
+	//! round-trips at all. A module that needed a counter and found the format could not carry it would
+	//! be the first module to invent a second save format, which is exactly what one bag exists to stop.
+	//!
+	//! ⚠ THE TWO MAPS ARE ASSERTED SEPARATELY because they are separate arrays in the record: a format
+	//! that wrote the integers and forgot the positions would round-trip half the state and look green
+	//! against a case that only checked one.
+	//! \param[in] director The restored director.
+	//! \return An empty string when everything came back, otherwise the failure.
+	protected string AssertBag(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		if (director.GetObjectiveBagValue(SAVED_BAG_KEY_A) != SAVED_BAG_VALUE_A)
+			return string.Format("a module counter did not survive: '%1' expected %2, read back %3",
+				SAVED_BAG_KEY_A, SAVED_BAG_VALUE_A.ToString(), director.GetObjectiveBagValue(SAVED_BAG_KEY_A).ToString());
+
+		if (director.GetObjectiveBagValue(SAVED_BAG_KEY_B) != SAVED_BAG_VALUE_B)
+			return string.Format("a second module counter did not survive: '%1' expected %2, read back %3",
+				SAVED_BAG_KEY_B, SAVED_BAG_VALUE_B.ToString(), director.GetObjectiveBagValue(SAVED_BAG_KEY_B).ToString());
+
+		float bagDrift = vector.Distance(director.GetObjectiveBagPosition(SAVED_BAG_VECTOR_KEY), m_vSavedBagPosition);
+		if (bagDrift > POSITION_TOLERANCE)
+			return string.Format("a module position did not survive: '%1' came back %2 m from where it was saved",
+				SAVED_BAG_VECTOR_KEY, bagDrift.ToString());
 
 		return "";
 	}
@@ -9532,7 +9663,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 //!      never leave the previous one's forward base standing in the world. That sweep deletes any
 //!      forward-base or garrison deployment within the teardown radius of the recorded position.
 //!   2. Even without that, CommitObjective() enters the HARASSMENT phase, so this deployment's
-//!      OVT_ObjectiveConditionDeploymentModule (authored m_iRequiredPhase 2) starts failing and the
+//!      OVT_ObjectiveConditionDeploymentModule (authored m_sFromPhase "ForwardBase") starts failing and the
 //!      reinforcement module's m_bDeleteOnConditionFail collects it on the next update.
 //! And the reload seam CANNOT put a deployment marker back - see below - so once it is gone the case
 //! can never pass. The dirty step therefore rewrites the forward-base RECORD instead: a different
@@ -9541,7 +9672,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 //!
 //! ⚠ WHAT THAT COSTS, STATED RATHER THAN HIDDEN. Two values the case reads cannot be dirtied without
 //! destroying the fixture, so they are PRECONDITIONS here and not round-trip claims:
-//!   - IsFOBUp() before the ticks. The dirty state also has a forward base up, so a reload that
+//!   - IsAssetUp(ASSET_FOB) before the ticks. The dirty state also has a forward base up, so a reload that
 //!     restored nothing would still satisfy it. What has real closure is its POSITION, SOURCE,
 //!     RE-LINK KEY and SPEND, every one of which the dirty step changes.
 //!   - the objective's own position, which only CommitObjective() can move. Case 15 owns that round
@@ -9680,8 +9811,8 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 			// 🔴 THE FORWARD-BASE RECORD IS REWRITTEN. THE OBJECTIVE IS NOT TOUCHED. See the class
 			// header: CommitObjective() would destroy the fixture deployment twice over, and the reload
 			// seam cannot bring a deployment marker back, so the case could never pass afterwards.
-			director.RecordFOB(DIRTY_FOB, DIRTY_SOURCE, DIRTY_FOB_DEPLOYMENT);
-			director.AddFOBSpend(DIRTY_FOB_SPEND_DELTA);
+			director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, DIRTY_FOB, DIRTY_SOURCE, DIRTY_FOB_DEPLOYMENT);
+			director.AddAssetSpend(OVT_ObjectiveDirectorComponent.ASSET_FOB, DIRTY_FOB_SPEND_DELTA);
 			director.SetPhaseTimeout(DIRTY_PHASE_TICKS);
 			director.SetOperationCountdown(DIRTY_OP_TICKS);
 
@@ -9780,12 +9911,12 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		m_Fixture.RemoveModule(OVT_ReinforcementBehaviorDeploymentModule);
 
 		director.CommitObjective(OVT_EObjectiveKind.TOWN, FIXTURE_OBJECTIVE, "forward-base re-link fixture");
-		director.EnterPhase(OVT_EObjectivePhase.FOB);
+		director.EnterPhase("ForwardBase");
 		director.SetPhaseTimeout(SAVED_PHASE_TICKS);
 		director.SetOperationCountdown(SAVED_OP_TICKS);
 
-		director.RecordFOB(FIXTURE_FOB, FIXTURE_SOURCE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
-		director.AddFOBSpend(SAVED_FOB_SPENT);
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, FIXTURE_FOB, FIXTURE_SOURCE, OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		director.AddAssetSpend(OVT_ObjectiveDirectorComponent.ASSET_FOB, SAVED_FOB_SPENT);
 
 		return "";
 	}
@@ -9816,10 +9947,10 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		// PRECONDITION TOO, AND DELIBERATELY LABELLED AS ONE. The dirty state also has a forward base
 		// up, so a reload that restored nothing at all would still satisfy this. The four fields below
 		// are what carry the round-trip claim.
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return "the forward base did not survive the round trip - the restored objective has none, so the re-link cannot even be attempted";
 
-		float fobDrift = vector.Distance(director.GetFOBPosition(), FIXTURE_FOB);
+		float fobDrift = vector.Distance(director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB), FIXTURE_FOB);
 		if (fobDrift > POSITION_TOLERANCE)
 			return string.Format("the restored forward base is %1 m from where it was saved", fobDrift.ToString());
 
@@ -9834,6 +9965,23 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		if (director.GetFOBDeploymentName() != OVT_ObjectiveDirectorComponent.FOB_CONFIG)
 			return string.Format("the forward base's re-link key did not survive: expected '%1', read back '%2'",
 				OVT_ObjectiveDirectorComponent.FOB_CONFIG, director.GetFOBDeploymentName());
+
+		// 🔴 THE RESTORED OBJECTIVE RE-ADOPTS ITS FORWARD BASE'S MODULE, AND THAT IS THE HALF NOTHING
+		// ELSE WOULD CATCH. A restore rebuilds the phase's module set from the plan, so the raise module
+		// that comes back is a FRESH clone with no memory of having sent anything. It has to look at the
+		// restored record on entry and adopt the base that is already standing - because that
+		// registration is what arms the spend ceiling and what the ONE teardown path reaches through.
+		// Without it a continued campaign would spend past the forward base's budget and would leave the
+		// structure and its garrison standing in the world when the objective finally ended.
+		OVT_BaseObjectiveAssetModule owner = director.GetAssetModule(OVT_ObjectiveDirectorComponent.ASSET_FOB);
+		if (!owner)
+			return "the restored objective registered no owner for its forward base, so nothing arms the spend ceiling and nothing can take the base down when the objective ends";
+
+		if (!director.IsAssetCeilingArmed())
+			return "the restored forward base's spend ceiling is not armed. Every operation the continued campaign buys in this phase would spend against the faction pool alone, with no budget at all";
+
+		if (!director.IsFOBDeploymentSent())
+			return "the restored objective does not believe its forward base was ever sent, so its raise module would site and buy a SECOND one on the next interval it can afford";
 
 		// 🔴 THE CLAIM. The whole grace window is driven, so a director that merely had not got round to
 		// giving up yet cannot pass this.
@@ -9854,7 +10002,7 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		// ⚠ THE FORWARD BASE, NOT THE OBJECTIVE, IS THE ASSERTION. A director that gave up re-linking
 		// abandons the objective and then immediately selects a NEW one on the same tick, so
 		// HasObjective() is true either way; only the forward base tells the two apart.
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return string.Format("the restored forward base was torn down within %1 ticks even though its deployment was standing the whole time - the re-link did not match the marker it was sitting on, and a continued campaign would lose its forward base a few in-game minutes after every load",
 				ticks.ToString());
 

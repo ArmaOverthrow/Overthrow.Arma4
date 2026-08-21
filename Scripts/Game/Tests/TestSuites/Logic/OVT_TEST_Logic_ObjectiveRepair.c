@@ -8,7 +8,7 @@
 //! ⚠ THE PRECEDENCE IS SPLIT INTO PURE STATICS SO THIS TIER CAN REACH IT AT ALL - the live resolvers
 //! read campaign settings this suite may not touch, and the precedence itself is two integers and a
 //! comparison. The other half of the claim, that the module reads the CAMPAIGN'S numbers, is
-//! OVT_TEST_Init_ObjectiveRepair case D.
+//! OVT_TEST_Init_BaseRepair case D.
 //!
 //! ⚠ A NON-POSITIVE "campaign figure" MEANS "NOT LOADED, OR NOT AUTHORED", which is exactly the state
 //! a hand-built module in a world with no campaign is in - so the fallback path has to work.

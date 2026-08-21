@@ -82,7 +82,10 @@ class OVT_TEST_Init_Controller_GMRequestResolves : SCR_AutotestCaseBase
 
 //------------------------------------------------------------------------------------------------
 //! Every campaign scalar survives a snapshot commit, and every one of them is dropped again by
-//! Clear() - including the objective pair occupying/counter-attacks appended.
+//! Clear() - including the objective TRIO: the target's display name, the plan the occupying faction is
+//! running and which of that plan's phases it is in. The phase used to be an enum ordinal; build phase 7
+//! of occupying/objectives made it the authored name and added the plan beside it, which is one more
+//! field for the three-method trap below to catch.
 //!
 //! 🔴 THE THREE-METHOD TRAP THIS CASE EXISTS FOR. A new scalar on OVT_GMCampaignState has to be added
 //! in THREE places: the declaration, CopyFrom() and Clear(). Missing it from CopyFrom() is loud - the
@@ -134,7 +137,8 @@ class OVT_TEST_Init_GMCampaignState_CarriesAndClearsEveryScalar : SCR_AutotestCa
 		staging.m_fPayoutSeconds = 177.25;
 		staging.m_iReportedRecordCount = 57;
 		staging.m_sObjectiveName = "Chotain";
-		staging.m_iObjectivePhase = OVT_EObjectivePhase.COUNTER_QRF;
+		staging.m_sObjectivePlanName = "Town Offensive";
+		staging.m_sObjectivePhaseName = "CounterAttack";
 
 		// --- ACT: the commit path, which is one CopyFrom.
 		OVT_GMCampaignState live = new OVT_GMCampaignState();
@@ -195,16 +199,23 @@ class OVT_TEST_Init_GMCampaignState_CarriesAndClearsEveryScalar : SCR_AutotestCa
 			return true;
 		}
 
-		// --- THE NEW PAIR. A Game Master panel with these missing shows two permanently blank rows.
+		// --- THE OBJECTIVE TRIO. A Game Master panel with any of these missing shows a blank row that
+		//     no log line and no compile error would ever have mentioned.
 		if (live.m_sObjectiveName != "Chotain")
 		{
 			SetFailure("CopyFrom lost the objective name: got '%1', expected 'Chotain' - the panel's objective row would be permanently blank", live.m_sObjectiveName);
 			return true;
 		}
 
-		if (live.m_iObjectivePhase != OVT_EObjectivePhase.COUNTER_QRF)
+		if (live.m_sObjectivePlanName != "Town Offensive")
 		{
-			SetFailure("CopyFrom lost the objective phase: got %1, expected 3", live.m_iObjectivePhase.ToString());
+			SetFailure("CopyFrom lost the objective PLAN name: got '%1', expected 'Town Offensive' - the panel's phase row would name a phase with no doctrine behind it", live.m_sObjectivePlanName);
+			return true;
+		}
+
+		if (live.m_sObjectivePhaseName != "CounterAttack")
+		{
+			SetFailure("CopyFrom lost the objective PHASE name: got '%1', expected 'CounterAttack' - the panel's phase row would read 'unknown' for a campaign that is running perfectly", live.m_sObjectivePhaseName);
 			return true;
 		}
 
@@ -243,9 +254,15 @@ class OVT_TEST_Init_GMCampaignState_CarriesAndClearsEveryScalar : SCR_AutotestCa
 			return true;
 		}
 
-		if (live.m_iObjectivePhase != OVT_EObjectivePhase.IDLE)
+		if (live.m_sObjectivePlanName != "")
 		{
-			SetFailure("Clear() left the objective phase behind: %1 should be 0 - the next campaign in this session would open claiming a ramp that is not running", live.m_iObjectivePhase.ToString());
+			SetFailure("Clear() left the objective plan name behind: '%1' should be empty - the next campaign in this session would open naming the previous one's doctrine", live.m_sObjectivePlanName);
+			return true;
+		}
+
+		if (live.m_sObjectivePhaseName != "")
+		{
+			SetFailure("Clear() left the objective phase name behind: '%1' should be empty - the next campaign in this session would open claiming a ramp that is not running", live.m_sObjectivePhaseName);
 			return true;
 		}
 

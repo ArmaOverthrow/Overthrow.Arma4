@@ -133,32 +133,40 @@ class OVT_TEST_Logic_GMPanelFormat : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The two objective rows: every phase is named, no state renders blank, and "unknown" is not "none".
+//! The two objective rows: the target has a name, the phase row carries the AUTHORED plan and phase
+//! names, no state renders blank, and "unknown" is not "none".
 //!
-//! WHY IT IS WORTH A CASE. Both formatters are trivial and both have one failure mode that is invisible
-//! from anywhere else: a phase this build has never heard of. The phase crosses the Game Master wire as
-//! an INTEGER, and the two ends of that wire can be different builds. A formatter that answered "None"
-//! for an unrecognised value would tell a Game Master the occupying faction has no target while it is
-//! actively assaulting a town - a lie the panel presents with complete confidence.
+//! WHY IT IS WORTH A CASE. Both formatters are trivial and both have failure modes that are invisible
+//! from anywhere else. The phase used to cross the Game Master wire as an ENUM INTEGER, which meant
+//! every phase a Game Master could be shown had to exist as a member and a localization key in the
+//! CLIENT'S build: a modded doctrine's phases, authored perfectly, rendered as "Unknown". Build phase 7
+//! of occupying/objectives replaced that integer with the two authored names, and these rows are what
+//! pin the four answers the replacement has to give.
 //!
-//! ⚠ THE EXPECTED VALUES ARE LOCALIZATION KEYS, NOT ENGLISH. That is the point: the formatter must
-//! never build a display sentence, and pinning the KEY rather than the text means a translator changing
-//! the wording cannot fail a test. The keys are re-stated here as literals rather than read off the
-//! subject, because reading the subject's own constants back would assert nothing at all.
+//! ⚠ THE '#'-KEY ROW IS THE ONE THAT IS NOT OBVIOUS. A '#'-prefixed string is resolved by the widget
+//! ONLY when it is the whole string it was handed, so a plan or phase authored as a localization key
+//! must never be concatenated with the other half - "Town Offensive: #Some_Key" renders the raw key on
+//! a Game Master's screen. The formatter drops the plan half instead, and this case is the only thing
+//! that says so.
 //!
-//! ⚠ THE PHASE INTEGERS ARE ALSO LITERALS, and deliberately. They are a wire format that may never be
-//! renumbered; writing 3 here rather than naming the enum member means a renumbering breaks this case
-//! instead of silently travelling with it.
+//! ⚠ AN EMPTY PHASE WITH A PLAN IS "unknown"; EMPTY BOTH IS "none". Reporting a running campaign as
+//! having no target is a lie the panel presents with complete confidence, which is the same reason the
+//! integer form kept an explicit unknown.
 //!
-//! CAN-FAIL, three faults, injected one at a time and compiled. All three exited compile-check 0:
-//!   F1. FOLD UNKNOWN INTO NONE - `return PHASE_NONE;` as the final fallthrough. Compiled clean (exit
-//!       0). Every shipped row passes. The case fails on "a phase this build does not know must say so
-//!       rather than claiming the campaign has no objective".
-//!   F2. RETURN THE NAME UNCONDITIONALLY - drop the empty test in FormatObjectiveName. Compiled clean
-//!       (exit 0). The case fails on "an empty objective name must render as the None key, never as an
-//!       empty row".
-//!   F3. SHIFT THE PHASE TABLE BY ONE - test HARASSMENT against 2, FOB against 3 and so on. Compiled
-//!       clean (exit 0). The case fails on "phase 1 is harassment".
+//! ⚠ THE EXPECTED VALUES ARE LOCALIZATION KEYS OR AUTHORED NAMES, NOT ENGLISH. Pinning the KEY rather
+//! than the text means a translator changing the wording cannot fail a test; pinning the authored name
+//! means a phase name that is passed through is asserted to be passed through VERBATIM, which is the
+//! whole point of the wire change.
+//!
+//! CAN-FAIL, four faults, injected one at a time and compiled. All four exited compile-check 0:
+//!   F1. FOLD UNKNOWN INTO NONE - answer PHASE_NONE whenever the phase name is empty. Compiled clean;
+//!       the case fails on "a plan that is running with no phase name must say unknown".
+//!   F2. RETURN THE NAME UNCONDITIONALLY - drop the empty test in FormatObjectiveName. Compiled clean;
+//!       the case fails on "an empty objective name must render as the None key".
+//!   F3. CONCATENATE REGARDLESS - drop the IsLocalizationKey() guards. Compiled clean; the case fails
+//!       on "a phase name that is a localization key must be handed to the widget ALONE".
+//!   F4. DROP THE PLAN HALF - return the phase name unconditionally. Compiled clean; the case fails on
+//!       "the phase row names the plan and the phase, in that order".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
 class OVT_TEST_Logic_GMPanelFormat_ObjectiveRows : SCR_AutotestCaseBase
@@ -174,27 +182,32 @@ class OVT_TEST_Logic_GMPanelFormat_ObjectiveRows : SCR_AutotestCaseBase
 		if (!ExpectName("", "#OVT-GMPanel_ObjectiveNone", "an empty objective name must render as the None key, never as an empty row"))
 			return true;
 
-		// --- The phase row, every shipped value, against the INTEGERS that cross the wire.
-		if (!ExpectPhase(0, "#OVT-GMPanel_ObjectivePhaseNone", "phase 0 is idle, which means there is no objective"))
+		// --- The phase row, as both shipped plans author it: the plan, then the phase.
+		if (!ExpectPhase("Town Offensive", "Harassment", "Town Offensive: Harassment", "the phase row names the plan and the phase, in that order"))
 			return true;
 
-		if (!ExpectPhase(1, "#OVT-GMPanel_ObjectivePhaseHarassment", "phase 1 is harassment"))
+		if (!ExpectPhase("Base Offensive", "CounterAttack", "Base Offensive: CounterAttack", "an authored phase name is displayed VERBATIM - this build has no table of phase names and needs none"))
 			return true;
 
-		if (!ExpectPhase(2, "#OVT-GMPanel_ObjectivePhaseForwardBase", "phase 2 is the forward operating base"))
+		// --- A plan with no name of its own still shows its phase rather than nothing.
+		if (!ExpectPhase("", "Harassment", "Harassment", "a phase with no plan name beside it is still worth showing on its own"))
 			return true;
 
-		if (!ExpectPhase(3, "#OVT-GMPanel_ObjectivePhaseCounterAttack", "phase 3 is the counter-attack"))
+		// --- The two empty states, which mean different things.
+		if (!ExpectPhase("", "", "#OVT-GMPanel_ObjectivePhaseNone", "no plan and no phase is the ordinary no-objective state"))
 			return true;
 
-		// --- And the value nobody has shipped yet. Both directions: a future phase and a nonsense one.
-		if (!ExpectPhase(4, "#OVT-GMPanel_ObjectivePhaseUnknown", "a phase this build does not know must say so rather than claiming the campaign has no objective"))
+		if (!ExpectPhase("Town Offensive", "", "#OVT-GMPanel_ObjectivePhaseUnknown", "a plan that is running with no phase name must say unknown, never that the campaign has no target"))
 			return true;
 
-		if (!ExpectPhase(-1, "#OVT-GMPanel_ObjectivePhaseUnknown", "a negative phase is not idle either - it is a wire fault and must read as unknown"))
+		// --- A name authored AS a localization key. Resolvable only when it is the whole string.
+		if (!ExpectPhase("Town Offensive", "#MyMod_PhaseName", "#MyMod_PhaseName", "a phase name that is a localization key must be handed to the widget ALONE, or it renders as raw key text"))
 			return true;
 
-		Print("GM panel: every campaign phase has a name, an absent objective says so explicitly, and a phase from a build this one does not recognise reads as unknown rather than as no objective at all");
+		if (!ExpectPhase("#MyMod_PlanName", "Harassment", "Harassment", "a plan name that is a localization key cannot be prefixed onto the phase either - the phase alone is the readable answer"))
+			return true;
+
+		Print("GM panel: the objective row names the target, the phase row names the authored plan and phase, an absent objective says so explicitly, a running plan with no phase reads as unknown rather than none, and a name authored as a localization key is never concatenated with anything");
 
 		return true;
 	}
@@ -218,19 +231,20 @@ class OVT_TEST_Logic_GMPanelFormat_ObjectiveRows : SCR_AutotestCaseBase
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Asserts one formatted phase.
-	//! \param[in] phase The phase integer handed to the formatter.
-	//! \param[in] expected The key the display specification requires.
+	//! Asserts one formatted phase row.
+	//! \param[in] planName The plan name handed to the formatter.
+	//! \param[in] phaseName The phase name handed to the formatter.
+	//! \param[in] expected The string the display specification requires.
 	//! \param[in] label Human description, used only in the failure message.
 	//! \return True when it matched; false after recording the failure.
-	protected bool ExpectPhase(int phase, string expected, string label)
+	protected bool ExpectPhase(string planName, string phaseName, string expected, string label)
 	{
-		string actual = OVT_GMPanelFormat.FormatObjectivePhase(phase);
+		string actual = OVT_GMPanelFormat.FormatPhaseRow(planName, phaseName);
 
 		if (actual == expected)
 			return true;
 
-		SetFailure("%1: phase " + phase.ToString() + " formatted as '%2', expected '%3'", label, actual, expected);
+		SetFailure("%1: plan '" + planName + "' phase '" + phaseName + "' formatted as '%2', expected '%3'", label, actual, expected);
 
 		return false;
 	}

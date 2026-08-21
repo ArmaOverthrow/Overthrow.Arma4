@@ -259,22 +259,63 @@ fi
 if [[ ! -f "$OUT_DIR/console.log" ]]; then
     indeterminate "the run produced no console.log — nothing about it can be trusted"
 fi
-ADDON_PROOF="$(awk '
-    {
-        sub(/\r$/, "")
-        if (in_addons) {
-            if (index($0, "gproj:") > 0) {
-                if ($0 ~ /Overthrow\.Arma4[\/\\]addon\.gproj/) { found = 1 }
-                next
+# The expected gproj is derived from THIS worktree's root, forward-slash form,
+# exactly as compile-check.sh does it (parse_log's $2), and it is the ONLY
+# accepted match.
+#
+# 🔴 DO NOT re-add a hardcoded "Overthrow.Arma4/addon.gproj" fallback. One was
+# here until 2026-08-21, added to stop a false INDETERMINATE on a worktree not
+# literally named "Overthrow.Arma4" — and it silently converted a WRONG-TREE run
+# into a false GREEN. Every Overthrow checkout under the shared repo parent
+# declares the same addon ID "Overthrow" AND the same GUID 59B657D731E2A11D, so
+# `-addons Overthrow` resolves to whichever sibling the engine picks (observed:
+# always Overthrow.Arma4). The fallback matched that sibling's path and stamped
+# the run as this worktree's. The suite counts looked plausible because they were
+# real — they were simply another tree's.
+#
+# A worktree that cannot make the client load ITSELF must fail INDETERMINATE.
+# That is the whole point of this guard: no verdict beats a wrong verdict.
+# See OVERTHROW_GAME_ADDONS_DIRS in tools/launch-game.sh for the supported way to
+# point the client at one specific checkout.
+EXPECTED_GPROJ_WIN="$(ovt_win_path "$OVT_REPO_ROOT/addon.gproj" 2>/dev/null || true)"
+EXPECTED_GPROJ_FWD="${EXPECTED_GPROJ_WIN//\\//}"
+
+# The comparison is by FILE IDENTITY, not by string: every gproj path the engine
+# listed is converted back to a WSL path and fully resolved, then matched against
+# the resolved addon.gproj of this worktree. String equality is not good enough,
+# because the supported way to make the client load one specific checkout is to
+# point OVERTHROW_GAME_ADDONS_DIRS at a directory holding a junction to it — and
+# the engine then reports the JUNCTION's path, while OVT_REPO_ROOT is computed
+# with `pwd -P` and is always the real one. Resolving both ends makes a junction
+# match and still keeps a sibling checkout a miss, which is exactly the contract.
+EXPECTED_GPROJ_REAL="$(readlink -f "$OVT_REPO_ROOT/addon.gproj" 2>/dev/null || true)"
+ADDON_PROOF=0
+if [[ -n "$EXPECTED_GPROJ_REAL" ]]; then
+    while IFS= read -r _gp; do
+        [[ -n "$_gp" ]] || continue
+        _gp_wsl="$(wslpath -u "$_gp" 2>/dev/null)" || continue
+        _gp_real="$(readlink -f "$_gp_wsl" 2>/dev/null)" || continue
+        if [[ "$_gp_real" == "$EXPECTED_GPROJ_REAL" ]]; then
+            ADDON_PROOF=1
+            break
+        fi
+    done < <(awk '
+        {
+            sub(/\r$/, "")
+            if (in_addons) {
+                if (index($0, "gproj:") > 0) {
+                    n = split($0, parts, "\047")
+                    if (n >= 2) print parts[2]
+                    next
+                }
+                in_addons = 0
             }
-            in_addons = 0
+            if ($0 ~ /Loaded addons:/) { in_addons = 1 }
         }
-        if ($0 ~ /Loaded addons:/) { in_addons = 1 }
-    }
-    END { print found + 0 }
-' "$OUT_DIR/console.log")"
+    ' "$OUT_DIR/console.log")
+fi
 if [[ "$ADDON_PROOF" != 1 ]]; then
-    indeterminate "no proof the Overthrow addon was loaded ('Overthrow.Arma4/addon.gproj' absent from every 'Loaded addons:' block of console.log) — the run's tests, if any ran, were not Overthrow's"
+    indeterminate "no proof THIS worktree was loaded ('$EXPECTED_GPROJ_FWD' absent from every 'Loaded addons:' block of console.log) — the run's tests, if any ran, were another checkout's. Every Overthrow tree under the repo parent shares addon ID 'Overthrow' and GUID 59B657D731E2A11D, so '-addons Overthrow' can resolve to a sibling; set OVERTHROW_GAME_ADDONS_DIRS to a directory containing only this checkout."
 fi
 
 # --- junit.xml presence (the invalid-target detector) --------------------------

@@ -49,6 +49,8 @@ OVT_OverthrowGameMode {
    }
   }
   OVT_ObjectiveDirectorComponent "{6B5D1A2C00000010}" {
+   m_Registry OVT_ObjectiveRegistry "{6BA1000000000010}" : "{6BA1000000000001}Configs/Objective/overthrowObjectives.conf" {
+   }
   }
   OVT_OccupyingFactionManager "{59845E732755785F}" {
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"

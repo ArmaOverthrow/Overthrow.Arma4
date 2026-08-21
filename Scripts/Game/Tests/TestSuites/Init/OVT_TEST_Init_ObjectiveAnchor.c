@@ -367,11 +367,13 @@ class OVT_TEST_Init_ObjectiveAnchor_BiasWritesTheSortKeyAndNeverTheThreat : SCR_
 //! leave the occupying faction leaning on a place it had already given up on - silently, and for the
 //! rest of the campaign. Both paths are driven here.
 //!
-//! ⚠ THE RADII ARE ASSERTED AGAINST THE DIRECTOR'S OWN CONSTANTS, NOT AGAINST 600 AND 1200. A case
-//! that hard-coded the numbers would fail the day somebody tuned them, which is not a defect. What is
-//! a defect is the two phases sharing one reach, or the forward phase being the NARROWER of the two -
-//! so those are the relationships asserted, plus the fact that a phase with no objective carries no
-//! reach at all.
+//! ⚠ THE RADII ARE ASSERTED AGAINST THE RUNNING PLAN'S OWN AUTHORED PHASES, NOT AGAINST 600 AND 1200.
+//! A case that hard-coded the numbers would fail the day somebody tuned them, which is not a defect.
+//! What is a defect is a pushed reach that is not the reach the plan authored for the phase the
+//! objective is actually in - which is the whole of build phase 6's T6.4, since the per-phase radius
+//! became authored data and the director's hard-coded per-phase lookup was deleted with the enum
+//! mapping it needed - or the two phases sharing one reach, or the forward phase being the NARROWER
+//! of the two. All three are asserted, plus both ways of ending up with no reach at all.
 //!
 //! ⚠ EVERYTHING IS PUT BACK. The initialisation world is shared, and the director is left with no
 //! objective and no anchor whatever this case does - including on every failure path, which is why
@@ -416,13 +418,20 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 		//     push site the live machine uses.
 		director.CommitObjective(OVT_EObjectiveKind.TOWN, FIXTURE_POSITION, "anchor fixture");
 
+		// 🔴 THE EXPECTED REACH IS READ OFF THE PLAN THE OBJECTIVE IS ACTUALLY RUNNING, phase by phase.
+		//    A commit from outside a selection round resolves its plan by kind, so this is the town
+		//    doctrine's own authored data - which is where the three radii live since build phase 6.
+		float authoredHarassment = AuthoredRadius(director, 0);
+		float authoredForward = AuthoredRadius(director, 1);
+		float authoredBattle = AuthoredRadius(director, 2);
+
 		OVT_DeploymentObjectiveAnchor harassment = CopyAnchor(deployments.GetObjectiveAnchor(occupyingIndex));
 
 		// --- ACT: walk the phases the objective really goes through.
-		director.EnterPhase(OVT_EObjectivePhase.FOB);
+		director.EnterPhase("ForwardBase");
 		OVT_DeploymentObjectiveAnchor forward = CopyAnchor(deployments.GetObjectiveAnchor(occupyingIndex));
 
-		director.EnterPhase(OVT_EObjectivePhase.COUNTER_QRF);
+		director.EnterPhase("CounterAttack");
 		OVT_DeploymentObjectiveAnchor battle = CopyAnchor(deployments.GetObjectiveAnchor(occupyingIndex));
 
 		// --- DROP PATH ONE: the reset.
@@ -434,14 +443,22 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 		director.CommitObjective(OVT_EObjectiveKind.BASE, FIXTURE_POSITION, "anchor fixture");
 		bool pushedForABase = deployments.GetObjectiveAnchor(occupyingIndex) != null;
 
-		director.EnterPhase(OVT_EObjectivePhase.IDLE);
+		director.EnterPhase("");
 		bool clearedByIdle = deployments.GetObjectiveAnchor(occupyingIndex) == null;
 
 		// --- RESTORE, BEFORE ASSERTING. The world is shared and a SetFailure returns immediately.
 		director.ResetObjective("initialisation-tier anchor fixture torn down", false);
 		deployments.ClearObjectiveAnchor(occupyingIndex);
 
-		// --- ASSERT: the push happened, at the right index, at the right place.
+		// --- ASSERT. The preconditions first: a plan that authored no radii would make every comparison
+		//     below compare the fallback against itself and prove nothing.
+		if (authoredHarassment <= 0 || authoredForward <= 0 || authoredBattle <= 0)
+		{
+			SetFailure("the committed plan does not author a positive anchor radius on all three of its phases (%1, %2, %3) - the per-phase reach is authored data since build phase 6, and a phase that leaves it at the sentinel silently gets the tight default wherever the objective is in its ramp",
+				authoredHarassment.ToString(), authoredForward.ToString(), authoredBattle.ToString());
+			return true;
+		}
+
 		if (!harassment)
 		{
 			SetFailure("committing to an objective must bias the occupying faction toward it, but faction %1 reads back as unbiased",
@@ -463,8 +480,8 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 			return true;
 		}
 
-		// --- ASSERT: the reach follows the phase.
-		if (!ExpectRadius(harassment, director.AnchorRadiusForPhase(OVT_EObjectivePhase.HARASSMENT), "harassment"))
+		// --- ASSERT: the reach follows the phase, and the reach IS the one the plan authored for it.
+		if (!ExpectRadius(harassment, authoredHarassment, "harassment"))
 			return true;
 
 		if (!forward)
@@ -473,7 +490,7 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 			return true;
 		}
 
-		if (!ExpectRadius(forward, director.AnchorRadiusForPhase(OVT_EObjectivePhase.FOB), "the forward base"))
+		if (!ExpectRadius(forward, authoredForward, "the forward base"))
 			return true;
 
 		if (!battle)
@@ -482,7 +499,7 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 			return true;
 		}
 
-		if (!ExpectRadius(battle, director.AnchorRadiusForPhase(OVT_EObjectivePhase.COUNTER_QRF), "the counter-attack"))
+		if (!ExpectRadius(battle, authoredBattle, "the counter-attack"))
 			return true;
 
 		// --- ...and the relationship between the two reaches, which is the part a tuner must not break.
@@ -493,13 +510,12 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 			return true;
 		}
 
-		// --- A phase with no objective carries no reach at all, so an unhandled phase fails safe.
-		if (director.AnchorRadiusForPhase(OVT_EObjectivePhase.IDLE) > 0)
-		{
-			SetFailure("an idle objective must carry no reach, but the director reports %1",
-				director.AnchorRadiusForPhase(OVT_EObjectivePhase.IDLE).ToString());
-			return true;
-		}
+		// ⚠ THE OLD "an idle phase reports zero reach" ROW IS GONE WITH THE METHOD IT ASKED, AND NOTHING
+		//   WAS LOST. It asserted that a hard-coded per-phase lookup answered 0 for IDLE; the reach is the
+		//   plan's now and an idle objective has no plan phase to read one from. What that row was really
+		//   protecting - "an objective that has gone leaves nothing leaning on its place" - is asserted
+		//   directly and more strongly by clearedByReset and clearedByIdle below, which require the whole
+		//   anchor to be GONE rather than merely to have a radius of zero.
 
 		// --- ASSERT: both ways of ending up with no objective drop the bias.
 		if (!pushedForABase)
@@ -526,6 +542,28 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The anchor radius the running plan authors for one of its phases.
+	//! \param[in] director The director, for the objective it is running.
+	//! \param[in] index Which phase of the plan.
+	//! \return The authored radius in metres, or -1 when there is no plan or no such phase.
+	protected float AuthoredRadius(notnull OVT_ObjectiveDirectorComponent director, int index)
+	{
+		OVT_ObjectiveInstance instance = director.GetObjectiveInstance(0);
+		if (!instance)
+			return -1;
+
+		OVT_ObjectiveConfig plan = instance.GetConfig();
+		if (!plan)
+			return -1;
+
+		OVT_ObjectivePhase phase = plan.GetPhase(index);
+		if (!phase)
+			return -1;
+
+		return phase.m_fAnchorRadius;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Snapshots an anchor so it can be asserted after the world has been put back.
 	//! \param[in] source The live anchor, or null.
 	//! \return A detached copy, or null when there was nothing to copy.
@@ -545,7 +583,7 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 	//------------------------------------------------------------------------------------------------
 	//! Asserts one pushed reach against what the director says that phase is worth.
 	//! \param[in] anchor The anchor that was pushed.
-	//! \param[in] expected The reach the director declares for that phase.
+	//! \param[in] expected The reach the running plan authors for that phase.
 	//! \param[in] label Human name of the phase.
 	//! \return True when it matched; false after recording the failure.
 	protected bool ExpectRadius(notnull OVT_DeploymentObjectiveAnchor anchor, float expected, string label)
@@ -553,7 +591,7 @@ class OVT_TEST_Init_ObjectiveAnchor_DirectorPushesPerPhaseAndDropsOnEveryExit : 
 		if (Math.AbsFloat(anchor.radius - expected) <= EPSILON)
 			return true;
 
-		SetFailure("the reach pushed for %1 must be the one the director declares for that phase: pushed %2, declared %3",
+		SetFailure("the reach pushed for %1 must be the one the running PLAN authors for that phase: pushed %2, authored %3",
 			label, anchor.radius.ToString(), expected.ToString());
 
 		return false;

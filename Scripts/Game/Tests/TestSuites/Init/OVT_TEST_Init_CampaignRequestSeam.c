@@ -158,29 +158,29 @@ class OVT_TEST_Init_Controller_CampaignDismantleFOBIsWired : SCR_AutotestCaseBas
 			return true;
 		}
 
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 		{
 			SetFailure("the director already reports a forward base standing before this case ran - some earlier case left one recorded, and driving the dismantle verb here would tear it down rather than refuse.");
 			return true;
 		}
 
-		OVT_EObjectivePhase phaseBefore = director.GetPhase();
+		string phaseBefore = director.GetObjectivePhaseName();
 		int spentBefore = director.GetFOBSpent();
 
 		// THE CALL. On the authority the public entry point runs the handler directly, so a sender and
 		// a handler that had drifted apart could not both be reached by this one line.
 		campaign.DismantleEnemyFOB();
 
-		if (director.IsFOBUp())
+		if (director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 		{
 			SetFailure("the dismantle verb PUT A FORWARD BASE UP - it is wired to the wrong thing entirely.");
 			return true;
 		}
 
-		if (director.GetPhase() != phaseBefore)
+		if (director.GetObjectivePhaseName() != phaseBefore)
 		{
 			SetFailure("the dismantle verb changed the objective phase on a campaign with no forward base: was %1, now %2. Every refusal must leave the machine exactly as it found it.",
-				phaseBefore.ToString(), director.GetPhase().ToString());
+				phaseBefore, director.GetObjectivePhaseName());
 			return true;
 		}
 

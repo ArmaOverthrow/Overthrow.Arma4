@@ -79,10 +79,28 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	[Attribute(defvalue: "300", desc: "Maximum distance from the deployment to the base it may sabotage. A base objective is created AT the base's own position, so this only has to survive a spawn nudge")]
 	float m_fMaxBaseDistance;
 
-	[Attribute(defvalue: "120", desc: "Seconds between demolitions. FALLBACK ONLY - the campaign's objectiveSabotageHoldSeconds is used whenever difficulty settings are loaded")]
+	//! =============================================================================================
+	//! ⚠ THE DIFFICULTY CONVENTION IS "-1 MEANS ASK THE CAMPAIGN", AND IT WAS FLIPPED HERE ON
+	//! 2026-08-21 (occupying/objectives build phase 4).
+	//! =============================================================================================
+	//! It used to be the opposite - "FALLBACK ONLY: the campaign's value is used WHENEVER difficulty
+	//! settings are loaded" - which meant an authored number was silently IGNORED in every real
+	//! campaign. A .conf field a server owner can tune and that then does nothing is worse than a
+	//! missing one, because the whole authored surface loses its credibility with it.
+	//!
+	//! ⚠ THE FLIP IS BEHAVIOUR-NEUTRAL ONLY BECAUSE THE SHIPPED CONFIG WAS RE-AUTHORED TO -1 IN THE
+	//! SAME CHANGE. A config left holding its old positive number would now be HONOURED instead of
+	//! overridden, and the campaign would stop scaling with difficulty. That is exactly why
+	//! OVT_TowerRecaptureBehaviorDeploymentModule was NOT flipped with the other two - see its own
+	//! header - and why OVT_BaseRepairBehaviorDeploymentModule, which left for the deployments
+	//! framework as a pure relocation, is excluded as well.
+	//!
+	//! ⚠ AN AUTHORED ZERO IS NOW AN AUTHORED ZERO, not "unauthored". Every resolver below still clamps
+	//! to its own floor, so a zero reads as the smallest sane value rather than as a divide-by-nothing.
+	[Attribute(defvalue: "-1", desc: "Seconds between demolitions. -1 = the campaign's objectiveSabotageHoldSeconds difficulty setting (180 on Easy down to 60 on Insane), which is what the shipped config authors. Any other value OVERRIDES difficulty for this config")]
 	int m_iHoldSeconds;
 
-	[Attribute(defvalue: "2", desc: "Structures destroyed before the mission reports and stands down. FALLBACK ONLY - the campaign's objectiveSabotageStructuresPerMission is used whenever difficulty settings are loaded")]
+	[Attribute(defvalue: "-1", desc: "Structures destroyed before the mission reports and stands down. -1 = the campaign's objectiveSabotageStructuresPerMission difficulty setting (1 on Easy up to 3 on Insane), which is what the shipped config authors. Any other value OVERRIDES difficulty for this config - see m_iHoldSeconds for the convention")]
 	int m_iStructuresPerMission;
 
 	//! One deployment update, in seconds. See OVT_TownHarassmentBehaviorDeploymentModule.UPDATE_SECONDS.
@@ -541,9 +559,13 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		Print(string.Format("[Overthrow] Sabotage mission complete after %1 structure(s): %2",
 			m_iDestroyed, reason), LogLevel.NORMAL);
 
+		// 🔴 IT REPORTS INTO THE OBJECTIVE'S BAG AND DOES NOTHING ELSE. The signal is PULLED by the
+		// director's tick, which compares the counter against a mark; a report that advanced a phase or
+		// re-armed a timer would put a transition somewhere other than behind the tick's three early
+		// returns. See OVT_ObjectiveDirectorComponent.ReportObjectiveProgress().
 		OVT_ObjectiveDirectorComponent director = OVT_ObjectiveDirectorComponent.GetInstance();
 		if (director)
-			director.OnSabotageSuccess();
+			director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_SABOTAGE_SUCCESSES, 1);
 
 		// The operation is over. Collected NEXT FRAME rather than here - see
 		// OVT_BaseBehaviorDeploymentModule.RequestDeploymentCollection for why an inline delete from a
@@ -582,7 +604,9 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How many updates one demolition interval is worth, difficulty first, attribute as the fallback.
+	//! How many updates one demolition interval is worth: the authored attribute, or the campaign's
+	//! setting when the attribute is the -1 sentinel. See m_iHoldSeconds for the convention and for why
+	//! it was flipped.
 	//!
 	//! PUBLIC so an initialisation-tier case can assert the precedence and the clamp against the
 	//! campaign's real authored values - the precedent is OVT_DeploymentManagerComponent making
@@ -591,11 +615,13 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	//! \return At least one update.
 	int ResolveIntervalTicks()
 	{
-		int seconds = m_iHoldSeconds;
+		int difficultyValue = -1;
 
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (difficulty && difficulty.objectiveSabotageHoldSeconds > 0)
-			seconds = difficulty.objectiveSabotageHoldSeconds;
+		if (difficulty)
+			difficultyValue = difficulty.objectiveSabotageHoldSeconds;
+
+		int seconds = OVT_ObjectivePlanRules.ResolveWithDifficulty(m_iHoldSeconds, difficultyValue);
 
 		if (seconds < UPDATE_SECONDS)
 			return 1;
@@ -604,20 +630,22 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How many structures this mission may take, difficulty first, attribute as the fallback.
+	//! How many structures this mission may take: the authored attribute, or the campaign's setting when
+	//! the attribute is the -1 sentinel.
 	//!
 	//! PUBLIC for the same reason ResolveIntervalTicks() is. The clamp is defensive only - the quota is
-	//! tested AFTER a demolition, so a zero and a one behave identically - but a difficulty preset
-	//! authored at zero should read as "one per mission" rather than as an accident that happens to
-	//! work.
+	//! tested AFTER a demolition, so a zero and a one behave identically - but an authored or preset
+	//! zero should read as "one per mission" rather than as an accident that happens to work.
 	//! \return At least one.
 	int ResolveStructuresPerMission()
 	{
-		int count = m_iStructuresPerMission;
+		int difficultyValue = -1;
 
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (difficulty && difficulty.objectiveSabotageStructuresPerMission > 0)
-			count = difficulty.objectiveSabotageStructuresPerMission;
+		if (difficulty)
+			difficultyValue = difficulty.objectiveSabotageStructuresPerMission;
+
+		int count = OVT_ObjectivePlanRules.ResolveWithDifficulty(m_iStructuresPerMission, difficultyValue);
 
 		if (count < 1)
 			return 1;

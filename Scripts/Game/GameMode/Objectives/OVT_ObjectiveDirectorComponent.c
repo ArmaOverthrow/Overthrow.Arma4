@@ -61,6 +61,24 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	[Attribute(defvalue: "25", desc: "The most the objective may add to a routine deployment candidate's SORT KEY, at the objective itself, falling off linearly to nothing at the phase's anchor radius. It biases which suitable work is bought first and never which work is suitable", category: "Objective Director")]
 	protected float m_fObjectiveAnchorWeight;
 
+	//! THE AUTHORED SURFACE. Every plan the occupying faction may commit to, and every phase of each
+	//! plan, as data - see OVT_ObjectiveRegistry. Wired on the game-mode prefab beside the deployment
+	//! registry, in exactly the same inherit-and-delta form.
+	//!
+	//! 🔴 IT MAY LEGITIMATELY BE NULL, AND FROM BUILD PHASE 6 THAT MEANS THE OCCUPYING FACTION STOPS
+	//! ATTACKING. A world whose prefab predates this attribute, a mod that clears it, or a .conf that
+	//! failed to load leaves the registry unresolved - and every rule the faction follows is in it.
+	//! While the doctrine was still hard-coded the runner fell back to it; there is no second
+	//! implementation now, so selection picks nothing and says so once (SelectObjective()) and an
+	//! objective committed from outside selection does nothing and says so once
+	//! (LogObjectiveWithNoPlan()). Both are ERROR lines, deliberately: a quiet faction is the one
+	//! failure mode with no symptom a player could report.
+	[Attribute(desc: "The objective plan registry - every doctrine the occupying faction may commit to. Authored as a .conf, exactly like the deployment registry beside it", category: "Objective Director")]
+	protected ref OVT_ObjectiveRegistry m_Registry;
+
+	[Attribute(defvalue: "1", desc: "How many objectives may run at once. The campaign is designed for N and shipped and tested at 1; raising it is not tuned and every cadence, cap and reserve figure was chosen for a single objective", category: "Objective Director")]
+	protected int m_iMaxConcurrentObjectives;
+
 	//------------------------------------------------------------------------------------------------
 	// CONSTANTS
 	//------------------------------------------------------------------------------------------------
@@ -97,21 +115,23 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! created and not one that happens to share its config elsewhere.
 	static const float TEARDOWN_LOOKUP_RADIUS = 250;
 
-	//! How far the objective bias reaches during harassment, in metres.
+	//! How far the objective bias reaches for a phase that authors no radius of its own, in metres.
 	//!
-	//! TIGHT ON PURPOSE. In this phase the only thing worth leaning on is the objective itself, and a
-	//! wide radius here would pull routine garrisoning off the whole surrounding map for a target the
-	//! machine has not committed to yet - harassment is the one phase that may still re-select.
-	static const float HARASSMENT_ANCHOR_RADIUS = 600;
-
-	//! How far the objective bias reaches from the forward-base phase onward, in metres.
-	//!
-	//! DELIBERATELY WIDER THAN THE HARASSMENT RADIUS. From here the objective is LOCKED and the
-	//! occupying faction is committed, and the forward base stands somewhere BETWEEN its nearest held
-	//! base and the objective - so the band that needs garrisoning is the whole approach, not just the
-	//! target. The same figure serves the counter-attack phase: the ground being fought over does not
-	//! shrink when the battle starts.
-	static const float FORWARD_ANCHOR_RADIUS = 1200;
+	//! 🔴 THE PER-PHASE NUMBERS ARE AUTHORED DATA NOW (build phase 6) and this is only the fallback.
+	//! Both shipped plans author their own three: 600 m for harassment, 1200 m from the forward base
+	//! onward. The reasoning behind those two figures is the reasoning behind this one, and it is why
+	//! the default is the TIGHT one:
+	//!   600 m, HARASSMENT. The only thing worth leaning on is the objective itself, and a wide radius
+	//!     would pull routine garrisoning off the whole surrounding map for a target the machine has
+	//!     not committed to yet - harassment is the one phase that may still re-select.
+	//!   1200 m, FORWARD BASE AND BATTLE. From there the objective is LOCKED and the faction is
+	//!     committed, and the forward base stands somewhere BETWEEN its nearest held base and the
+	//!     objective - so the band that needs garrisoning is the whole approach, not just the target.
+	//!     The same figure serves the battle: the ground being fought over does not shrink when the
+	//!     fighting starts.
+	//! A phase that authors -1 gets the tight one, because a bias nobody chose the reach of should lean
+	//! on as little of the map as possible.
+	static const float DEFAULT_ANCHOR_RADIUS = 600;
 
 	//! THE HARASSMENT GROUP LADDER, one registered deployment config per rung, in ascending order.
 	//!
@@ -165,17 +185,6 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! m_fMaxBaseDistance, so a mission and the count that limits it agree about which base is which.
 	static const float SABOTAGE_OP_RADIUS = 300;
 
-	//! How close to a real base a BASE objective's position has to be before sabotage will be sent
-	//! there at all.
-	//!
-	//! ⚠ NOT DEFENSIVE PADDING. A base objective's position IS the base's own location (selection
-	//! copies base.location verbatim), so in a live campaign this always passes by metres. What it stops
-	//! is a director whose objective was set to a position with no base under it - a restored payload
-	//! naming a base that has since gone, or a fixture arranging a state - from creating a real
-	//! deployment, spending real resources and eventually demolishing the structures of whichever base
-	//! happened to be nearest on the map.
-	static const float BASE_OP_RESOLVE_RADIUS = 100;
-
 	//! The support modifier a completed harassment operation stacks onto its town, and the CAUSAL HALF
 	//! OF THE FORWARD-BASE GATE: the objective may not advance out of harassment unless the town is
 	//! actually carrying it. Must match the name authored on the harassment behaviour module and, at
@@ -189,6 +198,27 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 	//! The extra garrison sent to a forward base once it is standing, sourced FROM it.
 	static const string FOB_GARRISON_CONFIG = "Objective Forward Base Garrison";
+
+	//! The forward base's key in the asset map. THE ONE PLACE THE LITERAL IS WRITTEN: every consumer
+	//! asks IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB), so a mistyped key is a compile error
+	//! rather than a silently absent asset.
+	static const string ASSET_FOB = "fob";
+
+	//------------------------------------------------------------------------------------------------
+	// ⚠ THE RUNNER NAMES NO PLAN AND NO PHASE, AND THE CONSTANTS THAT USED TO SIT HERE ARE GONE.
+	//
+	// Two deletions, one phase apart, for the same reason. The TWO PLAN NAMES went in build phase 3:
+	// selection is plan-driven, so the round that picks a plan hands it to CommitObjective(), and a
+	// commit from outside a selection round asks the registry which plan can DESCRIBE the kind
+	// (ResolvePlanForKind) instead of knowing two names. THE THREE PHASE NAMES went in build phase 7
+	// with the phase enum itself: they existed only to map that enum onto the two shipped plans'
+	// phase order, and with it gone there is nothing left to map. A phase is an index into the
+	// running plan and an authored m_sPhaseName, everywhere, including on the Game Master wire.
+	//
+	// 🔴 NOTHING IN THIS COMPONENT MAY NAME A SHIPPED PLAN OR A SHIPPED PHASE AGAIN. A constant here
+	// is a doctrine this build knows about, and the whole point of the authored registry is that it
+	// does not know about any of them.
+	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
 	// WHY A CREATE WAS REFUSED (2026-08-19)
@@ -229,188 +259,11 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! ten minutes at the shipped 6x day multiplier: visible on a scroll-back, invisible as spam.
 	static const int AFFORDABILITY_HEARTBEAT_TICKS = 60;
 
-	//------------------------------------------------------------------------------------------------
-	// THE COUNTER-ATTACK WINDOW (D17)
-	//------------------------------------------------------------------------------------------------
-
-	//! First hour of the day a counter-attack may BEGIN, inclusive.
-	//!
-	//! ⚠ CONSTS HERE, NOT DIFFICULTY FIELDS, AND DELIBERATELY. The user asked for a fixed window; this
-	//! feature already grows OVT_DifficultySettings by eleven fields; and promoting two consts to
-	//! authored fields later is a two-line change, while un-shipping two authored fields is a
-	//! save-format conversation. The predicate they are handed to is pure and takes both bounds as
-	//! arguments precisely so that promotion needs no other edit.
-	static const int COUNTER_ATTACK_HOUR_START = 5;
-
-	//! First hour of the day a counter-attack may no longer begin, EXCLUSIVE - so the last minute one
-	//! may start is 14:59.
-	//!
-	//! Ending at 15:00 rather than at dusk is what puts the whole battle in daylight without a second
-	//! check anywhere: a counter-attack that starts inside this window has its build-up, its muster and
-	//! its fight before dark.
-	static const int COUNTER_ATTACK_HOUR_END = 15;
-
-	//! EvaluateCounterAttackGate(): the ramp is not finished. The forward-base phase carries on as it
-	//! did, clocks and all.
-	static const int COUNTER_ATTACK_NOT_READY = 0;
-
-	//! EvaluateCounterAttackGate(): everything the ramp can control is done and only the clock is in the
-	//! way.
-	//!
-	//! ⚠ THE WAIT IS NOT A FAILURE OF THE OBJECTIVE - it does not spend the phase timeout, does not
-	//! re-select and does not blacklist. It is NOT a suspension of the forward-base phase: the garrison
-	//! sender still runs and the starvation rule is still evaluated, so the resistance can starve the
-	//! base down or dismantle it at 22:00 exactly as it can at midday. See TickFOB() for the full
-	//! argument and for the D17 correction it records.
-	static const int COUNTER_ATTACK_WAIT_FOR_DAYLIGHT = 1;
-
-	//! EvaluateCounterAttackGate(): start the battle.
-	static const int COUNTER_ATTACK_FIRE = 2;
-
-	//------------------------------------------------------------------------------------------------
-	// FORWARD-BASE SITING
-	//
-	// ⚠ THE GENERATED PATH IS THE PRIMARY PATH AND IS TUNED AS IF THE AUTHORED ONE WILL NEVER EXIST
-	// (R17). No OVT_FOBPosition marker is placed in any shipped world today - putting them there is a
-	// Workbench world-editing job nobody has done - so every constant below is what actually decides
-	// where forward bases land. Authored markers are an optimisation a map author may apply on top,
-	// and they win when they exist.
-	//------------------------------------------------------------------------------------------------
-
-	//! Nearest the forward base may stand to the objective, as a fraction of the way back to the base
-	//! supplying it. A third of the way out: any closer and it is inside the objective's own defended
-	//! ground, where it would be found in the first minute and could not be supplied.
-	static const float FOB_BAND_MIN_FRACTION = 0.35;
-
-	//! Furthest the forward base may stand from the objective, as the same fraction. Three quarters of
-	//! the way out, so the base is meaningfully FORWARD of the rear rather than a second flag beside
-	//! the one the faction already has - which is the whole point of the middle phase.
-	static const float FOB_BAND_MAX_FRACTION = 0.75;
-
-	//! Absolute floor on the standoff from the objective, in metres, whatever the fractions work out
-	//! to. A short supply line would otherwise put a forward base 80 m outside a town.
-	static const float FOB_MIN_STANDOFF = 350;
-
-	//! Absolute ceiling on the standoff, in metres. Past this the base is not supporting the objective
-	//! in any sense a player could read, and the counter-attack's waves would come from nowhere near it.
-	static const float FOB_MAX_STANDOFF = 2500;
-
-	//! Steps sampled along the supply line. Eight spreads the samples about 40 m apart over a typical
-	//! band, which is finer than the clearance box the trace tests with.
-	static const int FOB_SITING_STEPS = 8;
-
-	//! Lateral lanes sampled at each step: on the line, then evenly spaced out to FOB_LATERAL_SPREAD
-	//! either side of it. A site straight down the supply road is the shortest resupply and is lane 0
-	//! so it is tried first; the offsets are what find the field behind the treeline when it is not.
-	//!
-	//! ⚠ RAISED FROM 3 TO 5 (user, 2026-08-19), TOGETHER WITH FOB_LATERAL_SPREAD - "some more room to
-	//! choose a spot". Five lanes at a 400 m spread are 0, +-200, +-400, so the corridor is the same
-	//! width the spread names and the extra pair fills in between rather than extending past it. That is
-	//! a property of OVT_FOBSiting.LateralOffset() rather than of this number: read its header before
-	//! changing either, because the pre-2026-08-19 mapping would have made this 0, +-400, +-800.
-	//!
-	//! ⚠ THIS IS THE KNOB THAT COSTS CANDIDATES, and it costs FOB_SITING_STEPS of them apiece - eight,
-	//! here. Widening the spread relocates lanes; adding one creates a whole new column of samples.
-	static const int FOB_SITING_LANES = 5;
-
-	//! ⚠ THE ATTEMPT COUNT, AND IT IS THE PRODUCT OF THE TWO ABOVE RATHER THAN A NUMBER SOMEBODY LIKED.
-	//! Forty is FOB_SITING_STEPS x FOB_SITING_LANES: the sampler walks a deterministic lattice and this
-	//! is simply how many points are in it.
-	//!
-	//! 🔴 IT IS A BUDGET, NOT A BOUND, AND THIS COMMENT SAID THE OPPOSITE UNTIL 2026-08-19. It claimed
-	//! "the search returns on the first candidate that passes every hard test, which on open terrain is
-	//! usually the first or second". SampleGeneratedFOBSite() does no such thing and never has: it
-	//! evaluates EVERY point and keeps the highest-scoring one, which is the whole reason a site is
-	//! chosen by flatness, elevation and road proximity rather than by lattice order - and the reason
-	//! the log line quotes a score. Every raise pays for all of these, so the number is a real cost.
-	//!
-	//! WHAT ONE ATTEMPT ACTUALLY COSTS, cheapest test first, because most candidates never reach the
-	//! expensive half: a band test (arithmetic), an ocean read, and one loop over the exclusion list -
-	//! and only then, for a survivor, five GetSurfaceY probes, a TraceBox and a nearest-road query.
-	//!
-	//! ⚠ AND IT RUNS ONCE PER OBJECTIVE, WHICH IT DID NOT BEFORE. Until the same day's affordability fix
-	//! this whole lattice ran on EVERY tick of a forward-base phase that could not pay - six times a real
-	//! minute, indefinitely. The pre-flight in SendFOBOperation() now refuses before the search, so the
-	//! forty points are walked once, on the tick that actually raises the base. Sixteen more samples on a
-	//! search that went from ~180 runs per real hour to one is a straight reduction, not a new cost.
-	static const int FOB_SITING_ATTEMPTS = FOB_SITING_STEPS * FOB_SITING_LANES;
-
-	//! How far each lateral lane pushes a sample off the supply line, in metres.
-	//!
-	//! ⚠ WIDENED FROM 250 TO 400 (user, 2026-08-19) - "some more room to choose a spot". A play-test's
-	//! chosen site was in an OUTER lane at the old 250, which says the centre lane down the supply road
-	//! was rejected there and the sampler was already living on the edge of its own lattice.
-	//!
-	//! ⚠ IT IS A MAXIMUM, NOT A PER-LANE STEP, AND THIS NUMBER ON ITS OWN ADDS NO CANDIDATES. The lattice
-	//! size is FOB_SITING_STEPS x FOB_SITING_LANES; widening the spread relocates the outer lanes rather
-	//! than sampling anywhere new. FOB_SITING_LANES is the knob that adds chances, at FOB_SITING_STEPS
-	//! candidates apiece, and it was raised to 5 in the same change - so the corridor is this wide either
-	//! way and the extra pair of lanes fills it in at +-200 rather than reaching past it. That last part
-	//! is OVT_FOBSiting.LateralOffset()'s doing, not this constant's; read its header before touching
-	//! either.
-	//!
-	//! ⚠ AND IT INTERACTS WITH THE BAND, WHICH IS WHY IT CANNOT GROW WITHOUT LIMIT. A lane offset makes
-	//! a candidate FURTHER from the objective than its step's standoff - sqrt(standoff^2 + offset^2) -
-	//! and EvaluateFOBCandidate() re-tests that distance against the band. Widening therefore costs the
-	//! OUTERMOST lanes their outermost step or two on a long supply line, and on a SHORT one (where the
-	//! band collapses towards FOB_MIN_STANDOFF) it makes them unusable entirely - as 250 already did, so
-	//! this is not a regression. It bites the SAME distance off the line as before, so the lanes it bites
-	//! are still the +-400 pair; the new +-200 pair sits where the old +-250 lanes did and loses less than
-	//! they used to. The centre lane is unaffected at any spread.
-	static const float FOB_LATERAL_SPREAD = 400;
-
-	//! Radius of the four ground probes that judge how level a candidate is, in metres. Slightly wider
-	//! than the structure's own footprint so a site straddling the lip of a ditch is caught.
-	static const float FOB_FLATNESS_PROBE_RADIUS = 8;
-
-	//! Height spread across those probes at which a candidate is rejected outright, in metres. Two and
-	//! a half metres over a sixteen-metre span is about a 1-in-6 slope; a structure on more than that
-	//! floats at one corner and sinks at another, which is the one siting failure everybody can see.
-	static const float FOB_FLATNESS_TOLERANCE = 2.5;
-
-	//! Height advantage over the objective at which the elevation preference saturates, in metres.
-	static const float FOB_ELEVATION_USEFUL_GAIN = 30;
-
-	//! Half-width of the clearance box traced at each candidate, in metres.
-	static const float FOB_CLEAR_BOX_HALF = 6;
-
-	//! Height of that box, in metres.
-	static const float FOB_CLEAR_BOX_HEIGHT = 8;
-
-	//! Nothing may be built this close to a base of ANY faction, in metres. Matches the radius the
-	//! placement limit already treats as "belonging to a base" (OVT_ItemLimitChecker's own figure for
-	//! EOVTBaseType.BASE), so a forward base is never inside ground another system considers spoken for.
-	static const float FOB_CLEARANCE_BASE = 500;
-
-	//! Nothing may be built this close to a resistance forward base or camp, in metres. Tighter than a
-	//! military base because a camp is a small thing, and generous enough that the occupying faction
-	//! never plants a flag inside a player's own site.
-	static const float FOB_CLEARANCE_RESISTANCE_SITE = 300;
-
-	//! Added to a resistance-held town's own range to get its exclusion radius, in metres. The town
-	//! range is where the campaign already stops counting a place as "in the town"; the margin keeps a
-	//! forward base out of the fields immediately outside it, where it would be as visible as inside.
-	static const float FOB_CLEARANCE_TOWN_MARGIN = 150;
-
-	//! How far from the recorded forward-base position a deployment or a structure counts as belonging
-	//! to it. Used by the garrison cap, the starvation count and the teardown sweep, so all three agree
-	//! about what "at the forward base" means.
-	static const float FOB_AREA_RADIUS = 250;
-
-	//! How far from the recorded position the teardown looks for the structure itself, in metres.
-	//! Tight: the structure is spawned AT that position, so anything further away is something else.
-	static const float FOB_STRUCTURE_SEARCH_RADIUS = 60;
-
-	//! How close a player has to be to the flag to dismantle a forward base, in metres. The action is
-	//! performed on the flag from interaction range; this is the SERVER's re-derivation of that, and it
-	//! is deliberately generous because the flag's origin is not where the player is standing.
-	static const float FOB_DISMANTLE_RANGE = 30;
-
-	//! No occupying-faction soldier may be alive within this many metres of the flag while a player
-	//! dismantles it. The forward base has to be CLEARED, not merely reached - otherwise the fifteen
-	//! second hold is something a player does while being shot at, which reads as a bug rather than a
-	//! challenge.
-	static const float FOB_DEFENDER_CLEAR_RADIUS = 150;
+	//! ResolveOperationCadence(): this phase's interval cannot be resolved at all, so nothing may be
+	//! bought. Deliberately negative rather than zero - zero is a legal authored cadence meaning "every
+	//! in-game minute", and answering it for an unresolvable phase would turn a broken campaign into an
+	//! unbounded spender instead of a quiet one.
+	static const int NO_CADENCE = -1;
 
 	//------------------------------------------------------------------------------------------------
 	// STATE
@@ -423,7 +276,36 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! has up == false.
 	protected ref OVT_ObjectiveFOBRecord m_FOB;
 
+	//! Every asset this director has standing, by key. THE RECORDS ARE SHARED, NOT COPIED: the "fob"
+	//! entry IS m_FOB, so the keyed API and the FOB paths can never disagree about whether the base is
+	//! up or where it is. Built once in OnPostInit() and never re-keyed.
+	//! ⚠ NONE OF IT REPLICATES (G12). On a remote client the records exist but were never written, so
+	//! IsAssetUp() is false and GetAssetPosition() is the zero vector - no client-side code may ask
+	//! this map where anything is.
+	protected ref map<string, ref OVT_ObjectiveAssetRecord> m_mAssets;
+
 	//! Objectives serving a cooldown after a failure.
+	//! THE OBJECTIVE IN FLIGHT, and everything the current phase's modules have accumulated.
+	//!
+	//! ⚠ ALLOCATED ONCE AND KEPT FOR THE COMPONENT'S LIFETIME, rather than made on commit and dropped
+	//! on reset. It owns the record above - m_Objective IS m_Instance.GetRecord(), one object, not a
+	//! copy (see OVT_ObjectiveInstance's header) - and the four thousand lines of runner that read
+	//! m_Objective are therefore reading the instance's own state, unedited. A per-commit instance
+	//! would make every one of those lines a null check for no gain at one objective.
+	protected ref OVT_ObjectiveInstance m_Instance;
+
+	//! The objectives actually running. EMPTY while idle, one entry while an objective is live.
+	//!
+	//! ⚠ IT HOLDS m_Instance, IT DOES NOT REPLACE IT. Membership of this list is what "there is an
+	//! objective" means to the tick and to the selection cadence; the instance object itself outlives
+	//! every objective it runs. At m_iMaxConcurrentObjectives = 1 this is exactly today's single-slot
+	//! machine, expressed so that N > 1 is a tuning question rather than a rewrite.
+	protected ref array<ref OVT_ObjectiveInstance> m_aInstances;
+
+	//! Whether the "this plan is not in the registry" line has already been said for the current
+	//! objective. Once per objective, not once per in-game minute.
+	protected bool m_bMissingPlanLogged;
+
 	protected ref array<ref OVT_ObjectiveBlacklistEntry> m_aBlacklist;
 
 	//! Deployments this director created for the current objective, so the reset path can take exactly
@@ -433,6 +315,13 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! Set by both control-change handlers, consumed at the top of the next tick. NEVER acted on
 	//! inline - see OnBaseControlChanged() for why.
 	protected bool m_bReselectPending;
+
+	//! In-game minutes left before an IDLE tick may run another selection round (D6). Re-armed by
+	//! SelectObjective() itself and served by IsSelectionDue(), so every path that runs a round pays
+	//! the same cooldown and no path can run two rounds in one minute.
+	//! ⚠ AT THE SHIPPED CADENCE OF 1 IT NEVER LEAVES ZERO, which is what makes the whole mechanism a
+	//! no-op by default and the pre-plan selection behaviour byte-identical.
+	protected int m_iSelectionCooldown;
 
 	//! True while a restored payload still has to be re-linked to the live campaign on a tick.
 	protected bool m_bRestorePending;
@@ -444,30 +333,39 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! it once per in-game minute forever. Cleared the moment anything is selectable again.
 	protected bool m_bIdleLogged;
 
-	//! True once the forward base's own deployment has been created for this objective, whether or not
-	//! the structure is standing yet.
+	//! THE MODULE THAT OWNS EACH STANDING ASSET, by asset key.
 	//!
-	//! ⚠ RUNTIME-ONLY AND DELIBERATELY NOT PERSISTED. A save taken while the supply truck was still on
-	//! the road comes back with no truck, no convoy and a deployment that may raise nothing (D11 gates
-	//! the raise on a restored deployment), so the honest restored state is "no forward base was sent"
-	//! and the phase sends another one - after collecting the stranded marker, which is what
-	//! FindLiveFOBDeployment() is for.
-	protected bool m_bFOBDeploymentSent;
+	//! 🔴 IT IS WHAT MAKES THE ONE TEARDOWN PATH REACH THE DOCTRINE THAT BUILT THE ASSET. An asset - the
+	//! forward operating base today, a checkpoint later - outlives the PHASE that built it: it stands
+	//! through the counter-attack and comes down when the OBJECTIVE ends, on a tick where its own
+	//! module is not in the running phase's set at all. A module registers itself here on entry
+	//! (OVT_BaseObjectiveAssetModule.RegisterAsAssetOwner) and this map holds it - strongly - until the
+	//! objective record is cleared.
+	//!
+	//! ⚠ THE DIRECTOR NEVER NAMES A CONCRETE MODULE THROUGH IT. It asks the base class three questions -
+	//! is your ceiling armed, what is it, take yourself down - so the runner stays doctrine-free and a
+	//! second asset needs no new director code.
+	//!
+	//! ⚠ RUNTIME-ONLY AND DELIBERATELY NOT PERSISTED, like everything else about an in-flight send. A
+	//! restored objective rebuilds its phase's module set from the plan, and the module that comes back
+	//! adopts a base that is already standing on its own entry.
+	protected ref map<string, ref OVT_BaseObjectiveAssetModule> m_mAssetModules;
 
-	//! One-shot: SendFOBOperation() spent this tick clearing the way for a forward base rather than
-	//! sending one, so the chain must not hand the interval to a cheaper operation. Set by the two
-	//! housekeeping branches, cleared the moment SendNextFOBOperation() reads it. Runtime only - a save
-	//! taken between the two ticks simply re-discovers the same condition on the next one.
-	protected bool m_bFOBResitePending;
+	//! True once the "everything it can do is done and it is waiting" line has been said for the phase
+	//! the objective is currently in. Cleared on every phase entry and with the objective record, so a
+	//! later phase - and the next objective - each say it again.
+	protected bool m_bIdleHoldLogged;
 
-	//! Where the forward base's deployment was created. Held separately from m_FOB.position, which is
-	//! only written once the structure is actually standing, so the teardown can still find a marker
-	//! whose raise never completed.
-	protected vector m_vFOBSite;
-
-	//! True while the forward base is currently reported as cut off, so the two transitions are each
-	//! logged once rather than once per in-game minute.
-	protected bool m_bStarvationLogged;
+	//! One-shot, per operation walk: an operation module that did NOT act has claimed the interval
+	//! anyway, so nothing later in the authored order may spend it.
+	//!
+	//! 🔴 TWO PLAY-TESTS PUT IT HERE AND BOTH WERE LIVELOCKS. The forward base refused FOR MONEY has
+	//! first claim on the pool: without the claim the faction buys a cheaper ramp operation every time
+	//! the pool passes ITS price and never reaches the base's, and the reserve floor names the wrong
+	//! operation because the last refusal in the walk overwrites the first. And a tick spent CLEARING
+	//! THE WAY for a base must not hand its interval to a sabotage mission and push the base a whole
+	//! cadence away. See ClaimOperationInterval().
+	protected bool m_bOperationIntervalClaimed;
 
 	//! Refusals already said out loud, config half. Parallel to m_aRefusalReasons and never re-ordered:
 	//! index i of one is the same refusal as index i of the other.
@@ -479,18 +377,6 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 	//! Refusals already said out loud, reason half. One of the REFUSAL_* constants.
 	protected ref array<string> m_aRefusalReasons;
-
-	//! True once the "waiting for daylight" line has been logged for the current objective.
-	//!
-	//! ⚠ ONCE PER OBJECTIVE, NOT ONCE PER TICK (D17). This is a once-a-minute tick and the wait can last
-	//! most of an in-game day, so an unlatched line would put several hundred entries in the log for one
-	//! entirely normal state. Cleared with the objective record, so the next objective says it again.
-	protected bool m_bDaylightWaitLogged;
-
-	//! True once a "the gate passed but the battle could not be started" line has been logged for the
-	//! current objective. Same reason as the latch above: the gate is re-asked every in-game minute and
-	//! every one of its refusals persists until the objective ends.
-	protected bool m_bCounterAttackRefusalLogged;
 
 	//! Consecutive in-game minutes the idle clock has been HELD because the pool was short.
 	//!
@@ -533,8 +419,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 	//! What m_Objective.harassmentSuccesses read the last time the idle clock was re-armed.
 	//!
-	//! ⚠ THE SUCCESS SIGNAL IS OBSERVED ON THE TICK, NEVER PUSHED FROM THE COUNTER. OnHarassmentSuccess()
-	//! and OnSabotageSuccess() are public, are called from a deployment's own update, from a restore and
+	//! ⚠ THE SUCCESS SIGNAL IS OBSERVED ON THE TICK, NEVER PUSHED FROM THE COUNTER.
+	//! ReportObjectiveProgress() is public, is called from a deployment's own update, from a restore and
 	//! from test fixtures, and are pinned by two cases as "IT COUNTS, IT DOES NOT DECIDE" - re-arming a
 	//! timer from either of them would break D4 ("only a tick may move a timer") in exactly the way Phase
 	//! 5 already paid for twice. So the tick compares the counters against these marks instead.
@@ -543,22 +429,15 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! What m_Objective.sabotageSuccesses read the last time the idle clock was re-armed. Same rule.
 	protected int m_iProgressSabotageMark;
 
-	// ⚠ THE CLOCK HANDLE IS INHERITED, NOT DECLARED HERE. OVT_Component already carries m_Time and fills
-	// it in its own OnPostInit, and the occupying faction manager reads the world's hour off exactly that
-	// field. Re-declaring it would shadow the base class's copy with one nothing else fills in - see
-	// ResolveWorldHour(), which re-resolves it lazily for the one case OnPostInit skips.
-
-	//! Curated forward-base markers found by the in-flight siting query. Rebuilt at the start of every
-	//! search and dropped at the end of it, in the OVT_SniperMarkerPlacementProvider shape: a marker can
-	//! be deleted with whatever it was placed on, so nothing here is cached across calls.
-	protected ref array<IEntity> m_aFoundFOBMarkers;
-
-	//! Forward-base structures found by the in-flight teardown query. Same rule.
-	protected ref array<IEntity> m_aFoundFOBStructures;
-
-	//! What the teardown query is matching on. Held in a member because the engine's filter callback
-	//! takes only the candidate entity, so a per-candidate config resolve is the alternative.
-	protected ResourceName m_sFOBStructurePrefab;
+	// ⚠ THIS COMPONENT NO LONGER READS THE WORLD CLOCK AT ALL, AND THE RULE THAT KEPT IT HONEST IS
+	// WORTH LEAVING BEHIND. The hour was read for one thing - the counter-attack's daylight window - and
+	// that is an authored condition module now (OVT_DaylightWindowObjectiveCondition), which resolves
+	// its own handle lazily because a MODULE is not a component and has no OnPostInit to fill one in.
+	// If anything here ever needs the hour again: OVT_Component ALREADY CARRIES m_Time and fills it in
+	// its own OnPostInit, and the occupying faction manager reads the hour off exactly that field.
+	// Re-declaring it here would shadow the base class's copy with one nothing ever fills, and the
+	// symptom is a clock that reads as absent forever - which every reader in this feature treats as
+	// "no restriction", so the daylight gate would simply stop existing with nothing in any log.
 
 	//! True once the control-change invokers have been subscribed.
 	protected bool m_bHooked;
@@ -614,12 +493,26 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	{
 		super.OnPostInit(owner);
 
-		m_Objective = new OVT_ObjectiveRecord();
+		// ⚠ THE INSTANCE OWNS THE RECORD AND THE ASSET MAP; THE TWO FIELDS BELOW ARE THE SAME OBJECTS,
+		// NOT COPIES. That is the same structural trick the keyed asset API used in Phase 1 and it is
+		// used again for the same reason: with one object there is no synchronisation step that can be
+		// forgotten and no second source of truth to drift. The only way m_Objective can disagree with
+		// the instance is if these two lines are deleted, which makes the whole thing vanish rather
+		// than go subtly stale. See OVT_ObjectiveInstance's header for the strangler note.
+		m_Instance = new OVT_ObjectiveInstance(this);
+		m_aInstances = new array<ref OVT_ObjectiveInstance>();
+
+		m_Objective = m_Instance.GetRecord();
+
 		m_FOB = new OVT_ObjectiveFOBRecord();
+
+		m_mAssets = m_Instance.GetAssetMap();
+		m_Instance.SetAsset(ASSET_FOB, m_FOB);
 		m_aBlacklist = new array<ref OVT_ObjectiveBlacklistEntry>();
 		m_aCreatedDeployments = new array<ref OVT_ObjectiveDeploymentRef>();
 		m_aRefusalConfigs = new array<string>();
 		m_aRefusalReasons = new array<string>();
+		m_mAssetModules = new map<string, ref OVT_BaseObjectiveAssetModule>();
 
 		ClearObjectiveRecordFields();
 		ClearFOBRecord();
@@ -652,6 +545,13 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// Belt and braces: a campaign restarted in the same session runs Init() again, and a second
 		// subscription would fan every control change out twice.
 		HookControlChanges();
+
+		// ⚠ ONCE, HERE, AND NOWHERE ELSE (C6). The deployment registry's equivalent validator has been
+		// dead code since it was written - nothing calls it - so "a broken config is named and skipped"
+		// was decorative there. Validating from PostGameStart() is what makes it real: it runs after
+		// the registry .conf has loaded, before the first tick can select anything, and exactly once
+		// per campaign start.
+		ValidateObjectiveRegistry();
 
 		InstallTick();
 	}
@@ -750,38 +650,463 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		bool alreadySelected = ConsumeReselectRequest();
 
-		switch (m_Objective.phase)
+		// ⚠ MEASURED BEFORE THE LOOP, AND THAT IS THE PARITY RULE, NOT A MICRO-OPTIMISATION. An
+		// objective that ENDS during this tick - a timeout, an abort, a resolved battle - must not be
+		// replaced in the same in-game minute, because the phase switch this loop replaced could only
+		// ever take one branch and the IDLE branch was not it. Reading the count after the loop would
+		// select a fresh objective on the very tick the last one died, and its first phase arms the
+		// operation countdown to ZERO - so the tick after that would buy a real deployment with real
+		// resources, one minute early, every single time an objective ended.
+		int liveAtTickStart = m_aInstances.Count();
+
+		// ⚠ DOWNWARD, BECAUSE AN INSTANCE MAY REMOVE ITSELF FROM THIS LIST WHILE IT IS BEING RUN.
+		// ResetObjective() is reachable from an abort module, from the idle clock and from the battle
+		// resolving, and all three funnel through ClearObjectiveRecord(), which drops the instance out
+		// of this array. A downward index loop is the only shape that survives that without skipping
+		// an entry or reading past the end.
+		for (int i = m_aInstances.Count() - 1; i >= 0; i--)
 		{
-			case OVT_EObjectivePhase.IDLE:
-			{
-				// ⚠ NOT A SECOND TIME IN ONE TICK. A re-selection request that found no candidate leaves
-				// the machine idle, and running selection again here would serve a SECOND round off every
-				// blacklist entry in the same in-game minute - so a place meant to sit out one round
-				// would quietly sit out none.
-				if (!alreadySelected)
-					SelectObjective();
+			if (i >= m_aInstances.Count())
+				continue;
 
-				break;
-			}
+			OVT_ObjectiveInstance instance = m_aInstances[i];
+			if (!instance)
+				continue;
 
-			case OVT_EObjectivePhase.HARASSMENT:
-			{
-				TickHarassment();
-				break;
-			}
+			RunObjectivePhaseModules(instance);
+		}
 
-			case OVT_EObjectivePhase.FOB:
-			{
-				TickFOB();
-				break;
-			}
+		// ⚠ NOT A SECOND TIME IN ONE TICK. A re-selection request that found no candidate leaves
+		// the machine idle, and running selection again here would serve a SECOND round off every
+		// blacklist entry in the same in-game minute - so a place meant to sit out one round
+		// would quietly sit out none.
+		//
+		// ⚠ AND NOT MORE OFTEN THAN THE AUTHORED CADENCE (D6). IsSelectionDue() is what the registry's
+		// m_iSelectionCooldownTicks buys, and at its shipped value of 1 it is always true - so this
+		// line is the every-idle-minute selection the campaign has always done. It is asked ONLY on
+		// the free-slot path: a reselect request means the map changed under the objective and is
+		// answered immediately, above.
+		if (liveAtTickStart < MaxConcurrentObjectives() && !alreadySelected && IsSelectionDue())
+			SelectObjective();
+	}
 
-			case OVT_EObjectivePhase.COUNTER_QRF:
+	//------------------------------------------------------------------------------------------------
+	//! How many objectives may run at once, floored at one.
+	//!
+	//! ⚠ THE FLOOR IS NOT DEFENSIVE PROGRAMMING. An unauthored or mis-authored zero would stop the
+	//! occupying faction ever choosing an objective again, with nothing in the log and no symptom a
+	//! player could report - which is the exact failure mode this whole machine is built around
+	//! avoiding. "Turn the director off" is not an authoring gesture this feature supports.
+	//! \return At least 1.
+	protected int MaxConcurrentObjectives()
+	{
+		if (m_iMaxConcurrentObjectives < 1)
+			return 1;
+
+		return m_iMaxConcurrentObjectives;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE step of ONE objective: its aborts, then its conditions, then its operations.
+	//!
+	//! THE ORDER IS THE CONTRACT, and it is the order the hard-coded phase handlers already used:
+	//!  1. ABORTS, OR'd. Giving up is decided before anything is spent, so an objective that is already
+	//!     lost does not buy one more squad on its way out.
+	//!  2. CONDITIONS, AND'd. The gate out comes before the work, for the same reason: a town already
+	//!     below the threshold should advance rather than buy a squad it no longer needs.
+	//!  3. OPERATIONS, in authored order, first-to-act-wins - and ONLY on a tick that did not advance.
+	//!     That last clause is the shipped `if (gate) return;` expressed as a rule rather than as a
+	//!     control-flow accident, and dropping it would run the NEW phase's work on the transition tick.
+	//!
+	//! 🔴 THE MODULE SET IS SNAPSHOTTED INTO A STRONG-REF LOCAL BEFORE ANY OF IT RUNS, and both halves
+	//! of that sentence matter. A MODULE CAN END ITS OWN PHASE FROM INSIDE ITS OWN METHOD and two
+	//! shipped ones do: the terminal battle operation resets the objective when the battle it started
+	//! resolves, and the forward-base raise resets it when there is nowhere to put a base. Either swaps
+	//! the instance's runtime array out from under this loop. Iterating the live array would walk a
+	//! mutating collection; iterating a WEAK copy would free the very object whose method is on the
+	//! stack. The strong-ref snapshot keeps the outgoing modules alive until this method returns.
+	//!
+	//! ⚠ THE CADENCE AND THE IDLE CLOCK ARE THE RUNNER'S, AND THEY BRACKET THE MODULES.
+	//! The countdown to the next operation is served FIRST, before anything is asked, so that every
+	//! timer sits behind DirectorTick()'s three early returns by construction rather than by a rule
+	//! each module has to remember. The idle clock is served LAST, because it is the only thing here
+	//! that has to know whether the tick accomplished anything - see TickObjectiveIdleClock(), and see
+	//! the abort note below for why the fold runs twice.
+	//!
+	//! ⚠ AND THEY ARE THE RUNNER'S FOR EVERY PHASE, WITH NO CARVE-OUTS LEFT. Until build phase 6 a
+	//! phase authored as a strangler shim ran a whole hard-coded tick that owned both clocks itself and
+	//! this method kept its hands off them; that check is gone with the shims. Every phase is authored
+	//! modules now and every module's clock is served here.
+	//!
+	//! 🔴 THE ABORT FOLD RUNS TWICE ON A TICK THAT REACHES THE END, AND THAT IS WHAT KEEPS THE TIMING
+	//! EXACT. The hard-coded handlers ended with `if (TickObjectiveIdleClock(created)) ResetObjective()`
+	//! - i.e. the give-up verdict was read AFTER the operations, on the same tick the clock ran out. An
+	//! abort module asked only at the top of the tick can only ever see the PREVIOUS tick's clock, so
+	//! the objective would be abandoned one in-game minute late and would get one more operation
+	//! attempt it never used to get. Asking again after the clock is served costs nothing, because
+	//! ShouldAbort() is side-effect free by contract, and it makes OVT_IdleForObjectiveAbort fire on
+	//! exactly the tick the hard-coded harassment handler fired on.
+	//! \param[in] instance The objective to step.
+	protected void RunObjectivePhaseModules(notnull OVT_ObjectiveInstance instance)
+	{
+		array<ref OVT_BaseObjectiveModule> modules = new array<ref OVT_BaseObjectiveModule>();
+
+		int count = instance.GetRuntimeModuleCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_BaseObjectiveModule module = instance.GetRuntimeModule(i);
+			if (module)
+				modules.Insert(module);
+		}
+
+		if (modules.IsEmpty())
+		{
+			LogObjectiveWithNoPlan(instance);
+			return;
+		}
+
+		// Re-earned during this tick by CanSendObjectiveDeployment(), so it is only ever what the
+		// most recent completed tick concluded.
+		m_bBlockedOnAffordability = false;
+
+		AdvanceOperationCadence();
+
+		foreach (OVT_BaseObjectiveModule ticked : modules)
+		{
+			ticked.Tick();
+		}
+
+		if (RunObjectiveAbortModules(instance, modules))
+			return;
+
+		bool holdsIdleClock;
+		string holdReason;
+		if (RunObjectiveConditionModules(instance, modules, holdsIdleClock, holdReason))
+			return;
+
+		// ⚠ AT MOST ONE OPERATION, AND ONLY ONCE THE CADENCE HAS ELAPSED. The first module that acts
+		// consumes the interval, whichever kind of work it was - which is what stops an objective
+		// covered by three towers dropping three deployments in one in-game minute.
+		int cadence = ResolveOperationCadence(instance);
+
+		bool created = false;
+		if (cadence >= 0 && m_Objective.nextOpTicks == 0)
+			created = RunObjectiveOperationModules(instance, modules);
+
+		// ⚠ RE-ARMED ONLY ON A SUCCESSFUL CREATE. Every refusal leaves the countdown at zero so the next
+		// tick asks again a minute later, instead of waiting out another whole interval for a condition
+		// that may have cleared immediately. That retry is also what makes the affordability hold cover
+		// a whole poverty spell rather than one tick in forty-five.
+		if (created)
+			SetOperationCountdown(cadence);
+
+		// 🔴 A CONDITION MAY HOLD THE IDLE CLOCK, AND EXACTLY ONE SHIPPED CONDITION DOES (D17). The
+		// daylight window is the objective waiting for something the occupying faction cannot influence;
+		// spending its patience on that would abandon an objective FOR BEING DARK. Everything else on
+		// this tick has already happened - the cadence was served, every abort module was asked, every
+		// operation was tried - so the forward base can still be starved out at 22:00 and the garrison
+		// sender still runs. THE HOLD IS THE CLOCK AND ONLY THE CLOCK.
+		//
+		// ⚠ THE PER-TICK AFFORDABILITY FLAG IS DROPPED WITH IT, exactly as the hard-coded handler did, so
+		// a refusal seen during a wait cannot leak into the next tick's decision. It is normally consumed
+		// by the clock, which is not being served.
+		if (holdsIdleClock)
+		{
+			LogIdleClockHold(holdReason);
+
+			m_bBlockedOnAffordability = false;
+			return;
+		}
+
+		if (TickObjectiveIdleClock(created))
+			RunObjectiveAbortModules(instance, modules);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many in-game minutes this phase puts between operations.
+	//!
+	//! ⚠ AN UNRESOLVABLE CADENCE STOPS THE PHASE SPENDING, AND THAT IS THE SHIPPED BEHAVIOUR.
+	//! The hard-coded ramp spender opened with `if (!difficulty) return false;` - a world with no difficulty
+	//! settings loaded (the World Editor, a broken campaign) bought nothing at all rather than buying
+	//! on every tick. A phase that authors its own cadence needs no difficulty and is unaffected.
+	//!
+	//! ⚠ AN AUTHORED ZERO IS A LEGAL, IF AGGRESSIVE, AUTHORING GESTURE - "one operation every in-game
+	//! minute" - and is honoured. Only the SENTINEL with nothing behind it refuses.
+	//! \param[in] instance The objective, for its running phase.
+	//! \return The interval in in-game minutes, or NO_CADENCE when it cannot be resolved at all.
+	protected int ResolveOperationCadence(notnull OVT_ObjectiveInstance instance)
+	{
+		int authored = OVT_ObjectivePlanRules.USE_DIFFICULTY;
+
+		OVT_ObjectiveConfig config = instance.GetConfig();
+		if (config)
+		{
+			OVT_ObjectivePhase phase = config.GetPhase(instance.GetPhaseIndex());
+			if (phase)
+				authored = phase.m_iOperationCadence;
+		}
+
+		if (authored > OVT_ObjectivePlanRules.USE_DIFFICULTY)
+			return authored;
+
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return NO_CADENCE;
+
+		return difficulty.objectiveHarassmentIntervalMinutes;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says ONCE, per objective, that a live objective has no plan behind it and is therefore doing
+	//! nothing at all.
+	//!
+	//! 🔴 THIS IS THE WHOLE SYMPTOM, AND THAT IS WHY IT IS LOUD. The plan registry is a .conf and no
+	//! compiler reads a .conf - a mistyped path, a prefab that predates the attribute, or a mod that
+	//! clears it all leave the registry unresolved, and every rule the occupying faction follows lives
+	//! in it. Until build phase 6 there was a hard-coded phase machine to fall back on and this line
+	//! reported a DEGRADED campaign; the doctrine is authored data now and there is no second
+	//! implementation to fall back ON, so the same line reports a campaign in which the occupying
+	//! faction has stopped attacking. Nothing else in the machine says so: the objective is committed,
+	//! the tick runs, the module set is simply empty - and an empty set carries no abort module either,
+	//! so the idle clock cannot end it. This line IS the symptom.
+	//!
+	//! ⚠ ONCE, NOT ONCE PER IN-GAME MINUTE. The latch is cleared when anything is committed to and with
+	//! the objective record, so the next objective says it again if it is still true.
+	//! \param[in] instance The objective with no runtime modules.
+	protected void LogObjectiveWithNoPlan(notnull OVT_ObjectiveInstance instance)
+	{
+		if (m_bMissingPlanLogged)
+			return;
+
+		m_bMissingPlanLogged = true;
+
+		string planName = instance.GetConfigName();
+		if (planName == "")
+			planName = "<none>";
+
+		Print(LOG + "Objective '" + m_Objective.name + "' is running with NO PLAN behind it (plan '" + planName + "', phase '" + instance.GetPhaseName() + "') - the objective registry did not resolve, so this objective can neither act, advance nor be given up", LogLevel.ERROR);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks every abort module in the phase and resets the objective if any of them fired.
+	//!
+	//! ⚠ THE FIRST TRUE ANSWER SUPPLIES THE REASON AND THE BLACKLIST FLAG, and every later one is
+	//! still ASKED. Short-circuiting would hide a second, unrelated failure from a module that wanted to
+	//! latch a log line about it; the OR itself is decided by the pure static, so the fold stays where
+	//! every other fold in this feature is.
+	//! \param[in] instance The objective being stepped.
+	//! \param[in] modules The phase's runtime modules, snapshotted.
+	//! \return True when the objective was reset, so the caller stops working on it this tick.
+	protected bool RunObjectiveAbortModules(notnull OVT_ObjectiveInstance instance, notnull array<ref OVT_BaseObjectiveModule> modules)
+	{
+		array<bool> results = new array<bool>();
+
+		string firstReason = "";
+		bool firstBlacklist = false;
+
+		foreach (OVT_BaseObjectiveModule module : modules)
+		{
+			OVT_BaseObjectiveAbortModule abortModule = OVT_BaseObjectiveAbortModule.Cast(module);
+			if (!abortModule)
+				continue;
+
+			string reason;
+			bool blacklist;
+			bool fired = abortModule.ShouldAbort(reason, blacklist);
+
+			results.Insert(fired);
+
+			if (fired && firstReason == "")
 			{
-				TickCounterQRF();
-				break;
+				firstReason = reason;
+				firstBlacklist = blacklist;
 			}
 		}
+
+		if (!OVT_ObjectivePlanRules.AnyAbort(results))
+			return false;
+
+		// A module that aborts without saying why still gets a line, because "the occupying faction
+		// stopped attacking this place" always has to have an explanation in the log.
+		if (firstReason == "")
+			firstReason = "an abort module fired without giving a reason";
+
+		ResetObjective(firstReason, firstBlacklist);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks every condition module in the phase and advances if they all agreed.
+	//!
+	//! ⚠ AN EMPTY CONDITION SET DOES NOT ADVANCE, EVEN THOUGH AllConditionsMet([]) IS TRUE, AND THE
+	//! TWO STATEMENTS ARE BOTH CORRECT. The pure static answers "does anything BLOCK the advance", and
+	//! nothing blocks an advance nobody gated. The RUNNER additionally requires that something actually
+	//! gated it: a phase with no conditions ends on a terminal operation or on the idle clock, and
+	//! advancing it every tick would run a whole plan to its last phase in three in-game minutes. The
+	//! registry's validator is what refuses a phase that can end neither way.
+	//! \param[in] instance The objective being stepped.
+	//! \param[in] modules The phase's runtime modules, snapshotted.
+	//! \return True when the phase advanced or the objective ended, so no operation runs this tick.
+	protected bool RunObjectiveConditionModules(notnull OVT_ObjectiveInstance instance, notnull array<ref OVT_BaseObjectiveModule> modules, out bool holdsClock, out string holdName)
+	{
+		holdsClock = false;
+		holdName = "";
+
+		array<bool> results = new array<bool>();
+
+		// 🔴 THE HOLD IS "THE ONLY THING IN THE WAY IS SOMETHING WE CANNOT INFLUENCE", NOT "ONE OF THE
+		// THINGS IN THE WAY IS". That distinction is the hard-coded gate's three answers, expressed over
+		// authored conditions: a gate that had not finished its RAMP answered NOT_READY and the clock
+		// ran, and only a gate blocked SOLELY by the world clock answered WAIT_FOR_DAYLIGHT. Holding on
+		// the first holding condition alone would stop the clock every night whatever else was unfinished
+		// - and the objective's whole 240-minute backstop would only be spent between 05:00 and 15:00,
+		// which is roughly two and a half times longer before a wedged objective is ever given up.
+		bool anyBlocked = false;
+		bool everyBlockerHolds = true;
+
+		foreach (OVT_BaseObjectiveModule module : modules)
+		{
+			OVT_BaseObjectiveConditionModule condition = OVT_BaseObjectiveConditionModule.Cast(module);
+			if (!condition)
+				continue;
+
+			bool met = condition.Evaluate();
+			results.Insert(met);
+
+			if (met)
+				continue;
+
+			anyBlocked = true;
+
+			if (!condition.HoldsIdleClock())
+			{
+				everyBlockerHolds = false;
+				continue;
+			}
+
+			if (holdName == "")
+				holdName = condition.m_sModuleName;
+		}
+
+		holdsClock = anyBlocked && everyBlockerHolds;
+		if (!holdsClock)
+			holdName = "";
+
+		if (results.IsEmpty())
+			return false;
+
+		if (!OVT_ObjectivePlanRules.AllConditionsMet(results))
+			return false;
+
+		// Nothing is held on a tick that ADVANCES: the phase this belonged to is over.
+		holdsClock = false;
+		holdName = "";
+
+		return AdvanceObjectivePhase(instance);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tries the phase's operation modules in the authored order, stopping at the first that acts.
+	//! \param[in] instance The objective being stepped.
+	//! \param[in] modules The phase's runtime modules, snapshotted.
+	//! \return True when an operation was created and paid for.
+	protected bool RunObjectiveOperationModules(notnull OVT_ObjectiveInstance instance, notnull array<ref OVT_BaseObjectiveModule> modules)
+	{
+		m_bOperationIntervalClaimed = false;
+
+		foreach (OVT_BaseObjectiveModule module : modules)
+		{
+			OVT_BaseObjectiveOperationModule operation = OVT_BaseObjectiveOperationModule.Cast(module);
+			if (!operation)
+				continue;
+
+			if (operation.TryAct())
+				return true;
+
+			// ⚠ A REFUSAL THAT CLAIMED THE INTERVAL STOPS THE WALK, AND IT IS THE ONLY WAY ONE CAN. It
+			// answers false - nothing was created, nothing was paid for, the cadence is not re-armed and
+			// the tick counts as idle exactly as any other refusal would - but nothing later in the
+			// authored order gets to spend the interval it was saving. See ClaimOperationInterval().
+			if (m_bOperationIntervalClaimed)
+				return false;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE INTERVAL IS SPOKEN FOR: an operation module that did not act, but that nothing later in the
+	//! authored order may be allowed to overtake this tick.
+	//!
+	//! 🔴 TWO PLAY-TESTS PUT THIS HERE AND BOTH WERE LIVELOCKS OF THE FORWARD-BASE PHASE.
+	//!
+	//!   MONEY (2026-08-20). A base objective was promoted, the forward base was refused at 120 against
+	//!   a pool of 56, the walk fell through to sabotage at 100 - and from then on the faction bought a
+	//!   sabotage mission every time the pool passed 100 and NEVER reached the 120 the base costs. Two
+	//!   things were wrong and the claim fixes both: the reserve floor named the LAST refused operation
+	//!   rather than the first, and the floor alone would not have been enough anyway because it
+	//!   deliberately does not govern this component's own spending. Stopping the walk leaves the FIRST
+	//!   refusal's floor standing and spends nothing below it.
+	//!
+	//!   HOUSEKEEPING (2026-08-20). Two branches of the forward-base send CLEAR THE WAY for a base
+	//!   rather than sending one - a stale supply party restored from a save, and one that vanished
+	//!   between the send and the raise. Both delete something and answer false, and false let the walk
+	//!   fall through to a cheaper operation which then armed the whole interval. So the tick that
+	//!   CLEANED UP for the forward base handed its slot to a sabotage mission and pushed the base a
+	//!   full cadence away - 60 in-game minutes on Normal.
+	//!
+	//! ⚠ IT IS NOT A REFUSAL AND IT IS NOT A SUCCESS. The cadence is NOT re-armed (so the next tick asks
+	//! again a minute later rather than waiting out a whole interval), the idle clock is served exactly
+	//! as it would have been, and the affordability hold - if that is what caused the claim - still holds
+	//! the clock through the director's own flag. It says one thing only: not this tick, not by anyone
+	//! else.
+	//!
+	//! ⚠ IT IS PER-WALK, NOT A LATCH. RunObjectiveOperationModules() clears it before it asks anybody,
+	//! so a claim cannot leak into the next in-game minute.
+	//!
+	//! ⚠ NOTHING IN THE HARASSMENT PHASE CLAIMS, and that is why the ramp still falls through from tower
+	//! recapture to harassment to sabotage exactly as it always has. The claim is authored doctrine's,
+	//! not the runner's: the runner offers it and only the forward base takes it.
+	void ClaimOperationInterval()
+	{
+		m_bOperationIntervalClaimed = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves an objective into the next phase of its plan, or ends it when there is no next phase.
+	//!
+	//! ⚠ A PLAN THAT RUNS OUT OF PHASES ENDS THE OBJECTIVE WITHOUT BLACKLISTING IT. Reaching the end
+	//! of a plan is a plan COMPLETING, not a place failing - the same reasoning the resolved-battle path
+	//! already uses - so the place is re-evaluated on its merits next round rather than sitting out one.
+	//!
+	//! 🔴 IT SAYS SO IN THE LOG, AND THAT LINE IS NOT DECORATION. "Why did the occupying faction move to
+	//! this phase" must always have an answer a server owner can read - it is the whole reason this
+	//! machine replaced a pair of dice - and the two hard-coded gates each printed one before build
+	//! phase 4 replaced them with condition modules ("is down to N% support - raising a forward
+	//! operating base"). One line here is the generalisation of both: it names the objective, the phase
+	//! that ended and the phase that begins, for EVERY plan and every phase rather than for the two the
+	//! monolith happened to have. The condition modules themselves stay silent, because a phase can be
+	//! gated by several and only the transition is news.
+	//! \param[in] instance The objective to advance.
+	//! \return True always: either the phase changed or the objective ended, and both mean "no operation
+	//!         this tick".
+	protected bool AdvanceObjectivePhase(notnull OVT_ObjectiveInstance instance)
+	{
+		int next = instance.GetNextPhaseIndex();
+		if (next < 0)
+		{
+			ResetObjective("the plan '" + instance.GetConfigName() + "' has no phase after '" + instance.GetPhaseName() + "' - the objective is finished", false);
+			return true;
+		}
+
+		string leaving = instance.GetPhaseName();
+
+		EnterObjectivePhaseIndex(instance, next);
+
+		Print(LOG + "Objective '" + m_Objective.name + "' has met every condition of phase '" + leaving + "' on plan '" + instance.GetConfigName() + "' - entering '" + instance.GetPhaseName() + "'", LogLevel.NORMAL);
+
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -799,233 +1124,17 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		m_bReselectPending = false;
 
-		if (m_Objective.phase != OVT_EObjectivePhase.IDLE && m_Objective.phase != OVT_EObjectivePhase.HARASSMENT)
+		// ⚠ THE LOCK IS "PAST THE FIRST PHASE", ASKED OF THE PLAN RATHER THAN OF AN ENUM. No objective at
+		// all answers -1 and the first phase answers 0, so both re-evaluate; anything from the second
+		// phase onward is committed - it has a forward base going up or a battle mustering - and a
+		// control change may not move it. That is the same boundary the phase enum drew, expressed in
+		// the only terms a plan-driven machine has.
+		if (GetObjectivePhaseIndex() > 0)
 			return false;
 
 		SelectObjective();
 
 		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Phase 1. Sends operations at the objective and watches for the gate into the forward-base phase.
-	//!
-	//! FOUR THINGS, IN THIS ORDER, AND THE ORDER IS THE CONTRACT:
-	//!  1. THE CADENCE. The countdown to the next operation serves one tick, behind all three of the
-	//!     tick's early returns.
-	//!  2. THE GATE OUT, before any spending. A town already below the threshold - because the last
-	//!     operation landed, or because the resistance lost support to something else entirely - should
-	//!     advance rather than buy one more squad it no longer needs.
-	//!  3. AT MOST ONE OPERATION, and only once the cadence has elapsed.
-	//!  4. THE IDLE CLOCK, LAST, because it is the only thing here that has to know whether the tick
-	//!     accomplished anything. See TickObjectiveIdleClock().
-	//!
-	//! ⚠ THE IDLE CLOCK MOVED FROM THE TOP OF THIS METHOD TO THE BOTTOM (2026-08-19) AND THE ORDER IS
-	//! PART OF THE FIX. Served first, it could only ever mean "minutes since the phase began", and it
-	//! abandoned an objective on a tick that was about to advance the phase or about to send the very
-	//! operation the phase was waiting for. Served last, the same budget means "minutes since anything
-	//! happened", and the tick that finally sends something re-arms rather than gives up.
-	//!
-	//! ⚠ EVERY SPEND IS BEHIND THE CADENCE, INCLUDING TOWER RECAPTURE. The first cut of this method
-	//! sent recapture teams ahead of the cadence check, on the reasoning that a tower is a discrete
-	//! job that should not queue behind a harassment interval. That was wrong twice over: it is an
-	//! UNBOUNDED PER-TICK SPENDER - an objective covered by three resistance-held towers drops three
-	//! deployments in one in-game minute, which is the unpaced lurch this feature exists to replace -
-	//! and it makes the only rule the pool has ("the director spends once per cadence interval") depend
-	//! on which kind of operation it happened to be. The phase has 240 in-game minutes and the cadence
-	//! is 45 on Normal, so there is room for five operations; towers in range of one objective are
-	//! typically none or one.
-	//!
-	//! ⚠ SABOTAGE SHARES THE CADENCE, IT DOES NOT RUN BESIDE IT. A base objective's Phase 1 work is
-	//! sabotage and a town's is harassment; both go through SendNextOperation(), which sends AT MOST ONE
-	//! operation per interval whichever kind it is. Giving base operations a spender of their own would
-	//! reopen exactly the unbounded-per-tick hole tower recapture was moved out of.
-	protected void TickHarassment()
-	{
-		m_bBlockedOnAffordability = false;
-
-		AdvanceOperationCadence();
-
-		if (CheckHarassmentGate())
-			return;
-
-		bool created = false;
-		if (m_Objective.nextOpTicks == 0)
-			created = SendNextOperation();
-
-		if (TickObjectiveIdleClock(created))
-			ResetObjective("harassment did nothing at all for " + m_iPhaseTimeoutTicks.ToString() + " in-game minutes and never reached the forward-base gate", true);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends ONE operation at the objective, and re-arms the cadence only if one was actually sent.
-	//!
-	//! TOWER RECAPTURE FIRST, because it is the most urgent and the most bounded of the three: a tower
-	//! is a discrete thing that is either being worked on or is not, the sender deduplicates against
-	//! the live deployment, and a tower left in resistance hands keeps the objective easier for the
-	//! resistance to hold. The other two have no such ceiling and will still be there next interval.
-	//!
-	//! ⚠ HARASSMENT AND SABOTAGE ARE MUTUALLY EXCLUSIVE BY OBJECTIVE KIND, not by priority. A town
-	//! objective refuses sabotage and a base objective refuses harassment - each sender's first line -
-	//! so the order they are asked in here is arbitrary and only one of them can ever answer. They are
-	//! chained rather than branched so that adding a third kind of Phase 1 work needs no new plumbing.
-	//!
-	//! ⚠ THE COUNTDOWN IS ONLY RE-ARMED ON A SUCCESSFUL CREATE. Every refusal - nothing to recapture,
-	//! nothing to sabotage, the concurrency cap is full, the pool is short, a config is missing - leaves
-	//! nextOpTicks at zero so the next tick asks again a minute later, instead of waiting out another
-	//! whole interval for a condition that may have cleared immediately. That retry is also what makes
-	//! the affordability hold cover a whole poverty spell rather than one tick in forty-five: every
-	//! minute of it reaches the spender and is refused again.
-	//!
-	//! ⚠ THE THREE SENDERS ARE CALLED FROM THE FORWARD-BASE PHASE TOO, since 2026-08-19. This is no
-	//! longer their only caller: SendNextFOBOperation() chains the same three after its own two, so the
-	//! ramp continues while the forward base is up. Nothing here has to know that - the senders are
-	//! phase-agnostic and always were, and the other caller arms the same countdown with the same
-	//! interval - but a change to any of the three now affects both phases.
-	//! \return True when an operation was created and paid for - which is PROGRESS, and re-arms the idle
-	//!         clock.
-	protected bool SendNextOperation()
-	{
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-			return false;
-
-		if (!SendTowerRecaptureOperation() && !SendHarassmentOperation() && !SendSabotageOperation())
-			return false;
-
-		SetOperationCountdown(difficulty.objectiveHarassmentIntervalMinutes);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends ONE harassment group at a town objective, if the cap and the pool allow.
-	//! \return True when a deployment was created and paid for.
-	protected bool SendHarassmentOperation()
-	{
-		// Towns and cities only. A base objective's Phase 1 work is sabotage - SendSabotageOperation().
-		if (m_Objective.kind != OVT_EObjectiveKind.TOWN)
-			return false;
-
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-
-		if (!deployments || !config || !difficulty)
-			return false;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-
-		if (CountLiveHarassmentOperations(deployments, occupyingIndex) >= difficulty.objectiveHarassmentMaxConcurrent)
-			return false;
-
-		int rung = OVT_ObjectivePhaseRules.HarassmentLadderIndex(m_Objective.harassmentSuccesses, HARASSMENT_LADDER.Count());
-		if (rung == OVT_ObjectivePhaseRules.NO_LADDER_RUNG)
-			return false;
-
-		return CreateObjectiveDeployment(deployments, HARASSMENT_LADDER[rung], m_Objective.position, occupyingIndex);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends ONE recapture team, at the first radio tower the resistance holds that still covers the
-	//! objective and does not already have a team on the way.
-	//!
-	//! ⚠ ONE PER CALL, NOT ONE PER TOWER. See SendNextOperation() for why every spend is behind the
-	//! cadence. A second contested tower is picked up on the next interval.
-	//!
-	//! ⚠ DEDUPLICATED AGAINST THE LIVE DEPLOYMENT, not against the director's teardown ledger: that
-	//! ledger only grows until a reset, so a team that was wiped out or collected is still in it and
-	//! would block its tower from ever being worked on again.
-	//!
-	//! ⚠ A SABOTAGED TOWER IS NOT A TARGET, because GetRadioTowersAffecting() skips towers that are off
-	//! the air. That is correct rather than an oversight: a tower broadcasting nothing is not helping
-	//! the resistance hold the objective, and it becomes a target again on its own when it recovers.
-	//! \return True when a deployment was created and paid for.
-	protected bool SendTowerRecaptureOperation()
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-
-		if (!occupying || !deployments || !config)
-			return false;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-
-		array<OVT_RadioTowerData> towers = occupying.GetRadioTowersAffecting(m_Objective.position);
-		if (!towers)
-			return false;
-
-		foreach (OVT_RadioTowerData tower : towers)
-		{
-			if (!tower)
-				continue;
-
-			if (tower.faction == occupyingIndex)
-				continue;
-
-			if (deployments.GetDeploymentNearPosition(TOWER_RECAPTURE_CONFIG, tower.location, TOWER_OP_DEDUP_RADIUS))
-				continue;
-
-			return CreateObjectiveDeployment(deployments, TOWER_RECAPTURE_CONFIG, tower.location, occupyingIndex);
-		}
-
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends ONE sabotage team at a base objective, if the cap and the pool allow.
-	//!
-	//! 🔴 THIS IS THE ONE OPERATION THAT DESTROYS PLAYER PROPERTY PERMANENTLY. What it buys is a team
-	//! that walks into a base the resistance holds and demolishes the structures built there, cheapest
-	//! first, with no refund, no rubble and nothing to repair. Everything the module does to make that
-	//! survivable - the hold, the nobody-nearby rule, the per-mission cap, the one notification - is
-	//! documented on OVT_BaseSabotageBehaviorDeploymentModule; what is decided HERE is only how often
-	//! one may be sent, which is the same cadence and the same cap the town ramp uses.
-	//!
-	//! ⚠ THE OBJECTIVE POSITION MUST STILL BE A RESISTANCE-HELD BASE. Selection copies base.location
-	//! verbatim, so in a live campaign this resolves by metres - but a restored payload naming a base
-	//! that has since been retaken, or an objective committed at an arbitrary position, must not buy a
-	//! team that then strips whichever base was nearest. See BASE_OP_RESOLVE_RADIUS.
-	//!
-	//! ⚠ NO RUNGS AND NO ESCALATION. See SABOTAGE_CONFIG.
-	//! \return True when a deployment was created and paid for.
-	protected bool SendSabotageOperation()
-	{
-		// Bases only. A town objective's Phase 1 work is harassment - SendHarassmentOperation().
-		if (m_Objective.kind != OVT_EObjectiveKind.BASE)
-			return false;
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-
-		if (!occupying || !deployments || !config || !difficulty)
-			return false;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-
-		OVT_BaseData base = occupying.GetNearestBase(m_Objective.position);
-		if (!base)
-			return false;
-
-		if (vector.Distance(base.location, m_Objective.position) > BASE_OP_RESOLVE_RADIUS)
-			return false;
-
-		// Somebody took it back while the ramp was running. The objective is over on the next
-		// control-change reselect; sending a team to strip our own base in the meantime is not.
-		if (base.faction == occupyingIndex)
-			return false;
-
-		// ⚠ THE SAME CONCURRENCY KNOB AS THE TOWN RAMP, DELIBERATELY. objectiveHarassmentMaxConcurrent
-		// is authored as "how many objective operations may be alive at once", not as a town-only
-		// figure, and the twelve difficulty fields Phase 1 authored contain no separate sabotage cap. A
-		// thirteenth field would have to be added to five presets to say the same number twice.
-		if (CountLiveSabotageOperations(deployments, occupyingIndex) >= difficulty.objectiveHarassmentMaxConcurrent)
-			return false;
-
-		return CreateObjectiveDeployment(deployments, SABOTAGE_CONFIG, base.location, occupyingIndex);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1055,9 +1164,9 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \param[in] yaw Which way the deployment marker faces. DEFAULTS TO UNROTATED, which is what every
 	//!            operation but the forward base wants: a harassment, recapture or sabotage marker is a
 	//!            point on the map and has no front. Only the forward base passes one, because only the
-	//!            forward base builds something with a front (see SendFOBOperation).
+	//!            forward base builds something with a front.
 	//! \return True when a deployment was created and the pool debited for it.
-	protected bool CreateObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, vector position, int factionIndex, float yaw = 0)
+	bool CreateObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, vector position, int factionIndex, float yaw = 0)
 	{
 		int cost;
 		OVT_DeploymentConfig config = CanSendObjectiveDeployment(deployments, configName, factionIndex, cost);
@@ -1077,7 +1186,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		deployments.SubtractFactionResources(factionIndex, cost);
 
 		// AFTER the pool, never instead of it: this is a counter recording what already left.
-		CountFOBSpend(cost);
+		CountAssetSpend(cost);
 
 		TrackObjectiveDeployment(configName, position);
 
@@ -1094,9 +1203,9 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! EVERY REASON THE DIRECTOR MAY NOT BUY THIS OPERATION RIGHT NOW, ASKED IN ONE PLACE AND ANSWERED
 	//! OUT LOUD. Lifted out of CreateObjectiveDeployment() so a caller with expensive preparation to do
-	//! can ask BEFORE it does it - see SendFOBOperation(), which used to run the whole FOB_SITING_ATTEMPTS
-	//! point terrain search, log a site, and only then discover the faction was twenty resources short. Every in-game
-	//! minute. Forever.
+	//! can ask BEFORE it does it - see the forward base's raise module, which used to run its whole
+	//! forty-point terrain search, log a site, and only then discover the faction was twenty resources
+	//! short. Every in-game minute. Forever.
 	//!
 	//! ⚠ THE THREE REFUSALS ARE ORDERED CHEAPEST-QUESTION-FIRST and each is latched on its own (config,
 	//! reason) pair, so the pool being short on a sabotage team in Phase 1 can never silence the pool
@@ -1104,7 +1213,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!
 	//! ⚠ IT MOVES NO MONEY AND CREATES NOTHING. It reads the pool, it reads the ceiling, and it writes
 	//! only the per-tick affordability flag and the refusal ledger. Asking twice in one tick is harmless
-	//! (the second ask is silent - the latch is already set) and is exactly what SendFOBOperation() does.
+	//! (the second ask is silent - the latch is already set) and is exactly what the raise module does
+	//! through CanAffordObjectiveDeployment().
 	//! \param[in] deployments The deployment framework.
 	//! \param[in] configName The registered config the caller wants to run.
 	//! \param[in] factionIndex The occupying faction.
@@ -1162,8 +1272,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// forward base existed - and it is active for the whole of the forward-base phase, INCLUDING the
 		// Phase 1 ramp operations that now continue into it (2026-08-19). That is what makes §3.2's
 		// "spending against a CEILING inside the deployment pool" true of the ramp without a second rule
-		// anywhere. See WithinFOBBudget() for why neither of them moves any money.
-		if (!WithinFOBBudget(configName, cost))
+		// anywhere. See WithinAssetCeilings() for why neither of them moves any money.
+		if (!WithinAssetCeilings(configName, cost))
 		{
 			cost = 0;
 			return null;
@@ -1210,7 +1320,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! the second fault behind the first.
 	//!
 	//! ⚠ LATCHED AT ALL BECAUSE EVERY REFUSAL IS RETRIED EVERY IN-GAME MINUTE. A refused create leaves
-	//! the cadence at zero on purpose (see SendNextOperation), so an unlatched line is hundreds of
+	//! the cadence at zero on purpose (every refusal leaves it there), so an unlatched line is hundreds of
 	//! identical entries. The ledger is cleared when the objective ends and when the same config is
 	//! successfully bought - never on any other schedule.
 	//! \param[in] configName The operation that could not be sent.
@@ -1294,1909 +1404,39 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How many harassment operations are alive at the objective right now.
-	//!
-	//! COUNTED FROM THE LIVE DEPLOYMENT LIST, NOT FROM m_aCreatedDeployments. The tracked list is a
-	//! teardown ledger that only grows until a reset; an operation that completed its hold, was wiped
-	//! out or was collected by its own condition module is still in it and must not hold a concurrency
-	//! slot. Every rung counts towards the same cap, because a rung is the same operation with bigger
-	//! men in it.
-	//! \param[in] deployments The deployment framework.
-	//! \param[in] factionIndex The occupying faction.
-	//! \return The count.
-	protected int CountLiveHarassmentOperations(notnull OVT_DeploymentManagerComponent deployments, int factionIndex)
-	{
-		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(m_Objective.position, HARASSMENT_OP_RADIUS);
-		if (!nearby)
-			return 0;
-
-		int count = 0;
-		foreach (OVT_DeploymentComponent deployment : nearby)
-		{
-			if (!deployment)
-				continue;
-
-			if (deployment.GetControllingFaction() != factionIndex)
-				continue;
-
-			if (HARASSMENT_LADDER.Find(deployment.GetDeploymentName()) == -1)
-				continue;
-
-			count++;
-		}
-
-		return count;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How many sabotage missions are alive at the objective right now.
-	//!
-	//! COUNTED FROM THE LIVE DEPLOYMENT LIST, NOT FROM m_aCreatedDeployments, for the reason
-	//! CountLiveHarassmentOperations() gives: the tracked list is a teardown ledger that only grows
-	//! until a reset, so a mission that reported, was wiped out or was collected is still in it.
-	//! \param[in] deployments The deployment framework.
-	//! \param[in] factionIndex The occupying faction.
-	//! \return The count.
-	protected int CountLiveSabotageOperations(notnull OVT_DeploymentManagerComponent deployments, int factionIndex)
-	{
-		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(m_Objective.position, SABOTAGE_OP_RADIUS);
-		if (!nearby)
-			return 0;
-
-		int count = 0;
-		foreach (OVT_DeploymentComponent deployment : nearby)
-		{
-			if (!deployment)
-				continue;
-
-			if (deployment.GetControllingFaction() != factionIndex)
-				continue;
-
-			if (deployment.GetDeploymentName() != SABOTAGE_CONFIG)
-				continue;
-
-			count++;
-		}
-
-		return count;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether the objective has been softened enough to raise the forward operating base, and if so,
-	//! advances to it.
-	//!
-	//! ⚠ CALLED FROM THE HARASSMENT TICK AND NOWHERE ELSE. It is the only phase transition Phase 1 can
-	//! make, so it lives where every other one does - behind DirectorTick()'s three early returns. See
-	//! OnHarassmentSuccess() for what happened when it was also called from there.
-	//!
-	//! ⚠ TWO CONJUNCTS, AND THE SECOND IS NOT IN THE PLAN'S DIAGRAM. §3.2 draws the transition as
-	//! "town: support < 50 %" alone. Wired that literally, the gate fires on the FIRST tick of the
-	//! phase for any town already under the threshold, and the whole harassment phase is skipped:
-	//!
-	//!   - IT BREAKS G3, the reason the feature exists. "Between the first harassment group arriving
-	//!     and the counter-QRF there are tens of in-game minutes of visible activity" cannot be true of
-	//!     a ramp that can advance before it has sent anything. A collapsed town is already rewarded by
-	//!     SELECTION, which scores low support heavily (§3.4) - the prize is being CHOSEN, not being
-	//!     allowed to skip the phase.
-	//!   - IT MAKES PROGRESS UNATTRIBUTABLE. "Why did the occupying faction move to this phase" must
-	//!     always have an answer, and "the town was already like that" is not one.
-	//!   - IT IS WHAT MADE THE PHASE TIMEOUT LOOK LIKE IT RE-ARMED. A gate that fires on the entry tick
-	//!     calls EnterPhase(), which legitimately re-arms the timeout - so a planted countdown read back
-	//!     as a fresh one and the tick looked like it had failed to decrement. The re-arm was never the
-	//!     bug; firing on that tick at all was.
-	//!
-	//! ⚠ THE SECOND CONJUNCT IS THE TOWN CARRYING THIS FEATURE'S OWN DEBUFF - NOT THE SUCCESS COUNTER.
-	//! Both were tried and the counter is not enough. m_iHarassmentSuccesses is a plain integer that
-	//! OnHarassmentSuccess() will raise for anybody who asks, so it records that operations were
-	//! REPORTED, not that anything happened in the world; a caller arranging a mid-ramp state by
-	//! bumping it three times satisfies a counter test while the town it names has never been touched.
-	//! The modifier is the causal link itself: the town is below the threshold BECAUSE this ramp put a
-	//! stack of ObjectiveHarassment on it. Nothing else in the campaign applies that modifier, so
-	//! nothing else can open this gate.
-	//!
-	//! IT IS ALSO THE RIGHT ANSWER FOR A RESTORE, which the counter is not: town modifiers are
-	//! persisted, so a campaign loaded mid-ramp still carries the debuff and still qualifies, with no
-	//! session-local "have I sent one yet" state to rebuild.
-	//!
-	//! NOT A WEDGE RISK. If the debuff has expired the gate refuses, the ramp sends another operation,
-	//! and that operation re-applies it - and if the ramp cannot make progress at all, the phase
-	//! timeout gives up and blacklists, loudly. There is no path here that stops without a log line.
-	//!
-	//! ⚠ THE CONJUNCT IS HERE, NOT IN OVT_ObjectivePhaseRules.TownPhase2Gate. That static answers one
-	//! question - "is this town soft enough" - and its signature is pinned by Phase 2 Logic cases on
-	//! both sides of the threshold. "Did this ramp do it" is the DIRECTOR's question, and folding it
-	//! into the static would change a Phase 2 contract to fix a Phase 5 mistake.
-	//! \return True when the phase advanced, so the caller stops working on this phase.
-	protected bool CheckHarassmentGate()
-	{
-		if (m_Objective.kind == OVT_EObjectiveKind.BASE)
-			return CheckBaseHarassmentGate();
-
-		if (m_Objective.kind != OVT_EObjectiveKind.TOWN)
-			return false;
-
-		// THE RAMP HAS TO HAVE DONE IT. See the header.
-		if (!ObjectiveTownCarriesHarassmentDebuff())
-			return false;
-
-		int support = ResolveObjectiveSupportPercentage();
-		if (support < 0)
-			return false;
-
-		if (!OVT_ObjectivePhaseRules.TownPhase2Gate(support))
-			return false;
-
-		Print(LOG + "Objective '" + m_Objective.name + "' is down to " + support.ToString() + "% support - raising a forward operating base", LogLevel.NORMAL);
-
-		EnterPhase(OVT_EObjectivePhase.FOB);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The BASE half of the forward-base gate: one completed sabotage mission.
-	//!
-	//! ⚠ CALLED FROM CheckHarassmentGate() AND THEREFORE FROM THE HARASSMENT TICK AND NOWHERE ELSE, for
-	//! the same reason everything else in this machine is: a phase entry re-arms the phase timeout, so a
-	//! transition reachable from anything but a tick silently overwrites planted timers and can save a
-	//! phase nobody asked for. ⚠ In particular OnSabotageSuccess() MUST NOT call this - see its header,
-	//! and see OnHarassmentSuccess() for the two red cases the equivalent line cost in Phase 5.
-	//!
-	//! ⚠ WHY THE COUNTER IS ENOUGH HERE WHEN IT IS NOT ENOUGH FOR A TOWN. The town gate needs a second,
-	//! causal conjunct because a town can already be under its support threshold when it is CHOSEN, so
-	//! "the town is soft" is not evidence that "this ramp softened it" and the gate could fire on the
-	//! phase's entry tick. sabotageSuccesses cannot do that: CommitObjective zeroes it, nothing in the
-	//! campaign but a completed sabotage mission raises it, and one has to have been sent, driven to the
-	//! base, held it unopposed and demolished something to raise it once. The counter IS the world fact
-	//! here - which is also why it round-trips a save correctly with no session-local state to rebuild.
-	//! \return True when the phase advanced, so the caller stops working on this phase.
-	protected bool CheckBaseHarassmentGate()
-	{
-		if (!OVT_ObjectivePhaseRules.BasePhase2Gate(m_Objective.sabotageSuccesses))
-			return false;
-
-		Print(LOG + "Objective '" + m_Objective.name + "' has taken " + m_Objective.sabotageSuccesses.ToString() + " sabotage mission(s) - raising a forward operating base", LogLevel.NORMAL);
-
-		EnterPhase(OVT_EObjectivePhase.FOB);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether the objective town is carrying the debuff THIS ramp applies.
-	//!
-	//! The causal half of the forward-base gate - see CheckHarassmentGate() for why the success counter
-	//! cannot do this job. Read the same way OVT_MapInfluenceLayer reads it: resolve the name to an
-	//! index through the modifier system (the index is what the replicated per-town list carries) and
-	//! look for that index on the town.
-	//! \return True when the objective is a town currently carrying at least one stack.
-	protected bool ObjectiveTownCarriesHarassmentDebuff()
-	{
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		if (!towns)
-			return false;
-
-		OVT_TownData town = towns.GetNearestTown(m_Objective.position);
-		if (!town || !town.supportModifiers)
-			return false;
-
-		OVT_TownModifierSystem system = towns.GetModifierSystem(OVT_TownSupportModifierSystem);
-		if (!system)
-			return false;
-
-		int index = system.GetModifierIndexByName(HARASSMENT_MODIFIER);
-		if (index < 0)
-			return false;
-
-		foreach (OVT_TownModifierData modifier : town.supportModifiers)
-		{
-			if (modifier && modifier.id == index)
-				return true;
-		}
-
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The objective town's current support for the resistance.
-	//! \return 0-100, or -1 when there is no town to ask (a base objective, or no town manager).
-	protected int ResolveObjectiveSupportPercentage()
-	{
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		if (!towns)
-			return -1;
-
-		OVT_TownData town = towns.GetNearestTown(m_Objective.position);
-		if (!town)
-			return -1;
-
-		return town.SupportPercentage();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Phase 2. Raises the forward operating base, garrisons it, and watches its supply line.
-	//!
-	//! FOUR THINGS, IN THIS ORDER, AND THE ORDER IS THE CONTRACT:
-	//!  1. THE CLOCKS, behind all three of the tick's early returns, exactly as in harassment.
-	//!  2. THE PHASE TIMEOUT. A forward-base phase that has run its whole budget of in-game minutes
-	//!     without getting a base up has failed, and failing loudly beats wedging quietly.
-	//!  3. STARVATION, before any spending. A base that is already cut off should not buy another
-	//!     garrison for it on the way out.
-	//!  4. AT MOST ONE OPERATION, and only once the cadence has elapsed - the same discipline the
-	//!     harassment phase runs on, through the same countdown, for the same reason: one spender, one
-	//!     interval, no unbounded per-tick lurch.
-	//!
-	//! ⚠ THE COUNTER-ATTACK GATE IS ASKED FIRST, BEFORE THE CLOCKS, AND THAT ORDERING IS D17. Every
-	//! other check in this method is part of "the ramp is still working"; the gate answers "the ramp is
-	//! finished". Its three answers:
-	//!
-	//!   FIRE                - the battle starts and the phase advances, and the tick ends there.
-	//!                         Serving a round off the forward-base phase's timeout on the way out
-	//!                         would be bookkeeping for a phase that no longer exists.
-	//!   WAIT_FOR_DAYLIGHT   - everything the occupying faction controls is done and only the world
-	//!                         clock is in the way. ⚠ EXACTLY ONE THING IS HELD: THE PHASE TIMEOUT.
-	//!                         See the block below - this is narrower than it first looks, and getting
-	//!                         it wrong the other way is the more damaging mistake.
-	//!   NOT_READY           - ordinary forward-base work; the whole method runs.
-	//!
-	//! 🔴 WHAT THE DAYLIGHT WAIT DOES AND DOES NOT HOLD, AND WHY THE DIFFERENCE MATTERS.
-	//! D17's original wording said the wait ticks "no starvation or timeout counter". That was CORRECTED
-	//! (2026-08-19, by the author of the decision) to mean only what it was for: waiting for morning must
-	//! not count as the objective FAILING. The two clocks are not the same kind of thing:
-	//!
-	//!   - THE PHASE TIMEOUT is a clock the director runs against ITSELF. Left running, a gate met at
-	//!     16:00 would spend the phase's remaining budget waiting out the night and the objective would
-	//!     be ABANDONED for being dark. It is held, and it is not even tested during the wait.
-	//!   - STARVATION IS THE PLAYER'S COUNTERPLAY. It is a response to facts about the WORLD - the
-	//!     supplying base taken or emptied, a strong resistance presence - and those facts do not stop
-	//!     being true after sunset. Freezing it would mean a player who empties the supplying garrison at
-	//!     22:00 watches the forward base stand for hours and then launch a counter-attack anyway, which
-	//!     contradicts F7 outright and punishes a correct play. It RUNS, and it may take the objective
-	//!     down mid-wait exactly as it would at midday, blacklist and all.
-	//!   - THE OPERATION CADENCE runs too, because the garrison sender is what the starvation rule is
-	//!     measured against and because a frozen cadence would either never fire or fire every tick.
-	//!
-	//! FOUR THINGS AFTER THE GATE, IN THIS ORDER, AND THE ORDER IS THE CONTRACT:
-	//!  1. THE CADENCE, behind all three of the tick's early returns, exactly as in harassment.
-	//!  2. STARVATION, before any spending. A base that is already cut off should not buy another
-	//!     garrison for it on the way out.
-	//!  3. AT MOST ONE OPERATION, and only once the cadence has elapsed - the same discipline the
-	//!     harassment phase runs on, through the same countdown, for the same reason: one spender, one
-	//!     interval, no unbounded per-tick lurch.
-	//!  4. THE IDLE CLOCK, LAST and only when the daylight wait is off, because it is the only thing here
-	//!     that has to know whether the tick accomplished anything. See TickObjectiveIdleClock(), and see
-	//!     TickHarassment() for why it moved to the bottom.
-	//!
-	//! ⚠ THE DAYLIGHT WAIT STILL HOLDS THE IDLE CLOCK AND STILL DOES NOT TEST IT, unchanged by the
-	//! 2026-08-19 idle-clock rework. It is the same argument one layer up: a clock the director runs
-	//! against itself must not be spent on a block that is not the objective's fault. The affordability
-	//! hold below is that same argument applied to an empty pool.
-	//!
-	//! 🔴 PHASE 1 OPERATIONS DO CONTINUE INTO THIS PHASE, AND THE DEFERRAL THAT SAID OTHERWISE WAS A
-	//! DEADLOCK (2026-08-19). This header used to record "Phase 1 operations do not continue into this
-	//! phase" as a deliberate deferral. A play-test proved it load-bearing: BasePhase2Gate() promotes a
-	//! base objective on its FIRST completed sabotage mission and BasePhase3Gate() demands six of them on
-	//! Easy, so the promotion itself made the remaining five unsendable - the counter froze at one and
-	//! the counter-attack, the headline promise of the whole feature, was unreachable. Towns deadlocked
-	//! identically: the stacking support debuff that drives support under 25 % is applied by harassment
-	//! operations, so it stopped stacking, timed out, and support recovered. §3.2's diagram always said
-	//! the forward base "becomes the insertion source for FURTHER Phase 1 operations, spending against a
-	//! CEILING inside the deployment pool"; that is now what happens. See SendNextFOBOperation() for the
-	//! chain and OVT_ObjectivePhaseRules.PhaseInRange() for how a config says which phases it spans.
-	//!
-	//! ⚠ AND THE BACKSTOP STILL WORKS, WHICH IS THE ONE THING THE CONTINUATION COULD HAVE COST. A ramp
-	//! operation IS an in-flight operation (IsObjectiveOperationConfig()) and therefore HOLDS the idle
-	//! clock while its men are walking - so the question "can this phase still time out" has to be
-	//! answered rather than assumed. It can: the ceiling is finite, every operation either completes or
-	//! dies, and a forward base that has spent its whole ceiling creates nothing, holds nothing and runs
-	//! the clock down to a reset exactly as before. What is NOT new is a mission that can never finish
-	//! and never dies holding the clock open - the harassment phase has always had that shape, with the
-	//! same senders and the same behaviour modules.
-	protected void TickFOB()
-	{
-		int gate = EvaluateCounterAttackGate();
-
-		if (gate == COUNTER_ATTACK_FIRE)
-		{
-			FireCounterAttack();
-			return;
-		}
-
-		bool waitingForDaylight = gate == COUNTER_ATTACK_WAIT_FOR_DAYLIGHT;
-		if (waitingForDaylight)
-			LogDaylightWait();
-
-		m_bBlockedOnAffordability = false;
-
-		AdvanceOperationCadence();
-
-		// ⚠ RUNS DURING THE WAIT, AND MAY END THE OBJECTIVE DURING IT. That is the point: starvation is
-		// the resistance's answer to a forward base, and a base cut off at 22:00 must come down at 22:00.
-		if (TickFOBStarvation())
-			return;
-
-		bool created = false;
-		if (m_Objective.nextOpTicks == 0)
-			created = SendNextFOBOperation();
-
-		// ⚠ THE ONE THING THE WAIT HOLDS, AND IT IS NOT EVEN TESTED DURING IT. Nothing would have
-		// decremented it, so it cannot have reached zero on this tick - but testing it anyway would
-		// abandon an objective whose patience happened to run out at the exact moment the sun went down,
-		// which is the one outcome the hold exists to prevent. The per-tick affordability flag is dropped
-		// with it, so a refusal seen during a wait cannot leak into the next tick's decision.
-		if (waitingForDaylight)
-		{
-			m_bBlockedOnAffordability = false;
-			return;
-		}
-
-		if (TickObjectiveIdleClock(created))
-			ResetObjective("the forward-base phase did nothing at all for " + m_iPhaseTimeoutTicks.ToString() + " in-game minutes and never reached the counter-attack gate", true);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	// PHASE 3 - THE COUNTER-ATTACK
-	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether the ramp has earned its counter-attack, and if so whether the clock will allow it yet.
-	//!
-	//! THREE ANSWERS, NOT TWO, because "not yet" and "not now" are different states with different
-	//! costs - see TickFOB() for what each one does to the machine's timers.
-	//!
-	//! THE MATERIAL GATE IS ASKED FIRST AND THE CLOCK SECOND, and the order matters: an objective whose
-	//! support has not collapsed yet is NOT waiting for daylight, it is still being worked on, and
-	//! reporting it as a daylight wait would freeze the whole forward-base phase - no starvation, no
-	//! timeout, no further garrisons - for a ramp that has not finished.
-	//!
-	//! ⚠ IT DECIDES NOTHING AND CHANGES NOTHING. It is reachable from a public reader
-	//! (IsCounterAttackReady()) and must stay side-effect free; the transition is TickFOB()'s, behind
-	//! DirectorTick()'s three early returns, for the reason every other transition in this machine gives.
-	//! \return COUNTER_ATTACK_NOT_READY, COUNTER_ATTACK_WAIT_FOR_DAYLIGHT or COUNTER_ATTACK_FIRE.
-	int EvaluateCounterAttackGate()
-	{
-		if (m_Objective.phase != OVT_EObjectivePhase.FOB)
-			return COUNTER_ATTACK_NOT_READY;
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-
-		if (!occupying || !difficulty)
-			return COUNTER_ATTACK_NOT_READY;
-
-		if (!MeetsCounterAttackRamp(occupying, difficulty))
-			return COUNTER_ATTACK_NOT_READY;
-
-		if (!IsCounterAttackDaylight())
-			return COUNTER_ATTACK_WAIT_FOR_DAYLIGHT;
-
-		return COUNTER_ATTACK_FIRE;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The half of the counter-attack gate that is about the campaign rather than about the clock.
-	//!
-	//! Both kinds share the same three conjuncts in OVT_ObjectivePhaseRules - the forward base standing,
-	//! the ramp's own measure of progress, and the reserve covering the battle - and differ only in what
-	//! "progress" means: collapsed support for a town, completed sabotage missions for a base.
-	//! \param[in] occupying The occupying faction manager, for the reserve.
-	//! \param[in] difficulty The difficulty settings, for the two authored gates.
-	//! \return True when everything the occupying faction controls is done.
-	protected bool MeetsCounterAttackRamp(notnull OVT_OccupyingFactionManager occupying, notnull OVT_DifficultySettings difficulty)
-	{
-		if (m_Objective.kind == OVT_EObjectiveKind.BASE)
-		{
-			int required = OVT_ObjectivePhaseRules.RequiredSabotageMissions(difficulty.objectiveSabotageMissionsRequired, OVT_ObjectivePhaseRules.DEFAULT_SABOTAGE_MISSIONS);
-
-			return OVT_ObjectivePhaseRules.BasePhase3Gate(m_Objective.sabotageSuccesses, required, m_FOB.up, occupying.m_iResources, difficulty.objectiveQRFResourceGate);
-		}
-
-		if (m_Objective.kind != OVT_EObjectiveKind.TOWN)
-			return false;
-
-		int support = ResolveObjectiveSupportPercentage();
-		if (support < 0)
-			return false;
-
-		return OVT_ObjectivePhaseRules.TownPhase3Gate(support, m_FOB.up, occupying.m_iResources, difficulty.objectiveQRFResourceGate);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether the world clock is inside the window a counter-attack may begin in.
-	//!
-	//! ⚠ AN UNREADABLE CLOCK ALLOWS THE BATTLE (returns true), and that is a decision rather than a
-	//! fallthrough. A world with no time-and-weather manager has no night to protect anyone from, and
-	//! failing the other way would mean the occupying faction never counter-attacked at all in such a
-	//! world - which is exactly the silent, undiagnosable passivity this feature exists to end.
-	//! \return True when a counter-attack may begin now.
-	bool IsCounterAttackDaylight()
-	{
-		int hour = ResolveWorldHour();
-		if (hour < 0)
-			return true;
-
-		return OVT_ObjectivePhaseRules.IsCounterAttackWindow(hour, COUNTER_ATTACK_HOUR_START, COUNTER_ATTACK_HOUR_END);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The world clock's hour.
-	//!
-	//! Resolved the way OVT_OccupyingFactionManager.CheckUpdate() resolves it: the handle is the one
-	//! OVT_Component already fills in, re-resolved lazily here because that fill is skipped in edit mode
-	//! and a component constructed before the world's managers exist would otherwise cache a null.
-	//! \return 0-23, or -1 when there is no clock to read.
-	protected int ResolveWorldHour()
-	{
-		if (!m_Time)
-		{
-			ChimeraWorld world = GetOwner().GetWorld();
-			if (world)
-				m_Time = world.GetTimeAndWeatherManager();
-		}
-
-		if (!m_Time)
-			return -1;
-
-		TimeContainer time = m_Time.GetTime();
-		if (!time)
-			return -1;
-
-		return time.m_iHours;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Says once, per objective, that the ramp is finished and only the clock is holding it.
-	//!
-	//! ⚠ ONCE, NOT ONCE PER TICK (D17). This runs once per in-game minute and the wait can last most of
-	//! an in-game day; unlatched it would put hundreds of identical lines in the log for a state that is
-	//! entirely normal. The latch is cleared with the objective record, so the next objective says it.
-	//!
-	//! ⚠ IT DOES NOT SAY THE PHASE HAS STOPPED, because it has not: only the phase timeout is held. If
-	//! the objective disappears during the wait, the reason will be in the log from the starvation rule
-	//! or the dismantle path, and it will be a true one.
-	protected void LogDaylightWait()
-	{
-		if (m_bDaylightWaitLogged)
-			return;
-
-		m_bDaylightWaitLogged = true;
-
-		Print(LOG + "Objective '" + m_Objective.name + "' is ready to be counter-attacked and is waiting for daylight (" + COUNTER_ATTACK_HOUR_START.ToString() + ":00 to " + COUNTER_ATTACK_HOUR_END.ToString() + ":00). Its phase timeout is held while it waits; its forward base can still be starved out or pulled down", LogLevel.NORMAL);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Says once, per objective, that the gate passed but the battle could not be started.
-	//!
-	//! ⚠ ONCE, FOR THE SAME REASON THE DAYLIGHT WAIT IS ONCE. Every refusal below is a state that lasts
-	//! until the objective ends - a base retaken by the occupying faction, a marker that no longer
-	//! resolves, an objective position with nothing under it - and the gate is re-asked once per in-game
-	//! minute, so an unlatched line would be several hundred identical warnings before the phase timeout
-	//! gives up. The timeout IS the exit here; this line is the explanation for it.
-	//! \param[in] reason Why no battle could be started. Named in the log.
-	protected void LogCounterAttackRefusal(string reason)
-	{
-		if (m_bCounterAttackRefusalLogged)
-			return;
-
-		m_bCounterAttackRefusalLogged = true;
-
-		Print(LOG + "Objective '" + m_Objective.name + "' is ready to be counter-attacked but " + reason + ". It will sit out the rest of the forward-base phase and be abandoned when that times out", LogLevel.WARNING);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Starts the counter-attack and moves the objective into its last phase.
-	//!
-	//! ⚠ THE PHASE ADVANCES ONLY IF A BATTLE ACTUALLY STARTED. Every one of the starters below refuses
-	//! silently when a battle is already running, and StartBaseQRF additionally needs a live base marker
-	//! to hang a controller on. Advancing regardless would put the machine in COUNTER_QRF with no battle
-	//! to wait for, and TickCounterQRF() would end the objective on the very next tick - a whole ramp
-	//! thrown away with nothing in the log. So the battle handle is checked afterwards, and a refusal
-	//! leaves the objective in the forward-base phase to try again next minute.
-	//!
-	//! ⚠ IT IS THE ONLY PLACE THIS FEATURE STARTS A BATTLE. StartBaseQRF/StartTownQRF keep exactly two
-	//! callers each after this feature: the player-initiated one and this (G2).
-	//! \return True when a battle was started and the phase advanced.
-	protected bool FireCounterAttack()
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying)
-			return false;
-
-		// The freeze would have returned before this method was reached, so a battle here means one
-		// started outside the tick. Refusing is the same answer the starters would give.
-		if (occupying.m_CurrentQRF)
-			return false;
-
-		bool started = false;
-
-		if (m_Objective.kind == OVT_EObjectiveKind.BASE)
-			started = StartCounterAttackOnBase(occupying);
-		else if (m_Objective.kind == OVT_EObjectiveKind.TOWN)
-			started = StartCounterAttackOnTown(occupying);
-
-		if (!started)
-			return false;
-
-		Print(LOG + "Objective '" + m_Objective.name + "': the counter-attack has begun", LogLevel.NORMAL);
-
-		EnterPhase(OVT_EObjectivePhase.COUNTER_QRF);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Starts the counter-attack against a BASE objective.
-	//!
-	//! ⚠ THE OBJECTIVE POSITION MUST STILL BE A RESISTANCE-HELD BASE, the same precondition sabotage
-	//! makes and for the same reasons: selection copies base.location verbatim so this resolves by metres
-	//! in a live campaign, but a restored payload naming a base that has since gone must not drop a
-	//! battle on whichever base happened to be nearest, and a base the occupying faction has retaken by
-	//! some other route must not be attacked by its own side. The forward-base phase is LOCKED against
-	//! re-selection, so a base recaptured mid-ramp sits until the phase timeout - loudly, with this line
-	//! in the log every interval rather than a battle.
-	//! \param[in] occupying The occupying faction manager.
-	//! \return True when a battle was started.
-	protected bool StartCounterAttackOnBase(notnull OVT_OccupyingFactionManager occupying)
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-			return false;
-
-		OVT_BaseData data = occupying.GetNearestBase(m_Objective.position);
-		if (!data)
-			return false;
-
-		if (vector.Distance(data.location, m_Objective.position) > BASE_OP_RESOLVE_RADIUS)
-		{
-			LogCounterAttackRefusal("there is no base within " + BASE_OP_RESOLVE_RADIUS.ToString() + " m of its recorded position");
-			return false;
-		}
-
-		if (data.faction == config.GetOccupyingFactionIndex())
-		{
-			LogCounterAttackRefusal("the occupying faction already holds it");
-			return false;
-		}
-
-		OVT_BaseControllerComponent controller = occupying.GetBase(data.entId);
-		if (!controller)
-		{
-			LogCounterAttackRefusal("its base marker could not be resolved");
-			return false;
-		}
-
-		// ⚠ COUNTER_ATTACK, NOT THE DEFAULT. This is the only place in the tree that asks for a silent
-		// siege; a standard battle is what every player-initiated caller gets.
-		occupying.StartBaseQRF(controller, OVT_EQRFMode.COUNTER_ATTACK);
-
-		return occupying.m_CurrentQRF != null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Starts the counter-attack against a TOWN or CITY objective.
-	//! \param[in] occupying The occupying faction manager.
-	//! \return True when a battle was started.
-	protected bool StartCounterAttackOnTown(notnull OVT_OccupyingFactionManager occupying)
-	{
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		if (!towns)
-			return false;
-
-		OVT_TownData town = towns.GetNearestTown(m_Objective.position);
-		if (!town)
-		{
-			LogCounterAttackRefusal("no town could be resolved at its recorded position");
-			return false;
-		}
-
-		// ⚠ COUNTER_ATTACK, NOT THE DEFAULT. See StartCounterAttackOnBase.
-		occupying.StartTownQRF(town, OVT_EQRFMode.COUNTER_ATTACK);
-
-		return occupying.m_CurrentQRF != null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends ONE forward-base operation, and re-arms the cadence only if one was actually sent.
-	//!
-	//! THE BASE, THEN ITS GARRISON, THEN THE RAMP - five senders chained, at most one of which may
-	//! answer, and the order is a priority rather than a sequence:
-	//!   1. THE FORWARD BASE ITSELF. Nothing else in this phase means anything until the flag is up, and
-	//!      the garrison's own source provider resolves to the forward base only once it is standing.
-	//!   2. ITS GARRISON, up to objectiveFOBGarrisonMax. A base that cannot hold itself is a base the
-	//!      resistance starves on the next tick, and starvation ends the objective outright.
-	//!   3-5. THE PHASE 1 RAMP - tower recapture, harassment, sabotage - in the same order and through
-	//!      the same senders TickHarassment() uses. This is what makes the counter-attack reachable:
-	//!      see TickFOB()'s header for the deadlock that not doing it caused.
-	//! Every one of them refuses on its first line when it is not its turn, so the order is the only
-	//! sequencing this phase needs.
-	//!
-	//! ⚠ THE ORDER IS A PRIORITY IN ONE MORE SENSE SINCE 2026-08-20: when the forward base is refused
-	//! FOR MONEY, the chain stops there rather than falling through to a cheaper ramp operation that
-	//! would spend the pool the base is saving toward. See the block at that return - it is the fix for
-	//! a livelock the author play-tested, not a tidy-up.
-	//!
-	//! ⚠ IT IS THE SAME ONE-OPERATION-PER-INTERVAL SPENDER, WIDENED, NOT A SECOND ONE. The chain is `&&`
-	//! of refusals, so exactly one create can happen per call and the countdown below is armed once. A
-	//! separate ramp spender beside this one would reopen the unbounded-per-tick hole tower recapture was
-	//! moved out of in TickHarassment(), and would do it in the phase that also has a spend CEILING to
-	//! respect.
-	//!
-	//! ⚠ THE CEILING AND THE RESERVE FLOOR ARE NOT RE-IMPLEMENTED HERE AND MUST NOT BE. Every one of the
-	//! five goes through CreateObjectiveDeployment() -> CanSendObjectiveDeployment(), which asks the pool,
-	//! pushes the reserve floor when it is short, and refuses past the forward base's ceiling - and the
-	//! ceiling is ARMED for the whole of this phase (IsFOBBudgetActive()), so §3.2's "spending against a
-	//! CEILING inside the deployment pool" is true of the ramp operations by construction rather than by
-	//! a rule anybody has to apply here.
-	//!
-	//! ⚠ THE COUNTDOWN IS ONLY RE-ARMED ON A SUCCESSFUL CREATE, exactly as in harassment. Every refusal
-	//! - no site, the pool is short, the ceiling is spent, the garrison is full, nothing left to sabotage
-	//! - leaves nextOpTicks at zero so the next tick asks again a minute later instead of waiting out a
-	//! whole interval for a condition that may have cleared immediately.
-	//! \return True when an operation was created and paid for - which is PROGRESS, and re-arms the idle
-	//!         clock.
-	protected bool SendNextFOBOperation()
-	{
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-			return false;
-
-		if (SendFOBOperation())
-		{
-			SetOperationCountdown(difficulty.objectiveHarassmentIntervalMinutes);
-			return true;
-		}
-
-		// 🔴 THE FORWARD BASE HAS FIRST CLAIM ON THE POOL, AND WITHOUT THIS THE PHASE LIVELOCKS.
-		//
-		// Play-test, 2026-08-20: a base objective was promoted to this phase, the forward base was
-		// refused at 120 against a pool of 56, the chain fell through to sabotage at 100 - and from then
-		// on the faction bought a sabotage mission every time the pool passed 100 and NEVER reached the
-		// 120 the base costs. No forward base, no supply party, and Phase 1 operations running in Phase 2
-		// forever. The author's report was exactly that: "I dont see one or a team going to put one up,
-		// and now the director is calling for sabotage in phase 2".
-		//
-		// TWO THINGS WERE WRONG AND THIS ONE RETURN FIXES BOTH:
-		//   - THE RESERVE FLOOR NAMED THE WRONG OPERATION. Every affordability refusal pushes the floor
-		//     (CanSendObjectiveDeployment), so the LAST refusal in the chain overwrote the first: the
-		//     faction was saving up 100 for sabotage while the thing the phase exists for cost 120. The
-		//     log said so plainly - "held to 0 of 56 because 100 is reserved for 'Objective Sabotage'".
-		//   - AND THE FLOOR ALONE WOULD NOT HAVE BEEN ENOUGH, because it deliberately does not govern
-		//     this component's own spending (see PushObjectiveReserve) - the sabotage sender reads the
-		//     RAW pool and would still have taken the money at 100 on its way past 120.
-		// Returning here leaves the FIRST refusal's floor standing and spends nothing below it, so the
-		// pool actually accumulates to the forward base's price.
-		//
-		// ⚠ ONLY AN AFFORDABILITY REFUSAL HOLDS THE CHAIN, AND THAT IS THE WHOLE SAFETY ARGUMENT. Every
-		// other reason SendFOBOperation() answers false - no source base, no site, a supply party already
-		// on the road, the base already standing - leaves m_bBlockedOnAffordability false and falls
-		// through to the ramp exactly as before. So this cannot re-create the deadlock TickFOB()'s header
-		// describes: that one was Phase 1 operations stopping PERMANENTLY, and this is them pausing while
-		// the faction saves up for a ONE-TIME purchase it can always eventually afford.
-		//
-		// ⚠ AND THE IDLE CLOCK IS HELD, NOT SPENT, because m_bBlockedOnAffordability is still true when
-		// TickObjectiveIdleClock() reads it. Being broke is not a failure of the objective - the same
-		// rule the harassment phase already applies - so the phase does not time out while it waits.
-		if (m_bBlockedOnAffordability && !m_FOB.up && !m_bFOBDeploymentSent)
-			return false;
-
-		// 🔴 AND HOUSEKEEPING MUST NOT COST THE FORWARD BASE ITS TURN EITHER (2026-08-20).
-		//
-		// SendFOBOperation() has two branches that CLEAR THE WAY for a base rather than sending one: a
-		// stale supply party restored from a save (which can never raise anything, D11) and one that
-		// vanished between the send and the raise. Both delete something, set up a re-site, and return
-		// false - and false let the chain fall straight through to a cheaper ramp operation, which then
-		// armed the whole operation interval. So the tick that CLEANED UP for the forward base handed
-		// its slot to a sabotage mission and pushed the base a full interval away - 60 in-game minutes
-		// on Normal. The author loaded a save in the forward-base phase, watched exactly that happen
-		// ("no FOB being deployed for some reason... my save is in phase 2 for levie base"), and the
-		// base was not blocked at all - it was queued behind an interval it should never have lost.
-		//
-		// ⚠ THIS IS NOT THE AFFORDABILITY HOLD AND MUST NOT BE FOLDED INTO IT. That one waits for money
-		// and can last many ticks; this one is a SINGLE tick of bookkeeping, and the very next tick has
-		// a clear field to site on. Hence a one-shot flag, cleared as it is read.
-		//
-		// ⚠ THE IDLE CLOCK IS DELIBERATELY NOT HELD HERE. Being unable to afford anything is not the
-		// objective's fault; spending a tick tidying up after itself arguably is, and one idle tick out
-		// of a 240-minute budget is not worth a second exemption that would have to be reasoned about
-		// every time the clock is read.
-		if (m_bFOBResitePending)
-		{
-			m_bFOBResitePending = false;
-			return false;
-		}
-
-		if (!SendFOBGarrisonOperation() && !SendTowerRecaptureOperation() && !SendHarassmentOperation() && !SendSabotageOperation())
-			return false;
-
-		SetOperationCountdown(difficulty.objectiveHarassmentIntervalMinutes);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends the supply truck that raises the forward operating base, once per objective.
-	//!
-	//! ⚠ IT ARMS THE CEILING BEFORE IT ASKS WHETHER IT MAY BUY ANYTHING, AND DISARMS IT AGAIN ON EVERY
-	//! FAILURE EXIT. m_bFOBDeploymentSent is what makes IsFOBBudgetActive() true, and the ceiling has to
-	//! already be active when the forward base's OWN cost is checked and counted - §3.7 is explicit that
-	//! the budget covers "the structure itself". A refusal must leave the flag down, or the phase would
-	//! believe a base was on its way and never send another. There are FOUR such exits below (the
-	//! pre-flight, no source base, no site, the create itself) and every one of them clears it.
-	//!
-	//! 🔴 THE PRE-FLIGHT COMES BEFORE THE SITING, AND THAT ORDER IS A BUG FIX (2026-08-19). It used to
-	//! site first: a play-test with twenty resources in the pool ran the full FOB_SITING_ATTEMPTS lattice -
-	//! an ocean read, a TraceBox and five surface samples each - resolved the same deterministic site,
-	//! printed the same "sited at" line, and only then discovered it could not afford the 120 the base
-	//! costs. Every ten seconds. Indefinitely, because the affordability hold means the phase never times
-	//! out. Asking the cheap question first makes a poverty spell in this phase cost exactly what one in
-	//! the harassment phase costs: one map lookup and nothing else.
-	//! \return True when a deployment was created and paid for.
-	protected bool SendFOBOperation()
-	{
-		if (m_FOB.up)
-			return false;
-
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-
-		if (!deployments || !config)
-			return false;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-
-		OVT_DeploymentComponent existing = FindLiveFOBDeployment(deployments);
-
-		if (m_bFOBDeploymentSent)
-		{
-			// A supply party is still on the road. Nothing more to send until it arrives.
-			if (existing)
-				return false;
-
-			// ⚠ IT WAS SENT AND IT IS GONE, AND THIS IS THE PHASE'S ONE WEDGE RISK CLOSED. A deployment
-			// can be collected by its own condition module, wiped out, or deleted by a Game Master
-			// between the send and the raise; with the flag latched and nothing watching for that, the
-			// phase would sit and do nothing until its timeout with no line in the log to explain it.
-			// The flag is dropped and the next interval sites again - the resources already spent stay
-			// counted against the ceiling, because they really were spent.
-			Print(LOG + "The supply party sent to raise a forward base for objective '" + m_Objective.name + "' is gone before it could build - siting another", LogLevel.WARNING);
-			m_bFOBDeploymentSent = false;
-			m_vFOBSite = vector.Zero;
-
-			m_bFOBResitePending = true;
-			return false;
-		}
-
-		// A marker left over from a save taken mid-drive, or from an objective whose teardown could not
-		// reach it. It can never raise anything (D11 gates a restored deployment's raise), so leaving it
-		// standing would cost this objective its whole phase.
-		if (existing)
-		{
-			Print(LOG + "A forward-base deployment from a previous session is standing near objective '" + m_Objective.name + "' and can never raise anything - collecting it and re-siting", LogLevel.WARNING);
-			deployments.DeleteDeployment(existing);
-
-			m_bFOBResitePending = true;
-			return false;
-		}
-
-		// THE CEILING IS ARMED FROM HERE TO THE END OF THE METHOD. See the header.
-		m_bFOBDeploymentSent = true;
-
-		// 🔴 THE CHEAP QUESTION FIRST. Nothing below this line is worth doing if the faction cannot pay
-		// for the base, and everything below it is expensive, noisy or both.
-		int preflightCost;
-		if (!CanSendObjectiveDeployment(deployments, FOB_CONFIG, occupyingIndex, preflightCost))
-		{
-			m_bFOBDeploymentSent = false;
-			return false;
-		}
-
-		vector source;
-		if (!ResolveFOBSourceBase(occupyingIndex, source))
-		{
-			m_bFOBDeploymentSent = false;
-
-			// Latched with the rest: it is re-asked every in-game minute and stays true until the faction
-			// takes a base back, which the campaign log will say on its own.
-			LogOperationRefusal(FOB_CONFIG, REFUSAL_NO_SOURCE_BASE, "there is no supply line to site one along", LogLevel.WARNING);
-			return false;
-		}
-
-		vector site;
-		float siteYaw;
-		if (!ResolveFOBSite(source, m_Objective.position, site, siteYaw))
-		{
-			// ⚠ NOT A RETRY. The band, the exclusions and the terrain do not change from one in-game
-			// minute to the next, so an objective with nowhere to put a forward base has nowhere to put
-			// one for as long as it is the objective. It sits out a selection round and something else
-			// gets picked - T7.4.
-			//
-			// ⚠ THE FLAG IS DROPPED BEFORE THE RESET, not after: TearDownFOB() reads it to decide whether
-			// there is anything to sweep, and nothing was ever sent.
-			m_bFOBDeploymentSent = false;
-
-			Print(LOG + "Objective '" + m_Objective.name + "' has nowhere to put a forward base: " + FOB_SITING_ATTEMPTS.ToString() + " generated candidate(s) and every authored site in the band were rejected. Abandoning it for one selection round", LogLevel.WARNING);
-			ResetObjective("no forward-base site could be found anywhere in its band", true);
-			return false;
-		}
-
-		// ⚠ THE FACING GOES ON THE DEPLOYMENT MARKER, WHICH IS HOW IT REACHES THE RAISE. The raise module
-		// already takes its position from m_ParentDeployment; taking the heading from the same object is
-		// the one arrangement in which the two can never disagree, and it needs no lookup back into this
-		// component from inside a deployment module. See OVT_DeploymentManagerComponent.CreateDeployment.
-		if (!CreateObjectiveDeployment(deployments, FOB_CONFIG, site, occupyingIndex, siteYaw))
-		{
-			m_bFOBDeploymentSent = false;
-			return false;
-		}
-
-		m_vFOBSite = site;
-
-		// 🔴 RECORDED FROM THE SITE, NOT FROM THE OBJECTIVE, SO THE RECORD MATCHES WHO ACTUALLY SUPPLIES
-		// IT (2026-08-20).
-		//
-		// `source` above is the nearest controlled base TO THE OBJECTIVE, and it is the right input for
-		// the corridor - it is what decides which way the supply line runs before any site exists. It is
-		// the wrong thing to REMEMBER. What actually drives the supply party is the insertion module's
-		// own provider, and that resolves the nearest controlled base to the DEPLOYMENT, i.e. to the
-		// site. Those two are allowed to differ, and before the corridor gate they routinely did: a
-		// play-test found a forward base whose record named a base 1.2 km further from it than the one
-		// its convoy really came from.
-		//
-		// ⚠ WHY IT MATTERS RATHER THAN BEING BOOKKEEPING: IsFOBStarved() reads this record to ask "has
-		// the base supplying it been taken?". Named wrongly, the forward base starves when the player
-		// takes a base that was supplying nothing, and survives when they take the one that really was.
-		//
-		// ⚠ THE CORRIDOR MADE THEM AGREE IN PRACTICE; THIS MAKES THEM AGREE BY CONSTRUCTION, which is
-		// the difference between a property that holds and one that is enforced. Asking the same
-		// question the insertion module asks, at the same position, is the only arrangement in which
-		// they cannot drift apart again - including for an authored marker that a future FOB_LATERAL_SPREAD
-		// widens the corridor to admit.
-		vector supplyBase;
-		if (ResolveNearestControlledBaseTo(site, occupyingIndex, supplyBase))
-			m_FOB.sourceBasePosition = supplyBase;
-		else
-			m_FOB.sourceBasePosition = source;
-
-		Print(LOG + "Objective '" + m_Objective.name + "': a supply party is on its way to raise a forward base at " + site.ToString(), LogLevel.NORMAL);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sends one more garrison group to a forward base that is standing and short of men.
-	//!
-	//! ⚠ THE CAP IS COUNTED FROM THE LIVE DEPLOYMENT LIST, NEVER FROM m_aCreatedDeployments, for the
-	//! reason every other count in this component gives: the tracked list is a teardown ledger that only
-	//! grows until a reset, so a garrison that was wiped out or collected would hold a slot forever and
-	//! a forward base that lost its men could never be reinforced.
-	//! \return True when a deployment was created and paid for.
-	protected bool SendFOBGarrisonOperation()
-	{
-		if (!m_FOB.up)
-			return false;
-
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-
-		if (!deployments || !config || !difficulty)
-			return false;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-
-		if (CountLiveFOBGarrisons(deployments, occupyingIndex) >= difficulty.objectiveFOBGarrisonMax)
-			return false;
-
-		return CreateObjectiveDeployment(deployments, FOB_GARRISON_CONFIG, m_FOB.position, occupyingIndex);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How many garrison deployments are alive at the forward base right now.
-	//! \param[in] deployments The deployment framework.
-	//! \param[in] factionIndex The occupying faction.
-	//! \return The count.
-	protected int CountLiveFOBGarrisons(notnull OVT_DeploymentManagerComponent deployments, int factionIndex)
-	{
-		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(m_FOB.position, FOB_AREA_RADIUS);
-		if (!nearby)
-			return 0;
-
-		int count = 0;
-		foreach (OVT_DeploymentComponent deployment : nearby)
-		{
-			if (!deployment)
-				continue;
-
-			if (deployment.GetControllingFaction() != factionIndex)
-				continue;
-
-			if (deployment.GetDeploymentName() != FOB_GARRISON_CONFIG)
-				continue;
-
-			count++;
-		}
-
-		return count;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The forward base's own deployment, wherever this objective might have put one.
-	//!
-	//! SEARCHED FROM THE OBJECTIVE RATHER THAN FROM A REMEMBERED SITE, because the one caller that
-	//! needs it most - a restored campaign looking for a marker it has no runtime record of - has no
-	//! remembered site to search from. FOB_MAX_STANDOFF is the furthest the sampler could ever have put
-	//! one, so this covers the whole band and nothing beyond it.
-	//! \param[in] deployments The deployment framework.
-	//! \return The deployment, or null when there is none.
-	protected OVT_DeploymentComponent FindLiveFOBDeployment(notnull OVT_DeploymentManagerComponent deployments)
-	{
-		return deployments.GetDeploymentNearPosition(FOB_CONFIG, m_Objective.position, FOB_MAX_STANDOFF);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The base the forward operating base will be supplied from: the nearest one the occupying faction
-	//! holds to the objective.
-	//!
-	//! ⚠ THE SAME QUESTION THE INSERTION MODULE'S DEFAULT PROVIDER ASKS, AND DELIBERATELY THE SAME
-	//! ANSWER. The director needs it here to know which way the supply line runs before any deployment
-	//! exists to ask a provider on its behalf; the truck that actually drives resolves its own origin
-	//! through the provider, and both walk the faction's own base list so a contested map degrades to a
-	//! longer drive rather than to no forward base.
-	//! \param[in] factionIndex The occupying faction.
-	//! \param[out] source The supplying base's position.
-	//! \return False when the faction holds no base at all.
-	protected bool ResolveFOBSourceBase(int factionIndex, out vector source)
-	{
-		return ResolveNearestControlledBaseTo(m_Objective.position, factionIndex, source);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The nearest base the faction holds to ANY position.
-	//!
-	//! ⚠ TWO CALLERS ASKING THE SAME QUESTION ABOUT DIFFERENT PLACES, which is exactly why it is one
-	//! method. ResolveFOBSourceBase() asks it about the OBJECTIVE, to decide which way the supply line
-	//! runs before a site exists; SendFOBOperation() asks it again about the chosen SITE, to record who
-	//! will really be supplying the base once it is standing. Written twice, those two would be free to
-	//! drift into answering subtly different questions - which is the class of defect that put a forward
-	//! base's recorded supply base 1.2 km from its actual one.
-	//!
-	//! ⚠ IT IS THE SAME WALK OVT_NearestControlledBaseSourceProvider MAKES, deliberately, because the
-	//! second caller's whole purpose is to predict what that provider will answer for the deployment it
-	//! is about to create. The provider cannot be called directly here - it resolves against a live
-	//! deployment position and none exists yet - so the agreement is kept by both walking the faction's
-	//! OWN base list and taking the nearest, rather than by nearest-then-check-if-friendly, which is the
-	//! subtly different question that broke the insertion module's copy of this.
-	//! \param[in] position What "nearest" is measured to.
-	//! \param[in] factionIndex The faction that must control the base.
-	//! \param[out] source The nearest controlled base's position; zero when there is none.
-	//! \return False when the faction holds no base at all.
-	protected bool ResolveNearestControlledBaseTo(vector position, int factionIndex, out vector source)
-	{
-		source = vector.Zero;
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying)
-			return false;
-
-		array<OVT_BaseData> controlled = occupying.GetBasesControlledBy(factionIndex);
-		if (!controlled || controlled.IsEmpty())
-			return false;
-
-		bool found = false;
-		float best = 0;
-
-		foreach (OVT_BaseData base : controlled)
-		{
-			if (!base)
-				continue;
-
-			float distance = vector.Distance(base.location, position);
-
-			if (found && distance >= best)
-				continue;
-
-			found = true;
-			best = distance;
-			source = base.location;
-		}
-
-		if (!found)
-			source = vector.Zero;
-
-		return found;
-	}
-
-	//------------------------------------------------------------------------------------------------
 	// WHERE THE FORWARD BASE GOES
 	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Picks the site for the forward operating base, or answers that there is nowhere to put one.
-	//!
-	//! TWO SOURCES OF CANDIDATES, AND THE AUTHORED ONE WINS WHENEVER IT PRODUCES ANYTHING:
-	//!  1. GENERATED - a bounded, deterministic lattice of FOB_SITING_ATTEMPTS points on the supply
-	//!     line and either side of it, each ocean-rejected, clearance-traced, flatness-probed and
-	//!     scored. THIS IS THE PRIMARY PATH and it is built and tuned as if the other will never exist,
-	//!     because today it does not: no OVT_FOBPosition marker is placed in any shipped world (R17).
-	//!  2. AUTHORED - OVT_FOBPositionComponent markers inside the band, subject to the same exclusions
-	//!     and the same clearance test. A map author who has walked the terrain knows better than a
-	//!     lattice, so ANY qualifying marker beats the best generated point.
-	//!
-	//! ⚠ IT IS DETERMINISTIC, WITH NO RANDOMNESS AT ALL, and that is the same design constraint
-	//! objective selection carries. The whole feature exists so the resistance can READ the occupying
-	//! faction's intent; a forward base that lands somewhere different every time the same campaign
-	//! reaches the same state is the unpredictability being retired. It also means a bad placement is a
-	//! reproducible tuning question rather than a roll.
-	//! ⚠ A SITE IS A POSITION AND A FACING, AND THE FACING TRAVELS WITH IT FROM HERE TO THE SPAWN
-	//! TRANSFORM. It did not until 2026-08-19: nothing in this chain read a heading, the raise spawned
-	//! with an identity rotation, and every forward base in the campaign - authored or generated - stood
-	//! unrotated. A map author's OVT_FOBPosition arrow was simply not consulted. The two branches answer
-	//! the heading differently and both answers are deliberate; see each of them.
-	//! \param[in] source Where the supply line starts - the nearest base the faction holds.
-	//! \param[in] objective Where it is going.
-	//! \param[out] site The chosen position, written only when this returns true.
-	//! \param[out] yaw Which way the structure faces there, in the Math3D.AnglesToMatrix frame.
-	//! \return False when nothing in the band qualifies.
-	protected bool ResolveFOBSite(vector source, vector objective, out vector site, out float yaw)
-	{
-		site = vector.Zero;
-		yaw = OVT_FOBSiting.NO_FACING;
-
-		array<vector> exclusions = new array<vector>();
-		array<float> radii = new array<float>();
-		CollectFOBExclusions(exclusions, radii);
-
-		float bestScore = 0;
-		bool found = SampleGeneratedFOBSite(source, objective, exclusions, radii, site, bestScore, yaw);
-
-		vector authored;
-		float authoredScore = 0;
-		float authoredYaw = OVT_FOBSiting.NO_FACING;
-		if (FindAuthoredFOBSite(source, objective, exclusions, radii, authored, authoredScore, authoredYaw))
-		{
-			// ⚠ THE FACING IS TAKEN OVER WITH THE POSITION, IN THE SAME BREATH. Keeping the generated
-			// heading here would point an authored base wherever the sampler's best guess happened to
-			// look, which is the one thing a marker exists to override.
-			site = authored;
-			yaw = authoredYaw;
-
-			// Rounded through an int the way every other bearing and distance in this component is:
-			// Math.Round answers a float, and a float's ToString puts six decimal places in the log line.
-			int authoredFacing = Math.Round(yaw);
-
-			Print(LOG + "Forward base for objective '" + m_Objective.name + "' will use an authored site at " + authored.ToString() + " facing " + authoredFacing.ToString() + " deg (the marker's own)", LogLevel.NORMAL);
-
-			return true;
-		}
-
-		if (found)
-		{
-			int generatedFacing = Math.Round(yaw);
-
-			Print(LOG + "Forward base for objective '" + m_Objective.name + "' sited at " + site.ToString() + " facing " + generatedFacing.ToString() + " deg towards the objective (generated, score " + bestScore.ToString() + ")", LogLevel.NORMAL);
-		}
-
-		return found;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Every place a forward base may not be built, with how far away it has to stay.
-	//!
-	//! THREE KINDS, AND EACH IS A DIFFERENT WAY OF BEING SOMEBODY ELSE'S GROUND:
-	//!  - EVERY BASE, WHOEVER HOLDS IT. Not just the resistance's: a forward base beside one the
-	//!    occupying faction already owns is a second flag in the same field, which is not what the
-	//!    middle phase is for.
-	//!  - THE RESISTANCE'S FORWARD BASES AND CAMPS. These are player-built and player-owned, and an
-	//!    enemy base materialising inside one is the single worst thing this feature could do.
-	//!  - RESISTANCE-HELD TOWNS AND VILLAGES, at their own range plus a margin. Villages are included
-	//!    here even though they are excluded from being objectives: they fall as collateral, but they
-	//!    are still somewhere people live.
-	//!
-	//! ⚠ THE TWO LISTS ARE PARALLEL AND MUST STAY THE SAME LENGTH. OVT_FOBSiting.IsClearOfExclusions()
-	//! refuses a ragged pair outright rather than guessing, so every Insert here is made in a pair.
-	//! \param[out] exclusions Positions to stay away from.
-	//! \param[out] radii How far, in the same order.
-	protected void CollectFOBExclusions(notnull array<vector> exclusions, notnull array<float> radii)
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (occupying && occupying.m_Bases)
-		{
-			foreach (OVT_BaseData base : occupying.m_Bases)
-			{
-				if (!base)
-					continue;
-
-				exclusions.Insert(base.location);
-				radii.Insert(FOB_CLEARANCE_BASE);
-			}
-		}
-
-		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
-		if (resistance)
-		{
-			if (resistance.m_FOBs)
-			{
-				foreach (OVT_FOBData fob : resistance.m_FOBs)
-				{
-					if (!fob)
-						continue;
-
-					exclusions.Insert(fob.location);
-					radii.Insert(FOB_CLEARANCE_RESISTANCE_SITE);
-				}
-			}
-
-			if (resistance.m_Camps)
-			{
-				foreach (OVT_CampData camp : resistance.m_Camps)
-				{
-					if (!camp)
-						continue;
-
-					exclusions.Insert(camp.location);
-					radii.Insert(FOB_CLEARANCE_RESISTANCE_SITE);
-				}
-			}
-		}
-
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (towns && towns.m_Towns && config)
-		{
-			int occupyingIndex = config.GetOccupyingFactionIndex();
-
-			foreach (OVT_TownData town : towns.m_Towns)
-			{
-				if (!town)
-					continue;
-
-				// A town the occupying faction already holds is not excluded: putting a forward base
-				// beside one it owns is fine, and on a map where the resistance holds almost everything
-				// excluding them all would leave nowhere at all.
-				if (town.faction == occupyingIndex)
-					continue;
-
-				exclusions.Insert(town.location);
-				radii.Insert(towns.GetTownRange(town) + FOB_CLEARANCE_TOWN_MARGIN);
-			}
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Walks the deterministic lattice and keeps the best-scoring point that passes every hard test.
-	//!
-	//! ⚠ IT DOES NOT RETURN ON THE FIRST HIT. An early return would make the sampler prefer whatever
-	//! happens to be nearest the supply base regardless of how bad it is, and the score exists precisely
-	//! to order the survivors. The bound is what keeps the cost fixed - see FOB_SITING_ATTEMPTS.
-	//! \param[in] source Where the supply line starts.
-	//! \param[in] objective Where it is going.
-	//! \param[in] exclusions Places to stay clear of.
-	//! \param[in] radii How far from each, same order.
-	//! ⚠ A GENERATED SITE FACES ITS OBJECTIVE, AND THAT IS A DECISION RATHER THAN A DEFAULT. There is no
-	//! author to ask, so the only readable answer is the one the base exists for: a forward base looking
-	//! at the thing it was sent to advance on puts the shipped prefab's hedgehogs and wire between the
-	//! flag and the town, and a player who finds it can tell at a glance which way it is pointed. It is
-	//! also DERIVED FROM TWO POSITIONS, so it is as deterministic as the site itself - which the whole
-	//! siting design is built on - and assertable in the cheapest tier. The alternative that was NOT
-	//! chosen is "face back along the supply line": the same axis in most bands, but reversed, and it
-	//! would put the base's back to the fight in every one of them.
-	//! \param[out] best The best candidate found.
-	//! \param[out] bestScore Its score.
-	//! \param[out] bestYaw The heading that faces the objective from `best`.
-	//! \return False when no candidate passed.
-	protected bool SampleGeneratedFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore, out float bestYaw)
-	{
-		best = vector.Zero;
-		bestScore = 0;
-		bestYaw = OVT_FOBSiting.NO_FACING;
-
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-			return false;
-
-		float separation = vector.Distance(source, objective);
-		if (separation <= 0)
-			return false;
-
-		float bandMin = separation * FOB_BAND_MIN_FRACTION;
-		float bandMax = separation * FOB_BAND_MAX_FRACTION;
-
-		if (bandMin < FOB_MIN_STANDOFF)
-			bandMin = FOB_MIN_STANDOFF;
-
-		if (bandMax > FOB_MAX_STANDOFF)
-			bandMax = FOB_MAX_STANDOFF;
-
-		// A degenerate band - the supplying base is almost on top of the objective, or the floor has
-		// swallowed the whole span - refuses everything, by OVT_FOBSiting.IsInBand's own rule.
-		vector toObjective = objective - source;
-		toObjective[1] = 0;
-
-		if (toObjective.Length() <= 0)
-			return false;
-
-		vector along = toObjective.Normalized();
-		vector lateral = Vector(-along[2], 0, along[0]);
-
-		bool found = false;
-
-		for (int attempt = 0; attempt < FOB_SITING_ATTEMPTS; attempt++)
-		{
-			int step = attempt / FOB_SITING_LANES;
-			int lane = attempt % FOB_SITING_LANES;
-
-			// Measured back from the OBJECTIVE, so the fraction is "how far out from the target", which
-			// is what the band is expressed in.
-			float standoff = bandMax - (bandMax - bandMin) * OVT_FOBSiting.BandFraction(step, FOB_SITING_STEPS);
-
-			vector candidate = objective - along * standoff;
-			candidate = candidate + lateral * (OVT_FOBSiting.LateralOffset(lane, FOB_SITING_LANES) * FOB_LATERAL_SPREAD);
-
-			vector accepted;
-			float score;
-			if (!EvaluateFOBCandidate(world, candidate, objective, bandMin, bandMax, exclusions, radii, accepted, score))
-				continue;
-
-			if (found && score <= bestScore)
-				continue;
-
-			found = true;
-			bestScore = score;
-			best = accepted;
-
-			// Measured from the ACCEPTED point rather than from the raw lattice candidate. They differ
-			// only in height today, which a flat heading discards - but the accepted point is the one the
-			// structure is actually put on, and deriving the facing from anything else is how the two
-			// would quietly drift apart if the clamp ever moved a candidate sideways.
-			bestYaw = OVT_FOBSiting.FacingYaw(accepted, objective);
-		}
-
-		return found;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Every curated marker in the band that still qualifies, best first.
-	//!
-	//! ⚠ A MARKER IS NOT EXEMPT FROM THE HARD TESTS. It still has to be in the band, out of the ocean,
-	//! clear of every exclusion and clear of obstructions - the world moves under a marker placed months
-	//! ago in the editor, and the resistance can build a camp on top of one. What a marker buys is
-	//! PRIORITY over anything generated, not a bypass.
-	//! \param[in] source Where the supply line starts.
-	//! \param[in] objective Where it is going.
-	//! \param[in] exclusions Places to stay clear of.
-	//! \param[in] radii How far from each, same order.
-	//! ⚠ AN AUTHORED SITE USES THE MARKER'S OWN FACING, WHICH IS THE HALF OF A MARKER THAT WAS BEING
-	//! THROWN AWAY. OVT_FOBPosition draws a Workbench arrow along its transform[2] precisely so an author
-	//! can aim the base, and until 2026-08-19 nothing read it - the arrow was decoration. It is read as
-	//! GetYawPitchRoll()[0] and NOT as GetAngles()[0]: the two engine angle APIs use different orders
-	//! (see OVT_BaseSpawningDeploymentModule.GetUprightSpawnRotation), GetAngles() puts PITCH in slot 0,
-	//! and the shipped Eden marker is authored "angles 0 44.43 0" - so the wrong read would answer 0 on
-	//! it and look exactly like the bug being fixed. Pitch and roll are dropped by the shared helper at
-	//! the spawn: a marker with a few degrees of terrain tilt must not lean the structure.
-	//! \param[out] best The best marker found.
-	//! \param[out] bestScore Its score.
-	//! \param[out] bestYaw That marker's own heading.
-	//! \return False when no marker qualifies.
-	protected bool FindAuthoredFOBSite(vector source, vector objective, notnull array<vector> exclusions, notnull array<float> radii, out vector best, out float bestScore, out float bestYaw)
-	{
-		best = vector.Zero;
-		bestScore = 0;
-		bestYaw = OVT_FOBSiting.NO_FACING;
-
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-			return false;
-
-		float separation = vector.Distance(source, objective);
-		if (separation <= 0)
-			return false;
-
-		float bandMin = separation * FOB_BAND_MIN_FRACTION;
-		float bandMax = separation * FOB_BAND_MAX_FRACTION;
-
-		if (bandMin < FOB_MIN_STANDOFF)
-			bandMin = FOB_MIN_STANDOFF;
-
-		if (bandMax > FOB_MAX_STANDOFF)
-			bandMax = FOB_MAX_STANDOFF;
-
-		m_aFoundFOBMarkers = new array<IEntity>();
-		world.QueryEntitiesBySphere(objective, bandMax, AddFOBMarker, FilterFOBMarker, EQueryEntitiesFlags.ALL);
-
-		bool found = false;
-
-		foreach (IEntity marker : m_aFoundFOBMarkers)
-		{
-			if (!marker)
-				continue;
-
-			OVT_FOBPositionComponent authored = OVT_FOBPositionComponent.Cast(marker.FindComponent(OVT_FOBPositionComponent));
-			if (!authored || !authored.m_bEnabled)
-				continue;
-
-			// 🔴 THE SAME CORRIDOR THE GENERATED LATTICE OCCUPIES, AND WITHOUT IT THIS PATH WAS A RING.
-			// The query above is a SPHERE around the objective and EvaluateFOBCandidate's band test is a
-			// DISTANCE - neither has a side - so before this line a marker directly behind the objective,
-			// on the far side from every base the faction held, was as eligible as one on the supply
-			// line and could win outright on terrain score. That is exactly what a play-test found
-			// (2026-08-20). The generated sampler never had the problem because it constructs its
-			// candidates along the line; this makes the authored path answer the same question rather
-			// than a weaker one. See OVT_FOBSiting.IsInSupplyCorridor.
-			if (!OVT_FOBSiting.IsInSupplyCorridor(marker.GetOrigin(), objective, source, bandMin, bandMax, FOB_LATERAL_SPREAD))
-				continue;
-
-			vector accepted;
-			float score;
-			if (!EvaluateFOBCandidate(world, marker.GetOrigin(), objective, bandMin, bandMax, exclusions, radii, accepted, score))
-				continue;
-
-			if (found && score <= bestScore)
-				continue;
-
-			found = true;
-			bestScore = score;
-			best = accepted;
-			bestYaw = marker.GetYawPitchRoll()[0];
-		}
-
-		m_aFoundFOBMarkers = null;
-
-		return found;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Judges one candidate against every hard test, and scores it if it survives.
-	//!
-	//! THE HARD TESTS, IN THE ORDER OF WHAT THEY COST: the band (arithmetic), the ocean (one surface
-	//! read), the exclusions (a list walk), the flatness probes (five surface reads), and the clearance
-	//! trace (one TraceBox, the most expensive thing here). Reordering them makes the sampler slower and
-	//! nothing else.
-	//! \param[in] world The world to read the terrain from.
-	//! \param[in] candidate The position being judged.
-	//! \param[in] objective Where the objective is.
-	//! \param[in] bandMin Nearest the base may stand to it.
-	//! \param[in] bandMax Furthest it may stand from it.
-	//! \param[in] exclusions Places to stay clear of.
-	//! \param[in] radii How far from each, same order.
-	//! \param[out] accepted The candidate with its height clamped to the ground.
-	//! \param[out] score How good it is.
-	//! \return False when it failed any hard test.
-	protected bool EvaluateFOBCandidate(notnull BaseWorld world, vector candidate, vector objective, float bandMin, float bandMax, notnull array<vector> exclusions, notnull array<float> radii, out vector accepted, out float score)
-	{
-		accepted = candidate;
-		score = 0;
-
-		if (!OVT_FOBSiting.IsInBand(vector.Distance(candidate, objective), bandMin, bandMax))
-			return false;
-
-		if (OVT_WorldUtils.IsOceanAtPosition(candidate))
-			return false;
-
-		if (!OVT_FOBSiting.IsClearOfExclusions(candidate, exclusions, radii))
-			return false;
-
-		// The lattice interpolates in the horizontal plane and knows nothing about the ground, so every
-		// candidate is clamped to the surface before anything measures a height against it.
-		accepted = candidate;
-		accepted[1] = world.GetSurfaceY(candidate[0], candidate[2]);
-
-		float spread = MeasureGroundSpread(world, accepted);
-		if (spread >= FOB_FLATNESS_TOLERANCE)
-			return false;
-
-		if (!IsSiteClearOfObstructions(accepted))
-			return false;
-
-		float flatness = OVT_FOBSiting.FlatnessScore(spread, FOB_FLATNESS_TOLERANCE);
-		float elevation = OVT_FOBSiting.ElevationScore(accepted[1] - world.GetSurfaceY(objective[0], objective[2]), FOB_ELEVATION_USEFUL_GAIN);
-
-		score = OVT_FOBSiting.ScoreSite(flatness, elevation, MeasureRoadDistance(accepted));
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How much the ground rises and falls across a candidate's footprint.
-	//! \param[in] world The world to read the terrain from.
-	//! \param[in] centre The candidate, already clamped to the surface.
-	//! \return Metres between the highest and lowest of five probes.
-	protected float MeasureGroundSpread(notnull BaseWorld world, vector centre)
-	{
-		float lowest = centre[1];
-		float highest = centre[1];
-
-		for (int i = 0; i < 4; i++)
-		{
-			float offsetX = 0;
-			float offsetZ = 0;
-
-			if (i == 0)
-				offsetX = FOB_FLATNESS_PROBE_RADIUS;
-			else if (i == 1)
-				offsetX = -FOB_FLATNESS_PROBE_RADIUS;
-			else if (i == 2)
-				offsetZ = FOB_FLATNESS_PROBE_RADIUS;
-			else
-				offsetZ = -FOB_FLATNESS_PROBE_RADIUS;
-
-			float height = world.GetSurfaceY(centre[0] + offsetX, centre[2] + offsetZ);
-
-			if (height < lowest)
-				lowest = height;
-
-			if (height > highest)
-				highest = height;
-		}
-
-		return highest - lowest;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether there is room to put a structure down.
-	//!
-	//! ⚠ THE TEST IS `result > 0 && !trace.TraceEnt`, AND BOTH HALVES ARE LOAD-BEARING. TracePosition
-	//! returns a NEGATIVE value when the box starts inside something and sets TraceEnt to whatever it
-	//! hit; the landing-zone code this is copied from used to accept `>= 0` and therefore accepted every
-	//! candidate on the map, which was BUG-031. Getting this wrong here means forward bases inside
-	//! buildings and inside each other.
-	//! \param[in] position The candidate, already clamped to the surface.
-	//! \return True when the clearance box is empty.
-	protected bool IsSiteClearOfObstructions(vector position)
-	{
-		autoptr TraceBox trace = new TraceBox();
-		trace.Flags = TraceFlags.ENTS;
-		trace.Start = position;
-		trace.Mins = Vector(-FOB_CLEAR_BOX_HALF, 0, -FOB_CLEAR_BOX_HALF);
-		trace.Maxs = Vector(FOB_CLEAR_BOX_HALF, FOB_CLEAR_BOX_HEIGHT, FOB_CLEAR_BOX_HALF);
-		trace.Exclude = GetOwner();
-
-		float result = GetOwner().GetWorld().TracePosition(trace, null);
-
-		return result > 0 && !trace.TraceEnt;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How far a candidate is from the nearest road a vehicle could be put on.
-	//! \param[in] position The candidate.
-	//! \return Metres, or -1 when there is no road within the search bound - which
-	//!         OVT_FOBSiting.RoadScore() reads as "no road", not as "on one".
-	protected float MeasureRoadDistance(vector position)
-	{
-		vector roadPosition;
-		vector roadAngles;
-		if (!OVT_WorldUtils.FindNearestRoadSpawn(position, OVT_WorldUtils.ROAD_SPAWN_MAX_DISTANCE, roadPosition, roadAngles))
-			return -1;
-
-		return vector.Distance(position, roadPosition);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] entity Candidate from the marker query.
-	//! \return True when it is a curated forward-base marker.
-	protected bool FilterFOBMarker(IEntity entity)
-	{
-		if (!entity)
-			return false;
-
-		return entity.FindComponent(OVT_FOBPositionComponent) != null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] entity A marker that passed the filter.
-	//! \return True, to keep the query running.
-	protected bool AddFOBMarker(IEntity entity)
-	{
-		m_aFoundFOBMarkers.Insert(entity);
-		return true;
-	}
 
 	//------------------------------------------------------------------------------------------------
 	// THE FORWARD BASE ONCE IT IS STANDING
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! The forward operating base is up. Called by OVT_FOBRaiseSpawningDeploymentModule, once.
-	//!
-	//! ⚠ IT RECORDS. IT DOES NOT DECIDE - the same rule OnHarassmentSuccess() and OnSabotageSuccess()
-	//! carry, and for the same reason: this is public, it is called from a deployment's own update, and
-	//! a phase entry re-arms the phase timeout. Every transition in this machine happens on
-	//! DirectorTick(), behind its three early returns.
-	//!
-	//! ⚠ NO NOTIFICATION IS SENT (D12). The forward base is the one thing in the ramp the resistance is
-	//! meant to discover rather than be told about. This is an explicit requirement, not an oversight.
-	//! \param[in] position Where the structure stands.
-	//! \param[in] sourceBasePosition Where its supply line starts. Zero keeps whatever was recorded when
-	//!            the deployment was sent, which is the better answer for a walking insertion that never
-	//!            resolved a source of its own.
-	//! \param[in] deploymentName The config carrying it - the re-link key written into the save.
-	void OnFOBRaised(vector position, vector sourceBasePosition, string deploymentName)
-	{
-		if (m_Objective.kind == OVT_EObjectiveKind.NONE)
-			return;
-
-		vector source = sourceBasePosition;
-		if (source == vector.Zero)
-			source = m_FOB.sourceBasePosition;
-
-		int spent = m_FOB.spent;
-
-		RecordFOB(position, source, deploymentName);
-
-		// RecordFOB() writes a fresh record; what has already been spent getting the base up is part of
-		// its budget and must survive that (§3.7 - the ceiling covers "the structure itself").
-		m_FOB.spent = spent;
-
-		m_vFOBSite = position;
-		m_bFOBDeploymentSent = true;
-		m_bStarvationLogged = false;
-
-		Print(LOG + "Objective '" + m_Objective.name + "': the forward operating base is standing at " + position.ToString(), LogLevel.NORMAL);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! One tick of the starvation rule.
-	//!
-	//! THREE INPUTS, ANY ONE OF WHICH CUTS THE BASE OFF, and the arithmetic is
-	//! OVT_ObjectivePhaseRules.IsFOBStarved(): the base supplying it has been taken, its own garrison is
-	//! dead, or the resistance is standing on it. RECOVERY ZEROES THE COUNT rather than pausing it - a
-	//! forward base that was cut off for ten minutes and then relieved is not half-dead, it is supplied.
-	//!
-	//! ⚠ BOTH TRANSITIONS ARE LOGGED, ONCE EACH. "The occupying faction's forward base disappeared" has
-	//! to have an explanation in the log, and so does "it survived": a latch rather than a line per
-	//! in-game minute, because this runs for as long as the phase does.
-	//! \return True when the objective was torn down, so the caller stops working on this phase.
-	protected bool TickFOBStarvation()
-	{
-		if (!m_FOB.up)
-			return false;
-
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-			return false;
-
-		bool starved = OVT_ObjectivePhaseRules.IsFOBStarved(IsFOBSourceBaseHeld(), CountAliveFOBGroups(), IsPlayerAtFOB());
-
-		if (!starved)
-		{
-			if (m_bStarvationLogged)
-			{
-				m_bStarvationLogged = false;
-				Print(LOG + "The forward base for objective '" + m_Objective.name + "' is supplied again after " + m_FOB.starvationTicks.ToString() + " in-game minute(s) cut off", LogLevel.NORMAL);
-			}
-
-			SetFOBStarvationTicks(0);
-
-			return false;
-		}
-
-		SetFOBStarvationTicks(m_FOB.starvationTicks + 1);
-
-		if (!m_bStarvationLogged)
-		{
-			m_bStarvationLogged = true;
-			Print(LOG + "The forward base for objective '" + m_Objective.name + "' is cut off - it has " + difficulty.objectiveStarvationMinutes.ToString() + " in-game minute(s) before it is abandoned", LogLevel.NORMAL);
-		}
-
-		if (difficulty.objectiveStarvationMinutes <= 0)
-			return false;
-
-		if (m_FOB.starvationTicks < difficulty.objectiveStarvationMinutes)
-			return false;
-
-		// ⚠ NO PENALTY. Starvation is the occupying faction giving up on a supply line it could not
-		// hold, not the resistance taking the base off it - only the player-initiated exit is paid for.
-		ResetObjective("its forward base was cut off for " + m_FOB.starvationTicks.ToString() + " in-game minutes and has been abandoned", true);
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether the base supplying the forward operating base is still the occupying faction's.
-	//! \return True when it is.
-	protected bool IsFOBSourceBaseHeld()
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-
-		if (!occupying || !config)
-			return false;
-
-		// A forward base with no recorded source is one raised by an insertion that walked in without
-		// resolving an origin. It is not starving for want of a base it never had.
-		if (m_FOB.sourceBasePosition == vector.Zero)
-			return true;
-
-		OVT_BaseData base = occupying.GetNearestBase(m_FOB.sourceBasePosition);
-		if (!base)
-			return false;
-
-		if (vector.Distance(base.location, m_FOB.sourceBasePosition) > BASE_OP_RESOLVE_RADIUS)
-			return false;
-
-		return base.faction == config.GetOccupyingFactionIndex();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How many of the occupying faction's registered groups are alive at the forward base.
-	//!
-	//! ⚠ COUNTED THROUGH HANDLES AND THE SURVIVOR MASK, NEVER THROUGH SPAWNED ENTITIES. A dormant group
-	//! reports zero agents while being perfectly alive, so a count of bodies would starve every forward
-	//! base on the map the moment the last player drove away - which is exactly when one is supposed to
-	//! be quietly doing its job.
-	//! \return The number of alive registered groups.
-	protected int CountAliveFOBGroups()
-	{
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-
-		if (!deployments || !virtualization || !config)
-			return 0;
-
-		array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(m_FOB.position, FOB_AREA_RADIUS);
-		if (!nearby)
-			return 0;
-
-		int occupyingIndex = config.GetOccupyingFactionIndex();
-		int alive = 0;
-
-		foreach (OVT_DeploymentComponent deployment : nearby)
-		{
-			if (!deployment)
-				continue;
-
-			if (deployment.GetControllingFaction() != occupyingIndex)
-				continue;
-
-			array<int> handles = new array<int>();
-
-			array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
-			foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-			{
-				if (spawningModule)
-					spawningModule.CollectRegisteredHandles(handles);
-			}
-
-			foreach (int handle : handles)
-			{
-				if (!virtualization.IsRegistered(handle))
-					continue;
-
-				if (virtualization.GetAliveMemberCount(handle) < 1)
-					continue;
-
-				alive++;
-			}
-		}
-
-		return alive;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether a player is standing on the forward base.
-	//!
-	//! ⚠ PLAYERS ONLY, and the difficulty's own baseCloseRange, which is the distance the rest of the
-	//! campaign already means by "at a base". Asking it of every AI agent would make a resistance patrol
-	//! walking past count as an interdiction.
-	//! \return True when somebody is there.
-	protected bool IsPlayerAtFOB()
-	{
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-			return false;
-
-		return OVT_WorldUtils.PlayerInRange(m_FOB.position, difficulty.baseCloseRange);
-	}
-
-	//------------------------------------------------------------------------------------------------
 	// THE ONE TEARDOWN, AND THE ONE PENALTY
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! Takes the forward operating base down: its deployments, its structure, and its budget.
-	//!
-	//! ⚠ ONE PATH, THREE EXITS, AND ONLY ONE OF THEM IS PAID FOR:
-	//!   STARVATION           - the supply line failed. No penalty: nobody took it off them.
-	//!   PLAYER DISMANTLE     - the resistance cleared the site and pulled the flag down. THE PENALTY
-	//!                          APPLIES, and it is applied by the caller (OnFOBDismantledByPlayer)
-	//!                          rather than here, because "what happened" is the caller's knowledge and
-	//!                          this method's job is only to make the base stop existing.
-	//!   COUNTER-QRF RESOLVED - the battle is over whatever the outcome. No penalty.
-	//! Everything else that ends an objective - the phase timeout, a re-selection, a restore that could
-	//! not re-link - funnels through ResetObjective() as well, so they are covered by construction.
-	//!
-	//! ⚠ THE INSERTION RESERVATION IS RELEASED BY DELETING THE DEPLOYMENTS, not by anything here.
-	//! DestroyDeployment() runs every module's Cleanup(), and the insertion module's releases the convoy
-	//! slot, deletes its waypoints and disposes of its truck. A slot lost to a convoy that ended quietly
-	//! is a slot the faction never gets back, which is why the deployments are deleted rather than
-	//! merely forgotten.
-	//!
-	//! IDEMPOTENT AND SAFE WITH NO FORWARD BASE. It is reached from every reset, including the ones for
-	//! objectives that never got past harassment.
-	protected void TearDownFOB()
-	{
-		vector site = m_FOB.position;
-		if (site == vector.Zero)
-			site = m_vFOBSite;
-
-		// NOTHING WAS EVER SENT. This method is reached from every reset, including the many for
-		// objectives that never got out of harassment, so the common case gets no queries at all.
-		if (!m_FOB.up && !m_bFOBDeploymentSent && site == vector.Zero)
-		{
-			ClearFOBRuntimeState();
-			return;
-		}
-
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		if (deployments)
-		{
-			// The tracked ledger has already taken down what this session created; these two sweeps are
-			// for what it could not know about - a marker restored from a save, or one whose position
-			// moved between the send and the raise.
-			if (m_Objective.kind != OVT_EObjectiveKind.NONE)
-			{
-				OVT_DeploymentComponent carrier = FindLiveFOBDeployment(deployments);
-				if (carrier)
-					deployments.DeleteDeployment(carrier);
-			}
-
-			if (site != vector.Zero)
-			{
-				array<OVT_DeploymentComponent> nearby = deployments.GetDeploymentsInRadius(site, FOB_AREA_RADIUS);
-				if (nearby)
-				{
-					foreach (OVT_DeploymentComponent deployment : nearby)
-					{
-						if (!deployment)
-							continue;
-
-						string name = deployment.GetDeploymentName();
-						if (name != FOB_CONFIG && name != FOB_GARRISON_CONFIG)
-							continue;
-
-						deployments.DeleteDeployment(deployment);
-					}
-				}
-			}
-		}
-
-		if (site != vector.Zero)
-			RemoveFOBStructure(site);
-
-		// The bias is dropped again here so this method is complete on its own. ClearObjectiveRecord()
-		// drops it too, on every path that ends an objective - both are idempotent, and a teardown that
-		// silently depended on its caller to finish the job is how the anchor was left pointing at an
-		// abandoned objective in the first place (see ResetObjective).
-		DropObjectiveAnchor();
-
-		ClearFOBRuntimeState();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Puts back the forward-base state that is NOT in the save payload.
-	//!
-	//! Separate from ClearFOBRecord() so the teardown can finish its own job without depending on a
-	//! caller to clear the record afterwards - the two are called in sequence by ResetObjective(), and
-	//! each is idempotent on its own.
-	protected void ClearFOBRuntimeState()
-	{
-		m_bFOBDeploymentSent = false;
-		m_vFOBSite = vector.Zero;
-		m_bStarvationLogged = false;
-
-		// A re-site owed to a forward base that no longer exists is not owed to anything. Left set, it
-		// would spend the FIRST tick of the next objective's forward-base phase holding the chain for a
-		// housekeeping job that already happened.
-		m_bFOBResitePending = false;
-
-		// ⚠ THE CEILING'S OWN "already said" LATCH IS NO LONGER HERE. It is one entry in the (config,
-		// reason) refusal ledger now, which is cleared with the OBJECTIVE record rather than with the
-		// forward-base record - and correctly so: every path that tears a forward base down ends the
-		// objective too (see TearDownFOB), so the two clears happen in the same breath, while a ledger
-		// tied to the FOB record alone would be silently reset by a teardown that kept the objective.
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Deletes the forward base's structure, wherever the campaign left it.
-	//!
-	//! ⚠ THROUGH OVT_ResistanceFactionManager.DestroyPlacedItem() AND NOWHERE ELSE. That method is the
-	//! navmesh-queue-then-delete pair: OVT_NavmeshRebuild.Queue() measures the entity's bounds at CALL
-	//! time and rebuilds a second later, so the capture happens while the structure still stands and the
-	//! rebuild happens once it is gone. A raw delete leaves the carve in the navmesh forever and the AI
-	//! refuses to cross ground that is now empty, with no symptom anybody would trace back to a flagpole.
-	//!
-	//! ⚠ FOUND BY QUERY, NOT BY A REMEMBERED HANDLE. The raise module holds an EntityID, but that link is
-	//! runtime-only - a campaign that has been loaded since has a structure standing with nothing
-	//! pointing at it. The join is by PREFAB RESOURCE NAME, which is the same join Phase 6 established
-	//! for structure costs and for the same reason: it survives a restore, because persistence respawns
-	//! from the same prefab.
-	//! \param[in] site Where the structure stands.
-	protected void RemoveFOBStructure(vector site)
-	{
-		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
-		if (!resistance)
-			return;
-
-		ResourceName prefab = ResolveFOBStructurePrefab();
-		if (prefab.IsEmpty())
-			return;
-
-		m_sFOBStructurePrefab = prefab;
-		m_aFoundFOBStructures = new array<IEntity>();
-
-		BaseWorld world = GetGame().GetWorld();
-		if (world)
-			world.QueryEntitiesBySphere(site, FOB_STRUCTURE_SEARCH_RADIUS, AddFOBStructure, FilterFOBStructure, EQueryEntitiesFlags.ALL);
-
-		foreach (IEntity structure : m_aFoundFOBStructures)
-		{
-			if (!structure)
-				continue;
-
-			resistance.DestroyPlacedItem(structure);
-		}
-
-		m_aFoundFOBStructures = null;
-		m_sFOBStructurePrefab = "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The structure prefab the forward-base config is authored to raise.
-	//!
-	//! READ OFF THE CONFIG rather than duplicated as a constant here, so a modded config that raises a
-	//! different structure is still torn down correctly and there is exactly one authored answer.
-	//! \return The prefab, or an empty ResourceName when the config does not resolve.
-	protected ResourceName ResolveFOBStructurePrefab()
-	{
-		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
-		if (!deployments)
-			return "";
-
-		OVT_DeploymentConfig config = deployments.FindConfigByName(FOB_CONFIG);
-		if (!config || !config.m_aModules)
-			return "";
-
-		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
-		{
-			OVT_FOBRaiseSpawningDeploymentModule raise = OVT_FOBRaiseSpawningDeploymentModule.Cast(module);
-			if (raise)
-				return raise.GetFOBPrefab();
-		}
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] entity Candidate from the structure query.
-	//! \return True when it was spawned from the forward-base prefab.
-	protected bool FilterFOBStructure(IEntity entity)
-	{
-		if (!entity)
-			return false;
-
-		return OVT_PrefabUtils.GetPrefabName(entity) == m_sFOBStructurePrefab;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] entity A structure that passed the filter.
-	//! \return True, to keep the query running.
-	protected bool AddFOBStructure(IEntity entity)
-	{
-		m_aFoundFOBStructures.Insert(entity);
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	// THE PLAYER-INITIATED EXIT
+	// THE PLAYER-INITIATED EXIT - A FACADE OVER THE ASSET'S OWN MODULE
+	//
+	// 🔴 THESE FOUR METHODS STAY ON THE DIRECTOR AND FORWARD, RATHER THAN MOVING WITH THE REST OF THE
+	// FORWARD BASE, AND THAT IS A DELIBERATE CARVE-OUT (build phase 5). Their two callers are a USER
+	// ACTION on the flag and the SERVER'S request validator, and neither of them should have to know
+	// which module owns an asset or how to reach it: OVT_DismantleEnemyFOBAction.c and
+	// OVT_CampaignRequestComponent.c were not edited by the phase that moved everything else.
+	//
+	// ⚠ THE "ONE BODY, TWO ENTRY POINTS" RULE IS UNCHANGED. The client asks about the ENTITY it is
+	// attached to (CanDismantleFOBAt); the server asks about the position the DIRECTOR's record names
+	// (CanDismantleFOB). Sharing the body is what stops the text a player reads and the rule the server
+	// enforces from drifting apart, which is how "the action was available and did nothing" happens.
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether the forward base can be dismantled from a given position right now. THE SERVER'S ANSWER.
 	//!
 	//! ⚠ THIS OVERLOAD READS THE DIRECTOR'S OWN RECORD AND IS THEREFORE SERVER-ONLY IN PRACTICE. None of
-	//! the forward-base state replicates - deliberately, G12 - so on a remote client m_FOB is empty and
-	//! this would refuse everything. The user action asks CanDismantleFOBAt() instead, about the flag it
-	//! is attached to, which is a real entity on every machine.
+	//! the forward-base state replicates - deliberately, G12 - so on a remote client the record is empty
+	//! and this would refuse everything. The user action asks CanDismantleFOBAt() instead, about the flag
+	//! it is attached to, which is a real entity on every machine.
 	//! \param[in] position Where the caller is standing.
 	//! \param[out] refusal A localization key naming why, written only when this returns false.
 	//! \return True when a dismantle would be allowed.
@@ -3214,111 +1454,47 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The dismantle rule itself, asked about an arbitrary forward-base position.
+	//! The dismantle rule, asked about an arbitrary forward-base position.
 	//!
-	//! ⚠ ONE IMPLEMENTATION, ASKED TWICE, AND THE SERVER'S ANSWER IS THE ONLY ONE THAT COUNTS. The user
-	//! action asks this on the client, about the flag it is attached to, so the prompt can say why it is
-	//! refusing; the request handler asks CanDismantleFOB() on the server, about the position the
-	//! DIRECTOR believes the base is at, before anything happens. That is not redundancy - the client's
-	//! copy is a courtesy and the server never trusts it, which is this epic's standing debt (BUG-025)
-	//! and the reason this feature adds no third unvalidated verb. Sharing the body is what stops the
-	//! text a player reads and the rule the server enforces from drifting apart, which is how "the action
-	//! was available and did nothing" happens.
-	//!
-	//! ⚠ IT IS SAFE ON A CLIENT. Everything it reads - a position, the campaign's faction key, and the
-	//! AI agents standing in the world - exists on every machine.
+	//! ⚠ IT FORWARDS TO A STATIC ON THE ASSET'S OWN MODULE, and the rule lives there with the rest of the
+	//! forward base's doctrine. A STATIC rather than an instance method because THIS IS ASKED ON A
+	//! CLIENT, where there is no objective, no plan and no runtime module set - see that method's header
+	//! for why its two radii are constants and not authored values.
 	//! \param[in] callerPosition Where the caller is standing.
 	//! \param[in] fobPosition Where the forward base is.
 	//! \param[out] refusal A localization key naming why, written only when this returns false.
 	//! \return True when a dismantle would be allowed.
 	bool CanDismantleFOBAt(vector callerPosition, vector fobPosition, out string refusal)
 	{
-		refusal = "";
-
-		if (vector.Distance(callerPosition, fobPosition) > FOB_DISMANTLE_RANGE)
-		{
-			refusal = "#OVT-DismantleEnemyFOB_TooFar";
-			return false;
-		}
-
-		if (CountOccupyingDefendersNear(fobPosition, FOB_DEFENDER_CLEAR_RADIUS) > 0)
-		{
-			refusal = "#OVT-DismantleEnemyFOB_Defended";
-			return false;
-		}
-
-		return true;
+		return OVT_RaiseForwardBaseObjectiveOperation.CanDismantleAt(callerPosition, fobPosition, refusal);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! How many occupying-faction soldiers are still on their feet near a position.
 	//!
-	//! ⚠ AGENTS, NOT REGISTERED HANDLES, AND THAT IS THE OPPOSITE OF THE STARVATION COUNT ABOVE - on
-	//! purpose. Starvation asks "does this base still have a garrison at all", which is true of a
-	//! perfectly alive dormant group and must be answered off the survivor mask. This asks "is anybody
-	//! SHOOTING AT ME right now", which is a question about materialised bodies: a player is standing at
-	//! the flag, so everything nearby is spawned, and a dormant group two hundred metres away is not
-	//! what stops a dismantle.
-	//!
-	//! ⚠ IT WALKS EVERY AI AGENT IN THE WORLD, which is the same thing the battle scorer does every ten
-	//! seconds - fine at that rate and not fine per frame. The user action caches its answer for a
-	//! second; anything else that starts asking this often should do the same.
+	//! Kept as a facade for the same reason the two above are: it is public, it is what the dismantle
+	//! prompt counts, and its one implementation lives with the forward base's doctrine.
 	//! \param[in] position The place to count around.
 	//! \param[in] radius How far, in metres.
 	//! \return The count.
 	int CountOccupyingDefendersNear(vector position, float radius)
 	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-			return 0;
-
-		AIWorld aiWorld = GetGame().GetAIWorld();
-		if (!aiWorld)
-			return 0;
-
-		string occupyingKey = config.m_sOccupyingFaction;
-
-		array<AIAgent> agents = new array<AIAgent>();
-		aiWorld.GetAIAgents(agents);
-
-		int defenders = 0;
-
-		foreach (AIAgent agent : agents)
-		{
-			if (!agent)
-				continue;
-
-			IEntity entity = agent.GetControlledEntity();
-			if (!entity)
-				continue;
-
-			SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(entity);
-			if (!character)
-				continue;
-
-			if (character.GetFactionKey() != occupyingKey)
-				continue;
-
-			CharacterControllerComponent controller = character.GetCharacterController();
-			if (controller && controller.IsDead())
-				continue;
-
-			if (vector.Distance(character.GetOrigin(), position) > radius)
-				continue;
-
-			defenders++;
-		}
-
-		return defenders;
+		return OVT_RaiseForwardBaseObjectiveOperation.CountOccupyingDefendersNear(position, radius);
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! SERVER: a player has pulled the forward base's flag down.
 	//!
-	//! ⚠ THE ONE EXIT THAT COSTS THE OCCUPYING FACTION RESOURCES. The penalty is objectiveFOBCost taken
-	//! back out of the deployment pool - what the base cost to raise - so clearing one is worth doing
-	//! rather than merely satisfying. SubtractFactionResources floors the pool at zero, so a faction
-	//! that has already spent everything simply pays what it has.
+	//! ⚠ THE ONE EXIT THAT COSTS THE OCCUPYING FACTION RESOURCES. The penalty is what the base cost to
+	//! raise, taken back out of the deployment pool, so clearing one is worth doing rather than merely
+	//! satisfying. SubtractFactionResources floors the pool at zero, so a faction that has already spent
+	//! everything simply pays what it has.
+	//!
+	//! ⚠ THE AMOUNT IS THE ASSET MODULE'S, NOT A SECOND READING OF THE DIFFICULTY SETTING. A doctrine
+	//! that authors a cheaper forward base must be refunded a cheaper one, and asking the module is the
+	//! only arrangement in which the price it was budgeted at and the price it is billed at cannot drift.
+	//! With no module registered - a client, or a record restored before its phase was re-entered - it
+	//! falls back to the campaign's own figure, which is what the authored default resolves to anyway.
 	//!
 	//! ⚠ IT SUBTRACTS. IT NEVER ADDS. Grepping this directory for the deployment manager's credit method
 	//! finds nothing, and must go on finding nothing - the name is deliberately not written out even in
@@ -3339,10 +1515,23 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
 
-		if (deployments && config && difficulty && difficulty.objectiveFOBCost > 0)
-			deployments.SubtractFactionResources(config.GetOccupyingFactionIndex(), difficulty.objectiveFOBCost);
+		int penalty = 0;
+
+		OVT_RaiseForwardBaseObjectiveOperation raise = OVT_RaiseForwardBaseObjectiveOperation.Cast(GetAssetModule(ASSET_FOB));
+		if (raise)
+		{
+			penalty = raise.GetDismantlePenalty();
+		}
+		else
+		{
+			OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+			if (difficulty)
+				penalty = difficulty.objectiveFOBCost;
+		}
+
+		if (deployments && config && penalty > 0)
+			deployments.SubtractFactionResources(config.GetOccupyingFactionIndex(), penalty);
 
 		ResetObjective("the resistance cleared its forward base and dismantled it", true);
 
@@ -3350,119 +1539,266 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	// THE SPEND CEILING
+	// THE ASSET REGISTRY - GENERIC, KEYED, AND IT NEVER NAMES A DOCTRINE
+	//
+	// Everything below answers a question about "whatever this objective has standing" by asking the
+	// module that built it. The director knows three things about an asset: that its ceiling may be
+	// armed, what that ceiling is, and how to tell it to take itself down. A checkpoint asset adds a
+	// key and a module and nothing here changes.
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether the forward base's ceiling governs the director's spending right now.
+	//! Records which module owns a standing asset, so the one teardown path can reach it from any phase.
 	//!
-	//! ⚠ THE CEILING IS NOT A WALLET AND THE DIRECTOR HOLDS NO MONEY. m_FOB.spent counts what has
-	//! ALREADY left the one deployment pool on this forward base and everything sourced from it; nothing
-	//! is reserved, held or moved by any of it. If you are reading this because it looks like a budget
-	//! that should be topped up, refunded or carried over - it is not one, and turning it into one
-	//! breaks the conserved-total identity the base-defense migration established (G5).
-	//!
-	//! It is inactive during harassment, so Phase 1 spends against the pool alone exactly as it did
-	//! before this phase existed, and it arms the moment the forward base's own deployment is sent so
-	//! that the structure's own cost is inside the budget (§3.7).
-	//! \return True while spending is counted against the ceiling.
-	protected bool IsFOBBudgetActive()
+	//! ⚠ CALLED FROM THE MODULE'S OWN ENTRY, and the registration outlives the phase deliberately - see
+	//! OVT_BaseObjectiveAssetModule's header. It is dropped when the objective record is cleared, which
+	//! is the one funnel every "there is no objective now" path comes through.
+	//! \param[in] key The asset key.
+	//! \param[in] module The module that owns it.
+	void RegisterAssetModule(string key, OVT_BaseObjectiveAssetModule module)
 	{
-		return m_FOB.up || m_bFOBDeploymentSent;
+		if (key == "" || !module || !m_mAssetModules)
+			return;
+
+		m_mAssetModules.Set(key, module);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether one more spend of this size is still inside the forward base's ceiling.
-	//!
-	//! ⚠ THE PROSPECTIVE SPEND IS ADDED BEFORE THE TEST, because OVT_ObjectivePhaseRules.WithinFOBCeiling
-	//! asks "would this total take me past the ceiling" and is inclusive at it. Its two-argument
-	//! signature is pinned by Phase 2's logic cases and is deliberately not widened here.
-	//!
-	//! ⚠ THE CEILING MUST BE ABLE TO COVER THE FORWARD BASE ITSELF, and that is an authored-data
-	//! invariant rather than something this method can enforce: the ceiling is objectiveFOBCost x
-	//! FOB_CEILING_MULTIPLIER while the base's own price is Deployment_ObjectiveFOB's total resource
-	//! cost, and the two are authored in different files. Misauthored the wrong way round, the very first
-	//! spend of the phase is refused and the phase can never make progress - an initialisation case pins
-	//! it across all five shipped presets for exactly that reason.
-	//! \param[in] configName What is being bought, for the refusal ledger's latch key.
-	//! \param[in] cost What is about to be spent.
-	//! \return True when the spend is permitted.
-	protected bool WithinFOBBudget(string configName, int cost)
+	//! The module that owns a standing asset.
+	//! \param[in] key The asset key.
+	//! \return The module, or null when nothing has claimed that key this objective.
+	OVT_BaseObjectiveAssetModule GetAssetModule(string key)
 	{
-		if (!IsFOBBudgetActive())
-			return true;
+		OVT_BaseObjectiveAssetModule module;
+		if (!m_mAssetModules || !m_mAssetModules.Find(key, module))
+			return null;
 
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-			return true;
+		return module;
+	}
 
-		int ceiling = OVT_ObjectivePhaseRules.FOBBudgetCeiling(difficulty.objectiveFOBCost);
+	//------------------------------------------------------------------------------------------------
+	//! Tells every asset this objective has standing to take itself out of the world.
+	//!
+	//! ⚠ THE ONE TEARDOWN, REACHED FROM ResetObjective() AND FROM CommitObjective(), and idempotent on
+	//! both. An objective that never raised anything registered no module and this does nothing at all.
+	protected void TearDownObjectiveAssets()
+	{
+		if (!m_mAssetModules)
+			return;
 
-		if (OVT_ObjectivePhaseRules.WithinFOBCeiling(m_FOB.spent + cost, ceiling))
-			return true;
+		foreach (string key, OVT_BaseObjectiveAssetModule module : m_mAssetModules)
+		{
+			if (module)
+				module.TearDownAsset();
+		}
 
-		LogOperationRefusal(configName, REFUSAL_FOB_CEILING, m_FOB.spent.ToString() + " of " + ceiling.ToString() + " already spent, and this would add " + cost.ToString(), LogLevel.NORMAL);
+		// The bias is dropped here so this method is complete on its own. ClearObjectiveRecord() drops
+		// it too, on every path that ends an objective - both are idempotent, and a teardown that
+		// silently depended on its caller to finish the job is how the anchor was left pointing at an
+		// abandoned objective in the first place (see ResetObjective).
+		DropObjectiveAnchor();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether any standing asset's spend ceiling governs the director's spending right now.
+	//!
+	//! ⚠ PUBLIC BECAUSE IT IS THE ONE THING ABOUT THE CEILING THAT CAN BE ASSERTED WITHOUT SPENDING
+	//! REAL RESOURCES: it arms when the asset's own deployment is SENT and disarms when the objective's
+	//! record is cleared, and neither transition has any other symptom.
+	//! \return True while spends are counted against a ceiling.
+	bool IsAssetCeilingArmed()
+	{
+		if (!m_mAssetModules)
+			return false;
+
+		foreach (string key, OVT_BaseObjectiveAssetModule module : m_mAssetModules)
+		{
+			if (module && module.IsCeilingArmed())
+				return true;
+		}
 
 		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Counts a spend that has ALREADY left the pool against the forward base's ceiling.
-	//! \param[in] cost What was spent.
-	protected void CountFOBSpend(int cost)
+	//! Whether one more spend of this size is still inside every armed asset ceiling.
+	//!
+	//! ⚠ THE PROSPECTIVE SPEND IS ADDED BEFORE THE TEST, because OVT_ObjectivePhaseRules.WithinFOBCeiling
+	//! asks "would this total take me past the ceiling" and is inclusive at it. Its two-argument
+	//! signature is pinned by the logic tier and is deliberately not widened here.
+	//!
+	//! ⚠ IT MOVES NO MONEY. The ceiling is a COUNTER of what has already left the one pool; nothing here
+	//! reserves, holds or refunds anything.
+	//!
+	//! 🔴 A SPENT CEILING DELIBERATELY DOES NOT SET m_bBlockedOnAffordability. Being broke is a fact
+	//! about the FACTION and holds the idle clock; a spent ceiling is a decision the machine made about
+	//! ITSELF, and a phase that can only ever hit that SHOULD run its clock down and be abandoned.
+	//! \param[in] configName What is being bought, for the refusal ledger's latch key.
+	//! \param[in] cost What is about to be spent.
+	//! \return True when the spend is permitted.
+	protected bool WithinAssetCeilings(string configName, int cost)
 	{
-		if (!IsFOBBudgetActive())
+		if (!m_mAssetModules)
+			return true;
+
+		foreach (string key, OVT_BaseObjectiveAssetModule module : m_mAssetModules)
+		{
+			if (!module || !module.IsCeilingArmed())
+				continue;
+
+			int ceiling = module.GetCeiling();
+			int spent = module.GetSpent();
+
+			if (OVT_ObjectivePhaseRules.WithinFOBCeiling(spent + cost, ceiling))
+				continue;
+
+			LogOperationRefusal(configName, REFUSAL_FOB_CEILING, spent.ToString() + " of " + ceiling.ToString() + " already spent, and this would add " + cost.ToString(), LogLevel.NORMAL);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Counts a spend that has ALREADY left the pool against every armed asset ceiling.
+	//! \param[in] cost What was spent.
+	protected void CountAssetSpend(int cost)
+	{
+		if (cost <= 0 || !m_mAssetModules)
 			return;
 
-		AddFOBSpend(cost);
+		foreach (string key, OVT_BaseObjectiveAssetModule module : m_mAssetModules)
+		{
+			if (module && module.IsCeilingArmed())
+				module.CountSpend(cost);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Phase 3. Waits for the battle the director asked for.
+	//! An asset is standing. Called by the deployment-side module that built it, once.
 	//!
-	//! THERE IS ALMOST NOTHING TO DO HERE BY DESIGN. While the battle is live the freeze above has
-	//! already returned; the only tick that reaches this method is one where no battle is running,
-	//! which means either the battle has finished or it never started. Both are terminal: the
-	//! objective resets whatever the outcome was, exactly as §3.2 says.
+	//! ⚠ IT RECORDS. IT DOES NOT DECIDE - the same rule ReportObjectiveProgress() carries, and for the
+	//! same reason: this is public, it is called from a deployment's own update, and a phase entry
+	//! re-arms the phase timeout. Every transition in this machine happens on DirectorTick(), behind its
+	//! three early returns.
 	//!
-	//! ⚠ THE BATTLE'S END IS POLLED, NEVER SUBSCRIBED (D8). Both of the occupying faction manager's
-	//! own finish handlers delete the battle controller's entity from inside the invoker's own
-	//! dispatch, so a second subscriber ordered after them would run against a deleted entity. One
-	//! null check per in-game minute cannot be got wrong. The poll IS DirectorTick()'s third early
-	//! return: while m_CurrentQRF is set the tick never reaches this method, and the first tick on which
-	//! it is null again is the first tick that does.
+	//! ⚠ NO NOTIFICATION IS SENT (D12). The forward base is the one thing in the ramp the resistance is
+	//! meant to discover rather than be told about. This is an explicit requirement, not an oversight.
 	//!
-	//! ⚠ A WIN AND A LOSS TAKE THE SAME PATH, DELIBERATELY (T8.5). The occupying faction has spent its
-	//! ramp; whether it took the place or not, this objective is finished. ResetObjective() is the one
-	//! path, so the forward base is torn down, the objective's deployments are collected, the bias is
-	//! dropped and the machine goes idle - and the IDLE branch of the NEXT tick chooses again, one
-	//! in-game minute later, which is the same one-tick gap every other reset in this machine has.
-	//!
-	//! ⚠ IT DOES NOT BLACKLIST. A resolved battle is not a failure of the objective: the place gets
-	//! re-evaluated on its merits, and if the resistance held it, it is very likely worth attacking
-	//! again.
-	protected void TickCounterQRF()
+	//! ⚠ THE SPEND COUNTER SURVIVES. What has already been spent getting the asset up is part of its
+	//! budget and this is not a fresh record - the ceiling covers "the structure itself".
+	//! \param[in] key The asset key.
+	//! \param[in] position Where the structure stands.
+	//! \param[in] sourceBasePosition Where its supply line starts. Zero keeps whatever was recorded when
+	//!            the deployment was sent, which is the better answer for a walking insertion that never
+	//!            resolved a source of its own.
+	//! \param[in] deploymentName The config carrying it - the re-link key written into the save.
+	void ReportAssetRaised(string key, vector position, vector sourceBasePosition, string deploymentName)
 	{
-		AdvanceObjectiveTimers();
+		if (m_Objective.kind == OVT_EObjectiveKind.NONE || !m_Instance)
+			return;
 
-		ResetObjective("the counter-attack has resolved", false);
+		OVT_ObjectiveAssetRecord asset = m_Instance.GetAsset(key);
+		if (!asset)
+			return;
+
+		vector source = sourceBasePosition;
+		if (source == vector.Zero)
+			source = asset.sourceBasePosition;
+
+		asset.up = true;
+		asset.position = position;
+		asset.sourceBasePosition = source;
+		asset.deploymentName = deploymentName;
+		asset.starvationTicks = 0;
+
+		OVT_BaseObjectiveAssetModule module = GetAssetModule(key);
+		OVT_RaiseForwardBaseObjectiveOperation raise = OVT_RaiseForwardBaseObjectiveOperation.Cast(module);
+		if (raise)
+			raise.OnAssetRaised(position);
+
+		Print(LOG + "Objective '" + m_Objective.name + "': the forward operating base is standing at " + position.ToString(), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Serves one tick of every countdown the current objective owns.
+	//! Counts resources already spent from the deployment pool against an asset's ceiling.
 	//!
-	//! ⚠ CALLED FROM THE PHASE HANDLERS, NEVER FROM THE TICK ITSELF. That is what puts every counter
-	//! behind all three early returns at once: a frozen tick does not reach a phase handler, so it
-	//! cannot decrement anything, and there is no separate rule to remember per timer.
-	//!
-	//! ⚠ ONE CALLER LEFT: TickCounterQRF(), which resets the objective on the same call and is therefore
-	//! the only handler with no interest in whether the tick accomplished anything. The two ramp phases
-	//! serve the cadence directly and put their idle clock through TickObjectiveIdleClock() instead.
-	protected void AdvanceObjectiveTimers()
+	//! ⚠ THIS MOVES NO MONEY. It is called AFTER the pool has been debited, and its only job is to stop
+	//! the ramp spending past the ceiling. See the record's own header.
+	//! \param[in] key The asset key.
+	//! \param[in] amount What was spent. Non-positive is ignored.
+	void AddAssetSpend(string key, int amount)
 	{
-		AdvancePhaseTimeout();
-		AdvanceOperationCadence();
+		if (amount <= 0 || !m_Instance)
+			return;
+
+		OVT_ObjectiveAssetRecord asset = m_Instance.GetAsset(key);
+		if (!asset)
+			return;
+
+		asset.spent = asset.spent + amount;
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sets how many consecutive ticks an asset has been cut off.
+	//! \param[in] key The asset key.
+	//! \param[in] ticks The count. Negative reads as zero.
+	void SetAssetStarvationTicks(string key, int ticks)
+	{
+		if (!m_Instance)
+			return;
+
+		OVT_ObjectiveAssetRecord asset = m_Instance.GetAsset(key);
+		if (!asset)
+			return;
+
+		if (ticks < 0)
+			asset.starvationTicks = 0;
+		else
+			asset.starvationTicks = ticks;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The pre-flight an operation module with expensive preparation asks BEFORE it does any of it.
+	//!
+	//! ⚠ IT MOVES NO MONEY AND CREATES NOTHING, and it is the same three refusals, latched the same way,
+	//! that the create itself would make. Asking twice in one tick is harmless: the second ask is silent
+	//! because the latch is already set.
+	//! \param[in] deployments The deployment framework.
+	//! \param[in] configName The registered config the caller wants to run.
+	//! \param[in] factionIndex The occupying faction.
+	//! \return True when it could be bought right now.
+	bool CanAffordObjectiveDeployment(notnull OVT_DeploymentManagerComponent deployments, string configName, int factionIndex)
+	{
+		int cost;
+
+		return CanSendObjectiveDeployment(deployments, configName, factionIndex, cost) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says ONCE, per objective AND per (config, reason), why an operation could not be sent.
+	//!
+	//! ⚠ THE PUBLIC DOOR ONTO THE REFUSAL LEDGER, for a module that refuses for a reason the create
+	//! choke point never sees - the forward base having no supply line to site along is the shipped one.
+	//! The dedup rule and its latch key are unchanged; see LogOperationRefusal().
+	//! \param[in] configName The operation that was refused.
+	//! \param[in] reason One of the REFUSAL_* constants.
+	//! \param[in] detail Anything specific to this refusal, for the log line.
+	//! \param[in] level How loudly to say it.
+	void LogObjectiveRefusal(string configName, string reason, string detail, LogLevel level)
+	{
+		LogOperationRefusal(configName, reason, detail, level);
+	}
+
+	//! \return Whether the most recent create pre-flight was refused for want of resources. Read by an
+	//!         operation module deciding whether its refusal claims the interval - see
+	//!         ClaimOperationInterval().
+	bool IsBlockedOnAffordability() { return m_bBlockedOnAffordability; }
+
+	//------------------------------------------------------------------------------------------------
+	// THE OBJECTIVE'S OWN COUNTDOWNS
+	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
 	//! Serves one tick of the objective's idle clock - the clock the DIRECTOR runs against itself.
@@ -3504,7 +1840,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!
 	//! FOUR ANSWERS, IN THIS ORDER, AND THE ORDER IS THE CONTRACT:
 	//!  1. NO OBJECTIVE - nothing to time out. A sender may have reset the objective on this very tick
-	//!     (SendFOBOperation() does exactly that when there is nowhere to put a forward base), and
+	//!     (the forward base's raise module does exactly that when there is nowhere to put one), and
 	//!     running the clock against a cleared record would call ResetObjective() a second time.
 	//!  2. PROGRESS - an operation was created this tick, or a completed one has reported since the last
 	//!     time we looked. The clock goes back to full.
@@ -3580,9 +1916,9 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! Whether either success counter has moved since the idle clock was last re-armed, consuming the
 	//! news either way.
 	//!
-	//! ⚠ A PULL, NOT A PUSH, AND THAT IS D4. OnHarassmentSuccess() and OnSabotageSuccess() only count -
-	//! they are public, are called from a deployment's own update, from a restore and from fixtures
-	//! arranging a state, and two initialisation cases pin them as unable to move a timer. Comparing the
+	//! ⚠ A PULL, NOT A PUSH, AND THAT IS D4. ReportObjectiveProgress() only counts - it is public, is
+	//! called from a deployment's own update, from a restore and from fixtures
+	//! arranging a state, and two initialisation cases pin it as unable to move a timer. Comparing the
 	//! counters here puts the observation on the tick, where every other decision in this machine lives.
 	//!
 	//! ⚠ IT COMPARES RATHER THAN SUBTRACTS, so a counter that went DOWN (a fresh commit zeroes both) also
@@ -3590,7 +1926,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \return True when an operation has reported since the last re-arm.
 	protected bool ConsumeReportedOperations()
 	{
-		if (m_Objective.harassmentSuccesses == m_iProgressHarassmentMark && m_Objective.sabotageSuccesses == m_iProgressSabotageMark)
+		if (GetHarassmentSuccesses() == m_iProgressHarassmentMark && GetSabotageSuccesses() == m_iProgressSabotageMark)
 			return false;
 
 		SyncProgressMarks();
@@ -3613,8 +1949,8 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! Records the success counters as "already seen", so nothing already banked reads as fresh progress.
 	protected void SyncProgressMarks()
 	{
-		m_iProgressHarassmentMark = m_Objective.harassmentSuccesses;
-		m_iProgressSabotageMark = m_Objective.sabotageSuccesses;
+		m_iProgressHarassmentMark = GetHarassmentSuccesses();
+		m_iProgressSabotageMark = GetSabotageSuccesses();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3634,7 +1970,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! AND THE PHASE CAN STILL TIME OUT. The difference from the two above is that an operation is
 	//! TRANSIENT: it completes, it is wiped out, or its condition collects it, and each of those ends the
 	//! hold. A forward base that has spent its whole ceiling then creates nothing more, holds nothing, and
-	//! runs the clock down to a reset. See TickFOB()'s header.
+	//! runs the clock down to a reset. See OVT_RaiseForwardBaseObjectiveOperation's header.
 	//!
 	//! ⚠ A FORCE THAT WAS WIPED OUT IS NOT IN FLIGHT. Its marker can outlive it (the condition module
 	//! collects it a frame or a minute later), and reading a dead team as work in progress would hold the
@@ -3754,22 +2090,88 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Says ONCE, per phase entry, that the objective is waiting on something it cannot influence.
+	//!
+	//! ⚠ IT IS THE RUNNER'S LINE AND NOT THE MODULE'S, DELIBERATELY. A condition module cannot see the
+	//! others, so a condition that logged its own wait would say it on every tick it was false - a
+	//! forward-base phase whose ramp is nowhere near done would announce "waiting for daylight" the
+	//! first time night fell. The runner is the only thing that knows the hold ACTUALLY APPLIES, which
+	//! is the same distinction the hard-coded gate drew between "not ready" and "not now".
+	//!
+	//! ⚠ ONCE PER PHASE ENTRY, NOT ONCE PER TICK (D17). This is a once-a-minute tick and a daylight wait
+	//! can last most of an in-game day; unlatched it would put several hundred identical lines in the
+	//! log for an entirely normal state.
+	//!
+	//! ⚠ IT DOES NOT SAY THE PHASE HAS STOPPED, because it has not: only the idle clock is held. Every
+	//! abort module is still asked, the operation cadence still runs and every operation is still tried,
+	//! so a forward base cut off during the wait still comes down during the wait.
+	//! \param[in] moduleName The authored name of the condition holding the clock, for the log line.
+	protected void LogIdleClockHold(string moduleName)
+	{
+		if (m_bIdleHoldLogged)
+			return;
+
+		m_bIdleHoldLogged = true;
+
+		string what = moduleName;
+		if (what == "")
+			what = "a condition it cannot influence";
+
+		Print(LOG + "Objective '" + m_Objective.name + "' has done everything it can and is waiting on '" + what + "'. Its idle clock is HELD while it waits - a wait nobody can shorten is not a failure of the objective - but nothing else is: its operations still run and whatever it has standing can still be taken off it", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// SELECTION
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! Chooses the objective, out of every resistance-held base, town and city.
+	//! Chooses the objective: the best candidate of the best PLAN.
 	//!
-	//! DELIBERATELY OMNISCIENT AND DELIBERATELY PREDICTABLE. There is no fog of war here and no
-	//! randomness at all: an experienced player is supposed to be able to guess the target from the
-	//! map. The score is a plain weighted sum in OVT_ObjectiveSelection, ties break on discovery
-	//! order, and the winner AND the runner-up are both logged with their scores so a tuner can check
-	//! the ordering without instrumenting anything.
+	//! DELIBERATELY OMNISCIENT AND DELIBERATELY PREDICTABLE. There is no fog of war here and NO
+	//! RANDOMNESS AT ALL - an experienced player is supposed to be able to guess the target from the
+	//! map. Every score is a plain weighted sum, every tie breaks on the authored order, and the winner
+	//! AND the runner-up are both logged with their scores so a tuner can check the ordering without
+	//! instrumenting anything. The only roll anywhere in this path is a plan's own m_fChance, and a
+	//! plan authoring 100 (both shipped ones do) never reaches the generator at all.
+	//!
+	//! =============================================================================================
+	//! HOW THIS REPRODUCES THE SINGLE LIST IT REPLACED, EXACTLY (the Phase-3 parity argument)
+	//! =============================================================================================
+	//! Before plans existed this method built ONE list - every resistance-held town, then every
+	//! resistance-held base - scored each entry with OVT_ObjectiveSelection.ScoreTown/ScoreBase and
+	//! took the highest, ties to the earlier entry. Four properties make the plan-driven form give the
+	//! same answer on the same map, and all four are load-bearing:
+	//!   1. ONE CANDIDATE COLLECTION, IN THE SAME ORDER. Towns then bases, each in its registry's own
+	//!      order - see OVT_ObjectiveCandidateSet, which is the only thing here that looks at the world.
+	//!   2. THE SHIPPED SELECTORS ARE THOSE SCORERS, TERM FOR TERM AND IN THE SAME ORDER OF ADDITION,
+	//!      with the eight weights lifted to attributes whose defaults ARE the constants.
+	//!   3. EQUAL PRIORITIES MULTIPLY BY ONE. Both shipped plans author m_fPriority 1, and score * 1.0
+	//!      is exact in binary floating point, so a plan's rank IS its selector's score and every
+	//!      comparison is the comparison the single list made.
+	//!   4. THE TIE-BREAKS AGREE. Within a plan the pure static keeps the FIRST candidate at a given
+	//!      score; between plans OVT_ObjectivePlanRules.SelectBestPlanIndex keeps the FIRST plan at a
+	//!      given rank; and the town plan is authored first in the registry exactly as towns were
+	//!      collected first in the single list. So a town and a base of identical score still resolve
+	//!      to the town, as they always did.
+	//! ⚠ THE FOUR SHIPPED CANDIDATE KINDS ARE DISJOINT - the town plan claims only towns and the base
+	//! plan only bases - so "best plan by its best candidate" and "best candidate over one list" are
+	//! the same argmax here. A registry whose plans OVERLAP is a supported thing to author and is where
+	//! the two forms could differ; the plan wins that comparison, because a doctrine's priority is
+	//! meant to be able to out-rank a slightly better target it has no doctrine for.
 	//!
 	//! VILLAGES ARE EXCLUDED, and so are forward bases and radio towers: the requirements are explicit
-	//! that towers are handled WITHIN an objective and that villages fall as collateral.
+	//! that towers are handled WITHIN an objective and that villages fall as collateral. That exclusion
+	//! is in the candidate collection, not in a selector - it is a statement about what the world
+	//! offers rather than about what a doctrine values.
 	void SelectObjective()
 	{
+		int startTick = System.GetTickCount();
+
+		// ⚠ RE-ARMED HERE RATHER THAN AT THE CALL SITE, so every path that runs a round - the idle
+		// slot, the reselect flag, a test driving it directly - pays the same cooldown. Nothing else
+		// writes this counter.
+		m_iSelectionCooldown = SelectionCooldownTicks() - 1;
+
 		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -3779,29 +2181,87 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		int resistanceIndex = config.GetPlayerFactionIndex();
 
-		array<int> kinds = new array<int>();
-		array<vector> positions = new array<vector>();
-		array<string> names = new array<string>();
-		array<float> scores = new array<float>();
-		array<bool> blacklisted = new array<bool>();
+		array<OVT_ObjectiveConfig> plans = new array<OVT_ObjectiveConfig>();
+		CollectEligiblePlans(plans);
+
+		// ⚠ ONE PASS OVER THE WORLD FOR EVERY PLAN (D6). The union of the eligible plans' declared
+		// sources is collected once and every selector is handed the same set, so the cost that would
+		// otherwise multiply with the plan count is paid once. A round with no eligible plan at all
+		// still collects the sources the STRANGLER FALLBACK needs, because that path has to be able to
+		// pick a target when the registry did not load.
+		int sources = OVT_EObjectiveCandidateSource.RESISTANCE_TOWNS | OVT_EObjectiveCandidateSource.RESISTANCE_BASES;
+		if (!plans.IsEmpty())
+			sources = UnionOfCandidateSources(plans);
+
+		OVT_ObjectiveCandidateSet candidates = new OVT_ObjectiveCandidateSet();
+		candidates.Collect(occupying, towns, sources, resistanceIndex, m_fMaxUsefulDistance);
 
 		array<string> blacklistKeys = new array<string>();
 		array<int> blacklistRounds = new array<int>();
 		ReadBlacklist(blacklistKeys, blacklistRounds);
+		candidates.ApplyBlacklist(blacklistKeys, blacklistRounds);
 
-		CollectTownCandidates(occupying, towns, resistanceIndex, kinds, positions, names, scores);
-		CollectBaseCandidates(occupying, resistanceIndex, kinds, positions, names, scores);
+		// THE BEST RANK ANY PLAN GAVE EACH CANDIDATE, and which plan gave it. Built alongside the
+		// per-plan pick because it costs nothing there and it is what lets the log name the runner-up
+		// across the WHOLE map rather than only within the winning doctrine - which is what the single
+		// list's log meant and what a tuner is actually reading it for.
+		array<float> candidateRanks = new array<float>();
+		array<bool> unclaimed = new array<bool>();
+		SeedCandidateRanks(candidates, candidateRanks, unclaimed);
 
-		foreach (vector candidate : positions)
+		array<float> planScores = new array<float>();
+		array<bool> planEligible = new array<bool>();
+		array<int> planPick = new array<int>();
+
+		foreach (OVT_ObjectiveConfig plan : plans)
 		{
-			blacklisted.Insert(OVT_ObjectiveSelection.IsBlacklisted(blacklistKeys, blacklistRounds, OVT_ObjectiveSelection.PositionKey(candidate)));
+			array<float> scores = new array<float>();
+			plan.m_Selector.ScoreCandidates(candidates, scores);
+
+			array<bool> mask = new array<bool>();
+			candidates.BuildSelectionMask(plan.GetCandidateSources(), mask);
+
+			// ⚠ RAGGED INPUT IS THE ONE THING A SELECTOR CAN GET WRONG THAT NOTHING ELSE WOULD CATCH.
+			// The pure static refuses a mis-aligned pair outright rather than picking through it, and
+			// a modder's selector that returned the wrong number of scores would otherwise commit to a
+			// candidate that was supposed to be masked out.
+			int best = OVT_ObjectiveSelection.NOTHING_TO_SELECT;
+			if (scores.Count() == mask.Count())
+				best = OVT_ObjectiveSelection.SelectBestIndex(scores, mask);
+
+			float rank = 0;
+			if (best != OVT_ObjectiveSelection.NOTHING_TO_SELECT)
+				rank = OVT_ObjectivePlanRules.ResolvePlanScore(scores[best], plan.m_fPriority);
+
+			planScores.Insert(rank);
+			planEligible.Insert(best != OVT_ObjectiveSelection.NOTHING_TO_SELECT);
+			planPick.Insert(best);
+
+			FoldCandidateRanks(candidates, plan, scores, mask, candidateRanks, unclaimed);
 		}
 
-		int best = OVT_ObjectiveSelection.SelectBestIndex(scores, blacklisted);
+		int winningPlan = OVT_ObjectivePlanRules.SelectBestPlanIndex(planScores, planEligible);
+
+		int best = OVT_ObjectiveSelection.NOTHING_TO_SELECT;
+		OVT_ObjectiveConfig winner;
+
+		if (winningPlan != OVT_ObjectivePlanRules.NOTHING_TO_SELECT)
+		{
+			winner = plans[winningPlan];
+			best = planPick[winningPlan];
+		}
+		// 🔴 AND THERE IS NO OTHER WAY TO PICK ONE. Until build phase 6 an empty plan list fell back to
+		// a hard-coded single-list pick; the doctrine is authored data now and there is no second
+		// implementation of it, so a registry that did not load selects NOTHING and says so through the
+		// round's own log line. That is the correct end state and it is deliberately not silent: an
+		// occupying faction that has stopped choosing objectives is the one failure mode this machine
+		// exists to make visible.
 
 		// ONE ROUND SERVED PER SELECTION ROUND, and it is served AFTER the pick, not before: an
 		// objective blacklisted for one round has to actually miss this round.
 		ServeBlacklistRound();
+
+		LogSelectionRound(config, candidates.Count(), plans.Count(), System.GetTickCount() - startTick);
 
 		if (best == OVT_ObjectiveSelection.NOTHING_TO_SELECT)
 		{
@@ -3810,175 +2270,262 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		}
 
 		OVT_EObjectiveKind kind = OVT_EObjectiveKind.TOWN;
-		if (kinds[best] == OVT_EObjectiveKind.BASE)
+		if (candidates.GetKind(best) == OVT_EObjectiveKind.BASE)
 			kind = OVT_EObjectiveKind.BASE;
 
-		LogSelection(best, kinds, names, scores, blacklisted);
+		LogSelection(winner, best, candidates, candidateRanks, unclaimed);
 
-		CommitObjective(kind, positions[best], names[best]);
+		CommitObjective(kind, candidates.GetPosition(best), candidates.GetName(best), winner);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Adds every resistance-held town and city to the candidate lists.
-	//! \param[in] occupying The occupying faction manager, for the geometry inputs.
-	//! \param[in] towns The town manager.
-	//! \param[in] resistanceIndex The resistance faction's index.
-	//! \param[inout] kinds Candidate kinds, appended to.
-	//! \param[inout] positions Candidate positions, appended to.
-	//! \param[inout] names Candidate names, appended to.
-	//! \param[inout] scores Candidate scores, appended to.
-	protected void CollectTownCandidates(notnull OVT_OccupyingFactionManager occupying, notnull OVT_TownManagerComponent towns, int resistanceIndex, notnull array<int> kinds, notnull array<vector> positions, notnull array<string> names, notnull array<float> scores)
-	{
-		if (!towns.m_Towns)
-			return;
-
-		foreach (OVT_TownData town : towns.m_Towns)
-		{
-			if (!town)
-				continue;
-
-			if (town.faction != resistanceIndex)
-				continue;
-
-			// Villages fall as collateral - they are never worth a campaign of their own.
-			if (town.size == OVT_TownSize.VILLAGE)
-				continue;
-
-			float distance = DistanceToNearestHeldBase(occupying, town.location);
-			bool covered = HasOccupyingTowerCoverage(occupying, town.location);
-
-			kinds.Insert(OVT_EObjectiveKind.TOWN);
-			positions.Insert(town.location);
-			names.Insert(ResolveTownName(towns, town));
-			scores.Insert(OVT_ObjectiveSelection.ScoreTown(town.population, town.SupportPercentage(), distance, m_fMaxUsefulDistance, covered));
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Adds every resistance-held base to the candidate lists.
-	//! \param[in] occupying The occupying faction manager.
-	//! \param[in] resistanceIndex The resistance faction's index.
-	//! \param[inout] kinds Candidate kinds, appended to.
-	//! \param[inout] positions Candidate positions, appended to.
-	//! \param[inout] names Candidate names, appended to.
-	//! \param[inout] scores Candidate scores, appended to.
-	protected void CollectBaseCandidates(notnull OVT_OccupyingFactionManager occupying, int resistanceIndex, notnull array<int> kinds, notnull array<vector> positions, notnull array<string> names, notnull array<float> scores)
-	{
-		array<OVT_BaseData> bases = occupying.GetBasesControlledBy(resistanceIndex);
-		if (!bases)
-			return;
-
-		foreach (OVT_BaseData base : bases)
-		{
-			if (!base)
-				continue;
-
-			float distance = DistanceToNearestHeldBase(occupying, base.location);
-			bool covered = HasOccupyingTowerCoverage(occupying, base.location);
-
-			kinds.Insert(OVT_EObjectiveKind.BASE);
-			positions.Insert(base.location);
-			names.Insert(ResolveBaseName(occupying, base));
-			scores.Insert(OVT_ObjectiveSelection.ScoreBase(occupying.GetThreatByLocation(base.location), distance, m_fMaxUsefulDistance, covered));
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How far a candidate is from the nearest base the occupying faction still holds.
-	//! \param[in] occupying The occupying faction manager.
-	//! \param[in] position The candidate's position.
-	//! \return The distance, or the maximum useful distance when the faction holds no base at all -
-	//! which scores the proximity term at zero rather than pretending the candidate is next door.
-	protected float DistanceToNearestHeldBase(notnull OVT_OccupyingFactionManager occupying, vector position)
-	{
-		OVT_BaseData nearest = occupying.GetNearestOccupiedBase(position);
-		if (!nearest)
-			return m_fMaxUsefulDistance;
-
-		return vector.Distance(nearest.location, position);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether an occupying-held radio tower still broadcasts over a candidate.
-	//! \param[in] occupying The occupying faction manager.
-	//! \param[in] position The candidate's position.
-	//! \return True when at least one tower in range is on the air and occupying-held.
-	protected bool HasOccupyingTowerCoverage(notnull OVT_OccupyingFactionManager occupying, vector position)
-	{
-		array<OVT_RadioTowerData> towers = occupying.GetRadioTowersAffecting(position);
-		if (!towers)
-			return false;
-
-		foreach (OVT_RadioTowerData tower : towers)
-		{
-			if (tower && tower.IsOccupyingFaction())
-				return true;
-		}
-
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! A base's display name, falling back to the nearest town's when the marker carries none.
-	//! \param[in] occupying The occupying faction manager.
-	//! \param[in] base The base record.
-	//! \return A name for logs and for the GM panel. Never empty.
-	protected string ResolveBaseName(notnull OVT_OccupyingFactionManager occupying, notnull OVT_BaseData base)
-	{
-		// Resolved here rather than through the manager's own GetBase(), which dereferences the marker
-		// without checking it is still there - the same hazard its serializer documents avoiding.
-		IEntity marker = GetGame().GetWorld().FindEntityByID(base.entId);
-		if (marker)
-		{
-			OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
-			if (controller && controller.m_sName != "")
-				return controller.m_sName;
-		}
-
-		return ResolveTownNameAt(OVT_Global.GetTowns(), base.location);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! A town's display name, resolved SAFELY.
+	//! Every plan that may compete for an objective on this round.
 	//!
-	//! ⚠ THE GUARD IS NOT DEFENSIVE PROGRAMMING FOR ITS OWN SAKE. GetTownName() dereferences the town's
-	//! map marker's item without checking the marker is there, and it is called here once per candidate
-	//! per selection - which is every in-game minute, forever, on the server. A town with no marker
-	//! within five metres (a hand-defined town, a world layer that moved one) would take the whole
-	//! campaign down. The marker is therefore checked first, and only for names that are not already
-	//! cached; an unresolvable name is empty, which costs a log line its label and nothing else.
-	//! \param[in] towns The town manager. Null yields an empty name.
-	//! \param[in] town The town. Null yields an empty name.
-	//! \return The name, or an empty string.
-	protected string ResolveTownName(OVT_TownManagerComponent towns, OVT_TownData town)
+	//! FOUR GATES, IN THIS ORDER, AND THE ORDER IS CHEAPEST-FIRST: validation, faction, instance cap,
+	//! then the chance roll. The roll is last on purpose - a plan that was never going to be eligible
+	//! must not consume a random draw, because the moment selection's answer depends on how many dice
+	//! were thrown earlier the whole path stops being reproducible from the map.
+	//!
+	//! ⚠ A PLAN WITH NO SELECTOR IS NOT ELIGIBLE EVEN IF THE VALIDATOR NEVER RAN. The initialisation
+	//! tier's worlds never call PostGameStart(), so the skipped list may legitimately be empty in a
+	//! world with a broken registry; the null check is what keeps that from being a crash.
+	//! \param[out] plans Receives the eligible plans, in registry order. Cleared first.
+	protected void CollectEligiblePlans(notnull array<OVT_ObjectiveConfig> plans)
 	{
-		if (!towns || !town)
-			return "";
+		plans.Clear();
 
-		int townId = towns.GetTownID(town);
-		if (townId < 0)
-			return "";
+		if (!m_Registry)
+			return;
 
-		if (towns.m_TownNames && townId < towns.m_TownNames.Count() && towns.m_TownNames[townId] != "")
-			return towns.m_TownNames[townId];
+		int count = m_Registry.GetConfigCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_ObjectiveConfig plan = m_Registry.GetConfig(i);
+			if (!plan || !plan.m_Selector)
+				continue;
 
-		if (!towns.GetNearestTownMarker(town.location))
-			return "";
+			if (m_Registry.IsSkipped(plan.m_sObjectiveName))
+				continue;
 
-		return towns.GetTownName(townId);
+			if (!plan.CanFactionUse(OVT_FactionType.OCCUPYING_FACTION))
+				continue;
+
+			if (CountInstancesOfPlan(plan.m_sObjectiveName) >= plan.m_iMaxInstances)
+				continue;
+
+			// Mirrors the deployment framework's own roll (OVT_DeploymentManager.c:1778) exactly,
+			// short-circuit included: a plan at 100 never touches the generator.
+			if (plan.m_fChance < 100.0 && s_AIRandomGenerator.RandFloatXY(0, 100) > plan.m_fChance)
+				continue;
+
+			plans.Insert(plan);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The name of the town nearest a position, resolved safely.
-	//! \param[in] towns The town manager. Null yields an empty name.
-	//! \param[in] position The position to resolve near.
-	//! \return The name, or an empty string.
-	protected string ResolveTownNameAt(OVT_TownManagerComponent towns, vector position)
+	//! How many live objectives are already running a plan, NOT counting the one this round would
+	//! replace.
+	//!
+	//! ⚠ THE EXCLUSION IS NOT AN OPTIMISATION, IT IS THE DIFFERENCE BETWEEN A CAP AND A DEADLOCK. A
+	//! re-selection request runs a full round while an objective is still LIVE - that is what "the map
+	//! changed under us, re-evaluate the target" means - and it commits over the top of m_Instance.
+	//! Counting that instance would make a plan at its cap ineligible to be re-picked by the very round
+	//! that was about to free the slot, so a town changing hands would silently stop the town doctrine
+	//! ever being chosen again.
+	//!
+	//! At the shipped concurrency of one objective this therefore always answers zero, which is the
+	//! honest answer: one objective in total cannot be two instances of one plan. The cap is headroom
+	//! for N > 1, exactly as m_iMaxInstances' own desc: says.
+	//! \param[in] planName The plan's persistence key.
+	//! \return The count, which is compared against the plan's m_iMaxInstances.
+	protected int CountInstancesOfPlan(string planName)
 	{
-		if (!towns)
-			return "";
+		int running = 0;
 
-		return ResolveTownName(towns, towns.GetNearestTown(position));
+		foreach (OVT_ObjectiveInstance instance : m_aInstances)
+		{
+			if (!instance || instance == m_Instance)
+				continue;
+
+			if (instance.GetConfigName() == planName)
+				running = running + 1;
+		}
+
+		return running;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The union of every eligible plan's declared candidate sources.
+	//!
+	//! ⚠ THIS IS THE ECONOMY OF D6 EXPRESSED IN ONE LINE PER PLAN. A registry with no base doctrine in
+	//! it never walks the base registry; a registry with ten town doctrines walks the town registry
+	//! once. The trade-off is stated in the decision record: one exotic plan widens the collection for
+	//! everybody, which is acceptable because the flag set makes that cost legible in the .conf.
+	//! \param[in] plans The eligible plans.
+	//! \return OVT_EObjectiveCandidateSource flags.
+	protected int UnionOfCandidateSources(notnull array<OVT_ObjectiveConfig> plans)
+	{
+		int sources = 0;
+
+		foreach (OVT_ObjectiveConfig plan : plans)
+		{
+			sources = sources | plan.GetCandidateSources();
+		}
+
+		return sources;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Starts the per-candidate rank table at "nothing has claimed this".
+	//! \param[in] candidates The round's candidate set.
+	//! \param[out] ranks One rank per candidate, all zero. Cleared first.
+	//! \param[out] unclaimed One flag per candidate, all true. Cleared first.
+	protected void SeedCandidateRanks(notnull OVT_ObjectiveCandidateSet candidates, notnull array<float> ranks, notnull array<bool> unclaimed)
+	{
+		ranks.Clear();
+		unclaimed.Clear();
+
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			ranks.Insert(0);
+			unclaimed.Insert(true);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Folds one plan's scores into the per-candidate rank table, keeping the best rank per candidate.
+	//!
+	//! ⚠ IT STORES THE PLAN-SCALED RANK, NOT THE RAW SELECTOR SCORE. The table is what the log's
+	//! runner-up is read out of, and a runner-up quoted in raw score would disagree with the pick the
+	//! moment two plans had different priorities - which is exactly when a tuner is reading the line.
+	//! \param[in] candidates The round's candidate set.
+	//! \param[in] plan The plan being folded in.
+	//! \param[in] scores That plan's scores, one per candidate.
+	//! \param[in] mask That plan's selection mask - a masked candidate contributes nothing.
+	//! \param[inout] ranks The rank table.
+	//! \param[inout] unclaimed The "nothing has claimed this" flags.
+	protected void FoldCandidateRanks(notnull OVT_ObjectiveCandidateSet candidates, notnull OVT_ObjectiveConfig plan, notnull array<float> scores, notnull array<bool> mask, notnull array<float> ranks, notnull array<bool> unclaimed)
+	{
+		int count = candidates.Count();
+		if (scores.Count() != count || mask.Count() != count || ranks.Count() != count)
+			return;
+
+		for (int i = 0; i < count; i++)
+		{
+			if (mask[i])
+				continue;
+
+			float rank = OVT_ObjectivePlanRules.ResolvePlanScore(scores[i], plan.m_fPriority);
+
+			// Strictly greater-than, so the FIRST plan to claim a candidate at a given rank keeps it -
+			// the same tie rule as everywhere else in this path.
+			if (unclaimed[i] || rank > ranks[i])
+				ranks[i] = rank;
+
+			unclaimed[i] = false;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// THE SELECTION CADENCE (D6)
+	//------------------------------------------------------------------------------------------------
+
+	//! \return In-game minutes between idle selection rounds. 1 - the shipped value - is every tick.
+	protected int SelectionCooldownTicks()
+	{
+		if (!m_Registry)
+			return 1;
+
+		return m_Registry.GetSelectionCooldownTicks();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an idle tick may run a selection round, serving one tick of the cooldown when it may not.
+	//!
+	//! ⚠ AT THE SHIPPED VALUE OF 1 THIS IS ALWAYS TRUE AND THE COUNTER NEVER LEAVES ZERO, which is what
+	//! makes the cadence attribute a no-op by default and the pre-plan behaviour byte-identical. The
+	//! counter is re-armed inside SelectObjective(), so the reselect flag - which calls it directly -
+	//! also pays the cooldown for the ticks that follow, and a map change is never made to wait.
+	//! \return True when a round is due.
+	protected bool IsSelectionDue()
+	{
+		if (m_iSelectionCooldown > 0)
+		{
+			m_iSelectionCooldown = m_iSelectionCooldown - 1;
+			return false;
+		}
+
+		return true;
+	}
+
+	//! \return Ticks left before an idle tick may run another selection round.
+	int GetSelectionCooldown() { return m_iSelectionCooldown; }
+
+	//------------------------------------------------------------------------------------------------
+	//! One line per selection round, behind the campaign's existing debug flag: how much work the round
+	//! actually did and how long it took (D6's "measurement rather than assumption").
+	//!
+	//! ⚠ BEHIND THE DEBUG FLAG AND NOWHERE ELSE. This runs once per in-game minute in every live
+	//! campaign, and the whole argument for collecting candidates once is that the cost is invisible;
+	//! a line per minute in a normal server's log would be a bigger cost than the thing it measures.
+	//! Tune m_iSelectionCooldownTicks only with numbers from a play-test, never from a guess.
+	//! \param[in] config The campaign config, for the debug flag.
+	//! \param[in] candidateCount How many candidates the round collected.
+	//! \param[in] planCount How many plans competed.
+	//! \param[in] elapsedMs Wall-clock milliseconds the round took. Integer - a fast round reads as 0.
+	protected void LogSelectionRound(OVT_OverthrowConfigComponent config, int candidateCount, int planCount, int elapsedMs)
+	{
+		if (!config || !config.m_bDebugMode)
+			return;
+
+		Print(LOG + "Selection round: " + candidateCount.ToString() + " candidate(s) x " + planCount.ToString() + " plan(s) in " + elapsedMs.ToString() + " ms", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which plan an objective committed WITHOUT one runs - resolved from the registry by target kind.
+	//!
+	//! ⚠ IT IS NOT A KIND-TO-NAME TABLE. The strangler's lookup that this replaced held two plan NAMES
+	//! as constants and chose between them by kind, which was a hard-coded assumption about the shipped
+	//! registry and died with plan-driven selection. This asks the registry instead: the first eligible
+	//! plan whose SELECTOR declares it can score that kind. On the shipped registry it answers exactly
+	//! what the name lookup did, and on a modded one it answers something rather than nothing.
+	//!
+	//! ⚠ SELECTION NEVER USES THIS. A round that picked a plan passes that plan to CommitObjective()
+	//! directly, because "the first plan that could score this kind" and "the plan that actually won"
+	//! are different statements the moment two plans claim one source. This is only for a commit that
+	//! arrived from outside selection - a test fixture, a scripted scenario, or a restore.
+	//! \param[in] kind What kind of place the objective is.
+	//! \return The plan, or null when no registry is wired or no plan can describe that kind.
+	protected OVT_ObjectiveConfig ResolvePlanForKind(OVT_EObjectiveKind kind)
+	{
+		if (!m_Registry)
+			return null;
+
+		int source = OVT_ObjectiveCandidateSet.SourceForKind(kind);
+		if (source == 0)
+			return null;
+
+		int count = m_Registry.GetConfigCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_ObjectiveConfig plan = m_Registry.GetConfig(i);
+			if (!plan || !plan.m_Selector)
+				continue;
+
+			if (m_Registry.IsSkipped(plan.m_sObjectiveName))
+				continue;
+
+			if (!plan.CanFactionUse(OVT_FactionType.OCCUPYING_FACTION))
+				continue;
+
+			if ((plan.GetCandidateSources() & source) == 0)
+				continue;
+
+			return plan;
+		}
+
+		return null;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3987,10 +2534,18 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! Public because it is also how a restored payload and a scripted scenario put the machine into a
 	//! known state - the whole point of every mutation going through one method is that there is only
 	//! one place that decides what "a fresh objective" means.
+	//!
+	//! ⚠ THE PLAN COMES IN, IT IS NOT LOOKED UP. A selection round has already decided which doctrine
+	//! won and passes it here; re-deriving one from the target's KIND would be a different answer the
+	//! moment two plans claim one source, and it would silently commit the objective to the wrong
+	//! doctrine while the log named the right one. A caller that is NOT a selection round - a test
+	//! fixture, a scripted scenario - passes null and gets ResolvePlanForKind()'s answer, which is the
+	//! first plan in the registry whose selector can describe that kind.
 	//! \param[in] kind What kind of place it is.
 	//! \param[in] position Where it is.
 	//! \param[in] name Display name for logs and the GM panel.
-	void CommitObjective(OVT_EObjectiveKind kind, vector position, string name)
+	//! \param[in] plan The doctrine to run. Null resolves one from the registry by kind.
+	void CommitObjective(OVT_EObjectiveKind kind, vector position, string name, OVT_ObjectiveConfig plan = null)
 	{
 		if (kind == OVT_EObjectiveKind.NONE)
 		{
@@ -4001,16 +2556,46 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_Objective.kind = kind;
 		m_Objective.position = position;
 		m_Objective.name = name;
-		m_Objective.harassmentSuccesses = 0;
-		m_Objective.sabotageSuccesses = 0;
+
+		// ⚠ THE BAG IS EMPTIED BEFORE THE PLAN IS BOUND, NOT AFTER. Every key in it is a fact about the
+		// objective that just ended - operations completed, a forward base's spend - and carrying one
+		// into a new objective would be a counter nobody earned. This is what zeroing the two success
+		// fields used to do, generalised: the two counters are bag keys now.
+		if (m_Instance)
+		{
+			m_Instance.ClearBags();
+
+			OVT_ObjectiveConfig committed = plan;
+			if (!committed)
+				committed = ResolvePlanForKind(kind);
+
+			m_Instance.SetConfig(committed);
+		}
+
+		m_bMissingPlanLogged = false;
+
+		// ⚠ THE LIVE LIST IS WHAT "THERE IS AN OBJECTIVE" MEANS TO THE TICK, so membership is granted
+		// here, at the one commit funnel, and revoked in ClearObjectiveRecordFields(), at the one clear
+		// funnel. The instance object itself is allocated once and outlives every objective it runs.
+		if (m_aInstances && m_Instance && m_aInstances.Find(m_Instance) == -1)
+			m_aInstances.Insert(m_Instance);
 
 		// ⚠ TORN DOWN, NOT MERELY FORGOTTEN. A forward base only exists in the phase that is locked
-		// against re-selection, so in the live machine there is never one standing here - but
-		// ClearFOBRecord() alone would leave a structure and a garrison in the world with nothing
-		// pointing at them, and "the record was cleared" is not the same statement as "the base is
-		// gone". Cheap: the teardown returns immediately when nothing was ever sent.
-		TearDownFOB();
+		// against re-selection, so in the live machine there is never one standing here - but clearing
+		// the RECORD alone would leave a structure and a garrison in the world with nothing pointing at
+		// them, and "the record was cleared" is not the same statement as "the base is gone". Cheap: an
+		// asset module whose asset was never sent takes itself down with no queries at all, and an
+		// objective that never registered one has nothing to ask.
+		TearDownObjectiveAssets();
 		ClearFOBRecord();
+
+		// ⚠ AND THE OWNERS DROPPED WITH THE ASSETS THEY OWNED. A module registered by the objective that
+		// just ended would otherwise arm a spend ceiling for a forward base this one has not built, and
+		// hand the next teardown a module whose record has already been zeroed. EnterPhase() below
+		// re-registers whatever the NEW objective's first phase owns.
+		if (m_mAssetModules)
+			m_mAssetModules.Clear();
+
 		m_aCreatedDeployments.Clear();
 
 		m_bIdleLogged = false;
@@ -4020,7 +2605,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// immediate selection on the next tick against a map nothing had changed in since.
 		m_bReselectPending = false;
 
-		EnterPhase(OVT_EObjectivePhase.HARASSMENT);
+		EnterObjectivePhaseIndex(m_Instance, 0);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4041,35 +2626,61 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Logs the winner and the runner-up, both with their scores.
+	//! Logs the winning PLAN, the winning candidate and the runner-up, all with their scores.
 	//!
-	//! THE RUNNER-UP IS NOT DECORATION. Predictability is a stated requirement (G1), and the only way
-	//! a tuner can check that the weights order candidates the way the design intends is to see what
-	//! came second and by how much. It is found by re-running the same pure selection with the winner
-	//! masked out, so the log can never disagree with the pick.
+	//! THE RUNNER-UP IS NOT DECORATION. Predictability is a stated requirement (G1), and the only way a
+	//! tuner can check that the weights order candidates the way the design intends is to see what came
+	//! second and by how much. It is found by re-running the same pure selection over the same rank
+	//! table with the winner masked out, so the log can never disagree with the pick.
+	//!
+	//! ⚠ THE RUNNER-UP IS ACROSS THE WHOLE MAP, NOT WITHIN THE WINNING PLAN, and that is what the
+	//! single list's line meant. The rank table holds the best plan-scaled rank any plan gave each
+	//! candidate, so "ahead of" names the place that would actually have been attacked instead -
+	//! including one belonging to a rival doctrine, which is exactly the comparison a tuner adjusting
+	//! m_fPriority is trying to make.
+	//!
+	//! ⚠ IT NAMES THE PLAN, AND THE PLAN MAY BE NULL. Nothing in the live machine commits without one
+	//! since build phase 6, but a commit from OUTSIDE a selection round - a fixture, a scripted
+	//! scenario, a restore against a registry that did not load - still reaches this line, and saying
+	//! "NO PLAN" in it is what makes that visible at the moment it first matters rather than later.
+	//! \param[in] plan The winning plan, or null for a commit that did not come from a plan.
 	//! \param[in] best Index of the chosen candidate.
-	//! \param[in] kinds Candidate kinds.
-	//! \param[in] names Candidate names.
-	//! \param[in] scores Candidate scores.
-	//! \param[in] blacklisted Which candidates were sitting out.
-	protected void LogSelection(int best, notnull array<int> kinds, notnull array<string> names, notnull array<float> scores, notnull array<bool> blacklisted)
+	//! \param[in] candidates The round's candidate set.
+	//! \param[in] ranks The per-candidate rank table.
+	//! \param[in] unclaimed Which candidates no plan claimed, which masks them out of the runner-up.
+	protected void LogSelection(OVT_ObjectiveConfig plan, int best, notnull OVT_ObjectiveCandidateSet candidates, notnull array<float> ranks, notnull array<bool> unclaimed)
 	{
+		if (!candidates.IsValidIndex(best) || ranks.Count() != candidates.Count() || unclaimed.Count() != candidates.Count())
+			return;
+
 		string kindLabel = "town";
-		if (kinds[best] == OVT_EObjectiveKind.BASE)
+		if (candidates.GetKind(best) == OVT_EObjectiveKind.BASE)
 			kindLabel = "base";
 
-		string line = LOG + "Objective: " + kindLabel + " '" + names[best] + "' at score " + scores[best].ToString();
+		string planLabel = "NO PLAN (the registry did not load)";
+		if (plan)
+			planLabel = "'" + plan.m_sObjectiveName + "'";
+
+		string line = LOG + "Objective: " + planLabel + " on " + kindLabel + " '" + candidates.GetName(best) + "' at score " + ranks[best].ToString();
 
 		array<bool> masked = new array<bool>();
-		foreach (bool flag : blacklisted)
+		foreach (bool flag : unclaimed)
 		{
 			masked.Insert(flag);
 		}
+
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (candidates.IsBlacklisted(i))
+				masked[i] = true;
+		}
+
 		masked[best] = true;
 
-		int runnerUp = OVT_ObjectiveSelection.SelectBestIndex(scores, masked);
+		int runnerUp = OVT_ObjectiveSelection.SelectBestIndex(ranks, masked);
 		if (runnerUp != OVT_ObjectiveSelection.NOTHING_TO_SELECT)
-			line = line + ", ahead of '" + names[runnerUp] + "' at " + scores[runnerUp].ToString();
+			line = line + ", ahead of '" + candidates.GetName(runnerUp) + "' at " + ranks[runnerUp].ToString();
 		else
 			line = line + " (the only candidate)";
 
@@ -4090,23 +2701,137 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! ⚠ A TRANSITION IS PROGRESS, WHICH IS WHY THE ARM GOES THROUGH SetPhaseTimeout() RATHER THAN
 	//! WRITING THE FIELD. The idle clock's progress marks have to be re-baselined with it, or the
 	//! successes that OPENED this gate would read as fresh news on the first tick of the new phase.
-	//! \param[in] phase The phase to enter.
-	void EnterPhase(OVT_EObjectivePhase phase)
+	//! ⚠ IT IS STILL THE ONE FUNNEL, AND IT IS WHAT MADE THE STRANGLER SAFE. Every hard-coded phase
+	//! handler advanced through here until build phases 4, 5 and 6 deleted the last of them, and so
+	//! does the plan-driven advance - so the instance's phase index, its authored phase NAME and its
+	//! runtime module set were re-synced by both without either knowing about the other, through three
+	//! build phases in which both were live. It stays the one funnel: a second entry path would be a
+	//! phase whose modules, clock and bias disagree with the phase the record says it is in.
+	//!
+	//! ⚠ IT TAKES AN AUTHORED PHASE NAME. The enum it used to take was deleted in build phase 7 with the
+	//! last thing that read one, so the plan is now the only thing that knows what phases exist - which
+	//! is what lets a mod ship a doctrine with four phases, or with none of the shipped names, and still
+	//! be driven, restored and displayed by the same runner. An EMPTY name means "no objective" and is
+	//! the successor to IDLE; a name the running plan does not carry is refused rather than silently
+	//! entering phase 0, because phase 0 is a real phase and is the first one.
+	//! \param[in] phaseName The authored m_sPhaseName to enter, or "" to drop to no objective.
+	void EnterPhase(string phaseName)
 	{
-		if (phase == OVT_EObjectivePhase.IDLE)
+		if (phaseName == "")
 		{
 			EnterIdle();
 			return;
 		}
 
-		m_Objective.phase = phase;
-		SetPhaseTimeout(m_iPhaseTimeoutTicks);
+		int index = IndexOfObjectivePhase(phaseName);
+		if (index == OVT_ObjectivePlanRules.NO_PHASE_INDEX)
+		{
+			Print(LOG + "Refusing to enter phase '" + phaseName + "': the plan '" + GetObjectiveConfigName() + "' the current objective is running does not carry a phase by that name", LogLevel.ERROR);
+			return;
+		}
+
+		EnterObjectivePhaseIndex(m_Instance, index);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves an objective into one of its plan's phases, by index.
+	//! \param[in] instance The objective.
+	//! \param[in] index Index into the plan's m_aPhases.
+	protected void EnterObjectivePhaseIndex(notnull OVT_ObjectiveInstance instance, int index)
+	{
+		EnterObjectivePhase(instance, index);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE PHASE-ENTRY BODY. Re-arms the idle clock, zeroes the cadence, pushes the bias, and swaps
+	//! the runtime module set.
+	//!
+	//! ⚠ A TRANSITION IS PROGRESS, WHICH IS WHY THE ARM GOES THROUGH SetPhaseTimeout() RATHER THAN
+	//! WRITING THE FIELD. The idle clock's progress marks have to be re-baselined with it, or the
+	//! successes that OPENED this gate would read as fresh news on the first tick of the new phase.
+	//! That second half is load-bearing and is the reason this method may not be inlined into its
+	//! callers.
+	//!
+	//! ⚠ THE MODULE SWAP IS LAST, AFTER THE TIMERS AND THE ANCHOR, so an incoming module's OnEnter()
+	//! sees the phase it is actually in - its clock armed, its cadence at zero and the bias already
+	//! pushed - rather than the tail end of the phase it replaced.
+	//! \param[in] instance The objective. Null is tolerated so a component with no instance yet still
+	//!            behaves; nothing in the live machine passes one.
+	//! \param[in] index Index into the plan's phases, or -1 when the plan has no phase for this entry.
+	protected void EnterObjectivePhase(OVT_ObjectiveInstance instance, int index)
+	{
+		OVT_ObjectivePhase authored;
+		string phaseName = "";
+
+		if (instance)
+		{
+			OVT_ObjectiveConfig config = instance.GetConfig();
+			if (config)
+			{
+				authored = config.GetPhase(index);
+				if (authored)
+					phaseName = authored.m_sPhaseName;
+			}
+
+			instance.RecordPhase(index, phaseName);
+		}
+
+		SetPhaseTimeout(ResolvePhaseIdleTimeout(authored));
 		m_Objective.nextOpTicks = 0;
 
+		// ⚠ THE "WAITING ON SOMETHING IT CANNOT INFLUENCE" LATCH IS PER PHASE, NOT PER OBJECTIVE. A
+		// later phase has its own conditions and its own reasons to wait, and inheriting the previous
+		// phase's silence would leave the one state a reader most needs explained unexplained.
+		m_bIdleHoldLogged = false;
+
 		// The bias widens with the phase, so it is re-pushed on every entry rather than only on the
-		// first. Committing to an objective enters HARASSMENT through here too, which is why this is
-		// the only push site the live machine needs.
+		// first. Committing to an objective enters the first phase through here too, which is why this
+		// is the only push site the live machine needs.
 		PushObjectiveAnchor();
+
+		if (instance)
+			instance.EnterRuntimePhase(authored);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many in-game minutes of patience a phase gets, authored or inherited.
+	//! \param[in] phase The authored phase, or null.
+	//! \return The phase's own m_iIdleTimeoutTicks when it authors one, otherwise the director's
+	//!         m_iPhaseTimeoutTicks - which is what every phase shared before plans existed.
+	protected int ResolvePhaseIdleTimeout(OVT_ObjectivePhase phase)
+	{
+		if (!phase)
+			return m_iPhaseTimeoutTicks;
+
+		return OVT_ObjectivePlanRules.ResolveWithDifficulty(phase.m_iIdleTimeoutTicks, m_iPhaseTimeoutTicks);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How far the deployment bias reaches right now: the running phase's authored radius, or the
+	//! hard-coded one it inherits.
+	//!
+	//! ⚠ THE AUTHORED VALUE WINS ONLY WHEN IT IS AUTHORED. Both shipped plans author all three of their
+	//! radii - 600 m, 1200 m, 1200 m - which are the figures the hard-coded per-phase lookup returned
+	//! before the doctrine was data, so the ramp's reach is unchanged. A phase that authors -1, and any
+	//! phase of a plan with no radii at all, gets DEFAULT_ANCHOR_RADIUS.
+	//! \return A radius in metres, or zero for a phase that carries no bias at all.
+	protected float ResolveObjectiveAnchorRadius()
+	{
+		if (m_Instance)
+		{
+			OVT_ObjectiveConfig config = m_Instance.GetConfig();
+			if (config)
+			{
+				OVT_ObjectivePhase authored = config.GetPhase(m_Instance.GetPhaseIndex());
+				if (authored && authored.m_fAnchorRadius >= 0)
+					return authored.m_fAnchorRadius;
+			}
+		}
+
+		if (m_Objective.kind == OVT_EObjectiveKind.NONE)
+			return 0;
+
+		return DEFAULT_ANCHOR_RADIUS;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4154,7 +2879,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (occupyingIndex < 0)
 			return;
 
-		deployments.SetObjectiveAnchor(occupyingIndex, m_Objective.position, AnchorRadiusForPhase(m_Objective.phase), m_fObjectiveAnchorWeight);
+		deployments.SetObjectiveAnchor(occupyingIndex, m_Objective.position, ResolveObjectiveAnchorRadius(), m_fObjectiveAnchorWeight);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4297,27 +3022,6 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How far the bias reaches in a given phase.
-	//! \param[in] phase The phase the objective is in.
-	//! \return A radius in metres, or zero for a phase that carries no bias at all.
-	float AnchorRadiusForPhase(OVT_EObjectivePhase phase)
-	{
-		if (phase == OVT_EObjectivePhase.HARASSMENT)
-			return HARASSMENT_ANCHOR_RADIUS;
-
-		if (phase == OVT_EObjectivePhase.FOB)
-			return FORWARD_ANCHOR_RADIUS;
-
-		if (phase == OVT_EObjectivePhase.COUNTER_QRF)
-			return FORWARD_ANCHOR_RADIUS;
-
-		// IDLE, and anything a later build appends without deciding what it means. Zero is refused by
-		// SetObjectiveAnchor(), which clears rather than storing a dead anchor - so an unhandled phase
-		// fails safe to "no bias" instead of to a bias of unknown reach.
-		return 0;
-	}
-
-	//------------------------------------------------------------------------------------------------
 	//! THE ONE RESET PATH - every failure and every ending comes through here.
 	//!
 	//! In order: the objective's own deployments are taken back down, the forward-base record is
@@ -4347,9 +3051,10 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		TearDownObjectiveDeployments();
 
 		// ⚠ AFTER the ledger and BEFORE the record is cleared. The ledger's deletes are what release the
-		// insertion reservations and the trucks; this sweep is for what the ledger could not know about
-		// (a restored marker) and for the structure itself, and it needs m_FOB.position to find either.
-		TearDownFOB();
+		// insertion reservations and the trucks; each asset module's own sweep is for what the ledger
+		// could not know about (a restored marker) and for the structure itself, and it needs the asset
+		// record's position to find either.
+		TearDownObjectiveAssets();
 
 		ClearFOBRecord();
 		ClearObjectiveRecord();
@@ -4457,94 +3162,39 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! One harassment operation completed at the objective. Drives the group ladder.
+	//! ONE COMPLETED OPERATION, REPORTED. The public counter every deployment-side behaviour module
+	//! calls when its work lands, and the replacement for the two named methods it retired
+	//! (build phase 4).
 	//!
-	//! ⚠ IT COUNTS. IT DOES NOT DECIDE. This method may never change phase, and the reason is worth
-	//! stating because T5.8 asked for the opposite ("increments the counter and re-checks the Phase 2
-	//! gate") and the build tried it:
+	//! 🔴 IT COUNTS. IT DOES NOT DECIDE. This method may never change phase, may never reset the
+	//! objective and may never move a timer, and the reason is worth stating because the build tried
+	//! the opposite once and it cost two red cases in two suites:
 	//!
 	//!   A COUNTER INCREMENT IS NOT A TICK. Everything that moves this machine moves on DirectorTick(),
 	//!   behind its three early returns - not the server, nobody online, a battle is live. This method
-	//!   is PUBLIC and is called from a deployment's own update, from a restore, and from test
-	//!   fixtures arranging a known state. Transitioning from here means any of those silently
-	//!   advances the ramp: a fixture that bumps the counter to arrange "three operations completed"
-	//!   found itself saving a FOB-phase objective it never asked for, and a phase entry re-arms the
-	//!   phase timeout, so the same call also overwrote a planted countdown. Both are contract
-	//!   breaches (D4 - a timer moves only by a tick; G6 - the objective survives a save unchanged)
-	//!   and neither is visible at the call site.
+	//!   is PUBLIC and is called from a deployment's own update, from a restore, and from test fixtures
+	//!   arranging a known state. Transitioning from here means any of those silently advances the ramp:
+	//!   a fixture that bumped a counter to arrange "three operations completed" found itself saving a
+	//!   forward-base-phase objective it never asked for, and a phase entry re-arms the idle clock, so
+	//!   the same call also overwrote a planted countdown. Both are contract breaches (a timer moves
+	//!   only by a tick; the objective survives a save unchanged) and neither is visible at the call
+	//!   site.
+	//!
+	//! ⚠ THE SIGNAL IS PULLED BY THE TICK, NEVER PUSHED FROM HERE. ConsumeReportedOperations() compares
+	//! the counters against a mark once per tick; nothing here notifies anything.
 	//!
 	//! The cost of counting only: the phase advances on the next director tick rather than in the same
 	//! frame as the last debuff - at most one in-game minute later, on a ramp whose cadence is measured
 	//! in tens of them.
-	void OnHarassmentSuccess()
+	//! \param[in] key The bag counter, e.g. OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES.
+	//! \param[in] delta How much to add.
+	void ReportObjectiveProgress(string key, int delta)
 	{
 		if (m_Objective.kind == OVT_EObjectiveKind.NONE)
 			return;
 
-		m_Objective.harassmentSuccesses = m_Objective.harassmentSuccesses + 1;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! One sabotage mission completed at the objective. Drives the base forward-base and counter-attack
-	//! gates.
-	//!
-	//! ⚠ IT COUNTS. IT DOES NOT DECIDE - and T6.6 asked for the opposite ("increments the counter and
-	//! re-checks the Phase 2 gate"), exactly as T5.8 did for harassment. It is the same refusal for the
-	//! same reason, and Phase 5 already paid for the lesson with two red cases in two suites: this
-	//! method is PUBLIC and is called from a deployment's own update, from a restore and from test
-	//! fixtures arranging a known state, none of which is a tick. Every phase transition happens on
-	//! DirectorTick(), behind its three early returns - not the server, nobody online, a battle is live -
-	//! and a phase entry re-arms the phase timeout, so a transition from here would also silently
-	//! overwrite planted countdowns and could save a phase nobody asked for. The base gate lives in
-	//! CheckBaseHarassmentGate(), reached only from TickHarassment().
-	//!
-	//! The cost of counting only: the phase advances on the next director tick rather than in the same
-	//! frame as the last demolition - at most one in-game minute later.
-	void OnSabotageSuccess()
-	{
-		if (m_Objective.kind == OVT_EObjectiveKind.NONE)
-			return;
-
-		m_Objective.sabotageSuccesses = m_Objective.sabotageSuccesses + 1;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Records that the forward operating base is standing.
-	//! \param[in] position Where the structure stands.
-	//! \param[in] sourceBasePosition The base supplying it.
-	//! \param[in] deploymentName Config name of the deployment carrying it - the re-link key.
-	void RecordFOB(vector position, vector sourceBasePosition, string deploymentName)
-	{
-		m_FOB.up = true;
-		m_FOB.position = position;
-		m_FOB.sourceBasePosition = sourceBasePosition;
-		m_FOB.deploymentName = deploymentName;
-		m_FOB.starvationTicks = 0;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Counts resources already spent from the deployment pool against the forward base's ceiling.
-	//!
-	//! ⚠ THIS MOVES NO MONEY. It is called AFTER the pool has been debited, and its only job is to
-	//! stop the ramp spending past the ceiling. See the record's own header.
-	//! \param[in] amount What was spent. Non-positive is ignored.
-	void AddFOBSpend(int amount)
-	{
-		if (amount <= 0)
-			return;
-
-		m_FOB.spent = m_FOB.spent + amount;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Sets how many consecutive ticks the forward base has been cut off.
-	//! \param[in] ticks The count. Negative reads as zero.
-	void SetFOBStarvationTicks(int ticks)
-	{
-		if (ticks < 0)
-			m_FOB.starvationTicks = 0;
-		else
-			m_FOB.starvationTicks = ticks;
+		if (m_Instance)
+			m_Instance.Report(key, delta);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4764,28 +3414,106 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!
 	//! IDEMPOTENT. Re-applying a save to a live session runs this again, and every line of it is an
 	//! assignment or a clear-and-rebuild.
+	//! ⚠ AN UNRECOGNISED PLAN OR PHASE NAME IS ABANDONED, LOUDLY, AND NEVER GUESSED AT (G6). The
+	//! payload carries NAMES rather than enum integers precisely so that a plan removed by a mod, or a
+	//! phase renamed between builds, is DETECTABLE rather than silently adopted as whatever index
+	//! happens to sit there now. The objective is discarded, the reason names the missing thing, and the
+	//! machine chooses again on its next tick - which costs a player one in-game minute and nothing else.
+	//! \param[in] configName The plan the objective was running. Unknown to the registry means abandon.
 	//! \param[in] kind The persisted objective kind.
 	//! \param[in] position Where it was.
-	//! \param[in] phase Which phase it was in.
-	//! \param[in] phaseTicks Ticks left on the phase timeout.
+	//! \param[in] phaseName Which phase it was in, by authored name. Unknown means abandon.
+	//! \param[in] phaseTicks Ticks left on the idle clock.
 	//! \param[in] nextOpTicks Ticks left until the next operation.
-	//! \param[in] harassmentSuccesses Harassment operations completed there.
-	//! \param[in] sabotageSuccesses Sabotage missions completed there.
+	//! \param[in] bagKeys The objective's int-bag keys.
+	//! \param[in] bagValues The matching values, same order, same length.
+	//! \param[in] bagVecKeys The objective's vector-bag keys.
+	//! \param[in] bagVecValues The matching positions, same order, same length.
 	//! \param[in] blacklistPositions Blacklisted places.
 	//! \param[in] blacklistRounds Rounds each of them still owes, same order, same length.
 	//! \param[in] fob The forward-base record, or null when none was saved.
-	void ApplyPersistedObjective(int kind, vector position, int phase, int phaseTicks, int nextOpTicks, int harassmentSuccesses, int sabotageSuccesses, array<vector> blacklistPositions, array<int> blacklistRounds, OVT_ObjectiveFOBRecord fob)
+	void ApplyPersistedObjective(string configName, int kind, vector position, string phaseName, int phaseTicks, int nextOpTicks, array<string> bagKeys, array<int> bagValues, array<string> bagVecKeys, array<vector> bagVecValues, array<vector> blacklistPositions, array<int> blacklistRounds, OVT_ObjectiveFOBRecord fob)
 	{
-		m_Objective.kind = KindFromInt(kind);
+		// ⚠ THE BLACKLIST IS RESTORED WHATEVER HAPPENS TO THE OBJECTIVE, AND BEFORE IT. It is a fact
+		// about places, not about the objective that was running, so a payload whose plan has gone must
+		// still come back with its cooldowns intact - otherwise abandoning one objective would also
+		// forget every place the campaign had already decided to leave alone.
+		ReadPersistedBlacklist(blacklistPositions, blacklistRounds);
+
+		OVT_EObjectiveKind restoredKind = KindFromInt(kind);
+		if (restoredKind == OVT_EObjectiveKind.NONE)
+		{
+			// No objective was saved. Put the machine into the state a fresh campaign is in, without a
+			// log line - "nothing was running" is not a fault.
+			//
+			// ⚠ THE FORWARD-BASE RECORD IS CLEARED TOO, AND IT IS NOT REACHED BY ClearObjectiveRecord().
+			// This path also runs when a save is re-applied to a LIVE session, where the machine may be
+			// standing a forward base the payload knows nothing about; a record left set would leave the
+			// next objective's very first spend measured against a base that is not there.
+			// ⚠ NO TEARDOWN, THOUGH. Deleting the deployment behind it is a deployment operation, and
+			// this method is a codec that must not touch one - see the load-order rule in the header.
+			ClearFOBRecord();
+			ClearObjectiveRecord();
+
+			m_aCreatedDeployments.Clear();
+			m_bRestorePending = false;
+			m_iRelinkAttempts = 0;
+			m_bIdleLogged = false;
+
+			return;
+		}
+
+		OVT_ObjectiveConfig plan;
+		if (m_Registry)
+			plan = m_Registry.FindConfigByName(configName);
+
+		int phaseIndex = -1;
+		if (plan)
+			phaseIndex = plan.IndexOfPhase(phaseName);
+
+		// ⚠ A MISSING REGISTRY IS NOT A MISSING PLAN. A world whose prefab has no registry wired has no
+		// doctrine at all, and a save taken in it must still restore its target, its counters and its
+		// blacklist - so the plan is only REQUIRED once a registry exists to require it of.
+		if (m_Registry && !plan)
+		{
+			DiscardPersistedObjective("the saved plan '" + configName + "' is not in the objective registry");
+			return;
+		}
+
+		if (plan && phaseIndex < 0)
+		{
+			DiscardPersistedObjective("the saved phase '" + phaseName + "' is not a phase of plan '" + configName + "'");
+			return;
+		}
+
+		// ⚠ AND THE SAME RULE WITH NO REGISTRY BEHIND IT, IN THE ONLY FORM STILL AVAILABLE. With no
+		// registry there is nothing to check a phase name AGAINST - which is why this used to be a
+		// lookup against the three shipped names and is now an emptiness test: an authored name is
+		// meaningful to whichever build wrote it, and refusing every name this registry-less build has
+		// not shipped would abandon a modded campaign's objective on every load. A save carrying NO
+		// phase name at all is still unrecoverable, and abandoning costs one in-game minute.
+		if (!plan && phaseName == "")
+		{
+			DiscardPersistedObjective("the saved objective names no phase at all, and no plan registry loaded to resolve one against");
+			return;
+		}
+
+		m_Objective.kind = restoredKind;
 		m_Objective.position = position;
-		m_Objective.phase = PhaseFromInt(phase);
 		m_Objective.phaseTicks = phaseTicks;
 		m_Objective.nextOpTicks = nextOpTicks;
-		m_Objective.harassmentSuccesses = harassmentSuccesses;
-		m_Objective.sabotageSuccesses = sabotageSuccesses;
 
-		// ⚠ AFTER BOTH COUNTERS, NEVER BEFORE. The idle clock detects a completed operation by comparing
-		// these counters against a mark; a restored count is history, not news, and a mark left at zero
+		// ⚠ THE BAG IS THE FORMAT (D9), so restoring it restores every module counter at once - the two
+		// success counters included, because they are bag keys now. Clear-and-rebuild, which is what
+		// makes a re-apply to a live session idempotent.
+		if (m_Instance)
+		{
+			m_Instance.WriteBag(bagKeys, bagValues);
+			m_Instance.WriteBagV(bagVecKeys, bagVecValues);
+		}
+
+		// ⚠ AFTER THE BAG, NEVER BEFORE. The idle clock detects a completed operation by comparing the
+		// success counters against a mark; a restored count is history, not news, and a mark left at zero
 		// would make the first tick after a load treat the whole saved ramp as progress and overwrite the
 		// clock that was just restored with a fresh full budget. This is the one place the marks are
 		// synced by hand, because the payload writes the clock BEFORE the counters and SetPhaseTimeout()
@@ -4797,24 +3525,18 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// registries are guaranteed to be populated.
 		m_Objective.name = "";
 
-		m_aBlacklist.Clear();
-		if (blacklistPositions && blacklistRounds && blacklistPositions.Count() == blacklistRounds.Count())
-		{
-			int count = blacklistPositions.Count();
-			for (int i = 0; i < count; i++)
-			{
-				if (blacklistRounds[i] <= 0)
-					continue;
-
-				OVT_ObjectiveBlacklistEntry entry = new OVT_ObjectiveBlacklistEntry();
-				entry.position = blacklistPositions[i];
-				entry.roundsLeft = blacklistRounds[i];
-
-				m_aBlacklist.Insert(entry);
-			}
-		}
-
 		ClearFOBRecord();
+
+		// ⚠ AND THE ASSET OWNERS, BECAUSE THE RECORD IS BEING REPLACED WHOLESALE. This method is also
+		// reached by re-applying a save to a LIVE session, where a module registered by whatever the
+		// session was doing is still holding a "a supply party is on its way" flag about a record that
+		// has just been zeroed. AdoptPersistedPhase() below re-registers whatever the RESTORED phase
+		// owns, which for a payload saved mid-ramp is deliberately nothing.
+		// ⚠ NO TEARDOWN. This is a codec and must not touch a deployment - see the load-order rule in
+		// the header.
+		if (m_mAssetModules)
+			m_mAssetModules.Clear();
+
 		if (fob && fob.up)
 		{
 			m_FOB.up = true;
@@ -4829,9 +3551,145 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// base is re-linked, and it is re-linked by name and position on the first tick.
 		m_aCreatedDeployments.Clear();
 
+		// ⚠ THE PHASE IS ADOPTED LAST, AND IT IS ADOPTED RATHER THAN ENTERED. Last, because adopting a
+		// phase rebuilds its runtime module set and a module's OnEnter() must see the WHOLE restored
+		// objective - its counters, its bag and its forward base - rather than the tail end of whatever
+		// the session was doing before the payload was applied. Adopted rather than entered, because
+		// EnterPhase() re-arms the idle clock and re-baselines the progress marks, which would overwrite
+		// the two values this payload just restored: adopting a phase is not a transition, it is a
+		// declaration that the machine was already in one.
+		AdoptPersistedPhase(plan, phaseIndex, phaseName);
+
+		m_bMissingPlanLogged = false;
+
+		if (m_aInstances && m_Instance && m_aInstances.Find(m_Instance) == -1)
+			m_aInstances.Insert(m_Instance);
+
 		m_bRestorePending = true;
 		m_iRelinkAttempts = 0;
 		m_bIdleLogged = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rebuilds the blacklist from a payload's two parallel arrays.
+	//!
+	//! ⚠ A SERVED ENTRY IS DROPPED RATHER THAN RESTORED AT ZERO. An entry with no rounds left has
+	//! already done its time, and keeping it would leave a place in the list that nothing ever prunes.
+	//! \param[in] positions Blacklisted places.
+	//! \param[in] rounds Rounds each still owes, same order, same length. A mismatch restores nothing.
+	protected void ReadPersistedBlacklist(array<vector> positions, array<int> rounds)
+	{
+		m_aBlacklist.Clear();
+
+		if (!positions || !rounds || positions.Count() != rounds.Count())
+			return;
+
+		int count = positions.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (rounds[i] <= 0)
+				continue;
+
+			OVT_ObjectiveBlacklistEntry entry = new OVT_ObjectiveBlacklistEntry();
+			entry.position = positions[i];
+			entry.roundsLeft = rounds[i];
+
+			m_aBlacklist.Insert(entry);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a restored objective back into the phase it was saved in, WITHOUT entering it.
+	//!
+	//! ⚠ ADOPTING IS NOT ENTERING, AND THE DIFFERENCE IS THE WHOLE REASON THIS IS NOT EnterPhase().
+	//! An entry re-arms the idle clock, re-baselines the progress marks and zeroes the cadence - all
+	//! three of which the payload has just restored to values that mean something. What an adoption
+	//! DOES share with an entry is the runtime module set: a restored objective with no modules can
+	//! neither act, advance nor be given up, and would log an error every load.
+	//! \param[in] plan The plan the objective is running, or null when no registry resolved.
+	//! \param[in] phaseIndex The plan phase index, or -1 when there is no plan.
+	//! \param[in] phaseName The saved phase name, used when there is no plan to resolve it against.
+	protected void AdoptPersistedPhase(OVT_ObjectiveConfig plan, int phaseIndex, string phaseName)
+	{
+		if (!m_Instance)
+			return;
+
+		m_Instance.SetConfig(plan);
+
+		if (!plan || phaseIndex < 0)
+		{
+			// ⚠ THE NAME IS KEPT EVEN THOUGH NOTHING CAN RUN IT. No plan resolved, so there are no
+			// modules to clone and the objective can neither act nor advance - but the name is what the
+			// per-tick "running with NO PLAN behind it" line reports, and a restore that dropped it
+			// would leave that line unable to say which phase the save thought it was in.
+			m_Instance.RecordPhase(-1, phaseName);
+			m_Instance.ExitRuntimePhase();
+
+			return;
+		}
+
+		OVT_ObjectivePhase authored = plan.GetPhase(phaseIndex);
+		m_Instance.RecordPhase(phaseIndex, phaseName);
+		m_Instance.EnterRuntimePhase(authored);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Throws a persisted objective away, loudly, and leaves the machine choosing again.
+	//!
+	//! ⚠ THE ONLY CLEAN-ABANDON PATH, AND IT IS SHARED BY THREE FAULTS (D2/G6): an unrecognised payload
+	//! VERSION, a plan the registry does not carry and a phase the plan does not have. All three mean
+	//! the same thing - this save describes a machine this build cannot run - and all three cost a
+	//! player exactly one in-game minute, because the very next tick selects a new objective.
+	//!
+	//! ⚠ IT IS AN ERROR, NOT A WARNING, and it names the missing thing. A discarded objective is
+	//! invisible in play: the campaign simply picks a different target. Without a line naming the plan
+	//! or the phase, a mod that renamed one would look like a mod that did nothing.
+	//! \param[in] reason What was missing, phrased for a log line.
+	void DiscardPersistedObjective(string reason)
+	{
+		Print(LOG + "DISCARDING the persisted objective: " + reason + ". The occupying faction will choose a new one on its next tick", LogLevel.ERROR);
+
+		// ⚠ THE RECORD ONLY. No teardown, no refund, no deployment lookup: this is reached from a codec
+		// and from a load, and both run before the deployment framework has rebuilt its own state.
+		// Anything the discarded objective had standing is found and dealt with by the next objective's
+		// own commit, which tears down a forward base before it raises one.
+		ClearFOBRecord();
+		ClearObjectiveRecord();
+
+		m_aCreatedDeployments.Clear();
+
+		m_bRestorePending = false;
+		m_iRelinkAttempts = 0;
+		m_bIdleLogged = false;
+		m_bReselectPending = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// THE PLAN REGISTRY
+	//------------------------------------------------------------------------------------------------
+
+	//! \return The authored plan registry, or null when the prefab wires none.
+	OVT_ObjectiveRegistry GetRegistry() { return m_Registry; }
+
+	//------------------------------------------------------------------------------------------------
+	//! Runs the registry's validator once, at world start.
+	//!
+	//! ⚠ THIS IS THE CALL SITE THE DEPLOYMENT REGISTRY'S EQUIVALENT NEVER GOT (C6), and without it
+	//! "a broken plan is named and skipped" would be decorative. It is server-only, it is idempotent,
+	//! and it runs before the first tick can select anything.
+	//! \return True when every plan passed, and true when there is no registry to check.
+	bool ValidateObjectiveRegistry()
+	{
+		if (!Replication.IsServer())
+			return true;
+
+		if (!m_Registry)
+		{
+			Print(LOG + "No objective registry is wired on the game mode - the occupying faction is running the hard-coded phase machine", LogLevel.WARNING);
+			return true;
+		}
+
+		return m_Registry.ValidateAllConfigs();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4854,22 +3712,40 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		return OVT_EObjectiveKind.NONE;
 	}
 
+	// ⚠ PhaseFromInt() WAS DELETED WITH THE VERSION-1 RECORD, AND ITS ABSENCE IS THE POINT. It read a
+	// persisted phase INTEGER and refused anything this build did not recognise - which was the whole
+	// mechanism behind "never renumber the enum". The version-2 payload carries the phase NAME
+	// (LegacyPhaseForSavedName / OVT_ObjectiveConfig.IndexOfPhase resolve it), so nothing reads a phase
+	// integer off a save any more. Keeping a dead reader for a dead format is exactly what the rewritten
+	// header on OVT_ObjectiveRecords.c argues against.
+
 	//------------------------------------------------------------------------------------------------
-	//! Reads a persisted phase, refusing anything the running build does not recognise.
-	//! \param[in] value The persisted integer.
-	//! \return A phase this build understands. Anything unknown reads as IDLE.
-	protected OVT_EObjectivePhase PhaseFromInt(int value)
+	//! Whether the phase a restored objective came back in is one that ENDS the objective.
+	//!
+	//! ⚠ IT IS THE ONE QUESTION THE RESTORE PATH ASKS ABOUT A PHASE, and it is asked of the phase's own
+	//! modules rather than of its name or its index. A terminal operation (the shipped one starts a
+	//! battle) is the only kind of phase with nothing to advance to, and nothing about what it started
+	//! is persisted - so a save taken inside one describes a state the load cannot rebuild. Every other
+	//! phase resumes: its counters, its clocks and its assets are all in the payload.
+	//!
+	//! A phase with NO modules answers false, which is right for both of the ways that happens: a plan
+	//! that did not resolve (the objective is reported and abandoned elsewhere, and rolling it back here
+	//! would hide that) and a phase authored empty (the validator names it at world start).
+	//! \return True when the restored phase carries a terminal operation.
+	protected bool RestoredPhaseIsTerminal()
 	{
-		if (value == OVT_EObjectivePhase.HARASSMENT)
-			return OVT_EObjectivePhase.HARASSMENT;
+		if (!m_Instance)
+			return false;
 
-		if (value == OVT_EObjectivePhase.FOB)
-			return OVT_EObjectivePhase.FOB;
+		int count = m_Instance.GetRuntimeModuleCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_BaseObjectiveOperationModule operation = OVT_BaseObjectiveOperationModule.Cast(m_Instance.GetRuntimeModule(i));
+			if (operation && operation.IsTerminal())
+				return true;
+		}
 
-		if (value == OVT_EObjectivePhase.COUNTER_QRF)
-			return OVT_EObjectivePhase.COUNTER_QRF;
-
-		return OVT_EObjectivePhase.IDLE;
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4891,10 +3767,16 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			return;
 		}
 
-		if (m_Objective.phase == OVT_EObjectivePhase.COUNTER_QRF)
+		// ⚠ ASKED OF THE PHASE'S MODULES, NOT OF A PHASE NUMBER. "Was it saved mid-battle" used to be
+		// "is the phase COUNTER_QRF"; with the enum gone and the ramp authored per plan, the property
+		// that actually matters is that the restored phase ENDS the objective rather than advancing off
+		// it - a terminal operation - and nothing about a battle controller is persisted, so there is
+		// nothing left for that phase to be waiting on. A plan whose terminal phase is its second, or
+		// its fifth, gets the same roll-back the shipped ramp always did.
+		if (RestoredPhaseIsTerminal())
 		{
 			m_bRestorePending = false;
-			ResetObjective("the counter-attack it was saved in the middle of did not survive the load", false);
+			ResetObjective("the operation it was saved in the middle of ends the objective and nothing about it survived the load", false);
 			return;
 		}
 
@@ -4950,10 +3832,10 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			if (!base)
 				return "";
 
-			return ResolveBaseName(occupying, base);
+			return OVT_ObjectiveCandidateSet.ResolveBaseName(occupying, base);
 		}
 
-		return ResolveTownNameAt(OVT_Global.GetTowns(), m_Objective.position);
+		return OVT_ObjectiveCandidateSet.ResolveTownNameAt(OVT_Global.GetTowns(), m_Objective.position);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4998,24 +3880,56 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! work of any kind.
 	//!
 	//! ⚠ SPLIT OUT FOR EXACTLY ONE CALLER - OnPostInit(), for the reason in the note above - on the
-	//! precedent ClearFOBRuntimeState() set. Nothing at RUNTIME may call it: a live path that cleared
+	//! precedent the forward base's own runtime clear set. Nothing at RUNTIME may call it: a live path that cleared
 	//! the record without dropping the bias is precisely the failure the funnel exists to prevent.
 	protected void ClearObjectiveRecordFields()
 	{
 		m_Objective.kind = OVT_EObjectiveKind.NONE;
 		m_Objective.position = vector.Zero;
 		m_Objective.name = "";
-		m_Objective.phase = OVT_EObjectivePhase.IDLE;
 		m_Objective.phaseTicks = 0;
 		m_Objective.nextOpTicks = 0;
-		m_Objective.harassmentSuccesses = 0;
-		m_Objective.sabotageSuccesses = 0;
+
+		// ⚠ THE INSTANCE LEAVES THE LIVE LIST, ITS MODULES ARE TOLD THE PHASE ENDED, AND ITS BAG IS
+		// EMPTIED - all through this one funnel, which is the same funnel that drops the deployment
+		// bias and the reserve floor. A module left initialised would keep a latch alive across
+		// objectives; a bag left populated would hand the next objective counters it never earned; an
+		// instance left in the list would make the tick keep stepping a phase that no longer exists.
+		// ⚠ Clear() rather than a per-entry removal is correct while there is exactly ONE instance
+		// object: this method means "there is no objective now", which at any concurrency means every
+		// live objective has already been ended by the caller.
+		if (m_Instance)
+		{
+			m_Instance.ExitRuntimePhase();
+			m_Instance.RecordPhase(-1, "");
+			m_Instance.SetConfig(null);
+			m_Instance.ClearBags();
+		}
+
+		if (m_aInstances)
+			m_aInstances.Clear();
+
+		// ⚠ AND THE ASSET OWNERS WITH THEM. A registered module is a fact about ONE objective's standing
+		// asset; carried into the next objective it would arm a spend ceiling for a forward base that no
+		// longer exists and hand the next teardown a module whose record has already been zeroed. Every
+		// path that reaches here has already run TearDownObjectiveAssets(), so nothing is left standing
+		// by dropping them - the two are called in sequence by ResetObjective() and by CommitObjective().
+		if (m_mAssetModules)
+			m_mAssetModules.Clear();
+
+		m_bOperationIntervalClaimed = false;
+		m_bIdleHoldLogged = false;
+
+		m_bMissingPlanLogged = false;
 
 		// ⚠ EVERY PER-OBJECTIVE LATCH IS DROPPED HERE rather than in ResetObjective(): every "there is no
 		// objective now" path reaches this body through ClearObjectiveRecord(), and a latch left set would
 		// silence its line for the NEXT objective as well.
-		m_bDaylightWaitLogged = false;
-		m_bCounterAttackRefusalLogged = false;
+		//
+		// ⚠ THE BATTLE'S OWN TWO LATCHES ARE NOT AMONG THEM AND DO NOT NEED TO BE. They live on
+		// OVT_StartBattleObjectiveOperation, which is CLONED on every phase entry, so a fresh objective
+		// reaching the battle phase gets a module that has started nothing and said nothing by
+		// construction - see that module's header.
 		m_iAffordabilityHeldTicks = 0;
 
 		// ⚠ AND EVERY (CONFIG, REASON) REFUSAL LATCH WITH THEM. A refusal is a fact about ONE objective's
@@ -5038,12 +3952,14 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Puts the forward-base record back to "no forward base", including the runtime state that is not
-	//! in the save payload.
+	//! Puts the forward-base record back to "no forward base".
 	//!
-	//! ⚠ THE RUNTIME HALF MATTERS AS MUCH AS THE RECORD. m_bFOBDeploymentSent is what arms the spend
-	//! ceiling and what stops a second supply party being sent, so a record cleared without it leaves
-	//! the next objective's very first spend measured against a forward base that no longer exists.
+	//! ⚠ THE RUNTIME HALF IS THE MODULE'S, NOT THIS METHOD'S, AND IT MATTERS AS MUCH AS THE RECORD.
+	//! Whether a supply party has been SENT is what arms the spend ceiling and what stops a second one
+	//! going out, and it lives on the raise module. It is dropped by TearDownObjectiveAssets() and by
+	//! ClearObjectiveRecordFields() dropping the module registration itself, both of which run on every
+	//! path that reaches here - so a record cleared here can never be left measuring the next
+	//! objective's first spend against a forward base that no longer exists.
 	protected void ClearFOBRecord()
 	{
 		m_FOB.up = false;
@@ -5052,8 +3968,6 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_FOB.spent = 0;
 		m_FOB.starvationTicks = 0;
 		m_FOB.deploymentName = "";
-
-		ClearFOBRuntimeState();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -5092,24 +4006,6 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		return m_Objective.name;
 	}
 
-	//! \return Which phase of the ramp the objective is in.
-	OVT_EObjectivePhase GetPhase() { return m_Objective.phase; }
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether everything the occupying faction controls is done and the counter-attack is only waiting
-	//! on the world clock. Read-only; the decision is TickFOB()'s.
-	//! \return True when the gate answers WAIT_FOR_DAYLIGHT.
-	bool IsWaitingForCounterAttackDaylight()
-	{
-		return EvaluateCounterAttackGate() == COUNTER_ATTACK_WAIT_FOR_DAYLIGHT;
-	}
-
-	//! \return True when the counter-attack would be started by the next tick of this phase.
-	bool IsCounterAttackReady()
-	{
-		return EvaluateCounterAttackGate() == COUNTER_ATTACK_FIRE;
-	}
-
 	//! \return Ticks left on the objective's idle clock before it is abandoned as wedged.
 	int GetPhaseTicks() { return m_Objective.phaseTicks; }
 
@@ -5125,17 +4021,69 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \return Ticks left before the next operation is sent.
 	int GetNextOpTicks() { return m_Objective.nextOpTicks; }
 
-	//! \return Harassment operations completed at the objective.
-	int GetHarassmentSuccesses() { return m_Objective.harassmentSuccesses; }
+	//------------------------------------------------------------------------------------------------
+	//! Harassment operations completed at the objective. Drives the group ladder.
+	//!
+	//! ⚠ IT READS THE BAG, WHICH IS WHERE THE COUNTER LIVES NOW. The name and the meaning are exactly
+	//! what they were when it read a record field, which is why every case that asserts on it is
+	//! unchanged - the storage moved, the contract did not.
+	//! \return The count, or zero before the component has been initialised.
+	int GetHarassmentSuccesses()
+	{
+		if (!m_Instance)
+			return 0;
 
-	//! \return Sabotage missions completed at the objective.
-	int GetSabotageSuccesses() { return m_Objective.sabotageSuccesses; }
+		return m_Instance.Get(OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES);
+	}
 
-	//! \return True when the forward operating base is standing.
-	bool IsFOBUp() { return m_FOB.up; }
+	//------------------------------------------------------------------------------------------------
+	//! Sabotage missions completed at the objective. Drives the base gates.
+	//! \return The count, or zero before the component has been initialised.
+	int GetSabotageSuccesses()
+	{
+		if (!m_Instance)
+			return 0;
 
-	//! \return Where the forward operating base stands.
-	vector GetFOBPosition() { return m_FOB.position; }
+		return m_Instance.Get(OVT_ObjectiveInstance.BAG_SABOTAGE_SUCCESSES);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a named asset is standing.
+	//!
+	//! ⚠ SERVER-AUTHORITATIVE, AND FALSE IS THE CLIENT'S ANSWER. None of the director's state
+	//! replicates (G12), so on a remote client every asset reads as absent - exactly as the FOB-only
+	//! pair this replaced did. Client-side code must never gate on it.
+	//! \param key The asset key, e.g. ASSET_FOB.
+	//! \return True when the asset exists and is standing; false for an unknown key.
+	bool IsAssetUp(string key)
+	{
+		if (!m_mAssets)
+			return false;
+
+		OVT_ObjectiveAssetRecord asset;
+		if (!m_mAssets.Find(key, asset) || !asset)
+			return false;
+
+		return asset.up;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where a named asset stands.
+	//!
+	//! ⚠ SERVER-AUTHORITATIVE, AND THE ZERO VECTOR IS THE CLIENT'S ANSWER - see IsAssetUp().
+	//! \param key The asset key, e.g. ASSET_FOB.
+	//! \return The asset's position, or the zero vector for an unknown or absent asset.
+	vector GetAssetPosition(string key)
+	{
+		if (!m_mAssets)
+			return vector.Zero;
+
+		OVT_ObjectiveAssetRecord asset;
+		if (!m_mAssets.Find(key, asset) || !asset)
+			return vector.Zero;
+
+		return asset.position;
+	}
 
 	//! \return The base supplying the forward operating base.
 	vector GetFOBSourceBasePosition() { return m_FOB.sourceBasePosition; }
@@ -5149,16 +4097,45 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! \return Config name of the deployment carrying the forward operating base.
 	string GetFOBDeploymentName() { return m_FOB.deploymentName; }
 
-	//! \return Where the forward base's deployment was sent, whether or not the structure went up yet.
-	//! The zero vector when none has been sent. Runtime-only and deliberately NOT persisted.
-	vector GetFOBSite() { return m_vFOBSite; }
+	//------------------------------------------------------------------------------------------------
+	//! Where the forward base's deployment was sent, whether or not the structure went up yet.
+	//!
+	//! ⚠ IT IS THE ASSET MODULE'S RUNTIME STATE, NOT A RECORD FIELD, so it answers the zero vector on a
+	//! client, before the forward-base phase has been entered, and after a load - all three of which are
+	//! "no supply party of ours is out there", which is the truth in each case.
+	//! \return The site, or the zero vector.
+	vector GetFOBSite()
+	{
+		OVT_RaiseForwardBaseObjectiveOperation raise = OVT_RaiseForwardBaseObjectiveOperation.Cast(GetAssetModule(ASSET_FOB));
+		if (!raise)
+			return vector.Zero;
 
-	//! \return Whether a supply party has been sent to raise the forward base. This is also what arms
-	//! the spend ceiling - see IsFOBBudgetActive().
-	bool IsFOBDeploymentSent() { return m_bFOBDeploymentSent; }
+		return raise.GetSite();
+	}
 
-	//! \return Whether the forward base is currently reported as cut off.
-	bool IsFOBStarving() { return m_bStarvationLogged; }
+	//------------------------------------------------------------------------------------------------
+	//! Whether a supply party has been sent to raise the forward base. This is also what arms the spend
+	//! ceiling. Same lifetime note as GetFOBSite().
+	//! \return True while one is on its way or standing.
+	bool IsFOBDeploymentSent()
+	{
+		OVT_RaiseForwardBaseObjectiveOperation raise = OVT_RaiseForwardBaseObjectiveOperation.Cast(GetAssetModule(ASSET_FOB));
+		if (!raise)
+			return false;
+
+		return raise.IsDeploymentSent();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the forward base is currently reported as cut off.
+	//!
+	//! ⚠ DERIVED FROM THE COUNTER RATHER THAN FROM A SECOND LATCH, and the two are equivalent by
+	//! construction: the starvation abort sets the counter to zero on every tick the base is supplied
+	//! and increments it on every tick it is not, so "greater than zero" IS "cut off as of the last
+	//! tick". A separate boolean would be a second source of truth for one bit, and the record is the
+	//! half that survives a save.
+	//! \return True when it is.
+	bool IsFOBStarving() { return m_FOB.starvationTicks > 0; }
 
 	//! \return How many places are currently sitting out a selection round.
 	int GetBlacklistCount() { return m_aBlacklist.Count(); }
@@ -5198,4 +4175,171 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 	//! \return True when a control change is waiting to be acted on at the next tick.
 	bool IsReselectPending() { return m_bReselectPending; }
+
+	//------------------------------------------------------------------------------------------------
+	// THE OBJECTIVE INSTANCE
+	//------------------------------------------------------------------------------------------------
+
+	//! \return How many objectives are running. 0 while idle, 1 while one is live.
+	int GetInstanceCount()
+	{
+		if (!m_aInstances)
+			return 0;
+
+		return m_aInstances.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One running objective.
+	//! \param[in] index Index into the live list.
+	//! \return The instance, or null when the index is out of range.
+	OVT_ObjectiveInstance GetObjectiveInstance(int index)
+	{
+		if (!m_aInstances || index < 0 || index >= m_aInstances.Count())
+			return null;
+
+		return m_aInstances[index];
+	}
+
+	//! \return How many objectives may run at once. See MaxConcurrentObjectives() for the floor.
+	int GetMaxConcurrentObjectives() { return MaxConcurrentObjectives(); }
+
+	//! \return The plan the current objective is running, by its persistence key, or an empty string
+	//! when there is no objective or no registry.
+	string GetObjectiveConfigName()
+	{
+		if (!m_Instance)
+			return "";
+
+		return m_Instance.GetConfigName();
+	}
+
+	//! \return The authored name of the phase the current objective is in, or an empty string. THE
+	//! PERSISTENCE KEY, and what the Game Master panel shows instead of an enum label.
+	string GetObjectivePhaseName()
+	{
+		if (!m_Instance)
+			return "";
+
+		return m_Instance.GetPhaseName();
+	}
+
+	//! \return Which phase of its plan the current objective is in, or -1 when it has none.
+	int GetObjectivePhaseIndex()
+	{
+		if (!m_Instance)
+			return -1;
+
+		return m_Instance.GetPhaseIndex();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where a named phase sits in the RUNNING objective's plan.
+	//!
+	//! THE ONE PLACE A PHASE NAME BECOMES AN INDEX FOR A CONSUMER OUTSIDE THIS COMPONENT, and the
+	//! deployment-side phase condition is that consumer: a deployment config states its span as two
+	//! phase NAMES (the name is the persistence key and the only thing a plan and a config can agree
+	//! on) and needs them located in the plan the objective is actually running.
+	//!
+	//! ⚠ AN UNKNOWN NAME, A PLAN THAT DID NOT RESOLVE AND AN OBJECTIVE WITH NO INSTANCE ALL ANSWER
+	//! NO_PHASE_INDEX, and the caller must treat that as "this config belongs to no phase" rather than
+	//! as index 0 - which is a real phase, and is the first one.
+	//! \param[in] name The authored phase name.
+	//! \return The plan-phase index, or OVT_ObjectivePlanRules.NO_PHASE_INDEX.
+	int IndexOfObjectivePhase(string name)
+	{
+		if (!m_Instance)
+			return OVT_ObjectivePlanRules.NO_PHASE_INDEX;
+
+		OVT_ObjectiveConfig config = m_Instance.GetConfig();
+		if (!config)
+			return OVT_ObjectivePlanRules.NO_PHASE_INDEX;
+
+		return config.IndexOfPhase(name);
+	}
+
+	//! \return How many modules the current phase is running. ZERO MEANS NOTHING IS DRIVING IT - the
+	//! objective has no plan behind it and can neither act, advance nor be given up. See
+	//! LogObjectiveWithNoPlan(), which is the only symptom.
+	int GetRuntimeModuleCount()
+	{
+		if (!m_Instance)
+			return 0;
+
+		return m_Instance.GetRuntimeModuleCount();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! An integer any module has reported at the current objective.
+	//! \param[in] key The bag key, e.g. OVT_ObjectiveInstance.BAG_HARASSMENT_SUCCESSES.
+	//! \return The value, or zero when nobody has written that key.
+	int GetObjectiveBagValue(string key)
+	{
+		if (!m_Instance)
+			return 0;
+
+		return m_Instance.Get(key);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A position any module has handed forward at the current objective.
+	//! \param[in] key The vector-bag key.
+	//! \return The position, or the zero vector when nobody has written that key.
+	vector GetObjectiveBagPosition(string key)
+	{
+		if (!m_Instance)
+			return vector.Zero;
+
+		return m_Instance.GetPos(key);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes an integer into the current objective's bag.
+	//!
+	//! ⚠ A PUBLIC MUTATOR MAY NEVER CHANGE PHASE, and this one does not: it writes a number and
+	//! returns. Everything that moves this machine moves on DirectorTick(), behind its three early
+	//! returns. See ReportObjectiveProgress() for the two red cases the opposite once cost.
+	//! \param[in] key The bag key.
+	//! \param[in] value The value.
+	void SetObjectiveBagValue(string key, int value)
+	{
+		if (m_Instance)
+			m_Instance.Set(key, value);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a position into the current objective's vector bag. The same rule as above.
+	//! \param[in] key The vector-bag key.
+	//! \param[in] value The position.
+	void SetObjectiveBagPosition(string key, vector value)
+	{
+		if (m_Instance)
+			m_Instance.SetPos(key, value);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The whole int bag, for the save payload.
+	//! \param[out] keys Receives the keys. Cleared first.
+	//! \param[out] values Receives the values, same order.
+	void ReadObjectiveBag(notnull array<string> keys, notnull array<int> values)
+	{
+		keys.Clear();
+		values.Clear();
+
+		if (m_Instance)
+			m_Instance.ReadBag(keys, values);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The whole vector bag, for the save payload.
+	//! \param[out] keys Receives the keys. Cleared first.
+	//! \param[out] values Receives the positions, same order.
+	void ReadObjectiveBagV(notnull array<string> keys, notnull array<vector> values)
+	{
+		keys.Clear();
+		values.Clear();
+
+		if (m_Instance)
+			m_Instance.ReadBagV(keys, values);
+	}
 }

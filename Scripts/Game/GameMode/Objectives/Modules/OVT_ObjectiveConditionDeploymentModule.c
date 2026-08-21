@@ -49,33 +49,43 @@ class OVT_ObjectiveConditionDeploymentModule : OVT_BaseConditionDeploymentModule
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
-	//! Authored as the integer of OVT_EObjectivePhase, and it is an integer rather than the enum for
-	//! the same reason the save payload holds one: the members are a wire format that may never be
-	//! renumbered, and an out-of-range value here has to read as "a phase this build does not have"
-	//! rather than silently landing on whichever member is nearest.
+	//! THE FIRST PHASE OF THE RANGE, BY ITS AUTHORED NAME. m_sThroughPhase is the last.
 	//!
-	//! THE FIRST PHASE OF THE RANGE. m_iThroughPhase is the last.
-	[Attribute(defvalue: "1", uiwidget: UIWidgets.ComboBox, desc: "The FIRST objective phase this deployment belongs to. 1 = HARASSMENT, 2 = FOB, 3 = COUNTER_QRF. 0 (IDLE) matches nothing, because there is no objective to be at", enums: ParamEnumArray.FromEnum(OVT_EObjectivePhase))]
-	int m_iRequiredPhase;
+	//! ⚠ IT IS A NAME AND NOT AN INDEX, AND THE NAME IS THE ONE THING A PLAN AND A DEPLOYMENT CONFIG CAN
+	//! AGREE ON. An index would re-point silently the moment a plan grew a phase in the middle, and an
+	//! enum integer only ever described the three phases the hard-coded machine happened to have. The
+	//! name is also the save payload's key, so a rename costs TWO edits - the plan and every config that
+	//! names the phase - and an unresolved one is reported by name rather than silently landing on
+	//! whichever index sits there now.
+	[Attribute(defvalue: "Harassment", desc: "The FIRST objective phase this deployment belongs to, by the m_sPhaseName authored in the plan. The shipped plans author 'Harassment', 'ForwardBase' and 'CounterAttack'. A name the running plan does not carry matches NOTHING - it is not silently ignored")]
+	string m_sFromPhase;
 
 	//! THE LAST PHASE OF THE RANGE, INCLUSIVE.
 	//!
-	//! ⚠ 0 - WHICH IS BOTH THE ATTRIBUTE DEFAULT AND THE VALUE AN UNAUTHORED FIELD HOLDS - MEANS "THE
-	//! REQUIRED PHASE ONLY", i.e. exactly the equality test this module used before the range existed.
-	//! The two agreeing is deliberate: it does not matter whether a .conf that omits this line is given
-	//! the attribute's defvalue or the script member's zero, because both say the same thing.
+	//! ⚠ AN EMPTY STRING - WHICH IS BOTH THE ATTRIBUTE DEFAULT AND THE VALUE AN UNAUTHORED FIELD HOLDS -
+	//! MEANS "THE FIRST PHASE ONLY", i.e. exactly the equality test this module used before the range
+	//! existed. The two agreeing is deliberate: it does not matter whether a .conf that omits this line
+	//! is given the attribute's defvalue or the script member's empty string, because both say the same
+	//! thing. This is the string-space form of OVT_ObjectivePhaseRules.EffectiveLastPhase()'s collapse
+	//! and it is applied ONCE, in EffectiveThroughPhase(), so a reader and the live predicate can never
+	//! disagree about what a config spans.
 	//!
-	//! ⚠ AUTHORING 3 (COUNTER_QRF) ON A RAMP OPERATION IS A MISTAKE, and an initialisation case refuses
+	//! ⚠ AUTHORING THE BATTLE PHASE ON A RAMP OPERATION IS A MISTAKE, and an initialisation case refuses
 	//! it for every shipped objective config. Harassment and sabotage teams walking in while the battle
 	//! they were building up to is being fought are noise. It is only ever the SECOND line of defence:
 	//! DirectorTick() early-returns for the whole of a live battle, so no operation can be created in
 	//! that phase whatever a config says - what this bound decides is whether one already in the world
 	//! is collected when the battle starts, and it must be.
-	[Attribute(defvalue: "0", uiwidget: UIWidgets.ComboBox, desc: "The LAST objective phase this deployment may keep working in, inclusive. 0 (the default) means the required phase only - the pre-range behaviour. Author 2 on a Phase 1 operation so the ramp continues through the forward-base phase", enums: ParamEnumArray.FromEnum(OVT_EObjectivePhase))]
-	int m_iThroughPhase;
+	[Attribute(defvalue: "", desc: "The LAST objective phase this deployment may keep working in, INCLUSIVE, by its authored name. EMPTY (the default) means the first phase only - the pre-range behaviour. Author 'ForwardBase' on a ramp operation so it continues through the forward-base phase, which is what makes the counter-attack reachable")]
+	string m_sThroughPhase;
 
 	[Attribute(defvalue: "600", desc: "How far from the current objective this deployment may sit. Generous by design: a tower or a landing zone belonging to an objective is not AT it")]
 	float m_fMaxDistanceFromObjective;
+
+	//! Whether the unresolved-span error has already been said. Once per module, not once per evaluation
+	//! pass - this is asked about every candidate position the evaluator generates, and a line per
+	//! candidate is how a log stops being read. NOT an attribute and NOT copied by CloneModule().
+	protected bool m_bUnresolvedSpanLogged;
 
 	//------------------------------------------------------------------------------------------------
 	//! Runtime gate: is this deployment still working on the objective it was created for?
@@ -116,10 +126,58 @@ class OVT_ObjectiveConditionDeploymentModule : OVT_BaseConditionDeploymentModule
 		if (!director.HasObjective())
 			return false;
 
-		if (!OVT_ObjectivePhaseRules.PhaseInRange(director.GetPhase(), m_iRequiredPhase, m_iThroughPhase))
+		if (!IsInAuthoredPhaseRange(director))
 			return false;
 
 		return vector.Distance(position, director.GetObjectivePosition()) <= m_fMaxDistanceFromObjective;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the running objective's phase is inside this config's authored span.
+	//!
+	//! 🔴 AN UNRESOLVABLE SPAN REFUSES, AND IT SAYS SO ONCE. Three things can make it unresolvable: the
+	//! objective is running with no plan behind it (the registry did not load), the plan does not carry
+	//! the phase this config names (a rename that was made in one place and not the other), or the
+	//! objective has not entered a phase yet. All three mean this deployment cannot say whether it
+	//! belongs here, and a condition that cannot answer must refuse - which is the same answer the
+	//! enum-era predicate gave a config scoped to a phase that did not exist.
+	//!
+	//! ⚠ IT IS FAILING CLOSED ON PURPOSE, AND THE COST IS REAL: every deployment of this config is
+	//! collected on its next reinforcement check. That is why the refusal is LOGGED, once per module,
+	//! naming the plan and the missing phase - the failure is loud rather than a campaign that quietly
+	//! stops garrisoning its objective. The latch is the ONLY side effect either evaluation has.
+	//! \param[in] director The objective director.
+	//! \return True when the objective is inside the authored span.
+	protected bool IsInAuthoredPhaseRange(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		int fromIndex = director.IndexOfObjectivePhase(m_sFromPhase);
+		int throughIndex = director.IndexOfObjectivePhase(EffectiveThroughPhase());
+
+		if (fromIndex < 0 || throughIndex < 0)
+		{
+			LogUnresolvedSpan(director);
+			return false;
+		}
+
+		return OVT_ObjectivePlanRules.PhaseIndexInRange(director.GetObjectivePhaseIndex(), fromIndex, throughIndex);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says, once per module, that this config names a phase the running plan does not have.
+	//! \param[in] director The objective director, for the plan's name.
+	protected void LogUnresolvedSpan(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		if (m_bUnresolvedSpanLogged)
+			return;
+
+		m_bUnresolvedSpanLogged = true;
+
+		string plan = director.GetObjectiveConfigName();
+		if (plan == "")
+			plan = "<no plan - the objective registry did not resolve>";
+
+		Print(string.Format("[Overthrow.ObjectiveCondition] '%1' spans phases '%2'..'%3', which the running plan '%4' does not carry - every deployment of this config will be refused and collected. Check the m_sPhaseName values in Configs/Objective against this config",
+			m_sModuleName, m_sFromPhase, EffectiveThroughPhase(), plan), LogLevel.ERROR);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -128,15 +186,17 @@ class OVT_ObjectiveConditionDeploymentModule : OVT_BaseConditionDeploymentModule
 	//!
 	//! ⚠ IT EXISTS SO THE AUTHORED FIELD AND THE EFFECTIVE SPAN CANNOT BE CONFUSED, and the caller that
 	//! matters is the initialisation case that pins every shipped objective config's span. Asserting the
-	//! raw field would pass a config authored `m_iThroughPhase 0` on the strength of the number being
-	//! there; asserting this refuses it, because 0 collapses the span to one phase and that IS the
-	//! deadlock. The collapse rule itself is NOT restated here - it is
-	//! OVT_ObjectivePhaseRules.EffectiveLastPhase(), the same one PhaseInRange() applies, so a reader
-	//! and the live predicate can never disagree about what a config spans.
-	//! \return The inclusive last phase of the range.
-	int ResolveThroughPhase()
+	//! raw field would pass a config that authored an EMPTY m_sThroughPhase on the strength of the line
+	//! being there; asserting this refuses it, because an empty upper bound collapses the span to one
+	//! phase and that IS the deadlock. The collapse is stated HERE and nowhere else, and the live
+	//! predicate reads it from here too, so a reader and the machine can never disagree.
+	//! \return The name of the inclusive last phase of the range.
+	string EffectiveThroughPhase()
 	{
-		return OVT_ObjectivePhaseRules.EffectiveLastPhase(m_iRequiredPhase, m_iThroughPhase);
+		if (m_sThroughPhase == "")
+			return m_sFromPhase;
+
+		return m_sThroughPhase;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -145,21 +205,21 @@ class OVT_ObjectiveConditionDeploymentModule : OVT_BaseConditionDeploymentModule
 	//! default instead of the authored value - that is how m_fMaxCruiseSpeed was lost on the vehicle
 	//! module for a whole release.
 	//!
-	//! What a dropped line would cost here: drop m_iRequiredPhase and every clone starts at 0, which
-	//! PhaseInRange() reads as "authored for IDLE" and refuses outright - so every objective deployment
-	//! in the campaign is collected on its first reinforcement check, one update after it was bought;
-	//! drop m_iThroughPhase and every range collapses back to a single
-	//! phase, which is the 2026-08-19 deadlock restored one clone at a time - the ramp's operations would
-	//! be collected on the promotion tick and the counter-attack would be unreachable again; drop
-	//! m_fMaxDistanceFromObjective and it clones as 0, which refuses every position but the objective's
-	//! exact centre and collects every operation one update after it is created.
+	//! What a dropped line would cost here: drop m_sFromPhase and every clone starts at the empty string,
+	//! which no plan carries, so the span refuses outright - every objective deployment in the campaign
+	//! is collected on its first reinforcement check, one update after it was bought; drop
+	//! m_sThroughPhase and every range collapses back to a single phase, which is the 2026-08-19
+	//! deadlock restored one clone at a time - the ramp's operations would be collected on the promotion
+	//! tick and the counter-attack would be unreachable again; drop m_fMaxDistanceFromObjective and it
+	//! clones as 0, which refuses every position but the objective's exact centre and collects every
+	//! operation one update after it is created.
 	override OVT_BaseDeploymentModule CloneModule()
 	{
 		OVT_ObjectiveConditionDeploymentModule clone = new OVT_ObjectiveConditionDeploymentModule();
 
 		clone.m_sModuleName = m_sModuleName;
-		clone.m_iRequiredPhase = m_iRequiredPhase;
-		clone.m_iThroughPhase = m_iThroughPhase;
+		clone.m_sFromPhase = m_sFromPhase;
+		clone.m_sThroughPhase = m_sThroughPhase;
 		clone.m_fMaxDistanceFromObjective = m_fMaxDistanceFromObjective;
 
 		return clone;
@@ -169,8 +229,8 @@ class OVT_ObjectiveConditionDeploymentModule : OVT_BaseConditionDeploymentModule
 	void PrintDebugInfo()
 	{
 		Print(string.Format("Objective Condition Module: %1", m_sModuleName));
-		Print(string.Format("  First Phase: %1", typename.EnumToString(OVT_EObjectivePhase, m_iRequiredPhase)));
-		Print(string.Format("  Through Phase: %1", typename.EnumToString(OVT_EObjectivePhase, ResolveThroughPhase())));
+		Print(string.Format("  First Phase: %1", m_sFromPhase));
+		Print(string.Format("  Through Phase: %1", EffectiveThroughPhase()));
 		Print(string.Format("  Max Distance From Objective: %1m", m_fMaxDistanceFromObjective));
 	}
 }

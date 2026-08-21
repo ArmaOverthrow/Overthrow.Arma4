@@ -5,7 +5,7 @@
 //! HARD RULE: NOTHING IN THIS FILE MAY TOUCH A SYSTEM, THE GAME MODE OR ANY LIVE STATE.
 //! ===========================================================================================
 //!
-//! Seven questions live here, and they are the seven an insertion keeps asking:
+//! Eight questions live here, and they are the eight an insertion keeps asking:
 //!
 //!     is this hop short enough to walk?                             ShouldWalk
 //!     where, short of the target, do we put them down?              LZPointOnLine
@@ -13,6 +13,7 @@
 //!     are we there AND stopped?                                     HasArrived
 //!     have we waited long enough for it to stop?                    IsSettleGraceExpired
 //!     has the truck stopped being a truck?                          IsStuck
+//!     did anybody ever get behind the wheel?                        IsUncrewedGraceExpired
 //!     is anyone ever coming back for that truck?                    IsAbandonedTruckCollectable
 //!
 //! WHY THIS IS A PURE FILE AND NOT METHODS ON THE MODULE. Every one of these decisions diverts a
@@ -278,6 +279,50 @@ class OVT_InsertionGeometry
 			return false;
 
 		return ticksBelow >= ticksLimit;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a transport that has never had a working driver should give up and let its force walk.
+	//!
+	//! ==========================================================================================
+	//! ⚠ A TRUCK WITH NOBODY DRIVING IT IS NOT A STUCK TRUCK, AND CONFLATING THEM COST A DIAGNOSIS.
+	//! ==========================================================================================
+	//! IsStuck answers "has the road AI given up", and that question presupposes a road AI. A transport
+	//! whose crew never materialised, never boarded, or materialised into max LOD with its behaviour
+	//! trees switched off has no road AI to give up: it is failing at a completely different step, it
+	//! wants a completely different log line, and it wants a completely different fix. Counting both on
+	//! the stall clock is how the log came to say "its transport never left its spawn point - its
+	//! transport stopped making progress 1994 m short of the landing zone" in one breath (user
+	//! play-test, 2026-08-21), which reads as a contradiction because it is one.
+	//!
+	//! IT ALSO STOPS THE STALL BUDGET BEING SPENT ON BOARDING. m_iStuckTicks' own header already warns
+	//! that "a truck legitimately stands still while its crew materialises through the AI spawn queue and
+	//! boards"; separating the counters is what finally makes that true instead of merely tolerated.
+	//!
+	//! ⚠ IT IS STILL BOUNDED, AND THAT IS NOT NEGOTIABLE. Every road out of a failed drive in this
+	//! feature ends with the force on the ground holding the plan it was registered with - the walk
+	//! fallback is the spine of the whole thing - so "we never got a driver" must eventually walk them
+	//! too. A convoy that waits forever for a crew that is not coming is the one outcome this file
+	//! exists to make impossible.
+	//!
+	//! A NON-POSITIVE LIMIT DISABLES THE TEST, exactly as it does for IsStuck and for the same reason:
+	//! an operator who has switched off "give up on this convoy" has switched off both of its reasons to.
+	//! ⚠ NOTE THE OPPOSITE POLARITY TO IsSettleGraceExpired, which EXPIRES on a non-positive budget -
+	//! there, expiring means "arrive now", which is the safe answer; here it would mean "abandon the
+	//! drive now", which is not.
+	//! \param[in] ticksUncrewed Consecutive update ticks with nobody at the wheel, counting the current
+	//!            one. Non-positive is treated as none.
+	//! \param[in] ticksLimit How many are allowed. Non-positive disables the test.
+	//! \return True when the force should dismount and walk because no driver ever turned up.
+	static bool IsUncrewedGraceExpired(int ticksUncrewed, int ticksLimit)
+	{
+		if (ticksLimit <= 0)
+			return false;
+
+		if (ticksUncrewed < 0)
+			ticksUncrewed = 0;
+
+		return ticksUncrewed >= ticksLimit;
 	}
 
 	//------------------------------------------------------------------------------------------------

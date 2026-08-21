@@ -75,10 +75,10 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 		if (!director)
 			return false;
 
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return false;
 
-		vector forward = director.GetFOBPosition();
+		vector forward = director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB);
 		if (forward == vector.Zero)
 			return false;
 
@@ -116,10 +116,10 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 		if (!director)
 			return true;
 
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return true;
 
-		vector forward = director.GetFOBPosition();
+		vector forward = director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB);
 		if (forward == vector.Zero)
 			return true;
 
@@ -154,10 +154,10 @@ class OVT_ObjectiveAnchorSourceProvider : OVT_DeploymentSourceProvider
 		if (!director)
 			return true;
 
-		if (!director.IsFOBUp())
+		if (!director.IsAssetUp(OVT_ObjectiveDirectorComponent.ASSET_FOB))
 			return true;
 
-		return director.GetFOBPosition() == vector.Zero;
+		return director.GetAssetPosition(OVT_ObjectiveDirectorComponent.ASSET_FOB) == vector.Zero;
 	}
 
 	//------------------------------------------------------------------------------------------------

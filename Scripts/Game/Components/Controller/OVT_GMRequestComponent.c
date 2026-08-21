@@ -74,7 +74,13 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//!          client would stage a fan whose End reports one more record than it ever received and
 	//!          would show a permanently short m_iReportedRecordCount; refusing to stage at all is the
 	//!          loud failure this field exists to produce.
-	static const int WIRE_VERSION = 2;
+	//!  2 -> 3  occupying/objectives Phase 7 changed the CampaignObjective record's SHAPE: the phase
+	//!          left as an enum integer and came back as the plan's authored name plus the phase's
+	//!          authored name, two strings. The record count did not change, so nothing about a
+	//!          2-speaking client's arithmetic would look wrong - it would simply read a string
+	//!          argument off an integer slot, which is exactly the silent wire fault this field and
+	//!          BUG-090's arity rule exist to make loud.
+	static const int WIRE_VERSION = 3;
 
 	//! Minimum real seconds between two refusal log lines from this player. The component is
 	//! per-player, so one field rate-limits per player and a spamming client cannot flood the log.
@@ -604,19 +610,21 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		// per-entity record - and because both calls are PURE GETTERS on the director, which is the
 		// read-only rule the builder's header states and this fan inherits (T8.8).
 		string objectiveName = "";
-		int objectivePhase = OVT_EObjectivePhase.IDLE;
+		string objectivePlanName = "";
+		string objectivePhaseName = "";
 
 		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
 		if(director)
 		{
 			objectiveName = director.GetObjectiveDisplayName();
-			objectivePhase = director.GetPhase();
+			objectivePlanName = director.GetObjectiveConfigName();
+			objectivePhaseName = director.GetObjectivePhaseName();
 		}
 
 		SendSnapshotBegin(playerId, seq);
 		SendCampaignResources(playerId, seq, threat, ofResources, deploymentResources, flags);
 		SendCampaignSchedule(playerId, seq, distributionAmount, realSeconds, payoutAmount, realSeconds);
-		SendCampaignObjective(playerId, seq, objectiveName, objectivePhase);
+		SendCampaignObjective(playerId, seq, objectiveName, objectivePlanName, objectivePhaseName);
 		SendRecordFan(playerId, seq);
 		SendSnapshotEnd(playerId, seq, CAMPAIGN_RECORD_COUNT + perEntityRecords);
 
@@ -839,21 +847,31 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//! change (BUG-090 - a wrong argument count compiles clean and dies silently at the wire). A new pair
 	//! cannot half-land: the record either exists on both ends or on neither, and WIRE_VERSION says which.
 	//!
-	//! ARITY, DIFFED BY EYE as the block header above instructs: Rpc(handler, seq, name, phase) is three
-	//! payload arguments and RpcDo_CampaignObjective(int, string, int) takes three.
+	//! ⚠ THE PHASE IS AN AUTHORED NAME NOW, NOT AN ENUM ORDINAL, AND THE PLAN TRAVELS WITH IT. Both are
+	//! the persistence keys the save payload already carries (OVT_ObjectiveConfig.m_sObjectiveName,
+	//! OVT_ObjectivePhase.m_sPhaseName), which is what lets a modded doctrine name its own phases on a
+	//! Game Master's panel with no enum member, no localization key and no code in this build at all.
+	//! The shape change is a WIRE_VERSION bump (2 -> 3): the record count is unchanged, so nothing else
+	//! would have told a mismatched client that the slots no longer mean what it thinks.
+	//!
+	//! ARITY, DIFFED BY EYE as the block header above instructs: Rpc(handler, seq, name, planName,
+	//! phaseName) is FOUR payload arguments, the local short-circuit RpcDo_CampaignObjective(seq, name,
+	//! planName, phaseName) passes FOUR, and RpcDo_CampaignObjective(int, string, string, string) takes
+	//! FOUR. A wrong count here compiles clean and dies silently at the wire (BUG-090).
 	//! \param[in] playerId Recipient.
 	//! \param[in] seq The client's sequence id.
 	//! \param[in] name The objective's display name, or "" when the occupying faction has no target.
-	//! \param[in] phase OVT_EObjectivePhase as an integer. IDLE (0) when there is no objective.
-	protected void SendCampaignObjective(int playerId, int seq, string name, int phase)
+	//! \param[in] planName The plan's authored name, or "" when no plan resolved.
+	//! \param[in] phaseName The phase's authored name, or "" when there is no objective.
+	protected void SendCampaignObjective(int playerId, int seq, string name, string planName, string phaseName)
 	{
 		if(ShouldRespondLocally(playerId))
 		{
-			RpcDo_CampaignObjective(seq, name, phase);
+			RpcDo_CampaignObjective(seq, name, planName, phaseName);
 			return;
 		}
 
-		Rpc(RpcDo_CampaignObjective, seq, name, phase);
+		Rpc(RpcDo_CampaignObjective, seq, name, planName, phaseName);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1077,20 +1095,23 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//------------------------------------------------------------------------------------------------
 	//! Client: the occupying faction's current objective for the staging snapshot.
 	//!
-	//! ⚠ THE PHASE IS STORED AS THE INTEGER IT ARRIVED AS, not cast to the enum. The wire carries the
-	//! ordinal, this build may be older or newer than the one that sent it, and the panel's formatter
-	//! already answers "unknown" for a value it does not recognise - converting here would only move
-	//! that decision somewhere with less information.
+	//! ⚠ BOTH NAMES ARE STORED EXACTLY AS THEY ARRIVED, and neither is looked up against anything in
+	//! this build. They are authored strings from the server's objective registry: a modded doctrine
+	//! this client has never heard of is displayable by name, and the panel's formatter is the one
+	//! place that decides what an EMPTY name means. Resolving anything here would move that decision
+	//! somewhere with less information.
 	//! \param[in] seq Sequence id; anything but the staging sequence is dropped.
 	//! \param[in] name The objective's display name, or "" when there is no objective.
-	//! \param[in] phase OVT_EObjectivePhase as an integer.
+	//! \param[in] planName The plan's authored name, or "" when no plan resolved.
+	//! \param[in] phaseName The phase's authored name, or "" when there is no objective.
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void RpcDo_CampaignObjective(int seq, string name, int phase)
+	protected void RpcDo_CampaignObjective(int seq, string name, string planName, string phaseName)
 	{
 		if(!IsStagingRecord(seq)) return;
 
 		m_Staging.m_sObjectiveName = name;
-		m_Staging.m_iObjectivePhase = phase;
+		m_Staging.m_sObjectivePlanName = planName;
+		m_Staging.m_sObjectivePhaseName = phaseName;
 	}
 
 	//------------------------------------------------------------------------------------------------

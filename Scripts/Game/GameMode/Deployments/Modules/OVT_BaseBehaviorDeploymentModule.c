@@ -99,6 +99,9 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	{
 		super.OnUpdate(deltaTime);
 		
+		// A mission that has finished waits for the coast to clear before it leaves. See TickExfiltration.
+		TickExfiltration();
+		
 		// Reapply behavior to any new groups that may have spawned
 		array<SCR_AIGroup> groups = GetManagedGroups();
 		foreach (SCR_AIGroup group : groups)
@@ -140,12 +143,26 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	//! optimisation. Under Reforger 1.8 a perfectly alive DORMANT or spawn-queued group reports ZERO
 	//! agents, so a behavior that counted bodies would decide its own force was dead every time the
 	//! last player drove away - the exact mistake OVT_RadioTowerCaptureBehaviorDeploymentModule's
-	//! header documents removing from the tower loop. GetAliveMemberCount() is answered off the
-	//! survivor mask and GetPosition() off the record, and both are true dormant or spawned.
+	//! header documents removing from the tower loop. GetAliveMemberCount() is answered off the survivor
+	//! mask, which is true dormant or spawned, and that half of this method is untouched.
 	//!
-	//! WHOLE GROUPS, NOT INDIVIDUALS. The core tracks one position per group, so a group counts its
-	//! living members if the GROUP is inside the circle. For a hold radius measured in tens of metres
-	//! against a squad that moves as one, that is the same answer.
+	//! ==========================================================================================
+	//! 🔴 THE POSITION HALF WAS NOT TRUE BOTH WAYS, AND THE COMMENT ABOVE USED TO CLAIM IT WAS.
+	//! ==========================================================================================
+	//! It said "GetPosition() off the record". It is not: core resolves the group ENTITY and returns
+	//! its origin whenever that entity exists, and an SCR_AIGroup is a MARKER created at the
+	//! registration position that never follows its members. So for any force that is materialised and
+	//! walking - which is every force a player is near, i.e. every force whose hold radius anybody ever
+	//! observes - this measured where the men were REGISTERED, not where they are. A deployment whose
+	//! force is registered at its own objective therefore passed its hold test from the first tick,
+	//! forever, whatever the men were doing. The same one-line mistake raised forward bases with their
+	//! parties a kilometre away on 2026-08-21; see OVT_VirtualGroupGeometry, which is where the
+	//! materialised/dormant split now lives.
+	//!
+	//! WHOLE GROUPS, NOT INDIVIDUALS. One position per group, so a group counts its living members if
+	//! the GROUP is inside the circle. For a hold radius measured in tens of metres against a squad that
+	//! moves as one, that is the same answer - and it is now measured at the squad's centre of mass
+	//! rather than at a marker, so "moves as one" is finally what is being asked about.
 	//! \param[in] centre Where the circle is.
 	//! \param[in] radius Its radius in metres. Non-positive counts nothing.
 	//! \return Living members of this deployment's registered force inside the circle.
@@ -180,7 +197,7 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 			if (members < 1)
 				continue;
 
-			if (vector.Distance(virtualization.GetPosition(handle), centre) > radius)
+			if (!OVT_VirtualGroupGeometry.IsGroupWithin(virtualization, handle, centre, radius))
 				continue;
 
 			alive = alive + members;
@@ -243,7 +260,36 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	//! mission is not last and cannot be: it has to run before the reinforcement module, or the
 	//! reinforcement module rebuys the force in the same pass that decided the mission was over.
 	//!
-	//! IDEMPOTENT. Called once per module instance; a second call while one is pending is ignored.
+	//! ==========================================================================================
+	//! 🔴 A MISSION THAT HAS DONE ITS JOB EXFILTRATES - IT DOES NOT STAND AT THE OBJECTIVE FOREVER,
+	//! AND IT DOES NOT VANISH WHERE ANYBODY CAN SEE IT (author, 2026-08-21).
+	//! ==========================================================================================
+	//! *"If a mission is successful AND there's no players around, the team is collected and refunded.
+	//! You don't leave them there. If they blow up something irl they are gonna get out of there. The
+	//! player should return to see their stuff in flames and no-one around."*
+	//!
+	//! TWO CONDITIONS, AND THE SECOND ONE IS WHAT MAKES THE FIRST SAFE:
+	//!   1. THE MISSION SUCCEEDED - which is what reaching this method means. Only a behaviour module
+	//!      that has finished its own job calls it; there are three, and all three are MISSIONS (a base
+	//!      repair detail, a base sabotage, a town harassment hold). Garrisons, patrols, tower guards
+	//!      and base defences never come through here at all - they are meant to persist, and the one
+	//!      other route to CollectDeployment (the reinforcement module's failed-conditions check) is
+	//!      deliberately left alone. That is what keeps this rule out of the shared framework.
+	//!   2. NOBODY IS WATCHING. A squad may not evaporate in front of a player, ever.
+	//!
+	//! ⚠ IT IS A POLL AND NOT A ONE-SHOT, AND THAT IS THE WHOLE DESIGN. A single check at completion
+	//! time would strand the team permanently in exactly the case that matters most - the player who
+	//! fought them and is standing there when the job finishes. Arming a latch and re-asking on every
+	//! update means the team leaves the moment he does, and the player comes back to wreckage and an
+	//! empty objective, which is the intended experience.
+	//!
+	//! ⚠ THERE IS NO DEADLINE, DELIBERATELY. A player who camps the objective keeps the team there, and
+	//! that is correct rather than a hang: the alternative is men disappearing under observation, which
+	//! is the one outcome the rule exists to forbid. The force is idle at the objective while it waits,
+	//! which is precisely what it did before this method existed at all, so the waiting state costs
+	//! nothing that was not already being paid.
+	//!
+	//! IDEMPOTENT. Called once per module instance; a second call while one is armed is ignored.
 	//! \param[in] reason What finished, for the log line. Empty logs nothing.
 	protected void RequestDeploymentCollection(string reason)
 	{
@@ -251,11 +297,76 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 			return;
 
 		m_bCollectionRequested = true;
+		m_bExfilHoldLogged = false;
 
 		if (reason != "")
 			Print(string.Format("[Overthrow] Deployment collection requested: %1", reason), LogLevel.NORMAL);
 
+		// Try immediately - the common case is a mission that finished with nobody near it, and making
+		// that wait a whole update tick would be a needless delay.
+		TickExfiltration();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One look at whether an armed mission may leave yet.
+	//!
+	//! ⚠ THE RADIUS IS difficulty.baseCloseRange AND IT IS NOT A NEW NUMBER. 220 m is what this campaign
+	//! already means by "a player is here" - OVT_AssetStarvedObjectiveAbort.IsPlayerAtAsset asks exactly
+	//! this question with exactly this knob, through exactly this helper, and its own header records the
+	//! rule that forbids inventing an objective-specific one. It is a PRESENCE test, not a line-of-sight
+	//! test: a player behind a wall 100 m away has not seen anything, but he is close enough that the
+	//! squad walking out of existence would be noticed one way or another, and presence is the thing the
+	//! rest of the campaign can actually agree on.
+	//!
+	//! ⚠ MEASURED FROM THE DEPLOYMENT, NOT FROM THE GROUPS. A mission's men are spread over the
+	//! objective and some of them may be a couple of hundred metres out on a flank; asking about the
+	//! deployment position asks about the PLACE the player would be standing in, which is the question,
+	//! and it cannot be gamed by one man having wandered off.
+	protected void TickExfiltration()
+	{
+		if (!m_bCollectionRequested)
+			return;
+
+		if (!m_ParentDeployment)
+			return;
+
+		if (IsPlayerWatchingDeployment())
+		{
+			LogExfilHold();
+			return;
+		}
+
+		// ⚠ THE ONE-FRAME DEFERRAL SURVIVES THE CHANGE AND MUST. Reached from OnUpdate, this is in the
+		// middle of the deployment's own walk over its module list; DestroyDeployment() clears that list
+		// and deletes the owning entity, so collecting inline would pull the ground out from under the
+		// loop that called us. See CollectParentDeployment.
+		GetGame().GetCallqueue().Remove(CollectParentDeployment);
 		GetGame().GetCallqueue().CallLater(CollectParentDeployment, 0, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when somebody is close enough that the team must not disappear.
+	protected bool IsPlayerWatchingDeployment()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return false;
+
+		return OVT_WorldUtils.PlayerInRange(m_ParentDeployment.GetPosition(), difficulty.baseCloseRange);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says ONCE that a finished mission is being kept in place because somebody is standing in it.
+	//! Silent afterwards: this is polled on every update and a line per tick would bury the log.
+	protected void LogExfilHold()
+	{
+		if (m_bExfilHoldLogged)
+			return;
+
+		m_bExfilHoldLogged = true;
+
+		Print(string.Format("[Overthrow] Deployment '%1' has finished its job but a player is at the objective - the team holds until the coast is clear rather than vanishing in front of him",
+			m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -268,14 +379,20 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 	//! which parts of the price come back and which do not.
 	protected void CollectParentDeployment()
 	{
-		m_bCollectionRequested = false;
-
+		// ⚠ THE LATCH IS DROPPED ONLY WHEN THE COLLECTION ACTUALLY HAPPENS, and that changed with the
+		// exfiltration rule. It used to be cleared unconditionally on the first line, which was harmless
+		// when this ran one frame after the request and could not realistically fail - but now the latch
+		// also means "this mission is waiting to leave", and clearing it on a transient null would
+		// disarm the exfiltration for good and strand the team at the objective for the rest of the
+		// campaign.
 		if (!m_ParentDeployment)
 			return;
 
 		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 		if (!manager)
 			return;
+
+		m_bCollectionRequested = false;
 
 		manager.CollectDeployment(m_ParentDeployment);
 	}
@@ -293,8 +410,12 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 		super.OnCleanup();
 	}
 
-	//! True while a deferred collection is sitting in the call queue.
+	//! True once a mission behaviour has declared its job done. It stays true while the team waits for
+	//! the coast to clear, so this is now "an exfiltration is armed" rather than "a call is queued".
 	protected bool m_bCollectionRequested;
+
+	//! One hold message per armed exfiltration, not one per update tick.
+	protected bool m_bExfilHoldLogged;
 
 	//------------------------------------------------------------------------------------------------
 	// Utility methods for position finding

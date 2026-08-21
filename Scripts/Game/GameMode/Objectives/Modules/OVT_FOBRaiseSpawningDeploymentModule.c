@@ -146,10 +146,32 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 	//------------------------------------------------------------------------------------------------
 	//! Living members of this module's own registered force standing at the site.
 	//!
-	//! ⚠ THE SURVIVOR MASK AND THE RECORD, NEVER AN AGENT COUNT. A dormant or spawn-queued group reports
-	//! zero agents while being perfectly alive, so a poll that counted bodies would decide the party had
-	//! never arrived on any server with nobody standing nearby - which is most of them, most of the
-	//! time, and exactly when a forward base is supposed to go up unobserved.
+	//! ⚠ THE SURVIVOR MASK, NEVER AN AGENT COUNT. A dormant or spawn-queued group reports zero agents
+	//! while being perfectly alive, so a poll that counted bodies would decide the party had never
+	//! arrived on any server with nobody standing nearby - which is most of them, most of the time, and
+	//! exactly when a forward base is supposed to go up unobserved. That half of this method was always
+	//! right and is untouched.
+	//!
+	//! ==========================================================================================
+	//! 🔴 BUT THE POSITION IS NOT THE RECORD'S, AND BELIEVING IT WAS RAISED FORWARD BASES OUT OF THIN
+	//! AIR (user play-test, 2026-08-21).
+	//! ==========================================================================================
+	//! This asked core's GetPosition(), which for a MATERIALISED group returns the SCR_AIGroup MARKER
+	//! ENTITY's origin - and that marker is created where the group was registered and never follows
+	//! its members. This module registers its party at the deployment position, i.e. AT THE SITE, so
+	//! the marker sat on the site, the measured distance was ~0, and the 80 m gate passed on the very
+	//! first non-DRIVING update. The structure went up the instant the transport stopped, wherever the
+	//! men actually were: *"I've just seen a FOB team dismount (likely stuck, that's fine) but the FOB
+	//! materialized when they are miles away."*
+	//!
+	//! ⚠ AND THE GATE IS THE ONLY THING STANDING BETWEEN A DISMOUNT AND A STRUCTURE. Every one of the
+	//! five ways an insertion ends up walking (see the base class header) lands on this poll, and four
+	//! of them happen a long way from the site. A gate that cannot tell "the men are here" from "the
+	//! men were registered here" is not a gate.
+	//!
+	//! OVT_VirtualGroupGeometry.IsGroupWithin() asks the question the right way round - the men when
+	//! they exist, the record when they do not - so the dormant case that the paragraph above protects
+	//! keeps working unchanged. Read that file's header before touching this line.
 	//! \return Living members within m_fRaiseOnFootRadius of the deployment position.
 	protected int CountAliveRegisteredMembersAtSite()
 	{
@@ -175,7 +197,7 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 			if (members < 1)
 				continue;
 
-			if (vector.Distance(virtualization.GetPosition(handle), site) > m_fRaiseOnFootRadius)
+			if (!OVT_VirtualGroupGeometry.IsGroupWithin(virtualization, handle, site, m_fRaiseOnFootRadius))
 				continue;
 
 			alive = alive + members;
@@ -229,7 +251,7 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 		//
 		// The director decided this heading when it sited the base - a curated marker's own arrow, or a
 		// generated site turned to look at its objective - and stamped it on the marker precisely so the
-		// two can never disagree. See OVT_ObjectiveDirectorComponent.ResolveFOBSite.
+		// two can never disagree. See OVT_RaiseForwardBaseObjectiveOperation's siting.
 		float yaw = m_ParentDeployment.GetYaw();
 
 		IEntity structure = OVT_WorldUtils.SpawnEntityPrefab(m_rFOBPrefab, site, GetUprightSpawnRotation(yaw));
@@ -275,7 +297,10 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 		if (!director)
 			return;
 
-		director.OnFOBRaised(site, GetInsertionSource(), m_ParentDeployment.GetDeploymentName());
+		// ⚠ THE KEYED REPORTER, NOT A FORWARD-BASE-SPECIFIC ONE (G10). The director records "the asset
+		// under this key is standing" and hands the news to whichever module owns that key; a checkpoint
+		// asset reports through the same call with a different constant.
+		director.ReportAssetRaised(OVT_ObjectiveDirectorComponent.ASSET_FOB, site, GetInsertionSource(), m_ParentDeployment.GetDeploymentName());
 	}
 
 	//------------------------------------------------------------------------------------------------

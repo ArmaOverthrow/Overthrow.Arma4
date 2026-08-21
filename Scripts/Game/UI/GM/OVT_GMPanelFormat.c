@@ -37,21 +37,20 @@ class OVT_GMPanelFormat
 	//! error: an early campaign in which the resistance holds nothing has no objective by design.
 	protected static const string NO_OBJECTIVE = "#OVT-GMPanel_ObjectiveNone";
 
-	//! Phase row, no objective.
+	//! Phase row, no objective at all - no plan and no phase.
 	protected static const string PHASE_NONE = "#OVT-GMPanel_ObjectivePhaseNone";
 
-	//! Phase row, phase 1 - operations at the objective softening it up.
-	protected static const string PHASE_HARASSMENT = "#OVT-GMPanel_ObjectivePhaseHarassment";
-
-	//! Phase row, phase 2 - the forward operating base.
-	protected static const string PHASE_FOB = "#OVT-GMPanel_ObjectivePhaseForwardBase";
-
-	//! Phase row, phase 3 - the counter-attack itself.
-	protected static const string PHASE_COUNTER_ATTACK = "#OVT-GMPanel_ObjectivePhaseCounterAttack";
-
-	//! Phase row, a value this build has never heard of. See FormatObjectivePhase() for why this is not
-	//! folded into PHASE_NONE.
+	//! Phase row, a plan is running but the server named no phase for it. See FormatPhaseRow()
+	//! for why this is not folded into PHASE_NONE.
 	protected static const string PHASE_UNKNOWN = "#OVT-GMPanel_ObjectivePhaseUnknown";
+
+	//! What separates the plan from the phase when both are known. A colon rather than a slash or a
+	//! dash because the phase belongs TO the plan; the pair reads "Town Offensive: Harassment".
+	protected static const string PLAN_PHASE_SEPARATOR = ": ";
+
+	//! What a localization key starts with. A key is only resolved when it is the WHOLE string a widget
+	//! is given, which is why an authored name that looks like one is never concatenated with anything.
+	protected static const string KEY_PREFIX = "#";
 
 	//------------------------------------------------------------------------------------------------
 	//! The objective row's value: the place the occupying faction is working toward.
@@ -67,29 +66,50 @@ class OVT_GMPanelFormat
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The phase row's value.
+	//! The phase row's value: the plan the occupying faction is running and which of its phases it is in.
 	//!
-	//! ⚠ AN UNRECOGNISED VALUE IS ITS OWN ANSWER, NOT "no objective". The phase crosses the wire as an
-	//! integer and a newer server may name a phase this build has never heard of; reporting that as
-	//! "None" would tell a Game Master the campaign has no target while it is actively being attacked.
-	//! An explicit "unknown" is a symptom somebody can act on.
-	//! \param[in] phase OVT_EObjectivePhase's integer, exactly as it arrived.
-	//! \return A localization key. Never empty.
-	static string FormatObjectivePhase(int phase)
+	//! ⚠ IT ANSWERS AUTHORED NAMES, NOT AN ENUM LABEL. The phase and the plan are what a mod author
+	//! wrote in Configs/Objective/*.conf - they are the persistence keys and they cross the wire as
+	//! strings - so this build has no table of them to look a number up in and needs none. Adding a
+	//! doctrine is a .conf, and its phases name themselves on this row with no code change and no new
+	//! localization key.
+	//!
+	//! ⚠ AN OBJECTIVE WITH NO PHASE NAME IS "unknown", NOT "no objective". A plan whose phase name did
+	//! not arrive means the client and server builds differ, or the plan did not resolve on the server;
+	//! reporting that as "-" would tell a Game Master the campaign has no target while it is actively
+	//! being attacked. An explicit "unknown" is a symptom somebody can act on.
+	//!
+	//! ⚠ A NAME THAT LOOKS LIKE A LOCALIZATION KEY IS NEVER CONCATENATED. A '#'-prefixed string is
+	//! resolved by the widget only when it is the whole string it was given, so a mod that authors its
+	//! phase names as keys gets the key alone rather than a plan label and an unresolved key beside it.
+	//! \param[in] planName The plan's authored name off the snapshot store, or "" when none arrived.
+	//! \param[in] phaseName The phase's authored name off the snapshot store, or "" when none arrived.
+	//! \return The authored pair, one authored name, or a localization key. Never empty.
+	static string FormatPhaseRow(string planName, string phaseName)
 	{
-		if (phase == OVT_EObjectivePhase.IDLE)
-			return PHASE_NONE;
+		if (phaseName == "")
+		{
+			// No plan and no phase is the ordinary "there is no objective" state; a plan with no phase
+			// is a fault, and the two must not read the same.
+			if (planName == "")
+				return PHASE_NONE;
 
-		if (phase == OVT_EObjectivePhase.HARASSMENT)
-			return PHASE_HARASSMENT;
+			return PHASE_UNKNOWN;
+		}
 
-		if (phase == OVT_EObjectivePhase.FOB)
-			return PHASE_FOB;
+		if (planName == "" || IsLocalizationKey(planName) || IsLocalizationKey(phaseName))
+			return phaseName;
 
-		if (phase == OVT_EObjectivePhase.COUNTER_QRF)
-			return PHASE_COUNTER_ATTACK;
+		return planName + PLAN_PHASE_SEPARATOR + phaseName;
+	}
 
-		return PHASE_UNKNOWN;
+	//------------------------------------------------------------------------------------------------
+	//! Whether a display string is a localization key rather than a proper noun.
+	//! \param[in] value The string off the wire.
+	//! \return True when a widget would resolve it, which is also when nothing may be appended to it.
+	protected static bool IsLocalizationKey(string value)
+	{
+		return value.StartsWith(KEY_PREFIX);
 	}
 
 	//------------------------------------------------------------------------------------------------

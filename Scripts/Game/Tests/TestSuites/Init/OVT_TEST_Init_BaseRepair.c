@@ -24,7 +24,7 @@
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
-//!   A1. `m_sDeploymentName "Base Repair Detail"` misspelled in Deployment_ObjectiveRepair.conf.
+//!   A1. `m_sDeploymentName "Base Repair Detail"` misspelled in Deployment_BaseRepair.conf.
 //!       Fails on "is not registered".
 //!   A2. `m_iAllowedLocationTypes` changed from BASE to TOWN. Fails on "cannot be used at a BASE".
 //!   A3. The reinforcement module moved ABOVE the repair behaviour module. Fails on "must be authored
@@ -38,7 +38,7 @@
 //!       registered".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_ObjectiveRepair_AConfigResolvesAndIsOrdered : SCR_AutotestCaseBase
+class OVT_TEST_Init_BaseRepair_AConfigResolvesAndIsOrdered : SCR_AutotestCaseBase
 {
 	//! ⚠ MATCHED BY STRING AND BY NOTHING ELSE, exactly like the base-defense cases. There is no
 	//! director constant to read it from, because a repair detail is not a director operation (D16).
@@ -239,7 +239,7 @@ class OVT_TEST_Init_ObjectiveRepair_AConfigResolvesAndIsOrdered : SCR_AutotestCa
 //!       nothing".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_ObjectiveRepair_BTargetFilterTakesRuinsAtOurOwnBase : SCR_AutotestCaseBase
+class OVT_TEST_Init_BaseRepair_BTargetFilterTakesRuinsAtOurOwnBase : SCR_AutotestCaseBase
 {
 	//! Any two different integers make the claim; real faction indices would only couple the case to
 	//! campaign setup.
@@ -332,7 +332,7 @@ class OVT_TEST_Init_ObjectiveRepair_BTargetFilterTakesRuinsAtOurOwnBase : SCR_Au
 //!       repair clock".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_ObjectiveRepair_CHoldIntervalPausesRatherThanResetting : SCR_AutotestCaseBase
+class OVT_TEST_Init_BaseRepair_CHoldIntervalPausesRatherThanResetting : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -416,7 +416,7 @@ class OVT_TEST_Init_ObjectiveRepair_CHoldIntervalPausesRatherThanResetting : SCR
 //!       repair interval must come from difficulty".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_ObjectiveRepair_DCloneFidelityAndDifficultyPrecedence : SCR_AutotestCaseBase
+class OVT_TEST_Init_BaseRepair_DCloneFidelityAndDifficultyPrecedence : SCR_AutotestCaseBase
 {
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
