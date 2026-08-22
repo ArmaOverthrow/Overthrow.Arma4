@@ -42,14 +42,48 @@ class OVT_ShopComponent: OVT_Component
 		m_aInventory = new map<int,int>;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! SERVER-SIDE. Adds stock and broadcasts the changed row.
+	//!
+	//! WHAT THIS USED TO BE, AND WHY IT WAS WRONG (controller migration §3.7, P4). This forwarded to
+	//! the legacy comms monolith's AddToShopInventory, which was Rpc(RpcAsk_AddToInventory, ...) - a
+	//! CLIENT->SERVER request endpoint. But every caller of this method is already server-side manager
+	//! code (OVT_TownController restocks, OVT_EconomyManagerComponent restocks/initial stock), so the
+	//! request was being marshalled BY the authority, and an RplRcver.Server RPC sent by the authority is
+	//! delivered to nobody (the BUG-045/052/088 family). Restocks therefore depended on nothing but luck
+	//! of who called them. It was also a network endpoint that let any client set any shop's stock.
+	//!
+	//! It is now what it always meant: a direct mutation plus StreamInventory(), the same shape
+	//! OVT_ShopTransactionComponent.RestockShop and OVT_VehicleRequestComponent.TakeFromShopStock already
+	//! had to open-code because this method was unusable from server code.
+	//! \param[in] id Resource id.
+	//! \param[in] num How many to add. Non-positive is ignored.
 	void AddToInventory(int id, int num)
 	{
-		OVT_Global.GetServer().AddToShopInventory(this, id, num);		
+		if(num <= 0) return;
+		if(!m_aInventory) return;
+
+		if(!m_aInventory.Contains(id)) m_aInventory[id] = 0;
+		m_aInventory[id] = m_aInventory[id] + num;
+
+		StreamInventory(id);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER-SIDE. Removes stock (clamped at zero) and broadcasts the changed row.
+	//! Same story as AddToInventory: this was a client->server ask being called from server code.
+	//! \param[in] id Resource id.
+	//! \param[in] num How many to remove. Non-positive is ignored.
 	void TakeFromInventory(int id, int num)
-	{		
-		OVT_Global.GetServer().TakeFromShopInventory(this, id, num);
+	{
+		if(num <= 0) return;
+		if(!m_aInventory) return;
+		if(!m_aInventory.Contains(id)) return;
+
+		m_aInventory[id] = m_aInventory[id] - num;
+		if(m_aInventory[id] < 0) m_aInventory[id] = 0;
+
+		StreamInventory(id);
 	}
 	
 	void HandleNPCSale(int id, int num)

@@ -189,7 +189,7 @@ class OVT_BuildContext : OVT_UIContext
 			string reason;
 			bool canBuild = CanBuild(buildable, player.GetOrigin(), reason);
 			
-			card.Init(buildable, this, canBuild, reason);
+			card.Init(buildable, this, canBuild, reason, BuildRequirementSummary(buildable));
 			w.SetOpacity(1);
 			
 			done++;
@@ -201,6 +201,27 @@ class OVT_BuildContext : OVT_UIContext
 			Widget w = root.FindWidget("BuildMenu_Card" + i);
 			w.SetOpacity(0);
 		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Whether one build card should say it needs materials.
+	//!
+	//! ONE LINE, NOT THE FIGURES. The card's description is a fixed-height block above the preview
+	//! image, so a four-resource list pushed the text over the icon. The quantities live on the
+	//! construction site's own Requirements readout, which is where a player acts on them; the card
+	//! only has to say that this building is not money-only.
+	//! \param[in] buildable The config entry.
+	//! \return A translated one-liner, or "" for a money-only buildable.
+	protected string BuildRequirementSummary(OVT_Buildable buildable)
+	{
+		if(!buildable || !buildable.m_aResourceRequirements) return "";
+
+		array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+		OVT_ResourceRequirements.ScaleForDifficulty(buildable.m_aResourceRequirements, need);
+
+		if(need.IsEmpty()) return "";
+
+		return WidgetManager.Translate("#OVT-Resource_BuildRequires");
 	}
 	
 	override void RegisterInputs()
@@ -314,7 +335,13 @@ class OVT_BuildContext : OVT_UIContext
 			if(town.size < 3) range = m_Towns.m_iTownRange;
 			if(dist < range)
 			{
-				return true;
+				// The server re-checks this through the same predicate in BuildItem(). Not terminal:
+				// a buildable that also allows a camp or an FOB can still qualify below, and the
+				// reason set here is the one a fall-through refusal reports.
+				if(OVT_ResourceRules.TownControlAllowsBuild(town.faction, OVT_Global.GetConfig().GetPlayerFactionIndex(), vector.DistanceSq(town.location, pos), range * range))
+					return true;
+
+				reason = "#OVT-CannotBuildUncontrolledTown";
 			}
 		}
 		
@@ -542,7 +569,9 @@ class OVT_BuildContext : OVT_UIContext
 			vector angles = Math3D.MatrixToAngles(mat);
 			int buildableIndex = m_Resistance.m_BuildablesConfig.m_aBuildables.Find(m_Buildable);
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
-			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
+			OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+			if(!requests) return;
+			requests.BuildItem(buildableIndex, prefabIndex, mat[3], angles);
 
 			// The server charges inside BuildItem() after validating - no client-side payment
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
@@ -761,7 +790,9 @@ class OVT_BuildContext : OVT_UIContext
 				if(buildableComp && rpl && CanRemoveItem(buildableComp))
 				{
 					// Send removal request to server (RplId - EntityID is not valid across the network)
-					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
+					OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+					if(!requests) return;
+					requests.RemovePlacedItem(rpl.Id());
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

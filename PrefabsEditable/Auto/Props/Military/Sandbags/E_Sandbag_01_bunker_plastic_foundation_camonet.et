@@ -12,5 +12,65 @@ StaticModelEntity : "{23BB711062057CC5}Prefabs/Props/Military/Sandbags/Sandbag_0
   OVT_BuildableComponent "{65D288B0759157C1}" {
    m_sBuildableType "Bunker"
   }
+  ActionsManagerComponent "{6B70D00000000027}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000028}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D00000000029}" {
+      Offset 0 1 0
+     }
+     Radius 4
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000064}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000065}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D0000000002A}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000002B}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{5E76C88E922E8914}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+     DamageThreshold 50
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000001}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{1C9E0D1CD5A0E4F9}Assets/Structures/Military/Fortifications/Bunker_SPS/Dst/Bunker_SPS_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_ROCK
+  }
+  RplComponent "{5E76C88E937D49B8}" {
+   Enabled 1
+  }
  }
 }

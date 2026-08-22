@@ -47,6 +47,26 @@
 - `isPrivate`/`isLinked` warehouse flags are persisted and replicated but have **no setter anywhere** — unfinished feature (camps have the wired equivalent).
 - `SetBuildingHome` and `TeleportHome` exist with zero callers; `SetAsHome` uses the player's standing position instead.
 
+### `SetBuildingHome` is now DELETED, not merely uncalled (2026-08-14, core/controller-migration P3)
+
+Phase 3 of `core/controller-migration` migrated real estate's eight client→server requests off
+`OVT_PlayerCommsComponent` onto the new `OVT_RealEstateRequestComponent`
+(`Scripts/Game/Components/Controller/OVT_RealEstateRequestComponent.c`). **`SetBuildingHome` /
+`RpcAsk_SetBuildingHome` were not migrated — they were deleted** (migration plan §3.7 / D6).
+
+Why: zero callers repo-wide, and as a network endpoint it was completely unvalidated — it let any
+client set *any* player's home to *any* replicated entity on the map, from anywhere. Carrying an
+unvalidated endpoint through ten migration phases so that this feature *might* one day use it was the
+exact debt the migration exists to clear.
+
+**What this feature owes when the `IsHome`/`SetAsHome` fix lands** (`implementation.md:175`): re-add a
+*validated* `SetBuildingHome` as one more handler on `OVT_RealEstateRequestComponent` — caller resolved
+via `ResolveOwningPlayerId()` (never a parameter), building resolved server-side or checked against the
+caller's position, and an `IsOwner` gate. It is a one-method job on a component that already exists;
+nothing was lost.
+
+`TeleportHome` is untouched by the migration and remains a zero-caller method on this feature's manager.
+
 ---
 
 *This context file was created retrospectively by analyzing existing code.*

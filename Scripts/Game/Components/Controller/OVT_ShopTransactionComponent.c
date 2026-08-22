@@ -13,32 +13,39 @@ enum OVT_ShopSellResult
 	VEHICLE_OCCUPIED	//!< Somebody is still in the driver's seat.
 }
 
-[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative shop selling and vehicle re-arm for one player")]
-class OVT_ShopTransactionComponentClass : OVT_ComponentClass {};
+[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative shop buying, selling and vehicle re-arm for one player")]
+class OVT_ShopTransactionComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Server-authoritative selling, on the per-player OVT_OverthrowController entity.
 //!
-//! Replaces the legacy OVT_PlayerCommsComponent.RpcAsk_Sell, which trusted the client's item list and
+//! Replaced the legacy comms monolith's RpcAsk_Sell, which trusted the client's item list and
 //! enumerated the player's inventory with PURPOSE_ANY (so it could delete worn gear). Project rule
-//! (overthrow-controller.md): no new client->server RPCs go on OVT_PlayerCommsComponent.
+//! (overthrow-controller.md): every client->server RPC lives on a controller component like this one.
 //!
-//! Extends plain OVT_Component rather than OVT_BaseServerProgressComponent (implementation plan D9):
-//! a sell completes inside one frame, so a progress dialog would only flash, and the result carries
-//! money, which the progress base's (transferred, skipped) pair cannot express.
+//! Extends OVT_ControllerRequestComponent rather than OVT_BaseServerProgressComponent (implementation
+//! plan D9): a sell completes inside one frame, so a progress dialog would only flash, and the result
+//! carries money, which the progress base's (transferred, skipped) pair cannot express. The request
+//! base supplies ResolveOwningPlayerId(), ResolveEntity(), GetEntityRpl() and ShouldRespondLocally(),
+//! which used to be private copies in this file.
 //!
 //! Two entry points - the shop menu and the vehicle trunk action - feed ONE server routine
 //! (ExecuteSell) different candidate lists. Implementing them separately would guarantee that one of
 //! them eventually forgot the gun-dealer multiplier or the IsSoldAtShop check (D2).
 //!
+//! P4 OF THE CONTROLLER MIGRATION ADDED BUYING HERE (plan D5). The legacy comms monolith's RpcAsk_Buy
+//! is gone; RpcAsk_BuyItems replaces it, with the same 30 m gate, the same server-derived price and the
+//! same spawn/insert/equip loop - plus a quantity bound, a resource-id check, and the §3.6(a) authority
+//! fix that makes a purchase actually take money and stock (see RpcAsk_BuyItems).
+//!
 //! Also carries the stop-gap helicopter re-arm purchase (RearmVehicle): money for ammunition is a
 //! shop transaction even though no shop entity is involved, and the alternative was a whole new
 //! controller component for one RPC pair that the logistics epic intends to replace anyway.
 //------------------------------------------------------------------------------------------------
-class OVT_ShopTransactionComponent : OVT_Component
+class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 {
 	//! How far the selling player may be from the shop before the server rejects the sale.
-	//! Deliberately the same 30 m OVT_PlayerCommsComponent already applies to buying (and applied to
+	//! Deliberately the same 30 m the legacy comms monolith already applied to buying (and applied to
 	//! the legacy sell): the shop UI needs interaction range, this is that plus latency/movement
 	//! slack, and using one number means a sell is never rejected where a buy would be accepted.
 	//! For the trunk path this bounds the VEHICLE's distance to the shop.
@@ -48,6 +55,11 @@ class OVT_ShopTransactionComponent : OVT_Component
 	//! range because the user action already requires the player to be standing at the trunk; the
 	//! slack only has to cover a long vehicle plus latency.
 	protected const float VEHICLE_MAX_DISTANCE = 15;
+
+	//! Upper bound on one buy request. NEW in P4 of the controller migration - the monolith bounded
+	//! nothing, and every unit is spawned unconditionally, so this is the same reasoning that put a
+	//! bound on the import path (BUG-033). 100 is deliberately the same number Import uses.
+	protected const int MAX_BUY_QUANTITY = 100;
 
 	//! Fired on the requesting client only. Args: (int soldCount, int totalEarned, int skippedCount,
 	//! int OVT_ShopSellResult). Display only - see RpcDo_SellResult.
@@ -244,6 +256,220 @@ class OVT_ShopTransactionComponent : OVT_Component
 		int earned = ExecuteSell(playerId, shop, candidates, vehicleStorage, -1, -1, soldCount, skippedCount);
 
 		SendSellResult(playerId, soldCount, earned, skippedCount, ResultFor(soldCount));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// BUYING - migrated from the legacy comms monolith's RpcAsk_Buy in P4 of the controller migration.
+	//
+	// Buy lives with sell (plan D5) because the two halves share the 30 m gate, the price model and the
+	// stock table: implementing them on separate components guarantees that one of them eventually
+	// forgets a rule. Vehicle buying is the deliberate exception and rides OVT_VehicleRequestComponent.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Buy items from a shop for the local player.
+	//! \param[in] shop The shop being bought from.
+	//! \param[in] id Resource id to buy.
+	//! \param[in] num How many. Bounded 1..MAX_BUY_QUANTITY server-side.
+	void BuyItems(OVT_ShopComponent shop, int id, int num)
+	{
+		if(!shop || id < 0 || num < 1) return;
+
+		RplComponent shopRpl = GetEntityRpl(shop.GetOwner());
+		if(!shopRpl) return;
+
+		if(Replication.IsServer())
+		{
+			RpcAsk_BuyItems(shopRpl.Id(), id, num);
+		}else{
+			Rpc(RpcAsk_BuyItems, shopRpl.Id(), id, num);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: spawn the requested items into the buyer's inventory, charge for what was delivered and
+	//! decrement the shop's stock.
+	//!
+	//! THIS HANDLER FIXES A LIVE ECONOMY EXPLOIT (plan §3.6(a)). The monolith's version took the money
+	//! with Rpc(RpcAsk_TakePlayerMoney, ...) and decremented stock with Rpc(RpcAsk_TakeFromInventory, ...)
+	//! from INSIDE this server-side handler. Both targets are RplRcver.Server handlers, and an
+	//! RplRcver.Server RPC marshalled by the authority is delivered to nobody (the BUG-045/052/088
+	//! family) - so a remote client received its items, was never charged, and the shop's stock never
+	//! moved. The vehicle path at the same time called the identical two handlers DIRECTLY: somebody
+	//! fixed vehicles and not items. Both are now direct mutations. See docs/bugs/BUG-161.md.
+	//!
+	//! Validation order, the same order RpcAsk_SellItems uses:
+	//! 1. we are the server
+	//! 2. request shape (1..MAX_BUY_QUANTITY, a real resource id) - both NEW in this phase, the monolith
+	//!    bounded neither, so a single click could ask for an unbounded prefab spawn loop and an
+	//!    out-of-range id indexed the resource array
+	//! 3. the buyer is resolved from THIS controller entity, never from the payload
+	//! 4. the buyer has a character with an inventory
+	//! 5. the shop resolves from its RplId
+	//! 6. the buyer is within SHOP_MAX_DISTANCE of the shop (the menu's gate is client-side only)
+	//! 7. the price is re-derived server-side and the buyer can afford the whole request
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_BuyItems(RplId shopId, int id, int num)
+	{
+		if(!Replication.IsServer()) return;
+
+		// Carried from BUG-033's import bound: every unit below is spawned unconditionally, so an
+		// unbounded num is an unbounded prefab spawn loop on the server.
+		if(num < 1 || num > MAX_BUY_QUANTITY) return;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy) return;
+
+		// R7: an out-of-range id from a stale or malicious client must not index the resource array.
+		if(!economy.IsValidResourceId(id)) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!player) return;
+
+		SCR_InventoryStorageManagerComponent inventory = SCR_InventoryStorageManagerComponent.Cast(player.FindComponent(SCR_InventoryStorageManagerComponent));
+		if(!inventory) return;
+
+		OVT_ShopComponent shop = ResolveShop(shopId);
+		if(!shop || !shop.GetOwner()) return;
+
+		// The shop UI's proximity gate is client-side only - re-check it here
+		if(vector.Distance(player.GetOrigin(), shop.GetOwner().GetOrigin()) > SHOP_MAX_DISTANCE) return;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if(!players) return;
+
+		string playerPersId = players.GetPersistentIDFromPlayerID(playerId);
+		if(playerPersId == "") return;
+
+		// Same cost calculation the menu used, re-derived here so client and server agree
+		int unitCost = economy.GetShopBuyPrice(id, shop, player.GetOrigin(), playerId);
+		int totalCost = unitCost * num;
+		if(!economy.PlayerHasMoney(playerPersId, totalCost))
+		{
+			SendBuyFailureNotification(playerId, "PurchaseFailedInsufficientFunds");
+			return;
+		}
+
+		ResourceName itemResource = economy.GetResource(id);
+		if(itemResource == "") return;
+
+		// Spawn and insert one at a time until the inventory refuses one, so a request that only
+		// partly fits is charged only for what was delivered.
+		int successfulPurchases = 0;
+
+		for(int i = 0; i < num; i++)
+		{
+			IEntity spawnedItem = SpawnItemForPlayer(itemResource, player.GetOrigin());
+			if(!spawnedItem) break;
+
+			bool itemHandled = false;
+			if(inventory.TryInsertItem(spawnedItem))
+			{
+				successfulPurchases++;
+				itemHandled = true;
+			}
+			else
+			{
+				// Nowhere to stow it: a weapon may still be equippable straight into the hands
+				CharacterControllerComponent charController = CharacterControllerComponent.Cast(player.FindComponent(CharacterControllerComponent));
+				if(charController)
+				{
+					BaseWeaponComponent weaponComp = BaseWeaponComponent.Cast(spawnedItem.FindComponent(BaseWeaponComponent));
+					if(weaponComp && weaponComp.CanBeEquipped(charController) == ECanBeEquippedResult.OK)
+					{
+						if(charController.TryEquipRightHandItem(spawnedItem, EEquipItemType.EEquipTypeWeapon))
+						{
+							successfulPurchases++;
+							itemHandled = true;
+						}
+					}
+				}
+			}
+
+			if(!itemHandled)
+			{
+				// Never leave a paid-for-nothing entity lying at the buyer's feet
+				SCR_EntityHelper.DeleteEntityAndChildren(spawnedItem);
+				break;
+			}
+		}
+
+		if(successfulPurchases > 0)
+		{
+			int actualCost = successfulPurchases * unitCost;
+
+			// §3.6(a): a direct debit and a direct stock decrement, not two client->server asks.
+			// shop.TakeFromInventory() is itself a plain server-side method as of this phase (§3.7),
+			// so there is exactly one definition of "remove stock and stream the row".
+			economy.DoTakePlayerMoney(playerId, actualCost);
+			shop.TakeFromInventory(id, successfulPurchases);
+
+			economy.m_OnPlayerBuy.Invoke(playerId, actualCost);
+			economy.m_OnPlayerTransaction.Invoke(playerId, shop, true, actualCost);
+
+			// Only a partial delivery needs saying; a full one is self-evident
+			if(successfulPurchases < num)
+				SendBuyPartialNotification(playerId, successfulPurchases, num);
+		}
+		else
+		{
+			// Funds were sufficient and nothing was delivered: the only way to get here is that the
+			// item could neither be inserted nor equipped. Silence used to make this read as a dead
+			// Buy button; the localized message has existed since the notification config was
+			// written, it was simply never sent.
+			SendBuyFailureNotification(playerId, "PurchaseFailedInventoryFull");
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns one purchased item at the buyer's feet, ready to be inserted or equipped.
+	//! Carried verbatim from the legacy comms monolith's SpawnItemForPlayer (including the null world
+	//! parent, which is what the buy path has always used).
+	//! \param[in] itemResource The item's prefab.
+	//! \param[in] location Where to spawn it.
+	//! \return The spawned entity, or null.
+	protected IEntity SpawnItemForPlayer(ResourceName itemResource, vector location)
+	{
+		if(itemResource.IsEmpty()) return null;
+
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = location;
+
+		Resource resource = Resource.Load(itemResource);
+		if(!resource)
+		{
+			Print(string.Format("[OVT_ShopTransactionComponent] Failed to load resource: %1", itemResource), LogLevel.WARNING);
+			return null;
+		}
+
+		return GetGame().SpawnEntityPrefab(resource, null, params);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends one of the existing purchase-failure notifications to a single player (quality bar Q9).
+	//! \param[in] playerId The player to notify.
+	//! \param[in] messageTag Notification tag from the notification config.
+	protected void SendBuyFailureNotification(int playerId, string messageTag)
+	{
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(notify)
+			notify.SendTextNotification(messageTag, playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the buyer that only part of their order fitted.
+	//! \param[in] playerId The player to notify.
+	//! \param[in] successCount How many were delivered.
+	//! \param[in] totalRequested How many were asked for.
+	protected void SendBuyPartialNotification(int playerId, int successCount, int totalRequested)
+	{
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(notify)
+			notify.SendTextNotification("PurchasePartialSuccess", playerId, successCount.ToString(), totalRequested.ToString());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -672,26 +898,19 @@ class OVT_ShopTransactionComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Adds the sold items back to the shop's stock and broadcasts each changed row.
 	//!
-	//! Mutates and streams directly, exactly as the legacy sell path did by calling its own
-	//! RpcAsk_AddToInventory handler in-process. OVT_ShopComponent.AddToInventory still routes
-	//! through the legacy comms component, which as of BUG-164 does branch on Replication.IsServer()
-	//! and so would work here too - this stays direct because it is one hop shorter, not because
-	//! the other path is broken.
+	//! Delegates row by row to OVT_ShopComponent.AddToInventory, which as of P4 of the controller
+	//! migration is a plain server-side mutation plus StreamInventory(). This used to open-code the
+	//! mutation because AddToInventory forwarded to a client->server ask on the legacy comms component,
+	//! which is not a server-side call path (§3.6(a)); that is fixed, so there is one definition again.
 	//! \param[in] shop The shop to restock.
 	//! \param[in] collated Resource id -> number actually taken from the seller.
 	protected void RestockShop(OVT_ShopComponent shop, map<int, int> collated)
 	{
-		if(!shop || !shop.m_aInventory || !collated) return;
+		if(!shop || !collated) return;
 
 		for(int i = 0; i < collated.Count(); i++)
 		{
-			int id = collated.GetKey(i);
-			int num = collated.GetElement(i);
-			if(num <= 0) continue;
-
-			if(!shop.m_aInventory.Contains(id)) shop.m_aInventory[id] = 0;
-			shop.m_aInventory[id] = shop.m_aInventory[id] + num;
-			shop.StreamInventory(id);
+			shop.AddToInventory(collated.GetKey(i), collated.GetElement(i));
 		}
 	}
 
@@ -699,11 +918,12 @@ class OVT_ShopTransactionComponent : OVT_Component
 	//! Delivers the result to the requesting client.
 	//!
 	//! On a listen server the requester IS this machine's local player, and an Owner-targeted RPC to
-	//! ourselves is at best redundant - so the invoker is fired directly and the RPC is not sent. On a
-	//! dedicated server GetLocalPlayerId() is 0 and this always goes over the wire.
+	//! ourselves is not merely redundant, it is never delivered - so the invoker is fired directly and
+	//! the RPC is not sent. On a dedicated server GetLocalPlayerId() is 0 and this always goes over the
+	//! wire. ShouldRespondLocally() is the shared form of that test (OVT_ControllerRequestComponent).
 	protected void SendSellResult(int playerId, int soldCount, int totalEarned, int skippedCount, int result)
 	{
-		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
+		if(ShouldRespondLocally(playerId))
 		{
 			RpcDo_SellResult(soldCount, totalEarned, skippedCount, result);
 			return;
@@ -718,38 +938,6 @@ class OVT_ShopTransactionComponent : OVT_Component
 	{
 		if(soldCount > 0) return OVT_ShopSellResult.OK;
 		return OVT_ShopSellResult.NOTHING_SOLD;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Which player this controller belongs to, resolved on the SERVER from the controller entity
-	//! this component sits on.
-	//!
-	//! This is the whole anti-spoofing story: a remote client can only reach this handler through the
-	//! controller entity it owns, so the identity comes from the entity, never from the payload (the
-	//! legacy comms component solves the same problem by living on the player's character). The scan
-	//! is over connected players only, which is single digits.
-	//! \return Runtime player id, or -1.
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -773,26 +961,9 @@ class OVT_ShopTransactionComponent : OVT_Component
 		return config.m_Difficulty.gunDealerSellPriceMultiplier;
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Lock/ownership rule for the trunk sell, lifted from OVT_UnloadStorageAction: an unlocked
-	//! vehicle, or one with no recorded owner, is fair game; a locked vehicle may only be emptied by
-	//! its owner.
-	//! \param[in] playerId The requesting player.
-	//! \param[in] vehicle The vehicle.
-	//! \return True when the player may sell this vehicle's cargo.
-	protected bool PlayerMayUseVehicle(int playerId, IEntity vehicle)
-	{
-		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(vehicle);
-		if(!playerOwner || !playerOwner.IsLocked()) return true;
-
-		string ownerUid = playerOwner.GetPlayerOwnerUid();
-		if(ownerUid == "") return true;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return false;
-
-		return ownerUid == players.GetPersistentIDFromPlayerID(playerId);
-	}
+	// PlayerMayUseVehicle() moved to OVT_ControllerRequestComponent in P2 of the controller migration -
+	// OVT_VehicleRequestComponent needs the identical lock/ownership rule for upgrade and repair, and a
+	// second copy would be free to drift from this one.
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether anybody is still in a pilot/driver compartment.
@@ -809,32 +980,22 @@ class OVT_ShopTransactionComponent : OVT_Component
 
 	//------------------------------------------------------------------------------------------------
 	//! Resolves a shop component from a networked entity reference. Every step null-guarded (Q7).
+	//!
+	//! A RUINED SHOP RESOLVES TO NOTHING (core/damage D15). This is the server-side half of the gate -
+	//! the menu cannot be opened at a ruin at all, so reaching here means a stale menu or a lying
+	//! client - and it is the only per-request hook the three shop handlers share.
 	protected OVT_ShopComponent ResolveShop(RplId shopId)
 	{
 		IEntity shopEntity = ResolveEntity(shopId);
 		if(!shopEntity) return null;
 
+		if(!OVT_StructureDamage.IsUsable(shopEntity))
+		{
+			Print("[OVT_ShopTransactionComponent] Shop request refused: the structure is a ruin", LogLevel.WARNING);
+			return null;
+		}
+
 		return OVT_ShopComponent.Cast(shopEntity.FindComponent(OVT_ShopComponent));
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! RplId -> entity. RplId, never EntityID, is the only entity reference that means the same thing
-	//! on both machines.
-	protected IEntity ResolveEntity(RplId rplId)
-	{
-		RplComponent rpl = RplComponent.Cast(Replication.FindItem(rplId));
-		if(!rpl) return null;
-
-		return rpl.GetEntity();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The RplComponent of an entity, or null when it is not replicated (and therefore cannot be
-	//! named across the network).
-	protected RplComponent GetEntityRpl(IEntity entity)
-	{
-		if(!entity) return null;
-
-		return RplComponent.Cast(entity.FindComponent(RplComponent));
-	}
 }

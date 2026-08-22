@@ -31,7 +31,7 @@ modded class SCR_PlayerController
 		// The player's aiming state stays on the ex-possessed character and pins its body yaw
 		// forever (BUG-147: recruits moonwalk after "Open Inventory") - clear it now that the AI
 		// is back in charge
-		OVT_Global.ResetAIAimState(currentPossessed);
+		OVT_WorldUtils.ResetAIAimState(currentPossessed);
 
 		IEntity restoredEntity = playerController.GetControlledEntity();
 		Print(string.Format("[SCR_PlayerController] Server: Restored to entity: %1", restoredEntity), LogLevel.NORMAL);

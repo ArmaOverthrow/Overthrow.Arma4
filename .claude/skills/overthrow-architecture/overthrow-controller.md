@@ -1,14 +1,19 @@
 # OVT_OverthrowController Pattern
 
-Complete guide for the new modular controller architecture replacing the legacy OVT_PlayerCommsComponent.
+Complete guide for the modular controller architecture that replaced the legacy comms monolith.
+
+**As of 2026-08-14 there is no other client→server seam.** `core/controller-migration` deleted
+`OVT_PlayerCommsComponent` and `OVT_Global.GetServer()` outright and stripped the component from both
+prefabs that carried it. If you are reading a doc, a comment or a memory that tells you to add an RPC to
+the comms component, that text is stale - the class does not exist.
 
 ---
 
 ## Overview
 
-**Status:** ✅ Fully Implemented (v1.3.0+)
+**Status:** ✅ Fully Implemented - and since 2026-08-14, the ONLY client→server seam (17 components).
 
-The OVT_OverthrowController is a dedicated controller entity owned by each player that houses specialized components for different features. This replaces the monolithic `OVT_PlayerCommsComponent` pattern.
+The OVT_OverthrowController is a dedicated controller entity owned by each player that houses specialized components for different features. It replaced the monolithic comms component, which is deleted.
 
 **Key Benefits:**
 - Modular components for each feature
@@ -21,18 +26,22 @@ The OVT_OverthrowController is a dedicated controller entity owned by each playe
 
 ## Architecture
 
-### Old Pattern (Deprecated)
+### Old Pattern (DELETED 2026-08-14 - shown so you recognise it in stale docs)
 
-❌ **Don't use OVT_PlayerCommsComponent for new features:**
+❌ **This does not compile any more. Neither identifier exists:**
 
 ```cpp
-// OLD WAY - Deprecated
+// OLD WAY - the class and the accessor were both deleted in P10 of core/controller-migration
 OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
 comms.SomeOperation(); // Everything through one monolithic component
 ```
 
-**Problems:**
-- Single 1431-line file with all client→server operations
+**Problems it had:**
+- Single 2,001-line file with all client→server operations (55 `RpcAsk_` + 4 `RpcDo_`)
+- **It sat on the player CHARACTER**, so the seam died with the body and `RplRcver.Owner` meant
+  "whoever controls this body" rather than "this player"
+- Every handler took a client-supplied `playerId`/`persistentId` and laundered it; nine endpoints had
+  no validation at all (dismiss any recruit, possess any entity, delete any camp, ...)
 - Mixed concerns (economy, bases, inventory, real estate, jobs, etc.)
 - Difficult to test features in isolation
 - No built-in progress tracking
@@ -55,15 +64,28 @@ if (!transfer) return;
 transfer.TransferStorage(fromEntity, toEntity);
 ```
 
-**Or use convenience methods:**
+**Or use the generic accessor (preferred - one line, no Cast):**
 
 ```cpp
-// Even simpler
-OVT_ContainerTransferComponent transfer = OVT_Global.GetContainerTransfer();
+// Even simpler - THE way to reach a controller component
+OVT_ContainerTransferComponent transfer = OVT_ControllerComponent<OVT_ContainerTransferComponent>.Get();
 if (!transfer) return;
 
 transfer.TransferStorage(fromEntity, toEntity);
 ```
+
+`OVT_ControllerComponent<Class T>.Get()`
+(`Scripts/Game/Components/Controller/OVT_ControllerComponent.c`) resolves any
+component on the **local** player's controller. It is a generic CLASS with a
+static because EnforceScript has no generic methods - the same trick
+`OVT_ComponentFinder<Class T>` uses, which it composes with.
+
+**There is no `OVT_Global` getter for a controller component, and none is ever
+added.** The six that used to exist (`GetContainerTransfer`, `GetShopTransactions`,
+`GetTowerSabotage`, `GetTravelRequests`, `GetRespawnRequests`, `GetTutorials`)
+were deleted in `core/controller-migration` Phase 1 and replaced by this accessor.
+`OVT_Global` is a service locator for **managers**; a controller component is not
+a manager.
 
 **Benefits:**
 - Clear separation of concerns
@@ -493,9 +515,12 @@ protected void EndOperation()
 
 ## Migration Guide
 
-### Migrating from OVT_PlayerCommsComponent
+### Migrating from the legacy comms monolith
 
-**Before (Legacy):**
+**This migration is COMPLETE** (`core/controller-migration`, 2026-08-14). The guide is kept because the
+shape is exactly what you follow when adding a NEW component - steps 1-7 are the live checklist.
+
+**Before (Legacy - no longer compiles):**
 ```cpp
 OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
 comms.Buy(shop, itemId, quantity, playerId);
@@ -503,21 +528,40 @@ comms.Buy(shop, itemId, quantity, playerId);
 
 **After (New Pattern):**
 ```cpp
-// 1. Create OVT_ShopComponent on controller
-OVT_ShopComponent shops = OVT_Global.GetShops();
-if (!shops) return;
+// The component lives on OVT_OverthrowController and is reached generically
+OVT_ShopTransactionComponent shop = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
+if (!shop) return;
 
-shops.PurchaseItem(shop, itemId, quantity);
+shop.PurchaseItem(shopEntity, itemId, quantity);
 ```
 
 **Steps:**
-1. Create new component extending `OVT_Component` or `OVT_BaseServerProgressComponent`
-2. Place on `OVT_OverthrowController` prefab in Workbench
-3. Implement RpcAsk/RpcDo methods
-4. Add convenience accessor to `OVT_Global`
-5. Update call sites to use new component
-6. Test thoroughly
-7. Remove old method from `OVT_PlayerCommsComponent`
+1. Create new component in `Scripts/Game/Components/Controller/`, extending
+   `OVT_ControllerRequestComponent` (server-authoritative requests - gives you
+   `ResolveOwningPlayerId()`, `ResolveEntity()`, `GetEntityRpl()` and
+   `ShouldRespondLocally()`) or `OVT_BaseServerProgressComponent` (long operations
+   that report progress). Its `...ComponentClass` must extend the matching base
+   `...ComponentClass`.
+2. Place on `OVT_OverthrowController` prefab in Workbench (fresh GUID)
+3. Implement RpcAsk/RpcDo methods. **Resolve the caller from
+   `ResolveOwningPlayerId()`, never from a client-supplied player id** - migrated
+   RPCs drop the identity parameter from the signature entirely
+4. Reach it with `OVT_ControllerComponent<T>.Get()`. **Do NOT add an accessor to
+   `OVT_Global`** - no controller component gets one; the generic accessor is the
+   whole API, and its name is contract (`core/options`, `core/player-groups`)
+5. Update call sites to use the new component - every one of them null-checks,
+   because the accessor is null on a dedicated server and before ownership assignment
+6. Add an Init-tier test case asserting the component resolves off a registered
+   controller (`OVT_TEST_Init_Controller_ComponentsResolve` is the pattern). A
+   component that was never added to the prefab produces no compile error and no
+   runtime error - this case is the only thing that catches it
+7. Test thoroughly. **`Rpc()` arity is a compile-check blind spot** - it is an untyped variadic
+   prototype, so a wrong argument count compiles clean and dies silently at the wire. `grep -n
+   "Rpc(Rpc" <yourfile>` and hand-check every call against its handler, including the
+   `Replication.IsServer()` direct-call twin (only one half of that pair is type-checked)
+8. **Branch every public entry point on `Replication.IsServer()`** - an `RplRcver.Server` RPC
+   marshalled BY the authority is delivered to nobody, so an unconditional `Rpc()` is a silent no-op
+   for a listen-server host. Owner responses use `ShouldRespondLocally()` for the same reason
 
 ---
 
@@ -529,14 +573,14 @@ shops.PurchaseItem(shop, itemId, quantity);
 - **Validate all client requests** on server (never trust client)
 - **Use RplId for entity references** across network
 - **Check Replication.IsServer()** before RPC to avoid unnecessary network calls on host
-- **Add convenience methods to OVT_Global** for frequently used components
+- **Reach components with `OVT_ControllerComponent<T>.Get()`** - never add an `OVT_Global` getter for one
 - **Document what the component manages** in class header
 - **Provide clear operation methods** with descriptive names
 - **Handle errors gracefully** with RpcDo_OperationError
 
 ### ❌ DON'T:
 
-- **Add new methods to OVT_PlayerCommsComponent** - it's deprecated
+- **Look for a legacy comms component to add an RPC to** - there isn't one; it was deleted 2026-08-14
 - **Skip server-side validation** - always validate client requests
 - **Use EntityID across network** - use RplId instead
 - **Forget null checks** - controller may not exist or component may not be registered
@@ -595,27 +639,33 @@ shops.PurchaseItem(shop, itemId, quantity);
 
 ## Current Controller Components
 
-### Implemented
+### Implemented - all 17, in `Scripts/Game/Components/Controller/`
 
-1. **OVT_ContainerTransferComponent** ✅
-   - Container transfers with progress
-   - FOB deployment/undeployment
-   - Area container collection
-   - Battlefield looting
-   - Warehouse transfers
+The twelve that carry the bulk of the request surface:
+
+| Component | Handles |
+|---|---|
+| `OVT_ContainerTransferComponent` | container transfers with progress, FOB deploy/undeploy transfer, area collection, battlefield looting, warehouse transfers |
+| `OVT_ShopTransactionComponent` | shop buying AND selling, vehicle-cargo selling (both halves share the 30 m gate and the price model on purpose) |
+| `OVT_VehicleRequestComponent` | lock/unlock, claim unowned, upgrade, repair, import-to-vehicle, buy-vehicle |
+| `OVT_RealEstateRequestComponent` | set-home, buy/sell/rent/stop-renting a building, the three warehouse movements |
+| `OVT_EconomyRequestComponent` | drug selling, donate, send resistance funds, send money, take player money, resistance tax, buy skill |
+| `OVT_ResistanceRequestComponent` | place, remove placed, build, add officer, add base garrison, convert supporter |
+| `OVT_FOBRequestComponent` | camp/FOB garrison, deploy, undeploy, set priority, camp privacy, delete camp |
+| `OVT_RecruitRequestComponent` | recruit civilian, recruit from tent, rename, dismiss |
+| `OVT_LoadoutRequestComponent` | save a loadout, apply one from an equipment box, delete one |
+| `OVT_PossessionRequestComponent` | possess a recruit and open its inventory, plus the whole close/restore lifecycle |
+| `OVT_JobRequestComponent` | accept a job, decline a job |
+| `OVT_CampaignRequestComponent` | start a base capture, deliver medical supplies, loot wanted check, request save |
+
+Plus `OVT_TravelRequestComponent`, `OVT_RespawnRequestComponent`, `OVT_TowerSabotageComponent`,
+`OVT_TutorialComponent` and `OVT_AdminCommandsComponent`; the shared bases
+`OVT_ControllerRequestComponent` / `OVT_BaseServerProgressComponent`; and the generic accessor
+`OVT_ControllerComponent<Class T>.Get()`.
 
 ### Planned for Migration
 
-From `OVT_PlayerCommsComponent` (legacy):
-- Economy operations (buy/sell, money management)
-- Base management (garrison, capture)
-- Real estate (homes, buildings, rent)
-- Job management (accept/decline)
-- Notifications
-- Shop operations
-- Placement/building
-- Fast travel
-- Loadout management
+**Nothing.** The migration finished 2026-08-14 and the monolith is deleted.
 
 ---
 

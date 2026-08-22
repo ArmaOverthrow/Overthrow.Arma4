@@ -1,0 +1,18 @@
+GenericEntity : "{A507D9AE39652BD6}Prefabs/Vehicles/Core/Vehicle_Part_Base.et" {
+ ID "51D496E5BA4BEA0C"
+ components {
+  ActionsManagerComponent "{5104C985875F00FA}" {
+   additionalActions {
+    OVT_FillFuelAction "{6B4E1F1000000012}" {
+     ParentContextList {
+      "supportStation_fuel"
+     }
+     UIInfo UIInfo "{6B4E1F1000000013}" {
+      Name "#OVT-FillFuel"
+     }
+     Duration 5
+    }
+   }
+  }
+ }
+}

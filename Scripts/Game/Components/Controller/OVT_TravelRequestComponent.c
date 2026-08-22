@@ -1,19 +1,20 @@
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative fast travel and bus travel for one player")]
-class OVT_TravelRequestComponentClass : OVT_ComponentClass {};
+class OVT_TravelRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Server-authoritative travel, on the per-player OVT_OverthrowController entity.
 //!
 //! Replaces OVT_FastTravelService.ExecuteFastTravel, which teleported on the CALLING machine and
-//! debited money on the CLIENT (findings F1/F2), and the legacy
-//! OVT_PlayerCommsComponent.RpcAsk_RequestFastTravel, which was ResolveSenderPlayerId + TeleportPlayer
+//! debited money on the CLIENT (findings F1/F2), and the legacy comms monolith's
+//! RpcAsk_RequestFastTravel, which was ResolveSenderPlayerId + TeleportPlayer
 //! with no eligibility check, no distance check and no payment - any client could teleport itself
-//! anywhere, for free (finding N2). Project rule (overthrow-controller.md): no new client->server RPCs
-//! go on OVT_PlayerCommsComponent.
+//! anywhere, for free (finding N2). Project rule (overthrow-controller.md): every client->server RPC
+//! lives on a controller component like this one.
 //!
-//! Extends plain OVT_Component rather than OVT_BaseServerProgressComponent (implementation plan §5
-//! Phase 2): a trip completes inside one frame, so a progress dialog would only flash, and the result
-//! carries MONEY, which the progress base's (transferred, skipped) pair cannot express.
+//! Extends OVT_ControllerRequestComponent (the shared caller-identity base) rather than
+//! OVT_BaseServerProgressComponent (implementation plan §5 Phase 2): a trip completes inside one
+//! frame, so a progress dialog would only flash, and the result carries MONEY, which the progress
+//! base's (transferred, skipped) pair cannot express.
 //!
 //! ONE RPC pair serves both travel verbs (K10). Rpc()'s prototype is untyped variadic, so a wrong
 //! argument count compiles clean and dies silently at the wire (BUG-090); the practical defence is to
@@ -25,7 +26,7 @@ class OVT_TravelRequestComponentClass : OVT_ComponentClass {};
 //! CLIENT-ONLY section - those functions resolve the actor from the MACHINE, which on a listen server
 //! is the host's character and would validate the host against another player's request.
 //------------------------------------------------------------------------------------------------
-class OVT_TravelRequestComponent : OVT_Component
+class OVT_TravelRequestComponent : OVT_ControllerRequestComponent
 {
 	//! Fired on the requesting client only. Args: (int OVT_TravelResult, int amountCharged).
 	//! Display only - see RpcDo_TravelResult. Money is never mutated from an invoker.
@@ -351,7 +352,7 @@ class OVT_TravelRequestComponent : OVT_Component
 		{
 			vector vehiclePos;
 			vector vehicleAngles;
-			oriented = OVT_Global.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles, false, destIsCamp);
+			oriented = OVT_WorldUtils.FindSafeVehicleSpawnPosition(targetPos, vehiclePos, vehicleAngles, false, destIsCamp);
 			angles = vehicleAngles;
 			return vehiclePos;
 		}
@@ -364,14 +365,14 @@ class OVT_TravelRequestComponent : OVT_Component
 		// answer the recruits and a travelled vehicle already use. Only when there is no road within
 		// reach does the original position stand, as the least-bad last resort.
 		vector dest;
-		bool clear = OVT_Global.TryFindSafeSpawnPosition(targetPos, dest);
+		bool clear = OVT_WorldUtils.TryFindSafeSpawnPosition(targetPos, dest);
 		if(clear && !IsPositionClear(dest))
 		{
 			// A blocked AUTHORED point usually has clear floor right beside it (something was built or
 			// parked over it since it was authored) - a scatter around the point keeps the arrival in
 			// the same room rather than on the street.
 			vector scattered;
-			clear = OVT_Global.TryFindSafeSpawnPosition(dest, scattered, "-0.5 0 -0.5", "0.5 2 0.5", true);
+			clear = OVT_WorldUtils.TryFindSafeSpawnPosition(dest, scattered, "-0.5 0 -0.5", "0.5 2 0.5", true);
 			if(clear)
 				dest = scattered;
 		}
@@ -380,7 +381,7 @@ class OVT_TravelRequestComponent : OVT_Component
 		{
 			vector roadPos;
 			vector roadAngles;
-			if(OVT_Global.FindNearestRoadSpawn(targetPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles))
+			if(OVT_WorldUtils.FindNearestRoadSpawn(targetPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles))
 				dest = roadPos;
 		}
 
@@ -471,7 +472,7 @@ class OVT_TravelRequestComponent : OVT_Component
 
 		// One road query for the whole squad, and the direction it runs so the line follows it.
 		vector roadPos, roadAngles;
-		bool haveRoad = OVT_Global.FindNearestRoadSpawn(destPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles);
+		bool haveRoad = OVT_WorldUtils.FindNearestRoadSpawn(destPos, ROAD_FALLBACK_MAX_DISTANCE, roadPos, roadAngles);
 		vector roadDir = vector.Zero;
 		if (haveRoad)
 		{
@@ -514,7 +515,7 @@ class OVT_TravelRequestComponent : OVT_Component
 				// Declutter (a parked car, a fence). On failure keep the unadjusted road point: it is
 				// on a road at ground height, which is never inside a building - unlike the ring, the
 				// raw position is an acceptable answer here.
-				if (OVT_Global.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+				if (OVT_WorldUtils.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
 					recruitPos = clearPos;
 			}
 			else
@@ -528,7 +529,7 @@ class OVT_TravelRequestComponent : OVT_Component
 
 				// A ring position that cannot be cleared is a KNOWN collision - fall back to the
 				// player's own arrival point rather than embed the recruit where the probe failed.
-				if (OVT_Global.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
+				if (OVT_WorldUtils.TryFindSafeSpawnPosition(recruitPos, clearPos, "-0.5 0 -0.5", "0.5 2 0.5", true))
 					recruitPos = clearPos;
 				else
 					recruitPos = destPos;
@@ -662,38 +663,4 @@ class OVT_TravelRequestComponent : OVT_Component
 		Rpc(RpcDo_TravelResult, result, amountCharged);
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Which player this controller belongs to, resolved on the SERVER from the controller entity
-	//! this component sits on.
-	//!
-	//! This is the whole anti-spoofing story: a remote client can only reach this handler through the
-	//! controller entity it owns, so the identity comes from the entity, never from the payload (the
-	//! legacy comms component solves the same problem by living on the player's character). The scan
-	//! is over connected players only, which is single digits.
-	//!
-	//! Copied from OVT_ShopTransactionComponent (:657-678) and OVT_TowerSabotageComponent - now three
-	//! controller components deep, and a candidate for a shared base class.
-	//! \return Runtime player id, or -1.
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
-	}
 }

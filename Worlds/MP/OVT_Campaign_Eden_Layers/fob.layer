@@ -1,0 +1,25 @@
+$grp OVT_FOBPosition : "{6B8C3F5D00000091}Prefabs/GameMode/OVT_FOBPosition.et" {
+ {
+  coords 7336.215 123.263 5150.842
+  angles 0 44.43 0
+ }
+ {
+  coords 7415.722 113.914 5298.078
+  angles 0 28.855 0
+ }
+ {
+  coords 7046.906 114.842 5302.203
+ }
+ {
+  coords 7546.388 110.459 5046.737
+  angles 0 -129.244 0
+ }
+ {
+  coords 7822.654 254.531 4024.613
+  angles 0 58.218 0
+ }
+ {
+  coords 7772.226 338.441 3389.216
+  angles 0 -102.624 0
+ }
+}

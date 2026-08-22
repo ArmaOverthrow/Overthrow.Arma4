@@ -297,7 +297,7 @@ FrameWidgetClass {
                     ButtonWidgetClass "{6B4C000000000030}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
                      Name "ToggleActiveButton"
                      Slot LayoutSlot "{56EEDE01982D053A}" {
-                      Padding 5 0 0 0
+                      Padding 5 0 5 0
                      }
                      components {
                       SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
@@ -306,7 +306,31 @@ FrameWidgetClass {
                       }
                      }
                     }
+                    ButtonWidgetClass "{6B1C3D0000007020}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "ConvertButton"
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 5 0 0 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                       m_sActionName "OverthrowRecruitsConvertGroup"
+                       m_sLabel "#OVT-Recruits_ConvertToHC"
+                      }
+                     }
+                    }
                    }
+                  }
+                  TextWidgetClass "{6B1C3D0000007022}" {
+                   Name "ConvertReasonText"
+                   Slot LayoutSlot "{6B1C3D0000007023}" {
+                    Padding 10 0 10 5
+                   }
+                   Text ""
+                   "Font Size" 13
+                   "Min Font Size" 11
+                   Color 0.8 0.3 0.1 1
+                   Wrap 1
+                   "Is Visible" 0
                   }
                  }
                 }

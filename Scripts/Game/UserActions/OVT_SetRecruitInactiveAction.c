@@ -20,7 +20,7 @@ class OVT_SetRecruitInactiveAction : OVT_BaseRecruitUserAction
 		OVT_RecruitData recruit = GetRecruitRecord();
 		if(!recruit) return;
 
-		OVT_RecruitCommandComponent commands = OVT_Global.GetRecruitCommands();
+		OVT_RecruitCommandComponent commands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 		if(!commands) return;
 
 		commands.RequestSetInactive(recruit.m_sRecruitId, true);

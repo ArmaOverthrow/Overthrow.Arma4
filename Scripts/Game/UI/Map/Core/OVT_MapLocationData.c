@@ -15,7 +15,7 @@ class OVT_MapLocationData : Managed
 	
 	//! Optional RplId (for networked objects). Must start INVALID: a default-constructed RplId is 0,
 	//! and 0 answers IsValid() true, so every record that never sets one would alias to the same id -
-	//! which collapsed all FOB and camp markers to one apiece in the refresh reconciliation (BUG-184).
+	//! which collapsed all FOB and camp markers to one apiece in the refresh reconciliation (BUG-188).
 	RplId m_RplID = RplId.Invalid();
 	
 	//! Optional integer ID (for towns, bases, etc.)

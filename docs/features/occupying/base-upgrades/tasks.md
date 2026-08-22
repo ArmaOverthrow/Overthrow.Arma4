@@ -1,7 +1,7 @@
 # Base Upgrades - Task Checklist
 
-**Last Updated:** 2026-08-13
-**Progress:** Complete (Existing Feature) + enhancements below
+**Last Updated:** 2026-08-20 (CLOSED)
+**Progress:** Complete (100%). **CLOSED 2026-08-20 — retired in code.** `virtualization/base-defense-migration` deleted `Scripts/Game/Components/BaseUpgrades/` and every `OVT_BaseUpgrade*` behaviour class; base defence is nine deployment configs. The three open verification items below are ticked as closed out (the code they verify no longer exists). Docs kept as history.
 
 ---
 
@@ -29,8 +29,8 @@ All original implementation tasks have been completed. This feature was document
 - [x] ✅ Null-check stale tower IDs in `BuyGuard` (destroyed towers are replaced by ruin entities — old code hard-crashed)
 - [x] ✅ Refreshed `Group_US_Sniper.et`/`Group_USSR_Sniper.et` from flat years-old snapshots to children of the vanilla `Group_*_Base.et` (same GUIDs; picks up `UnderFire`/`FoundCorpse` reactions and future engine changes)
 - [x] 🎮 Play-tested 2026-08-13: guard stands on the walkway, sees the player (wanted eye), and fires
-- [ ] 🎮 Still to verify in play: proxy despawn/respawn cycle and save/load of tower guards
-- [ ] 💡 Optional: sniper accuracy is poor — tune the sharpshooter character's AI aiming skill if guards should be more lethal
+- [x] **[closed out 2026-08-20 — code retired]** 🎮 Still to verify in play: proxy despawn/respawn cycle and save/load of tower guards
+- [x] **[closed out 2026-08-20 — code retired]** 💡 Optional: sniper accuracy is poor — tune the sharpshooter character's AI aiming skill if guards should be more lethal
 
 ### Curated sniper positions (2026-08-13)
 
@@ -38,7 +38,7 @@ All original implementation tasks have been completed. This feature was document
 - [x] ✅ `OVT_BaseUpgradeSniperPosition` — finds markers in base range, spawns a 2-man spotter+sniper team, teleports both onto the marker (spotter 1.2 m beside), facing the marker's forward; no waypoint; banked-value persistence (all per the tower-guard learnings)
 - [x] ✅ Renamed dead `OVT_Faction.m_aGroupSniper2Prefab` → `m_aGroupSniperTeamPrefab`; US uses vanilla `Group_US_SniperTeam` (Spotter+Sniper), USSR got new `OVT_Group_USSR_SniperTeam.et` (Scout+Sharpshooter, GUID `6A8F1E2D4C5B0902`) — no vanilla USSR team exists
 - [x] ✅ Registered on `OVT_BaseController.et` (priority 2, allocation -1)
-- [ ] 🎮 Play-test: place `OVT_SniperPosition` markers near a base in Workbench, verify team spawns facing the arrow, engages, proxies, and persists
+- [x] **[closed out 2026-08-20 — code retired]** 🎮 Play-test: place `OVT_SniperPosition` markers near a base in Workbench, verify team spawns facing the arrow, engages, proxies, and persists
 
 ### Upgrade list moved from prefab to config (2026-08-13)
 

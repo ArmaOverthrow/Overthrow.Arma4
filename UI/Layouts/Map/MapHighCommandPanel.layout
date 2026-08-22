@@ -1,0 +1,199 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ Slot FrameWidgetSlot "{6B1C3D0000004011}" {
+  Anchor 0 1 0 1
+  PositionX 44
+  OffsetLeft 0
+  PositionY -24
+  OffsetTop 0
+  SizeX 320
+  OffsetRight -320
+  SizeY 320
+  OffsetBottom -320
+  Alignment 0 1
+  SizeToContent 1
+ }
+ "Z Order" 9998
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{6B1C3D0000004012}" {
+   Name "PanelContainer"
+   Slot FrameWidgetSlot "{6B1C3D0000004013}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 320
+    OffsetRight -320
+    SizeY 320
+    OffsetBottom -320
+    Alignment 0 1
+    SizeToContent 1
+   }
+   AllowWidthOverride 1
+   WidthOverride 300
+   HeightOverride 0
+   AllowMinDesiredWidth 1
+   MinDesiredWidth 300
+   AllowMaxDesiredWidth 1
+   MaxDesiredWidth 300
+   {
+    OverlayWidgetClass "{6B1C3D0000004014}" {
+     Name "PanelOverlay"
+     Slot AlignableSlot "{59945480BE60B0C7}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      PanelWidgetClass "{6B1C3D0000004015}" {
+       Name "PanelBackground"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 0
+       Color 0.0314 0.0314 0.0314 1
+       style full
+      }
+      VerticalLayoutWidgetClass "{6B1C3D0000004016}" {
+       Name "PanelLayout"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding 10 10 10 10
+       }
+       "Z Order" 1
+       {
+        TextWidgetClass "{6B1C3D0000004017}" {
+         Name "GroupName"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 6
+         }
+         Color 1 1 1 1
+         Text "Group"
+         "Font Size" 16
+         "Min Font Size" 14
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+         FontProperties FontProperties "{6B1C3D0000004019}" {
+          Bold 1
+         }
+        }
+        TextWidgetClass "{6B1C3D000000401A}" {
+         Name "OwnerLine"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 4
+         }
+         Color 0.8 0.8 1 1
+         Text "Owner"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{6B1C3D000000401B}" {
+         Name "StanceLine"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 4
+         }
+         Color 0.9 0.9 0.9 1
+         Text "Stance"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{6B1C3D000000401C}" {
+         Name "DestinationLine"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 4
+         }
+         Color 0.9 0.9 0.9 1
+         Text "Destination"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{6B1C3D000000401D}" {
+         Name "DistanceLine"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 4
+         }
+         Color 0.9 0.9 0.9 1
+         Text "Distance"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        TextWidgetClass "{6B1C3D000000401E}" {
+         Name "StatusLine"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 8
+         }
+         Color 0.9 0.9 0.9 1
+         Text "Status"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+        ButtonWidgetClass "{6B1C3D000000401F}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "OrderButton"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 0
+         }
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowHCOrder"
+           m_sLabel "#OVT-HC_Map_Order"
+          }
+         }
+        }
+        ButtonWidgetClass "{6B1C3D0000004020}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "StanceButton"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 0
+         }
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowHCStance"
+           m_sLabel "#OVT-HC_Map_Stance"
+          }
+         }
+        }
+        ButtonWidgetClass "{6B1C3D0000004021}" : "{CB8563509DEF3E0E}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButtonSmall.layout" {
+         Name "CloseButton"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 0 0 0
+         }
+         components {
+          SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+           m_sActionName "OverthrowCloseInfoPanel"
+           m_sLabel "#OVT-HC_Map_Deselect"
+          }
+         }
+        }
+        TextWidgetClass "{6B1C3D0000004022}" {
+         Name "ReasonText"
+         Slot LayoutSlot "{6B1C3D0000004018}" {
+          Padding 0 6 0 0
+         }
+         "Is Visible" 0
+         Color 1 0.4 0.4 1
+         Text "Reason"
+         "Font Size" 10
+         "Min Font Size" 10
+         "Horizontal Alignment" Left
+         "Vertical Alignment" Center
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

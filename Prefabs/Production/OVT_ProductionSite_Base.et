@@ -1,0 +1,75 @@
+GenericEntity : "{48C842DD171DE304}Prefabs/Structures/Signs/Large/SignLarge_01_base.et" {
+ ID "6A8E2F0000000200"
+ components {
+  OVT_ResourceProductionComponent "{6A8E2F0000000001}" {
+  }
+  OVT_ResourceStoreComponent "{6A8E2F0000000002}" {
+   m_fCargoVolume 20
+   m_sDefaultNameKey "#OVT-ProdSite_Storage"
+  }
+  ActionsManagerComponent "{6A8E2F0000000003}" {
+   ActionContexts {
+    UserActionContext "{6A8E2F0000000004}" {
+     ContextName "default"
+     Position PointInfo "{6A8E2F0000000005}" {
+      Offset 0 1.9839 0
+     }
+     Radius 8
+    }
+   }
+   additionalActions {
+    OVT_BuySiteAction "{6A8E2F0000000020}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F0000000021}" {
+      Name "#OVT-ProdSite_Buy"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_BuySiteResistanceAction "{6A8E2F0000000022}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F0000000023}" {
+      Name "#OVT-ProdSite_BuyResistance"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
+    OVT_BuySiteStockAction "{6A8E2F0000000024}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F0000000025}" {
+      Name "#OVT-ProdSite_BuyStockName"
+     }
+     Duration 0
+     "Sort Priority" 3
+    }
+    OVT_ToggleSitePrivacyAction "{6A8E2F0000000026}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F0000000027}" {
+      Name "#OVT-ProdSite_MakePublic"
+     }
+     Duration 0
+     "Sort Priority" 4
+    }
+    OVT_OpenResourceStoreAction "{6A8E2F0000000028}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F0000000029}" {
+      Name "#OVT-ProdSite_Storage"
+     }
+     Duration 0
+     "Sort Priority" 5
+    }
+   }
+  }
+ }
+ Flags 0x403 0
+}

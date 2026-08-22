@@ -55,6 +55,46 @@ GenericEntity {
       Name "#AR-Inventory_OpenStorage"
      }
     }
+    OVT_OpenStorageMenuAction "{6A8E2D0000000010}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2D0000000011}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_TransferAllToStorageAction "{6A8E2D0000000012}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2D0000000013}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
+    OVT_RenameStorageAction "{6A8E2D0000000014}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2D0000000015}" {
+      Name "#OVT-Storage_Rename"
+     }
+     Duration 0
+     "Sort Priority" 3
+    }
+    OVT_ClearVanillaInventoryAction "{6A8E2D0000000016}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2D0000000017}" {
+      Name "#OVT-Storage_ClearInventory"
+     }
+     Duration 0
+     "Sort Priority" 4
+    }
     OVT_LoadStorageAction "{59A2BD30E8635FC6}" {
      ParentContextList {
       "default"
@@ -63,7 +103,7 @@ GenericEntity {
       Name "#OVT-LoadStorage"
      }
      Duration 0
-     "Sort Priority" 1
+     "Sort Priority" 5
     }
     OVT_UnloadStorageAction "{59A2BD30F5BF3DC3}" {
      ParentContextList {
@@ -73,9 +113,12 @@ GenericEntity {
       Name "#OVT-UnloadStorage"
      }
      Duration 0
-     "Sort Priority" 2
+     "Sort Priority" 6
     }
    }
+  }
+  OVT_StorageComponent "{6A8E2D0000000002}" {
+   m_eCapacityMode UNLIMITED
   }
   RplComponent "{5992E2EEFC6E557E}" {
   }

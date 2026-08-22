@@ -692,7 +692,7 @@ class OVT_InventoryManagerComponent: OVT_Component
 		
 		// Find nearby bodies and weapons
 		array<IEntity> lootableItems = {};
-		OVT_Global.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), searchRadius, lootableItems);
+		OVT_WorldUtils.GetNearbyBodiesAndWeapons(vehicle.GetOrigin(), searchRadius, lootableItems);
 		
 		if (lootableItems.IsEmpty())
 		{

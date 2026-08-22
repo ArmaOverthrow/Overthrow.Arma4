@@ -1,0 +1,110 @@
+ButtonWidgetClass {
+ Name "HighCommandRosterRow"
+ Slot LayoutSlot "{5D5C558A6E391680}" {
+  Padding 0 0 0 2
+ }
+ Color 0.018 0.018 0.018 1
+ components {
+  OVT_HighCommandRosterRowHandler "{6B1C3D0000005041}" {
+   m_BackgroundDefault 0.018 0.018 0.018 0.102
+   m_BackgroundHovered 0.041 0.041 0.041 0.302
+   m_BackgroundSelected 0.018 0.011 0.004 0.302
+   m_BackgroundSelectedHovered 0.024 0.016 0.008 1
+   m_BackgroundClicked 0.031 0.02 0.009 1
+  }
+ }
+ {
+  OverlayWidgetClass "{6B1C3D0000005042}" {
+   Name "Overlay0"
+   Slot ButtonWidgetSlot "{5D5C558A6E391684}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    ImageWidgetClass "{6B1C3D0000005043}" {
+     Name "Background"
+     Slot OverlayWidgetSlot "{5D5C558A6E391682}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 2 2 2 2
+     }
+     Color 0.005 0.005 0.005 1
+    }
+    HorizontalLayoutWidgetClass "{6B1C3D0000005044}" {
+     Name "Content"
+     Slot OverlayWidgetSlot "{5D5C558A6E391686}" {
+      HorizontalAlign 3
+      Padding 10 8 10 8
+     }
+     {
+      ImageWidgetClass "{6B1C3D0000005045}" {
+       Name "GroupIcon"
+       Slot LayoutSlot "{56EEDE01982D053A}" {
+        Padding 0 0 10 0
+       }
+       Texture "{27F2439D610D02B3}UI/Imagesets/MilitarySymbol/ICO_Land.imageset"
+       Image "Infantry_Friend"
+       Size 32 32
+      }
+      VerticalLayoutWidgetClass "{6B1C3D0000005046}" {
+       Name "NameStatus"
+       Slot LayoutSlot "{5D5C558A6E391688}" {
+        SizeMode Fill
+       }
+       {
+        TextWidgetClass "{6B1C3D0000005047}" {
+         Name "GroupName"
+         Slot LayoutSlot "{5D5C558A6E39168A}" {
+          Padding 0 0 0 2
+         }
+         Text "Group Name"
+         "Font Size" 18
+         "Min Font Size" 14
+         FontProperties FontProperties "{6B1C3D0000005048}" {
+          Bold 1
+         }
+        }
+        TextWidgetClass "{6B1C3D0000005049}" {
+         Name "GroupSubtitle"
+         Slot LayoutSlot "{5D5C558A6E39168D}" {
+         }
+         Text "0 / 0"
+         "Font Size" 14
+         "Min Font Size" 12
+        }
+       }
+      }
+      FrameWidgetClass "{6B1C3D000000504A}" {
+       Name "Spacer"
+       Slot LayoutSlot "{5D5C558A6E39168F}" {
+        SizeMode Fill
+       }
+      }
+      ImageWidgetClass "{6B1C3D000000504B}" {
+       Name "StatusIcon"
+       Slot LayoutSlot "{6B4C000000000034}" {
+        Padding 0 0 8 0
+        VerticalAlign 1
+       }
+       Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+       Image "recruit_ammo_empty"
+       Size 24 24
+       "Is Visible" 0
+      }
+      TextWidgetClass "{6B1C3D000000504C}" {
+       Name "GroupStatus"
+       Slot LayoutSlot "{5D5C558A6E391691}" {
+        HorizontalAlign 2
+        VerticalAlign 1
+       }
+       Text "Holding"
+       "Font Size" 16
+       "Min Font Size" 12
+       "Horizontal Alignment" Right
+      }
+     }
+    }
+   }
+  }
+ }
+}

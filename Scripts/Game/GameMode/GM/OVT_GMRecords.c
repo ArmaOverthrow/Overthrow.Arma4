@@ -1,0 +1,126 @@
+//------------------------------------------------------------------------------------------------
+//! The four per-entity record shapes carried by the Game Master snapshot fan.
+//!
+//! ONE SET OF CLASSES, USED ON BOTH SIDES. The server fills them in OVT_GMSnapshotBuilder, the fan
+//! carries them FIELD BY FIELD as RPC parameters (never as objects and never as array<> parameters -
+//! neither crosses the wire, and a hand-rolled bitstream is not an option because ScriptBitWriter
+//! hard-crashes on first use from script), and the client rebuilds them into the identical classes
+//! inside OVT_GMCampaignState. Two parallel shapes for "the server's base record" and "the client's
+//! base record" would be two places for a field to be added and one place for it to be forgotten.
+//!
+//! THE JOIN KEYS ARE DELIBERATE (see the plan's 3.4):
+//!  - groups and deployments are keyed by RplId, the only entity reference that means the same thing
+//!    on both machines. A sibling with a GM selection reads the entity's RplComponent.Id() and looks
+//!    the record up; POSITION IS THEREFORE NOT SENT for either - resolve the RplId and ask the entity.
+//!  - bases are keyed by their POSITIONAL INDEX into OVT_OccupyingFactionManager.m_Bases, because
+//!    clients already receive an index-aligned base list through that manager's JIP stream.
+//!
+//! They are plain Managed data with no behaviour on purpose: anything that looks like a query belongs
+//! on OVT_GMCampaignState (which owns the arrays) or on the consumer.
+//!
+//! WAYPOINT ROUTES ARE NOT HERE. The GM waypoint visualization has its own fan under the same
+//! seq/version framing; its records live in OVT_GMWaypointRecords.c (OVT_GMWaypointRecord and
+//! OVT_GMWaypointRoute) and are stored on OVT_GMRequestComponent separately from the snapshot.
+//------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------
+//! One occupying-faction base, aggregated over what is deployed at it.
+//!
+//! The aggregate exists so a consumer can draw a base without walking the per-deployment records: the
+//! three numbers here are exactly the sums of the OVT_GMBaseUpgradeRecord rows carrying the same base
+//! index, and m_iUpgrades is how many of those rows there are.
+//!
+//! ⚠ THE CLASS NAMES ARE HISTORICAL. They say "upgrade" because they are on the Game Master wire and
+//! renaming them would move the RPC for no behavioural gain; a row is a DEPLOYMENT anchored at the
+//! base, and the base-upgrade system these were written for no longer exists.
+//------------------------------------------------------------------------------------------------
+class OVT_GMBaseRecord : Managed
+{
+	//! Positional index into OVT_OccupyingFactionManager.m_Bases. THE JOIN KEY.
+	int m_iBaseIndex;
+
+	//! Sum of the resources invested in every deployment anchored at the base.
+	int m_iResources;
+
+	//! Sum of the virtualization-registered groups those deployments hold between them.
+	int m_iGroups;
+
+	//! How many deployments are anchored at the base - equal to the number of rows it has.
+	int m_iUpgrades;
+}
+
+//------------------------------------------------------------------------------------------------
+//! One deployment anchored at one base: what it is, what it cost, what it fields.
+//!
+//! Positions are deliberately absent - a deployment's marker carries one and gm-map will want it for
+//! an icon layer, but this feature has no renderer, so shipping it now would be speculative payload.
+//! It is a two-field additive extension when a consumer actually needs it, and the join is already
+//! available another way: the same deployment also has an OVT_GMDeploymentRecord keyed by RplId.
+//------------------------------------------------------------------------------------------------
+class OVT_GMBaseUpgradeRecord : Managed
+{
+	//! Positional index of the owning base into OVT_OccupyingFactionManager.m_Bases.
+	int m_iBaseIndex;
+
+	//! The deployment config's display name ("Base Tower Guards"). Already readable as authored, so
+	//! nothing formats it. Diagnostic text for a GM, never parsed.
+	string m_sType;
+
+	//! Resources the deployment framework has invested in this deployment.
+	int m_iResources;
+
+	//! Virtualization-registered groups its spawning modules hold, or 0 for a deployment that
+	//! registers none (parked vehicles field entities, not groups).
+	int m_iGroups;
+}
+
+//------------------------------------------------------------------------------------------------
+//! One active deployment.
+//!
+//! NO THREAT LEVEL: OVT_DeploymentConfig carries only m_iMinimumThreatLevel, which is a SPAWN
+//! PRECONDITION (the threat a deployment needs before it may be considered) and not a live per
+//! deployment threat reading, so sending it would show a GM a constant that says nothing about the
+//! deployment in front of them. OVT_DeploymentComponent.m_fThreatLevel does hold the area threat the
+//! deployment was created with, but it is written once at creation and never recomputed, so it is a
+//! historical value with the same problem. Neither is worth a wire field today; if gm-map wants
+//! either it is an additive extension with a comment explaining which one it chose.
+//------------------------------------------------------------------------------------------------
+class OVT_GMDeploymentRecord : Managed
+{
+	//! The deployment entity's RplId. THE JOIN KEY - resolve it for position, prefab, anything else.
+	RplId m_RplId;
+
+	//! OVT_DeploymentComponent.GetDeploymentName() - the config's display name.
+	string m_sName;
+
+	//! Faction index that controls it (OVT_DeploymentComponent.GetControllingFaction()).
+	int m_iFaction;
+
+	//! Resources spent on it so far (OVT_DeploymentComponent.GetResourcesInvested()).
+	int m_iResourcesInvested;
+
+	//! Whether it is currently running (OVT_DeploymentComponent.IsDeploymentActive()).
+	bool m_bActive;
+}
+
+//------------------------------------------------------------------------------------------------
+//! One tagged AI group: why it exists.
+//!
+//! Sourced from OVT_GMGroupRegistry, which tags at spawn and never untags - so a record here is
+//! always for a group whose entity resolved at build time, and a group that was never tagged is
+//! simply ABSENT rather than wrong.
+//------------------------------------------------------------------------------------------------
+class OVT_GMGroupRecord : Managed
+{
+	//! The group entity's RplId. THE JOIN KEY.
+	RplId m_RplId;
+
+	//! An OVT_EGroupOrigin value, as int because that is what the wire carries.
+	int m_iOriginType;
+
+	//! Base index / town id / radio-tower id, or -1 where the origin has no meaningful index.
+	int m_iOriginIndex;
+
+	//! Free text naming the concrete producer - an upgrade's ClassName(), a deployment's config name.
+	string m_sReason;
+}

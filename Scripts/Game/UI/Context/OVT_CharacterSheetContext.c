@@ -177,7 +177,10 @@ class OVT_CharacterSheetContext : OVT_UIContext
 		int toSpend = (level - 1) - player.CountSkills();
 		if(toSpend <= 0) return;
 		
-		OVT_Global.GetServer().BuySkill(m_iPlayerID,key);
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.BuySkill(key);
 	}
 	
 	protected override void OnClose()

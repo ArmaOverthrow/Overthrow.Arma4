@@ -66,7 +66,10 @@ class OVT_CampMenuContext : OVT_UIContext
 	
 	protected void TogglePrivacy()
 	{
-		OVT_Global.GetServer().SetCampPrivacy(m_Camp, !m_Camp.isPrivate);
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(!requests) return;
+
+		requests.SetCampPrivacy(m_Camp, !m_Camp.isPrivate);
 		UpdatePrivacyDisplay();
 	}
 	
@@ -82,7 +85,10 @@ class OVT_CampMenuContext : OVT_UIContext
 	
 	protected void OnConfirmDelete()
 	{
-		OVT_Global.GetServer().DeleteCamp(m_Camp);
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(requests)
+			requests.DeleteCamp(m_Camp);
+
 		CloseLayout();
 	}
 }

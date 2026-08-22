@@ -100,7 +100,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected int m_iHourPaidStock = -1; //!< Tracks the hour when stock was last replenished.
 	protected int m_iHourPaidRent = -1; //!< Tracks the hour when rent was last calculated.
 
-	//! BUG-179 one-shot guard. The three latches above are NOT persisted, so a loaded campaign starts
+	//! BUG-183 one-shot guard. The three latches above are NOT persisted, so a loaded campaign starts
 	//! with all three armed at -1 while the in-game clock IS restored - which re-pays whatever the
 	//! saved hour had already paid. They are asserted to the live hour once, on the first tick that
 	//! can read the clock; see AssertHourLatches.
@@ -164,7 +164,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 			m_Time = world.GetTimeAndWeatherManager();
 		}
 
-		//BUG-179: the load-order-proof point. Init() asserts the latches too, but the restore order of
+		//BUG-183: the load-order-proof point. Init() asserts the latches too, but the restore order of
 		//the persisted clock relative to Init() is not guaranteed, and this tick lands ~10 s later when
 		//it certainly is. Deliberately ABOVE the player-count guard, so an idle server latches the hour
 		//it loaded in rather than the hour the first player happens to join in. Not a one-shot until it
@@ -282,7 +282,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! Asserts all three once-per-hour payout latches to a known hour.
 	//!
-	//! BUG-179. The latches are not persisted and re-initialise to -1, so a campaign loaded during
+	//! BUG-183. The latches are not persisted and re-initialise to -1, so a campaign loaded during
 	//! hour 0/6/12/18 pays the income sweep a second time, a campaign loaded during hour 7 restocks
 	//! twice, and one loaded during hour 0 charges rent twice. Asserting them to the hour actually on
 	//! the clock closes all three, and it is the same operation the time skip needs afterwards - which
@@ -1211,8 +1211,8 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Adds money to a player's account. Server-only: money grants must originate on the server, so
-	//! calls from clients are ignored (clients go through a validated ask on OVT_PlayerCommsComponent,
-	//! e.g. SendResistanceFunds / SendMoneyToPlayer).
+	//! calls from clients are ignored (clients go through a validated ask on
+	//! OVT_EconomyRequestComponent, e.g. SendResistanceFunds / SendMoneyToPlayer).
 	//! \param[in] playerId The runtime Player ID.
 	//! \param[in] amount The amount of money to add.
 	//! \param[in] doEvent If true, invokes the m_OnPlayerSell event.
@@ -1248,7 +1248,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Adds money to the resistance faction's funds. Server-only: calls from clients are ignored
-	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. DonateToResistance).
+	//! (clients go through a validated ask on OVT_EconomyRequestComponent, e.g. DonateToResistance).
 	//! \param[in] amount The amount of money to add.
 	void AddResistanceMoney(int amount)
 	{
@@ -1271,7 +1271,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 	
 	//------------------------------------------------------------------------------------------------
 	//! Takes money from the resistance faction's funds. Server-only: calls from clients are ignored
-	//! (clients go through a validated ask on OVT_PlayerCommsComponent, e.g. SendResistanceFunds).
+	//! (clients go through a validated ask on OVT_EconomyRequestComponent, e.g. SendResistanceFunds).
 	//! \param[in] amount The amount of money to take.
 	void TakeResistanceMoney(int amount)
 	{
@@ -1302,7 +1302,10 @@ class OVT_EconomyManagerComponent: OVT_Component
 			DoSetResistanceTax(amount);
 			return;
 		}
-		OVT_Global.GetServer().SetResistanceTax(amount);		
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.SetResistanceTax(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1335,7 +1338,13 @@ class OVT_EconomyManagerComponent: OVT_Component
 			DoTakePlayerMoney(playerId, amount);
 			return;
 		}
-		OVT_Global.GetServer().TakePlayerMoney(playerId, amount);	
+		// The debited player is resolved server-side from the controller entity the request arrives on,
+		// so playerId is not sent - a client can only ever debit itself, which is what
+		// ResolveSenderPlayerId already enforced on the legacy seam (controller migration G3/D3).
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
+
+		economyRequests.TakePlayerMoney(amount);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1427,7 +1436,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 
 		m_OnResistanceMoneyChanged.Invoke(m_iResistanceMoney);
 
-		//BUG-179: a save payload has just replaced the campaign's state, and the hour latches are not
+		//BUG-183: a save payload has just replaced the campaign's state, and the hour latches are not
 		//part of that payload. Assert them from whatever the clock says now. Deliberately does NOT
 		//claim the m_bLatchesAsserted one-shot: the clock may not be restored yet at apply time, and
 		//the first CheckUpdate is the point where it certainly is. Also covers a LIVE re-apply, where
@@ -1465,7 +1474,7 @@ class OVT_EconomyManagerComponent: OVT_Component
 
 		if(!Replication.IsServer()) return;
 
-		//BUG-179: belt and braces, and nothing more. If the persisted clock is already restored this
+		//BUG-183: belt and braces, and nothing more. If the persisted clock is already restored this
 		//closes the duplicate payout immediately; if it is not, this latches a meaningless hour. Either
 		//way the one-shot at the top of CheckUpdate re-asserts from the clock ~10 s later and is the
 		//reading that actually decides - which is exactly why m_bLatchesAsserted is NOT claimed here.

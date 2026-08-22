@@ -2,15 +2,24 @@ class OVT_RealEstateManagerComponentClass: OVT_OwnerManagerComponentClass
 {
 };
 
+//! One version 1 warehouse's stock, waiting for its building to be found. See
+//! OVT_RealEstateManagerComponent.QueueWarehouseMigration().
+class OVT_WarehouseMigrationEntry : Managed
+{
+	vector location;
+	ref array<string> itemIds;
+	ref array<int> itemCounts;
+	int attempts;
+}
+
+//! Ownership, privacy and position for one warehouse building. The STOCK lives on the building's
+//! own OVT_StorageComponent (logistics/storage D2) - this record never holds items again.
 class OVT_WarehouseData : Managed
 {
 	int id;
 	vector location;
 	string owner;
 	bool isPrivate;
-	bool isLinked;
-	
-	ref map<string,int> inventory;	
 }
 
 //------------------------------------------------------------------------------------------------
@@ -29,17 +38,18 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses;
 
-	//! Invoked with (warehouseId, resource name string, new quantity) whenever one warehouse stock line
-	//! changes.
-	//!
-	//! Fired on BOTH sides of the wire and exactly once per change, the same shape OVT_ShopComponent's
-	//! m_OnInventoryChanged uses:
-	//! - DoAddToWarehouse/DoTakeFromWarehouse fire it where the mutation happened (server, and therefore
-	//!   a listen-server host), because a broadcast Rpc does not execute on the caller;
-	//! - RpcDo_SetWarehouseInventory fires it on every remote client as the new amount lands.
-	//! The warehouse menu subscribes so a take redraws when the server's number actually arrives instead
-	//! of immediately after the async ask, which used to redraw the pre-take quantity.
-	ref ScriptInvoker m_OnWarehouseInventoryChanged = new ScriptInvoker();
+	//! How far a warehouse record may sit from the building it describes. The tolerance every warehouse
+	//! lookup in the mod already used as a literal.
+	static const int WAREHOUSE_MATCH_RANGE = 10;
+
+	//! Retry interval and budget for the version 1 stock migration. A save is deserialized while the
+	//! world is still being built, so the first pass frequently finds no building at all.
+	static const int WAREHOUSE_MIGRATION_RETRY_MS = 1000;
+	static const int WAREHOUSE_MIGRATION_ATTEMPTS = 10;
+
+	//! Pending version 1 warehouse stock waiting for its building to exist. Drained by
+	//! DrainWarehouseMigration(); null once the queue has emptied for good.
+	protected ref array<ref OVT_WarehouseMigrationEntry> m_aWarehouseMigration;
 
 	//------------------------------------------------------------------------------------------------
 	//! Returns the singleton instance of the OVT_RealEstateManagerComponent
@@ -239,7 +249,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			{
 				warehouseData = new OVT_WarehouseData;
 				warehouseData.location = building.GetOrigin();
-				warehouseData.inventory = new map<string,int>;
 				warehouseData.id = m_aWarehouses.Count();
 				m_aWarehouses.Insert(warehouseData);
 				
@@ -277,7 +286,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			{
 				warehouseData = new OVT_WarehouseData;
 				warehouseData.location = building.GetOrigin();
-				warehouseData.inventory = new map<string,int>;
 				warehouseData.id = m_aWarehouses.Count();
 				m_aWarehouses.Insert(warehouseData);
 				
@@ -299,7 +307,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] ownedRecords Persisted owned buildings, may be null.
 	//! \param[in] rented Persisted rented buildings, may be null.
 	//! \param[in] warehouses Persisted warehouses, may be null.
-	void ApplyPersistedRealEstate(array<ref OVT_PersistedOwnership> ownedRecords, array<ref OVT_PersistedOwnership> rented, array<ref OVT_PersistedWarehouse> warehouses)
+	void ApplyPersistedRealEstate(array<ref OVT_PersistedOwnership> ownedRecords, array<ref OVT_PersistedOwnership> rented, array<ref OVT_PersistedWarehouseV2> warehouses)
 	{
 		if (ownedRecords)
 		{
@@ -412,13 +420,14 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Restores warehouse ownership, flags and stock, matching saved records to live warehouses by
-	//! position and creating the ones that do not exist yet.
+	//! Restores warehouse ownership and privacy, matching saved records to live warehouses by position
+	//! and creating the ones that do not exist yet.
 	//!
 	//! Ids are re-derived from the rebuilt array, never read from the save - see
-	//! OVT_PersistedWarehouse's header for why.
+	//! OVT_PersistedWarehouseV2's header for why. Stock is not here any more: it lives on the
+	//! building's OVT_StorageComponent and is restored by that component's own serializer.
 	//! \param[in] records Persisted warehouses, may be null.
-	protected void ApplyPersistedWarehouses(array<ref OVT_PersistedWarehouse> records)
+	protected void ApplyPersistedWarehouses(array<ref OVT_PersistedWarehouseV2> records)
 	{
 		if (!records)
 			return;
@@ -426,46 +435,155 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if (!m_aWarehouses)
 			m_aWarehouses = new array<ref OVT_WarehouseData>();
 
-		foreach (OVT_PersistedWarehouse record : records)
+		foreach (OVT_PersistedWarehouseV2 record : records)
 		{
 			if (!record)
 				continue;
 
-			OVT_WarehouseData warehouse = GetNearestWarehouse(record.location, 10);
+			OVT_WarehouseData warehouse = GetNearestWarehouse(record.location, WAREHOUSE_MATCH_RANGE);
 			if (!warehouse)
 			{
 				warehouse = new OVT_WarehouseData();
 				warehouse.location = record.location;
-				warehouse.inventory = new map<string, int>();
 				warehouse.id = m_aWarehouses.Count();
 				m_aWarehouses.Insert(warehouse);
 			}
 
 			warehouse.owner = record.owner;
 			warehouse.isPrivate = record.isPrivate;
-			warehouse.isLinked = record.isLinked;
+		}
+	}
 
-			if (!warehouse.inventory)
-				warehouse.inventory = new map<string, int>();
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Accepts one version 1 warehouse's stock for delivery into the building's
+	//! OVT_StorageComponent, and starts the drain if it is not already running.
+	//!
+	//! Called from OVT_RealEstateManagerSerializer's version 1 read, which is the only writer of the
+	//! old map<string,int> format. Deliberately does NOT resolve the building itself: component
+	//! deserialization runs while the world is still being built, so the building frequently does not
+	//! exist yet. See DrainWarehouseMigration() for the retry budget.
+	//! \param[in] location The saved warehouse position.
+	//! \param[in] itemIds Resource name strings, index-aligned with itemCounts.
+	//! \param[in] itemCounts Quantities, index-aligned with itemIds.
+	void QueueWarehouseMigration(vector location, array<string> itemIds, array<int> itemCounts)
+	{
+		if (!itemIds || !itemCounts)
+			return;
 
-			warehouse.inventory.Clear();
+		int count = itemIds.Count();
+		if (itemCounts.Count() < count)
+			count = itemCounts.Count();
 
-			if (!record.itemIds || !record.itemCounts)
+		OVT_WarehouseMigrationEntry entry = new OVT_WarehouseMigrationEntry();
+		entry.location = location;
+		entry.itemIds = new array<string>();
+		entry.itemCounts = new array<int>();
+		entry.attempts = 0;
+
+		for (int i = 0; i < count; i++)
+		{
+			string itemId = itemIds[i];
+			if (itemId == "")
 				continue;
 
-			int count = record.itemIds.Count();
-			if (record.itemCounts.Count() < count)
-				count = record.itemCounts.Count();
+			if (itemCounts[i] <= 0)
+				continue;
 
-			for (int i = 0; i < count; i++)
-			{
-				string itemId = record.itemIds[i];
-				if (itemId == "")
-					continue;
-
-				warehouse.inventory.Set(itemId, record.itemCounts[i]);
-			}
+			entry.itemIds.Insert(itemId);
+			entry.itemCounts.Insert(itemCounts[i]);
 		}
+
+		if (entry.itemIds.IsEmpty())
+			return;
+
+		if (!m_aWarehouseMigration)
+			m_aWarehouseMigration = new array<ref OVT_WarehouseMigrationEntry>();
+
+		m_aWarehouseMigration.Insert(entry);
+
+		GetGame().GetCallqueue().Remove(DrainWarehouseMigration);
+		GetGame().GetCallqueue().CallLater(DrainWarehouseMigration, WAREHOUSE_MIGRATION_RETRY_MS, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Delivers every queued version 1 warehouse stock into its building's ledger.
+	//!
+	//! An entry whose building cannot be found is retried once a second, WAREHOUSE_MIGRATION_ATTEMPTS
+	//! times, and then logged at ERROR WITH ITS LOCATION and dropped - an old campaign's stock
+	//! disappearing without a word is the failure this exists to prevent.
+	protected void DrainWarehouseMigration()
+	{
+		if (!m_aWarehouseMigration)
+			return;
+
+		for (int i = m_aWarehouseMigration.Count() - 1; i >= 0; i--)
+		{
+			OVT_WarehouseMigrationEntry entry = m_aWarehouseMigration[i];
+			if (!entry)
+			{
+				m_aWarehouseMigration.RemoveOrdered(i);
+				continue;
+			}
+
+			if (DeliverWarehouseMigration(entry))
+			{
+				m_aWarehouseMigration.RemoveOrdered(i);
+				continue;
+			}
+
+			entry.attempts += 1;
+			if (entry.attempts < WAREHOUSE_MIGRATION_ATTEMPTS)
+				continue;
+
+			Print(string.Format("[OVT_RealEstateManagerComponent] Warehouse migration FAILED at %1: no warehouse building with an OVT_StorageComponent within %2m after %3 attempts. %4 stock line(s) from this save are lost.",
+				entry.location.ToString(),
+				WAREHOUSE_MATCH_RANGE.ToString(),
+				entry.attempts.ToString(),
+				entry.itemIds.Count().ToString()), LogLevel.ERROR);
+
+			m_aWarehouseMigration.RemoveOrdered(i);
+		}
+
+		if (m_aWarehouseMigration.IsEmpty())
+		{
+			m_aWarehouseMigration = null;
+			return;
+		}
+
+		GetGame().GetCallqueue().CallLater(DrainWarehouseMigration, WAREHOUSE_MIGRATION_RETRY_MS, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Adds one queued entry's lines to its building's ledger at unlimited capacity.
+	//! \param[in] entry The queued stock.
+	//! \return True when the stock was delivered; false to retry.
+	protected bool DeliverWarehouseMigration(notnull OVT_WarehouseMigrationEntry entry)
+	{
+		IEntity building = GetNearestBuilding(entry.location, WAREHOUSE_MATCH_RANGE);
+		if (!building)
+			return false;
+
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(building);
+		if (!storage)
+			return false;
+
+		OVT_StorageLedger ledger = storage.GetLedger();
+		if (!ledger)
+			return false;
+
+		for (int i = 0; i < entry.itemIds.Count(); i++)
+		{
+			ledger.Add(entry.itemIds[i], entry.itemCounts[i], OVT_StorageComponent.UNLIMITED_CAPACITY);
+		}
+
+		// Republishes the replicated count and, on a building, is also what puts it in the save point.
+		storage.PublishCount();
+
+		Print(string.Format("[OVT_RealEstateManagerComponent] Warehouse migration: moved %1 stock line(s) from the version 1 save at %2 into the building's storage",
+			entry.itemIds.Count().ToString(),
+			entry.location.ToString()), LogLevel.NORMAL);
+
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -489,98 +607,58 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Gets the inventory of a specific warehouse. If the warehouse is linked, it aggregates inventory from all linked warehouses.
-	//! \param[in] warehouse The warehouse data object
-	//! \return A map representing the inventory (resource name string -> quantity int)
-	map<string,int> GetWarehouseInventory(OVT_WarehouseData warehouse)
+	//! THE warehouse accessibility rule. One body, called by the server gate
+	//! (OVT_StorageRequestComponent.MayUseHolder), by the storage user actions and by the vehicle
+	//! menu's two warehouse buttons, so they cannot drift (logistics/storage I5).
+	//!
+	//! Anything that is not a warehouse building answers true - callers use this as a filter, not as a
+	//! test for "is this a warehouse".
+	//!
+	//! THE RENTAL CLAUSE MEANS "RENTED BY THIS PLAYER". The shipped expression ended in a bare
+	//! `|| isRented`, and OVT_OwnerManagerComponent.IsRented(EntityID) means "rented by ANYBODY" - so
+	//! one player renting a warehouse opened it to every player on the server. A "resistance" rental
+	//! still opens it to everyone, because that renter is the collective, not a person.
+	//! \param[in] persistentId The asking player's persistent id.
+	//! \param[in] building The candidate building.
+	//! \return True when the player may open this warehouse's storage.
+	bool PlayerMayUseWarehouse(string persistentId, IEntity building)
 	{
-		if(warehouse.isLinked)
-		{
-			map<string,int> items = new map<string,int>;
-			foreach(OVT_WarehouseData w : m_aWarehouses)
-			{
-				if(!w.isLinked) continue;
-				for(int i=0; i<w.inventory.Count(); i++)
-				{
-					string id = w.inventory.GetKey(i);
-					if(!items.Contains(id)) items[id] = 0;
-					items[id] = items[id] + w.inventory[id];
-				}
-			}
-			return items;
-		}else{
-			return warehouse.inventory;
-		}
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Adds items to a warehouse. Handles server/client logic.
-	//! \param[in] warehouse The warehouse data object
-	//! \param[in] res The ResourceName of the item to add
-	//! \param[in] count The quantity to add (default: 1)
-	void AddToWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
-	{		
-		if(Replication.IsServer())
-		{
-			DoAddToWarehouse(warehouse.id, res, count);
-			return;
-		}
-		OVT_Global.GetServer().AddToWarehouse(warehouse.id, res, count);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Server-side logic to add items to a warehouse's inventory and replicate the change.
-	//! \param[in] warehouseId The ID of the warehouse
-	//! \param[in] id The ResourceName string of the item to add
-	//! \param[in] count The quantity to add
-	void DoAddToWarehouse(int warehouseId, string id, int count)
-	{
-		if(count <= 0) return;
-		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
-		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
-		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
-		warehouse.inventory[id] = warehouse.inventory[id] + count;
-		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+		if (!building)
+			return false;
 
-		// The broadcast does not run on the caller, so the host raises its own event here or a
-		// listen-server player would never see the menu update the change they just made.
-		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Takes items from a warehouse. Handles server/client logic.
-	//! \param[in] warehouse The warehouse data object
-	//! \param[in] res The ResourceName of the item to take
-	//! \param[in] count The quantity to take (default: 1)
-	void TakeFromWarehouse(OVT_WarehouseData warehouse, ResourceName res, int count = 1)
-	{		
-		if(Replication.IsServer())
-		{
-			DoTakeFromWarehouse(warehouse.id, res, count);
-			return;
-		}
-		OVT_Global.GetServer().TakeFromWarehouse(warehouse.id, res, count);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Server-side logic to remove items from a warehouse's inventory and replicate the change. Ensures quantity doesn't go below zero.
-	//! \param[in] warehouseId The ID of the warehouse
-	//! \param[in] id The ResourceName string of the item to take
-	//! \param[in] count The quantity to take
-	void DoTakeFromWarehouse(int warehouseId, string id, int count)
-	{
-		if(count <= 0) return;
-		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
-		OVT_WarehouseData warehouse = m_aWarehouses[warehouseId];
-		if(!warehouse.inventory.Contains(id)) warehouse.inventory[id] = 0;
-		warehouse.inventory[id] = warehouse.inventory[id] - count;
-		if(warehouse.inventory[id] < 0) warehouse.inventory[id] = 0;
-		Rpc(RpcDo_SetWarehouseInventory, warehouseId, id, warehouse.inventory[id]);
+		OVT_RealEstateConfig config = GetConfig(building);
+		if (!config || !config.m_IsWarehouse)
+			return true;
 
-		// Host side of the same event - see DoAddToWarehouse.
-		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, warehouse.inventory[id]);
+		OVT_WarehouseData warehouse = GetNearestWarehouse(building.GetOrigin(), WAREHOUSE_MATCH_RANGE);
+		if (!warehouse)
+			return false;
+
+		EntityID id = building.GetID();
+
+		if (IsRented(id))
+		{
+			if (GetRenterID(building) == "resistance")
+				return true;
+
+			if (persistentId == "")
+				return false;
+
+			return IsRenter(persistentId, id);
+		}
+
+		if (!IsOwned(id))
+			return false;
+
+		if (!warehouse.isPrivate)
+			return true;
+
+		if (persistentId == "")
+			return false;
+
+		return IsOwner(persistentId, id);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Sets the home spawn location for a player based on a building entity. Uses OVT_SpawnPointComponent if available.
 	//! Replicates the change to clients.
@@ -727,6 +805,13 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return null;
 	}
 	
+	//! Fraction of the buy price a sale pays back. See GetSellPrice().
+	protected const float SELL_BACK_RATIO = 0.8;
+	
+	//! How much of the stability term comes from the building's own town rather than the island as a
+	//! whole. See DemandFactor().
+	protected const float LOCAL_STABILITY_WEIGHT = 0.5;
+	
 	//------------------------------------------------------------------------------------------------
 	//! Calculates the purchase price for a building based on its config and the nearest town's economy.
 	//! \param[in] entity The building entity
@@ -736,14 +821,22 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_RealEstateConfig config = GetConfig(entity);
 		if(!config) return 0;
 		
-		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		return ScaleRealEstate(config.m_BasePrice, DemandFactor(config, entity));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! What selling a building pays back. Deliberately BELOW the buy price: the buy price scales with
+	//! the town's stability, which the player raises as core gameplay, so a lossless round trip would
+	//! make property a money printer (buy destabilized, stabilize, sell). The friction keeps a genuine
+	//! turnaround profitable and kills the free flip.
+	//! \param[in] entity The building entity
+	//! \return The payout, or 0 if no config found
+	int GetSellPrice(IEntity entity)
+	{
+		int buy = GetBuyPrice(entity);
+		if(buy <= 0) return 0;
 		
-		if(config.m_IsWarehouse)
-		{
-			return config.m_BasePrice;
-		}
-		
-		return config.m_BasePrice + (config.m_BasePrice * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
+		return Math.Max(1, Math.Round(buy * SELL_BACK_RATIO));
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -755,14 +848,45 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_RealEstateConfig config = GetConfig(entity);
 		if(!config) return 0;
 		
+		return ScaleRealEstate(config.m_BaseRent, DemandFactor(config, entity));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Demand term shared by buy and rent. A warehouse is priced flat - it is an industrial building
+	//! that may sit outside any town, where GetNearestTown's answer is meaningless.
+	//!
+	//! Stability blends LOCAL with ISLAND-WIDE. Local alone made one town's firefight crater its own
+	//! property market in isolation (a 6.7x swing on the largest town's villas); the blend makes price
+	//! track how the war is going rather than how one street is going.
+	//! \param[in] config The matched real-estate config
+	//! \param[in] entity The building entity
+	//! \return 1.0 plus the town's demand contribution, never below 1.0
+	protected float DemandFactor(OVT_RealEstateConfig config, IEntity entity)
+	{
+		if(config.m_IsWarehouse) return 1;
+		
 		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		if(!town) return 1;
 		
-		if(config.m_IsWarehouse)
-		{
-			return config.m_BaseRent;
-		}
+		float stability = (LOCAL_STABILITY_WEIGHT * town.stability)
+			+ ((1 - LOCAL_STABILITY_WEIGHT) * m_Town.GetGlobalStability());
 		
-		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
+		return 1 + (config.m_DemandMultiplier * town.population * (stability / 100));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! The one place the difficulty's realEstateCostMultiplier is applied, so the price a screen shows
+	//! and the price the server charges cannot drift. Floors at 1 - a free building is not a price.
+	//! \param[in] base The authored base price or rent
+	//! \param[in] demand The demand factor from DemandFactor()
+	//! \return The scaled price
+	protected int ScaleRealEstate(int base, float demand)
+	{
+		float mult = 1;
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(config) mult = config.GetRealEstateCostMultiplier();
+		
+		return Math.Max(1, Math.Round(base * demand * mult));
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -787,7 +911,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Saves replication data for the component, including warehouse information.
+	//! Saves replication data for the component: the warehouse records, minus their stock. Contents
+	//! live on each building's own OVT_StorageComponent and reach a client through that component's
+	//! three RplProps, never through this stream.
 	//! \param[in,out] writer The ScriptBitWriter to write data to
 	//! \return true on success
 	override bool RplSave(ScriptBitWriter writer)
@@ -804,52 +930,40 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			writer.WriteInt(data.id);
 			writer.WriteVector(data.location);
 			writer.WriteString(data.owner);
-			writer.WriteBool(data.isLinked);
 			writer.WriteBool(data.isPrivate);
-			writer.WriteInt(data.inventory.Count());
-			for(int ii; ii<data.inventory.Count(); ii++)
-			{
-				writer.WriteString(data.inventory.GetKey(ii));
-				writer.WriteInt(data.inventory.GetElement(ii));
-			}
 		}
 		
 		return true;
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Loads replication data for the component, including warehouse information for JIP clients.
+	//! Loads replication data for the component: the warehouse records for JIP clients.
+	//!
+	//! CLEARS BEFORE INSERTING. A re-stream used to append a second copy of every warehouse, and
+	//! OVT_WarehouseData.id is the entry's index in this array, so the duplicates re-numbered the
+	//! records the client already held.
 	//! \param[in] reader The ScriptBitReader to read data from
 	//! \return true on success, false on failure
 	override bool RplLoad(ScriptBitReader reader)
 	{
 		if(!super.RplLoad(reader)) return false;
 		
-		int length, ownedlength, id, qty;
-		string res;
-		string playerId;
-		vector loc;
+		int length;
 		
 		//Recieve JIP warehouses
 		if (!reader.ReadInt(length)) return false;
+		
+		if(!m_aWarehouses) m_aWarehouses = new array<ref OVT_WarehouseData>();
+		m_aWarehouses.Clear();
+		
 		for(int i=0; i<length; i++)
 		{
 			OVT_WarehouseData data = new OVT_WarehouseData;
 			if (!reader.ReadInt(data.id)) return false;
 			if (!reader.ReadVector(data.location)) return false;	
 			if (!reader.ReadString(data.owner)) return false;
-			if (!reader.ReadBool(data.isLinked)) return false;
 			if (!reader.ReadBool(data.isPrivate)) return false;
 			
-			data.inventory = new map<string,int>;
-			
-			if (!reader.ReadInt(ownedlength)) return false;
-			for(int ii; ii<ownedlength; ii++)
-			{
-				if (!reader.ReadString(res)) return false;
-				if (!reader.ReadInt(qty)) return false;
-				data.inventory[res] = qty;
-			}
 			m_aWarehouses.Insert(data);			
 		}
 		return true;
@@ -863,21 +977,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	protected void RpcDo_SetHome(int playerId, vector loc)
 	{
 		DoSetHome(playerId, loc);	
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! RPC handler to update the quantity of a specific item in a specific warehouse's inventory. Called on all clients.
-	//! \param[in] warehouseId The ID of the warehouse
-	//! \param[in] id The ResourceName string of the item
-	//! \param[in] qty The new quantity of the item
-	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
-	protected void RpcDo_SetWarehouseInventory(int warehouseId, string id, int qty)
-	{
-		if(warehouseId < 0 || warehouseId >= m_aWarehouses.Count()) return;
-
-		m_aWarehouses[warehouseId].inventory[id] = qty;
-
-		if(m_OnWarehouseInventoryChanged) m_OnWarehouseInventoryChanged.Invoke(warehouseId, id, qty);
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -902,7 +1001,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			warehouseData = new OVT_WarehouseData;
 			warehouseData.location = location;
-			warehouseData.inventory = new map<string,int>;
 			warehouseData.id = m_aWarehouses.Count();
 			m_aWarehouses.Insert(warehouseData);
 			
@@ -932,7 +1030,6 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			warehouseData = new OVT_WarehouseData;
 			warehouseData.location = location;
-			warehouseData.inventory = new map<string,int>;
 			warehouseData.id = m_aWarehouses.Count();
 			m_aWarehouses.Insert(warehouseData);
 			
@@ -950,7 +1047,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		if(playerId != localId) return;
 		
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		vector spawn = OVT_Global.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
+		vector spawn = OVT_WorldUtils.FindSafeSpawnPosition(OVT_Global.GetRealEstate().GetHome(persId));
 		SCR_Global.TeleportPlayer(localId, spawn);
 	}
 	

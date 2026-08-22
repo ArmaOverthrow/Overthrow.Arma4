@@ -1,8 +1,8 @@
 # QRF - Context & Decisions
 
-**Last Updated:** 2026-08-18
-**Current Phase:** Enhancements
-**Status:** ✅ Documented (Existing Feature) + player-initiated uprisings landed
+**Last Updated:** 2026-08-20 (CLOSED)
+**Current Phase:** CLOSED — legacy
+**Status:** 🗄️ CLOSED 2026-08-20 — legacy. `OVT_QRFControllerComponent` still resolves every battle (standard + the `counter-attacks` siege mode) and is consumed as-is by `occupying/objectives`' `StartBattle` module; no further feature work here. Open retrospective debt (JIP payload gaps, live battle rolls back on load) is tracked in the epic's Tech Debt, not here.
 
 ---
 
@@ -41,6 +41,12 @@
 - **Town controller is now a flagpole:** `OVT_TownController.et` inherits `FlagPole_02_V1_FIA.et` exactly like `OVT_BaseController.et` (same `SlotManagerComponent {55DAE04E55ECE7FA}` override → USSR flag). Flag material tracks the replicated town faction via a 10 s check on every machine (`CheckUpdateFlag` — same `SCR_FlagComponent.ChangeMaterial` pattern as bases). The medical-supplies sign child was kept (jobs use it as the delivery landmark); world instances need repositioning by hand — the entity was invisible before and some sit on roads.
 - **Ephemeral battle entity:** one controller entity per battle, spawned at the objective, deleted on resolution; consequences flow only through the manager's `m_OnFinished` callbacks. One QRF at a time (`m_CurrentQRF` singleton slot).
 - **Global garrison despawn:** all garrison/patrol/civilian spawn predicates check `!m_CurrentQRF`; the QRF delays its own spawning 15 s so they clear first. The contested base loses its defenders by design (perf headroom).
+  - ⚠ **SUPERSEDED IN PART, 2026-08-19 — read this before acting on the bullet above.** The "global" half of that sentence is history: `virtualization/base-defense-migration` moved base defence off base upgrades and onto **deployments**, whose groups live on the engine's proximity lifecycle and honoured no QRF predicate at all — a play-test found tower guards materialising at a contested base mid-battle. The **intent** of the bullet survives; its **scope** does not. The rule as built is now:
+    - suppression is **local**, not global — only within the QRF's own `QRF_RANGE` (750 m) of `m_vQRFLocation`. Deployments elsewhere on the map keep being maintained, which is the migration's own improvement and is deliberately preserved;
+    - it is gated on **`IsQRFEngaged()`**, not on `m_CurrentQRF` existing. A counter-attack siege is a battle object for up to 31 minutes before a shot is fired, and emptying the objective during `SILENT_DEPLOY`/`MUSTER` would be exactly the tell `occupying/counter-attacks` §3.9 exists to avoid. A **standard, player-initiated battle is engaged from creation**, so nothing about a player's own battle changed;
+    - it is scoped to the **occupying faction**. Resistance-faction deployments are never suppressed — this battle's zone-control scoring deliberately counts resistance AI (see the zone-control bullet below), so holding those men back would score the player down for it;
+    - it **suppresses materialisation** of groups that are not yet up (`SCR_AIGroup.SetLifecyclePolicy(Manual)`, reversed when the battle ends). Groups **already standing** when the battle reaches them are left alone — the contested base is emptied by the player as it always was, it simply stops being refilled. Forcibly despawning standing groups was considered and deliberately **not** done; see `occupying/counter-attacks/context.md` for the feasibility verdict.
+    - Owner: `OVT_DeploymentManagerComponent.TickBattleSuppression()`; the rule itself is the pure `OVT_DeploymentBattleSuppression`. Civilians are unaffected by any of this — they are still the town invoker, unchanged.
 - **Zone control is a head count of everyone still standing (2026-08-18):** counted every 10 s inside 220 m. Human players **and** resistance-faction AI (recruits, and any future resistance deployment) score for the resistance — the old players-only model made an all-AI assault lose by default. Player-controlled entities are skipped in the agent loop so a player is never double-counted. Dead and unconscious characters count for neither side (`IsFightingFit`), which also stops a corpse earning the 2 XP/tick. +5/tick still requires zero OF AI within 750 m. Recruits alone can now carry a battle — deliberate: they are forces the player paid for and committed.
 - **Not persisted, by omission:** no QRF state in the serializer, controller/troops never persistence-tracked — a load mid-battle cleanly rolls back to "no battle".
 - **Survivors stay:** QRF AI is intentionally not cleaned up after battle (commit `e115965`).
@@ -54,7 +60,7 @@
 - **Two replication channels, one live:** the controller's `RplProp m_iPoints/m_iWinningFaction` stop replicating the moment the battle phase starts (BumpMe unreachable); the manager's broadcast RPCs are the real channel the HUD uses.
 - **`m_iCurrentQRFBase/Town` are not in the JIP payload** — JIP clients mis-draw map restricted areas during a battle.
 - The economy freeze during a QRF is total (no resources/threat/spending/counter-attacks/town checks anywhere) — long battles visibly stall the whole faction.
-- Deployment AI within 750 m counts toward the QRF's enemy tally (unintended coupling); deployments also stop evaluating during battles.
+- Deployment AI within 750 m counts toward the QRF's enemy tally (unintended coupling); deployments also stop evaluating during battles. ⚠ **Updated 2026-08-19:** "stop evaluating" is `IsQRFEngaged()`, not "a battle exists", and it only ever blocked **creating** deployments. Existing occupying-faction deployment groups within 750 m of an engaged battle are now additionally held dormant — see the amendment under *Global garrison despawn* above.
 
 ---
 

@@ -3,7 +3,7 @@
 //!
 //! THE TRAP THIS EXISTS FOR. A controller component that exists in script but is not listed in
 //! Prefabs/GameMode/OVT_OverthrowController.et is a SILENT no-op: everything compiles, every call
-//! site type-checks, OVT_Global.GetRecruitCommands() simply answers null forever, and the whole
+//! site type-checks, OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get() simply answers null forever, and the whole
 //! feature - the held actions on the body, the roster's activate/deactivate button, Phase 4's
 //! status push, Phase 7's loadout swap - does nothing at all, on every machine, with no error. The
 //! project has lost features to exactly this before, which is why the fail-proof is a test and not
@@ -11,7 +11,7 @@
 //!
 //! WHY IT SPAWNS THE PREFAB INSTEAD OF READING THE LIVE CONTROLLER. The Init tier has no started
 //! campaign, so OVT_PlayerManagerComponent.SetupPlayer() - the only thing that ever spawns a
-//! player's controller entity - has not necessarily run, and OVT_Global.GetRecruitCommands() would
+//! player's controller entity - has not necessarily run, and OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get() would
 //! answer null for a reason that has nothing to do with the prefab. The suite header says the same
 //! thing about GetController() and excludes it for it. Spawning the manager's OWN configured prefab
 //! resource asks the question the trap is actually about - "does this prefab carry the component" -
@@ -73,15 +73,15 @@ class OVT_TEST_Init_RecruitCommands_OnController : SCR_AutotestCaseBase
 
 		if (!hasComponent)
 		{
-			SetFailure("The controller prefab does not carry OVT_RecruitCommandComponent, so OVT_Global.GetRecruitCommands() answers null on every machine and every recruit command - the held actions, the roster button, the status push and the loadout swap - is a silent no-op. Add it back to Prefabs/GameMode/OVT_OverthrowController.et");
+			SetFailure("The controller prefab does not carry OVT_RecruitCommandComponent, so OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get() answers null on every machine and every recruit command - the held actions, the roster button, the status push and the loadout swap - is a silent no-op. Add it back to Prefabs/GameMode/OVT_OverthrowController.et");
 			return true;
 		}
 
 		// Opportunistic, never asserted-on when absent: in this tier the campaign is not started, so
 		// a live controller may legitimately not exist yet.
-		if (OVT_Global.GetController() && !OVT_Global.GetRecruitCommands())
+		if (OVT_Global.GetController() && !OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get())
 		{
-			SetFailure("A live OVT_OverthrowController exists but OVT_Global.GetRecruitCommands() is null on it, although the prefab carries the component - the accessor and the prefab entry disagree");
+			SetFailure("A live OVT_OverthrowController exists but OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get() is null on it, although the prefab carries the component - the accessor and the prefab entry disagree");
 			return true;
 		}
 

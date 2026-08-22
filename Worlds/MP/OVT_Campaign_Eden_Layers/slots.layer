@@ -1,21 +1,11 @@
-SCR_SiteSlotEntity : "{4B1C4BDDF6683101}PrefabsEditable/Slots/Flat/E_SlotFlatMedium.et" {
- coords 3925.604 15.264 8455.71
- {
-  StaticModelEntity {
-   ID "52E8C3643526D54D"
-   coords 0 0.328 0
-   angles -0.174 0 -1.069
-  }
- }
-}
 $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFlatSmall.et" {
  {
-  coords 3942.713 15.956 8437.03
+  coords 3925.435 15.956 8437.03
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
-    coords 0 -0.083 0
-    angles 1.087 0 -3.78
+    coords 0 -0.597 0
+    angles 0 0 0.117
    }
   }
  }
@@ -25,16 +15,6 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
    StaticModelEntity {
     ID "52E8C3643526D54D"
     coords 0 -0.001 0
-   }
-  }
- }
- {
-  coords 3936.236 15.455 8415.264
-  {
-   StaticModelEntity {
-    ID "52E8C3643526D54D"
-    coords 0 0.202 0
-    angles -0.977 0 -2.546
    }
   }
  }
@@ -49,12 +29,12 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
   }
  }
  {
-  coords 3896.544 15.282 8402.066
+  coords 3875.638 15.282 8419.342
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
-    coords 0 0.106 0
-    angles -1.295 0 0.057
+    coords 0 0.031 0
+    angles -0.009 0 0.239
    }
   }
  }
@@ -71,22 +51,179 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
  {
   coords 5810.926 5.254 9847.3
  }
+ {
+  coords 7498.702 163.062 4370.966
+  angles 0 19.629 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 1.556 0
+    angles 3.383 0 1.8
+   }
+  }
+ }
+ {
+  coords 7392.597 170 4218.421
+  angles 0 35.111 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0 0
+   }
+  }
+ }
+ {
+  coords 7578.441 166.905 4183.837
+  angles 0 90.219 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.406 0
+    angles 0 0 4.854
+   }
+  }
+ }
+ {
+  coords 4911.924 28.594 11937.974
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0 0
+   }
+  }
+ }
+ {
+  coords 4913.698 28.594 11875.27
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0 0
+   }
+  }
+ }
+ {
+  coords 7314.691 19.774 6771.337
+  angles 0 -138.858 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -1.296 0
+    angles -1.407 0 1.527
+   }
+  }
+ }
+ {
+  coords 7468.627 7.818 6699.657
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.001 0
+    angles 0.621 0 -0.444
+   }
+  }
+ }
+ {
+  coords 10681.791 20.145 11872.635
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.136 0
+    angles 2.593 0 0.835
+   }
+  }
+ }
+ {
+  coords 1038.1 2.871 6210.207
+  angles 0 141.31 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.058 0
+    angles 0 0 0.001
+   }
+  }
+ }
+ {
+  coords 1084.968 2.781 6041.161
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.016 0
+    angles -0.119 0 0
+   }
+  }
+ }
+ {
+  coords 5260.467 43.681 10411.104
+  angles 0 -80.51 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.012 0
+    angles 0.629 0 1.211
+   }
+  }
+ }
+ {
+  coords 5493.411 44.155 10570.723
+  angles 0 -79.067 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.008 0
+    angles -0.666 0 -0.822
+   }
+  }
+ }
+ {
+  coords 5508.563 45.937 10492.233
+  angles 0 -101.271 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.067 0
+    angles 0.406 0 0.708
+   }
+  }
+ }
+ {
+  coords 9282.431 184.541 1084.374
+  angles 0 135.945 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -1.345 0
+    angles 4.139 0 -3.14
+   }
+  }
+ }
+ {
+  coords 7673.216 13.443 8096.163
+  angles 0 -148.115 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.01 0
+    angles -1.335 0 2.339
+   }
+  }
+ }
 }
 $grp OVT_VehiclePatrolSpawn : "{5BF1F972169C6923}Prefabs/GameMode/OVT_VehiclePatrolSpawn.et" {
  {
-  coords 7528.287 165.329 4359.783
-  angles 0 14.567 0
+  coords 7534.582 163.919 4396.41
+  angles 0 1.051 0
  }
  {
-  coords 7529.124 2.465 6682.219
-  angles 0 -110.263 0
+  coords 7429.357 5.789 6644.645
+  angles 0 -96.868 0
  }
  {
   coords 7621.615 14.731 8075.547
   angles 3.936 -50.302 0
  }
  {
-  coords 5837.209 4.692 9829.325
+  coords 5837.209 5.048 9845.766
   angles 0 0 0
  }
  {
@@ -106,8 +243,32 @@ $grp OVT_VehiclePatrolSpawn : "{5BF1F972169C6923}Prefabs/GameMode/OVT_VehiclePat
   angles 0 -125.868 0
  }
  {
-  coords 9298.716 183.343 1082.884
+  coords 9298.881 183.368 1082.403
   angles -1.625 -179.312 0
+ }
+}
+$grp SCR_SiteSlotEntity : "{881CE7B0098504C2}PrefabsEditable/Slots/Road/E_SlotRoadLarge.et" {
+ {
+  coords 7490.099 165.692 4234.874
+  angles 0 -163.357 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.014 0
+    angles 0.361 0 -0.713
+   }
+  }
+ }
+ {
+  coords 4956.248 28.449 11841.824
+  angles 0 -173.257 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.06 0
+    angles -0.633 0 -0.076
+   }
+  }
  }
 }
 GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
@@ -145,6 +306,70 @@ $grp SCR_SiteSlotEntity : "{F4066B8425BEC47C}PrefabsEditable/Slots/Road/E_SlotRo
     ID "52E8C3643526D54D"
     coords 0 3.753 0
     angles -4.007 0 2.214
+   }
+  }
+ }
+ {
+  coords 7531.147 165.458 4371.133
+  angles 0 12.225 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.416 0
+    angles 1.563 0 -0.128
+   }
+  }
+ }
+ {
+  coords 5836.841 4.647 9831.411
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.019 0
+    angles -0.753 0 0
+   }
+  }
+ }
+ {
+  coords 7379.568 9.956 6685.323
+  angles 0 -142.516 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.011 0
+    angles -0.66 0 0.025
+   }
+  }
+ }
+ {
+  coords 10673.016 3.612 11796.036
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 -0.907 0
+    angles 0.356 0 3.052
+   }
+  }
+ }
+ {
+  coords 5165.045 40.447 10445.186
+  angles 0 -130.558 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.006 0
+    angles 0.179 0 -0.053
+   }
+  }
+ }
+ {
+  coords 7632.762 13.811 8066.715
+  angles 0 -49.902 0
+  {
+   StaticModelEntity {
+    ID "52E8C3643526D54D"
+    coords 0 0.106 0
+    angles -2.348 0 -0.999
    }
   }
  }

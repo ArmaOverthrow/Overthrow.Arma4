@@ -2,85 +2,6 @@
 
 Overthrow is a dynamic and persistent revolution mod for Arma Reforger. It's built using EnforceScript and the Enfusion engine's entity-component-based architecture.
 
-## Development Workflow
-
-Development is done through Arma Reforger Tools:
-- You cannot compile/build the project, it must be done via the Arma Reforger Workbench. The user will do this and report any compile errors/debug prints etc to you
-- There is no unit testing or integration testing available. Just old-skool play-testing. But be specific in what the user should do when testing new features or bugfixes
-
-### Beast Mode Workflow
-
-This project uses the Beast Mode workflow system for feature development and context management.
-
-#### Quick Start
-
-- `/start-feature <name>` - Start tracking a new feature with dev docs
-- `/continue-feature [name]` - Resume work on an active feature
-- `/dev-docs-update [name]` - Update dev docs before compacting conversations
-
-#### Available Skills
-
-**Activate these skills when working on specific patterns:**
-
-- **`enforcescript-patterns`** - Component patterns (Manager/Controller/Component), networking (RplProp/RPC/JIP), persistence (EPF), memory management (strong refs), UI contexts, common pitfalls
-- **`overthrow-architecture`** - OVT_ naming conventions, Manager vs Controller patterns, OVT_OverthrowController, OVT_Global access, file structure, coding standards
-- **`workbench-workflow`** - Testing guidelines, compile error patterns, debugging techniques, Workbench limitations
-
-Skills auto-suggest based on keywords in your prompts.
-
-#### Available Agents
-
-**Launch these agents for specialized tasks:**
-
-- **`solution-architect`** - Feature planning, architecture design, Manager vs Controller decisions
-- **`component-developer`** - Component implementation following Overthrow patterns
-- **`network-specialist`** - Replication, RPC patterns, JIP handling, multiplayer optimization
-
-See `dev/templates/README.md` for complete workflow documentation.
-
-## Critical Constraints
-
-### EnforceScript
-- ❌ **No ternary operators** - Use full if/else statements ALWAYS
-- ✅ **Strong refs required** - Use `ref` keyword for Managed classes in arrays/maps
-- ⚠️ **EntityID vs RplId** - Use RplId for network references, EntityID locally only
-- ✅ **Server authority** - Server drives state, clients receive updates
-
-### Workbench
-- ❌ **No automated builds** - User compiles in Workbench
-- ❌ **No unit tests** - Manual play-testing only
-- ❌ **No debugger** - Use Print() for debug output
-
-**For detailed patterns, activate the `enforcescript-patterns` skill.**
-
-## Architecture Quick Reference
-
-### Component Types
-- **Managers** - Singletons on OVT_OverthrowGameMode managing entire systems
-- **Controllers** - Instance components managing individual entities (bases, towns, etc)
-- **OVT_OverthrowController** - Client-side entity for client→server communication
-- **OVT_Global** - Static accessor for all manager singletons
-
-**For complete patterns and examples, activate the `overthrow-architecture` skill.**
-
-## File Organization
-
-```
-Scripts/Game/
-├── Components/        # Entity and UI components
-├── GameMode/         # Core game logic and managers
-├── Controllers/      # Controller components
-├── Entities/         # Entity classes
-├── Configuration/    # Config classes
-├── UI/              # UI contexts and widgets
-└── UserActions/     # Player interaction actions
-
-Configs/             # Game configuration files
-Prefabs/             # Entity prefabs and compositions
-```
-
-**For detailed file organization, activate the `overthrow-architecture` skill.**
-
 ## Coding Conventions
 
 - **Class prefix:** `OVT_`
@@ -91,38 +12,11 @@ Prefabs/             # Entity prefabs and compositions
 
 **For complete coding standards, activate the `overthrow-architecture` skill.**
 
-## Network Synchronization
+## Code Style
 
-- Use **RplProp** for simple value replication (int, bool, float, short strings)
-- Use **RPC** for complex data and actions (RpcAsk = client→server, RpcDo = server→client)
-- Use **JIP** (RplSave/RplLoad) for late-join state synchronization
-- Never use EntityID across network - use **RplId**
-
-**For complete networking patterns, activate the `enforcescript-patterns` skill.**
-
-## Persistence
-
-Components use EPF (Enfusion Persistence Framework) with SaveData classes.
-- Console platforms (Xbox/PlayStation) require `#ifdef PLATFORM_CONSOLE` guards
-- SaveData classes extend `EPF_ComponentSaveDataClass`
-
-**For complete persistence patterns, activate the `enforcescript-patterns` skill.**
-
-## External Dependencies
+- **Keep comments sparse.** Do not write long essay-style comment blocks — no rationale narratives, bug forensics, investigation history, or "why this is correct" arguments in code (recent code has been up to 3/4 comments by volume). Comment only what the code cannot say: a non-obvious constraint, a trap, or load-bearing ordering — and keep it to a line or two. Detailed reasoning belongs in `docs/bugs/` and the feature docs under `docs/features/`, not in comments.
 
 ### Arma Reforger
+
 - All base game scripts, configs and UI layouts: `/mnt/n/Projects/Arma 4/ArmaReforger`
 - Reference for understanding game mechanics and mod patterns
-
-### EPF (Enfusion Persistence Framework)
-- Location: `/mnt/n/Projects/Arma 4/EnfusionPersistenceFramework`
-- Handles save/load operations
-- Must be disabled on console platforms (no disk access)
-
-### EDF (Enfusion Database Framework)
-- Location: `/mnt/n/Projects/Arma 4/EnfusionDatabaseFramework`
-- Dependency of EPF for database operations
-
----
-
-**💡 Remember:** When working on specific patterns, activate the relevant skill for detailed documentation and examples. The skills contain all the detailed patterns, code examples, and best practices that used to be in this file.

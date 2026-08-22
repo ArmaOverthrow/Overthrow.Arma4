@@ -1,0 +1,122 @@
+ButtonWidgetClass {
+ Name "TransferMenu_Row"
+ Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+  Padding 5 3 5 3
+ }
+ components {
+  SCR_ButtonComponent "{6A8E2C1200000001}" {
+   m_bMouseOverToFocus 1
+   m_bShowBackgroundOnFocus 1
+   m_bShowBorderOnHover 1
+  }
+  OVT_TransferRowComponent "{6A8E2C1200000002}" {
+  }
+ }
+ style blank
+ {
+  SizeLayoutWidgetClass "{6A8E2C1000002001}" {
+   Name "SizeSetter"
+   Slot ButtonWidgetSlot "{5D48A6A577ADBD8A}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   AllowHeightOverride 1
+   HeightOverride 50
+   MinDesiredHeight 0
+   {
+    OverlayWidgetClass "{6A8E2C1000002002}" {
+     Name "RowOverlay"
+     Slot AlignableSlot "{5D48CA00E4215D49}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     {
+      HorizontalLayoutWidgetClass "{6A8E2C1000002003}" {
+       Name "RowLayout"
+       Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        SizeLayoutWidgetClass "{6A8E2C1000002004}" {
+         Name "RowImageSlot"
+         Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
+         }
+         AllowWidthOverride 1
+         WidthOverride 50
+         {
+          OverlayWidgetClass "{6A8E2C1000002005}" {
+           Name "RowImageOverlay"
+           Slot AlignableSlot "{5D48CA01BE7CC790}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           {
+            ItemPreviewWidgetClass "{6A8E2C1000002006}" {
+             Name "RowPreview"
+             Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+            }
+            ImageWidgetClass "{6A8E2C1000002007}" {
+             Name "RowImage"
+             Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
+              HorizontalAlign 3
+              VerticalAlign 3
+             }
+             "Is Visible" 0
+             Image ""
+            }
+           }
+          }
+         }
+        }
+        TextWidgetClass "{6A8E2C1000002008}" {
+         Name "RowName"
+         Slot LayoutSlot "{5D48A6A577ADBE09}" {
+          Padding 5 0 5 0
+         }
+         Text ""
+         "Vertical Alignment" Center
+        }
+        SizeLayoutWidgetClass "{6A8E2C1000002009}" {
+         Name "RowFill"
+         Slot LayoutSlot "{5D48A6A577ADBED5}" {
+          SizeMode Fill
+         }
+        }
+        TextWidgetClass "{6A8E2C100000200A}" {
+         Name "RowValue"
+         Slot LayoutSlot "{5D48A6ABC421043E}" {
+          Padding 10 0 10 0
+         }
+         Text ""
+         "Horizontal Alignment" Right
+         "Vertical Alignment" Center
+        }
+       }
+      }
+      ImageWidgetClass "{6A8E2C100000200B}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{5D48CA00C9F6945E}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+      }
+      PanelWidgetClass "{6A8E2C100000200C}" {
+       Name "Border"
+       Slot OverlayWidgetSlot "{56EF0B195DBB5E79}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+        Padding -2 -2 -2 -2
+       }
+       Color 0.761 0.392 0.08 1
+       style outline_2px
+      }
+     }
+    }
+   }
+  }
+ }
+}

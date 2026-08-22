@@ -1,43 +1,16 @@
 //------------------------------------------------------------------------------------------------
 //! The territory geometry solver: pure maths, no managers, no game mode, no world of its own.
 //!
-//! WHY THIS IS A SEPARATE CLASS. Everything else in the territory overlay - rendering, colour,
-//! frame cost, multiplayer - is invisible to every automated tier. The geometry is not, but only if
-//! it can be instantiated with `new` and fed hand-built values. So this class fetches nothing: the
-//! world is HANDED IN through SetWorld, and when it is null every point is land. The one place a
-//! world is touched is IsLandAt, which is virtual precisely so a test can subclass it and stub a
-//! synthetic coast. Adding a manager lookup or a game-mode lookup here would silently cost the
-//! feature its only automated coverage.
+//! Fetches nothing - the world is HANDED IN through SetWorld, and when it is null every point is
+//! land. IsLandAt is virtual so a test can subclass it and stub a synthetic coast. Adding a manager
+//! or game-mode lookup here would silently cost the feature its only automated coverage, and for
+//! the same reason the config knobs are plain fields rather than [Attribute()]s.
 //!
-//! THE SOLVE, IN ONE PARAGRAPH. Lay a square grid over the world bound box. For every square, ask two
-//! questions independently of every other square: is this land, and which site wins it under the
-//! multiplicatively-weighted (Apollonius) test. That is the whole geometry. Everything drawn is
-//! derived from that one array - the fill by merging same-appearance squares into rectangles, the
-//! border by tracing the region outline with marching squares and rounding it with Chaikin corner
-//! cutting.
-//!
-//! WHY IT IS A GRID AND NOT A RAY-MARCH. The march represented a cell as a radius per angle, which is
-//! only valid while the cell is star-shaped about its own site. It is, against a rival. It is NOT
-//! against an indented coastline: a ray stops at the FIRST water it meets, so land across a bay that
-//! genuinely belongs to a town could never be reached, and two neighbours inscribing one curved
-//! boundary with different vertex sets alternated gap and overlap along it. Both defects are
-//! properties of the representation, not of the parameters, so more rays only ever shrank them. On a
-//! grid neither is expressible: a square has exactly one owner, so two regions cannot overlap, and the
-//! squares tile, so they cannot leave a gap.
-//!
-//! THE OWNERSHIP RULE DID NOT CHANGE. OwnsPointXZ is the same sqrt-free cross-multiplied comparison it
-//! has always been, and IsLandAt is the same virtual hook. This is a change of SAMPLING STRATEGY, not
-//! of what territory means.
-//!
-//! THERE IS NO MAXIMUM INFLUENCE RADIUS, and now there is nowhere to put one: the grid has no concept
-//! of a radius at all. Territory extends until it meets water or a competing site, which is what D6
-//! asked for, and it falls out rather than being enforced.
-//!
-//! CONFIG KNOBS ARE PLAIN FIELDS, NOT ATTRIBUTES. The map layer owns the config surface and copies
-//! its values in. Putting [Attribute()]s here would make the solver a container-loaded object and
-//! reintroduce the dependency this split exists to remove.
-//!
-//! NO RANDOMNESS. Every output is a deterministic function of the inputs and the knobs.
+//! The solve: lay a square grid over the world bound box, and per square ask two independent
+//! questions - is this land, and which site wins it under the multiplicatively-weighted
+//! (Apollonius) test. Everything drawn derives from that array: the fill by merging same-appearance
+//! squares, the border by marching squares plus Chaikin corner cutting. There is no maximum
+//! influence radius; territory extends until it meets water or a competing site. No randomness.
 //------------------------------------------------------------------------------------------------
 class OVT_TerritorySolver : Managed
 {
@@ -65,21 +38,17 @@ class OVT_TerritorySolver : Managed
 
 	//! Hard ceiling on the number of scan rows one region's fill may be cut into.
 	//!
-	//! IT IS NOT THE SAME KIND OF KNOB AS THE GRID CELL SIZE, and the two look alike enough that the
-	//! difference is worth stating: the ownership grid costs (span / cellSize) SQUARED, so halving it is
-	//! four times the work, while the scanline costs (span / rowHeight) - LINEAR - so halving it is twice
-	//! the work and twice the geometry. This ceiling therefore only ever fires on a mistyped value, and
-	//! it grows the row height rather than allocating, so the failure is a coarser fill that says so.
+	//! ⚠ Not the same kind of knob as the grid cell size: the ownership grid costs (span / cellSize)
+	//! SQUARED while the scanline costs (span / rowHeight) - LINEAR. This ceiling only fires on a
+	//! mistyped value, and grows the row height rather than allocating.
 	static const int MAX_SCAN_ROWS = 4000;
 
 	//! How many times a scan row whose top and bottom disagree may be halved before the leftover sliver
 	//! is filled as a plain rectangle.
 	//!
-	//! A ROW WHOSE ENDS DISAGREE IS A ROW CONTAINING A CHANGE OF STRUCTURE - the tip of a peninsula, the
-	//! first row of a hole, a region splitting in two, or simply a stretch of border running nearly
-	//! horizontally. Halving converges on wherever that happens, so the leftover is at most
-	//! rowHeight / 2^this - about a metre and a half at the shipped 25 m - which is far below anything a
-	//! map zoom can show.
+	//! A row whose ends disagree contains a change of structure - a peninsula tip, the first row of a
+	//! hole, a region splitting, or a near-horizontal stretch of border. The leftover is at most
+	//! rowHeight / 2^this.
 	static const int MAX_ROW_SUBDIVISIONS = 4;
 
 	//------------------------------------------------------------------------------------------------
@@ -146,12 +115,9 @@ class OVT_TerritorySolver : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Sets the rectangle the grid covers, in world metres.
 	//!
-	//! Separate from SetWorld deliberately: the extent is the ONLY thing the grid needs off the world
-	//! besides the land test, so handing it in directly is what lets a test build a grid of a known
-	//! size at a known origin and assert exact square indices.
-	//!
-	//! A degenerate rectangle is rejected rather than clamped, because a too-large extent only costs
-	//! squares while a too-small one silently truncates the map.
+	//! Separate from SetWorld so a test can build a grid of a known size at a known origin. A
+	//! degenerate rectangle is rejected rather than clamped - too large only costs squares, too small
+	//! silently truncates the map.
 	//! \param[in] minX Minimum world X.
 	//! \param[in] minZ Minimum world Z.
 	//! \param[in] maxX Maximum world X.
@@ -217,17 +183,11 @@ class OVT_TerritorySolver : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Which site owns a point, under the multiplicatively-weighted (Apollonius) distance test.
 	//!
-	//! THIS IS THE DEFINITION OF OWNERSHIP for the whole feature, and the grid changed nothing about it
-	//! - it only changed WHERE it is asked. It used to be asked along rays; it is now asked once per
-	//! square, which is why bays and islands stopped needing special cases.
-	//!
-	//! The point belongs to the site minimising dist(q, site) / weight. THE WEIGHT IS LOAD-BEARING:
-	//! drop it - which in the squared form below means dropping the cross-multiplication, not a
-	//! division - and this collapses to a plain Voronoi diagram, every boundary sits at the midpoint,
-	//! and a military base no longer out-projects a village. Two equal-weight sites still meet at the
-	//! midpoint either way, which is why an equal-weight case alone cannot detect its loss.
-	//!
-	//! Ties go to the earlier candidate, so the comparison is strict.
+	//! The point belongs to the site minimising dist(q, site) / weight. ⚠ The weight is load-bearing:
+	//! drop it - which in the squared form means dropping the cross-multiplication, not a division -
+	//! and this collapses to a plain Voronoi diagram where a military base no longer out-projects a
+	//! village. Two equal-weight sites meet at the midpoint either way, so an equal-weight case alone
+	//! cannot detect its loss. Ties go to the earlier candidate, so the comparison is strict.
 	//! \param[in] q The world point to test. Only X and Z matter.
 	//! \param[in] sites Every site, indexed as the solve indexes them.
 	//! \return Index into sites of the owner, or -1 when nothing can own the point.
@@ -237,21 +197,16 @@ class OVT_TerritorySolver : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The ownership test itself, on loose coordinates and WITHOUT A SINGLE SQUARE ROOT.
+	//! The ownership test itself, on loose coordinates and without a single square root.
 	//!
-	//! THE ALGEBRA, because it is the whole reason this is fast enough to run per square. The test
-	//! wants the site minimising dist / weight. For non-negative distances and positive weights
+	//! For non-negative distances and positive weights, squaring is strictly increasing, so
 	//!
-	//!     dA / wA  <  dB / wB     <=>     dA * wB  <  dB * wA     <=>     dA^2 * wB^2  <  dB^2 * wA^2
+	//!     dA / wA  <  dB / wB     <=>     dA^2 * wB^2  <  dB^2 * wA^2
 	//!
-	//! because squaring is strictly increasing on non-negatives. So the comparison runs entirely on
-	//! SQUARED distances and SQUARED weights: no Math.Sqrt, no vector.DistanceXZ call, and no divide,
-	//! in the innermost loop of the whole feature. The ordering it produces is identical to the
-	//! unsquared one, including which candidate wins an exact tie.
-	//!
-	//! It is also why this overload exists at all rather than everything going through the vector
-	//! one: the grid tests one point per square and building a vector for each of them, only to index
-	//! two of its three components straight back out, is pure overhead at 14,000 squares.
+	//! The comparison therefore runs entirely on squared distances and squared weights: no Math.Sqrt,
+	//! no vector.DistanceXZ, no divide in the innermost loop, and the ordering including exact ties is
+	//! identical to the unsquared one. The loose-coordinate overload exists because the grid tests one
+	//! point per square and building a vector per square is pure overhead at 14,000 squares.
 	//! \param[in] qx World X of the point to test.
 	//! \param[in] qz World Z of the point to test.
 	//! \param[in] sites Every site, indexed as the solve indexes them.
@@ -310,16 +265,11 @@ class OVT_TerritorySolver : Managed
 
 	//! Classifies every square of the world: is it land, and which site owns it.
 	//!
-	//! THIS IS THE WHOLE GEOMETRY PASS, run once per map open and again only when the site SET changes.
-	//! Nothing about how the result is drawn is decided here - not colour, not faction, not whether a
-	//! region is emitted at all - because all of those change on a capture and none of them moves a
-	//! boundary.
+	//! Run once per map open and again only when the site SET changes. Nothing about how the result is
+	//! drawn is decided here, because none of it moves a boundary.
 	//!
-	//! EVERY SITE COMPETES, whoever holds it. A liberated town, a resistance FOB and a captured base all
-	//! take squares off their occupier neighbours, and that is exactly what makes liberated ground go
-	//! blank when the overlay draws only occupier-held territory. Filtering a site out before this point
-	//! makes occupier colour flow over ground the player has already taken - silently, with a healthy
-	//! site count still in the log.
+	//! ⚠ EVERY SITE COMPETES, whoever holds it - filtering a site out before this point makes occupier
+	//! colour flow over ground the player has already taken, silently and with a healthy site count.
 	//! \param[in] sites The collected sites.
 	//! \return The grid, always non-null, possibly with zero squares when no extent could be found.
 	OVT_TerritoryGrid BuildGrid(array<ref OVT_TerritorySite> sites)
@@ -337,13 +287,8 @@ class OVT_TerritorySolver : Managed
 		if (size <= 0)
 			size = DEFAULT_GRID_CELL_SIZE;
 
-		// THE ORIGIN IS SNAPPED TO A MULTIPLE OF THE SQUARE SIZE MEASURED FROM THE WORLD ORIGIN, not left
-		// at the bound box corner. A world bound box minimum is not generally a multiple of anything, so
-		// starting there put every square edge at an arbitrary offset and the overlay's squares sat
-		// slightly beside the map's own grid lines instead of on them. The base game draws its grid from
-		// world zero, so snapping there is what makes the two coincide whenever the sizes agree - and it
-		// costs at most one extra row and column of squares, since the grid is grown back out to cover the
-		// whole box.
+		// Snapped to a multiple of the square size measured from the WORLD origin, not the bound box
+		// corner, so the overlay's squares sit on the base game's own grid lines rather than beside them.
 		float originX = Math.Floor(minX / size) * size;
 		float originZ = Math.Floor(minZ / size) * size;
 
@@ -479,24 +424,12 @@ class OVT_TerritorySolver : Managed
 
 	//! Merges the grid into as few convex quads as it can: maximal horizontal RUNS of squares that
 	//! would be drawn identically, then greedily grown DOWNWARD while a whole run repeats in the row
-	//! below.
+	//! below. Fourteen thousand squares on a 12 km world collapse to roughly one quad per region per row.
 	//!
-	//! WHY MERGE AT ALL. On a 12 km world at 100 m there are fourteen thousand squares, and every one of
-	//! them is geometry that has to be projected and packed every frame. Runs collapse that to roughly
-	//! one quad per region per row; the vertical pass turns the flat interior of a region into a single
-	//! quad and leaves only the ragged coastal rows costing one each. The layer batches whatever comes
-	//! out of here into a handful of draw commands, so this is a VERTEX budget rather than a command
-	//! budget - but it is the same order of saving either way, and it is what keeps the per-frame
-	//! projection cost in the hundreds rather than the tens of thousands.
-	//!
-	//! WHY THE KEY IS APPEARANCE AND NOT THE OWNING SITE. Two neighbouring towns of one faction draw in
-	//! exactly the same colour, so merging across them is invisible AND is the difference between one
-	//! run per row and one run per town per row. The key is supplied per site by the layer, so nothing
-	//! here knows what a faction or a hatch is.
-	//!
-	//! IT CANNOT LEAVE A GAP OR AN OVERLAP. Runs are cut on square boundaries and a square belongs to
-	//! exactly one run, so the quads tile the grid exactly. That is the property the ray-march could not
-	//! offer at a curved boundary, and it is structural here rather than tuned.
+	//! The key is APPEARANCE, not the owning site: two neighbouring towns of one faction draw the same,
+	//! so merging across them is invisible and is the difference between one run per row and one per
+	//! town per row. Runs are cut on square boundaries and a square belongs to exactly one run, so the
+	//! quads tile the grid exactly - no gap, no overlap.
 	//! \param[in] grid The ownership grid.
 	//! \param[in] siteAppearance Appearance key per SITE index, or -1 where that site is not drawn.
 	//! \param[in] mergeVertically Whether to grow runs downward into rectangles.
@@ -649,23 +582,17 @@ class OVT_TerritorySolver : Managed
 	//! Traces the outline of one region as closed world-space loops, with each segment classified as a
 	//! frontier or not.
 	//!
-	//! MARCHING SQUARES OVER SQUARE CENTRES. The field is the boolean "does this square belong to the
-	//! region", sampled at square CENTRES, so the contour runs through the midpoints of the edges
-	//! between neighbouring squares. It walks one square PAST every edge of the grid, with everything
-	//! outside reading as not-in-region, which is what makes a region touching the edge of the world
-	//! still close into a loop instead of producing a dangling chain.
+	//! The field is "does this square belong to the region", sampled at square CENTRES, so the contour
+	//! runs through the midpoints of edges between neighbouring squares. It walks one square PAST every
+	//! grid edge with everything outside reading as not-in-region, so a region touching the world edge
+	//! still closes into a loop.
 	//!
-	//! ORIENTATION IS FIXED AND LOAD-BEARING: every segment is emitted so the region is on its LEFT.
-	//! That gives each contour node exactly one incoming and one outgoing segment, which is what lets
-	//! the assembly below be a plain walk rather than a search, and it is also what tells the band which
-	//! way is inward.
+	//! ⚠ Orientation is load-bearing: every segment is emitted with the region on its LEFT, giving each
+	//! contour node exactly one incoming and one outgoing segment. That is what lets the assembly below
+	//! be a plain walk rather than a search, and what tells the band which way is inward.
 	//!
-	//! THE SADDLE CASES (two opposite corners in, two out) ARE RESOLVED AS FOUR-CONNECTED: two squares
-	//! touching only at a corner are two regions, not one. Either resolution produces a valid closed
-	//! curve; this one is chosen because it matches how the fill merges, which only ever joins
-	//! edge-adjacent squares.
-	//!
-	//! IT APPENDS rather than clears, because the layer calls it once per drawn faction into one list.
+	//! Saddle cases (two opposite corners in, two out) resolve as FOUR-connected, matching how the fill
+	//! merges. It APPENDS rather than clears - the layer calls it once per drawn faction into one list.
 	//! \param[in] grid The ownership grid.
 	//! \param[in] inRegion Per SITE index, whether squares owned by that site are inside the region.
 	//! \param[in] rivalFaction Per SITE index, whether that site counts as a DIFFERENT faction from the
@@ -984,27 +911,17 @@ class OVT_TerritorySolver : Managed
 
 	//! Rounds a closed contour by Chaikin corner cutting, in place.
 	//!
-	//! THIS IS THE SMOOTHING THE REQUIREMENT ASKED FOR ALL ALONG - "borders read as organic frontiers
-	//! rather than straight lines" - and m_iSmoothPasses finally means it. The ray-march's smoothing was
-	//! a moving average over radii, which could only ever pull a boundary back toward its own site and
-	//! therefore had to be clamped, exempted and pinned to stop it eating coastlines and shared seams.
-	//! Corner cutting has none of those problems: it moves points ALONG the curve, never outward from a
-	//! centre, so there is nothing to clamp and no ray to exempt.
+	//! Each pass replaces every point with two - a quarter and three quarters of the way to its
+	//! successor - so the polygon converges on a quadratic B-spline and the SEGMENT COUNT DOUBLES. Two
+	//! passes is four times the border geometry to draw.
 	//!
-	//! Each pass replaces every point with two - one a quarter of the way to its successor, one three
-	//! quarters - so the polygon converges on a quadratic B-spline and the SEGMENT COUNT DOUBLES. That
-	//! doubling is the cost: two passes is four times the border geometry to draw.
+	//! `passes` of 0 or less leaves the contour exactly as traced. ⚠ The loop bound is the only thing
+	//! enforcing that - there is deliberately no early return, because a second guard saying the same
+	//! thing would make the contract impossible to turn red in a test.
 	//!
-	//! passes of 0 or less leaves the contour exactly as traced, which is the "smoothing is tunable to
-	//! off" contract and is what the raw marching-squares staircase looks like. THAT CONTRACT IS THE
-	//! LOOP BOUND AND NOTHING ELSE - there is deliberately no early return for it, because a second
-	//! guard saying the same thing would make the contract impossible to turn red in a test: a mutation
-	//! of either mechanism would be caught by the other, and an assertion nothing can break is an
-	//! assertion nobody is checking.
-	//!
-	//! THE FRONTIER FLAGS SURVIVE THE PASS. A new segment lying inside one old segment inherits its
-	//! class; a new segment spanning an old CORNER is a frontier only when BOTH old segments were, so a
-	//! band stops cleanly where a frontier runs into a coastline instead of turning the corner with it.
+	//! Frontier flags survive the pass: a new segment inside one old segment inherits its class, while
+	//! one spanning an old CORNER is a frontier only when BOTH old segments were, so a band stops
+	//! cleanly where a frontier runs into a coastline.
 	//! \param[inout] contour The contour, smoothed in place.
 	//! \param[in] passes How many corner-cutting passes to apply.
 	static void ChaikinSmooth(OVT_TerritoryContour contour, int passes)
@@ -1056,13 +973,11 @@ class OVT_TerritorySolver : Managed
 
 	//------------------------------------------------------------------------------------------------
 	//! Finds every contiguous run of frontier segments on a closed contour, TREATING THE RING AS
-	//! CIRCULAR - a run that crosses index 0 is ONE span, not two, and that is the whole difficulty.
+	//! CIRCULAR - a run crossing index 0 is ONE span, not two.
 	//!
-	//! How the wrap is handled without any special case: the scan does not start at index 0, it starts
-	//! immediately after a segment that is NOT a frontier. No run can then straddle the start of the
-	//! scan, because the scan begins on a boundary by construction, so the ordinary walk-and-close loop
-	//! is already circular-correct. The single case with no such starting point - every segment is a
-	//! frontier - is the whole ring and is emitted as one span up front.
+	//! The scan starts immediately after a segment that is NOT a frontier, so no run can straddle the
+	//! start and the ordinary walk-and-close loop is already circular-correct. The one case with no
+	//! such starting point - every segment a frontier - is emitted as one whole-ring span up front.
 	//! \param[in] frontier Per-segment frontier flags.
 	//! \param[out] spanStart Cleared and refilled with each span's first segment index.
 	//! \param[out] spanLength Cleared and refilled with each span's segment count.
@@ -1132,34 +1047,21 @@ class OVT_TerritorySolver : Managed
 	// FILL: TRAPEZOID SCANLINE DECOMPOSITION OF THE SMOOTHED CONTOUR
 	//------------------------------------------------------------------------------------------------
 
-	//! Cuts a region's fill out of its own SMOOTHED CONTOUR, as a stack of convex trapezoids.
+	//! Cuts a region's fill out of its own SMOOTHED CONTOUR, as a stack of convex trapezoids, so the
+	//! fill and the band share one boundary by construction.
 	//!
-	//! WHY THIS EXISTS. The fill used to be merged grid squares while the band was offset from the
-	//! Chaikin-smoothed contour traced through those same squares. That is TWO boundaries for one region,
-	//! and they did not coincide: the fill was an axis-aligned staircase that jutted past the smooth band
-	//! in places and fell short of it in others. Nothing could tune that away, because nothing made the
-	//! two agree. Cutting the fill out of the contour itself makes them agree by construction - there is
-	//! one boundary, and it is used twice.
+	//! Sweep horizontal scan rows across the region. At the row's top edge and again at its bottom
+	//! edge, intersect every contour segment with the line and sort the crossings; under the EVEN-ODD
+	//! rule consecutive pairs are the inside. Each pair becomes a trapezoid whose left and right edges
+	//! run between the actual crossings, so slanted border is drawn slanted rather than stepped. Holes
+	//! and disjoint components fall out of even-odd and need no special case.
 	//!
-	//! HOW A ROW IS FILLED. Sweep horizontal scan rows across the region. At the row's TOP edge and again
-	//! at its BOTTOM edge, intersect every contour segment with the line and sort the crossings; under the
-	//! EVEN-ODD rule consecutive pairs are the inside of the region. Each pair becomes a trapezoid whose
-	//! left and right edges run between the actual crossings at top and bottom, so a slanted stretch of
-	//! border is drawn slanted rather than stepped.
+	//! ⚠ The row count is LINEAR in the row height where the ownership grid's cell size is QUADRATIC;
+	//! the two knobs look alike and are not. Segments are bucketed by the rows they can reach, without
+	//! which this would be rows times segments.
 	//!
-	//! HOLES AND DISJOINT COMPONENTS FALL OUT OF EVEN-ODD AND NEED NO SPECIAL CASE. A row crossing a
-	//! region with a pocket of liberated ground in it meets four crossings and produces two spans with the
-	//! pocket between them; a row crossing two islands of one faction meets the same four crossings and
-	//! produces the same two spans. The decomposition cannot tell them apart and does not need to.
-	//!
-	//! WHAT IT COSTS, AND HOW THAT DIFFERS FROM THE GRID. The row count is LINEAR in the row height -
-	//! halving it is twice the work and twice the geometry - where the ownership grid's cell size is
-	//! QUADRATIC. The two knobs look alike and are not. Segments are bucketed by the rows they can reach,
-	//! so a row only tests the handful of segments that can cross it rather than all of them; without that
-	//! this would be rows times segments.
-	//!
-	//! IT APPENDS, because the layer calls it once per appearance into one list, and it stamps that
-	//! appearance's key onto every trapezoid so the emit path can batch by draw state in a single pass.
+	//! It APPENDS, and stamps the appearance key onto every trapezoid so the emit path can batch by
+	//! draw state in a single pass.
 	//! \param[in] contours Every traced contour; only those carrying this appearance key are used.
 	//! \param[in] appearanceKey Which appearance to cut, and the key stamped onto the output.
 	//! \param[in] rowHeight Scan row height in metres. Non-positive falls back to the default.
@@ -1278,16 +1180,12 @@ class OVT_TerritorySolver : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Buckets segments by the scan rows they can reach, as a compressed row-index table.
+	//! Buckets segments by the scan rows they can reach, as a compressed row-index table. Without it
+	//! the decomposition is rows times segments - millions of comparisons rather than tens of thousands.
 	//!
-	//! WITHOUT THIS THE DECOMPOSITION IS ROWS TIMES SEGMENTS. A smoothed island border is thousands of
-	//! segments and a 12 km world at 25 m rows is hundreds of rows, so the difference is between a pass
-	//! that costs a few tens of thousands of comparisons and one that costs a few million.
-	//!
-	//! The range is deliberately widened by one row at each end. A row is tested at its top edge, its
-	//! bottom edge AND at any midline the subdivision introduces, so a bucket that was tight to the
-	//! boundary arithmetic would be one rounding away from dropping a segment - and a dropped segment is a
-	//! span that silently opens.
+	//! ⚠ The range is deliberately widened by one row at each end. A row is tested at its top edge, its
+	//! bottom edge AND at any midline the subdivision introduces, so a tight bucket would be one
+	//! rounding away from dropping a segment - and a dropped segment is a span that silently opens.
 	//! \param[in] az Segment start Z per segment.
 	//! \param[in] bz Segment end Z per segment.
 	//! \param[in] rowOriginZ World Z of the first row's top edge.
@@ -1378,12 +1276,10 @@ class OVT_TerritorySolver : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Where a horizontal scan line at z crosses the region's boundary, sorted left to right.
 	//!
-	//! THE HALF-OPEN RULE IS WHAT GUARANTEES AN EVEN NUMBER OF CROSSINGS, and that guarantee is the only
-	//! reason even-odd pairing is safe. A segment counts when the line is at or above its lower end and
-	//! STRICTLY BELOW its upper one, so a contour vertex sitting exactly on the line is counted by one of
-	//! the two segments meeting there rather than by both or by neither, and a horizontal segment lying
-	//! along the line crosses nothing. On a closed loop every upward crossing of a level is matched by a
-	//! downward one, so the total is even however the loop is shaped.
+	//! ⚠ The half-open rule is what guarantees an EVEN number of crossings, and that guarantee is the
+	//! only reason even-odd pairing is safe. A segment counts when the line is at or above its lower
+	//! end and STRICTLY BELOW its upper one, so a vertex sitting exactly on the line is counted by one
+	//! of the two segments meeting there rather than by both or neither.
 	//! \param[in] ax Segment start X per segment.
 	//! \param[in] az Segment start Z per segment.
 	//! \param[in] bx Segment end X per segment.
@@ -1427,11 +1323,9 @@ class OVT_TerritorySolver : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Insertion sort, ascending, in place.
 	//!
-	//! Written out rather than handed to the array's own Sort because what that does to a float array is
-	//! not documented in this build, and a scanline that sorts wrong fills the OUTSIDE of every span - a
-	//! failure that looks like a rendering fault rather than like a comparison. The arrays here hold one
-	//! entry per boundary crossing on one scan line, which is a handful, so the quadratic bound is
-	//! irrelevant and the linear behaviour on nearly-sorted input is what actually runs.
+	//! Written out rather than handed to the array's own Sort because what that does to a float array
+	//! is not documented in this build, and a scanline that sorts wrong fills the OUTSIDE of every
+	//! span. The arrays hold one entry per crossing on one scan line, so the quadratic bound is moot.
 	//! \param[inout] values The array to sort.
 	protected static void SortAscending(notnull array<float> values)
 	{
@@ -1456,18 +1350,14 @@ class OVT_TerritorySolver : Managed
 	//! Turns one row's top and bottom crossings into trapezoids, halving the row where its two ends
 	//! describe different structure.
 	//!
-	//! WHEN THE TWO ENDS AGREE this is a straight even-odd pairing: span k at the top is span k at the
-	//! bottom, and the trapezoid between them has the contour's own X at each corner.
+	//! When the two ends agree this is a straight even-odd pairing. When they disagree the row contains
+	//! something that changes the structure - a peninsula tip, the first row of a hole, two regions
+	//! merging - and pairing span k with span k would join the wrong edges; halving converges on
+	//! wherever that happens, and each half shares its inner edge exactly with the other so the fill
+	//! still tiles. Only the last sliver, below the subdivision limit, is filled as a rectangle.
 	//!
-	//! WHEN THEY DISAGREE the row contains something that changes the structure - the tip of a peninsula,
-	//! the first row of a hole, two regions merging, or a stretch of border running nearly horizontally -
-	//! and pairing span k with span k would join the wrong edges. Halving the row converges on wherever
-	//! that happens, and because each half shares its inner edge exactly with the other, the fill still
-	//! tiles. Only the last sliver, below the subdivision limit, is filled as a rectangle.
-	//!
-	//! EQUAL SPAN COUNTS ARE NOT ENOUGH ON THEIR OWN. A region ending while another begins can keep the
-	//! count the same and still pair the wrong two, which draws a thin diagonal of fill across ground
-	//! that belongs to neither, so the paired spans must also overlap in X before they are trusted.
+	//! ⚠ Equal span counts are not enough on their own - a region ending while another begins keeps the
+	//! count the same and still pairs the wrong two - so paired spans must also overlap in X.
 	//! \param[in] ax Segment start X per segment.
 	//! \param[in] az Segment start Z per segment.
 	//! \param[in] bx Segment end X per segment.
@@ -1584,26 +1474,16 @@ class OVT_TerritorySolver : Managed
 	// PRESENTATION RULES
 	//
 	// What the overlay SHOWS, as opposed to where anything IS. They live on the solver because the map
-	// layer is invisible to every automated tier, and every defect this feature has shipped so far has
-	// been exactly this kind of rule - a one-line comparison about faction that no gate could see. They
-	// are pure functions of ints, floats and bools, so putting them here costs the solver none of the
-	// independence that makes it testable.
-	//
-	// NONE OF THEM MAY EVER REACH THE GRID. A square owned by a site that is not drawn is still owned by
-	// it, and still takes that ground off its neighbours.
+	// layer is invisible to every automated tier. ⚠ None of them may ever reach the grid: a square
+	// owned by a site that is not drawn is still owned by it, and still takes ground off its neighbours.
 	//------------------------------------------------------------------------------------------------
 
-	//! THE BAND RULE, as pure arithmetic: whether the ground on the far side of a piece of border
-	//! belongs to ANOTHER FACTION, which is the only thing that earns a neutral band.
+	//! The band rule: whether the ground on the far side of a piece of border belongs to ANOTHER
+	//! FACTION, which is the only thing that earns a neutral band.
 	//!
-	//! It is the same rule the ray-march applied to a whole ray, applied instead to one side of one
-	//! contour segment - the mechanism moved, the rule did not. Two towns of one faction, or a base and
-	//! its own radio tower, produce no border between them at all now (they are the same region), and a
-	//! coastline is answered by the FIRST branch: nobody owns water, and a shoreline is nobody's
-	//! frontier.
-	//!
-	//! Anything unnameable - no owner, an index out of range, a site that has gone - is NOT a frontier,
-	//! because an omitted edge is a smaller lie than an invented border.
+	//! A coastline is answered by the first branch - nobody owns water, and a shoreline is nobody's
+	//! frontier. Anything unnameable (no owner, index out of range, a site that has gone) is NOT a
+	//! frontier, because an omitted edge is a smaller lie than an invented border.
 	//! \param[in] otherOwnerIndex Index of the site owning the ground on the far side, or -1 for water.
 	//! \param[in] ownFactionIndex Faction of the region the border belongs to.
 	//! \param[in] sites Every site, indexed as the grid indexes them.
@@ -1626,17 +1506,13 @@ class OVT_TerritorySolver : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Whether ground owned by one site is drawn at all.
 	//!
-	//! THE OVERLAY ANSWERS "HOW MUCH DOES THE OCCUPIER STILL HOLD", not "who holds what". Ground the
-	//! player has liberated reads as clean map, so on an island that starts almost entirely occupied the
-	//! fill is a progress bar for the whole campaign, and clearing a region is visible as the region
-	//! disappearing rather than as it changing colour.
+	//! The overlay answers "how much does the occupier still hold", not "who holds what" - liberated
+	//! ground reads as clean map.
 	//!
-	//! THIS IS AN EMIT FILTER AND MUST NEVER BECOME A COLLECT FILTER. Every site still competes for
-	//! squares - every FOB, every liberated town, every captured base - because competing is precisely
-	//! what pushes the occupier's boundary back and makes liberated ground go blank. Filter the sites
-	//! before building the grid instead and occupier territory flows straight over the ground the player
-	//! has already taken, with no error and no log line: the map simply tells them they have achieved
-	//! nothing.
+	//! ⚠ This is an EMIT filter and must never become a COLLECT filter. Every site still competes for
+	//! squares, because competing is what pushes the occupier's boundary back. Filter the sites before
+	//! building the grid instead and occupier territory flows over ground the player has already taken,
+	//! with no error and no log line.
 	//! \param[in] cellFactionIndex Faction controlling the owning site.
 	//! \param[in] occupyingFactionIndex Faction index of the occupying force, or negative when it could
 	//!            not be resolved.
@@ -1660,21 +1536,13 @@ class OVT_TerritorySolver : Managed
 	//! Whether ground is CONTESTED: still controlled by the occupier, but with the population behind
 	//! the resistance.
 	//!
-	//! WHY SUPPORT IS ALLOWED TO DRIVE THIS when it was rejected as a driver of the fill itself. The
-	//! rejection was correct on its own terms - colouring a region by support would make a
-	//! resistance-supporting town that the occupier still garrisons read as resistance territory, i.e. a
-	//! second opinion about who controls what. This is not that. The region is still drawn in the
-	//! occupier's colour because the occupier does control it; support does not recolour it, it MARKS
-	//! it. That is a second axis layered over an accurate first one.
+	//! Support MARKS the region rather than recolouring it - the occupier still controls it, so it
+	//! stays the occupier's colour. It is a threshold, not a gradient: a continuous per-site shade
+	//! turns a one-faction island into mottled noise.
 	//!
-	//! IT IS A THRESHOLD, NOT A GRADIENT, and that is deliberate rather than lazy. A continuous per-site
-	//! shade is exactly what turned a one-faction island into mottled noise, because when hue carries no
-	//! information the shade is the only variable left and every neighbouring region differs slightly.
-	//! Two states cannot do that.
-	//!
-	//! TOWNS ONLY. Bases, radio towers and FOBs have no popular support and pass SUPPORT_NONE, which is
-	//! rejected explicitly rather than by arithmetic - a threshold configured at or below zero must not
-	//! silently mark every military site on the map as contested.
+	//! ⚠ Towns only. Bases, radio towers and FOBs pass SUPPORT_NONE, which is rejected explicitly
+	//! rather than by arithmetic - a threshold configured at or below zero must not silently mark
+	//! every military site on the map as contested.
 	//! \param[in] cellFactionIndex Faction controlling the owning site.
 	//! \param[in] occupyingFactionIndex Faction index of the occupying force, or negative when unknown.
 	//! \param[in] supportFraction Resistance support as a fraction of population, or SUPPORT_NONE.

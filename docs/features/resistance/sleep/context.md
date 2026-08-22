@@ -6,15 +6,40 @@
 
 ---
 
+## Merged into `v1.5` (2026-08-19) — the occupying-faction replay changed shape
+
+`sleep` was built on `main`, where `CheckUpdate()`'s six-hour branch still spent the resource gain
+across the bases. On `v1.5`, `virtualization/base-defense-migration` had already deleted that spend
+path: 80% of every tick now moves into the deployment pool via `TransferDefenseShareToPool()`, and
+`UpdateSpecops()` left with the legacy spender.
+
+So the merge kept **the design and dropped one of the three extractions**:
+
+| Built on `main` | On `v1.5` after the merge |
+|---|---|
+| `GainAndSpendResources()` → `GainResources` + `SpendResourcesOnBases` + `UpdateSpecops` + `Print` | `GainAndSpendResources()` → `GainResources` + `UpdateKnownTargets` + `TransferDefenseShareToPool` + `Print` |
+| `SpendResourcesOnBases(int)` | **gone** — superseded by `TransferDefenseShareToPool(int)` |
+| `DecayThreatStep()` | same, plus `v1.5`'s null-guard on `OVT_Global.GetDifficulty()` |
+| `HandleTimeSkip(int)` | unchanged |
+| `m_iHourGainedResources` / `m_iMinuteDecayedThreat` latches | unchanged |
+
+**The property that matters survived intact:** the live tick and the sleep replay still reach the
+payout through exactly one method (`GainAndSpendResources`), so there is still one implementation of
+the six-hour boundary and a change to it changes the skip with it. `implementation.md` §57/§222 and
+`tasks.md` T1.5 still describe `SpendResourcesOnBases` — read them as the record of how this was
+built on `main`, not as a description of the code on this branch.
+
+---
+
 ## Quick Status
 
 **What's Done:**
 - ✅ Planning complete (`implementation.md`, 6 phases, D1-D17 decided, R1-R11 assessed)
 - ✅ Dev docs scaffolded (`tasks.md` 29 tasks across 6 phases)
-- ✅ **Phase 1** (T1.1-T1.8) — `OVT_SleepSchedule`, `AssertHourLatches` + BUG-179's three call sites,
+- ✅ **Phase 1** (T1.1-T1.8) — `OVT_SleepSchedule`, `AssertHourLatches` + BUG-183's three call sites,
   `HandleTimeSkip` on both managers, the two `OVT_OccupyingFactionManager` extractions, and the Logic
-  suite. `tools/compile-check.sh` exit 0. **BUG-179's three acceptance checks passed in the 2026-08-19
-  play-test and the bug is CLOSED** (resolution written into `docs/bugs/BUG-179.md`).
+  suite. `tools/compile-check.sh` exit 0. **BUG-183's three acceptance checks passed in the 2026-08-19
+  play-test and the bug is CLOSED** (resolution written into `docs/bugs/BUG-183.md`).
 - ✅ **Phase 2** (T2.1-T2.6) — `OVT_PlayerData.m_fLastSleepGameHours`, `OVT_PlayerManagerSerializer`
   version 5 (+ `ClearSleepCooldown`), `OVT_SleepService` (location gate, `CanSleep`, cooldown, the
   deferred skip and the `SetDate` ladder), the Phase 2 half of the Logic suite, and a persistence
@@ -68,8 +93,8 @@
   date wrap, the pad-only pass and the multiplayer F11 check.
 - ✅ **Workbench localization re-export DONE** (user, 2026-08-19). All eighteen keys are exported; the seven
   runtime `.conf` exports still read 795 `Ids` per half, so the hand-mirroring and the export agree.
-- ✅ **BUG-179 CLOSED** — its three acceptance checks (play-test items 18-20) passed.
-- 🐛 **BUG-182** (the R11 night-tick finding, filed 2026-08-18 against `occupying/*`) remains
+- ✅ **BUG-183 CLOSED** — its three acceptance checks (play-test items 18-20) passed.
+- 🐛 **BUG-186** (the R11 night-tick finding, filed 2026-08-18 against `occupying/*`) remains
   discovered-not-fixed and out of this feature's scope.
 
 **Blockers:**
@@ -180,14 +205,14 @@ invalidate the later ones. DoD ids in **bold** are `implementation.md` §6.
     user-action interaction bind — so a failure here is an offset/radius or focus problem, not a binding one.
     **(Q7.)**
 
-### E. BUG-179 — the shipped money exploit this feature fixes
+### E. BUG-183 — the shipped money exploit this feature fixes
 
 17. Play until the **12:00** income notification fires. Note the money. Save, exit to menu, **Continue** →
     **no second income payout**; money unchanged by the load.
 18. Repeat during hour **7** (after restock — shop stock must not jump again) and during hour **0** (after
     rent).
 19. Let the clock reach the next 6-hour boundary after loading → income pays exactly **once**.
-    **(Q3.)** `docs/bugs/BUG-179.md` stays `status: open` until 17-19 pass, and the **orchestrator** flips it,
+    **(Q3.)** `docs/bugs/BUG-183.md` stays `status: open` until 17-19 pass, and the **orchestrator** flips it,
     not an implementing agent.
 
 ### F. Persistence
@@ -222,7 +247,7 @@ invalidate the later ones. DoD ids in **bold** are `implementation.md` §6.
 - `Scripts/Game/Services/OVT_SleepSchedule.c` *(new)* — the world-free arithmetic; the Logic tier's subject
 - `Scripts/Game/Services/OVT_SleepService.c` *(new)* — static orchestrator (gates, catch-up, clock, cooldown, fade)
 - `Scripts/Game/UserActions/OVT_SleepAction.c` *(new)* — the action, its cache and its countdown label
-- `Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c` — `HandleTimeSkip`, `AssertHourLatches` (BUG-179)
+- `Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c` — `HandleTimeSkip`, `AssertHourLatches` (BUG-183)
 - `Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c` — `HandleTimeSkip` + two extractions out of `CheckUpdate`
 - `Scripts/Game/Persistence/Serializers/Components/OVT_PlayerManagerSerializer.c` — version 5
 - `docs/features/resistance/sleep/implementation.md` — the plan; §3 architecture, §4 phases, §5 decisions (D1-D17), §6 DoD, §10 risks
@@ -251,7 +276,7 @@ implementation hardest:
   because `GainResources` scales with a threat value that decays between gains.
 - **D7 — the counter-attack roll and the town-uprising scan are excluded** from the replay, deliberately,
   and the exclusion is documented in the method so nobody "fixes" it later.
-- **D5 — BUG-179 is fixed by asserting latches to the current hour, not by persisting them.** Zero serializer
+- **D5 — BUG-183 is fixed by asserting latches to the current hour, not by persisting them.** Zero serializer
   churn; also fixes the live re-apply path.
 - **D15 — the date wrap uses `SetDate`'s own validation ladder** (d+1 → month+1/1 → year+1/1/1). No
   hand-written calendar maths.
@@ -408,7 +433,7 @@ implementation hardest:
   (`Configs/Systems/Persistence/Overthrow.conf:152-170`, `ComponentClass "OVT_PlaceableComponent"` at `:154`,
   `SelfSpawn 1` at `:158`) and `OVT_ResistanceFactionManager.c:773` tracks the placed entity. The plan's
   `:152-171` was one line long — `:171` is the next config (`OVT_BuildableComponent`). Nothing was changed.
-- **R11 is discovered-not-fixed, and is now `BUG-182`** (filed 2026-08-18 against `occupying/*`) — both
+- **R11 is discovered-not-fixed, and is now `BUG-186`** (filed 2026-08-18 against `occupying/*`) — both
   `CheckUpdate` timers schedule at `FREQUENCY / GetDayTimeMultiplier()` (the **day** multiplier only:
   `OVT_OccupyingFactionManager.c:306`, `OVT_EconomyManagerComponent.c:1449`,
   `OVT_TimeAndWeatherHandlerComponent.c:9-12`), while the engine swaps in a *night* acceleration at dusk

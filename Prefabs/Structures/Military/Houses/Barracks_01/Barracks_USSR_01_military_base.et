@@ -1,0 +1,28 @@
+SCR_DestructibleBuildingEntity : "{C52658A4D0FFAA0E}Prefabs/Structures/Military/Houses/Barracks_01/Barracks_USSR_01_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_BarracksComponent "{6B1C3D0000000060}" {
+  }
+  OVT_SpawnPointComponent "{6B1C3D0000006200}" {
+   m_aPoints {
+    PointInfo "{6B1C3D0000006201}" {
+     Offset 0 0 17
+    }
+    PointInfo "{6B1C3D0000006202}" {
+     Offset 3 0 17
+    }
+    PointInfo "{6B1C3D0000006203}" {
+     Offset -3 0 17
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{6B1C3D0000006205}" {
+     Offset 11 0 11.4851
+    }
+    PointInfo "{6B1C3D0000006206}" {
+     Offset 11 0 5.29
+    }
+   }
+  }
+ }
+}

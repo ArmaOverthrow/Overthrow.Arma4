@@ -85,7 +85,7 @@ SCR_DestructibleBuildingEntity : "{00FD2B4A0BDEC271}Prefabs/Structures/Commercia
    }
   }
  }
- coords 238.569 0.001 74.077
+ coords 253.001 0.001 74.039
  angles 0 -89.85 0
 }
 SCR_DestructibleBuildingEntity : "{05446F713779A94D}Prefabs/Structures/Military/Houses/GuardHouse_02/GuardHouse_02.et" {
@@ -210,6 +210,8 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
    m_iAttackDistanceMin 75
    m_iAttackDistanceMax 150
    m_iAttackPreferredDirection 90
+   m_fPerimeterRadius 40
+   m_fPerimeterRotation 46
   }
   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
    m_aPoints {
@@ -263,11 +265,6 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
       Name "#OVT-SetHome"
      }
     }
-    OVT_ManageBaseAction "{5E66A8E424754555}" {
-     ParentContextList +{
-     }
-     "Sort Priority" 1
-    }
     OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
      ParentContextList +{
      }
@@ -280,6 +277,9 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
   }
  }
  coords 55.331 1 128.241
+}
+GenericEntity : "{6A8E2F0000000101}Prefabs/Production/OVT_ProductionSite_Sawmill.et" {
+ coords 140 1 120
 }
 OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition.et" {
  coords 24.733 1 129.747
@@ -331,6 +331,10 @@ GenericEntity : "{9BF7399A6F63D480}Prefabs/GameMode/OVT_Port.et" {
 }
 Tree : "{A43BE7E364B5CD67}Prefabs/Vegetation/Bush/b_juniperus_communis_2w.et" {
  coords 182.721 0.001 126.162
+}
+GenericEntity : "{A4D0B331414901A5}Prefabs/Structures/Commercial/FuelStations/FuelStation_E_01/HouseAddons/FuelStation_E_01_tankpistol.et" {
+ coords 244.898 0 72.555
+ angles 0 178.406 0
 }
 OVT_StartCameraPos : "{A4FAD321E704BE95}Prefabs/GameMode/OVT_StartCameraPos.et" {
  coords 263.519 24.144 46.733

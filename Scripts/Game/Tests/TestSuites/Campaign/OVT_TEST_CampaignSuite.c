@@ -24,9 +24,6 @@
 //! a bare harness timeout.
 //!
 //! WHAT THIS SUITE MUST NOT ASSERT
-//!  - GARRISONS. OVT_BaseData.garrison is never populated in the test world - measured over a 16 s
-//!    window (findings.md 1.4). A garrison assertion would be red on arrival and would say nothing
-//!    about Overthrow.
 //!  - DEPLOYMENTS. They arrive ~12 s after the start; covering them would triple this suite's
 //!    runtime for an area this feature scoped out.
 //!  - Magic counts. The test world has exactly ONE town and ONE base.

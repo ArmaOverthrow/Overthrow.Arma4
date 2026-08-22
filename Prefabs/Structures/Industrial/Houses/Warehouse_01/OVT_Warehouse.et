@@ -1,0 +1,109 @@
+SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.et" {
+ ID "51DC7DF1903152C8"
+ components {
+  OVT_BuildableComponent "{6A8E2E0000000040}" {
+   m_sBuildableType "Warehouse"
+  }
+  ActionsManagerComponent "{6A8E2D0000000030}" {
+   ActionContexts {
+    UserActionContext "{6A8E2D0000000031}" {
+     ContextName "storage"
+     Position PointInfo "{6A8E2D0000000032}" {
+      Offset 0 1 0
+     }
+     Radius 20
+    }
+    UserActionContext "{6B70D00000000071}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D00000000072}" {
+      Offset 0 1 0
+     }
+     Radius 6
+    }
+   }
+   additionalActions {
+    OVT_OpenStorageMenuAction "{6A8E2D0000000033}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2D0000000034}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_RenameStorageAction "{6A8E2D0000000035}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2D0000000036}" {
+      Name "#OVT-Storage_Rename"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
+    OVT_OpenResourceStoreAction "{6A8E2E1000000014}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2E1000000015}" {
+      Name "#OVT-Warehouse"
+     }
+     Duration 0
+     "Sort Priority" 3
+    }
+    OVT_RepairRequirementsAction "{6B70D00000000073}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000074}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 4
+    }
+    OVT_RepairStructureAction "{6B70D00000000075}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000076}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+     "Sort Priority" 5
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6A8E2E0000000041}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+     DamageThreshold 50
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6A8E2E0000000042}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{4FEF9F10015F63FC}Assets/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_METAL
+  }
+  SCR_DestructibleBuildingComponent "{5D7AD0958CE7D71F}" {
+   Enabled 0
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
+}

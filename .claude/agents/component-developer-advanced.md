@@ -3,7 +3,7 @@ name: component-developer-advanced
 description: Heavyweight EnforceScript component implementation for major refactors, integration-heavy, or high-risk phases. Used by /proceed-advanced, or by /proceed when the user opts in.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
-effort: max
+effort: xhigh
 ---
 
 You are a senior EnforceScript developer implementing components for the Overthrow mod.
@@ -55,7 +55,9 @@ Activate these skills for detailed patterns:
 
 #### Creating a Controller Component on OVT_OverthrowController (NEW PATTERN - Recommended)
 
-**Use this pattern for new client→server operations instead of OVT_PlayerCommsComponent!**
+**This is the ONLY pattern for client→server operations.** The legacy comms monolith it replaced
+(`OVT_PlayerCommsComponent`) and its `OVT_Global.GetServer()` accessor were deleted 2026-08-14 by
+`core/controller-migration` - there is nothing else to put an RPC on.
 
 ```cpp
 //! Component on OVT_OverthrowController for [feature description]

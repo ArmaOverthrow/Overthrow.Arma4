@@ -411,7 +411,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 	{
 		return FindRecruitEntity(recruitId);
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	//! Get recruits owned by a player within a specified radius of a position
 	//!
@@ -1003,11 +1003,11 @@ class OVT_RecruitManagerComponent : OVT_Component
 		}
 		
 		// Spawn the recruit character directly (no group)
-		SCR_ChimeraCharacter recruitEntity = OVT_Global.SpawnCharacterEntity(m_sRecruitPrefab, position, orientation);
+		SCR_ChimeraCharacter recruitEntity = OVT_WorldUtils.SpawnCharacterEntity(m_sRecruitPrefab, position, orientation);
 		if (!recruitEntity)
 			return null;
 				
-		OVT_Global.ApplyCivilianLoadout(recruitEntity);
+		OVT_LoadoutUtils.ApplyCivilianLoadout(recruitEntity);
 		
 		// Activate AI for the spawned recruit
 		AIControlComponent aiControl = AIControlComponent.Cast(recruitEntity.FindComponent(AIControlComponent));
@@ -1067,10 +1067,26 @@ class OVT_RecruitManagerComponent : OVT_Component
 
 		// Set recruit faction to match player faction
 		SetRecruitFaction(persId, civilian);
-		
+
+		// TAKE THIS CIVILIAN OUT OF AMBIENT OWNERSHIP - HERE, AND NOWHERE ELSE.
+		//
+		// The position is the whole point. It is AFTER the recruit record exists, so a recruit this
+		// method refused (no identity, at the cap) never releases a civilian the town's crowd would
+		// then stop managing - an unowned civilian nothing will ever despawn. And it is BEFORE
+		// AddRecruitToPlayerGroup() below, because that reparents the agent into the owner's slave
+		// group: once it has run, the civilian's ambient group is no longer its parent and the
+		// resolution here (character -> agent -> parent group) finds nothing to release.
+		//
+		// Safe for a tent recruit and for any other non-ambient character: the ambient seam
+		// re-verifies the claim against the source's own entity list, so a character no source owns
+		// simply answers false and nothing happens. Null-safe when the manager is absent entirely.
+		OVT_CivilianAmbienceManagerComponent civilianAmbience = OVT_Global.GetCivilianAmbience();
+		if (civilianAmbience)
+			civilianAmbience.ReleaseRecruitedCivilian(civilian);
+
 		// Note: BroadcastRecruitCreated is already called in AddRecruit method
 		// No need to broadcast again here to avoid duplicates
-		
+
 		// Add to the player's group through the slave-group path (RequestAddAIAgent) - the same
 		// route the respawn flow uses. Slave-group membership is commanded by player id, so it
 		// survives the owner dying; forcing the agent into the MASTER group's array only worked
@@ -1222,7 +1238,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 		if (world)
 			anchor[1] = world.GetSurfaceY(anchor[0], anchor[2]);
 
-		return OVT_Global.FindSafeSpawnPosition(anchor, "-0.5 0 -0.5", "0.5 2 0.5", true);
+		return OVT_WorldUtils.FindSafeSpawnPosition(anchor, "-0.5 0 -0.5", "0.5 2 0.5", true);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2569,9 +2585,10 @@ class OVT_RecruitManagerComponent : OVT_Component
 	//!     for groups whose policy is ProximityDriven - so a Manual group is never proximity-despawned.
 	//!     A proximity-driven inactive group would DELETE THE RECRUIT BODIES at 800 m, which is the
 	//!     whole feature gone (risk R2).
-	//!  2. NEVER ROUTE THIS GROUP THROUGH THE SPAWNING API'S CLEANUP HELPERS. They delete every member
-	//!     soldier of the group they are handed (OVT_EntitySpawningAPI.c:379-400) - and the members of
-	//!     this one are the player's recruits.
+	//!  2. NEVER ROUTE THIS GROUP THROUGH A BULK GROUP-CLEANUP HELPER. Any such helper deletes every
+	//!     member soldier of the group it is handed - and the members of this one are the player's
+	//!     recruits. (The deployments framework's version of that helper was deleted outright in
+	//!     virtualization/integration Phase 5; the rule stands for whatever replaces it.)
 	//! ==========================================================================================
 	//!
 	//! CLUSTERING, IN TWO HALVES. Which records could be hosting a nearby group is decided by the pure

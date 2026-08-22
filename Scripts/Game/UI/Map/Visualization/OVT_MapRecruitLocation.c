@@ -257,7 +257,7 @@ class OVT_MapRecruitLocation : SCR_MapUIBaseComponent
 
 		// Null on a client whose controller has not been assigned yet. A missing cache reads as
 		// "no status", which every marker renders as a bare base image - never an error.
-		OVT_RecruitCommandComponent commands = OVT_Global.GetRecruitCommands();
+		OVT_RecruitCommandComponent commands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 
 		for (int i = 0; i < m_Widgets.Count(); i++)
 		{

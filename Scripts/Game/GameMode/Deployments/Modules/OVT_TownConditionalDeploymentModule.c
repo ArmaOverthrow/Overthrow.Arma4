@@ -32,12 +32,12 @@ class OVT_TownConditionalDeploymentModule : OVT_BaseConditionDeploymentModule
 	
 	protected OVT_TownData m_CachedTown;
 	protected float m_fLastCheckTime;
-	protected float m_fCacheTimeout;
-	
+	protected float m_fCacheTimeout; //!< MILLISECONDS (compared against a GetWorldTime() delta)
+
 	//------------------------------------------------------------------------------------------------
 	void OVT_TownConditionalDeploymentModule()
 	{
-		m_fCacheTimeout = 30.0; // Cache town data for 30 seconds
+		m_fCacheTimeout = 30000.0; // Cache town data for 30 seconds (GetWorldTime() is in milliseconds)
 		m_fLastCheckTime = 0;
 		m_CachedTown = null;
 	}

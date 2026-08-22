@@ -1,0 +1,440 @@
+BehaviorTree "{A086847134FE94FF}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt" {
+ Name "AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearch.bt"
+ Nodes {
+  RootNode Root {
+   Name "Root"
+   EditorPos 32 -736
+   Nodes {
+    Sequence Sequence {
+     Name "Sequence"
+     EditorPos 22 -260.333
+     Nodes {
+      Sequence Sequence {
+       Name "Sequence"
+       EditorPos -627.75 -3.5
+       Nodes {
+        SCR_AIGetTimedWaypointParameters "SCR_AI Get Timed Waypoint Parameters" {
+         Name "SCR_AI Get Timed Waypoint Parameters"
+         EditorPos -1170.635 188.413
+         InPorts {
+          SingleInputPortContainer SingleInputPortContainer {
+           Port -1
+           PortName "WaypointIn"
+          }
+         }
+         OutPorts {
+          SingleOutputPortContainer SingleOutputPortContainer {
+           Port 1
+           PortName "WaypointOut"
+          }
+          SingleOutputPortContainer SingleOutputPortContainer {
+           Port -1
+           PortName "Radius"
+          }
+          SingleOutputPortContainer SingleOutputPortContainer {
+           Port -1
+           PortName "Origin"
+          }
+          SingleOutputPortContainer SingleOutputPortContainer {
+           Port 14
+           PortName "PriorityLevel"
+          }
+          SingleOutputPortContainer SingleOutputPortContainer {
+           Port 0
+           PortName "HoldingTime"
+          }
+         }
+        }
+        AITaskSetVariable "Set Variable" {
+         Name "Set Variable"
+         EditorPos -507.286 190
+         ClearVariable 1
+         OutVariable 20
+        }
+       }
+      }
+      Selector Selector {
+       Name "Selector"
+       EditorPos 1034.833 23.667
+       Nodes {
+        DecoTestVariable "Test Variable" {
+         Name "Test Variable"
+         EditorPos 444.58 136.641
+         Nodes {
+          Selector Selector {
+           Name "Selector"
+           EditorPos 482.134 333.333
+           Nodes {
+            SCR_AIDecoIsWithinRadius "SCR_AI Deco Is Within Radius" {
+             Name "SCR_AI Deco Is Within Radius"
+             EditorPos 174.5 476.214
+             Nodes {
+              Sequence Sequence {
+               Name "Sequence"
+               EditorPos 280 615.417
+               Nodes {
+                SCR_AIPrintDebug "SCR_AI Print Debug" {
+                 Name "SCR_AI Print Debug"
+                 EditorPos -417.214 821.5
+                 InPorts {
+                  SingleInputPortContainer SingleInputPortContainer {
+                   Port -1
+                   PortName "DebugMessage"
+                  }
+                 }
+                 m_bIncludeMe 1
+                 m_sDebugMessage "House search waypoint reached!"
+                }
+                AITaskSetVariable "Set Variable" {
+                 Name "Set Variable"
+                 EditorPos -134.793 813.325
+                 SetValue "true"
+                 OutVariable 9
+                }
+                OVT_AIStartHouseSearch "OVT_AI Start House Search" {
+                 Name "OVT_AI Start House Search"
+                 EditorPos 99.464 807.643
+                 InPorts {
+                  SingleInputPortContainer SingleInputPortContainer {
+                   Port 13
+                   PortName "PriorityLevel"
+                  }
+                 }
+                 m_sText "WP_HouseSearch"
+                }
+                AITaskSetVariable "Set Variable" {
+                 Name "Set Variable"
+                 EditorPos 518.691 809.553
+                 SetValue "true"
+                 OutVariable 4
+                }
+                AITaskReturnState "Return State" {
+                 Name "Return State"
+                 EditorPos 730.493 804.883
+                 Result RUNNING
+                }
+               }
+              }
+             }
+             InPorts {
+              SingleInputPortContainer SingleInputPortContainer {
+               Port -1
+               PortName "WaypointIn"
+              }
+             }
+             UseChildResult 1
+             AbortType AbortChildrenBranchAndParentFurtherChildren
+            }
+            AITaskReturnState "Return State" {
+             Name "Return State"
+             EditorPos 599.35 472.598
+             Result RUNNING
+            }
+           }
+          }
+         }
+         NegativeCondition 1
+         UseChildResult 1
+         AbortType AbortChildrenBranch
+         InVariable 5
+        }
+        DecoTestVariable "Test Variable" {
+         Name "Test Variable"
+         EditorPos 1625.045 240.462
+         Nodes {
+          Selector Selector {
+           Name "Selector"
+           EditorPos 1650.417 512.5
+           Nodes {
+            DecoTestVariable "Test Variable" {
+             Name "Test Variable"
+             EditorPos 1150.334 719.667
+             Nodes {
+              Sequence Sequence {
+               Name "Sequence"
+               EditorPos 1219.333 915
+               Nodes {
+                AITaskSetVariable "Set Variable" {
+                 Name "Set Variable"
+                 EditorPos 967.404 1262.524
+                 SetValue "false"
+                 ClearVariable 0
+                 OutVariable 11
+                }
+                AITaskSetVariable "Set Variable" {
+                 Name "Set Variable"
+                 EditorPos 1174.762 1258.81
+                 SetValue "true"
+                 OutVariable 16
+                }
+                AITaskSetVariable "Set Variable" {
+                 Name "Set Variable"
+                 EditorPos 1403.047 1256.096
+                 SetValue "false"
+                 OutVariable 8
+                }
+                AITaskReturnState "Return State" {
+                 Name "Return State"
+                 EditorPos 1641.779 1262.55
+                 Result RUNNING
+                }
+               }
+              }
+             }
+             UseChildResult 1
+             AbortType AbortChildrenBranchAndParentFurtherChildren
+             InVariable 6
+             TestType EqualsValue
+             TestValue "true"
+            }
+            Sequence Sequence {
+             Name "Sequence"
+             EditorPos 2017 668.333
+             Nodes {
+              SCR_AITaskTimerGate "SCR_AI Task Timer Gate" {
+               Name "SCR_AI Task Timer Gate"
+               EditorPos 1947.143 848.571
+               InPorts {
+                SingleInputPortContainer SingleInputPortContainer {
+                 Port 3
+                 PortName "Time"
+                }
+                SingleInputPortContainer SingleInputPortContainer {
+                 Port 17
+                 PortName "ResetTime"
+                }
+               }
+               OutPorts {
+                SingleOutputPortContainer SingleOutputPortContainer {
+                 Port 7
+                 PortName "Trigger"
+                }
+                SingleOutputPortContainer SingleOutputPortContainer {
+                 Port 12
+                 PortName "ElapsedTime"
+                }
+                SingleOutputPortContainer SingleOutputPortContainer {
+                 Port 18
+                 PortName "ResetTimeOut"
+                }
+               }
+              }
+              DecoTestVariable "Test Variable" {
+               Name "Test Variable"
+               EditorPos 2596.25 813.75
+               Nodes {
+                Selector Selector {
+                 Name "Selector"
+                 EditorPos 2625 1088.75
+                 Nodes {
+                  SCR_AIDecoIsEnemyWithinRadius "SCR_AI Deco Is Enemy Within Radius" {
+                   Name "SCR_AI Deco Is Enemy Within Radius"
+                   EditorPos 2145.139 1336.528
+                   Nodes {
+                    Sequence Sequence {
+                     Name "Sequence"
+                     EditorPos 2243.333 1491.667
+                     Nodes {
+                      AITaskSetVariable "Set Variable" {
+                       Name "Set Variable"
+                       EditorPos 2016.111 1650.694
+                       SetValue "true"
+                       OutVariable 2
+                      }
+                      AITaskReturnState "Return State" {
+                       Name "Return State"
+                       EditorPos 2393.683 1650.169
+                       Result RUNNING
+                      }
+                     }
+                    }
+                   }
+                   InPorts {
+                    SingleInputPortContainer SingleInputPortContainer {
+                     Port -1
+                     PortName "WaypointIn"
+                    }
+                   }
+                   OutPorts {
+                    SingleOutputPortContainer SingleOutputPortContainer {
+                     Port -1
+                     PortName "LocationOut"
+                    }
+                   }
+                   UseChildResult 1
+                  }
+                  Sequence Sequence {
+                   Name "Sequence"
+                   EditorPos 2918.571 1322.857
+                   Nodes {
+                    SCR_AIPrintDebug "SCR_AI Print Debug" {
+                     Name "SCR_AI Print Debug"
+                     EditorPos 2560.286 1489
+                     InPorts {
+                      SingleInputPortContainer SingleInputPortContainer {
+                       Port -1
+                       PortName "DebugMessage"
+                      }
+                     }
+                     m_bIncludeMe 1
+                     m_sDebugMessage "Seek and destroy completed!"
+                    }
+                    SCR_AICompleteWaypoint "SCR_AI Complete Waypoint" {
+                     Name "SCR_AI Complete Waypoint"
+                     EditorPos 2986.428 1482
+                     InPorts {
+                      SingleInputPortContainer SingleInputPortContainer {
+                       Port 19
+                       PortName "WaypointIn"
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+               UseChildResult 1
+               InVariable 7
+               TestType EqualsValue
+               TestValue "true"
+              }
+             }
+            }
+           }
+          }
+         }
+         NegativeCondition 0
+         UseChildResult 1
+         InVariable 10
+         TestType EqualsValue
+         TestValue "true"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+ Variables {
+  BtVariableEntity currentWaypoint {
+   Flags 0
+   Desc "AIWaypoint"
+  }
+  BtVariableBool unitReachedWP {
+   Flags 0
+   Desc "bool"
+  }
+  BtVariableBool restartWaypoint {
+   Flags 0
+   Desc "bool"
+  }
+  BtVariableScalar waypointHoldingTime {
+   Flags 0
+   Desc "float"
+  }
+  BtVariableBool isHoldingTimeDone {
+   Flags 0
+   Desc "bool"
+  }
+  BtVariableScalar elapsedTime {
+   Flags 0
+   Desc "float"
+  }
+  BtVariableBool resetTime {
+   Flags 0
+   Desc "bool"
+  }
+  BtVariableScalar priorityLevel {
+   Flags 0
+   Desc "float"
+  }
+ }
+ VariablesRefs {
+  VariableReference waypointHoldingTime {
+   VariableType 3
+   EditorPos -752 352
+  }
+  VariableReference currentWaypoint {
+   VariableType 0
+   EditorPos -784 176
+  }
+  VariableReference restartWaypoint {
+   VariableType 2
+   EditorPos 2272 1776
+  }
+  VariableReference waypointHoldingTime {
+   VariableType 3
+   EditorPos 1584 816
+  }
+  VariableReference unitReachedWP {
+   VariableType 1
+   EditorPos 720 960
+  }
+  VariableReference unitReachedWP {
+   VariableType 1
+   EditorPos 144 304
+  }
+  VariableReference restartWaypoint {
+   VariableType 2
+   EditorPos 896 880
+  }
+  VariableReference isHoldingTimeDone {
+   VariableType 4
+   EditorPos 2240 864
+  }
+  VariableReference restartWaypoint {
+   VariableType 2
+   EditorPos 1632 1408
+  }
+  VariableReference restartWaypoint {
+   VariableType 2
+   EditorPos 160 1072
+  }
+  VariableReference unitReachedWP {
+   VariableType 1
+   EditorPos 1408 384
+  }
+  VariableReference isHoldingTimeDone {
+   VariableType 4
+   EditorPos 1056 1392
+  }
+  VariableReference elapsedTime {
+   VariableType 5
+   EditorPos 2320 960
+  }
+  VariableReference priorityLevel {
+   VariableType 7
+   EditorPos -192 1008
+  }
+  VariableReference priorityLevel {
+   VariableType 7
+   EditorPos -688 272
+  }
+  VariableReference currentWaypoint {
+   VariableType 0
+   EditorPos -224 1088
+  }
+  VariableReference resetTime {
+   VariableType 6
+   EditorPos 1360 1392
+  }
+  VariableReference resetTime {
+   VariableType 6
+   EditorPos 1696 928
+  }
+  VariableReference resetTime {
+   VariableType 6
+   EditorPos 2256 1056
+  }
+  VariableReference currentWaypoint {
+   VariableType 0
+   EditorPos 2960 1616
+  }
+  VariableReference unitReachedWP {
+   VariableType 1
+   EditorPos -224 416
+  }
+ }
+}

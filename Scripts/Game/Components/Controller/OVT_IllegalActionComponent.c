@@ -12,7 +12,7 @@ enum OVT_EIllegalAction
 }
 
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative illegal-action wanted escalation for one player")]
-class OVT_IllegalActionComponentClass : OVT_ComponentClass {};
+class OVT_IllegalActionComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Tells the server that this player has STARTED an illegal act that takes time to commit - the
@@ -35,7 +35,7 @@ class OVT_IllegalActionComponentClass : OVT_ComponentClass {};
 //! Nothing here can hurt anyone but the sender: the worst a crafted packet achieves is making its
 //! own player wanted.
 //------------------------------------------------------------------------------------------------
-class OVT_IllegalActionComponent : OVT_Component
+class OVT_IllegalActionComponent : OVT_ControllerRequestComponent
 {
 	//! How long each act leaves the player catchable. Both holds are configured at 15 s
 	//! (Duration on the actions in OVT_TownController.et / OVT_BaseController.et); the slack covers
@@ -135,36 +135,5 @@ class OVT_IllegalActionComponent : OVT_Component
 		if(!character) return null;
 
 		return OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Which player this controller belongs to, resolved on the SERVER from the controller entity
-	//! this component sits on - the identity never comes from the payload.
-	//!
-	//! Copied verbatim from OVT_UprisingRequestComponent (itself from OVT_RespawnRequestComponent /
-	//! OVT_TravelRequestComponent / OVT_ShopTransactionComponent / OVT_TowerSabotageComponent) -
-	//! see the shared-base-class note there.
-	//! \return Runtime player id, or -1.
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
 	}
 }

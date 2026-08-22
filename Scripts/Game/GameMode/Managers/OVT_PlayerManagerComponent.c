@@ -74,6 +74,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
 		m_mPlayerControllers = new map<int, IEntity>;
+
+		// OVT_Global.s_LocalController is a STATIC and therefore outlives the world, unlike every map
+		// above it. A Continue replaces the world - and every controller entity in it - without anyone
+		// disconnecting, so the cached handle from the previous world must be dropped HERE, where a
+		// fresh player manager proves a fresh session. Everything else about the cache is
+		// self-healing (GetController() re-validates with IsDeleted()); this is the one case where the
+		// entity is gone along with the world that owned it.
+		OVT_Global.SetLocalController(null);
 		Print("[Overthrow] PlayerManager init complete - new m_mPlayers: " + m_mPlayers);
 		
 		// Subscribe to player disconnect events
@@ -770,11 +778,20 @@ class OVT_PlayerManagerComponent: OVT_Component
 			return;
 		}
 		
-		// Spawn controller entity for the player
-		if(!m_OverthrowControllerPrefab || m_mPlayerControllers.Contains(playerId))
+		// Spawn controller entity for the player.
+		//
+		// GetController() rather than a raw m_mPlayerControllers.Contains(): it revalidates the stored
+		// entity with IsDeleted() and drops a stale mapping, the same way CleanupPlayerController does.
+		// A dead entity left in the map would otherwise send EVERY later SetupPlayer down the reconnect
+		// branch below - the player would never be given a replacement controller, and every
+		// client->server request they make would be unreachable for the rest of the session with no
+		// error anywhere. Contains() cannot tell the two states apart; this can.
+		OVT_OverthrowController existingController = GetController(playerId);
+
+		if(!m_OverthrowControllerPrefab || existingController)
 		{
 			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
-			// Could be a reconnection with still existing controller, re-assign ownership and notify the client
+			// Could be a reconnection with a still-existing controller, re-assign ownership and notify the client
 			AssignControllerOwnership(playerId);
 			return;
 		}
@@ -901,8 +918,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 		IEntity controller = m_mPlayerControllers[playerId];
 		if(controller && !controller.IsDeleted())
 		{
-			// Delete the entity
-			delete controller;
+			// RplComponent.DeleteRplEntity, NOT a bare `delete`. The controller is a replicated entity
+			// that was handed to a client with GiveExt, and the engine's own contract is that the
+			// authority deletes such an entity by removing it from replication first - which is what
+			// propagates the delete to every proxy. A bare `delete` destroys the server's copy only and
+			// leaves other clients holding a replica of an entity that no longer exists.
+			// releaseFromReplication is false: proxies must delete it too, not keep it.
+			RplComponent.DeleteRplEntity(controller, false);
 			Print("[Overthrow] Cleaned up controller entity for disconnected player " + playerId);
 		}
 		

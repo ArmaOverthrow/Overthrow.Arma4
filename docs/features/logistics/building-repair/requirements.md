@@ -1,59 +1,73 @@
-# Building Repair — Requirements
+# Building Repair — DESCOPED, BUILT AS A SMALL CHANGE 2026-08-22
+
+> **This was never built as a feature.** By the time `core/damage` and `logistics/resources` were both
+> done, everything this document specced except two small pieces already existed — the destructible
+> ruin, the held repair action, the money price, the difficulty ladder, the persistence, and the three
+> position-based resource helpers. User call 2026-08-22: *"now that all the systems are built we don't
+> need a whole feature… it only needs to add the Requirements action and wire the repair action up to
+> use nearby crates."*
+>
+> **What was built (2026-08-22), directly on the two existing seams:**
+> - `OVT_ResourceRules.RepairRequirement(scaledQty, repairMultiplier)` — the repair share of a build
+>   requirement, floored at 1 and capped at the build. Pure; Logic case
+>   `OVT_TEST_Logic_ResourceRules_RepairRequirementIsAShareOfTheBuild`.
+> - `OVT_RepairRequirementsAction` + `OVT_RepairRequirementsReader`
+>   (`Scripts/Game/UserActions/OVT_RepairRequirementsAction.c`) — the ruin's "Repair Requirements"
+>   readout, the counterpart of `OVT_SiteRequirementsAction`, shown only on a ruin that costs materials.
+> - `OVT_RepairStructureAction` — advisory resource gate with a reason naming the short resource.
+> - `OVT_ResistanceFactionManager.RepairStructure()` — validates money **and** materials, repairs, then
+>   consumes from the nearby piles and charges. Server-initiated repairs (`playerId == -1`) stay free.
+> - Three `.st` keys + a `RepairNeedsMaterials` notification; the Requirements action authored on all
+>   ten destructible buildables.
+> - ⚠ **Found on the way:** `OVT_Barracks.et` and `OVT_Warehouse.et` carried no `ActionsManagerComponent`
+>   at all, so both were ruinable and **impossible to repair**. Both now carry the repair pair.
+>
+> **Which buildables cost materials to repair (checked 2026-08-22):** Garage, Helipad, Warehouse,
+> Barracks. The other six — Guard Tower (its requirements were removed by the user), Recruitment Tent,
+> Medical Tent, Vehicle Maintenance Ramp, Bunkers, Fuel Depot — repair for money alone and the
+> Requirements action hides itself on them.
+>
+> **Deliberately not built** from the spec below: a separate Init case per buildable for repair pricing
+> (case F already spawns every config-listed buildable), and the `buildableRepairCostMultiplier` split
+> (one ladder, as specced). The original requirements are kept below for the record.
+
+---
 
 **Epic:** logistics
-**Created:** 2026-08-11
+**Created:** 2026-08-11 · **Rewritten:** 2026-08-20 against `core/damage` (In Progress, 16/70 — `docs/features/core/damage/implementation.md`), which now owns everything this feature originally planned except the resources.
 
 ## Overview
 
-`building-repair` makes Overthrow's built structures answerable to the war around them: when a building is destroyed it stops working, and getting it back means hauling resources to the wreck exactly as building it did the first time. The design deliberately reuses `resource-construction` rather than inventing a parallel repair mechanic — **the ruin *is* a construction site**, carrying the same requirements action, the same nearby-crate-pile check and the same Build action, at a difficulty-driven discount.
+`core/damage` makes Overthrow structures destructible **in place**: a buildable driven to `EDamageState`/phase 1 by `OVT_StructureDamage.Ruin()` stays in the world as the **same entity** with a ruin mesh (`OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent`, `m_bDeleteAfterFinalPhase 0`), its functions are gated off while ruined (D15), the phase persists in `OVT_BuildableComponentSerializer` **v2**, and a held `OVT_RepairStructureAction` restores it through `OVT_ResistanceFactionManager.RepairStructure(entity, playerId)` for `round(m_iCost × buildableCostMultiplier × repairCostMultiplier)` money (`repairCostMultiplier`: Easy/Normal 0.5 → Hard 0.75 → Extreme/Insane 1). The occupying faction repairs its own ground through a deployment module (server-initiated, `playerId == -1`, free).
+
+`building-repair` adds the **resources**: repairing a ruin also requires a difficulty-scaled fraction of the buildable's resource requirement (from `logistics/resources`) to be sitting in crate piles nearby, and consumes them. There is no separate repair mechanic, no site prefab spawned at the ruin, no second detection path and no new persistence — the feature is a resource gate on the seam `core/damage` left open (§3.12: *"the change is confined to `OVT_ResistanceFactionManager.RepairStructure()`"*) plus the readout that makes the requirement legible on the ruin.
 
 ## Requirements
 
-- **Audit first.** Establish which of the buildables in `Configs/Resistance/buildables.conf` are actually destructible and how. Overthrow's prefabs (`OVT_GuardTower_01.et`, the FOB tents) declare no destruction components of their own — they are same-GUID deltas, so behaviour is inherited from each vanilla base prefab and will differ per buildable. Record the finding per buildable in `context.md`; it drives every decision below.
-- **Detect destruction server-side.** An Overthrow building entering `EDamageState.DESTROYED` (or its destruction component reaching its final phase) is recognised by its `OVT_BuildableComponent` and flagged destroyed. Detection must handle **both** cases:
-  - the entity survives as a ruin/rubble mesh, and
-  - the entity **deletes itself** (`m_bDeleteAfterFinalPhase` on `SCR_DestructionMultiPhaseComponent`), leaving nothing to attach to.
-- **A destroyed building is disabled.** Its function stops working while destroyed. This is **per-building integration work**, not one flag — each functional buildable must have its own capability gated at the point that capability is offered:
-  - Recruitment Tent → recruitment refused (`OVT_RecruitManagerComponent`)
-  - Medical Tent → healing/medical function refused
-  - Garage / Vehicle Maintenance Ramp → vehicle services refused
-  - Warehouse (from `logistics/resource-storage`) → storage access refused
-  - Guard Tower / Bunkers / Helipad → whatever they currently confer (spawn point, cover, aircraft landing) withdrawn
-  Enumerate the full list during planning; anything conferring a benefit must be covered or explicitly documented as unaffected.
-- **The ruin is the construction site.** A destroyed building presents the same interaction surface as an unbuilt one: a requirements action listing what is needed versus what is available in nearby crate piles, and a Build (repair) action that unlocks only when satisfied. Reuse `resource-construction`'s machinery — do not build a second requirements/consumption path.
-  - Where the entity survives, the ruin itself carries the site (visually the wreck stays put).
-  - Where the entity self-deleted, a bare construction site is spawned at the destroyed building's recorded transform, so the flow is identical from the player's side.
-- **Repair cost is difficulty-driven.** The fraction of the buildable's original resource requirement charged to repair it is a **difficulty setting**, not a per-buildable value and not a constant. Follow the shipped multiplier pattern exactly:
-  - Add a field to `OVT_DifficultySettings` (`Scripts/Game/Configuration/OVT_DifficultySettings.c`) in the `Economy` category, alongside `placeableCostMultiplier` / `buildableCostMultiplier` / `realEstateCostMultiplier` — e.g. `buildableRepairCostMultiplier` with an `[Attribute(defvalue: "0.5", ...)]`.
-  - Add the matching accessor to `OVT_OverthrowConfigComponent` in the same shape as `GetBuildableCost()` (`m_Difficulty.buildableCostMultiplier * buildable.m_iCost`, rounded), so callers never touch `m_Difficulty` directly.
-  - Difficulty `.conf` files only override what they change — `Difficulty_Normal.conf` and `Difficulty_TestWorld.conf` list no multipliers at all and inherit the attribute default. Only the tiers that want a non-default repair fraction (`Difficulty_Easy.conf` sets 0.8 for the others; Hard / Extreme / Insane likewise) need editing. Choose per-tier values during planning; do not add a redundant line to every file.
-  - Applies to the **resource** requirement. Whether the money side of a repair is also multiplied depends on what the money question below settles.
-- **Repair scaling stacks on construction scaling.** `resource-construction` scales the base resource requirement by its own difficulty multiplier; repair's multiplier applies **on top of that already-scaled figure**, not on the raw config number. Confirm the composition order and the rounding rule when planning, and assert it — a repair on Easy must cost less than the same repair on Insane, and both less than their own initial build.
-- **Completing a repair** removes the required resources from nearby piles, deletes the ruin/site, and spawns a fresh building through the same path `resource-construction` uses, restoring ownership, base association and function. XP reward for a repair is a planning decision — decide and state it.
-- **Money:** decide during planning whether repair costs money in addition to resources, and stay consistent with whatever `resource-construction` settled for the placement-vs-completion charge.
-- **Destroyed state persists.** `OVT_BuildableComponentSerializer` is currently **version 1** and stores only owner persistent id and base association. It needs a **version 2** payload carrying the destroyed flag (and, for self-deleting prefabs, whatever is needed to recreate the site at the right transform). Version 1 saves must still load — a missing field means "not destroyed", following the existing `version < 1` precedent in that serializer.
-- A building destroyed in one session must still be destroyed, disabled and repairable after a save/load.
-- **Multiplayer:** destroyed state replicates to all clients including join-in-progress, so a late joiner sees the ruin as a repairable site and cannot use the disabled function. Detection and repair are validated server-side; the client never asserts a building is destroyed or repaired.
-- New strings (repair action, disabled reasons) go in `Language/localization_Overthrow.st`.
-- Automated coverage: Logic-tier assertions for the repair-requirement fraction maths and the destroyed→disabled predicate; Persistence-tier assertion for a destroyed building round-tripping through the version-2 serializer, including a version-1 save still loading as not-destroyed.
+- **Resource-gated repair on the existing seam.** `OVT_ResistanceFactionManager.RepairStructure()` gains, before the money check, a **resource requirement check and consumption** using `resources`' construction machinery: requirement = the buildable's (difficulty-scaled) resource requirement × the repair fraction; satisfied when the summed contents of crate piles within the configured radius of the ruin cover it; consumed server-side in deterministic order; then the existing money charge and `OVT_StructureDamage.Repair()` proceed unchanged. Ordering: validate resources **and** money, consume resources, repair, charge — a repair must never consume resources and then fail on money, or charge and then fail on resources.
+- **A buildable with no resource requirement repairs exactly as `core/damage` shipped it** (money only). Additive, like construction.
+- **One repair fraction for money and resources.** Reuse `OVT_DifficultySettings.repairCostMultiplier` (shipped by `core/damage`) for the resource fraction rather than adding a parallel `buildableRepairCostMultiplier` — one knob, same ladder, same accessor shape. (If play balance later wants them apart, split then.) Resource repair = `round(scaledRequirement × repairCostMultiplier)` per resource, rounding **never** turning a non-zero requirement into zero and never exceeding the construction requirement; composition with `resources`' `buildableResourceCostMultiplier` is stated and asserted.
+- **The ruin shows what it needs.** `OVT_RepairStructureAction`'s name/reason and `resources`' requirements readout (per resource: needed vs available nearby, what is short) are available on the ruin exactly as on a construction site; the action is performable only when both resources and money are satisfied, and the reason says which is missing. The client's copy is advisory — the server re-derives requirement, availability and price.
+- **`resources`' construction machinery must therefore be callable against an arbitrary entity position/buildable**, not hard-wired to a spawned site entity: "nearby availability for (position, requirements)" and "consume (position, requirements)" are the two entry points this feature calls. Recorded here so `/plan-feature logistics/resources` builds it that way.
+- **Server-initiated repairs stay free** (`playerId == -1`: the occupying faction's module, `/repair-structure`) — no resources, no money, per `core/damage`'s convention.
+- **Persistence: nothing new.** The ruin phase is already saved; resources stay in the piles until the single repair action consumes them, so a half-supplied repair has no state to persist.
+- **Multiplayer:** validation and consumption are server-side through the existing `OVT_ResistanceRequestComponent.RpcAsk_RepairStructure` ladder; the piles' replicated contents and `core/damage`'s broadcast phase message cover clients and JIP.
+- **The buildable warehouse** (`resources` §E) must be part of `core/damage`'s retrofit and ruin-gate (destruction component authored, storage actions hidden while ruined) — owned by `resources` when it creates the prefab; this feature only checks it repairs like the rest.
+- New strings (reasons naming the missing resource) in `Language/localization_Overthrow.st`.
+- Automated coverage: **Logic** — resource repair fraction maths (half on Normal, full on Insane, never zero for a non-zero requirement, never above the construction requirement, composition order with the construction multiplier), the satisfied/short predicate through the shared helper; **Init** — the seam still resolves and every buildable with requirements prices to a positive, finite resource repair cost; play-test — a ruined Garage cannot be repaired without the piles, can with them, the piles are debited and the structure returns intact for every client.
 
 ## Dependencies
 
-- **`logistics/resource-core`** — resource definitions and the ledger.
-- **`logistics/resource-transport`** — crate piles supply the repair.
-- **`logistics/resource-construction`** — this feature is largely a second entry point into that feature's requirements/site/Build machinery. It must be complete first.
-- **`logistics/resource-storage`** — not a code dependency, but going last means the buildable warehouse is included in the disabled-state gating pass rather than retrofitted. Can be implemented in parallel with storage if that ordering changes.
-- `resistance` epic — `OVT_BuildableComponent`, the build/spawn path, and the removal flow.
-- `core/persistence` — `OVT_BuildableComponentSerializer` version bump.
-- Other epics' code for the disabled gating: `OVT_RecruitManagerComponent`, vehicle services, and any system that reads a built structure's presence as a benefit.
+- **`core/damage`** — must be complete: `OVT_StructureDamage`, `OVT_StructureDestructionComponent`, `OVT_RepairStructureAction`, `OVT_ResistanceFactionManager.RepairStructure/GetRepairCost/FindBuildableForEntity`, `OVT_RepairPricing`, `repairCostMultiplier`, serializer v2, the ruin gate, the occupying repair module.
+- **`logistics/resources`** — resource definitions, the ledger, crate piles, the construction requirement list + `buildableResourceCostMultiplier`, and the position-based availability/consume helpers.
+- `resistance` epic — `OVT_BuildableComponent`, `buildables.conf`.
+- `core/persistence` — nothing new (recorded to make the point).
+
+## Dropped from the 2026-08-11 version (now `core/damage`'s, or moot)
+
+- Destruction audit per buildable, server-side detection, the self-deleting-prefab case (`m_bDeleteAfterFinalPhase` is authored `0` everywhere), per-building disabled-state gating, the destroyed flag + `OVT_BuildableComponentSerializer` v2, the "spawn a bare site at the recorded transform" path, the separate `buildableRepairCostMultiplier`, and "XP for repair" (decide in `core/damage` or planning; not a resource question).
+- The epic's earlier rationale *"a ruin is a construction site because engine destruction cannot be reversed"* — `core/damage` reversed it (the subclass restores the intact mesh and broadcasts the phase), so the ruin stays a ruin entity that **borrows** the site's requirements/consume machinery rather than becoming a site.
 
 ## Out of Scope
 
-- **Reversing vanilla destruction in place.** No `GoToDamagePhase(0)` / `SetHealthScaled(1)` healing of a damaged entity. The engine's destruction is one-directional in practice, and the ruin-is-a-site design avoids depending on it. If a future feature wants smooth in-place repair, this is where to revisit.
-- **Partial or gradual damage states.** Only destroyed-versus-not matters. A building at 40% health is fully functional; there is no degraded mode, no repair of undestroyed damage.
-- **Repair time, timers or progress bars** — requirements satisfied → action → repaired, matching `resource-construction`.
-- **Making non-destructible buildables destructible.** If a vanilla base prefab has no destruction, that buildable is simply never destroyed; do not add destruction components to make it so.
-- **Destruction of world/civilian buildings, houses or purchased real estate.** Only Overthrow-built structures carrying `OVT_BuildableComponent` are in scope.
-- **Repairing vehicles** — unrelated system, already partly served elsewhere.
-- **Recruits or AI performing repairs.**
-- **Occupying-faction AI deliberately targeting resistance structures.** Buildings get destroyed by whatever already damages them; no new attack behaviour.
+- Reversing destruction differently, partial damage states, repair timers beyond the held action's authored duration, repairing vanilla town buildings (dropped permanently by `core/damage` §3.9), vehicles, AI/recruit repairs, occupying-faction repairs costing resources.

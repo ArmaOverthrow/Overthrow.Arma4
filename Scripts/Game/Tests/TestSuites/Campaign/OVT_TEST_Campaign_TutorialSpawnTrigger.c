@@ -61,9 +61,9 @@ class OVT_TEST_Campaign_Tutorial_SpawnTriggerSurvivesCampaignStart : SCR_Autotes
 			return true;
 		}
 
-		if (!OVT_Global.GetTutorials())
+		if (!OVT_ControllerComponent<OVT_TutorialComponent>.Get())
 		{
-			SetFailure("The local player has no OVT_TutorialComponent - OVT_Global.GetTutorials() is null, so there is nothing on this machine that could receive a client-local trigger. Check Prefabs/GameMode/OVT_OverthrowController.et still carries the component");
+			SetFailure("The local player has no OVT_TutorialComponent - OVT_ControllerComponent<OVT_TutorialComponent>.Get() is null, so there is nothing on this machine that could receive a client-local trigger. Check Prefabs/GameMode/OVT_OverthrowController.et still carries the component");
 			return true;
 		}
 

@@ -3,7 +3,7 @@ name: ui-developer-advanced
 description: Heavyweight Overthrow UI work - multi-screen reworks, input-scheme changes, and console/gamepad-critical phases. Used by /proceed-advanced, or by /proceed when the user opts in.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
-effort: max
+effort: xhigh
 ---
 
 You are a UI developer for the Overthrow mod, building menus in Enfusion:

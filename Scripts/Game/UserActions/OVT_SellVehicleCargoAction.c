@@ -9,8 +9,9 @@
 //! the gates below exist so the action does not offer a sale the server would refuse.
 //!
 //! Local-effect-only: the client wrapper resolves the LOCAL player's controller entity
-//! (OVT_Global.GetShopTransactions), so PerformAction must run on the machine that clicked. A
-//! server-executed PerformAction would find no local controller on a dedicated server.
+//! (OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get()), so PerformAction must run on the
+//! machine that clicked. A server-executed PerformAction would find no local controller on a
+//! dedicated server.
 //------------------------------------------------------------------------------------------------
 class OVT_SellVehicleCargoAction : ScriptedUserAction
 {
@@ -42,6 +43,9 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 	{
 		if(!pOwnerEntity) return;
 
+		// Hosted on truck cargo beds too, whose storage lives one hop up on the vehicle root.
+		pOwnerEntity = OVT_StorageUtils.ResolveStorageHolder(pOwnerEntity);
+
 		// The shop is resolved again here rather than reused from the visibility cache: the cached
 		// answer may be up to a second old and the vehicle may have rolled since.
 		OVT_ShopComponent shop = FindEligibleShop(pOwnerEntity);
@@ -51,7 +55,7 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 			return;
 		}
 
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return;
 
 		SubscribeSellResult(transactions);
@@ -96,7 +100,7 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 		RplComponent userRpl = RplComponent.Cast(user.FindComponent(RplComponent));
 		if(!userRpl) return false;
 
-		IEntity vehicle = GetOwner();
+		IEntity vehicle = OVT_StorageUtils.ResolveStorageHolder(GetOwner());
 		if(!vehicle) return false;
 
 		// Somebody still in the driver's seat: the same rule (and the same message) as unloading.
@@ -142,7 +146,7 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 	//! \return True when an eligible shop is in range and the vehicle has cargo.
 	protected bool ComputeVisible()
 	{
-		IEntity vehicle = GetOwner();
+		IEntity vehicle = OVT_StorageUtils.ResolveStorageHolder(GetOwner());
 		if(!vehicle) return false;
 
 		if(!FindEligibleShop(vehicle)) return false;

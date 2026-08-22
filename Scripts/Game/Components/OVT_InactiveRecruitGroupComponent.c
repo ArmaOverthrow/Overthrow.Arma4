@@ -22,6 +22,23 @@
 //! runs. Clients are told which recruits are inactive through the recruit manager's own broadcast
 //! (RpcDo_RecruitActiveStateChanged) and its JIP payload; they are never told anything about the
 //! groups, because the grouping has no player-observable identity (decision D8).
+//!
+//! ================= IT IS ALSO AN AI OBSERVER (virtualization/integration Phase 6, D16) =============
+//! A parked squad makes the virtualization core park an engine observer that FOLLOWS this group
+//! entity, so registered enemy groups inside its spawn ring materialise with NO PLAYER ANYWHERE NEAR
+//! - "leave a squad in a town and the town's patrol comes to life" is the behaviour that asks for.
+//!
+//! ⚠ THAT IS ALSO WHAT IT COSTS. For as long as this group stands there, every registered group
+//! inside the ring stays materialised with its AI running - a squad parked near a radio tower holds
+//! that tower's garrison awake indefinitely. The operator's off-switch is the virtualization
+//! manager's m_bRecruitGroupsAreObservers attribute (default ON), read below.
+//!
+//! WHY THE WIRING LIVES HERE and not in the recruit manager: this component is created with the
+//! group and destroyed with it, by every route including vanilla's delete-when-empty. That is the
+//! same argument the waypoints above rest on, and it means the observer cannot outlive the squad it
+//! is following even when the group dies through a path Overthrow did not write. There is no manager
+//! plumbing, no registry and no subscription into the recruit transfer paths.
+//! ===================================================================================================
 //------------------------------------------------------------------------------------------------
 [ComponentEditorProps(category: "Overthrow", description: "Marks an AI group as an Overthrow inactive-recruit group and owns its hold waypoints")]
 class OVT_InactiveRecruitGroupComponentClass : ScriptComponentClass
@@ -48,6 +65,69 @@ class OVT_InactiveRecruitGroupComponent : ScriptComponent
 	//! alive as a zombie. These are plain pointers that are only ever dereferenced in OnDelete(),
 	//! one line before the entities they name are destroyed.
 	protected ref array<AIWaypoint> m_aOwnedWaypoints = {};
+
+	//------------------------------------------------------------------------------------------------
+	//! THE SERVER-SIDE CREATION HOOK for the AI observer (D16). Queues the install for the next frame.
+	//!
+	//! The group prefab is replicated, so this event also runs on every client - where
+	//! Replication.IsServer() is false and the manager's own guard would refuse anyway.
+	//!
+	//! ⚠ WHY IT IS DEFERRED BY A FRAME INSTEAD OF ADDING THE OBSERVER RIGHT HERE. Core keys its
+	//! observer map on the followed entity's EntityID, and an entity that is not world-registered yet
+	//! answers GetID() with EntityID.INVALID - a value EVERY unregistered entity shares. Core refuses
+	//! those outright (it measured two entities colliding on one map entry), so an add made from
+	//! inside this entity's own initialisation - which is what OnPostInit is, one call deep inside the
+	//! prefab spawn that created it - would be refused and the squad would silently never become an
+	//! observer. One call-queue hop puts the add on a frame where the entity unambiguously exists in
+	//! the world, which is the state core's stale-entity sweep also assumes (it drops any observer
+	//! whose id no longer resolves through FindEntityByID).
+	//!
+	//! The queued call is cancelled in OnDelete, so a group created and destroyed in the same frame -
+	//! the recruit manager's own refusal paths do exactly that - never parks an observer at all.
+	//! \param[in] owner The group entity this component was created on.
+	override void OnPostInit(IEntity owner)
+	{
+		super.OnPostInit(owner);
+
+		if (!Replication.IsServer())
+			return;
+
+		if (!GetGame() || !GetGame().GetCallqueue())
+			return;
+
+		GetGame().GetCallqueue().CallLater(InstallObserver, 0, false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Parks the AI observer that makes this squad pull dormant content awake. One frame after
+	//! OnPostInit, so the group entity is world-registered and has a real EntityID.
+	//!
+	//! Nothing about the group is read: the observer follows the group ENTITY with zero offsets, so it
+	//! needs no position, no faction and no members, and it is correct from here until the entity is
+	//! destroyed.
+	//!
+	//! Silently does nothing when there is no virtualization manager (a world without the game mode -
+	//! the autotest worlds spawn this prefab too) or when the operator has switched the behaviour off.
+	//! A refusal by core IS logged, because a parked squad that quietly fails to wake anything is the
+	//! exact failure this feature exists to prevent.
+	protected void InstallObserver()
+	{
+		IEntity owner = GetOwner();
+		if (!owner)
+			return;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		// THE OFF-SWITCH IS READ HERE, NOT INSIDE THE CORE CALL. AddEntityObserver serves every
+		// consumer; this attribute is about parked recruits only, so the consumer is what consults it.
+		if (!virtualization.GetRecruitGroupsAreObservers())
+			return;
+
+		if (!virtualization.AddEntityObserver(owner))
+			Print("[Overthrow] An inactive-recruit group could not be made an AI observer - the squad will not wake dormant AI near it. See the virtualization manager's warning above for the reason", LogLevel.WARNING);
+	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Records which player's parked recruits this group holds.
@@ -93,9 +173,29 @@ class OVT_InactiveRecruitGroupComponent : ScriptComponent
 	//! group's waypoint list holding a freed entity for as long as the group takes to finish dying.
 	//! RemoveWaypoint() on a cycle's child that was never on the group's own list is a harmless
 	//! no-op, so every owned waypoint gets the same two steps.
+	//!
+	//! IT ALSO TAKES THE AI OBSERVER DOWN, and that half runs FIRST and UNCONDITIONALLY. First,
+	//! because it is the one piece of state held outside this world's entity graph - an observer left
+	//! behind keeps every registered group near this spot materialised for the rest of the session,
+	//! with nobody able to name the key that would remove it. Unconditionally, because asking "did I
+	//! add one?" would only re-derive an answer the manager already holds: removing an entity it never
+	//! parked an observer for is a silent no-op, and doing it regardless also cleans up an observer
+	//! that got here by some route this component did not write.
+	//!
+	//! The QUEUED install is cancelled before anything else. A group can be created and destroyed
+	//! inside one frame - the recruit manager deletes a group whose first member could not be added -
+	//! and a pending install firing after that would park an observer following a dead entity, which
+	//! only the manager's 2 s sweep would ever clean up.
 	//! \param[in] owner The group entity being destroyed.
 	override void OnDelete(IEntity owner)
 	{
+		if (GetGame() && GetGame().GetCallqueue())
+			GetGame().GetCallqueue().Remove(InstallObserver);
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (virtualization)
+			virtualization.RemoveEntityObserver(owner);
+
 		SCR_AIGroup group = SCR_AIGroup.Cast(owner);
 
 		foreach (AIWaypoint waypoint : m_aOwnedWaypoints)

@@ -1,0 +1,130 @@
+GenericEntity : "{6A8E2E0000000101}Prefabs/Structures/OVT_ConstructionSite.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  MeshObject "{5872F0EB7FA40561}" {
+   Object "{D5D501A2DEE93E60}Assets/Structures/Industrial/Houses/Warehouse_01/Warehouse_01.xob"
+  }
+  ActionsManagerComponent "{6A8E2E0000000032}" {
+   ActionContexts {
+    UserActionContext "{6A8E2E0000000033}" {
+     Position PointInfo "{6A8E2E0000000034}" {
+      Offset 0.0808 1.3969 8.0959
+     }
+    }
+   }
+  }
+  Hierarchy "{6A2C1143D8534778}" {
+  }
+ }
+ {
+  $grp GenericEntity : "{14DDB40171F949A9}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_WoodPlanks_01_USSR.et" {
+   {
+    ID "6A2C1143D8527C26"
+    components {
+     Hierarchy "{6A8E2E4000000016}" {
+      Enabled 1
+     }
+    }
+    coords 1.783 0 3.931
+    angles 0 78.736 0
+   }
+   {
+    ID "6A2C1143D85337B8"
+    components {
+     Hierarchy "{6A8E2E4000000017}" {
+      Enabled 1
+     }
+    }
+    coords 5.274 0.073 1.25
+    angles 0 146.021 0
+   }
+   {
+    ID "6A2C1143D853479E"
+    components {
+     Hierarchy "{6A8E2E4000000018}" {
+      Enabled 1
+     }
+    }
+    coords 9.493 0.073 4.594
+    angles 0 112.326 0
+   }
+  }
+  GenericEntity : "{3E9EDDFC51BB3410}Prefabs/Props/Industrial/CargoContainers/CargoContainer_01/CargoContainer_01_10ft_olive.et" {
+   ID "6A2C1143D85347A8"
+   components {
+    Hierarchy "{6A8E2E4000000019}" {
+     Enabled 1
+    }
+   }
+   coords -15.305 0.118 2.753
+   angles 0 14.042 0
+  }
+  GenericEntity : "{4A34979DC19CA9ED}Prefabs/Props/Construction/ConcreteMixer_01.et" {
+   ID "6A2C1143D8527C23"
+   components {
+    Hierarchy "{6A8E2E400000001A}" {
+     Enabled 1
+    }
+   }
+   coords 0 0 7.622
+  }
+  $grp GenericEntity : "{90C62D3DBDEB0759}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_MetalSheets_01_US.et" {
+   {
+    ID "6A2C1143D8527C22"
+    components {
+     Hierarchy "{6A8E2E400000001B}" {
+      Enabled 1
+     }
+    }
+    coords -3.274 0 3.425
+    angles 0 -76.756 0
+   }
+   {
+    ID "6A2C1143D852E1E0"
+    components {
+     Hierarchy "{6A8E2E400000001C}" {
+      Enabled 1
+     }
+    }
+    coords -9.546 0.073 4.719
+    angles 0 2.827 0
+   }
+   {
+    ID "6A2C1143D852E1E3"
+    components {
+     Hierarchy "{6A8E2E400000001D}" {
+      Enabled 1
+     }
+    }
+    coords -0.094 0 -3.414
+    angles 0 5.234 0
+   }
+   {
+    ID "6A2C1143D85337B9"
+    components {
+     Hierarchy "{6A8E2E400000001E}" {
+      Enabled 1
+     }
+    }
+    coords -10.445 0.073 -5.764
+    angles 0 41.146 0
+   }
+  }
+  GenericEntity : "{A9CF5E8C5D91C476}Prefabs/Compositions/Misc/SubCompositions/Decorations/Barrel_Group_Crate_01.et" {
+   ID "6A2C1143D8534792"
+   coords -6.144 0.073 5.299
+  }
+  $grp GenericEntity : "{B4FFD63EDFCBD850}Prefabs/Compositions/Misc/SubCompositions/CrateStacked_02.et" {
+   {
+    ID "6A2C1140446F9111"
+    coords 11.775 0.05 -2.341
+    angles 0 -24.221 0
+   }
+   {
+    ID "6A2C1143D8534796"
+    coords 5.179 0.073 -1.808
+    angles 0 21.339 0
+   }
+  }
+ }
+}

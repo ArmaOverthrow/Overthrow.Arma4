@@ -223,7 +223,7 @@ class OVT_TutorialInfo : SCR_InfoDisplay
 			return;
 		}
 
-		OVT_TutorialComponent tutorials = OVT_Global.GetTutorials();
+		OVT_TutorialComponent tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 		if (tutorials && tutorials.m_OnShowTutorial)
 		{
 			m_Tutorials = tutorials;

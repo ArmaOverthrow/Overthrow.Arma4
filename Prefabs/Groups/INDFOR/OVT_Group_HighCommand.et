@@ -1,0 +1,20 @@
+SCR_AIGroup : "{242BC3C6BCE96EA5}Prefabs/Groups/INDFOR/Group_FIA_Base.et" {
+ ID "0000000000000001"
+ components {
+  OVT_HighCommandGroupComponent "{6B1C3D0000000004}" {
+  }
+  RplComponent "{524EC5D51F101B32}" {
+  }
+  SCR_EditableGroupComponent "{50D291F6C83FA532}" {
+   m_UIInfo SCR_EditableGroupUIInfo "{5298E609432D192D}" {
+    Name "High Command"
+    m_sFaction "FIA"
+   }
+  }
+ }
+ coords 0 0 0
+ m_aUnitPrefabSlots {
+ }
+ m_bDeleteWhenEmpty 1
+ m_bPlayable 0
+}

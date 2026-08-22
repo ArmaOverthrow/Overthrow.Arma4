@@ -12,11 +12,6 @@ class OVT_CampData : Managed
 	vector location;
 	string owner;
 	bool isPrivate = false; // Default to public for collaboration
-	
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-	
-	ref array<ref ResourceName> garrison = {};
 }
 
 class OVT_FOBData : Managed
@@ -29,11 +24,6 @@ class OVT_FOBData : Managed
 	vector location;
 	string owner;
 	bool isPriority = false; // Priority FOB for enhanced map visibility
-	
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-	
-	ref array<ref ResourceName> garrison = {};
 }
 
 
@@ -62,6 +52,17 @@ class OVT_ResistanceFactionManager: OVT_Component
 	static const int FOB_DEPLOY_BASE_BUFFER = 50;
 	//! Enforced FOB deployment exclusion radius (m) around any radio tower
 	static const int FOB_DEPLOY_TOWER_RANGE = 70;
+
+	//! Footprint (m) an undeploy collects placed containers from. The shipped number.
+	static const float FOB_UNDEPLOY_COLLECT_RADIUS = 75;
+
+	//! What GetStructureCost() answers for a live structure no config entry claims.
+	//!
+	//! ⚠ DELIBERATELY HUGE, NOT ZERO. Its only consumer orders structures cheapest-first, and an
+	//! unknown price sorting FIRST would make anything a mod adds the first thing destroyed. Sorting
+	//! last means the known, authored, cheap things go first and an unpriced object is only ever
+	//! reached once everything else is gone - the conservative half of the mistake either way.
+	static const int UNKNOWN_STRUCTURE_COST = 1000000;
 
 	[Attribute()]
 	ResourceName m_rPlaceablesConfigFile;
@@ -100,7 +101,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 	// The transfer component the in-flight operation subscribed to; the completion handlers must
 	// unsubscribe from this exact component (its owner is the player's controller, not this manager)
 	protected OVT_ContainerTransferComponent m_CurrentDeploymentTransfer;
-	protected OVT_ContainerTransferComponent m_CurrentCollectionTransfer;
+	// Undeploy runs on the storage job engine, not on the container transfer component: it converts
+	// every nearby container into the mobile FOB's LEDGER rather than moving entities between two
+	// vanilla storages, so the completion handlers listen there instead.
+	protected OVT_StorageRequestComponent m_CurrentCollectionTransfer;
 	// The player whose transfer component drives the in-flight FOB operation; if they disconnect
 	// mid-transfer the complete/error callbacks never fire, so the state must be recovered manually
 	protected int m_iFOBOperationPlayerId = -1;
@@ -249,9 +253,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
+	//! Lifecycle hook called by OVT_OverthrowGameMode.DoStartGame(). Nothing to start here today; kept
+	//! because the game mode calls it unconditionally.
 	void PostGameStart()
 	{
-		GetGame().GetCallqueue().CallLater(SpawnGarrisons, 0);
 	}	
 	
 	//------------------------------------------------------------------------------------------------
@@ -259,8 +264,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//!
 	//! Called from OVT_ResistanceManagerSerializer.Deserialize().
 	//!
-	//! SPAWNS NOTHING. Restored garrison prefab lists are replayed by SpawnGarrisons() during
-	//! PostGameStart, the same path a fresh campaign start takes.
+	//! SPAWNS NOTHING.
 	//!
 	//! NO RPC. Clients receive camps and FOBs through the manager's normal replication.
 	//!
@@ -299,7 +303,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				camp.location = campRecord.location;
 				camp.owner = campRecord.owner;
 				camp.isPrivate = campRecord.isPrivate;
-				ApplyPersistedGarrison(camp.garrison, campRecord.garrison);
 			}
 		}
 
@@ -322,7 +325,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				fob.location = fobRecord.location;
 				fob.owner = fobRecord.owner;
 				fob.isPriority = fobRecord.isPriority;
-				ApplyPersistedGarrison(fob.garrison, fobRecord.garrison);
 			}
 		}
 
@@ -415,60 +417,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 		return null;
 	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Rebuilds a garrison prefab list from a save record.
-	//! \param[in] target The live prefab list, may be null.
-	//! \param[in] source The saved prefab list, may be null.
-	protected void ApplyPersistedGarrison(array<ref ResourceName> target, array<ResourceName> source)
-	{
-		if (!target)
-			return;
-
-		target.Clear();
-
-		if (!source)
-			return;
-
-		foreach (ResourceName prefab : source)
-		{
-			if (prefab.IsEmpty())
-				continue;
-
-			target.Insert(prefab);
-		}
-	}
-
-	protected void SpawnGarrisons()
-	{
-		foreach(OVT_CampData fob : m_Camps)
-		{
-			foreach(ResourceName res : fob.garrison)
-			{
-				SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
-				if(!group)
-				{
-					Print(string.Format("[Overthrow] Failed to spawn camp garrison prefab '%1' - skipping", res), LogLevel.WARNING);
-					continue;
-				}
-				fob.garrisonEntities.Insert(group.GetID());
-			}
-		}
-		foreach(OVT_FOBData fob : m_FOBs)
-		{
-			foreach(ResourceName res : fob.garrison)
-			{
-				SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
-				if(!group)
-				{
-					Print(string.Format("[Overthrow] Failed to spawn FOB garrison prefab '%1' - skipping", res), LogLevel.WARNING);
-					continue;
-				}
-				fob.garrisonEntities.Insert(group.GetID());
-			}
-		}
-	}
-	
 	bool IsOfficer(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -486,7 +434,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	{
 		// Server-only: the broadcast below is dropped when sent from a client, which would leave
 		// the promotion applied on the caller's screen alone. Clients go through
-		// OVT_PlayerCommsComponent.AddOfficer.
+		// OVT_ResistanceRequestComponent.AddOfficer.
 		if (!Replication.IsServer()) return;
 		RpcDo_AddOfficer(playerId);
 		Rpc(RpcDo_AddOfficer, playerId);
@@ -579,10 +527,15 @@ class OVT_ResistanceFactionManager: OVT_Component
 		transfer.m_OnOperationComplete.Insert(OnFOBDeploymentComplete);
 		transfer.m_OnOperationError.Insert(OnFOBDeploymentError);
 
+		// The truck's LEDGER goes across first, synchronously and with zero spawns. It has to happen
+		// here: OnFOBDeploymentComplete deletes the truck, and an undeploy leaves everything it
+		// collected in the ledger rather than in the vanilla inventory the transfer below moves.
+		OVT_StorageUtils.MoveWholeLedger(entity, newveh);
+
 		// Transfer items from mobile FOB to deployed FOB
 		transfer.TransferStorage(entity, newveh, false);
 	}
-	
+
 	void UndeployFOB(RplId vehicle, int playerId = -1)
 	{		
 		// SERVER-SIDE ONLY: FOB operations must happen on server
@@ -595,13 +548,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!rpl) return;
 		IEntity entity = rpl.GetEntity();
 		
-		// Validate the initiating player and their transfer component BEFORE spawning anything -
+		// Validate the initiating player and their storage engine BEFORE spawning anything -
 		// falling through after the spawn leaves a duplicate truck and a still-registered FOB
 		if (playerId == -1) return;
 		OVT_OverthrowController controller = OVT_Global.GetPlayers().GetController(playerId);
 		if (!controller) return;
-		OVT_ContainerTransferComponent transfer = OVT_ContainerTransferComponent.Cast(controller.FindComponent(OVT_ContainerTransferComponent));
-		if (!transfer || !transfer.IsAvailable()) return;
+		OVT_StorageRequestComponent storage = OVT_StorageRequestComponent.Cast(controller.FindComponent(OVT_StorageRequestComponent));
+		if (!storage || storage.IsBusy()) return;
 
 		// Only one FOB operation may be in flight - the operation state below is shared
 		if (m_pCurrentDeploymentSource || m_pCurrentDeploymentTarget || m_pCurrentUndeployedFOB || m_pCurrentMobileFOB)
@@ -620,6 +573,13 @@ class OVT_ResistanceFactionManager: OVT_Component
 		IEntity newveh = vm.SpawnVehicleMatrix(m_pMobileFOBPrefab, mat, ownerId);
 		if (!newveh) return;
 
+		RplId mobileId = OVT_StorageUtils.GetHolderId(newveh);
+		if (!mobileId.IsValid())
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(newveh);
+			return;
+		}
+
 		// Deactivate physics immediately on the mobile FOB to prevent physics conflicts
 		Physics physics = newveh.GetPhysics();
 		if (physics)
@@ -630,23 +590,24 @@ class OVT_ResistanceFactionManager: OVT_Component
 		OVT_Global.GetVehicles().m_aVehicles.RemoveItem(entity.GetID());
 
 		// Clear any existing callbacks first
-		transfer.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
-		transfer.m_OnOperationComplete.Remove(OnFOBDeploymentComplete);
-		transfer.m_OnOperationError.Remove(OnFOBCollectionError);
-		transfer.m_OnOperationError.Remove(OnFOBDeploymentError);
+		storage.m_OnOperationComplete.Remove(OnFOBCollectionComplete);
+		storage.m_OnOperationError.Remove(OnFOBCollectionError);
 
 		// Subscribe to completion event to handle FOB cleanup
-		transfer.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
-		transfer.m_OnOperationError.Insert(OnFOBCollectionError);
+		storage.m_OnOperationComplete.Insert(OnFOBCollectionComplete);
+		storage.m_OnOperationError.Insert(OnFOBCollectionError);
 
 		// Store FOB entities for cleanup (using member variables)
 		m_pCurrentUndeployedFOB = entity;
 		m_pCurrentMobileFOB = newveh;
-		m_CurrentCollectionTransfer = transfer;
+		m_CurrentCollectionTransfer = storage;
 		m_iFOBOperationPlayerId = playerId;
 
-		// Start container collection with the new progress system
-		transfer.UndeployFOBWithCollection(entity, newveh);
+		// The deployed FOB and every placed container around it are converted into the mobile FOB's
+		// ledger. A refusal emits nothing, so the state latched above is unwound by hand - otherwise
+		// FOB operations stay wedged for the rest of the session.
+		if (!storage.StartCollectionJob(playerId, vehicle, mobileId, FOB_UNDEPLOY_COLLECT_RADIUS, "#OVT-Progress-UndeployingFOB"))
+			OnFOBCollectionError("#OVT-Storage_Failed");
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -730,7 +691,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 		
-		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity entity = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 		
 		// Check for OVT_PlaceableComponent and warn if missing
 		OVT_PlaceableComponent placeableComp = OVT_PlaceableComponent.Cast(entity.FindComponent(OVT_PlaceableComponent));
@@ -804,6 +765,22 @@ class OVT_ResistanceFactionManager: OVT_Component
 		return entity;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Build a structure from the buildables config. THE ONE DOOR every caller already uses; its
+	//! signature is unchanged.
+	//!
+	//! A buildable that authors resource requirements and is being built BY A PLAYER puts a
+	//! construction site down instead and charges the money there (D2). Everything else - every
+	//! money-only buildable, and every server-initiated build at playerId -1 - goes straight to
+	//! FinishBuild() exactly as it did before construction sites existed.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where to put it.
+	//! \param[in] angles Its yaw/pitch/roll.
+	//! \param[in] playerId The builder, or -1 for a server-initiated build (free of money AND of
+	//! resources, and never a site).
+	//! \param[in] runHandler Whether the buildable's handler runs.
+	//! \return The structure, the construction site, or null.
 	IEntity BuildItem(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler = true)
 	{
 		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
@@ -838,13 +815,55 @@ class OVT_ResistanceFactionManager: OVT_Component
 			if(!limits.CanBuildItem(pos, reason)) return null;
 		}
 
+		// The server half of OVT_BuildContext.CanBuild's town branch, through the same pure predicate.
+		// Player-initiated only, like every check in the block above: -1 is the server's own
+		// "free and unvalidated" marker. Refuses silently, as the item-limit check does - the client
+		// already named the reason before it ever sent this.
+		if(playerId > -1 && !TownControlAllowsBuild(buildable, pos)) return null;
+
+		// A player building something that costs resources gets a SITE, and pays for it now (D2).
+		// playerId -1 never reaches here, so a server-initiated build is never a site.
+		if(playerId > -1 && HasResourceRequirements(buildable))
+			return PlaceConstructionSite(buildableIndex, prefabIndex, pos, angles, playerId);
+
+		return FinishBuild(buildableIndex, prefabIndex, pos, angles, playerId, runHandler, true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE SPAWN/REGISTER/HANDLER/NAVMESH/INVOKE/TRACK PATH, and therefore the one ordering (D13).
+	//!
+	//! ⚠ THE ORDER IN HERE HAS A BUG HISTORY. A failed handler deletes the structure and returns
+	//! BEFORE any charge; m_OnBuild fires exactly once, when the building appears, so XP and the
+	//! tutorial land then and not when a site is placed; Track() runs last, so a rejected build is
+	//! never registered. Nothing was reordered when the site path was added - the only difference
+	//! between the two entries is the charge flag.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where to put it.
+	//! \param[in] angles Its yaw/pitch/roll.
+	//! \param[in] playerId The builder, or -1.
+	//! \param[in] runHandler Whether the buildable's handler runs.
+	//! \param[in] charge Whether the money is taken here. False when a construction site already
+	//! charged it at placement.
+	//! \return The structure, or null when the handler rejected it.
+	protected IEntity FinishBuild(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId, bool runHandler, bool charge)
+	{
+		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
+		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		int cost = m_Config.GetBuildableCost(buildable);
+
 		ResourceName res = buildable.m_aPrefabs[prefabIndex];
 
 		vector mat[4];
 		Math3D.AnglesToMatrix(angles, mat);
 		mat[3] = pos;
 
-		IEntity entity = OVT_Global.SpawnEntityPrefabMatrix(res, mat);
+		IEntity entity = OVT_WorldUtils.SpawnEntityPrefabMatrix(res, mat);
 
 		// Check for OVT_BuildableComponent and warn if missing
 		OVT_BuildableComponent buildableComp = OVT_BuildableComponent.Cast(entity.FindComponent(OVT_BuildableComponent));
@@ -878,7 +897,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		// Charge server-side - the client no longer pays via the generic money RPC
-		economy.TakePlayerMoney(playerId, cost);
+		if(charge)
+			economy.TakePlayerMoney(playerId, cost);
 
 		// Immediate - see the matching call in PlaceItem().
 		OVT_NavmeshRebuild.RebuildNow(entity);
@@ -888,7 +908,273 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Include the built structure in save points - see the matching call in PlaceItem().
 		OVT_PersistenceTracking.Track(entity);
 
+		// AFTER Track(), and deliberately not an m_OnBuild subscriber: an exception inside an invoker
+		// aborts the whole chain, and this one would run before the line above.
+		RegisterBuiltWarehouse(entity, playerId);
+
 		return entity;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Registers a freshly built warehouse with real estate, so it is indistinguishable from a
+	//! purchased one (D14): owned by the builder, public, on the map, and openable.
+	//!
+	//! GATED ON THE REAL-ESTATE CONFIG, not on the buildable type. SetOwnerPersistentId() also writes
+	//! ownership for the OWNER manager, so calling it for every built structure would put every garage
+	//! and guard tower in the player's owned-property list. Only a building the real-estate config
+	//! already calls a warehouse is registered.
+	//!
+	//! NOTHING IN OVT_RealEstateManagerComponent CHANGES for this - the whole path is its shipped
+	//! purchase path, reached with a different owner.
+	//! \param[in] entity The structure that was just built.
+	//! \param[in] playerId The builder, or -1 for a server-initiated build (never registered - there
+	//! is no owner to register it to).
+	protected void RegisterBuiltWarehouse(IEntity entity, int playerId)
+	{
+		if(!entity || playerId <= -1) return;
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(!realEstate) return;
+
+		OVT_RealEstateConfig config = realEstate.GetConfig(entity);
+		if(!config || !config.m_IsWarehouse) return;
+
+		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+		if(persId == "") return;
+
+		// isPrivate is left at its default false, so the warehouse is PUBLIC (D14).
+		realEstate.SetOwnerPersistentId(persId, entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The server half of OVT_BuildContext.CanBuild's town branch.
+	//!
+	//! Mirrors the client exactly - the same nearest town, the same size-to-range table, the same pure
+	//! predicate - so a position the client offered can never be refused here for a different reason.
+	//! Villages are excluded (the client refuses a town-buildable in one outright, for a different
+	//! reason this has no business restating), and so is every buildable that is not town-buildable.
+	//! \param[in] buildable The config entry.
+	//! \param[in] pos Where it was ordered.
+	//! \return True unless the position sits inside a town the resistance does not hold.
+	//! Mirrors OVT_BuildContext.CanBuild's base branch so both sides of the wire agree.
+	//! \param[in] pos The requested build position.
+	//! \return True when a resistance-held base is close enough to authorise the build.
+	protected bool BaseAllowsBuild(vector pos)
+	{
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		if(!occupyingFaction) return false;
+
+		OVT_BaseData base = occupyingFaction.GetNearestBase(pos);
+		if(!base || base.IsOccupyingFaction()) return false;
+
+		return vector.Distance(base.location, pos) < OVT_Global.GetConfig().m_Difficulty.baseRange;
+	}
+
+	protected bool TownControlAllowsBuild(OVT_Buildable buildable, vector pos)
+	{
+		if(!buildable || !buildable.m_bBuildInTown) return true;
+
+		// A qualifying base wins outright, exactly as OVT_BuildContext.CanBuild's base branch returns
+		// before its town branch. Without this the client offers a build the server refuses in silence.
+		if(buildable.m_bBuildAtBase && BaseAllowsBuild(pos)) return true;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return true;
+
+		OVT_TownData town = towns.GetNearestTown(pos);
+		if(!town || town.size == 1) return true;
+
+		int range = towns.m_iCityRange;
+		if(town.size < 3) range = towns.m_iTownRange;
+
+		return OVT_ResourceRules.TownControlAllowsBuild(town.faction, OVT_Global.GetConfig().GetPlayerFactionIndex(), vector.DistanceSq(town.location, pos), range * range);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a construction site where a building was ordered, and takes the money for it (D2).
+	//!
+	//! Money is charged HERE and refunded nowhere - removing a site refunds nothing, because no refund
+	//! path exists anywhere in the mod. m_OnBuild does NOT fire: a site is not a building, so no XP is
+	//! awarded and no tutorial step completes until it is finished.
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \param[in] prefabIndex Index into that buildable's prefab list.
+	//! \param[in] pos Where the building was ordered.
+	//! \param[in] angles The orientation it will be built at.
+	//! \param[in] playerId The builder. Never -1 - BuildItem() gates on that.
+	//! \return The site, or null when nothing was placed and nothing was charged.
+	protected IEntity PlaceConstructionSite(int buildableIndex, int prefabIndex, vector pos, vector angles, int playerId)
+	{
+		OVT_ResistanceFactionManager config = OVT_Global.GetResistanceFaction();
+
+		if(buildableIndex < 0 || buildableIndex >= config.m_BuildablesConfig.m_aBuildables.Count()) return null;
+		OVT_Buildable buildable = config.m_BuildablesConfig.m_aBuildables[buildableIndex];
+		if(prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count()) return null;
+
+		ResourceName sitePrefab = ResolveSitePrefab(buildable);
+		if(sitePrefab == ResourceName.Empty)
+		{
+			Print("[Overthrow] A buildable authors resource requirements but there is no construction site prefab to place - neither the buildable's own m_SitePrefab nor the resource manager's generic one is wired. Nothing was built and nothing was charged.", LogLevel.ERROR);
+			return null;
+		}
+
+		vector mat[4];
+		Math3D.AnglesToMatrix(angles, mat);
+		mat[3] = pos;
+
+		IEntity site = OVT_WorldUtils.SpawnEntityPrefabMatrix(sitePrefab, mat);
+		if(!site) return null;
+
+		OVT_ConstructionSiteComponent siteComp = OVT_ComponentFinder<OVT_ConstructionSiteComponent>.Find(site);
+		if(!siteComp)
+		{
+			Print(string.Format("[Overthrow] The construction site prefab '%1' carries no OVT_ConstructionSiteComponent, so it could never be finished. Nothing was built and nothing was charged.", sitePrefab), LogLevel.ERROR);
+			SCR_EntityHelper.DeleteEntityAndChildren(site);
+			return null;
+		}
+
+		siteComp.Initialize(buildableIndex, prefabIndex, angles, buildable.m_sTitle);
+
+		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+
+		// Ownership and base association are stamped here as well as in FinishBuild(), so the shipped
+		// removal flow (owner-or-officer) works on a site the moment it exists.
+		OVT_BuildableComponent buildableComp = OVT_ComponentFinder<OVT_BuildableComponent>.Find(site);
+		if(buildableComp)
+		{
+			buildableComp.SetOwnerPersistentId(playerUid);
+
+			string baseId;
+			EOVTBaseType baseType;
+			if(FindNearestBase(pos, baseId, baseType))
+				buildableComp.SetAssociatedBase(baseId, baseType);
+		}
+
+		// The same figure BuildItem() checked the player could afford, in the same frame.
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		economy.TakePlayerMoney(playerId, m_Config.GetBuildableCost(buildable));
+
+		OVT_NavmeshRebuild.RebuildNow(site);
+
+		OVT_PersistenceTracking.Track(site);
+
+		return site;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER ONLY. Consumes the crate piles around a construction site and turns it into the building.
+	//!
+	//! The money was taken at placement (D2), so this re-enters FinishBuild() with charge false. The
+	//! resources are taken BEFORE the site is destroyed and the building spawned, in the order §3.8
+	//! specifies; Consume() is all-or-nothing, so a refusal leaves every pile exactly as it was.
+	//! \param[in] site The construction site.
+	//! \param[in] playerId The player finishing it. Credited with the build.
+	//! \param[out] reason Localization key naming the refusal; "" on success.
+	//! \return The finished building, or null.
+	IEntity CompleteSite(IEntity site, int playerId, out string reason)
+	{
+		reason = "";
+
+		if(!Replication.IsServer())
+		{
+			reason = "#OVT-Resource_Failed";
+			return null;
+		}
+
+		OVT_ConstructionSiteComponent siteComp = OVT_ComponentFinder<OVT_ConstructionSiteComponent>.Find(site);
+		if(!siteComp)
+		{
+			reason = "#OVT-Resource_NoSite";
+			return null;
+		}
+
+		int buildableIndex = siteComp.GetBuildableIndex();
+		int prefabIndex = siteComp.GetPrefabIndex();
+		vector angles = siteComp.GetAngles();
+		vector pos = site.GetOrigin();
+
+		OVT_Buildable buildable = GetBuildableAt(buildableIndex);
+		if(!buildable || prefabIndex < 0 || prefabIndex >= buildable.m_aPrefabs.Count())
+		{
+			// The site outlived a buildables.conf edit that moved or removed its entry.
+			reason = "#OVT-Resource_NoSite";
+			return null;
+		}
+
+		// A .conf entry that authors no requirements leaves the array NULL, and a standing site can
+		// outlive the edit that emptied it - in which case the building now costs nothing and the site
+		// completes for free, which is what the config says.
+		array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+		if(buildable.m_aResourceRequirements)
+			OVT_ResourceRequirements.ScaleForDifficulty(buildable.m_aResourceRequirements, need);
+
+		array<ref OVT_ResourceAmount> have = new array<ref OVT_ResourceAmount>();
+		OVT_ResourceRequirements.NearbyAvailability(pos, need, have);
+
+		string shortId;
+		if(!OVT_ResourceRules.IsSatisfied(need, have, shortId))
+		{
+			reason = "#OVT-Resource_NotEnough";
+			return null;
+		}
+
+		if(!OVT_ResourceRequirements.Consume(pos, need))
+		{
+			reason = "#OVT-Resource_NotEnough";
+			return null;
+		}
+
+		// Released before the delete so the save is not left holding a record for a site that no
+		// longer exists; the building FinishBuild() spawns is tracked in its own right.
+		OVT_PersistenceTracking.Untrack(site, false);
+		DestroyPlacedItem(site);
+
+		IEntity built = FinishBuild(buildableIndex, prefabIndex, pos, angles, playerId, true, false);
+		if(!built)
+		{
+			reason = "#OVT-Resource_Failed";
+			return null;
+		}
+
+		return built;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildable The config entry.
+	//! \return True when it authors at least one non-empty resource requirement.
+	bool HasResourceRequirements(OVT_Buildable buildable)
+	{
+		if(!buildable || !buildable.m_aResourceRequirements) return false;
+
+		foreach(OVT_BuildableResourceRequirement requirement : buildable.m_aResourceRequirements)
+		{
+			if(requirement && requirement.m_sResourceId != "" && requirement.m_iQuantity > 0) return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildableIndex Index into the buildables config.
+	//! \return The entry, or null when the index is out of range.
+	OVT_Buildable GetBuildableAt(int buildableIndex)
+	{
+		if(!m_BuildablesConfig || !m_BuildablesConfig.m_aBuildables) return null;
+		if(buildableIndex < 0 || buildableIndex >= m_BuildablesConfig.m_aBuildables.Count()) return null;
+
+		return m_BuildablesConfig.m_aBuildables[buildableIndex];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] buildable The config entry.
+	//! \return Its own site prefab, else the resource manager's generic one, else empty.
+	protected ResourceName ResolveSitePrefab(OVT_Buildable buildable)
+	{
+		if(buildable && buildable.m_SitePrefab != ResourceName.Empty) return buildable.m_SitePrefab;
+
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if(!resources) return ResourceName.Empty;
+
+		return resources.GetDefaultSitePrefab();
 	}
 	
 	//! Remove a placed item from the world. Takes an RplId - EntityIDs are not valid across the network.
@@ -918,199 +1204,235 @@ class OVT_ResistanceFactionManager: OVT_Component
 		// Only allow removal if player is owner or officer
 		if(ownerUid != playerUid && !isOfficer) return;
 
-		// Capture the hole this object carved BEFORE it stops existing - Queue() measures at call
-		// time and rebuilds a second later, which is the only ordering that works. Without it the
-		// navmesh keeps the carve forever and the AI refuses to cross ground that is now empty.
+		DestroyPlacedItem(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE WAY A PLACED OR BUILT STRUCTURE LEAVES THE WORLD. Two lines, and their ORDER is the
+	//! whole of it.
+	//!
+	//! ⚠ MECHANISM, NOT AUTHORIZATION. This method asks nobody's permission and is not reachable from
+	//! any RPC. RemovePlacedItem() above is the PLAYER's door and keeps its owner-or-officer check
+	//! exactly where it is; this is the door the server itself uses (base sabotage, camp teardown, FOB
+	//! area cleanup), where there is no player to check. Adding a caller means deciding, at the CALL
+	//! SITE, who is allowed to ask - do not "fix" this by giving it a playerId.
+	//!
+	//! ⚠ QUEUE BEFORE DELETE, NEVER AFTER, AND NEVER RebuildNow(). OVT_NavmeshRebuild.Queue() measures
+	//! the entity's bounds at CALL TIME and issues the rebuild a second later, so the capture happens
+	//! while the object still stands and the rebuild happens once it is gone. Reverse the two and there
+	//! is nothing left to measure: the carve stays in the navmesh forever and the AI keeps refusing to
+	//! walk through ground that is now empty. That is the whole reason this pair is a method rather
+	//! than two lines each caller writes for itself - it used to be copied four times in this file.
+	//! \param[in] entity The structure to remove. Null is a no-op.
+	void DestroyPlacedItem(IEntity entity)
+	{
+		if(!entity) return;
+
 		OVT_NavmeshRebuild.Queue(entity);
-
-		// Delete the entity
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	//! Resolves a garrison group prefab from the player faction, guarding the client-supplied index.
-	protected ResourceName GetGarrisonPrefab(int prefabIndex)
-	{
-		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
-		if(!faction) return ResourceName.Empty;
-		if(prefabIndex < 0 || prefabIndex >= faction.m_aGroupPrefabSlots.Count()) return ResourceName.Empty;
-		return faction.m_aGroupPrefabSlots[prefabIndex];
+		DeleteComposition(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Charges a player for an already-spawned garrison group. Server-side twin of the cost shown in
-	//! the base/FOB menus: (recruit cost + 300 equipment placeholder) per soldier. A playerId of -1
-	//! means a server-initiated (free) garrison.
-	//! \return false when the player cannot afford it (the caller must delete the group).
-	protected bool ChargeForGarrison(int playerId, SCR_AIGroup group)
+	//! ⚠ SCR_EntityHelper.DeleteEntityAndChildren IS A MISNOMER. Its whole body is
+	//! RplComponent.DeleteRplEntity(entity, false) (SCR_EntityHelper.c:177), which takes the ROOT out
+	//! of replication and out of the world and leaves prefab-authored hierarchy children standing.
+	//! Every composition structure therefore left its props behind: a finished construction site kept
+	//! the Site_*.et scaffolding (planks, cargo containers) sitting inside the new building.
+	//!
+	//! Direct children only, each deleted through its own subtree - collecting the whole tree and
+	//! deleting deepest-first would hand back handles already freed by an ancestor's delete.
+	//! \param[in] root The structure to remove.
+	protected void DeleteComposition(notnull IEntity root)
 	{
-		if(playerId == -1) return true;
+		array<IEntity> children = new array<IEntity>();
 
-		int cost = (OVT_Global.GetConfig().m_Difficulty.baseRecruitCost + 300) * group.m_aUnitPrefabSlots.Count();
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!economy.PlayerHasMoney(persId, cost))
+		IEntity child = root.GetChildren();
+		while(child)
 		{
-			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
-			return false;
-		}
-		economy.DoTakePlayerMoney(playerId, cost);
-		return true;
-	}
-
-	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		array<ref OVT_BaseData> bases = OVT_Global.GetOccupyingFaction().m_Bases;
-		if(baseId < 0 || baseId >= bases.Count()) return;
-		OVT_BaseData base = bases[baseId];
-		if(!base) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrison(base, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units - TakeSupporters
-		// silently no-ops when short, which used to hand out free garrisons (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(base.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
+			children.Insert(child);
+			child = child.GetSibling();
 		}
 
-		if(!ChargeForGarrison(playerId, group))
+		foreach(IEntity c : children)
 		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
+			if(!c) continue;
 
-		base.garrisonEntities.Insert(group.GetID());
+			// A character is never part of a structure's composition, and deleting one could be a player.
+			if(ChimeraCharacter.Cast(c)) continue;
 
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(base.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-
-	void AddGarrisonCamp(OVT_CampData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		if(!fob) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		if(!ChargeForGarrison(playerId, group))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		fob.garrisonEntities.Insert(group.GetID());
-
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-
-	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		if(!fob) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		if(!ChargeForGarrison(playerId, group))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		fob.garrisonEntities.Insert(group.GetID());
-
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-	
-	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, base.location);
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-		AddPatrolWaypoints(group, base);
-		return group;
-	}
-
-	SCR_AIGroup SpawnGarrisonCamp(OVT_CampData fob, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-
-		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);
-
-		return group;
-	}
-
-	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-
-		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);
-
-		return group;
-	}
-	
-	protected void AddPatrolWaypoints(SCR_AIGroup aigroup, OVT_BaseData base)
-	{
-		OVT_BaseControllerComponent controller = OVT_Global.GetOccupyingFaction().GetBase(base.entId);
-		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
-		
-		if(controller.m_AllCloseSlots.Count() > 2)
-		{
-			AIWaypoint firstWP;
-			for(int i=0; i< 3; i++)
+			// A replicated child must leave through replication; a plain prop has no RplComponent at
+			// all, and DeleteRplEntity does nothing for it.
+			if(RplComponent.Cast(c.FindComponent(RplComponent)))
 			{
-				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(controller.m_AllCloseSlots.GetRandomElement());
-				AIWaypoint wp = OVT_Global.GetConfig().SpawnPatrolWaypoint(randomSlot.GetOrigin());
-				if(i==0) firstWP = wp;
-				queueOfWaypoints.Insert(wp);
-				
-				AIWaypoint wait = OVT_Global.GetConfig().SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
-				queueOfWaypoints.Insert(wait);
+				SCR_EntityHelper.DeleteEntityAndChildren(c);
+				continue;
 			}
-			AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, firstWP.GetOrigin()));
-			cycle.SetWaypoints(queueOfWaypoints);
-			cycle.SetRerunCounter(-1);
-			aigroup.AddWaypoint(cycle);
+
+			delete c;
 		}
+
+		SCR_EntityHelper.DeleteEntityAndChildren(root);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE COST JOIN: the only place in the tree that gets from a LIVE structure back to the config
+	//! entry it was built from, and therefore to a price.
+	//!
+	//! ⚠ IT JOINS ON THE PREFAB, NOT ON THE TYPE STRING, and that is a finding rather than a
+	//! preference. OVT_PlaceableComponent.GetPlaceableType() / OVT_BuildableComponent.GetBuildableType()
+	//! are authored on the prefab and DO NOT MATCH the config's m_sName for seven of the eight shipped
+	//! buildables ("GuardTower" vs "Guard Tower", "Bunker" vs "Bunkers", "VehicleGarage" vs "Garage");
+	//! only "Helipad" happens to line up. A join on the type string would silently price most of the
+	//! game's structures at nothing. The prefab resource name is exact, needs no data to be re-authored,
+	//! and is what BuildItem() spawned the thing from in the first place.
+	//! \param[in] entity The live structure.
+	//! \return The buildables-config entry that claims its prefab, or null.
+	OVT_Buildable FindBuildableForEntity(IEntity entity)
+	{
+		if(!entity) return null;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(entity);
+		if(prefab == ResourceName.Empty) return null;
+
+		if(!m_BuildablesConfig || !m_BuildablesConfig.m_aBuildables) return null;
+
+		foreach(OVT_Buildable buildable : m_BuildablesConfig.m_aBuildables)
+		{
+			if(!buildable || !buildable.m_aPrefabs) continue;
+			if(buildable.m_aPrefabs.Contains(prefab)) return buildable;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The authored price of a live structure, buildable or placeable.
+	//!
+	//! ⚠ THE RAW AUTHORED m_iCost, NOT the difficulty-multiplied one. Sabotage orders structures by
+	//! price and the multiplier is uniform, so applying it would change nothing except to add a config
+	//! dependency to a pure lookup. A caller that wants what a PLAYER would pay must ask
+	//! OVT_OverthrowConfigComponent.GetPlaceableCost/GetBuildableCost, or GetRepairCost() below.
+	//!
+	//! The buildable half of the join lives in FindBuildableForEntity() above - see its header for why
+	//! the join is on the prefab and never on the type string.
+	//! \param[in] entity The live structure.
+	//! \return Its authored cost, or UNKNOWN_STRUCTURE_COST when no config entry claims its prefab.
+	int GetStructureCost(IEntity entity)
+	{
+		if(!entity) return UNKNOWN_STRUCTURE_COST;
+
+		OVT_Buildable buildable = FindBuildableForEntity(entity);
+		if(buildable) return buildable.m_iCost;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(entity);
+		if(prefab == ResourceName.Empty) return UNKNOWN_STRUCTURE_COST;
+
+		if(m_PlaceablesConfig && m_PlaceablesConfig.m_aPlaceables)
+		{
+			foreach(OVT_Placeable placeable : m_PlaceablesConfig.m_aPlaceables)
+			{
+				if(!placeable || !placeable.m_aPrefabs) continue;
+				if(placeable.m_aPrefabs.Contains(prefab)) return placeable.m_iCost;
+			}
+		}
+
+		return UNKNOWN_STRUCTURE_COST;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What a player pays to put this ruined structure back.
+	//!
+	//! One expression, evaluated on both machines: the client draws this in the action label and greys
+	//! the action out with it, and the server re-derives it here before taking the money. Only
+	//! BUILDABLES are repairable - a placeable has no ruined phase to come back from - so an entity the
+	//! buildables config does not claim is refused rather than priced.
+	//! \param[in] entity The structure (the root; its destruction component may sit on a child).
+	//! \return Dollars owed, or -1 when this structure cannot be priced for repair at all.
+	int GetRepairCost(IEntity entity)
+	{
+		OVT_Buildable buildable = FindBuildableForEntity(entity);
+		if(!buildable) return -1;
+
+		if(!OVT_RepairPricing.IsRepairable(buildable.m_iCost)) return -1;
+
+		OVT_OverthrowConfigComponent config = m_Config;
+		if(!config) config = OVT_Global.GetConfig();
+		if(!config || !config.m_Difficulty) return -1;
+
+		return OVT_RepairPricing.RepairCost(buildable.m_iCost, config.m_Difficulty.buildableCostMultiplier, config.m_Difficulty.repairCostMultiplier);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: repair a ruined structure, charging the asking player.
+	//!
+	//! CHARGE AFTER PERFORMING, NEVER BEFORE - the shape RpcAsk_RearmVehicle uses: check
+	//! PlayerHasMoney, do the thing, then TakePlayerMoney. DoTakePlayerMoney clamps at zero, so the
+	//! explicit funds check is mandatory rather than defensive.
+	//!
+	//! MATERIALS RIDE THE SAME ORDER. A buildable that costs resources to build costs a difficulty-
+	//! scaled share of them to repair, taken from the crate piles around the ruin: both gates are
+	//! tested, then the structure is repaired, then the piles are drained and the money taken. A
+	//! buildable with no resource requirement repairs for money alone, exactly as core/damage shipped
+	//! it, and a server-initiated repair (playerId == -1) stays free of both.
+	//!
+	//! playerId == -1 MEANS SERVER-INITIATED AND FREE, the convention BuildItem() already uses. That is
+	//! how the occupying faction's repair module and the admin command repair without a wallet.
+	//! \param[in] entity The ruined structure.
+	//! \param[in] playerId The paying player, or -1 for a free server-initiated repair.
+	//! \return True when the structure was repaired.
+	bool RepairStructure(IEntity entity, int playerId)
+	{
+		if(!entity) return false;
+		if(!Replication.IsServer()) return false;
+
+		if(!OVT_StructureDamage.IsRuined(entity)) return false;
+
+		int cost = 0;
+		if(playerId > -1)
+		{
+			cost = GetRepairCost(entity);
+			if(cost < 0) return false;
+
+			OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+			if(!economy) return false;
+
+			string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
+			if(!economy.PlayerHasMoney(persId, cost))
+			{
+				OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
+				return false;
+			}
+
+			// BOTH GATES BEFORE EITHER PAYMENT, then perform, then take both. This is the shape the
+			// money path already uses ("CHARGE AFTER PERFORMING, NEVER BEFORE") and it is the only
+			// order with no way to lose a player's property: consuming before the repair would drain
+			// the crate piles for good if Repair() then refused.
+			array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+			array<ref OVT_ResourceAmount> have = new array<ref OVT_ResourceAmount>();
+			if(!OVT_RepairRequirementsReader.Read(entity, need, have)) return false;
+
+			string shortId;
+			if(!need.IsEmpty() && !OVT_ResourceRules.IsSatisfied(need, have, shortId))
+			{
+				OVT_Global.GetNotify().SendTextNotification("RepairNeedsMaterials", playerId);
+				return false;
+			}
+
+			if(!OVT_StructureDamage.Repair(entity)) return false;
+
+			// Cannot fail here in practice: IsSatisfied() ran against the same piles in this same call
+			// with nothing yielding between, and Consume() is itself all-or-nothing. If it ever did,
+			// the player has a repaired structure and keeps the materials - the recoverable direction.
+			if(!need.IsEmpty())
+				OVT_ResourceRequirements.Consume(entity.GetOrigin(), need);
+
+			economy.TakePlayerMoney(playerId, cost);
+			OVT_Global.GetNotify().SendTextNotification("RepairedStructure", playerId);
+
+			return true;
+		}
+
+		return OVT_StructureDamage.Repair(entity);
 	}
 	
 	void RegisterCamp(IEntity ent, int playerId)
@@ -1343,7 +1665,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	// The owner arrives as the persistent id string resolved ONCE on the server, exactly as the JIP
 	// stream sends it. Re-deriving it here from the runtime playerId raced the player-id table's own
 	// replication and could permanently record owner "" - which the map's private-camp filter then
-	// hid from everyone, the owner included (BUG-173)
+	// hid from everyone, the owner included (BUG-177)
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterCamp(vector pos, string name, string persistentId, string ownerPersistentId, bool isPrivate)
 	{
@@ -1364,8 +1686,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 	// The owner arrives as the persistent id string resolved ONCE on the server, exactly as
 	// RpcDo_RegisterCamp receives it - re-deriving it here from the runtime playerId raced the
-	// player-id table's own replication and could permanently record owner "" (the BUG-173 defect,
-	// left unfixed on the FOB path until BUG-188)
+	// player-id table's own replication and could permanently record owner "" (the BUG-177 defect,
+	// left unfixed on the FOB path until BUG-192)
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_RegisterFOB(vector pos, string name, string ownerPersistentId, string persistentId)
 	{
@@ -1458,9 +1780,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 				IEntity campEntity = rpl.GetEntity();
 				if (campEntity)
 				{
-					// Before the delete - see RemovePlacedItem().
-					OVT_NavmeshRebuild.Queue(campEntity);
-					SCR_EntityHelper.DeleteEntityAndChildren(campEntity);
+					DestroyPlacedItem(campEntity);
 				}
 			}
 			
@@ -1619,10 +1939,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 			IEntity entity = GetGame().GetWorld().FindEntityByID(entityId);
 			if (entity)
 			{
-				// Queued before each delete, so a whole camp's worth of carves is measured while the
-				// objects still stand and re-issued as one merged batch once they are gone.
-				OVT_NavmeshRebuild.Queue(entity);
-				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				// One call per object, so a whole camp's worth of carves is measured while the objects
+				// still stand and re-issued as one merged batch once they are gone.
+				DestroyPlacedItem(entity);
 			}
 		}
 		
@@ -1706,9 +2025,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 		{
 			if (entity)
 			{
-				// Before each delete - see CleanupCampObjects().
-				OVT_NavmeshRebuild.Queue(entity);
-				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				DestroyPlacedItem(entity);
 				deletedCount++;
 			}
 		}

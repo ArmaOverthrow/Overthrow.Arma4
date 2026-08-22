@@ -5,7 +5,7 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 	protected bool m_bCanBuild;
 	protected string m_sRestrictionReason;
 	
-	void Init(OVT_Buildable buildable, OVT_BuildContext context, bool canBuild = true, string reason = "")
+	void Init(OVT_Buildable buildable, OVT_BuildContext context, bool canBuild = true, string reason = "", string requirements = "")
 	{
 		m_Buildable = buildable;
 		m_Context = context;
@@ -24,15 +24,17 @@ class OVT_BuildMenuCardComponent : SCR_ScriptedWidgetComponent
 		img.LoadImageTexture(0, buildable.m_tPreview);
 		
 		TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("EntityDescription"));
+		string details = buildable.m_sDescription;
+
+		// The scaled resource requirements, beside the money price. Empty for every money-only
+		// buildable, which is most of them.
+		if (requirements != "")
+			details = details + "\n\n" + requirements;
+
 		if (!m_bCanBuild && m_sRestrictionReason != "")
-		{
-			// Show restriction reason in description
-			desc.SetText(buildable.m_sDescription + "\n\n" + m_sRestrictionReason);
-		}
-		else
-		{
-			desc.SetText(buildable.m_sDescription);
-		}
+			details = details + "\n\n" + m_sRestrictionReason;
+
+		desc.SetText(details);
 		
 		// Visual feedback for non-buildable items
 		if (!m_bCanBuild)

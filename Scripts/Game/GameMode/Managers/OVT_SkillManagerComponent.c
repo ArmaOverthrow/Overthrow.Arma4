@@ -277,6 +277,8 @@ class OVT_SkillManagerComponent: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = OVT_PlayerData.Get(persId);
+		// No such player - see GiveXP() below for why this guard is not optional.
+		if(!player) return;
 		player.xp = player.xp - num;
 		if(player.xp < 0) player.xp = 0;
 		StreamPlayerXP(playerId, player.xp);
@@ -290,6 +292,15 @@ class OVT_SkillManagerComponent: OVT_Component
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
 		OVT_PlayerData player = OVT_PlayerData.Get(persId);
+		// NOT DEFENSIVE PADDING - THERE IS A LIVE CALLER THAT LANDS HERE WITH NO PLAYER.
+		// This runs off OVT_ResistanceFactionManager.m_OnBuild, and BuildItem()/PlaceItem() accept
+		// playerId -1 as their documented "server-initiated, free" marker (they skip the funds,
+		// distance and item-limit checks for it). GetPersistentIDFromPlayerID(-1) answers "" and
+		// GetPlayer("") answers null, so every server-initiated build used to arrive here and
+		// dereference it - which aborts the invoker and takes BuildItem() down with it BEFORE
+		// OVT_PersistenceTracking.Track(), so the thing that was just built is never saved.
+		// The economy manager already guards its own equivalent this way (DoTakePlayerMoney:1228).
+		if(!player) return;
 		player.xp = player.xp + num;
 		StreamPlayerXP(playerId, player.xp);
 		int level = player.GetLevel();

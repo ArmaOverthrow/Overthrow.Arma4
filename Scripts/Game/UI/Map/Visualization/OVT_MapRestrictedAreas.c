@@ -324,7 +324,12 @@ class OVT_MapRestrictedAreas : OVT_MapCanvasLayer
 		OVT_OccupyingFactionManager factionMgr = OVT_Global.GetOccupyingFaction();
 		OVT_OverthrowConfigComponent otconfig = OVT_Global.GetConfig();
 
-		if(factionMgr.m_bQRFActive)
+		// ⚠ ACTIVE **AND** REVEALED (occupying/counter-attacks D15). A counter-attack siege is active
+		// while it is still forming up in silence; drawing its circle then would announce it. This one
+		// local flag also suppresses the objective base's own restricted circle further down, so both
+		// halves of the map's battle behaviour stay off until the resistance has been told. A
+		// player-initiated battle is revealed from creation and reads exactly as it did before.
+		if(factionMgr.m_bQRFActive && factionMgr.m_bQRFRevealed)
 		{
 			m_bQRFActive = true;
 			m_QRFCenter = factionMgr.m_vQRFLocation;

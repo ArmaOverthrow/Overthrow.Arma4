@@ -15,7 +15,7 @@ The action is offered on the seven vanilla bed prefabs (via same-path prefab ove
 
 **Two shipped managers gain one public method each.** `OVT_EconomyManagerComponent.HandleTimeSkip(int hours)` and `OVT_OccupyingFactionManager.HandleTimeSkip(int hours)` replay their own payloads the correct number of times and leave their hour latches asserted at the landing hour. No hour-elapsed-event refactor: the shipped `CheckUpdate()` bodies keep their shape, and the catch-up path reuses the same protected methods they call.
 
-**BUG-179 rides along.** The economy manager's three hour latches are not persisted and re-initialise to `-1` on load, so loading a save taken during hour 0/6/12/18 pays the income sweep a second time — a repeatable money exploit shipped today. The fix is the *same operation* the time skip needs afterwards: assert all three latches to the current in-game hour. One private helper, called from startup, from the skip, and from the save-apply hook.
+**BUG-183 rides along.** The economy manager's three hour latches are not persisted and re-initialise to `-1` on load, so loading a save taken during hour 0/6/12/18 pays the income sweep a second time — a repeatable money exploit shipped today. The fix is the *same operation* the time skip needs afterwards: assert all three latches to the current in-game hour. One private helper, called from startup, from the skip, and from the save-apply hook.
 
 ---
 
@@ -31,7 +31,7 @@ The action is offered on the seven vanilla bed prefabs (via same-path prefab ove
 
 ### Secondary
 
-- **G6** **BUG-179 closed**: loading a save no longer re-fires the income/restock/rent sweep for the hour the save was taken in.
+- **G6** **BUG-183 closed**: loading a save no longer re-fires the income/restock/rent sweep for the hour the save was taken in.
 - **G7** The boundary-counting arithmetic lands in a world-free class the Logic tier can pin, so "how many payouts does an 8-hour skip from 11:47 contain" is answered by an asserted function and not by inline arithmetic nobody can test.
 
 ### Non-goals (explicitly out of scope)
@@ -53,7 +53,7 @@ The action is offered on the seven vanilla bed prefabs (via same-path prefab ove
 | `Scripts/Game/Services/OVT_SleepSchedule.c` | **new** | Pure boundary-counting + cooldown arithmetic (Logic tier). No world, no `OVT_Global`. |
 | `Scripts/Game/Services/OVT_SleepService.c` | **new** | Static world-side orchestrator: validation, catch-up, clock advance, cooldown stamp, fade. |
 | `Scripts/Game/UserActions/OVT_SleepAction.c` | **new** | The user action: visibility gate (cached), disabled reasons, countdown label. |
-| `Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c` | changed | `HandleTimeSkip(int)`, `AssertHourLatches(int)` (**BUG-179**) |
+| `Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c` | changed | `HandleTimeSkip(int)`, `AssertHourLatches(int)` (**BUG-183**) |
 | `Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c` | changed | `HandleTimeSkip(int)`, three extractions (`SpendResourcesOnBases(int)`, `DecayThreatStep()`, `GainAndSpendResources()`) and **two live-tick latches** (`m_iHourGainedResources`, `m_iMinuteDecayedThreat` — D18, 2026-08-19) |
 | `Scripts/Game/Data/OVT_PlayerData.c` | changed | `float m_fLastSleepGameHours` (persisted, server-only, never replicated) |
 | `Scripts/Game/Persistence/Serializers/Components/OVT_PlayerManagerSerializer.c` | changed | version **5**: `lastSleepGameHours` appended last + `version < 5` clear |
@@ -203,7 +203,7 @@ Each phase ends with `tools/compile-check.sh` exit 0. **No phase runs `tools/run
 
 ---
 
-### Phase 1 — Accounting catch-up, and BUG-179
+### Phase 1 — Accounting catch-up, and BUG-183
 
 **Agent:** `component-developer-advanced` · **Estimate:** 6-8 h
 **Advanced because:** it touches the `CheckUpdate` seams of two shipped managers, extracts live code out of a running loop, and fixes a shipped money exploit. A wrong latch here is silent duplicated income.
@@ -213,11 +213,11 @@ Each phase ends with `tools/compile-check.sh` exit 0. **No phase runs `tools/run
 1. **T1.1** `Scripts/Game/Services/OVT_SleepSchedule.c` — the pure class of §3.3/§3.4. Class header states the rule: **no `OVT_Global`, no manager, no entity, no world, ever** (the Logic tier greps the directory for those identifiers, including in comments). Constants: `INCOME_INTERVAL_HOURS = 6`, `RESTOCK_HOUR = 7`, `RENT_HOUR = 0`, `THREAT_STEP_MINUTES = 15`, `HOURS_PER_DAY = 24`, `MINUTES_PER_HOUR = 60`.
    ⚠️ Integer division in EnforceScript truncates in pure-int expressions but is context-dependent — write every floor as `(int)Math.Floor((float)a / b)` rather than relying on `a / b`.
 2. **T1.2** `OVT_EconomyManagerComponent.AssertHourLatches(int hour)` — protected, sets `m_iHourPaidIncome`, `m_iHourPaidStock` and `m_iHourPaidRent` all to `hour`. Doc comment explains why one value is correct for all three (the live branches compare the latch against a *fixed* hour, so "the hour we are in" always suppresses exactly one re-fire and nothing else).
-3. **T1.3** **BUG-179.** Call `AssertHourLatches(currentHour)` from three places:
+3. **T1.3** **BUG-183.** Call `AssertHourLatches(currentHour)` from three places:
    - a one-shot at the **top of `CheckUpdate()`**, behind a `bool m_bLatchesAsserted` — this is the load-order-proof point, because the first tick lands ~10 s after `Init` and the persisted clock is certainly restored by then;
    - `Init()` (`:1278-1291`), before the `CallLater` — belt and braces, harmless if the clock is not restored yet since the one-shot re-asserts;
    - `ApplyPersistedEconomy()` (`:1254`), which runs whenever a save payload is applied, including a live re-apply.
-   Resolve `m_Time` defensively in the helper the way `CheckUpdate` does (`:155-159`). Reference BUG-179 in the commit message and in the helper's doc comment.
+   Resolve `m_Time` defensively in the helper the way `CheckUpdate` does (`:155-159`). Reference BUG-183 in the commit message and in the helper's doc comment.
 4. **T1.4** `OVT_EconomyManagerComponent.HandleTimeSkip(int hours)` — public, `if (!Replication.IsServer()) return;`, the five steps of §3.3. Doc header carries the "called before the clock moves, window is half-open at the start" contract and the note that it must **not** inherit `CheckUpdate`'s player-count-0 early return.
 5. **T1.5** `OVT_OccupyingFactionManager` extraction 1: `protected void SpendResourcesOnBases(int newResources)` — the inline block currently at `:1188-1229` (target computation, base sort by threat, per-base budget, `SpendResources`, resource clamping). `CheckUpdate` calls it. **Name it `SpendResourcesOnBases`, not `SpendResources`** — `OVT_BaseControllerComponent.SpendResources` already exists and reads at the same call site.
 6. **T1.6** `OVT_OccupyingFactionManager` extraction 2: `protected void DecayThreatStep()` — the four lines at `:1255-1259` only (reduce, clamp at 0, `Print`). The town-uprising scan below it stays in `CheckUpdate`.
@@ -231,7 +231,7 @@ Each phase ends with `tools/compile-check.sh` exit 0. **No phase runs `tools/run
 - The occupying-faction `CheckUpdate` is *shorter* and its behaviour byte-for-byte unchanged: the extracted bodies moved, nothing was rewritten.
 - `OVT_SleepSchedule.c` contains no occurrence of `OVT_Global`, `GetGame`, `IEntity` or `World`.
 - Every new Logic case has a recorded can-fail proof in its preamble. No `maxAttempts`.
-- `docs/bugs/BUG-179.md` stays `status: open` until its three play-test checks pass (Verification Method steps 12-14); the orchestrator flips it to `closed` then, not the implementing agent.
+- `docs/bugs/BUG-183.md` stays `status: open` until its three play-test checks pass (Verification Method steps 12-14); the orchestrator flips it to `closed` then, not the implementing agent.
 
 ---
 
@@ -360,7 +360,7 @@ Sleep is player-facing, so the closing phase is mandatory: a Field Manual entry 
 | **D2** | Catch-up scope is **economy + occupying-faction resources + threat decay** only. Town modifiers, jobs, wanted decay, offline timers and tower downtime stay wall-clock. | *(User decision.)* Those systems are tuned in real seconds and several of them are `PlayerInRange`-gated; replaying them would either do nothing or fire 32 world events at a player who cannot see the screen. |
 | **D3** | The window is **half-open at the start** — `(start, start + 8h]` — and the economy path calls `CheckUpdate()` once before replaying. | The alternative (closed at both ends) double-pays whenever the player sleeps within the same minute a boundary fell in. The flush call reuses the shipped latch logic to settle anything owed *at* the start, so the replay never has to reason about what the last tick did or did not observe. |
 | **D4** | After the replay, **all three economy latches are set to the landing hour** by `AssertHourLatches(int)`. | The live branches compare each latch against a fixed hour (any of 0/6/12/18, or 7, or 0), so "the hour we woke in" suppresses exactly one re-fire and permits every later one. Landing on a boundary hour is the case that would otherwise pay three times for two crossings. |
-| **D5** | **BUG-179 is fixed by latch-init-to-current-hour, not by persisting the latches.** | Zero serializer churn, zero new format, and it fixes the live re-apply path for free. The only cost is the ≤10 s window in which the hour flipped just before the save and the tick had not observed it yet — that payout is skipped. Skipping is the safe direction; duplicating is the exploit. The one-shot lives at the top of `CheckUpdate` rather than only in `Init` because the persisted clock's restore order relative to `Init` is not guaranteed, and the first tick is ~10 s later. |
+| **D5** | **BUG-183 is fixed by latch-init-to-current-hour, not by persisting the latches.** | Zero serializer churn, zero new format, and it fixes the live re-apply path for free. The only cost is the ≤10 s window in which the hour flipped just before the save and the tick had not observed it yet — that payout is skipped. Skipping is the safe direction; duplicating is the exploit. The one-shot lives at the top of `CheckUpdate` rather than only in `Init` because the persisted clock's restore order relative to `Init` is not guaranteed, and the first tick is ~10 s later. |
 | **D6** | The occupying-faction replay is **chronological** (15-minute steps, gain/spend when a step lands on a 6-hour boundary), not "2 gains then 32 decays". | `GainResources` scales with `m_iThreat` (`:1430-1432`) and threat decays between gains, so batching changes the numbers. The chronological loop *is* the simulation, at 15-minute resolution. |
 | **D7** | The counter-attack roll and the town-uprising scan are **excluded** from the replay. | Neither is accounting. The uprising scan is `PlayerInRange(town, 300)`-gated and a sleeping player is inside that radius of the town they slept in; 32 replays could launch a town QRF onto a black screen. |
 | **D8** | Cooldown is stored as an **absolute game-clock stamp on `OVT_PlayerData`**, serializer version 5, and compared by subtraction. | *(User decision.)* A countdown decremented in real time would be wrong by 6× or 12× depending on day/night acceleration (`OVT_TimeAndWeatherHandlerComponent.GetDayTimeMultiplier` :9); a game-clock difference is correct at any acceleration and durable for free, because the engine persists the clock (`TimeAndWeatherManagerEntitySerializer`) and the record persists the stamp. |
@@ -400,7 +400,7 @@ Sleep is player-facing, so the closing phase is mandatory: a Field Manual entry 
 
 - [ ] **Q1** **No double pay.** Sleeping so that the landing hour is exactly a boundary hour (e.g. 10:00 → 18:00) pays exactly twice, not three times, and the next boundary at 00:00 still pays. **This must hold for the occupying faction too** — exactly two `Gaining Resources`/`Reserve Resources` pairs in the console, not three (D18).
 - [ ] **Q2** **No missed pay.** Sleeping from exactly a boundary minute (e.g. 12:00 → 20:00) pays for 18:00 and does not lose the 12:00 payout the live tick owed. **Both managers**: the economy flushes with `CheckUpdate()`, the occupying faction with its own start-boundary flush (D18).
-- [ ] **Q3** **BUG-179 closed** — see the three checks in *Verification Method*.
+- [ ] **Q3** **BUG-183 closed** — see the three checks in *Verification Method*.
 - [ ] **Q4** A missing screen-effects display or fade effect does not prevent the time skip: the clock still advances and the accounting still runs.
 - [ ] **Q5** Sleeping across midnight advances the **date**, and the cooldown countdown afterwards decreases (never jumps to a negative or an absurd value).
 - [ ] **Q6** No raw `#OVT-` key reaches the screen; every disabled reason is translated.
@@ -437,7 +437,7 @@ Sleep is player-facing, so the closing phase is mandatory: a Field Manual entry 
 10. Sleep at ~22:00 so the skip crosses midnight → the in-game **date** advanced (check the map/journal clock or the sun), and the cooldown afterwards counts down normally. **(Q5.)**
 11. Pad-only pass: approach a bed, read the countdown, perform, place a cot. **(Q7.)**
 
-**BUG-179 (Q3):**
+**BUG-183 (Q3):**
 
 12. Play until the 12:00 income notification fires. Note the money. Save, exit to menu, Continue → **no second income payout**; money unchanged by the load.
 13. Repeat during hour 7 (after restock — shop stock must not jump again) and during hour 0 (after rent).
@@ -464,7 +464,7 @@ This is a gameplay/simulation feature. It is judged on three things.
 - The arithmetic that decides "how many" lives in one world-free class with assertions on it. Inline `hours / 6` in a manager body is not acceptable; nobody can test it and integer division in EnforceScript is context-dependent.
 - The latch state after a skip is part of the payout, not an afterthought. `AssertHourLatches` is called on every path that ends with the clock somewhere new — the skip, startup, and save-apply.
 - The replay uses the **same methods** the live tick uses. If a future change alters `CalculateIncome`, the skip changes with it, for free. A second implementation of any payout is a defect by construction.
-- BUG-179 is the proof that this bar matters: an unpersisted latch has been handing out free money in shipped builds.
+- BUG-183 is the proof that this bar matters: an unpersisted latch has been handing out free money in shipped builds.
 
 **Save/load integrity of the cooldown.**
 
@@ -519,7 +519,7 @@ Break the subject deliberately (invert the half-open bound, drop the latch asser
 | Payout counts against real money | needs a running campaign with towns, shops and rent | play-test steps 4-6 |
 | The fade | no headless screen-effect assertions exist | play-test step 3 + the deliberate-null check in T5.2 |
 | Action visibility per location type | needs a world, an owned house, a camp, an FOB and a captured base | play-test steps 1-2 |
-| BUG-179 | a true quit-and-continue restarts the autotest harness | play-test steps 12-14 |
+| BUG-183 | a true quit-and-continue restarts the autotest harness | play-test steps 12-14 |
 | The `RplMode.None` gate | the test world is one machine | play-test step 17 |
 
 ---
@@ -528,7 +528,7 @@ Break the subject deliberately (invert the half-open bound, drop the latch asser
 
 ### Internal
 
-- **`economy/market`** — `OVT_EconomyManagerComponent` and its three hour latches. Phase 1 changes its startup path and adds a public entry point; BUG-179 is filed against this feature area.
+- **`economy/market`** — `OVT_EconomyManagerComponent` and its three hour latches. Phase 1 changes its startup path and adds a public entry point; BUG-183 is filed against this feature area.
 - **`occupying/*`** — `OVT_OccupyingFactionManager`: `GainResources`, the base spend loop, threat decay, `m_bQRFActive`, `GetNearestBase`. Phase 1 extracts two methods out of its `CheckUpdate`.
 - **`resistance/core`** — `GetNearestCampData` / `GetNearestFOBData` for the location gate, and `PlaceItem` + `OVT_PersistenceTracking.Track` for the cot.
 - **`resistance/building`** — the placeables config pipeline; the cot is one config entry and one prefab, with no handler.
@@ -560,7 +560,7 @@ No new mod dependency.
 | **R8** | **Sleep becomes the optimal way to shed heat** — 32 decay steps at once. | Medium | The stealth layer weakens | At Normal (`threatReductionFactor 0.007`) 32 steps remove ~20% of threat plus the per-step `Math.Ceil` floor — meaningful but not a reset, and it is exactly what eight real hours of waiting would do. The wanted gate (F10) already forbids sleeping *while* hot. Revisit only with play-test evidence. |
 | **R9** | **Payout notifications land on a black screen** and the player misses them. | High | Confusion about whether anything happened | Deliberate: the notifications persist past the fade-in, and the wake hint (T5.3) tells the player time passed. They are the player's evidence the accounting ran — do not suppress them. |
 | **R10** | **`OVT_PlayerData` grows a field for a feature 90% of sessions never use.** | Certain | 4 bytes per player record | Accepted. The alternative (a side table keyed by persistent id, with its own serializer) is more format, not less. |
-| **R11** | **Discovered, not fixed:** both `CheckUpdate` timers are scheduled at `FREQUENCY / GetDayTimeMultiplier()` — the **day** multiplier only (`OVT_EconomyManagerComponent.c:1291`, `OVT_OccupyingFactionManager.c:306`). At night the clock runs at 12×, so a tick advances ~2 in-game minutes and the occupying faction's `minutes == 0` and `minutes % 15 == 0` gates can be **skipped entirely**. Resource gain and threat decay are therefore unreliable at night. The economy is immune because it latches on the hour. | Certain (present today) | Occupying faction occasionally loses a night payday | Out of scope. **File as a new bug** (next id after BUG-179) against `occupying/*`, noting that the sleep catch-up replays these steps *exactly*, so a slept-through night is more accurate than a lived-through one. |
+| **R11** | **Discovered, not fixed:** both `CheckUpdate` timers are scheduled at `FREQUENCY / GetDayTimeMultiplier()` — the **day** multiplier only (`OVT_EconomyManagerComponent.c:1291`, `OVT_OccupyingFactionManager.c:306`). At night the clock runs at 12×, so a tick advances ~2 in-game minutes and the occupying faction's `minutes == 0` and `minutes % 15 == 0` gates can be **skipped entirely**. Resource gain and threat decay are therefore unreliable at night. The economy is immune because it latches on the hour. | Certain (present today) | Occupying faction occasionally loses a night payday | Out of scope. **File as a new bug** (next id after BUG-183) against `occupying/*`, noting that the sleep catch-up replays these steps *exactly*, so a slept-through night is more accurate than a lived-through one. |
 
 ---
 
@@ -568,7 +568,7 @@ No new mod dependency.
 
 | Phase | Agent | Advanced? |
 |---|---|---|
-| 1 — Accounting catch-up and BUG-179 | `component-developer-advanced` | **yes** — two shipped `CheckUpdate` seams, a live-code extraction, and a shipped money exploit |
+| 1 — Accounting catch-up and BUG-183 | `component-developer-advanced` | **yes** — two shipped `CheckUpdate` seams, a live-code extraction, and a shipped money exploit |
 | 2 — Sleep service, clock advance, cooldown persistence | `component-developer` | no |
 | 3 — User action and bed overrides | `component-developer` | no |
 | 4 — Cot placeable | `component-developer` | no |

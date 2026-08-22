@@ -15,11 +15,43 @@ OVT_OverthrowController {
   }
   OVT_RespawnRequestComponent "{6A83D5A0000000B0}" {
   }
+  OVT_VehicleRequestComponent "{6A8F2C7D4E13A590}" {
+  }
+  OVT_RealEstateRequestComponent "{6A9B3E14C27D08F6}" {
+  }
+  OVT_EconomyRequestComponent "{6AA7D8B502E4193C}" {
+  }
+  OVT_ResistanceRequestComponent "{6AB3E9C61FD5720A}" {
+  }
+  OVT_FOBRequestComponent "{6ABF4A73D8261E95}" {
+  }
+  OVT_RecruitRequestComponent "{6ACB5B84E9372FA1}" {
+  }
+  OVT_LoadoutRequestComponent "{6AD76C95FA483EB2}" {
+  }
+  OVT_PossessionRequestComponent "{6AE37DA60B594FC3}" {
+  }
+  OVT_JobRequestComponent "{6AEF8EB71C6A50D4}" {
+  }
+  OVT_CampaignRequestComponent "{6AFB9FC82D7B61E5}" {
+  }
+  OVT_GMRequestComponent "{6B07B0D93E8C72F6}" {
+  }
   OVT_RecruitCommandComponent "{6B4C000000000003}" {
   }
   OVT_UprisingRequestComponent "{68A0C7D24B913A60}" {
   }
+  OVT_FuelRequestComponent "{6B4E1F6000000001}" {
+  }
+  OVT_StorageRequestComponent "{6A8E2D0000000004}" {
+  }
+  OVT_ResourceRequestComponent "{6A8E2E0000000020}" {
+  }
   OVT_IllegalActionComponent "{68A0C7D24B913A70}" {
+  }
+  OVT_HighCommandRequestComponent "{6B1C3D0000000002}" {
+  }
+  OVT_ResourceProductionRequestComponent "{6A8E2F0000000011}" {
   }
   RplComponent "{65C4B2D3DE955867}" {
   }

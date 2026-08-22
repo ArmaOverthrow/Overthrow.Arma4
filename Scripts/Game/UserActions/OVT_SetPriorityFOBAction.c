@@ -4,11 +4,14 @@ class OVT_SetPriorityFOBAction : ScriptedUserAction
 	//---------------------------------------------------------
  	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
  	{
-		// pOwnerEntity is the cargo-canvas slot CHILD the action lives on, not the FOB truck - its
-		// origin is a local offset, so the server's 10 m position match against the FOB record never
-		// hit and the action silently did nothing (BUG-186). GetParent() is what the sibling
-		// OVT_DeployFOBAction/OVT_UndeployFOBAction already pass.
-		OVT_Global.GetServer().SetPriorityFOB(pOwnerEntity.GetParent());
+		OVT_FOBRequestComponent requests = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
+		if(!requests) return;
+
+		// pOwnerEntity is the cargo-canvas slot CHILD the action lives on, not the FOB truck - it has
+		// no RplComponent of its own, so the RplId lookup fails and the action silently does nothing
+		// (BUG-190). GetParent() is what the sibling OVT_DeployFOBAction/OVT_UndeployFOBAction
+		// already pass.
+		requests.SetPriorityFOB(pOwnerEntity.GetParent());
  	}
 		
 	override bool GetActionNameScript(out string outName)

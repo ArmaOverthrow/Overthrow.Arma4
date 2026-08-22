@@ -26,7 +26,7 @@ enum OVT_ShopMenuMode
 //! cache would grey out every row at the game's most used sell destination (D3, and the Phase 3
 //! deviation recorded in the feature's context notes).
 //------------------------------------------------------------------------------------------------
-class OVT_ShopContext : OVT_UIContext
+class OVT_ShopContext : OVT_TabHostContext
 {
 	[Attribute("{6A7C4E1C77B31E40}UI/Layouts/Menu/ShopMenu/ShopMenu_Tab.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for one category tab", params: "layout")]
 	ResourceName m_TabLayout;
@@ -353,7 +353,7 @@ class OVT_ShopContext : OVT_UIContext
 	//! Listens for sell outcomes so the browser can rebuild from what the SERVER actually did.
 	protected void SubscribeSellResults()
 	{
-		m_Transactions = OVT_Global.GetShopTransactions();
+		m_Transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!m_Transactions || !m_Transactions.m_OnSellResult) return;
 
 		m_Transactions.m_OnSellResult.Insert(OnSellResult);
@@ -473,6 +473,18 @@ class OVT_ShopContext : OVT_UIContext
 		return m_eMode;
 	}
 
+	//! OVT_TabHostContext: tab pick and active-tab query, forwarded to the category tab.
+	override void SelectTabId(int tabId)
+	{
+		OVT_ShopCategory category = tabId;
+		SelectTab(category);
+	}
+
+	override bool IsTabIdActive(int tabId)
+	{
+		return m_eTab == tabId;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! \return The category tab currently browsed.
 	OVT_ShopCategory GetTab()
@@ -561,7 +573,7 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(!m_bShopBuys) return false;
 
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return false;
 
 		return true;
@@ -769,7 +781,7 @@ class OVT_ShopContext : OVT_UIContext
 	{
 		if(!m_Shop || !m_Economy) return;
 
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return;
 
 		IEntity character = GetLocalCharacter();
@@ -860,16 +872,16 @@ class OVT_ShopContext : OVT_UIContext
 
 		if(m_Economy && m_Economy.IsVehicle(res))
 		{
-			SCR_EditableVehicleUIInfo vehicleInfo = OVT_Global.GetVehicleUIInfo(res);
+			SCR_EditableVehicleUIInfo vehicleInfo = OVT_PrefabUtils.GetVehicleUIInfo(res);
 			if(vehicleInfo)
 			{
 				name = vehicleInfo.GetName();
 			}else{
-				SCR_EditableEntityUIInfo editableInfo = OVT_Global.GetEditableUIInfo(res);
+				SCR_EditableEntityUIInfo editableInfo = OVT_PrefabUtils.GetEditableUIInfo(res);
 				if(editableInfo) name = editableInfo.GetName();
 			}
 		}else{
-			UIInfo info = OVT_Global.GetItemUIInfo(res);
+			UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 			if(info) name = info.GetName();
 		}
 
@@ -998,7 +1010,7 @@ class OVT_ShopContext : OVT_UIContext
 		OVT_ShopMenuTabComponent tab = OVT_ShopMenuTabComponent.Cast(w.FindHandler(OVT_ShopMenuTabComponent));
 		if(!tab) return false;
 
-		tab.Init(category, this, category == m_eTab);
+		tab.Init(category, OVT_ShopCategoryHelper.GetLabelKey(category), this, category == m_eTab);
 		return true;
 	}
 
@@ -1012,7 +1024,7 @@ class OVT_ShopContext : OVT_UIContext
 		while(child)
 		{
 			OVT_ShopMenuTabComponent tab = OVT_ShopMenuTabComponent.Cast(child.FindHandler(OVT_ShopMenuTabComponent));
-			if(tab) tab.SetSelected(tab.GetCategory() == m_eTab);
+			if(tab) tab.SetSelected(tab.GetTabId() == m_eTab);
 
 			child = child.GetSibling();
 		}
@@ -1230,13 +1242,13 @@ class OVT_ShopContext : OVT_UIContext
 
 		if(m_Economy.IsVehicle(res))
 		{
-			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
+			SCR_EditableVehicleUIInfo info = OVT_PrefabUtils.GetVehicleUIInfo(res);
 			if(info)
 			{
 				if(typeName) typeName.SetText(info.GetName());
 				if(desc) desc.SetText(info.GetDescription());
 			}else{
-				SCR_EditableEntityUIInfo uiinfo = OVT_Global.GetEditableUIInfo(res);
+				SCR_EditableEntityUIInfo uiinfo = OVT_PrefabUtils.GetEditableUIInfo(res);
 				if(uiinfo)
 				{
 					if(typeName) typeName.SetText(uiinfo.GetName());
@@ -1253,7 +1265,7 @@ class OVT_ShopContext : OVT_UIContext
 				details.SetText(OVT_MoneyFormat.FormatMoney(buy) + "\n" + qty + " #OVT-Shop_InStock");
 			}
 		}else{
-			UIInfo info = OVT_Global.GetItemUIInfo(res);
+			UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 			if(!info) return;
 
 			if(typeName) typeName.SetText(info.GetName());
@@ -1283,7 +1295,7 @@ class OVT_ShopContext : OVT_UIContext
 			reasonKey = row.m_sDisabledReasonKey;
 		}
 
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
+		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info)
 		{
 			if(typeName) typeName.SetText(info.GetName());
@@ -1349,12 +1361,22 @@ class OVT_ShopContext : OVT_UIContext
 
 		if(m_Shop.m_ShopType == OVT_ShopType.SHOP_VEHICLE)
 		{
-			OVT_Global.GetServer().BuyVehicle(m_Shop, m_SelectedResource, m_iPlayerID);
+			// Vehicle buying rides OVT_VehicleRequestComponent, not the shop transaction component
+			// (implementation plan D5): it ends in a spawned vehicle and needs parking resolution.
+			OVT_VehicleRequestComponent vehicles = OVT_ControllerComponent<OVT_VehicleRequestComponent>.Get();
+			if(!vehicles) return;
+
+			vehicles.BuyVehicle(m_Shop, m_SelectedResource);
 			CloseLayout();
 			return;
 		}
 
-		OVT_Global.GetServer().Buy(m_Shop, m_SelectedResource, 1, m_iPlayerID);
+		// Item buying rides OVT_ShopTransactionComponent alongside selling (implementation plan D5):
+		// both halves share the 30 m gate, the price model and the stock table.
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
+		if(!transactions) return;
+
+		transactions.BuyItems(m_Shop, m_SelectedResource, 1);
 		SelectItem(m_SelectedResourceName);
 
 		// No refresh is scheduled here on purpose. The stock decrement redraws the grid when the shop
@@ -1393,7 +1415,7 @@ class OVT_ShopContext : OVT_UIContext
 		// quantity derived from an inventory the player has already sold out of.
 		if(m_bSellInFlight) return;
 
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return;
 
 		m_bSellInFlight = true;

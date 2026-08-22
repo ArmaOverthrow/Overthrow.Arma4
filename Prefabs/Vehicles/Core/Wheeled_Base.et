@@ -5,6 +5,10 @@ Vehicle : "{4085446E2B406849}Prefabs/Vehicles/Core/Vehicle_Base.et" {
   }
   OVT_ReservationSyncComponent "{6B0F52A100000001}" {
   }
+  OVT_StorageComponent "{6A8E2D0000000001}" {
+   m_eCapacityMode AUTO
+   m_iAutoVehicleCapacity 300
+  }
   SCR_BaseHUDComponent "{53151CEE6C0A409F}" {
    InfoDisplays {
     OVT_WantedInfo "{59B70A6E01375E1B}" {

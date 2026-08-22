@@ -1,5 +1,5 @@
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative town uprising request for one player")]
-class OVT_UprisingRequestComponentClass : OVT_ComponentClass {};
+class OVT_UprisingRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Server-authoritative town uprising start, on the per-player OVT_OverthrowController entity.
@@ -20,7 +20,7 @@ class OVT_UprisingRequestComponentClass : OVT_ComponentClass {};
 //! arrival/refusal Print pair below is the play-test diagnostic, same as the other controller
 //! components.
 //------------------------------------------------------------------------------------------------
-class OVT_UprisingRequestComponent : OVT_Component
+class OVT_UprisingRequestComponent : OVT_ControllerRequestComponent
 {
 	//------------------------------------------------------------------------------------------------
 	//! Ask the server to start an uprising battle in a town.
@@ -92,34 +92,4 @@ class OVT_UprisingRequestComponent : OVT_Component
 		of.StartTownQRF(town);
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Which player this controller belongs to, resolved on the SERVER from the controller entity
-	//! this component sits on - the identity never comes from the payload.
-	//!
-	//! Copied verbatim from OVT_RespawnRequestComponent (itself from OVT_TravelRequestComponent /
-	//! OVT_ShopTransactionComponent / OVT_TowerSabotageComponent) - see the shared-base-class note
-	//! there; introducing one mid-feature would edit working server paths for no behavioural gain.
-	//! \return Runtime player id, or -1.
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
-	}
 }

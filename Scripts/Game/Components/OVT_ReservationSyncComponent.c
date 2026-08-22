@@ -18,7 +18,7 @@ class OVT_ReservationSyncComponentClass : OVT_ComponentClass
 //! every proxy - streamed-in state included, which is what covers JIP and late streamers - and the
 //! proxy-side callback applies the VISUAL half of the reservation locally (VISIBLE and TRACEABLE)
 //! plus the COLLISION half (ApplyPhysicsState - the entity flags never touched the physics body,
-//! which is BUG-185). ACTIVE is deliberately NOT cleared on proxies; the proxy must keep accepting
+//! which is BUG-189). ACTIVE is deliberately NOT cleared on proxies; the proxy must keep accepting
 //! replication updates, and simulation authority is the server's, which already cleared it.
 //!
 //! The same vanilla pattern: SCR_ResourceComponent.m_bIsVisible
@@ -43,7 +43,7 @@ class OVT_ReservationSyncComponent : OVT_Component
 	//! Mirrors the reservation state and broadcasts it. Authority only; the authority's own entity
 	//! flags are OVT_PersistenceReservation's business, not this component's - but the physics body
 	//! is applied here on the authority too, because collision is a physics-world property the entity
-	//! flags never touched (BUG-185).
+	//! flags never touched (BUG-189).
 	//! \param[in] reserved The state Reserve()/Release() just applied.
 	void SetReserved(bool reserved)
 	{
@@ -86,7 +86,7 @@ class OVT_ReservationSyncComponent : OVT_Component
 	//! WHY THE ENTITY FLAGS ARE NOT ENOUGH. VISIBLE/TRACEABLE/ACTIVE govern rendering, traces and
 	//! entity ticking - none of them unregisters the rigid body from the physics world, and a sleeping
 	//! body still collides. So a reserved vehicle was a car you could not see, shoot or use, but drove
-	//! straight into (BUG-185) - on clients from the moment BUG-181's fix hid it there too, and on the
+	//! straight into (BUG-189) - on clients from the moment BUG-185's fix hid it there too, and on the
 	//! authority machine (single player, listen host, server-side AI traffic) all along.
 	//!
 	//! Zeroing the interaction layer is what removes it from collision; SetActive(INACTIVE) is what

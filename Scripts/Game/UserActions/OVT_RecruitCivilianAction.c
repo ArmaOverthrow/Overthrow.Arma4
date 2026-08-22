@@ -29,10 +29,14 @@ class OVT_RecruitCivilianAction : OVT_BaseCivilianUserAction
 			return;
 		}
 
+		// Ask the server - it re-validates faction, ownership, proximity and funds, and takes the money
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (!recruitRequests)
+			return;
+
 		MarkAsPerformed();
 
-		// Call server to handle the actual recruitment
-		OVT_Global.GetServer().RecruitCivilian(pOwnerEntity, playerId);
+		recruitRequests.RecruitCivilian(pOwnerEntity);
  	}
 		
 	override bool GetActionNameScript(out string outName)

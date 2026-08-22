@@ -21,6 +21,13 @@ class OVT_HealAction : ScriptedUserAction
 		return false;
 	}	
 	
+	override bool CanBeShownScript(IEntity user)
+	{
+		// PHASE-0 GATE (core/damage D15): a ruin offers nothing. IsUsable() answers true for every
+		// owner that is not a retrofitted structure, so this costs the other contexts nothing.
+		return OVT_StructureDamage.IsUsable(GetOwner());
+	}
+	
 	override bool CanBePerformedScript(IEntity user)
  	{
 		

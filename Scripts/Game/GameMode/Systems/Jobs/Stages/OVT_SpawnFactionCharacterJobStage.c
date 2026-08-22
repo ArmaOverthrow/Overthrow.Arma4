@@ -45,7 +45,7 @@ class OVT_SpawnFactionCharacterJobStage : OVT_JobStage
 			return false;
 		}
 
-		vector spawnPosition = OVT_Global.FindSafeSpawnPosition(job.location);
+		vector spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(job.location);
 
 		IEntity entity = OVT_Global.SpawnEntityPrefab(prefab, spawnPosition);
 		if(!entity)

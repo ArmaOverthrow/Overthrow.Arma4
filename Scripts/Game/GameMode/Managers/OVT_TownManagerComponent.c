@@ -27,6 +27,13 @@ class OVT_TownData : Managed
 	
 	[NonSerialized()]
 	OVT_TownSize size;
+
+	//! No land route reaches this town - see OVT_BaseControllerComponent.m_bLandIsolated. NOT
+	//! SERIALIZED for the same reason `size` is not: it is world-derived and re-read on every Init.
+	//! ProcessTown() (the map-descriptor path) leaves it false, which is the right default - a marker
+	//! carries no such statement, only an authored controller does.
+	[NonSerialized()]
+	bool landIsolated;
 	
 	ref array<ref OVT_TownModifierData> stabilityModifiers = {};
 	ref array<ref OVT_TownModifierData> supportModifiers = {};
@@ -137,6 +144,10 @@ class OVT_TownManagerComponent: OVT_Component
 	//! Civilians a conversion has already been attempted on this session (server-side, BUG-063)
 	protected ref set<RplId> m_ConvertedCivilians = new set<RplId>;
 
+	//! How large the conversion-mark set may grow before the dead ids in it are swept
+	//! (TryMarkCivilianConvertAttempted). Not persisted and not load-bearing - purely a memory bound.
+	protected const int CONVERTED_CIVILIAN_PRUNE_THRESHOLD = 512;
+
 	OVT_RealEstateManagerComponent m_RealEstate;
 	
 	//! Invoked when a town's controlling faction changes
@@ -213,6 +224,30 @@ class OVT_TownManagerComponent: OVT_Component
 	
 
 	//------------------------------------------------------------------------------------------------
+	//! Island-wide stability, weighted by population so the capital counts for more than a hamlet.
+	//! Answers 100 when there are no towns yet, which is the same baseline a fresh town starts at.
+	//! \return Population-weighted mean stability, 0-100
+	int GetGlobalStability()
+	{
+		if(!m_Towns || m_Towns.Count() == 0) return 100;
+		
+		int totalPopulation = 0;
+		int weighted = 0;
+		
+		foreach(OVT_TownData town : m_Towns)
+		{
+			if(town.population <= 0) continue;
+			
+			totalPopulation += town.population;
+			weighted += town.population * town.stability;
+		}
+		
+		if(totalPopulation == 0) return 100;
+		
+		return Math.Clamp(weighted / totalPopulation, 0, 100);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Gets a random town from the list of managed towns.
 	//! \return A random OVT_TownData instance or null if no towns exist
 	OVT_TownData GetRandomTown()
@@ -268,18 +303,19 @@ class OVT_TownManagerComponent: OVT_Component
 			
 			bool hasEnemyTower = false;
 			bool hasFriendlyTower = false;
-			foreach(OVT_RadioTowerData tower : of.m_RadioTowers)
+
+			//THE RANGE TEST AND THE SABOTAGE SKIP LIVE ON THE MANAGER NOW - GetRadioTowersAffecting()
+			//returns only towers that are in range AND on the air, which is exactly what the loop that
+			//stood here computed inline. The objective director asks the same question, and two copies
+			//of "which towers can be heard here" would drift.
+			array<OVT_RadioTowerData> towersHeard = of.GetRadioTowersAffecting(town.location);
+			foreach(OVT_RadioTowerData tower : towersHeard)
 			{
-				if(OVT_InfluenceRules.IsProximitySource(town.location, tower.location, OVT_Global.GetConfig().m_Difficulty.radioTowerRange))
+				if(tower.IsOccupyingFaction())
 				{
-					//Sabotaged towers broadcast nothing for either side
-					if(tower.IsDisabled()) continue;
-					if(tower.IsOccupyingFaction())
-					{
-						hasEnemyTower = true;
-					}else{
-						hasFriendlyTower = true;
-					}
+					hasEnemyTower = true;
+				}else{
+					hasFriendlyTower = true;
 				}
 			}
 
@@ -1148,6 +1184,7 @@ class OVT_TownManagerComponent: OVT_Component
 		m_iTownCount++;
 		
 		town.size = townController.m_Size;
+		town.landIsolated = townController.m_bLandIsolated;
 		
 		m_Towns.Insert(town);
 		m_TownNames.Insert(townController.m_sName);
@@ -1248,8 +1285,44 @@ class OVT_TownManagerComponent: OVT_Component
 	bool TryMarkCivilianConvertAttempted(RplId civilianId)
 	{
 		if(m_ConvertedCivilians.Contains(civilianId)) return false;
+
+		// The set is never persisted and never read back for a civilian that no longer exists, but it
+		// used to have no upper bound at all: every re-rolled ambient crowd (a town's crowd is
+		// re-rolled on every approach now, not spawned once per session) can add more ids, and an id
+		// belonging to a civilian that has been despawned can never be asked about again. Pruning the
+		// dead ones past a threshold keeps a long session's memory flat. Only done on the insert that
+		// crosses the threshold, so the normal path stays a single set lookup.
+		if(m_ConvertedCivilians.Count() >= CONVERTED_CIVILIAN_PRUNE_THRESHOLD)
+			PruneConvertedCivilians();
+
 		m_ConvertedCivilians.Insert(civilianId);
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops conversion marks whose civilian no longer resolves.
+	//!
+	//! An RplId that no longer resolves to an RplComponent belongs to an entity that has been deleted -
+	//! a despawned ambient civilian, or one that was killed - and nothing will ever ask about it again.
+	//! Ids that still resolve are kept, because THOSE are the marks that are still load-bearing.
+	protected void PruneConvertedCivilians()
+	{
+		array<RplId> live = new array<RplId>;
+
+		for(int i = 0; i < m_ConvertedCivilians.Count(); i++)
+		{
+			RplId id = m_ConvertedCivilians[i];
+			if(RplComponent.Cast(Replication.FindItem(id)))
+				live.Insert(id);
+		}
+
+		if(live.Count() == m_ConvertedCivilians.Count()) return;
+
+		m_ConvertedCivilians.Clear();
+		foreach(RplId id : live)
+		{
+			m_ConvertedCivilians.Insert(id);
+		}
 	}
 	
 	//------------------------------------------------------------------------------------------------

@@ -23,7 +23,7 @@ All original implementation tasks have been completed. This feature was document
 ## Maintenance
 
 - [x] ✅ BUG-048/049/050 (2026-08-02) — server-side validation + actor derivation on the place/build RPCs, server-side buildable charge, `RplId` removal, pagination arithmetic. `implementation.md`'s "High Priority" list is now historical.
-- [x] ✅ BUG-174 (2026-08-16) — listen host built one full UI-context set per joined player, so the main (U) menu would not close when starting a placement and the survivors stole the rotate keys. Guarded `OVT_UIManagerComponent.AfterControlledByPlayer` with vanilla's local-controlled-entity discard. Compile OK; Fast 125/125, All 166/166. **Manual two-machine listen-host check still owed** (see the bug's acceptance section).
+- [x] ✅ BUG-178 (2026-08-16) — listen host built one full UI-context set per joined player, so the main (U) menu would not close when starting a placement and the survivors stole the rotate keys. Guarded `OVT_UIManagerComponent.AfterControlledByPlayer` with vanilla's local-controlled-entity discard. Compile OK; Fast 125/125, All 166/166. **Manual two-machine listen-host check still owed** (see the bug's acceptance section).
 
 ## Future Enhancements
 

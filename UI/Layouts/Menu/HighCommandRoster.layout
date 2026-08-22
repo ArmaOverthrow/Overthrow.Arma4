@@ -1,0 +1,305 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  HorizontalLayoutWidgetClass "{6B1C3D0000005001}" {
+   Name "Window"
+   Slot FrameWidgetSlot "{56EEDE05AD6DF1E2}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
+   }
+   {
+    OverlayWidgetClass "{6B1C3D0000005002}" {
+     Name "Content"
+     Slot LayoutSlot "{56EEDE05BFED5D35}" {
+      SizeMode Fill
+     }
+     {
+      ImageWidgetClass "{6B1C3D0000005003}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C871C02C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Opacity 0.5
+       Color 0 0 0 1
+      }
+      BlurWidgetClass "{6B1C3D0000005004}" {
+       Name "Blur"
+       Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.305 0.305 0.305 1
+       Intensity 0.7
+      }
+      HorizontalLayoutWidgetClass "{6B1C3D0000005005}" {
+       Name "SpaceLayout"
+       Slot OverlayWidgetSlot "{5720DE53ABB7CBED}" {
+        Padding 0 72 0 72
+       }
+       {
+        FrameWidgetClass "{6B1C3D0000005006}" {
+         Name "SpaceLeft"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+        SizeLayoutWidgetClass "{6B1C3D0000005007}" {
+         Name "Alignment"
+         Slot LayoutSlot "{5720DE53A848E0CC}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 1600
+         AllowHeightOverride 1
+         HeightOverride 936
+         {
+          VerticalLayoutWidgetClass "{6B1C3D0000005008}" {
+           Name "ContentLayout"
+           Slot AlignableSlot "{56EEDE0403BED8AE}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Fill Origin" Center
+           {
+            HorizontalLayoutWidgetClass "{6B1C3D0000005009}" {
+             Name "HeaderLayout"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+             }
+             {
+              TextWidgetClass "{6B1C3D000000500A}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "Title"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+                SizeMode Fill
+               }
+               Text "#OVT-MainMenu_ManageGroups"
+              }
+             }
+            }
+            ImageWidgetClass "{6B1C3D000000500B}" {
+             Name "UpperStripe"
+             Slot LayoutSlot "{56EEDE07C9F827C2}" {
+              Padding 0 0 0 12
+             }
+             Color 0.761 0.392 0.08 1
+             Image ""
+             Size 128 2
+            }
+            HorizontalLayoutWidgetClass "{6B1C3D000000500C}" {
+             Name "MainContent"
+             Slot LayoutSlot "{5D5C558A6E391651}" {
+              SizeMode Fill
+             }
+             {
+              VerticalLayoutWidgetClass "{6B1C3D000000500D}" {
+               Name "LeftPanel"
+               Slot LayoutSlot "{5D5C558A6E391653}" {
+                SizeMode Fill
+                FillWeight 0.4
+               }
+               {
+                TextWidgetClass "{6B1C3D000000500E}" {
+                 Name "GroupsListTitle"
+                 Slot LayoutSlot "{5D5C558A6E391655}" {
+                  Padding 10 10 10 5
+                 }
+                 Text "#OVT-HC_Roster_YourGroups"
+                 "Font Size" 18
+                 "Min Font Size" 14
+                }
+                TextWidgetClass "{6B1C3D000000500F}" {
+                 Name "CapacityText"
+                 Slot LayoutSlot "{6B4C000000000027}" {
+                  Padding 10 0 10 5
+                 }
+                 Text "#OVT-HC_Roster_Capacity"
+                 "Font Size" 14
+                 "Min Font Size" 12
+                 Color 0.761 0.392 0.08 1
+                }
+                ScrollLayoutWidgetClass "{6B1C3D0000005010}" {
+                 Name "GroupsScrollContainer"
+                 Slot LayoutSlot "{59A8D25628A6B050}" {
+                  Padding 10 5 10 10
+                  SizeMode Fill
+                 }
+                 {
+                  VerticalLayoutWidgetClass "{6B1C3D0000005011}" {
+                   Name "GroupsList"
+                   Slot OverlayWidgetSlot "{56EF0B1E7E5700F5}" {
+                    HorizontalAlign 3
+                    VerticalAlign 0
+                   }
+                  }
+                 }
+                }
+               }
+              }
+              FrameWidgetClass "{6B1C3D0000005012}" {
+               Name "Divider"
+               Slot LayoutSlot "{5D5C558A6E391658}" {
+                SizeMode Auto
+               }
+               Color 0.3 0.3 0.3 0.5
+              }
+              VerticalLayoutWidgetClass "{6B1C3D0000005013}" {
+               Name "RightPanel"
+               Slot LayoutSlot "{5D5C558A6E39165A}" {
+                Padding 20 0 0 0
+                SizeMode Fill
+                FillWeight 0.6
+               }
+               {
+                TextWidgetClass "{6B1C3D0000005014}" {
+                 Name "NoGroupsHelp"
+                 Slot LayoutSlot "{5D5C558A6E39165C}" {
+                  Padding 20 50 20 20
+                 }
+                 Text "#OVT-HC_Roster_NoGroupsHelp"
+                 "Font Size" 16
+                 "Min Font Size" 12
+                 Wrap 1
+                }
+                VerticalLayoutWidgetClass "{6B1C3D0000005015}" {
+                 Name "GroupInfo"
+                 Slot LayoutSlot "{5D5C558A6E39165E}" {
+                  SizeMode Fill
+                 }
+                 {
+                  TextWidgetClass "{6B1C3D0000005016}" {
+                   Name "SelectedName"
+                   Slot LayoutSlot "{5D5C558A6E391660}" {
+                    Padding 10 10 10 5
+                   }
+                   Text "Group Name"
+                   "Font Size" 24
+                   "Min Font Size" 18
+                  }
+                  TextWidgetClass "{6B1C3D0000005017}" {
+                   Name "SelectedMembers"
+                   Slot LayoutSlot "{5D5C558A6E391663}" {
+                    Padding 10 5 10 5
+                   }
+                   Text "0 / 0"
+                   "Font Size" 16
+                   "Min Font Size" 12
+                  }
+                  TextWidgetClass "{6B1C3D0000005018}" {
+                   Name "SelectedStance"
+                   Slot LayoutSlot "{5D5C558A6E391665}" {
+                    Padding 10 5 10 5
+                   }
+                   Text "#OVT-HC_Stance_Defend"
+                   "Font Size" 16
+                   "Min Font Size" 12
+                  }
+                  TextWidgetClass "{6B1C3D0000005019}" {
+                   Name "SelectedStatus"
+                   Slot LayoutSlot "{5D5C558A6E391667}" {
+                    Padding 10 5 10 20
+                   }
+                   Text "#OVT-HC_Map_StatusHolding"
+                   "Font Size" 16
+                   "Min Font Size" 12
+                  }
+                  HorizontalLayoutWidgetClass "{6B1C3D000000501A}" {
+                   Name "ActionButtons"
+                   Slot LayoutSlot "{6B4C00000000003D}" {
+                    Padding 10 10 10 10
+                   }
+                   {
+                    ButtonWidgetClass "{6B1C3D000000501B}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "ShowOnMapButton"
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 0 0 5 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                       m_sActionName "OverthrowHighCommandRosterShowOnMap"
+                       m_sLabel "#OVT-HC_Roster_ShowOnMap"
+                      }
+                     }
+                    }
+                    ButtonWidgetClass "{6B1C3D000000501C}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                     Name "DismissButton"
+                     Slot LayoutSlot "{56EEDE01982D053A}" {
+                      Padding 5 0 0 0
+                     }
+                     components {
+                      SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                       m_sActionName "OverthrowHighCommandRosterDismiss"
+                       m_sLabel "#OVT-HC_Roster_Dismiss"
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+            ImageWidgetClass "{6B1C3D000000501D}" {
+             Name "LowerStripe"
+             Slot LayoutSlot "{56EEDE06187FACF9}" {
+              Padding 0 12 0 24
+             }
+             Opacity 0.1
+             Size 2 2
+            }
+            OverlayWidgetClass "{6B1C3D000000501E}" {
+             Name "Footer"
+             Slot LayoutSlot "{56EEDE03DE14A911}" {
+             }
+             {
+              HorizontalLayoutWidgetClass "{6B1C3D000000501F}" {
+               Name "Buttons"
+               Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+                HorizontalAlign 3
+               }
+               {
+                ButtonWidgetClass "{6B1C3D0000005020}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "CloseButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 10 0
+                 }
+                 components {
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuBack"
+                   m_sLabel "#AR-Menu_Back"
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{6B1C3D0000005021}" {
+         Name "SpaceRight"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

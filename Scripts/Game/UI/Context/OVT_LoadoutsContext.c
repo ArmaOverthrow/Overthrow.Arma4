@@ -113,7 +113,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 		{
 			// Subscribed only in purchase mode, and removed unconditionally in OnClose: these invokers
 			// live on the controller component, which outlives every layout this screen ever builds.
-			m_RecruitCommands = OVT_Global.GetRecruitCommands();
+			m_RecruitCommands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 			if (m_RecruitCommands)
 			{
 				m_RecruitCommands.m_OnRecruitQuote.Insert(OnRecruitQuote);
@@ -337,7 +337,7 @@ class OVT_LoadoutsContext : OVT_UIContext
 		}
 
 		if (!m_RecruitCommands)
-			m_RecruitCommands = OVT_Global.GetRecruitCommands();
+			m_RecruitCommands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 
 		RplId tentId = GetTentRplId();
 
@@ -381,7 +381,8 @@ class OVT_LoadoutsContext : OVT_UIContext
 	//! \param[in] itemCount How many items were priced.
 	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
 	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
-	protected void OnRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	//! \param[in] coveredValue Value of the gear covered by nearby warehouse stock.
+	protected void OnRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource, int coveredValue)
 	{
 		if (!IsPurchaseMode()) return;
 		if (loadoutName != m_SelectedLoadoutName) return;
@@ -394,8 +395,12 @@ class OVT_LoadoutsContext : OVT_UIContext
 			// to be resolved before it gets there - WidgetManager.Translate is the vanilla way (the same
 			// thing OVT_OverthrowMapUI does for the fast-travel fare). The details line goes through the
 			// same sink, so it is resolved the same way.
-			ShowPurchaseState(WidgetManager.Translate("#OVT-Recruit_QuotePrice", itemCount.ToString(), price.ToString()),
-				WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), true);
+			string status = WidgetManager.Translate("#OVT-Recruit_QuotePrice", itemCount.ToString(), price.ToString());
+
+			if (coveredValue > 0)
+				status = status + "\n" + WidgetManager.Translate("#OVT-Recruit_QuoteCovered", coveredValue.ToString());
+
+			ShowPurchaseState(status, WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), true);
 			return;
 		}
 
@@ -645,18 +650,19 @@ class OVT_LoadoutsContext : OVT_UIContext
 			return;
 		}
 			
-		// Apply the selected loadout via server RPC
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
+		// Apply the selected loadout via the controller seam. m_sPlayerID is no longer sent: the owner
+		// is resolved server-side from the controller entity the request arrives on (BUG-043).
+		OVT_LoadoutRequestComponent loadouts = OVT_ControllerComponent<OVT_LoadoutRequestComponent>.Get();
+		if (loadouts)
 		{
 			Print(string.Format("[OVT_LoadoutsContext] Sending RPC for loadout: %1", m_SelectedLoadoutName));
-			comms.LoadLoadoutFromBox(m_sPlayerID, m_SelectedLoadoutName, m_EquipmentBox, m_Owner);
+			loadouts.LoadLoadoutFromBox(m_SelectedLoadoutName, m_EquipmentBox, m_Owner);
 			CloseLayout();
 			// Notification will be sent by the loadout manager after processing
 		}
 		else
 		{
-			Print("[OVT_LoadoutsContext] No server comms component found");
+			Print("[OVT_LoadoutsContext] No loadout request component found on the local controller");
 		}
 	}
 	
@@ -716,19 +722,20 @@ class OVT_LoadoutsContext : OVT_UIContext
 		if (IsPurchaseMode())
 			return;
 			
-		// Delete the selected loadout via server RPC
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
+		// Delete the selected loadout via the controller seam. The owner is resolved server-side, so the
+		// only record this can reach is one the calling player owns (BUG-043).
+		OVT_LoadoutRequestComponent loadouts = OVT_ControllerComponent<OVT_LoadoutRequestComponent>.Get();
+		if (loadouts)
 		{
-			comms.DeleteLoadout(m_sPlayerID, m_SelectedLoadoutName, false); // Assume personal loadout for now
+			loadouts.DeleteLoadout(m_SelectedLoadoutName, false); // Assume personal loadout for now
 			// Notification will be sent by the loadout manager after processing
-			
+
 			// Refresh the loadout list
 			Refresh();
 		}
 		else
 		{
-			Print("[OVT_LoadoutsContext] Failed to delete loadout - no server communication");
+			Print("[OVT_LoadoutsContext] Failed to delete loadout - no loadout request component on the local controller");
 		}
 	}
 	
@@ -1038,17 +1045,19 @@ class OVT_LoadoutsContext : OVT_UIContext
 		if (!recruitEntity || m_SelectedLoadoutName.IsEmpty() || !m_EquipmentBox)
 			return false;
 		
-		// Apply loadout via server RPC
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
+		// Apply loadout via the controller seam. The server re-derives that the recruit is one of the
+		// CALLER's own and that both of them are standing at this box - the 5 m client-side discovery
+		// radius in DiscoverNearbyRecruits() is advisory only.
+		OVT_LoadoutRequestComponent loadouts = OVT_ControllerComponent<OVT_LoadoutRequestComponent>.Get();
+		if (loadouts)
 		{
 			Print(string.Format("[OVT_LoadoutsContext] Sending RPC to apply loadout to recruit: %1", m_SelectedLoadoutName));
-			comms.LoadLoadoutFromBox(m_sPlayerID, m_SelectedLoadoutName, m_EquipmentBox, recruitEntity);
+			loadouts.LoadLoadoutFromBox(m_SelectedLoadoutName, m_EquipmentBox, recruitEntity);
 			return true;
 		}
 		else
 		{
-			Print("[OVT_LoadoutsContext] No server comms component found");
+			Print("[OVT_LoadoutsContext] No loadout request component found on the local controller");
 			return false;
 		}
 	}

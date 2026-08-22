@@ -219,14 +219,16 @@ change goes through the server, and the UI updates when the result comes back �
 never optimistically:
 
 ```cpp
-OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 if(!transactions) return;
 transactions.SellItems(m_Shop, m_SelectedResource, quantity);
 ```
 
-New client→server operations belong on a component of `OVT_OverthrowController`
-(`OVT_Global.GetController()`), **not** on `OVT_PlayerCommsComponent`, which is
-deprecated. See `overthrow-controller.md` in the `overthrow-architecture` skill.
+New client→server operations belong on a component of `OVT_OverthrowController`,
+reached with `OVT_ControllerComponent<T>.Get()` — and **not** through a new
+`OVT_Global` getter, which is never added for a controller component. (The legacy
+comms monolith a context used to call is deleted, so there is no second option.) See
+`overthrow-controller.md` in the `overthrow-architecture` skill.
 
 Client-side prediction is worth avoiding: derive what the menu shows from the
 same rule set the server will apply. `OVT_ShopContext` asks

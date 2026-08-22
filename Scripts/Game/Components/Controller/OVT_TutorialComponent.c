@@ -23,7 +23,9 @@ class OVT_TutorialComponentClass : OVT_ComponentClass {};
 //! round-trip to the server. They call FireLocalEvent(), which runs the SAME matcher over the SAME
 //! authored entries and lands in the SAME queue as the RPC path. There is exactly one pipeline.
 //!
-//! Never on OVT_PlayerCommsComponent: it is deprecated for new RPCs by project rule.
+//! Never on the game mode or the player character: by project rule the client->server seam is the
+//! per-player controller entity, and the comms monolith that used to sit on both was deleted in
+//! Phase 10 of the controller migration.
 //------------------------------------------------------------------------------------------------
 class OVT_TutorialComponent : OVT_Component
 {
@@ -532,7 +534,7 @@ class OVT_TutorialComponent : OVT_Component
 	//! are a "not yet" for the caller to retry, and neither is an error.
 	protected static bool FireLocalEventOnLocalPlayer(OVT_TutorialEvent evt, int value, string filter, bool acceptDefaultContext = false)
 	{
-		OVT_TutorialComponent tutorials = OVT_Global.GetTutorials();
+		OVT_TutorialComponent tutorials = OVT_ControllerComponent<OVT_TutorialComponent>.Get();
 		if (!tutorials)
 			return false;
 

@@ -257,7 +257,9 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	bool FindNearestKerbParking(vector pos, float range, out vector outMat[4])
 	{
-		m_aParkingSearch.Clear();
+		// Allocate rather than Clear: this can be the first search of the session
+		// (ambient vehicle placement), when GetNearestParkingSpot has never run
+		m_aParkingSearch = new array<EntityID>();
 		GetGame().GetWorld().QueryEntitiesBySphere(pos, range, null, FilterKerbAddToArray, EQueryEntitiesFlags.STATIC);
 		
 		if(m_aParkingSearch.Count() == 0) return false;
@@ -362,7 +364,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 	
 	IEntity SpawnVehicleMatrix(ResourceName prefab, vector mat[4], string ownerId = "")
 	{		
-		IEntity ent = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		IEntity ent = OVT_WorldUtils.SpawnEntityPrefabMatrix(prefab, mat);
 		if(!ent)
 		{
 			Print("Failure to spawn vehicle");
@@ -409,6 +411,10 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		// Store old vehicle for deletion after transfer completes
 		m_pUpgradeOldVehicle = entity;
+
+		// The old vehicle's LEDGER goes across before the vanilla transfer starts - the callback
+		// deletes the entity, and an item ledger is not part of what TransferStorageByRplId moves.
+		OVT_StorageUtils.MoveWholeLedger(entity, newveh);
 		
 		// Transfer storage from old vehicle to new vehicle using inventory manager
 		OVT_StorageOperationConfig config = new OVT_StorageOperationConfig(
@@ -1428,7 +1434,7 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 			}
 		}
 
-		IEntity vehicle = OVT_Global.SpawnEntityPrefabMatrix(prefab, mat);
+		IEntity vehicle = OVT_WorldUtils.SpawnEntityPrefabMatrix(prefab, mat);
 		if (!vehicle)
 			return false;
 
@@ -1539,12 +1545,19 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether another vehicle is standing on a prospective spawn spot (BUG-129).
+	//!
+	//! PUBLIC because it is the tree's ONE answer to "is something already parked here": the vehicle
+	//! respawn path asks it of a persisted record's spot, and OVT_InsertionSpawningDeploymentModule asks
+	//! it of an authored OVT_VehiclePatrolSpawn marker, which is shared with the vehicle-patrol
+	//! deployments and can legitimately be occupied. Two spellings of this test would drift.
 	//! \param[in] pos The spot to test.
+	//! \param[in] radius How far around the spot counts as "on" it. The default is the car-sized 3 m the
+	//!            respawn path has always used; a caller placing something longer should widen it.
 	//! \return True when any Vehicle overlaps the spot.
-	protected bool IsSpotBlockedByVehicle(vector pos)
+	bool IsSpotBlockedByVehicle(vector pos, float radius = 3)
 	{
 		m_bSpotBlockedByVehicle = false;
-		GetGame().GetWorld().QueryEntitiesBySphere(pos, 3, null, FilterSpotBlockingVehicle, EQueryEntitiesFlags.ALL);
+		GetGame().GetWorld().QueryEntitiesBySphere(pos, radius, null, FilterSpotBlockingVehicle, EQueryEntitiesFlags.ALL);
 		return m_bSpotBlockedByVehicle;
 	}
 

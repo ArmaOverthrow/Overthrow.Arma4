@@ -27,7 +27,7 @@ The game-mode foundation is the skeleton every other Overthrow system stands on:
 - [x] Managers resolve via `OVT_Global` (asserted by `OVT_TEST_Init_Globals_ManagersResolve` — 18 getters)
 - [x] `DoStartNewGame()` + `DoStartGame()` produce a started + initialized campaign (asserted by `OVT_TEST_Campaign_GameMode_IsStartedAndInitialized`)
 - [x] Per-player controller spawn/ownership transfer works (manual play-testing only — JIP/MP territory)
-- [ ] Controller migration completed — 57 RPCs still live on the legacy `OVT_PlayerCommsComponent` (see Phase 3)
+- [x] Controller migration completed — **done 2026-08-14** by `core/controller-migration` (see Phase 3): the monolith is deleted, 50 surviving requests live on domain components on `OVT_OverthrowController` (17 components on the prefab)
 
 ---
 
@@ -38,12 +38,12 @@ The game-mode foundation is the skeleton every other Overthrow system stands on:
 | File | Role |
 |---|---|
 | `Scripts/Game/GameMode/OVT_OverthrowGameMode.c` | Game mode: manager lifecycle, campaign start, player prep, per-frame camera/debug |
-| `Scripts/Game/Global/OVT_Global.c` | Static service locator: 17 manager getters + client-scoped helpers + spawn/loot/clothing utilities |
+| `Scripts/Game/Global/OVT_Global.c` | Static service locator: 17 manager getters + client-scoped helpers. **302 lines since 2026-08-14** — the spawn/loot/clothing utilities moved to `Scripts/Game/Utilities/OVT_WorldUtils.c`, `OVT_PrefabUtils.c` and `OVT_LoadoutUtils.c`, with thin forwarders kept for the three highest-traffic helpers |
 | `Scripts/Game/GameMode/OVT_OverthrowController.c` | Per-player `GenericEntity`; owns `OVT_ProgressEventHandler`; ownership handed to the client via `RplComponent.GiveExt` |
 | `Scripts/Game/GameMode/Managers/OVT_PlayerManagerComponent.c` | Spawns/assigns/cleans up controllers (`SetupPlayer` L218-288, `AssignControllerOwnership` L290-322) |
-| `Scripts/Game/Components/OVT_PlayerCommsComponent.c` | **Legacy** client→server channel on the character prefab — 57 RPCs, reached via `OVT_Global.GetServer()` (62 call sites) |
+| ~~`Scripts/Game/Components/Player/OVT_PlayerCommsComponent.c`~~ | **DELETED 2026-08-14.** Was the legacy client→server channel on the character prefab — 57 RPCs reached via `OVT_Global.GetServer()`. Replaced by domain components in `Scripts/Game/Components/Controller/` (20 files: 17 components + the shared request base + the progress base + the generic accessor), reached via `OVT_ControllerComponent<T>.Get()` |
 | `Prefabs/GameMode/OVT_OverthrowGameMode.et` | Wires ~16 OVT managers + ~20 vanilla SCR components + EPF SaveData registration |
-| `Prefabs/GameMode/OVT_OverthrowController.et` | Controller prefab: `OVT_ContainerTransferComponent` + `RplComponent` |
+| `Prefabs/GameMode/OVT_OverthrowController.et` | Controller prefab: **17 components** + `RplComponent` (was `OVT_ContainerTransferComponent` alone until `core/controller-migration` landed on 2026-08-14) |
 
 ### Data Flow — campaign lifecycle
 
@@ -74,8 +74,8 @@ Game mode entity, manager `Init()` ordering, start branching (menu / dedicated /
 ### Phase 2: Controller Seam (COMPLETED — partially adopted)
 `OVT_OverthrowController` spawn + ownership transfer + client registration; `OVT_BaseServerProgressComponent` owner-RPC progress pattern; `OVT_ContainerTransferComponent` as the first (and so far only) migrated domain. Documented in `docs/archive/OverthrowController.md`.
 
-### Phase 3: Controller Migration (NOT STARTED / STALLED)
-Migrate the remaining domains (economy, base, real-estate, job, notification…) off `OVT_PlayerCommsComponent` (57 RPCs, 1430 lines, reached via `OVT_Global.GetServer()` at 62 call sites) onto controller components, then deprecate `OVT_PlayerCommsComponent`.
+### Phase 3: Controller Migration (COMPLETED 2026-08-14)
+Done as its own feature — `core/controller-migration`, ten phases, P1-P10. Every remaining domain (vehicles, real estate + warehouses, economy + shop purchase, resistance ops, FOBs/camps, recruits, loadouts, possession, jobs, campaign actions) moved off `OVT_PlayerCommsComponent` onto a domain component on `OVT_OverthrowController`, with server-side validation re-derived per handler and every client-supplied identity parameter DELETED from the signature rather than ignored. The monolith and `OVT_Global.GetServer()` were then deleted outright and the component stripped from both prefabs. Nine zero-validation endpoints were closed on the way, and two shipped defects were found and filed (BUG-161, BUG-162). **The 21-step MP play-test in that feature's `implementation.md` §6 is the outstanding gate.**
 
 ---
 
@@ -91,10 +91,11 @@ Migrate the remaining domains (economy, base, real-estate, job, notification…)
 **Implementation:** Set at the start and end of `DoStartGame()` respectively.
 **Trade-offs:** Makes a half-completed start observable (and testable); but callers must know which flag they mean.
 
-### Decision 3: Dual client→server channels during a stalled migration
-**Context:** `OVT_PlayerCommsComponent` (on the character) predates the controller.
-**Implementation:** `OVT_Global.GetServer()` resolves to the game-mode's comms component on the server and the local character's on clients — so `RpcAsk_*` calls work uniformly in SP/listen/dedicated.
-**Trade-offs:** Uniform call sites; but the character-hosted channel dies with the character, and the intended replacement (controller) carries only one domain so far.
+### Decision 3: Dual client→server channels during a stalled migration — SUPERSEDED 2026-08-14
+**Context:** `OVT_PlayerCommsComponent` (on the character) predated the controller.
+**Was:** `OVT_Global.GetServer()` resolved to the game-mode's comms component on the server and the local character's on clients — so `RpcAsk_*` calls worked uniformly in SP/listen/dedicated.
+**Now:** there is one channel. `core/controller-migration` moved every request onto a domain component on `OVT_OverthrowController` and deleted both the monolith and `GetServer()`. The uniformity that made the old accessor attractive is preserved by the entry-point convention (`if(Replication.IsServer()) direct-call; else Rpc(...)`), and the character-dies-with-the-channel failure mode is gone because the controller is a separate per-player entity that outlives the body.
+**Trade-offs of the new shape:** twelve small components instead of one big one; the accessor returns null in strictly MORE situations than `GetServer()` did (dedicated server, pre-owner-assignment), so every call site carries a null guard.
 
 ---
 
@@ -114,9 +115,9 @@ Migrate the remaining domains (economy, base, real-estate, job, notification…)
 - **BUG-012**: dead statement `OVT_Global.GetConfig() = OVT_Global.GetConfig();` (`OVT_OverthrowGameMode.c:789`) — almost certainly a mangled `m_Config = ...`; `m_Config` stays null through `EOnInit` and the save-load path.
 - `OVT_ResistanceFactionManager` unsubscribe blocks cast `GetOwner()` to `OVT_OverthrowController` (always null on a game-mode component) — `Remove()` never runs; masked by defensive `Remove`-before-`Insert` at subscribe sites (L1324/1371/1412/1454).
 - **BUG-017**: `OnPlayerDisconnected` re-implements its `super` body inline after calling `super` — disconnect events fire twice (verified against the 1.7.0.54 base: `SCR_BaseGameMode.c:920` is not empty).
-- `persistence.IsActive()` at `OVT_PlayerCommsComponent.c:21` resolves to the engine's `GenericComponent.IsActive()` ("component enabled"), not "persistence ready".
+- ~~`persistence.IsActive()` at `OVT_PlayerCommsComponent.c:21` resolves to the engine's `GenericComponent.IsActive()` ("component enabled"), not "persistence ready"~~ — moot since 2026-08-14: the file is deleted and the save request now lives on `OVT_CampaignRequestComponent.RpcAsk_RequestSave`.
 - `OVT_InventoryManagerComponent.Init()` is dead code (never called); `m_bHasOpenedMenu` never read/written.
-- Unguarded null derefs: `EOnFrame` debug handlers (`m_EconomyManager`, local controlled entity), `OVT_Global.GetServer()`/`GetUI()`.
+- Unguarded null derefs: `EOnFrame` debug handlers (`m_EconomyManager`, local controlled entity). ~~`OVT_Global.GetServer()`/`GetUI()`~~ fixed 2026-08-14 (`GetServer()` deleted, `GetUI()` and `GetDifficulty()` null-guarded).
 - Manager init order is implicit — literal statement order in two places plus the prefab; no registry or dependency declaration.
 - JSON difficulty overrides applied *after* `PostGameStart()` — managers that snapshot difficulty at start see pre-override values.
 
@@ -125,12 +126,12 @@ Migrate the remaining domains (economy, base, real-estate, job, notification…)
 ## Future Enhancements
 
 ### High Priority
-- [ ] Complete the controller migration (Phase 3): move the 57 `OVT_PlayerCommsComponent` RPCs onto controller components, then deprecate it
+- [x] ~~Complete the controller migration (Phase 3)~~ — **done 2026-08-14** by `core/controller-migration`; the monolith is deleted, not merely deprecated
 - [ ] Fix the `m_Config` self-assignment and the double disconnect dispatch
 
 ### Medium Priority
 - [ ] Fix the `OVT_ResistanceFactionManager` unsubscribe casts
-- [ ] Null-guard `OVT_Global.GetServer()`/`GetUI()` and the `EOnFrame` debug handlers
+- [ ] Null-guard the `EOnFrame` debug handlers (~~`OVT_Global.GetServer()`/`GetUI()`~~ done 2026-08-14)
 - [ ] Move the JSON difficulty override before `PostGameStart()` (or re-broadcast after)
 
 ### Low Priority / Nice to Have
@@ -149,7 +150,7 @@ Migrate the remaining domains (economy, base, real-estate, job, notification…)
 
 ### Testing Gaps
 - Controller spawn/ownership path (`SetupPlayer` → `GiveExt` → `NotifyOwnerAssignment`) — JIP/MP, manual play-testing only
-- Start-menu flow, `PrepareConnectedPlayers`, disconnect cleanup, every `OVT_PlayerCommsComponent` RPC
+- Start-menu flow, `PrepareConnectedPlayers`, disconnect cleanup, and every controller request RPC (`Scripts/Game/Components/Controller/`) — the Init tier asserts each component RESOLVES off a registered controller, but nothing automated exercises a request end to end
 
 ---
 

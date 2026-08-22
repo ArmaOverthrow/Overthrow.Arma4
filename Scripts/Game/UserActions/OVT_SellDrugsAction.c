@@ -10,17 +10,17 @@ class OVT_SellDrugsAction : OVT_BaseCivilianUserAction
 		autoptr array<IEntity> items = new array<IEntity>;
 		inventory.GetItems(items);
 		
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		
-		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(SCR_PlayerController.GetLocalControlledEntity());
-			
+		// The seller is resolved server-side from the controller entity the request arrives on, so no
+		// player id is sent (controller migration G3/D3).
+		OVT_EconomyRequestComponent economyRequests = OVT_ControllerComponent<OVT_EconomyRequestComponent>.Get();
+		if(!economyRequests) return;
 		
 		foreach(IEntity ent : items)
 		{
 			ResourceName res = ent.GetPrefabData().GetPrefabName();
 			if(res.Contains("DrugsWeed_01"))
 			{
-				OVT_Global.GetServer().SellDrugs(playerId, pOwnerEntity);
+				economyRequests.SellDrugs(pOwnerEntity);
 				if(s_AIRandomGenerator.RandFloat01() > 0.25)
 					MarkAsPerformed();
 				hasDrugs = true;

@@ -1,0 +1,24 @@
+$grp GenericEntity : "{6A8E2F0000000101}Prefabs/Production/OVT_ProductionSite_Sawmill.et" {
+ Production_Sawmill_LeMoule {
+  coords 3067.778 118.894 5237.474
+  angles 0 50.092 0
+ }
+ Production_Sawmill_Regina {
+  coords 7319.349 139.275 2515.747
+  angles 0 57.741 0
+ }
+}
+GenericEntity Production_SteelMill_Montignac : "{6A8E2F0000000102}Prefabs/Production/OVT_ProductionSite_SteelMill.et" {
+ coords 4547.651 156.43 6859.248
+ angles 0 -176.327 0
+}
+$grp GenericEntity : "{6A8E2F0000000103}Prefabs/Production/OVT_ProductionSite_CementPlant.et" {
+ Production_CementPlant_Durras {
+  coords 8800.756 197.077 3897.951
+  angles 0 -91.144 0
+ }
+ Production_CementPlant_Chotain {
+  coords 6458.146 162.182 6479.332
+  angles 0 88.804 0
+ }
+}

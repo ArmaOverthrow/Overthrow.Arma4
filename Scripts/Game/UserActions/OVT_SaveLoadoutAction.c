@@ -74,23 +74,16 @@ class OVT_SaveLoadoutAction : OVT_DialogUserAction
 			return;
 		}
 		
-		// Get player persistent ID
-		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(userEntity);
-		if (playerId.IsEmpty())
+		// Save the loadout via the controller seam. The owner is resolved SERVER-SIDE from the
+		// controller entity the request arrives on, so no persistent id is sent any more (BUG-043):
+		// a client can only ever save as itself.
+		OVT_LoadoutRequestComponent loadouts = OVT_ControllerComponent<OVT_LoadoutRequestComponent>.Get();
+		if (loadouts)
 		{
-			SCR_HintManagerComponent.ShowCustomHint("Failed to get player ID", "Error", 3.0);
-			ClearDialog();
-			return;
-		}
-		
-		// Save the loadout via RPC for multiplayer support
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
-		{
-			comms.SaveLoadout(playerId, loadoutName, "", false); // Regular loadout, not officer template
+			loadouts.SaveLoadout(loadoutName, "", false); // Regular loadout, not officer template
 			SCR_HintManagerComponent.ShowCustomHint(
-				string.Format("Loadout '%1' saved successfully!", loadoutName), 
-				"Loadout Saved", 
+				string.Format("Loadout '%1' saved successfully!", loadoutName),
+				"Loadout Saved",
 				3.0
 			);
 		}
@@ -98,7 +91,7 @@ class OVT_SaveLoadoutAction : OVT_DialogUserAction
 		{
 			SCR_HintManagerComponent.ShowCustomHint("Communication component not available", "Error", 3.0);
 		}
-		
+
 		ClearDialog();
 	}
 	

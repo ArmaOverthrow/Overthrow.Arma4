@@ -127,7 +127,7 @@ class OVT_MapLocationVehicle : OVT_MapLocationType
 
 		string name = "";
 
-		SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(prefab);
+		SCR_EditableVehicleUIInfo info = OVT_PrefabUtils.GetVehicleUIInfo(prefab);
 		if (info)
 			name = info.GetName();
 

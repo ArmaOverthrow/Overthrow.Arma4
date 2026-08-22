@@ -934,30 +934,7 @@ SCR_FactionManager {
    m_aGroupPrefabSlots {
     "{30ED11AA4F0D41E5}Prefabs/Groups/OPFOR/Group_USSR_FireGroup.et" "{657590C1EC9E27D3}Prefabs/Groups/OPFOR/Group_USSR_LightFireTeam.et" "{A2F75E45C66B1C0A}Prefabs/Groups/OPFOR/Group_USSR_MachineGunTeam.et" "{1A5F0D93609DA5DA}Prefabs/Groups/OPFOR/Group_USSR_ManeuverGroup.et" "{E552DABF3636C2AD}Prefabs/Groups/OPFOR/Group_USSR_RifleSquad.et" "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et" "{96BAB56E6558788E}Prefabs/Groups/OPFOR/Group_USSR_Team_AT.et" "{43C7A28EEB660FF8}Prefabs/Groups/OPFOR/Group_USSR_Team_GL.et" "{1C0502B5729E7231}Prefabs/Groups/OPFOR/Group_USSR_Team_Suppress.et"
    }
-   m_aGroupInfantryPrefabSlots {
-    "{657590C1EC9E27D3}Prefabs/Groups/OPFOR/Group_USSR_LightFireTeam.et" "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et"
-   }
-   m_aHeavyInfantryPrefabSlots {
-    "{30ED11AA4F0D41E5}Prefabs/Groups/OPFOR/Group_USSR_FireGroup.et" "{A2F75E45C66B1C0A}Prefabs/Groups/OPFOR/Group_USSR_MachineGunTeam.et" "{1A5F0D93609DA5DA}Prefabs/Groups/OPFOR/Group_USSR_ManeuverGroup.et" "{43C7A28EEB660FF8}Prefabs/Groups/OPFOR/Group_USSR_Team_GL.et" "{1C0502B5729E7231}Prefabs/Groups/OPFOR/Group_USSR_Team_Suppress.et"
-   }
-   m_aGroupATPrefabSlots {
-    "{E552DABF3636C2AD}Prefabs/Groups/OPFOR/Group_USSR_RifleSquad.et" "{96BAB56E6558788E}Prefabs/Groups/OPFOR/Group_USSR_Team_AT.et"
-   }
-   m_aGroupSpecialPrefabSlots {
-    "{1A5F0D93609DA5DA}Prefabs/Groups/OPFOR/Group_USSR_ManeuverGroup.et"
-   }
-   m_aGroupSniperPrefab "{65D8CD7BA7CB6B8A}Prefabs/Groups/Group_USSR_Sniper.et"
-   m_aLightTownPatrolPrefab "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et"
-   m_aTowerDefensePatrolPrefab "{CB58D90EA14430AD}Prefabs/Groups/OPFOR/Group_USSR_SentryTeam.et"
-   m_aVehicleCarPrefabSlots {
-    "{259EE7B78C51B624}Prefabs/Vehicles/Wheeled/UAZ469/UAZ469.et"
-   }
-   m_aVehicleTruckPrefabSlots {
-    "{D9B91FAB817A6033}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport_covered.et" "{16C1F16C9B053801}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et"
-   }
    m_aFlagPolePrefab "{651E545B53BBD035}Prefabs/Structures/Military/Flags/BaseFlag_USSR.et"
-   m_aMediumCheckpointPrefab "{089470408DAADC20}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_USSR_01.et"
-   m_aLargeCheckpointPrefab "{9F9924B626C5FA2B}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_USSR_01.et"
    m_aInventoryConfigFiles {
     "{C53421647C3D0D2E}Configs/EntityCatalog/USSR/USSR_InventoryItems.conf"
    }
@@ -1917,30 +1894,7 @@ SCR_FactionManager {
    m_aGroupPrefabSlots {
     "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et" "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
    }
-   m_aGroupInfantryPrefabSlots {
-    "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et" "{FCF7F5DC4F83955C}Prefabs/Groups/BLUFOR/Group_US_LightFireTeam.et"
-   }
-   m_aHeavyInfantryPrefabSlots {
-    "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" "{958039B857396B7B}Prefabs/Groups/BLUFOR/Group_US_MachineGunTeam.et" "{DE747BC9217D383C}Prefabs/Groups/BLUFOR/Group_US_Team_GL.et" "{81B6DBF2B88545F5}Prefabs/Groups/BLUFOR/Group_US_Team_Suppress.et"
-   }
-   m_aGroupATPrefabSlots {
-    "{FAEA8B9E1252F56E}Prefabs/Groups/BLUFOR/Group_US_Team_LAT.et" "{DDF3799FA1387848}Prefabs/Groups/BLUFOR/Group_US_RifleSquad.et"
-   }
-   m_aGroupSpecialPrefabSlots {
-    "{D807C7047E818488}Prefabs/Groups/BLUFOR/Group_US_SniperTeam.et"
-   }
-   m_aGroupSniperPrefab "{CA824A43ABA2DA97}Prefabs/Groups/Group_US_Sniper.et"
-   m_aLightTownPatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
-   m_aTowerDefensePatrolPrefab "{3BF36BDEEB33AEC9}Prefabs/Groups/BLUFOR/Group_US_SentryTeam.et"
-   m_aVehicleCarPrefabSlots {
-    "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et" "{47D94E1193A88497}Prefabs/Vehicles/Wheeled/M151A2/M151A2_transport.et"
-   }
-   m_aVehicleTruckPrefabSlots {
-    "{81FDAD5EB644CC3D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport_covered.et" "{F1FBD0972FA5FE09}Prefabs/Vehicles/Wheeled/M923A1/M923A1_transport.et"
-   }
    m_aFlagPolePrefab "{E55FC02F8C1518A3}Prefabs/Structures/Military/Flags/BaseFlag_US.et"
-   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
-   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
    m_aInventoryConfigFiles {
     "{5F7EC52FC40A03E2}Configs/EntityCatalog/US/US_InventoryItems.conf"
    }
@@ -2847,8 +2801,6 @@ SCR_FactionManager {
     "{5BEA04939D148B1D}Prefabs/Groups/INDFOR/Group_FIA_FireTeam.et" "{22F33D3EC8F281AB}Prefabs/Groups/INDFOR/Group_FIA_MachineGunTeam.et" "{2E9C920C3ACA2C6F}Prefabs/Groups/INDFOR/Group_FIA_ReconTeam.et" "{CE41AF625D05D0F0}Prefabs/Groups/INDFOR/Group_FIA_RifleSquad.et" "{6307F42403E9B8A4}Prefabs/Groups/INDFOR/Group_FIA_SharpshooterTeam.et" "{2CC26054775FBA2C}Prefabs/Groups/INDFOR/Group_FIA_Team_AT.et"
    }
    m_aFlagPolePrefab "{166AB26BD8321277}Prefabs/Structures/Military/Flags/BaseFlag_FIA.et"
-   m_aMediumCheckpointPrefab "{5F42399DF7455261}Prefabs/Compositions/Slotted/SlotRoadMedium/Checkpoint_M_US_01.et"
-   m_aLargeCheckpointPrefab "{6D9DAF822F4ABFE6}Prefabs/Compositions/Slotted/SlotRoadLarge/Checkpoint_L_US_01.et"
    m_aInventoryConfigFiles {
     "{E908001749419691}Configs/EntityCatalog/FIA/FIA_InventoryItems.conf"
    }

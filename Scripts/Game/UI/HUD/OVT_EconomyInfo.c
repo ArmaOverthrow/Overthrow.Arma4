@@ -6,6 +6,10 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 	string m_playerId;
 	SCR_ChimeraCharacter m_player;
 	
+	//! How far the vehicle may be from a warehouse RECORD for the vehicle-menu prompt to show. Matches
+	//! OVT_VehicleMenuContext.WAREHOUSE_SEARCH_RANGE, which decides whether the buttons exist.
+	protected const int WAREHOUSE_SEARCH_RANGE = 40;
+
 	//! Green for money gained, red for money lost, on the HUD delta ticker.
 	protected const int COLOR_DELTA_POSITIVE = 0xFF4CD964;
 	protected const int COLOR_DELTA_NEGATIVE = 0xFFFF4444;
@@ -76,7 +80,11 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 			InitCharacter();
 		}
 		UpdateMoney(timeSlice);
-		if(m_OccupyingFaction.m_bQRFActive)
+		// ⚠ ACTIVE **AND** REVEALED (occupying/counter-attacks D15). A counter-attack siege is active
+		// while it is still encircling the objective in silence, and the panel must not be the thing
+		// that gives it away. A player-initiated battle is revealed from creation, so this reads
+		// exactly as it did before for every battle a player starts.
+		if(m_OccupyingFaction.m_bQRFActive && m_OccupyingFaction.m_bQRFRevealed)
 		{
 			ShowQRF();
 			UpdateQRF();
@@ -141,6 +149,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		
 		OVT_MainMenuContextOverrideComponent m_overrideComponent = OVT_MainMenuContextOverrideComponent.Cast(m_foundComponent);
 		if(!m_overrideComponent) return false;
+		if(!m_overrideComponent.IsOwnerUsable()) return false;
 		
 		float dist = vector.Distance(entity.GetOrigin(),m_player.GetOrigin());
 		if(dist > m_overrideComponent.m_fRange) return false;
@@ -166,6 +175,28 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		return false;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Whether a warehouse the local player may use is near enough for the vehicle menu's two
+	//! warehouse buttons to appear. The same three tests OVT_VehicleMenuContext runs - a record, a
+	//! building with a storage component, and PlayerMayUseWarehouse - so the prompt never offers a menu
+	//! whose buttons are hidden.
+	//! \param[in] pos The vehicle's position.
+	//! \return True when the prompt should show.
+	protected bool HasAccessibleWarehouse(vector pos)
+	{
+		if(!m_RealEstate) return false;
+		
+		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, WAREHOUSE_SEARCH_RANGE);
+		if(!warehouse) return false;
+		
+		IEntity building = m_RealEstate.GetNearestBuilding(warehouse.location, OVT_RealEstateManagerComponent.WAREHOUSE_MATCH_RANGE);
+		if(!building) return false;
+		
+		if(!OVT_StorageUtils.GetStorage(building)) return false;
+		
+		return m_RealEstate.PlayerMayUseWarehouse(m_playerId, building);
+	}
+	
 	bool UpdateVehicleHint()
 	{
 		if(!m_player) return false;
@@ -179,20 +210,7 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		vector pos = m_player.GetOrigin();
 		bool hasButtons = false;
 		
-		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, 40);
-		if(warehouse)
-		{
-			IEntity warehouseEntity = m_RealEstate.GetNearestBuilding(warehouse.location, 10);
-			if(warehouseEntity)
-			{
-				EntityID id = warehouseEntity.GetID();
-				bool isOwned = m_RealEstate.IsOwned(id);
-				bool isOwner = m_RealEstate.IsOwner(m_playerId, id);
-				bool isRented = m_RealEstate.IsRented(id);
-				bool isAccessible = (!warehouse.isPrivate && isOwned && !isRented) || (warehouse.isPrivate && isOwner && !isRented) || isRented;
-				if(isAccessible) hasButtons = true;
-			}
-		}
+		if(HasAccessibleWarehouse(pos)) hasButtons = true;
 		
 		if(!hasButtons)
 		{
@@ -280,12 +298,79 @@ class OVT_EconomyInfo : SCR_InfoDisplay {
 		m_wRoot.FindAnyWidget("QRF").SetVisible(true);
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! WHICH PLACE THIS BATTLE IS FOR, resolved on the CLIENT, or an empty string when it cannot be.
+	//!
+	//! ⚠ IT READS THE REPLICATED INDICES, NEVER THE HANDLES. m_CurrentQRFBase / m_CurrentQRFTown are
+	//! server-side object handles that the finish handlers never clear - only the indices beside them
+	//! are reset to -1 - so reading a handle would make this panel name whatever place was fought over
+	//! LAST. The manager's own RevealQRF() carries the same warning for the same reason.
+	//!
+	//! ⚠ THE TOWN IS ASKED FIRST because a base battle leaves m_iCurrentQRFTown at -1 while a town
+	//! battle can sit inside a base's classification radius. Same precedence the reveal notification
+	//! uses, so the header and the broadcast never disagree about where the fighting is.
+	//!
+	//! ⚠ EMPTY IS A REAL ANSWER, NOT A FAILURE, AND THE CALLER HAS A STRING FOR IT. The indices are
+	//! replicated on change but are NOT in the JIP catch-up payload - pre-existing debt recorded in the
+	//! epic's JIP/client divergence entry - so a player who joined mid-battle legitimately has neither.
+	//! Naming the wrong place would be worse than naming none.
+	//! \return The place's display name, or "" when the client cannot tell.
+	protected string ResolveQRFPlaceName()
+	{
+		if(!m_OccupyingFaction)
+			return "";
+
+		if(m_OccupyingFaction.m_iCurrentQRFTown > -1)
+		{
+			OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+			if(towns)
+				return towns.GetTownName(m_OccupyingFaction.m_iCurrentQRFTown);
+
+			return "";
+		}
+
+		int baseIndex = m_OccupyingFaction.m_iCurrentQRFBase;
+		if(baseIndex < 0)
+			return "";
+
+		// ⚠ BOUNDS-CHECKED AGAINST THE CLIENT'S OWN LIST, not assumed to match the server's. m_Bases is
+		// built by a server-side world query; a client whose copy is shorter (or empty) would index off
+		// the end, and GetBaseByIndex dereferences m_Bases[index] with no guard of its own.
+		if(!m_OccupyingFaction.m_Bases || baseIndex >= m_OccupyingFaction.m_Bases.Count())
+			return "";
+
+		OVT_BaseControllerComponent base = m_OccupyingFaction.GetBaseByIndex(baseIndex);
+		if(!base)
+			return "";
+
+		return base.m_sName;
+	}
+
 	void UpdateQRF()
 	{
+		// THE HEADER NAMES THE PLACE, THE SUB-LINE COUNTS DOWN TO SCORING. Both battle kinds render
+		// identically - a player-initiated QRF counts two minutes and a counter-attack's muster window
+		// fifteen, in the same M:SS clock, under the same header.
+		TextWidget header = TextWidget.Cast(m_wRoot.FindAnyWidget("QRFHeaderText"));
+		if(header)
+		{
+			string place = ResolveQRFPlaceName();
+			if(place.IsEmpty())
+				header.SetText("#OVT-QRFBattleForUnknown");
+			else
+				header.SetText("#OVT-QRFBattleFor " + place);
+		}
+
 		TextWidget w = TextWidget.Cast(m_wRoot.FindAnyWidget("QRFTimerText"));
 		if(m_OccupyingFaction.m_iQRFTimer > 0)
 		{
-			w.SetText("#OVT-BattleStartsIn " + Math.Floor(m_OccupyingFaction.m_iQRFTimer / 1000).ToString());
+			// ⚠ ONE CLOCK, NOT TWO BRANCHES (2026-08-20). This used to render whole minutes above two
+			// minutes and bare seconds below, through two different strings - so a single countdown
+			// changed both its unit and its wording partway through, and "3" becoming "119" looked like
+			// a fault. OVT_QRFSiege.FormatClock reads the same at 15:00 and at 0:07 and needs no
+			// crossover. ShouldRenderMinutes and MusterMinutesRemaining are no longer called from here;
+			// they are kept because the Logic tier pins them and because a mod may want the old form.
+			w.SetText("#OVT-QRFScoringBeginsIn " + OVT_QRFSiege.FormatClock(m_OccupyingFaction.m_iQRFTimer));
 		}else{
 			w.SetText("#OVT-BattleProgress");
 		}

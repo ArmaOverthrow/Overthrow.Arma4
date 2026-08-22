@@ -2,8 +2,16 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
  ID "59845E6E8A2A6A0B"
  components {
   OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
-   m_BaseUpgradesConfig OVT_BaseUpgradesConfig "{B67368CBF1D3C5D0}" : "{0756DED5D4018095}Configs/BaseUpgrades/overthrowBaseUpgrades.conf" {
+  }
+  OVT_GMEditableCampaignComponent "{6B09A1C0E4D50003}" {
+   m_EntityType SYSTEM
+   m_UIInfo OVT_GMCampaignUIInfo "{6B09A1C0E4D50004}" {
    }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 8 0
+   m_fMaxDrawDistance 2000
+   m_Flags 2052
+   m_eKind BASE
   }
   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
    m_aPoints {
@@ -56,12 +64,6 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
      UIInfo UIInfo "{5E66A8E424754557}" {
       Name "#OVT-SetHome"
      }
-    }
-    OVT_ManageBaseAction "{5E66A8E424754555}" {
-     ParentContextList {
-      "default"
-     }
-     "Sort Priority" 1
     }
     OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
      ParentContextList {

@@ -105,6 +105,29 @@ ACKNOWLEDGED = {
         "SCR_MapDrawingUI listen for MapContextualMenu, and neither module is "
         "carried by Configs/Map/MapRespawn.conf, so it has no handler on this "
         "screen. Re-check if either module is ever added to that config.",
+    # DOCUMENTARY ONLY, same reason as the entry above - both collisions are
+    # CROSS-context and this parser only ever consults a waiver for two actions in
+    # the SAME mod context. Written down here because this is where the next person
+    # to touch gamepad0:x, gamepad0:y or KC_B on the map will look.
+    # Verified by hand 2026-08-22 (resistance/high-command Phase 7).
+    ("OverthrowMapCommandContext", "gamepad0:x"):
+        "OverthrowHCOrder shares gamepad0:x with vanilla MapContext's "
+        "MapContextualMenu (SCR_MapRadialUI IS carried by MapFullscreen.conf, "
+        "which MapOverthrow.conf inherits) and with OverthrowHighCommandBuy in "
+        "OverthrowHighCommandContext. Two mechanisms, both needed: "
+        "OverthrowMapCommandContext is EXCLUSIVE (Flags 0x2e, bit 0x8) at priority "
+        "70, which suppresses both priority-50 claimants while it is leased; and "
+        "OVT_MapHighCommandLayer.TickCommandContext refuses to renew the lease "
+        "while OVT_UIManagerComponent.IsAnyContextBlocking() is true, so the "
+        "purchase screen's context and this one can never be live together.",
+    ("OverthrowMapCommandContext", "keyboard:KC_B"):
+        "OverthrowHCStance shares keyboard:KC_B with MapContext's "
+        "MapToolProtractor, with OverthrowHighCommandBuy and with "
+        "OverthrowLoadoutsBuyRecruit. Same two mechanisms as the gamepad0:x entry "
+        "above - exclusive claim at priority 70, plus the menu guard in "
+        "TickCommandContext. gamepad0:y (OverthrowToggleRecruits, HintDismiss) and "
+        "keyboard:KC_G (HintDismiss) are covered by the exclusive claim alone; "
+        "neither of those losers spends anything.",
 }
 
 

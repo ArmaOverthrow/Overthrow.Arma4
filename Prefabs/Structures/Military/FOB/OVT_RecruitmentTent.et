@@ -28,6 +28,66 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
    }
    m_Flags PLACEABLE
   }
+  ActionsManagerComponent "{6B70D0000000001D}" {
+   ActionContexts {
+    UserActionContext "{6B70D0000000001E}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000001F}" {
+      Offset 0 1 0
+     }
+     Radius 5
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000060}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000061}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D00000000020}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000021}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6B70D00000000004}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+     DamageThreshold 50
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000005}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{0F7DDAB5C669F262}Assets/Structures/Debris/DebrisPiles/DebrisPile_Wood_01.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_TENT
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
  }
  {
   GenericEntity : "{03B44EA7652D0D17}Prefabs/Props/Military/Radios/RadioStation_R123M_01.et" {
