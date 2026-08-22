@@ -1,0 +1,10 @@
+TextWidgetClass {
+ Name "GroupHeaderText"
+ Slot LayoutSlot "{6B1C3D0000007031}" {
+  Padding 0 10 0 4
+ }
+ Text "Group"
+ "Font Size" 12
+ "Min Font Size" 10
+ Color 0.55 0.55 0.55 1
+}

@@ -4,7 +4,7 @@
 //! WHY THIS CASE EXISTS. Phase 5 of the controller migration deleted six handlers and one owner response
 //! from the legacy comms monolith in the same change that created this component. There is therefore no
 //! old path left to fall back on: if the prefab block is missing, placing an item, building, removing a
-//! placed object, promoting an officer, buying a base garrison and converting a supporter ALL stop
+//! placed object, promoting an officer and converting a supporter ALL stop
 //! working at once - with no compile error, no runtime error and no log line, because every call site
 //! null-guards the accessor by contract and simply returns. The plan requires one Init assertion per new
 //! component, added in the phase that creates it (D11), precisely because an agent cannot make the
@@ -57,7 +57,7 @@ class OVT_TEST_Init_Controller_ResistanceRequestResolves : SCR_AutotestCaseBase
 		OVT_ResistanceRequestComponent viaAccessor = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
 		if (!viaAccessor)
 		{
-			SetFailure("OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so place, build, remove-placed, add-officer, add-garrison and convert-supporter all silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
+			SetFailure("OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so place, build, remove-placed, add-officer and convert-supporter all silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
 			return true;
 		}
 

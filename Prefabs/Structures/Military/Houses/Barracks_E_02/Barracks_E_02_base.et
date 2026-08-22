@@ -1,0 +1,28 @@
+SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
+ ID "532EF6B341FA8C1B"
+ components {
+  OVT_SpawnPointComponent "{6B1C3D0000006300}" {
+   m_aPoints {
+    PointInfo "{6B1C3D0000006301}" {
+     Offset 0 0 14
+    }
+    PointInfo "{6B1C3D0000006302}" {
+     Offset 3 0 14
+    }
+    PointInfo "{6B1C3D0000006303}" {
+     Offset -3 0 14
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{6B1C3D0000006305}" {
+     Offset 10 0 14
+    }
+    PointInfo "{6B1C3D0000006306}" {
+     Offset 14 0 14
+    }
+   }
+  }
+  OVT_BarracksComponent "{6B1C3D0000000070}" {
+  }
+ }
+}

@@ -1,0 +1,93 @@
+ButtonWidgetClass {
+ Name "HighCommandGroupRow"
+ Slot LayoutSlot "{5D5C558A6E391680}" {
+  Padding 0 0 0 2
+ }
+ Color 0.018 0.018 0.018 1
+ components {
+  OVT_HighCommandGroupRowHandler "{6B1C3D0000002001}" {
+   m_BackgroundDefault 0.018 0.018 0.018 0.102
+   m_BackgroundHovered 0.041 0.041 0.041 0.302
+   m_BackgroundSelected 0.018 0.011 0.004 0.302
+   m_BackgroundSelectedHovered 0.024 0.016 0.008 1
+   m_BackgroundClicked 0.031 0.02 0.009 1
+  }
+ }
+ {
+  OverlayWidgetClass "{6B1C3D0000002002}" {
+   Name "Overlay0"
+   Slot ButtonWidgetSlot "{5D5C558A6E391684}" {
+    HorizontalAlign 3
+    VerticalAlign 3
+   }
+   {
+    ImageWidgetClass "{6B1C3D0000002003}" {
+     Name "Background"
+     Slot OverlayWidgetSlot "{5D5C558A6E391682}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+      Padding 2 2 2 2
+     }
+     Color 0.005 0.005 0.005 1
+    }
+    HorizontalLayoutWidgetClass "{6B1C3D0000002004}" {
+     Name "Content"
+     Slot OverlayWidgetSlot "{5D5C558A6E391686}" {
+      HorizontalAlign 3
+      Padding 10 8 10 8
+     }
+     {
+      ImageWidgetClass "{6B1C3D0000002005}" {
+       Name "GroupIcon"
+       Slot LayoutSlot "{56EEDE01982D053A}" {
+        Padding 0 0 10 0
+       }
+       Texture "{27F2439D610D02B3}UI/Imagesets/MilitarySymbol/ICO_Land.imageset"
+       Image "Infantry_Friend"
+       Size 32 32
+      }
+      VerticalLayoutWidgetClass "{6B1C3D0000002006}" {
+       Name "NameInfo"
+       Slot LayoutSlot "{5D5C558A6E391688}" {
+        SizeMode Fill
+       }
+       {
+        TextWidgetClass "{6B1C3D0000002007}" {
+         Name "GroupName"
+         Slot LayoutSlot "{5D5C558A6E39168A}" {
+          Padding 0 0 0 2
+         }
+         Text "Group Name"
+         "Font Size" 18
+         "Min Font Size" 14
+         FontProperties FontProperties "{6B1C3D0000002008}" {
+          Bold 1
+         }
+        }
+        TextWidgetClass "{6B1C3D0000002009}" {
+         Name "GroupMembers"
+         Slot LayoutSlot "{5D5C558A6E39168D}" {
+         }
+         Text "0 fighters"
+         "Font Size" 14
+         "Min Font Size" 12
+        }
+       }
+      }
+      TextWidgetClass "{6B1C3D000000200A}" {
+       Name "GroupVehicleTag"
+       Slot LayoutSlot "{5D5C558A6E391691}" {
+        HorizontalAlign 2
+        VerticalAlign 1
+       }
+       Text ""
+       "Font Size" 14
+       "Min Font Size" 12
+       "Horizontal Alignment" Right
+      }
+     }
+    }
+   }
+  }
+ }
+}

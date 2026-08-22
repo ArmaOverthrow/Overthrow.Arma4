@@ -32,7 +32,6 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 			locationData.SetDataString(OVT_MapDataKeys.OWNER, fob.owner);
 			locationData.SetDataBool("isPriority", fob.isPriority);
 			locationData.SetDataString(OVT_MapDataKeys.PERSISTENT_ID, fob.persistentId);
-			locationData.SetDataInt(OVT_MapDataKeys.GARRISON_COUNT, fob.garrison.Count());
 
 			// A priority FOB is ALWAYS visible: 0 overrides the type's m_fVisibilityZoom for this record
 			// only (BUG-138 made OVT_MapLocationElement read the key). An ordinary FOB writes nothing and
@@ -45,13 +44,7 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Shared info panel: priority flag, and garrison ONLY when it is non-zero.
-	//!
-	//! GARRISON IS NOT REPLICATED. OVT_ResistanceFactionManager's RplSave/RplLoad carries
-	//! persistentId/name/location/owner/isPriority only, and the RpcDo_RegisterFOB broadcast carries no
-	//! garrison either, so fob.garrison.Count() is 0 on every machine except the one that owns the
-	//! record. A row reading "Garrison: 0" on every client is worse than no row, hence the > 0 test.
-	//! The replication gap is filed against resistance/fob and deliberately not fixed here.
+	//! Shared info panel: the priority flag.
 	//! \param[in] location The record being described
 	//! \param[in] rowsContainer The shared panel's rows container
 	override protected void BuildInfoRows(OVT_MapLocationData location, Widget rowsContainer)
@@ -63,10 +56,6 @@ class OVT_MapLocationFOB : OVT_MapLocationType
 			AddInfoRow(rowsContainer, "#OVT-Map_Row_Priority", "#OVT-Map_Row_Yes");
 		else
 			AddInfoRow(rowsContainer, "#OVT-Map_Row_Priority", "#OVT-Map_Row_No");
-
-		int garrison = location.GetDataInt(OVT_MapDataKeys.GARRISON_COUNT, 0);
-		if (garrison > 0)
-			AddInfoRow(rowsContainer, "#OVT-Garrison", garrison.ToString());
 	}
 
 	//! Get icon name based on FOB priority

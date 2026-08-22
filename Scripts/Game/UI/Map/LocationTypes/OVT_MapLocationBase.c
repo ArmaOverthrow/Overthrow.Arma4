@@ -1,5 +1,5 @@
 //! Military base location type for the new map system
-//! Handles military bases with faction control and garrison display
+//! Handles military bases with faction control display
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationBase : OVT_MapLocationType
 {	
@@ -53,7 +53,6 @@ class OVT_MapLocationBase : OVT_MapLocationType
 			locationData.m_iID = i;
 			locationData.SetDataInt("faction", base.faction);
 			locationData.SetDataBool("isOccupying", base.IsOccupyingFaction());
-			locationData.SetDataInt("garrisonCount", base.garrison.Count());
 			
 						
 			locations.Insert(locationData);
@@ -75,14 +74,6 @@ class OVT_MapLocationBase : OVT_MapLocationType
 	{
 		if (!baseInfoWidget || !location)
 			return;
-		
-		// Garrison size
-		TextWidget garrisonText = TextWidget.Cast(baseInfoWidget.FindAnyWidget("Garrison"));
-		if (garrisonText)
-		{
-			int garrisonCount = location.GetDataInt("garrisonCount", 0);
-			garrisonText.SetText(garrisonCount.ToString());
-		}
 		
 		// Controlling faction icon
 		ImageWidget factionIcon = ImageWidget.Cast(baseInfoWidget.FindAnyWidget("FactionIcon"));

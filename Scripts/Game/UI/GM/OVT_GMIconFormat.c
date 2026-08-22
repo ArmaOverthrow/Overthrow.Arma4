@@ -95,17 +95,8 @@ class OVT_GMIconFormat
 			case OVT_EGroupOrigin.TOWN_PATROL:
 				return "Town Patrol";
 
-			case OVT_EGroupOrigin.BASE_GARRISON:
-				return "Base Garrison";
-
 			case OVT_EGroupOrigin.RADIO_TOWER_GARRISON:
 				return "Radio Tower Garrison";
-
-			case OVT_EGroupOrigin.CAMP_GARRISON:
-				return "Camp Garrison";
-
-			case OVT_EGroupOrigin.FOB_GARRISON:
-				return "FOB Garrison";
 
 			case OVT_EGroupOrigin.QRF:
 				return "QRF";

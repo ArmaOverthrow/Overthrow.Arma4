@@ -61,12 +61,17 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 
 	protected const string LABEL_RECRUITS = "#OVT-Map_Layer_Recruits";
 
-	//! Layer-namespaced ids of the two hand-built rows. OVT_MapPlayerLocation and
-	//! OVT_MapRecruitLocation are SCR_MapUIBaseComponents rather than OVT_MapCanvasLayers, so
-	//! neither ever appears in the compositor's layer list and neither can be enumerated with the
-	//! others.
+	protected const string LABEL_HIGHCOMMAND = "#OVT-Map_Layer_HighCommand";
+
+	//! Layer-namespaced ids of the three hand-built rows. OVT_MapPlayerLocation,
+	//! OVT_MapRecruitLocation and OVT_MapHighCommandLayer are SCR_MapUIBaseComponents rather than
+	//! OVT_MapCanvasLayers, so none ever appears in the compositor's layer list and none can be
+	//! enumerated with the others.
 	protected const string KEY_PLAYERS = "players";
 	protected const string KEY_RECRUITS = "recruits";
+	protected const string KEY_HIGHCOMMAND = "highcommand";
+	//! The destination-line canvas layer, toggled by the same row as the markers.
+	protected const string KEY_HIGHCOMMAND_LINES = "highcommandlines";
 
 	//! Overthrow's row-navigation input context, declared in Configs/System/chimeraInputCommon.conf.
 	//! It re-references MenuUp / MenuDown / MenuLeft / MenuRight / MenuSelect - actions that all
@@ -650,6 +655,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 		BuildCanvasLayerRows(workspace);
 		BuildPlayerRow(workspace);
 		BuildRecruitRow(workspace);
+		BuildHighCommandRow(workspace);
 		BuildLocationTypeRows(workspace);
 	}
 
@@ -719,7 +725,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The one hand-built row.
+	//! The first hand-built row.
 	//!
 	//! OVT_MapPlayerLocation is a SCR_MapUIBaseComponent, not an OVT_MapCanvasLayer, so it will
 	//! never appear in the compositor's list. Reparenting a working, retained component onto the
@@ -771,6 +777,29 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return;
 
 		CreateRow(workspace, m_wOverlayRows, key, LABEL_RECRUITS, string.Empty, string.Empty, recruitLocation.AreMarkersVisible());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The third hand-built row - every player's High Command groups.
+	//!
+	//! Same shape and same reasoning as the two above: OVT_MapHighCommandLayer is a
+	//! SCR_MapUIBaseComponent, not an OVT_MapCanvasLayer, so it is invisible to the compositor's list.
+	//! A campaign with no High Command groups at all gets no row rather than a dead toggle.
+	//! \param[in] workspace the workspace rows are created through
+	protected void BuildHighCommandRow(notnull WorkspaceWidget workspace)
+	{
+		OVT_MapHighCommandLayer highCommand = GetHighCommandLayer();
+		if (!highCommand)
+			return;
+
+		if (!highCommand.IsAvailableThisSession())
+			return;
+
+		string key = OVT_MapLayerPrefsStore.LayerKey(KEY_HIGHCOMMAND);
+		if (!ClaimKey(key, LABEL_HIGHCOMMAND))
+			return;
+
+		CreateRow(workspace, m_wOverlayRows, key, LABEL_HIGHCOMMAND, string.Empty, string.Empty, highCommand.AreMarkersVisible());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -957,6 +986,7 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 
 		ApplyPlayerMarkerPreference();
 		ApplyRecruitMarkerPreference();
+		ApplyHighCommandMarkerPreference();
 		ApplyCanvasLayerPreferences();
 		ApplyLocationTypePreferences();
 	}
@@ -997,6 +1027,25 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return;
 
 		recruitLocation.SetMarkersVisible(m_PrefsStore.IsVisible(OVT_MapLayerPrefsStore.LayerKey(KEY_RECRUITS)));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The hand-built High Command row's preference. Skipped for a session that offers no row, so the
+	//! value cannot be written for a player who had no control over it and then survive into a session
+	//! that DOES draw markers.
+	protected void ApplyHighCommandMarkerPreference()
+	{
+		OVT_MapHighCommandLayer highCommand = GetHighCommandLayer();
+		if (!highCommand)
+			return;
+
+		if (!highCommand.IsAvailableThisSession())
+			return;
+
+		bool visible = m_PrefsStore.IsVisible(OVT_MapLayerPrefsStore.LayerKey(KEY_HIGHCOMMAND));
+
+		highCommand.SetMarkersVisible(visible);
+		SetHighCommandLinesVisible(visible);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1069,6 +1118,9 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 		if (ApplyRecruitMarkers(key, visible))
 			return;
 
+		if (ApplyHighCommandMarkers(key, visible))
+			return;
+
 		if (ApplyCanvasLayer(key, visible))
 			return;
 
@@ -1114,6 +1166,51 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 		recruitLocation.SetMarkersVisible(visible);
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tested with the other two hand-built rows and before the canvas sweep, because its key also
+	//! lives in the layer namespace and would otherwise be shadowed by a sweep that cannot match it.
+	//! \param[in] key namespaced preference key
+	//! \param[in] visible the new state
+	//! \return true when the key named the High Command markers
+	protected bool ApplyHighCommandMarkers(string key, bool visible)
+	{
+		if (key != OVT_MapLayerPrefsStore.LayerKey(KEY_HIGHCOMMAND))
+			return false;
+
+		OVT_MapHighCommandLayer highCommand = GetHighCommandLayer();
+		if (!highCommand)
+			return false;
+
+		highCommand.SetMarkersVisible(visible);
+
+		// The destination lines are a separate CANVAS layer, so the one row has to drive both. This
+		// branch returns before ApplyCanvasLayer ever runs, so the line layer would otherwise keep
+		// drawing under a filtered-off marker set.
+		SetHighCommandLinesVisible(visible);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Toggle the High Command destination-line canvas layer, addressed by its layer id.
+	//! \param[in] visible the new state
+	protected void SetHighCommandLinesVisible(bool visible)
+	{
+		OVT_MapCanvasCompositor compositor = OVT_MapCanvasCompositor.GetInstance();
+		if (!compositor)
+			return;
+
+		array<OVT_MapCanvasLayer> layers = compositor.GetLayers();
+		if (!layers)
+			return;
+
+		foreach (OVT_MapCanvasLayer layer : layers)
+		{
+			if (layer && layer.GetLayerId() == KEY_HIGHCOMMAND_LINES)
+				layer.SetLayerVisible(visible);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1212,6 +1309,16 @@ class OVT_MapLayersUI : SCR_MapUIBaseComponent
 			return null;
 
 		return OVT_MapRecruitLocation.Cast(m_MapEntity.GetMapUIComponent(OVT_MapRecruitLocation));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return the High Command marker layer registered on this map config, or null
+	protected OVT_MapHighCommandLayer GetHighCommandLayer()
+	{
+		if (!m_MapEntity)
+			return null;
+
+		return OVT_MapHighCommandLayer.Cast(m_MapEntity.GetMapUIComponent(OVT_MapHighCommandLayer));
 	}
 
 	//------------------------------------------------------------------------------------------------

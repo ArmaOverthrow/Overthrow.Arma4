@@ -1,0 +1,34 @@
+GenericEntity : "{28411B0C79460DF8}Prefabs/Structures/Core/BuildingFurniture_base.et" {
+ ID "56A8CBB92342240A"
+ {
+  GenericEntity : "{03B44EA7652D0D17}Prefabs/Props/Military/Radios/RadioStation_R123M_01.et" {
+   ID "6B1C3D0000003020"
+   components {
+    ActionsManagerComponent "{6B1C3D0000003021}" {
+     ActionContexts {
+      UserActionContext "{6B1C3D0000003022}" {
+       ContextName "hcradio"
+       Position PointInfo "{6B1C3D0000003023}" {
+        Offset 0 0.25 0
+       }
+       Radius 0.65
+      }
+     }
+     additionalActions {
+      OVT_ManageHighCommandAction "{6B1C3D0000003024}" {
+       ParentContextList {
+        "hcradio"
+       }
+       UIInfo UIInfo "{6B1C3D0000003025}" {
+        Name "#OVT-ManageHighCommand"
+       }
+       ActionTitle "Manage High Command"
+      }
+     }
+    }
+   }
+   coords 2.029 1.014 7.902
+   angles 0 123.584 0
+  }
+ }
+}

@@ -1,7 +1,7 @@
 # Damage & Destruction (`core/damage`) - Task Checklist
 
-**Last Updated:** 2026-08-21 21:00
-**Progress:** 74/74 tasks complete (100%) — 70 build tasks + 4 post-close fix tasks (2026-08-21)
+**Last Updated:** 2026-08-22
+**Progress:** 80/80 tasks complete (100%) — 70 build tasks + 4 post-close fix tasks (2026-08-21) + 3 post-close fix 2 + 3 post-close fix 3 tasks (2026-08-22)
 
 **Epic:** `core` (feature #8) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md` · **Branch:** `v1.5`
 
@@ -363,6 +363,39 @@
   - Description: E — damage ruin → repair → full health → a rifle round is shrugged off (proven able to fail on both holes). F — live buildables config: a collision hit ruins nothing, five rifle rounds ruin only the depot and leave the rest untouched. Init suite 182/184 (pre-existing CompositionSlotGate red + E before its fix); E green standalone afterwards.
   - File(s): `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_StructureDamage.c`
 - 🎯 **PC.U1 — user play-test** of the fix: tracked in `context.md` → "Needs human verification" (not a task — closed feature).
+
+---
+
+## Post-close fix 2 — Barracks and Warehouse missed the BD31 numbers (3/3 complete, 2026-08-22)
+
+*Trigger: user saw a built **Barracks** ruined by a single stray small-arms round. Cause: the 2026-08-21 fix (PC.1) enumerated the **eight** buildables that existed on 2026-08-20. `OVT_Warehouse.et` (added by `logistics/resources`, ba5bd37a) and `OVT_Barracks.et` (added untracked by the construction-site work) were authored later by copying the **pre-fix** template, so both shipped 100 000 + 100 000 with no `DamageThreshold` — exactly the BD31 fault, on two new prefabs.*
+
+- [x] ✅ **PC2.1 — Barracks + Warehouse brought onto the BD31 numbers**
+  - Description: `m_fBaseHealth`/`m_fPhaseHealth` 100000 → **32000**, `DamageThreshold 50` added to the `SCR_HitZone Default` block. Nothing else touched — both already carried `SCR_DestructibleBuildingComponent { Enabled 0 }` and an active `RplComponent`.
+  - File(s): `Prefabs/Structures/Military/Houses/Barracks_01/OVT_Barracks.et`, `Prefabs/Structures/Industrial/Houses/Warehouse_01/OVT_Warehouse.et`
+- [x] ✅ **PC2.2 — Repo-wide gate so the next new buildable cannot repeat it**
+  - Description: `tools/check-destructible-health.py` scans **every** `.et` under `Prefabs/` and `PrefabsEditable/` for `OVT_StructureDestructionComponent` and fails when the authored `m_fBaseHealth + Σ m_fPhaseHealth` exceeds the 16-bit cap (65 535, minus a 1 535 margin) or when the hit zone has no `DamageThreshold`. The Fuel Depot is threshold-exempt by name (BD33). No prefab list to maintain — a newly added prefab is scanned automatically. ⚠ Init case F would already have caught both (it enumerates the live buildables config, and both are listed); the suite had simply not been run since they were added. This gate is the cheap second net — a file scan needing no world.
+  - File(s): `tools/check-destructible-health.py` (NEW)
+  - **Proven able to fail:** reverting the Barracks to 100 000 + 100 000 and deleting its `DamageThreshold` makes it exit 1 with both findings named; restored, exit 0 across 10 destructible prefabs.
+- [x] ✅ **PC2.3 — Gate run clean** — `python3 tools/check-destructible-health.py` → `OK - 10 destructible prefab(s) author survivable hit-zone health.`
+- 🎯 **PC2.U1 — user play-test** — empty a magazine into a built **Barracks** and a built **Warehouse**: no phase change, no ruin, `/repair-structure` not offered. Tracked in `context.md` → "Needs human verification".
+
+---
+
+## Post-close fix 3 — floating furniture and a fire that burns nobody (3/3 complete, 2026-08-22)
+
+*Two user reports in the same session: **(a)** a ruined structure keeps its children, so a wrecked barracks left its furniture and interior lights hanging in the rubble; **(b)** the ruin fire is cosmetic — players and AI stand in the flames unharmed.*
+
+- [x] ✅ **PC3.1 — A ruin hides its children, a repair restores exactly those (BD35)**
+  - Description: `OnBecameRuin()`/`OnBecameIntact()` walk the child subtree and flip `EntityFlags.VISIBLE | TRACEABLE`. Records only children visible at the moment of the ruin, so a repair cannot reveal a pre-hidden one; a second additive pass at `CHILD_HIDE_RETRY_MS` (500 ms) catches slotted children that spawn after the phase lands. Runs on every machine — visibility is local render state. Also fixes the Bunkers composition (rubble used to appear inside intact sandbags).
+  - File(s): `Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c`
+- [x] ✅ **PC3.2 — The ruin fire damages characters (BD36)**
+  - Description: vanilla has no area fire — `FireDamageSystem` only ticks entities that are themselves alight, and `SCR_FlammableHitZone` damages its own occupants, never bystanders. `StartFireHazard()` ticks server-side once a second for the fire's lifetime: `QueryEntitiesBySphere` (DYNAMIC) at the world-bounds centre, then `DamageRandomHitZones(dps, EDamageType.FIRE, …)` on every living `ChimeraCharacter` in range. New attributes `m_fFireDamageRadius` (5 m) and `m_fFireDamagePerSecond` (12); 0 on either disables it. Bound to `StopRuinFire()`, so it ends with the burn, a repair or deletion.
+  - File(s): `Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c`
+- [x] ✅ **PC3.3 — Init case G + compile-check**
+  - Description: G spawns the reported Barracks, asserts its child is visible before the ruin, hidden after, and visible again after the repair — the second half is the one that regresses quietly. Compile-check exit 0 (6310 files). `tools/run-tests.sh` deliberately not run here — orchestrator only, and the v1.5 run is already owed.
+  - File(s): `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_Init_StructureDamage.c`
+- 🎯 **PC3.U1 — user play-test** — tracked in `context.md` → "Needs human verification" (a)-(d).
 
 ---
 

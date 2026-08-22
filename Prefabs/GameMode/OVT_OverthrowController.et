@@ -49,6 +49,8 @@ OVT_OverthrowController {
   }
   OVT_IllegalActionComponent "{68A0C7D24B913A70}" {
   }
+  OVT_HighCommandRequestComponent "{6B1C3D0000000002}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

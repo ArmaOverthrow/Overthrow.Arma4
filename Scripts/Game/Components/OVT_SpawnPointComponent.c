@@ -101,6 +101,19 @@ class OVT_SpawnPointComponent : ScriptComponent
 	{
 		return m_aVehiclePoints && m_aVehiclePoints.Count() > 0;
 	}
+	
+	//! GetSpawnPoint() falls back to the HOLDER'S OWN ORIGIN when nothing is authored, which for a
+	//! building is a point inside it. Callers that have somewhere else to put things must ask first.
+	bool HasSpawnPoints()
+	{
+		if (m_aPoints && m_aPoints.Count() > 0)
+			return true;
+		
+		if (m_vPoint)
+			return true;
+		
+		return false;
+	}
 
 #ifdef WORKBENCH
 	//------------------------------------------------------------------------------------------------

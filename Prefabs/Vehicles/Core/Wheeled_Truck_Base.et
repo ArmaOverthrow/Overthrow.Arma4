@@ -2,19 +2,11 @@ Vehicle : "{62F416029692CE40}Prefabs/Vehicles/Core/Wheeled_Base.et" {
  ID "BBCBA43A9778AE21"
  components {
   OVT_ResourceStoreComponent "{6A8E2E0000000010}" {
-   m_fCargoVolume 15
+   m_fCargoVolume 0
+  }
+  OVT_ResourceCargoBedComponent "{6A8E2E0000000060}" {
   }
   ActionsManagerComponent "{C97BE5489221AE18}" {
-   ActionContexts {
-    UserActionContext "{6A8E2E1000000030}" {
-     ContextName "door_rear"
-     Position PointInfo "{6A8E2E1000000031}" {
-      Offset 0 1 -4
-     }
-     Radius 3
-     Height 2.5
-    }
-   }
    additionalActions {
     OVT_OpenResourceStoreAction "{6A8E2E1000000010}" {
      ParentContextList {

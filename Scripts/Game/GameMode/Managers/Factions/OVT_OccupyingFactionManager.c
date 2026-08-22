@@ -32,11 +32,6 @@ class OVT_BaseData : Managed
 	[NonSerialized()]
 	EntityID entId;
 
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-
-	ref array<ref ResourceName> garrison = {};
-	
 	[SortAttribute(),NonSerialized()]
 	int sortBy;
 
@@ -495,8 +490,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! resource pool and runs after this one in the same load - read QueueLegacyUpgradeRefund()'s header
 	//! before moving the credit back inline.
 	//!
-	//! SPAWNS NOTHING. Filled slots and garrisons are data; InitBaseControllers() replays them during
-	//! PostGameStart, which is the same path a fresh campaign takes.
+	//! SPAWNS NOTHING. Filled slots are data; InitBaseControllers() replays them during PostGameStart,
+	//! which is the same path a fresh campaign takes.
 	//!
 	//! NO RPC. Clients receive base and tower control through the normal replication paths.
 	//!
@@ -548,7 +543,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 				baseRecordCount += 1;
 
 				ApplyPersistedBaseSlots(base, baseRecord);
-				ApplyPersistedBaseGarrison(base, baseRecord);
 
 				restoredBases.Insert(base);
 			}
@@ -807,29 +801,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Rebuilds one base's garrison prefab list from its save record.
-	//! \param[in] base The live base data.
-	//! \param[in] record The saved record.
-	protected void ApplyPersistedBaseGarrison(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
-	{
-		if (!base.garrison)
-			base.garrison = new array<ref ResourceName>();
-
-		base.garrison.Clear();
-
-		if (!record.garrison)
-			return;
-
-		foreach (ResourceName prefab : record.garrison)
-		{
-			if (prefab.IsEmpty())
-				continue;
-
-			base.garrison.Insert(prefab);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
 	//! Ticks every radio tower's sabotage countdown on the 9 s timer installed by PostGameStart, and
 	//! puts a tower back on the air when its downtime runs out.
 	//!
@@ -1047,9 +1018,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	protected void InitBaseControllers()
 	{
-		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
-		OVT_Faction resistance = m_Config.GetPlayerFaction();
-
 		Print(string.Format("[Overthrow] InitBaseControllers: Initializing %1 bases", m_Bases.Count()));
 
 		foreach(int index, OVT_BaseData data : m_Bases)
@@ -1086,16 +1054,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 						IEntity slot = base.GetNearestSlot(slotPos);
 						if(slot) base.m_aSlotsFilled.Insert(slot.GetID());
 					}
-				}
-			}else{
-				foreach(ResourceName res : data.garrison)
-				{
-					IEntity garrison = OVT_Global.GetResistanceFaction().SpawnGarrison(data, res);
-					if(garrison)
-						data.garrisonEntities.Insert(garrison.GetID());
-					// GM group registry: `index` is the positional index into m_Bases, which is the base
-					// join key clients already receive through JIP.
-					OVT_GMGroupRegistry.Tag(garrison, OVT_EGroupOrigin.BASE_GARRISON, index, "Restored");
 				}
 			}
 		}

@@ -60,7 +60,17 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		CompartmentAccessComponent compartmentAccess = character.GetCompartmentAccessComponent();
 		if (!compartmentAccess)
 			return false;
-		
+
+		// Vanilla refuses a cargo bed holding supplies (SCR_GetInUserAction.c:78) by reading
+		// SCR_ResourceComponent, which Overthrow never fills - so the bed seats stayed open on a loaded
+		// truck and a passenger spawned inside the crates. Same gate, driven off our own ledger.
+		// BlockSuppliesIfOccupied() is true only on the bed's compartment manager, never the cab's.
+		if (m_CompartmentManager && m_CompartmentManager.BlockSuppliesIfOccupied() && CargoBedIsLoaded(compartment))
+		{
+			SetCannotPerformReason("#AR-UserAction_SeatOccupied");
+			return false;
+		}
+
 		IEntity owner = compartment.GetOwner();
 		Vehicle vehicle = Vehicle.Cast(SCR_EntityHelper.GetMainParent(owner, true));
 		if (vehicle)
@@ -114,5 +124,21 @@ modded class SCR_GetInUserAction : SCR_CompartmentUserAction
 		}
 		
 		return true;
-	}		
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] compartment The seat being asked about.
+	//! \return True when the vehicle this seat belongs to carries any resources at all.
+	protected bool CargoBedIsLoaded(notnull BaseCompartmentSlot compartment)
+	{
+		IEntity owner = compartment.GetOwner();
+		if (!owner)
+			return false;
+
+		OVT_ResourceStoreComponent store = OVT_ResourceUtils.GetStore(SCR_EntityHelper.GetMainParent(owner, true));
+		if (!store)
+			return false;
+
+		return store.GetUsedLitres() > 0;
+	}
 };

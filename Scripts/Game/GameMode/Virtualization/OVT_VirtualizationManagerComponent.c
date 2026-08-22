@@ -62,6 +62,9 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	[Attribute(defvalue: "true", desc: "A player's PARKED RECRUIT GROUP acts as an AI observer: registered groups inside its spawn ring materialise with no player anywhere near. That is the feature AND the budget risk - a squad parked in a town holds that town's garrisons and patrols spawned for as long as it stands there. Switch OFF to make parked recruits inert again (virtualization/integration D16). Read by the recruit group's own marker component; core never applies it to anyone else's AddEntityObserver call")]
 	protected bool m_bRecruitGroupsAreObservers;
 
+	[Attribute(defvalue: "true", desc: "A player's HIGH COMMAND GROUP acts as an AI observer: registered groups inside its spawn ring materialise with no player anywhere near. Same feature and same budget risk as the recruit gate above, on a deliberately SEPARATE switch - an operator turning parked recruits inert has said nothing about High Command (high-command D3). Read by the HC group's own component; core never applies it to anyone else's AddEntityObserver call")]
+	protected bool m_bHighCommandGroupsAreObservers;
+
 	[Attribute(defvalue: "false", desc: "DEBUG ONLY: log every ambient activation, per-tick spawn batch and despawn with timestamps. This is what the Phase 4 play-test ('a source of 20 spawns over several ticks') reads. Leave off for normal play")]
 	protected bool m_bDebugAmbientLogging;
 
@@ -3517,6 +3520,17 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	bool GetRecruitGroupsAreObservers()
 	{
 		return m_bRecruitGroupsAreObservers;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a player's HIGH COMMAND GROUP should act as an AI observer (high-command D3).
+	//!
+	//! Deliberately NOT the recruit gate: one consumer's off-switch must not silently disable
+	//! another's, which is also why AddEntityObserver never consults either.
+	//! \return The authored attribute; true as shipped.
+	bool GetHighCommandGroupsAreObservers()
+	{
+		return m_bHighCommandGroupsAreObservers;
 	}
 
 	//------------------------------------------------------------------------------------------------

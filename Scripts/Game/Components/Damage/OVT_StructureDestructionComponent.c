@@ -27,6 +27,13 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	static const float GROUND_FIRE_HEIGHT_TOLERANCE = 1.0;
 	static const float GROUND_FIRE_HEIGHT_OFFSET = 0.1;
 
+	//! Milliseconds before the second pass over the children a ruin hides - slotted children can spawn
+	//! after the phase change lands.
+	static const int CHILD_HIDE_RETRY_MS = 500;
+
+	//! Milliseconds between fire-hazard ticks. The authored damage is per SECOND and is scaled to this.
+	static const int FIRE_DAMAGE_PERIOD_MS = 1000;
+
 	//! Vanilla's own multi-phase destruction bank (Prefabs/MP/MPDestructionManager.et:18). Its events are
 	//! named SOUND_MPD_<material>, i.e. the prefab's inherited m_eMaterialSoundType.
 	static const ResourceName DEFAULT_SOUND_PROJECT = "{5B79C73C52E6A74A}Sounds/Destruction/Multiphase/Destruction_Multiphase.acp";
@@ -61,6 +68,12 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	[Attribute("SOUND_EXPLOSION", UIWidgets.EditBox, "Event to play from the blast bank", category: "Overthrow Destruction")]
 	protected string m_sExplosionSoundEvent;
 
+	[Attribute("5", UIWidgets.Slider, "Metres from the fire within which characters burn. 0 disables the hazard", "0 30 0.5", category: "Overthrow Destruction")]
+	protected float m_fFireDamageRadius;
+
+	[Attribute("12", UIWidgets.Slider, "Damage per second dealt to characters standing in the fire", "0 200 1", category: "Overthrow Destruction")]
+	protected float m_fFireDamagePerSecond;
+
 	//! The owner's own model while intact, learned at runtime. Empty is LEGITIMATE - a composition root
 	//! carries no model of its own - which is why the cached flag is separate from the emptiness test.
 	protected ResourceName m_sIntactModel;
@@ -79,6 +92,13 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	protected ParticleEffectEntity m_FireEffect;
 	protected ParticleEffectEntity m_GroundFireEffect;
 	protected ParticleEffectEntity m_SmokeEffect;
+
+	//! Children we hid at the ruin, so a repair restores exactly those and never reveals something that
+	//! was already hidden before it (vanilla pre-hidden slots are a real shape - see the cargo beds).
+	protected ref array<IEntity> m_aHiddenChildren;
+
+	//! Scratch for the fire-hazard sphere query; a member so the callback can reach it.
+	protected ref array<IEntity> m_aBurningCandidates;
 
 	//! Set around every phase drive that must not be seen or heard: a save restore, a stream-in, and
 	//! the silent side of RuinIt/RpcDo_ApplyPhase.
@@ -234,6 +254,8 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 		if (Replication.IsServer())
 			ApplySupportStationState(false);
 
+		HideChildren();
+
 		if (!m_bSuppressEffects)
 			RaiseEffects();
 	}
@@ -244,6 +266,7 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 		if (Replication.IsServer())
 			ApplySupportStationState(true);
 
+		RestoreChildren();
 		StopRuinEffects();
 	}
 
@@ -257,6 +280,97 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 		m_bSuppressEffects = false;
 
 		return loaded;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! EVERY MACHINE - visibility flags are local render state, not replicated, and this rides the phase
+	//! funnel so a stream-in and a save restore hide the children too.
+	//!
+	//! A ruin swaps the ROOT's mesh only, so a structure's decorative children survive the collapse and
+	//! are left floating in the rubble - the barracks' furniture and its lights are the visible case. The
+	//! same walk fixes the Bunkers composition, whose intact sandbags ARE children of a root that has no
+	//! mesh of its own.
+	//!
+	//! Only children that are visible right now are recorded, so a repair cannot reveal something that
+	//! was deliberately hidden before the ruin.
+	protected void HideChildren()
+	{
+		IEntity owner = GetOwner();
+		if (!owner || owner.IsDeleted())
+			return;
+
+		if (!m_aHiddenChildren)
+			m_aHiddenChildren = {};
+
+		HideSubtree(owner.GetChildren());
+
+		// Slotted children can spawn a frame or more after we get here (a stream-in is the usual case),
+		// so look once more. The pass is additive: anything already hidden is no longer visible and is
+		// skipped, so a second run cannot double-record.
+		ScriptCallQueue callQueue = GetGame().GetCallqueue();
+		if (callQueue)
+		{
+			callQueue.Remove(HideChildrenRetry);
+			callQueue.CallLater(HideChildrenRetry, CHILD_HIDE_RETRY_MS);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void HideChildrenRetry()
+	{
+		if (!IsRuined())
+			return;
+
+		IEntity owner = GetOwner();
+		if (!owner || owner.IsDeleted())
+			return;
+
+		if (!m_aHiddenChildren)
+			m_aHiddenChildren = {};
+
+		HideSubtree(owner.GetChildren());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] first The first child of the level being walked; siblings and their own children follow.
+	protected void HideSubtree(IEntity first)
+	{
+		IEntity child = first;
+		while (child)
+		{
+			if (!child.IsDeleted())
+			{
+				if (child.GetFlags() & EntityFlags.VISIBLE)
+				{
+					child.ClearFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
+					m_aHiddenChildren.Insert(child);
+				}
+
+				HideSubtree(child.GetChildren());
+			}
+
+			child = child.GetSibling();
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! EVERY MACHINE. Puts back exactly what HideChildren() took away.
+	protected void RestoreChildren()
+	{
+		ScriptCallQueue callQueue = GetGame().GetCallqueue();
+		if (callQueue)
+			callQueue.Remove(HideChildrenRetry);
+
+		if (!m_aHiddenChildren)
+			return;
+
+		foreach (IEntity child : m_aHiddenChildren)
+		{
+			if (child && !child.IsDeleted())
+				child.SetFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
+		}
+
+		m_aHiddenChildren.Clear();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -448,7 +562,10 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 			}
 
 			if (started && callQueue)
+			{
 				callQueue.CallLater(StopRuinFire, m_fFireSeconds * 1000);
+				StartFireHazard();
+			}
 		}
 
 		if (!m_SmokeEffect && m_SmokeParticle != ResourceName.Empty && m_fSmokeSeconds > 0)
@@ -514,6 +631,86 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! AUTHORITY ONLY. Vanilla has no area fire: SCR_FlammableHitZone burns the entity that is ALIGHT and
+	//! its own occupants, and nothing else, so a character standing in a burning ruin's flames takes no
+	//! damage at all unless we deal it. This ticks for as long as the ruin's retained fire is playing.
+	protected void StartFireHazard()
+	{
+		if (!Replication.IsServer() || m_fFireDamageRadius <= 0 || m_fFireDamagePerSecond <= 0)
+			return;
+
+		ScriptCallQueue callQueue = GetGame().GetCallqueue();
+		if (!callQueue)
+			return;
+
+		callQueue.Remove(TickFireDamage);
+		callQueue.CallLater(TickFireDamage, FIRE_DAMAGE_PERIOD_MS, true);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected void StopFireHazard()
+	{
+		ScriptCallQueue callQueue = GetGame().GetCallqueue();
+		if (callQueue)
+			callQueue.Remove(TickFireDamage);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! AUTHORITY ONLY. Burns every living character inside the fire radius, players and AI alike.
+	protected void TickFireDamage()
+	{
+		IEntity owner = GetOwner();
+		if (!owner || owner.IsDeleted() || !IsRuined())
+		{
+			StopFireHazard();
+			return;
+		}
+
+		BaseWorld world = owner.GetWorld();
+		if (!world)
+			return;
+
+		vector mins;
+		vector maxs;
+		owner.GetWorldBounds(mins, maxs);
+		vector centre = vector.Lerp(mins, maxs, 0.5);
+
+		if (!m_aBurningCandidates)
+			m_aBurningCandidates = {};
+
+		m_aBurningCandidates.Clear();
+		world.QueryEntitiesBySphere(centre, m_fFireDamageRadius, CollectBurningCandidate, null, EQueryEntitiesFlags.DYNAMIC);
+
+		float damage = m_fFireDamagePerSecond * FIRE_DAMAGE_PERIOD_MS / 1000;
+		Instigator instigator = Instigator.CreateInstigator(null);
+
+		foreach (IEntity candidate : m_aBurningCandidates)
+		{
+			if (!candidate || candidate.IsDeleted())
+				continue;
+
+			SCR_CharacterDamageManagerComponent damageManager = SCR_CharacterDamageManagerComponent.Cast(
+				candidate.FindComponent(SCR_CharacterDamageManagerComponent));
+
+			if (!damageManager || damageManager.GetState() == EDamageState.DESTROYED)
+				continue;
+
+			damageManager.DamageRandomHitZones(damage, EDamageType.FIRE, instigator);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] entity A dynamic entity inside the fire radius.
+	//! \return Always true - the whole sphere is walked.
+	protected bool CollectBurningCandidate(IEntity entity)
+	{
+		if (ChimeraCharacter.Cast(entity))
+			m_aBurningCandidates.Insert(entity);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Stops both retained emitters now and drops their pending timers. Safe to call when nothing burns.
 	void StopRuinEffects()
 	{
@@ -531,6 +728,8 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	//------------------------------------------------------------------------------------------------
 	protected void StopRuinFire()
 	{
+		StopFireHazard();
+
 		if (m_FireEffect)
 		{
 			SCR_ParticleHelper.StopParticleEmissionAndLights(m_FireEffect);
@@ -713,6 +912,10 @@ class OVT_StructureDestructionComponent : SCR_DestructionMultiPhaseComponent
 	override void OnDelete(IEntity owner)
 	{
 		StopRuinEffects();
+
+		ScriptCallQueue callQueue = GetGame().GetCallqueue();
+		if (callQueue)
+			callQueue.Remove(HideChildrenRetry);
 
 		super.OnDelete(owner);
 	}

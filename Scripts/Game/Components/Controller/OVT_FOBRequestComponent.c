@@ -5,8 +5,8 @@ class OVT_FOBRequestComponentClass : OVT_ControllerRequestComponentClass {};
 //! Server-authoritative FOB and camp operations, on the per-player OVT_OverthrowController entity.
 //!
 //! Phase 5 of the controller migration (docs/features/core/controller-migration/implementation.md §4).
-//! Replaced seven handlers on the legacy comms monolith (deleted in Phase 10): garrison-at-camp,
-//! garrison-at-FOB, deploy, undeploy, set-priority, camp privacy and delete-camp. Project rule
+//! Replaced seven handlers on the legacy comms monolith (deleted in Phase 10): deploy, undeploy,
+//! set-priority, camp privacy and delete-camp. Project rule
 //! (overthrow-controller.md): every client->server RPC lives on a controller component like this one.
 //!
 //! WHY THIS IS A SEPARATE COMPONENT FROM OVT_ResistanceRequestComponent when both delegate to the same
@@ -16,8 +16,8 @@ class OVT_FOBRequestComponentClass : OVT_ControllerRequestComponentClass {};
 //!
 //! WHAT CHANGED IN THE MOVE:
 //!
-//! 1. NO REQUEST CARRIES AN IDENTITY ARGUMENT (plan G3/D3). Deploy, undeploy and both garrison handlers
-//!    took a playerId that ResolveSenderPlayerId() then overwrote; the parameter is DELETED. Note the
+//! 1. NO REQUEST CARRIES AN IDENTITY ARGUMENT (plan G3/D3). Deploy and undeploy took a playerId that
+//!    ResolveSenderPlayerId() then overwrote; the parameter is DELETED. Note the
 //!    manager's DeployFOB/UndeployFOB still take a playerId - they are server-side methods with
 //!    server-side callers, and -1 there means "server-initiated, free". This seam only ever passes a
 //!    resolved, real player.
@@ -50,10 +50,9 @@ class OVT_FOBRequestComponent : OVT_ControllerRequestComponent
 	protected const float REGISTRY_MATCH_DISTANCE = 50;
 
 	//! How far the caller may be from a camp or FOB before a request about it is refused. The camp menu
-	//! is opened by OVT_ManageCampAction within 15 m of the camp entity and the FOB menu by
-	//! OVT_ManageBaseAction within 10 m; 50 m is that plus latency and movement slack, and it is
-	//! deliberately the same number as the registry match so no request is refused by one gate that the
-	//! other would have passed.
+	//! is opened by OVT_ManageCampAction within 15 m of the camp entity; 50 m is that plus latency and
+	//! movement slack, and it is deliberately the same number as the registry match so no request is
+	//! refused by one gate that the other would have passed. (The FOB menu was retired with garrisons.)
 	protected const float SITE_MAX_DISTANCE = 50;
 
 	//! How far the caller may be from a mobile/deployed FOB vehicle before deploy or undeploy is refused.
@@ -64,44 +63,6 @@ class OVT_FOBRequestComponent : OVT_ControllerRequestComponent
 	//------------------------------------------------------------------------------------------------
 	// PUBLIC ENTRY POINTS - client side.
 	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Buy a garrison group for a camp.
-	//! \param[in] camp The camp record the menu was opened on.
-	//! \param[in] res The chosen group prefab.
-	void AddGarrisonCamp(OVT_CampData camp, ResourceName res)
-	{
-		if(!camp) return;
-
-		int index = FindGarrisonPrefabIndex(res);
-		if(index == -1) return;
-
-		if(Replication.IsServer())
-		{
-			RpcAsk_AddGarrisonCamp(camp.location, index);
-		}else{
-			Rpc(RpcAsk_AddGarrisonCamp, camp.location, index);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Buy a garrison group for a FOB.
-	//! \param[in] fob The FOB record the menu was opened on.
-	//! \param[in] res The chosen group prefab.
-	void AddGarrisonFOB(OVT_FOBData fob, ResourceName res)
-	{
-		if(!fob) return;
-
-		int index = FindGarrisonPrefabIndex(res);
-		if(index == -1) return;
-
-		if(Replication.IsServer())
-		{
-			RpcAsk_AddGarrisonFOB(fob.location, index);
-		}else{
-			Rpc(RpcAsk_AddGarrisonFOB, fob.location, index);
-		}
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Deploy a mobile FOB vehicle into a static FOB.
@@ -227,81 +188,6 @@ class OVT_FOBRequestComponent : OVT_ControllerRequestComponent
 	//------------------------------------------------------------------------------------------------
 	// SERVER HANDLERS
 	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Server: buy a garrison group for a camp.
-	//!
-	//! The registry-null guard and the 50 m position match are carried verbatim - the camp registry may
-	//! be empty, in which case GetNearestCampData() answers null, and the position is client-supplied so
-	//! it must be shown to name a real camp. Added: the group prefab index is range-checked before the
-	//! manager sees it, and the caller must be at the camp.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrisonCamp(vector pos, int prefabIndex)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
-		if(!resistance) return;
-
-		OVT_CampData camp = resistance.GetNearestCampData(pos);
-		if(!camp || vector.Distance(camp.location, pos) > REGISTRY_MATCH_DISTANCE)
-		{
-			RejectFOBRequest(playerId, "add camp garrison", "no camp at the claimed position");
-			return;
-		}
-
-		if(!IsGarrisonPrefabIndexValid(prefabIndex))
-		{
-			RejectFOBRequest(playerId, "add camp garrison", "group prefab index out of range");
-			return;
-		}
-
-		if(!CallerIsWithin(playerId, camp.location, SITE_MAX_DISTANCE))
-		{
-			RejectFOBRequest(playerId, "add camp garrison", "the caller is not at the camp");
-			return;
-		}
-
-		resistance.AddGarrisonCamp(camp, prefabIndex, true, playerId);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Server: buy a garrison group for a FOB. Same shape as RpcAsk_AddGarrisonCamp.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrisonFOB(vector pos, int prefabIndex)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
-		if(!resistance) return;
-
-		OVT_FOBData fob = resistance.GetNearestFOBData(pos);
-		if(!fob || vector.Distance(fob.location, pos) > REGISTRY_MATCH_DISTANCE)
-		{
-			RejectFOBRequest(playerId, "add FOB garrison", "no FOB at the claimed position");
-			return;
-		}
-
-		if(!IsGarrisonPrefabIndexValid(prefabIndex))
-		{
-			RejectFOBRequest(playerId, "add FOB garrison", "group prefab index out of range");
-			return;
-		}
-
-		if(!CallerIsWithin(playerId, fob.location, SITE_MAX_DISTANCE))
-		{
-			RejectFOBRequest(playerId, "add FOB garrison", "the caller is not at the FOB");
-			return;
-		}
-
-		resistance.AddGarrisonFOB(fob, prefabIndex, true, playerId);
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Server: deploy a mobile FOB.
@@ -504,43 +390,6 @@ class OVT_FOBRequestComponent : OVT_ControllerRequestComponent
 	//------------------------------------------------------------------------------------------------
 	// HELPERS
 	//------------------------------------------------------------------------------------------------
-
-	//------------------------------------------------------------------------------------------------
-	//! Index of a group prefab in the player faction's slot list, or -1.
-	//!
-	//! Client-side counterpart of IsGarrisonPrefabIndexValid: the menus pass a ResourceName and the wire
-	//! carries the index, exactly as the monolith's wrappers did.
-	//! \param[in] res The group prefab.
-	//! \return Its slot index, or -1 when the faction does not offer it.
-	protected int FindGarrisonPrefabIndex(ResourceName res)
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(!config) return -1;
-
-		OVT_Faction faction = config.GetPlayerFaction();
-		if(!faction) return -1;
-
-		return faction.m_aGroupPrefabSlots.Find(res);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Whether a client-supplied garrison group index names a real slot on the player faction.
-	//!
-	//! Duplicated from OVT_ResistanceRequestComponent rather than hoisted: the shared base is deliberately
-	//! free of domain knowledge, and "what groups can this faction field" is domain. The two copies are
-	//! four lines of the same config lookup and neither has any policy in it to drift.
-	//! \param[in] prefabIndex Index into OVT_Faction.m_aGroupPrefabSlots.
-	//! \return True when it is in range.
-	protected bool IsGarrisonPrefabIndexValid(int prefabIndex)
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(!config) return false;
-
-		OVT_Faction faction = config.GetPlayerFaction();
-		if(!faction) return false;
-
-		return prefabIndex >= 0 && prefabIndex < faction.m_aGroupPrefabSlots.Count();
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Whether a player may administer a camp: they built it, or they are an officer.

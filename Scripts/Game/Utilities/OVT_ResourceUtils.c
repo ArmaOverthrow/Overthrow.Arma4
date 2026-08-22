@@ -41,9 +41,41 @@ class OVT_ResourceUtils
 	//! The resource store on an entity, if it has one.
 	//! \param[in] e The candidate holder.
 	//! \return Its OVT_ResourceStoreComponent, or null.
+	//! The holder behind an entity a user action lives on.
+	//!
+	//! A truck's cargo bed is a SLOTTED CHILD with its own ActionsManagerComponent, and vanilla's real
+	//! "door_rear" tailgate context lives there - so an action reachable from the bed is hosted on the
+	//! bed and its owner is the bed, while the store is on the vehicle root. One hop up is enough:
+	//! OVT_LootIntoVehicleAction:68 established the same pattern.
+	//! \param[in] e The action's owner.
+	//! \return e when it holds the store, otherwise its parent when THAT does, otherwise e unchanged.
+	static IEntity ResolveStoreHolder(IEntity e)
+	{
+		if (!e)
+			return e;
+
+		if (OVT_ComponentFinder<OVT_ResourceStoreComponent>.Find(e))
+			return e;
+
+		IEntity parent = e.GetParent();
+		if (parent && OVT_ComponentFinder<OVT_ResourceStoreComponent>.Find(parent))
+			return parent;
+
+		return e;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	static OVT_ResourceStoreComponent GetStore(IEntity e)
 	{
-		return OVT_ComponentFinder<OVT_ResourceStoreComponent>.Find(e);
+		OVT_ResourceStoreComponent store = OVT_ComponentFinder<OVT_ResourceStoreComponent>.Find(e);
+
+		// A store authored at capacity 0 is "no store" - the truck base carries one so that only the
+		// transport and mobile-FOB deltas opt IN to a cargo hold. Answering null here is what makes
+		// every consumer (the action, the HUD, the crate visual, the port) refuse with no extra check.
+		if (store && store.IsInert())
+			return null;
+
+		return store;
 	}
 
 	//------------------------------------------------------------------------------------------------

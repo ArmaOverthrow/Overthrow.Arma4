@@ -1,0 +1,93 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ "Z Order" 9
+ Clipping False
+ {
+  SizeLayoutWidgetClass "{6B1C3D0000004001}" {
+   Name "MarkerLayout"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX 36
+    OffsetRight -36
+    SizeY 36
+    OffsetBottom -36
+    Alignment 0.5 0.5
+   }
+   {
+    OverlayWidgetClass "{6B1C3D0000004002}" {
+     Name "SymbolOverlay"
+     Slot AlignableSlot "{59945480BE60B0C7}" {
+      HorizontalAlign 1
+      VerticalAlign 1
+      Padding 0 0 0 0
+     }
+     {
+      ImageWidgetClass "{6B1C3D0000004003}" {
+       Name "Image"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Texture "{8479B3B5347DF5CF}UI/Imagesets/MilitarySymbol/ID_D.imageset"
+       Image "Friend_Land_Bcg"
+       Size 36 36
+       "Blend Mode" Blend
+       "Shadow Color" 0.1119 0.1119 0.1119 1
+      }
+      ImageWidgetClass "{6B1C3D0000004006}" {
+       Name "SelectRing"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 2
+       "Is Visible" 0
+       Texture "{8479B3B5347DF5CF}UI/Imagesets/MilitarySymbol/ID_D.imageset"
+       Image "Friend_Focus_Land"
+       Size 36 36
+       "Blend Mode" Blend
+      }
+      ImageWidgetClass "{6B1C3D0000004004}" {
+       Name "TypeIcon"
+       Slot OverlayWidgetSlot "{65D33899A2B04807}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       "Z Order" 1
+       Color 0.0784 0.0784 0.0784 1
+       Texture "{27F2439D610D02B3}UI/Imagesets/MilitarySymbol/ICO_Land.imageset"
+       Image "Infantry_Friend"
+       Size 36 36
+       "Blend Mode" Blend
+      }
+     }
+    }
+   }
+  }
+  ImageWidgetClass "{6B1C3D0000004005}" {
+   Name "TagImage"
+   Slot FrameWidgetSlot "{566E7A663B359583}" {
+    Anchor 0 0 0 0
+    PositionX 14
+    OffsetLeft 0
+    PositionY -14
+    OffsetTop 0
+    SizeX 18
+    OffsetRight -18
+    SizeY 18
+    OffsetBottom -18
+    Alignment 0.5 0.5
+   }
+   "Z Order" 10
+   "Is Visible" 0
+   Texture "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+   Image "recruit_ammo_empty"
+   Size 18 18
+   "Blend Mode" Blend
+  }
+ }
+}

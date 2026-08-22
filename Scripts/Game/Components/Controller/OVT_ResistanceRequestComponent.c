@@ -1,4 +1,4 @@
-[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative resistance operations (place, build, officers, garrisons, conversion) for one player")]
+[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative resistance operations (place, build, officers, conversion) for one player")]
 class OVT_ResistanceRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
@@ -6,7 +6,7 @@ class OVT_ResistanceRequestComponentClass : OVT_ControllerRequestComponentClass 
 //!
 //! Phase 5 of the controller migration (docs/features/core/controller-migration/implementation.md §4).
 //! Replaced six handlers and one owner response on the legacy comms monolith (deleted in Phase 10):
-//! place, remove-placed, build, add-officer, add-garrison-at-base and convert-supporter. Project rule
+//! place, remove-placed, build, add-officer and convert-supporter. Project rule
 //! (overthrow-controller.md): every client->server RPC lives on a controller component like this one.
 //!
 //! FOBs AND CAMPS ARE DELIBERATELY NOT HERE - they ride OVT_FOBRequestComponent (plan D4). Both seams
@@ -21,9 +21,9 @@ class OVT_ResistanceRequestComponentClass : OVT_ControllerRequestComponentClass 
 //!    ignored. What survives is `targetPlayerId` on AddOfficer - a TARGET, not the caller, validated as
 //!    one (same BUG-016 same-tick rule the economy seam applies to transfer recipients).
 //!
-//! 2. PLACE, BUILD AND ADD-GARRISON WERE BARE FORWARDS. All three passed straight through to the manager
-//!    with nothing but the laundered id. The manager does carry real checks (index ranges, affordability,
-//!    item limits, proximity - see PlaceItem/BuildItem/AddGarrison), so this was never an exploit, but
+//! 2. PLACE AND BUILD WERE BARE FORWARDS. Both passed straight through to the manager with nothing but
+//!    the laundered id. The manager does carry real checks (index ranges, affordability, item limits,
+//!    proximity - see PlaceItem/BuildItem), so this was never an exploit, but
 //!    every rejection inside the manager returns silently and is indistinguishable from a dropped packet.
 //!    The seam now re-tests the cheap structural preconditions and LOGS the rejection with a caller and a
 //!    reason (quality bar Q9, and the same argument P3-2 made for the warehouse handlers).
@@ -31,7 +31,7 @@ class OVT_ResistanceRequestComponentClass : OVT_ControllerRequestComponentClass 
 //! 3. THE PUBLIC ENTRY POINTS BRANCH ON Replication.IsServer(). The monolith's did not, so on a
 //!    LISTEN-SERVER HOST - who is the authority - every one of these was an RplRcver.Server Rpc
 //!    marshalled by the server and therefore delivered to nobody. Placing, building, removing, promoting
-//!    and buying a garrison all silently did nothing for a host (the same class of defect as P2-5).
+//!    were all silently doing nothing for a host (the same class of defect as P2-5).
 //!
 //! THE PROXIMITY NUMBERS ARE THE MANAGER'S OWN NUMBERS, ON PURPOSE. PLACE_MAX_DISTANCE and
 //! BUILD_MAX_DISTANCE are literally the radii OVT_ResistanceFactionManager.PlaceItem()/BuildItem()
@@ -50,11 +50,6 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 	//! OVT_ResistanceFactionManager.BuildItem() (:801) - the build camera detaches much further from the
 	//! player than the place trace does, which is why the two numbers differ.
 	protected const float BUILD_MAX_DISTANCE = 250;
-
-	//! How far the caller may be from a base before the server refuses a garrison purchase there. The
-	//! base menu is opened by OVT_ManageBaseAction, which requires the base entity to be within 10 m of
-	//! the base record's location and the player to be at that entity; 50 m is that plus latency slack.
-	protected const float BASE_MAX_DISTANCE = 50;
 
 	//! How far away a civilian can be from the converting player's character before the server rejects
 	//! the conversion (interaction range plus latency/movement slack). Carried verbatim (BUG-063).
@@ -135,31 +130,6 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_AddOfficer(targetPlayerId);
 		}else{
 			Rpc(RpcAsk_AddOfficer, targetPlayerId);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Buy a garrison group for a resistance-held base.
-	//! \param[in] base The base record the menu was opened on.
-	//! \param[in] res The chosen group prefab.
-	void AddGarrison(OVT_BaseData base, ResourceName res)
-	{
-		if(!base) return;
-
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(!config) return;
-
-		OVT_Faction faction = config.GetPlayerFaction();
-		if(!faction) return;
-
-		int index = faction.m_aGroupPrefabSlots.Find(res);
-		if(index == -1) return;
-
-		if(Replication.IsServer())
-		{
-			RpcAsk_AddGarrison(base.id, index);
-		}else{
-			Rpc(RpcAsk_AddGarrison, base.id, index);
 		}
 	}
 
@@ -322,54 +292,6 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Server: buy a garrison group for a base.
-	//!
-	//! WHERE THE AFFORDABILITY RULE ACTUALLY LIVES, AND WHY IT IS NOT REPEATED HERE. The price of a
-	//! garrison is (baseRecruitCost + 300) x the group's unit count, and the unit count is only knowable
-	//! once SpawnGarrison() has produced the group - so OVT_ResistanceFactionManager.ChargeForGarrison()
-	//! (:908-922) is the only place the check can be made, and it already makes it: it refuses, notifies
-	//! "CannotAfford" and the caller deletes the group. AddGarrison() also re-tests the base index, the
-	//! prefab index (through GetGarrisonPrefab) and the town's supporter stock (BUG-064). This handler
-	//! therefore adds what the manager cannot see: WHO asked, and whether they are standing at the base.
-	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
-	protected void RpcAsk_AddGarrison(int baseId, int prefabIndex)
-	{
-		if(!Replication.IsServer()) return;
-
-		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0) return;
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if(!occupying) return;
-
-		if(baseId < 0 || baseId >= occupying.m_Bases.Count())
-		{
-			RejectResistanceRequest(playerId, "add garrison", "base id out of range");
-			return;
-		}
-
-		OVT_BaseData base = occupying.m_Bases[baseId];
-		if(!base) return;
-
-		if(!IsGarrisonPrefabIndexValid(prefabIndex))
-		{
-			RejectResistanceRequest(playerId, "add garrison", "group prefab index out of range");
-			return;
-		}
-
-		if(!CallerIsWithin(playerId, base.location, BASE_MAX_DISTANCE))
-		{
-			RejectResistanceRequest(playerId, "add garrison", "the caller is not at the base");
-			return;
-		}
-
-		OVT_ResistanceFactionManager resistance = OVT_Global.GetResistanceFaction();
-		if(!resistance) return;
-
-		resistance.AddGarrison(baseId, prefabIndex, true, playerId);
-	}
-
-	//------------------------------------------------------------------------------------------------
 	//! Server: attempt a civilian conversion.
 	//!
 	//! CARRIED VERBATIM FROM THE MONOLITH (BUG-063), CHECK FOR CHECK: 10 m from the caller's character, a
@@ -523,25 +445,10 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether a client-supplied garrison group index names a real slot on the player faction.
-	//! \param[in] prefabIndex Index into OVT_Faction.m_aGroupPrefabSlots.
-	//! \return True when it is in range.
-	protected bool IsGarrisonPrefabIndexValid(int prefabIndex)
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if(!config) return false;
-
-		OVT_Faction faction = config.GetPlayerFaction();
-		if(!faction) return false;
-
-		return prefabIndex >= 0 && prefabIndex < faction.m_aGroupPrefabSlots.Count();
-	}
-
-	//------------------------------------------------------------------------------------------------
 	//! Whether the caller's controlled character is within a radius of a position.
 	//!
 	//! A caller with NO controlled character fails this - which is correct for every request that uses
-	//! it: placing, building and buying a garrison are all things a body does in the world.
+	//! it: placing, building and repairing are all things a body does in the world.
 	//! \param[in] playerId The caller.
 	//! \param[in] pos The position to test against.
 	//! \param[in] maxDistance The radius.

@@ -184,7 +184,7 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		Print(string.Format("[Overthrow] Base repair: restoring a structure worth %1 at %2",
 			m_aTargetCosts[index], target.GetOrigin().ToString()), LogLevel.NORMAL);
 
-		// -1 = server-initiated and free, the convention BuildItem() and ChargeForGarrison() use.
+		// -1 = server-initiated and free, the convention BuildItem() uses.
 		if (!resistance.RepairStructure(target, -1))
 		{
 			// Charge a refusal a full interval, or a structure that cannot be put back spins the

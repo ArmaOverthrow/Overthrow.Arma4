@@ -21,6 +21,66 @@ GenericEntity : "{278E487E19D82680}Prefabs/Vehicles/Core/Vehicle_Cargo_Base.et" 
      Duration 2
      "Sort Priority" 17
     }
+    OVT_OpenResourceStoreAction "{6A8E2E1000000040}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2E1000000041}" {
+      Name "#OVT-Resource_Cargo"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 18
+    }
+    OVT_OpenStorageMenuAction "{6A8E2E1000000042}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2E1000000043}" {
+      Name "#OVT-Storage_Open"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 19
+    }
+    OVT_SellVehicleCargoAction "{6A8E2E1000000044}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2E1000000045}" {
+      Name "#OVT-SellCargoHere"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 20
+    }
+    OVT_TransferAllToStorageAction "{6A8E2E1000000046}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2E1000000047}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 21
+    }
+    OVT_RenameStorageAction "{6A8E2E1000000048}" {
+     ParentContextList {
+      "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2E1000000049}" {
+      Name "#OVT-Storage_Rename"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 22
+    }
    }
   }
  }

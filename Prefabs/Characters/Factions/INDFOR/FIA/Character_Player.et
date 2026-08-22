@@ -72,13 +72,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_RemoveIcon "{23D6992A3432F75A}UI/Textures/Icons/card_remove.edds"
      m_BuildCameraPrefab "{27E3E078BAE54DE8}Prefabs/GameMode/OVT_BuildCamera_2.et"
     }
-    OVT_BaseMenuContext "{59C8F617A8CC47E0}" {
-     m_Layout "{E13C8636ACACECF8}UI/Layouts/Menu/BaseMenu.layout"
-     m_sContextName "OverthrowBaseMenuContext"
-     m_sCloseAction "MenuBack"
-     m_bOpenActionCloses 0
-     m_bHideHUDOnShow 1
-    }
     OVT_ManageVehicleContext "{59D0228D94C37A99}" {
      m_Layout "{B9AD9DE29BB469E2}UI/Layouts/Menu/ManageVehicleMenu.layout"
      m_sContextName "OverthrowManageVehicleContext"
@@ -105,12 +98,6 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_RowLayout "{6A8E2C1000000002}UI/Layouts/Menu/TransferMenu/TransferMenu_Row.layout"
      m_CartLineLayout "{6A8E2C1000000003}UI/Layouts/Menu/TransferMenu/TransferMenu_CartLine.layout"
      m_TabLayout "{6A7C4E1C77B31E40}UI/Layouts/Menu/ShopMenu/ShopMenu_Tab.layout"
-    }
-    OVT_FOBMenuContext "{5D5A4DE34B7EB498}" {
-     m_Layout "{5B25C5434C2C566E}UI/Layouts/Menu/FOBMenu.layout"
-     m_sContextName "OverthrowBaseMenuContext"
-     m_sCloseAction "MenuBack"
-     m_bOpenActionCloses 0
     }
     OVT_CampMenuContext "{5D5A4DE34B7EB499}" {
      m_Layout "{4D721E71A88C4C5F}UI/Layouts/Menu/CampMenu.layout"
@@ -157,6 +144,20 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_sContextName "OverthrowLoadoutsContext"
      m_sCloseAction "MenuBack"
      m_bOpenActionCloses 0
+    }
+    OVT_HighCommandPurchaseContext "{6B1C3D0000000092}" {
+     m_Layout "{6B1C3D0000000090}UI/Layouts/Menu/HighCommandMenu.layout"
+     m_sContextName "OverthrowHighCommandContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_GroupRowLayout "{6B1C3D0000002000}UI/Layouts/Menu/HighCommandMenu/HighCommandGroupRow.layout"
+    }
+    OVT_HighCommandRosterContext "{6B1C3D0000005090}" {
+     m_Layout "{6B1C3D0000005000}UI/Layouts/Menu/HighCommandRoster.layout"
+     m_sContextName "OverthrowHighCommandRosterContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_RowLayout "{6B1C3D0000005040}UI/Layouts/Menu/HighCommandRoster/HighCommandRosterRow.layout"
     }
     OVT_TutorialContext "{6B3A000000000022}" {
      m_Layout "{6B3A000000000040}UI/Layouts/Menu/TutorialPopup.layout"

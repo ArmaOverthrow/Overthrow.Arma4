@@ -299,6 +299,28 @@ class OVT_FactionComposition
 	ref array<ResourceName> m_aGroupPrefabs;
 }
 
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sKey")]
+class OVT_HighCommandGroupEntry
+{
+	[Attribute(desc: "Stable key - the wire, the save and the icon all use it")]
+	string m_sKey;
+
+	[Attribute(desc: "Display name (localization key)")]
+	string m_sTitle;
+
+	[Attribute(desc: "Description (localization key)")]
+	string m_sDescription;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Source group prefab - its m_aUnitPrefabSlots IS the composition", params: "et")]
+	ResourceName m_sGroupPrefab;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Optional vehicle - empty = foot group", params: "et")]
+	ResourceName m_sVehiclePrefab;
+
+	[Attribute(defvalue: "Infantry_Friend", desc: "ICO_Land quad name for the map symbol")]
+	string m_sMapIcon;
+}
+
 [BaseContainerProps(configRoot:true), SCR_BaseContainerCustomTitleField("m_sFactionKey")]
 class OVT_Faction
 {
@@ -360,6 +382,11 @@ class OVT_Faction
 		
 	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
+
+	//! The purchasable High Command set. Curated and priced by Overthrow - deliberately NOT the vanilla
+	//! GROUP entity catalog that fills m_aGroupPrefabSlots, which has no icons, no vehicles and no order.
+	[Attribute(desc: "Groups a player may buy at a barracks", category: "High Command")]
+	ref array<ref OVT_HighCommandGroupEntry> m_aHighCommandGroups;
 	
 	ref array<ResourceName> m_aGroupPrefabSlots = {};
 	
@@ -425,6 +452,62 @@ class OVT_Faction
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! \return How many High Command entries this faction publishes; 0 when it publishes none.
+	int GetHighCommandGroupCount()
+	{
+		if (!m_aHighCommandGroups) return 0;
+
+		return m_aHighCommandGroups.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One purchasable High Command entry by position. The INDEX is what crosses the wire, so an
+	//! out-of-range index must answer null rather than clamp - a clamped index would sell the caller a
+	//! different group from the one they pressed.
+	//! \param[in] index Position in m_aHighCommandGroups.
+	//! \return The entry, or null when the index names nothing.
+	OVT_HighCommandGroupEntry GetHighCommandGroup(int index)
+	{
+		if (!m_aHighCommandGroups) return null;
+
+		if (index < 0 || index >= m_aHighCommandGroups.Count()) return null;
+
+		return m_aHighCommandGroups[index];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One purchasable High Command entry by its stable key - what a record stores and a save restores.
+	//! \param[in] key The entry's m_sKey.
+	//! \return The entry, or null when this faction has no such key.
+	OVT_HighCommandGroupEntry GetHighCommandGroupByKey(string key)
+	{
+		if (!m_aHighCommandGroups || key == "") return null;
+
+		foreach (OVT_HighCommandGroupEntry entry : m_aHighCommandGroups)
+		{
+			if (entry && entry.m_sKey == key) return entry;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] key The entry's m_sKey.
+	//! \return Its index in m_aHighCommandGroups, or -1 when this faction has no such key.
+	int FindHighCommandGroupIndex(string key)
+	{
+		if (!m_aHighCommandGroups || key == "") return -1;
+
+		for (int i = 0; i < m_aHighCommandGroups.Count(); i++)
+		{
+			OVT_HighCommandGroupEntry entry = m_aHighCommandGroups[i];
+			if (entry && entry.m_sKey == key) return i;
+		}
+
+		return -1;
+	}
+
 	OVT_FactionComposition GetCompositionConfig(string tag)
 	{
 		if(!m_aCompositionConfig) return null;

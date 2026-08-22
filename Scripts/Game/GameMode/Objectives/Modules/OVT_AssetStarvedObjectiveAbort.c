@@ -203,14 +203,15 @@ class OVT_AssetStarvedObjectiveAbort : OVT_BaseObjectiveAbortModule
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether a player is standing on the asset.
+	//! Whether the resistance is standing on the asset.
 	//!
 	//! 🔴 AT THE ASSET, NOT AT THE BASE THAT SUPPLIES IT (C4). See the class header.
 	//!
-	//! ⚠ PLAYERS ONLY, and the difficulty's own baseCloseRange, which is the distance the rest of the
-	//! campaign already means by "at a base". Asking it of every AI agent would make a resistance patrol
-	//! walking past count as an interdiction. It is deliberately NOT an objective-specific radius: R5
-	//! forbids a new difficulty knob and this is what the campaign already means.
+	//! ⚠ ANY LIVING RESISTANCE-FACTION CHARACTER, not players only (OVT_ResistancePresence - a player,
+	//! a recruit or a High Command group's rifleman all interdict it equally), and the difficulty's own
+	//! baseCloseRange, which is the distance the rest of the campaign already means by "at a base". It is
+	//! deliberately NOT an objective-specific radius: R5 forbids a new difficulty knob and this is what
+	//! the campaign already means.
 	//! \param[in] asset The asset's record.
 	//! \return True when somebody is there.
 	bool IsPlayerAtAsset(notnull OVT_ObjectiveAssetRecord asset)
@@ -219,7 +220,7 @@ class OVT_AssetStarvedObjectiveAbort : OVT_BaseObjectiveAbortModule
 		if (!difficulty)
 			return false;
 
-		return OVT_WorldUtils.PlayerInRange(asset.position, difficulty.baseCloseRange);
+		return OVT_ResistancePresence.IsGroundHeld(asset.position, difficulty.baseCloseRange);
 	}
 
 	//------------------------------------------------------------------------------------------------

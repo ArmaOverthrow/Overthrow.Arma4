@@ -70,6 +70,16 @@ class OVT_OverthrowConfigStruct
 	//! CONFIG_STREAM_VERSION did not have to move for the equipped-recruit purchase (decision D18).
 	float recruitLoadoutFeeMultiplier;
 
+	//! Per-player member cap across every High Command group they own. SERVER-SIDE ONLY, same
+	//! treatment as recruitLoadoutFeeMultiplier: the resolved value ships on the HC manager's OWN
+	//! JIP payload (D12) once Phase 6 adds it, never on this config stream, so
+	//! CONFIG_STREAM_VERSION does not move for it.
+	int highCommandMemberCap;
+
+	//! Town supporters drawn down per High Command member. SERVER-SIDE ONLY, same treatment as
+	//! highCommandMemberCap.
+	int highCommandSupportersPerMember;
+
 	//! Global spawn distance (metres) for virtualized AI groups - the distance at which a registered
 	//! group's members materialise (implementation.md D5, issue #100). Each registration may override
 	//! it; a very large value keeps every registered group spawned permanently.
@@ -130,6 +140,8 @@ class OVT_OverthrowConfigStruct
 		vehiclePriceMultiplier = 1.0;
 		fuelPricePerLitre = 1.0;
 		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
+		highCommandMemberCap = OVT_HighCommandRules.DEFAULT_MEMBER_CAP;
+		highCommandSupportersPerMember = 1;
 		virtualizationSpawnDistance = 1750;
 		civilianDensityMultiplier = 1.0;
 		maxCiviliansPerTown = 30;
@@ -365,6 +377,20 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	float GetResourcePriceVolatility()
 	{
 		return m_Difficulty.resourcePriceVolatility;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The resolved per-player High Command member cap (D12).
+	int GetHighCommandMemberCap()
+	{
+		return m_Difficulty.highCommandMemberCap;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The resolved town supporters drawn down per High Command member.
+	int GetHighCommandSupportersPerMember()
+	{
+		return m_Difficulty.highCommandSupportersPerMember;
 	}
 
 	int GetHouseItemLimit()

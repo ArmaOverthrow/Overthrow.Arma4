@@ -39,10 +39,9 @@ class OVT_PersistedBaseUpgrade
 //! InitializeBases() finds them by querying the world during Init. A save cannot create one, so the
 //! location is a match key and never a spawn instruction.
 //!
-//! THE TWO HALVES ARE MUTUALLY EXCLUSIVE, exactly as EPF's OVT_OccupyingFactionSaveData had them:
-//! an occupying-faction base stores its filled slots (and, in a PRE-MIGRATION save only, the upgrade
-//! records that half is named for), while a base the resistance has taken stores its GARRISON as
-//! prefab names. InitBaseControllers() consumes whichever half is populated.
+//! AN OCCUPYING-FACTION BASE stores its filled slots (and, in a PRE-MIGRATION save only, the upgrade
+//! records that half is named for). A base the resistance has taken stores nothing beyond its faction:
+//! InitBaseControllers() consumes the slot claims and nothing else.
 //!
 //! ⚠ AN OCCUPYING BASE'S DEFENCE IS NO LONGER IN THIS PAYLOAD AT ALL. It is a set of deployments,
 //! persisted by the deployment framework's own serializer and re-created group by group by the
@@ -57,6 +56,11 @@ class OVT_PersistedBase
 
 	ref array<vector> slotsFilled = {};
 	ref array<ref OVT_PersistedBaseUpgrade> upgrades = {};
+
+	//! VERSION 1-2 ONLY, AND THE FIELD MUST NOT BE REMOVED. Written EMPTY from version 3 on. Reflection
+	//! reads and writes these members in declaration order and the save context is binary, so dropping
+	//! this field would change the record's length and desynchronise every record after the first in
+	//! every existing save. An older payload's contents are read into it and discarded.
 	ref array<ResourceName> garrison = {};
 }
 
@@ -98,10 +102,10 @@ class OVT_PersistedRadioTower
 //! RestoreStartedCampaign() runs DoStartGame() and never DoStartNewGame() - so the flag is the second
 //! line of defence rather than the only one.)
 //!
-//! WHAT REBUILDS THE WORLD. Nothing here spawns anything. The restored slot and garrison lists sit on
-//! the base records until InitBaseControllers() runs during PostGameStart, and IT consumes them - the
-//! same path a campaign takes when it starts. Deserialization must not spawn, both because the world
-//! is still loading and because the same payload can be re-applied to a live session.
+//! WHAT REBUILDS THE WORLD. Nothing here spawns anything. The restored slot lists sit on the base
+//! records until InitBaseControllers() runs during PostGameStart, and IT consumes them - the same path
+//! a campaign takes when it starts. Deserialization must not spawn, both because the world is still
+//! loading and because the same payload can be re-applied to a live session.
 //!
 //! A PRE-MIGRATION PAYLOAD IS CONVERTED, NOT REPLAYED. Saves written before the base-defense migration
 //! carry per-base upgrade records. Those upgrades no longer exist, so their VALUE is summed and
@@ -118,6 +122,11 @@ class OVT_PersistedRadioTower
 //! assignment or a clear-and-rebuild of a data list; no spawning, no double-allocation.
 //!
 //! FORMAT. Binary contexts are POSITIONAL: write order must equal read order. Version first.
+//!
+//! VERSION 3 RETIRED THE GARRISONS. A resistance-held base's garrison prefab list is no longer written
+//! and no longer applied; the payload field stays declared and is still read, because the format is
+//! positional. A campaign continued from a version 1 or 2 save comes back with its bases and WITHOUT
+//! their garrisons - High Command groups replace them.
 //------------------------------------------------------------------------------------------------
 class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 {
@@ -140,7 +149,7 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		if (!occupying)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 2);
+		context.WriteValue("version", 3);
 
 		string occupyingFactionKey;
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -207,20 +216,27 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		if (version < 1)
 			return true;
 
+		// A version 1 or 2 payload still carries a garrison prefab list on every base record. It is read
+		// (the format is positional, so it has to be) and then discarded - nothing replays it.
 		string occupyingFactionKey;
-		context.Read(occupyingFactionKey);
+		if (!context.Read(occupyingFactionKey))
+			return AbortUnreadablePayload("occupying faction key");
 
 		int resources;
-		context.Read(resources);
+		if (!context.Read(resources))
+			return AbortUnreadablePayload("resources");
 
 		float threat;
-		context.Read(threat);
+		if (!context.Read(threat))
+			return AbortUnreadablePayload("threat");
 
 		array<ref OVT_PersistedBase> bases = new array<ref OVT_PersistedBase>();
-		context.Read(bases);
+		if (!context.Read(bases))
+			return AbortUnreadablePayload("bases");
 
 		array<ref OVT_PersistedRadioTower> towers = new array<ref OVT_PersistedRadioTower>();
-		context.Read(towers);
+		if (!context.Read(towers))
+			return AbortUnreadablePayload("radio towers");
 
 		// A version 1 payload was written before towers could be sabotaged. The field is the LAST one
 		// declared, so an older payload simply has no data for it - but whatever the reader left there
@@ -231,6 +247,20 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 
 		occupying.ApplyPersistedOccupyingFaction(occupyingFactionKey, resources, threat, bases, towers);
 
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reports an unreadable payload and consumes it without touching the live war state.
+	//!
+	//! NOTHING IS APPLIED after a failed read: a binary context is positional, so once one field has
+	//! not come back every field after it is another field's bytes, and a half-read payload would zero
+	//! the occupying faction's resources and threat on a campaign that had nothing wrong with it.
+	//! \param[in] field The field that could not be read.
+	//! \return True - the payload is consumed either way; nothing was applied.
+	protected bool AbortUnreadablePayload(string field)
+	{
+		Print(string.Format("[Overthrow] Could not read '%1' from the occupying faction payload - the live war state is left exactly as it is", field), LogLevel.ERROR);
 		return true;
 	}
 
@@ -257,16 +287,16 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 	//! storage. Unlike EPF's version this leaves the live data untouched - saving is not allowed to
 	//! mutate the campaign.
 	//!
-	//! ⚠ THE `upgrades` ARRAY IS WRITTEN EMPTY, ALWAYS, AND THE FIELD IS NOT REMOVED.
+	//! ⚠ THE `upgrades` AND `garrison` ARRAYS ARE WRITTEN EMPTY, ALWAYS, AND NEITHER FIELD IS REMOVED.
 	//! Base upgrades no longer exist - base defense is nine Deployment_Base*.conf configs, persisted by
-	//! the deployment framework's own serializer - so there is nothing left to walk. The FIELD stays
-	//! declared and stays written because OVT_PersistedBase.upgrades sits at position 4 of 5 and a
-	//! binary save context is POSITIONAL: dropping it would shift `garrison` up one slot and every
-	//! existing save would read a base's garrison out of an upgrade array. The read side still consumes
-	//! it, once, to convert a pre-migration campaign's investment into a deployment-pool refund
-	//! (OVT_OccupyingFactionManager.ApplyPersistedBaseUpgrades). Writing it empty here is exactly what
-	//! makes that conversion idempotent without a flag: the first save after a legacy load rewrites the
-	//! payload, and every load after that converts zero.
+	//! the deployment framework's own serializer - and garrisons were retired with High Command, so
+	//! there is nothing left to walk in either. Both FIELDS stay declared and stay written because
+	//! OVT_PersistedBase is read POSITIONALLY: dropping either would change the record's length and
+	//! every existing save would read one base's fields out of another's. The read side still consumes
+	//! `upgrades`, once, to convert a pre-migration campaign's investment into a deployment-pool refund
+	//! (OVT_OccupyingFactionManager.ApplyPersistedBaseUpgrades); `garrison` is read and discarded.
+	//! Writing them empty here is exactly what makes that conversion idempotent without a flag: the
+	//! first save after a legacy load rewrites the payload, and every load after that converts zero.
 	//! \param[in] base The live base data.
 	//! \return A populated record. Never null.
 	protected OVT_PersistedBase WriteBase(notnull OVT_BaseData base)
@@ -275,45 +305,19 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		record.location = base.location;
 		record.faction = base.faction;
 
-		if (base.IsOccupyingFaction())
-		{
-			OVT_BaseControllerComponent controller = FindBaseController(base);
-			if (controller)
-			{
-				// record.upgrades stays the empty array it was constructed with - see the header.
-
-				if (controller.m_aSlotsFilled)
-				{
-					foreach (EntityID slotId : controller.m_aSlotsFilled)
-					{
-						IEntity slot = GetGame().GetWorld().FindEntityByID(slotId);
-						if (slot)
-							record.slotsFilled.Insert(slot.GetOrigin());
-					}
-				}
-			}
-
+		// record.upgrades and record.garrison stay the empty arrays they were constructed with.
+		if (!base.IsOccupyingFaction())
 			return record;
-		}
 
-		if (base.garrisonEntities)
+		OVT_BaseControllerComponent controller = FindBaseController(base);
+		if (!controller || !controller.m_aSlotsFilled)
+			return record;
+
+		foreach (EntityID slotId : controller.m_aSlotsFilled)
 		{
-			foreach (EntityID groupId : base.garrisonEntities)
-			{
-				SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(groupId));
-				if (!group)
-					continue;
-
-				// An empty group is a garrison that has already been wiped out - do not bring it back.
-				if (group.GetAgentsCount() < 1)
-					continue;
-
-				ResourceName prefab = GetPrefabResourceName(group);
-				if (prefab.IsEmpty())
-					continue;
-
-				record.garrison.Insert(prefab);
-			}
+			IEntity slot = GetGame().GetWorld().FindEntityByID(slotId);
+			if (slot)
+				record.slotsFilled.Insert(slot.GetOrigin());
 		}
 
 		return record;
@@ -334,21 +338,4 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Gets the prefab an entity was spawned from, resolving prefab inheritance the way the engine
-	//! does. Same implementation as OVT_Global.GetPrefabName(), kept local so this serializer has no
-	//! dependency outside the persistence layer.
-	//! \param[in] entity The entity to look up.
-	//! \return Its prefab resource name, or an empty string.
-	protected ResourceName GetPrefabResourceName(IEntity entity)
-	{
-		if (!entity)
-			return ResourceName.Empty;
-
-		EntityPrefabData prefabData = entity.GetPrefabData();
-		if (!prefabData)
-			return ResourceName.Empty;
-
-		return SCR_BaseContainerTools.GetPrefabResourceName(prefabData.GetPrefab());
-	}
 }

@@ -24,6 +24,29 @@ class OVT_StorageUtils
 	//! The storage component on an entity, if it has one.
 	//! \param[in] e The candidate holder.
 	//! \return Its OVT_StorageComponent, or null.
+	//! The holder behind an entity a user action lives on.
+	//!
+	//! A truck's cargo bed is a SLOTTED CHILD with its own ActionsManagerComponent, and vanilla's real
+	//! "door_rear" tailgate context lives there - so an action reachable from the bed is hosted on the
+	//! bed while the storage is on the vehicle root. One hop up is enough (OVT_LootIntoVehicleAction:68).
+	//! \param[in] e The action's owner.
+	//! \return e when it holds the storage, otherwise its parent when THAT does, otherwise e unchanged.
+	static IEntity ResolveStorageHolder(IEntity e)
+	{
+		if (!e)
+			return e;
+
+		if (OVT_ComponentFinder<OVT_StorageComponent>.Find(e))
+			return e;
+
+		IEntity parent = e.GetParent();
+		if (parent && OVT_ComponentFinder<OVT_StorageComponent>.Find(parent))
+			return parent;
+
+		return e;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	static OVT_StorageComponent GetStorage(IEntity e)
 	{
 		return OVT_ComponentFinder<OVT_StorageComponent>.Find(e);

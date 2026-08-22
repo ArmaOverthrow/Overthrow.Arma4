@@ -133,6 +133,13 @@ class OVT_CargoInfo : SCR_InfoDisplay
 			return;
 		}
 
+		// An empty truck shows nothing at all - the readout is only interesting while hauling.
+		if (m_Store.GetUsedLitres() <= 0)
+		{
+			SetPanelVisible(false);
+			return;
+		}
+
 		SetPanelVisible(true);
 		DrawVolume();
 		DrawLines(ledger);

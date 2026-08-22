@@ -366,7 +366,12 @@ class OVT_Global : Managed
 	{
 		return OVT_RecruitManagerComponent.GetInstance();
 	}
-	
+
+	static OVT_HighCommandManagerComponent GetHighCommand()
+	{
+		return OVT_HighCommandManagerComponent.GetInstance();
+	}
+
 	static OVT_LoadoutManagerComponent GetLoadouts()
 	{
 		return OVT_LoadoutManagerComponent.GetInstance();

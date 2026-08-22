@@ -467,6 +467,13 @@ modded class SCR_AIGroup
 		if (m_iOVT_PendingSlot >= 0 && entity)
 			OVT_VirtualizationManagerComponent.NotifyMemberSpawned(this, m_iOVT_PendingSlot, entity);
 
+		// A High Command member body is the campaign's durable record of that man's GEAR (D8): its
+		// persistence id is what the load walk asks the persistence system for, and an untracked body
+		// has no id at all. Registered with the HC manager BEFORE this call, exactly as recruits are.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if (highCommand && highCommand.IsMemberBody(entity))
+			return added;
+
 		// The group's own member spawning is the only Overthrow path into this method (vanilla's
 		// other callers are ScenarioFramework, which Overthrow does not use), so everything that
 		// arrives here is rebuild-on-boot AI. Members of a registered virtual group are transient
@@ -481,11 +488,14 @@ modded class SCR_AIGroup
 	//! (BUG-118 residual): one `Character_USSR_Randomized` variant per boot self-joined a group
 	//! through its own AI activation ("some other system was faster" - AddAgent's own comment) and
 	//! leaked a 32-record tree per restart. OnAgentAdded fires for EVERY agent that enters ANY
-	//! group, whatever spawned it, so the exclusions here are what protect the two character
+	//! group, whatever spawned it, so the exclusions here are what protect the three character
 	//! categories that must STAY tracked:
 	//!   - player bodies (player-controlled at join time, on every vanilla join path);
 	//!   - recruit bodies (registered in the recruit manager BEFORE the group add on all three
-	//!     flows - AddRecruit, AttachRecruitBody, and the existing-entity re-add).
+	//!     flows - AddRecruit, AttachRecruitBody, and the existing-entity re-add);
+	//!   - High Command member bodies (registered in the HC manager BEFORE the group add, on both
+	//!     flows - SpawnMembers and the load walk's AdoptRestoredBody). Same precedent, same
+	//!     ordering requirement, no second mechanism.
 	override void OnAgentAdded(AIAgent child)
 	{
 		super.OnAgentAdded(child);
@@ -505,6 +515,10 @@ modded class SCR_AIGroup
 
 		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
 		if (recruits && recruits.GetRecruitFromEntity(entity))
+			return;
+
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if (highCommand && highCommand.IsMemberBody(entity))
 			return;
 
 		OVT_PersistenceManagerComponent.UntrackTransient(entity);

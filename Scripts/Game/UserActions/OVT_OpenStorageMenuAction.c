@@ -27,7 +27,7 @@ class OVT_OpenStorageMenuAction : OVT_StorageActionBase
 		if (!context)
 			return;
 
-		context.SetHolder(pOwnerEntity);
+		context.SetHolder(OVT_StorageUtils.ResolveStorageHolder(pOwnerEntity));
 
 		uimanager.ShowContext(OVT_StorageContext);
 	}

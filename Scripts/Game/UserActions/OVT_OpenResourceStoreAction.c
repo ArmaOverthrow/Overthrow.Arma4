@@ -42,7 +42,7 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 		if (!context)
 			return;
 
-		context.SetHolder(pOwnerEntity);
+		context.SetHolder(OVT_ResourceUtils.ResolveStoreHolder(pOwnerEntity));
 
 		uimanager.ShowContext(OVT_ResourceTransferContext);
 	}
@@ -53,7 +53,7 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 	//! \return True when the action may be drawn.
 	override bool CanBeShownScript(IEntity user)
 	{
-		if (!OVT_StructureDamage.IsUsable(GetOwner()))
+		if (!OVT_StructureDamage.IsUsable(Holder()))
 			return false;
 
 		return OVT_ResourceUtils.IsUsableHolder(GetStore());
@@ -75,7 +75,7 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 			return false;
 		}
 
-		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
+		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(Holder());
 		if (playerOwner && playerOwner.IsLocked())
 		{
 			string ownerUid = playerOwner.GetPlayerOwnerUid();
@@ -151,14 +151,14 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 	//! \return The holder's store, or null.
 	protected OVT_ResourceStoreComponent GetStore()
 	{
-		return OVT_ResourceUtils.GetStore(GetOwner());
+		return OVT_ResourceUtils.GetStore(Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! \return The holder's networked name, or RplId.Invalid().
 	protected RplId GetHolderId()
 	{
-		return OVT_ResourceUtils.GetHolderId(GetOwner());
+		return OVT_ResourceUtils.GetHolderId(Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -173,7 +173,7 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 
 		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(user);
 
-		return realEstate.PlayerMayUseWarehouse(playerUid, GetOwner());
+		return realEstate.PlayerMayUseWarehouse(playerUid, Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -193,5 +193,13 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 			return 0;
 
 		return world.GetWorldTime();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The entity that actually carries the store - this action is also hosted on truck cargo
+	//! beds, whose store lives one hop up on the vehicle root.
+	protected IEntity Holder()
+	{
+		return OVT_ResourceUtils.ResolveStoreHolder(GetOwner());
 	}
 }

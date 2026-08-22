@@ -1,9 +1,9 @@
 # High Command — Implementation Plan
 
-**Status:** Planning
+**Status:** Ready for Review
 **Started:** 2026-08-22
 **Target Completion:** TBD
-**Last Updated:** 2026-08-22
+**Last Updated:** 2026-08-22 11:07
 
 **Epic:** `resistance` (see `docs/features/resistance/epic-overview.md`)
 **Requirements:** `docs/features/resistance/high-command/requirements.md` — authoritative for scope. Its closing **"Planning decisions (2026-08-22)"** section overrides the older body wherever they conflict.

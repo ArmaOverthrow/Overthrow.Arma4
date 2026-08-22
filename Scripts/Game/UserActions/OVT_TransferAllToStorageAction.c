@@ -31,7 +31,7 @@ class OVT_TransferAllToStorageAction : OVT_StorageActionBase
 	//! \return True when the action may be drawn.
 	override bool CanBeShownScript(IEntity user)
 	{
-		if (!OVT_StorageUtils.GetInventoryManager(GetOwner()))
+		if (!OVT_StorageUtils.GetInventoryManager(Holder()))
 			return false;
 
 		return super.CanBeShownScript(user);

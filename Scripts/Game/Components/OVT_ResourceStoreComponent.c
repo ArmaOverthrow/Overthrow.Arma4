@@ -46,6 +46,12 @@ class OVT_ResourceStoreComponent : OVT_Component
 	//! Capacity value meaning "no cap" - a pile or a warehouse. Matches OVT_ResourceLedger's contract.
 	static const int UNLIMITED_CAPACITY = -1;
 
+	//! Capacity 0 means the holder has NO resource store at all, not a full one. Authored on the truck
+	//! base so a tanker, ammo, repair, arsenal, command or engineer variant inherits no cargo hold -
+	//! only the four transport/mobile-FOB deltas set a positive volume. OVT_ResourceUtils.GetStore()
+	//! returns null for an inert store, so every consumer refuses without a per-caller check.
+	static const int NO_CAPACITY = 0;
+
 	//! The one place m3 becomes litres.
 	static const int LITRES_PER_CUBIC_METRE = 1000;
 
@@ -53,7 +59,7 @@ class OVT_ResourceStoreComponent : OVT_Component
 	// ATTRIBUTES
 	//-----------------------------------------------------------------------------------------------
 
-	[Attribute(defvalue: "-1", desc: "Cargo volume in cubic metres. -1 means unlimited (a pile, a warehouse).")]
+	[Attribute(defvalue: "-1", desc: "Cargo volume in cubic metres. -1 means unlimited (a pile, a warehouse). 0 means this holder has no resource store at all.")]
 	protected float m_fCargoVolume;
 
 	[Attribute("", desc: "Localization key used as the display name when the prefab carries no UIInfo of its own")]
@@ -109,9 +115,13 @@ class OVT_ResourceStoreComponent : OVT_Component
 		if (!owner || !owner.GetWorld())
 			return;
 
-		m_Ledger = new OVT_ResourceLedger();
-
 		m_iCapacityLitres = ResolveCapacityLitres();
+
+		// An inert store builds no ledger and warns about no RplComponent: it is not a holder.
+		if (m_iCapacityLitres == NO_CAPACITY)
+			return;
+
+		m_Ledger = new OVT_ResourceLedger();
 
 		// BUG-193 is exactly this failure found late: without an RplComponent the holder has no RplId,
 		// so no client can ever name it and its contents can never replicate.
@@ -280,6 +290,13 @@ class OVT_ResourceStoreComponent : OVT_Component
 	//! capacity path; the sentinel is tested after the conversion so no capacity comparison is a float
 	//! comparison.
 	//! \return Litres, or UNLIMITED_CAPACITY.
+	//! \return True when this component is authored as "no store" and must be treated as absent.
+	bool IsInert()
+	{
+		return m_iCapacityLitres == NO_CAPACITY;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected int ResolveCapacityLitres()
 	{
 		int litres = Math.Round(m_fCargoVolume * LITRES_PER_CUBIC_METRE);

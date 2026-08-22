@@ -23,29 +23,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{59C84C2687EAA6DD}" {
-   Id "OVT-AddToGarrison"
-   Target_en_us "Add To Garrison"
-   Target_fr_fr "Ajouter à la garnison"
-   Target_de_de "Garnison hinzufügen"
-   Target_ru_ru "Добавить в гарнизон"
-   Target_ko_kr "주둔지에 배치"
-   Target_zh_cn "添加驻守"
-   Target_uk_ua "Додати до гарнізону"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1780389844
-   Author "Aaron Static"
-   LastChanged "lemmi"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{59DA69F6CA52A3DC}" {
    Id "OVT-AlreadyOccupied"
    Target_en_us "Position is already occupied"
@@ -1707,10 +1684,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B000000000165}" {
    Id "OVT-FieldManual_BaseCapture_Text4"
-   Target_en_us "A base that changes hands flies the new owner's flag and is announced across the server. A base the resistance holds is somewhere you can fast travel to, set as the spot you respawn at, place and build in, and station a garrison hired from the nearest town; some facilities only serve the side that holds the ground they stand on. Taking one also raises the pressure the occupying faction is under, and losing one takes that pressure off again."
+   Target_en_us "A base that changes hands flies the new owner's flag and is announced across the server. A base the resistance holds is somewhere you can fast travel to, set as the spot you respawn at, and place and build in, which includes putting up a barracks and buying High Command groups there; some facilities only serve the side that holds the ground they stand on. Taking one also raises the pressure the occupying faction is under, and losing one takes that pressure off again."
    Target_de_de "Wechselt eine Basis den Besitzer, wird dort die Flagge des neuen Eigentümers gehisst und die Übernahme serverweit bekannt gegeben. Eine von der Widerstandsbewegung gehaltene Basis dient als Ziel für Schnellreisen und als Respawn-Punkt; zudem können Spieler dort bauen und eine in der nächstgelegenen Stadt angeheuerte Garnison stationieren. Manche Einrichtungen stehen ausschließlich der Fraktion zur Verfügung, die das entsprechende Gebiet kontrolliert. Die Eroberung einer Basis erhöht den Druck auf die besetzende Fraktion, während ihr Verlust diesen Druck wieder verringert."
    Target_uk_ua "Коли база змінює контролюючу сторону, на ній піднімається новий прапор, а всі гравці на сервері отримують сповіщення. На захоплену опором базу можна швидко переміщатися, обирати її точкою респавну, зводити на ній споруди та розміщувати гарнізон із найближчого населеного пункту. Деякі об'єкти інфраструктури функціонують лише для тих, хто контролює цю землю. Взяття бази підвищує рівень тиску на окупантів, тоді як її втрата послаблює цей тиск."
-   Comment "Field Manual - Capturing Bases page, body paragraph under the 'A Base You Hold' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager.ChangeBaseControl:895-915 (notification both ways, faction index written to the base data and the controller) and OVT_BaseControllerComponent.SetControllingFaction:143-152 with UpdateFlagMaterial:99-116, OVT_MapContext.CanFastTravel:124-131, OVT_PlaceContext.CanPlace:393-398, OVT_BuildContext.CanBuild:294-303, OVT_BaseMenuContext.AddToGarrison:80-110, OVT_SetHomeAction.CanBeShownScript (on Prefabs/Controllers/OVT_BaseController.et, shown only while the base is not occupying-faction held), and OVT_MainMenuContext.FindOverride:63-87 (m_bMustOwnBase gates a location's own menu). The threat figure moved on a control change is a literal in ChangeBaseControl but is deliberately described in words, because 'threat' is explained on its own wiki page rather than here."
+   Comment "Field Manual - Capturing Bases page, body paragraph under the 'A Base You Hold' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_OccupyingFactionManager.ChangeBaseControl:895-915 (notification both ways, faction index written to the base data and the controller) and OVT_BaseControllerComponent.SetControllingFaction:143-152 with UpdateFlagMaterial:99-116, OVT_MapContext.CanFastTravel:124-131, OVT_PlaceContext.CanPlace:393-398, OVT_BuildContext.CanBuild:294-303, OVT_SetHomeAction.CanBeShownScript (on Prefabs/Controllers/OVT_BaseController.et, shown only while the base is not occupying-faction held), and OVT_MainMenuContext.FindOverride:63-87 (m_bMustOwnBase gates a location's own menu). The threat figure moved on a control change is a literal in ChangeBaseControl but is deliberately described in words, because 'threat' is explained on its own wiki page rather than here. RE-CITED 2026-08-22 by resistance/high-command Phase 13: the garrison clause was REMOVED because base garrison purchase no longer exists (OVT_BaseMenuContext has no AddToGarrison), and replaced with the barracks, which is buildable at a base only (Configs/Resistance/buildables.conf:165-193, m_bBuildAtBase 1) and carries the High Command purchase action (OVT_ManageHighCommandAction.c:52-85). Sentence count unchanged."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -2377,10 +2354,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B00000000015C}" {
    Id "OVT-FieldManual_FOBs_Text3"
-   Target_en_us "Any player can fast travel to a FOB, a FOB can be set as the spot you respawn at, and it is ground where placing and building both work. A garrison of soldiers can be stationed at one, paid for and drawn from the nearest town's supporters; camps take a garrison the same way. An officer can mark a single FOB as the priority FOB, which gives it its own map icon and keeps it visible however far the map is zoomed out."
+   Target_en_us "Any player can fast travel to a FOB, a FOB can be set as the spot you respawn at, and it is ground where placing and building both work. An officer can mark a single FOB as the priority FOB, which gives it its own map icon and keeps it visible however far the map is zoomed out."
    Target_de_de "Jeder Spieler kann per Schnellreise zu einem FOB gelangen, ein FOB kann als Wiedereinstiegspunkt festgelegt werden und dort funktionieren sowohl Platzieren als auch Bauen. Eine Garnison aus Soldaten kann dort stationiert werden; sie wird bezahlt und aus den Unterstützern der nächstgelegenen Stadt rekrutiert. Camps erhalten auf dieselbe Weise eine Garnison. Ein Offizier kann einen einzelnen FOB als Prioritäts-FOB markieren. Dadurch erhält er ein eigenes Kartensymbol und bleibt unabhängig von der Zoomstufe der Karte sichtbar."
    Target_uk_ua "Будь-який гравець може швидко переміщуватися до FOB, FOB можна встановити як місце відродження, а також використовувати як територію для розміщення об’єктів і будівництва. На FOB можна розмістити гарнізон солдатів, оплачений і сформований із прихильників найближчого міста; табори отримують гарнізон так само. Офіцер може позначити один FOB як пріоритетний, що надає йому окремий значок на мапі та залишає його видимим незалежно від масштабу мапи."
-   Comment "Field Manual - FOBs and Building page, body paragraph under the 'What a FOB Gives You' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MapContext.CanFastTravel:119-122 (no ownership or privacy test on a FOB, unlike a camp), OVT_SetHomeAction.c on Prefabs/Structures/Military/Flags/FOB_V1_FIA.et, OVT_PlaceContext.CanPlace:385-391 and OVT_BuildContext.CanBuild:343-347, OVT_FOBMenuContext.AddToGarrison:65-95 with OVT_ResistanceFactionManager.AddGarrisonFOB and AddGarrisonCamp (both charge and both call TakeSupportersFromNearestTown; the same menu serves camps), OVT_ResistanceFactionManager.SetPriorityFOB:634-659 (only one at a time) with OVT_SetPriorityFOBAction.c:15-18 (officers only) and OVT_MapIcons.c:664-690 (range 0 and the fob_priority icon)."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'What a FOB Gives You' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MapContext.CanFastTravel:119-122 (no ownership or privacy test on a FOB, unlike a camp), OVT_SetHomeAction.c on Prefabs/Structures/Military/Flags/FOB_V1_FIA.et, OVT_PlaceContext.CanPlace:385-391 and OVT_BuildContext.CanBuild:343-347, OVT_ResistanceFactionManager.SetPriorityFOB:634-659 (only one at a time) with OVT_SetPriorityFOBAction.c:15-18 (officers only) and OVT_MapIcons.c:664-690 (range 0 and the fob_priority icon). RE-CITED 2026-08-22 by resistance/high-command Phase 13: the garrison sentence was REMOVED entirely - FOB and camp garrison purchase no longer exists (OVT_FOBMenuContext has no AddToGarrison, OVT_ResistanceFactionManager has no AddGarrisonFOB/AddGarrisonCamp). Holding ground is now a High Command group parked in Defend stance; see the High Command page. Paragraph is now two sentences."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -3752,10 +3729,10 @@ StringTable {
   }
   CustomStringTableItem "{6B4C00000000008E}" {
    Id "OVT-FieldManual_Recruits_Text9"
-   Target_en_us "A recruitment tent carries a second action, Buy Equipped Recruit, which opens your loadouts with a price beside each one. Selecting a loadout shows how many items it holds and what the whole thing would cost: what that gear would fetch at a shop near the tent, plus a convenience fee the difficulty settings carry, plus the ordinary tent recruit cost. Buying spawns the recruit beside the tent already wearing the kit, and it takes a town supporter and a roster slot like any other tent recruit. A loadout holding something the shops do not stock cannot be priced and is refused by name, and if the recruit arrives with none of its kit only the recruit itself is charged for."
+   Target_en_us "A recruitment tent carries a second action, Buy Equipped Recruit, which opens your loadouts with a price beside each one. Selecting a loadout shows how many items it holds and what the whole thing would cost: what that gear would fetch at a shop near the tent, plus a convenience fee the difficulty settings carry, plus the ordinary tent recruit cost. Gear that is already stocked in a registered warehouse within 150 metres of the tent is taken off the shelves rather than bought, and the quote shows how much that covered. Buying spawns the recruit beside the tent already wearing the kit, and it takes a town supporter and a roster slot like any other tent recruit. A loadout holding something the shops do not stock cannot be priced and is refused by name, and if the recruit arrives with none of its kit only the recruit itself is charged for."
    Target_de_de "Ein Rekrutierungszelt besitzt eine zweite Aktion, \"Rekruten mit Ausrüstung kaufen\". Sie öffnet deine gespeicherten Ausrüstungen und zeigt neben jeder einen Preis an. Wenn du eine Ausrüstung auswählst, wird angezeigt, wie viele Gegenstände sie enthält und was das Gesamtpaket kostet: der Betrag, den diese Ausrüstung in einem Geschäft in der Nähe des Zelts erzielen würde, zuzüglich einer in den Schwierigkeitseinstellungen festgelegten Komfortgebühr und der normalen Rekrutierungskosten des Zelts. Beim Kauf erscheint der Rekrut neben dem Zelt und trägt die Ausrüstung bereits. Wie jeder andere Zelt-Rekrut verbraucht er einen Unterstützer der Stadt und einen Platz in deiner Rekrutenliste. Enthält eine Ausrüstung einen Gegenstand, den die Geschäfte nicht führen, kann kein Preis berechnet werden und die Auswahl wird unter Nennung dieses Gegenstands abgelehnt. Erscheint der Rekrut ohne irgendeinen Teil seiner Ausrüstung, wird nur der Rekrut selbst berechnet."
    Target_uk_ua "У вербувальному наметі доступна додаткова функція — «Купити спорядженого рекрута», яка відкриває перелік ваших пресетів із цінниками. При виборі пресета ви бачите кількість предметів та підсумковий кошторис: ринкову вартість майна в найближчому магазині + націнку за сервіс (залежить від складності) + базову вартість найму в наметі. Після оплати боєць спавниться біля намету вже повністю екіпірованим. Купівля так само списує одного лояльного містянина й займає слот загону. Якщо пресет містить дефіцитні предмети, які не продаються в магазинах, замовити його неможливо (система видасть відмову з назвою пресета). Якщо ж із якихось причин рекрут заспавнився без спорядження, з вас буде списано гроші лише за найм бійця."
-   Comment "Field Manual - Recruits page, body paragraph under the 'Equipped Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9 against Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:86-95 (OVT_BuyEquippedRecruitAction on the 'tabletop' context beside OVT_RecruitFromTentAction, ActionTitle 'Buy Equipped Recruit'), OVT_BuyEquippedRecruitAction.c:44-57 (opens OVT_LoadoutsContext through SetRecruitmentTent - it buys nothing itself), OVT_LoadoutsContext.c:700-703 IsPurchaseMode with :395-397 (the per-selection line reads '%1 items - $%2 equipped' and the button 'Buy Recruit ($%1)'), OVT_RecruitLoadoutPricing.c:208-217 (IsRegisteredResource gate, then GetBuyPrice at the tent position for the acting player, so town stock and the trader perk are already in the number), OVT_RecruitPurchaseRules.TotalPrice:83-91 with GearFee:63-69 and OVT_RecruitCommandComponent.c:1033-1034 (recruit cost = baseRecruitCost * 0.5, fee multiplier = m_Difficulty.recruitLoadoutFeeMultiplier, 1.3 to 1.7 across Configs/Difficulty/*.conf, so no number is quoted), OVT_RecruitManagerComponent.SpawnTentRecruit:1093-1106 with ResolveTentSpawnPosition (tent forward offset, ground clamp, safe-position box), OVT_RecruitCommandComponent.c:891-910 (supporter taken and money charged only once a body exists) and ValidateTentPurchase:942 (cap, supporters, distance via ValidateTentRecruit), and OVT_RecruitPurchaseRules.ChargeFor:143-160 (RESULT_SPAWN_FAILED charges nothing, RESULT_GEAR_FAILED charges the recruit cost only; a PARTIAL apply pays the quoted total and is deliberately not described as a discount)."
+   Comment "Field Manual - Recruits page, body paragraph under the 'Equipped Recruits' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-14 for recruit-ux Phase 9 against Prefabs/Structures/Military/FOB/OVT_RecruitmentTent.et:86-95 (OVT_BuyEquippedRecruitAction on the 'tabletop' context beside OVT_RecruitFromTentAction, ActionTitle 'Buy Equipped Recruit'), OVT_BuyEquippedRecruitAction.c:44-57 (opens OVT_LoadoutsContext through SetRecruitmentTent - it buys nothing itself), OVT_LoadoutsContext.c:700-703 IsPurchaseMode with :395-397 (the per-selection line reads '%1 items - $%2 equipped' and the button 'Buy Recruit ($%1)'), OVT_RecruitLoadoutPricing.c:208-217 (IsRegisteredResource gate, then GetBuyPrice at the tent position for the acting player, so town stock and the trader perk are already in the number), OVT_RecruitPurchaseRules.TotalPrice:83-91 with GearFee:63-69 and OVT_RecruitCommandComponent.c:1033-1034 (recruit cost = baseRecruitCost * 0.5, fee multiplier = m_Difficulty.recruitLoadoutFeeMultiplier, 1.3 to 1.7 across Configs/Difficulty/*.conf, so no number is quoted), OVT_RecruitManagerComponent.SpawnTentRecruit:1093-1106 with ResolveTentSpawnPosition (tent forward offset, ground clamp, safe-position box), OVT_RecruitCommandComponent.c:891-910 (supporter taken and money charged only once a body exists) and ValidateTentPurchase:942 (cap, supporters, distance via ValidateTentRecruit), and OVT_RecruitPurchaseRules.ChargeFor:143-160 (RESULT_SPAWN_FAILED charges nothing, RESULT_GEAR_FAILED charges the recruit cost only; a PARTIAL apply pays the quoted total and is deliberately not described as a discount). RE-CITED 2026-08-22 by resistance/high-command Phase 13: the warehouse-coverage sentence is new. OVT_RecruitCommandComponent.c:1078-1087 collects registered warehouse stores at OVT_HighCommandRules.WAREHOUSE_RANGE (150 m, OVT_HighCommandRules.c:10) around the tent and splits the gear manifest into covered and charged; the covered figure is rendered by OVT_LoadoutsContext.c:400-401 as #OVT-Recruit_QuoteCovered."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -5365,29 +5342,6 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1706583751
-   Author "Aaron Static"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{59C84C260326A9DB}" {
-   Id "OVT-Garrison"
-   Target_en_us "Garrison"
-   Target_fr_fr "Garnison"
-   Target_de_de "Garnison"
-   Target_ru_ru "Гарнизон"
-   Target_ko_kr "주둔지"
-   Target_zh_cn "守备部队"
-   Target_uk_ua "Гарнізон"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706583756
    Author "Aaron Static"
    LastChanged "Lemmi"
    ImageLink ""
@@ -7858,29 +7812,6 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1706584918
-   Author "Aaron Static"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{59C84C21E97284F1}" {
-   Id "OVT-ManageBase"
-   Target_en_us "Manage Base"
-   Target_fr_fr "Gérer Base"
-   Target_de_de "Basis verwalten"
-   Target_ru_ru "Управление базой"
-   Target_ko_kr "기지 관리"
-   Target_zh_cn "管理基地"
-   Target_uk_ua "Управління базою"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706584925
    Author "Aaron Static"
    LastChanged "Lemmi"
    ImageLink ""
@@ -18172,29 +18103,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{59C84C26FD19B1CA}" {
-   Id "OVT_Group"
-   Target_en_us "Group"
-   Target_fr_fr "Groupe"
-   Target_de_de "Gruppe"
-   Target_ru_ru "Группа"
-   Target_ko_kr "그룹"
-   Target_zh_cn "群组"
-   Target_uk_ua "Група"
-   Comment ""
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1706588978
-   Author "Aaron Static"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{59A550CC7B4FE9CA}" {
    Id "OVT_Mission_Eden_Description"
    Target_en_us "The persistent and dynamic revolution simulator"
@@ -19552,6 +19460,1943 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000009A}" {
+   Id "OVT-Port_SummaryVolume"
+   Target_en_us "%1  ·  Cargo %2"
+   Comment "Port screen checkout - the money total with the truck's projected cargo volume appended, shown only when the cart orders resources. %1 is the already-translated money summary (OVT-Transfer_SummaryPrice), %2 the already-translated volume (OVT-Resource_SummaryVolume). Translate only the word Cargo and the separator."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A0}" {
+   Id "OVT-Msg-HCGroupPurchased"
+   Target_en_us "High Command group bought - %1 fighters for $%2"
+   Comment "Purchase confirmation at a barracks, to the buying player only. %1 is the group's member count, %2 is the amount actually charged (member cost plus the fee-multiplied gear that nearby warehouse stock did NOT cover). Sent AFTER the group is standing in the world - a failed spawn shows OVT-Msg-HCPurchaseSpawnFailed instead and charges nothing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A1}" {
+   Id "OVT-Msg-HCPurchaseNotAtBarracks"
+   Target_en_us "You must be standing at a barracks to raise a group"
+   Comment "Purchase refusal, to the buying player only. The server found no OVT_BarracksComponent within OVT_BarracksComponent.BARRACKS_USE_RADIUS (5 m) of the caller. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A2}" {
+   Id "OVT-Msg-HCPurchaseBarracksRuined"
+   Target_en_us "This barracks is in ruins and cannot raise anyone"
+   Comment "Purchase refusal, to the buying player only. The barracks exists but OVT_StructureDamage.IsUsable is false - it is in its ruined destruction phase. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A3}" {
+   Id "OVT-Msg-HCPurchaseBaseNotFriendly"
+   Target_en_us "The resistance does not hold this base"
+   Comment "Purchase refusal, to the buying player only. The nearest base is either further than baseRange away or still held by the occupying faction. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A4}" {
+   Id "OVT-Msg-HCPurchaseBadEntry"
+   Target_en_us "That group is not available here"
+   Comment "Purchase refusal, to the buying player only. The entry index the client sent names nothing in the player faction's m_aHighCommandGroups, or its group prefab defines no members at all. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A5}" {
+   Id "OVT-Msg-HCPurchaseAtCap"
+   Target_en_us "You already command too many fighters to add %1 more"
+   Comment "Purchase refusal, to the buying player only. %1 is how many members the refused group would have added. The cap counts MEMBERS across every group the player owns, not groups (decision D12); its value is highCommandMemberCap, default 48."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A6}" {
+   Id "OVT-Msg-HCPurchaseNoSupporters"
+   Target_en_us "The nearest town cannot spare %1 supporters"
+   Comment "Purchase refusal, to the buying player only. %1 is how many supporters the group would have drawn down - one per member by default (highCommandSupportersPerMember). Also shown when there is no town near enough to draw from at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A7}" {
+   Id "OVT-Msg-HCPurchaseCannotAfford"
+   Target_en_us "You cannot afford this group ($%1)"
+   Comment "Purchase refusal, to the buying player only. %1 is the re-derived total the funds check ran against, which is the amount that would have been charged. The funds check is deliberately the LAST gate, so this never appears for a group the cap or the town would have refused anyway."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A8}" {
+   Id "OVT-Msg-HCPurchaseSpawnFailed"
+   Target_en_us "The group could not be raised - nothing was charged"
+   Comment "Purchase refusal, to the buying player only. Every gate passed but the group entity or its members failed to spawn. The effect order is spawn -> stock -> supporters -> money, so no money, no supporters and no warehouse stock moved. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A9}" {
+   Id "OVT-HC_Group_SentryTeam"
+   Target_en_us "Sentry Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AA}" {
+   Id "OVT-HC_Group_SentryTeamDesc"
+   Target_en_us "Two riflemen who hold a position and watch for movement."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AB}" {
+   Id "OVT-HC_Group_MachineGunTeam"
+   Target_en_us "Machine Gun Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AC}" {
+   Id "OVT-HC_Group_MachineGunTeamDesc"
+   Target_en_us "A gunner and loader built to hold a line under fire."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AD}" {
+   Id "OVT-HC_Group_SharpshooterTeam"
+   Target_en_us "Sharpshooter Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AE}" {
+   Id "OVT-HC_Group_SharpshooterTeamDesc"
+   Target_en_us "A marksman and spotter for long-range overwatch."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AF}" {
+   Id "OVT-HC_Group_ReconTeam"
+   Target_en_us "Recon Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B0}" {
+   Id "OVT-HC_Group_ReconTeamDesc"
+   Target_en_us "Two fighters built for scouting, not sustained combat."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B1}" {
+   Id "OVT-HC_Group_LightFireTeam"
+   Target_en_us "Light Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B2}" {
+   Id "OVT-HC_Group_LightFireTeamDesc"
+   Target_en_us "Four riflemen, fast to raise and easy to keep supplied."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B3}" {
+   Id "OVT-HC_Group_AntiTankTeam"
+   Target_en_us "Anti-Tank Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B4}" {
+   Id "OVT-HC_Group_AntiTankTeamDesc"
+   Target_en_us "Four fighters carrying anti-armour weapons."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B5}" {
+   Id "OVT-HC_Group_FireTeam"
+   Target_en_us "Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B6}" {
+   Id "OVT-HC_Group_FireTeamDesc"
+   Target_en_us "Five riflemen with a designated marksman."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B7}" {
+   Id "OVT-HC_Group_RifleSquad"
+   Target_en_us "Rifle Squad"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B8}" {
+   Id "OVT-HC_Group_RifleSquadDesc"
+   Target_en_us "A full seven-man squad, the backbone of a defence."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B9}" {
+   Id "OVT-HC_Group_TechnicalPKM"
+   Target_en_us "Technical (PKM)"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BA}" {
+   Id "OVT-HC_Group_TechnicalPKMDesc"
+   Target_en_us "A sentry team mounted on a machine-gun-armed jeep."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BB}" {
+   Id "OVT-HC_Group_MotorFireTeam"
+   Target_en_us "Motorised Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BC}" {
+   Id "OVT-HC_Group_MotorFireTeamDesc"
+   Target_en_us "A light fire team riding a jeep for a fast response."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BD}" {
+   Id "OVT-HC_Group_TruckSquad"
+   Target_en_us "Truck Squad"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BE}" {
+   Id "OVT-HC_Group_TruckSquadDesc"
+   Target_en_us "A fire team riding a covered truck for a long haul."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BF}" {
+   Id "OVT-Barracks"
+   Target_en_us "Barracks"
+   Comment "Map POI name for a High Command barracks (OVT_MapMarkerComponent on OVT_Barracks.et and the three same-GUID vanilla overrides). Referenced by the user's prefab authoring since before this key existed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C0}" {
+   Id "OVT-Build_Barracks"
+   Target_en_us "Barracks"
+   Comment "Build menu title for the Barracks buildable, Configs/Resistance/buildables.conf. The most expensive buildable in the resistance's build list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C1}" {
+   Id "OVT-Build_Barracks_Description"
+   Target_en_us "Raises High Command groups you can command from the map. The costliest structure the resistance can build."
+   Comment "Build menu description for the Barracks buildable, Configs/Resistance/buildables.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C2}" {
+   Id "OVT-ManageHighCommand"
+   Target_en_us "Manage High Command"
+   Comment "UIInfo Name on the barracks desk's OVT_ManageHighCommandAction (hover/action label), authored on OVT_Barracks.et and the three same-GUID vanilla barracks overrides."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C3}" {
+   Id "OVT-HC_AtCap"
+   Target_en_us "Your High Command groups are at capacity"
+   Comment "OVT_ManageHighCommandAction.CanBePerformedScript SetCannotPerformReason - shown when the player's member count already meets or exceeds their High Command cap."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C4}" {
+   Id "OVT-HC_MenuTitle"
+   Target_en_us "High Command"
+   Comment "Header title of the barracks purchase screen, UI/Layouts/Menu/HighCommandMenu.layout."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C5}" {
+   Id "OVT-HC_NoSelectionHelp"
+   Target_en_us "Select a group to see its price."
+   Comment "Barracks purchase screen details panel placeholder text, shown before any row has been selected or when the catalog is empty."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C6}" {
+   Id "OVT-HC_MemberCountFormat"
+   Target_en_us "%1 fighters"
+   Comment "Format string for a High Command entry's member count, shown on each purchase screen row and in the details panel. %1 is the member count, read client-side from the prefab source with nothing spawned."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C7}" {
+   Id "OVT-HC_VehicleIncluded"
+   Target_en_us "+ vehicle"
+   Comment "Tag shown on a barracks purchase screen row when the entry's m_sVehiclePrefab is set (a crewed vehicle group, not a foot group)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C8}" {
+   Id "OVT-HC_QuoteChecking"
+   Target_en_us "Checking price..."
+   Comment "Barracks purchase screen status line and Buy button label while a debounced quote is on the wire (RequestQuoteGroup asked, RpcDo_HCQuote not yet answered for this row)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C9}" {
+   Id "OVT-HC_QuoteTotal"
+   Target_en_us "$%1"
+   Comment "Barracks purchase screen quote line - the server's total price for the selected entry (RpcDo_HCQuote total). %1 is the amount. Labelled as an estimate: the purchase re-derives and charges its own number."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CA}" {
+   Id "OVT-HC_QuoteCovered"
+   Target_en_us "$%1 covered by nearby warehouse stock"
+   Comment "Barracks purchase screen quote line - RpcDo_HCQuote coveredValue, shown when greater than zero. %1 is the covered value at buy price."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CB}" {
+   Id "OVT-HC_QuoteNoCoverage"
+   Target_en_us "No nearby warehouse stock"
+   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteCovered when RpcDo_HCQuote's coveredValue is zero."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CC}" {
+   Id "OVT-HC_QuoteSupporters"
+   Target_en_us "%1 supporters required"
+   Comment "Barracks purchase screen quote line - RpcDo_HCQuote supportersNeeded, shown when greater than zero. %1 is the count taken from the nearest town."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CD}" {
+   Id "OVT-HC_QuoteNoSupporters"
+   Target_en_us "No supporters required"
+   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteSupporters when RpcDo_HCQuote's supportersNeeded is zero."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CE}" {
+   Id "OVT-HC_BuyButton"
+   Target_en_us "Buy ($%1)"
+   Comment "Barracks purchase screen Buy button label once an OK quote has arrived. %1 is the quoted total."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CF}" {
+   Id "OVT-HC_BuyButtonPlain"
+   Target_en_us "Buy"
+   Comment "Barracks purchase screen Buy button label before a quote has arrived, while none is pending, or after a refusal."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000D0}" {
+   Id "OVT-HC_Buying"
+   Target_en_us "Raising group..."
+   Comment "Barracks purchase screen status line and Buy button label between pressing Buy and the server's RpcDo_HCResult answer."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000D1}" {
+   Id "OVT-HC_QuoteError"
+   Target_en_us "Unable to price this group right now"
+   Comment "Barracks purchase screen fallback reason text for a quote refusal this screen has no dedicated sentence for (NO_PLAYER, NO_ACTOR, or a future RESULT_* code the screen has not been taught yet)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004100}" {
+   Id "OVT-Map_Layer_HighCommand"
+   Target_en_us "High Command"
+   Comment "Row label in the map layer-filter panel for the green NATO symbols showing every player's High Command groups. Two words, title case - it sits directly under the Recruits row in the same short list. It only ever labels a live control: a campaign with no High Command groups gets no row at all rather than a disabled one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004101}" {
+   Id "OVT-HC_Map_StanceLine"
+   Target_en_us "Stance: %1"
+   Comment "Map info panel line for a selected High Command group. %1 is the already-translated stance name - Defend, Patrol or Attack."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004102}" {
+   Id "OVT-HC_Map_DestinationLine"
+   Target_en_us "Destination: %1 away"
+   Comment "Map info panel line for a selected High Command group. %1 is the distance from the group to its ordered destination, already formatted with its units, so it reads as 'Destination: 1.2 km away'. Reads '0 m away' for a group that has arrived."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004103}" {
+   Id "OVT-HC_Map_DistanceLine"
+   Target_en_us "From you: %1"
+   Comment "Map info panel line for a selected High Command group. %1 is the distance from the local player to the group, already formatted with its units."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004104}" {
+   Id "OVT-HC_Map_StatusLine"
+   Target_en_us "%1 - %2 / %3 alive"
+   Comment "Map info panel line for a selected High Command group. %1 is the already-translated one-word status, %2 the members still alive and %3 the members the group was bought with."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004105}" {
+   Id "OVT-HC_Map_DistanceUnknown"
+   Target_en_us "unknown"
+   Comment "Substituted into the map info panel's From you line when the local player has no controlled character to measure from - spectating, or mid-respawn. Lower case: it sits inside a sentence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004106}" {
+   Id "OVT-HC_Stance_Defend"
+   Target_en_us "Defend"
+   Comment "One of the three High Command stances. The group hunkers at its destination. One word, title case - it is substituted into the map info panel's Stance line and will be reused by the roster screen."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004107}" {
+   Id "OVT-HC_Stance_Patrol"
+   Target_en_us "Patrol"
+   Comment "One of the three High Command stances. The group walks a ring around its destination indefinitely. One word, title case."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004108}" {
+   Id "OVT-HC_Stance_Attack"
+   Target_en_us "Attack"
+   Comment "One of the three High Command stances. The group sweeps its destination looking for enemies. One word, title case."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004109}" {
+   Id "OVT-HC_Map_StatusContact"
+   Target_en_us "In contact"
+   Comment "One-word-ish status for a High Command group whose members can currently see an enemy. Takes priority over every other status. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410A}" {
+   Id "OVT-HC_Map_StatusNoAmmo"
+   Target_en_us "Out of ammo"
+   Comment "Status for a High Command group where no member can put rounds downrange. Shown only when the group is not also in contact. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410B}" {
+   Id "OVT-HC_Map_StatusMoving"
+   Target_en_us "Moving"
+   Comment "Status for a High Command group that is still further than the arrival radius from its ordered destination. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410C}" {
+   Id "OVT-HC_Map_StatusHolding"
+   Target_en_us "Holding"
+   Comment "Status for a High Command group that has arrived at its destination and is doing whatever its stance says. The default status. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410D}" {
+   Id "OVT-HC_Map_Order"
+   Target_en_us "Order move"
+   Comment "Label on the map info panel's order button for a selected High Command group. The button carries the key or pad glyph beside it, so the label is the verb only. Pressing it sends the group to wherever the map cursor is, keeping its current stance."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410E}" {
+   Id "OVT-HC_Map_Stance"
+   Target_en_us "Change stance"
+   Comment "Label on the map info panel's stance button for a selected High Command group. Pressing it cycles Defend to Patrol to Attack and re-issues the order at the same destination."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410F}" {
+   Id "OVT-HC_Map_Deselect"
+   Target_en_us "Deselect"
+   Comment "Label on the map info panel's close button for a selected High Command group. It drops the selection and closes the panel; it does not close the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004110}" {
+   Id "OVT-HC_Map_NotOwner"
+   Target_en_us "Only %1 can order this group"
+   Comment "Reason line under the map info panel's disabled order buttons when the selected High Command group belongs to another player. %1 is that player's name. The buttons stay visible and disabled rather than being hidden, so the refusal is explained."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004111}" {
+   Id "OVT-HC_Map_UnknownOwner"
+   Target_en_us "an unknown player"
+   Comment "Substituted for a High Command group owner's name when the player roster cannot resolve it - usually an owner who has never connected to this session. Lower case: it sits inside a sentence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004112}" {
+   Id "OVT-HC_Map_BadDestination"
+   Target_en_us "Put the map cursor on a destination first"
+   Comment "Reason line on the map info panel when an order was refused because the destination was not a real point on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004113}" {
+   Id "OVT-HC_Map_NoSeam"
+   Target_en_us "High Command is not available right now"
+   Comment "Reason line on the map info panel when the local controller has no High Command request component, so the order could not be sent at all. Almost always a client that has just connected."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004114}" {
+   Id "OVT-HC_Map_RefusedNotOwner"
+   Target_en_us "That group is not yours"
+   Comment "Reason line on the map info panel after the server refused an order with NOT_OWNER. The server is the only gate that matters; this sentence is what the player sees when the client-side check was bypassed or the group changed hands."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004115}" {
+   Id "OVT-HC_Map_RefusedNoGroup"
+   Target_en_us "That group no longer exists"
+   Comment "Reason line on the map info panel after the server refused an order with NO_GROUP - the group was wiped or dismissed between the marker being drawn and the order arriving."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004116}" {
+   Id "OVT-HC_Map_RefusedBadStance"
+   Target_en_us "That stance is not valid"
+   Comment "Reason line on the map info panel after the server refused an order with BAD_STANCE. A player should never see this; it means the client sent a stance value outside the enum."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004117}" {
+   Id "OVT-HC_Map_RefusedGeneric"
+   Target_en_us "The order was refused"
+   Comment "Fallback reason line on the map info panel for an order refusal the panel has no dedicated sentence for - NO_PLAYER, or a future RESULT_ code it has not been taught yet."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005100}" {
+   Id "OVT-MainMenu_ManageGroups"
+   Target_en_us "Manage Groups"
+   Comment "Main menu button (OVT_MainMenuContext.ManageGroups) and header title of UI/Layouts/Menu/HighCommandRoster.layout - the same key on both, the OVT-MainMenu_ManageRecruits precedent."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005101}" {
+   Id "OVT-HC_Roster_YourGroups"
+   Target_en_us "Your Groups"
+   Comment "Left panel sub-heading on the Manage Groups roster (HighCommandRoster.layout), above the scrollable group list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005102}" {
+   Id "OVT-HC_Roster_Capacity"
+   Target_en_us "%1 / %2 members"
+   Comment "Capacity line on the Manage Groups roster. %1 is OVT_HighCommandManagerComponent.GetMemberCount for the local player, %2 is GetMemberCap - members across every owned group, whatever they are doing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005103}" {
+   Id "OVT-HC_Roster_NoGroupsHelp"
+   Target_en_us "You do not own any High Command groups yet. Buy one at a barracks."
+   Comment "Manage Groups roster right panel placeholder text, shown when the local player owns no High Command groups at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005104}" {
+   Id "OVT-HC_Roster_MembersFormat"
+   Target_en_us "%1 / %2 alive"
+   Comment "Selected-group member count on the Manage Groups roster's details panel. %1 is OVT_HighCommandRecord.m_iAliveMembers, %2 is m_iTotalMembers."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005105}" {
+   Id "OVT-HC_Roster_RowSubtitle"
+   Target_en_us "%1 / %2 • %3"
+   Comment "Second line of one Manage Groups roster row (OVT_HighCommandRosterRowHandler.Populate). %1/%2 are alive/total members, %3 is the already-translated stance label (OVT-HC_Stance_*)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005106}" {
+   Id "OVT-HC_Roster_ShowOnMap"
+   Target_en_us "Show on Map"
+   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterShowOnMap) - opens the fullscreen map and selects the group there."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005107}" {
+   Id "OVT-HC_Roster_Dismiss"
+   Target_en_us "Dismiss"
+   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterDismiss) - opens the DISMISS_HC_GROUP confirmation dialog."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005108}" {
+   Id "OVT-HC_Roster_DismissTitle"
+   Target_en_us "Dismiss Group"
+   Comment "Title of the DISMISS_HC_GROUP confirmation dialog (Configs/UI/Dialogs/DialogPresets_Campaign.conf), the DISMISS_RECRUIT shape."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005109}" {
+   Id "OVT-HC_Roster_DismissMessage"
+   Target_en_us "This will permanently disband the group, its vehicle and its orders. This cannot be undone."
+   Comment "Message of the DISMISS_HC_GROUP confirmation dialog."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000510A}" {
+   Id "OVT-HC_Roster_Dismissed"
+   Target_en_us "Group dismissed"
+   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult on RESULT_OK after a confirmed dismiss - the server's answer, never shown optimistically."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000510B}" {
+   Id "OVT-HC_Roster_DismissFailed"
+   Target_en_us "Could not dismiss the group"
+   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult when a dismiss ask answers anything other than RESULT_OK."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005200}" {
+   Id "OVT-HC_ConvertedGroupName"
+   Target_en_us "Converted Squad"
+   Comment "Name shown on the map and in the Manage Groups roster for a High Command group made by converting a parked recruit squad. It names no purchasable catalog entry, so this is its only title (OVT_HighCommandManagerComponent.GetConvertedEntry)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005201}" {
+   Id "OVT-HC_ConvertedGroupDesc"
+   Target_en_us "Recruits promoted into High Command. They keep the gear they were carrying."
+   Comment "Description of a converted High Command group (OVT_HighCommandManagerComponent.GetConvertedEntry). Never shown in the barracks purchase list - a converted group cannot be bought."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007100}" {
+   Id "OVT-Recruit_QuoteCovered"
+   Target_en_us "Covered by nearby warehouse stock: $%1"
+   Comment "OVT_LoadoutsContext.OnRecruitQuote - the equipped-recruit quote's second line, showing how much of the gear cost nearby warehouse stock covers. %1 is the covered value in dollars."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007101}" {
+   Id "OVT-Recruits_GroupHeader"
+   Target_en_us "Group (%1)"
+   Comment "OVT_RecruitsContext - sub-header over one cluster of parked recruits in the inactive section. %1 is the number of recruits in that group."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007102}" {
+   Id "OVT-Recruits_ConvertToHC"
+   Target_en_us "Convert to High Command"
+   Comment "RecruitsMenu.layout - label of the button that converts a parked recruit group into a High Command group."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007103}" {
+   Id "OVT-Recruits_ConvertGroupTitle"
+   Target_en_us "Convert to High Command"
+   Comment "CONVERT_RECRUIT_GROUP dialog title, DialogPresets_Campaign.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007104}" {
+   Id "OVT-Recruits_ConvertGroupMessage"
+   Target_en_us "Convert this group to a High Command group? This is one-way. They leave your recruit roster and cap, and their names, XP and skills stop being tracked. They keep their bodies and equipment."
+   Comment "CONVERT_RECRUIT_GROUP dialog body - must name the one-way consequence (implementation.md T9.5)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007105}" {
+   Id "OVT-Recruits_ConvertNeedsInactive"
+   Target_en_us "Select a parked recruit to convert their group"
+   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit is active rather than parked."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007106}" {
+   Id "OVT-Recruits_ConvertNeedsBody"
+   Target_en_us "That recruit has no body in the world to convert"
+   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit has no spawned body."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007107}" {
+   Id "OVT-Recruits_ConvertSuccess"
+   Target_en_us "Group converted to High Command"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_OK."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007108}" {
+   Id "OVT-Recruits_ConvertAtCap"
+   Target_en_us "Your High Command roster is full"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_CONVERT_AT_CAP."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007109}" {
+   Id "OVT-Recruits_ConvertNoGroup"
+   Target_en_us "Those recruits are not parked as a group"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_NO_RECRUIT_GROUP."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000710A}" {
+   Id "OVT-Recruits_ConvertFailed"
+   Target_en_us "The conversion failed"
+   Comment "OVT_RecruitsContext.OnHCResult - fallback hint for any refusal without a specific message."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007200}" {
+   Id "OVT-FieldManual_HighCommand_Title"
+   Target_en_us "High Command"
+   Comment "Field Manual - The Resistance category, High Command page. Tile and page title, two words. Matches the Manage Groups main-menu wording (#OVT-MainMenu_ManageGroups) and the purchase screen title (#OVT-HC_MenuTitle). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007201}" {
+   Id "OVT-FieldManual_HighCommand_Text"
+   Target_en_us "High Command is how the resistance fields soldiers of its own rather than an escort. A player buys a whole group at a barracks, owns it outright, and moves it anywhere on the island from the map. The group is really there: it walks or drives to where it is sent, fights what it meets on the way, and holds its ground whether or not anybody is nearby to watch."
+   Comment "Field Manual - The Resistance category, High Command page. Opening paragraph, three sentences. Ownership is by persistent id and orders from anyone else are refused: OVT_HighCommandRequestComponent.c RpcAsk_OrderGroup / RESULT_NOT_OWNER. 'Really there' is D1 in docs/features/resistance/high-command/implementation.md section 5: the group is an always-live SCR_AIGroup that carries its own virtualization AI observer (OVT_HighCommandGroupComponent.c:50-67), so nothing depends on a player being nearby and nothing despawns it when its owner disconnects (no disconnect path exists on OVT_HighCommandManagerComponent). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007202}" {
+   Id "OVT-FieldManual_HighCommand_Head"
+   Target_en_us "Barracks"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, one word. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007203}" {
+   Id "OVT-FieldManual_HighCommand_Text2"
+   Target_en_us "Groups are bought at a barracks standing on a base the resistance holds. Some bases already have military barracks on them, and a barracks can also be built at a base like any other structure, at the highest price on the build list: $20000 along with timber, cement, steel and hardware. The action sits on the radio set inside the barracks, the same kind of radio a recruitment tent carries, and any player at that base can use it. A barracks reduced to a ruin offers nothing until it is repaired."
+   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Price and resources: Configs/Resistance/buildables.conf:165-193 (m_iCost 20000, timber 170, cement 280, steel 170, hardware 70, m_bBuildAtBase 1); 20000 is the highest m_iCost in that file. Three vanilla barracks families carry OVT_BarracksComponent: Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_military_base.et:4, Barracks_USSR_01_military_base.et:4, Barracks_E_02/Barracks_E_02_base.et. The action is authored on a RadioStation_R123M_01 child inside the barracks furniture (Barracks_01_military_furniture_01.et:4-18), the same prefab OVT_RecruitmentTent.et uses. Friendly-base and any-player gating plus the ruin gate: OVT_ManageHighCommandAction.c:52-85 (OVT_StructureDamage.IsUsable, OVT_BarracksComponent.FindNearest at BARRACKS_USE_RADIUS 5 m, IsAtFriendlyBase). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007204}" {
+   Id "OVT-FieldManual_HighCommand_Head2"
+   Target_en_us "Buying a Group"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007205}" {
+   Id "OVT-FieldManual_HighCommand_Text3"
+   Target_en_us "The screen lists eleven groups, from small teams up to a rifle squad, three of which arrive with a vehicle. Picking one asks the server for a price and shows what it is made of: the recruit cost of every man in it, the gear each of them needs, and, where there is a vehicle, that vehicle at the full price a shop would charge. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, so a town with no support left cannot raise a group. Each player has a cap on how many High Command soldiers they can hold at once, and a purchase that would pass it is refused before any money moves."
+   Comment "Field Manual - The Resistance category, High Command page. Five sentences. Eleven authored entries, three with m_sVehiclePrefab: Configs/Factions/FIA_OverthrowData.conf:5-88. Pricing is made in one place, server side: OVT_HighCommandManagerComponent.QuoteEntry:458-500 (baseRecruitCost x members, the gear manifest, OVT_RecruitPurchaseRules.TotalPrice, then OVT_HighCommandRules.PurchaseTotal adds the vehicle at its full shop buy price outside the fee multiplier, PriceVehicle / OVT_HighCommandRules.c:114-126). Warehouse coverage: OVT_HighCommandRules.WAREHOUSE_RANGE = 150.0 (OVT_HighCommandRules.c:10) with OVT_WarehouseStockUtils.CollectStores and OVT_ItemSourcingRules.SplitCoverage at QuoteEntry:485-493; the covered figure renders as #OVT-HC_QuoteCovered. Supporters: OVT_HighCommandRules.SupportersRequired with GetHighCommandSupportersPerMember (default 1, OVT_OverthrowConfigComponent.c:144) and the gate-8 refusal #OVT-Msg-HCPurchaseNoSupporters. Cap: OVT_HighCommandRules.DEFAULT_MEMBER_CAP = 48 (OVT_HighCommandRules.c:15), server-configurable via highCommandMemberCap, enforced server-side; the cap NUMBER is deliberately not quoted here because a server may change it. The funds check is last in the ladder, so a refusal costs nothing. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007206}" {
+   Id "OVT-FieldManual_HighCommand_Head3"
+   Target_en_us "Orders and Stances"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007207}" {
+   Id "OVT-FieldManual_HighCommand_Text4"
+   Target_en_us "Every player's map draws every High Command group as a green symbol, your own at full strength and other players' dimmed, and the map's layer panel can switch them off again. Selecting one shows who owns it, its stance, how far it is from its destination, how far it is from you, and how many of its men are still alive. A group you own can be ordered to the spot under the map cursor, and its stance cycled between Defend, which holds the ground it was sent to, Patrol, which walks a ring around it, and Attack, which sweeps it for the enemy. A group on the move draws a dashed line to where it is going. A mark appears on the symbol while it is in contact with the enemy, and an ammunition badge when it has run dry. Ordering a group another player owns is refused."
+   Comment "Field Manual - The Resistance category, High Command page. Six sentences. Markers, opacity and the layer filter: OVT_MapHighCommandLayer.c:21 (OTHER_OWNER_OPACITY 0.45), :26 (QUAD_NORMAL Friend_Land_Bcg), :329; OVT_MapLayersUI.c:64-74 and BuildHighCommandRow:789. Panel lines: OVT_MapHighCommandLayer.c:1012-1041 (#OVT-HC_Map_StanceLine / DestinationLine / DistanceLine / StatusLine, the last carrying alive and total). Order to cursor: OnOrderPressed:1078-1099. Stance cycle DEFEND -> PATROL -> ATTACK: OnStancePressed:1105-1126 with OVT_EHighCommandStance (OVT_HighCommandRecord.c:6-10). What each stance does: OVT_HighCommandManagerComponent.ApplyStance:1044-1077 (ATTACK = SpawnSearchAndDestroyWaypoint, PATROL = move plus a ring at OVT_HighCommandRules.PATROL_RADIUS 150 m, DEFEND = move plus SpawnDefendWaypoint). Dashed destination line: OVT_MapHighCommandLineLayer.c, drawn only while OVT_HighCommandRules.IsMoving. Contact and ammo tags: OVT_HighCommandStatus TAG_CONTACT / TAG_NO_AMMO, OVT_MapHighCommandLayer.c:584. Non-owner refusal: #OVT-HC_Map_NotOwner client-side and RESULT_NOT_OWNER server-side. KEYBINDS ARE DELIBERATELY NOT NAMED: the order and stance verbs are bound actions (OverthrowHCOrder, OverthrowHCStance) with both keyboard and gamepad sources and the panel buttons carry their own labels. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007208}" {
+   Id "OVT-FieldManual_HighCommand_Head4"
+   Target_en_us "Manage Groups"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. Must match the main-menu button label #OVT-MainMenu_ManageGroups. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007209}" {
+   Id "OVT-FieldManual_HighCommand_Text5"
+   Target_en_us "Manage Groups, on the Overthrow main menu, lists the groups you own with their status and how many of your soldier slots are in use. From there a group can be shown on the map, or dismissed after a confirmation, which takes it, its vehicle and its orders out of the world for good."
+   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Main-menu button: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.c:160 and ManageGroups():263. Roster contents: OVT_HighCommandRosterContext.c:343 (#OVT-HC_Roster_Capacity, count and cap) and :440 (alive over total); Show on Map and Dismiss buttons at UI/Layouts/Menu/HighCommandRoster.layout:228 and :240, dismissal confirmed by the server (OVT_HighCommandManagerComponent.DismissGroup:911-949, which deletes members, vehicle, group entity, waypoints and observer). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720A}" {
+   Id "OVT-FieldManual_HighCommand_Head5"
+   Target_en_us "Ammunition and Fuel"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720B}" {
+   Id "OVT-FieldManual_HighCommand_Text6"
+   Target_en_us "A group left near a registered warehouse tops its magazines back up out of the stock held there, by itself, every so often. A group with a vehicle parked near a fuel source fills its tank the same way, and the fuel is charged to the group's owner at the same price a player filling up by hand would pay; a fuel depot the resistance built is free."
+   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Rearm: OVT_HighCommandManagerComponent.RearmTick / RearmGroup:2969-3046, which collects registered warehouse stores at OVT_HighCommandRules.WAREHOUSE_RANGE (150 m) around the group and refills deficient magazines; interval m_iRearmIntervalMs, default 60000 ms (:31-33). Refuel: RefuelTick / RefuelGroup:3136 onward, m_iRefuelIntervalMs default 60000 ms (:35-37), using the player fill's own call path (OVT_FuelUtils.GetFuelCostPerLitre, OVT_FuelPricing.ComputeFillPlan) and charging the owner for the litres that actually arrived. Free source: OVT_FuelSourceComponent.IsFree:29-32, authored m_bFree 1 on Prefabs/Structures/Military/FOB/OVT_FuelDepot.et:14. INTERVALS ARE DELIBERATELY NOT QUOTED - they are configurable attributes on the manager. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720C}" {
+   Id "OVT-FieldManual_HighCommand_Head6"
+   Target_en_us "Turning Recruits Over"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720D}" {
+   Id "OVT-FieldManual_HighCommand_Text7"
+   Target_en_us "Recruits that are holding position can be handed to High Command instead of being managed one by one. The Manage Recruits screen shows the ones holding position grouped by where they are standing, and each of those groups carries a Convert to High Command action. The change is one way. Those recruits leave your recruit roster and give their slots back, and their names, experience and skill tracking end with their records, but the same bodies carry on in the new group with the gear they were already wearing."
+   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Split roster and the button: OVT_RecruitsContext.c:371 (#OVT-Recruits_GroupHeader per cluster), :444 (OVT_RecruitInactiveGrouping.SelectClusterCandidates), :664-695 (UpdateConvertButton, disabled with a reason for an active or bodiless selection), :748 (RequestConvertRecruitGroup); label #OVT-Recruits_ConvertToHC at UI/Layouts/Menu/RecruitsMenu.layout:317. Server side: OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 spawns a group under the reserved key hc_converted from the EXISTING bodies, then DropConvertedRecruitRecords:2513-2526 clears each body id and calls the shipped RemoveRecruit, which frees the recruit cap. One way: no reverse path exists on the seam (OVT_HighCommandRequestComponent.c has only RpcAsk_ConvertRecruitGroup:412). Cap refusal: RESULT_CONVERT_AT_CAP (:50), shown as #OVT-Recruits_ConvertAtCap. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720E}" {
+   Id "OVT-FieldManual_HighCommand_Head7"
+   Target_en_us "Holding Ground"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720F}" {
+   Id "OVT-FieldManual_HighCommand_Text8"
+   Target_en_us "Bases, camps and FOBs no longer take a bought garrison, and the menus that sold one are gone. Ground is held by parking a High Command group on it in Defend stance, which unlike a garrison can be picked up and sent somewhere else at any time. A campaign saved before the change loads without its old garrisons."
+   Comment "Field Manual - The Resistance category, High Command page. Three sentences, written for returning players. The purchase paths, spawn helpers and menu copy were removed in Phase 11 of resistance/high-command: no AddToGarrison remains on OVT_BaseMenuContext or OVT_FOBMenuContext, no AddGarrison/AddGarrisonFOB/AddGarrisonCamp/SpawnGarrisons on OVT_ResistanceFactionManager, and the map's Garrison row and GARRISON_COUNT key are gone. Old saves: OVT_ResistanceManagerSerializer went 1 to 2 and OVT_OccupyingFactionManagerSerializer 2 to 3, each reading the persisted garrison list and discarding it (no field was deleted, the record shape is unchanged); see docs/features/resistance/high-command/context.md, Phase 11. Defend stance: OVT_HighCommandManagerComponent.ApplyStance:1044-1077, re-orderable at any time through OrderGroup:875-898. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007210}" {
+   Id "OVT-FieldManual_Recruits_Head9"
+   Target_en_us "Handing Recruits to High Command"
+   Comment "Field Manual - The Resistance category, Recruits page. Ninth section header, five words. Added 2026-08-22 by resistance/high-command Phase 13; points at the High Command page rather than repeating it. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007211}" {
+   Id "OVT-FieldManual_Recruits_Text10"
+   Target_en_us "Recruits that are holding position can also be handed over to High Command, which fields whole groups a player orders from the map. The Holding Position section is split by where the recruits are standing, and each of those groups carries a Convert to High Command action. It is one way: the recruits leave your roster and free their slots, and their names, experience and skills stop being tracked, while the same bodies and their gear carry on in the new group."
+   Comment "Field Manual - The Resistance category, Recruits page, body paragraph under the 'Handing Recruits to High Command' header. Three sentences. Same citations as #OVT-FieldManual_HighCommand_Text7: OVT_RecruitsContext.c:371, :444, :664-695, :748; UI/Layouts/Menu/RecruitsMenu.layout:317; OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 and DropConvertedRecruitRecords:2513-2526 (RemoveRecruit frees the recruit cap). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007212}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Title"
+   Target_en_us "High Command"
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Popup title, two words. Matches the Field Manual page title it links to (#OVT-FieldManual_HighCommand_Title). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007213}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Body"
+   Target_en_us "Groups bought here are yours, and stay yours between sessions. The price covers the recruit cost of every man, the gear each of them needs, and, for a group that comes with a vehicle, that vehicle at its full shop price. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, and there is a cap on how many High Command soldiers one player can hold at once."
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 1 of 2, four sentences, no rich-text markup. TONE: informs, never instructs, and reads correctly whatever the player has already done. Citations: pricing OVT_HighCommandManagerComponent.QuoteEntry:458-500 with OVT_HighCommandRules.PurchaseTotal (OVT_HighCommandRules.c:114-126, the vehicle at full shop price outside the fee multiplier); warehouse coverage OVT_HighCommandRules.WAREHOUSE_RANGE 150.0 (:10) via CollectStores/SplitCoverage at QuoteEntry:485-493, rendered as #OVT-HC_QuoteCovered; supporters SupportersRequired plus the gate-8 refusal; cap OVT_HighCommandRules.DEFAULT_MEMBER_CAP 48 (:15), enforced server-side and configurable, so the number is not quoted; persistence OVT_HighCommandManagerSerializer. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007214}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Body2"
+   Target_en_us "Every player's map shows these groups as green symbols, your own at full strength and other players' dimmed. Selecting one shows its owner, stance, destination and status, and a group you own can be sent to the spot under the map cursor or have its stance cycled between Defend, Patrol and Attack. Travel happens in real time, on foot or by road, and carries on while you are offline. Manage Groups, on the main menu, lists what you own."
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 2 of 2, four sentences, no rich-text markup. TONE: informs, never instructs. Citations: OVT_MapHighCommandLayer.c:21 and :329 (OTHER_OWNER_OPACITY 0.45), :1012-1041 (owner, stance, destination, status lines), OnOrderPressed:1078-1099 (orders to the map cursor), OnStancePressed:1105-1126 (cycles DEFEND, PATROL, ATTACK); stance behaviour OVT_HighCommandManagerComponent.ApplyStance:1044-1077. Real-time travel and offline continuation are D1 in implementation.md section 5: the group is an always-live SCR_AIGroup with its own AI observer (OVT_HighCommandGroupComponent.c:50-67) and nothing on OVT_HighCommandManagerComponent despawns or freezes it when its owner disconnects. Manage Groups: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.ManageGroups:263. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""

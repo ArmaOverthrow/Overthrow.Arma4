@@ -392,6 +392,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_TutorialManager.PostGameStart();
 		}
 
+		// Resolved through GetInstance() rather than a cached member, the same way the save-point sweep
+		// reaches it. Its PostGameStart only queues the spawn-inspect manifest build - one character
+		// prefab per call-queue hop - so its position in this chain is not load-bearing.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if(highCommand)
+		{
+			Print("[Overthrow] Starting High Command");
+
+			highCommand.PostGameStart();
+		}
+
 		// LAST IN THE CHAIN, for the same reason its Init() is: its first tick queries the town and
 		// base registries, the deployment pool and the difficulty settings, and every one of those is
 		// established by a PostGameStart above.
@@ -431,6 +442,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				config.m_Difficulty.vehiclePriceMultiplier = config.m_ConfigFile.vehiclePriceMultiplier;
 				config.m_Difficulty.fuelPricePerLitre = config.m_ConfigFile.fuelPricePerLitre;
 				config.m_Difficulty.recruitLoadoutFeeMultiplier = config.m_ConfigFile.recruitLoadoutFeeMultiplier;
+				config.m_Difficulty.highCommandMemberCap = config.m_ConfigFile.highCommandMemberCap;
+				config.m_Difficulty.highCommandSupportersPerMember = config.m_ConfigFile.highCommandSupportersPerMember;
 			}
 		}
 
@@ -842,6 +855,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 		if (vehicles)
 			vehicles.SyncVehicleRecords();
+
+		// And for High Command groups, whose marker positions and reload positions both come off the
+		// record - the group ENTITY never moves, so only this sweep knows where a group actually is.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if (highCommand)
+			highCommand.SyncGroupPositions();
 	}
 
 	//------------------------------------------------------------------------------------------------

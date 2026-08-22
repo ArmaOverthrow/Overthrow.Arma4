@@ -1,0 +1,15 @@
+SCR_DestructibleBuildingEntity : "{5F97E54397247954}Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_military_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_SpawnPointComponent "{6B1C3D0000006100}" {
+   m_aVehiclePoints {
+    PointInfo "{6B1C3D0000006105}" {
+     Offset -18 0 9.7831
+    }
+    PointInfo "{6B1C3D0000006106}" {
+     Offset -18 0 -0.0105
+    }
+   }
+  }
+ }
+}

@@ -3,8 +3,8 @@
 //! OVT_MapLocationData stores per-record information in map<string, ...> collections, so every key is
 //! an UNREGISTERED string: a typo does not fail to compile, it silently yields the default value and
 //! the panel renders a blank row. Several key sets are duplicated by convention between location
-//! types - House/Warehouse share an ownership shape, FOB/Camp share owner/persistentId/garrisonCount -
-//! which is exactly where a typo goes unnoticed longest.
+//! types - House/Warehouse share an ownership shape, FOB/Camp share owner/persistentId - which is
+//! exactly where a typo goes unnoticed longest.
 //!
 //! These constants are the single spelling for those shared keys. They are deliberately NOT applied
 //! to every shipped type: only types the map/location-types feature already edits use them, so this
@@ -33,11 +33,6 @@ class OVT_MapDataKeys
 
 	//! Persistent ID of the record itself (FOB/Camp), not of a player. Distinct from OWNER.
 	static const string PERSISTENT_ID = "persistentId";
-
-	//! Number of AI garrisoned at this location.
-	//! WARNING: garrison is NOT replicated (see implementation.md N5), so this reads 0 on every
-	//! remote client. Never lead a panel with it and never show it when it is 0.
-	static const string GARRISON_COUNT = "garrisonCount";
 
 	//! Per-record OVERRIDE of the type's m_fVisibilityZoom (BUG-138). Optional float: when present and
 	//! >= 0 it replaces OVT_MapLocationType.GetVisibilityZoom() for this record alone, in BOTH

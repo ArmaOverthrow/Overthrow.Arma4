@@ -473,3 +473,69 @@ Fixed by authoring the missing context once, on the truck delta: `ActionContexts
 **T-2 — a ground drop from a truck spawned inside the cab.** `ResolveDropPosition` placed the pile `m_fUnloadOffset` metres along the **caller's character** forward axis. A player opening the screen at the driver's door faces the truck, so "4 m forward" put the pile through the right-hand side of the cabin.
 
 Now: when the source holder is a `Vehicle`, the drop is measured from the **hull's own aft extent** — `pos = origin + forward * (mins[2] − offset)`, where `mins` comes from `GetBounds()` (local space; the `OVT_StructureDestructionComponent.c:412` precedent). Measuring from the bounding box rather than a fixed offset means a long truck and a short one both clear their own tailgate. Any non-vehicle source (pile, warehouse) keeps the character-relative behaviour. `m_fUnloadOffset` default **4 → 3** per the user, and its description now covers both cases.
+
+## Play-test tweaks — round 2 (2026-08-22, user)
+
+**T-3 — a loaded truck looked empty.** Vanilla's supply-truck crates are not a spawned visual: every vanilla cargo bed (`M923A1_cargo.et:753`, `Ural4320_cargo.et:740`) already carries a `SlotManagerComponent` with six slots `SupplyStorage_01..06`, each pre-filled with `Prefabs/Props/Military/SupplyBox/SupplyStack/SupplyStack_Large_01/SupplyStack_Large_01_Vehicle.et` (250 supplies each = the 1500 of `Ural4320_cargo_filled.et`). Conflict drives their visibility through `SCR_ResourceComponent`: `EOnInit` (`SCR_ResourceComponent.c:1314`) hides every stack whose container reads 0, and `OnVisibilityChanged` (`:1488`) is nothing more than `SetFlags/ClearFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE)` plus a simulation-state change.
+
+So the crates are **already sitting on every Overthrow truck bed**, correctly positioned, hidden at init. New `OVT_ResourceCargoBedComponent` (on the `Wheeled_Truck_Base.et` delta, GUID `{6A8E2E0000000060}`) re-shows `ceil(used / capacity × slotCount)` of them from **our** ledger — no `SCR_Resource*` in the data path (epic wall held), no authored offsets, no new prefab, and it reaches the M923A1 and Ural families identically.
+
+- **Purely local, zero new replicated state.** The count is derived from `OVT_ResourceStoreComponent`'s existing packed `RplProp`, so every machine reaches the same answer with no RPC and no authority branch.
+- **Visibility flags only — the simulation state is deliberately left at vanilla's `NONE`.** The stacks slot with `MergePhysics 1`; toggling a merged rigid body on a moving vehicle is not worth the risk for decoration nobody can reach. Consequence: the crates are non-colliding.
+- **Resolution is deferred and bounded.** The bed is a slotted child and its `EOnInit` hide runs after our `OnPostInit`, so the first look is a `CallLater`; it retries at 1 s and **gives up after 10 attempts** so a truck family with no supply slots (tanker, ammo, repair) stops costing a timer.
+- Any non-zero load shows **at least one** crate.
+
+✅ **PLAY-TEST GREEN (user, 2026-08-22): "very proven, they look great".** Both open questions are settled: the stacks *are* present-but-hidden in Overthrow's world, and flipping `VISIBLE | TRACEABLE` alone renders them — the simulation state never needed restoring, so the crates stay non-colliding by design and nothing touches a merged rigid body.
+
+**T-4 — the cargo HUD showed on an empty truck.** `OVT_CargoInfo.Refresh()` now hides the panel when `GetUsedLitres() <= 0`, so the readout appears only while hauling. It already redraws on the store's change invoker, so it comes back the moment something is loaded.
+
+**T-5 — the port checkout showed money but not volume.** `OVT_PortContext` inherited the base money summary (`#OVT-Transfer_SummaryPrice`, "Total %1 in %2 line(s)") and said nothing about what the order would do to the truck's hold — the resource transfer screen already showed volume because `OVT_ResourceTransferContext` *replaces* the summary, but the port has both currencies in one cart.
+
+`OVT_PortContext.GetSummaryText()` now appends the projected volume, reusing `#OVT-Resource_SummaryVolume` inside a new two-parameter wrapper key `#OVT-Port_SummaryVolume` (`{6A8E2E200000009A}`, "%1 · Cargo %2") so both halves stay separately translatable. Appended **only when the cart actually orders resources** — an item-only import has nothing to say about volume — and **deliberately not clamped to the capacity**, so an over-capacity order reads as over capacity, matching what `ValidateResourceImportCart` refuses. Export subtracts instead of adding, floored at zero.
+
+**T-6 — a loaded truck's bed seats were still enterable, so a passenger spawned inside the crates.** Vanilla *does* gate this, in two halves, and Overthrow was missing both:
+
+- **Player half.** `SCR_GetInUserAction.CanBePerformedScript` (`:76-85`) refuses with `#AR-UserAction_SeatOccupied` when `SCR_BaseCompartmentManagerComponent.BlockSuppliesIfOccupied()` is true and `SCR_ResourceSystemHelper.GetStoredResources() > 0`. The flag `m_bBlockSuppliesIfOccupied 1` is authored on the **bed's** compartment manager only (`Ural4320_cargo.et:688`), never the cab's, so it targets exactly the right seats. Overthrow's `modded class SCR_GetInUserAction` fully replaces `CanBePerformedScript` and had dropped that block — and it would have been inert anyway, since nothing fills `SCR_ResourceComponent` here. Restored against **our** ledger via `CargoBedIsLoaded()`.
+- **AI half — vanilla does not have one.** Its own comment reads *"Hotfix until proper solution, only blocks player does not block AI or Editor actions"* (`SCR_GetInUserAction.c:76`). `OVT_ResourceCargoBedComponent` now calls `SetCompartmentsAccessibleForAI(false)` on the bed's manager whenever the crate count is non-zero, so AI is blocked too.
+
+⚠️ **Any load at all closes the whole bed**, exactly as vanilla behaves — one unit of Timber locks out every bed passenger. Change the threshold in `CargoBedIsLoaded()` and `Refresh()` if that proves too blunt in play.
+
+⚠️ **The AI flag can lapse.** `SCR_AIGroup.c:2024/2044` writes `SetCompartmentAccessible` for its own boarding flow, so an AI group that touches a loaded truck can re-open a seat. Our write is re-asserted on every contents change, which is the only moment the block starts mattering; a stronger fix would need a tick or a hook on the AI path. Not done — watch for it in play-test.
+
+## Play-test tweaks — round 3 (2026-08-22, user)
+
+**T-7 — two action groups at the tailgate. T-1's premise was WRONG and is hereby corrected.** T-1 concluded no `door_rear` context existed because it grepped the truck **roots** (`M923A1.et`, `Ural4320.et`). It exists on the **cargo bed**, a slotted child with its *own* `ActionsManagerComponent`: `Ural4320_cargo.et:897` / `M923A1_cargo.et`, `ContextName "door_rear"`, pivot `v_door_rear`, `Radius 0.5`, `Omnidirectional 0` — and it already hosts vanilla's `SCR_OpenVehicleStorageAction` ("Open Cargo") and the supply Load/Unload actions.
+
+T-1 therefore **invented a second `door_rear`** on the root at `Offset 0 1 -4, Radius 3`, which overlapped vanilla's real one and produced the two groups the user saw: the higher one vanilla's (bed), the lower one ours (root) plus every root action that binds unrestricted. `ParentContextList` resolves **within one `ActionsManagerComponent`** — a root action can never bind to a context on the bed, which is the real reason T-1 found the entry inert.
+
+Fixed properly:
+- The invented `UserActionContext` is **deleted** from `Wheeled_Truck_Base.et`.
+- Both bed deltas **already existed** (`Ural4320_cargo.et`, `M923A1_cargo.et` — same-GUID, hosting `OVT_LootIntoVehicleAction` on the real `door_rear`). Our five actions are appended to each, sort priorities 18-22 so they group after vanilla's 16/17. Every bed variant (canvas, closed, CIV, FIA, MERDC) inherits these two, so no further prefabs are needed.
+- Bed-hosted actions get the bed as their owner while the components sit on the vehicle root, so `OVT_ResourceUtils.ResolveStoreHolder()` / `OVT_StorageUtils.ResolveStorageHolder()` do one guarded hop up — the pattern `OVT_LootIntoVehicleAction:68` already established. `OVT_StorageActionBase` gained a single `Holder()` used by all three of its subclasses; `OVT_SellVehicleCargoAction` (not a subclass) resolves at its three sites.
+
+🔴 **`"door_rear"` in a ParentContextList is NOT inert in general — do not "clean it up".** Vanilla defines a real root-level `door_rear` on `S1203_base.et`, `UAZ452_*`, `UAZ469_base.et`, `M997_maxi_ambulance_base.et` and `Vehicle_AmmoBox_Base.et`. The entries on `Vehicle_Base.et`'s four storage actions are **load-bearing for vans, UAZs and ambulances**; only the two big trucks lacked the root context. Removing them would silently drop rear access on every van in the game.
+
+**T-8 — every truck variant had a cargo hold.** The store was authored on `Wheeled_Truck_Base.et` at 15 m³, so tanker, ammo, repair, arsenal, command and engineer variants all inherited one. Capacity **0 now means "no resource store at all"** (`OVT_ResourceStoreComponent.NO_CAPACITY`): `OnPostInit` builds no ledger and skips the RplComponent warning, and `OVT_ResourceUtils.GetStore()` **returns null** for an inert store — so the action, the cargo HUD, the crate visual and the port all refuse with no per-caller check.
+
+The truck base now defaults to `m_fCargoVolume 0`, making a cargo hold **opt-in**. The four prefabs that already override it are exactly the ones that should have one: `M923A1_transport` (20), `Ural4320_transport` (20), `OverthrowMobileFOB` (8), `OverthrowMobileFOBDeployed` (8). Covered/CIV/FIA transports inherit those. **Item storage is untouched** — it is a separate component on `Vehicle_Base.et`.
+
+## Play-test tweaks — round 4 (2026-08-22, user)
+
+**T-9 — a finished construction site left its scaffolding standing inside the new building.** 🔴 **`SCR_EntityHelper.DeleteEntityAndChildren` is a MISNOMER.** Its entire body is `RplComponent.DeleteRplEntity(entity, false)` (`SCR_EntityHelper.c:177`), which takes the **root** out of replication and out of the world and leaves prefab-authored **hierarchy children** exactly where they are. The name says otherwise and it is used all over this codebase.
+
+The `Prefabs/Sites/Site_*.et` prefabs are compositions: a `Hierarchy` component plus an authored child block of props (`ConstructionMaterialPacked_WoodPlanks_01_USSR`, `CargoContainer_01_10ft_olive`, …). `CompleteSite` deleted the site root correctly — the ordering (`Untrack` → destroy → `FinishBuild`) was never at fault — but every prop survived and ended up inside the finished garage.
+
+Fixed in `OVT_ResistanceFactionManager.DestroyPlacedItem()` via a new `DeleteComposition()`:
+- **Direct children only**, each deleted through its own subtree. Collecting the whole tree and deleting deepest-first hands back handles an ancestor's delete already freed.
+- **A child with an `RplComponent` leaves through replication; one without is `delete`d outright** — `DeleteRplEntity` does nothing at all for a plain non-replicated prop, which is the bug.
+- **`ChimeraCharacter` children are skipped.** No structure composition contains one, and deleting one could be a player.
+
+⚠ **Deliberately fixed in the SHARED path, against F-7's caution.** `DestroyPlacedItem` documents itself as "the one way a placed or built structure leaves the world", and its other callers — camp teardown (`:1979`), FOB area cleanup, base sabotage (`OVT_BaseSabotageBehaviorDeploymentModule.c:351`), `RaiseForwardBase` (`:1330`) and the player removal flow (`RemovePlacedItem:1277`) — are **all structures, never vehicles with occupants**, and every one of them leaked composition children in exactly the same way. Scoping the fix to construction sites would have left those leaks in place. Worth a look during any camp/FOB/sabotage play-test.
+
+**T-9b — the real root cause: the site prefabs' children were never in the hierarchy at all.** (User's read, and it is correct.) A vanilla composition gives **each child its own `Hierarchy` component**, not just the root — `SupplyPoint_AnglerBluff_USSR_01.et:55-65` shows the exact shape, including inside a `$grp` block where every instance carries its own `components { Hierarchy { Enabled 1 } }` between `ID` and `coords`. The four `Prefabs/Sites/Site_*.et` had `Hierarchy` on the **root only**, so the props were never parented and no parent-side delete could ever have reached them.
+
+Added `Hierarchy { Enabled 1 }` to every plain-prop child: Barracks +8, Garage +9, Helipad +4, Warehouse +9 (30 fresh GUIDs from `6A8E2E40…`, all unique, braces balanced).
+
+⚠ **Sub-composition children are deliberately skipped** — `Barrel_Group_Crate_01.et` and `CrateStacked_02.et` descend from `Prefabs/Compositions/Slotted/SubComposition.et` / `CompositionBase.et`, which already declare `Hierarchy`. Vanilla re-declares it only on plain props for exactly this reason; a second declaration under a new GUID would add a duplicate component rather than override the inherited one.
+
+The `DeleteComposition()` walk from T-9 is kept as belt-and-braces: it is what makes a **non-replicated** child leave the world at all (`DeleteRplEntity` is a no-op for one), and it now has real children to find.

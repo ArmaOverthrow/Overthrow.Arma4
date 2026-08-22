@@ -13,14 +13,15 @@ SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industria
      "Kinetic multiplier" 0.1
      "Explosive multiplier" 1
      "Incendiary multiplier" 0.1
+     DamageThreshold 50
     }
    }
-   m_fBaseHealth 100000
+   m_fBaseHealth 32000
    m_fDamageThresholdMaximum 50000
    m_bDeleteAfterFinalPhase 0
    m_aDamagePhases {
     SCR_DamagePhaseData "{6A8E2E0000000042}" {
-     m_fPhaseHealth 100000
+     m_fPhaseHealth 32000
      m_PhaseModel "{4FEF9F10015F63FC}Assets/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Ruin.xob"
     }
    }

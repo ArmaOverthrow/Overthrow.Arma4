@@ -1088,3 +1088,95 @@ class OVT_TEST_StructureDamageHits
 		component.HandleDamage(context);
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! CASE G - a ruin hides the structure's children, and a repair puts back exactly those.
+//!
+//! A phase change swaps the ROOT's mesh only, so decorative children outlive the collapse: the
+//! reported case was a barracks whose furniture and interior lights hung in mid-air above the rubble
+//! (2026-08-22). The subject is chosen for having a child at all - most buildables do not.
+//!
+//! The second half is the one that can regress quietly: a repair must restore only what the ruin
+//! hid, never everything it finds, because pre-hidden children are a real vanilla shape.
+//!
+//! PROVEN ABLE TO FAIL: drop the HideChildren() call from OnBecameRuin() - red on "child still
+//! visible"; drop RestoreChildren() from OnBecameIntact() - red on "child not restored".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StructureDamage_GRuinHidesChildrenAndRepairRestoresThem : SCR_AutotestCaseBase
+{
+	//! The reported structure. It carries Barracks_01_military_furniture_01 as a child.
+	static const ResourceName SUBJECT_PREFAB = "{048EA1F9675A05E6}Prefabs/Structures/Military/Houses/Barracks_01/OVT_Barracks.et";
+
+	protected IEntity m_Subject;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.Count() < 1)
+		{
+			SetFailure("No towns are registered - nowhere sensible to spawn the subject");
+			return true;
+		}
+
+		m_Subject = OVT_Global.SpawnEntityPrefab(SUBJECT_PREFAB, towns.m_Towns[0].location + Vector(1200, 0, 1200));
+		if (!m_Subject)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from " + SUBJECT_PREFAB);
+			return true;
+		}
+
+		IEntity child = m_Subject.GetChildren();
+		if (!child)
+		{
+			SetFailure("The subject has no children - this case can no longer prove anything; pick a structure that has some");
+			return CleanUp();
+		}
+
+		if (!(child.GetFlags() & EntityFlags.VISIBLE))
+		{
+			SetFailure("The subject's first child is already hidden before the ruin - the fixture proves nothing");
+			return CleanUp();
+		}
+
+		if (!OVT_StructureDamage.Ruin(m_Subject))
+		{
+			SetFailure("Ruin() refused the subject");
+			return CleanUp();
+		}
+
+		if (child.GetFlags() & EntityFlags.VISIBLE)
+		{
+			SetFailure("A ruined structure's child is still visible - furniture and lights hang in the rubble");
+			return CleanUp();
+		}
+
+		if (!OVT_StructureDamage.Repair(m_Subject))
+		{
+			SetFailure("Repair() refused the ruined subject");
+			return CleanUp();
+		}
+
+		if (!(child.GetFlags() & EntityFlags.VISIBLE))
+		{
+			SetFailure("A repaired structure's child was not restored - the building is back but empty");
+			return CleanUp();
+		}
+
+		return CleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool CleanUp()
+	{
+		if (m_Subject && !m_Subject.IsDeleted())
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Subject);
+
+		m_Subject = null;
+
+		return true;
+	}
+}

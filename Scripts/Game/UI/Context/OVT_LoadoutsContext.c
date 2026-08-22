@@ -381,7 +381,8 @@ class OVT_LoadoutsContext : OVT_UIContext
 	//! \param[in] itemCount How many items were priced.
 	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
 	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
-	protected void OnRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	//! \param[in] coveredValue Value of the gear covered by nearby warehouse stock.
+	protected void OnRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource, int coveredValue)
 	{
 		if (!IsPurchaseMode()) return;
 		if (loadoutName != m_SelectedLoadoutName) return;
@@ -394,8 +395,12 @@ class OVT_LoadoutsContext : OVT_UIContext
 			// to be resolved before it gets there - WidgetManager.Translate is the vanilla way (the same
 			// thing OVT_OverthrowMapUI does for the fast-travel fare). The details line goes through the
 			// same sink, so it is resolved the same way.
-			ShowPurchaseState(WidgetManager.Translate("#OVT-Recruit_QuotePrice", itemCount.ToString(), price.ToString()),
-				WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), true);
+			string status = WidgetManager.Translate("#OVT-Recruit_QuotePrice", itemCount.ToString(), price.ToString());
+
+			if (coveredValue > 0)
+				status = status + "\n" + WidgetManager.Translate("#OVT-Recruit_QuoteCovered", coveredValue.ToString());
+
+			ShowPurchaseState(status, WidgetManager.Translate("#OVT-Recruit_BuyButton", price.ToString()), true);
 			return;
 		}
 

@@ -25,21 +25,41 @@ GenericEntity : "{6A8E2E0000000101}Prefabs/Structures/OVT_ConstructionSite.et" {
  {
   GenericEntity : "{14DDB40171F949A9}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_WoodPlanks_01_USSR.et" {
    ID "6A2ADE9E0CBB4088"
+   components {
+    Hierarchy "{6A8E2E4000000012}" {
+     Enabled 1
+    }
+   }
    coords 3.703 0.408 0.335
    angles 0 51.133 0
   }
   GenericEntity : "{4A34979DC19CA9ED}Prefabs/Props/Construction/ConcreteMixer_01.et" {
    ID "6A2ADE9E6F0A89C7"
+   components {
+    Hierarchy "{6A8E2E4000000013}" {
+     Enabled 1
+    }
+   }
    coords 0 0.411 0
   }
   $grp GenericEntity : "{90C62D3DBDEB0759}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_MetalSheets_01_US.et" {
    {
     ID "6A2ADE9E0CBB40AE"
+    components {
+     Hierarchy "{6A8E2E4000000014}" {
+      Enabled 1
+     }
+    }
     coords -3.42 0.385 -1.46
     angles 0 -50.92 0
    }
    {
     ID "6A2ADE9E542350ED"
+    components {
+     Hierarchy "{6A8E2E4000000015}" {
+      Enabled 1
+     }
+    }
     coords -4.087 0.395 0.522
     angles 0 -34.859 0
    }

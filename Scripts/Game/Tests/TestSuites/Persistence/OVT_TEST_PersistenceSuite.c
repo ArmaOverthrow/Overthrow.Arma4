@@ -56,8 +56,6 @@
 //!     pending an upstream bug. Covering them would pin a switched-off feature.
 //!   - LOADOUTS live in a separate scripted-state path whose repository methods are unimplemented
 //!     stubs, so the manager has nothing to hand back.
-//!   - GARRISONS are never populated in the test world (findings.md 1.4) - assertions on them
-//!     would be red on arrival and would say nothing about Overthrow.
 //!
 //! ---------------------------------------------------------------------------------------------
 //! RUN RECIPE
@@ -1545,9 +1543,8 @@ class OVT_TEST_Persistence_NewRadioTower_DefaultsToOccupyingFaction : SCR_Autote
 //! faction (a legitimately captured base) - the sweep must NOT trample it back to occupying.
 //!
 //! SIDE EFFECT, ACCEPTED. Applying the scenario-2 record clears the base's persisted-data lists
-//! (upgrades/slots/garrison records). Those lists are rebuilt from the LIVE controller at save time
-//! and are empty during a test-world session anyway (garrisons are never populated here), so
-//! nothing downstream reads what this case clears.
+//! (upgrade/slot records). Those lists are rebuilt from the LIVE controller at save time and are
+//! empty during a test-world session anyway, so nothing downstream reads what this case clears.
 //!
 //! CAN-FAIL: proven red 2026-08-13 against the pre-fix ApplyPersistedOccupyingFaction (unmatched
 //! bases were simply never visited): "expected occupying faction ..., it is -1".

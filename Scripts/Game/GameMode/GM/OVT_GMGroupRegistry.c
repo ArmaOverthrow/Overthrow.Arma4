@@ -15,10 +15,7 @@ enum OVT_EGroupOrigin
 	BASE_SNIPER,
 	TOWER_GUARD,
 	TOWN_PATROL,
-	BASE_GARRISON,
 	RADIO_TOWER_GARRISON,
-	CAMP_GARRISON,
-	FOB_GARRISON,
 	QRF,
 	DEPLOYMENT,
 	JOB
@@ -66,12 +63,11 @@ class OVT_GMGroupOrigin : Managed
 //!
 //! IT TAGS AND IT SWEEPS. IT NEVER UNTAGS, AND THERE MUST BE NO UNTAG METHOD ON IT.
 //! The alternative was surveyed and rejected on evidence: there are 27 delete/drop sites for these
-//! groups and the existing cleanup already leaks in at least three documented ways - QRF groups are
-//! never deleted at all (OVT_QRFControllerComponent.m_Groups is filled and drained nowhere), the
-//! deployments framework's old shared group cleanup deleted a group's soldiers but not the group
-//! entity (that helper and its whole file are gone as of virtualization/integration Phase 5, which
-//! is the cheapest possible fix for it), and camp/FOB removal never touches garrisonEntities.
-//! Mirroring that with 27 untag calls would inherit
+//! groups and the existing cleanup already leaks in documented ways - QRF groups are never deleted at
+//! all (OVT_QRFControllerComponent.m_Groups is filled and drained nowhere), and the deployments
+//! framework's old shared group cleanup deleted a group's soldiers but not the group entity (that
+//! helper and its whole file are gone as of virtualization/integration Phase 5, which is the cheapest
+//! possible fix for it). Mirroring that with 27 untag calls would inherit
 //! every one of those leaks and would silently rot the moment a future feature adds a spawn site.
 //! Sweep() drops entries whose EntityID no longer resolves, which handles all of them uniformly and
 //! cannot be forgotten. A spawn site that forgets to Tag() produces a MISSING record, never a WRONG
@@ -146,9 +142,8 @@ class OVT_GMGroupRegistry
 	//! Static so that every call site is genuinely one statement dropped in beside the spawn's existing
 	//! tracking insertion, changing no control flow. Both guards below are what make that safe:
 	//!  - a null group is ignored, so a site may tag unconditionally after a spawn that can fail;
-	//!  - a non-server caller is ignored, so the two client-local throwaway preview groups
-	//!    (OVT_BaseMenuContext / OVT_FOBMenuContext spawn and delete a group inside Refresh() purely to
-	//!    count unit slots) are excluded structurally rather than by anyone remembering to exclude them.
+	//!  - a non-server caller is ignored, so any client-local throwaway group is excluded structurally
+	//!    rather than by anyone remembering to exclude it.
 	//!
 	//! Re-tagging an EntityID overwrites the previous entry. That is intended: EntityIDs are recycled by
 	//! the engine, and the newest spawn is by definition the current truth for that id.

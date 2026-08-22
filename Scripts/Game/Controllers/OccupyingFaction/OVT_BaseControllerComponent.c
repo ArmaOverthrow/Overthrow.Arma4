@@ -18,7 +18,7 @@ class OVT_BaseControllerComponentClass: OVT_ComponentClass
 //!  - THE SLOT REGISTRY (m_AllSlots / m_AllCloseSlots / the six sized lists / m_Parking /
 //!    m_aSlotsFilled / m_aDefendPositions / m_aVehiclePatrolSpawns). This is discovered by one world
 //!    query per base at init and read by the composition, parked-vehicle and defend-position
-//!    deployment modules, by the resistance's FOB garrison path and by QRF placement. m_aSlotsFilled
+//!    deployment modules and by QRF placement. m_aSlotsFilled
 //!    in particular ROUND-TRIPS THROUGH THE SAVE and is what stops a deployment re-using a slot a
 //!    structure is already standing in;
 //!  - the faction/flag half, which is what a capture actually changes;

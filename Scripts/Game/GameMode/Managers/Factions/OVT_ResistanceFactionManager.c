@@ -12,11 +12,6 @@ class OVT_CampData : Managed
 	vector location;
 	string owner;
 	bool isPrivate = false; // Default to public for collaboration
-	
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-	
-	ref array<ref ResourceName> garrison = {};
 }
 
 class OVT_FOBData : Managed
@@ -29,11 +24,6 @@ class OVT_FOBData : Managed
 	vector location;
 	string owner;
 	bool isPriority = false; // Priority FOB for enhanced map visibility
-	
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-	
-	ref array<ref ResourceName> garrison = {};
 }
 
 
@@ -263,9 +253,10 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 	}
 	
+	//! Lifecycle hook called by OVT_OverthrowGameMode.DoStartGame(). Nothing to start here today; kept
+	//! because the game mode calls it unconditionally.
 	void PostGameStart()
 	{
-		GetGame().GetCallqueue().CallLater(SpawnGarrisons, 0);
 	}	
 	
 	//------------------------------------------------------------------------------------------------
@@ -273,8 +264,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//!
 	//! Called from OVT_ResistanceManagerSerializer.Deserialize().
 	//!
-	//! SPAWNS NOTHING. Restored garrison prefab lists are replayed by SpawnGarrisons() during
-	//! PostGameStart, the same path a fresh campaign start takes.
+	//! SPAWNS NOTHING.
 	//!
 	//! NO RPC. Clients receive camps and FOBs through the manager's normal replication.
 	//!
@@ -313,7 +303,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				camp.location = campRecord.location;
 				camp.owner = campRecord.owner;
 				camp.isPrivate = campRecord.isPrivate;
-				ApplyPersistedGarrison(camp.garrison, campRecord.garrison);
 			}
 		}
 
@@ -336,7 +325,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 				fob.location = fobRecord.location;
 				fob.owner = fobRecord.owner;
 				fob.isPriority = fobRecord.isPriority;
-				ApplyPersistedGarrison(fob.garrison, fobRecord.garrison);
 			}
 		}
 
@@ -429,64 +417,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 
 		return null;
 	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Rebuilds a garrison prefab list from a save record.
-	//! \param[in] target The live prefab list, may be null.
-	//! \param[in] source The saved prefab list, may be null.
-	protected void ApplyPersistedGarrison(array<ref ResourceName> target, array<ResourceName> source)
-	{
-		if (!target)
-			return;
-
-		target.Clear();
-
-		if (!source)
-			return;
-
-		foreach (ResourceName prefab : source)
-		{
-			if (prefab.IsEmpty())
-				continue;
-
-			target.Insert(prefab);
-		}
-	}
-
-	protected void SpawnGarrisons()
-	{
-		foreach(OVT_CampData fob : m_Camps)
-		{
-			foreach(ResourceName res : fob.garrison)
-			{
-				SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
-				if(!group)
-				{
-					Print(string.Format("[Overthrow] Failed to spawn camp garrison prefab '%1' - skipping", res), LogLevel.WARNING);
-					continue;
-				}
-				fob.garrisonEntities.Insert(group.GetID());
-				// GM group registry: restored from the save's camp garrison list.
-				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.CAMP_GARRISON, m_Camps.Find(fob), "Restored");
-			}
-		}
-		foreach(OVT_FOBData fob : m_FOBs)
-		{
-			foreach(ResourceName res : fob.garrison)
-			{
-				SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
-				if(!group)
-				{
-					Print(string.Format("[Overthrow] Failed to spawn FOB garrison prefab '%1' - skipping", res), LogLevel.WARNING);
-					continue;
-				}
-				fob.garrisonEntities.Insert(group.GetID());
-				// GM group registry: restored from the save's FOB garrison list.
-				OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.FOB_GARRISON, m_FOBs.Find(fob), "Restored");
-			}
-		}
-	}
-	
 	bool IsOfficer(int playerId)
 	{
 		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
@@ -1299,7 +1229,49 @@ class OVT_ResistanceFactionManager: OVT_Component
 		if(!entity) return;
 
 		OVT_NavmeshRebuild.Queue(entity);
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);
+		DeleteComposition(entity);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ SCR_EntityHelper.DeleteEntityAndChildren IS A MISNOMER. Its whole body is
+	//! RplComponent.DeleteRplEntity(entity, false) (SCR_EntityHelper.c:177), which takes the ROOT out
+	//! of replication and out of the world and leaves prefab-authored hierarchy children standing.
+	//! Every composition structure therefore left its props behind: a finished construction site kept
+	//! the Site_*.et scaffolding (planks, cargo containers) sitting inside the new building.
+	//!
+	//! Direct children only, each deleted through its own subtree - collecting the whole tree and
+	//! deleting deepest-first would hand back handles already freed by an ancestor's delete.
+	//! \param[in] root The structure to remove.
+	protected void DeleteComposition(notnull IEntity root)
+	{
+		array<IEntity> children = new array<IEntity>();
+
+		IEntity child = root.GetChildren();
+		while(child)
+		{
+			children.Insert(child);
+			child = child.GetSibling();
+		}
+
+		foreach(IEntity c : children)
+		{
+			if(!c) continue;
+
+			// A character is never part of a structure's composition, and deleting one could be a player.
+			if(ChimeraCharacter.Cast(c)) continue;
+
+			// A replicated child must leave through replication; a plain prop has no RplComponent at
+			// all, and DeleteRplEntity does nothing for it.
+			if(RplComponent.Cast(c.FindComponent(RplComponent)))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(c);
+				continue;
+			}
+
+			delete c;
+		}
+
+		SCR_EntityHelper.DeleteEntityAndChildren(root);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1397,9 +1369,8 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! PlayerHasMoney, do the thing, then TakePlayerMoney. DoTakePlayerMoney clamps at zero, so the
 	//! explicit funds check is mandatory rather than defensive.
 	//!
-	//! playerId == -1 MEANS SERVER-INITIATED AND FREE, the convention BuildItem() and ChargeForGarrison()
-	//! already use. That is how the occupying faction's repair module and the admin command repair
-	//! without a wallet.
+	//! playerId == -1 MEANS SERVER-INITIATED AND FREE, the convention BuildItem() already uses. That is
+	//! how the occupying faction's repair module and the admin command repair without a wallet.
 	//! \param[in] entity The ruined structure.
 	//! \param[in] playerId The paying player, or -1 for a free server-initiated repair.
 	//! \return True when the structure was repaired.
@@ -1435,200 +1406,6 @@ class OVT_ResistanceFactionManager: OVT_Component
 		}
 
 		return OVT_StructureDamage.Repair(entity);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Resolves a garrison group prefab from the player faction, guarding the client-supplied index.
-	protected ResourceName GetGarrisonPrefab(int prefabIndex)
-	{
-		OVT_Faction faction = OVT_Global.GetConfig().GetPlayerFaction();
-		if(!faction) return ResourceName.Empty;
-		if(prefabIndex < 0 || prefabIndex >= faction.m_aGroupPrefabSlots.Count()) return ResourceName.Empty;
-		return faction.m_aGroupPrefabSlots[prefabIndex];
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Charges a player for an already-spawned garrison group. Server-side twin of the cost shown in
-	//! the base/FOB menus: (recruit cost + 300 equipment placeholder) per soldier. A playerId of -1
-	//! means a server-initiated (free) garrison.
-	//! \return false when the player cannot afford it (the caller must delete the group).
-	protected bool ChargeForGarrison(int playerId, SCR_AIGroup group)
-	{
-		if(playerId == -1) return true;
-
-		int cost = (OVT_Global.GetConfig().m_Difficulty.baseRecruitCost + 300) * group.m_aUnitPrefabSlots.Count();
-		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		string persId = OVT_Global.GetPlayers().GetPersistentIDFromPlayerID(playerId);
-		if(!economy.PlayerHasMoney(persId, cost))
-		{
-			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
-			return false;
-		}
-		economy.DoTakePlayerMoney(playerId, cost);
-		return true;
-	}
-
-	void AddGarrison(int baseId, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		array<ref OVT_BaseData> bases = OVT_Global.GetOccupyingFaction().m_Bases;
-		if(baseId < 0 || baseId >= bases.Count()) return;
-		OVT_BaseData base = bases[baseId];
-		if(!base) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrison(base, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units - TakeSupporters
-		// silently no-ops when short, which used to hand out free garrisons (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(base.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		if(!ChargeForGarrison(playerId, group))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		base.garrisonEntities.Insert(group.GetID());
-		// GM group registry: baseId IS the positional index into m_Bases (see the bounds check above).
-		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.BASE_GARRISON, baseId, "AddGarrison");
-
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(base.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-
-	void AddGarrisonCamp(OVT_CampData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		if(!fob) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrisonCamp(fob, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		if(!ChargeForGarrison(playerId, group))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		fob.garrisonEntities.Insert(group.GetID());
-		// GM group registry: the camp's index in m_Camps, resolved here rather than read off
-		// OVT_CampData.id, which is only re-derived on the load path.
-		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.CAMP_GARRISON, m_Camps.Find(fob), "AddGarrisonCamp");
-
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-
-	void AddGarrisonFOB(OVT_FOBData fob, int prefabIndex, bool takeSupporters = true, int playerId = -1)
-	{
-		if(!fob) return;
-
-		ResourceName res = GetGarrisonPrefab(prefabIndex);
-		if(res.IsEmpty()) return;
-
-		SCR_AIGroup group = SpawnGarrisonFOB(fob, res);
-		if(!group) return;
-
-		// Refuse before charging when the town cannot supply the units (BUG-064)
-		if(takeSupporters && !OVT_Global.GetTowns().NearestTownHasSupporters(fob.location, group.m_aUnitPrefabSlots.Count()))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		if(!ChargeForGarrison(playerId, group))
-		{
-			SCR_EntityHelper.DeleteEntityAndChildren(group);
-			return;
-		}
-
-		fob.garrisonEntities.Insert(group.GetID());
-		// GM group registry: the FOB's index in m_FOBs, resolved here rather than read off
-		// OVT_FOBData.id, which is only re-derived on the load path.
-		OVT_GMGroupRegistry.Tag(group, OVT_EGroupOrigin.FOB_GARRISON, m_FOBs.Find(fob), "AddGarrisonFOB");
-
-		if(takeSupporters)
-		{
-			OVT_Global.GetTowns().TakeSupportersFromNearestTown(fob.location, group.m_aUnitPrefabSlots.Count());
-		}
-	}
-	
-	SCR_AIGroup SpawnGarrison(OVT_BaseData base, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, base.location);
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-		AddPatrolWaypoints(group, base);
-		return group;
-	}
-
-	SCR_AIGroup SpawnGarrisonCamp(OVT_CampData fob, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-
-		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);
-
-		return group;
-	}
-
-	SCR_AIGroup SpawnGarrisonFOB(OVT_FOBData fob, ResourceName res)
-	{
-		IEntity entity = OVT_Global.SpawnEntityPrefab(res, fob.location + "1 0 0");
-		SCR_AIGroup group = SCR_AIGroup.Cast(entity);
-		if(!group) return null;
-
-		AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(fob.location);
-		group.AddWaypoint(wp);
-
-		return group;
-	}
-	
-	protected void AddPatrolWaypoints(SCR_AIGroup aigroup, OVT_BaseData base)
-	{
-		OVT_BaseControllerComponent controller = OVT_Global.GetOccupyingFaction().GetBase(base.entId);
-		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
-		
-		if(controller.m_AllCloseSlots.Count() > 2)
-		{
-			AIWaypoint firstWP;
-			for(int i=0; i< 3; i++)
-			{
-				IEntity randomSlot = GetGame().GetWorld().FindEntityByID(controller.m_AllCloseSlots.GetRandomElement());
-				AIWaypoint wp = OVT_Global.GetConfig().SpawnPatrolWaypoint(randomSlot.GetOrigin());
-				if(i==0) firstWP = wp;
-				queueOfWaypoints.Insert(wp);
-				
-				AIWaypoint wait = OVT_Global.GetConfig().SpawnWaitWaypoint(randomSlot.GetOrigin(), s_AIRandomGenerator.RandFloatXY(45, 75));								
-				queueOfWaypoints.Insert(wait);
-			}
-			AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, firstWP.GetOrigin()));
-			cycle.SetWaypoints(queueOfWaypoints);
-			cycle.SetRerunCounter(-1);
-			aigroup.AddWaypoint(cycle);
-		}
 	}
 	
 	void RegisterCamp(IEntity ent, int playerId)

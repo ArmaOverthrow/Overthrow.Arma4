@@ -152,7 +152,14 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(ManageRecruits);
 		}
-		
+
+		// Manage Groups
+		comp = SCR_ButtonTextComponent.GetButtonText("Manage Groups", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(ManageGroups);
+		}
+
 		// Character Sheet
 		comp = SCR_ButtonTextComponent.GetButtonText("Character Sheet", m_wRoot);
 		if (comp)
@@ -250,9 +257,15 @@ class OVT_MainMenuContext : OVT_UIContext
 	private void ManageRecruits()
 	{
 		CloseLayout();
-		m_UIManager.ShowContext(OVT_RecruitsContext);		
+		m_UIManager.ShowContext(OVT_RecruitsContext);
 	}
-	
+
+	private void ManageGroups()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_HighCommandRosterContext);
+	}
+
 	private void CharacterSheet()
 	{
 		CloseLayout();

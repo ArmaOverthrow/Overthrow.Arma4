@@ -36,19 +36,16 @@ class OVT_MapLocationCamp : OVT_MapLocationType
 			locationData.SetDataString("owner", camp.owner);
 			locationData.SetDataBool("isPrivate", camp.isPrivate);
 			locationData.SetDataString("persistentId", camp.persistentId);
-			locationData.SetDataInt("garrisonCount", camp.garrison.Count());
 			
 			locations.Insert(locationData);
 		}
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Shared info panel: who may use this camp, and garrison ONLY when it is non-zero.
+	//! Shared info panel: who may use this camp.
 	//!
 	//! Access is the row that matters here: a public camp is a fast-travel destination for everyone,
-	//! a private one only for its owner, and CanFastTravel below enforces exactly that. Garrison is
-	//! gated on > 0 because OVT_ResistanceFactionManager does not replicate camp garrisons - the count
-	//! reads 0 on every remote client, and a row that always says zero is worse than no row.
+	//! a private one only for its owner, and CanFastTravel below enforces exactly that.
 	//! \param[in] location The record being described
 	//! \param[in] rowsContainer The shared panel's rows container
 	override protected void BuildInfoRows(OVT_MapLocationData location, Widget rowsContainer)
@@ -60,10 +57,6 @@ class OVT_MapLocationCamp : OVT_MapLocationType
 			AddInfoRow(rowsContainer, "#OVT-Map_Row_Access", "#OVT-Map_Row_Private");
 		else
 			AddInfoRow(rowsContainer, "#OVT-Map_Row_Access", "#OVT-Map_Row_Public");
-
-		int garrison = location.GetDataInt(OVT_MapDataKeys.GARRISON_COUNT, 0);
-		if (garrison > 0)
-			AddInfoRow(rowsContainer, "#OVT-Garrison", garrison.ToString());
 	}
 
 	//! Camps allow fast travel if owned by player or if public

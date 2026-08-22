@@ -247,6 +247,42 @@ class OVT_PortContext : OVT_TransferContext
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The base money summary with the truck's projected cargo volume appended, so a resource order
+	//! shows what it will do to the hold before it is committed.
+	//!
+	//! Only appended when the cart actually orders resources - an item-only import has nothing to say
+	//! about volume. Deliberately NOT clamped to the capacity: an over-capacity cart must read as over
+	//! capacity, which is the same thing ValidateResourceImportCart refuses.
+	//! \return Already-resolved text, empty on an empty cart.
+	override string GetSummaryText()
+	{
+		string summary = super.GetSummaryText();
+		if(summary == "") return summary;
+
+		array<ref OVT_TransferCartLine> itemLines = new array<ref OVT_TransferCartLine>();
+		array<ref OVT_TransferCartLine> resourceLines = new array<ref OVT_TransferCartLine>();
+		PartitionLines(m_Cart.GetLines(), itemLines, resourceLines);
+
+		if(resourceLines.IsEmpty()) return summary;
+
+		OVT_ResourceStoreComponent store = OVT_ResourceUtils.GetStore(GetOccupiedVehicle());
+		if(!store) return summary;
+
+		int capacity = store.GetCapacityLitres();
+		if(capacity == OVT_ResourceStoreComponent.UNLIMITED_CAPACITY) return summary;
+
+		int cartLitres = ResourceCartLitres(resourceLines);
+		int projected = store.GetUsedLitres() + cartLitres;
+		if(m_iMode == MODE_EXPORT)
+			projected = Math.Max(0, store.GetUsedLitres() - cartLitres);
+
+		string volume = WidgetManager.Translate("#OVT-Resource_SummaryVolume",
+			FormatCubicMetres(projected), FormatCubicMetres(capacity));
+
+		return WidgetManager.Translate("#OVT-Port_SummaryVolume", summary, volume);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override void BuildDestinations(out array<ref OVT_TransferDestination> dests)
 	{
 		dests.Clear();

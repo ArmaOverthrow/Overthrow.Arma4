@@ -26,6 +26,18 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_fPerimeterRadius 85
     m_fPerimeterRotation 107
    }
+   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+    m_aVehiclePoints {
+     PointInfo "{65D6B1843FB6C4C5}" {
+      Offset -5.4763 0 0.8134
+      Angles 0 59.6488 0
+     }
+     PointInfo "{65D6B18401CE9B1F}" {
+      Offset 5.0002 0 7.2752
+      Angles 0 58.9367 0
+     }
+    }
+   }
   }
   coords 9294.644 190.828 1142.981
   angles 0 -51.408 0
@@ -53,8 +65,26 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_fPerimeterRadius 50
     m_fPerimeterRotation 79
    }
+   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+    m_aPoints {
+     PointInfo "{65D69CEE4985BB3B}" {
+      Offset -0.6048 0 4.0316
+     }
+    }
+    m_aVehiclePoints {
+     PointInfo "{65D6B1843FB6C4C5}" {
+      Offset -4.9998 0 5.3615
+      Angles 0 74.4038 0
+     }
+     PointInfo "{65D6B18401CE9B1F}" {
+      Offset 5 0 5.5612
+      Angles 0 -90.1905 0
+     }
+    }
+   }
   }
-  coords 7462.8 7.814 6727.422
+  coords 7457.628 7.814 6730.843
+  angles 0 56.906 0
  }
  OVT_Base_SaintPhillipe {
   components {

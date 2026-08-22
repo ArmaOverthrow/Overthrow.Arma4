@@ -9,17 +9,26 @@
 class OVT_StorageActionBase : ScriptedUserAction
 {
 	//------------------------------------------------------------------------------------------------
+	//! \return The entity that actually carries the ledger. These actions are also hosted on truck
+	//! cargo beds - vanilla's real "door_rear" tailgate context lives on the bed, not the vehicle root
+	//! - so the storage is one hop up from the owner there.
+	protected IEntity Holder()
+	{
+		return OVT_StorageUtils.ResolveStorageHolder(GetOwner());
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \return The holder's storage component, or null.
 	protected OVT_StorageComponent GetStorage()
 	{
-		return OVT_StorageUtils.GetStorage(GetOwner());
+		return OVT_StorageUtils.GetStorage(Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! \return The holder's networked name, or RplId.Invalid().
 	protected RplId GetHolderId()
 	{
-		return OVT_StorageUtils.GetHolderId(GetOwner());
+		return OVT_StorageUtils.GetHolderId(Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -36,7 +45,7 @@ class OVT_StorageActionBase : ScriptedUserAction
 	//! \return True when the action may be drawn.
 	override bool CanBeShownScript(IEntity user)
 	{
-		if (!OVT_StructureDamage.IsUsable(GetOwner()))
+		if (!OVT_StructureDamage.IsUsable(Holder()))
 			return false;
 
 		OVT_StorageComponent storage = GetStorage();
@@ -70,7 +79,7 @@ class OVT_StorageActionBase : ScriptedUserAction
 		if (!mode)
 			return userRpl.IsOwner();
 
-		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(GetOwner());
+		OVT_PlayerOwnerComponent playerOwner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(Holder());
 		if (!playerOwner || !playerOwner.IsLocked())
 			return userRpl.IsOwner();
 
@@ -101,7 +110,7 @@ class OVT_StorageActionBase : ScriptedUserAction
 
 		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(user);
 
-		return realEstate.PlayerMayUseWarehouse(playerUid, GetOwner());
+		return realEstate.PlayerMayUseWarehouse(playerUid, Holder());
 	}
 
 	//------------------------------------------------------------------------------------------------

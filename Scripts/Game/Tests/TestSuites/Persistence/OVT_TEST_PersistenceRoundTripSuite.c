@@ -7125,8 +7125,8 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 //! ⚠ Live campaign state is borrowed and handed back: the chosen base's controlling faction, the
 //! occupying faction's reserve and threat, and the deployment resource pool. Two side effects of
 //! driving the apply are accepted: every base and tower with no record in the list handed in is
-//! swept to the occupying faction, and the chosen base's persisted slot/garrison lists are cleared
-//! (both are rebuilt from the LIVE controller at save time and are empty in a test session anyway).
+//! swept to the occupying faction, and the chosen base's persisted slot list is cleared (it is
+//! rebuilt from the LIVE controller at save time and is empty in a test session anyway).
 //!
 //! 🔴 The refund is QUEUED by the apply and PAID by a later delivery point, and that is asserted as
 //! a claim in its own right. It cannot be credited inline, because the deployment manager's own
@@ -12816,6 +12816,1116 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTr
 		}
 
 		Print("A BUILT warehouse kept both its item ledger and its resource stock across a real save - Overthrow's Buildable persistence configuration carries the serializers a built holder needs");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+// HIGH COMMAND ROUND TRIP (T12.3, resistance/high-command Phase 12)
+//------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------
+//! Shared High Command fixture helpers - entry selection, so the three cases below read as
+//! "mutate -> save -> assert" and nothing else.
+//!
+//! ⚠ KNOWN LIMIT (implementation.md §3.11, flagged by Phase 6). A group's LIVE ENTITY never
+//! respawns from OVT_HighCommandManagerComponent.ApplyPersistedGroups() alone: it writes RECORDS
+//! ONLY, and the walk that actually rebuilds an entity from a bare record is queued from
+//! PostGameStart(), which the production continue flow only calls once, from DoStartGame(). An
+//! in-session RequestSessionReload() re-runs the deserializer but never DoStartGame(), so a group
+//! with a live entity is left exactly as it is (ApplyPersistedGroups' own "the live world wins"
+//! rule), and a group that WAS dismissed comes back only as a bare record with
+//! m_GroupEntityId == EntityID.INVALID.
+//!
+//! So every case below DISMISSES its group before reloading - the public facade, not a private
+//! escape hatch - which is what makes the round trip provable at all: a no-op reload leaves
+//! GetGroup() null forever (closure 2), while a working one hands back a fresh record built from
+//! exactly what was saved. `..._HighCommandMemberBodies_RoundTrip` additionally needs a LIVE group
+//! to check "alive and in the player faction", so it calls the manager's own public
+//! PostGameStart() a second time - the same public re-entry point OVT_TEST_InitSuite already uses
+//! to re-drive other managers (e.g. OVT_VirtualMovementManagerComponent) - to force the queued
+//! restore walk to run against the bare record ReapplyLatestSaveData() left behind.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_HighCommandRoundTripFixture
+{
+	//! Collides with no real player; every group it owns is dismissed again on cleanup.
+	static const string TEST_OWNER_UID = "OVT_TEST_HC_ROUNDTRIP_OWNER";
+
+	//------------------------------------------------------------------------------------------------
+	//! The first authored catalog entry meeting the case's requirements.
+	//! \param[in] manager The High Command manager.
+	//! \param[in] requireNoVehicle True to skip any entry that seats a vehicle.
+	//! \param[in] minMembers The entry's source prefab must define at least this many member slots.
+	//! \param[out] entryKey The entry's stable key.
+	//! \param[out] diagnostic Reason nothing matched; untouched on success.
+	//! \return True when an entry was found.
+	static bool PickEntry(notnull OVT_HighCommandManagerComponent manager, bool requireNoVehicle, int minMembers, out string entryKey, out string diagnostic)
+	{
+		int count = manager.GetEntryCount();
+		if (count < 1)
+		{
+			diagnostic = "OVT_HighCommandManagerComponent.GetEntryCount() is 0 - the FIA faction publishes no purchasable High Command entry in this world";
+			return false;
+		}
+
+		for (int i = 0; i < count; i++)
+		{
+			OVT_HighCommandGroupEntry entry = manager.GetEntryByIndex(i);
+			if (!entry || entry.m_sKey == "")
+				continue;
+
+			if (requireNoVehicle && !entry.m_sVehiclePrefab.IsEmpty())
+				continue;
+
+			array<ResourceName> slots = {};
+			if (!ReadSlots(entry.m_sGroupPrefab, slots))
+				continue;
+
+			if (slots.Count() < minMembers)
+				continue;
+
+			entryKey = entry.m_sKey;
+			return true;
+		}
+
+		diagnostic = string.Format("No authored High Command entry matched this case's requirements (foot group: %1, at least %2 member slot(s))", requireNoVehicle.ToString(), minMembers.ToString());
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] groupPrefab A group prefab.
+	//! \param[out] slots Its authored m_aUnitPrefabSlots.
+	//! \return True when it defines at least one member.
+	protected static bool ReadSlots(ResourceName groupPrefab, out array<ResourceName> slots)
+	{
+		Resource resource = Resource.Load(groupPrefab);
+		if (!resource || !resource.IsValid())
+			return false;
+
+		BaseResourceObject resourceObject = resource.GetResource();
+		if (!resourceObject)
+			return false;
+
+		IEntitySource source = resourceObject.ToEntitySource();
+		if (!source)
+			return false;
+
+		source.Get("m_aUnitPrefabSlots", slots);
+
+		return !slots.IsEmpty();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A spawn position well clear of the map edge: the first registered town's own centre.
+	//! \param[out] diagnostic Reason no position could be resolved; untouched on success.
+	//! \return The position, or vector.Zero on failure.
+	static vector ResolveSpawnPosition(out string diagnostic)
+	{
+		int townId;
+		OVT_TownData town = OVT_TEST_PersistenceSubject.ResolveFirstTown(townId, diagnostic);
+		if (!town)
+			return vector.Zero;
+
+		return town.location;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A purchased High Command group survives a session reload with its owner, entry key, stance,
+//! destination and member count.
+//!
+//! Mutate: buy a group through the public facade (SpawnGroupFromEntry). Save. Dismiss it (the
+//! group's record is now gone - see the fixture header for why this is what makes the trip
+//! provable). Reload. Assert the record came back naming the same owner, entry, stance,
+//! destination and member count it was bought with.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_HighCommandGroup_RoundTrips : SCR_AutotestCaseBase
+{
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected string m_sGroupId;
+	protected string m_sOwnerPersistentId;
+	protected string m_sEntryKey;
+	protected int m_iExpectedStance;
+	protected vector m_vExpectedDestination;
+	protected int m_iExpectedMembers;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DismissAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Buys a group through the public facade and saves it.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool MutateAndSave()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null");
+			return true;
+		}
+
+		if (!Replication.IsServer())
+		{
+			SetFailure("This world is not the server, so no group can be bought - the Persistence suite is expected to run on a listen host");
+			return true;
+		}
+
+		string diagnostic;
+		m_sOwnerPersistentId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (m_sOwnerPersistentId == "")
+		{
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		if (!OVT_TEST_HighCommandRoundTripFixture.PickEntry(manager, true, 1, m_sEntryKey, diagnostic))
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		vector position = OVT_TEST_HighCommandRoundTripFixture.ResolveSpawnPosition(diagnostic);
+		if (position == vector.Zero)
+		{
+			SetFailure("Cannot resolve a spawn position: %1", diagnostic);
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.SpawnGroupFromEntry(m_sEntryKey, position, m_sOwnerPersistentId);
+		if (!record)
+		{
+			SetFailure("SpawnGroupFromEntry('%1') returned null - nothing was bought", m_sEntryKey);
+			return true;
+		}
+
+		m_sGroupId = record.m_sGroupId;
+		m_iExpectedStance = record.m_iStance;
+		m_vExpectedDestination = record.m_vDestination;
+		m_iExpectedMembers = record.m_iTotalMembers;
+
+		if (m_iExpectedMembers < 1)
+		{
+			SetFailure("The purchased group's record claims %1 member(s) - there is nothing here to prove a member count round-trips", m_iExpectedMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return CleanUp(manager);
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Dismisses the just-saved group - see the fixture header for why this, not an in-place value
+	//! change, is what makes the round trip provable - then requests the reload.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool DismissAndReload()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null before the reload");
+			return true;
+		}
+
+		if (!manager.DismissGroup(m_sGroupId))
+		{
+			SetFailure("DismissGroup() refused a group it had just bought and saved");
+			return true;
+		}
+
+		if (manager.GetGroup(m_sGroupId))
+		{
+			SetFailure("The group's record is still present immediately after DismissGroup() - the dirtying step did not take, so a no-op reload could pass by accident");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null after the reload");
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record did not come back after the reload - it was dismissed before the round trip, which proved this was not a no-op, and nothing replaced it");
+			return true;
+		}
+
+		if (record.m_sOwnerPersistentId != m_sOwnerPersistentId)
+		{
+			SetFailure("The restored group is owned by '%1', expected '%2'", record.m_sOwnerPersistentId, m_sOwnerPersistentId);
+			return CleanUp(manager);
+		}
+
+		if (record.m_sEntryKey != m_sEntryKey)
+		{
+			SetFailure("The restored group names entry '%1', expected '%2'", record.m_sEntryKey, m_sEntryKey);
+			return CleanUp(manager);
+		}
+
+		if (record.m_iStance != m_iExpectedStance)
+		{
+			SetFailure("The restored group's stance is %1, expected %2", record.m_iStance.ToString(), m_iExpectedStance.ToString());
+			return CleanUp(manager);
+		}
+
+		if (vector.Distance(record.m_vDestination, m_vExpectedDestination) > 1)
+		{
+			SetFailure("The restored group's destination is %1, expected %2", record.m_vDestination.ToString(), m_vExpectedDestination.ToString());
+			return CleanUp(manager);
+		}
+
+		if (record.m_iTotalMembers != m_iExpectedMembers)
+		{
+			SetFailure("The restored group claims %1 member(s), expected %2", record.m_iTotalMembers.ToString(), m_iExpectedMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		Print("A purchased High Command group's owner, entry key, stance, destination and member count all survived a session reload");
+
+		return CleanUp(manager);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops whatever is left of the group - a bare, entity-less record after a successful reload -
+	//! so this case leaves nothing behind for the next one. Always true.
+	//! \param[in] manager The High Command manager.
+	protected bool CleanUp(notnull OVT_HighCommandManagerComponent manager)
+	{
+		if (m_sGroupId != "")
+			manager.DismissGroup(m_sGroupId);
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A group ordered to a new destination with a non-default stance reloads with THAT destination
+//! and stance, not the purchase-time one.
+//!
+//! Mutate: buy a group (purchase-time stance DEFEND, destination = spawn position), then order it
+//! elsewhere with ATTACK through the public facade (OrderGroup). Save. Dismiss. Reload. Assert the
+//! restored record carries the ORDERED destination and stance and NOT the purchase-time ones -
+//! the case's whole point, so both are checked explicitly.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_HighCommandOrder_RoundTrips : SCR_AutotestCaseBase
+{
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected string m_sGroupId;
+	protected int m_iPurchaseStance;
+	protected vector m_vPurchaseDestination;
+	protected int m_iOrderedStance;
+	protected vector m_vOrderedDestination;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return MutateAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DismissAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Buys a group, orders it to a new destination and stance, then saves.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool MutateAndSave()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null");
+			return true;
+		}
+
+		if (!Replication.IsServer())
+		{
+			SetFailure("This world is not the server, so no group can be bought - the Persistence suite is expected to run on a listen host");
+			return true;
+		}
+
+		string diagnostic;
+		string ownerPersistentId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (ownerPersistentId == "")
+		{
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		string entryKey;
+		if (!OVT_TEST_HighCommandRoundTripFixture.PickEntry(manager, true, 1, entryKey, diagnostic))
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		vector position = OVT_TEST_HighCommandRoundTripFixture.ResolveSpawnPosition(diagnostic);
+		if (position == vector.Zero)
+		{
+			SetFailure("Cannot resolve a spawn position: %1", diagnostic);
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.SpawnGroupFromEntry(entryKey, position, ownerPersistentId);
+		if (!record)
+		{
+			SetFailure("SpawnGroupFromEntry('%1') returned null - nothing was bought", entryKey);
+			return true;
+		}
+
+		m_sGroupId = record.m_sGroupId;
+		m_iPurchaseStance = record.m_iStance;
+		m_vPurchaseDestination = record.m_vDestination;
+
+		// A stance that is never the purchase-time default, and a destination well clear of it -
+		// the contrast the case exists to prove.
+		m_iOrderedStance = OVT_EHighCommandStance.ATTACK;
+
+		vector orderTarget = position;
+		orderTarget[0] = orderTarget[0] + 200;
+		orderTarget[2] = orderTarget[2] + 200;
+
+		if (!manager.OrderGroup(m_sGroupId, m_iOrderedStance, orderTarget))
+		{
+			SetFailure("OrderGroup() refused the order on a group it had just bought");
+			return CleanUp(manager);
+		}
+
+		record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record is gone immediately after ordering it");
+			return CleanUp(manager);
+		}
+
+		m_vOrderedDestination = record.m_vDestination;
+
+		if (record.m_iStance != m_iOrderedStance)
+		{
+			SetFailure("OrderGroup() reported success but the record's stance is still %1", record.m_iStance.ToString());
+			return CleanUp(manager);
+		}
+
+		if (m_iOrderedStance == m_iPurchaseStance)
+		{
+			SetFailure("The ordered stance equals the purchase-time one - this case needs them to differ to prove anything");
+			return CleanUp(manager);
+		}
+
+		if (vector.Distance(m_vOrderedDestination, m_vPurchaseDestination) < 10)
+		{
+			SetFailure("The ordered destination %1 is within 10 m of the purchase-time one %2 - this case needs them to differ to prove anything", m_vOrderedDestination.ToString(), m_vPurchaseDestination.ToString());
+			return CleanUp(manager);
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return CleanUp(manager);
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool DismissAndReload()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null before the reload");
+			return true;
+		}
+
+		if (!manager.DismissGroup(m_sGroupId))
+		{
+			SetFailure("DismissGroup() refused a group it had just bought, ordered and saved");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null after the reload");
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record did not come back after the reload - it was dismissed before the round trip, which proved this was not a no-op, and nothing replaced it");
+			return true;
+		}
+
+		if (record.m_iStance != m_iOrderedStance)
+		{
+			SetFailure("The restored group's stance is %1, expected the ORDERED stance %2 (the purchase-time one was %3)", record.m_iStance.ToString(), m_iOrderedStance.ToString(), m_iPurchaseStance.ToString());
+			return CleanUp(manager);
+		}
+
+		if (vector.Distance(record.m_vDestination, m_vOrderedDestination) > 1)
+		{
+			SetFailure("The restored group's destination is %1, expected the ORDERED destination %2 (the purchase-time one was %3)", record.m_vDestination.ToString(), m_vOrderedDestination.ToString(), m_vPurchaseDestination.ToString());
+			return CleanUp(manager);
+		}
+
+		if (vector.Distance(record.m_vDestination, m_vPurchaseDestination) < 10)
+		{
+			SetFailure("The restored group's destination %1 is within 10 m of the purchase-time destination %2 - the round trip restored the wrong moment", record.m_vDestination.ToString(), m_vPurchaseDestination.ToString());
+			return CleanUp(manager);
+		}
+
+		Print("A High Command group's post-purchase order (a non-default stance and a new destination) survived a session reload, and the purchase-time values did not come back instead");
+
+		return CleanUp(manager);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] manager The High Command manager.
+	//! \return Always true.
+	protected bool CleanUp(notnull OVT_HighCommandManagerComponent manager)
+	{
+		if (m_sGroupId != "")
+			manager.DismissGroup(m_sGroupId);
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A group whose members were altered (one removed) reloads with the altered count, and every
+//! member is alive and in the player faction.
+//!
+//! Mutate: buy a two-plus-member foot group, then remove ONE member the way the game itself
+//! would - deleting its controlled entity, which is what a death or DismissGroup's own teardown
+//! does - and let the group's own agent count settle. Save (the save-point sweep recaptures the
+//! roster from the group's CURRENT live membership, so the reduced count and the reduced prefab
+//! list are what gets written). Dismiss. Reload (comes back as a bare, entity-less record - see
+//! the fixture header). Force the queued restore walk to actually run by calling the manager's own
+//! public PostGameStart() again, and wait for the group to be rebuilt from that reduced roster.
+//! Assert the rebuilt record's member count is the ALTERED one, and every rebuilt member is alive
+//! and carries the player faction.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 120)]
+class OVT_TEST_PersistenceRoundTrip_HighCommandMemberBodies_RoundTrip : SCR_AutotestCaseBase
+{
+	static const int STAGE_SPAWN = 0;
+	static const int STAGE_REMOVE_SETTLE = 1;
+	static const int STAGE_SAVE = 2;
+	static const int STAGE_AWAIT_SAVE = 3;
+	static const int STAGE_DISMISS_AND_RELOAD = 4;
+	static const int STAGE_AWAIT_RELOAD = 5;
+	static const int STAGE_FORCE_RESTORE = 6;
+	static const int STAGE_AWAIT_RESTORE = 7;
+
+	//! Frame polls allowed for a directly deleted member to leave the group's own agent count.
+	static const int MAX_SETTLE_POLLS = 60;
+
+	//! Frame polls allowed for the forced restore walk (one call-queue hop) to rebuild the group.
+	static const int MAX_RESTORE_POLLS = 300;
+
+	protected int m_iStage;
+	protected int m_iPolls;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	protected string m_sGroupId;
+	protected int m_iOriginalMembers;
+	protected int m_iExpectedMembers;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iStage == STAGE_SPAWN)
+			return SpawnStage();
+
+		if (m_iStage == STAGE_REMOVE_SETTLE)
+			return RemoveSettleStage();
+
+		if (m_iStage == STAGE_SAVE)
+			return SaveStage();
+
+		if (m_iStage == STAGE_AWAIT_SAVE)
+			return AwaitSaveStage();
+
+		if (m_iStage == STAGE_DISMISS_AND_RELOAD)
+			return DismissAndReloadStage();
+
+		if (m_iStage == STAGE_AWAIT_RELOAD)
+			return AwaitReloadStage();
+
+		if (m_iStage == STAGE_FORCE_RESTORE)
+			return ForceRestoreStage();
+
+		return AwaitRestoreAndAssertStage();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Buys a foot group with at least two members.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool SpawnStage()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null");
+			return true;
+		}
+
+		if (!Replication.IsServer())
+		{
+			SetFailure("This world is not the server, so no group can be bought - the Persistence suite is expected to run on a listen host");
+			return true;
+		}
+
+		string diagnostic;
+		string ownerPersistentId = OVT_TEST_PersistenceSubject.ResolveLocalPersistentId(diagnostic);
+		if (ownerPersistentId == "")
+		{
+			SetFailure("Cannot resolve the persistent player ID: %1", diagnostic);
+			return true;
+		}
+
+		string entryKey;
+		if (!OVT_TEST_HighCommandRoundTripFixture.PickEntry(manager, true, 2, entryKey, diagnostic))
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		vector position = OVT_TEST_HighCommandRoundTripFixture.ResolveSpawnPosition(diagnostic);
+		if (position == vector.Zero)
+		{
+			SetFailure("Cannot resolve a spawn position: %1", diagnostic);
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.SpawnGroupFromEntry(entryKey, position, ownerPersistentId);
+		if (!record)
+		{
+			SetFailure("SpawnGroupFromEntry('%1') returned null - nothing was bought", entryKey);
+			return true;
+		}
+
+		m_sGroupId = record.m_sGroupId;
+		m_iOriginalMembers = record.m_iTotalMembers;
+
+		if (m_iOriginalMembers < 2)
+		{
+			SetFailure("The purchased group's record claims %1 member(s) - this case needs at least 2 to remove one and still have a group left", m_iOriginalMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		m_iExpectedMembers = m_iOriginalMembers - 1;
+
+		SCR_AIGroup group = manager.GetGroupEntity(record);
+		if (!group)
+		{
+			SetFailure("SpawnGroupFromEntry() produced a record whose group entity does not resolve");
+			return CleanUp(manager);
+		}
+
+		array<AIAgent> agents = {};
+		group.GetAgents(agents);
+		if (agents.IsEmpty() || !agents[0])
+		{
+			SetFailure("The purchased group has no first agent to remove");
+			return CleanUp(manager);
+		}
+
+		IEntity toRemove = agents[0].GetControlledEntity();
+		if (!toRemove)
+		{
+			SetFailure("The purchased group's first agent has no controlled entity");
+			return CleanUp(manager);
+		}
+
+		// Removed the way the game itself removes a member - deleting the controlled entity, which
+		// is what a death or DismissGroup's own teardown does - not a private manager hook.
+		SCR_EntityHelper.DeleteEntityAndChildren(toRemove);
+
+		m_iStage = STAGE_REMOVE_SETTLE;
+		m_iPolls = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the group's own agent count to reflect the removal before saving.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool RemoveSettleStage()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() went null while waiting for the removal to settle");
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record vanished while waiting for the removed member to settle");
+			return true;
+		}
+
+		SCR_AIGroup group = manager.GetGroupEntity(record);
+		if (!group)
+		{
+			SetFailure("The group entity vanished while waiting for the removed member to settle");
+			return CleanUp(manager);
+		}
+
+		if (group.GetAgentsCount() != m_iExpectedMembers)
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_SETTLE_POLLS)
+			{
+				SetFailure("The group still reports %1 agent(s) %2 frames after deleting one member's entity, expected %3", group.GetAgentsCount().ToString(), m_iPolls.ToString(), m_iExpectedMembers.ToString());
+				return CleanUp(manager);
+			}
+
+			return false;
+		}
+
+		m_iStage = STAGE_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool SaveStage()
+	{
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iStage = STAGE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitSaveStage()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iStage = STAGE_DISMISS_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool DismissAndReloadStage()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null before the reload");
+			return true;
+		}
+
+		if (!manager.DismissGroup(m_sGroupId))
+		{
+			SetFailure("DismissGroup() refused a group it had just bought, altered and saved");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iStage = STAGE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool AwaitReloadStage()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		m_iStage = STAGE_FORCE_RESTORE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The bare record ReapplyLatestSaveData() left behind has no live entity - see the fixture
+	//! header. PostGameStart() is the manager's own public re-entry point for the queued restore
+	//! walk, and calling it again is what actually rebuilds the group from the saved, reduced
+	//! roster.
+	//! \return True when the case is finished (a failure), false to poll again next frame.
+	protected bool ForceRestoreStage()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetHighCommand() is null after the reload");
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record did not come back after the reload - it was dismissed before the round trip, which proved this was not a no-op, and nothing replaced it");
+			return true;
+		}
+
+		if (record.m_iTotalMembers != m_iExpectedMembers)
+		{
+			SetFailure("The restored record claims %1 member(s), expected the ALTERED count %2 (it was bought with %3)", record.m_iTotalMembers.ToString(), m_iExpectedMembers.ToString(), m_iOriginalMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		manager.PostGameStart();
+
+		m_iStage = STAGE_AWAIT_RESTORE;
+		m_iPolls = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits for the forced restore walk to rebuild the group entity, then asserts every member is
+	//! alive and in the player faction.
+	//! \return True - the case always ends here.
+	protected bool AwaitRestoreAndAssertStage()
+	{
+		OVT_HighCommandManagerComponent manager = OVT_Global.GetHighCommand();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!manager || !config)
+		{
+			SetFailure("A manager went null while waiting for the forced restore walk");
+			return true;
+		}
+
+		OVT_HighCommandRecord record = manager.GetGroup(m_sGroupId);
+		if (!record)
+		{
+			SetFailure("The group's record vanished while waiting for the forced restore walk");
+			return true;
+		}
+
+		SCR_AIGroup group = manager.GetGroupEntity(record);
+		if (!group)
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_RESTORE_POLLS)
+			{
+				SetFailure("The group entity is still not rebuilt %1 frames after calling PostGameStart() again - either the restored record's entry key no longer resolves, or QueueRestoreWalk() never queued it", m_iPolls.ToString());
+				return true;
+			}
+
+			return false;
+		}
+
+		array<AIAgent> agents = {};
+		group.GetAgents(agents);
+
+		if (agents.Count() != m_iExpectedMembers)
+		{
+			SetFailure("The rebuilt group has %1 live agent(s), expected the ALTERED count %2", agents.Count().ToString(), m_iExpectedMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		foreach (AIAgent agent : agents)
+		{
+			if (!agent)
+				continue;
+
+			IEntity member = agent.GetControlledEntity();
+			if (!member)
+			{
+				SetFailure("A rebuilt member's AI agent has no controlled entity");
+				return CleanUp(manager);
+			}
+
+			SCR_ChimeraCharacter character = SCR_ChimeraCharacter.Cast(member);
+			if (!character)
+			{
+				SetFailure("A rebuilt group member is not a SCR_ChimeraCharacter");
+				return CleanUp(manager);
+			}
+
+			if (character.GetFactionKey() != config.m_sPlayerFaction)
+			{
+				SetFailure("A rebuilt member's faction key is '%1', expected the configured player faction '%2'", character.GetFactionKey(), config.m_sPlayerFaction);
+				return CleanUp(manager);
+			}
+
+			CharacterControllerComponent controller = CharacterControllerComponent.Cast(member.FindComponent(CharacterControllerComponent));
+			if (!controller)
+			{
+				SetFailure("A rebuilt member has no CharacterControllerComponent, so it cannot be asked whether it is alive");
+				return CleanUp(manager);
+			}
+
+			if (controller.GetLifeState() != ECharacterLifeState.ALIVE)
+			{
+				SetFailure("A rebuilt member's life state is '%1', not ALIVE", typename.EnumToString(ECharacterLifeState, controller.GetLifeState()));
+				return CleanUp(manager);
+			}
+
+			if (controller.IsUnconscious())
+			{
+				SetFailure("A rebuilt member is unconscious");
+				return CleanUp(manager);
+			}
+		}
+
+		if (record.m_iTotalMembers != m_iExpectedMembers)
+		{
+			SetFailure("After the rebuild the record claims %1 member(s), expected %2", record.m_iTotalMembers.ToString(), m_iExpectedMembers.ToString());
+			return CleanUp(manager);
+		}
+
+		Print("A High Command group's altered member count (one removed before the save) reloaded altered, and every rebuilt member is alive and in the player faction");
+
+		return CleanUp(manager);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] manager The High Command manager.
+	//! \return Always true.
+	protected bool CleanUp(notnull OVT_HighCommandManagerComponent manager)
+	{
+		if (m_sGroupId != "")
+			manager.DismissGroup(m_sGroupId);
 
 		return true;
 	}

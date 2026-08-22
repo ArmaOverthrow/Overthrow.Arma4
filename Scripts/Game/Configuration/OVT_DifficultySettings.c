@@ -168,7 +168,13 @@ class OVT_DifficultySettings : ScriptAndConfig
 	
 	[Attribute(defvalue: "500", desc: "Minimum fast travel distance", category: "Resistance Faction")]
 	float minFastTravelDistance;
-	
+
+	//High Command
+	[Attribute(defvalue: "48", desc: "Member cap per player across every High Command group they own (D12: counts members, not groups)", category: "High Command")]
+	int highCommandMemberCap;
+	[Attribute(defvalue: "1", desc: "Town supporters drawn down per member when a High Command group is purchased or converted", category: "High Command")]
+	int highCommandSupportersPerMember;
+
 	//QRF
 	[Attribute("1", UIWidgets.ComboBox, "QRF Fast Travel Mode", "", ParamEnumArray.FromEnum(OVT_QRFFastTravelMode), category: "QRF" )]
 	OVT_QRFFastTravelMode QRFFastTravelMode;

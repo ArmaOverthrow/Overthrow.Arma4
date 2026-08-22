@@ -5,7 +5,7 @@
 //! and deleted the seven FOB/camp handlers from the legacy comms monolith in the same change. The two are
 //! wired by two independent prefab blocks, so one can be present while the other is missing - and a
 //! single case asserting "the resistance seam resolves" would pass happily while deploy, undeploy,
-//! set-priority, both garrison purchases, camp privacy and delete-camp were all silently dead. Each
+//! set-priority, camp privacy and delete-camp were all silently dead. Each
 //! block therefore gets its own assertion (plan D11).
 //!
 //! TWO CLAIMS, ONE PRECONDITION: it resolves at all, and what resolves is THIS player's own instance -
@@ -52,7 +52,7 @@ class OVT_TEST_Init_Controller_FOBRequestResolves : SCR_AutotestCaseBase
 		OVT_FOBRequestComponent viaAccessor = OVT_ControllerComponent<OVT_FOBRequestComponent>.Get();
 		if (!viaAccessor)
 		{
-			SetFailure("OVT_ControllerComponent<OVT_FOBRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so deploy, undeploy, set-priority, camp/FOB garrison purchases, camp privacy and delete-camp all silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
+			SetFailure("OVT_ControllerComponent<OVT_FOBRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so deploy, undeploy, set-priority, camp privacy and delete-camp all silently never happen - the legacy comms-monolith handlers they used to ride were deleted in the same phase.");
 			return true;
 		}
 

@@ -1,0 +1,113 @@
+GenericEntity : "{6A8E2E0000000101}Prefabs/Structures/OVT_ConstructionSite.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  MeshObject "{5872F0EB7FA40561}" {
+   Object "{2AC19919F221C8C2}Assets/Structures/Military/Houses/Barracks_01/Barracks_01.xob"
+  }
+  ActionsManagerComponent "{6A8E2E0000000032}" {
+   ActionContexts {
+    UserActionContext "{6A8E2E0000000033}" {
+     Position PointInfo "{6A8E2E0000000034}" {
+      Offset 0.0808 1.3969 10.5881
+     }
+    }
+   }
+  }
+  Hierarchy "{6A2C114142E038D6}" {
+  }
+ }
+ {
+  $grp GenericEntity : "{14DDB40171F949A9}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_WoodPlanks_01_USSR.et" {
+   {
+    ID "6A2C114142E038F1"
+    components {
+     Hierarchy "{6A8E2E4000000001}" {
+      Enabled 1
+     }
+    }
+    coords 3.342 0.073 12.134
+    angles 0 178.752 0
+   }
+   {
+    ID "6A2C114142E777C0"
+    components {
+     Hierarchy "{6A8E2E4000000002}" {
+      Enabled 1
+     }
+    }
+    coords 2.237 0 8.967
+    angles 0 78.736 0
+   }
+   {
+    ID "6A2C114142E7FE0E"
+    components {
+     Hierarchy "{6A8E2E4000000003}" {
+      Enabled 1
+     }
+    }
+    coords 4.53 0.073 8.737
+    angles 0 84.325 0
+   }
+  }
+  GenericEntity : "{4A34979DC19CA9ED}Prefabs/Props/Construction/ConcreteMixer_01.et" {
+   ID "6A2C114142E777C5"
+   components {
+    Hierarchy "{6A8E2E4000000004}" {
+     Enabled 1
+    }
+   }
+   coords 0 0 14.533
+  }
+  $grp GenericEntity : "{90C62D3DBDEB0759}Prefabs/Props/Military/Camps/ConstructionMaterialPacked_MetalSheets_01_US.et" {
+   {
+    ID "6A2C114142E76015"
+    components {
+     Hierarchy "{6A8E2E4000000005}" {
+      Enabled 1
+     }
+    }
+    coords -4.646 0 0.562
+    angles 0 5.234 0
+   }
+   {
+    ID "6A2C114142E76016"
+    components {
+     Hierarchy "{6A8E2E4000000006}" {
+      Enabled 1
+     }
+    }
+    coords -5.127 0.073 7.918
+    angles 0 2.827 0
+   }
+   {
+    ID "6A2C114142E777C4"
+    components {
+     Hierarchy "{6A8E2E4000000007}" {
+      Enabled 1
+     }
+    }
+    coords -3.274 0 3.425
+    angles 0 -76.756 0
+   }
+   {
+    ID "6A2C114142E7FE0F"
+    components {
+     Hierarchy "{6A8E2E4000000008}" {
+      Enabled 1
+     }
+    }
+    coords -4.994 0.073 -11.029
+    angles 0 41.146 0
+   }
+  }
+  GenericEntity : "{A9CF5E8C5D91C476}Prefabs/Compositions/Misc/SubCompositions/Decorations/Barrel_Group_Crate_01.et" {
+   ID "6A2C114142E038EF"
+   coords -6.144 0.073 5.299
+  }
+  GenericEntity : "{B4FFD63EDFCBD850}Prefabs/Compositions/Misc/SubCompositions/CrateStacked_02.et" {
+   ID "6A2C114142E038E9"
+   coords 4.852 0.073 0.876
+   angles 0 21.339 0
+  }
+ }
+}
