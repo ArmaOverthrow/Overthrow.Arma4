@@ -15,10 +15,9 @@
 //!     SpawnGroupMember for both the deferred and the SpawnAllImmediately paths),
 //!   - every waypoint the group spawns from its prefab (AddWaypointsDynamic).
 //!
-//! WHAT DELIBERATELY DOES NOT PASS THROUGH HERE, so it stays tracked:
-//!   - recruit bodies: spawned individually by OVT_RecruitManagerComponent and added through the
-//!     RequestAddAIAgent/AddAgent path, never through AddAIEntityToGroup;
-//!   - player bodies: possessed characters join groups via AddAgentFromControlledEntity.
+//! WHAT MUST STAY TRACKED, whichever of those paths it arrives on - see EntityMustStayTracked():
+//!   - recruit bodies (parking one into an inactive group DOES go through AddAIEntityToGroup);
+//!   - player bodies.
 //! Those two are exactly the categories recalled from storage by id (m_sBodyPersistenceId).
 //!
 //! Untracking is UntrackTransient() rather than a bare StopTracking() because the native
@@ -38,12 +37,30 @@ modded class SCR_AIGroup
 	{
 		bool added = super.AddAIEntityToGroup(entity);
 
-		// The group's own member spawning is the only Overthrow path into this method (vanilla's
-		// other callers are ScenarioFramework, which Overthrow does not use), so everything that
-		// arrives here is rebuild-on-boot AI.
-		OVT_PersistenceManagerComponent.UntrackTransient(entity);
+		// NOT unconditional: OVT_RecruitManagerComponent parks recruits into inactive groups through
+		// this method, and untracking one there would drop its body record and its gear.
+		if (!EntityMustStayTracked(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
 
 		return added;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The two character categories that are recalled from storage by id and must keep their records:
+	//! player bodies and recruit bodies. Both group entry points ask this.
+	//! \param[in] entity The character joining a group.
+	//! \return True when it must stay persistence-tracked.
+	protected static bool EntityMustStayTracked(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(entity) > 0)
+			return true;
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+
+		return recruits && recruits.GetRecruitFromEntity(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -70,11 +87,7 @@ modded class SCR_AIGroup
 		if (!entity)
 			return;
 
-		if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(entity) > 0)
-			return;
-
-		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
-		if (recruits && recruits.GetRecruitFromEntity(entity))
+		if (EntityMustStayTracked(entity))
 			return;
 
 		OVT_PersistenceManagerComponent.UntrackTransient(entity);
