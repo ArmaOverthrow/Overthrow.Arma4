@@ -1,7 +1,8 @@
 # Storage (logistics/storage) — Context & Decisions
 
-**Last Updated:** 2026-08-21
-**Current Phase:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
+**Last Updated:** 2026-08-23
+**Current Phase:** ✅ **CLOSED 2026-08-21** — one post-close change 2026-08-23 (loot → ledger, § below)
+**Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
 
 ---
@@ -59,6 +60,72 @@
 - 💳 `OVT_AmmoBox_Cache` / `_Dev` carry the storage actions with no persistence binding — a Transfer-all into an
   arms cache is silently lost on reload. Design-level, recorded in `tasks.md`.
 - 💳 `main` still carries the `OVT_Component` null-world crash fixed here as P8.
+
+---
+
+## Post-close change 2026-08-23 — battlefield loot lands in the LEDGER
+
+User call, made after close: "shift all our Loot functions to use storage now … remove all the filters
+… the truck gets every last item apart from their base clothes (pants, shirt, but still grab what's
+stored in them)", and it must use the controller's progress system and spread the work over time.
+
+**The progress half was already done.** `StartLootJob` has run LOOT on the job engine since Phase 8 —
+chunked over the call queue at `m_iItemsPerChunk` / `m_iChunkDelayMs`, reported on
+`OVT_BaseServerProgressComponent`'s bar under `#OVT-Progress-LootingBattlefield`, aborting on
+disconnect. Nothing there changed. What changed is the DESTINATION and the FILTERS.
+
+**What changed**
+
+1. **`StepLoot` writes the ledger, not the vanilla inventory.** `LootBody` / `ExtractContents` /
+   `MoveIntoHolder` are gone, and with them the last `TryInsertItem` in the loot path. A truck's bed
+   volume no longer decides how much of a battlefield fits.
+2. **`CollectLootTree` replaces them — one pending entity is one ALL-OR-NOTHING tree.** It prices the
+   whole tree into a list of prefab names *without moving, detaching or deleting anything*, the caller
+   checks `FreeSpace` once, then deletes the root once (`DeleteEntityAndChildren`) and credits every
+   line. The sweep's per-item delete-then-credit could not be reused: half of what loot collects is
+   lying on the ground, and **the ground has no inventory manager to delete an item through**. Recorded
+   as the fourth ordering rule in the job engine's header block.
+   - It de-dupes by `EntityID`. `InventoryStorageManagerComponent.GetItems` is a native proto and the
+     shipped code was already unsure whether it recurses (`CollectSweepItems` tolerates duplicates
+     because a repeat visit resolves to a deleted entity). Here a repeat visit would **credit twice**,
+     so the `seen` list is load-bearing, not defensive.
+   - Weapon magazines and attachments are walked explicitly: a `WeaponAttachmentsStorageComponent` is
+     not a universal storage and would otherwise be destroyed with the weapon.
+3. **The query is widened to every loose item** (`OVT_StorageLootQuery.FilterLootables`) — anything with
+   an `InventoryItemComponent` and **no parent slot**. The parent-slot test is what stops an item that
+   is still in a body/container/vehicle being priced twice: once by the query, once by its owner's tree.
+4. **🔴 The body test is now `ChimeraCharacter`, not "destroyed damage manager", and holders are excluded
+   outright.** A loot run DELETES what it prices. The old filter accepted *anything* whose damage
+   manager reported destroyed — which a **ruined Overthrow building** and a wrecked truck both do. It
+   only ever survived because `StepLoot` skipped what had no `InventoryStorageManagerComponent`; the
+   new tree walk has no such accident protecting it. Guarded by
+   `OVT_TEST_Init_StorageSeam_ILootQueryTakesItemsNotHolders`, fail-proven.
+   - **Behaviour narrowed on purpose:** a destroyed *vehicle* is no longer looted-and-deleted by a loot
+     run. It is a holder; it is emptied through the transfer screen.
+5. **Part-used magazines are DESTROYED, not left behind** (user's call, "delete them"). A ledger line is
+   a count with nowhere to record "27 of 30". They go with the tree and are tallied as **shortfall**, so
+   the completion report still accounts for them.
+6. **Base clothing unchanged — jacket + pants + boots** (`OVT_StorageRules.IsBaseClothingArea`, already
+   Logic-tested). A garment **worn on a body** contributes no line of its own but its pockets are still
+   emptied; a garment **lying on the ground** is ordinary loot, because it is then the tree root. That
+   `isRoot` distinction is the whole rule.
+7. **`JobWritesSourceLedger` no longer excludes LOOT**, so a loot run republishes the holder's count.
+   Missing this would have left every client reading the pre-loot number until something else bumped it.
+8. `StartLootJob` now gates on the holder having a **ledger** rather than an inventory manager.
+
+**Gate:** `compile-check.sh` exit 0 (6325 files) · `OVT_TEST_InitSuite` **221/221** ·
+`OVT_TEST_LogicSuite` **304/304** · `OVT_TEST_PersistenceRoundTripSuite` **45/45**. The one Init red
+recorded at close (`CompositionSlotGate_AcceptedTypesMatchTheCompositions`) is no longer failing.
+
+**Owed:** a play-test. Nothing here has been run with a real corpse in front of a real truck, and two
+things can only be judged there — how much a widened 25 m sweep actually hoovers up in a town, and
+whether deleting a *player's* dead body (the query accepts any destroyed character) collides with
+`OVT_PersistenceReservation`. The pre-change code deleted bodies too, so this is not a new risk, but it
+is an unproven one.
+
+**Left alone, still dead:** `OVT_InventoryManagerComponent.LootBattlefieldIntoVehicle` /
+`StartBattlefieldLooting` / `ProcessBattlefieldLoot` / `LootBodyItems` / `ExtractItemsFromClothing`
+(~150 lines, zero callers since Phase 8, filters by class-name string). A deletion candidate.
 
 ---
 

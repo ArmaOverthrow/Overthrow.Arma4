@@ -1,6 +1,6 @@
 # Objectives - Task Checklist
 
-**Last Updated:** 2026-08-21
+**Last Updated:** 2026-08-23
 **Progress:** 74/74 tasks complete (100%)
 
 > **Agent routing:** phases **2, 3, 4, 5, 6** are **ADVANCED** (`component-developer-advanced`); phases **1** and **7** are STANDARD (`component-developer`, with any `.layout` slice to `ui-developer`); phase **8** is `help-docs-sync`.
@@ -520,6 +520,16 @@
   - Estimate: 0.5 h
 
 ---
+
+## Post-build enhancements
+
+- [x] ✅ **Land-isolated targets are never objectives (2026-08-23)** — author-reported: Erquy Harbour sits on an island, and nothing stopped the faction picking it. `ProximityScore` is straight-line distance and Erquy's nearest occupying holding is ~4.7 km, INSIDE the director's 5 km `m_fMaxUsefulDistance`, so it scored as an ordinary slightly-distant prize. Once picked, the harassment insertion drives a truck at a strait, strands it, and the stranded-transport path opens the doors and marches the passengers at open water; the forward base is then sited between the nearest holding and the target, which across a strait is sea. **Every `IsOceanAtPosition` call in the tree asks whether a POINT is wet; none asks whether a point can be WALKED TO.**
+  - **Authored, not derived** — the engine has no A→B reachability query (`NavmeshWorldComponent` has only tile predicates + `GetReachablePoint(origin, distance, out)`, which answers "some reachable point" not "is THAT one reachable"; `AIPathfindingComponent.RayTrace` is a straight line that would also reject any target behind a hill with a good road around it). New `m_bLandIsolated` on `OVT_BaseControllerComponent` and `OVT_TownControllerComponent`, copied to `OVT_BaseData`/`OVT_TownData` at discovery as `[NonSerialized()]` (world-derived, re-read every Init — persisting it would let a save outvote a corrected map).
+  - **Gated in `OVT_ObjectiveCandidateSet`, not in a scorer** — a zero score excludes nothing (the director picks the best candidate it has, so on a quiet map a penalised island still wins), and a scorer gate would have to be repeated in every selector including a modder's. "This target cannot be walked to" is a fact about the map that no doctrine may opt out of.
+  - ⚠ **Only objective targeting is gated.** The base still defends itself (its deployments are created and spawned AT the base, never sent to it), still fights a QRF, and can still be captured. QRF waves were already safe — they `SpawnEntityPrefab` at a water-rejected landing zone near the target.
+  - Authored on `OVT_Base_Erquy` + `Town_Erquy`; the town half is belt-and-braces (a village is already excluded by size).
+  - Coverage: `OVT_TEST_Init_Objectives_LandIsolatedTargetsAreNeverCandidates` (plants the flag on a live record and collects twice — reachable IS collected, isolated is NOT, so the absence proves the flag and not an unrelated ineligibility) plus **`tools/check-land-isolated.py`**, because no test tier loads Eden and a Workbench re-save drops an authored attribute silently. Checker proven can-fail. **All 602/602.**
+  - ⏸️ **Play-test owed** — confirm the faction now picks a mainland objective instead and that Erquy still defends/captures normally.
 
 ## Needs Human Verification
 

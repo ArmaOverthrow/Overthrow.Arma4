@@ -1091,6 +1091,10 @@ class OVT_TEST_Init_ProductionSeam_ISiteAccessGate : SCR_AutotestCaseBase
 				return true;
 			}
 
+			// Re-issue rather than wait: the preceding case restores the body with its own teleport,
+			// and a teleport still in flight clobbers ours, leaving the caller parked at ITS target.
+			// Idempotent - the same destination every time.
+			SCR_Global.TeleportPlayer(m_iPlayerId, site.location);
 			return false;
 		}
 

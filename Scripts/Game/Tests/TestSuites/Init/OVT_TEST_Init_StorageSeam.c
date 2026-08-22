@@ -839,8 +839,9 @@ class OVT_TEST_Init_StorageSeam_GDeployedFOBIsUnlimited : SCR_AutotestCaseBase
 //!
 //! Overthrow's same-GUID deltas of M923A1_transport.et and Ural4320_transport.et used to override
 //! MaxCumulativeVolume down to 200000 and m_fMaxWeight down to 1000 - a fifth of the volume and a
-//! quarter of the weight vanilla gives the same truck. A battlefield loot run lands in the truck's
-//! VANILLA inventory, so those two numbers are what decides whether 20-30 soldiers' gear fits.
+//! quarter of the weight vanilla gives the same truck. Battlefield loot goes to the LEDGER now and no
+//! longer depends on these, but every hand-loaded crate and every Take-from-storage withdrawal still
+//! spawns into the vanilla bed, so a throttled bed is still what makes a truck stop accepting cargo.
 //!
 //! The thresholds are vanilla's own figures read out of the extracted tree; asserting ">= vanilla"
 //! rather than "== 1000000" leaves the numbers tunable upwards without turning this red.
@@ -904,7 +905,7 @@ class OVT_TEST_Init_StorageSeam_HTransportTrucksKeepVanillaCargoCaps : SCR_Autot
 		float volume = cargo.GetMaxVolumeCapacity();
 		if (volume < MIN_VOLUME)
 		{
-			SetFailure("%1 carries %2 m3 of cargo volume, below vanilla's own %3. A battlefield loot run fills the VANILLA inventory, so a throttled bed is what makes looting stop half way.",
+			SetFailure("%1 carries %2 m3 of cargo volume, below vanilla's own %3. Withdrawals from storage spawn into the VANILLA bed, so a throttled bed is what makes a Take stop half way.",
 				prefab,
 				volume.ToString(),
 				MIN_VOLUME.ToString());
@@ -941,5 +942,93 @@ class OVT_TEST_Init_StorageSeam_HTransportTrucksKeepVanillaCargoCaps : SCR_Autot
 			delete m_Truck;
 			m_Truck = null;
 		}
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The widened loot query takes a loose item off the ground and NEVER takes a storage holder.
+//!
+//! ⚠ THIS IS THE GUARD ON A DESTRUCTIVE OP. A loot run DELETES every tree it prices, and the query
+//! used to accept anything whose damage manager reported destroyed - which a ruined Overthrow
+//! building and a wrecked truck both do. The holder exclusion in OVT_StorageLootQuery.FilterLootables
+//! is the only thing standing between "Loot battlefield" and a permanently deleted warehouse, and it
+//! is invisible to compile-check.
+//!
+//! The second half is the widening itself: loose gear on the ground is loot now, not just bodies and
+//! weapons, so a dropped radio next to the truck must appear in the same result.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_ILootQueryTakesItemsNotHolders : SCR_AutotestCaseBase
+{
+	//! Any prefab with an InventoryItemComponent and nothing else interesting about it.
+	static const ResourceName LOOSE_ITEM_PREFAB = "{E1A5D4B878AA8980}Prefabs/Items/Equipment/Radios/Radio_R148.et";
+
+	static const float RADIUS = 25;
+
+	protected IEntity m_Box;
+	protected IEntity m_Item;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector position;
+		if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("760 0 640", position))
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test box");
+			return true;
+		}
+
+		m_Box = OVT_Global.SpawnEntityPrefab(OVT_TEST_StorageSeamSubject.AMMO_BOX_PREFAB, position);
+		if (!m_Box)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", OVT_TEST_StorageSeamSubject.AMMO_BOX_PREFAB);
+			return FinishAndCleanUp();
+		}
+
+		m_Item = OVT_Global.SpawnEntityPrefab(LOOSE_ITEM_PREFAB, position + "2 0 0");
+		if (!m_Item)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", LOOSE_ITEM_PREFAB);
+			return FinishAndCleanUp();
+		}
+
+		array<IEntity> lootables = new array<IEntity>();
+		OVT_StorageLootQuery query = new OVT_StorageLootQuery();
+		query.Run(position, RADIUS, lootables);
+
+		if (lootables.Contains(m_Box))
+		{
+			SetFailure("The loot query offered an ammo box as loot. A loot run DELETES what it prices, so the holder exclusion in OVT_StorageLootQuery.FilterLootables has been lost - every ruined building and wrecked truck in 25 m is now destroyable by one Loot battlefield.");
+			return FinishAndCleanUp();
+		}
+
+		if (!lootables.Contains(m_Item))
+		{
+			SetFailure("The loot query did not offer a radio lying on the ground 2 m away. Loose items are loot since the ledger conversion, so the InventoryItemComponent branch has been lost and looting is back to bodies only.");
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: the loot query takes loose items and leaves holders alone");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Item)
+		{
+			delete m_Item;
+			m_Item = null;
+		}
+
+		if (m_Box)
+		{
+			delete m_Box;
+			m_Box = null;
+		}
+
+		return true;
 	}
 }

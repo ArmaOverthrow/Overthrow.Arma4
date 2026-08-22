@@ -183,6 +183,10 @@ class OVT_ObjectiveCandidateSet : Managed
 			if (town.size == OVT_TownSize.VILLAGE)
 				continue;
 
+			// NO LAND ROUTE, NO CAMPAIGN. See AddResistanceBases() for why the gate is here.
+			if (town.landIsolated)
+				continue;
+
 			float reach = ReachFromHeldGround(occupying, town.location);
 			bool covered = IsUnderOccupyingBroadcast(occupying, town.location);
 
@@ -203,6 +207,25 @@ class OVT_ObjectiveCandidateSet : Managed
 		foreach (OVT_BaseData base : bases)
 		{
 			if (!base)
+				continue;
+
+			// NO LAND ROUTE, NO CAMPAIGN.
+			//
+			// THE GATE IS IN THE CANDIDATE SET AND NOT IN A SCORER, DELIBERATELY. A score of zero does
+			// not exclude anything - the director picks the best candidate it has, so on a quiet map a
+			// zero-scored island is still the best thing going. More importantly a scorer gate would
+			// have to be repeated in every selector, including ones a modder writes: the whole point of
+			// the objectives registry is that doctrines are authored data, and "this target cannot be
+			// walked to" is a fact about the MAP that no doctrine should be able to opt out of.
+			//
+			// ⚠ ONLY OBJECTIVE TARGETING IS GATED. The base still defends itself (its deployments are
+			// created and spawned at the base, never sent to it), still fights a QRF if the resistance
+			// starts one, and can still be captured. What it cannot be is the thing the faction marches
+			// on - because everything downstream of that decision assumes a land route: the harassment
+			// insertion strands its truck at the coast and the stranded-truck path then opens the doors
+			// and marches the passengers on the objective, and the forward base is sited between the
+			// nearest holding and the target, which across a strait is open water.
+			if (base.landIsolated)
 				continue;
 
 			float reach = ReachFromHeldGround(occupying, base.location);

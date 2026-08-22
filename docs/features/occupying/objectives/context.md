@@ -1,6 +1,6 @@
 # Objectives - Context & Decisions
 
-**Last Updated:** 2026-08-21
+**Last Updated:** 2026-08-23
 **Current Phase:** Complete — all 8 phases built, Ready for Review
 **Status:** 🟢 Built, awaiting human verification
 
@@ -18,6 +18,9 @@
   counter-attack doctrine blocks all gone into authored modules.
 - ✅ **The strangler seam is fully dismantled** — both shim classes, the `m_iLegacyPhase` authoring, the phase enum,
   and all three temporary fallback paths.
+
+**Post-build (2026-08-23):**
+- ✅ **Land-isolated targets are gated out of objective selection.** Erquy Harbour is on an island and was selectable (~4.7 km to the nearest holding, inside the 5 km cutoff). New authored `m_bLandIsolated` flag → `OVT_BaseData.landIsolated`/`OVT_TownData.landIsolated` → a `continue` in `OVT_ObjectiveCandidateSet.AddResistanceBases/AddResistanceTowns`. ⚠ **The general lesson: every water check in the tree is a POINT test (`IsOceanAtPosition`, 9 call sites); there is no reachability test anywhere, and the engine offers no A→B query to build one from.** Any future doctrine that moves a force overland inherits this and must respect the flag.
 
 **What's Next:**
 - ⏸️ **Nothing automated.** The remaining work is the "Needs Human Verification" list in `tasks.md` — Workbench

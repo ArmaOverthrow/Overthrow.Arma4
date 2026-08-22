@@ -1,10 +1,11 @@
 //------------------------------------------------------------------------------------------------
-//! "Loot battlefield" - collects nearby bodies and dropped weapons into this vehicle's VANILLA
-//! inventory, on the storage feature's per-player job engine.
+//! "Loot battlefield" - collects nearby bodies and every loose item around them into this vehicle's
+//! LEDGER, on the storage feature's per-player job engine.
 //!
-//! The work is one LOOT job on OVT_StorageRequestComponent: chunked, progress-reported, and filtered
-//! by typename rather than by class-name strings (R10). Nothing here reaches
-//! OVT_InventoryManagerComponent any more, and nothing here writes English at the player.
+//! The work is one LOOT job on OVT_StorageRequestComponent: chunked over the call queue, reported on
+//! the controller's progress bar, and unfiltered except for the three base garments a body keeps.
+//! Nothing here reaches OVT_InventoryManagerComponent any more, and nothing here writes English at
+//! the player.
 //------------------------------------------------------------------------------------------------
 class OVT_LootIntoVehicleAction : ScriptedUserAction
 {

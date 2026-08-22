@@ -12560,3 +12560,140 @@ class OVT_TEST_Init_Deployments_DefenseShareDripsIntoThePool : SCR_AutotestCaseB
 			manager.AddFactionResources(factionIndex, target - current);
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A LAND-ISOLATED TARGET IS NEVER COLLECTED AS AN OBJECTIVE CANDIDATE.
+//!
+//! Erquy Harbour sits on an island. Nothing in the objective machinery knew that until this case's
+//! feature: OVT_ObjectiveSelection.ProximityScore is straight-line distance, and Erquy's nearest
+//! occupying holding is about 4.7 km away - INSIDE the director's 5 km m_fMaxUsefulDistance - so it
+//! scored as an ordinary, slightly distant prize and was selectable like any other base.
+//!
+//! WHAT PICKING IT ACTUALLY DID, which is why a gate and not a score penalty: a penalty does not
+//! exclude anything, because the director picks the BEST candidate it has and on a quiet map a
+//! heavily penalised island is still the best thing going. And once picked, the harassment insertion
+//! spawns a truck at a mainland source and drives it at the objective; it strands at the coast, the
+//! stranded-transport path opens the doors, and the passengers march on a target across open water.
+//! The forward base is then sited between the nearest holding and the target, which across a strait
+//! is the sea. Neither path has any water rule - every IsOceanAtPosition call in the tree asks
+//! whether a POINT is wet, and none asks whether a point can be WALKED TO.
+//!
+//! ⚠ THE FLAG IS PLANTED, NOT READ OFF THE MAP. This suite runs in OVT_Campaign_Test.ent, which has
+//! one nameless base and no island; asserting that some base carries the authored attribute would be
+//! asserting a fact about a world this tier never loads. So the case plants the flag on the live
+//! record, drives the real collection, and hands the record back - which tests the GATE, in any
+//! world, and is the half that a code change can break.
+//!
+//! ⚠ THE OTHER HALF - that bases.layer still CARRIES m_bLandIsolated - is checked by
+//! tools/check-land-isolated.py, because nothing in the autotests can see the Eden layer and a
+//! Workbench re-save drops an authored attribute silently. A dropped attribute leaves a campaign
+//! that compiles, loads, plays, and marches a fireteam into the sea an hour later.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Objectives_LandIsolatedTargetsAreNeverCandidates : SCR_AutotestCaseBase
+{
+	//! Comfortably past any world, so no candidate is dropped for mere distance.
+	static const float MAX_USEFUL_DISTANCE = 50000;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		if (!occupying.m_Bases || occupying.m_Bases.IsEmpty())
+		{
+			SetFailure("The world carries no base controllers, so there is nothing to make a candidate of and this case would assert nothing");
+			return true;
+		}
+
+		OVT_BaseData subject = occupying.m_Bases[0];
+
+		// BORROWED STATE - the record is the live one, handed back on every path below.
+		int originalFaction = subject.faction;
+		bool originalIsolated = subject.landIsolated;
+
+		int resistanceIndex = config.GetPlayerFactionIndex();
+		int sources = OVT_EObjectiveCandidateSource.RESISTANCE_TOWNS | OVT_EObjectiveCandidateSource.RESISTANCE_BASES;
+
+		// A base is only ever a candidate while the RESISTANCE holds it.
+		subject.faction = resistanceIndex;
+
+		string failure = RunClaims(occupying, subject, sources, resistanceIndex);
+
+		subject.faction = originalFaction;
+		subject.landIsolated = originalIsolated;
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Land-isolated gate: a reachable base was collected as an objective candidate and the same base, flagged land-isolated, was not");
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Collects twice - once reachable, once isolated - so the absence proves the FLAG and not some
+	//! unrelated reason the base was never a candidate in this world at all.
+	//! \param[in] occupying The occupying faction manager.
+	//! \param[in] subject The base record being flipped.
+	//! \param[in] sources The candidate sources to collect.
+	//! \param[in] resistanceIndex The resistance faction index.
+	//! eturn An empty string when both claims hold, or the broken one.
+	protected string RunClaims(notnull OVT_OccupyingFactionManager occupying, notnull OVT_BaseData subject, int sources, int resistanceIndex)
+	{
+		// ---- (a) THE CONTROL: reachable, so it IS collected --------------------------------------
+		subject.landIsolated = false;
+
+		OVT_ObjectiveCandidateSet reachable = new OVT_ObjectiveCandidateSet();
+		reachable.Collect(occupying, OVT_Global.GetTowns(), sources, resistanceIndex, MAX_USEFUL_DISTANCE);
+
+		if (!IsCollected(reachable, subject.location))
+			return "A resistance-held base that is NOT land-isolated was not collected as a candidate either - so this world cannot tell the gate apart from a base that was never eligible, and the exclusion below would prove nothing";
+
+		// ---- (b) THE CLAIM: isolated, so it is NOT collected --------------------------------------
+		subject.landIsolated = true;
+
+		OVT_ObjectiveCandidateSet isolated = new OVT_ObjectiveCandidateSet();
+		isolated.Collect(occupying, OVT_Global.GetTowns(), sources, resistanceIndex, MAX_USEFUL_DISTANCE);
+
+		if (IsCollected(isolated, subject.location))
+			return "A base flagged land-isolated was still collected as an objective candidate. The occupying faction can pick it, and everything downstream assumes a land route: the harassment truck strands at the coast and marches its passengers at open water, and the forward base is sited in the sea";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a position turned up among the collected candidates.
+	//!
+	//! MATCHED BY POSITION, because the set stores a display name and a position but not the record.
+	//! A candidate is collected AT base.location, so this is an identity check, not a proximity search.
+	//! \param[in] candidates The collected set.
+	//! \param[in] position The base's location.
+	//! eturn True when the set carries a candidate there.
+	protected bool IsCollected(notnull OVT_ObjectiveCandidateSet candidates, vector position)
+	{
+		int count = candidates.Count();
+		for (int i = 0; i < count; i++)
+		{
+			if (vector.Distance(candidates.GetPosition(i), position) < 1)
+				return true;
+		}
+
+		return false;
+	}
+}

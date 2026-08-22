@@ -29,6 +29,10 @@ class OVT_TownControllerComponent: OVT_Component
 	[Attribute(desc: "Civilian type names this town may have (empty = whatever the town's size allows). Must include at least one type this size permits, or the town gets no civilians at all")]
 	ref array<string> m_aCivilianTypes;
 
+	//! See OVT_BaseControllerComponent.m_bLandIsolated for why this is authored rather than derived.
+	[Attribute(defvalue: "0", desc: "Tick when NO LAND ROUTE reaches this town - an island, or ground cut off by water. The occupying faction will never make it an objective. It still gets civilians, patrols and QRFs normally")]
+	bool m_bLandIsolated;
+
 	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	

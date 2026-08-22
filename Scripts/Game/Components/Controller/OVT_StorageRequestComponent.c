@@ -21,7 +21,7 @@ enum EOVT_StorageOp
 	//! Empty a holder's VANILLA inventory. Never touches the ledger.
 	CLEAR,
 
-	//! Battlefield bodies and weapons -> the holder's vanilla inventory.
+	//! Battlefield bodies and every loose item around them -> the holder's ledger.
 	LOOT,
 
 	//! Several nearby containers -> one destination holder's ledger. Server-side only: no checkout
@@ -1108,7 +1108,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//  - TO_INVENTORY debits ONLY AFTER a spawn succeeds (StepToInventory) - a refused spawn costs
 	//    nothing;
 	//  - a TO_HOLDER move returns the un-added remainder TO THE SOURCE
-	//    (OVT_StorageRules.TransferLedgerLine).
+	//    (OVT_StorageRules.TransferLedgerLine);
+	//  - LOOT prices a whole tree BEFORE it destroys any of it (StepLoot) - the ground has no
+	//    inventory manager to delete one item through, so the delete is one call at the root.
 	// Each is a pair of statements with no chunk boundary between them, so the worst a mid-transfer
 	// crash can cost is one item and never a stack.
 	//-----------------------------------------------------------------------------------------------
@@ -1132,7 +1134,7 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//! Server-side entry point for the battlefield loot job. NOT an RPC: Phase 8 calls it from the
 	//! loot user action's own validated handler, which has already resolved and gated the caller.
 	//! \param[in] playerId The looting player.
-	//! \param[in] holder The vehicle the loot goes into.
+	//! \param[in] holder The vehicle whose LEDGER the loot goes into.
 	//! \param[in] radius How far around the holder to collect from.
 	//! \return True when a job was started.
 	bool StartLootJob(int playerId, RplId holder, float radius)
@@ -1155,7 +1157,10 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			return false;
 		}
 
-		if (!OVT_StorageUtils.GetInventoryManager(entity))
+		// The loot lands in the LEDGER, so a holder with no ledger cannot receive it. MayUseHolder has
+		// already refused a capacity-0 holder.
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(entity);
+		if (!storage || !storage.GetLedger())
 		{
 			SendStorageError(SEQ_NONE, "#OVT-Storage_BadRequest");
 			return false;
@@ -1751,8 +1756,8 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//!
 	//! PublishCount() is one Replication.BumpMe(), so a per-item call would replace the network spike
 	//! this feature exists to remove with an identical one. Reached from FINISH and from ABORT, never
-	//! from both, so a holder is bumped at most once per job. CLEAR and LOOT write no ledger at all
-	//! and therefore publish nothing.
+	//! from both, so a holder is bumped at most once per job. CLEAR writes no ledger at all and
+	//! therefore publishes nothing.
 	//! \param[in] job The finished or aborted job.
 	protected void PublishTouchedHolders(OVT_StorageJob job)
 	{
@@ -1777,13 +1782,10 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//------------------------------------------------------------------------------------------------
 	//! Whether an op changes the source holder's ledger at all.
 	//! \param[in] op The operation.
-	//! \return False for the two ops that only touch vanilla inventories.
+	//! \return False only for CLEAR, the one op that touches nothing but a vanilla inventory.
 	protected bool JobWritesSourceLedger(EOVT_StorageOp op)
 	{
 		if (op == EOVT_StorageOp.CLEAR)
-			return false;
-
-		if (op == EOVT_StorageOp.LOOT)
 			return false;
 
 		return true;
@@ -2022,16 +2024,29 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! LOOT: bodies and dropped weapons -> the holder's VANILLA inventory, chunked. No ledger is
-	//! touched; the player converts afterwards with Transfer all to storage, or Unload does it.
+	//! LOOT: dead bodies and everything lying around them -> the holder's LEDGER, chunked.
+	//!
+	//! ONE PENDING ENTITY IS ONE ALL-OR-NOTHING TREE. The whole tree is priced against free space
+	//! BEFORE anything is destroyed, then the root is deleted once and every line is credited. The
+	//! sweep's per-item delete-then-credit cannot be used here: half of what a loot run collects is
+	//! lying on the ground, and the ground has no inventory manager to delete an item through.
 	//! \param[in] job The loot run.
-	//! \return True when the work list is exhausted.
+	//! \return True when the work list is exhausted, or when the ledger filled up.
 	protected bool StepLoot(OVT_StorageJob job)
 	{
-		IEntity holder = OVT_StorageUtils.ResolveHolder(job.m_SourceId);
-		InventoryStorageManagerComponent inventory = OVT_StorageUtils.GetInventoryManager(holder);
-		if (!inventory)
+		OVT_StorageComponent storage = ResolveStorage(job.m_SourceId);
+		if (!storage)
 			return true;
+
+		OVT_StorageLedger ledger = storage.GetLedger();
+		if (!ledger)
+			return true;
+
+		// A holder spawned this frame has not resolved its capacity yet - the resolve is a call-queue
+		// hop - and reading the unresolved 0 would report a full ledger on an empty truck.
+		int capacity = OVT_StorageComponent.UNLIMITED_CAPACITY;
+		if (storage.IsCapacityResolved())
+			capacity = storage.GetCapacity();
 
 		int budget = ChunkBudget();
 
@@ -2042,34 +2057,149 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			EntityID id = job.m_aPending[job.m_iCursor];
 			job.m_iCursor++;
 
-			IEntity item = GetGame().GetWorld().FindEntityByID(id);
-			if (!item)
+			IEntity root = GetGame().GetWorld().FindEntityByID(id);
+			if (!root)
 				continue;
 
-			WeaponComponent weapon = WeaponComponent.Cast(item.FindComponent(WeaponComponent));
-			if (weapon)
+			array<string> lines = new array<string>();
+			array<EntityID> seen = new array<EntityID>();
+			int discarded = CollectLootTree(root, true, lines, seen);
+
+			// Nothing to credit and nothing to throw away: a body wearing only its three base garments
+			// is the common case, and it is left where it fell rather than deleted for no gain.
+			if (lines.IsEmpty() && discarded <= 0)
+				continue;
+
+			if (ledger.FreeSpace(capacity) < lines.Count())
 			{
-				if (inventory.TryInsertItem(item))
-					job.m_iMoved++;
-				else
-					job.m_iShortfall++;
-
-				continue;
+				job.m_iShortfall += job.RemainingPending() + 1;
+				job.m_iCursor = job.m_aPending.Count();
+				return true;
 			}
 
-			InventoryStorageManagerComponent body = InventoryStorageManagerComponent.Cast(item.FindComponent(InventoryStorageManagerComponent));
-			if (!body)
-				continue;
+			// ONE delete for the whole tree, and the credit follows it. Crediting first would mint
+			// lines if the delete failed.
+			SCR_EntityHelper.DeleteEntityAndChildren(root);
 
-			int taken = LootBody(body, inventory);
-			if (taken <= 0)
-				continue;
+			foreach (string res : lines)
+			{
+				// The FreeSpace gate above owns the cap. This credit must never be allowed to refuse:
+				// by the time it runs the entities are already gone.
+				ledger.Add(res, 1, OVT_StorageComponent.UNLIMITED_CAPACITY);
+			}
 
-			job.m_iMoved += taken;
-			SCR_EntityHelper.DeleteEntityAndChildren(item);
+			job.m_iMoved += lines.Count();
+			job.m_iShortfall += discarded;
 		}
 
 		return job.m_iCursor >= job.m_aPending.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Prices one loot tree: one prefab name per item in it that becomes a ledger line.
+	//!
+	//! NOTHING IS MOVED, DETACHED OR DELETED HERE. The caller deletes the root once and credits the
+	//! list, so a tree that will not fit costs nothing. Two things do not become lines:
+	//!  - a BASE GARMENT worn on a body, which is left on it (its pockets are still emptied, and a
+	//!    garment lying on the ground is ordinary loot because it is then the root);
+	//!  - a PART-USED MAGAZINE, which is DISCARDED - a ledger line is a count and has nowhere to
+	//!    record "27 of 30", so it goes with the tree and is reported as shortfall.
+	//! Everything else is taken, including magazines loaded in weapons and mounted attachments.
+	//! \param[in] item The tree root, or a node of it during the walk.
+	//! \param[in] isRoot True only for the entity the query found.
+	//! \param[out] lines Receives one prefab name per creditable item.
+	//! \param[in,out] seen Every id already priced. GetItems is native and may or may not recurse, so
+	//!        a node visited twice must cost nothing rather than credit twice.
+	//! \return How many items were discarded rather than credited.
+	protected int CollectLootTree(IEntity item, bool isRoot, out array<string> lines, out array<EntityID> seen)
+	{
+		if (!item || !lines || !seen)
+			return 0;
+
+		EntityID id = item.GetID();
+		if (seen.Find(id) != -1)
+			return 0;
+
+		seen.Insert(id);
+
+		int discarded = 0;
+
+		// A body's gear lives in loadout storages, which are NOT universal storages - only its own
+		// manager can enumerate them. The body itself is never a ledger line.
+		ChimeraCharacter character = ChimeraCharacter.Cast(item);
+		if (character)
+		{
+			InventoryStorageManagerComponent manager = InventoryStorageManagerComponent.Cast(item.FindComponent(InventoryStorageManagerComponent));
+			if (!manager)
+				return 0;
+
+			array<IEntity> carried = new array<IEntity>();
+			manager.GetItems(carried);
+
+			foreach (IEntity gear : carried)
+			{
+				discarded += CollectLootTree(gear, false, lines, seen);
+			}
+
+			return discarded;
+		}
+
+		array<Managed> storages = new array<Managed>();
+		item.FindComponents(BaseUniversalInventoryStorageComponent, storages);
+
+		foreach (Managed found : storages)
+		{
+			BaseInventoryStorageComponent storage = BaseInventoryStorageComponent.Cast(found);
+			if (!storage)
+				continue;
+
+			array<IEntity> contents = new array<IEntity>();
+			storage.GetAll(contents);
+
+			foreach (IEntity contained : contents)
+			{
+				discarded += CollectLootTree(contained, false, lines, seen);
+			}
+		}
+
+		// A WeaponAttachmentsStorageComponent is not a universal storage, so a loaded magazine and a
+		// mounted optic are invisible to the loop above and would be destroyed with the weapon.
+		BaseWeaponComponent weapon = BaseWeaponComponent.Cast(item.FindComponent(BaseWeaponComponent));
+		if (weapon)
+		{
+			BaseMagazineComponent loaded = weapon.GetCurrentMagazine();
+			if (loaded)
+				discarded += CollectLootTree(loaded.GetOwner(), false, lines, seen);
+
+			array<AttachmentSlotComponent> slots = new array<AttachmentSlotComponent>();
+			weapon.GetAttachments(slots);
+
+			foreach (AttachmentSlotComponent slot : slots)
+			{
+				if (slot)
+					discarded += CollectLootTree(slot.GetAttachedEntity(), false, lines, seen);
+			}
+		}
+
+		// R10: TYPENAMES, never ClassName() strings. The pre-storage filter compared eight strings and
+		// two of them were not vanilla classes at all, so those branches never matched.
+		if (!isRoot)
+		{
+			BaseLoadoutClothComponent cloth = BaseLoadoutClothComponent.Cast(item.FindComponent(BaseLoadoutClothComponent));
+			if (cloth && cloth.GetAreaType() && OVT_StorageRules.IsBaseClothingArea(cloth.GetAreaType().Type()))
+				return discarded;
+		}
+
+		if (!MagazineConverts(item))
+			return discarded + 1;
+
+		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(item);
+		if (prefab == "")
+			return discarded;
+
+		lines.Insert(prefab);
+
+		return discarded;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2450,92 +2580,6 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		return OVT_StorageRules.MagazineIsFull(magazine.GetAmmoCount(), magazine.GetMaxAmmoCount());
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Moves one body's gear into the holder, leaving the three base garments behind.
-	//! \param[in] body The body's inventory manager.
-	//! \param[in] target The holder's inventory manager.
-	//! \return How many items were taken.
-	protected int LootBody(InventoryStorageManagerComponent body, InventoryStorageManagerComponent target)
-	{
-		array<IEntity> items = new array<IEntity>();
-		body.GetItems(items);
-
-		int taken = 0;
-
-		foreach (IEntity item : items)
-		{
-			if (!item)
-				continue;
-
-			// R10: TYPENAMES, never ClassName() strings. The shipped filter compares eight strings and
-			// two of them are not vanilla classes at all, so those branches have never matched.
-			BaseLoadoutClothComponent cloth = BaseLoadoutClothComponent.Cast(item.FindComponent(BaseLoadoutClothComponent));
-			if (cloth && cloth.GetAreaType() && OVT_StorageRules.IsBaseClothingArea(cloth.GetAreaType().Type()))
-			{
-				taken += ExtractContents(item, body, target);
-				continue;
-			}
-
-			if (MoveIntoHolder(body, target, item))
-				taken++;
-		}
-
-		return taken;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Empties a garment that is being left behind, so its pockets are not left on the body.
-	//! \param[in] container The garment.
-	//! \param[in] body The body's inventory manager.
-	//! \param[in] target The holder's inventory manager.
-	//! \return How many items were taken.
-	protected int ExtractContents(IEntity container, InventoryStorageManagerComponent body, InventoryStorageManagerComponent target)
-	{
-		array<Managed> storages = new array<Managed>();
-		container.FindComponents(BaseUniversalInventoryStorageComponent, storages);
-
-		int taken = 0;
-
-		foreach (Managed found : storages)
-		{
-			BaseInventoryStorageComponent storage = BaseInventoryStorageComponent.Cast(found);
-			if (!storage)
-				continue;
-
-			array<IEntity> contents = new array<IEntity>();
-			storage.GetAll(contents);
-
-			foreach (IEntity contained : contents)
-			{
-				if (contained && MoveIntoHolder(body, target, contained))
-					taken++;
-			}
-		}
-
-		return taken;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Moves one item into the holder, asking the HOLDER's manager where it goes.
-	//!
-	//! The destination is resolved through the holder's manager rather than through a
-	//! UniversalInventoryStorageComponent found on the holder's root, because a truck's cargo storages
-	//! live on attached child entities and a root lookup misses them.
-	//! \param[in] from The manager that currently owns the item.
-	//! \param[in] target The holder's inventory manager.
-	//! \param[in] item The item.
-	//! \return True when it moved.
-	protected bool MoveIntoHolder(InventoryStorageManagerComponent from, InventoryStorageManagerComponent target, IEntity item)
-	{
-		BaseInventoryStorageComponent destination = target.FindStorageForItem(item, EStoragePurpose.PURPOSE_DEPOSIT);
-		if (!destination)
-			destination = target.FindStorageForItem(item);
-
-		if (!destination)
-			return false;
-
-		return from.TryMoveItemToStorage(item, destination, -1);
-	}
 
 	//-----------------------------------------------------------------------------------------------
 	// ENGINE HELPERS

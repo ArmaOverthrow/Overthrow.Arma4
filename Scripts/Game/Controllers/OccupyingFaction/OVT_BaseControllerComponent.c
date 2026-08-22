@@ -32,6 +32,14 @@ class OVT_BaseControllerComponent: OVT_Component
 	[Attribute(defvalue: "1", UIWidgets.EditBox, desc: "Initial Resource Multiplier")]
 	float m_fStartingResourcesMultiplier;
 
+	//! ⚠ AUTHORED PER MAP, NOT DERIVED. The engine has no A-to-B reachability query - NavmeshWorld-
+	//! Component offers only tile predicates and GetReachablePoint(origin, distance, out), which
+	//! answers "some reachable point" and not "is THAT one reachable", and AIPathfindingComponent's
+	//! RayTrace is a straight line that would also reject any target behind a hill with a perfectly
+	//! good road around it. So the map author states the fact instead of the campaign guessing it.
+	[Attribute(defvalue: "0", desc: "Tick when NO LAND ROUTE reaches this base - an island, or ground cut off by water. The occupying faction will never make it an objective, because everything downstream of that decision (a truck insertion that strands at the coast and marches its passengers into the sea, a forward base sited on open water) assumes it can walk there. It still defends itself normally and the resistance can still take it")]
+	bool m_bLandIsolated;
+
 	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	

@@ -2,7 +2,7 @@
 
 **Epic:** occupying
 **Status:** 🟢 Active — `counter-attacks` **CLOSED 2026-08-20** as the proof of concept for **`objectives`** (📄 requirements written, planning next); `base-upgrades` (retired) and `qrf` (legacy) closed the same day; `core` and `deployments` remain documented-retrospective
-**Last Updated:** 2026-08-22 (`core`: the defense-share drip built — the deferred pool-smoothing idea, All 594/601)
+**Last Updated:** 2026-08-23 (`objectives`: land-isolated targets gated out of selection, All 602/602; `core`: the defense-share drip built)
 
 > **This file is the epic marker.** Its presence in `docs/features/occupying/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -82,6 +82,11 @@ Cross-feature tech debt and review findings. **Populated and updated by `/review
 - [ ] 💳 **Test coverage is ~3 assertions for the whole epic** — all — manager/deployment-manager resolve + base registration. The Logic-tier candidates are listed per feature (income/threat math, QRF point model and wave budgeting, upgrade allocation arithmetic, deployment cost/selection, `ValidateAllConfigs()`).
 
 ---
+
+### Land reachability (2026-08-23)
+
+- [x] ✅ **Land-isolated targets are never objectives.** Author-reported: Erquy Harbour is on an island and the objective machinery could pick it, because `ProximityScore` is straight-line distance and Erquy's nearest occupying holding is ~4.7 km — inside the director's 5 km `m_fMaxUsefulDistance`. Fixed in `objectives` with an authored `m_bLandIsolated` flag on the base/town controllers, copied to the records at discovery and gated in `OVT_ObjectiveCandidateSet`. Only objective TARGETING is gated: the base still defends itself, still fights a QRF, and can still be captured.
+- [ ] ⚠️ **The standing gap this exposed, for whoever builds the next doctrine: there is no reachability concept anywhere in the epic.** All nine `IsOceanAtPosition` call sites ask whether a POINT is wet; none asks whether a point can be WALKED TO, and the engine offers no A→B query to build one from (`NavmeshWorldComponent` has tile predicates and `GetReachablePoint(origin, distance, out)`; `AIPathfindingComponent.RayTrace` is a straight line that would reject any target behind a hill). Anything that moves a force overland — an insertion, a forward base, a march — is trusting straight-line geometry. The flag is the only statement of the fact and it is authored per map. 💡 A richer answer (amphibious/naval insertion, so an island can be contested rather than ignored) was considered and deliberately not built.
 
 ### Follow-up ideas from the counter-attacks play-test (2026-08-19, author-requested)
 

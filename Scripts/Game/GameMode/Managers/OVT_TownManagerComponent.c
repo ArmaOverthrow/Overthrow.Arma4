@@ -27,6 +27,13 @@ class OVT_TownData : Managed
 	
 	[NonSerialized()]
 	OVT_TownSize size;
+
+	//! No land route reaches this town - see OVT_BaseControllerComponent.m_bLandIsolated. NOT
+	//! SERIALIZED for the same reason `size` is not: it is world-derived and re-read on every Init.
+	//! ProcessTown() (the map-descriptor path) leaves it false, which is the right default - a marker
+	//! carries no such statement, only an authored controller does.
+	[NonSerialized()]
+	bool landIsolated;
 	
 	ref array<ref OVT_TownModifierData> stabilityModifiers = {};
 	ref array<ref OVT_TownModifierData> supportModifiers = {};
@@ -1177,6 +1184,7 @@ class OVT_TownManagerComponent: OVT_Component
 		m_iTownCount++;
 		
 		town.size = townController.m_Size;
+		town.landIsolated = townController.m_bLandIsolated;
 		
 		m_Towns.Insert(town);
 		m_TownNames.Insert(townController.m_sName);

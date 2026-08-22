@@ -179,6 +179,10 @@ class OVT_TEST_Campaign_ResourcePort_PurchaseMovesMoneyAndResources : SCR_Autote
 			return true;
 		}
 
+		// Re-issue rather than wait: another case may restore its own caller with a teleport that is
+		// still in flight when this one starts, and that clobbers ours - leaving the character parked
+		// at ITS destination while we poll forever. Idempotent, same destination every time.
+		SCR_Global.TeleportPlayer(m_iPlayerId, m_vStandPos);
 		return false;
 	}
 

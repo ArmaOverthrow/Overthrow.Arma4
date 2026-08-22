@@ -35,6 +35,14 @@ class OVT_BaseData : Managed
 	[SortAttribute(),NonSerialized()]
 	int sortBy;
 
+	//! No land route reaches this base - see OVT_BaseControllerComponent.m_bLandIsolated.
+	//!
+	//! NOT SERIALIZED, because it is WORLD-DERIVED like the location it is read beside: the map author
+	//! states it on the controller and discovery copies it here on every Init. Persisting it would let
+	//! a save outvote a map that had since been corrected.
+	[NonSerialized()]
+	bool landIsolated;
+
 	bool IsOccupyingFaction()
 	{
 		return faction == OVT_Global.GetConfig().GetOccupyingFactionIndex();
@@ -1535,6 +1543,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
 		data.faction = m_Config.GetOccupyingFactionIndex();
+
+		// COPIED AT DISCOVERY, not looked up on demand. The objective candidate set is rebuilt every
+		// director tick and reads this once per base per round; resolving the marker entity each time
+		// would put a FindEntityByID in that loop for a value that cannot change while the world is
+		// loaded. FilterBaseEntities has already proven the component is there.
+		OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(ent.FindComponent(OVT_BaseControllerComponent));
+		if(controller)
+			data.landIsolated = controller.m_bLandIsolated;
 
 		m_Bases.Insert(data);
 		return true;

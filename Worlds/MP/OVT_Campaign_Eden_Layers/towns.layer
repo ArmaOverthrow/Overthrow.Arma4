@@ -249,6 +249,7 @@ $grp GenericEntity : "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.e
   components {
    OVT_TownControllerComponent "{59908365ED5E1344}" {
     m_sName "#AR-MapLocation_Erquy"
+    m_bLandIsolated 1
     m_iPopulation 38
     m_iTownRange 130
     m_aCivilianTypes {

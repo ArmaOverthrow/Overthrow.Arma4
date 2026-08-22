@@ -365,3 +365,19 @@ as high risk is still unexercised.
 ---
 
 *Update this file as tasks are completed. Progress line is the count of `[x]` phase tasks over 76 (the 21 user-verification and Workbench rows below are tracked separately).*
+
+---
+
+## Post-close change 2026-08-23 — battlefield loot -> the ledger
+
+User call after close. See `context.md` "Post-close change 2026-08-23" for the full record.
+
+- [x] PC1 `OVT_StorageLootQuery.FilterLootables` — loose items (`InventoryItemComponent`, no parent slot) accepted; body test narrowed to `ChimeraCharacter`; **holders excluded outright** (a loot run deletes what it prices)
+- [x] PC2 `StepLoot` rewritten onto the ledger; `LootBody` / `ExtractContents` / `MoveIntoHolder` deleted
+- [x] PC3 `CollectLootTree` — all-or-nothing tree pricing, `EntityID` de-dupe, explicit weapon magazine/attachment walk, part-used magazines discarded as shortfall, worn base garments skipped but emptied
+- [x] PC4 `JobWritesSourceLedger` no longer excludes LOOT; `StartLootJob` gates on a ledger, not an inventory manager
+- [x] PC5 `OVT_TEST_Init_StorageSeam_ILootQueryTakesItemsNotHolders` added and **fail-proven** (removed the holder exclusion → red with the intended message)
+- [x] PC6 Stale rationale corrected on `..._HTransportTrucksKeepVanillaCargoCaps` (loot no longer fills the vanilla bed; withdrawals still do)
+- [x] PC7 Gate: `compile-check.sh` exit 0 (6325) · Init **221/221** · Logic **304/304** · RoundTrip **45/45**
+- [ ] PC8 Play-test: loot a real body pile next to a truck; watch the progress bar, the ledger count and a 25 m town sweep
+- [ ] PC9 Decide the fate of the dead legacy loot path in `OVT_InventoryManagerComponent` (~150 lines, zero callers)

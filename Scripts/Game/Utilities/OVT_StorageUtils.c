@@ -200,7 +200,7 @@ class OVT_StorageHolderQuery : Managed
 }
 
 //------------------------------------------------------------------------------------------------
-//! Finds the dead bodies and dropped weapons around a point, for the LOOT job.
+//! Finds the dead bodies and every loose item around a point, for the LOOT job.
 //!
 //! ONE INSTANCE PER CALL, for the same reason OVT_StorageHolderQuery is. The shipped
 //! OVT_WorldUtils.GetNearbyBodiesAndWeapons keeps its accumulator in a STATIC
@@ -246,7 +246,14 @@ class OVT_StorageLootQuery : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Query filter: a destroyed damage manager (a body) or a weapon lying about.
+	//! Query filter: a dead character, or anything lying on the ground.
+	//!
+	//! ⚠ A LOOT RUN DELETES WHAT IT EMPTIES, so "destroyed damage manager" is NOT the body test any
+	//! more - a ruined Overthrow building and a wrecked truck both report one, and neither may be
+	//! deleted by a loot run. A body is a character; everything else is reached as a loose item.
+	//!
+	//! An item still slotted into a body, a container or a vehicle has a parent slot and is deliberately
+	//! NOT queued: the job walks its owner's tree and would otherwise price the same entity twice.
 	//! \param[in] e The entity the query offered.
 	//! \return Always false - the query runs to completion.
 	protected bool FilterLootables(IEntity e)
@@ -254,15 +261,22 @@ class OVT_StorageLootQuery : Managed
 		if (!e || !m_aResults)
 			return false;
 
-		DamageManagerComponent damage = DamageManagerComponent.Cast(e.FindComponent(DamageManagerComponent));
-		if (damage && damage.IsDestroyed())
+		// A holder is never loot. It is emptied through the transfer screen, not destroyed.
+		if (OVT_StorageUtils.GetStorage(e))
+			return false;
+
+		ChimeraCharacter character = ChimeraCharacter.Cast(e);
+		if (character)
 		{
-			m_aResults.Insert(e);
+			DamageManagerComponent damage = DamageManagerComponent.Cast(e.FindComponent(DamageManagerComponent));
+			if (damage && damage.IsDestroyed())
+				m_aResults.Insert(e);
+
 			return false;
 		}
 
-		WeaponComponent weapon = WeaponComponent.Cast(e.FindComponent(WeaponComponent));
-		if (weapon)
+		InventoryItemComponent item = InventoryItemComponent.Cast(e.FindComponent(InventoryItemComponent));
+		if (item && !item.GetParentSlot())
 			m_aResults.Insert(e);
 
 		return false;
