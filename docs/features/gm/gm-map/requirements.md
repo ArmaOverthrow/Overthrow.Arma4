@@ -1,6 +1,6 @@
 # GM Map — Requirements
 
-**Epic:** gm
+**Epic:** gm\
 **Created:** 2026-08-14
 
 ## Overview
@@ -10,10 +10,12 @@ The Game Master map (`Configs/Map/MapOverthrow_GM.conf`) gains Overthrow-aware l
 ## Requirements
 
 - **Threat grid layer:** rewrite the old threat grid layer on the `OVT_MapCanvasCompositor` / `OVT_MapCanvasLayer` contract from map/territory-overlay so it is performant. Enabled in `MapOverthrow_GM.conf` **only** — not the main player map conf.
-- **Deployments icon layer:** shows all current deployments, min zoom 0 so they always show.
-- **Base upgrades icon layer(s):** visible when zoomed in to roughly shop level.
-- Hovering a deployment/upgrade icon shows an info panel with its type. Use base-game group icons where possible to leverage NATO type indicators etc.
-- **Base info panel (GM only):** extended to show resource information, garrison, etc.
+- **Deployments icon layer:** shows all current deployments that leave a base (ie tower recapture, sabotage etc). NOT base upgrades, garrisons, etc. Can be a new boolean on a deployment config defaulting to false
+
+
+- Hovering a deployment icon shows an info panel with its type
+
+
 - **All existing info panels** (shops, towns, etc.) gain a "Move Camera Here" action for GMs.
 - All GM-only layers/panels/actions are gated to authorized GMs; data comes through the gm-state seam.
 

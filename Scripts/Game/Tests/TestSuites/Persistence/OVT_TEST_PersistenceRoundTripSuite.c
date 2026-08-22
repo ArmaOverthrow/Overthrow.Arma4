@@ -1,254 +1,71 @@
 //------------------------------------------------------------------------------------------------
-//! TIER D' - SAVE/RELOAD ROUND TRIP. Part of OVT_TestGroup_All since 2026-08-02.
-//!
-//! HISTORY: this suite was authored quarantined and red by design (2026-08-02, dev-ops/
-//! test-coverage) as the vanilla-persistence migration's acceptance criterion: its flip from
-//! exit 1 to exit 0 WAS the definition of done. The migration landed the same day and the flip
-//! happened; the quarantine was lifted per its own written procedure (green -> de-quarantine ->
-//! add to OVT_TestGroup_All -> update docs/features/core/persistence/).
-//!
-//! PRECONDITION: the capability case asserts the no-save -> save TRANSITION, which needs a fresh
-//! session. tools/run-tests.sh now resets the OverthrowCI save state before every run (unless
-//! OVERTHROW_SAVE_DIR pins a fixture), so the precondition holds in group runs automatically.
-//!
-//! ===========================================================================================
-//! ASSERTION RULE, NON-NEGOTIABLE (implementation.md Phase 4, Decision 4).
-//!
-//! Quoted below with the three type-name tokens replaced by descriptions - DELIBERATELY, because
-//! the rule is enforced by grepping this whole tree for exactly those tokens, and a comment that
-//! quoted them would trip the very check it is describing. The verbatim wording, and the exact
-//! grep, are in implementation.md under Decision 4.
-//!
-//!   "no persistence-framework type, no vanilla persistence type, and no Overthrow save-data
-//!    class may appear anywhere in these files except the single documented save-trigger call.
-//!    Every assertion reads state back through the same public manager API that wrote it. A
-//!    reviewer must be able to grep this tree for those type names and find at most the one
-//!    annotated trigger line."
-//!
-//! THERE ARE NOW THREE ANNOTATED TRIGGERS, NOT ONE, AND ALL THREE ARE IN THE GATE CLASS BELOW:
-//!
-//!   1. OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce()       - the SAVE trigger.
-//!   2. OVT_TEST_PersistenceRoundTripGate.RequestSessionReload()  - the LOAD trigger.
-//!   3. OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload() - the LOAD trigger for ONE world
-//!      entity that owns its own record (added 2026-08-20 for core/damage). Trigger 2 can only ask
-//!      for the game mode entity; a buildable is a tracked instance in its own right, so a case that
-//!      wants a real round trip on one has to name it. Same terms as the other two.
-//!
-//! The second one is new and is what makes this suite a round trip at all. The original draft
-//! reloaded by re-requesting the test world through the autotest framework, which boots a FRESH
-//! world and can only ever prove that the campaign restarts - not that a save was read. Loading is
-//! a first-class operation of the persistence layer, so it gets a seam of its own, on the same
-//! terms as the save trigger: a single annotated call to Overthrow's PUBLIC manager API, naming no
-//! storage type and no engine save API. Decision 4 is unchanged in substance - a reviewer greps for
-//! the forbidden type names and still finds none anywhere, including in these two lines.
-//!
-//! Everything else - what is written, what is read back - goes through Overthrow's public manager
-//! API, which is why this suite can be the gate at all: it does not know or care whether the
-//! storage underneath is EPF or vanilla, only that what went in comes back.
-//! ===========================================================================================
-//!
-//! ---------------------------------------------------------------------------------------------
-//! RUN RECIPE (also in tools/README.md)
+//! TIER D' - SAVE/RELOAD ROUND TRIP. Part of OVT_TestGroup_All.
 //!
 //!   tools/run-tests.sh OVT_TEST_PersistenceRoundTripSuite     # just this suite
 //!   tools/run-tests.sh "{6A6E2A002F53A581}"                   # or the whole All group
 //!
-//! run-tests.sh resets the OverthrowCI save state itself before every run, so the fresh-session
-//! precondition needs no manual step. (Historical acceptance flip: exit 1 -> exit 0, 2026-08-02.)
+//! ⚠ NEVER run the save scripts without --profile OverthrowCI (or an explicit OVERTHROW_SAVE_DIR):
+//! their default target is the user's real Workbench campaign save. run-tests.sh resets the
+//! OverthrowCI save state itself before every run, which is what makes the capability case's
+//! fresh-session precondition hold.
 //!
-//! reset_save.sh now clears BOTH save layouts under the profile: EPF's `.db` tree and the engine's
-//! `profile/.save/*/game` savepoints (never `settings/`). That matters for the fresh-session half of
-//! closure 1 below: with vanilla persistence a stale savepoint from a previous run is exactly what
-//! makes HasSaveGame() true before this suite has saved anything, which the capability case reports
-//! as a precondition violation rather than trusting.
+//! ===========================================================================================
+//! ASSERTION RULE, NON-NEGOTIABLE (Decision 4). No persistence-framework type, no vanilla
+//! persistence type and no Overthrow save-data class may appear anywhere in these files except the
+//! annotated trigger calls; every assertion reads state back through the same public manager API
+//! that wrote it. (The rule is enforced by grepping this tree for those type names, which is why
+//! this comment describes them rather than naming them.) There are THREE annotated triggers, all
+//! in the gate class below: TriggerSaveOnce() saves, RequestSessionReload() loads the game mode
+//! entity, RequestInstanceReload() loads ONE world entity that owns its own record.
+//! ===========================================================================================
 //!
-//! NEVER run the save scripts without --profile OverthrowCI (or an explicit OVERTHROW_SAVE_DIR):
-//! their default target is the user's real Workbench campaign save.
+//! ⚠ SaveGame() returns COMPLETELY SILENTLY when the layer is absent, so every case asserts the
+//! CAPABILITY first and the failure reaching junit.xml names the missing capability in one
+//! sentence rather than "expected 12345, got 777". Saving is ASYNCHRONOUS, so that is a bounded
+//! wait (MAX_SAVE_POLLS), not a same-frame check; expiry raises the same CAPABILITY_ABSENT
+//! sentence. A bounded diagnostic wait is not a retry - nothing is attempted twice, and expiry
+//! FAILS.
 //!
-//! ---------------------------------------------------------------------------------------------
-//! WHY THE FAILURE IS DIAGNOSTIC AND NOT A VALUE MISMATCH (task 4.5 - load-bearing)
+//! ANTI-VACUOUS-PASS DESIGN - this suite must be UNABLE to go green without persistence working.
+//! For each stub that could fake a pass, the closure:
+//!  1. HasSaveGame() hardcoded true -> the capability case asserts the whole TRANSITION: false
+//!     before the first save of a fresh session, true after. Both constant stubs fail one half.
+//!  2. A no-op reload -> every state-kind case DIRTIES the value after saving and before
+//!     reloading, and asserts the SAVED value came back. Independent of closure 1.
+//!  3. A reload that resets to campaign-start defaults -> the mutated value is deliberately not one
+//!     campaign start would produce, and the assertion is equality with the saved value.
+//!  4. A case that silently skips its assertions -> every resolution failure is an explicit
+//!     SetResultFailure with a named reason. No path reaches SetResultSuccess without asserting.
+//!  5. Reliance on execution order -> no state-kind case depends on order; each triggers its OWN
+//!     save and waits for it. ⚠ ONE order dependency does exist: the capability case's
+//!     RequireFreshSession() needs HasSaveGame() false before this suite's first save, which holds
+//!     only because `..._Capability_...` sorts alphabetically first. A case that sorts BEFORE it
+//!     and takes a save turns that gate into a precondition violation - name deployment cases
+//!     "Deployment*", never "Base*".
+//!  6. A reload restoring an OLDER save than this case wrote -> a case reads the manager's
+//!     COMPLETED-SAVE COUNT before triggering and waits for that number to go up, rather than for
+//!     "a save exists" (true forever after the first case) or "no save in progress" (also true
+//!     when the save was silently refused).
 //!
-//! On this branch SaveGame() returns COMPLETELY SILENTLY: it prints nothing, writes nothing to
-//! disk, and HasSaveGame() is a hardcoded false (findings.md 1.7). A naive round-trip test would
-//! therefore fail somewhere deep in an assertion, reporting "expected 12345, got 777" - which tells
-//! a reviewer nothing about why. Every case here instead asserts the CAPABILITY first, so the
-//! failure that reaches junit.xml names the missing capability in one sentence.
+//! THE RELOAD MECHANISM, AND WHAT THIS SUITE THEREFORE DOES AND DOES NOT PROVE. The reload half is
+//! an IN-SESSION re-application: ReapplyLatestSaveData() re-reads the stored record for instances
+//! that are already live. Per case: mutate -> save -> DIRTY the value -> re-apply -> assert the
+//! SAVED value.
 //!
-//! Saving is ASYNCHRONOUS, so "assert the capability first" is a wait, not a same-frame check: a
-//! case triggers exactly one save and then polls until the manager reports it settled. The poll is
-//! bounded (MAX_SAVE_POLLS) and its expiry raises the same CAPABILITY_ABSENT sentence, so a save
-//! layer that never completes is reported identically to one that was never implemented. A bounded
-//! diagnostic wait is not a retry: nothing is attempted twice, and expiry FAILS.
+//! 🔴 The real player-facing continue flow - savepoint on disk -> SaveGameManager load -> session
+//! restarts - is NOT covered and cannot be. It was tried: a mid-case load is a game-state
+//! transition, the CLI harness treats every world load as a brand new test run and restarts the
+//! suite, so no case can resume on the other side. The measured result was an infinite restart loop
+//! with no junit written at all. So a green run here means "what Overthrow persists is written to
+//! storage and comes back from storage", NOT "quitting and continuing a campaign works"; the
+//! restart path stays a MANUAL play-test item. RequireRestoredCampaign() is a sanity assert in this
+//! rung, not proof of a load. LoadLatestSave() is deliberately kept as the production API - it is
+//! simply not what a test can call.
 //!
-//! ---------------------------------------------------------------------------------------------
-//! ANTI-VACUOUS-PASS DESIGN (task 4.6) - this suite must be UNABLE to go green without persistence
-//! actually working. Written adversarially: for each stub that could fake a pass, the closure.
-//!
-//!  1. STUB: `HasSaveGame()` hardcoded to return true (a save layer that lies about having saved).
-//!     CLOSURE: the capability case asserts the whole TRANSITION - HasSaveGame() must be FALSE
-//!     before the first save of a fresh session and TRUE after it. A constant-true stub fails the
-//!     "before" half; a constant-false stub fails the "after" half. This is why the run recipe
-//!     requires reset_save.sh: the "before" half is only meaningful in a fresh session.
-//!
-//!  2. STUB: a reload that is a no-op (or that never actually loads anything).
-//!     CLOSURE: every state-kind case DIRTIES the value after saving and before reloading. The
-//!     assertion is that the SAVED value came back - not that the value never changed. A no-op
-//!     reload leaves the dirty value in place and the case fails. This closure does not depend on
-//!     HasSaveGame() at all, so it survives closure 1 being defeated.
-//!
-//!  3. STUB: a reload that resets state to campaign-start defaults rather than to the save.
-//!     CLOSURE: the mutated value is deliberately not a value the campaign start would produce,
-//!     and the assertion is equality with the saved value, not "different from the dirty value".
-//!
-//!  4. A case that silently skips its assertions because a manager or subject was null.
-//!     CLOSURE: every resolution failure is an explicit SetResultFailure with a named reason.
-//!     There is no path through any case that reaches SetResultSuccess without asserting.
-//!
-//!  5. Reliance on case execution order (the capability case happening to run first).
-//!     CLOSURE: no STATE-KIND case depends on order - each independently triggers its OWN save and
-//!     waits for that save before it reloads anything, so it neither needs an earlier case to have
-//!     run nor is misled by one that did (closure 6).
-//!     ONE ORDER DEPENDENCY DOES EXIST, deliberately, and it is the capability case's
-//!     RequireFreshSession() half: HasSaveGame() must be FALSE before this suite's first save, which
-//!     holds only because `..._Capability_...` sorts alphabetically first and therefore runs before
-//!     any other case has triggered a save. The condition that would break it, stated so it can be
-//!     checked: a case added to this suite whose class name sorts BEFORE the capability case AND
-//!     that triggers a save. Such a case would turn the capability gate's fresh-session check into a
-//!     "precondition violated" failure. Keep the capability case first, or keep any earlier-sorting
-//!     case save-free.
-//!
-//!  6. (NEW, and the reason state cases save exactly once.) STUB: a reload that restores an OLDER
-//!     save than the one this case wrote - which would happen for free if a case reloaded before its
-//!     own save had settled, since an earlier case's savepoint already exists.
-//!     CLOSURE: a case reads the manager's COMPLETED-SAVE COUNT before triggering its save and waits
-//!     for that number to go up, rather than waiting for "a save exists" (true forever after the
-//!     first case) or for "no save in progress" (also true when the save was silently refused). A
-//!     case therefore can never reload from a savepoint that predates its own mutation, and a
-//!     refused save is reported as the missing capability instead of as lost data.
-//!
-//! ---------------------------------------------------------------------------------------------
-//! THE RELOAD MECHANISM, AND EXACTLY WHAT THIS SUITE THEREFORE DOES AND DOES NOT PROVE.
-//!
-//! WHAT IT IS. The reload half is an IN-SESSION RE-APPLICATION of persisted data:
-//! OVT_PersistenceManagerComponent.ReapplyLatestSaveData() asks the persistence system to re-read
-//! the stored record for instances that are already live and run their deserialization over them.
-//! No world transition, no restart. Per case the round trip is:
-//!
-//!     mutate -> save -> DIRTY the value -> re-apply persisted data -> assert the SAVED value
-//!
-//! That is a genuine storage round trip: the value is written to the save storage, deliberately
-//! destroyed in memory, and then has to come back OUT of storage. Closures 2 and 3 are what give
-//! this rung its teeth and they are unchanged - a re-application that restores nothing leaves the
-//! dirty value in place and the case fails, and the saved value is never one campaign start would
-//! produce.
-//!
-//! WHAT IT IS NOT, AND THIS IS THE HONEST LIMIT OF THE GATE.
-//! The real player-facing continue flow - savepoint on disk -> SaveGameManager load -> session
-//! restarts -> campaign comes back - is NOT covered by this suite and cannot be. It was tried, and
-//! it is structurally incompatible with the `-autotest` harness: a mid-case load performs a
-//! game-state transition, the CLI harness treats every world load as a brand new test run and
-//! restarts the whole suite from scratch, so no case can ever resume on the other side. Measured
-//! result was an infinite restart loop (playthrough counter climbing, old savepoints being rotated
-//! away) until the harness timed out with no junit written at all. The same restart also makes the
-//! capability case's fresh-session check unsatisfiable.
-//!
-//! Consequences a reader must hold onto:
-//!  - a green run here means "what Overthrow persists is written to storage and comes back from
-//!    storage", NOT "quitting and continuing a campaign works";
-//!  - the restart path stays a MANUAL play-test item (Phase 7 checklist in
-//!    docs/features/core/persistence/): save, quit to menu, continue, verify the campaign;
-//!  - RequireRestoredCampaign() is a sanity assert in this rung, not proof of a load. Nothing
-//!    restarted the session, so a started campaign is expected; it is asserted anyway because a
-//!    re-application that tore down the game mode or unset its start state would be a serious bug
-//!    and this is the cheapest place to notice it;
-//!  - LoadLatestSave() on the manager is deliberately KEPT and is the production continue-flow API.
-//!    It is simply not what a test can call.
-//!
-//! ---------------------------------------------------------------------------------------------
-//! THE SECOND LIFECYCLE THIS SUITE COVERS: PER-INSTANCE RESERVATION, WITH NO SAVE POINT AT ALL.
-//!
-//! Everything above describes the save-point round trip that eight of the cases here use. One case -
-//! `..._VehicleReserveRelease_...` - exercises the OTHER half the disconnect/reconnect flow is built
-//! out of: a single owned instance is taken out of PLAY and put back, without ever leaving the world.
-//! It uses NEITHER gate seam, takes no save point and re-applies nothing, so:
-//!
-//!   - it does not depend on, and cannot disturb, the capability case's fresh-session precondition
-//!     (closure 5 above) - and its class name sorts last in this suite regardless;
-//!   - its non-vacuousness comes from the state change in the middle: the vehicle reports hidden and
-//!     untraceable after the despawn and in play after the respawn, and it is the SAME entity at both
-//!     ends, which a rebuild could not be.
-//!
-//! IT USED TO BE A STORAGE ROUND TRIP (GitHub #143: write the record, delete the instance, ask for it
-//! back by id) and is not any more, because BUG-086 removed the mechanism it tested - a released
-//! record was measured being pruned within ten minutes on a live server. Nothing automated now
-//! exercises PersistenceSystem.RequestSpawn() for a vehicle; that path survives as the post-restart
-//! fallback and is play-test territory, like every other real-restart claim in this feature.
-//!
-//! CASE LIST (execution order is alphabetical by class name):
-//!   1. Capability_SaveGameProducesASave        - the gate, and the only case with no reload.
-//!      ⚠ It asserts HasSaveGame() is FALSE before it saves, so every case that takes a real save
-//!      MUST sort after it alphabetically - name deployment cases "Deployment*", never "Base*".
-//!   1a. DeploymentBaseDefense_SurvivesSaveAndReapply    )
-//!   1b. DeploymentEliminated_RegistersNoGroups          ) the five DEPLOYMENT cases; read
-//!   1c. DeploymentOwnedGroups_ReclaimAfterReload        ) OVT_TEST_DeploymentRoundTripFixture's
-//!   1d. DeploymentRecord_SurvivesSaveAndReapply         ) header FIRST - four of them assert the
-//!   1e. DeploymentVersion1Payload_StillLoads            ) RESTORE half only, and it says why
-//!   1d2. FuelDepot_LevelSurvivesSave          - builds a Fuel Depot, fills it and takes a real save.
-//!                                                DELIBERATELY DEGRADED and uses NEITHER reload seam:
-//!                                                the depot is its own tracked root, and the load seam
-//!                                                below re-applies the GAME MODE entity's record only.
-//!                                                Read its own header before "fixing" it
-//!   1e. JobBoard_SurvivesSaveAndReload         - the only case that re-applies TWICE, because
-//!                                                idempotency is part of what it asserts
-//!   1f. LegacyBaseUpgrades_ConvertToDeploymentResources - a pre-migration base payload is refunded to
-//!                                                the deployment pool exactly once. Takes a real save
-//!                                                (which is what runs the rewritten write path) but
-//!                                                uses NEITHER reload seam
-//!   1f2. StorageBox_LedgerAndNameSurviveSave   ) the three logistics/storage cases, one per .conf
-//!   1f3. StorageVehicle_LedgerSurvivesSave     ) BINDING (placeable / car / building), because a
-//!   1f4. StorageWarehouse_LedgerSurvivesSaveWithExplicitTrack
-//!                                              ) serializer that is not listed is never called and
-//!                                                says nothing. The warehouse one also asserts the
-//!                                                explicit track: vanilla registers an intact
-//!                                                building never, so without it the record does not
-//!                                                exist at all. All three take a real save
-//!   1g. StructureDamage_RuinSurvivesSave      - the two core/damage cases. A real storage round trip
-//!   1h. StructureDamage_RepairSurvivesSave      on a BUILDABLE, which trigger 3 above is what makes
-//!                                               possible: build a Guard Tower, ruin (or repair) it,
-//!                                               save, dirty the phase to the opposite state, re-read
-//!                                               the entity's own record, assert the saved phase came
-//!                                               back. The second one runs both directions in
-//!                                               sequence, its repair overwriting a stored ruin
-//!   2. PlayerMoney_SurvivesSaveAndReload
-//!   2a. PlayerSleepCooldown_SurvivesSaveAndReload - the sleep action's game-clock cooldown stamp
-//!   3. PlayerSkills_SurvivesSaveAndReload
-//!   4. RealEstateOwnership_SurvivesSaveAndReload
-//!   5. Recruits_SurvivesSaveAndReload
-//!   6. TownControl_SurvivesSaveAndReload
-//!   7. TownPopulation_SurvivesSaveAndReload
-//!   8. TownStability_SurvivesSaveAndReload
-//!   9. TownSupport_SurvivesSaveAndReload
-//!  10. VehiclePoseReassert_SnapsBackOnlyBeyondTolerance - the load-drift healing seam, no save point
-//!  11. VehicleRegistry_SurvivesSaveAndReload
-//!  12. VehicleReserveRelease_KeepsOwnerAndContents - per-instance reservation, no save point
-//!  13. VirtualGroupsWiped_DoNotComeBack           - the terminal half of the D2 promise
-//!  14. VirtualGroups_SurviveSaveAndReload         - the partially wiped group, re-CREATED on load
-//!  15. ObjectiveDirector_SurvivesSaveAndReapply   - the occupying faction's current objective, its
-//!                                                phase, both counters, every tick counter, the
-//!                                                blacklist and the whole forward-base record, PLUS
-//!                                                the far side of the re-link grace window: a saved
-//!                                                forward base whose deployment does not exist ends
-//!                                                the objective rather than stranding it. Sorts
-//!                                                after the capability case (C < O) and before every
-//!                                                Town* case, which matters: a town changing hands
-//!                                                asks the director to re-select
-//!  16. ObjectiveFOB_RelinksItsDeployment          - the OTHER half of the same window: a saved
-//!                                                forward base whose deployment IS standing is
-//!                                                re-adopted by name and position on the first tick
-//!                                                after the load, rather than torn down a few
-//!                                                in-game minutes into every continued campaign.
-//!                                                It needs its own reload because which half runs is
-//!                                                decided by the payload, and a case gets one
+//! ONE CASE TAKES NO SAVE POINT AT ALL: `..._VehicleReserveRelease_...` exercises per-instance
+//! reservation - an owned instance taken out of PLAY and put back without leaving the world. It
+//! uses neither gate seam, so it cannot disturb the capability case's precondition. Its
+//! non-vacuousness comes from the state change in the middle, on the SAME entity at both ends.
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_PersistenceRoundTripSuite : OVT_TEST_SuiteBase
@@ -390,10 +207,9 @@ class OVT_TEST_PersistenceRoundTripGate
 	//! One poll of the wait for a triggered save to settle.
 	//!
 	//! Settled means THIS case's save completed - the manager's completed-save count has gone past the
-	//! baseline the case took before triggering - and that a save now exists. That is closure 6: after
-	//! the first case has saved, HasSaveGame() is already true forever, so a wait that only checked it
-	//! would let a case reload from a savepoint older than its own mutation and then fail with a
-	//! data-loss message when the real fault was a refused save.
+	//! baseline taken before triggering - and that a save now exists. That is closure 6: after the
+	//! first case has saved, HasSaveGame() is true forever, so a wait that only checked it would let a
+	//! case reload from a savepoint older than its own mutation.
 	//! \param[in] baseline Completed-save count read before the save was triggered.
 	//! \param[out] diagnostic Reason the wait cannot continue; untouched unless SAVE_FAILED.
 	//! \return SAVE_PENDING, SAVE_SETTLED or SAVE_FAILED.
@@ -503,14 +319,11 @@ class OVT_TEST_PersistenceRoundTripGate
 	//------------------------------------------------------------------------------------------------
 	//! Requires that the session is still a running campaign after the re-application.
 	//!
-	//! Two jobs, and the FIRST is the load-bearing one:
-	//!  - a re-application that never happened, or that the persistence system refused, is reported by
-	//!    name. The manager's diagnostic is empty exactly when the last one succeeded, so anything
-	//!    found here means the reload half of the round trip did not run at all - which is a very
-	//!    different fault from "the value did not come back" and deserves to say so.
-	//!  - the campaign is still started. In this rung that is a sanity assert rather than proof of a
-	//!    load (nothing restarted the session), but it still catches a re-application that manages to
-	//!    tear the game mode down or reset its start state.
+	//! Two jobs, the first load-bearing: a re-application that never happened, or that the persistence
+	//! system refused, is reported BY NAME - the manager's diagnostic is empty exactly when the last
+	//! one succeeded, so anything found here means the reload half did not run at all, a very
+	//! different fault from "the value did not come back". Second, the campaign is still started - a
+	//! sanity assert in this rung, but it catches a re-application that tears the game mode down.
 	//! \return An empty string when the session is healthy, otherwise a diagnostic.
 	static string RequireRestoredCampaign()
 	{
@@ -538,13 +351,11 @@ class OVT_TEST_PersistenceRoundTripGate
 //------------------------------------------------------------------------------------------------
 //! THE CAPABILITY GATE. Asserts, in one case, that saving is implemented at all.
 //!
-//! This is the case a reviewer should read first when the suite is red: its failure text names the
-//! missing capability in one sentence, so junit.xml explains itself without anyone opening the
-//! source. It asserts the whole transition - no save before, a save after - which is what makes a
-//! lying save layer detectable (closure 1 in the suite header).
+//! Read this one first when the suite is red: its failure text names the missing capability in one
+//! sentence, so junit.xml explains itself without opening the source. It asserts the whole
+//! transition - no save before, a save after - which is what makes a lying save layer detectable.
 //!
-//! It is also the only case with no reload: the whole case is one fresh-session check, one save, and
-//! a bounded wait, so it keeps the shorter timeout.
+//! The only case with no reload, so it keeps the shorter timeout.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 30)]
 class OVT_TEST_PersistenceRoundTrip_Capability_SaveGameProducesASave : SCR_AutotestCaseBase
@@ -1278,22 +1089,11 @@ class OVT_TEST_PersistenceRoundTrip_RealEstateOwnership_SurvivesSaveAndReload : 
 //------------------------------------------------------------------------------------------------
 //! A recruit record survives a save and a reload.
 //!
-//! THE INACTIVE FLAG IS PART OF THAT RECORD (recruit-ux Phase 1, T1.9). The recruit is deactivated
-//! before the save, so the assertion after the reload covers the whole serializer v3 chain - the
-//! write in Serialize(), the field's position at the end of the record, the read back, and
-//! ApplyPersistedRecruits() adopting it onto the restored record. A recruit that came back ACTIVE
-//! after being parked would walk back into its owner's squad on load, which is exactly the failure
-//! this case exists to catch and which no compile check can see.
-//!
-//! PROVEN ABLE TO FAIL (by deliberate fault + compile-check, since this tier is the orchestrator's to
-//! run):
-//!   a. `record.inactive = recruit.m_bInactive;` deleted from OVT_RecruitManagerSerializer.Serialize()
-//!      -> the restored record carries false and the case fails on "the inactive flag did not survive".
-//!   b. `recruit.m_bInactive = record.inactive;` deleted from ApplyPersistedRecruits() -> same
-//!      failure, from the read half instead of the write half.
-//!   Both faults were injected and the whole tree recompiled clean - a positional binary format has
-//!   no other gate - and both were then reverted, with the tree recompiling clean again. No
-//!   maxAttempts: the phases below poll for asynchronous completion, they never retry.
+//! The INACTIVE flag is part of that record. The recruit is deactivated before the save, so the
+//! assertion after the reload covers the whole serializer v3 chain - the write, the field's position
+//! at the end of the record, the read back, and ApplyPersistedRecruits() adopting it. A recruit that
+//! came back ACTIVE after being parked would walk back into its owner's squad on load, which no
+//! compile check can see.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -1826,29 +1626,20 @@ class OVT_TEST_PersistenceRoundTrip_TownPopulation_SurvivesSaveAndReload : SCR_A
 //------------------------------------------------------------------------------------------------
 //! Town stability survives a save and a reload.
 //!
-//! Same seam as the green Tier D case, for the same reason: stability is never set directly in
-//! Overthrow. Every path that moves it runs modifier -> RecalculateStability -> stored value, and
-//! TryAddStabilityModifier() / RemoveStabilityModifier() are the two public ends of that path. Both
-//! act synchronously on the server (findings.md, "Phase 4 - RPC self-delivery").
+//! ⚠ Stability is never set directly in Overthrow. Every path that moves it runs
+//! modifier -> RecalculateStability -> stored value, and TryAddStabilityModifier() /
+//! RemoveStabilityModifier() are the two public ends of that path (both synchronous on the server).
+//! An earlier draft wrote town.stability straight onto the record: a persistence layer that stores
+//! the MODIFIER LIST and recomputes on load - which is what a correct one does - would restore the
+//! recomputed value and never the raw field, so that draft could have stayed red no matter how
+//! complete the migration was.
 //!
-//! WHY THE SEAM IS LOAD-BEARING HERE AND NOT MERELY TIDIER. An earlier draft of this case wrote
-//! town.stability straight onto the record and claimed no synchronous public mutator existed. That
-//! claim was false, and the consequence was worse than untidiness: a persistence layer that stores
-//! the MODIFIER LIST and recomputes stability on load - which is what a correct one does, because
-//! that recomputation is the invariant the town manager itself maintains - would restore the
-//! recomputed value and never the raw field. The draft could therefore have stayed red no matter
-//! how complete the migration was, and this suite's exit code, which IS the migration's acceptance
-//! criterion, could never have flipped to 0. A gate that cannot open measures nothing.
-//!
-//! The saved value is DERIVED, never hardcoded: it is what the modifier system computes from the
-//! town's stored modifier list, so what this case pins is the invariant rather than one config
-//! number. The modifier chosen is the first with a NEGATIVE base effect, because stability starts at
-//! the configured maximum and a positive one would clamp - and that also satisfies closure 3, since
-//! a stability below the maximum is not a value the campaign start produces.
+//! The saved value is DERIVED, never hardcoded. The modifier chosen is the first with a NEGATIVE
+//! base effect, because stability starts at the configured maximum and a positive one would clamp -
+//! and a stability below the maximum is not a value campaign start produces (closure 3).
 //!
 //! The DIRTY step (closure 2) is removing the modifier, which recalculates live stability back to
-//! where it started. A reload that restores nothing therefore leaves the starting value in place and
-//! this case fails.
+//! where it started.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TownStability_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -2254,48 +2045,32 @@ class OVT_TEST_PersistenceRoundTrip_TownSupport_SurvivesSaveAndReload : SCR_Auto
 //! WORLD, and comes back still theirs, still locked, still where it was and still carrying what it
 //! carried.
 //!
-//! WHAT IT ASSERTS, AND WHY THE CONTRACT CHANGED (2026-08-05). Until BUG-086 this case proved a
-//! per-instance STORAGE round trip: the despawn wrote the vehicle's record, released tracking and
-//! deleted the instance, and the respawn asked storage for it back. That whole mechanism is gone,
-//! because the record it depended on was measured being pruned within ten minutes on a live server -
-//! which is exactly why a returning player's car was "rebuilt ... (contents lost)". The replacement
-//! never destroys the vehicle:
+//! Until BUG-086 this proved a per-instance STORAGE round trip: despawn wrote the record, released
+//! tracking and deleted the instance. That mechanism is gone - the record it depended on was
+//! measured being pruned within ten minutes on a live server. The replacement never destroys the
+//! vehicle:
 //!
 //!     spawn a vehicle, owned by the test player and locked
 //!       -> the manager's despawn path writes its record and HIDES it, still alive and still tracked
 //!       -> the manager's respawn path un-hides it
 //!       -> assert it is the SAME instance, still owned, still locked, still placed, still fuelled
 //!
-//! THE ASSERTIONS ARE STRICTER THAN THEY WERE, not weaker. "Same instance" is a stronger claim than
-//! "an instance with matching fields", and it is the claim the fix rests on - contents survive by
-//! construction only if the entity was never rebuilt:
+//! The assertions are STRICTER than they were. "Same instance" is a stronger claim than "an instance
+//! with matching fields", and it is the claim the fix rests on - contents survive by construction
+//! only if the entity was never rebuilt:
+//!   - SAME ENTITY - the EntityID before the despawn is the EntityID after. A rebuild cannot satisfy
+//!     this.
+//!   - STILL TRACKED - reserving must not release tracking; an untracked vehicle is absent from the
+//!     next save point. Nothing else in the tree asserts this.
+//!   - HIDDEN, THEN NOT - what makes the middle step a real state change rather than a no-op.
+//!   - OWNER read twice (through the manager by RplId and through the vehicle's own component), plus
+//!     LOCKED, POSITION and FUEL.
 //!
-//!   - SAME ENTITY. The EntityID captured before the despawn is the EntityID after the respawn. A
-//!     rebuild - the fallback path that costs cargo - cannot satisfy this.
-//!   - STILL TRACKED. Reserving must not release tracking: an untracked vehicle is absent from the
-//!     next save point and gone for good after a restart. This is the durability half of the fix and
-//!     nothing else in the tree asserts it.
-//!   - HIDDEN, THEN NOT. The vehicle reports reserved after the despawn and not reserved after the
-//!     respawn, which is what makes the middle step a real state change rather than a no-op.
-//!   - OWNER, read twice - through the manager (keyed by RplId) and through the vehicle's own
-//!     component - plus LOCKED, POSITION and FUEL, unchanged from the previous contract.
+//! Said plainly: nothing in the automated tree now exercises PersistenceSystem.RequestSpawn() for a
+//! vehicle. That path still exists as the post-restart fallback and is play-test territory.
 //!
-//! WHAT IS NO LONGER COVERED, SAID PLAINLY: nothing in the automated tree now exercises
-//! PersistenceSystem.RequestSpawn() for a vehicle. That path still exists as the post-restart
-//! fallback in RequestPersistedVehicle(), and it is play-test territory (a real restart), as the true
-//! quit-and-continue path has always been.
-//!
-//! IT USES NEITHER GATE SEAM. No save trigger, no re-apply. So it neither depends on nor disturbs the
-//! fresh-session precondition of the capability case (suite header, closure 5) - and its class name
-//! sorts last in this suite anyway.
-//!
-//! ANTI-VACUOUS: every phase transition is gated on an observation, and every expiry and every
-//! unresolvable subject is an explicit SetResultFailure with its own sentence. There is no path to
-//! SetResultSuccess that has not asserted.
-//!
-//! CAN-FAIL, two ways, both exercised 2026-08-05: make OVT_PersistenceReservation.Reserve() a no-op
-//! returning true and the case goes red with "the despawn left vehicle ... in play"; make Release() a
-//! no-op and it goes red with "came back still hidden".
+//! It uses NEITHER gate seam - no save trigger, no re-apply - so it cannot disturb the capability
+//! case's fresh-session precondition.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents : SCR_AutotestCaseBase
@@ -2752,16 +2527,12 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 			float restoredFuel = fuel.GetTotalFuel();
 			if (Math.AbsFloat(restoredFuel - m_fSavedFuel) > FUEL_TOLERANCE_L)
 			{
-				// DIAGNOSTIC, NOT AN ASSERTION (2026-08-02). Fuel deterministically restores to the
-				// prefab-initial level for the UAZ CIV starting cars: vanilla's
-				// SCR_FuelManagerComponentSerializer persists only SCR_FuelNode-typed tanks
-				// (GetScriptedFuelNodesList), and whether this Overthrow-local UAZ prefab chain
-				// carries SCR_FuelNode tanks could not be confirmed statically - the reference
-				// extraction lacks the CIV variants' definitions. Everything this CASE proves -
-				// entity back, owner, lock, position - is asserted above and stays hard. Fuel (and
-				// trunk contents) are on the manual play-test with a shop-bought vanilla-chain
-				// vehicle (playtest-checklist item 19). If that play-test shows fuel persisting for
-				// vanilla-chain vehicles, this is a prefab data gap, not a persistence gap.
+				// DIAGNOSTIC, NOT AN ASSERTION. Fuel deterministically restores to the prefab-initial level
+				// for the UAZ CIV starting cars: vanilla's SCR_FuelManagerComponentSerializer persists only
+				// SCR_FuelNode-typed tanks, and whether this Overthrow-local UAZ prefab chain carries them
+				// could not be confirmed statically. Everything this case proves - entity back, owner, lock,
+				// position - is asserted above and stays hard. Fuel and trunk contents are on the manual
+				// play-test with a shop-bought vanilla-chain vehicle.
 				Print(string.Format(
 					"[OVT_TEST] DIAGNOSTIC: vehicle fuel did not round-trip (released with %1 l, came back with %2 l). See the comment at this print for why this is not a failure.",
 					string.Format("%1", m_fSavedFuel), string.Format("%1", restoredFuel)), LogLevel.WARNING);
@@ -2809,29 +2580,20 @@ class OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents 
 //------------------------------------------------------------------------------------------------
 //! A sabotaged radio tower survives a save and a re-apply still off the air, with time on its clock.
 //!
-//! SUBJECT. The test world carries exactly one transmitter tower ("Set 1 radio towers to occupying
-//! faction" at every campaign start), so the case takes the first tower the manager holds and
-//! resolves it back afterwards by LOCATION - the same match key OVT_PersistedRadioTower uses,
+//! The test world carries exactly one transmitter tower, so the case takes the first tower the
+//! manager holds and resolves it back by LOCATION - the same match key OVT_PersistedRadioTower uses,
 //! because towers are world-derived and a save can never create one.
 //!
-//! SEAM. OVT_OccupyingFactionManager.SetRadioTowerDisabled() is the seam the sabotage RPC itself
-//! calls (OVT_TowerSabotageComponent.RpcAsk_SabotageTower), so the case drives the production path
-//! rather than writing the field behind it.
+//! SetRadioTowerDisabled() is the seam the sabotage RPC itself calls, so the case drives the
+//! production path rather than writing the field behind it.
 //!
-//! TOLERANCE, AND WHY THIS IS A RANGE AND NOT AN EQUALITY. The server ticks the timer down by
-//! RADIO_TOWER_CHECK_FREQUENCY (9 s) every time CheckRadioTowers runs, both before the save and
-//! after the re-apply, so the restored number is necessarily SMALLER than the one written. The case
-//! sabotages for SABOTAGE_SECONDS and requires the restored value to be above MIN_RESTORED_SECONDS
-//! and no greater than what it asked for: a window the countdown cannot walk out of within the
-//! case's own timeout, and one that no value other than the saved timer can land in.
+//! ⚠ A range, not an equality: the server ticks the timer down by RADIO_TOWER_CHECK_FREQUENCY (9 s)
+//! both before the save and after the re-apply, so the restored number is necessarily SMALLER than
+//! the one written. The window is one the countdown cannot walk out of within the case's timeout and
+//! that no value other than the saved timer can land in.
 //!
-//! ANTI-VACUOUS: the timer is cleared to zero in the dirty step, so the tower is demonstrably back
-//! on the air before the re-apply. A non-zero timer afterwards can only have come out of storage.
-//! Every expiry and every unresolvable subject is an explicit SetResultFailure with its own
-//! sentence; there is no path to SetResultSuccess that has not asserted.
-//!
-//! CAN-FAIL: drop the disabledRemaining line from OVT_PersistedRadioTower (or stop applying it in
-//! ApplyPersistedOccupyingFaction) and this case goes red with "came back on the air".
+//! Anti-vacuous: the timer is cleared to zero in the dirty step, so the tower is demonstrably back
+//! on the air before the re-apply.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -3029,28 +2791,22 @@ class OVT_TEST_PersistenceRoundTrip_TowerSabotage_SurvivesSaveAndReload : SCR_Au
 //------------------------------------------------------------------------------------------------
 //! A player's last known position survives a save and a reload.
 //!
-//! WHY IT IS STORED AT ALL. A returning player is normally rebuilt from their STORED BODY, which
-//! carries its own transform - so this pair only matters when that body cannot be found. Measured on
-//! a dedicated server 2026-08-04: after a restart the body answered NOT_FOUND and the player woke up
-//! at their home on the far side of the map. The position therefore lives as plain data on the
-//! player's own record, which travels inside the game-mode record and does not depend on the
-//! character record surviving. This case guards that independence.
+//! A returning player is normally rebuilt from their STORED BODY, which carries its own transform,
+//! so this pair only matters when that body cannot be found - measured on a dedicated server: after
+//! a restart the body answered NOT_FOUND and the player woke at their home on the far side of the
+//! map. The position therefore lives as plain data on the player's own record, which travels inside
+//! the game-mode record. This case guards that independence.
 //!
-//! THE EXPECTED VALUE IS READ OFF THE LIVE CHARACTER, not written by the case. An earlier draft
-//! poked a synthetic position into the record and asserted that came back; it failed, correctly,
-//! because OVT_PlayerManagerComponent.SyncPlayerBodyIds() runs from PreShutdownPersist() before EVERY
-//! save and overwrites the stored transform with where the body actually is. That is the behaviour
-//! under test, so the case now asserts the whole pipeline - live body -> pre-save capture -> codec ->
-//! adopt - rather than just the codec.
+//! ⚠ The expected value is READ OFF THE LIVE CHARACTER, not written by the case.
+//! SyncPlayerBodyIds() runs from PreShutdownPersist() before EVERY save and overwrites the stored
+//! transform with where the body actually is - that is the behaviour under test, so the case asserts
+//! the whole pipeline rather than just the codec.
 //!
-//! THE DIRTY VALUE IS ZERO, DELIBERATELY, and it is the only correct choice here.
-//! ApplyPersistedPlayers() adopts the stored transform ONLY when the live record has none - the rule
-//! that stops re-applying a save from teleporting a player who is standing in the world. Zero is
-//! exactly the state a freshly loaded record is in, so it is both the honest dirty value and the one
-//! that exercises the adopt path. A non-zero dirty value would assert the opposite invariant.
-//!
-//! PROVEN ABLE TO FAIL 2026-08-05: with lastKnownPosition/lastKnownAngles removed from the write half
-//! of OVT_PlayerManagerSerializer, the reload restores nothing and the case reports the zero vector.
+//! ⚠ The dirty value is ZERO, deliberately. ApplyPersistedPlayers() adopts the stored transform ONLY
+//! when the live record has none - the rule that stops re-applying a save from teleporting a player
+//! standing in the world. Zero is exactly the state a freshly loaded record is in, so it is both the
+//! honest dirty value and the one that exercises the adopt path. A non-zero dirty value would assert
+//! the opposite invariant.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -3229,30 +2985,19 @@ class OVT_TEST_PersistenceRoundTrip_PlayerLastKnownPosition_SurvivesSaveAndReloa
 //------------------------------------------------------------------------------------------------
 //! A player's sleep cooldown stamp survives a save and a reload.
 //!
-//! WHAT IS ACTUALLY BEING GUARDED. Sleeping skips eight in-game hours and may not be repeated for
-//! twelve, and the whole reason that cooldown is stored as an absolute GAME-CLOCK stamp rather than
-//! as a real-time countdown is that it has to survive a quit and a Continue (implementation.md D8/
-//! I2). If the stamp is lost, every load hands the player a fresh sleep - eight more hours of income
-//! and threat decay for the price of a save and a reload, which is the same shape of exploit as
-//! BUG-183. Nothing else in the tree would go red for it: the value is server-only, never
-//! replicated, and invisible in every UI except the action's own label.
+//! Sleeping skips eight in-game hours and may not be repeated for twelve, and the cooldown is stored
+//! as an absolute GAME-CLOCK stamp precisely so it survives a quit and a Continue. If the stamp is
+//! lost, every load hands the player a fresh sleep - eight more hours of income and threat decay for
+//! the price of a save and a reload. Nothing else in the tree would go red for it: the value is
+//! server-only, never replicated, and invisible in every UI except the action's own label.
 //!
-//! THE SAVED VALUE IS SYNTHETIC, AND THAT IS CORRECT HERE - the opposite of the last-known-position
-//! case above, where a pre-save capture overwrites whatever the case wrote. Nothing runs over this
-//! field before a save: it is written in exactly one place (OVT_SleepService.PerformSleep) and read
-//! everywhere else, so poking a value in and asserting it comes back tests the whole codec path
-//! without needing a bed, a clock or an owned house in the test world.
+//! The saved value is SYNTHETIC, correctly here and unlike the last-known-position case above:
+//! nothing runs over this field before a save - it is written in exactly one place
+//! (OVT_SleepService.PerformSleep) and read everywhere else.
 //!
-//! THE DIRTY VALUE IS THE NEVER-SLEPT SENTINEL, deliberately. -1 is exactly the state a player who
-//! has never slept is in - it is also what a version 4 save's players are reset to on load - so it
-//! is both the honest "this was lost" value and the one whose survival would be indistinguishable
-//! from a working restore if the assertion were merely "not the saved value". The assertion is
-//! equality with the SAVED stamp (anti-vacuous-pass closures 2 and 3).
-//!
-//! CAN-FAIL METHOD (run owed - an implementation agent does not run the suites): remove
-//! `record.lastSleepGameHours` from the write half of OVT_PlayerManagerSerializer.Serialize(), or
-//! change the read guard to `if (version < 6)`. Either makes the restore hand back -1 and the case
-//! reports "the sleep cooldown stamp came back as -1.000000 ...". Record the date here once run.
+//! ⚠ The dirty value is the never-slept sentinel -1, which is exactly the state a player who has
+//! never slept is in (and what a version 4 save's players are reset to on load). The assertion is
+//! equality with the SAVED stamp, not "not the dirty value" (closures 2 and 3).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_PlayerSleepCooldown_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -3410,32 +3155,21 @@ class OVT_TEST_PersistenceRoundTrip_PlayerSleepCooldown_SurvivesSaveAndReload : 
 //! A restored vehicle that load-time physics moved is snapped back to its recorded pose - and one
 //! that has not drifted is left exactly where it stands.
 //!
-//! WHY THIS EXISTS (server reports, 2026-08-18). A vehicle parked on top of a buildable
-//! maintenance ramp came back rotated ~45 degrees after a load. The pose DATA round-trips exactly
-//! (vanilla stores the full transform; the registry stores position + yaw-pitch-roll through one
-//! consistent convention) - what moves the vehicle is physics AT the load: it self-spawns as a
-//! live dynamic body with no saved velocities, while the ramp under it is a separately
-//! self-spawned record with no ordering guarantee, so the vehicle free-falls onto the terrain or
-//! takes the depenetration kick when its support spawns into it (the BUG-129 mechanism). On flat
-//! ground both effects are invisible, which is why only ramp-parked vehicles were reported.
-//! InitialVehicleCleanup() heals it by re-asserting each registered vehicle's recorded pose;
-//! OVT_VehicleManagerComponent.ReassertRecordedPose() is that seam, and this case drives it
-//! directly.
+//! A vehicle parked on a buildable maintenance ramp came back rotated ~45 degrees after a load. The
+//! pose DATA round-trips exactly; what moves the vehicle is physics AT the load - it self-spawns as
+//! a live dynamic body with no saved velocities while the ramp under it is a separately self-spawned
+//! record with no ordering guarantee, so it free-falls onto the terrain or takes the depenetration
+//! kick when its support spawns into it. On flat ground both effects are invisible, which is why
+//! only ramp-parked vehicles were reported. ReassertRecordedPose() is the healing seam.
 //!
-//! THE NO-OP HALF IS ASSERTED FIRST, deliberately: a seam that snapped every vehicle - drifted or
-//! not - would teleport cars out from under their owners on every load. Below-tolerance drift must
-//! be left untouched.
+//! ⚠ The NO-OP half is asserted first: a seam that snapped every vehicle - drifted or not - would
+//! teleport cars out from under their owners on every load.
 //!
-//! BOTH HALVES ASSERT IN THE SAME FRAME AS THE SEAM CALL, so physics cannot settle between act and
-//! assert and the tolerances can be tight (centimetres/a degree, not the 25 m the respawn case
-//! needs).
+//! Both halves assert in the SAME FRAME as the seam call, so physics cannot settle between act and
+//! assert and the tolerances can be tight.
 //!
-//! WHAT THIS CANNOT SEE: the real load-order race (ramp spawning after the vehicle), which needs a
-//! genuine restart and is play-test territory. What it pins is the healing seam's whole contract.
-//!
-//! CAN-FAIL METHOD (run owed - this environment cannot launch the harness): make
-//! ReassertRecordedPose() return before the snap-back; the case must report the drifted vehicle
-//! still ~1.7 m / 45 deg from its record. Record the date here once exercised.
+//! It cannot see the real load-order race (ramp spawning after the vehicle) - that needs a genuine
+//! restart and is play-test territory.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_VehiclePoseReassert_SnapsBackOnlyBeyondTolerance : SCR_AutotestCaseBase
@@ -3645,22 +3379,14 @@ class OVT_TEST_PersistenceRoundTrip_VehiclePoseReassert_SnapsBackOnlyBeyondToler
 //------------------------------------------------------------------------------------------------
 //! The player-vehicle ownership registry survives a save and a reload.
 //!
-//! WHY THIS EXISTS. Until 2026-08-04 the registry was memory-only. A locked vehicle is saved,
-//! released and deleted 60 s after its owner logs out, so it is not a world entity when the save is
-//! written; after a restart nothing remembered its id, nothing asked for it back, and the player's
-//! car was gone permanently. This case is the guard on the registry surviving, which is the half
-//! that makes asking possible at all.
+//! Until 2026-08-04 the registry was memory-only. A locked vehicle is saved, released and deleted
+//! 60 s after its owner logs out, so it is not a world entity when the save is written; after a
+//! restart nothing remembered its id and the player's car was gone permanently.
 //!
-//! NO REAL VEHICLE IS SPAWNED, on purpose. Registration from a live vehicle is already covered by
-//! OVT_TEST_PersistenceRoundTrip_VehicleReserveRelease_KeepsOwnerAndContents. What is untested is
-//! whether a registration reaches the save and comes back, so the record is injected through the
-//! manager's own public apply path and read back through its own public accessor - no world entity
-//! is involved in either direction, which is what makes the assertion about the CODEC and nothing
+//! No real vehicle is spawned, on purpose - registration from a live vehicle is already covered
+//! elsewhere. The record is injected through the manager's own public apply path and read back
+//! through its own public accessor, which is what makes the assertion about the CODEC and nothing
 //! else.
-//!
-//! PROVEN ABLE TO FAIL 2026-08-05: with OVT_VehicleManagerSerializer unbound from the game-mode
-//! configuration in Overthrow.conf, the reload restores no records and the case reports the id
-//! missing.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -3865,66 +3591,38 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 //------------------------------------------------------------------------------------------------
 //! T3 - THE JOB BOARD AND BOTH LIFETIME COUNTER MAPS SURVIVE A SAVE AND A RELOAD, ON THE RIGHT JOBS.
 //!
-//! WHY THIS CASE EXISTS. A saved job used to name itself by its POSITION in the job manager's config
-//! list. Trim or reorder that list and every saved record silently comes back attached to a
-//! DIFFERENT job - at a stage index that is still valid, paying that other job's reward, with its
-//! lifetime counters capping the wrong thing, and with no error anywhere. The save format now names
-//! each job by a stable id instead, and this case is what says so out loud: it does not merely check
-//! that "some jobs came back", it checks that each one came back on the job it was saved on.
+//! A saved job used to name itself by its POSITION in the job manager's config list. Trim or reorder
+//! that list and every saved record silently comes back attached to a DIFFERENT job - at a stage
+//! index that is still valid, paying that other job's reward, with its lifetime counters capping the
+//! wrong thing, and with no error anywhere. The save format now names each job by a stable id, and
+//! this case checks that each record came back on the job it was saved on, not merely that "some
+//! jobs came back".
 //!
-//! THE ASSERTION RULE (suite header). Nothing here names a storage type, a persistence-framework
-//! type or a persisted record class. The board and the two counter maps are seeded through the job
-//! manager's own public collections and read back through the same ones, plus its public
-//! FindJobIndexById() / GetJobIdByIndex() accessors - so this case stays true whatever the storage
-//! underneath is, which is the whole point of the rule. The only persistence-layer calls are the
-//! gate class's two annotated seams, shared with every other case here.
+//! ⚠ Records are found again by a unique LOCATION far outside the world, never by a count: the
+//! manager's CheckUpdate() offers new public jobs on a timer and the board legitimately grows during
+//! a run. A fixture seeded with 4 jobs held 12 by the time the save landed.
 //!
-//! HOW THE SEEDED RECORDS ARE FOUND AGAIN, AND WHY IT IS NOT A COUNT. Each seeded record carries a
-//! unique LOCATION far outside the world (see MarkerLocation()). Assertions match on that, never on
-//! "the board has N jobs": the manager's own CheckUpdate() offers new public jobs on a timer and the
-//! board legitimately grows during a run, so a count-based assertion would be a coin flip. Phase 0 of
-//! this feature learned that the expensive way - a fixture seeded with 4 jobs held 12 by the time the
-//! save landed.
+//! Why nothing the manager does on its timer can disturb these records:
+//!  - CheckUpdate()'s tick loop skips any job with accepted == false, covering records B and C.
+//!  - Record A is accepted but parked on base-recon's only stage, an
+//!    OVT_WaitTillPlayerInRangeJobStage whose OnTick() returns TRUE - keep waiting - the moment its
+//!    owner lookup fails. The owner is a synthetic marker no player carries.
+//!  - Both global counters belong to configs seeded far ABOVE their cap and neither is
+//!    player-allocated, so CheckUpdate() skips the whole config and can never increment them.
+//!  - The per-player counters are under a synthetic persistent id, and CheckUpdate() only writes
+//!    per-player counts for ids the player manager actually holds.
 //!
-//! WHY NOTHING THE MANAGER DOES ON ITS TIMER CAN DISTURB THESE RECORDS. Stated as a proof, because
-//! "probably won't happen" is how a flaky test gets written:
-//!  - CheckUpdate()'s tick loop skips any job with accepted == false (OVT_JobManagerComponent.c:506),
-//!    which covers records B and C.
-//!  - Record A is accepted, and is deliberately parked on base-recon's only stage, an
-//!    OVT_WaitTillPlayerInRangeJobStage. Its OnTick() resolves job.owner through the player manager
-//!    and returns TRUE - keep waiting - the moment that lookup fails
-//!    (OVT_WaitTillPlayerInRangeJobStage.c:10-11; GetPlayer() returns null for an unknown id,
-//!    OVT_PlayerManagerComponent.c:173-177). The owner here is a synthetic marker no player carries,
-//!    so the stage can never advance and the job can never complete or leave the board.
-//!  - The two global counters asserted below belong to base-recon (m_iMaxTimes 2) and raise-support
-//!    (m_iMaxTimes 4), and both are seeded far ABOVE their cap. Neither is player-allocated, so
-//!    CheckUpdate() skips the whole config at OVT_JobManagerComponent.c:639 and can never increment
-//!    them. Seeding the counter is what makes the counter safe to assert on.
-//!  - The per-player counters are seeded under a synthetic persistent id. CheckUpdate() only ever
-//!    writes per-player counts for ids the player manager actually holds (:696-706), so nothing but
-//!    this case touches that key.
+//! The per-player record is synthetic on purpose: after the starter jobs were retired every shipped
+//! config is public or base-only, so that map is empty in a real campaign. It is still persisted and
+//! still must round-trip.
 //!
-//! THE PER-PLAYER RECORD IS SYNTHETIC ON PURPOSE. After the five starter jobs are retired, every
-//! shipped config is public or base-only, so no config is player-allocated and the per-player counter
-//! map is empty in a real campaign. It is still persisted and still must round-trip, so it is seeded
-//! by hand rather than by playing.
+//! The dirty step does not just delete: it removes one record, RE-POINTS another at a different job
+//! config - the exact mis-attachment this feature exists to make impossible - moves a third to a
+//! different stage, and rewrites both counter maps to wrong values.
 //!
-//! ANTI-VACUOUS-PASS (suite header closures 2 and 3). The dirty step does not just delete: it removes
-//! one record, RE-POINTS another at a different job config - the exact mis-attachment this feature
-//! exists to make impossible - moves a third to a different stage, and rewrites both counter maps to
-//! wrong values. A reload that restores nothing leaves all of that in place and the case fails by
-//! name; a reload that restores campaign-start defaults produces no marker records at all and fails
-//! the same way. None of the seeded values is one a campaign start would produce.
-//!
-//! IT ALSO ASSERTS IDEMPOTENCY, WHICH IS WHY IT RELOADS TWICE. The persistence manager re-applies
-//! saved data to a LIVE session, so ApplyPersistedJobs() has to be a clear-and-rebuild rather than an
-//! append: applying the same payload twice must produce the same board, not a doubled one. The second
-//! re-application asserts exactly that - each marker location still holds exactly one record, and
-//! neither counter map has moved.
-//!
-//! EXECUTION ORDER. The class name sorts after ..._Capability_... and before every other case here,
-//! so it neither breaks the capability case's fresh-session precondition (closure 5) nor depends on
-//! any case having run before it - it triggers its own save and waits for that save.
+//! ⚠ It reloads TWICE, because idempotency is part of the claim: the persistence manager re-applies
+//! saved data to a LIVE session, so ApplyPersistedJobs() has to be a clear-and-rebuild rather than
+//! an append. The second re-application asserts each marker location still holds exactly one record.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -4498,29 +4196,18 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 //! A WIPED VIRTUAL GROUP DOES NOT COME BACK - not from the save, and not from anything the session
 //! did afterwards.
 //!
-//! WHY THIS CASE EXISTS, AND WHY IT IS THE FIRST OF THE TWO. "Dead members stay dead" (G3) has a
-//! terminal case: a group whose whole roster died is REMOVED, and the campaign must never hand it
-//! back. Under Route B that promise is entirely Overthrow's to keep - core re-creates its own group
-//! entities from its own payload on every load, so a record that reached the payload by accident, or
-//! that the restore refused to remove, IS a resurrected garrison standing in a base the player
+//! "Dead members stay dead" (G3) has a terminal case: a group whose whole roster died is REMOVED,
+//! and the campaign must never hand it back. Under Route B that promise is entirely Overthrow's to
+//! keep - core re-creates its own group entities from its own payload on every load, so a record
+//! that reached the payload by accident IS a resurrected garrison standing in a base the player
 //! already cleared.
 //!
-//! THE RECORD IS ALREADY GONE BEFORE THE SAVE, and the case asserts that before saving - otherwise it
-//! would be proving something about a payload entry that was never written. What the round trip then
-//! proves is the other half: the payload keeps it gone.
+//! The record is already gone BEFORE the save, and the case asserts that before saving - otherwise
+//! it would be proving something about a payload entry that was never written.
 //!
-//! ANTI-VACUOUS-PASS (suite header closures 2 and 3). The dirty step RE-REGISTERS a group under the
-//! same owner key - a deliberate resurrection, and exactly the shape a stale record would have. A
-//! reload that restores nothing leaves that group registered and the case fails by name; a reload that
-//! restores campaign-start defaults produces no virtual groups at all and also fails, because the
-//! resurrection would still be sitting there. The assertion is "the owner key resolves to nothing",
-//! which neither a no-op nor a reset can satisfy.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): make ApplyPersistedRegistry() skip its
-//! "unregister everything the payload does not claim" pass - the resurrected group survives the
-//! reload and the case reports the owner key still resolving. Independently: make
-//! ApplyPersistedRecord() re-create all-dead records instead of returning false, seed a wiped record
-//! into the payload, and the wiped handle comes back registered.
+//! Anti-vacuous: the dirty step RE-REGISTERS a group under the same owner key - a deliberate
+//! resurrection, and exactly the shape a stale record would have. The assertion is "the owner key
+//! resolves to nothing", which neither a no-op reload nor a reset to defaults can satisfy.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_VirtualGroupsWiped_DoNotComeBack : SCR_AutotestCaseBase
@@ -4788,91 +4475,42 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroupsWiped_DoNotComeBack : SCR_Autot
 //! A PARTIALLY WIPED VIRTUAL GROUP SURVIVES A SAVE AND A RELOAD - handle, owner key, position,
 //! composition, engine stamps, waypoint plan, and the IDENTITY of the slot that died.
 //!
-//! WHY THIS CASE EXISTS. This is the epic's persistence promise (G3/F8) and, under Route B, it is
-//! entirely Overthrow's own machinery: vanilla persists nothing about these groups. The registry
-//! serializer writes complete re-creation state and the manager rebuilds the group entity itself on
-//! load, so every field that is missing from the payload is a field the campaign silently loses - a
-//! garrison that comes back at full strength after the player fought it down to two men, or comes back
-//! at the wrong place, or comes back with the wrong men alive.
+//! Under Route B this is entirely Overthrow's own machinery: vanilla persists nothing about these
+//! groups. The registry serializer writes complete re-creation state and the manager rebuilds the
+//! group entity itself on load, so every field missing from the payload is a field the campaign
+//! silently loses - a garrison back at full strength after the player fought it down to two men, or
+//! back at the wrong place, or back with the wrong men alive.
 //!
-//! WHAT THE DIRTY STEP DOES, AND WHY IT IS THAT AND NOT A SMALL EDIT (suite header closures 2 and 3).
-//! It kills every remaining slot, which WIPES the record: the registry entry is removed and the group
-//! entity is deleted. The restore therefore cannot pass by leaving anything alone - it has to
-//! re-create the group entity from the payload, put it back at the saved position with the saved
-//! stamps, and rebuild the survivor mask with the right slot still dead. It also registers a second,
-//! BOGUS group that the save knows nothing about, so "records the payload does not claim are dropped"
-//! is asserted in the same pass. A reload that restores nothing leaves no record at all and the case
-//! fails on its first assertion; a reload that restores campaign-start defaults produces no virtual
-//! groups either, and none of the asserted values (a 1234 m spawn ring, a HIGH tier, a 37 m patrol
-//! radius, one specific dead slot) is one a campaign start would ever produce.
+//! The dirty step kills every remaining slot, which WIPES the record: the registry entry is removed
+//! and the group entity deleted. The restore therefore cannot pass by leaving anything alone - it
+//! has to re-create the group from the payload with the right slot still dead. It also registers a
+//! second, BOGUS group the save knows nothing about, so "records the payload does not claim are
+//! dropped" is asserted in the same pass. None of the asserted values (a 1234 m spawn ring, a HIGH
+//! tier, a 37 m patrol radius, one specific dead slot) is one a campaign start would produce.
 //!
-//! IT USES THE PUBLIC MANAGER API ONLY, per the suite's assertion rule: RegisterGroup /
-//! ReportMemberKilled to make the state, and IsRegistered / GetRecord / GetMemberCount /
-//! GetAliveMemberCount / GetMemberAlive / GetPosition / GetSpawnDistance / GetImportance /
-//! FindGroupsByOwner / GetGroup to read it back. No storage type, no persisted record class and no
-//! persistence-framework type is named anywhere in it; the only persistence-layer calls are the gate
-//! class's two annotated seams, shared with every other case here.
+//! The composition is DISCOVERED, not hard-coded: a faction-config rename must go red in the faction
+//! tests. A roster of at least two slots is required, because "the specific dead slot is still dead"
+//! has to be distinguishable from "the count came back", so every entry the faction defines is tried
+//! until one is big enough.
 //!
-//! THE COMPOSITION IS DISCOVERED, NOT HARD-CODED (OVT_TEST_VirtualizationFixture, shared with the Init
-//! tier): a faction-config rename must go red in the faction tests, not here. A roster of at least two
-//! slots is required, because "the specific dead slot is still dead" has to be distinguishable from
-//! "the count came back", and the shipped registries are small enough that the first resolvable entry
-//! may be a two-man patrol - so every entry the faction defines is tried until one is big enough.
+//! ⚠ THE FIXTURE'S PLAN IS DELIBERATELY STATIONARY. This case asserts persistence, not motion, and
+//! virtual movement advances ANY dormant registered group whose plan has something to advance. The
+//! points were two PATROL points 150 m apart, so the movement tick walked this fixture across the
+//! save/reload window and turned the ±1 m position claim into a timing lottery. DEFEND is core's
+//! "this group belongs here" plan and is never advanced. If a future feature needs a MOVING fixture,
+//! register a second group for it; do not make this one move, and do not widen the tolerance.
 //!
-//! ⚠ THE FIXTURE'S PLAN IS DELIBERATELY STATIONARY (`virtualization/movement` T3.1, finding F-A).
-//! THIS CASE ASSERTS PERSISTENCE, NOT MOTION - and virtual movement advances ANY dormant registered
-//! group whose plan has something to advance, including one a test registered. The plan below was two
-//! MOVE-class (PATROL) points 150 m apart, so the movement tick would walk this fixture across the
-//! multi-second save/reload window and turn the ±1 m position claim into a timing lottery. The points
-//! are therefore DEFEND, which is core's "this group belongs here" plan and is never advanced (D10:
-//! the plan IS the opt-in). Every payload claim is unchanged in number and strength - two distinct
-//! positions, two types, two params and m_bCycle all still round-trip - and the fixture's stillness is
-//! now a property of what it registers rather than of what happens to be ticking.
-//! If a future feature needs a MOVING fixture, register a second group for it; do not make this one
-//! move. Widening the tolerance was rejected: it would turn a precise claim into a timing lottery.
+//! ⚠ Two properties make any fixture in this tree safe from the movement tick: (a) it registers a
+//! null / empty / DEFEND-only plan, or (b) it registers and unregisters inside ONE frame. Every
+//! other RegisterGroup( site under Scripts/Game/Tests/ was swept and satisfies one of them; the
+//! per-site verdict table is in docs/features/virtualization/integration/context.md.
 //!
-//! EVERY OTHER RegisterGroup( SITE UNDER Scripts/Game/Tests/ WAS SWEPT AND IS SAFE (T3.1), and the two
-//! properties that make a fixture safe are worth knowing when writing a new one:
-//!   (a) it registers a null / empty / DEFEND-only plan - there is nothing for movement to advance; or
-//!   (b) it registers and unregisters inside ONE frame - a CallLater tick cannot interleave.
-//! Init tier: RegisterRefusesUnknownComposition (both registrations are REFUSED, nothing is booked),
-//! RegisterBuildsDormantGroup, GetAllHandlesEnumeratesRegistry, DeathsFlipMaskAndWipeRecord and the
-//! mask-driven-refill case all pass (a) AND (b); the waypoint-ownership case registers a REAL movable
-//! plan (PATROL + MOVE, 120 m, cycling) but tears it down in the same frame, so it passes (b) and
-//! asserts nothing about position. Persistence tier: the wiped-group case, its resurrection group and
-//! this case's BOGUS group all register a null plan. This fixture was the only unsafe site in the tree.
-//! RE-SWEPT 2026-08-17 (virtualization/integration T7.1): the deployment reclaim case adds three more
-//! null-plan registrations at spawn distance 0, and the three deployment-marker fixtures register
-//! nothing at all because they are marked eliminated before anything can converge them. The verdict
-//! table per site is in docs/features/virtualization/integration/context.md.
-//!
-//! THE MOVED-POSITION CLAIM (`virtualization/movement` T3.2). Before the save, the group is deliberately
-//! relocated with SetPosition() and the case asserts it comes back at the MOVED position and NOT at the
-//! registration one. That is the epic-level property movement depends on - core's SnapshotRegistry reads
-//! the LIVE group origin, so whatever moved a group is what a save keeps - asserted here without a single
-//! movement-specific line, and timing-free: a direct write, not a tick.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, one per claim that could rot independently):
-//!   - THE MOVED-POSITION PAIR. Delete the `virtualization.SetPosition(...)` call in MutateAndSave()
-//!     and the pre-save guard goes red ("the group never moved") - the fixture cannot silently stop
-//!     being a moved one. Keep the move and snapshot a registration-time value instead - change
-//!     `entry.position = GetPosition(handle)` in SnapshotRegistry() (`:984`) to
-//!     `entry.position = record.m_Plan.m_aPositions[0]`, which for this fixture IS the registration
-//!     position - and the group comes back 42 m from where the save should have put it: the
-//!     saved-position claim goes red and the registration-position claim goes red with it, naming
-//!     exactly which of the two the restore fell back to. (The second claim is deliberately implied by
-//!     the first while the fixture really moves; its job is to make that "really moves" self-enforcing,
-//!     so nobody can quietly delete the move and leave a claim that asserts a coincidence.);
-//!   - drop the `entry.position = GetPosition(handle)` write in SnapshotRegistry() (or the
-//!     `record.m_vPosition = entry.position` read in ApplyPersistedRecord) and the group is re-created
-//!     at the world origin: the position assertion goes red;
-//!   - drop the slotAlive write in SnapshotRegistry(), or the ApplyPersistedMask() call, and the mask
-//!     comes back all-alive: the dead-slot assertion goes red before the count assertion does;
-//!   - drop the PushSlotMask() call in BuildRegisteredGroup and the record's mask survives while the
-//!     group refills from vanilla's first-N rule - nothing here catches that, which is why the Init
-//!     tier owns the runtime slot-selection proof;
-//!   - unbind OVT_VirtualizationManagerSerializer from the game-mode configuration in Overthrow.conf
-//!     and the reload restores nothing: the case reports the handle missing.
+//! THE MOVED-POSITION CLAIM. Before the save the group is deliberately relocated with SetPosition()
+//! and the case asserts it comes back at the MOVED position and NOT at the registration one. Core's
+//! SnapshotRegistry reads the LIVE group origin, so whatever moved a group is what a save keeps -
+//! asserted here without a movement-specific line, and timing-free: a direct write, not a tick. The
+//! second half of the pair exists to make "really moves" self-enforcing, so nobody can quietly
+//! delete the move and leave a claim that asserts a coincidence.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_AutotestCaseBase
@@ -4886,11 +4524,10 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 	//! A spawn ring no configured default produces (the global is 1750), so the assertion proves the
 	//! per-registration override round-tripped and not merely that a global was re-read.
 	//!
-	//! DELIBERATELY TINY. The case lives across many frames - two bounded waits - and the engine's own
-	//! 1 Hz lifecycle tick would materialise members of any group an observer stands inside, which would
-	//! turn "it came back dormant" into a coin flip. A 23 m ring keeps the group virtual for the whole
-	//! case without changing anything the case asserts (the despawn ring stays strictly larger, so the
-	//! registration is still a normal ProximityDriven one).
+	//! ⚠ Deliberately tiny. The case lives across many frames and the engine's 1 Hz lifecycle tick
+	//! would materialise members of any group an observer stands inside, turning "it came back
+	//! dormant" into a coin flip. The despawn ring stays strictly larger, so this is still a normal
+	//! ProximityDriven registration.
 	static const int SPAWN_DISTANCE_OVERRIDE = 23;
 
 	//! The per-waypoint float parameter carried in the plan's float array - the one float in the payload.
@@ -5336,18 +4973,15 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 	//! A two-point cycling DEFEND plan, so the payload's vector, int and float parallel arrays and its
 	//! cycle flag are all exercised by the round trip.
 	//!
-	//! ⚠ THE TYPES ARE DEFEND ON PURPOSE (`virtualization/movement` T3.1 / D12, finding F-A). They were
-	//! PATROL, which is a movable type: the movement tick advances every dormant registered group whose
-	//! plan has something to advance, so this fixture would drift along its own 150 m leg while the case
-	//! waited out a save and a reload, and the ±1 m position claim in Verify() would go red for reasons
-	//! that have nothing to do with persistence. DEFEND is core's "this group belongs here" plan and is
-	//! never advanced, which makes this fixture's stillness a property of the fixture rather than of
-	//! whatever else happens to be ticking in the world.
+	//! ⚠ The types are DEFEND on purpose. They were PATROL, which is movable: the movement tick
+	//! advances every dormant registered group whose plan has something to advance, so this fixture
+	//! drifted along its own 150 m leg while the case waited out a save and a reload, reddening
+	//! Verify()'s ±1 m position claim for reasons unrelated to persistence.
 	//!
-	//! The payload claims are UNCHANGED in number and strength: still two distinct positions 150 m
-	//! apart, still two types, still two float params, still m_bCycle - and still three real waypoint
-	//! entities on the re-created group (two legs plus the cycle), because core builds a DEFEND
-	//! waypoint from a DEFEND plan entry exactly as it builds a patrol one from a PATROL entry.
+	//! The payload claims are unchanged in number and strength - two distinct positions 150 m apart,
+	//! two types, two float params, m_bCycle - and still three real waypoint entities on the
+	//! re-created group, because core builds a DEFEND waypoint from a DEFEND plan entry exactly as it
+	//! builds a patrol one from a PATROL entry.
 	//! \param[in] position Where the group is registered.
 	//! \return The plan.
 	protected OVT_VirtualWaypointPlan BuildPlan(vector position)
@@ -5369,46 +5003,35 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 }
 
 //------------------------------------------------------------------------------------------------
-//! Shared machinery for the four DEPLOYMENT cases below (virtualization/integration Phase 7), so
-//! each case reads as its own claim instead of as 60 lines of setup.
+//! Shared machinery for the four DEPLOYMENT cases below.
 //!
 //! ===========================================================================================
-//! THE HONEST LIMIT OF THESE FOUR CASES, STATED ONCE AND NOT REPEATED IN EVERY HEADER.
+//! THE HONEST LIMIT OF THESE FOUR CASES, STATED ONCE.
 //!
-//! A deployment is a MARKER ENTITY in the world, and its state is written by a component
-//! serializer bound to that entity's own configuration - NOT to the game mode's. The suite's
-//! reload seam (OVT_TEST_PersistenceRoundTripGate.RequestSessionReload) asks for exactly one
-//! instance back, the game mode entity, and its own header says so in as many words: "WHAT IT
-//! DOES NOT COVER. Anything outside the game mode entity's record - world entities, characters,
-//! vehicles, placeables." So the seam CANNOT hand a deployment marker its stored payload back.
+//! A deployment is a MARKER ENTITY, and its state is written by a component serializer bound to that
+//! entity's own configuration - NOT the game mode's. The suite's reload seam asks for exactly one
+//! instance back, the game mode entity, so it CANNOT hand a deployment marker its stored payload.
+//! These cases therefore split the round trip and assert both halves honestly:
 //!
-//! What these cases therefore do is split the round trip in two and assert both halves honestly:
+//!   WRITE HALF - real. The fixture is created through the deployment manager's own public creation
+//!   path, which is what makes a marker part of a save point, and the case takes a real save. A
+//!   serializer that cannot write the state under test fails there.
 //!
-//!   WRITE HALF - real. The T7.2 fixture is created through the deployment manager's own public
-//!   creation path, which is what makes a marker part of a save point, and the case then takes a
-//!   real save. A serializer that cannot write the state under test fails there.
+//!   READ HALF - the public apply, not a re-read. ApplyPersistedDeployment() is the method the
+//!   marker's Deserialize calls with the values it read. Handing it the payload the save was taken
+//!   of is the closest a case in this harness can get to a marker coming back.
 //!
-//!   READ HALF - the public apply, not a re-read. OVT_DeploymentComponent.ApplyPersistedDeployment()
-//!   is the method the marker's Deserialize calls with the values it read, and its own header calls
-//!   itself the place "every side effect of restoring a deployment lives". Handing it the payload
-//!   the save was taken of is the closest a case in this harness can get to a marker coming back.
-//!
-//! What is consequently NOT asserted here, and is not asserted anywhere automated: that the bytes
-//! on disk read back as the values that went in. That is a real-restart claim, in the same bucket
-//! as the continue flow this suite's header already parks as manual, and it is covered by
-//! inspection instead - Phase 7's T7.7 decoded a real save point and read the deployment records
-//! field by field (docs/features/virtualization/integration/context.md).
+//! NOT asserted here or anywhere automated: that the bytes on disk read back as the values that went
+//! in. That is a real-restart claim, in the same bucket as the continue flow, and it is covered by
+//! inspection instead (a decoded save point, field by field, in the feature's context.md).
 //! ===========================================================================================
 //!
-//! ⚠ FIXTURE DISCIPLINE, AND WHY EVERY DEPLOYMENT FIXTURE HERE IS MARKED ELIMINATED.
-//! A live deployment starts a repeating 8-12 s update whose first tick activates it, and activation
-//! is what converges its spawning modules - which registers real groups at the GLOBAL 1750 m spawn
-//! ring, inside which the autotest camera is an observer. A fixture that did that would materialise
-//! soldiers next to the test camera, hand the movement tick a cycling perimeter plan to walk, and
-//! leave records behind in a shared world. Marking the deployment and its spawning modules
-//! eliminated makes the fixture inert BY CONSTRUCTION rather than by finishing before a timer, so
-//! it stays safe through a host stall. That is also why no case here clears the deployment-level
-//! flag as its dirty step: see T7.3's header.
+//! ⚠ Every deployment fixture here is marked ELIMINATED. A live deployment starts a repeating 8-12 s
+//! update whose first tick converges its spawning modules, registering real groups at the GLOBAL
+//! 1750 m ring - inside which the autotest camera is an observer. A fixture that did that would
+//! materialise soldiers next to the test camera, hand the movement tick a cycling perimeter plan to
+//! walk, and leave records behind in a shared world. Marking it eliminated makes the fixture inert
+//! BY CONSTRUCTION rather than by finishing before a timer, so it survives a host stall.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_DeploymentRoundTripFixture
 {
@@ -5481,13 +5104,11 @@ class OVT_TEST_DeploymentRoundTripFixture
 	//!
 	//! This is what makes the fresh-restore branch of ApplyPersistedDeployment() reachable: the
 	//! component's config is the "already built" flag, so a marker that has one takes the idempotent
-	//! branch and InitializeDeployment() - the method that reads the wipe-out flag - never runs.
-	//! The shipped prefab authors no config, which is asserted rather than assumed below.
+	//! branch and InitializeDeployment() never runs. The shipped prefab authors no config, which is
+	//! asserted rather than assumed below.
 	//!
-	//! Deliberately NOT part of any save point: nothing here asks the persistence layer to track it.
-	//! A fixture that is never stored cannot leave a stray deployment record behind in the CI save
-	//! for the cases that follow, and the payload these cases exercise is handed over directly
-	//! anyway (see the class header).
+	//! Deliberately NOT part of any save point, so it cannot leave a stray deployment record in the
+	//! CI save for the cases that follow.
 	//! \param[in] position Where to put the marker.
 	//! \param[out] diagnostic Reason it could not be built; untouched on success.
 	//! \return The uninitialized deployment component, or null.
@@ -5514,12 +5135,10 @@ class OVT_TEST_DeploymentRoundTripFixture
 			return null;
 		}
 
-		// ⚠ AN ENTITY THAT IS NOT WORLD-REGISTERED ANSWERS EntityID.INVALID, AND EVERY SUCH ENTITY
-		// ANSWERS THE SAME ONE (found by this epic's Phase 6 suite run - a marker spawned 3 km out in
-		// this small world came back unkeyable). The deployment manager keys its active list on this
-		// id, so a fixture with an invalid one would silently share a slot with the next fixture.
-		// Every marker offset here is deliberately inside the test world's own extent; this says so
-		// out loud rather than trusting it.
+		// ⚠ An entity that is not world-registered answers EntityID.INVALID, and EVERY such entity
+		// answers the SAME one (a marker spawned 3 km out in this small world came back unkeyable). The
+		// deployment manager keys its active list on this id, so a fixture with an invalid one would
+		// silently share a slot with the next fixture.
 		if (marker.GetID() == EntityID.INVALID)
 		{
 			delete marker;
@@ -5659,39 +5278,23 @@ class OVT_TEST_DeploymentRoundTripFixture
 
 //------------------------------------------------------------------------------------------------
 //! A MIGRATED DEPLOYMENT'S FIVE PERSISTED VALUES AND ITS VIRTUALIZATION KEY COME BACK - and the key
-//! comes back as the SAME STRING rather than as a fresh derivation. (T7.2)
+//! comes back as the SAME STRING rather than as a fresh derivation.
 //!
-//! WHY THE KEY IS THE PART THAT MATTERS. The other four values are bookkeeping; the key is identity.
-//! It is the string this deployment's registered AI groups are tagged with in the virtualization
-//! registry, and reclaiming them after a load is a lookup by exactly that string. A restore that
-//! re-derived it instead of reading it would agree in every ordinary case and disagree the moment a
-//! marker came back a metre off - and the disagreement is SILENT: the reclaim finds nothing, the
-//! module converges from zero, and the deployment quietly registers a second force on top of the one
-//! already standing there. That is the failure the serializer's version 2 append exists to prevent.
+//! The other four values are bookkeeping; the key is IDENTITY. It is the string this deployment's
+//! registered AI groups are tagged with in the virtualization registry, and reclaiming them after a
+//! load is a lookup by exactly that string. A restore that re-derived it would agree in every
+//! ordinary case and disagree the moment a marker came back a metre off - silently: the reclaim
+//! finds nothing, the module converges from zero, and the deployment registers a second force on top
+//! of the one already standing there.
 //!
-//! THE KEY PLANTED HERE IS ONE DERIVATION COULD NOT PRODUCE - coordinates no marker in any world is
-//! at - and the case ASSERTS that precondition before it asserts anything else. Without it "the key
-//! came back" would be satisfied by a re-derivation that happened to agree, and the case would be
-//! measuring a coincidence. With it, a single re-derivation anywhere in the restore path is visible.
+//! ⚠ The key planted here is one derivation could not produce, and the case ASSERTS that
+//! precondition before anything else - without it, "the key came back" would be satisfied by a
+//! re-derivation that happened to agree.
 //!
-//! THE FIXTURE IS CREATED THROUGH THE MANAGER'S OWN CREATION PATH, which is what puts a marker into
-//! a save point at all, so the save this case takes really does run the deployment serializer's
-//! write half over a live deployment carrying a version 2 key. Nothing else in the tree does.
+//! The fixture is created through the manager's own creation path, so the save really does run the
+//! deployment serializer's write half over a live deployment carrying a version 2 key.
 //!
-//! Read the fixture class header above for what the reload seam can and cannot reach, and for why
-//! the fixture is marked eliminated.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - delete the `if (!virtualKey.IsEmpty()) m_sVirtualKey = virtualKey;` write in
-//!     ApplyPersistedDeployment and the key assertion goes red naming the derived string it fell
-//!     back to;
-//!   - make EnsureVirtualKey() re-derive instead of returning the stored key (drop its
-//!     `if (!m_sVirtualKey.IsEmpty()) return m_sVirtualKey;` guard) and the SECOND key assertion
-//!     goes red while the first still passes, which is exactly the split worth having: the field
-//!     survived, the method that every registration actually calls did not;
-//!   - drop any one of the four scalar writes and that scalar's assertion goes red with the dirty
-//!     value still in place;
-//!   - rename the shipped config and the config-resolution assertion goes red first of all.
+//! Read the fixture class header for what the reload seam can and cannot reach.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SCR_AutotestCaseBase
@@ -6025,43 +5628,27 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 
 //------------------------------------------------------------------------------------------------
 //! A DEPLOYMENT RESTORED WITH ITS FORCE ALREADY WIPED OUT REGISTERS NOTHING - not on the restore
-//! itself, and not on the convergence that follows it. (T7.3 - G4's teeth.)
+//! itself, and not on the convergence that follows it. (G4's teeth.)
 //!
-//! WHAT THIS IS ACTUALLY GUARDING. A deployment's wipe-out flag is written BEFORE
-//! InitializeDeployment() in ApplyPersistedDeployment(), and that ordering is the entire mechanism:
-//! InitializeDeployment reads the flag to decide whether the spawning modules it has just cloned
-//! start out eliminated. Overthrow's previous persistence layer set the flag AFTERWARDS, and the
-//! consequence was that a patrol the player had wiped out came back at full strength on the next
-//! load - every time, in silence, because nothing about a fresh force looks wrong. The ordering has
-//! been documented in the serializer's header since; this is the first thing that asserts it.
+//! ⚠ The wipe-out flag is written BEFORE InitializeDeployment() in ApplyPersistedDeployment(), and
+//! that ordering is the entire mechanism: InitializeDeployment reads the flag to decide whether the
+//! spawning modules it has just cloned start out eliminated. The previous persistence layer set the
+//! flag afterwards, and a patrol the player had wiped came back at full strength on the next load,
+//! every time, in silence.
 //!
-//! THREE SEPARATE CLAIMS, IN THE ORDER THEY CAN BREAK:
+//! Three claims, in the order they can break:
 //!   1. the restore marks the deployment eliminated;
-//!   2. it marks every SPAWNING MODULE eliminated too - this is the ordering claim, because nothing
-//!      but InitializeDeployment's flag-before block does that on a fresh restore;
-//!   3. EnsureGroups() - the one method activation, the records-restored fan-out and the rebuy all
-//!      funnel through - registers ZERO groups under the module's owner key.
-//! Then, after the reload, a fourth: re-applying the same payload to a LIVE deployment whose modules
-//! have been un-marked puts the marks back, which is what makes the in-session re-application safe.
+//!   2. it marks every SPAWNING MODULE eliminated too - the ordering claim, because nothing but
+//!      InitializeDeployment's flag-before block does that on a fresh restore;
+//!   3. EnsureGroups() registers ZERO groups under the module's owner key.
+//! Then a fourth after the reload: re-applying the same payload to a LIVE deployment whose modules
+//! have been un-marked puts the marks back, which is what makes in-session re-application safe.
 //!
-//! ⚠ THE DIRTY STEP CLEARS THE MODULE FLAGS AND DELIBERATELY LEAVES THE DEPLOYMENT'S OWN FLAG SET.
-//! Convergence refuses on either, so this fixture cannot register anything at any point in its life
-//! - which matters because a deployment's own 8-12 s activation tick calls EnsureGroups() on its own
-//! schedule, and a case that cleared both flags would be betting that the tick does not fire in the
-//! ~100 ms window before the assert phase puts them back. This project has already measured a 105 s
-//! main-thread stall in this harness. The claim asserted after the reload is therefore "the modules
-//! were re-marked", not "convergence was refused by the deployment gate", and the module-level claim
-//! is the one that would actually rot.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - move the `m_bSpawnedUnitsEliminated = spawnedUnitsEliminated;` write in
-//!     ApplyPersistedDeployment to AFTER the InitializeDeployment(config, factionIndex) call - i.e.
-//!     re-introduce the old ordering - and claim 2 goes red, followed by claim 3 registering a full
-//!     patrol;
-//!   - drop the `m_bSpawnedUnitsEliminated || m_ParentDeployment.GetSpawnedUnitsEliminated()` guard
-//!     from OVT_InfantrySpawningDeploymentModule.ConvergeGroups and claim 3 goes red on its own;
-//!   - drop the re-marking loop from ApplyPersistedDeployment's already-running branch and the
-//!     post-reload claim goes red while all three pre-save claims still pass.
+//! ⚠ The dirty step clears the MODULE flags and deliberately leaves the deployment's own flag set.
+//! Convergence refuses on either, so this fixture can never register anything - which matters
+//! because a deployment's own 8-12 s activation tick calls EnsureGroups() on its own schedule, and
+//! clearing both flags would bet that the tick does not fire in the ~100 ms window before the assert
+//! phase puts them back. This project has measured a 105 s main-thread stall in this harness.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR_AutotestCaseBase
@@ -6400,36 +5987,20 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 
 //------------------------------------------------------------------------------------------------
 //! A VERSION 1 DEPLOYMENT PAYLOAD - one written before deployments carried a virtualization key -
-//! still restores, and the deployment mints its key from its own marker on first use. (T7.4)
+//! still restores, and the deployment mints its key from its own marker on first use.
 //!
-//! THIS IS THE PRE-FEATURE-SAVE MIGRATION PATH, and it is not hypothetical: a decoded save point
-//! from before this epic carries 23 deployment records whose fields stop at the wipe-out flag, with
-//! no key field written at all (Phase 7 T7.7, context.md). Every one of them has to come back.
+//! Not hypothetical: a decoded save point from before this epic carries 23 deployment records whose
+//! fields stop at the wipe-out flag, with no key field at all. The serializer reads the key only
+//! when the stored version says one was written, so a version 1 record reaches
+//! ApplyPersistedDeployment with an EMPTY key string - which is exactly what this case hands it.
 //!
-//! WHAT A VERSION 1 PAYLOAD LOOKS LIKE FROM HERE. The serializer reads the key only when the stored
-//! version says one was written, so a version 1 record reaches ApplyPersistedDeployment with an
-//! EMPTY key string - which is exactly what this case hands it. Nothing about the fixture pretends
-//! to be old; it is the same call the codec makes.
-//!
-//! TWO CLAIMS, AND THE SECOND IS THE ONE NOBODY WOULD THINK TO MAKE:
+//! Two claims, the second being the one nobody would think to make:
 //!   1. an empty key restores cleanly and EnsureVirtualKey() then derives one from the marker's own
 //!      position - once, and the same string on every later call;
 //!   2. re-applying that same version 1 payload later does NOT wipe the key the session has since
-//!      derived. Deployment payloads are re-applied to live instances, and a blind write would empty
-//!      the key of a deployment whose groups are already tagged with it - orphaning the whole force
-//!      to a reclaim that will never find it again. The guard that prevents it is one `if`.
-//!
-//! The fixture is deliberately not part of any save point and is marked eliminated; both are
-//! explained in the fixture class header.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - make ApplyPersistedDeployment write the key unconditionally (`m_sVirtualKey = virtualKey;`
-//!     with no emptiness guard) and claim 2 goes red with an empty key;
-//!   - make the serializer read the key regardless of version and a version 1 payload consumes the
-//!     bytes of whatever follows it - which this case cannot see, and is why T7.7 read the records
-//!     off a real save point by hand as well;
-//!   - drop the `if (!m_sVirtualKey.IsEmpty()) return m_sVirtualKey;` guard in EnsureVirtualKey and
-//!     the derive-once claim goes red as soon as a live deployment takes the base key's ordinal.
+//!      derived. Payloads are re-applied to live instances, and a blind write would empty the key of
+//!      a deployment whose groups are already tagged with it, orphaning the whole force to a reclaim
+//!      that will never find it. The guard is one `if`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_AutotestCaseBase
@@ -6758,40 +6329,25 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 
 //------------------------------------------------------------------------------------------------
 //! GROUPS REGISTERED UNDER A DEPLOYMENT OWNER KEY ARE RECLAIMABLE BY THAT KEY AFTER A SAVE AND A
-//! RESTORE - verbatim, including the two structural characters the key scheme is built out of. (T7.5)
+//! RESTORE - verbatim, including the two structural characters the key scheme is built out of.
 //!
-//! WHAT IS NEW HERE, AND WHAT IS DELIBERATELY NOT. That virtual groups survive a save at all, and
-//! that a wiped one does not come back, are asserted by the two cases below this one; they are not
-//! repeated. This case asserts the seam the whole deployments migration rests on instead: after a
+//! That virtual groups survive a save, and that a wiped one does not come back, are asserted by the
+//! two cases below. This one asserts the seam the whole deployments migration rests on: after a
 //! restore, a spawning module reclaims its own groups by asking FindGroupsByOwner for the composed
-//! key `<deployment key>#<module tag>` - and nothing else in the tree checks that a key of that
-//! SHAPE survives storage.
+//! key `<deployment key>#<module tag>`.
 //!
-//! WHY THE SHAPE IS THE RISK. A deployment owner key carries an '@' (name from coordinates) and a '#'
-//! (deployment from module, and base key from collision ordinal). It is the only owner key in the
-//! epic that does. A payload that truncated, trimmed or normalised either character would leave every
-//! record present and correct and every reclaim silently empty - and an empty reclaim is not an
+//! ⚠ The SHAPE is the risk. A deployment owner key carries an '@' and a '#' - the only owner key in
+//! the epic that does. A payload that truncated, trimmed or normalised either character would leave
+//! every record present and correct and every reclaim silently empty, and an empty reclaim is not an
 //! error: the module concludes it holds nothing and converges a second force on top of the one the
-//! restore just rebuilt. Two keys are therefore registered, differing ONLY in their module tag, and
-//! each is required to answer for exactly its own groups.
+//! restore just rebuilt. Two keys differing ONLY in their module tag are registered, and each must
+//! answer for exactly its own groups.
 //!
-//! IT ALSO EXERCISES THE POSITIONAL FALLBACK TAG. One of the two module tags is "m1" - what a module
-//! with no authored name gets. No shipped config produces it today, so this is the only place it is
-//! ever composed, stored and read back.
+//! It also exercises the positional fallback tag "m1" - what a module with no authored name gets. No
+//! shipped config produces it today, so this is the only place it is composed, stored and read back.
 //!
-//! FIXTURE FOOTPRINT (T7.1): three registrations, null plans, spawn distance 0 - the documented
-//! "never materialise by proximity" registration, so the movement tick has nothing to advance and the
-//! autotest camera cannot pull them into the world. All three are unregistered before the case
-//! reports, on every path.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - drop the `entry.ownerKey = record.m_sOwnerKey` write in the registry snapshot (or its read)
-//!     and the first reclaim assertion goes red with the right number of records restored under the
-//!     wrong owner;
-//!   - restore the records but skip re-indexing them by owner and the counts come back 0 while
-//!     IsRegistered still answers true, which the second assertion names;
-//!   - sanitise the '#' out of a stored owner key and the two keys collapse into one: the first
-//!     assertion sees 3 where it wants 2.
+//! Fixture footprint: three registrations, null plans, spawn distance 0, all unregistered before the
+//! case reports on every path.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : SCR_AutotestCaseBase
@@ -7157,61 +6713,34 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : S
 }
 
 //------------------------------------------------------------------------------------------------
-//! A BASE-DEFENSE DEPLOYMENT'S FIVE PERSISTED VALUES COME BACK, ITS CONFIG STILL RESOLVES BY NAME, AND
-//! THE RESTORE MARKS IT AS RESTORED. (virtualization/base-defense-migration T4.8 - the requirement's
-//! named "base-defense deployment round trip".)
+//! A BASE-DEFENSE DEPLOYMENT'S FIVE PERSISTED VALUES COME BACK, ITS CONFIG STILL RESOLVES BY NAME,
+//! AND THE RESTORE MARKS IT AS RESTORED.
 //!
-//! ⚠ READ THIS FIRST - THE SEAM CANNOT DO WHAT THE CASE NAME SOUNDS LIKE, AND THAT IS NOT WORKED
-//! AROUND. The suite's reload seam (OVT_TEST_PersistenceRoundTripGate.RequestSessionReload) builds its
-//! request with Instances = {gameMode} only, so a deployment MARKER's Deserialize is NEVER re-run by
-//! it - a deployment is a marker entity with its own component serializer, which is outside the game
-//! mode's record. This case therefore does exactly what integration's four deployment cases do and
-//! says so out loud:
-//!   WRITE HALF - REAL. The fixture is created through the deployment manager's own public creation
-//!   path, which is what puts a marker into a save point at all, and a real save is then taken. A
-//!   serializer that could not write this state would fail there.
-//!   READ HALF - THE PUBLIC APPLY, NOT A RE-READ. ApplyPersistedDeployment() is the method the
-//!   marker's own Deserialize calls with the values it read.
-//! What is consequently NOT asserted, here or anywhere automated, is that the bytes on disk read back
-//! as the values that went in - a real-restart claim, covered by inspection (integration T7.7 decoded
-//! a real save point field by field). DO NOT WIDEN THE SEAM to "fix" this: widening it means naming
-//! persistence-framework types inside Scripts/Game/Tests/, which the suite's assertion rule forbids.
+//! ⚠ The reload seam builds its request with Instances = {gameMode} only, so a deployment MARKER's
+//! Deserialize is NEVER re-run by it. This case does what integration's four deployment cases do:
+//! the WRITE half is real (the fixture is created through the manager's own public creation path and
+//! a real save is taken), the READ half is the public apply, not a re-read. What is NOT asserted
+//! here or anywhere automated is that the bytes on disk read back as the values that went in - a
+//! real-restart claim, covered by inspection. ⚠ DO NOT WIDEN THE SEAM to "fix" this: widening it
+//! means naming persistence-framework types inside Scripts/Game/Tests/, which the assertion rule
+//! forbids.
 //!
-//! WHY A SECOND DEPLOYMENT ROUND TRIP AT ALL, WHEN DeploymentRecord_SurvivesSaveAndReapply EXISTS.
-//! That case runs on "Town Patrol", whose modules are all pre-migration. This one runs on a BASE
-//! DEFENSE config, and the two things it adds are the two that are new:
+//! A second deployment round trip is warranted because DeploymentRecord_SurvivesSaveAndReapply runs
+//! on "Town Patrol", whose modules are all pre-migration. This one runs on a BASE DEFENSE config and
+//! adds the two things that are new:
 //!   - the restored deployment still carries a live OVT_PlacedInfantrySpawningDeploymentModule WITH
-//!     ITS m_Placement PROVIDER. CloneModule is hand-written and not chained; a dropped m_Placement
-//!     line ships a module that wants zero groups, registers nothing and logs nothing, and a base's
-//!     tower guards simply never come back after a load;
-//!   - WasRestoredFromSave() is TRUE afterwards. That flag is D7's gate - the one thing that stops a
-//!     restored deployment building a second bunker, checkpoint or parked truck on every load - and
-//!     nothing else in the tree asserts it.
+//!     its m_Placement provider. CloneModule is hand-written and not chained; a dropped line ships a
+//!     module that wants zero groups, registers nothing and logs nothing, and a base's tower guards
+//!     simply never come back after a load;
+//!   - WasRestoredFromSave() is TRUE afterwards - D7's gate, the one thing stopping a restored
+//!     deployment building a second bunker on every load, and nothing else asserts it.
 //!
-//! ⚠ WHY THIS FIXTURE CANNOT DELETE ITSELF MID-RUN, even though its config authors
-//! m_bDeleteOnConditionFail 1 (which is exactly why the Town Patrol fixture was chosen for the other
-//! cases). The delete branch lives inside OVT_ReinforcementBehaviorDeploymentModule.CheckReinforcement(),
-//! which OnUpdate() reaches only after m_fInitialDelay has elapsed since activation. The base-defense
-//! configs author neither m_fInitialDelay nor m_fCheckInterval, so both take the class defaults -
-//! 300 000 ms and 60 000 ms. The case's whole budget is 60 s. The condition modules are therefore
-//! never evaluated at runtime while this case is alive. If a future tuning pass authors a shorter
-//! initial delay on these configs, THIS is the case that starts failing intermittently, and the fix is
-//! to pick a config without the delete flag - not to lengthen the timeout.
-//!
-//! Read the OVT_TEST_DeploymentRoundTripFixture header for why every deployment fixture here is marked
-//! eliminated before anything can tick.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - drop any one of the four scalar writes from ApplyPersistedDeployment and that scalar's
-//!     assertion goes red with the dirty value still in place;
-//!   - delete the `if (!virtualKey.IsEmpty()) m_sVirtualKey = virtualKey;` write and the key assertion
-//!     goes red naming the string it fell back to;
-//!   - delete `clone.m_Placement = m_Placement;` from
-//!     OVT_PlacedInfantrySpawningDeploymentModule.CloneModule() and the provider assertion goes red;
-//!   - delete the `m_bRestoredFromSave = true;` line and the restored-flag assertion goes red on its
-//!     own while every scalar still passes;
-//!   - rename the config, or drop its entry from overthrowDeployments.conf, and the resolution
-//!     assertion goes red before any of them.
+//! ⚠ This fixture cannot delete itself mid-run despite its config authoring
+//! m_bDeleteOnConditionFail 1. The delete branch lives in CheckReinforcement(), which OnUpdate()
+//! reaches only after m_fInitialDelay (class default 300 000 ms) has elapsed since activation, and
+//! the case's whole budget is 60 s. If a future tuning pass authors a shorter initial delay on these
+//! configs, THIS is the case that starts failing intermittently, and the fix is to pick a config
+//! without the delete flag - not to lengthen the timeout.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply : SCR_AutotestCaseBase
@@ -7569,72 +7098,42 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 
 //------------------------------------------------------------------------------------------------
 //! A PRE-MIGRATION SAVE'S BASE-UPGRADE INVESTMENT IS REFUNDED TO THE DEPLOYMENT POOL, EXACTLY ONCE,
-//! AND A REWRITTEN PAYLOAD REFUNDS NOTHING. (virtualization/base-defense-migration T6.8.)
+//! AND A REWRITTEN PAYLOAD REFUNDS NOTHING.
 //!
-//! WHAT A LEGACY SAVE IS AND WHY IT CANNOT SIMPLY BE DROPPED. Every campaign saved before this
-//! migration carries, per occupying-held base, a list of upgrade records: what each upgrade had banked
-//! and how many groups it had standing. The upgrade classes those records describe are deleted, so
-//! there is nothing left to replay them into. Rather than strand a player's whole investment, the
-//! records are read once for their VALUE, the sum is credited to the occupying faction's deployment
-//! resource pool, and the evaluator re-establishes defense from it - value-parity, not
-//! entity-identity, which is the decision this feature was given.
+//! Every campaign saved before this migration carries, per occupying-held base, a list of upgrade
+//! records: what each upgrade had banked and how many groups it had standing. The upgrade classes
+//! those records describe are deleted, so the records are read once for their VALUE, the sum is
+//! credited to the deployment resource pool, and the evaluator re-establishes defense from it -
+//! value-parity, not entity-identity.
 //!
-//! THE FAILURE MODES THIS GUARDS, AND NEITHER OF THEM LOGS ANYTHING:
-//!   - REFUND NOTHING. A loaded legacy campaign arrives with no defense AND no money to buy any, and
-//!     the occupying faction is crippled for the rest of that campaign. Nothing errors; the player
-//!     just finds every base empty.
-//!   - REFUND TWICE. The refund is idempotent STRUCTURALLY - the write path stores an EMPTY upgrade
-//!     array from now on, so a second pass has nothing to sum - and there is deliberately no flag
-//!     guarding it. If that structural argument ever broke, every load of the same campaign would hand
-//!     the occupying faction another few thousand resources, forever.
+//! Neither failure mode logs anything:
+//!   - REFUND NOTHING - a loaded legacy campaign arrives with no defense AND no money to buy any.
+//!   - REFUND TWICE - the refund is idempotent STRUCTURALLY, because the write path stores an EMPTY
+//!     upgrade array from now on, and there is deliberately no flag guarding it. If that structural
+//!     argument broke, every load would hand the faction another few thousand resources, forever.
 //!
-//! ⚠ READ THIS FIRST - WHAT THE SEAM CAN AND CANNOT DO, AND WHY IT IS NOT WORKED AROUND. The suite's
-//! reload seam re-applies the GAME MODE's stored record, which does include this manager - but the
+//! ⚠ The reload seam re-applies the GAME MODE's record, which does include this manager - but the
 //! payload it would re-read is one this build WROTE, and this build writes the upgrade array empty.
-//! Feeding it a genuinely pre-migration payload therefore has to be done the way the manager's own
-//! Deserialize does it:
-//!   WRITE HALF - REAL, AND IT IS THE HALF THAT CHANGED. A real save is taken over untouched live
-//!   campaign state before anything else happens. WriteBase() now stops walking the base controller's
-//!   upgrade list and writes an empty array in its place, so a save that completes is a write path
-//!   that ran the new body over every base in the world. A serializer that threw on it would surface
-//!   here as the missing capability.
-//!   READ HALF - THE PUBLIC APPLY, NOT A RE-READ. ApplyPersistedOccupyingFaction() is the exact method
-//!   the serializer's Deserialize calls with the values it read, and it is handed hand-built records
-//!   shaped like the ones a 2026-era save really carries.
-//! DO NOT WIDEN THE SEAM to "fix" this: widening it means naming persistence-framework types inside
-//! Scripts/Game/Tests/, which the suite's assertion rule forbids.
+//! So the WRITE half is real and is the half that changed (WriteBase() now writes an empty array, so
+//! a save that completes is the new body having run over every base in the world), and the READ half
+//! is the public apply handed hand-built records shaped like a 2026-era save's. ⚠ DO NOT WIDEN THE
+//! SEAM - that means naming persistence-framework types inside Scripts/Game/Tests/.
 //!
-//! ⚠ THIS CASE TAKES A REAL SAVE, so its class name MUST sort after `..._Capability_...` - see the
-//! suite header's case list. `Legacy*` does; `Base*` would not.
+//! ⚠ This case takes a REAL save, so its class name MUST sort after `..._Capability_...`. `Legacy*`
+//! does; `Base*` would not.
 //!
-//! ⚠ LIVE CAMPAIGN STATE IS BORROWED AND HANDED BACK: the chosen base's controlling faction, the
-//! occupying faction's reserve and threat (both passed straight back through the apply, so neither
-//! moves), and the deployment resource pool. Two side effects of driving the apply are ACCEPTED and
-//! are the same ones OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction accepts: every base and
-//! tower with no record in the list handed in is swept to the occupying faction, and the chosen base's
-//! persisted slot/garrison lists are cleared. Those lists are rebuilt from the LIVE base controller at
-//! save time - the controller's own m_aSlotsFilled claim list is not touched - and are empty in a test
-//! session anyway.
+//! ⚠ Live campaign state is borrowed and handed back: the chosen base's controlling faction, the
+//! occupying faction's reserve and threat, and the deployment resource pool. Two side effects of
+//! driving the apply are accepted: every base and tower with no record in the list handed in is
+//! swept to the occupying faction, and the chosen base's persisted slot/garrison lists are cleared
+//! (both are rebuilt from the LIVE controller at save time and are empty in a test session anyway).
 //!
-//! 🔴 THE REFUND IS QUEUED BY THE APPLY AND PAID BY A LATER DELIVERY POINT, AND THAT IS ASSERTED HERE
-//! AS A CLAIM IN ITS OWN RIGHT. It cannot be credited inline, because the deployment manager's own
-//! restore CLEARS the per-faction resource pool and is authored several entries BELOW this manager in
-//! Configs/Systems/Persistence/Overthrow.conf - so an inline credit is wiped microseconds later with
-//! nothing logged. This case therefore asserts three separate things: the apply queues the right
-//! amount, the apply does NOT move the pool, and the credit point delivers it exactly once.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - make ApplyPersistedBaseUpgrades() return 0 unconditionally and the queued-amount assertion goes
-//!     red naming both numbers;
-//!   - call AllocateDeploymentResources() from inside ApplyPersistedOccupyingFaction() instead of
-//!     queueing and the "the pool moved during the apply itself" assertion goes red - which is the one
-//!     that pins the ordering hazard;
-//!   - delete the `m_iPendingLegacyRefund = 0;` line and the delivered-once assertion goes red;
-//!   - delete `base.upgrades.Clear()` and the emptied-list assertion goes red on its own;
-//!   - make the conversion count groups without multiplying by the per-group value and the refund
-//!     assertion goes red with a number short by exactly the group value;
-//!   - re-populate record.upgrades before the second pass instead of clearing it and the idempotence
-//!     assertion goes red, which is what a write path that forgot to empty the array would look like.
+//! 🔴 The refund is QUEUED by the apply and PAID by a later delivery point, and that is asserted as
+//! a claim in its own right. It cannot be credited inline, because the deployment manager's own
+//! restore CLEARS the per-faction resource pool and is authored several entries BELOW this manager
+//! in Overthrow.conf - so an inline credit is wiped microseconds later with nothing logged. Three
+//! separate assertions: the apply queues the right amount, the apply does NOT move the pool, and the
+//! credit point delivers it exactly once.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResources : SCR_AutotestCaseBase
@@ -7848,11 +7347,10 @@ class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResour
 		// NOTHING, because the structure itself is a tracked world entity that comes back from the save
 		// on its own - refunding for it would pay for it twice.
 		//
-		// ⚠ BOTH `type` STRINGS ABOVE AND BELOW NAME CLASSES THAT NO LONGER EXIST, AND THAT IS THE
-		// POINT: this fixture stands in for a PRE-MIGRATION save point, and those are the literal
-		// strings such a save carries. Nothing in the conversion matches on them (it converts banked
-		// resources and group counts, never a class name), so they are payload realism rather than a
-		// reference - do not "fix" them to a config name, which no legacy save could contain.
+		// ⚠ Both `type` strings name classes that NO LONGER EXIST, and that is the point: this fixture
+		// stands in for a pre-migration save point and those are the literal strings such a save
+		// carries. Nothing in the conversion matches on them, so do not "fix" them to a config name,
+		// which no legacy save could contain.
 		OVT_PersistedBaseUpgrade composition = new OVT_PersistedBaseUpgrade();
 		composition.type = "OVT_BaseUpgradeComposition";
 		composition.resources = 0;
@@ -7867,12 +7365,10 @@ class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResour
 
 		occupying.ApplyPersistedOccupyingFaction(config.m_sOccupyingFaction, reserve, threat, records, null);
 
-		// 🔴 THE REFUND IS OWED HERE, NOT PAID HERE, AND THAT IS THE DESIGN. It cannot be credited from
-		// inside the apply, because the deployment manager's own restore CLEARS the resource pool and
-		// runs after this manager's in the same load. So the apply queues, and one of two later delivery
-		// points hands it over. The queued amount is asserted first - it is the conversion arithmetic -
-		// and then the credit point is driven directly, which keeps the whole claim inside one frame
-		// instead of racing a callback.
+		// 🔴 The refund is OWED here, not PAID here. It cannot be credited from inside the apply, because
+		// the deployment manager's own restore CLEARS the resource pool and runs after this manager's in
+		// the same load. The queued amount is asserted first - it is the conversion arithmetic - and then
+		// the credit point is driven directly, which keeps the whole claim inside one frame.
 		int owed = occupying.GetPendingLegacyRefund();
 		if (owed != expectedRefund)
 			return string.Format("The conversion queued %1 for the deployment pool, expected exactly %2 - a pre-migration campaign either loses the investment it had made or is owed money it never spent",
@@ -7951,66 +7447,43 @@ class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResour
 //! save with that level intact.
 //!
 //! ==========================================================================================
-//! ⚠ THIS IS THE PLAN'S DOCUMENTED FALLBACK, NOT THE FULL ROUND TRIP. READ THIS FIRST.
+//! ⚠ THIS IS THE PLAN'S DOCUMENTED FALLBACK, NOT THE FULL ROUND TRIP.
 //!
-//! docs/features/economy/fuel/implementation.md § Testing Strategy asks for a five-phase round trip
-//! here - build, set the level, save, DIRTY the level, reload, assert the saved level came back -
-//! and names its own degradation path "if the reload does not restore a mid-session build". It does
-//! not, and that is structural rather than a timing problem:
+//! The five-phase round trip the plan asks for is not reachable, structurally rather than by timing:
+//! ReapplyLatestSaveData() - the suite's only load seam - asks for exactly ONE instance, the GAME
+//! MODE ENTITY. A depot is a separate tracked root (SelfSpawn 1, its own EntityPersistenceConfig
+//! keyed on OVT_BuildableComponent), so no re-application will ever put its record back. Restoring
+//! it means restarting the session, which the suite header explains is impossible in -autotest.
 //!
-//!   OVT_PersistenceManagerComponent.ReapplyLatestSaveData() - the suite's only load seam - asks the
-//!   persistence system for exactly ONE instance, the GAME MODE ENTITY (`request.Instances =
-//!   {owner}`). Its own doc comment says so: "WHAT IT DOES NOT COVER. Anything outside the game mode
-//!   entity's record - world entities, characters, vehicles, placeables." A depot is a separate
-//!   tracked root (SelfSpawn 1, its own EntityPersistenceConfig keyed on OVT_BuildableComponent), so
-//!   no re-application will ever put its record back. Restoring it means restarting the session,
-//!   which the suite header explains at length is impossible inside the -autotest harness.
+//! It lives here and not in OVT_TEST_PersistenceSuite, where the plan's fallback sentence points,
+//! for two reasons either of which is sufficient: that suite's header forbids save-taking cases in
+//! terms, and it is listed BEFORE this one in OVT_TestGroup_All.conf, so a save taken there turns
+//! this suite's capability gate into a "precondition violated" failure and reddens the All group.
 //!
-//! WHY THIS CASE IS HERE AND NOT IN OVT_TEST_PersistenceSuite, which is where the plan's fallback
-//! sentence points. Two hard reasons, either one sufficient:
-//!   1. That suite's header forbids it in terms: "Nothing in THIS file triggers a save at all" /
-//!      "Do not add save/reload assertions here." A save-taking case there would break its contract.
-//!   2. OVT_TEST_PersistenceSuite is listed BEFORE this suite in Configs/Tests/OVT_TestGroup_All.conf,
-//!      and this suite's capability gate asserts HasSaveGame() is FALSE before its own first save
-//!      (closure 1). A save taken in the earlier suite turns that gate into a "precondition violated"
-//!      failure - i.e. putting the fallback where the sentence says would make the All group red.
-//! The save seam lives here, so the case that needs it lives here too. `LegacyBaseUpgrades_*` is the
-//! standing precedent: it also takes a real save and uses NEITHER reload seam.
-//!
-//! WHAT IS THEREFORE STILL OWED TO A HUMAN: manual step F18 (part-fill the depot, save, RELOAD the
-//! session, confirm the level). That step is the only thing that proves the serializer's read half.
+//! STILL OWED TO A HUMAN: manual step F18 (part-fill the depot, save, RELOAD the session, confirm
+//! the level). That is the only thing that proves the serializer's read half.
 //! ==========================================================================================
 //!
-//! WHAT THIS CASE DOES PROVE, and none of it is provable any other way in this harness:
-//!  - "Fuel Depot" exists in Configs/Resistance/buildables.conf and is resolvable BY NAME (never by
-//!    index - the index moves every time an entry is added);
-//!  - BuildItem() with playerId -1 gets past OVT_FuelDepotHandler and returns a real entity, which is
-//!    the server-side build path the handler is written for;
+//! What it does prove, none of it provable any other way in this harness:
+//!  - "Fuel Depot" is resolvable BY NAME from buildables.conf (never by index - that moves);
+//!  - BuildItem() with playerId -1 gets past OVT_FuelDepotHandler and returns a real entity;
 //!  - the spawned prefab carries OVT_BuildableComponent typed "FuelDepot" and is findable by that
-//!    type from a world query, which is how any consumer would find it;
-//!  - THE TWO PREFAB FACTS THE VANILLA SERIALIZER SILENTLY DEPENDS ON (implementation.md R4).
+//!    type from a world query;
+//!  - ⚠ THE TWO PREFAB FACTS THE VANILLA SERIALIZER SILENTLY DEPENDS ON.
 //!    SCR_FuelManagerComponentSerializer only walks SCR_FuelNode-typed nodes and SKIPS any node whose
-//!    fuel equals its initial state. So a node authored as a bare BaseFuelNode, or an initial state
+//!    fuel equals its initial state. A node authored as a bare BaseFuelNode, or an initial state
 //!    authored as a fraction (0.5) instead of litres, makes persistence a no-op with no error
-//!    anywhere. This case asserts a scripted node exists, that its capacity is the authored 10000 L,
-//!    and that its initial state is 0 - all three of which are the difference between the depot
-//!    saving and the depot silently not saving;
+//!    anywhere. Asserted: a scripted node exists, its capacity is the authored 10000 L, its initial
+//!    state is 0;
 //!  - a real save completes with the depot in the world and does not disturb its level.
 //!
-//! NON-VACUOUS: the level asserted at the end is written BEFORE the save and read back through a
-//! FRESH world query, not through the handle BuildItem() returned - so an assertion that passes
-//! requires the entity to still be there and still hold the value. It is not a value the prefab or
-//! the campaign produces: the depot is authored to start EMPTY.
+//! Non-vacuous: the level is written BEFORE the save and read back through a FRESH world query, not
+//! the handle BuildItem() returned, and the depot is authored to start EMPTY.
 //!
-//! THE DEPOT IS LEFT STANDING ON PURPOSE. Deleting a persistence-tracked entity mid-suite means
-//! driving the transient-untrack retry queue (BUG-118), which is far more likely to disturb the
-//! later cases than an inert static prop is. It has no AI, no deployment and no manager registration
-//! that any other case reads.
+//! The depot is left standing on purpose: deleting a persistence-tracked entity mid-suite drives the
+//! transient-untrack retry queue (BUG-118), far likelier to disturb later cases than an inert prop.
 //!
-//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `FuelDepot*` does.
-//!
-//! PROVEN ABLE TO FAIL: inverting the final equality (`if (fuel == SAVED_FUEL)`) fails the case with
-//! both numbers named; recorded and reverted during Phase 3.
+//! ⚠ Takes a real save, so the class name MUST sort after `..._Capability_...`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCaseBase
@@ -8320,13 +7793,11 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 //! and find it again from scratch by prefab type and radius.
 //!
 //! The Guard Tower is the subject because it is the retrofitted buildable with a REAL ruin model and
-//! an active RplComponent (docs/features/core/damage/context.md, task 1.4/1.5) - the two cases assert
-//! the persisted PHASE, but a subject whose ruin mesh does not exist would make a green run mean less
-//! than it says.
+//! an active RplComponent - the cases assert the persisted PHASE, but a subject whose ruin mesh does
+//! not exist would make a green run mean less than it says.
 //!
-//! Nothing here is cached across phases: every phase looks the structure up again the way a consumer
-//! would, so an entity that quietly stopped existing fails its case instead of being read through a
-//! stale reference.
+//! Nothing is cached across phases: every phase looks the structure up again the way a consumer
+//! would, so an entity that quietly stopped existing fails its case instead of being read stale.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_StructureDamageRoundTripFixture
 {
@@ -8455,33 +7926,20 @@ class OVT_TEST_StructureDamageRoundTripFixture
 //! A RUINED structure comes back ruined: build a Guard Tower, ruin it, save, REPAIR it in memory,
 //! re-read its stored record, and it is a ruin again.
 //!
-//! WHAT IS AT STAKE. Destruction is only meaningful if it lasts. Before this feature a sabotaged
-//! structure was deleted, and a deleted entity is trivially "still gone" after a load; a ruin is a
-//! surviving entity holding one integer, and if that integer is not written or not read the campaign
-//! quietly repairs every ruin for free on every continue.
+//! Before this feature a sabotaged structure was deleted, and a deleted entity is trivially "still
+//! gone" after a load; a ruin is a surviving entity holding one integer, and if that integer is not
+//! written or not read the campaign quietly repairs every ruin for free on every continue.
 //!
-//! THIS IS A REAL STORAGE ROUND TRIP, unlike the FuelDepot case above it, and the difference is the
+//! This is a REAL storage round trip, unlike the FuelDepot case above, and the difference is the
 //! third seam in the gate class: a buildable owns its own persistence record, so it can be asked for
-//! BY INSTANCE. The save-point seam writes it, the phase is dirtied in memory, and the instance seam
-//! reads it back. Closures 2 and 3 of this suite's anti-vacuous design both hold: the dirty step
-//! repairs the structure through the same public facade the game uses, so a reload that restores
-//! nothing leaves an intact structure and the case fails; and "ruined" is not a state any build or
-//! campaign start produces - a freshly built structure is intact by definition, which the case
-//! asserts before it ruins anything.
+//! BY INSTANCE. Closures 2 and 3 both hold - the dirty step repairs through the same public facade
+//! the game uses, and "ruined" is not a state any build or campaign start produces (the case asserts
+//! the structure is intact before it ruins anything).
 //!
-//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `StructureDamage*`
-//! does. It sorts after the Objective* cases and before the Town* ones, and disturbs neither: it
-//! changes no town, no deployment and no objective.
+//! ⚠ Takes a real save, so the class name MUST sort after `..._Capability_...`. It sorts after the
+//! Objective* cases and before the Town* ones and disturbs neither.
 //!
-//! THE TOWER IS LEFT STANDING (as a ruin) ON PURPOSE, for the FuelDepot case's reason: deleting a
-//! persistence-tracked entity mid-suite drives the transient-untrack retry queue (BUG-118), which is
-//! far likelier to disturb later cases than an inert prop is.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the `if (version >= 2)` block from OVT_BuildableComponentSerializer.Deserialize() and
-//!     nothing restores the phase: the case reports the structure came back intact;
-//!   - make RestorePhase() return early for a ruined phase (or leave its authority guard inverted)
-//!     and the same assertion goes red, with the dirty repair still in place.
+//! The tower is left standing (as a ruin) on purpose, for the FuelDepot case's reason.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_StructureDamage_RuinSurvivesSave : SCR_AutotestCaseBase
@@ -8748,27 +8206,20 @@ class OVT_TEST_PersistenceRoundTrip_StructureDamage_RuinSurvivesSave : SCR_Autot
 }
 
 //------------------------------------------------------------------------------------------------
-//! And the inverse, which is the assertion the requirements ask for by name: a REPAIRED structure
-//! does not revert. Build, ruin, save, re-read (it is a ruin), repair, save again, ruin it in memory,
-//! re-read - and it is intact.
+//! And the inverse, which the requirements ask for by name: a REPAIRED structure does not revert.
+//! Build, ruin, save, re-read (it is a ruin), repair, save again, ruin it in memory, re-read - and
+//! it is intact.
 //!
-//! WHY BOTH DIRECTIONS NEED THEIR OWN CASE. The phase is one integer, so a serializer that wrote a
+//! Both directions need their own case: the phase is one integer, so a serializer that wrote a
 //! constant 1 - or a RestorePhase() that only ever drives the ruin branch - would pass the ruin case
-//! above and lose every repair the player paid for. The second half here is written over the top of
-//! the first: the structure is genuinely a ruin in storage before it is repaired, so the second save
-//! has to overwrite a value that was already there rather than write a field for the first time.
+//! above and lose every repair the player paid for. The second half is written over the top of the
+//! first, so the second save has to OVERWRITE a value that was already there rather than write a
+//! field for the first time.
 //!
-//! The dirty step of each half is the opposite of what it asserts, so neither can pass by accident:
-//! a reload that restores nothing leaves the case looking at the value it deliberately destroyed.
+//! The dirty step of each half is the opposite of what it asserts, so neither can pass by accident.
 //!
-//! ⚠ TAKES TWO REAL SAVES. Same sort-order requirement as the case above, which the name satisfies.
-//! It builds its tower on the other side of the base, so the two cases can never find each other's.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - hardcode the serializer's written phase to 1 and the second half reports the structure came
-//!     back ruined after a repair, while the ruin case above stays green - which is the whole reason
-//!     this case exists;
-//!   - remove the phase-0 branch from RestorePhase() and the same assertion goes red.
+//! ⚠ Takes TWO real saves; same sort-order requirement as the case above. It builds its tower on the
+//! other side of the base, so the two cases can never find each other's.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 120)]
 class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_AutotestCaseBase
@@ -9071,66 +8522,38 @@ class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_Aut
 //! module counter and module position, both tick counters, the blacklist and the whole forward-base
 //! record - survives a save and a re-application.
 //!
-//! 🔴 THE PLAN AND THE PHASE COME BACK BY NAME, AND THAT IS THE POINT OF THE FORMAT. The record used
-//! to carry an enum integer for the phase, which meant the ONLY thing standing between a renumbered
-//! enum and every saved objective being silently re-labelled was a comment telling future readers not
-//! to renumber it. Names replace that comment with a mechanism: a plan or a phase the running build
-//! does not carry is DETECTED on load, named in an ERROR line, and the objective abandoned cleanly so
-//! the machine chooses again - which costs a player one in-game minute instead of putting the campaign
-//! into a phase with no handler. This case pins the happy half of that mechanism; the abandon half is
-//! reachable only by editing a shipped .conf, so it is a manual check rather than an automated one.
+//! 🔴 The plan and the phase come back BY NAME, and that is the point of the format. The record used
+//! to carry an enum integer for the phase, so the only thing between a renumbered enum and every
+//! saved objective being silently re-labelled was a comment. Names replace it with a mechanism: a
+//! plan or phase the running build does not carry is DETECTED on load, named in an ERROR line, and
+//! the objective abandoned cleanly. This case pins the happy half; the abandon half needs a shipped
+//! .conf edit and is a manual check.
 //!
-//! 🔴 THE BAG IS THE ONLY SAVE FORMAT AN OBJECTIVE MODULE HAS. No module writes its own record - one
-//! version number, one place to append - so if the two bags did not round-trip, the first module that
-//! needed a counter would invent a second format. Two integer keys and one position key are written
-//! here through the director's public API and read back through its public getters; the two success
-//! counters asserted separately below travel in the same map, which is why they now prove the format
-//! rather than a pair of hand-maintained fields.
+//! 🔴 The bag is the ONLY save format an objective module has - one version number, one place to
+//! append - so if the two bags did not round-trip, the first module that needed a counter would
+//! invent a second format.
 //!
-//! WHY IT MATTERS. The objective is the occupying faction's only piece of long-term intent. A
-//! campaign continued after a save has to come back mid-ramp: the same target, the same phase, the
-//! same number of completed operations, the same forward base with the same budget already spent
-//! against its ceiling. Losing it does not crash anything - the director simply picks a fresh target
-//! on its next tick and the player's twenty minutes of warning silently restart, which is the kind of
-//! defect nobody reports as a bug because it looks like the system working.
+//! Losing the objective does not crash anything: the director picks a fresh target on its next tick
+//! and the player's twenty minutes of warning silently restart, which nobody reports as a bug
+//! because it looks like the system working.
 //!
-//! EVERY VALUE IS WRITTEN AND READ THROUGH THE DIRECTOR'S PUBLIC API, as this tier's assertion rule
-//! requires: the case names no storage type, no payload and no restore entry point, and reads every
-//! assertion back through the same getters the game itself uses.
+//! The dirty step changes EVERY field it later asserts (closure 2): the objective is re-committed at
+//! a different place with a different KIND - which also binds the OTHER shipped plan and empties the
+//! whole bag - both tick counters are driven to small values, the forward base is wiped by that
+//! re-commit, a third blacklist entry is added, and the machine is walked into a differently-NAMED
+//! phase. ⚠ That last step is not decoration: both shipped plans call their first phase
+//! "Harassment", so a commit alone leaves the phase name where the saved objective had it.
 //!
-//! THE DIRTY STEP CHANGES EVERY FIELD IT LATER ASSERTS, which is closure 2 of this suite's
-//! anti-vacuous-pass design: the objective is re-committed at a different place with a different
-//! KIND - which also binds the OTHER shipped plan and empties the whole bag - both tick counters are
-//! driven to small values, the whole forward base is wiped by that re-commit, a third blacklist entry
-//! is added, and the machine is walked into a differently-NAMED phase. That last step is not
-//! decoration: both shipped plans call their first phase "Harassment", so a commit alone leaves the
-//! phase name exactly where the saved objective had it, and an assertion that can pass without the
-//! value being restored is not an assertion. A reload that restores nothing leaves all of it in place
-//! and the case goes red on the first assertion it reaches.
-//! Closure 3 holds too: none of the saved values is one a campaign start produces - a fresh phase
-//! entry arms the timeout at the configured maximum, not at 137, and it zeroes the operation cadence
-//! rather than setting it to 91.
+//! ⚠ The two tick counters are asserted as a BAND, not an exact value: the director really is
+//! ticking during the seconds this case waits for an asynchronous save, and each tick legitimately
+//! serves one round off both counters. The band is (dirty value, saved value] - above the dirty
+//! value proves the reload restored something, at or below the saved value proves it restored THIS
+//! save rather than a phase re-armed from scratch.
 //!
-//! ⚠ THE TWO TICK COUNTERS ARE ASSERTED AS A BAND, NOT AS AN EXACT VALUE, and deliberately: the
-//! director really is ticking during the seconds this case spends waiting for an asynchronous save,
-//! and each of those ticks legitimately serves one round off both counters. The band is
-//! (dirty value, saved value] - above the dirty value proves the reload restored something, and at or
-//! below the saved value proves it restored THIS save rather than a phase re-armed from scratch. That
-//! is the "assert deltas, not absolutes" rule this tier is built on.
-//!
-//! ⚠ THE FIXTURE NAMES A FORWARD-BASE DEPLOYMENT THAT DOES NOT EXIST, on purpose - the deployment
-//! half of the forward base is a later build phase and there is nothing to link to yet. The director
-//! gives a restored forward base a few ticks to find its deployment again before it tears the
-//! objective down, so the assertions below run inside that grace window (they are one frame after the
-//! re-application, and a tick is a whole in-game minute). The case tears its own fixture down at the
-//! end regardless, so nothing is left holding a bogus objective.
-//!
-//! PROVEN ABLE TO FAIL: the objective director's entry was removed from the ComponentSerializers
-//! block of Configs/Systems/Persistence/Overthrow.conf - the exact thing a merge is most likely to
-//! drop, since it is one line in a config no compiler reads. The tree recompiled CLEAN
-//! (tools/compile-check.sh exit 0) and the case then reports "the objective did not survive the round
-//! trip: the dirty BASE objective is still there", because with the director unregistered nothing is
-//! written and nothing comes back. Entry restored, tree recompiled clean.
+//! ⚠ The fixture names a forward-base deployment that does NOT exist, on purpose. The director gives
+//! a restored forward base a few ticks to find its deployment again before tearing the objective
+//! down, so the assertions run inside that grace window. The case tears its own fixture down at the
+//! end regardless.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : SCR_AutotestCaseBase
@@ -9221,16 +8644,13 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 				director.ReportObjectiveProgress(OVT_ObjectiveInstance.BAG_SABOTAGE_SUCCESSES, 1);
 			}
 
-			// ⚠ THE TWO TIMERS ARE PLANTED LAST, AFTER THE SUCCESS COUNTERS, AND THE ORDER IS LOAD-BEARING
-			// SINCE THE IDLE-CLOCK REWORK (2026-08-19). The phase timeout is now an IDLE clock: a director
-			// tick that sees a success counter move since the clock was last set treats it as fresh
-			// progress and re-arms the clock to its full authored budget. This world runs a live director
-			// on a repeating timer, and this step spans several frames before the save settles - so with
-			// the successes counted AFTER the plant, one background tick would re-arm SAVED_PHASE_TICKS to
-			// 240 and the band assertion below would (correctly) report a value higher than the one that
-			// was saved. SetPhaseTimeout() re-baselines the progress marks with the clock, which is exactly
-			// the "this is the state as of now" declaration a fixture is making. This is a REORDER, not a
-			// weakened claim: every value asserted after the reload is the same one.
+			// ⚠ The two timers are planted LAST, after the success counters, and the order is load-bearing.
+			// The phase timeout is an IDLE clock: a director tick that sees a success counter move since
+			// the clock was last set treats it as fresh progress and re-arms the clock to its full authored
+			// budget. This world runs a live director on a repeating timer and this step spans several
+			// frames, so with the successes counted AFTER the plant one background tick would re-arm the
+			// timer and the band assertion below would correctly report a value higher than the saved one.
+			// A REORDER, not a weakened claim: every value asserted after the reload is the same one.
 			director.SetPhaseTimeout(SAVED_PHASE_TICKS);
 			director.SetOperationCountdown(SAVED_OP_TICKS);
 
@@ -9381,25 +8801,20 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	//! A restored forward base whose deployment is nowhere to be found ENDS THE OBJECTIVE, and does not
 	//! leave it pointing at nothing.
 	//!
-	//! WHY THIS IS ASSERTED HERE RATHER THAN IN ITS OWN CASE. The fixture already produces exactly the
-	//! state being described: it saves a forward base naming a deployment that has never existed, which
-	//! is what a real campaign looks like when the marker was destroyed while the save sat on disk. The
-	//! restore deliberately does NOT believe a first empty look - load order between a game-mode
-	//! component's payload and the separately-tracked deployment entities is never assumed - so the
-	//! director gives it a few ticks before it gives up. Driving those ticks here is the only way to see
-	//! the far side of that grace window.
+	//! Asserted here rather than in its own case because the fixture already produces exactly this
+	//! state: it saves a forward base naming a deployment that has never existed, which is what a real
+	//! campaign looks like when the marker was destroyed while the save sat on disk. The restore
+	//! deliberately does NOT believe a first empty look - load order between a game-mode component's
+	//! payload and the separately-tracked deployment entities is never assumed - so driving the ticks
+	//! here is the only way to see the far side of that grace window.
 	//!
-	//! ⚠ THE ALTERNATIVE TO GIVING UP IS AN OBJECTIVE THAT NEVER PROGRESSES AGAIN. A forward-base phase
-	//! whose base cannot be found cannot reach the counter-attack gate and cannot raise a second base -
-	//! it would sit until the phase timeout with nothing in the log to say why. Tearing it down puts the
-	//! reason in the log and lets the machine choose again.
+	//! ⚠ The alternative to giving up is an objective that never progresses again: a forward-base phase
+	//! whose base cannot be found cannot reach the counter-attack gate and cannot raise a second base.
 	//!
-	//! ⚠ IT DRIVES THE TICK DIRECTLY, AND IT DRIVES EXACTLY THE GRACE WINDOW AND NOT ONE TICK MORE. The
-	//! tick that gives up also leaves the machine IDLE, and the IDLE branch of the very next tick would
-	//! select a real objective and enter its first phase with the operation countdown armed to ZERO -
-	//! so a further tick would buy a real deployment, in a real campaign, with real resources, and
-	//! nothing refunds a deleted deployment. The objective the giving-up tick selects is torn down by
-	//! this case's own reset, in the same frame, before anything else can run.
+	//! ⚠ It drives EXACTLY the grace window and not one tick more. The tick that gives up leaves the
+	//! machine IDLE, and the IDLE branch of the very next tick would select a real objective and enter
+	//! its first phase with the operation countdown armed to ZERO - so a further tick would buy a real
+	//! deployment, in a real campaign, with real resources, and nothing refunds a deleted deployment.
 	//! \param[in] director The restored director.
 	//! \return An empty string when the objective was torn down, otherwise the failure.
 	protected string AssertStrandedObjectiveIsTornDown(notnull OVT_ObjectiveDirectorComponent director)
@@ -9565,14 +8980,12 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	//------------------------------------------------------------------------------------------------
 	//! Asserts every module counter and every module position came back.
 	//!
-	//! ⚠ THE BAG IS THE WHOLE OF WHAT A MODULE PERSISTS (D9), so this is not a spot check of two
-	//! arbitrary keys - it is the assertion that the ONE save format every objective module shares
-	//! round-trips at all. A module that needed a counter and found the format could not carry it would
-	//! be the first module to invent a second save format, which is exactly what one bag exists to stop.
+	//! ⚠ The bag is the WHOLE of what a module persists (D9), so this is not a spot check of two
+	//! arbitrary keys - it is the assertion that the one save format every objective module shares
+	//! round-trips at all.
 	//!
-	//! ⚠ THE TWO MAPS ARE ASSERTED SEPARATELY because they are separate arrays in the record: a format
-	//! that wrote the integers and forgot the positions would round-trip half the state and look green
-	//! against a case that only checked one.
+	//! ⚠ The two maps are asserted separately because they are separate arrays in the record: a format
+	//! that wrote the integers and forgot the positions would look green against a case checking one.
 	//! \param[in] director The restored director.
 	//! \return An empty string when everything came back, otherwise the failure.
 	protected string AssertBag(notnull OVT_ObjectiveDirectorComponent director)
@@ -9638,68 +9051,42 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 //! A restored forward operating base FINDS ITS DEPLOYMENT AGAIN, by name and position, on the first
 //! tick after the load.
 //!
-//! WHAT THIS COVERS THAT CASE 15 DOES NOT. Case 15 saves a forward base naming a deployment that has
-//! never existed, and proves the machine gives up cleanly on the far side of the grace window. This
-//! one is the other half: a forward base whose deployment IS standing must be re-adopted rather than
-//! abandoned. Both halves are needed, and they cannot be the same case - the state is established by
-//! the payload, and a case gets one reload.
+//! Case 15 saves a forward base naming a deployment that has never existed and proves the machine
+//! gives up cleanly on the far side of the grace window. This is the other half: a forward base
+//! whose deployment IS standing must be re-adopted. They cannot be one case - the state is
+//! established by the payload, and a case gets one reload.
 //!
-//! WHY IT MATTERS. The forward base is two separate persisted things that come back independently:
-//! the STRUCTURE (a tracked world entity, restored by vanilla persistence) and the DEPLOYMENT MARKER
-//! (a tracked entity of its own, restored by the deployment serializer), while the director's RECORD
-//! of both comes back through the director's own payload. Nothing orders those three, which is why
-//! the re-link is a tick-time job rather than something the deserializer does. If it went wrong, a
-//! continued campaign would tear down a perfectly good forward base a few in-game minutes after every
-//! load, refund nothing, and start the middle phase again - visible in play as "the enemy keeps
-//! rebuilding the same base" and attributable to nothing.
+//! The forward base is two separate persisted things that come back independently - the STRUCTURE
+//! and the DEPLOYMENT MARKER - while the director's RECORD of both comes back through the director's
+//! own payload. Nothing orders those three, which is why the re-link is a tick-time job. If it went
+//! wrong, a continued campaign would tear down a perfectly good forward base a few in-game minutes
+//! after every load, refund nothing, and start the middle phase again.
 //!
-//! ⚠ THE FIXTURE DEPLOYMENT IS MADE INERT THE INSTANT IT EXISTS - SetSpawnedUnitsEliminated(true) on
-//! the deployment AND on every spawning module, re-asserted on every poll - and its REINFORCEMENT
-//! MODULE IS REMOVED. Its config is the real forward-base one, which carries the raise module: left
-//! live it would put a persisted flagpole into the campaign this suite is running in. The
-//! reinforcement module has to go for two separate reasons - its rebuy CLEARS the eliminated flags,
-//! and its m_bDeleteOnConditionFail collects the deployment the moment its objective condition fails.
-//! It is deleted on every path including the red ones.
+//! ⚠ The fixture deployment is made inert the instant it exists - SetSpawnedUnitsEliminated(true) on
+//! the deployment AND every spawning module, re-asserted on every poll - and its REINFORCEMENT
+//! MODULE is removed. Its config is the real forward-base one, which carries the raise module: left
+//! live it would put a persisted flagpole into the campaign this suite runs in. The reinforcement
+//! module has to go for two reasons - its rebuy CLEARS the eliminated flags, and its
+//! m_bDeleteOnConditionFail collects the deployment the moment its objective condition fails.
 //!
-//! ==========================================================================================
-//! 🔴 THE DIRTY STEP MAY NOT COMMIT AN OBJECTIVE, AND THIS COST THE CASE ITS FIRST RED RUN.
-//! ==========================================================================================
-//! The obvious way to dirty a director - CommitObjective() at a different place, which is what case 15
-//! does - destroys the very fixture this case depends on, TWICE OVER, and both of those are the
-//! product behaving correctly:
-//!   1. CommitObjective() runs the director's own forward-base teardown, because a new objective must
-//!      never leave the previous one's forward base standing in the world. That sweep deletes any
-//!      forward-base or garrison deployment within the teardown radius of the recorded position.
-//!   2. Even without that, CommitObjective() enters the HARASSMENT phase, so this deployment's
-//!      OVT_ObjectiveConditionDeploymentModule (authored m_sFromPhase "ForwardBase") starts failing and the
-//!      reinforcement module's m_bDeleteOnConditionFail collects it on the next update.
-//! And the reload seam CANNOT put a deployment marker back - see below - so once it is gone the case
-//! can never pass. The dirty step therefore rewrites the forward-base RECORD instead: a different
-//! position, a different supplying base, a different re-link key and more spent, with the objective
-//! left exactly where it was so the fixture keeps qualifying.
+//! 🔴 THE DIRTY STEP MAY NOT COMMIT AN OBJECTIVE, and this cost the case its first red run.
+//! CommitObjective() destroys this fixture twice over, and both are the product behaving correctly:
+//! it runs the director's forward-base teardown (deleting any forward-base or garrison deployment
+//! within the teardown radius), and it enters the HARASSMENT phase, so this deployment's condition
+//! module starts failing and m_bDeleteOnConditionFail collects it. The reload seam cannot put a
+//! marker back, so once it is gone the case can never pass. The dirty step therefore rewrites the
+//! forward-base RECORD instead - a different position, supplying base, re-link key and spend - with
+//! the objective left exactly where it was.
 //!
-//! ⚠ WHAT THAT COSTS, STATED RATHER THAN HIDDEN. Two values the case reads cannot be dirtied without
-//! destroying the fixture, so they are PRECONDITIONS here and not round-trip claims:
-//!   - IsAssetUp(ASSET_FOB) before the ticks. The dirty state also has a forward base up, so a reload that
-//!     restored nothing would still satisfy it. What has real closure is its POSITION, SOURCE,
-//!     RE-LINK KEY and SPEND, every one of which the dirty step changes.
-//!   - the objective's own position, which only CommitObjective() can move. Case 15 owns that round
-//!     trip. The post-tick check on it here is a different claim - "the machine did not give up and
-//!     choose again" - and it is closed by the red path, where giving up selects somewhere else.
+//! ⚠ What that costs, stated rather than hidden: two values are PRECONDITIONS here, not round-trip
+//! claims. IsAssetUp(ASSET_FOB) before the ticks (the dirty state also has a forward base up, so a
+//! reload restoring nothing would satisfy it - what has real closure is its POSITION, SOURCE,
+//! RE-LINK KEY and SPEND, all of which the dirty step changes), and the objective's own position,
+//! which only CommitObjective() can move and which case 15 owns.
 //!
-//! ⚠ THE RELOAD SEAM ONLY RE-APPLIES GAME-MODE COMPONENT RECORDS, so the deployment marker's own
-//! Deserialize is never re-run by it - which is exactly the shape being tested: the marker is the LIVE
-//! one that was there before the save, and the director's payload has to match itself back to it. A
-//! real save is taken alongside so the write half runs over live state. It is also why the fixture
-//! surviving the dirty step is not optional: nothing can bring it back.
-//!
-//! ⚠ EVERY VALUE IS WRITTEN AND READ THROUGH THE DIRECTOR'S PUBLIC API. The case names no storage
-//! type, no payload and no restore entry point.
-//!
-//! PROVEN ABLE TO FAIL: OVT_ObjectiveDirectorComponent.FOB_RELINK_RADIUS reduced from 150 to 1, so the
-//! re-link cannot match a marker it is standing beside. The tree recompiled CLEAN
-//! (tools/compile-check.sh exit 0) and the case then reports "the restored forward base was torn down
-//! even though its deployment was standing". Constant restored, tree recompiled clean.
+//! ⚠ The reload seam only re-applies game-mode component records, so the marker's own Deserialize is
+//! never re-run - which is exactly the shape being tested: the marker is the LIVE one that was there
+//! before the save, and the director's payload has to match itself back to it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_AutotestCaseBase
@@ -9942,13 +9329,11 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		// PRECONDITION, NOT AN ASSERTION ABOUT THE DIRECTOR. If the marker is gone the case is testing
 		// the opposite claim by accident, and it has to say so rather than go green.
 		//
-		// ⚠ IF THIS IS WHAT BROKE, LOOK AT WHAT DELETED IT BEFORE LOOKING AT THE RESTORE. The reload
-		// seam cannot remove a deployment marker and cannot put one back, so a missing fixture was
-		// deleted by something in this session - the director's forward-base teardown (reached from any
+		// ⚠ If this is what broke, look at what DELETED it before looking at the restore. The reload seam
+		// can neither remove a deployment marker nor put one back, so a missing fixture was deleted by
+		// something in this session - the director's forward-base teardown (reached from any
 		// CommitObjective or ResetObjective) or the deployment's own reinforcement module reacting to a
-		// failed objective condition. Both are the product working; the case's job is to not provoke
-		// them. That is why the dirty step rewrites the forward-base record instead of committing an
-		// objective, and why the reinforcement module is removed from the fixture.
+		// failed objective condition. Both are the product working; the case's job is to not provoke them.
 		if (!deployments.GetDeploymentNearPosition(OVT_ObjectiveDirectorComponent.FOB_CONFIG, FIXTURE_FOB, LOOKUP_RADIUS))
 			return "the fixture forward-base deployment is no longer standing after the reload, so the re-link had nothing to find and this case cannot say anything about it";
 
@@ -9974,13 +9359,12 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 			return string.Format("the forward base's re-link key did not survive: expected '%1', read back '%2'",
 				OVT_ObjectiveDirectorComponent.FOB_CONFIG, director.GetFOBDeploymentName());
 
-		// 🔴 THE RESTORED OBJECTIVE RE-ADOPTS ITS FORWARD BASE'S MODULE, AND THAT IS THE HALF NOTHING
-		// ELSE WOULD CATCH. A restore rebuilds the phase's module set from the plan, so the raise module
-		// that comes back is a FRESH clone with no memory of having sent anything. It has to look at the
-		// restored record on entry and adopt the base that is already standing - because that
-		// registration is what arms the spend ceiling and what the ONE teardown path reaches through.
-		// Without it a continued campaign would spend past the forward base's budget and would leave the
-		// structure and its garrison standing in the world when the objective finally ended.
+		// 🔴 The restored objective RE-ADOPTS its forward base's module, and that is the half nothing else
+		// would catch. A restore rebuilds the phase's module set from the plan, so the raise module that
+		// comes back is a FRESH clone with no memory of having sent anything. It has to look at the
+		// restored record on entry and adopt the base already standing - that registration is what arms
+		// the spend ceiling and what the one teardown path reaches through. Without it a continued
+		// campaign would spend past the budget and leave the structure and garrison standing.
 		OVT_BaseObjectiveAssetModule owner = director.GetAssetModule(OVT_ObjectiveDirectorComponent.ASSET_FOB);
 		if (!owner)
 			return "the restored objective registered no owner for its forward base, so nothing arms the spend ceiling and nothing can take the base down when the objective ends";
@@ -9994,11 +9378,10 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 		// 🔴 THE CLAIM. The whole grace window is driven, so a director that merely had not got round to
 		// giving up yet cannot pass this.
 		//
-		// ⚠ EXACTLY THE WINDOW AND NOT ONE TICK MORE. On the RED path the last of these ticks abandons
-		// the objective and leaves the machine IDLE, and the IDLE branch of a further tick would select
-		// a real objective and enter its first phase with the operation countdown armed to ZERO - so one
-		// extra tick would buy a real deployment with real resources in a real campaign, and nothing
-		// refunds a deleted deployment.
+		// ⚠ Exactly the window and not one tick more. On the RED path the last of these ticks abandons the
+		// objective and leaves the machine IDLE, and the IDLE branch of a further tick would select a real
+		// objective and enter its first phase with the operation countdown armed to ZERO - buying a real
+		// deployment with real resources, which nothing refunds.
 		int ticks = OVT_ObjectiveDirectorComponent.FOB_RELINK_ATTEMPTS;
 		for (int i = 0; i < ticks; i++)
 		{
@@ -10062,11 +9445,11 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveFOB_RelinksItsDeployment : SCR_Auto
 //! Shared machinery for the three storage round-trip cases: put a holder in the world, stock its
 //! ledger, dirty it, and say in one sentence what came back wrong.
 //!
-//! WHY THE LEDGER KEYS ARE SYNTHETIC. A holder's ledger is a plain ResourceName -> count map and
-//! there is deliberately no registry gate anywhere on the load path - a line exists because the
-//! server deleted a real entity, so gating it would delete a player's loot. Keys that no catalogue
-//! knows therefore both keep these cases independent of economy retuning AND pin that rule: if a
-//! registry check ever appears in the load path, every one of these cases goes red.
+//! ⚠ The ledger keys are SYNTHETIC. A holder's ledger is a plain ResourceName -> count map and there
+//! is deliberately no registry gate anywhere on the load path - a line exists because the server
+//! deleted a real entity, so gating it would delete a player's loot. Keys no catalogue knows keep
+//! these cases independent of economy retuning AND pin that rule: if a registry check ever appears
+//! in the load path, every one of these cases goes red.
 //!
 //! Each case stocks DIFFERENT counts, so a serializer that read one holder's record onto another
 //! would be visible rather than passing three times over.
@@ -10291,33 +9674,23 @@ class OVT_TEST_StorageRoundTripFixture
 //------------------------------------------------------------------------------------------------
 //! A placed ammo box's item ledger AND its player-set name survive a real save.
 //!
-//! WHAT IS AT STAKE. The whole feature replaces spawned stockpile entities with one map of counts.
-//! A map that does not come back is a player's entire stockpile deleted on the next continue, with
-//! nothing on screen and nothing in the log to say it happened - the entities that used to carry that
-//! stock were saved by vanilla for free, so this is a capability the feature has to REPLACE, not add.
+//! The feature replaces spawned stockpile entities with one map of counts. A map that does not come
+//! back is a player's entire stockpile deleted on the next continue, with nothing on screen and
+//! nothing in the log - the entities that used to carry that stock were saved by vanilla for free,
+//! so this is a capability the feature has to REPLACE, not add.
 //!
-//! A REAL STORAGE ROUND TRIP, on the third gate seam: a placed box owns its own persistence record,
-//! so it can be asked for by instance. Both closures hold - the ledger is dirtied through the same
-//! public API that stocked it, so a reload that restores nothing leaves the dirt in place; and a
+//! A real storage round trip on the third gate seam: a placed box owns its own persistence record.
+//! Both closures hold - the ledger is dirtied through the same public API that stocked it, and a
 //! four-thousand-item box with a name is not a state any placement or campaign start produces.
 //!
-//! THE NAME IS ASSERTED HERE AND ONLY HERE, because the box is the holder players actually rename.
+//! The NAME is asserted here and only here, because the box is the holder players actually rename.
 //! It is the second property in the payload, so a name that comes back empty while the ledger comes
-//! back correct is the specific signature of a Serialize/Deserialize local-name mismatch (R2).
+//! back correct is the specific signature of a Serialize/Deserialize local-name mismatch.
 //!
-//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `StorageBox*` does.
-//! It sorts before `StructureDamage*` and before every `Town*` case and disturbs neither: it changes
-//! no town, no deployment, no objective and no base.
+//! ⚠ Takes a real save, so `StorageBox*` must sort after `..._Capability_...`. It sorts before
+//! `StructureDamage*` and every `Town*` case and disturbs neither.
 //!
-//! THE BOX IS LEFT STANDING ON PURPOSE, for the StructureDamage cases' reason: deleting a
-//! persistence-tracked entity mid-suite drives the transient-untrack retry queue (BUG-118), which is
-//! far likelier to disturb later cases than an inert box is.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_StorageComponentSerializer entry from the PLACEABLE configuration in
-//!     Overthrow.conf and the serializer never runs: the case reports the box still holding its dirt;
-//!   - rename Deserialize's `customName` local and the ledger comes back while the name comes back
-//!     empty, which is the assertion below the ledger ones.
+//! The box is left standing on purpose (BUG-118, as with the other subjects here).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_StorageBox_LedgerAndNameSurviveSave : SCR_AutotestCaseBase
@@ -10587,28 +9960,19 @@ class OVT_TEST_PersistenceRoundTrip_StorageBox_LedgerAndNameSurviveSave : SCR_Au
 //------------------------------------------------------------------------------------------------
 //! A wheeled vehicle's item ledger survives a real save.
 //!
-//! WHY A SECOND HOLDER CLASS NEEDS ITS OWN CASE. The serializer is one class but the BINDING is three
-//! separate .conf entries, and a serializer that is not listed is never called - silently. The box
-//! case above exercises the PLACEABLE entry; this one exercises vanilla's CAR configuration
-//! {64C6B4937723DA61}, which is the entry that carries every truck and car in the game. Dropping it
-//! loses the mod's entire mobile stock while the box case stays green.
+//! The serializer is one class but the BINDING is three separate .conf entries, and a serializer
+//! that is not listed is never called - silently. The box case exercises the PLACEABLE entry; this
+//! one exercises vanilla's CAR configuration {64C6B4937723DA61}, which carries every truck and car
+//! in the game. Dropping it loses the mod's entire mobile stock while the box case stays green.
 //!
-//! NO NAME HERE. The box case owns that assertion; repeating it would make two cases fail together
-//! for one fault and tell a reviewer nothing extra.
+//! No name here - the box case owns that assertion, and repeating it would make two cases fail
+//! together for one fault.
 //!
-//! The subject is the vehicle manager's own starting car - read from configuration rather than
-//! hardcoded, for the reason OVT_TEST_PersistenceSubject.ResolveOwnableVehiclePrefab documents - and
-//! it is spawned rather than registered, so this case adds nothing to any player's vehicle registry.
+//! The subject is the vehicle manager's own starting car, read from configuration rather than
+//! hardcoded, and it is spawned rather than registered, so this adds nothing to any player's
+//! vehicle registry.
 //!
-//! ⚠ TAKES A REAL SAVE; `StorageVehicle*` sorts after `..._Capability_...`. The vehicle is left in the
-//! world for the same BUG-118 reason as the box.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_StorageComponentSerializer entry from the CAR configuration and the case reports
-//!     the vehicle still holding its dirt while the box case stays green - which is the whole reason
-//!     this case exists separately;
-//!   - make OVT_StorageComponent.ApplyPersisted() return before it clears the ledger and the dirt
-//!     assertion fires instead.
+//! ⚠ Takes a real save; `StorageVehicle*` sorts after `..._Capability_...`. Left standing (BUG-118).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_StorageVehicle_LedgerSurvivesSave : SCR_AutotestCaseBase
@@ -10869,30 +10233,19 @@ class OVT_TEST_PersistenceRoundTrip_StorageVehicle_LedgerSurvivesSave : SCR_Auto
 //! The warehouse BUILDING's item ledger survives a real save - and the building is only in the save
 //! at all because the storage component asked for it.
 //!
-//! WHY THE TRACK IS PART OF THIS CASE. Vanilla registers an INTACT building with the persistence
-//! system never; it registers one only when it is destroyed (the comment sits on the vanilla call
-//! site, "Ensure registration of destroyed building as they are otherwise not tracked by default").
-//! So the warehouse is the one holder class where a correct serializer, correctly bound, still runs
-//! zero times - and the failure is completely silent, because a building that is not tracked simply
-//! has no record and nothing anywhere says so. The explicit track fires on the first publish that
+//! ⚠ Vanilla registers an INTACT building with the persistence system NEVER; it registers one only
+//! when it is destroyed. So the warehouse is the one holder class where a correct serializer,
+//! correctly bound, still runs zero times - and the failure is completely silent, because a building
+//! that is not tracked simply has no record. The explicit track fires on the first publish that
 //! leaves the ledger non-empty, and this case asserts it BEFORE it saves, so the two faults report
-//! differently: an untracked building fails here with one sentence, a broken serializer fails after
-//! the reload with another.
+//! differently.
 //!
-//! It is also the case that covers the third .conf binding - vanilla's BUILDING configuration
-//! {65B682661F79DDBE} - which neither of the other two touches.
+//! It also covers the third .conf binding - vanilla's BUILDING configuration {65B682661F79DDBE}.
 //!
-//! THE SUBJECT IS THE WORLD'S OWN WAREHOUSE, found by prefab path rather than by position so that
-//! moving it in the test world's layer does not turn this case green-by-absence. Nothing is spawned
-//! and nothing is deleted; the building is left holding its restored ledger.
+//! The subject is the world's own warehouse, found by prefab path rather than by position so that
+//! moving it in the test world's layer does not turn this case green-by-absence.
 //!
-//! ⚠ TAKES A REAL SAVE; `StorageWarehouse*` sorts after `..._Capability_...`.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - make OVT_StorageComponent.EnsureTracked() return immediately and the case fails BEFORE the
-//!     save with "the warehouse building is still not persistence-tracked";
-//!   - drop the {65B682661F79DDBE} block from Overthrow.conf and it fails after the reload instead,
-//!     with the building still holding its dirt.
+//! ⚠ Takes a real save; `StorageWarehouse*` sorts after `..._Capability_...`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_StorageWarehouse_LedgerSurvivesSaveWithExplicitTrack : SCR_AutotestCaseBase
@@ -11131,31 +10484,21 @@ class OVT_TEST_PersistenceRoundTrip_StorageWarehouse_LedgerSurvivesSaveWithExpli
 //------------------------------------------------------------------------------------------------
 //! A version 1 save's warehouse stock lands in the building's OVT_StorageComponent.
 //!
-//! WHAT IS AT STAKE. Every campaign that exists today keeps its warehouse stock in
-//! OVT_WarehouseData.inventory, a map on a manager record. logistics/storage deletes that field, so
-//! the ONLY route from an existing save to the new ledger is
-//! OVT_RealEstateManagerComponent.QueueWarehouseMigration() and its drain. If the drain silently
-//! fails, every player who continues an existing campaign finds their warehouse empty, with the
-//! building intact and nothing on screen or in the log to say where the stock went (R3).
+//! Every campaign that exists today keeps its warehouse stock in OVT_WarehouseData.inventory, a map
+//! on a manager record. logistics/storage deletes that field, so the ONLY route from an existing
+//! save to the new ledger is QueueWarehouseMigration() and its drain. If the drain silently fails,
+//! every player who continues an existing campaign finds their warehouse empty, with the building
+//! intact and nothing anywhere to say where the stock went.
 //!
-//! WHAT THIS COVERS AND WHAT IT DOES NOT. It drives the migration queue directly, which is the whole
-//! server-side half: the deferred drain, the building match by position, the ledger credit at
-//! unlimited capacity and the republished count. It cannot cover the SERIALIZER half - a version 1
-//! payload is a binary blob written by a native SaveContext and there is no script path that
-//! produces one - so "an old save file reaches this queue" is a play-test gate, not an assertion.
+//! It drives the migration queue directly, which is the whole server-side half: the deferred drain,
+//! the building match by position, the ledger credit at unlimited capacity and the republished
+//! count. It cannot cover the SERIALIZER half - a version 1 payload is a binary blob written by a
+//! native SaveContext and no script path produces one - so "an old save file reaches this queue" is
+//! a play-test gate, not an assertion.
 //!
-//! NO SAVE IS TAKEN, so this case is fast and cannot disturb a save-based one. The name still sorts
-//! after `..._Capability_...` because the constraint is about class-name ordering, not about which
-//! cases happen to save.
-//!
-//! IT SHARES A SUBJECT WITH `..._StorageWarehouse_...` and that is harmless in either order: both
-//! Clear() the ledger before they stock it.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the CallLater from QueueWarehouseMigration and the drain never runs: the case reports the
-//!     warehouse still holding nothing after the full poll budget;
-//!   - credit the ledger without calling PublishCount() and the last assertion fires: the ledger is
-//!     right and the replicated count still reads zero.
+//! No save is taken, so this case is fast and cannot disturb a save-based one. It shares a subject
+//! with `..._StorageWarehouse_...`, harmless in either order: both Clear() the ledger before
+//! stocking it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_WarehouseMigration_Version1StockLandsInTheBuilding : SCR_AutotestCaseBase
@@ -11570,25 +10913,17 @@ class OVT_TEST_ResourceExpectedStock : Managed
 //------------------------------------------------------------------------------------------------
 //! A truck's resource cargo survives a real save.
 //!
-//! WHAT IS AT STAKE. A truckload is bought with the player's money at a drifting price and is the
-//! only way resources move at all. If it does not come back, a continue silently empties every truck
-//! in the campaign of everything the player paid for, with the truck still parked where they left it.
+//! A truckload is bought with the player's money at a drifting price and is the only way resources
+//! move at all. If it does not come back, a continue silently empties every truck in the campaign of
+//! everything the player paid for, with the truck still parked where they left it.
 //!
-//! WHICH BINDING THIS COVERS. Vanilla's CAR configuration {64C6B4937723DA61}, whose rule matches
-//! Prefabs/Vehicles/Core/Wheeled_Base.et - the ancestor of the same-GUID Wheeled_Truck_Base.et delta
-//! that puts the store on every truck. It is the only case that covers that entry.
+//! Covers vanilla's CAR configuration {64C6B4937723DA61}, whose rule matches Wheeled_Base.et - the
+//! ancestor of the same-GUID Wheeled_Truck_Base.et delta that puts the store on every truck. It is
+//! the only case that covers that entry.
 //!
-//! The truck is SPAWNED, so it joins no player's vehicle registry, and it is left standing: deleting
-//! a persistence-tracked entity mid-suite drives the transient-untrack retry queue (BUG-118).
+//! The truck is SPAWNED, so it joins no player's vehicle registry, and it is left standing (BUG-118).
 //!
-//! ⚠ TAKES A REAL SAVE, so the class name MUST sort after `..._Capability_...` - `ResourceTruckLoad*`
-//! does.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_ResourceStoreComponentSerializer entry from the CAR configuration and the case
-//!     reports the truck still holding its dirty line;
-//!   - rename Deserialize's `lines` local and it reports the truck came back EMPTY instead, which is
-//!     the local-name-mismatch assertion.
+//! ⚠ Takes a real save; `ResourceTruckLoad*` sorts after `..._Capability_...`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_ResourceTruckLoad_RoundTrips : SCR_AutotestCaseBase
@@ -11892,28 +11227,19 @@ class OVT_TEST_PersistenceRoundTrip_ResourceTruckLoad_RoundTrips : SCR_AutotestC
 //! A dropped crate pile's contents survive a real save, on a record the pile only has because
 //! stocking it asked for one.
 //!
-//! WHAT IS AT STAKE. A pile is a prop. Vanilla tracks a prop never, and the pile prefab carries no
-//! native Persistence component, so a pile is in the save only because OVT_ResourceStoreComponent's
+//! ⚠ A pile is a prop. Vanilla tracks a prop NEVER, and the pile prefab carries no native
+//! Persistence component, so a pile is in the save only because OVT_ResourceStoreComponent's
 //! EnsureTracked() puts it there on the first non-empty publish. Without that, a player's unloaded
-//! stock disappears on the next continue with the crates still standing in the world - and nothing
-//! anywhere says so. The track is therefore asserted BEFORE the save, so the two faults report
-//! differently.
+//! stock disappears on the next continue with the crates still standing in the world. The track is
+//! asserted BEFORE the save, so the two faults report differently.
 //!
-//! WHICH BINDING THIS COVERS. The pile's own EntityPersistenceConfig in the Overthrow group, the one
-//! whose ComponentClassPersistenceConfigRule may safely name OVT_ResourcePileComponent because
-//! nothing else in the mod carries it (D16). SelfSpawn 1 on that block is what re-creates the pile
-//! itself on a real load; an in-session re-application cannot exercise that half, so "the crates come
-//! back at all after a restart" stays a play-test gate.
+//! Covers the pile's own EntityPersistenceConfig in the Overthrow group - the one whose
+//! ComponentClassPersistenceConfigRule may safely name OVT_ResourcePileComponent because nothing
+//! else in the mod carries it (D16). SelfSpawn 1 on that block is what re-creates the pile itself on
+//! a real load; an in-session re-application cannot exercise that half, so "the crates come back at
+//! all after a restart" stays a play-test gate.
 //!
-//! The pile is left standing for the BUG-118 reason.
-//!
-//! ⚠ TAKES A REAL SAVE; `ResourcePile*` sorts after `..._Capability_...`.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - make OVT_ResourceStoreComponent.EnsureTracked() return immediately and the case fails BEFORE
-//!     the save, with the pile never becoming tracked;
-//!   - drop the pile's EntityPersistenceConfig block from Overthrow.conf and it fails after the
-//!     reload instead, with the pile still holding its dirty line.
+//! ⚠ Takes a real save; `ResourcePile*` sorts after `..._Capability_...`. Left standing (BUG-118).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_ResourcePile_RoundTrips : SCR_AutotestCaseBase
@@ -12203,24 +11529,16 @@ class OVT_TEST_PersistenceRoundTrip_ResourcePile_RoundTrips : SCR_AutotestCaseBa
 //------------------------------------------------------------------------------------------------
 //! The warehouse BUILDING's resource stock survives a real save, beside its item ledger.
 //!
-//! WHICH BINDING THIS COVERS. Vanilla's BUILDING configuration {65B682661F79DDBE}, which the
-//! Warehouse_01 delta inherits and which neither the truck nor the pile case touches. A PURCHASED
-//! warehouse is the subject; a BUILT one matches Overthrow's Buildable configuration instead and is
-//! a different entry with a case of its own once buildable warehouses exist (D15).
+//! Covers vanilla's BUILDING configuration {65B682661F79DDBE}, which the Warehouse_01 delta inherits
+//! and which neither the truck nor the pile case touches. A PURCHASED warehouse is the subject; a
+//! BUILT one matches Overthrow's Buildable configuration instead and has a case of its own (D15).
 //!
-//! TWO LEDGERS ON ONE BUILDING, DELIBERATELY. The storage cases above stock this same warehouse's
-//! OVT_StorageComponent; this one stocks its OVT_ResourceStoreComponent. They share a subject and a
-//! stored record and disturb each other in neither order: each clears its own ledger before stocking
-//! it, and the reload re-applies both payloads from the same save.
+//! Two ledgers on one building, deliberately: the storage cases above stock this warehouse's
+//! OVT_StorageComponent, this one its OVT_ResourceStoreComponent. They disturb each other in neither
+//! order - each clears its own ledger before stocking it, and the reload re-applies both payloads
+//! from the same save.
 //!
-//! ⚠ TAKES A REAL SAVE; `WarehouseResources*` sorts after `..._Capability_...`.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_ResourceStoreComponentSerializer entry from the {65B682661F79DDBE} block and the
-//!     case reports the warehouse still holding its dirty line while the truck and pile cases stay
-//!     green - which is the whole reason a third holder class gets its own case;
-//!   - make OVT_ResourceStoreComponent.ApplyPersisted() return before it clears the ledger and the
-//!     dirt assertion fires instead.
+//! ⚠ Takes a real save; `WarehouseResources*` sorts after `..._Capability_...`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_WarehouseResources_RoundTrip : SCR_AutotestCaseBase
@@ -12496,30 +11814,23 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseResources_RoundTrip : SCR_AutotestC
 //------------------------------------------------------------------------------------------------
 //! A hand-drifted price table reloads DRIFTED, not at base.
 //!
-//! WHAT IS AT STAKE. Overthrow has never persisted a price. Every price in the mod today is derived
-//! from config on every start, so "prices are state" is a new claim and this is the case that keeps
-//! it true: without the manager serializer a continue quietly rewinds the whole market to its base
-//! prices, undoing every day of war pressure and port control, and the only symptom is a number
-//! looking slightly wrong on a shop row.
+//! Overthrow has never persisted a price - every price is derived from config on every start - so
+//! "prices are state" is a new claim. Without the manager serializer a continue quietly rewinds the
+//! whole market to base, undoing every day of war pressure and port control, and the only symptom is
+//! a number looking slightly wrong on a shop row.
 //!
-//! WHAT IT ASSERTS. Three entries, three different fates, all read back by ID rather than by index:
-//! the first and last catalogue entries come back at their drifted values, and a middle entry that
-//! was dirtied but never drifted comes back at BASE - which is the payload carrying every entry and
-//! ApplyPersistedPrices() resetting-then-refilling, rather than leaving whatever was in memory.
+//! Three entries, three fates, all read back BY ID rather than by index: the first and last
+//! catalogue entries come back drifted, and a middle entry that was dirtied but never drifted comes
+//! back at BASE - which is the payload carrying every entry and ApplyPersistedPrices()
+//! resetting-then-refilling, rather than leaving whatever was in memory.
 //!
-//! A rename of either Deserialize local reads an empty array and reports SUCCESS, which resets the
-//! whole table to base; that is the "came back at base" assertion below, and it is the reason this
-//! case exists in the shape it does.
+//! ⚠ A rename of either Deserialize local reads an empty array and reports SUCCESS, which resets the
+//! whole table to base; that is the "came back at base" assertion below, and the reason this case
+//! exists in the shape it does.
 //!
-//! The manager rides the game mode's own record, so the reload is the session-wide re-application
-//! (the PlayerMoney precedent), not a per-instance one.
+//! The manager rides the game mode's own record, so the reload is the session-wide re-application.
 //!
-//! ⚠ TAKES A REAL SAVE; `ResourcePrices*` sorts after `..._Capability_...`.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_ResourceManagerSerializer entry from the game-mode configuration and the case
-//!     reports both drifted prices coming back at their dirty value;
-//!   - rename Deserialize's `priceValues` local and it reports them coming back at base instead.
+//! ⚠ Takes a real save; `ResourcePrices*` sorts after `..._Capability_...`.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_ResourcePrices_RoundTrip : SCR_AutotestCaseBase
@@ -12797,25 +12108,20 @@ class OVT_TEST_PersistenceRoundTrip_ResourcePrices_RoundTrip : SCR_AutotestCaseB
 //------------------------------------------------------------------------------------------------
 //! A CONSTRUCTION SITE remembers what it was ordered to become, across a real save.
 //!
-//! WHAT IS AT STAKE. The money for a site is taken at PLACEMENT (D2). A site that comes back
-//! remembering nothing is a concrete mixer that can never be finished, with the player's money gone
-//! and their crate piles stranded on the ground forever - and it fails silently, because a site that
-//! forgot its indices looks exactly like a site that was just put down.
+//! The money for a site is taken at PLACEMENT (D2). A site that comes back remembering nothing is a
+//! concrete mixer that can never be finished, with the player's money gone and their crate piles
+//! stranded on the ground forever - and it fails silently, because a site that forgot its indices
+//! looks exactly like a site that was just put down.
 //!
-//! WHICH BINDING THIS COVERS. Overthrow's BUILDABLE configuration {6B0E7A27C0D539F2}. The site
-//! carries OVT_BuildableComponent and therefore gets NO EntityPersistenceConfig of its own (D16) -
-//! the Buildable rule at Priority 35000 claims it, which is why OVT_ConstructionSiteComponentSerializer
-//! is listed there and nowhere else. This is the first case in the suite to exercise that block's
-//! resource-era additions at all (P4-d left binding 4 proven by reading only).
+//! Covers Overthrow's BUILDABLE configuration {6B0E7A27C0D539F2}. The site carries
+//! OVT_BuildableComponent and therefore gets NO EntityPersistenceConfig of its own (D16) - the
+//! Buildable rule at Priority 35000 claims it, which is why OVT_ConstructionSiteComponentSerializer
+//! is listed there and nowhere else.
 //!
-//! ⚠ TAKES A REAL SAVE; `ConstructionSite*` sorts after `..._Capability_...`.
+//! ⚠ Takes a real save; `ConstructionSite*` sorts after `..._Capability_...`.
 //!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop the OVT_ConstructionSiteComponentSerializer entry from the {6B0E7A27C0D539F2} block and
-//!     the case reports the site still pointing at its dirty buildable index;
-//!   - rename Deserialize's `buildableIndex` local and it reports the site came back at index 0
-//!     instead, which is the local-name-mismatch signature: an unfound property reads ZERO, and zero
-//!     is a legal buildable index, so the site silently becomes whatever buildables.conf lists first.
+//! ⚠ A renamed Deserialize local reads ZERO, and zero is a LEGAL buildable index, so the site
+//! silently becomes whatever buildables.conf lists first.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_ConstructionSite_RoundTrips : SCR_AutotestCaseBase
@@ -13122,38 +12428,24 @@ class OVT_TEST_PersistenceRoundTrip_ConstructionSite_RoundTrips : SCR_AutotestCa
 //------------------------------------------------------------------------------------------------
 //! A BUILT warehouse keeps BOTH of its ledgers across a real save - D15's proof, and binding 4's.
 //!
-//! WHAT IS AT STAKE, AND WHY IT IS A SEPARATE CASE FROM THE PURCHASED WAREHOUSE. An entity gets
-//! exactly ONE EntityPersistenceConfig. A built warehouse carries OVT_BuildableComponent, so it
-//! matches Overthrow's Buildable configuration {6B0E7A27C0D539F2} at Priority 35000 as well as
-//! vanilla's Building configuration {65B682661F79DDBE}, which authors no priority at all - and the
-//! Buildable rule wins. The purchased warehouse two cases above therefore proves NOTHING about this
-//! one: they are different configurations with different serializer lists. Without the Buildable
-//! block's OVT_ResourceStoreComponentSerializer and OVT_StorageComponentSerializer entries, a
-//! warehouse the player built and filled comes back EMPTY of both its items and its resources on the
-//! next continue, with nothing in the log.
+//! ⚠ An entity gets exactly ONE EntityPersistenceConfig. A built warehouse carries
+//! OVT_BuildableComponent, so it matches Overthrow's Buildable configuration {6B0E7A27C0D539F2} at
+//! Priority 35000 as well as vanilla's Building configuration {65B682661F79DDBE}, which authors no
+//! priority at all - and the Buildable rule wins. The purchased warehouse two cases above therefore
+//! proves NOTHING about this one: different configurations, different serializer lists. Without the
+//! Buildable block's two store serializers, a warehouse the player built and filled comes back EMPTY
+//! of both its items and its resources on the next continue, with nothing in the log.
 //!
-//! BOTH LEDGERS IN ONE RELOAD. The item ledger's serializer was missing from that block since
-//! logistics/storage shipped - a latent gap this feature is simply the first to reach - so the case
-//! stocks OVT_StorageComponent and OVT_ResourceStoreComponent and asserts both.
+//! Both ledgers in one reload. The item ledger's serializer was missing from that block since
+//! logistics/storage shipped - a latent gap this feature is simply the first to reach.
 //!
-//! playerId -1 is BuildItem()'s server-initiated marker: free, never a construction site, and never
-//! registered with real estate. Registration is the Campaign tier's claim, not this one's; all this
-//! case needs is a Warehouse_01 building carrying OVT_BuildableComponent.
+//! playerId -1 is BuildItem()'s server-initiated marker: free, never a construction site, never
+//! registered with real estate. Registration is the Campaign tier's claim.
 //!
-//! ⚠ TAKES A REAL SAVE; `WarehouseUnderBuildableConfig*` sorts after `..._Capability_...`, and after
+//! ⚠ Takes a real save; `WarehouseUnderBuildableConfig*` sorts after `..._Capability_...`, and after
 //! `WarehouseMigration*` and `WarehouseResources*` - which matters, because the building it leaves
 //! standing is a second Warehouse_01 in the world. Both warehouse fixtures also skip anything
 //! carrying OVT_BuildableComponent, so the ordering is a second belt rather than the only one.
-//!
-//! LEFT STANDING, for the reason every other subject here is: deleting a persistence-tracked entity
-//! mid-suite drives the transient-untrack retry queue (BUG-118).
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded; execution belongs to the phase's suite run):
-//!   - drop OVT_ResourceStoreComponentSerializer from the {6B0E7A27C0D539F2} block and the case
-//!     reports the built warehouse still holding its dirty resource line while the PURCHASED
-//!     warehouse case stays green - which is the whole point of a second warehouse case;
-//!   - drop OVT_StorageComponentSerializer from the same block and the resource assertions pass
-//!     while the item ones report the dirt.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 120)]
 class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTrip : SCR_AutotestCaseBase

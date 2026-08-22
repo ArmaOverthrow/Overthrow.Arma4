@@ -6,7 +6,7 @@
 ## Overview
 
 High Command is the resistance-side counterpart to the occupying faction's new deployment-driven
-counter-attacks (`occupying/counter-attacks`): player-purchased, persistent, map-commanded AI groups.
+objectives (`occupying/objectives`): player-purchased, persistent, map-commanded AI groups.
 It gives the resistance a way to assign forces to defense as well as offense — garrison a predicted
 objective, patrol a supply route, hold a captured base — and to redirect those forces at will. It
 builds on the `virtualization` epic (observer API) and generalizes the recruit system's proven
@@ -73,6 +73,9 @@ group there in Defense/Patrol stance, which keeps it redirectable at will.
 - **Supporters**: HC purchases draw down town supporters like garrisons did — a deliberate
   additional limiting factor.
 
+## Equipped recruits - warehouse factoring
+As a part of this feature we also add the same warehouse item price drop to the "Buy Equipped Recruits" action in a recruitment tent. The UI should be clear about how much of the cost is being covered by nearby warehouse stock.
+
 ## Converting recruit groups
 
 - The recruit menu's inactive roster is displayed **split by group** (the merge grouping already
@@ -137,17 +140,15 @@ count) being fixed **on the main branch** as a bug. This feature requires that *
 toward zone control** the same way once that fix lands — otherwise stationing groups at the
 counter-attacks objective is pointless the moment the QRF fires.
 
-## Interplay with `occupying/counter-attacks`
+## Interplay with `occupying/objectives`
 
 No code coupling is needed for most of it — always-live groups make it emergent: HC patrols
 intercept Phase 1 harassment before it reaches the town center, HC groups help clear enemy FOBs
 (the area-clear + held action), and HC presence at an OF base's approaches is combat pressure.
-Two explicit touch points:
-
-- **OF FOB starvation**: counter-attacks defines starvation as the source base "cleared of
-  garrison and/or strong resistance presence" — HC group presence is the intended measure of
-  "resistance presence" (cross-referenced in that feature's requirements).
-- **QRF zone control** (above).
+One explicit touch point (decided 2026-08-22): the FOB-starvation predicate in the objectives runner
+takes "resistance presence at the source base" as a boolean that today means *player* presence — HC
+feeds it so that **player OR HC-group presence** satisfies it (the one-line source swap the
+objectives plan reserved).
 
 ## Difficulty / config knobs
 
@@ -165,12 +166,12 @@ ranges, observer gate (operator off-switch, recruit-observer precedent).
   must land before HC refuel; HC consumes it as-is (stations charge the owner, fueled depots are
   free).
 - **Main-branch bug fix: resistance AI counts in QRF zone control** — HC extends it to HC members.
-- `occupying/counter-attacks` (parallel): no build dependency, but the two features' requirements
+- `occupying/objectives` (completed): no build dependency, but the two features' requirements
   cross-reference each other and should be play-tested together.
 
 ## Out of Scope
 
-- **Fuel depot buildable** — owned by `economy/fuel` (which lands first); HC only consumes it as
+- **Fuel depot buildable** — owned by `economy/fuel` (completed); HC only consumes it as
   another fuel source.
 - **Virtual-vs-virtual combat resolution** (dormant HC groups fighting dormant OF groups).
 - Converting HC groups back to recruits.
@@ -186,3 +187,22 @@ ranges, observer gate (operator off-switch, recruit-observer precedent).
   ownership).
 - Map ordering UI, gamepad path, rearm/refuel, and long-distance travel (foot + vehicle, incl.
   owner-offline continuation) are play-test gated.
+
+---
+
+## Planning decisions (2026-08-22, `/plan-feature`)
+
+- **Deferred to a follow-up feature:** group **transfer** between players and **officer takeover** of
+  offline players' groups. Ownership stays per-player and persistent; v1 ships no ownership change.
+- **Warehouse model update:** `logistics/storage` + `logistics/resources` landed after this doc was
+  written — the **Warehouse buildable already ships** (`Configs/Resistance/buildables.conf`,
+  `RegisterBuiltWarehouse`), `OVT_WarehouseData` no longer holds items and `OVT_WarehouseContext` is
+  deleted. HC sources "free" items from the `OVT_StorageComponent` ledger of **registered warehouses
+  only** (buildings with an `OVT_WarehouseData` record) in range — not from arbitrary storage holders.
+  The "Warehouse buildable" item above is therefore already satisfied; only the Barracks is new.
+- **QRF zone control:** the recruit-count fix (`7642a252`) is on v1.5 and counts any resistance-faction
+  AI agent, so HC members count with no QRF code change — only correct faction affiliation.
+- **Architecture shape:** new `OVT_HighCommandManagerComponent` (records, JIP, deltas, heartbeat,
+  own serializer) + a group-entity component (observer, owned waypoints, stance) + a controller request
+  component seam; one feature, garrison retirement as its own phase.
+

@@ -2,22 +2,17 @@
 //! TIER B - initialisation / integration.
 //!
 //! World loaded, Overthrow game mode and its managers alive, campaign deliberately NOT started
-//! (RequiresStartedCampaign() stays false). This is the cheapest possible guard against the
-//! "everything is null on startup" class of breakage: a manager dropped from the game mode prefab,
-//! a renamed OVT_Global getter, a town controller that no longer registers, an economy map that
-//! stops answering its own setters.
+//! (RequiresStartedCampaign() stays false). Guards the "everything is null on startup" class of
+//! breakage: a manager dropped from the game-mode prefab, a renamed OVT_Global getter, a town
+//! controller that no longer registers.
 //!
-//! What belongs here: anything that needs live managers but no running campaign.
-//! What does NOT belong here: pure maths with no manager (Tier A, OVT_TEST_LogicSuite) and anything
-//! that needs the campaign started (Tier C/D, which override RequiresStartedCampaign()).
+//! Belongs here: anything needing live managers but no running campaign. Not here: pure maths
+//! (Tier A, OVT_TEST_LogicSuite) and anything needing a started campaign (Tier C/D).
 //!
-//! No magic counts: the test world (Worlds/MP/OVT_Campaign_Test.ent) defines exactly ONE town and
-//! ONE base, so every count assertion here is ">= 1". An Eden-sized expectation would be red on
-//! arrival and would say nothing about Overthrow.
+//! The test world defines exactly ONE town and ONE base, so count assertions are ">= 1".
 //!
-//! [BaseContainerProps()] is MANDATORY on a concrete suite class: without it a SCR_AutotestGroup
-//! config silently instantiates nothing (`Unknown class`, empty <testsuites>, exit 2) - findings.md
-//! 1.10. Feature #3 Phase 6 puts this suite in the Fast and All groups.
+//! ⚠ [BaseContainerProps()] is MANDATORY on a concrete suite class: without it a SCR_AutotestGroup
+//! config silently instantiates nothing (`Unknown class`, empty <testsuites>, exit 2).
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps()]
 class OVT_TEST_InitSuite : OVT_TEST_SuiteBase
@@ -234,16 +229,9 @@ class OVT_TEST_Init_Controllers_AreRegistered : SCR_AutotestCaseBase
 //! OVT_TownManagerComponent.GetNearestTownInRange() returns the NEAREST in-range town, not the
 //! first in array order (BUG-062 regression).
 //!
-//! Two synthetic villages with overlapping radii are appended to m_Towns, deliberately ordered so
-//! that the FARTHER one comes first in the array - the exact configuration the old first-match loop
-//! returned wrong on, which made every death-driven modifier credit the wrong town wherever radii
-//! overlap. Both sit tens of kilometres from the test world's real town, so no real record can be
-//! in range of either probe, and both are removed from m_Towns again before any assertion returns,
-//! keeping the index-aligned town list intact for every later case.
-//!
-//! PROVEN ABLE TO FAIL: with GetNearestTownInRange() reverted to its pre-fix first-match body
-//! (`if(distance <= range) return town;`), this case goes red on the "returned the farther town"
-//! assertion.
+//! Two synthetic villages with overlapping radii, deliberately ordered so the FARTHER one comes
+//! first. Both sit tens of kilometres from the test world's real town and are removed from m_Towns
+//! again before any assertion returns, keeping the index-aligned town list intact for later cases.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCaseBase
@@ -309,21 +297,14 @@ class OVT_TEST_Init_Towns_GetNearestTownInRange_ReturnsNearest : SCR_AutotestCas
 //! Reforger's vanilla persistence system is registered for the Overthrow world and did not fail
 //! its own setup.
 //!
-//! Two independent failure modes, one case, because they are the same wiring:
-//!  1. GetScriptedInstance() null - Configs/Systems/ChimeraSystemsConfig.conf lost its
-//!     SCR_PersistenceSystem entry, or the world's SystemSettings chain stopped passing through it.
-//!     Nothing persistence-related can work; every save is a silent no-op.
-//!  2. State FAILURE - the system exists but Configs/Systems/Persistence/Overthrow.conf could not be
-//!     loaded (bad GUID reference, malformed conf). Hand-authored conf GUIDs fail SILENTLY in the
-//!     Workbench, so this is the only automated tripwire the migration has for that class of typo.
+//! Two failure modes, one case, because they are the same wiring: GetScriptedInstance() null means
+//! ChimeraSystemsConfig.conf lost its SCR_PersistenceSystem entry; state FAILURE means
+//! Persistence/Overthrow.conf could not be loaded. Hand-authored conf GUIDs fail SILENTLY in the
+//! Workbench, so this is the only automated tripwire for that class of typo.
 //!
-//! ACTIVE is asserted rather than merely "not FAILURE" because INIT/SETUP are world-load states:
-//! vanilla treats "below ACTIVE" as "load still in progress" (SCR_PersistenceSystem.IsLoadInProgress,
-//! and SCR_SpawnLogic gives up on persistent player data when the state is not ACTIVE), and Main
-//! steps only run after Setup_AwaitWorld has completed the world load. The failure message names
-//! the observed state, so a build that turns setup asynchronous reports exactly what it reached
-//! instead of hiding behind a weaker assertion - if that ever happens, loosen this deliberately
-//! (to "not FAILURE") and record why. Never add retries.
+//! ACTIVE rather than "not FAILURE" because INIT/SETUP are world-load states and Main steps only
+//! run after the world load completed. If setup ever turns asynchronous, loosen this deliberately
+//! and record why. Never add retries.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Persistence_SystemIsOnline : SCR_AutotestCaseBase
@@ -363,18 +344,13 @@ class OVT_TEST_Init_Persistence_SystemIsOnline : SCR_AutotestCaseBase
 //! The persistence system that is online is running OVERTHROW's persistence config, not somebody
 //! else's.
 //!
-//! Separate from the case above on purpose. "A persistence system exists" and "our config is the one
-//! in force" are different claims with different causes, and only the second one tells us that
-//! Configs/Systems/Persistence/Overthrow.conf was actually resolved through the
-//! Configs/Systems/ChimeraSystemsConfig.conf entry. Several vanilla SystemSettings configs
-//! (MissionSystems.conf) register an SCR_PersistenceSystem of their own pointing at
-//! EditableMission.conf; if a world's chain resolves one of those instead, the case above still
-//! passes while every Overthrow collection and serializer binding silently does not exist.
+//! Separate from the case above deliberately. Several vanilla SystemSettings configs register an
+//! SCR_PersistenceSystem of their own pointing at EditableMission.conf; if a world's chain resolves
+//! one of those, the case above still passes while every Overthrow collection and serializer
+//! binding silently does not exist. The probe is the "Overthrow" collection Overthrow.conf adds on
+//! top of vanilla Common.conf.
 //!
-//! The probe is the "Overthrow" collection that Overthrow.conf adds on top of vanilla Common.conf -
-//! looked up by display name, the same way SCR_SpawnLogic looks up "Player"/"Character".
-//! If this goes red while the case above is green, the config is not in force: nothing about the
-//! script layer will fix it, the SystemSettings chain is what has to change.
+//! Red here with the case above green means the SystemSettings chain is what has to change.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Persistence_OverthrowConfigLoaded : SCR_AutotestCaseBase
@@ -418,14 +394,9 @@ class OVT_TEST_Init_Persistence_OverthrowConfigLoaded : SCR_AutotestCaseBase
 //! The economy's price and demand seams answer their own public setters, and GetBuyPrice() applies
 //! the configured shop profit margin on top of the base price.
 //!
-//! Uses synthetic resource IDs. Real IDs are indices into OVT_EconomyManagerComponent.m_aResources
-//! (see GetInventoryId), so an ID far outside that range exercises the int-keyed maps without
-//! disturbing any real item's price for the rest of the session.
-//!
-//! The expected buy price is derived from the config's m_fShopProfitMargin rather than hardcoded,
-//! so a deliberate config change does not silently invalidate this case - it only changes the
-//! number both sides compute. The independent claim is the second assertion: a shop's buy price is
-//! always strictly above the base price.
+//! Uses synthetic resource IDs far outside m_aResources' range, so no real item's price is
+//! disturbed. The expected buy price is derived from m_fShopProfitMargin rather than hardcoded; the
+//! independent claim is the second assertion, that buy price is always strictly above base price.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
@@ -524,31 +495,17 @@ class OVT_TEST_Init_Economy_PriceAndDemandSeams : SCR_AutotestCaseBase
 //! load-bearing and they fail in opposite directions.
 //!
 //! ALIVE: Overthrow's managers rebuild every garrison, patrol and deployment from manager state on
-//! load (decision v2-5). A live character that ALSO self-spawns is doubled AI at every base, which
-//! is the catastrophe the AI SelfSpawn 0 overrides in Overthrow.conf exist to prevent.
+//! load, so a live character that ALSO self-spawns is doubled AI at every base.
 //!
-//! DEAD: this is the guard against reinstating a mechanism that has now failed BUG-018 twice. The
-//! kill hook used to flip the corpse's config to self-spawn via PersistenceSystem.SetConfig()
-//! (OVT_PersistenceTracking.MarkForSelfSpawn). Measured 2026-08-04 by decoding save blobs: SetConfig
-//! marks the configuration SCRIPTED, a scripted configuration is written with an EMPTY store name,
-//! and the loader resolves configurations BY store name - so every marked corpse became a record the
-//! engine rejects on load with "Unable to locate configuruation ''". It never brought a corpse back
-//! and it poisoned the save. The flag was set in memory, which is exactly why the previous version of
-//! this case went GREEN while the feature stayed broken - it asserted the flag, not the outcome.
+//! DEAD: guards against reinstating MarkForSelfSpawn, which flipped a corpse's config via
+//! SetConfig(). That marks the configuration SCRIPTED, a scripted configuration is written with an
+//! EMPTY store name, and the loader resolves BY store name - so every marked corpse became a record
+//! the engine rejects on load. ⚠ The flag was set in memory, which is why the previous version of
+//! this case went GREEN while the feature stayed broken: it asserted the flag, not the outcome. So
+//! the dead half now asserts the ABSENCE of the flag. BUG-018 remains open for AI corpses.
 //!
-//! So the dead half now asserts the ABSENCE of the flag. If someone reinstates the flip, this case
-//! goes red and names the reason. BUG-018 remains open for AI corpses; the only mechanism that
-//! survives a load is SelfSpawn declared in a .conf, and no native rule can pick out a dead character.
-//! Player corpses are covered, because the player-character config carries SelfSpawn 1 in
-//! Overthrow.conf - declared, not scripted.
-//!
-//! THE POLL IS DIAGNOSTIC, NOT A RETRY. The case waits for the controller to actually report death
-//! before reading the config, so a failure cannot be "asked too early"; expiry of that wait is itself
-//! a named failure.
-//!
-//! PROVEN ABLE TO FAIL 2026-08-04: restoring the MarkForSelfSpawn() call in
-//! OVT_OverthrowGameMode.OnCharacterKilledPersist() turns the dead half red with its own sentence;
-//! setting SelfSpawn 1 on the AI character config {64EACAC5BFDB31EC} turns the live half red.
+//! The poll is diagnostic, NOT a retry - it waits for the controller to report death so a failure
+//! cannot be "asked too early", and expiry is itself a named failure.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCaseBase
@@ -730,20 +687,15 @@ class OVT_TEST_Init_Persistence_CharacterConfigNeverSelfSpawns : SCR_AutotestCas
 //------------------------------------------------------------------------------------------------
 //! The LOCAL PLAYER's character must be matched to a configuration that self-spawns on load.
 //!
-//! WHY THIS IS THE INVARIANT. A load only instantiates records whose configuration says
-//! SelfSpawn 1; everything else is dropped from storage and is gone from every later save point
-//! (measured 2026-08-05 across a real restart: 215 records in one savepoint, 12 in the next).
-//! Vanilla ships the player-character config as SelfSpawn 0 (Configuration/Character/Player.conf:5)
-//! and re-enables it for missions in Mission.conf:18-24; Overthrow inherits Common.conf, not
+//! A load only instantiates records whose configuration says SelfSpawn 1; everything else is
+//! dropped from storage and gone from every later save point. Vanilla ships the player-character
+//! config as SelfSpawn 0 and re-enables it in Mission.conf; Overthrow inherits Common.conf, not
 //! Mission.conf, so it must do that itself - the {64ECE6462993EA13} override in the Player group of
-//! Configs/Systems/Persistence/Overthrow.conf.
+//! Configs/Systems/Persistence/Overthrow.conf. Without it a player who logs out comes back as a
+//! fresh civilian with their gear gone.
 //!
-//! Without it a player who logs out has a stored body id pointing at a record that will not exist
-//! next session, and comes back as a fresh civilian with their gear gone - which is exactly what a
-//! dedicated server reported on 2026-08-04.
-//!
-//! THE CONFIG IS READ OFF A LIVE PLAYER-CONTROLLED CHARACTER, not looked up by GUID, because what
-//! matters is which configuration the engine actually MATCHED - a rule that stopped matching, or an
+//! ⚠ The config is read off a LIVE player-controlled character rather than looked up by GUID: what
+//! matters is which configuration the engine actually MATCHED. A rule that stopped matching, or an
 //! override in the wrong group, would both leave the GUID intact and the behaviour broken.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
@@ -806,17 +758,13 @@ class OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns : SCR_AutotestCa
 //! Overthrow's reconnect component must be ON THE GAME MODE, or a disconnecting player's body is
 //! deleted and BUG-086 is back.
 //!
-//! WHY THIS CASE IS THE TRIPWIRE FOR A PREFAB EDIT. SCR_BaseGameMode.OnPlayerDisconnected deletes the
-//! leaving player's character unless SCR_ReconnectComponent.GetInstance().HandlePlayerDisconnect()
-//! claims it (SCR_BaseGameMode.c:963-975). That instance exists only because
-//! Prefabs/GameMode/OVT_OverthrowGameMode.et carries an OVT_ReconnectComponent entry - and a prefab
-//! entry that is dropped, renamed or re-saved without it fails SILENTLY: the scripts still compile,
-//! the component simply never initialises, and the next disconnect quietly destroys a player's body
-//! and everything they were carrying.
+//! SCR_BaseGameMode.OnPlayerDisconnected deletes the leaving player's character unless
+//! SCR_ReconnectComponent.GetInstance().HandlePlayerDisconnect() claims it. That instance exists
+//! only because OVT_OverthrowGameMode.et carries an OVT_ReconnectComponent entry, and a dropped or
+//! renamed prefab entry fails SILENTLY.
 //!
-//! IT ASSERTS THE SUBCLASS, not merely "some reconnect component". Vanilla's own base class would
-//! resolve here and would answer HandlePlayerDisconnect() with vanilla's rules - REPLICATION kicks
-//! only, 120 s expiry, and no hiding - which is a different feature wearing the same name.
+//! ⚠ It asserts the SUBCLASS. Vanilla's base class would resolve here and answer with vanilla's
+//! rules - replication kicks only, 120 s expiry, no hiding - a different feature wearing the name.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Persistence_ReconnectComponentClaimsLeavingBodies : SCR_AutotestCaseBase
@@ -847,20 +795,14 @@ class OVT_TEST_Init_Persistence_ReconnectComponentClaimsLeavingBodies : SCR_Auto
 //------------------------------------------------------------------------------------------------
 //! Reserving a CHARACTER must hide it, stop it simulating, leave it tracked - and be reversible.
 //!
-//! WHY IT IS EXERCISED ON A REAL CHARACTER RATHER THAN ON A BARE ENTITY. The reservation model rests
-//! on an assumption that had never been measured when it was designed (BUG-086 handoff, 2026-08-05):
-//! that ClearFlags/SetFlags behave on a ChimeraCharacter - which carries a controller, an animation
-//! system and an inventory - the way the engine's own documentation says they do on a plain entity,
-//! and that the change is cleanly reversible. This case is that measurement, as far as script can
-//! observe it: the flags are read back, not assumed.
+//! Exercised on a real character rather than a bare entity because the reservation model assumes
+//! ClearFlags/SetFlags behave on a ChimeraCharacter - controller, animation system, inventory - the
+//! way they do on a plain entity, and reversibly. The flags are read back, not assumed.
 //!
-//! TRACKING IS ASSERTED THROUGHOUT, and it is the property that distinguishes this design from the
-//! one it replaces. A reserved body that stopped being tracked would be absent from the next save
-//! point and gone after a restart, which is precisely the failure BUG-086 is about.
+//! Tracking is asserted throughout: a reserved body that stopped being tracked would be absent from
+//! the next save point and gone after a restart, which is what BUG-086 is about.
 //!
-//! WHAT IT CANNOT SEE: whether a CLIENT still renders its own copy of a hidden body. Flags are local
-//! engine state, there is no client in the autotest world, and that residual is play-test territory -
-//! it is documented on OVT_PersistenceReservation itself.
+//! Cannot see whether a CLIENT still renders its own copy of a hidden body - play-test territory.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_AutotestCaseBase
@@ -1021,31 +963,17 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 //------------------------------------------------------------------------------------------------
 //! Reserving must be TOLD TO THE CLIENTS, or a disconnected player stands visible on every one.
 //!
-//! WHY THIS EXISTS (server reports, 2026-08-18). OVT_PersistenceReservation hides with
-//! ClearFlags(), which is a LOCAL engine call - the reservation design measured that and accepted
-//! a cosmetic residual. Server owners then reported the residual is not cosmetic in practice: a
-//! disconnected player's body stands frozen, unkillable but fully visible, on every client -
-//! including clients that stream it in AFTER the reservation, which get the prefab's default
-//! flags. The fix is OVT_ReservationSyncComponent: Reserve()/Release() mirror the state into its
-//! RplProp, and each proxy applies the visual half locally.
+//! OVT_PersistenceReservation hides with ClearFlags(), a LOCAL engine call, so clients - including
+//! ones that stream the body in AFTER the reservation - see a frozen unkillable body.
+//! OVT_ReservationSyncComponent mirrors the state into an RplProp and each proxy applies the visual
+//! half locally.
 //!
-//! WHAT THIS CASE PINS, there being no client in the autotest world to observe:
-//!  1. the WIRING - the ownable-vehicle prefab chain still carries the component (a prefab entry
-//!     that is dropped or renamed fails silently: everything compiles, clients just see ghosts
-//!     again), the player-character prefab still carries it, checked through the spawn
-//!     logic's own default-prefab attribute, and the recruit prefab likewise through the recruit
-//!     manager's attribute (BUG-191 - the one reservable prefab the original fix missed);
-//!  2. the MIRROR - Reserve() drives the component's replicated state true and Release() drives
-//!     it false, on a live entity, through the production seams and not by poking the component;
-//!  3. the COLLISION half (BUG-189) - Reserve() zeroes the authority body's interaction layer
-//!     (the entity flags alone left a sleeping body colliding: invisible cars with hitboxes) and
+//! What this case pins, there being no client in the autotest world:
+//!  1. the WIRING - the ownable-vehicle, player-character and recruit prefab chains still carry the
+//!     component (BUG-191 was the recruit prefab, the one the original fix missed);
+//!  2. the MIRROR - Reserve()/Release() drive the replicated state, through the production seams;
+//!  3. the COLLISION half (BUG-189) - Reserve() zeroes the authority body's interaction layer and
 //!     Release() restores the exact layer it saved.
-//! What replication then does with the prop is vanilla's RplProp contract
-//! (SCR_ResourceComponent.m_bIsVisible is the same pattern) and is play-test territory.
-//!
-//! CAN-FAIL METHOD (run owed - this environment cannot launch the harness): remove the
-//! SetReserved() mirror calls from OVT_PersistenceReservation; the case must report the replicated
-//! state still false after Reserve(). Record the date here once exercised.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCaseBase
@@ -1200,34 +1128,17 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 //------------------------------------------------------------------------------------------------
 //! BUG-085: a loadout must carry the CONTENTS of clothing and backpacks, not just the containers.
 //!
-//! WHAT IT MEASURES: the whole save -> apply round trip through the manager's PUBLIC API. A source
-//! character is dressed, a distinctive item is put INSIDE a worn container, the loadout is saved,
-//! and it is applied to a SECOND, freshly spawned character. The assertion is made against the
-//! target container's own storage - the item must be in THERE, not merely somewhere on the target -
-//! because "somewhere on the character" is exactly what a flattened apply would also satisfy.
+//! The whole save -> apply round trip through the manager's public API. The assertion is made
+//! against the TARGET CONTAINER's own storage - "somewhere on the character" is exactly what a
+//! flattened apply would also satisfy.
 //!
-//! WHY IT FAILED BEFORE: ApplyNestedItemsSpawnToUniversalStorage() looked for an
-//! InventoryStorageManagerComponent ON THE CONTAINER to insert through. Uniforms, vests and
-//! backpacks never carry one - that component belongs to the CHARACTER - so the lookup failed for
-//! exactly the containers that matter, and every nested item was spawned and then immediately
-//! deleted. A player restoring a loadout got empty clothing and an empty backpack. This is the
-//! mechanism the logout gear snapshot depends on (see the persistence feature's context.md), so it
-//! is also the difference between "kit restored" and "kit lost" for a returning player.
+//! Nothing is hard-coded to a prefab: the container is whatever the character is already wearing
+//! and the nested item comes from the difficulty config's starting items, both read from the LIVE
+//! config, so a content change fails with a named diagnostic rather than turning this vacuous.
 //!
-//! PROVEN ABLE TO FAIL: reverting the fix (inserting through
-//! containerEntity.FindComponent(InventoryStorageManagerComponent) again) makes this case report
-//! "... is not inside the applied container ... - the container came back EMPTY", which is the
-//! defect verbatim.
-//!
-//! NOTHING IS HARD-CODED TO A PREFAB. The container is whatever the character is already wearing,
-//! falling back to the first civilian-loadout choice that has a universal storage; the nested item
-//! comes from the difficulty config's starting items. Both are read from the LIVE config, so a
-//! content change cannot quietly turn this case vacuous - it fails with a named diagnostic instead.
-//!
-//! The storage PURPOSE mask is deliberately never used to classify anything here: EStoragePurpose
+//! ⚠ The storage PURPOSE mask is deliberately never used to classify anything here: EStoragePurpose
 //! ordinals and flag bits diverge, and the character loadout storage answers PURPOSE_DEPOSIT while
-//! holding worn clothing. Containers are identified by component class, which is the same test the
-//! code under test makes.
+//! holding worn clothing. Containers are identified by component class, as the code under test does.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
@@ -1636,35 +1547,20 @@ class OVT_TEST_Init_Loadout_NestedItemsSurviveApply : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! The player-group manager is ON THE GAME MODE and answers GetInstance().
 //!
-//! WHY THIS CASE IS THE TRIPWIRE FOR A PREFAB EDIT. OVT_PlayerGroupManagerComponent is what guarantees
-//! every connected player has a group of their own: OVT_SpawnLogic.CreateAndJoinGroup delegates the
-//! whole "create this player's private group and put them in it" body to its EnsureOwnGroup(), and its
-//! SCR_AIGroup.GetOnPlayerAdded()/GetOnPlayerRemoved() subscriptions are what put a player back in a
-//! group after they leave one. That instance exists only because
-//! Prefabs/GameMode/OVT_OverthrowGameMode.et carries an OVT_PlayerGroupManagerComponent entry - and a
-//! prefab entry that is dropped, renamed or re-saved without it fails SILENTLY: the scripts still
-//! compile, the component never initialises, and every player spawns with NO GROUP - no AI commanding,
-//! no group indicator, no recruits. That is BUG-088's symptom set, and it is invisible in solo play
-//! until someone tries to command an AI.
+//! OVT_SpawnLogic.CreateAndJoinGroup delegates to its EnsureOwnGroup(), and its
+//! GetOnPlayerAdded()/GetOnPlayerRemoved() subscriptions put a player back in a group after they
+//! leave one. The instance exists only because OVT_OverthrowGameMode.et carries the component, and
+//! a dropped prefab entry fails SILENTLY: every player spawns with NO GROUP (BUG-088's symptoms),
+//! invisible in solo play until someone tries to command an AI.
 //!
-//! It asserts the LIVE COMPONENT, not just a non-null static: s_Instance is assigned in OnPostInit and
-//! never cleared, so a stale pointer from an earlier world would satisfy a bare null check. Comparing
-//! it against the component the game mode actually carries is what makes the assertion mean "this
-//! world's game mode has the manager".
+//! ⚠ It asserts the LIVE COMPONENT, not just a non-null static - s_Instance is assigned in
+//! OnPostInit and never cleared, so a stale pointer from an earlier world satisfies a null check.
 //!
-//! The third assertion pins the manager's own precondition rather than its behaviour: EnsureOwnGroup()
-//! must refuse a player id that has no player controller and return -1. If it ever answered anything
-//! else it would be creating stray leaderless groups for ids that are not players, which is how a
-//! faction's group list fills with empty groups and radio frequencies run out.
+//! The third assertion pins a precondition: EnsureOwnGroup() must refuse a player id with no
+//! player controller and return -1, or a faction's group list fills with empty leaderless groups.
 //!
-//! There is nothing here about JOINING, LEAVING or RECONNECTING - all three need two client processes
-//! and are on the manual play-test checklist (implementation.md section 6, steps 1, 9, 10, 14).
-//!
-//! PROVEN ABLE TO FAIL 2026-08-06: the OVT_PlayerGroupManagerComponent entry was temporarily deleted
-//! from Prefabs/GameMode/OVT_OverthrowGameMode.et and `tools/run-tests.sh
-//! OVT_TEST_Init_PlayerGroups_ManagerResolves` exited 1 on the first assertion
-//! ("OVT_PlayerGroupManagerComponent.GetInstance() is null ..."); restoring the entry returned it to
-//! exit 0. No retries, no maxAttempts - the manager either initialised during world load or it did not.
+//! Nothing here about joining, leaving or reconnecting - those need two clients and are on the
+//! manual play-test checklist.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
@@ -1713,24 +1609,15 @@ class OVT_TEST_Init_PlayerGroups_ManagerResolves : SCR_AutotestCaseBase
 
 //------------------------------------------------------------------------------------------------
 //! BUG-118: AI that Overthrow rebuilds every session must never be persistence-tracked, so it can
-//! never write the orphaned records that made the save grow without bound (~490 permanent records
-//! per idle restart, +4x blob size in four days on the reporting server).
+//! never write the orphaned records that made the save grow without bound.
 //!
-//! WHAT IT MEASURES: an occupying-faction group is spawned the way every un-virtualized spawner in
-//! the campaign still does it (OVT_Global.SpawnEntityPrefab + SpawnAllImmediately), and a waypoint the way
-//! every patrol gets one (config.SpawnPatrolWaypoint). The case then asserts the group entity,
-//! every spawned member character, and the waypoint all end up UNTRACKED.
+//! An occupying-faction group is spawned the way every un-virtualized spawner still does it, and a
+//! waypoint the way every patrol gets one; the group entity, every member and the waypoint must all
+//! end up UNTRACKED.
 //!
-//! THE CONTROL THAT KEEPS IT HONEST: native persistence registration is LAZY and lands frames
-//! after spawn, so "not tracked" right after spawn is what a freshly spawned entity ALWAYS looks
-//! like. A control character (the civilian recruit prefab, spawned directly - a path the fix
-//! deliberately leaves alone) is spawned in the same frame, and the case only passes once that
-//! control IS tracked while the AI entities are NOT. Without the control, this case would pass
-//! vacuously in a world where registration never runs at all.
-//!
-//! PROVEN ABLE TO FAIL (2026-08-09): with the UntrackTransient() call in the modded
-//! SCR_AIGroup.AddAIEntityToGroup commented out, the case reports "member 0 ... is still
-//! persistence-tracked"; with the whole modded class inert it also names the group entity.
+//! ⚠ The control is what keeps it honest: native registration is LAZY and lands frames after spawn,
+//! so "not tracked" right after spawn is what every fresh entity looks like. A control character is
+//! spawned in the same frame and the case only passes once that control IS tracked.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
@@ -1946,27 +1833,15 @@ class OVT_TEST_Init_Persistence_TransientAINotTracked : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! BUG-131: recruiting a group-spawned character must put its body BACK under persistence
-//! tracking.
+//! BUG-131: recruiting a group-spawned character must put its body BACK under persistence tracking.
 //!
-//! BUG-118's spawn-side untracking releases every group-spawned character (rebuild-on-boot AI),
-//! and town civilians are group-spawned - so by the time a player recruits one, its body is
-//! untracked and nothing on the recruitment path re-registered it. An untracked body has no
-//! persistent id, the record's m_sBodyPersistenceId stays empty, and the recruit's gear cannot
-//! survive any save: every despawn or restart rebuilds it from the fresh prefab in civilian
-//! clothes.
+//! BUG-118's spawn-side untracking releases every group-spawned character, and town civilians are
+//! group-spawned - so a recruited one had no persistent id, m_sBodyPersistenceId stayed empty, and
+//! its gear could not survive a save.
 //!
-//! WHAT IT MEASURES: a group is spawned through the same chokepoints garrisons and town civilian
-//! groups use, the case waits until a member is meaningfully untracked (the control character
-//! proves registration has landed for the spawn batch - same honesty device as the previous
-//! case), recruits that member through the public AddRecruit() API, and asserts the body ends up
-//! tracked again.
-//!
-//! The final assertion is positive (IsTracked flips true), so the case cannot pass vacuously in
-//! a world where registration never runs - it dies on the poll budget instead.
-//!
-//! PROVEN ABLE TO FAIL (2026-08-09): with the CancelUntrackTransient()/Track() pair in
-//! AddRecruit() disabled, the case reports "the recruited body is still untracked".
+//! The case waits until a member is meaningfully untracked (same control-character honesty device
+//! as the previous case), recruits it through AddRecruit(), and asserts the body is tracked again.
+//! The final assertion is positive, so it cannot pass vacuously - it dies on the poll budget.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_AutotestCaseBase
@@ -2173,31 +2048,17 @@ class OVT_TEST_Init_Persistence_RecruitedTransientCharacterIsRetracked : SCR_Aut
 //! A world bus-stop sign carries an OVT_MapMarkerComponent, and that marker reaches the registry by
 //! itself and leaves it again when the entity is destroyed.
 //!
-//! WHY THIS IS THE TRIPWIRE FOR A PREFAB EDIT. Bus stops stopped being vanilla map descriptors: the
-//! only thing that makes one findable now is the OVT_MapMarkerComponent block in the same-GUID delta
-//! Prefabs/Structures/Signs/Traffic/SignBusStop_01.et. That block failing SILENTLY is the whole risk -
-//! scripts still compile, the map simply draws no bus stops and OVT_FastTravelService.IsAtBusStop
-//! refuses every bus trip. tools/compile-check.sh cannot see a prefab, so this is the only automated guard.
+//! Bus stops stopped being vanilla map descriptors: the only thing making one findable is the
+//! OVT_MapMarkerComponent block in the same-GUID delta SignBusStop_01.et. That failing silently
+//! means the map draws no bus stops and IsAtBusStop refuses every bus trip. compile-check.sh cannot
+//! see a prefab, so this is the only automated guard.
 //!
-//! WHAT ELSE IT COVERS, in one pass, because it is all the same seam:
-//!  - self-registration from OnPostInit reaches OVT_MapMarkerManagerComponent (the mechanism that
-//!    catches runtime-spawned markers the world scan already missed);
-//!  - the marker is filed under BUS_STOP, not some other category;
-//!  - GetNearestMarker() finds it within a radius and refuses outside one - the exact call
-//!    OVT_FastTravelService.IsAtBusStop makes for bus travel, at the same 15 m the old descriptor
-//!    query used;
-//!  - OnDelete unregisters, so a destroyed marker stops drawing.
+//! Covered in one pass: self-registration from OnPostInit; filed under BUS_STOP; GetNearestMarker()
+//! finds it within 15 m and refuses outside; OnDelete unregisters.
 //!
-//! NO MAGIC COUNTS AND NO DEPENDENCE ON THE TEST WORLD'S CONTENT. The subject is spawned by this case
-//! rather than looked for in the world, so it neither asserts how many bus stops
-//! Worlds/MP/OVT_Campaign_Test.ent happens to contain nor cares whether it contains any.
-//!
-//! THE POLL IS DIAGNOSTIC, NOT A RETRY. Registration is deliberately deferred one frame
-//! (CallLater(Register, 0)), so the case waits for that frame to arrive; expiry of the wait is itself
-//! a named failure, and the budget is far above one frame so expiry means "never", not "not yet".
-//!
-//! PROVEN ABLE TO FAIL: deleting the OVT_MapMarkerComponent block from SignBusStop_01.et makes this
-//! case report "has no OVT_MapMarkerComponent".
+//! The subject is spawned by this case rather than found in the world, so it asserts nothing about
+//! the test world's content. The poll is diagnostic, not a retry - registration is deferred one
+//! frame and the budget is far above one, so expiry means "never", not "not yet".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
@@ -2466,15 +2327,9 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 	//------------------------------------------------------------------------------------------------
 	//! Validates every PLAYER_SPAWNED filter on one entry against the spawn-context vocabulary.
 	//!
-	//! PLAYER_SPAWNED's filter is the SPAWN CONTEXT: what the server's player preparation actually gave
-	//! this player. There are exactly three legal values - "house" (a home, a car and starting cash),
-	//! "nohouse" (a fallback spawn with neither) and "" (fire for either). The value compared against is
-	//! carried to the client and pushed into the event by the tutorial component, so like the
-	//! PLAYER_TRANSACTION case above, a fourth value is NOT findable by grep against another config: it
-	//! simply never equals the dispatched context, the welcome never fires, and nothing reports it.
-	//!
-	//! This is the failure a one-character typo in Configs/Tutorials/welcomeNohome.conf produces, and
-	//! the entry it names is the one to open.
+	//! There are exactly three legal values - "house", "nohouse" and "" (either). ⚠ A fourth value is
+	//! NOT findable by grep against another config: it simply never equals the dispatched context, the
+	//! welcome never fires, and nothing reports it.
 	//! \param[in] entry The entry to check. Assumed non-null with a non-empty m_aTriggers.
 	//! \return A ready-to-report failure message, or an empty string when every filter is valid.
 	protected string CheckSpawnFilters(OVT_TutorialEntryConfig entry)
@@ -2507,14 +2362,10 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 	//------------------------------------------------------------------------------------------------
 	//! Both spawn contexts still have a welcome to show.
 	//!
-	//! A player who spawns with a house and a player who spawns at a bus stop are told different things,
-	//! by two different entries filtered on the same event. Delete one, or set its m_bEnabled to 0, and
-	//! half the player base gets NO welcome at all - and nothing else in the tree notices, because every
-	//! remaining entry is still structurally perfect.
-	//!
-	//! Deliberately "AT LEAST ONE", not "exactly one": a third-party mod adding its own PLAYER_SPAWNED
-	//! entry is not a defect and must not fail the build. The selection runs through the real matcher,
-	//! so a disabled entry does not count towards coverage - which is what makes the disable case fail.
+	//! Delete one, or set its m_bEnabled to 0, and half the player base gets NO welcome - and nothing
+	//! else notices, because every remaining entry is still structurally perfect. Deliberately "at
+	//! least one", not "exactly one", so a third-party mod adding its own entry is not a defect. The
+	//! selection runs through the real matcher, so a disabled entry does not count towards coverage.
 	//! \param[in] entries The authored entry list. Assumed non-null and non-empty.
 	//! \return A ready-to-report failure message, or an empty string when both contexts are covered.
 	protected string CheckWelcomeCoverage(array<ref OVT_TutorialEntryConfig> entries)
@@ -2551,13 +2402,10 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 	//------------------------------------------------------------------------------------------------
 	//! Validates every PLAYER_TRANSACTION filter on one entry against the OVT_ShopType enum.
 	//!
-	//! PLAYER_TRANSACTION is the only event in the authored set whose filter value is MANUFACTURED BY
-	//! THE ENGINE rather than written by a human on both sides: the manager builds it with
-	//! SCR_Enum.GetEnumName(OVT_ShopType, shop.m_ShopType) (OVT_TutorialManagerComponent.c:255), which
-	//! is typename.EnumToString. Every other filter in the set is compared against a string some other
-	//! config already spells out, so a typo there is findable by grep. Here it is not: a filter that is
-	//! not literally an OVT_ShopType member name simply never equals the dispatched value, the entry
-	//! never fires, and NOTHING reports it - no compile error, no runtime warning, no log line.
+	//! ⚠ PLAYER_TRANSACTION is the only event whose filter value is MANUFACTURED BY THE ENGINE -
+	//! SCR_Enum.GetEnumName(OVT_ShopType, ...) - rather than written by a human on both sides. Every
+	//! other filter is compared against a string some other config spells out, so a typo is findable
+	//! by grep. Here it is not: the entry never fires and nothing reports it.
 	//! \param[in] entry The entry to check. Assumed non-null with a non-empty m_aTriggers.
 	//! \param[in] shopTypeNames Every OVT_ShopType member name, from SCR_Enum.GetEnumNames.
 	//! \return A ready-to-report failure message, or an empty string when every filter is valid.
@@ -2798,12 +2646,9 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	//------------------------------------------------------------------------------------------------
 	//! BRANCH A. Every entry under Overthrow's category carries at least one content piece.
 	//!
-	//! SCR_FieldManualUI.SetAllEntriesAndParents (:600-663) drops any entry whose m_aContent is empty,
-	//! then any sub-category left with no entries, then any category left with neither - silently, with
-	//! no error and no log line. A content-free entry is therefore not a stub, it is an ABSENCE: its
-	//! tile never draws, it is missing from m_aAllEntries, and OVT_OpenEntryByTitle falls back to the
-	//! manual's front page for it. This is the exact shape of "I'll fill that page in later", which is
-	//! why it is guarded from the moment the keys are frozen (plan decision D6).
+	//! SCR_FieldManualUI.SetAllEntriesAndParents drops any entry whose m_aContent is empty, then any
+	//! sub-category left with no entries - silently. A content-free entry is not a stub, it is an
+	//! ABSENCE: its tile never draws and OVT_OpenEntryByTitle falls back to the manual's front page.
 	//! \param[in] root The merged field-manual root. Assumed non-null.
 	//! \return A ready-to-report failure message, or an empty string when every entry has content.
 	protected string FindFirstContentlessOverthrowEntry(notnull SCR_FieldManualConfigRoot root)
@@ -2865,12 +2710,9 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	//------------------------------------------------------------------------------------------------
 	//! BRANCH C. No Overthrow entry title key appears twice anywhere in the MERGED manual.
 	//!
-	//! OVT_OpenEntryByTitle walks m_aAllEntries and takes the FIRST entry whose m_sTitle matches, so a
-	//! duplicated key means every deep link to it lands on whichever page was collected first. That is
-	//! silent and it is wrong, and it is equally wrong whether the collision is with one of the base
-	//! game's 140 pages or with another Overthrow page (a copy-pasted entry that never had its title
-	//! changed is the likely way it happens). The merged root is searched, not just Overthrow's
-	//! category, because a vanilla page adopting an #OVT- key would break the links just as thoroughly.
+	//! OVT_OpenEntryByTitle takes the FIRST entry whose m_sTitle matches, so a duplicated key sends
+	//! every deep link to whichever page was collected first. The MERGED root is searched, not just
+	//! Overthrow's category, because a vanilla page adopting an #OVT- key breaks the links too.
 	//! \param[in] root The merged field-manual root. Assumed non-null.
 	//! \return A ready-to-report failure message, or an empty string when every key is unique.
 	protected string FindFirstDuplicateOverthrowEntryTitle(notnull SCR_FieldManualConfigRoot root)
@@ -2904,11 +2746,9 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	//! Every authored tutorial entry that declares a field-manual deep link points at a page that
 	//! actually exists in the merged root.
 	//!
-	//! This is plan decision D12's whole accepted cost, made cheap: links are matched on the target
-	//! entry's m_sTitle localization key, exactly and case-sensitively, so renaming a manual page
-	//! silently breaks every popup pointing at it. Nothing else in the build would notice - the helper
-	//! degrades to the manual's front page by design (I2), which looks like a content bug, not a
-	//! broken link. No hard-coded key here: whatever tutorial-content authors is what gets checked.
+	//! Links match on the target's m_sTitle localization key, exactly and case-sensitively, so
+	//! renaming a manual page silently breaks every popup pointing at it - the helper degrades to the
+	//! front page by design, which looks like a content bug rather than a broken link.
 	//! \param[in] root The merged field-manual root. Assumed non-null.
 	//! \return A ready-to-report failure message, or an empty string when every link resolves.
 	protected string FindFirstBrokenTutorialLink(notnull SCR_FieldManualConfigRoot root)
@@ -3090,21 +2930,10 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 {
-	//! THE TRANSITION HAS BEEN MADE - flipped to true on 2026-08-09 by starter-jobs-retirement task 4.5,
-	//! in the same change that deleted the five configs. Nothing further is pending here.
-	//!
-	//! It reads as a switch because that is how the deletion was made impossible to do quietly. Phases
-	//! 1-3 deliberately kept all twelve configs alive - the version-1 payload conversion had to be
-	//! exercisable against live configs before those configs went - and while this was false the case
-	//! asserted the OPPOSITE of what it asserts now: every retired id had to STILL resolve. So deleting
-	//! the configs without flipping it went red naming this constant (and did, in a run that overlapped
-	//! the deletion), and flipping it before the deletion went red on the first retired id that still
-	//! resolved. Neither state could ever pass silently, which a commented-out block would have allowed.
-	//!
-	//! Now that it is true this is a PERMANENT REGRESSION GUARD, not a spent one: it asserts that none of
-	//! the five retired ids ever comes back. Re-adding a config carrying one of them would make a
-	//! version-1 save's dropped records start resolving again, onto a job that is not the job they were
-	//! saved on. Leave it true.
+	//! Flipped true on 2026-08-09 when the five configs were deleted. This is now a PERMANENT
+	//! regression guard, not a spent one: it asserts none of the five retired ids ever comes back.
+	//! Re-adding a config carrying one would make a version-1 save's dropped records start resolving
+	//! again, onto a job that is not the job they were saved on. Leave it true.
 	static const bool RETIRED_IDS_ARE_DELETED = true;
 
 	//! The seven job ids that survive starter-jobs-retirement. Literals on purpose - see the header.
@@ -3120,22 +2949,12 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 
 	//! The five job ids starter-jobs-retirement removed on 2026-08-09. These must resolve to NOTHING.
 	//!
-	//! PHASE 2 DECIDED: THESE LISTS STAY LITERAL AND STAY HERE. They are NOT pointed at
-	//! OVT_JobManagerSerializer.LEGACY_V1_JOB_IDS, which now exists. Three reasons, in order of weight:
-	//!
-	//!  1. THEY ARE DIFFERENT INVARIANTS THAT HAPPEN TO SHARE STRINGS TODAY. LEGACY_V1_JOB_IDS is
-	//!     POSITIONAL HISTORY - index -> id for the version 1 save format, frozen for good. These two
-	//!     lists are expectations about the config list that is SHIPPING NOW, partitioned by fate. Add
-	//!     a thirteenth job one day and the frozen table must NOT grow (it records what version 1 was)
-	//!     while SURVIVING_LEGACY_IDS should, so the new job gets the same rename guard. Wiring one to
-	//!     the other would make that impossible without unpicking it again.
-	//!  2. AN INDEPENDENT WITNESS IS THE WHOLE VALUE OF A GUARD. The realistic mistake is renaming an
-	//!     id in a .conf and then "keeping the table in sync" - the frozen table looks like
-	//!     configuration until its header is read. With two copies that goes red here, naming the id.
-	//!     With one copy it passes, and the rename reaches players as a silently emptied job board.
-	//!  3. THE FROZEN TABLE IS NOT LEFT UNGUARDED. Phase 3's Logic-tier case pins LEGACY_V1_JOB_IDS
-	//!     against its own literals, world-free. So: that case guards the table, this case guards the
-	//!     configs, and neither is asserted against the thing it is checking.
+	//! ⚠ These lists stay LITERAL and stay here - deliberately NOT pointed at
+	//! OVT_JobManagerSerializer.LEGACY_V1_JOB_IDS. That table is POSITIONAL HISTORY for the version 1
+	//! save format, frozen for good; these are expectations about the config list shipping NOW. Add a
+	//! thirteenth job and the frozen table must not grow while SURVIVING_LEGACY_IDS should. Two
+	//! independent copies are also what catches a .conf id rename that was "kept in sync". The frozen
+	//! table is guarded separately by a Logic-tier case against its own literals.
 	static const ref array<string> RETIRED_LEGACY_IDS = {
 		"find-gun-dealer",
 		"find-shop",
@@ -3306,20 +3125,12 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 //! The virtualization manager is on the game-mode prefab, initialised, and empty before anything
 //! registers.
 //!
-//! Two separate claims, and both matter for a manager nothing consumes yet. Resolution pins the
-//! prefab wiring: until OVT_VirtualizationManagerComponent is actually on
-//! Prefabs/GameMode/OVT_OverthrowGameMode.et, every OVT_Global.GetVirtualization() in the tree
-//! returns null and four downstream features would be programming against a hole. The empty-registry
-//! claim pins the SERVER GUARD's ordering: OnPostInit allocates the record map only after
-//! Replication.IsServer(), so a count of 0 (rather than a null-map crash or a stale count) is the
-//! evidence that the collection exists and starts clean.
+//! Resolution pins the prefab wiring: without the component, every OVT_Global.GetVirtualization()
+//! returns null. The empty-registry claim pins the SERVER GUARD's ordering - OnPostInit allocates
+//! the record map only after Replication.IsServer(), so a count of 0 (rather than a null-map crash
+//! or a stale count) is the evidence the collection exists and starts clean.
 //!
-//! Init tier, not campaign tier: both facts are true at world load - registration is not part of
-//! campaign start, and core deliberately ships with no consumers (implementation.md R10).
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove
-//! the OVT_VirtualizationManagerComponent block from the game-mode prefab and this case fails on
-//! the first assertion - which is exactly the T2.8 fail-proof the plan asks for.
+//! Init tier, not campaign tier: both facts are true at world load.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_ManagerResolvesEmpty : SCR_AutotestCaseBase
@@ -3370,18 +3181,12 @@ class OVT_TEST_Init_Virtualization_ManagerResolvesEmpty : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! virtualizationSpawnDistance exists in the config struct and defaults to 1750 m.
 //!
-//! This is issue #100's operator-facing knob (D5): a server owner edits it in
-//! $profile:Overthrow_Config.json and every registered group's proximity ring moves with no code
-//! change. The default is asserted because it is the value every un-overridden registration
-//! inherits, and because a field silently missing from SetDefaults() would read back 0 - which is
-//! the legitimate "never materialise" value, so nothing would look broken until an entire campaign's
-//! AI failed to appear.
+//! Issue #100's operator-facing knob. ⚠ The default is asserted because a field silently missing
+//! from SetDefaults() would read back 0 - the legitimate "never materialise" value - so nothing
+//! would look broken until an entire campaign's AI failed to appear.
 //!
-//! The manager's own resolution is asserted alongside it: GetGlobalSpawnDistance() must agree with
-//! the config, so a mis-wired accessor cannot pass by falling back to its attribute default.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): delete the `virtualizationSpawnDistance = 1750;` line
-//! from OVT_OverthrowConfigStruct.SetDefaults() and this case fails with 0.
+//! GetGlobalSpawnDistance() must agree with the config, so a mis-wired accessor cannot pass by
+//! falling back to its attribute default.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_SpawnDistanceDefault : SCR_AutotestCaseBase
@@ -3435,19 +3240,13 @@ class OVT_TEST_Init_Virtualization_SpawnDistanceDefault : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! RegisterGroup refuses a composition it cannot resolve, and books nothing when it does.
 //!
-//! Composition is (factionKey, groupName) - never a faction index, which is positional across saves
-//! (D3). Both halves can fail independently: a faction mod removed from a server produces an
-//! unknown KEY, and a renamed registry entry produces an unknown GROUP NAME under a faction that
-//! still exists. Both must return -1 with a WARNING rather than booking a record that can never be
-//! built, because a booked-but-unbuildable record would be persisted in Phase 5 and dropped again on
-//! every subsequent load.
+//! Composition is (factionKey, groupName) - never a faction index, which is positional across saves.
+//! Both halves fail independently: a removed faction mod gives an unknown KEY, a renamed registry
+//! entry an unknown GROUP NAME. Both must return -1 with a warning, because a booked-but-unbuildable
+//! record would be persisted and dropped again on every subsequent load.
 //!
-//! The known-faction half deliberately discovers a REAL faction key from the faction manager rather
-//! than hard-coding "USSR": the test world's factions are not this case's subject, and a hard-coded
-//! key would turn a faction rename into a false red here instead of where it belongs.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): move the record allocation in RegisterGroup above the
-//! faction/prefab resolution guards and the "the registry grew" assertion goes red for both halves.
+//! The known-faction half discovers a REAL faction key from the faction manager rather than
+//! hard-coding "USSR", so a faction rename fails where it belongs.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_RegisterRefusesUnknownComposition : SCR_AutotestCaseBase
@@ -3534,11 +3333,9 @@ class OVT_TEST_Init_Virtualization_RegisterRefusesUnknownComposition : SCR_Autot
 //------------------------------------------------------------------------------------------------
 //! Shared discovery helpers for the Phase 3 virtualization cases.
 //!
-//! Every case below needs a composition the CURRENT world can actually resolve, and hard-coding
-//! "USSR"/"light_patrol" would turn a faction-config rename into a false red in the virtualization
-//! cases instead of in the faction tests where it belongs. These helpers ask the live registries
-//! instead, exactly as OVT_TEST_Init_Virtualization_RegisterRefusesUnknownComposition already does
-//! for its known-faction half.
+//! Every case below needs a composition the CURRENT world can resolve; hard-coding
+//! "USSR"/"light_patrol" would turn a faction-config rename into a false red here instead of in the
+//! faction tests. These helpers ask the live registries instead.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_VirtualizationFixture
 {
@@ -3625,27 +3422,18 @@ class OVT_TEST_VirtualizationFixture
 //------------------------------------------------------------------------------------------------
 //! RegisterGroup builds a real, DORMANT group entity carrying the engine lifecycle stamps.
 //!
-//! This is the whole point of Phase 3 and the claim every consumer depends on: a registration is not
-//! a booking, it is a group entity that exists in the world with ZERO member characters and hands
-//! its own spawn/despawn decisions to the engine. Six independent facts are asserted because six
-//! separate things can silently go wrong:
+//! A registration is not a booking - it is a group entity in the world with ZERO member characters
+//! that hands its spawn/despawn decisions to the engine. Six facts, six ways to fail silently:
 //!   - the entity exists at all (IgnoreSpawning + prefab spawn),
-//!   - it has NO members (a failed IgnoreSpawning would materialise a squad at registration time,
-//!     far from any player, and nothing else would ever notice),
+//!   - it has NO members (a failed IgnoreSpawning materialises a squad at registration time, far
+//!     from any player, and nothing else would notice),
 //!   - the policy is ProximityDriven (Manual would mean the group never appears),
-//!   - the distances read back the resolved ring, and despawn > spawn (the engine's anti-thrash band;
-//!     equal values would flap at the boundary),
-//!   - the importance is the tier asked for, never vanilla's silent LOW default (D4/F14),
-//!   - the roster was captured into an all-alive mask (an empty mask means D2 is inert - deaths
-//!     would be dropped and the group would be immortal).
+//!   - the distances read back the resolved ring, and despawn > spawn (equal values flap),
+//!   - the importance is the tier asked for, never vanilla's silent LOW default,
+//!   - the roster was captured into an all-alive mask (an empty mask makes the group immortal).
 //!
-//! Safe at Init tier per the Phase 1 T1.4 verdict: the autotest world runs the real ChimeraAIWorld
-//! queue and ObserversSystem, and an unobserved ProximityDriven group stays memberless (measured over
-//! 240 frames), so nothing materialises while the case runs.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): drop the ApplyLifecyclePolicy(record, group) call from
-//! RegisterGroup and the policy assertion goes red (the group keeps the Manual default); drop the
-//! roster-capture loop and the mask assertions go red.
+//! Safe at Init tier: an unobserved ProximityDriven group stays memberless, so nothing materialises
+//! while the case runs.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_RegisterBuildsDormantGroup : SCR_AutotestCaseBase
@@ -3775,34 +3563,14 @@ class OVT_TEST_Init_Virtualization_RegisterBuildsDormantGroup : SCR_AutotestCase
 //! GetAllHandles() enumerates the WHOLE registry, and stops returning a handle the moment it is
 //! unregistered.
 //!
-//! The one additive seam `virtualization/movement` asked core for (its plan §3.7, core's dated note
-//! in context.md). A tick that advances EVERY dormant registered group cannot be built on
-//! FindGroupsByOwner/FindGroupsBySystem, because ownerSystem is a deliberately free-form,
-//! mod-extensible string: there is no set of system names a consumer could enumerate. Three things
-//! can go silently wrong, so each gets its own assertion:
-//!   - the enumeration misses a registered handle (some groups would simply never be advanced, and
-//!     nothing else in the tree would notice - a frozen patrol looks like no patrol),
-//!   - the count disagrees with GetGroupCount() (both read the same map, so a disagreement means one
-//!     of the two is lying about what is registered),
-//!   - an unregistered handle keeps coming back (a consumer's tick would keep working a record that
-//!     no longer exists, for the rest of the session).
+//! A tick advancing every dormant registered group cannot be built on FindGroupsByOwner, because
+//! ownerSystem is a deliberately free-form mod-extensible string. Three silent failures, three
+//! assertions: the enumeration misses a handle (a frozen patrol looks like no patrol); the count
+//! disagrees with GetGroupCount(); an unregistered handle keeps coming back.
 //!
-//! TWO groups are registered, not one, because a single-element answer cannot tell "returns the whole
-//! registry" apart from "returns the newest record". Nothing here asserts the array is exactly two
-//! elements long or that the two handles arrive in any particular order: the claims are containment
-//! and the delta against GetGroupCount(), so a world that already holds registered groups (or a future
-//! consumer that registers some) cannot make this case flap. The order genuinely is not stable - it is
-//! a map's - and that is the documented contract, so asserting an order would assert a lie.
-//!
-//! Safe at Init tier for the same reason the registration case above it is (the Phase 1 T1.4 verdict):
-//! an unobserved ProximityDriven group stays memberless, so nothing materialises while the case runs.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): return the
-//! empty array from GetAllHandles() before its foreach and the containment assertion goes red naming
-//! the missing handle; add a SECOND `handles.Insert(handle)` inside that foreach and containment
-//! still passes while the GetGroupCount() agreement assertion goes red on the doubled count; delete
-//! the `m_mRecords.Remove(handle)` line from UnregisterGroup (`:1493`) and the post-cleanup
-//! assertion goes red instead, naming the handle that outlived its record.
+//! TWO groups are registered because a single-element answer cannot distinguish "returns the whole
+//! registry" from "returns the newest record". Nothing asserts array length or ORDER - the order
+//! genuinely is a map's and is not stable, so asserting one would assert a lie.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_GetAllHandlesEnumeratesRegistry : SCR_AutotestCaseBase
@@ -3919,17 +3687,15 @@ class OVT_TEST_Init_Virtualization_GetAllHandlesEnumeratesRegistry : SCR_Autotes
 }
 
 //------------------------------------------------------------------------------------------------
-//! Shared fixture for the three virtual-MOVEMENT cases below (`virtualization/movement` Phase 4).
+//! Shared fixture for the three virtual-MOVEMENT cases below.
 //!
-//! Separate from OVT_TEST_VirtualizationFixture on purpose: these cases are consumers of core rather
-//! than of the movement manager's internals, and they need two things the registration cases never do
-//! - a leg that is entirely on LAND, and a plan whose types decide whether the group may walk at all.
+//! Separate from OVT_TEST_VirtualizationFixture: these cases consume core rather than the movement
+//! manager's internals, and need a leg entirely on LAND plus a plan whose types decide whether the
+//! group may walk at all.
 //!
-//! ⚠ WHY THE LEG HAS TO BE PICKED, NOT ASSUMED. Movement's water rule (D6) advances the virtual
-//! accumulator through water but WRITES NOTHING while the accumulator is over it, so a leg pointed
-//! into a bay would leave the group's origin exactly where it started - a false red for "the tick
-//! never advanced". IsOceanAtPosition is the same predicate the manager uses, so a leg this fixture
-//! accepts is one the manager will write along.
+//! ⚠ The leg has to be PICKED, not assumed. Movement's water rule advances the accumulator through
+//! water but WRITES NOTHING while it is over water, so a leg pointed into a bay leaves the group's
+//! origin where it started - a false red. IsOceanAtPosition is the manager's own predicate.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_VirtualMovementFixture
 {
@@ -4032,40 +3798,19 @@ class OVT_TEST_VirtualMovementFixture
 //------------------------------------------------------------------------------------------------
 //! THE MOVEMENT TICK ACTUALLY ADVANCES A DORMANT GROUP, TOWARD ITS PLAN.
 //!
-//! The one end-to-end claim of `virtualization/movement`: it proves the enumeration (GetAllHandles),
-//! the round-robin slice, the lazy state derivation, the per-group dt, the arrival maths and the
-//! ground-snapped write are all wired together and installed on the game mode. Every other automated
-//! case in the feature asserts one of those pieces in isolation, and a feature whose pieces all work
-//! while nothing moves is exactly the frozen-world defect it exists to remove.
+//! The one end-to-end claim of `virtualization/movement`: enumeration, round-robin slice, lazy state
+//! derivation, per-group dt, arrival maths and ground-snapped write all wired together and installed
+//! on the game mode. Every other case asserts one piece in isolation.
 //!
-//! WHAT IS ASSERTED, AND WHY IT IS TOLERANCE-BASED. A group is registered with a two-point PATROL/MOVE
-//! plan whose far point is 200 m away, and the case then polls for up to 10 s of wall clock:
-//!   - the XZ displacement from the registered position exceeds 1 m (it MOVED - and 1 m is comfortably
-//!     above the ground snap, which only ever changes Y, and above floating-point noise),
-//!   - the displacement is LESS than the whole leg (it did not teleport to the target, which is what a
-//!     broken step clamp or an unclamped dt would look like),
-//!   - it ends up CLOSER to the target than it started (it moved TOWARD the plan, not merely somewhere
-//!     - a projection that picked the wrong leg would still show displacement).
-//! No exact distance boundary is asserted anywhere: vector.Distance is +1 ULP off at 1000 m and 2000 m,
-//! and the step size depends on how many passes the window happened to contain.
+//! A group is registered with a two-point PATROL/MOVE plan 200 m out, then polled for up to 10 s:
+//! XZ displacement exceeds 1 m (it moved), is less than the whole leg (no teleport), and ends closer
+//! to the target (it moved TOWARD the plan). No exact distance boundary is asserted - vector.Distance
+//! is +1 ULP off at 1000 m and 2000 m, and the step depends on how many passes the window contained.
 //!
-//! ⚠ THE FIRST PASS OVER A HANDLE CANNOT MOVE IT. State is derived on the first touch and stamped with
-//! the current world time, so its dt - and therefore its step - is 0 by construction. The window is
-//! sized for several passes after that one.
+//! ⚠ The FIRST pass over a handle cannot move it: state is derived on first touch and stamped with
+//! the current world time, so its dt is 0 by construction. The window is sized for several after it.
 //!
-//! The leg is picked to be entirely on LAND (see the fixture): movement's water rule writes nothing
-//! while its accumulator is over water, so a leg into a bay would look exactly like a dead tick.
-//!
-//! CLEANUP BEFORE REPORTING, the suite's own rule and doubly important here: this is the one case in
-//! the tree that deliberately registers a group that MOVES, and a red assertion must not leak it into
-//! the cases after it.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): comment out
-//! the `EnsureMovementTick()` call in OVT_VirtualMovementManagerComponent.PostGameStart() and the
-//! displacement assertion goes red naming the window and the tracked count; return early from
-//! WriteAdvance() before its SetPosition and it goes red the same way while the state map still fills;
-//! replace the AdvanceTowardsXZ target with `plan.m_aPositions[0]` and the "closer to its target"
-//! assertion goes red while the displacement one still passes.
+//! Cleanup before reporting: this is the one case that deliberately registers a group that MOVES.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup : SCR_AutotestCaseBase
@@ -4143,12 +3888,10 @@ class OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup : SCR_AutotestCaseB
 			return true;
 		}
 
-		// spawnDistanceOverride 0 = the MANUAL lifecycle policy: the engine never materialises the
-		// group by proximity. DORMANT BY CONSTRUCTION - the autotest camera is an observer (core's
-		// Phase 1 spike: observers are not just players) and at the global ring it can spawn a test
-		// group's members whenever it happens to sit close enough, at which point the IsSpawned gate
-		// correctly refuses to advance it and this case reds with "not advancing at all". That race
-		// was real: it was won by luck until 2026-08-17 and then lost deterministically.
+		// spawnDistanceOverride 0 = the MANUAL lifecycle policy, so the engine never materialises the
+		// group by proximity. ⚠ Dormant by construction is required: the autotest camera IS an observer
+		// and at the global ring can spawn a test group's members, at which point the IsSpawned gate
+		// refuses to advance and this case reds with "not advancing at all".
 		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_walks",
 			factionKey, groupName, position,
 			OVT_TEST_VirtualMovementFixture.BuildPlan(position, m_vTarget, OVT_EVirtualWaypointType.PATROL), 0);
@@ -4250,26 +3993,15 @@ class OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup : SCR_AutotestCaseB
 //------------------------------------------------------------------------------------------------
 //! A DEFEND-ONLY PLAN IS NEVER ADVANCED - the D10 opt-in contract, asserted from the other side.
 //!
-//! "The plan IS the opt-in" is the promise `integration` programs against (implementation.md §3.8):
-//! register a garrison with an empty or DEFEND-only plan and movement will never touch it; register a
-//! patrol with MOVE/PATROL points and it walks the moment it goes dormant. There is no flag to set and
-//! no core field to check, which means the ONLY thing standing between a tower garrison and a stroll
-//! across the map is this classification - so it gets its own case rather than being implied by the
-//! walking one.
+//! "The plan IS the opt-in": there is no flag to set and no core field to check, so this
+//! classification is the only thing between a tower garrison and a stroll across the map.
 //!
-//! Deliberately the same shape as the case above (same 200 m leg, same all-land pick, same 10 s
-//! window, same fixture) with ONE variable changed: the waypoint type. The pair is therefore a
-//! controlled experiment - if both went red the tick is dead, if only this one goes red the
+//! Deliberately the same shape as the case above with ONE variable changed - the waypoint type - so
+//! the pair is a controlled experiment: both red means the tick is dead, this one alone means the
 //! classification is.
 //!
-//! Tolerance: 0.5 m of XZ. The ground snap moves only Y and is not measured; 0.5 m is below the
-//! smallest step the tick could take at the default speed in a single pass (1.5 m/s x 2 s = 3 m) and
-//! above floating-point noise. No exact boundary is asserted (vector.Distance is +1 ULP off at 1000 m
-//! and 2000 m).
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! OVT_VirtualMovementMath.IsStationaryPlan() return false unconditionally and this case goes red with
-//! the metres a DEFEND garrison walked, while the case above stays green.
+//! Tolerance 0.5 m of XZ: below the smallest step a pass could take (1.5 m/s x 2 s) and above
+//! floating-point noise. No exact boundary is asserted.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_VirtualMovement_StationaryPlanIsNeverAdvanced : SCR_AutotestCaseBase
@@ -4411,34 +4143,19 @@ class OVT_TEST_Init_VirtualMovement_StationaryPlanIsNeverAdvanced : SCR_Autotest
 //------------------------------------------------------------------------------------------------
 //! THE MOVEMENT MANAGER RESOLVES, AND ITS TRANSIENT STATE DOES NOT LEAK.
 //!
-//! Two claims, both of them cheap to break and impossible to see:
-//!   - OVT_Global.GetVirtualMovement() answers, which is the only proof in the suites that the manager
-//!     is actually ON the game-mode prefab (it was text-wired, not added in Workbench) and that its
-//!     accessor re-resolves. Every other movement claim in the tree is silently vacuous without it.
-//!   - the tracked count returns to 0 once nothing is registered, and a group whose PLAN cannot move
-//!     never contributes to it at all.
+//! OVT_Global.GetVirtualMovement() answering is the only proof in the suites that the manager is on
+//! the game-mode prefab (it was text-wired, not added in Workbench); every other movement claim is
+//! silently vacuous without it. The tracked count must return to 0 once nothing is registered.
 //!
-//! ⚠ WHY "A GARRISON CONTRIBUTES 0" IS THE RIGHT CLAIM. Progress is tracked per handle in a transient
-//! map, and the manager deliberately keeps NO entry for a group whose plan is empty, null or
-//! DEFEND-only: such a group is re-classified cheaply on each pass instead. That is what keeps the map
-//! empty in a campaign full of garrisons - the realistic shape of a real deployment - so a registered
-//! DEFEND group leaving the count at 0 is the property worth asserting. (A group that latches
-//! stationary at RUNTIME, having reached a DEFEND point, KEEPS its entry on purpose: dropping it would
-//! let the next pass re-derive a movable plan and walk the group straight off the post it just took
-//! up. This case does not exercise that path, and must not be "fixed" to expect 0 for it.)
+//! ⚠ A group whose plan is empty, null or DEFEND-only keeps NO entry in the transient map - it is
+//! re-classified cheaply each pass instead, which is what keeps the map empty in a campaign full of
+//! garrisons. A group that latches stationary at RUNTIME, having reached a DEFEND point, KEEPS its
+//! entry on purpose: dropping it would let the next pass re-derive a movable plan and walk the group
+//! off the post it just took up. This case does not exercise that path and must not be "fixed" to
+//! expect 0 for it.
 //!
-//! The count is settled first, with a bounded poll: the cases above register groups that DO track, and
-//! the map is emptied by the tick rather than by UnregisterGroup, so "0" is a state this case waits
-//! for rather than assumes. That wait IS the no-leak assertion.
-//!
-//! GetTrackedCount() is a read-only diagnostic on the manager, not part of any API: nothing in the
-//! feature calls it and no consumer should.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
-//! `if (state.m_bStationary) return;` guard that follows DeriveState() in AdvanceHandle() - so a
-//! plan-stationary group is inserted into the map like any other - and the garrison assertion goes red
-//! with a tracked count of 1; delete the `m_mState.Clear()` in the tick's empty-registry branch and the
-//! settle poll goes red naming the handles left behind.
+//! The count is settled with a bounded poll, and that wait IS the no-leak assertion.
+//! GetTrackedCount() is a read-only diagnostic, not part of any API.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_VirtualMovement_ManagerResolvesAndDoesNotLeak : SCR_AutotestCaseBase
@@ -4614,20 +4331,12 @@ class OVT_TEST_Init_VirtualMovement_ManagerResolvesAndDoesNotLeak : SCR_Autotest
 //! A waypoint plan becomes real AIWaypoint entities the record OWNS - and unregistering deletes
 //! every one of them along with the group entity.
 //!
-//! D6, the defect that was present in every other spawner in this tree: the deployments framework's
-//! shared group cleanup detached waypoints without deleting them, so a spawn/despawn cycle leaked one
-//! entity per waypoint forever (that helper and its file were deleted outright in
-//! virtualization/integration Phase 5; the leak survives elsewhere - see OVT_GMWaypointWalk's header).
-//! In 1.8 waypoints are also persistence-tracked, so a leak is save bloat as well as entity
-//! growth. This case is the automated half of Q5 (the other half is a 20-cycle play-test).
+//! D6: the deployments framework's shared group cleanup detached waypoints without deleting them, so
+//! a spawn/despawn cycle leaked one entity per waypoint forever. In 1.8 waypoints are also
+//! persistence-tracked, so a leak is save bloat too.
 //!
-//! The deletion assertions poll rather than reading the same frame: entity deletion is committed by
-//! the engine at end of frame, so "gone immediately" would be asserting something that is not true
-//! of any Enfusion deletion. The bound is a diagnostic ceiling, not a retry budget.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): comment out the DeleteOwnedWaypoints call in
-//! UnregisterGroup and the poll times out naming the surviving waypoints; drop the
-//! record.m_aOwnedWaypoints.Insert() in BuildOwnedWaypoints and the ownership count goes red first.
+//! The deletion assertions poll rather than reading the same frame - entity deletion is committed at
+//! end of frame. The bound is a diagnostic ceiling, not a retry budget.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_WaypointsAreOwnedAndDeleted : SCR_AutotestCaseBase
@@ -4797,17 +4506,10 @@ class OVT_TEST_Init_Virtualization_WaypointsAreOwnedAndDeleted : SCR_AutotestCas
 //------------------------------------------------------------------------------------------------
 //! Deaths flip the per-slot mask, and killing the last living slot wipes the record.
 //!
-//! D2 in one case. ReportMemberKilled is the public death seam (the internal kill hook calls exactly
-//! this), so the whole survivor-truth contract is assertable with no world combat: a reported death
-//! must reduce the alive count by one AND mark that specific slot, re-reporting the same slot must
-//! change nothing (a double-report would wipe a live group early), and the last death must fire
-//! OnGroupWiped BEFORE the record disappears - subscribers are documented as able to read the record
-//! they are being told about.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): make ReportMemberKilled skip its
-//! `if (record.m_aSlotAlive[slotIndex] == 0) return;` guard and the idempotence assertion goes red;
-//! move the m_OnGroupWiped.Invoke() call to after m_mRecords.Remove() and the "record still readable
-//! when the invoker fires" assertion goes red.
+//! ReportMemberKilled is the public death seam, so the survivor-truth contract is assertable with no
+//! world combat: a death reduces the alive count and marks that specific slot, re-reporting the same
+//! slot changes nothing (a double-report would wipe a live group early), and the last death fires
+//! OnGroupWiped BEFORE the record disappears - subscribers are documented as able to read it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_DeathsFlipMaskAndWipeRecord : SCR_AutotestCaseBase
@@ -4941,24 +4643,17 @@ class OVT_TEST_Init_Virtualization_DeathsFlipMaskAndWipeRecord : SCR_AutotestCas
 //------------------------------------------------------------------------------------------------
 //! The survivor mask - not the agent count - decides which roster slot the engine refills.
 //!
-//! Vanilla's ExpandOneMember always spawns `slotIndex == current agent count` (SCR_AIGroup.c:2731),
-//! a first-N refill that structurally destroys identity: a group that lost only its slot-0
-//! machinegunner comes back with the MG alive and a tail rifleman missing instead. Core overrides
-//! that seam. Two claims, at two strengths:
+//! Vanilla's ExpandOneMember always spawns `slotIndex == current agent count`, a first-N refill that
+//! structurally destroys identity: a group that lost only its slot-0 machinegunner comes back with
+//! the MG alive and a tail rifleman missing. Core overrides that seam. Two claims:
 //!
-//!   1. UNCONDITIONAL - the group carries the record's LIVE mask (they share one array, so a death
-//!      recorded through the manager is visible to the refill seam with no push), the refill
-//!      selector applied to that mask picks the surviving slot rather than slot 0, and the group does
+//!   1. UNCONDITIONAL - the group carries the record's LIVE mask (one shared array, so a death needs
+//!      no push), the refill selector picks the surviving slot rather than slot 0, and the group does
 //!      not consider itself fully expanded while a survivor is unmaterialised.
-//!   2. CONDITIONAL - if this world will actually materialise a member (the navmesh tile under the
-//!      test position has to be available), the member that appears must occupy the SURVIVING slot.
-//!      That is the runtime proof that SpawnGroupMember accepts an arbitrary slot index, which the
-//!      Phase 1 spike never obtained. It is conditional because a world that cannot spawn anyone
-//!      proves nothing either way - but it can only ever fail loudly, never pass falsely.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded): make ExpandOneMember's override fall through to
-//! super.ExpandOneMember() unconditionally and claim 2 goes red with "slot 0"; make PushSlotMask copy
-//! the array instead of sharing it and claim 1's "the group sees the death" assertion goes red.
+//!   2. CONDITIONAL - where this world will actually materialise a member, it must occupy the
+//!      SURVIVING slot. That is the runtime proof SpawnGroupMember accepts an arbitrary slot index.
+//!      Conditional because a world that cannot spawn anyone proves nothing - but it can only ever
+//!      fail loudly, never pass falsely.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_MaskDrivesSlotSelection : SCR_AutotestCaseBase
@@ -5100,44 +4795,24 @@ class OVT_TEST_Init_Virtualization_MaskDrivesSlotSelection : SCR_AutotestCaseBas
 
 //------------------------------------------------------------------------------------------------
 //! A SAVED RECORD WHOSE FACTION KEY NO LONGER RESOLVES IS DROPPED - AND ONE THAT STILL CARRIES A
-//! VALID PREFAB SURVIVES ON IT (R3 / D3, implementation.md T6.3).
+//! VALID PREFAB SURVIVES ON IT (R3 / D3).
 //!
-//! WHY THIS CASE EXISTS. A faction mod is removed, or a registry entry is renamed, and a campaign's
-//! save still names it. Three outcomes are possible and only one is acceptable: the load CRASHES, the
-//! record is RESURRECTED as something else (a Soviet garrison coming back as whatever prefab happened
-//! to answer), or the record is DROPPED with a warning naming the key. Core promises the third, through
-//! the three-step resolution in ResolvePersistedComposition:
-//!   1. faction KEY -> Overthrow faction -> group registry NAME -> prefab,
-//!   2. the prefab that was resolved when the group was first registered, stored for exactly this case,
-//!   3. neither: drop, with a WARNING naming the faction key and the group name.
-//! Steps 2 and 3 are the ones a live campaign never exercises, so they are the ones that rot silently.
+//! A faction mod is removed, or a registry entry renamed, and a save still names it. Core's
+//! three-step ResolvePersistedComposition: faction KEY -> registry NAME -> prefab; else the prefab
+//! stored at first registration; else drop with a warning. ⚠ Steps 2 and 3 are the ones a live
+//! campaign never exercises, so they are the ones that rot silently.
 //!
-//! BOTH BRANCHES IN ONE PASS, because they are one decision. A payload naming a dead faction key is
-//! applied twice over: once with NO stored prefab (must be dropped) and once WITH a stored prefab that
-//! this world can still load (must survive, on the prefab). Asserting only the drop would pass just as
-//! happily if resolution had been reduced to "faction key or nothing", which would silently delete every
-//! record of any renamed registry entry.
+//! Both branches in one pass, because they are one decision: the same dead-key payload is applied
+//! with NO stored prefab (must drop) and WITH one this world can load (must survive). Asserting only
+//! the drop would pass just as happily if resolution were reduced to "faction key or nothing".
 //!
-//! HOW IT DRIVES THE RESTORE WITHOUT A SAVE. ApplyPersistedRegistry() is the manager's public write
-//! seam - the serializer is a pure codec over it - so a hand-built payload exercises the exact code a
-//! load runs, at Init tier, in one frame (the restore is synchronous by design; only the announcement is
-//! deferred). The live registry is SNAPSHOTTED into that payload first, because a restore drops
-//! everything the payload does not claim: without the snapshot this case would unregister any group a
-//! neighbouring case is holding, and the count assertion below is what proves it did not.
+//! ApplyPersistedRegistry() is the manager's public write seam, so a hand-built payload exercises
+//! exactly what a load runs. ⚠ The live registry is SNAPSHOTTED into the payload first, because a
+//! restore drops everything the payload does not claim - without it this case would unregister a
+//! neighbouring case's groups.
 //!
-//! The WARNING text itself is not asserted (no test tier can read the log); what is asserted is the
-//! behaviour it accompanies. The dropped record must leave NOTHING behind - no record, no group entity,
-//! no FindGroupsByOwner hit - because a half-dropped record is a group in the world that nothing owns.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run):
-//!   - delete the `if (entry.resolvedPrefab != ResourceName.Empty)` fallback branch from
-//!     ResolvePersistedComposition and the second record is dropped too: the "survives on the stored
-//!     prefab" assertion goes red;
-//!   - make that method's final `return ResourceName.Empty` return the fixture prefab instead (i.e.
-//!     resurrect anything, rather than dropping it) and the first record comes back: the "dropped"
-//!     assertion goes red;
-//!   - drop the `m_mRecords.Remove(record.m_iHandle)` from the build-failure path and the registry count
-//!     assertion goes red.
+//! The warning TEXT is not asserted (no tier can read the log). The dropped record must leave
+//! NOTHING behind - no record, no group entity, no FindGroupsByOwner hit.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_MissingFactionRecordIsDropped : SCR_AutotestCaseBase
@@ -5295,18 +4970,15 @@ class OVT_TEST_Init_Virtualization_MissingFactionRecordIsDropped : SCR_AutotestC
 }
 
 //------------------------------------------------------------------------------------------------
-//! Test-only ambient source config (Phase 4, T4.8).
+//! Test-only ambient source config.
 //!
-//! Exists to answer one question the manager cannot be asked directly: when core needs a roll, does
-//! it call the CONFIG's overridable method, or does it reach past it to the arithmetic helper? The
-//! two answers are distinguishable because this subclass deliberately DISAGREES with its own
-//! authored min/max: the attributes say 1, the override says ROLLED_COUNT (2). Core calling
-//! RollCount() therefore produces exactly ROLLED_COUNT prefab rolls; core calling
-//! OVT_VirtualizationMath.RollCountSafe(m_iMinCount, m_iMaxCount) behind its back produces 1.
+//! Answers one question the manager cannot be asked directly: when core needs a roll, does it call
+//! the CONFIG's overridable method or reach past it to the arithmetic helper? This subclass
+//! deliberately DISAGREES with its own authored min/max - attributes say 1, the override says
+//! ROLLED_COUNT (2) - so the two answers are distinguishable.
 //!
-//! RollPrefab() deliberately returns ResourceName.Empty: this case is about the rolls, not about the
-//! world, so nothing is ever spawned, nothing has to be cleaned up out of the world, and the case
-//! cannot be made red by a prefab that will not fit on the test terrain.
+//! RollPrefab() returns ResourceName.Empty on purpose: nothing is spawned, nothing needs cleaning
+//! out of the world, and the case cannot be reddened by a prefab that will not fit on the terrain.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_AmbientCountingConfig : OVT_AmbientSpawnSourceConfig
 {
@@ -5334,24 +5006,15 @@ class OVT_TEST_AmbientCountingConfig : OVT_AmbientSpawnSourceConfig
 //------------------------------------------------------------------------------------------------
 //! A registered ambient source resolves, is counted, and takes nothing with it when it goes.
 //!
-//! Registration is the seam `civilians` is being written against, and three separate things about it
-//! have to be true before any consumer can rely on it:
-//!   - registration SPAWNS NOTHING (the source is dormant until an observer arrives, which is what
-//!     makes it safe to register a whole town's worth of sources at campaign start),
+//! Three things must be true before any consumer can rely on the seam:
+//!   - registration SPAWNS NOTHING (dormant until an observer arrives, which is what makes it safe
+//!     to register a whole town's worth of sources at campaign start),
 //!   - the source is counted, so a consumer can tell "registered" from "silently refused",
 //!   - unregistering removes exactly one source and is idempotent - a second call must answer false
 //!     rather than corrupting the round-robin order behind it.
 //!
-//! The config is built in code with NO prefabs, deliberately: core ships zero authored ambient
-//! content (the Definition of Done greps Configs/ to prove it), so a test that needed authored
-//! content would be testing something core does not have.
-//!
-//! Init tier: registration is a pure registry operation with no campaign state behind it.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! RegisterAmbientSource return its handle without inserting into m_aAmbientOrder and the
-//! "unregister returned false" assertion goes red (the order array and the map disagree); make
-//! UnregisterAmbientSource return true unconditionally and the idempotence assertion goes red.
+//! The config is built in code with NO prefabs: core ships zero authored ambient content, so a test
+//! needing authored content would be testing something core does not have.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_AmbientSourceRegisters : SCR_AutotestCaseBase
@@ -5443,30 +5106,18 @@ class OVT_TEST_Init_Virtualization_AmbientSourceRegisters : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! The CONFIG's overridden RollCount() is the one core calls - not the arithmetic behind it.
 //!
-//! This is the modder seam the whole ambient design rests on (G6): a subclass overrides a roll, a
-//! .conf names the subclass, and no core code changes. If core ever "optimised" that into a direct
+//! The modder seam the whole ambient design rests on: a subclass overrides a roll, a .conf names the
+//! subclass, no core code changes. ⚠ If core ever "optimised" that into a direct
 //! RollCountSafe(m_iMinCount, m_iMaxCount) call, every subclass in every consumer mod would silently
-//! stop being consulted and nothing else in the tree would notice - the source would still spawn, it
-//! would just spawn the authored numbers instead of the overridden ones.
+//! stop being consulted - the source would still spawn, just with the authored numbers.
 //!
-//! HOW IT IS PROVEN. OVT_TEST_AmbientCountingConfig authors min == max == 1 but overrides RollCount()
-//! to return 2, so the two implementations are distinguishable by counting how many times core asks
-//! for a prefab in one activation: 2 means the override was consulted, 1 means it was bypassed.
+//! OVT_TEST_AmbientCountingConfig authors min == max == 1 but overrides RollCount() to return 2, so
+//! counting prefab requests in one activation distinguishes the two: 2 means consulted, 1 bypassed.
+//! To make an activation happen the case parks a LOCAL OBSERVER on the source position through the
+//! engine's own ObserversSystem and waits out the 2 s ambient tick.
 //!
-//! To make an activation happen at all, the case parks a LOCAL OBSERVER on the source position
-//! through the engine's own ObserversSystem - the same set core asks (D11) - and then waits out the
-//! 2 s ambient tick. Nothing is spawned into the world: the subclass's RollPrefab() returns
-//! ResourceName.Empty on purpose.
-//!
-//! WHEN THIS WORLD CANNOT ACTIVATE (no ObserversSystem, or a fixed observer this build does not
-//! honour) the case falls back to asserting virtual dispatch through a BASE-TYPED reference - the
-//! same shape the manager holds - and says so in the log, exactly as the Phase 3 refill case does
-//! when the test terrain cannot materialise a member. It never passes silently on the weaker claim.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): replace
-//! `instance.BeginActivation(config.RollCount())` in EvaluateAmbientSource with
-//! `instance.BeginActivation(OVT_VirtualizationMath.RollCountSafe(config.m_iMinCount, config.m_iMaxCount))`
-//! and the prefab-roll assertion goes red with 1 instead of 2.
+//! Where this world cannot activate, it falls back to asserting virtual dispatch through a
+//! BASE-TYPED reference and says so in the log. It never passes silently on the weaker claim.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Virtualization_AmbientRollCountOverrideIsCalled : SCR_AutotestCaseBase
@@ -5518,12 +5169,10 @@ class OVT_TEST_Init_Virtualization_AmbientRollCountOverrideIsCalled : SCR_Autote
 			return true;
 		}
 
-		// NO parked observer. InsertObserverSP with a null entity has ZERO vanilla callers (the only
-		// null-entity insert in the 1.8 tree is the MP variant, SCR_SpawnRequestComponent.c:541), and
-		// the one All-group run that parked one here froze the main thread the moment this case began
-		// (2026-08-17, logs_2026-08-17_02-09-05: script silence from the case's first frame, harness
-		// per-case timeout never fired). In a world with real observers (the All group's player) the
-		// source activates off them; in a world with none, the documented fallback assertion runs.
+		// ⚠ NO parked observer. InsertObserverSP with a null entity has ZERO vanilla callers, and the one
+		// All-group run that parked one here froze the main thread the moment this case began. In a
+		// world with real observers the source activates off them; in a world with none, the documented
+		// fallback assertion runs.
 		m_iPhase = 1;
 		return false;
 	}
@@ -5600,20 +5249,13 @@ class OVT_TEST_Init_Virtualization_AmbientRollCountOverrideIsCalled : SCR_Autote
 //------------------------------------------------------------------------------------------------
 //! ReleaseAmbientEntity() answers false for an entity that was never ambient.
 //!
-//! Release is an OWNERSHIP TRANSFER, and the honest "no" matters as much as the yes: `civilians`
-//! calls it on whatever the player just recruited, which is very often a character some other
-//! Overthrow system spawned. If an unknown entity answered true, the caller would believe it had
-//! taken ownership of something no source is tracking - and a future vehicle-theft path would think
-//! it had un-ambient'd a vehicle that was never ambient in the first place.
+//! Release is an OWNERSHIP TRANSFER and the honest "no" matters as much as the yes: `civilians`
+//! calls it on whatever the player just recruited, very often a character some other Overthrow
+//! system spawned. An unknown entity answering true would have the caller believe it had taken
+//! ownership of something no source is tracking.
 //!
 //! The subject is the game-mode entity: unambiguously not ambient, guaranteed to exist, and
 //! guaranteed not to be deleted by a wrong answer.
-//!
-//! Init tier: a pure registry lookup with no campaign state behind it.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! ReleaseAmbientEntity return true when the reverse-map lookup misses and this case goes red
-//! immediately.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_ReleaseUnknownAmbientEntity : SCR_AutotestCaseBase
@@ -5666,18 +5308,15 @@ class OVT_TEST_Init_Virtualization_ReleaseUnknownAmbientEntity : SCR_AutotestCas
 }
 
 //------------------------------------------------------------------------------------------------
-//! Test-only ambient source config for the two hooks `civilians` added to the seam (T1.7).
+//! Test-only ambient source config for the two hooks `civilians` added to the seam.
 //!
-//! Both overrides deliberately DISAGREE with the base class, and both count their calls, so a call
-//! made through a base-typed reference - the shape the manager holds - is distinguishable from a
-//! call that reached the base implementation instead:
-//!   - IsEntityDead() answers whatever m_bAnswer says, where the base would answer false for any
-//!     entity that carries no damage manager;
-//!   - OnEntityPruned() bumps a counter, where the base does nothing observable at all.
+//! Both overrides deliberately DISAGREE with the base class and count their calls, so a call made
+//! through a base-typed reference is distinguishable from one that reached the base implementation:
+//! IsEntityDead() answers m_bAnswer where the base answers false for any entity with no damage
+//! manager; OnEntityPruned() bumps a counter where the base does nothing observable.
 //!
-//! This is the shape a group-tracking source (one civilian = one one-man group) is forced into: a
-//! group entity has no SCR_DamageManagerComponent, so the base predicate answers false forever and a
-//! dead civilian would never be pruned.
+//! This is the shape a group-tracking source is forced into: a group entity has no
+//! SCR_DamageManagerComponent, so the base predicate answers false forever.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_AmbientDeadCheckConfig : OVT_AmbientSpawnSourceConfig
 {
@@ -5705,39 +5344,23 @@ class OVT_TEST_AmbientDeadCheckConfig : OVT_AmbientSpawnSourceConfig
 //! The config's IsEntityDead() / OnEntityPruned() are overridable, and the default of the first one
 //! is the manager's old inline damage-state check.
 //!
-//! Two claims, and the second is the one that keeps the additive change additive:
-//!
 //!  1. VIRTUAL DISPATCH THROUGH A BASE-TYPED REFERENCE. The manager holds its config as an
-//!     OVT_AmbientSpawnSourceConfig (OVT_AmbientSpawnSourceInstance.m_Config), so a subclass's
-//!     override is only reachable if the seam is virtual through exactly that type. `civilians`
-//!     cannot work at all without it: its tracked entity is a GROUP, which carries no damage
-//!     manager, so the base predicate would answer false forever and its dead civilians would never
-//!     be pruned - the crowd would accumulate corpse groups and their waypoints for the whole
-//!     session.
-//!  2. THE DEFAULT DID NOT CHANGE. Every ambient source written before these hooks existed relies on
-//!     "destroyed means dead, and an entity with no damage manager is not dead". That is asserted
-//!     directly on a stock config, because the whole justification for moving the check onto the
-//!     config class was that nothing else would notice.
+//!     OVT_AmbientSpawnSourceConfig, so a subclass's override is only reachable if the seam is
+//!     virtual through exactly that type. `civilians` cannot work without it: its tracked entity is
+//!     a GROUP, which carries no damage manager, so the base predicate answers false forever and its
+//!     dead civilians would never be pruned.
+//!  2. THE DEFAULT DID NOT CHANGE - "destroyed means dead, and an entity with no damage manager is
+//!     not dead", asserted directly on a stock config, because the whole justification for moving
+//!     the check onto the config class was that nothing else would notice.
 //!
-//! The subject entity is the game-mode entity: it is guaranteed to exist, no answer this case gets
-//! can delete it, and the default's verdict on it is `false` either way - it carries no damage
-//! manager, and it would have to be DESTROYED for the answer to change if it ever grew one.
+//! The subject is the game-mode entity: guaranteed to exist, no answer can delete it, and the
+//! default's verdict on it is false either way.
 //!
-//! WHAT THIS CASE DELIBERATELY DOES NOT DO. It does not wait for a real prune. Getting the manager
-//! to call the hook needs a source that has ACTIVATED and SPAWNED, which needs an observer this
-//! world may not have (the precedent case above documents the same limitation for RollCount) - and
-//! then needs that spawned entity to actually die. The base-typed call here is the same call the
-//! manager makes, one frame later and with the same reference type.
+//! It deliberately does NOT wait for a real prune - that needs an activated source, an observer this
+//! world may not have, and then a death. The base-typed call here is the manager's own call.
 //!
-//! Init tier: no campaign state, and the registration half is a pure registry operation.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! OVT_AmbientSpawnSourceConfig.IsEntityDead() `return true;` unconditionally and the
-//! "the default keeps a live entity" assertion goes red - that edit is exactly the regression that
-//! would make every existing source prune its entire crowd on its first tick. Delete the base's
-//! `if (!entity) return false;` guard and the null assertion faults instead of answering false.
 //! The call counters are what a non-virtual seam would show: they stay 0 while the assertions on the
-//! ANSWERS still pass, which is why both are asserted and not just the answers.
+//! ANSWERS still pass, which is why both are asserted.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_AmbientDeadCheckOverrideIsCalled : SCR_AutotestCaseBase
@@ -5858,30 +5481,16 @@ class OVT_TEST_Init_Virtualization_AmbientDeadCheckOverrideIsCalled : SCR_Autote
 //! civilianDensityMultiplier, maxCiviliansPerTown and despawnCiviliansDuringQRF exist in the config
 //! struct and read back their defaults.
 //!
-//! These are the operator-facing knobs for town ambience: a server owner edits them in
-//! $profile:Overthrow_Config.json and every town's crowd size moves with no code change. Both are
-//! asserted for the same reason the virtualization distance above is - a field silently missing from
-//! SetDefaults() reads back 0, and 0 is a MEANINGFUL value for both of them:
+//! ⚠ A field silently missing from SetDefaults() reads back 0, and 0 is MEANINGFUL for both
+//! magnitudes: a multiplier of 0 is the documented "no civilians on this server" switch, and a cap
+//! of 0 means UNCAPPED. Either would look like a deliberate setting rather than a bug.
 //!
-//!  - a multiplier of 0 is the documented "no civilians on this server" switch, so a missing default
-//!    would empty every town on every server and look exactly like a deliberate setting;
-//!  - a cap of 0 means UNCAPPED, so a missing default would silently remove the per-town ceiling
-//!    that bounds how many civilians one town may spawn.
+//! despawnCiviliansDuringQRF must default to FALSE - a town keeps its crowd while its QRF is fought,
+//! a deliberate change from the pre-migration game because players recruit civilians specifically to
+//! help fight it. A bool missing from SetDefaults() also reads back false, so this assertion is a
+//! statement of intent that survives somebody "tidying" the default away.
 //!
-//! The third knob is a BEHAVIOUR DEFAULT, not a magnitude, and it is asserted for a different reason:
-//! despawnCiviliansDuringQRF must default to FALSE, i.e. a town keeps its crowd while its QRF is
-//! fought. That is a deliberate change from the pre-migration game (civilians D13, user amendment
-//! 2026-08-17) - players recruit civilians specifically to help fight the QRF, and the old
-//! always-despawn was a performance shortcut. A bool missing from SetDefaults() reads back false too,
-//! so this assertion is a statement of intent that survives somebody "tidying" the default away.
-//!
-//! No field here is in the JIP config bitstream (RplSave/RplLoad), which is why CONFIG_STREAM_VERSION
-//! did not move for them - that is asserted by the stream version being untouched at 3, not here.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
-//! `civilianDensityMultiplier = 1.0;` line from OVT_OverthrowConfigStruct.SetDefaults() and this case
-//! fails with 0; delete `maxCiviliansPerTown = 30;` and it fails with 0 for the cap; change
-//! `despawnCiviliansDuringQRF = false;` to `= true;` and the QRF assertion fails.
+//! No field here is in the JIP config bitstream, which is why CONFIG_STREAM_VERSION did not move.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_AmbienceConfigDefaults : SCR_AutotestCaseBase
@@ -5986,28 +5595,14 @@ class OVT_TEST_CivilianAmbienceFixture
 //------------------------------------------------------------------------------------------------
 //! The authored ambient registry is wired, and it carries a town crowd of the right CLASS.
 //!
-//! WHY THE CLASS MATTERS AND NOT JUST THE NAME. The manager casts what the registry hands it to
-//! OVT_CivilianAmbienceConfig and refuses anything else, because everything a per-town instance
-//! reads - the civilian type pool, the archetypes, the population rate - lives on the subclass. A
-//! `.conf` that named the source correctly but authored it as the base class would resolve, cast to
-//! null, log a warning nobody reads, and leave every town in the campaign empty. That failure is
-//! silent in play (an empty town looks like an unlucky roll) and it is exactly what this asserts.
+//! ⚠ The CLASS matters, not just the name. The manager casts what the registry hands it to
+//! OVT_CivilianAmbienceConfig and refuses anything else, because the civilian type pool, the
+//! archetypes and the population rate all live on the subclass. A .conf that named the source
+//! correctly but authored it as the base class would resolve, cast to null, log a warning nobody
+//! reads, and leave every town empty - which looks like an unlucky roll, not a bug.
 //!
-//! It also pins the PARITY NUMBERS, because they are the whole claim of the migration phase: the
-//! authored rate, the two density clamps and "ride the global spawn distance" are what make the new
-//! crowd the same size as the crowd the retired spawner built. A `.conf` edit that changed one of
-//! them by accident would be invisible until somebody counted civilians in a city.
-//!
-//! Init tier: reading an authored registry off the game-mode prefab needs no campaign state.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
-//! m_AmbientRegistry line from Prefabs/GameMode/OVT_OverthrowGameMode.et and this reports "the
-//! virtualization manager has no ambient registry"; change m_sSourceName in
-//! Configs/Civilians/CivilianAmbience.conf and it reports the name miss; author the entry as
-//! OVT_AmbientSpawnSourceConfig instead of OVT_CivilianAmbienceConfig and it reports the class miss;
-//! change m_fPopulationRate to 0.2 and the parity assertion goes red; point any type's
-//! m_rGroupPrefab at a prefab other than the shared Group_CIV.et and the pool assertion names that
-//! type.
+//! It also pins the PARITY NUMBERS - the authored rate, the two density clamps and "ride the global
+//! spawn distance" - which are what make the new crowd the same size as the retired spawner's.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_AmbienceRegistryResolves : SCR_AutotestCaseBase
@@ -6135,33 +5730,17 @@ class OVT_TEST_Init_Civilians_AmbienceRegistryResolves : SCR_AutotestCaseBase
 //! A per-town instance built from the authored template is bound to ONE town, reads the template BY
 //! REFERENCE, and reads that town's population LIVE.
 //!
-//! THE THREE CLAIMS, and each one is a different way the migration could be quietly wrong:
-//!
-//!  1. THE TEMPLATE IS SHARED, NOT COPIED (decision D5). The instance must hand back the very object
-//!     the registry holds. A builder that copied fields would compile, work today, and silently drop
-//!     every attribute added to the template afterwards - the classic drift bug this design exists to
-//!     make impossible.
+//!  1. THE TEMPLATE IS SHARED, NOT COPIED (D5). A builder that copied fields would compile, work
+//!     today, and silently drop every attribute added to the template afterwards.
 //!  2. THE RADIUS IS THE TOWN'S, NOT THE TEMPLATE'S. One authored radius shared by a city and a
-//!     hamlet would scatter a village's civilians into the next valley. The controller's authored
-//!     range is what has to win.
-//!  3. THE POPULATION IS NEVER BAKED. RollCount() is asked once per activation, and the number it
-//!     answers has to follow the town's CURRENT population - a town that was depopulated (or grew)
-//!     since the last visit must get the new figure with no re-registration. This is asserted by
-//!     moving the town's population to 0 and re-rolling: 0 population beats the authored minimum
-//!     clamp, so an instance that had cached the population at build time answers the old figure and
-//!     the case goes red.
+//!     hamlet would scatter a village's civilians into the next valley.
+//!  3. THE POPULATION IS NEVER BAKED. RollCount() must follow the town's CURRENT population with no
+//!     re-registration. Asserted by moving the town's population to 0 and re-rolling: 0 beats the
+//!     authored minimum clamp, so an instance that cached at build time answers the old figure.
 //!
-//! NOTHING IS REGISTERED. The instance is built and asked directly, so this case cannot leave an
-//! ambient source behind for the cases after it, and it needs no observer to activate.
-//!
-//! THE TOWN'S POPULATION IS RESTORED BEFORE THE VERDICT IS REPORTED, on every path, so a red
-//! assertion here cannot corrupt the campaign state the town cases assert.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! BuildTownSource() copy the template's fields into a fresh OVT_CivilianAmbienceConfig instead of
-//! binding the object and claim 1 goes red; drop the controller argument so the radius falls back to
-//! the template and claim 2 goes red; cache the population in Bind() and read the cached copy in
-//! RollCount() and claim 3 goes red.
+//! Nothing is registered - the instance is built and asked directly, so no ambient source is left
+//! behind and no observer is needed. The town's population is restored before the verdict is
+//! reported, on every path.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_PerTownSourceBinds : SCR_AutotestCaseBase
@@ -6287,20 +5866,13 @@ class OVT_TEST_Init_Civilians_PerTownSourceBinds : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! The civilian ambience manager is on the game mode and resolves through OVT_Global.
 //!
-//! WHY IT IS WORTH A CASE OF ITS OWN. Everything this feature does hangs off one component entry in
-//! Prefabs/GameMode/OVT_OverthrowGameMode.et, and a prefab entry that is dropped or re-saved without
-//! it fails SILENTLY: the scripts still compile, ActivateTown() finds a null manager and returns, and
-//! every town in the campaign simply has no civilians - which looks like content, not like a bug.
+//! Everything this feature does hangs off one component entry on the game-mode prefab, and a dropped
+//! or re-saved entry fails SILENTLY: ActivateTown() finds a null manager and returns, and every town
+//! has no civilians - which looks like content, not a bug.
 //!
-//! It also pins the accessor to the component ON THE GAME MODE ENTITY, because the static is
-//! deliberately re-resolved across a world: a manager left over from a previous campaign in the same
-//! session must be dropped rather than handed out, and "the instance belongs to the game mode that
-//! exists now" is exactly that guarantee.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
-//! OVT_CivilianAmbienceManagerComponent entry from the game-mode prefab and this reports the null
-//! accessor; make GetInstance() return the cached static without re-checking its owner and the
-//! "belongs to the current game mode" assertion stops being meaningful (it is asserted directly).
+//! It pins the accessor to the component ON THE GAME MODE ENTITY, because the static is deliberately
+//! re-resolved across a world: a manager left over from a previous campaign in the same session must
+//! be dropped rather than handed out.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_ManagerResolves : SCR_AutotestCaseBase
@@ -6358,31 +5930,18 @@ class OVT_TEST_Init_Civilians_ManagerResolves : SCR_AutotestCaseBase
 //! Releasing a civilian that was never ambient does nothing at all - and above all does not destroy
 //! anything.
 //!
-//! WHY THIS IS THE MOST IMPORTANT SAFETY CASE IN THE PHASE. The release runs inside
-//! OVT_RecruitManagerComponent.RecruitCivilian(), which is the single chokepoint BOTH recruit paths
-//! funnel through - the civilian a player walks up to AND the recruit spawned at a tent. The tent
-//! recruit was never ambient, so it arrives here every single time somebody recruits at a tent. A
-//! release path that reached for a group, a husk or a waypoint set that was not its own would delete
-//! part of a player's recruit at the moment they paid for it.
+//! ⚠ The release runs inside OVT_RecruitManagerComponent.RecruitCivilian(), the single chokepoint
+//! BOTH recruit paths funnel through. The tent recruit was never ambient, so it arrives here every
+//! single time somebody recruits at a tent; a release path that reached for a group, a husk or a
+//! waypoint set that was not its own would delete part of a player's recruit as they paid for it.
 //!
-//! THE ASSERTIONS ARE THEREFORE ABOUT ABSENCE: the call answers false, the character is still in the
-//! world afterwards, and no town's source count moved. Null is asserted first because it is the
-//! cheapest way for the whole path to fault.
+//! The assertions are therefore about ABSENCE: the call answers false, the character is still in the
+//! world, and no town's source count moved. Null is asserted first as the cheapest way to fault.
 //!
-//! THE SUBJECT IS A REAL CHARACTER, spawned from the recruit prefab - the same idiom the reservation
-//! case uses - because the resolution being exercised (character -> AI control -> agent -> parent
-//! group) has nothing to walk on a bare entity. Its AI is activated so the deeper half of that walk
-//! is reached where the world allows it; whether an agent materialises inside the poll budget is
-//! reported, not asserted, because member spawning goes through the engine's queue and the answer
-//! must be `false` either way.
-//!
-//! Init tier: no campaign state is read, and the subject is created and destroyed by the case.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! ReleaseRecruitedCivilian() return true without consulting the ambient seam and the "claimed a
-//! character no source owns" assertion goes red; make it delete the resolved group before checking
-//! the seam's answer and the "the character survived" assertion goes red; remove the null guard and
-//! the first step faults.
+//! The subject is a REAL character from the recruit prefab, because the resolution being exercised
+//! (character -> AI control -> agent -> parent group) has nothing to walk on a bare entity. Whether
+//! an agent materialises inside the poll budget is reported, not asserted - the answer must be
+//! `false` either way.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Civilians_ReleaseOfNonAmbientIsSafe : SCR_AutotestCaseBase
@@ -6534,36 +6093,23 @@ class OVT_TEST_Init_Civilians_ReleaseOfNonAmbientIsSafe : SCR_AutotestCaseBase
 //! PER-TOWN CURATION IS REAL: a city and a village resolve DIFFERENT civilian type sets out of the
 //! same authored template, and a town's own allow-list narrows the set further.
 //!
-//! WHY THIS NEEDS THE INIT TIER RATHER THAN THE LOGIC ONE. The Logic tier already asserts the filter
-//! RULE and the shipped table as literal data. What it cannot reach is the thing that actually breaks
-//! in practice: the wiring from the authored `.conf` through the manager's resolver. A type entry that
-//! failed to deserialise, a `m_eMinTownSize` left at its default, or a resolver that quietly stopped
-//! passing the allow-list all compile clean, keep every Logic case green, and show up in play only as
-//! "the towns all look the same" - which nobody reports as a bug.
+//! The Logic tier asserts the filter RULE and the shipped table as literal data. What it cannot
+//! reach is the wiring from the authored .conf through the manager's resolver: a type entry that
+//! failed to deserialise, an m_eMinTownSize left at its default, or a resolver that stopped passing
+//! the allow-list all compile clean, keep Logic green, and show up in play only as "the towns all
+//! look the same" - which nobody reports as a bug.
 //!
-//! THE THREE CLAIMS:
-//!  1. A CITY ALLOWS STRICTLY MORE THAN A VILLAGE. With the shipped table a city gets every type and a
-//!     village only the unrestricted ones, so the two counts must differ. Equal counts mean the size
-//!     filter is not being applied at resolve time at all.
-//!  2. THE CITY-ONLY TYPE IS EXACTLY WHERE IT BELONGS - present in the city set, absent from the
-//!     village set. This is the user-visible half of the claim ("a village shows none of the city-only
-//!     types").
-//!  3. AN AUTHORED ALLOW-LIST NARROWS THE SET, and an empty list does not. Both readings of an empty
+//!  1. A CITY ALLOWS STRICTLY MORE THAN A VILLAGE. Equal counts mean the size filter is not applied
+//!     at resolve time at all.
+//!  2. THE CITY-ONLY TYPE IS EXACTLY WHERE IT BELONGS - in the city set, absent from the village set.
+//!  3. AN AUTHORED ALLOW-LIST NARROWS THE SET, and an EMPTY list does not. Both readings of an empty
 //!     list compile; the wrong one empties every un-authored town in the world.
 //!
-//! It also checks that at least one shipped type carries a per-type LOADOUT with slots in it. That is
-//! the one thing about the `.conf` no compiler can see (an inline object inheriting from a per-type
-//! file is authored text), and without it every prefab variant is re-dressed out of the global pool
-//! and the whole variety phase is invisible in play.
+//! It also checks at least one shipped type carries a per-type LOADOUT with slots - the one thing
+//! about the .conf no compiler can see, and without it every prefab variant is re-dressed out of the
+//! global pool and the whole variety phase is invisible in play.
 //!
-//! NOTHING IS REGISTERED and no town is modified: the resolver is a pure function of the template plus
-//! two arguments, so this case cannot disturb the campaign state the cases around it assert.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set the
-//! businessman entry's m_eMinTownSize to VILLAGE in Configs/Civilians/CivilianAmbience.conf and claims
-//! 1 and 2 go red; make BuildTownSource pass null instead of the controller's list and claim 3's
-//! narrowing assertion goes red; delete the m_Loadout line from every type entry and the loadout
-//! assertion goes red.
+//! Nothing is registered and no town is modified: the resolver is a pure function of the template.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_TypeCurationBySize : SCR_AutotestCaseBase
@@ -6696,38 +6242,21 @@ class OVT_TEST_Init_Civilians_TypeCurationBySize : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The authored PARKED VEHICLE source resolves, is of the right class, and can roll a car (T5.6).
-//!
-//! FOUR CLAIMS, each one a different way Phase 5 could ship as a town with no cars in it:
+//! The authored PARKED VEHICLE source resolves, is of the right class, and can roll a car.
 //!
 //!  1. THE REGISTRY CARRIES `town_vehicles`. The lookup is exact and case-sensitive, and the manager
-//!     is deliberately SILENT when it misses (the phase is droppable, so a registry that predates it
-//!     must not warn on every town). A name typo would therefore produce no cars and no log line at
-//!     all - the single most likely way for this phase to be quietly absent.
-//!  2. IT IS AN OVT_TownVehicleAmbienceConfig. The manager casts and refuses anything else, for the
-//!     same reason the civilian source does: every number a bound instance reads - the three
-//!     size-scaled count pairs, the search ranges - lives on the subclass.
-//!  3. THE POOL IS AUTHORED AND ROLLS. m_aPrefabs is the base-class array by design (T5.2, "no new
-//!     plumbing"), and a bound instance ALIASES the template's array rather than copying it, so this
-//!     asserts the alias as well as the authoring: a Bind() that forgot the alias leaves an instance
-//!     rolling out of its own empty array and core stops the activation every time.
-//!  4. THE SIZE-SCALED COUNTS ARE ORDERED AND NON-NEGATIVE. RollCountSafe would swap an inverted pair
-//!     silently, so a mis-authored max-below-min never fails loudly in play - it just quietly changes
-//!     how many cars a town gets.
+//!     is deliberately SILENT when it misses, so a name typo produces no cars and no log line at all.
+//!  2. IT IS AN OVT_TownVehicleAmbienceConfig - the manager casts and refuses anything else, because
+//!     the three size-scaled count pairs and the search ranges live on the subclass.
+//!  3. THE POOL IS AUTHORED AND ROLLS. m_aPrefabs is the base-class array by design and a bound
+//!     instance ALIASES the template's array rather than copying it, so this asserts the alias too: a
+//!     Bind() that forgot it leaves an instance rolling out of its own empty array.
+//!  4. THE SIZE-SCALED COUNTS ARE ORDERED AND NON-NEGATIVE. RollCountSafe swaps an inverted pair
+//!     silently, so a mis-authored max-below-min never fails loudly in play.
 //!
-//! ⚠ THIS CASE DELIBERATELY DOES NOT ROLL A POSITION. RollPosition() runs kerb and road-network
-//! queries against the live world, and the autotest world's one settlement is not a placement fixture:
-//! asserting on it would be asserting on the terrain, not on this feature. Placement quality is the
-//! play-test (§6 step 13), and it is named as such in the plan.
-//!
-//! Init tier: reading an authored registry off the game-mode prefab needs no campaign state.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
-//! m_sSourceName in Configs/Civilians/CivilianAmbience.conf to "town_vehicle" and claim 1 goes red;
-//! author the entry as OVT_AmbientSpawnSourceConfig and claim 2 goes red; empty the m_aPrefabs block
-//! (or delete the `m_aPrefabs = template.m_aPrefabs` alias in
-//! OVT_TownVehicleSourceConfig.Bind) and claim 3 goes red; author m_iCityMax below m_iCityMin and
-//! claim 4 goes red.
+//! ⚠ It deliberately does NOT roll a position. RollPosition() runs kerb and road-network queries
+//! against the live world, and the autotest world's one settlement is not a placement fixture -
+//! asserting on it would be asserting on the terrain. Placement quality is the play-test.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Civilians_VehicleSourceResolvesAndRolls : SCR_AutotestCaseBase
@@ -6826,63 +6355,39 @@ class OVT_TEST_Init_Civilians_VehicleSourceResolvesAndRolls : SCR_AutotestCaseBa
 }
 
 //------------------------------------------------------------------------------------------------
-//! THE GATE (virtualization/integration Phase 1, T1.9): is a server-side InsertObserverSP honoured?
+//! THE GATE: is a server-side InsertObserverSP honoured?
 //!
-//! Phase 6 of `virtualization/integration` wants to park an engine observer that FOLLOWS an entity, so
-//! a parked recruit squad pulls dormant registered groups awake with no player nearby. The whole design
-//! rests on one unanswerable-by-reading question: ObserversSystem.InsertObserverSP is documented as a
-//! LOCAL ("SP") observer, has ZERO vanilla script callers in the 1.8 tree, and nothing in script says
-//! whether an insert made on the AUTHORITY is seen by the proximity query the group lifecycle uses
-//! (ChimeraAIGroup.HasObserverInRange -> ObserversSystem.HasObserverWithinRangeSq).
+//! Phase 6 of `virtualization/integration` wants an engine observer that FOLLOWS an entity, so a
+//! parked recruit squad pulls dormant groups awake with no player nearby. InsertObserverSP is
+//! documented as a LOCAL ("SP") observer, has ZERO vanilla script callers in the 1.8 tree, and
+//! nothing in script says whether an insert made on the AUTHORITY is seen by the proximity query the
+//! group lifecycle uses.
 //!
-//! ⚠⚠ APPLICATION IS DEFERRED - measured 2026-08-17, and the reason this case is shaped the way it is.
-//! The first run of this spike sampled immediately after the call and read "not honoured": has(probe)
-//! false, GetObserversSP() still 1. Thirty frames later the SAME probe answered true and the count had
-//! grown to 2. The insert IS honoured; the engine simply does not apply it within the calling frame.
-//! The removal behaves the same way, which is what made the first version report a false leak. So EVERY
-//! sample this case asserts on is taken after settling, and any consumer built on this API (Phase 6's
-//! AddEntityObserver) must never expect its own effect to be visible on the frame it asks for it.
+//! ⚠⚠ APPLICATION IS DEFERRED BY A FRAME, in both directions. Sampling immediately after the call
+//! reads "not honoured"; the same probe answers true ~30 frames later. So every sample this case
+//! asserts on is taken after settling, and any consumer built on this API must never expect its own
+//! effect to be visible on the frame it asks for it.
 //!
 //! ⚠ NEVER A NULL ENTITY. InsertObserverSP(key, x, z, null) hard-froze the game client the one time a
-//! test parked one (core context.md gotcha 0, 2026-08-17). This case always passes a real marker
-//! entity and always uses zero offsets, which is the entity-following form the API ask is written
-//! against. It never inserts a fixed-position observer.
+//! test parked one. This case always passes a real marker entity with zero offsets.
 //!
-//! WHAT IS MEASURED, and printed as one greppable "T1.9 VERDICT" line whatever happens:
-//!   - honoured: has(probe) after settling, against a probe position that answered false before;
-//!   - the deferral itself: the same-frame samples are kept and printed as data, never asserted on;
-//!   - key semantics: the engine header says "insert or UPDATE" for a given key, so this case inserts
-//!     the SAME key TWICE and the settled count must have grown by exactly ONE, not two;
-//!   - removal: after RemoveObserverSP and the same settling budget, has(probe) is false again and the
-//!     count is back to its pre-insert value.
+//! Measured, and printed as one greppable "T1.9 VERDICT" line whatever happens: honoured (probe true
+//! after settling, false before); the deferral itself (same-frame samples kept as data, never
+//! asserted on); key semantics (the same key inserted TWICE must grow the settled count by exactly
+//! ONE); removal (probe false again and the count back to its pre-insert value).
 //!
-//! WHY A "NOT HONOURED" RESULT IS NOT A RED. This is a spike over an engine surface, not an assertion
-//! about Overthrow code: the plan's own gate says a negative verdict re-plans Phase 6 onto
-//! InsertObserverMP. So the case FAILS only on things that are genuinely broken or dangerous - no
-//! ObserversSystem, no marker entity, a settled count that grew by more than one for two same-key
-//! inserts, or an observer that SURVIVES its removal (a leaked observer keeps whatever is near it
-//! materialised for the rest of the session). It never passes silently: the verdict line is printed on
-//! every path, including the paths that assert nothing.
+//! A "not honoured" result is NOT a red - this is a spike over an engine surface, and a negative
+//! verdict re-plans Phase 6 onto InsertObserverMP. It fails only on what is genuinely broken or
+//! dangerous: no ObserversSystem, no marker entity, a settled count that grew by two for two
+//! same-key inserts, or an observer that SURVIVES its removal.
 //!
-//! THE SETTLING BUDGETS ARE NOT RETRY BUDGETS. Each phase polls a bounded number of frames for the
-//! deferred effect to land and then asserts exactly ONCE, on the sample it took when the condition was
-//! met or the budget ran out - the same shape as this suite's ambient-activation case. No maxAttempts.
+//! The settling budgets are NOT retry budgets: each phase polls a bounded number of frames and then
+//! asserts exactly ONCE, on the sample it ends with.
 //!
-//! THE PROBE POSITION IS FAR FROM THE AUTOTEST CAMERA, which is itself an engine observer (core: "observers
-//! are not just players"). The case searches a ring of candidates for one with no observer within 1 km
-//! and only then asserts "false here"; if this world has no such spot it says so and asserts nothing.
-//!
-//! Init tier: pure engine-system probing, no campaign state, and the marker is a bare GenericEntity.
-//! The marker outlives the removal on purpose - it is deleted only after the post-removal sample, so no
-//! observer is ever following an entity that has been deleted out from under it.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): replace the
-//! RemoveObserverSP(OBSERVER_KEY) call with RemoveObserverSP(OBSERVER_KEY + 1) and the two removal
-//! assertions go red after the settle (the observer outlives the case - the real leak, as opposed to
-//! the deferral the first version mistook for one); change the repeat insert to OBSERVER_KEY + 1 and
-//! the key-identity assertion goes red with a settled count of +2. Rename the local ObserversSystem
-//! type to ObserversSystemX (an unknown type, which is a hard compile error rather than a warning) to
-//! prove the case is compiled into the suite at all.
+//! ⚠ The probe position is far from the autotest camera, which is itself an engine observer. The
+//! case searches a ring for a spot with no observer within 1 km; if this world has none it says so
+//! and asserts nothing. The marker outlives the removal on purpose, so no observer is ever following
+//! a deleted entity.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Virtualization_ServerObserverSPSpike : SCR_AutotestCaseBase
@@ -7175,35 +6680,19 @@ class OVT_TEST_Init_Virtualization_ServerObserverSPSpike : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! THE FREEZE GUARD: AddEntityObserver(null) is a safe false, and this run gets to finish.
 //!
-//! The single most valuable assertion in `virtualization/integration` Phase 6. A null-entity
-//! InsertObserverSP has ZERO vanilla script callers in the 1.8 tree and hard-FROZE the game client the
-//! one time a test case parked one - total log silence, the per-case timeout never fired, the run had
-//! to be killed at 300 s (core context.md gotcha 0, 2026-08-17). That failure mode does not produce a
-//! red case, a stack or a line number: it produces a hung process. So the refusal is asserted here, in
-//! the world where observers are actually honoured, and the case PASSING AT ALL is half of what it
-//! proves - if the guard is ever deleted, this run stops instead of reporting.
+//! ⚠ A null-entity InsertObserverSP has ZERO vanilla script callers and hard-FROZE the game client
+//! the one time a test case parked one - total log silence, the per-case timeout never fired, the
+//! run had to be killed at 300 s. That failure mode produces a hung process, not a red case. So the
+//! refusal is asserted here, and the case PASSING AT ALL is half of what it proves.
 //!
-//! Three claims, one per null-taking entry point, because each has its own early-out and any of them
-//! could be dropped independently:
-//!   - Add refuses and says so (false), and books NOTHING - a booked key with no observer behind it
-//!     would make HasEntityObserver lie for the rest of the session;
+//! Three claims, one per null-taking entry point, because each has its own early-out:
+//!   - Add refuses and books NOTHING - a booked key with no observer behind it would make
+//!     HasEntityObserver lie for the rest of the session;
 //!   - Has answers false rather than dereferencing;
 //!   - Remove answers false rather than dereferencing.
 //!
-//! NOTHING IS SPAWNED and nothing is parked, so there is nothing to clean up: the case's whole subject
-//! is the path that returns before any engine call is made.
-//!
-//! ⚠ THE COUNT IS COMPARED AGAINST ITS OWN BEFORE-VALUE, never against 0. The manager's observer map is
-//! shared with any consumer live in this world (a parked recruit group is one), so an absolute count
-//! would be asserting something about the world instead of about the guard.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run - and note this
-//! one must NOT be proven by deleting the guard, which would hang the run rather than fail it): change
-//! the null branch of AddEntityObserver from `return false` to `return true` and the first assertion
-//! goes red with no engine call made; change HasEntityObserver's null early-out to `return true` and the
-//! second goes red. Rename the local OVT_VirtualizationManagerComponent to OVT_VirtualizationManagerComponentX
-//! (an unknown type, a hard compile error rather than a warning) to prove the case is compiled into the
-//! suite at all.
+//! ⚠ The count is compared against its own before-value, never against 0: the manager's observer map
+//! is shared with any consumer live in this world.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_EntityObserverRefusesNull : SCR_AutotestCaseBase
@@ -7256,65 +6745,33 @@ class OVT_TEST_Init_Virtualization_EntityObserverRefusesNull : SCR_AutotestCaseB
 //! The entity-observer round trip: add, ask, count, add again, remove - all answered from core's own
 //! map, on the frame each call returns.
 //!
-//! WHY EVERY ASSERTION IS TAKEN IMMEDIATELY, WITH NO SETTLING. Engine application of an SP observer is
-//! DEFERRED BY ONE FRAME in both directions - measured by the Phase 1 gate case: "HONOURED, application
-//! DEFERRED (invisible same-frame, visible within the settling budget) | settled after 1 frame(s),
-//! removal settled after 1". That is precisely why HasEntityObserver and GetEntityObserverCount answer
-//! from the manager's map instead of asking the ObserversSystem, and this case is the assertion that
-//! they do: a version of them that queried the engine would read false right after the add and true
-//! right after the remove, and would go red here. Nothing in this case ever queries the engine, so
-//! nothing in it needs a settling budget and there is no maxAttempts anywhere near it.
+//! ⚠ Engine application of an SP observer is DEFERRED BY ONE FRAME in both directions, which is why
+//! HasEntityObserver and GetEntityObserverCount answer from the manager's map instead of asking the
+//! ObserversSystem. This case is the assertion that they do: a version that queried the engine would
+//! read false right after the add and true right after the remove. Nothing here queries the engine,
+//! so nothing needs a settling budget.
 //!
-//! FIVE SEPARATE CLAIMS, because five separate things can rot independently:
+//! Five claims, five things that rot independently:
 //!   - a fresh add returns true, is visible to Has, and moves the count by exactly one;
-//!   - the entity core keyed on is RESOLVABLE by that key (FindEntityByID). This is the load-bearing
-//!     assumption of the manager's 2 s stale-entity sweep: if a followed entity's own id did not
-//!     resolve, the sweep would delete every observer within two seconds of parking it and the whole
-//!     feature would silently do nothing;
-//!   - a SECOND add on the same entity returns true and moves the count by NOTHING. The engine key is
-//!     an identity ("insert or update"), so a non-idempotent Add would silently park a second observer
-//!     per call and nothing would ever notice until the map was pinned awake;
-//!   - removing an entity nobody ever added an observer for is a quiet false, not a crash and not a
-//!     stolen key belonging to something else;
-//!   - the remove takes: Has goes false, the count comes back to where it started, and a second remove
-//!     is a quiet false.
+//!   - the entity core keyed on is RESOLVABLE by that key (FindEntityByID) - the load-bearing
+//!     assumption of the 2 s stale-entity sweep, which would otherwise delete every observer within
+//!     two seconds of parking it;
+//!   - a SECOND add on the same entity returns true and moves the count by NOTHING (the engine key is
+//!     an identity, so a non-idempotent Add parks a second observer per call, unnoticed);
+//!   - removing an entity nobody added an observer for is a quiet false;
+//!   - the remove takes: Has goes false, the count returns, and a second remove is a quiet false.
 //!
-//! ⚠⚠ THE MARKERS ARE PREFAB-SPAWNED, AND THE CASE ASSERTS THEIR IDs BEFORE IT ASSERTS ANYTHING ELSE.
-//! The first version of this case spawned two bare GetGame().SpawnEntity(GenericEntity, ...) markers and
-//! went red on "HasEntityObserver was true for an entity no observer was ever added for" - because BOTH
-//! markers answered GetID() with the same value (EntityID.INVALID: an entity that is not
-//! world-registered has no id, and every such entity shares one). Core now refuses an invalid id
-//! outright, for exactly that reason, so this case must hand it entities that really are in the world.
-//! It spawns them from a real prefab and then waits for both ids to be valid AND distinct before it
-//! asserts anything - and says so loudly if they never are, because "this world cannot give two
-//! entities two ids" would be a finding of its own, not a flaky case.
+//! ⚠⚠ The markers are PREFAB-spawned and their ids are asserted before anything else. Two bare
+//! GetGame().SpawnEntity(GenericEntity, ...) markers both answered GetID() with EntityID.INVALID - an
+//! entity that is not world-registered has no id, and every such entity shares one. Core now refuses
+//! an invalid id outright. The case waits for both ids to be valid AND distinct before asserting.
 //!
-//! ⚠ ORDERING, AND WHY THE MARKERS OUTLIVE THE CASE BY A FEW FRAMES. The observer is removed FIRST and
-//! the entity it was following is deleted several frames LATER, so at no point is an engine observer
-//! left following a deleted entity - the same discipline the Phase 1 gate case used, for the same
-//! reason: nothing here is worth finding out what the engine does with a dangling followed entity.
-//! Both delays are fixed delays, not retry budgets; the case asserts nothing during either, and each
-//! phase asserts exactly ONCE, on the sample it ends with.
+//! ⚠ The observer is removed FIRST and the followed entity deleted several frames LATER, so no
+//! engine observer is ever left following a deleted entity. Both delays are fixed, not retry budgets.
 //!
-//! ⚠ THE MARKERS ARE SPAWNED NEAR THE FIXTURE POSITION, NOT FAR FROM IT - and the first version's 3 km
-//! offset is the OTHER candidate cause of the missing ids. An entity spawned outside the world's bounds
-//! may never be registered in it, and the autotest world is small (its only radio tower stands at
-//! `12.9 1 172.7`), so +3000/+3000 from a town centre is plausibly off the map entirely. Both fixes
-//! point the same way and both are applied: a real prefab, and a position the world actually has. The
-//! offset is only there so the markers are not standing exactly where other cases register groups; it
-//! does not need to be large, because every case in this suite unregisters what it registered, and a
-//! handful of frames is far too short for the engine's spawn queue to materialise anything anyway.
-//!
-//! CLEANED UP BEFORE REPORTING: both markers are deleted, and the observer removed, on every exit path
-//! including the failing ones - the failure text is carried to the end rather than reported early.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): mint a fresh
-//! key unconditionally in AddEntityObserver (drop the `if (!m_mEntityObservers.Find(id, key))` around
-//! the counter) and the double-add count assertion goes red at before+2; make HasEntityObserver ask
-//! GetObserversSystem().HasObserverWithinRangeSq instead of the map and the immediate has-assertion goes
-//! red on the deferral; drop the `m_mEntityObservers.Remove(id)` in RemoveEntityObserverById and both
-//! post-removal assertions go red; spawn the markers with GetGame().SpawnEntity(GenericEntity, ...)
-//! again and the id precondition goes red naming the collision (this is how the hazard was found).
+//! ⚠ The markers are spawned NEAR the fixture position: the autotest world is small, and an entity
+//! spawned outside the world's bounds may never be registered in it. The offset only keeps them clear
+//! of where other cases register groups.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBase
@@ -7546,12 +7003,10 @@ class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBas
 	//------------------------------------------------------------------------------------------------
 	//! A throwaway positional entity for an observer to follow.
 	//!
-	//! ⚠ A PREFAB SPAWN, not GetGame().SpawnEntity(GenericEntity, ...). Two bare class spawns came back
-	//! sharing one EntityID (see the case header), which core now refuses outright - so this uses the
-	//! config's wait-waypoint prefab, an entity Overthrow spawns by the hundred, which is untracked for
-	//! persistence by OVT_Global.SpawnEntityPrefab and belongs to no group. The bare spawn survives only
-	//! as the fallback for a world with no config component; the id precondition judges the result
-	//! either way.
+	//! ⚠ A PREFAB spawn, not GetGame().SpawnEntity(GenericEntity, ...) - two bare class spawns came
+	//! back sharing one EntityID, which core now refuses outright. This uses the config's wait-waypoint
+	//! prefab, untracked for persistence and belonging to no group. The bare spawn survives only as the
+	//! fallback for a world with no config component.
 	//! \param[in] pos Where to stand it.
 	//! \return The entity, or null when the spawn failed.
 	protected IEntity SpawnMarker(vector pos)
@@ -7574,45 +7029,30 @@ class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBas
 //------------------------------------------------------------------------------------------------
 //! The SHIPPED "Town Patrol" config resolves, and its patrol module answers with a real, CYCLING plan.
 //!
-//! SINCE 2026-08-21 THE TYPE IS TOWN_SWEEP and the plan is ROLLED PER GROUP: a house-to-house SEARCH
-//! route or a loose un-snapped ring. Both cycle and both are movable, so the shape assertions below hold
-//! whichever half the roll lands on; the printout names which one this run got. The exact geometry is
-//! the Logic tier's (SearchPlan, NearestNeighbourRoute, PerimeterPlan) - the world-bound half (which
-//! houses, which radius) is a property of the terrain and the roll and is deliberately not asserted.
+//! Since 2026-08-21 the type is TOWN_SWEEP and the plan is ROLLED PER GROUP: a house-to-house SEARCH
+//! route or a loose un-snapped ring. Both cycle and both are movable, so the shape assertions hold
+//! whichever half the roll lands on; the printout names which one this run got.
 //!
-//! This is the claim the whole town-patrol migration rests on and nothing else in the tree makes it.
 //! The Logic tier pins the plan factory's geometry, but the factory is world-free statics that know
-//! nothing about which config is shipped: between the two sits the authored config, whose patrol type,
-//! radius and centre setting decide whether a town patrol comes out as a patrol at all. Four separate
-//! things can silently go wrong there, so each gets its own assertion:
-//!   - the registry stops carrying "Town Patrol" (a rename, a dropped entry) - the deployment would
-//!     never be created again, and NOTHING would log it;
-//!   - the config loses its patrol behaviour module - every group would register with a null plan and
-//!     every town patrol in the campaign would stand still forever, which reads exactly like the
-//!     virtualization being broken;
-//!   - the plan comes back EMPTY or ragged - a ragged plan is refused outright by RegisterGroup, so the
-//!     patrol would silently never be registered;
-//!   - the plan stops CYCLING, or stops containing a movable point. That is the subtle one. A plan is
-//!     the ONLY opt-in there is for being walked while dormant: a patrol whose plan has nothing movable
-//!     in it is a garrison, and a cycling patrol that lost its cycle guards one quarter of the town for
-//!     the rest of the campaign. Both are invisible without this assertion.
+//! nothing about which config is shipped. Between the two sits the authored config, and four things
+//! can silently go wrong there:
+//!   - the registry stops carrying "Town Patrol" - the deployment would never be created again, and
+//!     NOTHING would log it;
+//!   - the config loses its patrol behaviour module - every group registers with a null plan and
+//!     every town patrol stands still forever, which reads exactly like broken virtualization;
+//!   - the plan comes back EMPTY or ragged - RegisterGroup refuses it outright, so the patrol is
+//!     silently never registered;
+//!   - the plan stops CYCLING or loses its movable point. A plan is the ONLY opt-in for being walked
+//!     while dormant: a patrol with nothing movable is a garrison, and one that lost its cycle
+//!     guards a quarter of the town for the rest of the campaign.
 //!
-//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it. That is deliberate and it is what keeps
-//! this case cheap: BuildVirtualPlan falls back to the group's own position when there is no centre to
-//! circle - the same fallback the hand-authored helper carried - so the shape of the shipped answer can
-//! be asserted without creating a marker entity, a deployment, or the repeating update it would leak
-//! into the shared test world (the T1.8 verdict).
+//! Asked off the config TEMPLATE with no deployment behind it: BuildVirtualPlan falls back to the
+//! group's own position when there is no centre to circle, so the shipped answer's shape is
+//! assertable without creating a marker entity and leaking a repeating 10 s UpdateDeployment into
+//! the shared test world. Nothing is registered.
 //!
-//! NOTHING IS REGISTERED, so there is nothing to clean up and no fixture the movement tick could walk.
-//!
-//! ⚠ The positions are NOT asserted. They are road-snapped against the live world, so their exact
-//! values are a property of the terrain, not of the code under test; the Logic tier owns the geometry.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set
-//! plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildPerimeterPlan and the cycle assertion goes red;
-//! return null from OVT_PatrolBehaviorDeploymentModule.BuildVirtualPlan's PERIMETER branch and the
-//! "no plan" assertion goes red naming the config; change the shipped config's m_sDeploymentName and
-//! the resolution assertion goes red first.
+//! ⚠ The positions are NOT asserted - they are road-snapped against the live world, so their values
+//! are a property of the terrain. The Logic tier owns the geometry.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
@@ -7657,13 +7097,11 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 			return true;
 		}
 
-		// ⚠ TOWN_SWEEP, since 2026-08-21 - NOT PERIMETER and NOT PERIMETER_BASE. PERIMETER is the old
-		// ROAD-SNAPPED ring, which parked every town patrol in the middle of a road at each corner (in the
-		// way of every convoy, in front of every player's bumper) and is the behaviour this replaced;
-		// PERIMETER_BASE looks for a base controller within 250 m, which a town centre does not have, and
-		// would warn per plan and walk a square. TOWN_SWEEP rolls per group between a house-to-house
-		// SEARCH route and a loose un-snapped ring sized to the town's own range. A config silently
-		// reverting to PERIMETER would put the patrols back on the tarmac and nothing else would say so.
+		// ⚠ TOWN_SWEEP - NOT PERIMETER and NOT PERIMETER_BASE. PERIMETER is the old ROAD-SNAPPED ring,
+		// which parked every town patrol in the middle of a road at each corner; PERIMETER_BASE looks for
+		// a base controller within 250 m, which a town centre does not have, and would warn per plan and
+		// walk a square. A config silently reverting to PERIMETER would put the patrols back on the
+		// tarmac and nothing else would say so.
 		if (patrol.m_ePatrolType != OVT_PatrolType.TOWN_SWEEP)
 		{
 			SetFailure("Config '%1' authors patrol type %2, not TOWN_SWEEP - the town patrol would go back to standing on road corners instead of sweeping the town's houses", CONFIG_NAME,
@@ -7776,38 +7214,25 @@ class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The EnsureGroups contract, driven against the real core through the real key statics: register under
-//! a deployment owner key, reclaim it, prove a second pass adds NOTHING, then unregister.
+//! The EnsureGroups contract, driven against the real core through the real key statics: register
+//! under a deployment owner key, reclaim it, prove a second pass adds NOTHING, then unregister.
 //!
-//! IDEMPOTENCE IS THE POINT. Every registration path in the deployments framework converges to a wanted
-//! count rather than spawning one, and it has to, because the same method is reached from a deployment's
-//! activation, from the manager's records-restored fan-out (which also fires on an in-session re-apply)
-//! and from the paid-for rebuy - in any order and any number of times. If reclaim-before-register ever
-//! broke, a continued campaign would come back with two of every patrol and nothing in the tree would
-//! notice: both copies are legal registrations.
+//! Idempotence is the point. Every registration path converges to a wanted count rather than
+//! spawning one, because the same method is reached from a deployment's activation, from the
+//! manager's records-restored fan-out and from the paid-for rebuy, in any order and any number of
+//! times. If reclaim-before-register broke, a continued campaign would come back with two of every
+//! patrol and nothing would notice - both copies are legal registrations.
 //!
-//! THE CYCLE IS SIMULATED RATHER THAN DRIVEN THROUGH A LIVE MODULE, deliberately. Driving the module
-//! itself would need a deployment marker entity, and creating one leaks a repeating 10 s UpdateDeployment
-//! into the shared test world for every case that runs after it (the recorded T1.8 verdict). What is
-//! exercised instead is exactly what the module composes: OVT_DeploymentVirtualKey's key arithmetic and
-//! the core's FindGroupsByOwner / MissingCount / RegisterGroup / UnregisterGroup round trip.
+//! The cycle is SIMULATED rather than driven through a live module: driving the module needs a
+//! deployment marker entity, which leaks a repeating 10 s UpdateDeployment into the shared test
+//! world for every case after it. What is exercised is exactly what the module composes.
 //!
-//! ⚠ spawnDistanceOverride = 0, NOT -1. Zero is stamped as the engine's Manual lifecycle policy - "never
-//! materialise by proximity" - and the autotest camera IS an observer, so a registration at the global
-//! 1750 m ring would try to put real soldiers on the ground in the middle of the suite.
+//! ⚠ spawnDistanceOverride = 0, NOT -1. Zero is the engine's Manual lifecycle policy; the autotest
+//! camera IS an observer, so a registration at the global 1750 m ring would put real soldiers on the
+//! ground in the middle of the suite.
 //!
-//! ⚠ Null plans, and everything registered here is unregistered inside the SAME frame. Either property
-//! alone makes the fixture safe from the movement tick, which walks any dormant registered group whose
-//! plan has a movable point in it; this case has both.
-//!
-//! CLEANED UP BEFORE REPORTING, on every path including the red ones, so a broken assertion cannot leak
-//! records into the cases after it.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! OVT_DeploymentVirtualKey.MissingCount return `wanted` unconditionally and the idempotence assertion
-//! goes red with 4 handles where 2 were expected; return an empty array from FindGroupsByOwner and the
-//! reclaim assertion goes red first; drop the m_mRecords.Remove(handle) line from UnregisterGroup and
-//! the post-cleanup assertion goes red instead.
+//! ⚠ Null plans, and everything registered here is unregistered inside the SAME frame. Either
+//! property alone makes the fixture safe from the movement tick; this case has both.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_EnsureGroupsIsIdempotent : SCR_AutotestCaseBase
@@ -7966,37 +7391,23 @@ class OVT_TEST_Init_Deployments_EnsureGroupsIsIdempotent : SCR_AutotestCaseBase
 //! The SHIPPED "Tower Garrison" config resolves, and everything about it that decides whether a
 //! garrison behaves like a garrison is what it is supposed to be.
 //!
-//! THIS IS THE CONFIG THAT REPLACED A WHOLE SUBSYSTEM. Radio tower garrisons used to be bespoke code
-//! inside the occupying faction manager's 9 s loop; they are now this one authored file, and every
-//! claim below is silent when it breaks:
-//!   - the registry stops carrying "Tower Garrison" (a rename, a dropped registry entry, a
-//!     mis-authored .conf that fails to parse) - no tower on the map would ever get a garrison
-//!     again, and the only symptom would be quiet towers;
+//! Radio tower garrisons used to be bespoke code inside the occupying faction manager's 9 s loop;
+//! they are now this one authored file, and every claim below is silent when it breaks:
+//!   - the registry stops carrying "Tower Garrison" - no tower would ever get a garrison again, and
+//!     the only symptom would be quiet towers;
 //!   - the config is not valid (no spawning module) - FindBestDeploymentConfig skips it silently;
-//!   - the plan stops being a ONE-POINT, NON-CYCLING DEFEND. A plan is the only opt-in there is for
-//!     being walked while dormant, so a garrison that acquired a movable point would WANDER OFF ITS
-//!     TOWER while nobody was watching and be somewhere else when the player arrived. That is the
-//!     "garrisons never wander" claim at its root and nothing else asserts it;
-//!   - the importance stops being HIGH - and this one is the nastiest, because a garrison at the
-//!     vanilla LOW/NORMAL tier is capped lower in the AI budget and evicted first, so on a busy
-//!     server it simply never appears, with no error anywhere. The clone is checked as well as the
-//!     template: modules are cloned by hand per deployment and a CloneModule that forgets an
-//!     attribute ships the class default instead of the authored value, which is exactly how
-//!     m_fMaxCruiseSpeed was lost on the vehicle module for a release.
+//!   - the plan stops being a ONE-POINT, NON-CYCLING DEFEND. A plan is the only opt-in for being
+//!     walked while dormant, so a garrison that acquired a movable point would WANDER OFF ITS TOWER
+//!     while nobody was watching. Nothing else asserts "garrisons never wander";
+//!   - the importance stops being HIGH - the nastiest, because a garrison at the vanilla LOW/NORMAL
+//!     tier is capped lower in the AI budget and evicted first, so on a busy server it never appears.
 //!
-//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it, exactly as the Town Patrol case is:
-//! BuildVirtualPlan falls back to the group's own position when there is no centre to hold, so the
-//! shape of the shipped answer is assertable without creating a marker entity and leaking a
-//! repeating 10 s UpdateDeployment into the shared test world.
+//! ⚠ The CLONE is checked as well as the template: modules are cloned by hand per deployment and a
+//! CloneModule that forgets an attribute ships the class default instead of the authored value,
+//! which is exactly how m_fMaxCruiseSpeed was lost on the vehicle module for a release.
 //!
-//! NOTHING IS REGISTERED, so there is no fixture for the movement tick to walk.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): set
-//! m_ePatrolType PERIMETER in Deployment_TowerGarrison.conf and both the point-count and the
-//! cycle assertions go red; drop m_eImportance from the config and the template assertion goes red
-//! naming NORMAL; delete the m_eImportance line from OVT_InfantrySpawningDeploymentModule.CloneModule
-//! and the CLONE assertion goes red while the template one stays green - which is the whole reason
-//! both are checked.
+//! Asked off the config template with no deployment behind it, as the Town Patrol case is, so
+//! nothing is registered and no repeating UpdateDeployment leaks into the shared test world.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_TowerGarrisonHoldsItsPost : SCR_AutotestCaseBase
@@ -8132,31 +7543,18 @@ class OVT_TEST_Init_Deployments_TowerGarrisonHoldsItsPost : SCR_AutotestCaseBase
 //------------------------------------------------------------------------------------------------
 //! A radio tower's position classifies as RADIO_TOWER - IN ADDITION to whatever else it was.
 //!
-//! WITHOUT THIS THE WHOLE CONFIG IS INERT AND NOTHING SAYS SO. GetLocationTypeAtPosition is a
-//! first-match precedence chain - town, then base within 500 m, then port, airfield, tower,
-//! checkpoint - and it returns a SINGLE flag. Every radio tower worth garrisoning is near
-//! something, so before the RADIO_TOWER bit was OR-ed in on top, a tower inside a town's bounds
-//! classified as TOWN, the tower-only config never matched, and the only symptom was ungarrisoned
-//! towers with no error anywhere in the log.
+//! GetLocationTypeAtPosition is a first-match precedence chain returning a SINGLE flag. Every radio
+//! tower worth garrisoning is near something, so before the RADIO_TOWER bit was OR-ed in on top, a
+//! tower inside a town's bounds classified as TOWN, the tower-only config never matched, and the
+//! only symptom was ungarrisoned towers with no error anywhere.
 //!
-//! BOTH HALVES OF D19 ARE ASSERTED, because the fix is only correct if it is additive:
-//!   - at a tower, the result CONTAINS the RADIO_TOWER bit (the new behaviour), and
-//!   - at a tower, the result still contains every bit the precedence chain produced on its own
-//!     (nothing was stolen from the Town Patrol or the vehicle-patrol configs), and
-//!   - away from every tower, the result is EXACTLY the precedence value (the bit is conditional,
-//!     not welded on).
+//! Both halves of D19, because the fix is only correct if it is additive:
+//!   - at a tower, the result CONTAINS the RADIO_TOWER bit;
+//!   - at a tower, it still contains every bit the precedence chain produced on its own;
+//!   - away from every tower, it is EXACTLY the precedence value (conditional, not welded on).
 //!
-//! READS THE LIVE TOWER LIST rather than a fixed position: the test world defines one radio tower
-//! and Eden defines two, so the case asks the occupying faction manager where they are instead of
-//! carrying a magic coordinate that would be wrong in one of the two worlds.
-//!
-//! NOTHING IS REGISTERED and nothing is mutated - this is a pure query on live campaign data.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete
-//! the `locationType | OVT_LocationTypeFlag.RADIO_TOWER` line from GetLocationTypeAtPosition and the
-//! first assertion goes red; change the OR to a plain assignment and the "still contains" assertion
-//! goes red; drop the IsNearRadioTower() guard so the bit is always added and the away-from-towers
-//! assertion goes red.
+//! Reads the LIVE tower list rather than a fixed position: the test world defines one radio tower
+//! and Eden two, so a magic coordinate would be wrong in one of them. Nothing is mutated.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_RadioTowerLocationTypeIsOredIn : SCR_AutotestCaseBase
@@ -8255,40 +7653,27 @@ class OVT_TEST_Init_Deployments_RadioTowerLocationTypeIsOredIn : SCR_AutotestCas
 //! THE PHASE'S HEADLINE CLAIM: a tower changes hands when its garrison is KILLED, and at no other
 //! time - and then exactly once.
 //!
-//! WHAT THIS PROTECTS AGAINST, IN THE PLAYER'S WORDS. Drive away from a garrisoned tower until the
-//! garrison despawns, drive back: the tower must still be enemy-held and the fight must still be
-//! there. The old code got that wrong by construction - it flipped the tower whenever its list of
-//! garrison entity ids happened to be empty on a tick, and that list was emptied by DRIVING AWAY
-//! (and, for good measure, by any QRF anywhere on the map). The new rule is that capture is driven
-//! by the deployment's eliminated flag, which the virtualization core sets only when a group's
-//! survivor mask reports every slot dead.
+//! Drive away from a garrisoned tower until the garrison despawns, drive back: the tower must still
+//! be enemy-held. The old code flipped the tower whenever its list of garrison entity ids was empty
+//! on a tick, and that list was emptied by DRIVING AWAY (and by any QRF anywhere on the map). The
+//! new rule is that capture is driven by the deployment's eliminated flag, which the virtualization
+//! core sets only when a group's survivor mask reports every slot dead.
 //!
-//! SO THE DEATHS HERE ARE REAL DEATHS, through the public seam (ReportMemberKilled) rather than
-//! world combat, and the wipe that follows is the core's own - the case never sets an eliminated
-//! flag by hand. Three states are walked in order, and the middle one is the one that matters:
-//!   1. two groups registered, nothing killed        -> no capture, tower unchanged;
-//!   2. ONE group wiped, the other untouched         -> still no capture (a partial loss is not a
-//!      wipe, and this is the state a despawn would look like if the accounting ever regressed);
-//!   3. the second group wiped as well               -> capture, ONCE. A fourth call does nothing.
+//! The deaths are real, through ReportMemberKilled, and the wipe that follows is core's own - the
+//! case never sets an eliminated flag by hand. Three states, the middle one being the point:
+//!   1. two groups registered, nothing killed -> no capture;
+//!   2. ONE group wiped, the other untouched  -> still no capture (this is what a despawn would look
+//!      like if the accounting ever regressed);
+//!   3. the second group wiped as well        -> capture, ONCE. A fourth call does nothing.
 //!
-//! THE MODULE IS DRIVEN THROUGH EvaluateCapture() rather than through OnUpdate, deliberately. The
-//! only difference is where the three inputs come from, and going through OnUpdate would mean
-//! standing up a live deployment marker entity, which leaks a repeating 10 s UpdateDeployment into
-//! the shared test world for every case that runs after it (the recorded T1.8 verdict).
+//! Driven through EvaluateCapture() rather than OnUpdate: the only difference is where the three
+//! inputs come from, and OnUpdate would need a live deployment marker entity.
 //!
-//! ⚠ spawnDistanceOverride = 0 on every registration - the engine's Manual lifecycle policy, "never
-//! materialise by proximity" - because the autotest camera IS an observer and a registration at the
-//! global ring would put real soldiers on the ground in the middle of the suite. Null plans, so the
-//! movement tick has nothing to walk either.
+//! ⚠ spawnDistanceOverride = 0 on every registration (Manual policy) because the autotest camera IS
+//! an observer. Null plans, so the movement tick has nothing to walk.
 //!
-//! ⚠ THIS CASE REALLY FLIPS A TOWER, which sends the capture notification and the broadcast the live
-//! game sends. The tower's faction is captured before and restored after, on every path including
-//! the red ones, so the shared world is handed on exactly as it was found.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): remove the
-//! `if (!eliminated) return false;` guard from EvaluateCapture and the step-1 assertion goes red
-//! immediately; remove the m_bCaptureFired latch and the "exactly once" assertion goes red; invert
-//! the tower-ownership guard and the capture assertion goes red with the tower unchanged.
+//! ⚠ This case really FLIPS a tower, sending the live capture notification and broadcast. The
+//! tower's faction is captured before and restored after, on every path.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Deployments_TowerCaptureOnlyOnRealWipe : SCR_AutotestCaseBase
@@ -8520,41 +7905,26 @@ class OVT_TEST_Init_Deployments_TowerCaptureOnlyOnRealWipe : SCR_AutotestCaseBas
 //! Both SHIPPED vehicle patrol configs resolve, their crew compositions exist for every faction that
 //! could field them, and their crews are registered ALWAYS-MATERIALISED.
 //!
-//! THIS IS THE CLAIM THE VEHICLE MIGRATION RESTS ON, and every way it can break is silent:
-//!   - the registry stops carrying "Light Vehicle Patrol" or "Heavy Vehicle Patrol" (a rename, a
-//!     dropped registry entry, a mis-authored .conf) - the evaluator would simply never create one
-//!     again, and nothing would log it;
-//!   - the config loses its vehicle spawning module, or that module loses its crew group name - the
-//!     trucks would still spawn and would then sit at the base forever with nobody in them;
-//!   - the crew group name stops resolving for a faction. The core resolves a composition by
-//!     (factionKey, groupName) and REFUSES the registration when it cannot, so an occupying faction
-//!     whose registry lost "light_patrol" would field driverless vehicles - with one WARNING per
-//!     attempt and nothing else. Both shipped occupying factions are checked, because a registry
-//!     entry can be dropped from one .conf and not the other;
-//!   - the crew spawn distance stops being an always-materialised one. This is the nastiest of the
-//!     four. A crew registered at the global ring (-1) goes DORMANT as soon as no observer is near,
-//!     and a dormant group holding a route plan is walked along it in a straight line by the
-//!     movement tick while its truck stays parked - so the crew materialises kilometres from its own
-//!     vehicle. A crew registered at 0 gets the engine's Manual policy and never materialises at all.
-//!     Neither produces an error; both produce vehicle patrols that do not patrol.
+//! Every way this breaks is silent:
+//!   - the registry stops carrying "Light Vehicle Patrol" or "Heavy Vehicle Patrol" - the evaluator
+//!     would never create one again, and nothing would log it;
+//!   - the config loses its vehicle spawning module or that module's crew group name - the trucks
+//!     spawn and sit at the base forever with nobody in them;
+//!   - the crew group name stops resolving for a faction. Core resolves by (factionKey, groupName)
+//!     and REFUSES the registration when it cannot, so a faction whose registry lost "light_patrol"
+//!     fields driverless vehicles with one warning per attempt. BOTH shipped occupying factions are
+//!     checked, because a registry entry can be dropped from one .conf and not the other;
+//!   - the crew spawn distance stops being always-materialised. A crew at the global ring (-1) goes
+//!     DORMANT with no observer near, and a dormant group holding a route plan is walked along it in
+//!     a straight line while its truck stays parked - so the crew materialises kilometres from its
+//!     vehicle. A crew at 0 gets Manual policy and never materialises at all. Neither errors.
 //!
-//! THE CLONE IS CHECKED AS WELL AS THE TEMPLATE. Modules are cloned by hand per deployment and a
-//! CloneModule that forgets an attribute ships the class default instead of the authored value -
-//! which is exactly how m_fMaxCruiseSpeed was lost on this very module for a whole release.
+//! ⚠ The CLONE is checked as well as the template - a CloneModule that forgets an attribute ships
+//! the class default, which is how m_fMaxCruiseSpeed was lost on this very module for a release.
 //!
-//! NOTHING IS REGISTERED and nothing is mutated: this is a pure query on the shipped configs and the
-//! live faction registries, so there is no fixture for the movement tick to walk and nothing to clean
-//! up. The route plan's own shape is pinned in the Logic tier (…_DeploymentVirtualization_RoutePlan),
-//! which is where geometry belongs; asking the multi-town module for a plan here would depend on how
-//! many towns the current world happens to have inside the config's 2500 m search radius.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
-//! m_sDeploymentName in Deployment_VehiclePatrol_Light.conf and the resolution assertion goes red
-//! first; set m_sCrewGroupType to a name no faction defines and the composition assertion goes red
-//! naming the faction and the config; set the m_iSpawnDistanceOverride attribute's defvalue to "-1"
-//! and the always-materialised assertion goes red; delete the m_iSpawnDistanceOverride line from
-//! OVT_VehicleSpawningDeploymentModule.CloneModule and the CLONE assertion goes red while the
-//! template one stays green - which is the whole reason both are checked.
+//! Nothing is registered or mutated. The route plan's shape is pinned in the Logic tier; asking the
+//! multi-town module for a plan here would depend on how many towns this world has inside the
+//! config's 2500 m search radius.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_VehiclePatrolCrewsResolve : SCR_AutotestCaseBase
@@ -8732,30 +8102,20 @@ class OVT_TEST_Init_Deployments_VehiclePatrolCrewsResolve : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The two configs the 2026-08-17 amendment marks FREE AT GAME START really carry the flag - and the
-//! rest of the registry does not.
+//! The two configs marked FREE AT GAME START really carry the flag - and the rest of the registry
+//! does not.
 //!
-//! WHY THIS IS A CASE AND NOT AN INSPECTION OF THE DIFF. `m_bFreeAtGameStart` is an authored `.conf`
-//! attribute with a default of FALSE, and everything about losing it is silent: an unauthored line, a
-//! renamed attribute, a registry entry that stops inheriting from its base `.conf`, a Workbench
-//! re-save that drops a default-looking value. The only symptom would be the exact bug the amendment
-//! was raised for - a play-tester on Easy finding most radio towers ungarrisoned because the seeding
-//! pass had nothing to seed - and no error anywhere.
+//! `m_bFreeAtGameStart` is an authored .conf attribute defaulting to FALSE, and everything about
+//! losing it is silent: an unauthored line, a renamed attribute, a registry entry that stops
+//! inheriting from its base .conf, a Workbench re-save that drops a default-looking value. The only
+//! symptom would be most radio towers ungarrisoned because the seeding pass had nothing to seed.
 //!
-//! THE FALSE HALF MATTERS AS MUCH AS THE TRUE HALF. A defvalue typo (`"1"` instead of `"0"`) or an
-//! attribute accidentally welded on would make EVERY config free, which would seed both vehicle
-//! patrols at every base on the map for nothing on the first load of every campaign. Requiring at
-//! least one shipped config to answer false is what proves the flag is opt-in rather than universal.
+//! ⚠ The FALSE half matters as much as the true half. A defvalue typo ("1" instead of "0") would
+//! make EVERY config free, seeding both vehicle patrols at every base for nothing on the first load
+//! of every campaign. Requiring at least one shipped config to answer false proves the flag is
+//! opt-in rather than universal.
 //!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - a pure read of the shipped
-//! registry, so there is no fixture for the movement tick to walk and nothing to clean up.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
-//! `m_bFreeAtGameStart 1` line from `Configs/Deployment/Deployment_TowerGarrison.conf` and the tower
-//! assertion goes red naming it; do the same to `Deployment_TownPatrol.conf`,
-//! `Deployment_BaseGarrisonPatrol.conf` or `Deployment_BaseTowerGuards.conf` and that config's
-//! assertion goes red; change the attribute's defvalue in `OVT_DeploymentConfig` to `"1"` and the
-//! opt-in assertion goes red instead, because nothing in the registry answers false any more.
+//! Nothing is registered, created or mutated - a pure read of the shipped registry.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
@@ -8866,47 +8226,30 @@ class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
 //! A seeding pass puts a marked deployment on the ground, charges NOTHING for it, and a second pass
 //! adds nothing.
 //!
-//! THIS IS THE AMENDMENT'S WHOLE CLAIM, and both halves of it are silent when they break:
-//!   - THE PASS IS FREE. `SeedFreeDeployments()` calls `CreateDeployment(..., resourcesInvested 0,
-//!     ...)` and never touches `m_mFactionResources`. If either ever changed - a copy-paste of the
-//!     evaluator's `availableResources -= deploymentCost` line, a non-zero `resourcesInvested`
-//!     argument - the pass would quietly drain the occupying faction's opening pool on load, or
-//!     refund money nobody spent when a player collected the garrison. Neither logs anything.
-//!   - THE PASS IS IDEMPOTENT. It fires from `PostGameStart()`, which runs on a CONTINUED campaign as
-//!     well as a new one. If the 250 m same-name dedup ever stopped holding, every load of a save
-//!     would stack another garrison on top of the last one, forever, and the only symptom would be a
-//!     tower that got harder to clear every time you reloaded.
+//!   - THE PASS IS FREE. SeedFreeDeployments() calls CreateDeployment with resourcesInvested 0 and
+//!     never touches m_mFactionResources. A copy-pasted `availableResources -= deploymentCost` or a
+//!     non-zero invested argument would quietly drain the occupying faction's opening pool on load,
+//!     or refund money nobody spent when a player collected the garrison. Neither logs anything.
+//!   - THE PASS IS IDEMPOTENT. It fires from PostGameStart(), which runs on a CONTINUED campaign too.
+//!     If the 250 m same-name dedup stopped holding, every load would stack another garrison on the
+//!     last one forever - a tower that got harder to clear every time you reloaded.
 //!
-//! DRIVEN DIRECTLY, because this tier never runs `PostGameStart()` and the `CallLater` therefore
-//! never fires here. That is the point: the seeding method is public precisely so its contract can be
-//! asserted without a campaign.
+//! Driven directly, because this tier never runs PostGameStart() and the CallLater never fires here.
+//! The seeding method is public precisely so its contract is assertable without a campaign.
 //!
-//! ⚠ FIXTURE SAFETY - THIS CASE CREATES REAL DEPLOYMENTS, AND THAT IS UNUSUAL FOR THIS SUITE.
-//! A live deployment starts a repeating 8-12 s update whose first tick activates it, and activation
-//! registers real groups at the GLOBAL 1750 m spawn ring - inside which the autotest camera is an
-//! observer (the standing rule recorded as `virtualization/integration` T7.1). This case is safe on
-//! BOTH of the two accepted grounds, deliberately, rather than on either alone:
-//!   (a) every deployment it creates is `SetSpawnedUnitsEliminated(true)` on the deployment AND on
-//!       every one of its spawning modules before anything else happens to it, which is what makes
-//!       `ConvergeGroups()` refuse at both gates; and
-//!   (b) `SeedFreeDeployments()` is synchronous, so creation, both assertions and teardown all happen
-//!       inside ONE `Execute()` frame - no `UpdateDeployment` tick can run in between, so no group is
-//!       ever registered and there is nothing for the movement tick to walk.
-//! Teardown runs on EVERY path including the red ones.
+//! ⚠ FIXTURE SAFETY - this case creates REAL deployments, which is unusual for this suite. A live
+//! deployment starts a repeating 8-12 s update whose first tick registers real groups at the GLOBAL
+//! ring, inside which the autotest camera is an observer. Safe on BOTH accepted grounds deliberately:
+//!   (a) every deployment is SetSpawnedUnitsEliminated(true) on the deployment AND on every spawning
+//!       module before anything else happens, so ConvergeGroups() refuses at both gates;
+//!   (b) SeedFreeDeployments() is synchronous, so creation, assertions and teardown all happen in ONE
+//!       Execute() frame and no UpdateDeployment tick can run in between.
+//! Teardown runs on every path including the red ones.
 //!
-//! ⚠ TWO PIECES OF SHARED WORLD STATE ARE BORROWED AND HANDED BACK EXACTLY AS FOUND: the first radio
-//! tower's controlling faction (set to the occupying faction, because the garrison's control
-//! condition rightly refuses a tower the resistance holds - without this the case would assert
-//! nothing) and the occupying faction's resource pool (a known amount is planted so that "nothing was
-//! charged" is a claim about a real budget rather than about a pool that was 0 either way).
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change the
-//! `CreateDeployment(config, position, factionIndex, 0, threatLevel)` call in `SeedFreeConfig` to pass
-//! `config.GetTotalResourceCost()` and the invested-resources assertion goes red naming the config;
-//! add a `SubtractFactionResources()` beside it and the pool assertion goes red instead; delete the
-//! `HasExistingDeploymentOfType` guard and the second-pass assertion goes red with a duplicate count;
-//! delete `m_bFreeAtGameStart 1` from `Deployment_TowerGarrison.conf` and the "a tower garrison was
-//! seeded" assertion goes red first.
+//! ⚠ Two pieces of shared world state are borrowed and handed back exactly as found: the first radio
+//! tower's controlling faction (the garrison's control condition rightly refuses a resistance-held
+//! tower) and the occupying faction's resource pool (planted so "nothing was charged" is a claim
+//! about a real budget rather than a pool that was 0 either way).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCaseBase
@@ -9149,33 +8492,24 @@ class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCas
 //! A position at a base classifies with the BASE bit, so a BASE-only config can be bought there at
 //! all.
 //!
-//! WHY THIS IS WORTH A CASE. Location classification is a first-match precedence chain, and every
-//! base-defense config the migration ships authors `m_iAllowedLocationTypes BASE`. If the BASE
-//! branch ever stopped being reachable - a reordered precedence, a changed radius, a town test that
-//! swallowed it - nine configs would silently become unbuyable everywhere with no error anywhere,
-//! exactly the way the Tower Garrison config was unbuyable before the RADIO_TOWER bit was OR-ed in.
+//! Every base-defense config the migration ships authors m_iAllowedLocationTypes BASE. If the BASE
+//! branch stopped being reachable - a reordered precedence, a changed radius, a town test that
+//! swallowed it - nine configs would silently become unbuyable everywhere, the way the Tower
+//! Garrison config was before the RADIO_TOWER bit was OR-ed in.
 //!
-//! THE CLAIM IS MADE AGAINST A SHIPPED CONSUMER, not just against the enum: the "Light Vehicle
-//! Patrol" config is asked whether it would accept the classification, because CanUseLocationType()
-//! is the only question the evaluator actually asks and a bit nobody consumes proves nothing.
+//! The claim is made against a SHIPPED CONSUMER: the "Light Vehicle Patrol" config is asked whether
+//! it would accept the classification, because CanUseLocationType() is the only question the
+//! evaluator asks and a bit nobody consumes proves nothing.
 //!
-//! 🔴 TOWNS SHADOW BASES, AND THIS CASE MEASURES IT RATHER THAN ASSERTING IT AWAY. The chain tests
-//! towns FIRST, with a hardcoded 500 m radius (OVT_TownData.IsWithinTownBounds), so a base whose
-//! centre is within 500 m of a town centre classifies as TOWN and can NEVER be offered a BASE-only
-//! config - GetBasePositions() offers the base's own centre and nothing else. That is true of this
-//! test world's only base (114 m from its town) and of 4 of Eden's 10 bases, measured 2026-08-17 and
-//! recorded in the feature's context.md as an open design question. Until it is decided, the claim
-//! this case CAN make honestly is that the branch is alive and reachable somewhere in a base's ring;
-//! the shadow count is printed on every run so the number cannot be quietly forgotten.
+//! 🔴 TOWNS SHADOW BASES, and this case MEASURES it rather than asserting it away. The chain tests
+//! towns first with a hardcoded 500 m radius, so a base within 500 m of a town centre classifies as
+//! TOWN and can never be offered a BASE-only config. True of this test world's only base (114 m from
+//! its town) and of 4 of Eden's 10 bases - an open design question in the feature's context.md.
+//! Until it is decided the honest claim is that the branch is alive somewhere in a base's ring; the
+//! shadow count is printed on every run so the number cannot be quietly forgotten.
 //!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - pure queries on live campaign
-//! data. The classification does no ground trace, so probes off the terrain are legal.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): move the
-//! base branch of GetPrimaryLocationTypeAtPosition() below the OPEN_TERRAIN fallback, or drop its
-//! 500 m test to 0, and the reachability assertion goes red naming the base count; change
-//! `m_iAllowedLocationTypes BASE` in Deployment_VehiclePatrol_Light.conf to TOWN and the shipped-
-//! consumer assertion goes red instead.
+//! Nothing is registered, created or mutated. The classification does no ground trace, so probes off
+//! the terrain are legal.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_BaseLocationTypeIsReachable : SCR_AutotestCaseBase
@@ -9327,31 +8661,21 @@ class OVT_TEST_Init_Deployments_BaseLocationTypeIsReachable : SCR_AutotestCaseBa
 //! The no-players-nearby condition refuses to CREATE a deployment on top of a player, and never
 //! fails at runtime for the same reason.
 //!
-//! THE ASYMMETRY IS THE ENTIRE POINT OF THE MODULE AND THIS IS THE ONLY MECHANICAL GUARD ON IT.
-//! EvaluateStaticCondition() gates creation, so a base does not fortify around a player who is
-//! standing in it. EvaluateCondition() gates the runtime, and every base-defense config authors
+//! ⚠ The asymmetry is the entire point of the module and this is the only mechanical guard on it.
+//! EvaluateStaticCondition() gates creation, so a base does not fortify around a player standing in
+//! it. EvaluateCondition() gates the runtime, and every base-defense config authors
 //! m_bDeleteOnConditionFail - so if that method ever started answering the distance question too,
 //! walking into a base would DELETE its whole defense and refund the occupying faction for it. The
-//! fight would evaporate on approach and it would read as a spawning bug, not a condition bug.
+//! fight would evaporate on approach and read as a spawning bug, not a condition bug.
 //!
-//! DRIVEN AGAINST A REAL PLAYER BODY, because "a player is standing here" is the only input the
-//! module has and a fabricated position would assert nothing about it. The local character can take
-//! a few frames to exist, so the case polls for it the same way
-//! OVT_TEST_Init_Persistence_PlayerCharacterConfigSelfSpawns does.
+//! Driven against a REAL player body, because "a player is standing here" is the only input the
+//! module has. The local character can take a few frames to exist, so the case polls for it.
 //!
-//! ⚠ THE DISTANCE IS SET BY HAND. [Attribute] defvalues are applied by the config loader, not by
-//! `new`, so a hand-constructed module carries 0 and would accept every position. Setting it here is
-//! what makes the refusal claim mean anything; the shipped default (320) is asserted by the configs
-//! that author it, from Phase 3 onwards.
+//! ⚠ The distance is set BY HAND: [Attribute] defvalues are applied by the config loader, not by
+//! `new`, so a hand-constructed module carries 0 and would accept every position. The shipped
+//! default (320) is asserted by the configs that author it.
 //!
-//! NOTHING IS REGISTERED AND NOTHING IS CREATED - the module is a bare object, asked two questions.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change
-//! EvaluateStaticCondition's comparison to `<=` inverted (return `GetPlayerProximity(position) <
-//! m_fMinPlayerDistance`) and the refusal and acceptance assertions swap and both go red; make
-//! EvaluateCondition() return the distance test instead of true and the runtime assertion goes red;
-//! delete `clone.m_fMinPlayerDistance = m_fMinPlayerDistance` from CloneModule and the clone
-//! assertion goes red.
+//! Nothing is registered or created - the module is a bare object, asked two questions.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Deployments_NoPlayersNearbyGatesCreationOnly : SCR_AutotestCaseBase
@@ -9456,45 +8780,29 @@ class OVT_TEST_Init_Deployments_NoPlayersNearbyGatesCreationOnly : SCR_AutotestC
 //! THE PHASE'S HEADLINE CLAIM: a position that already holds config A is answered with config B, not
 //! with nothing.
 //!
-//! WHAT THIS REPLACES. FindBestDeploymentConfig() used to answer the single lowest-priority config a
-//! place qualified for, full stop, and its caller skipped the position when that one was already
-//! there. A base could therefore hold exactly ONE deployment, forever - which is why nine
-//! per-concern base-defense configs could not exist before this phase. Two edits changed it: the
-//! blanket 100 m proximity veto came out of IsPositionSuitableForDeployment(), and the name-scoped
-//! 250 m dedup moved INTO the per-config filter, ahead of the priority comparison.
+//! FindBestDeploymentConfig() used to answer the single lowest-priority config a place qualified
+//! for, and its caller skipped the position when that one was already there - so a base could hold
+//! exactly ONE deployment forever, which is why nine per-concern base-defense configs could not
+//! exist before this phase. Two edits changed it: the blanket 100 m proximity veto came out of
+//! IsPositionSuitableForDeployment(), and the name-scoped 250 m dedup moved INTO the per-config
+//! filter, ahead of the priority comparison.
 //!
-//! THE LADDER IS WALKED WITH REAL DEPLOYMENTS, not with a mocked list, because the claim is about
-//! HasExistingDeploymentOfType() reading the live deployment list - the half of the change that the
-//! Logic tier's pure selection arithmetic (OVT_TEST_Logic_BaseDefenseEscalation) cannot see.
+//! The ladder is walked with REAL deployments, because the claim is about
+//! HasExistingDeploymentOfType() reading the live deployment list - the half the Logic tier's pure
+//! selection arithmetic cannot see.
 //!
-//! TWO FIXTURE CONFIGS ARE APPENDED TO THE LIVE REGISTRY AND REMOVED AGAIN. They are used instead of
-//! the shipped configs deliberately: the shipped ones carry chance rolls, instance caps, condition
-//! modules and location restrictions, and a case that asserted the ladder through them would be
-//! asserting their authoring rather than the evaluator. They author NO location types, which
-//! CanUseLocationType() reads as "no restrictions", so the probe position's classification cannot
-//! affect the outcome either.
+//! Two FIXTURE configs are appended to the live registry and removed again, deliberately instead of
+//! the shipped ones: those carry chance rolls, instance caps, condition modules and location
+//! restrictions, so a case asserting the ladder through them would be asserting their authoring. The
+//! fixtures author NO location types, which reads as "no restrictions".
 //!
-//! ⚠ FIXTURE SAFETY - THIS CASE CREATES REAL DEPLOYMENTS. Safe on both accepted grounds, exactly as
-//! OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent is: (a) every deployment is
-//! SetSpawnedUnitsEliminated(true) on the deployment AND on every spawning module before anything
-//! else happens to it, so ConvergeGroups() refuses at both gates; and (b) everything here is
-//! synchronous inside one Execute() frame, so no UpdateDeployment tick can run between creation and
-//! teardown and no group is ever registered. Teardown runs on every path including the red ones, and
-//! deletes the deployments BEFORE it takes the fixture configs back out of the registry.
+//! ⚠ FIXTURE SAFETY - this case creates REAL deployments. Safe on both accepted grounds: every
+//! deployment is SetSpawnedUnitsEliminated(true) on the deployment AND every spawning module before
+//! anything else, and everything is synchronous inside one Execute() frame. Teardown runs on every
+//! path and deletes the deployments BEFORE taking the fixture configs out of the registry.
 //!
-//! ⚠ THE PROBE POSITION IS CHOSEN AWAY FROM EVERY TOWN, BASE AND TOWER so that no shipped config can
-//! be suitable there and be picked instead of a fixture one. If one ever were, the first assertion
-//! goes red naming it rather than the case quietly asserting something else.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): delete
-//! the `if (HasExistingDeploymentOfType(...)) alreadyHere.Insert(...)` line from
-//! FindBestDeploymentConfig and the escalation assertion goes red (config A comes back a second
-//! time); change OVT_DeploymentSelection.SelectNextConfigIndex to ignore its already-present set and
-//! the same assertion goes red for the other reason. ⚠ Restoring the deleted blanket proximity veto
-//! in IsPositionSuitableForDeployment would NOT redden this case - it asks the config filter
-//! directly, not the candidate filter - which is why
-//! OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent and the Campaign tier keep watch on the
-//! creation path as a whole.
+//! ⚠ The probe position is chosen away from every town, base and tower so no shipped config can be
+//! suitable there and be picked instead of a fixture one.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig : SCR_AutotestCaseBase
@@ -9762,31 +9070,18 @@ class OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig : SCR_AutotestCaseBa
 //! Every faction registry name the base-defense migration introduces resolves to a REAL prefab, on
 //! BOTH shipped occupying factions.
 //!
-//! WHY THIS IS THE FIRST CASE OF THE PHASE. Nine deployment configs are about to be authored against
-//! these names, and every failure mode of a wrong one is silent at authoring time: core's
-//! RegisterGroup logs a WARNING and returns -1 for an unknown group name, the composition module logs
-//! a WARNING and builds nothing for an unknown tag, and the parked-vehicle module logs a WARNING and
-//! parks nothing. A campaign with a typo'd registry name is a campaign whose bases simply never
-//! fortify, with no error a player or a tester would ever see.
+//! Nine deployment configs are authored against these names and every failure mode of a wrong one is
+//! silent at authoring time: RegisterGroup logs a warning and returns -1 for an unknown group name,
+//! the composition module logs a warning and builds nothing, the parked-vehicle module parks
+//! nothing. A campaign with a typo'd registry name is one whose bases simply never fortify.
 //!
-//! ASKED THROUGH THE SAME DOOR THE GAME USES - GetOverthrowFactionByKey then GetGroupPrefabByName /
+//! Asked through the same door the game uses - GetOverthrowFactionByKey then GetGroupPrefabByName /
 //! GetVehiclePrefabByName / GetCompositionConfig - rather than by reading the .conf, so a registry
 //! that parses but resolves to nothing is caught too.
 //!
-//! BOTH FACTIONS, OR IT MEANS NOTHING. Overthrow swaps which faction occupies, so a name authored on
-//! USSR alone produces a campaign that fortifies under one occupier and not the other. The case
-//! counts the factions it actually checked and fails loudly rather than passing vacuously if fewer
-//! than two carry a group registry.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED - a pure read of the shipped faction configs. No
-//! fixture, no teardown, no tick.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): rename
-//! `heavy_infantry` to anything else in Configs/Factions/USSR_OverthrowData.conf and the group half
-//! goes red naming the faction and the missing name; delete the `truck` entry from
-//! US_OverthrowData.conf and the vehicle half goes red; change `LargeCheckpoint`'s m_sTag and the
-//! composition half goes red; empty a composition's m_aPrefabs and the "resolves but has no prefab"
-//! assertion goes red instead.
+//! BOTH factions, or it means nothing: Overthrow swaps which faction occupies, so a name authored on
+//! USSR alone fortifies under one occupier and not the other. The case counts the factions it
+//! actually checked and fails loudly rather than passing vacuously.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_AutotestCaseBase
@@ -9904,10 +9199,8 @@ class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_Autotest
 //------------------------------------------------------------------------------------------------
 //! Test-only window onto OVT_InfantrySpawningDeploymentModule's protected placement seam.
 //!
-//! ResolveSpawnPosition() is protected, and deliberately so - it is a subclass seam, not an API. A
-//! subclass is therefore the ONLY honest way to assert it: widening the production method to public
-//! for a test would change the class's contract to make the test easy, which is the opposite of the
-//! right trade.
+//! ResolveSpawnPosition() is protected deliberately - it is a subclass seam, not an API - so a
+//! subclass is the only honest way to assert it.
 //!
 //! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker or be authorable
 //! into a deployment config.
@@ -9924,45 +9217,28 @@ class OVT_TEST_SnapProbeInfantryModule : OVT_InfantrySpawningDeploymentModule
 }
 
 //------------------------------------------------------------------------------------------------
-//! m_bSnapToRoad 0 keeps a registration inside its own spawn radius. THE ROAD-SNAP OPT-OUT, which is
-//! the whole reason the attribute exists.
+//! m_bSnapToRoad 0 keeps a registration inside its own spawn radius - the road-snap opt-out, which
+//! is the whole reason the attribute exists.
 //!
-//! WHAT IT IS GUARDING. The shared roller picks a point 10..m_fSpawnRadius m from the anchor and then
-//! calls OVT_WorldUtils.FindNearestRoad, which searches up to 500 m
-//! (GetReachableWaypointInRoad(center, center, 500, roadPos)). So with the snap ON, m_fSpawnRadius
-//! bounds the ROLL and not the RESULT - integration measured a tower garrison registering on the
-//! access road instead of at its tower, and recorded that "the fix is a module-level opt-out in a
-//! later phase". This is that opt-out, and this case is what stops it silently reverting.
+//! The shared roller picks a point 10..m_fSpawnRadius from the anchor and then calls
+//! FindNearestRoad, which searches up to 500 m. So with the snap ON, m_fSpawnRadius bounds the ROLL
+//! and not the RESULT - integration measured a tower garrison registering on the access road instead
+//! of at its tower.
 //!
-//! THE ASSERTION IS AN INVARIANT OVER MANY SAMPLES, NOT A RETRY. Every one of SAMPLES rolls must
-//! satisfy both halves; there is no "try until one passes" anywhere here.
-//!
-//! TWO HALVES, BOTH LOAD-BEARING:
-//!   - HORIZONTAL: the result is 10..m_fSpawnRadius from the anchor. That is the ring roll's own
-//!     range and it is what "inside the radius" means.
+//! The assertion is an INVARIANT over many samples, not a retry: every roll must satisfy both halves.
+//!   - HORIZONTAL: the result is 10..m_fSpawnRadius from the anchor.
 //!   - ALTITUDE: the result's Y is EXACTLY the anchor's, because the ring offset has a zero Y
-//!     component. This is the half that actually catches a broken opt-out: FindNearestRoad answers a
-//!     road waypoint at terrain height, which is not the anchor's altitude except by coincidence.
+//!     component. This is the half that catches a broken opt-out - FindNearestRoad answers a road
+//!     waypoint at terrain height, which is not the anchor's altitude except by coincidence.
 //!
-//! ⚠ THE SNAP-ON HALF IS PRINTED, NOT ASSERTED, AND THAT IS DELIBERATE. What snapping does depends
-//! entirely on where the roads are in whichever world this suite runs in - the plan's own wording is
-//! that snap ON "does not necessarily" stay inside the radius. Asserting a road network the test
-//! world does not guarantee would be a flake, so the observed behaviour is logged instead: the line
-//! tells a reader whether this world can even distinguish the two paths, which is exactly what the
-//! fail proof below depends on.
+//! ⚠ The snap-ON half is PRINTED, not asserted: what snapping does depends on where the roads are in
+//! whichever world this runs in, so asserting a road network the test world does not guarantee would
+//! be a flake. The line tells a reader whether this world can even distinguish the two paths.
 //!
-//! NOTHING IS REGISTERED AND NO DEPLOYMENT EXISTS - the probe module is a bare `new` with no parent,
-//! and ResolveSpawnPosition is pure arithmetic plus (on the ON path) a read-only road query.
+//! ⚠ [Attribute] defvalues do NOT apply to `new`. A hand-constructed module has m_fSpawnRadius 0 and
+//! m_bSnapToRoad FALSE, so both are set by hand below.
 //!
-//! ⚠ [Attribute] DEFVALUES DO NOT APPLY TO `new`. A hand-constructed module has m_fSpawnRadius 0 and
-//! m_bSnapToRoad FALSE, so both are set by hand below - and the snap-ON probe has to set the flag
-//! explicitly rather than relying on the shipped default.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): invert the
-//! guard in GetRandomSpawnPosition to `if (m_bSnapToRoad) return spawnPos;` and the altitude
-//! assertion goes red in any world whose printed diagnostic says the snap moves the anchor; delete
-//! the guard entirely and the same assertion goes red; change the ring roll to
-//! Math.RandomFloat(10, m_fSpawnRadius * 2) and the horizontal assertion goes red.
+//! Nothing is registered and no deployment exists - the probe module is a bare `new` with no parent.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_SnapToRoadOptOutStaysInRadius : SCR_AutotestCaseBase
@@ -10073,30 +9349,17 @@ class OVT_TEST_Init_Deployments_SnapToRoadOptOutStaysInRadius : SCR_AutotestCase
 //------------------------------------------------------------------------------------------------
 //! Every shipped placement provider answers an EMPTY LIST, never null, where nothing qualifies.
 //!
-//! WHY "NOT NULL" IS THE CLAIM. Point 1 of the provider contract. A provider is asked on every
-//! convergence pass of every placed deployment, and "nothing here" is the ORDINARY answer - most
-//! deployments are nowhere near a watchtower or a curated sniper marker. If a provider answered null
-//! instead, OVT_PlacedInfantrySpawningDeploymentModule.CalculateGroupCount would dereference it on
-//! the very first tick of the very first tower-guard deployment. The module carries a defensive
-//! re-allocation for exactly that, and this case is what stops the defence from being the only thing
-//! holding the contract up.
+//! Point 1 of the provider contract. A provider is asked on every convergence pass of every placed
+//! deployment, and "nothing here" is the ORDINARY answer. A provider answering null would have
+//! OVT_PlacedInfantrySpawningDeploymentModule.CalculateGroupCount dereference it on the first tick of
+//! the first tower-guard deployment. The module carries a defensive re-allocation for exactly that,
+//! and this case is what stops the defence from being the only thing holding the contract up.
 //!
-//! ⚠ THE PROBE POSITION IS CHOSEN CLEAR OF EVERY TOWN, BASE AND RADIO TOWER, for the same reason
-//! OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig chooses one: the claim is about the EMPTY
-//! answer, and a probe that happened to land beside a real tower would assert nothing at all. The
-//! defend-position provider is the one that would notice - it range-checks the nearest base against
-//! its own radius - so the clearance is what makes its empty answer meaningful rather than accidental.
+//! ⚠ The probe position is chosen clear of every town, base and radio tower: the claim is about the
+//! EMPTY answer, and a probe beside a real tower would assert nothing. The defend-position provider
+//! is the one that would notice - it range-checks the nearest base against its own radius.
 //!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED. Providers are read-only sphere queries over the live
-//! world; they build no entity and touch no registry.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): make any
-//! one of the four providers `return null` before its query and the case goes red naming that
-//! provider; make the base OVT_DeploymentPlacementProvider.ResolvePlacements return null and the
-//! contract assertion goes red; drop the range check from
-//! OVT_BaseDefendPositionPlacementProvider.FindNearestBaseController and it answers the far-away
-//! base's posts, so the non-empty assertion goes red naming the count; drop the radius argument from
-//! OVT_RoadSlotOverwatchPlacementProvider's base lookup and the same happens to it.
+//! Nothing is registered, created or mutated - providers are read-only sphere queries.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_PlacementProvidersAnswerEmptyNotNull : SCR_AutotestCaseBase
@@ -10226,38 +9489,26 @@ class OVT_TEST_Init_Deployments_PlacementProvidersAnswerEmptyNotNull : SCR_Autot
 //------------------------------------------------------------------------------------------------
 //! THE STANDING CloneModule TRAP, asserted directly on every module this phase ships.
 //!
-//! WHY THIS CASE EXISTS AT ALL. Every deployment gets a CLONE of its config's modules
-//! (OVT_DeploymentComponent.InitializeDeployment), and CloneModule copies attribute by attribute BY
-//! HAND and is NOT CHAINED - a subclass builds a fresh instance and repeats its parent's whole copy
-//! list. A forgotten line does not warn, does not log and does not fail to parse: it ships the CLASS
-//! DEFAULT instead of the authored value, on every deployment, forever. That is how
-//! m_fMaxCruiseSpeed was lost on the vehicle module for a whole release, and it is the reason
-//! integration booked this assertion as "feature 5's problem".
+//! ⚠ Every deployment gets a CLONE of its config's modules, and CloneModule copies attribute by
+//! attribute BY HAND and is NOT CHAINED - a subclass builds a fresh instance and repeats its parent's
+//! whole copy list. A forgotten line does not warn, log or fail to parse: it ships the CLASS DEFAULT
+//! instead of the authored value, on every deployment, forever. That is how m_fMaxCruiseSpeed was
+//! lost on the vehicle module for a whole release.
 //!
-//! WHAT A DROPPED LINE WOULD ACTUALLY COST HERE, module by module:
-//!   - m_eImportance   -> every tower guard and sniper team registers at the class default tier and
-//!                        quietly loses the AI spawn-budget race on a busy server;
-//!   - m_Placement     -> the placed module has nowhere to stand anybody, wants 0 groups and
-//!                        registers NOTHING, logging nothing;
-//!   - m_sCompositionTag -> the composition module resolves no composition and builds no structure;
-//!   - m_eSlotType     -> a road checkpoint hunts for a flat SMALL slot and never finds one;
-//!   - m_eParkingType  -> every truck asks for a car-sized spot, finds none, and the base parks
-//!                        nothing.
+//! What a dropped line costs here, module by module:
+//!   - m_eImportance     -> tower guards and sniper teams register at the class default tier and lose
+//!                          the AI spawn-budget race on a busy server;
+//!   - m_Placement       -> the placed module has nowhere to stand anybody, wants 0 groups, registers
+//!                          NOTHING, logs nothing;
+//!   - m_sCompositionTag -> the composition module resolves nothing and builds no structure;
+//!   - m_eSlotType       -> a road checkpoint hunts for a flat SMALL slot and never finds one;
+//!   - m_eParkingType    -> every truck asks for a car-sized spot and the base parks nothing.
 //!
-//! EVERY PROBE VALUE IS NON-ZERO, NON-EMPTY AND NON-FALSE, WHICH IS THE POINT. A `new` instance
-//! starts at 0 / "" / false / enum 0, so a probe value of `false` or `0` would be indistinguishable
-//! from a dropped copy and the assertion would pass while the bug shipped. Every bool below is set
-//! TRUE and every enum to a non-zero member for exactly that reason.
+//! ⚠ Every probe value is non-zero, non-empty and non-false, which is the point: a `new` instance
+//! starts at 0 / "" / false / enum 0, so a probe value of false or 0 would be indistinguishable from
+//! a dropped copy. [Attribute] defvalues do NOT apply to `new`.
 //!
-//! ⚠ [Attribute] DEFVALUES DO NOT APPLY TO `new` - which is what makes the above true, and is worth
-//! stating because it is counter-intuitive and bites every fixture in this framework.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED. Four bare `new` module objects with no parent
-//! deployment; CloneModule is pure field copying.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): delete any
-//! single `clone.X = X;` line from any of the four CloneModule implementations and this case goes red
-//! naming that exact field and the module it belongs to.
+//! Nothing is registered or created - four bare `new` modules; CloneModule is pure field copying.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_NewModuleClonesCarryEveryAttribute : SCR_AutotestCaseBase
@@ -10491,55 +9742,28 @@ class OVT_TEST_Init_Deployments_NewModuleClonesCarryEveryAttribute : SCR_Autotes
 //! THE THREE BASE-DEFENSE CONFIGS THAT USED TO BE PATROLS: two still are, on the base's OWN AUTHORED
 //! SQUARE, and the third is now a placed road overwatch that never moves.
 //!
-//! THIS IS THE "GARRISONS NEVER WANDER, PATROLS ALWAYS DO" CLAIM AT ITS ROOT. A plan is the only
-//! opt-in there is for being walked while dormant (core's movement tick advances a dormant group only
-//! along a plan with a movable point in it). Getting it backwards is invisible in play until a base's
-//! entire garrison has walked off into the countryside - or until a "patrol" stands in one spot for a
-//! whole campaign.
+//! "Garrisons never wander, patrols always do" at its root. A plan is the only opt-in for being
+//! walked while dormant, so getting it backwards is invisible in play until a base's entire garrison
+//! has walked off into the countryside - or a "patrol" stands in one spot for a whole campaign.
 //!
-//! ================== WHAT AMENDMENT A1 (2026-08-18) CHANGED, AND WHY ======================
-//! From the play-test, verbatim: "the garrison waypoints aren't great. the road positions make sense
-//! for town patrols but not the base garrisons... the AT sections should NOT patrol the perimeter
-//! though, they should be placed where checkpoints would be".
+//!   - Base Garrison Patrol and Base Heavy Patrol author PERIMETER_BASE, which walks the nearest base
+//!     controller's AUTHORED square and ROAD-SNAPS NOTHING. Plain PERIMETER is still the town
+//!     patrol's road-snapped ring.
+//!   - Base AT Section is no longer a patrol: a placed-infantry module with the road-slot overwatch
+//!     provider and a one-point DEFEND plan.
 //!
-//!   - Base Garrison Patrol and Base Heavy Patrol author OVT_PatrolType.PERIMETER_BASE, which walks
-//!     the nearest base controller's AUTHORED square (m_fPerimeterRadius / m_fPerimeterRotation ± a
-//!     few degrees of jitter) and ROAD-SNAPS NOTHING. Plain PERIMETER is still the town patrol's
-//!     road-snapped ring and OVT_TEST_Init_Deployments_TownPatrolPlanCycles asserts that half.
-//!   - Base AT Section is no longer a patrol at all: a placed-infantry module with the road-slot
-//!     overwatch provider and a one-point DEFEND plan.
-//! =========================================================================================
+//! The geometry is asserted against the LIVE base, which is what this tier can prove and the Logic
+//! tier cannot: that the numbers reaching BuildSquarePerimeterPlan are the ones a designer AUTHORED
+//! ON THE BASE, and that nothing pulled a corner onto a road. Every corner sits at the authored
+//! radius and within the jitter band of an authored corner bearing.
 //!
-//! THE GEOMETRY IS ASSERTED AGAINST THE LIVE BASE, and that is the point of doing it here rather than
-//! in the Logic tier. The Logic tier owns BuildSquarePerimeterPlan's maths; what this tier can prove
-//! and that tier cannot is that the numbers reaching it are the ones a designer AUTHORED ON THE BASE,
-//! and that nothing between here and there pulled a corner onto a road. Both halves are asserted as
-//! numbers: every corner sits at the authored radius (a road-snapped corner would be tens or hundreds
-//! of metres off it) and within the jitter band of an authored corner bearing.
+//! ⚠ PERIMETER_BASE is asserted BY NAME, not inferred from the plan shape: the DEFEND branch also
+//! answers with a plan, and a config that lost its m_ePatrolType line would fall back to the enum's
+//! zero value and read as an ordinary authoring value rather than a mistake.
 //!
-//! PERIMETER_BASE IS ASSERTED BY NAME, not merely inferred from the plan shape, because the DEFEND
-//! branch also answers with a plan - a one-point, non-cycling one - and a config that lost its
-//! m_ePatrolType line would fall back to the enum's zero value and read as an ordinary authoring value
-//! rather than as a mistake.
-//!
-//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it - the same shape (and the same reason)
-//! as OVT_TEST_Init_Deployments_TownPatrolPlanCycles: creating a marker leaks a repeating 10 s
-//! UpdateDeployment into the shared test world. With no parent deployment the patrol module falls back
-//! to "circle where you are", so handing it the BASE's own position is what puts the base controller
-//! inside its 250 m lookup.
-//!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): change
-//! `m_ePatrolType PERIMETER_BASE` to PERIMETER in either patrol .conf and that config's patrol-type
-//! assertion goes red naming it - and if the type check were removed too, the road snap would move a
-//! corner off the authored radius and the geometry assertion would go red next; call
-//! SnapPatrolPointsToRoads() from BuildAuthoredSquarePlan and the radius assertion goes red; raise
-//! PERIMETER_ROTATION_JITTER_DEG above ANGLE_TOLERANCE_DEG and the bearing assertion goes red; put
-//! the OVT_InfantrySpawningDeploymentModule back in Deployment_BaseATSection.conf and the placed-module
-//! assertion goes red; swap its provider for any other and the provider assertion goes red naming the
-//! one it found; set plan.m_bCycle = false in OVT_VirtualPlanFactory.BuildSquarePerimeterPlan and both
-//! patrol configs go red.
+//! Asked off the config template with no deployment behind it. With no parent deployment the patrol
+//! module falls back to "circle where you are", so handing it the BASE's own position is what puts
+//! the base controller inside its 250 m lookup.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCaseBase
@@ -10561,14 +9785,12 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 	static const float ANGLE_TOLERANCE_DEG = 11;
 
 	//! The threat floor and acquisition priority the AT section is authored with. Both are behaviour a
-	//! player feels (when the base buys it, and in what order) and neither logs anything if it drifts.
+	//! player feels and neither logs anything if it drifts.
 	//!
-	//! ⚠ RE-SCALED 50 -> 20 ON 2026-08-20 WITH THE THREAT SCALE ITSELF, not because the intent changed.
-	//! Candidate scores used to carry the GLOBAL campaign threat added to every position on the map
-	//! (~420 in the campaign that exposed it), so a floor of 50 passed everywhere and gated nothing at
-	//! all. CalculateThreatLevel() now returns the SPATIAL score alone, which runs roughly 0-60, and 20
-	//! is the same intent expressed on the scale that is actually compared against it: a notably hot
-	//! area rather than a number no position could fail. See OVT_DeploymentManager.CalculateThreatLevel.
+	//! ⚠ Re-scaled 50 -> 20 on 2026-08-20 with the threat scale itself, not because the intent changed.
+	//! Candidate scores used to carry the GLOBAL campaign threat added to every position (~420 in the
+	//! campaign that exposed it), so a floor of 50 gated nothing. CalculateThreatLevel() now returns
+	//! the SPATIAL score alone, roughly 0-60.
 	static const int AT_MINIMUM_THREAT = 20;
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -10760,25 +9982,15 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 			return string.Format("Config '%1' authors a minimum threat of %2, expected %3 - an AT section is a late-campaign answer to armour and this is when a base starts buying one",
 				AT_CONFIG, config.m_iMinimumThreatLevel.ToString(), AT_MINIMUM_THREAT.ToString());
 
-		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		// ⚠ A priority assertion was deleted here (2026-08-22), not weakened. It pinned m_iPriority to an
+		// exact number and broke the moment the author retuned it - which is the whole purpose of the
+		// field, so "the author changed his mind" and "somebody broke escalation order" became
+		// indistinguishable. It was not converted to a relative-order check either: the framework
+		// requires no RELATIONSHIP between two configs' priorities (a pure sort key and a threshold), so
+		// there is no inversion that breaks anything, only one a designer might not want.
 		//
-		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
-		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
-		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
-		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
-		// order" became indistinguishable.
-		//
-		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
-		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
-		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
-		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
-		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
-		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
-		// version of the same mistake kept alive for its own sake.
-		//
-		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
-		// is valid, that it carries a placed module with a placement provider, and that it is offered at
-		// bases at all. Those are silent when violated, which is what earns a test.
+		// What IS still asserted is structural: that it resolves, that it is valid, that it carries a
+		// placed module with a placement provider, and that it is offered at bases at all.
 
 		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
 		if (!placed)
@@ -10928,39 +10140,24 @@ class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCa
 
 //------------------------------------------------------------------------------------------------
 //! A base whose centre sits inside a town's 500 m bounds STILL carries the BASE bit, and a BASE-only
-//! base-defense config accepts it. This is decision S1, and this case is the only mechanical guard
-//! on it.
+//! base-defense config accepts it. Decision S1, and this case is its only mechanical guard.
 //!
-//! WHY THE BIT EXISTS. GetPrimaryLocationTypeAtPosition() is a first-match precedence chain that
-//! tests towns before bases, and OVT_TownData.IsWithinTownBounds() is a hardcoded 500 m radius, so a
-//! base centre inside those bounds classified as TOWN and could be offered NO base-only config -
-//! GetBasePositions() offers the base's own centre and nothing else. Measured 2026-08-17: 4 of Eden's
-//! 10 bases (Erquy 323 m, Lamentin 372 m, Levie 460 m, Montfort Castle 481 m) and this test world's
-//! only base (114 m). The legacy system being replaced ran a priority sweep per base controller and
-//! never asked what kind of place a base was, so leaving it would have been a straight regression on
-//! ~40 % of the map's bases.
+//! GetPrimaryLocationTypeAtPosition() tests towns before bases against a hardcoded 500 m radius, so a
+//! base centre inside those bounds classified as TOWN and could be offered NO base-only config.
+//! Measured 2026-08-17: 4 of Eden's 10 bases and this test world's only base (114 m). The legacy
+//! system never asked what kind of place a base was, so leaving it would have been a straight
+//! regression on ~40 % of the map's bases.
 //!
-//! ⚠ THE RADIUS IS THE SAFETY ARGUMENT, AND IT IS ASSERTED HERE AS A NUMBER. The BASE bit is OR-ed in
-//! within BASE_CLASSIFICATION_RADIUS, which is deliberately EQUAL to HasExistingDeploymentOfType()'s
-//! 250 m name-scoped dedup radius: every position that gains the bit is therefore within the dedup's
-//! reach of the base's own copy of each config, so a base and a shadowing town cannot each buy a full
-//! set of base defense. If someone raises this constant to "fix" a base at 300 m, force doubling
-//! becomes possible at every base whose town centre is between the two radii - which is why the
-//! constant, not just the behaviour, is pinned.
+//! ⚠ The radius is the safety argument and is asserted here as a NUMBER. BASE_CLASSIFICATION_RADIUS
+//! is deliberately EQUAL to HasExistingDeploymentOfType()'s 250 m name-scoped dedup radius, so every
+//! position that gains the bit is within the dedup's reach of the base's own copy of each config and
+//! a base and a shadowing town cannot each buy a full set of base defense. Raise this constant to
+//! "fix" a base at 300 m and force doubling becomes possible at every base whose town centre is
+//! between the two radii.
 //!
-//! THE NEGATIVE CONTROL IS THE OTHER HALF: a probe just OUTSIDE the radius, taken toward the town so
-//! that the precedence chain still answers TOWN there, must NOT carry the BASE bit. Whether this
-//! world's geometry can produce such a probe depends on the town's own bounds, so that half is
-//! skipped-with-a-print rather than asserted blind (the Phase 2 snap-case discipline).
-//!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED - pure queries on live campaign
-//! data. The classification does no ground trace, so probes off the terrain are legal.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
-//! `IsNearBaseCentre(position)` OR-in from GetLocationTypeAtPosition() and the BASE-bit assertion
-//! goes red naming the shadowed base; change BASE_CLASSIFICATION_RADIUS to 500 and the constant
-//! assertion goes red; change `m_iAllowedLocationTypes BASE` in Deployment_BaseGarrisonPatrol.conf to
-//! TOWN and the shipped-consumer assertion goes red instead.
+//! The negative control: a probe just OUTSIDE the radius, taken toward the town so the precedence
+//! chain still answers TOWN, must NOT carry the BASE bit. Whether this world's geometry can produce
+//! such a probe depends on the town's bounds, so that half is skipped-with-a-print.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_TownShadowedBaseAcceptsBaseConfig : SCR_AutotestCaseBase
@@ -11137,43 +10334,26 @@ class OVT_TEST_Init_Deployments_TownShadowedBaseAcceptsBaseConfig : SCR_Autotest
 //------------------------------------------------------------------------------------------------
 //! THE THREE PLACED BASE-DEFENSE CONFIGS RESOLVE, VALIDATE, AND NONE OF THEM CAN EVER WANDER.
 //!
-//! THIS IS THE OTHER HALF OF "GARRISONS NEVER WANDER, PATROLS ALWAYS DO", and it is asserted at the
-//! only place the difference exists: the PLAN. Core's movement tick advances a dormant group only
-//! along a plan that has a movable point in it, so the plan is the opt-in and a config that authors no
-//! opinionated behaviour module opts out by construction. The three patrol configs' own case asserts
-//! the cycling half; this one asserts:
-//!   - Base Tower Guards  -> NO plan at all (null). Legacy parity, and deliberate: every post waypoint
-//!     available parks a guard at a smart action that is a pose loop with no fire node, while an idle
-//!     group keeps full threat and attack reactions.
+//! The other half of "garrisons never wander, patrols always do", asserted at the only place the
+//! difference exists: the PLAN.
+//!   - Base Tower Guards     -> NO plan at all (null). Legacy parity and deliberate: a post waypoint
+//!     parks a guard at a smart action that is a pose loop with no fire node, while an idle group
+//!     keeps full threat and attack reactions.
 //!   - Base Sniper Positions -> NO plan at all (null), same reason.
-//!   - Base Defense Positions -> a ONE-POINT, NON-CYCLING DEFEND plan, because the legacy defense-
-//!     position guard did carry a defend waypoint on its post.
+//!   - Base Defense Positions -> a ONE-POINT, NON-CYCLING DEFEND plan, because the legacy
+//!     defense-position guard did carry a defend waypoint on its post.
 //!
-//! ⚠ "NULL" IS ASSERTED THROUGH THE SAME WALK THE PRODUCTION PATH USES, not by counting modules:
-//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() asks every behaviour module in order and
-//! takes the FIRST non-null answer, and the reinforcement module IS a behaviour module. A case that
-//! merely asserted "no patrol module" would pass if some future behaviour module started answering a
-//! plan of its own.
+//! ⚠ "Null" is asserted through the same walk the production path uses, not by counting modules:
+//! ResolveVirtualPlan() asks every behaviour module in order and takes the FIRST non-null answer, and
+//! the reinforcement module IS a behaviour module. A case that asserted "no patrol module" would pass
+//! if some future behaviour module started answering a plan of its own.
 //!
-//! THE PLACEMENT PROVIDER IS ASSERTED TOO. A placed module with no m_Placement wants zero groups,
-//! registers nothing, and logs nothing - the single most silent way one of these configs can ship
-//! broken. So is m_eImportance on the two configs the plan authors HIGH: a tower guard at the class
-//! default loses the AI spawn-budget race on a busy server and simply is not there when the player
-//! arrives, which is indistinguishable from "the placement failed".
+//! The placement provider is asserted too - a placed module with no m_Placement wants zero groups,
+//! registers nothing and logs nothing, the most silent way one of these ships broken. So is
+//! m_eImportance HIGH: a tower guard at the class default loses the AI spawn-budget race on a busy
+//! server, which is indistinguishable from "the placement failed".
 //!
-//! ASKED OFF THE CONFIG TEMPLATE, with no deployment behind it - the TownPatrolPlanCycles shape.
-//! Creating a marker leaks a repeating 10 s UpdateDeployment into the shared test world.
-//!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED, NOTHING IS MUTATED.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): add an
-//! OVT_PatrolBehaviorDeploymentModule to Deployment_BaseTowerGuards.conf and its null-plan assertion
-//! goes red naming the type that answered; change Deployment_BaseDefensePositions.conf's
-//! m_ePatrolType from DEFEND to PERIMETER and the one-point/non-cycling assertions go red; delete the
-//! m_Placement block from any of the three and that config's provider assertion goes red first;
-//! change m_eImportance HIGH to NORMAL on the tower config and the importance assertion goes red;
-//! rename any config, or drop its entry from overthrowDeployments.conf, and resolution goes red
-//! before all of them.
+//! Asked off the config template with no deployment behind it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCaseBase
@@ -11290,25 +10470,15 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 		if (!config.IsValidConfig())
 			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
 
-		// ⚠ THERE WAS A PRIORITY ASSERTION HERE AND IT WAS DELETED (2026-08-22), NOT WEAKENED.
+		// ⚠ A priority assertion was deleted here (2026-08-22), not weakened. It pinned m_iPriority to an
+		// exact number and broke the moment the author retuned it - which is the whole purpose of the
+		// field, so "the author changed his mind" and "somebody broke escalation order" became
+		// indistinguishable. It was not converted to a relative-order check either: the framework
+		// requires no RELATIONSHIP between two configs' priorities (a pure sort key and a threshold), so
+		// there is no inversion that breaks anything, only one a designer might not want.
 		//
-		// It pinned m_iPriority to an exact number and broke the moment the author retuned it - which is
-		// the whole purpose of the field. *"Why are there tests asserting a config setting? Why even have
-		// a config if it breaks tests?"* He is right: a knob that a test turns into a constant is not a
-		// knob, and "the author changed his mind about escalation order" and "somebody broke escalation
-		// order" became indistinguishable.
-		//
-		// ⚠ AND IT WAS NOT CONVERTED TO A RELATIVE-ORDER CHECK, WHICH WAS THE OTHER OPTION. That would be
-		// worth doing if the framework required any RELATIONSHIP between two configs' priorities, and it
-		// does not: OVT_DeploymentSelection consumes m_iPriority as a pure sort key ("lower priority value
-		// wins") and OVT_DeploymentRegistry as a threshold. The sort is total and correct for every
-		// assignment, so there is no inversion that breaks anything - only one a designer might not want,
-		// and a test cannot tell that apart from a decision. An ordering pin here would have been a weaker
-		// version of the same mistake kept alive for its own sake.
-		//
-		// What IS still asserted about this config is structural and unchanged: that it resolves, that it
-		// is valid, that it carries a placed module with a placement provider, and that it is offered at
-		// bases at all. Those are silent when violated, which is what earns a test.
+		// What IS still asserted is structural: that it resolves, that it is valid, that it carries a
+		// placed module with a placement provider, and that it is offered at bases at all.
 
 		if ((config.m_iAllowedLocationTypes & OVT_LocationTypeFlag.BASE) == 0)
 			return string.Format("Config '%1' does not allow the BASE location type (%2) - it would never be offered at a base at all",
@@ -11371,41 +10541,29 @@ class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCa
 }
 
 //------------------------------------------------------------------------------------------------
-//! THE RE-MATERIALISATION CLAIM: THE SECOND TIME A PLACED GROUP COMES BACK, ITS MEN STAND WHERE THEY
-//! STOOD THE FIRST TIME.
+//! THE RE-MATERIALISATION CLAIM: the second time a placed group comes back, its men stand where they
+//! stood the first time.
 //!
-//! WHY THIS CANNOT BE ASSERTED THE OBVIOUS WAY. Live, the claim needs a real despawn/respawn cycle
-//! driven by real distance, which needs a live deployment marker - and a marker leaks a repeating
-//! 8-12 s UpdateDeployment into a shared test world. So the placement DECISION was made a pure
-//! function of its arguments (OVT_PlacedInfantrySpawningDeploymentModule's PostForGroup /
-//! SlotForArrival / PlacementForArrival), the production teleport routes through it, and the claim
-//! reduces to "the same inputs answer the same output twice". Integration used exactly this shape for
-//! EvaluateCapture and recorded the same reason.
+//! Live, this needs a real despawn/respawn cycle driven by real distance, which needs a deployment
+//! marker - and a marker leaks a repeating 8-12 s UpdateDeployment into a shared test world. So the
+//! placement DECISION was made a pure function of its arguments, the production teleport routes
+//! through it, and the claim reduces to "the same inputs answer the same output twice".
 //!
-//! SIX CLAIMS, EACH A DIFFERENT WAY A GUARD ENDS UP IN THE WRONG PLACE:
-//!   1. POST SELECTION IS BY INDEX AND WRAPS. Group 0 takes post 0, group 1 post 1; a fourth group
-//!      where the world only offers three posts doubles up on post 0 rather than being dropped
-//!      somewhere the provider never chose.
-//!   2. TWO MATERIALISATIONS AGREE. The whole feature promise, computed twice with the arrival counter
-//!      reset between them exactly as OnPlacedGroupDespawning() resets it.
-//!   3. A MISSED RESET CANNOT MARCH ANYONE OFF THE POST. arrival + spread lands on the same step as
-//!      arrival - the modulo wrap that is the belt to the despawn notification's braces. Without it a
-//!      tower guard walks another 1.2 m sideways every materialisation, forever, and eventually off
-//!      his walkway.
-//!   4. THE SIDEWAYS STEP IS EXACTLY MEMBER_SPACING, asserted against the production constant rather
-//!      than a copy of the number.
-//!   5. THE POST'S OWN HEADING IS RESPECTED. A sniper marker carries an authored facing, and a spotter
-//!      stepped one metre "east" of a marker facing east would be standing in front of the sniper.
-//!   6. DEFENSIVE INPUTS DO NOT INDEX OUT OF BOUNDS. EnforceScript's % keeps the sign of its left
+//! Six claims, each a different way a guard ends up in the wrong place:
+//!   1. POST SELECTION IS BY INDEX AND WRAPS. A fourth group where the world offers three posts
+//!      doubles up on post 0 rather than being dropped somewhere the provider never chose.
+//!   2. TWO MATERIALISATIONS AGREE, with the arrival counter reset between them exactly as
+//!      OnPlacedGroupDespawning() resets it.
+//!   3. A MISSED RESET CANNOT MARCH ANYONE OFF THE POST - arrival + spread lands on the same step as
+//!      arrival. Without the modulo wrap a tower guard walks another 1.2 m sideways every
+//!      materialisation, forever, and eventually off his walkway.
+//!   4. THE SIDEWAYS STEP IS EXACTLY MEMBER_SPACING, asserted against the production constant.
+//!   5. THE POST'S OWN HEADING IS RESPECTED - a spotter stepped one metre "east" of a marker facing
+//!      east would be standing in front of the sniper.
+//!   6. DEFENSIVE INPUTS DO NOT INDEX OUT OF BOUNDS. ⚠ EnforceScript's % keeps the sign of its left
 //!      operand, so a negative index would answer a negative slot.
 //!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED - bare OVT_DeploymentPlacement objects and static calls.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): drop the
-//! `% posts.Count()` from PostForGroup and claim 1 goes red (index out of range or a repeated post);
-//! drop the `% spread` from SlotForArrival and claim 3 goes red; change MEMBER_SPACING and claim 4
-//! goes red naming both numbers; replace ArrivalTransform's `.Multiply3(outMat)` with a plain world-X
-//! add and claim 5 goes red; delete either negative guard and claim 6 goes red.
+//! Nothing is registered, created or mutated - bare placements and static calls.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_PlacedArrivalPlacementIsStable : SCR_AutotestCaseBase
@@ -11631,14 +10789,13 @@ class OVT_TEST_Init_Deployments_PlacedArrivalPlacementIsStable : SCR_AutotestCas
 //------------------------------------------------------------------------------------------------
 //! Test-only: pins the campaign threat the sniper provider filters markers against.
 //!
-//! WHY A SUBCLASS RATHER THAN A WIDER PRODUCTION SIGNATURE. The provider deliberately reads the LIVE
-//! occupying-faction threat itself instead of taking one as an argument, because the threat a
-//! deployment carries (OVT_DeploymentComponent.GetThreatLevel()) is a snapshot taken when it was
-//! created and persisted with it - filtering markers against that would freeze a base's sniper
-//! coverage at whatever the campaign looked like the day the deployment appeared, and the whole point
-//! of the per-marker gate is that a base grows sniper teams as threat RISES. Overriding the one
-//! protected accessor keeps that true and still makes the gate assertable at a chosen threat.
-//! Deliberately NOT [BaseContainerProps] - it must never be authorable in a config.
+//! The provider deliberately reads the LIVE occupying-faction threat rather than taking one as an
+//! argument, because the threat a deployment carries is a snapshot taken when it was created -
+//! filtering against that would freeze a base's sniper coverage at whatever the campaign looked like
+//! the day the deployment appeared, and the point of the per-marker gate is that a base grows sniper
+//! teams as threat RISES. Overriding the one protected accessor keeps that true.
+//!
+//! ⚠ NOT [BaseContainerProps] - it must never be authorable in a config.
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_ThreatPinnedSniperProvider : OVT_SniperMarkerPlacementProvider
 {
@@ -11657,44 +10814,22 @@ class OVT_TEST_ThreatPinnedSniperProvider : OVT_SniperMarkerPlacementProvider
 //! THE AT SECTION'S POSTS: exactly one side-offset ACROSS the road slot, looking back at it, and the
 //! same answer however the slots arrive.
 //!
-//! WHY THIS IS A CASE. Amendment A1 (2026-08-18) moved the base AT section off the perimeter patrol
-//! and onto the base's road slots - "where checkpoints would be (whether or not there is one) but off
-//! to the side with an offset". Three things about that are silent when they break:
-//!   1. THE OFFSET IS ACROSS THE ROAD, NOT ALONG IT. The step is taken along the slot's OWN right
-//!      vector, because a slot carries the road's rotation. Stepping along world X instead would put
-//!      the team in the middle of any road running north-south - which looks like a placement bug
-//!      rather than an axis bug, and only at some bases.
-//!   2. THE TEAM LOOKS AT THE ROAD. An AT team facing away from the approach it was placed to cover
-//!      engages several seconds late, which in play reads as "the AT team is useless" and never as a
-//!      heading bug.
-//!   3. THE SIDE IS A FUNCTION OF THE SLOT, NOT OF THE ORDER THE SLOTS CAME BACK IN. Placement
-//!      stability across re-materialisations is a promise of the placed-infantry module; the provider
-//!      is re-asked on every convergence pass, after every load and after every re-discovery of a
-//!      base's slots. If the left/right pick came from a list index, a destroyed slot or a query
-//!      returning in a different order would teleport a team across the road for no reason anyone
-//!      could see.
+//!   1. THE OFFSET IS ACROSS THE ROAD, NOT ALONG IT - the step is taken along the slot's OWN right
+//!      vector, because a slot carries the road's rotation. Stepping along world X would put the team
+//!      in the middle of any north-south road, which looks like a placement bug rather than an axis
+//!      bug, and only at some bases.
+//!   2. THE TEAM LOOKS AT THE ROAD. An AT team facing away from its approach engages seconds late,
+//!      which reads as "the AT team is useless" and never as a heading bug.
+//!   3. THE SIDE IS A FUNCTION OF THE SLOT, NOT OF LIST ORDER. The provider is re-asked on every
+//!      convergence pass, after every load and after every re-discovery of a base's slots, so a
+//!      left/right pick that came from a list index would teleport a team across the road.
 //!
-//! ASSERTED THROUGH THE PRODUCTION STATICS, not a copy of them: OVT_RoadSlotOverwatchPlacementProvider
-//! .PostBesideSlot() and .SideForSlot() are what the live resolve calls, so a second implementation
-//! that agreed on the day it was written cannot drift away from this. The transforms are hand-built
-//! precisely so the claim does not depend on this world having a base with road slots - the Init tier
-//! never runs InitBaseControllers(), so a live slot list does not exist here at all.
+//! Asserted through the production statics (PostBesideSlot / SideForSlot), not a copy. The transforms
+//! are hand-built so the claim does not depend on this world having a base with road slots - the Init
+//! tier never runs InitBaseControllers(), so a live slot list does not exist here at all.
 //!
-//! THE LIVE HALF IS STILL EXERCISED, because "the provider is safe to call and answers the same thing
-//! twice" is a contract claim that hand-built transforms cannot make. It is asserted as a comparison
-//! between two consecutive resolves (which is meaningful whether the answer is empty or not) plus the
-//! never-null contract, and the count is PRINTED rather than asserted - the Phase 2 snap-case
-//! discipline.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED. Bare objects, static calls, and read-only queries.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): replace
-//! `across = slotMat[0]` with a world-X constant in PostBesideSlot and the perpendicular assertion
-//! goes red; drop the `* SideForSlot(...)` term and the two-sides assertion goes red; make SideForSlot
-//! take a list index instead of the slot position and the order-independence assertion goes red;
-//! reverse FacingTowards' direction and the heading assertion goes red; change the shipped
-//! m_fSideOffset away from 15 in Deployment_BaseATSection.conf and the authored-offset assertion goes
-//! red naming both numbers.
+//! The live half is still exercised as a comparison between two consecutive resolves plus the
+//! never-null contract; the count is PRINTED rather than asserted.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_RoadSlotOverwatchIsOffsetAndStable : SCR_AutotestCaseBase
@@ -11960,40 +11095,23 @@ class OVT_TEST_Init_Deployments_RoadSlotOverwatchIsOffsetAndStable : SCR_Autotes
 //! A CURATED SNIPER MARKER IS SKIPPED WHILE ITS OWN m_iMinimumThreat IS ABOVE THE CAMPAIGN'S THREAT,
 //! AND MANNED FROM THE MOMENT IT IS NOT.
 //!
-//! WHY THIS GATE IS IN THE PROVIDER AND NOT IN THE CONFIG. A deployment config's
-//! m_iMinimumThreatLevel gates the WHOLE deployment, all or nothing. The legacy sniper-position
-//! upgrade gated PER MARKER, so a designer could author exposed forward positions that only get manned
-//! once the campaign is hot while the safe ones are manned from day one. The deployment framework
-//! offers no per-position equivalent, so the filter lives in OVT_SniperMarkerPlacementProvider - which
-//! makes it the one piece of authored designer progression in this feature that has no config to
-//! protect it. This case is that protection.
+//! A config's m_iMinimumThreatLevel gates the WHOLE deployment, all or nothing. The legacy
+//! sniper-position upgrade gated PER MARKER, so a designer could author exposed forward positions
+//! that only get manned once the campaign is hot. The framework offers no per-position equivalent, so
+//! the filter lives in OVT_SniperMarkerPlacementProvider - the one piece of authored designer
+//! progression in this feature with no config to protect it.
 //!
-//! THE BOUNDARY IS ASSERTED, NOT JUST THE MIDDLE. The production test is `threat < minimum -> skip`,
-//! so a marker whose threshold EQUALS the current threat is manned. An off-by-one flip to `<=` would
-//! leave every always-on marker (m_iMinimumThreat 0, the authored default) unmanned at threat 0 on a
-//! brand-new campaign - the most player-visible way this can break, and invisible to a middle-of-the-
-//! range test.
+//! ⚠ The BOUNDARY is asserted, not just the middle. The production test is `threat < minimum ->
+//! skip`, so a marker whose threshold EQUALS the current threat is manned. An off-by-one flip to `<=`
+//! would leave every always-on marker (m_iMinimumThreat 0, the authored default) unmanned at threat 0
+//! on a brand-new campaign - invisible to a middle-of-the-range test.
 //!
-//! IT RUNS AGAINST A WORLD-AUTHORED MARKER, ON PURPOSE. Spawning one would assert the arithmetic but
-//! not that the sphere query actually finds the entities a level designer places. The claim is
-//! therefore scoped to THIS marker (present / absent in the answer) rather than to a count, so other
-//! markers in a larger world cannot make it flaky.
+//! It runs against a WORLD-AUTHORED marker: spawning one would assert the arithmetic but not that the
+//! sphere query finds the entities a level designer places. The claim is scoped to THIS marker rather
+//! than to a count, so other markers in a larger world cannot make it flaky.
 //!
-//! ⚠ THE ONE MUTATION IS RESTORED ON EVERY PATH INCLUDING THE RED ONES. The marker's authored
-//! m_iMinimumThreat is written and put back inside a single Execute(); after this feature the provider
-//! is its only reader, and the case never yields between the two.
-//!
-//! Where a world has no sniper marker at all the case prints and stands down rather than asserting
-//! something else - the Phase 2 snap-case discipline.
-//!
-//! NOTHING IS REGISTERED, NOTHING IS CREATED.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): delete the
-//! `if (threat < position.m_iMinimumThreat) continue;` filter from the provider and the
-//! above-threshold assertion goes red; change it to `<=` and the equal-threshold assertion goes red on
-//! its own; make GetOccupyingThreat() ignore its override (e.g. read the manager directly in
-//! ResolvePlacements) and the below-threshold assertion goes red; drop the angles from the placement
-//! and the heading assertion goes red.
+//! ⚠ The one mutation - the marker's authored m_iMinimumThreat - is written and put back inside a
+//! single Execute(), on every path including the red ones.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_SniperMarkerThreatGateFilters : SCR_AutotestCaseBase
@@ -12221,9 +11339,7 @@ class OVT_TEST_Init_Deployments_SniperMarkerThreatGateFilters : SCR_AutotestCase
 //! Test-only window onto OVT_CompositionSpawningDeploymentModule's protected latch.
 //!
 //! ApplyBuildDecision() is protected because it is an internal step of TryBuildComposition(), not an
-//! API. A subclass is therefore the only honest way to assert it - widening the production method to
-//! public for a test would change the class's contract to make the test easy. Same shape and the same
-//! argument as OVT_TEST_SnapProbeInfantryModule above.
+//! API, so a subclass is the only honest way to assert it.
 //!
 //! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker or be authorable
 //! into a deployment config.
@@ -12242,40 +11358,26 @@ class OVT_TEST_CompositionProbeModule : OVT_CompositionSpawningDeploymentModule
 //------------------------------------------------------------------------------------------------
 //! A BASE NEVER GROWS A SECOND BUNKER. The no-double-build claim, asserted at the seam.
 //!
-//! WHAT THIS IS GUARDING, IN PLAYER TERMS. A composition - a bunker, an ammo cache, an MG nest, a
-//! road checkpoint - is a world ENTITY that vanilla persistence saves and restores on its own, and
-//! whose slot claim comes back separately in the base controller's m_aSlotsFilled. So a deployment
-//! restored from a save must build NOTHING: if it built again, every Continue would add one more
-//! structure to every fortified base, in a different slot each time, forever (D7). That is the single
-//! worst failure this phase can ship and it is completely silent for the first few loads.
+//! A composition is a world ENTITY that vanilla persistence saves and restores on its own, and whose
+//! slot claim comes back separately in the base controller's m_aSlotsFilled. So a deployment restored
+//! from a save must build NOTHING: if it built again, every Continue would add one more structure to
+//! every fortified base, in a different slot each time, forever (D7) - completely silent for the
+//! first few loads.
 //!
-//! WHY IT IS ASSERTED THIS WAY. Live, the claim needs a save, a base whose controller has finished
-//! discovering slots, and a free slot of the right size - and the Init tier has none of those: it
-//! never runs InitBaseControllers() at all, so m_aSlotsFilled is null and every slot list is null. So
-//! the DECISION was made a pure function of its inputs (DecideBuild), the production path routes
-//! through it, and the claim reduces to a truth table. Integration used exactly this shape for
-//! EvaluateCapture and Phase 4 for the placement statics; the same reason applies here.
+//! The Init tier never runs InitBaseControllers(), so m_aSlotsFilled is null and every slot list is
+//! null. The DECISION was therefore made a pure function of its inputs (DecideBuild), the production
+//! path routes through it, and the claim reduces to a truth table.
 //!
-//! THREE ANSWERS, NOT TWO, AND THE ASYMMETRY IS THE POINT:
+//! Three answers, not two, and the asymmetry is the point:
 //!   BUILD - a fresh deployment, first pass;
-//!   SKIP  - do nothing NOW, retry next pass, latch NOTHING. A module with no deployment behind it (a
-//!           config template), and a module whose force is currently flagged eliminated - the rebuy
-//!           path clears that flag and the structure is then owed;
-//!   NEVER - do nothing EVER, and latch it. Already attempted (idempotence), or restored from a save
-//!           (D7).
-//! Latching a SKIP would make a base that converged one tick before its controller finished
+//!   SKIP  - do nothing NOW, retry next pass, latch NOTHING (a config template, or a force currently
+//!           flagged eliminated - the rebuy path clears that flag and the structure is then owed);
+//!   NEVER - do nothing EVER, and latch it (already attempted, or restored from a save).
+//! ⚠ Latching a SKIP would make a base that converged one tick before its controller finished
 //! initialising permanently unfortifiable. Not latching a NEVER is the double build. Both are silent.
 //!
-//! THE LATCH IS ASSERTED SEPARATELY FROM THE DECISION, on a real module instance, because a decision
-//! that is computed correctly and never applied fails in exactly the same way as a wrong decision.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED - bare module objects and static calls, no world access.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): swap
-//! DecideBuild's restoredFromSave branch to SKIP and the D7 row goes red naming both answers; move the
-//! alreadyAttempted check below the eliminated one and the idempotence row goes red; drop the
-//! `m_bCompositionAttempted = true` from ApplyBuildDecision and the latch assertion goes red; make
-//! ApplyBuildDecision return true for anything but BUILD and the permission assertion goes red.
+//! The latch is asserted separately from the decision, on a real module instance, because a decision
+//! computed correctly and never applied fails in exactly the same way as a wrong decision.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_CompositionNeverBuildsTwice : SCR_AutotestCaseBase
@@ -12425,38 +11527,24 @@ class OVT_TEST_Init_Deployments_CompositionNeverBuildsTwice : SCR_AutotestCaseBa
 //! TWO COMPOSITIONS NEVER SHARE A SLOT - which is what lets a legacy save's structures and a new
 //! deployment's structures stand at one base without overlapping.
 //!
-//! THE MECHANISM, END TO END. A base controller keeps one m_aSlotsFilled list. The occupying-faction
-//! serializer writes it, InitBaseControllers() restores it verbatim from the save, and a composition
-//! module rolls for a slot that is NOT in it and then claims the one it built in. Nothing ever removes
-//! an entry. So the list is a permanent, campaign-wide, save-crossing record of "taken", and both
-//! halves of it have to hold:
-//!   1. A CLAIMED SLOT IS NEVER SELECTED. Break this and a new bunker spawns inside a legacy bunker on
-//!      the first load of a converted campaign;
-//!   2. A BUILD'S CLAIM ACTUALLY LANDS. Break this and the SAME base builds into the same slot again on
-//!      the next pass, stacking structures at one point.
+//! A base controller keeps one m_aSlotsFilled list; the serializer writes it, InitBaseControllers()
+//! restores it verbatim, and a composition module rolls for a slot NOT in it and then claims the one
+//! it built in. Nothing ever removes an entry, so the list is a permanent, campaign-wide,
+//! save-crossing record of "taken". Both halves have to hold:
+//!   1. A CLAIMED SLOT IS NEVER SELECTED - else a new bunker spawns inside a legacy bunker on the
+//!      first load of a converted campaign;
+//!   2. A BUILD'S CLAIM ACTUALLY LANDS - else the same base builds into the same slot again next
+//!      pass, stacking structures at one point.
 //!
-//! WHY THE PURE PAIR. The Init tier never runs InitBaseControllers() - the campaign is deliberately not
-//! started - so no base controller in this world has a slot list at all: m_aSlotsFilled is null and so
-//! is every m_*Slots array. A live-slot assertion is impossible here by construction, so the roll and
-//! the claim are static functions of the two arrays and the production path calls exactly them.
+//! The Init tier never runs InitBaseControllers(), so a live-slot assertion is impossible here by
+//! construction: the roll and the claim are static functions of the two arrays.
 //!
-//! REAL EntityIDs, NOT FABRICATED ONES. array.Contains() compares by value and EntityID is an opaque
-//! handle; a test that invented ids could not tell "never selects a claimed slot" from "every id
-//! compares equal". The ids are harvested read-only from entities this world already has.
+//! ⚠ Real EntityIDs, not fabricated ones. array.Contains() compares by value and EntityID is an
+//! opaque handle; invented ids could not tell "never selects a claimed slot" from "every id compares
+//! equal". They are harvested read-only from entities this world already has.
 //!
-//! INVARIANTS OVER SAMPLES, NEVER A RETRY. Each roll is random by design (a scan would make every base
-//! put its first bunker in the same slot), so the claims are written as "every one of SAMPLES rolls
-//! satisfies this", plus one deterministic liveness row with an empty claim list so a function that
-//! simply always refused could not pass.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED. The two arrays are the case's own; the world is only
-//! read.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): invert
-//! RollFreeSlotIndex's Contains() test and the claimed-slot invariant goes red naming the slot it
-//! offered; make ClaimSlot a no-op and the round-trip goes red; drop RollFreeSlotIndex's empty guard
-//! and the null rows go red (RandInt(0,0) is an engine error, so this one fails loudly); make
-//! ClaimSlot insert unconditionally and the duplicate-claim row goes red.
+//! Invariants over samples, never a retry - each roll is random by design. Plus one deterministic
+//! liveness row with an empty claim list, so a function that simply always refused could not pass.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_CompositionSlotClaimsAreRespected : SCR_AutotestCaseBase
@@ -12737,16 +11825,12 @@ class OVT_TEST_Init_Deployments_CompositionSlotClaimsAreRespected : SCR_Autotest
 //------------------------------------------------------------------------------------------------
 //! Test-only window onto OVT_PatrolBehaviorDeploymentModule's two protected anchor inputs.
 //!
-//! WHY A SUBCLASS IS THE ONLY WAY. Both inputs are protected, and both answer differently for a LIVE
-//! deployment than for a config template: GetPatrolCenter() returns the deployment marker when there
-//! is a deployment and vector.Zero when there is not, and GroupsAreStationedDeliberately() walks the
-//! deployment's spawning modules. So a case built on a config template - which is how every other
-//! plan-shape case in this suite works - sees the template answers and CANNOT distinguish the marker
-//! anchor from the group anchor at all: both come out as the group position. Creating a real
-//! deployment instead would leak a repeating 8-12 s UpdateDeployment into this shared world.
-//!
-//! Overriding the two inputs is what makes the live cases reachable with no world state at all. Same
-//! shape and the same argument as OVT_TEST_SnapProbeInfantryModule and OVT_TEST_CompositionProbeModule.
+//! Both answer differently for a LIVE deployment than for a config template: GetPatrolCenter()
+//! returns the deployment marker when there is a deployment and vector.Zero when there is not, and
+//! GroupsAreStationedDeliberately() walks the deployment's spawning modules. So a case built on a
+//! config template - how every other plan-shape case in this suite works - sees the template answers
+//! and cannot distinguish the marker anchor from the group anchor at all. Creating a real deployment
+//! would leak a repeating 8-12 s UpdateDeployment into this shared world.
 //!
 //! ⚠ NOT [BaseContainerProps]. It must never appear in a Workbench config picker.
 //------------------------------------------------------------------------------------------------
@@ -12774,44 +11858,26 @@ class OVT_TEST_DefendAnchorProbeModule : OVT_PatrolBehaviorDeploymentModule
 //------------------------------------------------------------------------------------------------
 //! A DEFEND PLAN HOLDS WHERE THE GROUP WAS STATIONED - AND ONLY WHEN THAT POSITION WAS CHOSEN.
 //!
-//! WHAT THIS IS GUARDING, IN PLAYER TERMS. A defend waypoint tells live AI to walk to that point and
-//! hold it. Every base-defense config that stands men somewhere specific - defense positions on their
-//! posts, tower guards on walkways, checkpoint guards on their checkpoint - is teleported into place by
-//! its spawning module and then told by this plan where to hold. Anchor the plan on the deployment
-//! MARKER and the whole garrison walks to the base flag the moment it materialises, undoing the
-//! placement that is the entire point of those configs. That is the "guards hold their posts" promise,
-//! and it lives on one vector.
+//! Every base-defense config that stands men somewhere specific is teleported into place by its
+//! spawning module and then told by this plan where to hold. Anchor the plan on the deployment MARKER
+//! and the whole garrison walks to the base flag the moment it materialises, undoing the placement
+//! that is the entire point of those configs.
 //!
-//! ⚠ BUT THE OPPOSITE ANCHOR IS ALSO WRONG, FOR A DIFFERENT CONFIG, AND THAT IS WHY THIS CASE HAS TWO
-//! HALVES. The plain infantry module rolls a ring point and road-snaps it through a 500 m search that
-//! ignores m_fSpawnRadius - integration MEASURED that putting Deployment_TowerGarrison.conf's garrison
-//! on its access road instead of at its tower. Anchoring ITS defend point on the group would park that
-//! garrison on the road for good. So the anchor follows the spawning module's own
-//! StationsGroupsDeliberately(), and both directions are asserted:
+//! ⚠ But the opposite anchor is also wrong, for a different config. The plain infantry module rolls a
+//! ring point and road-snaps it through a 500 m search that ignores m_fSpawnRadius - integration
+//! measured a tower garrison landing on its access road - so anchoring ITS defend point on the group
+//! would park that garrison on the road for good. The anchor therefore follows the spawning module's
+//! own StationsGroupsDeliberately(), and both directions are asserted:
 //!   1. STATIONED DELIBERATELY (placed / composition modules) -> hold the GROUP position;
-//!   2. ROLLED AND SNAPPED (the plain infantry module, i.e. the tower garrison) -> hold the MARKER,
-//!      exactly as it did before the fix;
-//!   3. NO DEPLOYMENT AT ALL (a config template) -> hold the group position, which is what every other
-//!      plan-shape case in this suite already depends on. ⚠ THIS ONE IS A REGRESSION GUARD WITH NO
-//!      INDEPENDENT FAIL PROOF TODAY, and that is stated rather than dressed up: with no deployment the
-//!      centre fallback ALSO resolves to the group position, so both branches agree and no single edit
-//!      to the anchor can break it. It is here to catch a future change that removes the fallback or
-//!      starts answering a marker for a template - either of which would silently move every
-//!      template-resolved plan in this suite;
-//!   4. PERIMETER IS UNTOUCHED - still a multi-point cycling plan. Its centre-dependence is deliberately
-//!      NOT asserted here: SnapPatrolPointsToRoads moves every PATROL corner onto a road up to 500 m
-//!      away, so any exact geometric claim about a perimeter ring is a flake waiting to happen. The
-//!      shipped ..._TownPatrolPlanCycles and ..._BasePatrolConfigsCyclePerimeter cases cover its shape.
-//!
-//! NOTHING IS REGISTERED, CREATED OR MUTATED - two bare module objects; the world is only read by the
-//! perimeter half's road snapping.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change the
-//! DEFEND branch back to BuildDefendPlan(centre, 0) and claim 1 goes red naming both positions; make it
-//! unconditionally BuildDefendPlan(groupPosition, 0) and claim 2 goes red - that is the tower-garrison
-//! regression, caught; delete the `if (centre == vector.Zero) centre = groupPosition` fallback AND
-//! anchor DEFEND on the centre and claim 3 goes red (it takes both, see above); route PERIMETER through
-//! the DEFEND branch and claim 4 goes red.
+//!   2. ROLLED AND SNAPPED (the plain infantry module) -> hold the MARKER;
+//!   3. NO DEPLOYMENT AT ALL (a config template) -> hold the group position. ⚠ This one is a
+//!      regression guard with NO independent fail proof: with no deployment the centre fallback also
+//!      resolves to the group position, so both branches agree and no single edit can break it. It is
+//!      here to catch a future change that removes the fallback or starts answering a marker for a
+//!      template;
+//!   4. PERIMETER IS UNTOUCHED - still a multi-point cycling plan. Its centre-dependence is
+//!      deliberately NOT asserted: SnapPatrolPointsToRoads moves every corner onto a road up to 500 m
+//!      away, so any exact geometric claim about a perimeter ring is a flake waiting to happen.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_DefendPlansHoldTheStation : SCR_AutotestCaseBase
@@ -12998,42 +12064,25 @@ class OVT_TEST_Init_Deployments_DefendPlansHoldTheStation : SCR_AutotestCaseBase
 
 //------------------------------------------------------------------------------------------------
 //! EVERY RESOURCE THE OCCUPYING FACTION SPENDS ON DEFENSE ARRIVES IN THE DEPLOYMENT POOL, AND THE
-//! TRANSFER THAT PUTS IT THERE CONSERVES THE TOTAL. (virtualization/base-defense-migration T6.9.)
+//! TRANSFER THAT PUTS IT THERE CONSERVES THE TOTAL.
 //!
-//! WHY THIS IS THE CASE THE FUNDING REWRITE NEEDED. Base defense used to be funded by a SECOND
-//! spender: the campaign tick split 80 % of every gain across the bases by threat and had each base
-//! controller convert its share into men directly, while a separate conditional drip topped the
-//! deployment pool up only when it was starving. Both are deleted, and the whole economy now runs
-//! through one credit point. Two things can go wrong with that and neither one raises an error:
+//! Base defense used to be funded by a SECOND spender: the campaign tick split 80 % of every gain
+//! across the bases by threat and each base controller converted its share into men directly. Both
+//! are deleted and the economy now runs through one credit point. Two silent failures:
+//!   1. THE MONEY NEVER ARRIVES. Credit the reserve instead of the pool - the obvious mistake, since
+//!      NewGameStart() sets the reserve two lines earlier - and the evaluator starts every campaign
+//!      broke while both numbers look healthy in the Game Master panel.
+//!   2. THE MONEY IS INVENTED OR LOST. A transfer that credits without debiting doubles the faction's
+//!      income forever; one that debits without crediting starves defense. Neither is visible from
+//!      any player or GM surface, which is why this asserts an EQUALITY on the sum.
 //!
-//!   1. THE MONEY NEVER ARRIVES. If the opening budget were credited to the reserve instead of the
-//!      pool - the obvious mistake, since the reserve is what NewGameStart() sets two lines earlier -
-//!      the deployment evaluator would start every campaign broke and no base would fortify for
-//!      hours. Both numbers would look perfectly healthy in the Game Master panel.
-//!   2. THE MONEY IS INVENTED OR LOST. A transfer that credits the pool without debiting the reserve
-//!      doubles the occupying faction's income forever; one that debits without crediting starves
-//!      defense while the reserve looks fine. Neither is visible from any surface a player or a GM
-//!      has, which is why the assertion here is an EQUALITY on the sum and not a "did it go up".
+//! Three claims on the live managers: (a) the opening seed lands in the POOL and leaves the reserve
+//! untouched; (b) a tick's transfer moves exactly the funding split's share and reserve+pool is
+//! unchanged; (c) a reserve smaller than the share is clamped to what exists and the identity still
+//! holds - the degenerate state a campaign reaches after an expensive QRF.
 //!
-//! THREE CLAIMS, IN ORDER, ALL ON THE LIVE MANAGERS:
-//!   (a) the opening seed lands in the POOL and leaves the reserve untouched, to the resource;
-//!   (b) a tick's transfer moves exactly the funding split's share, and reserve+pool is unchanged;
-//!   (c) a reserve smaller than the share is clamped to what actually exists, and the identity still
-//!       holds - which is the degenerate state a campaign reaches after an expensive QRF.
-//!
-//! ⚠ TWO PIECES OF LIVE CAMPAIGN STATE ARE BORROWED AND HANDED BACK EXACTLY AS FOUND: the occupying
-//! faction's reserve and its deployment resource pool. Everything happens inside ONE Execute() frame,
-//! so no evaluation pass, no campaign tick and no QRF can observe the planted values - and teardown
-//! runs on every path including the red ones.
-//!
-//! NOTHING IS CREATED, REGISTERED OR SPAWNED. Two integers move.
-//!
-//! PROVEN ABLE TO FAIL (fail proofs recorded, execution belongs to the phase's suite run): change
-//! SeedOpeningDeploymentResources() to add its seed to m_iResources instead of calling
-//! AllocateDeploymentResources() and claim (a) goes red naming both numbers; delete the
-//! `m_iResources -= toSpend;` line from TransferDefenseShareToPool() and claim (b)'s conservation
-//! assertion goes red while its "the pool went up" half still passes; delete the
-//! `if(toSpend > m_iResources)` clamp and claim (c) goes red with a negative reserve.
+//! ⚠ The reserve and the pool are borrowed and handed back exactly as found, inside ONE Execute()
+//! frame so no evaluation pass, campaign tick or QRF can observe the planted values.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_DefenseFundingLandsInThePool : SCR_AutotestCaseBase
@@ -13196,23 +12245,18 @@ class OVT_TEST_Init_Deployments_DefenseFundingLandsInThePool : SCR_AutotestCaseB
 }
 
 //------------------------------------------------------------------------------------------------
-//! The relaxed house-search waypoint is WIRED END TO END: the game-mode prefab authors it, it spawns as a
-//! timed Search & Destroy waypoint, and all THREE hand-authored behaviour trees (waypoint, soldier, move-to) are
-//! registered resources.
+//! The relaxed house-search waypoint is WIRED END TO END: the game-mode prefab authors it, it spawns
+//! as a timed Search & Destroy waypoint, and all THREE hand-authored behaviour trees (waypoint,
+//! soldier, move-to) are registered resources.
 //!
-//! WHY THE TREES ARE THE CLAIM. OVT_AIWaypoint_HouseSearch.et, WP_HouseSearch.bt and HouseSearch.bt were
-//! written as TEXT with hand-minted GUIDs and a .meta whose resource class (BehaviorTreeResourceClass) was
-//! read out of the engine binary, not a Workbench save. If the database refuses either tree the waypoint
-//! still spawns and the group still walks to the house - and then stands there until the hold expires,
-//! which in play looks like "the search is broken" with nothing in the log naming the tree. Resource.Load
-//! on the GUID'd name is the cheapest honest check that the registration took.
+//! ⚠ The trees are the claim. OVT_AIWaypoint_HouseSearch.et, WP_HouseSearch.bt and HouseSearch.bt
+//! were written as TEXT with hand-minted GUIDs and a .meta whose resource class was read out of the
+//! engine binary, not a Workbench save. If the database refuses either tree the waypoint still spawns
+//! and the group still walks to the house - and then stands there until the hold expires, which in
+//! play looks like "the search is broken" with nothing in the log naming the tree. Resource.Load on
+//! the GUID'd name is the cheapest honest check that the registration took.
 //!
-//! PROVEN ABLE TO FAIL (fail proof recorded): blank m_pHouseSearchWaypointPrefab on the game-mode prefab and
-//! the first assertion goes red; change a digit of either GUID in the .meta and that tree's load assertion
-//! goes red; point the prefab's parent at AIWaypoint_Wait.et and the class assertion goes red.
-//!
-//! CLEANED UP: the spawned waypoint is untracked and deleted on every path, as core's DeleteOwnedWaypoints
-//! does, so no persistence record outlives the case.
+//! The spawned waypoint is untracked and deleted on every path, so no persistence record outlives it.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBase
