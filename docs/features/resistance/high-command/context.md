@@ -1,8 +1,8 @@
 # High Command - Context & Decisions
 
 **Last Updated:** 2026-08-22
-**Current Phase:** ✅ COMPLETE — all 13 phases, 77/77
-**Status:** 🟢 Ready for Review
+**Current Phase:** ✅ CLOSED — all 13 phases, 77/77, play-test passed
+**Status:** ✅ **DONE** — play-test green, merged, closed 2026-08-22
 
 ---
 
@@ -852,7 +852,15 @@ Three different symptoms, one cause: the components after the stray brace were n
 
 The defect: `PlaceRecruitInInactiveGroup` → `AddRecruitAgentToGroup` → `AddAIEntityToGroup`, whose `UntrackTransient` is unconditional and carries only the **HC** exclusion this feature added in T6.7 — the *recruit* exclusion lives in `OnAgentAdded`, the other hook. So a parked recruit loses its persistence record and its gear cannot survive a save. The class header at `:20-22` still asserts recruits "never" reach that method, which stopped being true when `recruit-ux` shipped inactive recruits.
 
-**RESOLVED — the user merges `main` themselves, AFTER this feature is committed (their call, 2026-08-22).** No git write is performed by this workflow. Blocker that forced the decision: `main`'s fix (`6d79dd1e`) touches `Scripts/Game/Modded/SCR_AIGroup.c`, which is **locally modified and uncommitted** by T6.7, and the tree carries ~102 changed files — `git merge` refuses over uncommitted local changes.
+✅ **DONE — merged 2026-08-22 as `d99bb57a`**, at the user's explicit instruction and after they committed the feature as `cb6c9945`. (This workflow performs no git write on its own; this was a direct request.)
+
+**How the one conflict was resolved — main's shape won, as predicted.** `main`'s fix refactors *both* untrack hooks onto a shared `EntityMustStayTracked()` (player bodies + recruit bodies); v1.5 had added a **separate** HC exclusion to each hook. Resolution: **adopt main's structure and fold the HC check into the predicate**, so all three protected categories are named in one place and `OnAgentAdded`'s now-duplicate check is deleted. Also **kept v1.5's `NotifyMemberSpawned` call**, which main does not have — it is the virtualization member→slot reverse map and would have been silently lost by taking main's side wholesale. Class header updated from "those two" to "those three".
+
+**Gates after the merge:** compile-check 0 · **Logic 282 · Init 209 · PersistenceRoundTrip 43**.
+
+*(Original pre-merge analysis kept below, for the record.)*
+
+**~~RESOLVED — the user merges `main` themselves~~ (superseded).** No git write is performed by this workflow. Blocker that forced the decision: `main`'s fix (`6d79dd1e`) touches `Scripts/Game/Modded/SCR_AIGroup.c`, which is **locally modified and uncommitted** by T6.7, and the tree carries ~102 changed files — `git merge` refuses over uncommitted local changes.
 
 **Main's fix is the better shape and should win the merge.** It refactors *both* hooks onto a shared `EntityMustStayTracked(entity)` (player bodies + recruit bodies) instead of two parallel exclusion blocks. **The resolution is therefore ONE line, not "keep both sides": add the HC-member check into `EntityMustStayTracked` alongside the other two.** Adopt main's structure and fold HC into it.
 

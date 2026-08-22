@@ -1,7 +1,7 @@
 # High Command - Task Checklist
 
 **Last Updated:** 2026-08-22 (all 13 phases complete)
-**Progress:** 77/77 tasks complete (100%) — T13.3's wiki half closed out, not done (see context.md)
+**Progress:** 77/77 tasks complete (100%) — ✅ **CLOSED 2026-08-22**, play-test green. T13.3's wiki half closed out, not done (deferred until 1.5 ships).
 
 > **Epic:** `resistance` — reference as `resistance/high-command`.
 > Phases **2, 3, 6, 7, 9, 11** are **ADVANCED** (`*-advanced` agents). Task numbering matches `implementation.md` §4.

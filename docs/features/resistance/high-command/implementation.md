@@ -1,6 +1,6 @@
 # High Command — Implementation Plan
 
-**Status:** Ready for Review
+**Status:** ✅ Done — play-test green, merged, closed 2026-08-22
 **Started:** 2026-08-22
 **Target Completion:** TBD
 **Last Updated:** 2026-08-22 11:07
