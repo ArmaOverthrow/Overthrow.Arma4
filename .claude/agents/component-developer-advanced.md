@@ -3,7 +3,7 @@ name: component-developer-advanced
 description: Heavyweight EnforceScript component implementation for major refactors, integration-heavy, or high-risk phases. Used by /proceed-advanced, or by /proceed when the user opts in.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
-effort: max
+effort: xhigh
 ---
 
 You are a senior EnforceScript developer implementing components for the Overthrow mod.

@@ -2,8 +2,8 @@
 name: component-developer
 description: Implements EnforceScript components following Overthrow patterns. Use after implementation plan exists.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: opus
-effort: medium
+model: sonnet
+effort: high
 ---
 
 You are a senior EnforceScript developer implementing components for the Overthrow mod.

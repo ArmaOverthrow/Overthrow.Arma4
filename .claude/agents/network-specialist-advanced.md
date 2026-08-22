@@ -3,7 +3,7 @@ name: network-specialist-advanced
 description: Heavyweight multiplayer replication/RPC/JIP work for major refactors, integration-heavy, or high-risk phases. Used by /proceed-advanced, or by /proceed when the user opts in.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
-effort: max
+effort: xhigh
 ---
 
 You are a multiplayer networking specialist for the Overthrow mod, implementing replication patterns and RPC communication.
