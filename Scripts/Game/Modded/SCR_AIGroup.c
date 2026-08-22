@@ -15,11 +15,11 @@
 //!     SpawnGroupMember for both the deferred and the SpawnAllImmediately paths),
 //!   - every waypoint the group spawns from its prefab (AddWaypointsDynamic).
 //!
-//! WHAT DELIBERATELY DOES NOT PASS THROUGH HERE, so it stays tracked:
-//!   - recruit bodies: spawned individually by OVT_RecruitManagerComponent and added through the
-//!     RequestAddAIAgent/AddAgent path, never through AddAIEntityToGroup;
-//!   - player bodies: possessed characters join groups via AddAgentFromControlledEntity.
-//! Those two are exactly the categories recalled from storage by id (m_sBodyPersistenceId).
+//! WHAT MUST STAY TRACKED, whichever of those paths it arrives on - see EntityMustStayTracked():
+//!   - recruit bodies (parking one into an inactive group DOES go through AddAIEntityToGroup);
+//!   - High Command member bodies (spawned and joined through AddAIEntityToGroup);
+//!   - player bodies.
+//! Those three are exactly the categories recalled from storage by id (m_sBodyPersistenceId).
 //!
 //! Untracking is UntrackTransient() rather than a bare StopTracking() because the native
 //! registration is lazy and lands frames after spawn - see OVT_PersistenceManagerComponent.
@@ -467,20 +467,38 @@ modded class SCR_AIGroup
 		if (m_iOVT_PendingSlot >= 0 && entity)
 			OVT_VirtualizationManagerComponent.NotifyMemberSpawned(this, m_iOVT_PendingSlot, entity);
 
-		// A High Command member body is the campaign's durable record of that man's GEAR (D8): its
-		// persistence id is what the load walk asks the persistence system for, and an untracked body
-		// has no id at all. Registered with the HC manager BEFORE this call, exactly as recruits are.
-		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
-		if (highCommand && highCommand.IsMemberBody(entity))
-			return added;
-
-		// The group's own member spawning is the only Overthrow path into this method (vanilla's
-		// other callers are ScenarioFramework, which Overthrow does not use), so everything that
-		// arrives here is rebuild-on-boot AI. Members of a registered virtual group are transient
-		// too: the roster truth is the mask on the group record, not a character record each.
-		OVT_PersistenceManagerComponent.UntrackTransient(entity);
+		// NOT unconditional: OVT_RecruitManagerComponent parks recruits into inactive groups through
+		// this method, and High Command spawns its members through it - untracking either would drop
+		// the body record that IS that man's gear.
+		if (!EntityMustStayTracked(entity))
+			OVT_PersistenceManagerComponent.UntrackTransient(entity);
 
 		return added;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The two character categories that are recalled from storage by id and must keep their records:
+	//! player bodies and recruit bodies. Both group entry points ask this.
+	//! \param[in] entity The character joining a group.
+	//! \return True when it must stay persistence-tracked.
+	protected static bool EntityMustStayTracked(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(entity) > 0)
+			return true;
+
+		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
+		if (recruits && recruits.GetRecruitFromEntity(entity))
+			return true;
+
+		// A High Command member body is the campaign's durable record of that man's GEAR (D8): the
+		// load walk asks persistence for it by id, and an untracked body has no id at all. Registered
+		// with the HC manager BEFORE the group add, exactly as recruits are.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+
+		return highCommand && highCommand.IsMemberBody(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -510,15 +528,7 @@ modded class SCR_AIGroup
 		if (!entity)
 			return;
 
-		if (GetGame().GetPlayerManager().GetPlayerIdFromControlledEntity(entity) > 0)
-			return;
-
-		OVT_RecruitManagerComponent recruits = OVT_RecruitManagerComponent.GetInstance();
-		if (recruits && recruits.GetRecruitFromEntity(entity))
-			return;
-
-		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
-		if (highCommand && highCommand.IsMemberBody(entity))
+		if (EntityMustStayTracked(entity))
 			return;
 
 		OVT_PersistenceManagerComponent.UntrackTransient(entity);

@@ -8,7 +8,8 @@ class OVT_MapHighCommandLineLayer : OVT_MapCanvasLayer
 {
 	protected const float DASH_LENGTH_PX = 12.0;
 	protected const float GAP_LENGTH_PX = 8.0;
-	protected const float LINE_WIDTH_PX = 2.0;
+	//! 4 px, not 2: at 2 the dashes were hard to pick out against terrain (play-test 2026-08-22).
+	protected const float LINE_WIDTH_PX = 4.0;
 
 	//! 0.45 * 255 - matches OVT_MapHighCommandLayer.OTHER_OWNER_OPACITY, so a line dims with its marker.
 	protected const int OTHER_OWNER_ALPHA = 115;
