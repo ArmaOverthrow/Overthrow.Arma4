@@ -70,6 +70,18 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
     }
    }
    additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000058}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000059}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
     OVT_RepairStructureAction "{6B70D0000000002F}" {
      ParentContextList {
       "repair"

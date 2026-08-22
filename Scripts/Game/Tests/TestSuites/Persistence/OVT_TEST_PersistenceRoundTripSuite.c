@@ -13930,3 +13930,722 @@ class OVT_TEST_PersistenceRoundTrip_HighCommandMemberBodies_RoundTrip : SCR_Auto
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Shared subject resolution for the two production-site round trips below.
+//!
+//! The subject is the test world layer's ONE map-authored Sawmill: production sites are discovered
+//! from the world file on every machine, never spawned, so there is nothing to create here and
+//! nothing to clean up afterwards.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_ProductionRoundTripFixture
+{
+	//------------------------------------------------------------------------------------------------
+	//! The production manager and the world's one site record.
+	//! \param[out] manager The manager; untouched on failure.
+	//! \param[out] site The site record; untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string ResolveSite(out OVT_ResourceProductionManagerComponent manager, out OVT_ProductionSiteData site)
+	{
+		OVT_ResourceProductionManagerComponent found = OVT_Global.GetProduction();
+		if (!found)
+			return "OVT_Global.GetProduction() is null, so there is no production manager and no site state to round-trip";
+
+		array<ref OVT_ProductionSiteData> sites = found.GetSites();
+		if (!sites || sites.IsEmpty())
+			return "The production manager discovered no sites, so this case has no subject. Either Worlds/MP/OVT_Campaign_Test_Layers/default.layer has lost its OVT_ProductionSite_Sawmill instance or discovery no longer finds it.";
+
+		OVT_ProductionSiteData record = sites[0];
+		if (!record)
+			return "The production manager holds a null site record";
+
+		if (!record.entity)
+			return "The discovered site record carries no entity, so its stock cannot be read or written";
+
+		manager = found;
+		site = record;
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The resource the site produces, a second one a Put could have left in its store, and a third to
+	//! dirty the whole ledger with. Three distinct ids, because a site's stock is NOT one line.
+	//! \param[in] site The site record.
+	//! \param[out] defs The definition table; untouched on failure.
+	//! \param[out] producedId What the site makes.
+	//! \param[out] storedId A catalogue id that is not producedId - the stored (Put) line.
+	//! \param[out] dirtId A catalogue id that is neither of the other two.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string ResolveResources(notnull OVT_ProductionSiteData site, out OVT_ResourceDefs defs, out string producedId, out string storedId, out string dirtId)
+	{
+		OVT_ResourceManagerComponent resources = OVT_Global.GetResources();
+		if (!resources)
+			return "OVT_Global.GetResources() is null, so there is no resource catalogue and the site's stock cannot be stocked or read";
+
+		defs = resources.GetDefs();
+		if (!defs || defs.Count() < 3)
+			return "The resource catalogue holds fewer than three definitions. This case needs the produced resource, a second one to stand for a Put, and a third to write over both of them.";
+
+		OVT_ResourceProductionComponent component = OVT_ComponentFinder<OVT_ResourceProductionComponent>.Find(site.entity);
+		if (!component)
+			return "The site entity has no OVT_ResourceProductionComponent, so it is not a production site at all";
+
+		producedId = component.GetResourceId();
+		if (defs.IndexOf(producedId) == -1)
+			return string.Format("The site is authored to produce '%1', which resources.conf does not know", producedId);
+
+		storedId = "";
+		dirtId = "";
+
+		for (int i = 0; i < defs.Count(); i++)
+		{
+			string candidate = defs.IdAt(i);
+			if (candidate == "" || candidate == producedId)
+				continue;
+
+			if (storedId == "")
+			{
+				storedId = candidate;
+				continue;
+			}
+
+			dirtId = candidate;
+			return "";
+		}
+
+		return "The resource catalogue holds too few resources other than the one this site produces, so the second stored line and the line written over it cannot both be chosen";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A production site's OWNER, PRIVACY and FRACTIONAL CARRY survive a real save.
+//!
+//! Ownership is bought with money and never refunded, so a continue that quietly hands a paid-for
+//! sawmill back to nobody is money destroyed with no message. The carry is the subtler half: a site
+//! authored below one unit per hour produces ONLY through the carry (F2/R3), so a carry that resets
+//! to zero on every load makes a 0.5/hour site produce nothing, forever, with nothing in the log and
+//! no number on any screen that would show it.
+//!
+//! Three values, three distinguishable fates. The owner comes back as a string a campaign start
+//! could never produce, so "still dirty" (nothing was read back), "empty" (the record landed blank)
+//! and "restored" are three different failures with three different sentences.
+//!
+//! ⚠ A rename of the Deserialize local reads an EMPTY array and reports SUCCESS, so nothing is
+//! staged, nothing is applied, and every one of these three comes back DIRTY. That is what the
+//! still-dirty sentence below names.
+//!
+//! ⚠ Takes a real save; `ProductionSiteOwnership*` sorts after `..._Capability_...`.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_ProductionSiteOwnership_RoundTrips : SCR_AutotestCaseBase
+{
+	//! Neither is a persistent id any campaign produces, so neither can be arrived at by accident.
+	static const string SAVED_OWNER = "ovt-test-prodsite-owner";
+	static const string DIRTY_OWNER = "ovt-test-prodsite-dirt";
+
+	//! Both are NON-ZERO and genuinely fractional, and both are exactly representable in binary32.
+	//! Zero is deliberately not used for either: a carry that came back zero is the failure this case
+	//! exists to catch, so zero may not also be one of its inputs (R3).
+	static const float SAVED_CARRY = 0.375;
+	static const float DIRTY_CARRY = 0.875;
+
+	//! Slack on the carry comparison. Both constants round-trip a binary32 exactly, so anything
+	//! outside this is a real loss rather than float noise.
+	static const float CARRY_EPSILON = 0.0001;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return OwnAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool OwnAndSave()
+	{
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (!Replication.IsServer())
+		{
+			SetFailure("This test machine is not the replication authority, so SetSiteOwner() would refuse at its guard and the case would pass by doing nothing");
+			return true;
+		}
+
+		// Through the manager's own public writers, which is what a purchase calls.
+		manager.SetSiteOwner(site.location, SAVED_OWNER);
+		manager.SetSitePrivacy(site.location, false);
+		site.carry = SAVED_CARRY;
+
+		if (site.owner != SAVED_OWNER || site.isPrivate)
+		{
+			SetFailure(string.Format("The site refused to take the test ownership before the save: owner reads '%1', private reads %2", site.owner, site.isPrivate.ToString()));
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		manager.SetSiteOwner(site.location, DIRTY_OWNER);
+		manager.SetSitePrivacy(site.location, true);
+		site.carry = DIRTY_CARRY;
+
+		if (site.owner != DIRTY_OWNER || !site.isPrivate)
+		{
+			SetFailure("The site kept its saved ownership through the dirtying step, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The production sites' stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (site.owner == DIRTY_OWNER)
+		{
+			SetFailure("The site still reads the owner written AFTER the save, so nothing was read back over it. Either OVT_ResourceProductionManagerSerializer is not listed in the game-mode configuration in Configs/Systems/Persistence/Overthrow.conf, or its Deserialize local is spelled differently from its Serialize local - LoadContext.Read() keys on the LOCAL VARIABLE'S NAME, reads an EMPTY array and reports SUCCESS, so nothing is ever staged and every site's ownership, privacy, carry and stock are lost on every load with nothing in the log.");
+			return true;
+		}
+
+		if (site.owner == "")
+		{
+			SetFailure("The site came back UNOWNED. A record was applied but carried no owner, so the payload is being written blank or the site was matched to the wrong record.");
+			return true;
+		}
+
+		if (site.owner != SAVED_OWNER)
+		{
+			SetFailure(string.Format("The site was owned by '%1' when the save was taken and came back owned by '%2'", SAVED_OWNER, site.owner));
+			return true;
+		}
+
+		if (site.isPrivate)
+		{
+			SetFailure("The site was PUBLIC when the save was taken and came back private. Discovery gives every fresh record isPrivate = true, so the privacy flag is either not in the payload or not applied - and a resistance-owned site that comes back private locks the whole resistance out of its own storage.");
+			return true;
+		}
+
+		float carry = site.carry;
+
+		if (carry == 0)
+		{
+			SetFailure(string.Format("The site's fractional carry was %1 when the save was taken and came back ZERO. A site authored below one unit per hour produces only through the carry, so it now produces nothing at all, forever, and no screen in the game would show it.", SAVED_CARRY.ToString()));
+			return true;
+		}
+
+		if (Math.AbsFloat(carry - SAVED_CARRY) > CARRY_EPSILON)
+		{
+			SetFailure(string.Format("The site's fractional carry was %1 when the save was taken, was dirtied to %2, and came back %3", SAVED_CARRY.ToString(), DIRTY_CARRY.ToString(), carry.ToString()));
+			return true;
+		}
+
+		Print("A production site's owner, its public flag and a non-zero fractional carry all survived a real save");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A production site's STOCK comes back onto the site ENTITY's store, and applying it twice lands on
+//! the same state.
+//!
+//! The stock rides the manager's own save rather than a persistence rule on the store (D9): a
+//! ComponentClassPersistenceConfigRule on OVT_ResourceStoreComponent would hijack every truck,
+//! warehouse and pile away from the configurations they already match. So this is the only case that
+//! proves a site's accumulated production is written down at all - and it has to prove it lands on
+//! the ENTITY, not merely in a manager record, because the store is where every screen reads it.
+//!
+//! TWO LINES, NOT ONE. A site is not restricted to the resource it produces: the feature deliberately
+//! allows Put, so an owner can leave steel in a sawmill. A payload that carried one line per site
+//! would destroy the rest on every save, silently, and the site would still come back holding
+//! something - which is why the second line is stocked and asserted here rather than assumed.
+//!
+//! IDEMPOTENCY IS HALF THE CASE, and it is not decoration. Deserialization runs while the world is
+//! still being built (R4), so the payload is staged and applied after discovery, with one bounded
+//! retry. A retry that ADDED rather than SET would double a site's stock on every slow load. The
+//! second half below dirties the ledger again, applies the same payload a second time, and requires
+//! the site to land on exactly the saved figures - which also proves the payload was not consumed by
+//! the first pass.
+//!
+//! ⚠ Takes a real save; `ProductionSiteStock*` sorts after `..._Capability_...`.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_ProductionSiteStock_RoundTrips : SCR_AutotestCaseBase
+{
+	//! Under the site's 20 m3 cap for every resource in the catalogue, and not a multiple of the
+	//! Sawmill's authored rate, so the hourly drip cannot arrive at it from an emptied ledger.
+	static const int SAVED_QUANTITY = 137;
+
+	//! The SECOND line: a resource the site does not produce, standing in for a Put. A different
+	//! figure from the produced one, so a payload that restored the wrong line cannot pass.
+	static const int STORED_QUANTITY = 23;
+
+	//! Written over the saved stock, as a THIRD resource, before each re-application.
+	static const int DIRTY_QUANTITY = 11;
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	protected string m_sProducedId;
+	protected string m_sStoredId;
+	protected string m_sDirtId;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+			return StockAndSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool StockAndSave()
+	{
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		if (!Replication.IsServer())
+		{
+			SetFailure("This test machine is not the replication authority, so nothing may be written into a site's ledger from here and the case would pass by doing nothing");
+			return true;
+		}
+
+		OVT_ResourceDefs defs;
+		diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveResources(site, defs, m_sProducedId, m_sStoredId, m_sDirtId);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_ResourceStoreComponent store;
+		diagnostic = OVT_TEST_ResourceRoundTripFixture.ResolveStore(site.entity, "The production site", store);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_ResourceLedger ledger = store.GetLedger();
+		ledger.Clear();
+		ledger.Add(m_sProducedId, SAVED_QUANTITY, defs, OVT_ResourceStoreComponent.UNLIMITED_CAPACITY);
+		ledger.Add(m_sStoredId, STORED_QUANTITY, defs, OVT_ResourceStoreComponent.UNLIMITED_CAPACITY);
+		store.PublishContents();
+
+		if (ledger.Count(m_sProducedId) != SAVED_QUANTITY)
+		{
+			SetFailure(string.Format("The site's ledger holds %1 of '%2' after being stocked with %3, so the arrangement failed before the save",
+				ledger.Count(m_sProducedId).ToString(), m_sProducedId, SAVED_QUANTITY.ToString()));
+			return true;
+		}
+
+		if (ledger.Count(m_sStoredId) != STORED_QUANTITY)
+		{
+			SetFailure(string.Format("The site's ledger holds %1 of '%2' after being stocked with %3, so the second line was never arranged and the save would prove nothing about it",
+				ledger.Count(m_sStoredId).ToString(), m_sStoredId, STORED_QUANTITY.ToString()));
+			return true;
+		}
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		string diagnostic = DirtyStock();
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The production sites' stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = AssertStock("after the reload");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// The second half: dirty the ledger again and apply the SAME staged payload by hand. This is
+		// the manager's own public API, not a persistence-layer seam.
+		diagnostic = DirtyStock();
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		manager.ApplyStaged();
+
+		diagnostic = AssertStock("after a SECOND application of the same payload");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		Print("A production site's stock - the resource it produces AND a second one a Put left in it - came back onto the site entity's own store, and applying the same payload a second time landed on exactly the same state");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Writes a different resource over the site's saved stock, through the same API that wrote it.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	protected string DirtyStock()
+	{
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceDefs defs;
+		string producedId;
+		string storedId;
+		string dirtId;
+		diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveResources(site, defs, producedId, storedId, dirtId);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceStoreComponent store;
+		diagnostic = OVT_TEST_ResourceRoundTripFixture.ResolveStore(site.entity, "The production site", store);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceLedger ledger = store.GetLedger();
+		ledger.Clear();
+		ledger.Add(m_sDirtId, DIRTY_QUANTITY, defs, OVT_ResourceStoreComponent.UNLIMITED_CAPACITY);
+		store.PublishContents();
+
+		if (ledger.Count(m_sProducedId) != 0 || ledger.Count(m_sStoredId) != 0)
+			return "The site kept its saved stock through the dirtying step, so the re-application would prove nothing";
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asserts the saved stock is on the site entity's store and nothing else is.
+	//! \param[in] when Where in the case this assertion is being made, for the failure sentence.
+	//! \return An empty string when the stock is right, otherwise the sentence to fail with.
+	protected string AssertStock(string when)
+	{
+		OVT_ResourceProductionManagerComponent manager;
+		OVT_ProductionSiteData site;
+
+		string diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveSite(manager, site);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceDefs defs;
+		string producedId;
+		string storedId;
+		string dirtId;
+		diagnostic = OVT_TEST_ProductionRoundTripFixture.ResolveResources(site, defs, producedId, storedId, dirtId);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceStoreComponent store;
+		diagnostic = OVT_TEST_ResourceRoundTripFixture.ResolveStore(site.entity, "The production site", store);
+		if (diagnostic != "")
+			return diagnostic;
+
+		OVT_ResourceLedger ledger = store.GetLedger();
+
+		if (ledger.Count(m_sDirtId) != 0)
+		{
+			return string.Format("The site still holds %1 of '%2' %3 - the line written over its stock, so nothing was applied on top of it. The stock rides the production manager's own record (D9), so the serializer is either not listed in Configs/Systems/Persistence/Overthrow.conf or its payload never reached the site's store.",
+				ledger.Count(m_sDirtId).ToString(), m_sDirtId, when);
+		}
+
+		int held = ledger.Count(m_sProducedId);
+
+		if (held == 0)
+		{
+			return string.Format("The site's store is EMPTY of '%1' %2. The record was matched but carried no stock: a renamed Deserialize local reads an empty array and reports SUCCESS, and a site whose entity had not streamed in yet is dropped after one retry with a named ERROR in the log.",
+				m_sProducedId, when);
+		}
+
+		if (held == SAVED_QUANTITY * 2)
+		{
+			return string.Format("The site holds %1 of '%2' %3, exactly twice the saved %4 - the payload is being ADDED rather than SET, so a slow load that takes the one bounded retry doubles every site's stock.",
+				held.ToString(), m_sProducedId, when, SAVED_QUANTITY.ToString());
+		}
+
+		if (held != SAVED_QUANTITY)
+		{
+			return string.Format("The site holds %1 of '%2' %3, expected the saved %4",
+				held.ToString(), m_sProducedId, when, SAVED_QUANTITY.ToString());
+		}
+
+		int stored = ledger.Count(m_sStoredId);
+
+		if (stored == 0)
+		{
+			return string.Format("The site's store is EMPTY of '%1' %2, though it held %3 when the save was taken. That line is a resource the site does NOT produce - the shape a Put leaves - so a payload that carries one line per site drops it and destroys an owner's stored goods on every save.",
+				m_sStoredId, when, STORED_QUANTITY.ToString());
+		}
+
+		if (stored != STORED_QUANTITY)
+		{
+			return string.Format("The site holds %1 of '%2' %3, expected the saved %4",
+				stored.ToString(), m_sStoredId, when, STORED_QUANTITY.ToString());
+		}
+
+		if (ledger.LineCount() != 2)
+		{
+			return string.Format("The site came back with %1 ledger line(s) %2, expected the 2 that were saved",
+				ledger.LineCount().ToString(), when);
+		}
+
+		// The REPLICATED contents, not the ledger's. Clear() fires no invoker, so a load that rebuilds
+		// the ledger without republishing leaves every client's map row and storage screen on the
+		// pre-load stock until something else touches the site.
+		string republished = OVT_ResourcePack.Encode(ledger, defs);
+		if (store.GetPackedContents() != republished)
+		{
+			return string.Format("The site restored its ledger but its REPLICATED contents still read '%1' instead of '%2' %3 - PublishContents() was not called on the load path",
+				store.GetPackedContents(), republished, when);
+		}
+
+		return "";
+	}
+}

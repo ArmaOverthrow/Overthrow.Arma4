@@ -1,9 +1,9 @@
 //------------------------------------------------------------------------------------------------
 //! "Cargo (12.5 / 20 m3)" / "Crate pile (4.4 m3)" - opens the resource transfer screen on this holder.
 //!
-//! ONE CLASS, THREE HOSTS: the truck delta, the crate pile and the warehouse delta. Nothing in it is
-//! host-specific; the label branches on whether the store has a cap, which is the only thing that
-//! differs between a truck and an unlimited holder.
+//! ONE CLASS, FOUR HOSTS: the truck delta, the crate pile, the warehouse delta and the production
+//! site. Nothing in it is host-specific; the label branches on whether the store has a cap, which is
+//! the only thing that differs between a truck and an unlimited holder.
 //!
 //! The volume comes from the holder's REPLICATED ledger, so it is right on every client within one
 //! replication tick and changes with nobody's menu open. It is rebuilt on a one second TTL - the
@@ -94,6 +94,12 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 			return false;
 		}
 
+		if (!SiteIsOpenTo(user))
+		{
+			SetCannotPerformReason("#OVT-Resource_NoAccess");
+			return false;
+		}
+
 		return true;
 	}
 
@@ -174,6 +180,30 @@ class OVT_OpenResourceStoreAction : ScriptedUserAction
 		string playerUid = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(user);
 
 		return realEstate.PlayerMayUseWarehouse(playerUid, Holder());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The site half of the client mirror; anything that is not a production site passes. Calls the
+	//! SAME predicate the server's gate does (MayAccessStore) - no ownership comparison is ever
+	//! re-implemented here.
+	//! \param[in] user The acting character.
+	//! \return True when this holder is not a site, or is one this player may open.
+	protected bool SiteIsOpenTo(IEntity user)
+	{
+		if (!OVT_ComponentFinder<OVT_ResourceProductionComponent>.Find(Holder()))
+			return true;
+
+		OVT_ResourceProductionManagerComponent production = OVT_Global.GetProduction();
+		if (!production)
+			return false;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return false;
+
+		string playerUid = players.GetPersistentIDFromControlledEntity(user);
+
+		return OVT_ResourceProductionRules.MayAccessStore(playerUid, production.GetSiteOwner(Holder()), production.IsSitePrivate(Holder()));
 	}
 
 	//------------------------------------------------------------------------------------------------

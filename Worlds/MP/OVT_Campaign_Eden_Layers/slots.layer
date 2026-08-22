@@ -88,7 +88,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
-    coords 0 -0 0
+    coords 0 0 0
    }
   }
  }
@@ -97,7 +97,7 @@ $grp SCR_SiteSlotEntity : "{588A3DAF0296B0C1}PrefabsEditable/Slots/Flat/E_SlotFl
   {
    StaticModelEntity {
     ID "52E8C3643526D54D"
-    coords 0 -0 0
+    coords 0 0 0
    }
   }
  }

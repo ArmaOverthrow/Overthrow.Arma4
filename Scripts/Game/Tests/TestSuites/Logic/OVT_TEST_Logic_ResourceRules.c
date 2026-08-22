@@ -1691,3 +1691,87 @@ class OVT_TEST_Logic_ResourceRules_TownControlGate : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Repairing a ruin costs a share of what building it cost - never free, and never more than the
+//! build. The two clamps are the contract: a difficulty preset can make a repair cheap, but a
+//! resource-costing building can never be put back for nothing, and a mis-authored multiplier above
+//! 1 can never make repairing dearer than building.
+//!
+//! PROVEN ABLE TO FAIL: drop the `repair < 1` floor - red on the 0.5-of-1 case; drop the
+//! `repair > scaledQty` ceiling - red on the 1.5 case.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ResourceRules_RepairRequirementIsAShareOfTheBuild : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// The shipped ladder: half on Easy/Normal, three quarters on Hard, full at Extreme/Insane.
+		int repair = OVT_ResourceRules.RepairRequirement(100, 0.5);
+		if (repair != 50)
+		{
+			SetFailure("RepairRequirement(100, 0.5) is %1, expected 50", repair.ToString());
+			return true;
+		}
+
+		repair = OVT_ResourceRules.RepairRequirement(100, 0.75);
+		if (repair != 75)
+		{
+			SetFailure("RepairRequirement(100, 0.75) is %1, expected 75", repair.ToString());
+			return true;
+		}
+
+		repair = OVT_ResourceRules.RepairRequirement(100, 1);
+		if (repair != 100)
+		{
+			SetFailure("At full difficulty a repair costs %1 of a 100 build, expected all of it", repair.ToString());
+			return true;
+		}
+
+		// The floor: a single-unit requirement at half still costs one.
+		repair = OVT_ResourceRules.RepairRequirement(1, 0.5);
+		if (repair != 1)
+		{
+			SetFailure("RepairRequirement(1, 0.5) is %1, expected the floor 1 - a repair is never free", repair.ToString());
+			return true;
+		}
+
+		// The ceiling: a preset authored above 1 must not make a repair dearer than the build.
+		repair = OVT_ResourceRules.RepairRequirement(40, 1.5);
+		if (repair != 40)
+		{
+			SetFailure("RepairRequirement(40, 1.5) is %1, expected the build requirement 40 as a ceiling", repair.ToString());
+			return true;
+		}
+
+		// A negative multiplier clamps to zero and then meets the floor, the same guard rail
+		// OVT_RepairPricing.RepairCost applies to a mis-authored preset.
+		repair = OVT_ResourceRules.RepairRequirement(40, -1);
+		if (repair != 1)
+		{
+			SetFailure("A negative multiplier gave %1, expected the floor 1", repair.ToString());
+			return true;
+		}
+
+		// No requirement stays no requirement: a money-only buildable repairs for money alone.
+		repair = OVT_ResourceRules.RepairRequirement(0, 0.5);
+		if (repair != 0)
+		{
+			SetFailure("RepairRequirement(0, 0.5) is %1, expected 0 - a money-only buildable gains no material cost", repair.ToString());
+			return true;
+		}
+
+		repair = OVT_ResourceRules.RepairRequirement(-5, 0.5);
+		if (repair != 0)
+		{
+			SetFailure("A negative requirement gave %1, expected 0", repair.ToString());
+			return true;
+		}
+
+		Print("Repair requirements: a share of the build, floored at 1, capped at the build, and 0 stays 0");
+
+		return true;
+	}
+}

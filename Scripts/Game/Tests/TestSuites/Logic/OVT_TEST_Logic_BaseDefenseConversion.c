@@ -345,3 +345,145 @@ class OVT_TEST_Logic_BaseDefenseConversion_FundingSplitConservesTheTotal : SCR_A
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! THE DRIP PAYS OUT EXACTLY THE SHARE, NEVER MORE AND NEVER LESS, whatever the share divides into.
+//!
+//! The drip replaced a single statement that moved the whole 80 % at the six-hour payday with six
+//! hourly slices, and the only thing that made the old statement safe was that it was ONE statement:
+//! reserve down by X, pool up by X, nothing to get wrong. Six slices reintroduce exactly the failure
+//! the epic's design note warned about - "a share divided across N steps is 0 forever for small
+//! amounts, needs a remainder carry or an accumulator" - and EnforceScript truncating in a pure-int
+//! expression is precisely how that goes wrong silently.
+//!
+//! THE CARRY IS STRUCTURAL, WHICH IS WHY THIS CASE WALKS THE WINDOW RATHER THAN SPOT-CHECKING ONE
+//! CALL. DripAmount divides what is STILL OWED by the drips STILL TO COME, so the remainder each
+//! floor leaves behind is part of the next numerator by construction and the last drip - dividing by
+//! one - pays out whatever is left. That claim is only true across a whole window, so a whole window
+//! is what is asserted: six drips, summed, against the share they were opened with.
+//!
+//! A SHARE THAT ROUNDS TO ZERO PER STEP IS THE CASE THAT BREAKS A NAIVE IMPLEMENTATION. share/6 in a
+//! pure-int expression pays 0 six times and strands the money forever, and the deployment pool goes
+//! quietly unfunded with nothing logged. Re-deriving the divisor pays five out as 0,1,1,1,1,1: the
+//! first floor is still 0, but from the second drip on there are as many drips left as there are
+//! resources, so the money leaves as it can rather than waiting for the final step.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_BaseDefenseConversion_DripPaysOutExactlyTheShare : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (OVT_BaseDefenseConversion.DRIP_STEPS != 6)
+		{
+			SetFailure("DRIP_STEPS is %1, expected 6 - the drip is designed as one slice an hour across the six-hour payday grid, and this case's expectations are written against that", OVT_BaseDefenseConversion.DRIP_STEPS.ToString());
+			return true;
+		}
+
+		// An evenly divisible share is the easy half: six equal slices, no carry needed.
+		array<int> even = DripWindow(1200);
+		if (even[0] != 200 || even[5] != 200)
+		{
+			SetFailure("A share of 1200 dripped %1 first and %2 last, expected 200 each - an evenly divisible share must not need the carry at all", even[0].ToString(), even[5].ToString());
+			return true;
+		}
+
+		// THE SHARES THAT DO NOT DIVIDE. Each must still sum to itself exactly.
+		array<int> shares = {};
+		shares.Insert(1200);
+		shares.Insert(200);
+		shares.Insert(1337);
+		shares.Insert(7);
+		shares.Insert(5);
+		shares.Insert(1);
+		shares.Insert(0);
+
+		foreach (int share : shares)
+		{
+			array<int> drips = DripWindow(share);
+
+			int paid = 0;
+			foreach (int drip : drips)
+			{
+				if (drip < 0)
+				{
+					SetFailure("A share of %1 produced a drip of %2 - a negative drip moves money OUT of the deployment pool and back into the reserve, silently", share.ToString(), drip.ToString());
+					return true;
+				}
+
+				paid += drip;
+			}
+
+			if (paid != share)
+			{
+				SetFailure("A share of %1 dripped out to %2 across six steps - the remainder carry is losing or conjuring money, and neither shows up anywhere but a pool that will not fund its defenses", share.ToString(), paid.ToString());
+				return true;
+			}
+		}
+
+		// THE ROUNDS-TO-ZERO CASE, stated explicitly rather than left to the sum above: it is the one a
+		// share/6 implementation gets wrong. The first floor is 0 and every later drip pays 1, because
+		// once the drips left equal the resources left the divisor stops rounding anything away.
+		array<int> tiny = DripWindow(5);
+		if (tiny[0] != 0)
+		{
+			SetFailure("A share of 5 dripped %1 on its first step, expected 0 - floor(5/6) is 0 and rounding it up would overdraw the window", tiny[0].ToString());
+			return true;
+		}
+
+		for (int i = 1; i < OVT_BaseDefenseConversion.DRIP_STEPS; i++)
+		{
+			if (tiny[i] != 1)
+			{
+				SetFailure("A share of 5 dripped %1 on step %2, expected 1 - a share smaller than the step count must still drain one at a time, not be truncated away six times and stranded", tiny[i].ToString(), (i + 1).ToString());
+				return true;
+			}
+		}
+
+		// DEGENERATE SCHEDULES ARE NOT ERRORS. A restored or corrupt window can claim more drips than
+		// it has money for, or none at all; neither may over-pay.
+		if (OVT_BaseDefenseConversion.DripAmount(100, 0) != 100)
+		{
+			SetFailure("A window with no drips left owed %1 of 100 - a debt with no schedule must be payable in full, or it can never be settled", OVT_BaseDefenseConversion.DripAmount(100, 0).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.DripAmount(0, 6) != 0 || OVT_BaseDefenseConversion.DripAmount(-500, 6) != 0)
+		{
+			SetFailure("A non-positive debt dripped something - nothing owed must move nothing");
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.DripAmount(100, 1000) > 100)
+		{
+			SetFailure("A drip of a 100 debt across 1000 steps paid %1 - no single drip may exceed what is owed", OVT_BaseDefenseConversion.DripAmount(100, 1000).ToString());
+			return true;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Walks one whole drip window the way the manager does, returning what each step paid.
+	//! \param[in] share The window's opening debt.
+	//! \return DRIP_STEPS amounts, in order.
+	protected array<int> DripWindow(int share)
+	{
+		array<int> drips = {};
+
+		int pending = share;
+		int remaining = OVT_BaseDefenseConversion.DRIP_STEPS;
+
+		for (int i = 0; i < OVT_BaseDefenseConversion.DRIP_STEPS; i++)
+		{
+			int amount = OVT_BaseDefenseConversion.DripAmount(pending, remaining);
+
+			drips.Insert(amount);
+			pending -= amount;
+			remaining--;
+		}
+
+		return drips;
+	}
+}

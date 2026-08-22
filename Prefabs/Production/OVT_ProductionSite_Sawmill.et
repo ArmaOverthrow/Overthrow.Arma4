@@ -1,0 +1,11 @@
+GenericEntity : "{6A8E2F0000000100}Prefabs/Production/OVT_ProductionSite_Base.et" {
+ ID "6A8E2F0000000200"
+ components {
+  OVT_ResourceProductionComponent "{6A8E2F0000000001}" {
+   m_sSiteName "#OVT-ProdSite_Sawmill"
+   m_sResourceId "timber"
+   m_fUnitsPerHour 6
+   m_iBaseCost 32000
+  }
+ }
+}

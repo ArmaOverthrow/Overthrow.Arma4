@@ -228,6 +228,47 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! Minute of hour the quarter-hourly threat decay last ran in, or -1 when it has not run yet.
 	protected int m_iMinuteDecayedThreat = -1;
 
+	//! Hour of day the hourly defense-share drip last ran in, or -1 when it has not run yet. Same
+	//! latch contract, and NOT PERSISTED for the same reason as the two above.
+	protected int m_iHourDripped = -1;
+
+	//------------------------------------------------------------------------------------------------
+	// THE DEFENSE-SHARE DRIP (2026-08-22)
+	//
+	// WHAT CHANGED AND WHAT DELIBERATELY DID NOT. Income is untouched: the reserve is still paid in a
+	// lump on the four six-hour boundaries, still latched by m_iHourGainedResources, and the sleep
+	// replay still walks the same grid. What moved is the TRANSFER. The share no longer leaves for the
+	// deployment pool all at once - it is ARMED as a debt the reserve owes the pool, and paid off one
+	// slice an hour.
+	//
+	// WHY THE TRANSFER AND NOT THE INCOME. resistance/sleep replays income through the very same
+	// methods the live tick uses, walking a skipped window in quarter-hour steps; change the income
+	// cadence and the replay's granularity has to change with it, which is BUG-183's family (an
+	// unpersisted hour latch paying a sweep twice on load is a repeatable money exploit). The pool is
+	// the CONTENDED resource - nothing spends directly out of the reserve on defense - so smoothing
+	// its arrival lands exactly where the burst behaviour is, and the half of the system carrying the
+	// save-format and time-skip hazards does not move at all.
+	//
+	// THE MONEY STAYS IN THE RESERVE WHILE IT IS OWED (author decision 2026-08-22, over an escrow
+	// bucket). One consequence is deliberate and is not a bug: the reserve now sits ~80 % fatter for
+	// most of each six-hour window, and the reserve is what OVT_ObjectiveDirectorComponent reads for
+	// objectiveQRFResourceGate - so a counter-attack clears its funding gate EARLIER than it did.
+	//
+	// NOTHING CAN BE STRANDED. ArmDefenseShareDrip() flushes whatever the previous window still owed
+	// before arming the new one, so a window that lost drips to a QRF freeze, a missed tick or a load
+	// pays in full at the next payday rather than silently evaporating.
+	//------------------------------------------------------------------------------------------------
+
+	//! What the deployment pool is still owed from the current window, still sitting in m_iResources.
+	protected int m_iPendingDefenseTransfer = 0;
+
+	//! How many drips are left to pay it off with, including the next one.
+	protected int m_iDefenseDripsRemaining = 0;
+
+	//! Minute of hour the next drip fires at - rolled fresh after every drip so the six transfers do
+	//! not land on the exact hour in lockstep.
+	protected int m_iDripMinute = 0;
+
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
@@ -502,6 +543,61 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! \param[in] threat Occupying faction threat level.
 	//! \param[in] bases Persisted base records, matched to live bases by location. May be null.
 	//! \param[in] towers Persisted radio tower records, matched by location. May be null.
+	//------------------------------------------------------------------------------------------------
+	//! Restores the defense-share drip's outstanding debt from a save.
+	//!
+	//! SEPARATE FROM ApplyPersistedOccupyingFaction() ON PURPOSE - that method's five arguments are the
+	//! war state a campaign cannot start without, and the Persistence tier drives it directly; the drip
+	//! is a schedule laid over it and a version 1-3 save legitimately has none.
+	//!
+	//! DEFENSIVE, BECAUSE A RESTORED DEBT IS SPENDABLE MONEY. A corrupt or hand-edited payload claiming
+	//! a debt with no drips left to pay it would be settled in full by the next flush, so the two are
+	//! reconciled here instead: no debt means no drips, and a debt with no schedule gets a full one.
+	//! \param[in] pendingDefenseTransfer What the pool was still owed when the save was written.
+	//! \param[in] defenseDripsRemaining How many drips were left to pay it.
+	//! \param[in] dripMinute The minute of the hour the next drip was due at.
+	void ApplyPersistedDefenseDrip(int pendingDefenseTransfer, int defenseDripsRemaining, int dripMinute)
+	{
+		if (pendingDefenseTransfer < 0)
+			pendingDefenseTransfer = 0;
+
+		m_iPendingDefenseTransfer = pendingDefenseTransfer;
+
+		if (m_iPendingDefenseTransfer == 0)
+			m_iDefenseDripsRemaining = 0;
+		else if (defenseDripsRemaining <= 0 || defenseDripsRemaining > OVT_BaseDefenseConversion.DRIP_STEPS)
+			m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
+		else
+			m_iDefenseDripsRemaining = defenseDripsRemaining;
+
+		if (dripMinute < 0 || dripMinute >= OVT_BaseDefenseConversion.DRIP_MINUTE_SPREAD)
+			RollDripMinute();
+		else
+			m_iDripMinute = dripMinute;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the deployment pool is still owed from the current drip window. Read-only, for tests and
+	//! the GM snapshot.
+	int GetPendingDefenseTransfer()
+	{
+		return m_iPendingDefenseTransfer;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many drips are left to pay that debt off with. Read-only.
+	int GetDefenseDripsRemaining()
+	{
+		return m_iDefenseDripsRemaining;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The minute of the hour the next drip is due at. Read-only.
+	int GetDripMinute()
+	{
+		return m_iDripMinute;
+	}
+
 	void ApplyPersistedOccupyingFaction(string occupyingFactionKey, int resources, float threat, array<ref OVT_PersistedBase> bases, array<ref OVT_PersistedRadioTower> towers)
 	{
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -1637,6 +1733,20 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			GainAndSpendResources();
 		}
+
+		//Every hour, pay one slice of what the pool is still owed. The minute is jittered, so the gate
+		//is ">= the rolled minute" rather than "== it": a tick lost to a QRF freeze or a long frame
+		//must delay the drip inside its hour, never cancel it.
+		if(m_iPendingDefenseTransfer > 0
+			&&
+			m_iHourDripped != time.m_iHours
+			&&
+			time.m_iMinutes >= m_iDripMinute)
+		{
+			m_iHourDripped = time.m_iHours;
+
+			DripDefenseShare();
+		}
 		//Every 15 mins reduce threat
 		if(time.m_iMinutes == 0
 			|| time.m_iMinutes == 15
@@ -1695,7 +1805,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		// now spent deliberately rather than by dice: OVT_ObjectiveDirectorComponent gates its
 		// counter-attack on objectiveQRFResourceGate (occupying/counter-attacks Phase 1 retired the
 		// hourly random roll that used to draw on it).
-		TransferDefenseShareToPool(newResources);
+		// ARMED, NOT PAID (2026-08-22). This used to be TransferDefenseShareToPool(newResources) and
+		// the whole 80 % crossed here in one statement. It is now a debt the reserve owes the pool,
+		// paid one slice an hour by DripDefenseShare(); see the drip block's header for why the
+		// TRANSFER moved and the income did not.
+		ArmDefenseShareDrip(newResources);
 
 		Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
 	}
@@ -1812,11 +1926,21 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			int stepMinute = OVT_SleepSchedule.StepMinuteAt(startHour, startMinute, OVT_SleepSchedule.THREAT_STEP_MINUTES, i);
 
-			//Same order as the live tick: gain and transfer the defense share, then the decay for
-			//that same step.
+			//Same order as the live tick: gain and ARM the defense share, drip whatever this hour
+			//owes, then the decay for that same step.
 			if(OVT_SleepSchedule.IsIntervalBoundary(stepMinute, OVT_SleepSchedule.INCOME_INTERVAL_HOURS))
 			{
 				GainAndSpendResources();
+			}
+
+			//THE DRIP IS REPLAYED ON THE HOUR, WITHOUT ITS JITTER. The rolled minute decides WHEN
+			//inside an hour a live drip lands, which is a feel choice with no bearing on the totals; a
+			//replay that is fast-forwarding whole hours has no "inside the hour" to land in. What the
+			//replay owes is the same NUMBER of drips a played window would have paid, which is one per
+			//hour boundary crossed.
+			if(OVT_SleepSchedule.IsIntervalBoundary(stepMinute, OVT_BaseDefenseConversion.DRIP_INTERVAL_HOURS))
+			{
+				DripDefenseShare();
 			}
 
 			DecayThreatStep();
@@ -1835,6 +1959,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//   value behind, exactly as AssertHourLatches leaves the stock latch at hour 14.
 		m_iHourGainedResources = OVT_SleepSchedule.LandingHour(startHour, hours);
 		m_iMinuteDecayedThreat = startMinute;
+		m_iHourDripped = OVT_SleepSchedule.LandingHour(startHour, hours);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1857,13 +1982,100 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
 	void TransferDefenseShareToPool(int newResources)
 	{
-		int toSpend = OVT_BaseDefenseConversion.DefenseShare(newResources);
+		TransferToPool(OVT_BaseDefenseConversion.DefenseShare(newResources));
+	}
 
-		if(toSpend > m_iResources) toSpend = m_iResources;
-		if(toSpend <= 0) return;
+	//------------------------------------------------------------------------------------------------
+	//! Moves an EXACT amount out of the reserve and into the deployment pool, clamped to the reserve.
+	//!
+	//! The conserved-total identity described above lives here now - both the six-hour share and every
+	//! hourly drip reach the pool through this one statement pair, so there is still exactly one place
+	//! where the reserve falls and the pool rises, and it is still by the same number.
+	//! \param[in] amount The amount to move. Non-positive, or a reserve of zero, moves nothing.
+	//! \return What actually moved, which is less than amount only when the reserve was short.
+	int TransferToPool(int amount)
+	{
+		if(amount > m_iResources) amount = m_iResources;
+		if(amount <= 0) return 0;
 
-		AllocateDeploymentResources(toSpend);
-		m_iResources -= toSpend;
+		AllocateDeploymentResources(amount);
+		m_iResources -= amount;
+
+		return amount;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Opens a new drip window: settles whatever the last one still owed, then arms this tick's share.
+	//!
+	//! THE FLUSH IS FIRST AND IS UNCONDITIONAL. A window can lose drips - CheckUpdate returns early
+	//! for the whole of an engaged QRF, a campaign can be loaded mid-window with the hour latch armed,
+	//! and a sleep replay only drips on the boundaries it walks. Paying the remainder here is what
+	//! makes every one of those cases cost TIMING and never MONEY: over any two paydays the pool has
+	//! received exactly the defense share of everything the reserve was paid, which is the same
+	//! invariant the single transfer guaranteed instant-by-instant.
+	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
+	void ArmDefenseShareDrip(int newResources)
+	{
+		FlushDefenseShareDrip();
+
+		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.DefenseShare(newResources);
+		m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
+
+		RollDripMinute();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pays one slice of the current window's debt into the deployment pool.
+	//!
+	//! The drip COUNTER is decremented even when the reserve was too short to pay the slice in full.
+	//! That is what stops a starved campaign accumulating an unpayable debt across windows: the flush
+	//! at the next payday takes one more attempt at whatever is left, and then the arm overwrites it.
+	//! \return What actually reached the pool.
+	int DripDefenseShare()
+	{
+		if(m_iPendingDefenseTransfer <= 0)
+			return 0;
+
+		int amount = OVT_BaseDefenseConversion.DripAmount(m_iPendingDefenseTransfer, m_iDefenseDripsRemaining);
+		int moved = TransferToPool(amount);
+
+		m_iPendingDefenseTransfer -= moved;
+		if(m_iPendingDefenseTransfer < 0) m_iPendingDefenseTransfer = 0;
+
+		m_iDefenseDripsRemaining--;
+		if(m_iDefenseDripsRemaining < 0) m_iDefenseDripsRemaining = 0;
+
+		RollDripMinute();
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pays out everything the current window still owes, in one move, and closes the window.
+	//! \return What actually reached the pool.
+	int FlushDefenseShareDrip()
+	{
+		if(m_iPendingDefenseTransfer <= 0)
+		{
+			m_iPendingDefenseTransfer = 0;
+			m_iDefenseDripsRemaining = 0;
+			return 0;
+		}
+
+		int moved = TransferToPool(m_iPendingDefenseTransfer);
+
+		m_iPendingDefenseTransfer = 0;
+		m_iDefenseDripsRemaining = 0;
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rolls the minute of the hour the next drip fires at. RandInt is max-EXCLUSIVE, so the spread is
+	//! the count of legal minutes and not the last one.
+	protected void RollDripMinute()
+	{
+		m_iDripMinute = Math.RandomInt(0, OVT_BaseDefenseConversion.DRIP_MINUTE_SPREAD);
 	}
 
 	void UpdateKnownTargets()

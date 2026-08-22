@@ -7,7 +7,8 @@ enum EOVT_ResourceOp
 	HOLDER_TO_HOLDER,
 	HOLDER_TO_GROUND,
 	PORT_IMPORT,
-	PORT_EXPORT
+	PORT_EXPORT,
+	SITE_BUY
 }
 
 //------------------------------------------------------------------------------------------------
@@ -369,7 +370,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		if (opKind == EOVT_ResourceOp.HOLDER_TO_HOLDER && source == dest)
+		if ((opKind == EOVT_ResourceOp.HOLDER_TO_HOLDER || opKind == EOVT_ResourceOp.SITE_BUY) && source == dest)
 		{
 			SendResourceError(playerId, seq, "#OVT-Resource_BadRequest");
 			return;
@@ -505,7 +506,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 		if (OpReadsSource(order.m_iOp))
 		{
 			source = ResolveEntity(order.m_SourceId);
-			if (!MayUseHolder(playerId, source, rejectKey))
+			if (!MayUseHolderForOp(playerId, source, order.m_iOp, true, rejectKey))
 			{
 				SendResourceError(playerId, seq, rejectKey);
 				return;
@@ -522,7 +523,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 		if (OpReadsDest(order.m_iOp))
 		{
 			dest = ResolveEntity(order.m_DestId);
-			if (!MayUseHolder(playerId, dest, rejectKey))
+			if (!MayUseHolderForOp(playerId, dest, order.m_iOp, false, rejectKey))
 			{
 				SendResourceError(playerId, seq, rejectKey);
 				return;
@@ -556,32 +557,41 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 
 		bool isPort = order.m_iOp == EOVT_ResourceOp.PORT_IMPORT || order.m_iOp == EOVT_ResourceOp.PORT_EXPORT;
 
+		// The ops that take money FROM the player, and the ONLY set that may reach PlayerHasMoney or
+		// TakePlayerMoney below. PORT_EXPORT pays the player, so it is not one of them.
+		bool chargesMoney = order.m_iOp == EOVT_ResourceOp.PORT_IMPORT || order.m_iOp == EOVT_ResourceOp.SITE_BUY;
+
 		OVT_EconomyManagerComponent economy = null;
+		OVT_PlayerManagerComponent players = null;
 		string persId = "";
 		bool hasIllegalPermission = false;
 		bool resistanceHoldsPort = false;
 
-		if (isPort)
+		if (isPort || chargesMoney)
 		{
-			IEntity portHolder = source;
-			if (order.m_iOp == EOVT_ResourceOp.PORT_IMPORT)
-				portHolder = dest;
-
 			economy = OVT_Global.GetEconomy();
-			OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+			players = OVT_Global.GetPlayers();
 			if (!economy || !players)
 			{
 				SendResourceError(playerId, seq, "#OVT-Resource_Failed");
 				return;
 			}
 
+			persId = players.GetPersistentIDFromPlayerID(playerId);
+		}
+
+		// The port's own gates. A SITE_BUY is nowhere near a port and takes none of them.
+		if (isPort)
+		{
+			IEntity portHolder = source;
+			if (order.m_iOp == EOVT_ResourceOp.PORT_IMPORT)
+				portHolder = dest;
+
 			if (!AtAPort(playerId, portHolder))
 			{
 				SendResourceError(playerId, seq, "#OVT-Resource_NotAtPort");
 				return;
 			}
-
-			persId = players.GetPersistentIDFromPlayerID(playerId);
 
 			OVT_PlayerData player = players.GetPlayer(persId);
 			if (player && player.HasPermission("IllegalImports"))
@@ -657,6 +667,21 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 				}
 			}
 
+			if (order.m_iOp == EOVT_ResourceOp.SITE_BUY)
+			{
+				// RE-DERIVED HERE, never taken from the client: the same LIVE import price the port
+				// quotes, discounted. Availability is the generic source-ledger check above, so an
+				// unowned site never sells stock it has not produced.
+				moneyTotal = moneyTotal + (OVT_ResourceProductionRules.SitePrice(resources.GetPrice(line.m_iResIndex), OVT_ResourceProductionRules.SITE_SELL_RATIO) * line.m_iQuantity);
+
+				// Same tripwire as the import branch, and for the same reason.
+				if (moneyTotal < 0)
+				{
+					SendResourceError(playerId, seq, "#OVT-Resource_BadRequest");
+					return;
+				}
+			}
+
 			if (order.m_iOp == EOVT_ResourceOp.PORT_EXPORT)
 			{
 				if (!OVT_ResourceRules.MayExport(defs, line.m_iResIndex))
@@ -691,7 +716,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		if (order.m_iOp == EOVT_ResourceOp.PORT_IMPORT && !economy.PlayerHasMoney(persId, moneyTotal))
+		if (chargesMoney && !economy.PlayerHasMoney(persId, moneyTotal))
 		{
 			SendResourceError(playerId, seq, "#OVT-Resource_NoMoney");
 			return;
@@ -755,7 +780,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 		int earned = 0;
 		int spent = 0;
 
-		if (order.m_iOp == EOVT_ResourceOp.PORT_IMPORT)
+		if (chargesMoney)
 		{
 			economy.TakePlayerMoney(playerId, moneyTotal);
 			spent = moneyTotal;
@@ -865,7 +890,7 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 	//! \param[in] seq The checkout's sequence.
 	//! \param[in] movedLitres Litres that actually moved, derived from the catalogue.
 	//! \param[in] earned Money paid to the player by a port export; 0 otherwise.
-	//! \param[in] spent Money charged for a port import; 0 otherwise.
+	//! \param[in] spent Money charged for a port import or a site stock purchase; 0 otherwise.
 	protected void SendTransferResult(int playerId, int seq, int movedLitres, int earned, int spent)
 	{
 		if (ShouldRespondLocally(playerId))
@@ -925,13 +950,18 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 	//-----------------------------------------------------------------------------------------------
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether a player may act on a holder at all. THE SINGLE GATE - every ask goes through it, and
-	//! the ladder below is in the order the plan fixes it.
+	//! Whether a player can REACH a holder at all: it exists, it holds resources, it is not ruined,
+	//! they are standing at it, and it is not locked against them.
+	//!
+	//! The shared prefix of every holder ladder. Extracted so an op-specific ladder can take these
+	//! five steps and then ask its own question instead of the warehouse one - a production site is
+	//! not a warehouse, and PlayerMayUseWarehouse must never decide for one (its isRented clause is
+	//! a known hole and a site cannot be rented).
 	//! \param[in] playerId The caller, resolved from the entity the RPC arrived on.
 	//! \param[in] holder The holder, already resolved from its RplId.
-	//! \param[out] rejectKey Localization key naming the refusal; "" when the gate passes.
-	//! \return True when the caller may act on this holder.
-	protected bool MayUseHolder(int playerId, IEntity holder, out string rejectKey)
+	//! \param[out] rejectKey Localization key naming the refusal; "" when every step passes.
+	//! \return True when the caller can reach this holder.
+	protected bool MayReachHolder(int playerId, IEntity holder, out string rejectKey)
 	{
 		rejectKey = "";
 
@@ -966,7 +996,28 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 			return false;
 		}
 
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a player may act on a holder at all. THE SINGLE GATE - every ask goes through it, and
+	//! the ladder below is in the order the plan fixes it.
+	//! \param[in] playerId The caller, resolved from the entity the RPC arrived on.
+	//! \param[in] holder The holder, already resolved from its RplId.
+	//! \param[out] rejectKey Localization key naming the refusal; "" when the gate passes.
+	//! \return True when the caller may act on this holder.
+	protected bool MayUseHolder(int playerId, IEntity holder, out string rejectKey)
+	{
+		if (!MayReachHolder(playerId, holder, rejectKey))
+			return false;
+
 		if (!WarehouseIsAccessible(playerId, holder))
+		{
+			rejectKey = "#OVT-Resource_NoAccess";
+			return false;
+		}
+
+		if (!SiteIsAccessible(playerId, holder))
 		{
 			rejectKey = "#OVT-Resource_NoAccess";
 			return false;
@@ -976,7 +1027,69 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Runs MayUseHolder over exactly the holders an op reads.
+	//! Whether a player may buy stock OUT OF a production site.
+	//!
+	//! THE ONE AND ONLY PLACE AN OWNED SITE REFUSES A SITE_BUY. Reachability first, then the holder
+	//! really is a site, then it is still unowned. The warehouse step is deliberately absent: a site
+	//! is not a real-estate building and MayBuyStock is the whole ownership question here.
+	//! \param[in] playerId The caller.
+	//! \param[in] holder The holder in the SOURCE slot.
+	//! \param[out] rejectKey Localization key naming the refusal; "" when the gate passes.
+	//! \return True when the caller may buy this site's stock.
+	protected bool MayBuyFromSite(int playerId, IEntity holder, out string rejectKey)
+	{
+		if (!MayReachHolder(playerId, holder, rejectKey))
+			return false;
+
+		if (!OVT_ComponentFinder<OVT_ResourceProductionComponent>.Find(holder))
+		{
+			rejectKey = "#OVT-ProdSite_NoSite";
+			return false;
+		}
+
+		OVT_ResourceProductionManagerComponent production = OVT_Global.GetProduction();
+		if (!production)
+		{
+			rejectKey = "#OVT-ProdSite_NoSite";
+			return false;
+		}
+
+		OVT_ProductionSiteData site = production.GetSiteForEntity(holder);
+		if (!site)
+		{
+			rejectKey = "#OVT-ProdSite_NoSite";
+			return false;
+		}
+
+		if (!OVT_ResourceProductionRules.MayBuyStock(site.owner))
+		{
+			rejectKey = "#OVT-ProdSite_Owned";
+			return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE ONE OP-AWARE SEAM over the holder gate. Every gate call in this file routes through it, so
+	//! an op that needs a different ladder is one branch here rather than a decision spread over
+	//! three call sites that can disagree.
+	//! \param[in] playerId The caller.
+	//! \param[in] holder The holder, already resolved from its RplId.
+	//! \param[in] opKind An EOVT_ResourceOp value.
+	//! \param[in] isSource True when this holder sits in the SOURCE slot.
+	//! \param[out] rejectKey Localization key naming the refusal; "" when the gate passes.
+	//! \return True when the caller may use this holder for this op.
+	protected bool MayUseHolderForOp(int playerId, IEntity holder, int opKind, bool isSource, out string rejectKey)
+	{
+		if (opKind == EOVT_ResourceOp.SITE_BUY && isSource)
+			return MayBuyFromSite(playerId, holder, rejectKey);
+
+		return MayUseHolder(playerId, holder, rejectKey);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Runs MayUseHolderForOp over exactly the holders an op reads.
 	//! \param[in] playerId The caller.
 	//! \param[in] source The source holder id.
 	//! \param[in] dest The destination holder id.
@@ -987,10 +1100,10 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 	{
 		rejectKey = "";
 
-		if (OpReadsSource(opKind) && !MayUseHolder(playerId, ResolveEntity(source), rejectKey))
+		if (OpReadsSource(opKind) && !MayUseHolderForOp(playerId, ResolveEntity(source), opKind, true, rejectKey))
 			return false;
 
-		if (OpReadsDest(opKind) && !MayUseHolder(playerId, ResolveEntity(dest), rejectKey))
+		if (OpReadsDest(opKind) && !MayUseHolderForOp(playerId, ResolveEntity(dest), opKind, false, rejectKey))
 			return false;
 
 		return true;
@@ -1014,6 +1127,35 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 			return false;
 
 		return realEstate.PlayerMayUseWarehouse(players.GetPersistentIDFromPlayerID(playerId), holder);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a production site's storage is open to a player. Anything that is not a site passes -
+	//! this closes the window Phase 2 deliberately left (D13): before this step existed, a site's
+	//! store had no gate of its own at all.
+	//!
+	//! MayAccessStore is the ONE ownership predicate, shared with OVT_OpenResourceStoreAction's
+	//! client mirror - PlayerMayUseWarehouse is never consulted for a site (its isRented clause is a
+	//! recorded hole and a site cannot be rented).
+	//! \param[in] playerId The caller.
+	//! \param[in] holder The candidate holder.
+	//! \return True when this holder is not a site, or is one this player may open.
+	protected bool SiteIsAccessible(int playerId, IEntity holder)
+	{
+		if (!OVT_ComponentFinder<OVT_ResourceProductionComponent>.Find(holder))
+			return true;
+
+		OVT_ResourceProductionManagerComponent production = OVT_Global.GetProduction();
+		if (!production)
+			return false;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return false;
+
+		string persId = players.GetPersistentIDFromPlayerID(playerId);
+
+		return OVT_ResourceProductionRules.MayAccessStore(persId, production.GetSiteOwner(holder), production.IsSitePrivate(holder));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1124,6 +1266,9 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 		if (opKind == EOVT_ResourceOp.PORT_EXPORT)
 			return true;
 
+		if (opKind == EOVT_ResourceOp.SITE_BUY)
+			return true;
+
 		return false;
 	}
 
@@ -1142,6 +1287,9 @@ class OVT_ResourceRequestComponent : OVT_ControllerRequestComponent
 	protected bool OpReadsDest(int opKind)
 	{
 		if (opKind == EOVT_ResourceOp.HOLDER_TO_HOLDER)
+			return true;
+
+		if (opKind == EOVT_ResourceOp.SITE_BUY)
 			return true;
 
 		return opKind == EOVT_ResourceOp.PORT_IMPORT;

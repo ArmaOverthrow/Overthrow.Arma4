@@ -44,6 +44,8 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_EconomyManagerComponent m_EconomyManager;
 	//! Reference to the resource manager component.
 	protected OVT_ResourceManagerComponent m_ResourceManager;
+	//! Reference to the resource production manager component.
+	protected OVT_ResourceProductionManagerComponent m_ProductionManager;
 	//! Reference to the player manager component.
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	//! Reference to the job manager component.
@@ -1475,6 +1477,17 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			Print("[Overthrow] Initializing Resources");
 
 			m_ResourceManager.Init(this);
+		}
+
+		// AFTER Resources: the drip resolves the catalogue to convert units into litres. It is resolved
+		// lazily inside ProduceForHours, so only the registration order matters. Discovery runs on
+		// clients too - the site set is world data, not server state.
+		m_ProductionManager = OVT_ResourceProductionManagerComponent.Cast(FindComponent(OVT_ResourceProductionManagerComponent));
+		if(m_ProductionManager)
+		{
+			Print("[Overthrow] Initializing Resource Production");
+
+			m_ProductionManager.Init(this);
 		}
 
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));

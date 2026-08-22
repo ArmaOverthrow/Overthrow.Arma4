@@ -38,6 +38,18 @@ GenericEntity {
     }
    }
    additionalActions {
+    OVT_RepairRequirementsAction "{6B70D0000000005E}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000005F}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
     OVT_RepairStructureAction "{6B70D00000000025}" {
      ParentContextList {
       "repair"

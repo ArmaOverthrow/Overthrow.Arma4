@@ -149,7 +149,7 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		if (!occupying)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 3);
+		context.WriteValue("version", 4);
 
 		string occupyingFactionKey;
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -192,6 +192,24 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 			}
 		}
 		context.Write(towers);
+
+		// VERSION 4: the defense-share drip's outstanding debt. The share now leaves the reserve one
+		// hourly slice at a time, so at almost any save instant the pool is still owed some of it.
+		// Without these three fields a load would drop that debt on the floor - the money stays in the
+		// reserve and the pool is quietly underfunded for the rest of the window, which is invisible in
+		// play and looks exactly like "the AI stopped defending itself".
+		//
+		// ⚠ THE NAMES ARE THE KEYS. An Enfusion save context keys each property by the LOCAL VARIABLE'S
+		// name, so these three must be spelled identically in Deserialize() or the reads silently
+		// return zeros and report success.
+		const int pendingDefenseTransfer = occupying.GetPendingDefenseTransfer();
+		context.Write(pendingDefenseTransfer);
+
+		const int defenseDripsRemaining = occupying.GetDefenseDripsRemaining();
+		context.Write(defenseDripsRemaining);
+
+		const int dripMinute = occupying.GetDripMinute();
+		context.Write(dripMinute);
 
 		return ESerializeResult.OK;
 	}
@@ -245,7 +263,26 @@ class OVT_OccupyingFactionManagerSerializer : ScriptedComponentSerializer
 		if (version < 2)
 			ClearDisabledRemaining(towers);
 
+		// A version 1-3 payload predates the drip: its whole share had already crossed into the pool at
+		// the payday, so there is no debt to restore and zero is the truthful answer, not a fallback.
+		int pendingDefenseTransfer;
+		int defenseDripsRemaining;
+		int dripMinute;
+
+		if (version >= 4)
+		{
+			if (!context.Read(pendingDefenseTransfer))
+				return AbortUnreadablePayload("pending defense transfer");
+
+			if (!context.Read(defenseDripsRemaining))
+				return AbortUnreadablePayload("defense drips remaining");
+
+			if (!context.Read(dripMinute))
+				return AbortUnreadablePayload("drip minute");
+		}
+
 		occupying.ApplyPersistedOccupyingFaction(occupyingFactionKey, resources, threat, bases, towers);
+		occupying.ApplyPersistedDefenseDrip(pendingDefenseTransfer, defenseDripsRemaining, dripMinute);
 
 		return true;
 	}

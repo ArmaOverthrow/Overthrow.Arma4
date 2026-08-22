@@ -54,9 +54,9 @@ The logistics epic introduces a config-driven, multi-type resource economy aimed
 
 - **The vanilla `SCR_Resource*` backend.** `EResourceType` is a hard engine enum (`SUPPLIES`, `ELECTRICITY`) that mods cannot extend, so it cannot back a multi-type engine. UX patterns are reused; the types are not.
 - **Weight affecting vehicle handling.** Weight is config data and a display value only. Conflict does not do this either, and mutating a live vehicle's mass is an unproven MP/persistence risk. The config field exists so a later feature can enable it.
-- **Production chains and factories.** The whole point of the `importable` flag is to leave room for resources that must be manufactured — but nothing produces resources in this epic. Sourcing is import-only.
+- **Production chains and factories.** ~~Nothing produces resources in this epic; sourcing is import-only.~~ **Partially superseded 2026-08-22 by `logistics/resource-production`:** map-authored production sites now make raw resources, so sourcing is no longer import-only. Production **chains** — turning base resources into more complex products — remain out of scope for a later feature.
 - **Salvage / scavenging** as a resource source (dismantling wrecks, destroyed buildings, captured bases).
-- **Passive town/industry resource production.**
+- ~~**Passive town/industry resource production.**~~ **Moved IN scope 2026-08-22 as `logistics/resource-production`** (feature #5). Sites are map-authored, drip one resource per in-game hour whether owned or not, are bought outright rather than through real estate, and cannot be rented. Not passive *town* output — a placed site with authored name, resource, rate and price.
 - **Crate piles being lootable or destructible by the occupying faction**, and any convoy-interdiction gameplay around resource transport.
 - **AI or recruit-driven hauling.** Trucks are driven by players.
 - **New buildings other than the warehouse.** The barracks / high-command buildings mentioned as motivation are a later epic; this one delivers the machinery and applies it to existing buildables.

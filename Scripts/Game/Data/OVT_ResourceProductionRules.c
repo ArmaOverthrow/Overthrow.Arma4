@@ -1,8 +1,6 @@
 //------------------------------------------------------------------------------------------------
-//! Every production-site decision that is a rule rather than a lookup, as pure statics.
-//!
-//! The callers do the lookups (the live price, the clock hour, the viewer's persistent id) and
-//! hand the answers in, so the Logic tier can assert the decisions without a world behind them.
+//! Every production-site decision that is a rule rather than a lookup, as pure statics. The callers
+//! do the lookups and hand the answers in, so the Logic tier can assert these without a world.
 //------------------------------------------------------------------------------------------------
 class OVT_ResourceProductionRules
 {
@@ -13,8 +11,7 @@ class OVT_ResourceProductionRules
 	static const int MAX_SKIP_HOURS = 720;
 
 	//------------------------------------------------------------------------------------------------
-	//! What an unowned site charges for its accumulated stock. One ratio off the LIVE import price -
-	//! never the port's sell ratio, never the base or stored price.
+	//! What an unowned site charges for its accumulated stock: one ratio off the LIVE import price.
 	//! \param[in] livePrice The live import price for that resource.
 	//! \param[in] ratio Fraction of it the site charges. SITE_SELL_RATIO in production.
 	//! \return Dollars per unit; never below 1.
@@ -24,8 +21,8 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! What buying the site itself costs, difficulty-scaled. Evaluated identically on the client
-	//! (the action's label) and the server (the charge), so the two can never disagree.
+	//! What buying the site itself costs, difficulty-scaled. The action's label and the server's
+	//! charge both call this, with the same two inputs.
 	//! \param[in] baseCost The site's authored base cost.
 	//! \param[in] multiplier The difficulty's real-estate cost multiplier.
 	//! \return Dollars; never below 1.
@@ -35,8 +32,8 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether a viewer may open a site's storage. The single access predicate - called by the
-	//! client action's gate and the server's holder ladder, never re-implemented inline.
+	//! Whether a viewer may open a site's storage. THE single access predicate - the client action's
+	//! gate and the server's holder ladder both call it, and neither re-implements it.
 	//! \param[in] viewerId The viewer's persistent id. "" for an unresolved viewer.
 	//! \param[in] owner "" unowned, "resistance", or a player persistent id.
 	//! \param[in] isPrivate Meaningless while unowned.
@@ -88,8 +85,8 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether a player may buy the site's accumulated stock. Same predicate as MayBuySite today,
-	//! kept as a separate name because a later economy pass may let owners sell (requirement §23).
+	//! Whether a player may buy the site's accumulated stock. Same answer as MayBuySite today; a
+	//! separate name because a later pass may let owners sell.
 	//! \param[in] owner "" unowned, "resistance", or a player persistent id.
 	//! \return True only while unowned.
 	static bool MayBuyStock(string owner)
@@ -98,8 +95,7 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether production should run this tick. Every in-game hour, unlike price drift's four
-	//! windows a day.
+	//! Whether production should run this tick. Every in-game hour.
 	//! \param[in] currentHour Hour of day from the clock.
 	//! \param[in] latchedHour The hour production last ran; -1 before the first batch.
 	//! \return True only on an hour that has not already produced.
@@ -109,8 +105,8 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The drip. A per-site fractional carry means a sub-1 rate still produces over time rather than
-	//! never. hours is clamped to MAX_SKIP_HOURS so an extreme sleep skip cannot overflow.
+	//! The drip. The fractional carry is what makes a sub-1 rate produce at all; hours is clamped to
+	//! MAX_SKIP_HOURS so an extreme sleep skip cannot overflow.
 	//! \param[in] unitsPerHour The site's authored production rate.
 	//! \param[in] hours How many in-game hours to produce for.
 	//! \param[in] carryIn The fractional remainder carried from the last batch.
@@ -135,15 +131,13 @@ class OVT_ResourceProductionRules
 		if (carryOut < 0)
 			carryOut = 0;
 
-		if (carryOut >= 1)
-			carryOut = 0;
+		carryOut = carryOut - Math.Floor(carryOut);
 
 		return units;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! How many of the units produced actually fit. Whole units that do not fit are discarded, not
-	//! banked - capacity is the throttle, not a queue.
+	//! How many of the units produced actually fit. Units that do not fit are DISCARDED, not banked.
 	//! \param[in] units Whole units produced this batch.
 	//! \param[in] freeLitres Free space in the site's store. Negative means unlimited.
 	//! \param[in] litresPerUnit Litres one unit occupies.
@@ -161,7 +155,7 @@ class OVT_ResourceProductionRules
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The map icon's colour state, driving GetIconColor with no branching in the map class.
+	//! The map icon's colour state, so the map class branches on nothing itself.
 	//! \param[in] viewerId The viewer's persistent id. "" for an unresolved viewer.
 	//! \param[in] owner "" unowned, "resistance", or a player persistent id.
 	//! \param[in] isPrivate Meaningless while unowned.

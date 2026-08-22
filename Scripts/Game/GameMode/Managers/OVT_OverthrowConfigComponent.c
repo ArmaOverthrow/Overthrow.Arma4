@@ -366,6 +366,15 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The difficulty's real-estate cost multiplier, already replicated by RplSave/RplLoad, so this
+	//! accessor adds nothing to the stream and CONFIG_STREAM_VERSION does not move for it.
+	//! \return The multiplier a production site's authored base cost is scaled by.
+	float GetRealEstateCostMultiplier()
+	{
+		return m_Difficulty.realEstateCostMultiplier;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \return The multiplier applied to a stored resource price at read time, after the band clamp.
 	float GetResourcePriceMultiplier()
 	{

@@ -265,11 +265,6 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
       Name "#OVT-SetHome"
      }
     }
-    OVT_ManageBaseAction "{5E66A8E424754555}" {
-     ParentContextList +{
-     }
-     "Sort Priority" 1
-    }
     OVT_CaptureBaseAction "{59B4D7D0139E23F0}" {
      ParentContextList +{
      }
@@ -282,6 +277,13 @@ GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.et" {
   }
  }
  coords 55.331 1 128.241
+}
+GenericEntity : "{6A8E2F0000000101}Prefabs/Production/OVT_ProductionSite_Sawmill.et" {
+ coords 140 1 120
+}
+GenericEntity : "{6A8E2F0000000103}Prefabs/Production/OVT_ProductionSite_CementPlant.et" {
+ coords 15.344 1 10.963
+ angles 0 85.063 0
 }
 OVT_SniperPosition : "{6A8F1E2D4C5B0901}Prefabs/GameMode/OVT_SniperPosition.et" {
  coords 24.733 1 129.747

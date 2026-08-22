@@ -1369,6 +1369,12 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! PlayerHasMoney, do the thing, then TakePlayerMoney. DoTakePlayerMoney clamps at zero, so the
 	//! explicit funds check is mandatory rather than defensive.
 	//!
+	//! MATERIALS RIDE THE SAME ORDER. A buildable that costs resources to build costs a difficulty-
+	//! scaled share of them to repair, taken from the crate piles around the ruin: both gates are
+	//! tested, then the structure is repaired, then the piles are drained and the money taken. A
+	//! buildable with no resource requirement repairs for money alone, exactly as core/damage shipped
+	//! it, and a server-initiated repair (playerId == -1) stays free of both.
+	//!
 	//! playerId == -1 MEANS SERVER-INITIATED AND FREE, the convention BuildItem() already uses. That is
 	//! how the occupying faction's repair module and the admin command repair without a wallet.
 	//! \param[in] entity The ruined structure.
@@ -1397,7 +1403,28 @@ class OVT_ResistanceFactionManager: OVT_Component
 				return false;
 			}
 
+			// BOTH GATES BEFORE EITHER PAYMENT, then perform, then take both. This is the shape the
+			// money path already uses ("CHARGE AFTER PERFORMING, NEVER BEFORE") and it is the only
+			// order with no way to lose a player's property: consuming before the repair would drain
+			// the crate piles for good if Repair() then refused.
+			array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+			array<ref OVT_ResourceAmount> have = new array<ref OVT_ResourceAmount>();
+			if(!OVT_RepairRequirementsReader.Read(entity, need, have)) return false;
+
+			string shortId;
+			if(!need.IsEmpty() && !OVT_ResourceRules.IsSatisfied(need, have, shortId))
+			{
+				OVT_Global.GetNotify().SendTextNotification("RepairNeedsMaterials", playerId);
+				return false;
+			}
+
 			if(!OVT_StructureDamage.Repair(entity)) return false;
+
+			// Cannot fail here in practice: IsSatisfied() ran against the same piles in this same call
+			// with nothing yielding between, and Consume() is itself all-or-nothing. If it ever did,
+			// the player has a repaired structure and keeps the materials - the recoverable direction.
+			if(!need.IsEmpty())
+				OVT_ResourceRequirements.Consume(entity.GetOrigin(), need);
 
 			economy.TakePlayerMoney(playerId, cost);
 			OVT_Global.GetNotify().SendTextNotification("RepairedStructure", playerId);

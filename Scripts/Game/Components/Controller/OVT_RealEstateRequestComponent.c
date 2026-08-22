@@ -216,7 +216,7 @@ class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		if(!economy) return;
 
-		int cost = re.GetBuyPrice(building);
+		int cost = re.GetSellPrice(building);
 
 		if(useResistanceFunds)
 		{

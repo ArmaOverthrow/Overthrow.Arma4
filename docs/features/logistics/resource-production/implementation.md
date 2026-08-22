@@ -1,8 +1,8 @@
 # Resource Production — Implementation Plan
 
-**Status:** 🟡 In Progress
+**Status:** ✅ Ready for Review
 **Started:** 2026-08-22
-**Target Completion:** TBD
+**Target Completion:** Built 2026-08-22 — 8 phases + a cross-phase review. **The five-suite sweep never ran** (the harness refused `run-tests.sh`); play-tests A/B/C owed.
 **Last Updated:** 2026-08-22
 
 **Epic:** `logistics` (feature #5 — see `docs/features/logistics/epic-overview.md`; this plan adds the row)
@@ -384,12 +384,15 @@ class OVT_PersistedProductionSite      // frozen $type - the class NAME is in ev
     string owner;
     bool   isPrivate;
     float  carry;
-    string stockId;
-    int    stockQuantity;
+    ref array<ref OVT_PersistedResourceLine> stock = {};   // CORRECTED 2026-08-22 by the cross-phase review:
+                                                           // was `string stockId; int stockQuantity;`. D9's
+                                                           // "a site holds exactly one resource" is FALSE - the
+                                                           // feature allows Put into a site, so a one-line record
+                                                           // silently destroyed every other resource on load.
 }
 ```
 
-One array of one record class — never per-field parallel loops, never `array<bool>`. `OVT_PersistedWarehouseV2` is the precedent for a `bool` **inside** a record, which is fine.
+One array of one record class — never per-field parallel loops, never `array<bool>`. **`ref array<ref …>` inside a persisted record is precedented** (`OVT_PersistedBase.upgrades`, `OVT_PersistedLoadoutItem.children`). `OVT_PersistedWarehouseV2` is the precedent for a `bool` **inside** a record, which is fine.
 
 **Apply is the manager's, not the serializer's.** Deserialization runs while the world is still being built, so `Deserialize` checks its single `Read()`, hands the array to `manager.StagePersisted(sites)` and returns. The manager applies it at the end of `Init()` (after `InitializeSites()`), and if any record fails to match a discovered site it schedules **one** retry via `CallLater(ApplyStaged, 1000)` and, on the second failure, logs a named ERROR per unmatched record and drops it — the v1 warehouse-migration shape. `ApplyStaged` is idempotent: it sets, never accumulates, so a second pass lands on the same state. Stock is re-applied with `store.ApplyPersisted(array<ref OVT_PersistedResourceLine>)` (`OVT_ResourceStoreComponent.c:167`) followed by `PublishContents()`.
 
@@ -586,7 +589,7 @@ Every implementation-agent prompt must carry, verbatim:
 
 **D8 — Sites are discovered by a world query on every machine; nothing registers.** The set of sites is authored in the world file and is therefore identical everywhere, so the client can build the list itself and only the mutable fields need a wire. This is `OVT_OccupyingFactionManager.InitializeBases()` verbatim in shape (`:1009-1016`), and it is why the map location type needs no replicated registry and why `OVT_MapMarkerComponent` — which exists for **runtime-spawned** entities — is not used here.
 
-**D9 — The stock is persisted by the manager's serializer; no persistence rule and no entity config.** (User decision, 2026-08-22.) A `ComponentClassPersistenceConfigRule` on `OVT_ResourceStoreComponent` would hijack every truck, warehouse and pile from their existing configs, and an entity persistence config on the site prefab would collide with whatever the scenery already matches — the two traps `resources` D15/D16 record. A site holds exactly one resource, so two extra scalars inside the ownership record cover it completely.
+**D9 — The stock is persisted by the manager's serializer; no persistence rule and no entity config.** (User decision, 2026-08-22.) A `ComponentClassPersistenceConfigRule` on `OVT_ResourceStoreComponent` would hijack every truck, warehouse and pile from their existing configs, and an entity persistence config on the site prefab would collide with whatever the scenery already matches — the two traps `resources` D15/D16 record. ~~A site holds exactly one resource, so two extra scalars inside the ownership record cover it completely.~~ **Corrected 2026-08-22:** that premise is false — `Put` into a site is allowed and the shared screen ships `MODE_PUT`, so the record carries the **whole ledger** as one line array. The rest of D9 (no rule, no entity config) stands.
 
 **D10 — The unowned sale price is `round(live × 0.8)`, floor 1 — not `GetSellPrice`, not the base price, not the stored price.** `GetSellPrice` (`OVT_ResourceManagerComponent.c:221`) is the **port export** ratio (0.5) and answers a different question; the base price is config, not state; the stored price is pre-multiplier. The site quotes the same live number the port import quotes, discounted — which is what makes "drive further, pay less" legible. The price is re-derived server-side at Commit, so a client that lies about it is refused, not obeyed.
 
@@ -615,7 +618,7 @@ Every implementation-agent prompt must carry, verbatim:
 - **F9** Buying more than the site holds, more than the truck can take, or more than the player can pay is refused **whole**, with a message. Nothing is ever partially bought.
 - **F10** With no truck nearby, the buy screen's Accept is refused with `#OVT-Resource_NeedTruck` rather than being silently dead.
 - **F11** Opening the storage is allowed for the owner, for anyone when the site is public or resistance-owned, and refused-with-a-reason otherwise; a client-side hack that skips the action is refused by the server with the same answer.
-- **F12** The site appears on the map at town/base zoom in black (unowned), green (yours / public / resistance) or half-alpha green (private, not yours), with an info panel showing stock, owner, status, rate and — while unowned — the buy price.
+- **F12** The site appears on the map at town/base zoom in **white** (unowned), green (yours / public / resistance) or **half-alpha white** (private, not yours) — *user change 2026-08-22, superseding the original black/green/half-green*, with an info panel showing stock, owner, status, rate and — while unowned — the buy price.
 - **F13** The icon is the produced resource's quad, or the crate fallback when the quad is missing.
 - **F14** Ownership, privacy, the fractional carry and the stock all survive save/continue.
 - **F15** A joining client immediately sees correct ownership, privacy, colours and stock with no action taken.

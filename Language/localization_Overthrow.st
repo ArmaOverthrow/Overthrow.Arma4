@@ -2373,10 +2373,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3B00000000015D}" {
    Id "OVT-FieldManual_FOBs_Text4"
-   Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. Most structures cost money alone and appear the moment they are placed. The Guard Tower, the Helipad, the Garage and the Warehouse want construction resources as well: placing one of those charges the money and raises a construction site, which stands where it was put until the materials are brought to it. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base. The Resources page covers the materials side."
+   Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. Most structures cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want construction resources as well: placing one of those charges the money and raises a construction site, which stands where it was put until the materials are brought to it. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base. The Resources page covers the materials side."
    Target_de_de "\"Bauen\" im Overthrow-Hauptmenü öffnet eine Liste von Strukturen sowie eine Kamera, mit der sie in kurzer Entfernung von deinem Standort platziert werden können. Eine Struktur kostet nur Geld: Es gibt keinen separaten Materialvorrat, den du vorher sammeln musst. Jede Struktur hat eigene Regeln dafür, wo sie platziert werden darf, und der Großteil der Liste erfordert eine vom Widerstand gehaltene Basis oder einen FOB. Deshalb bietet dasselbe Menü in einem Camp weniger Möglichkeiten als in einer eroberten Basis."
    Target_uk_ua "«Будівництво» в головному меню Overthrow відкриває список споруд і камеру для вибору місця їх розташування неподалік від вас. Споруда коштує лише грошей: не потрібно заздалегідь збирати окремі запаси матеріалів. Кожна споруда має власні вимоги до місця розміщення, а для більшості з них потрібна база, контрольована опором, або FOB, тому в таборі це меню пропонує менше варіантів, ніж на захопленій базі."
-   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources - the previous text said a structure costs money and nothing else, which construction sites made false. Money-only buildables are unchanged: OVT_ResistanceFactionManager.BuildItem:896-899 only branches to PlaceConstructionSite when HasResourceRequirements() is true. The four that do: Configs/Resistance/buildables.conf:15 Guard Tower, :87 Garage, :116 Helipad, :153 Warehouse; no other entry authors m_aResourceRequirements. Money charged at placement, not at completion: PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The site stands as an entity until built: Prefabs/Structures/OVT_ConstructionSite.et with OVT_BuildFromSiteAction.c and OVT_SiteRequirementsAction.c on it. Quantities are not quoted because OVT_ResourceRequirements.ScaleForDifficulty:33 applies buildableResourceCostMultiplier (OVT_DifficultySettings.c:151-152). ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
+   Comment "Field Manual - FOBs and Building page, body paragraph under the 'Building' header. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_MainMenuContext.c:141-144 (the Build button), OVT_BuildContext.StartBuild:352-385 (money is the only resource checked, via GetBuildableCost) and CanBuild:290-349, OVT_ResistanceFactionManager.BuildItem:769-860 (the server charges money and re-checks the location; no material or supply stock exists anywhere in the build path), and Configs/Resistance/buildables.conf (seven buildables: all seven allow a resistance-held base, five also allow a FOB, one also allows a camp, none is flagged for a town or village). Prices are not quoted: each is multiplied by the difficulty setting buildableCostMultiplier. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources - the previous text said a structure costs money and nothing else, which construction sites made false. Money-only buildables are unchanged: OVT_ResistanceFactionManager.BuildItem:896-899 only branches to PlaceConstructionSite when HasResourceRequirements() is true. The four that do: Garage (buildables.conf:77), Helipad (:107), Warehouse (:145) and Barracks (:175); no other entry authors m_aResourceRequirements. CORRECTED 2026-08-22 for logistics/resource-production: the English sentence still named the Guard Tower and omitted the Barracks, which the 2026-08-21 comment had flagged but never applied to the text. The Guard Tower entry (buildables.conf:5-17) authors no m_aResourceRequirements at all. Money charged at placement, not at completion: PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The site stands as an entity until built: Prefabs/Structures/OVT_ConstructionSite.et with OVT_BuildFromSiteAction.c and OVT_SiteRequirementsAction.c on it. Quantities are not quoted because OVT_ResourceRequirements.ScaleForDifficulty:33 applies buildableResourceCostMultiplier (OVT_DifficultySettings.c:151-152). ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -16873,10 +16873,10 @@ StringTable {
   }
   CustomStringTableItem "{6B3C000000000110}" {
    Id "OVT-Tutorial_BuildFirstStructure_Body"
-   Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB, a camp, or a town it controls in the warehouse's case. Most cost money alone and appear as soon as they are placed, while the Guard Tower, Helipad, Garage and Warehouse want construction resources too and raise a construction site to be supplied first."
+   Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB, a camp, or a town it controls in the warehouse's case. Most cost money alone and appear as soon as they are placed, while the Helipad, Garage, Warehouse and Barracks want construction resources too and raise a construction site to be supplied first."
    Target_de_de "Durch Bauen werden Strukturen dort hinzugefügt, wo der Widerstand bereits Gebiet hält: an einer von ihm kontrollierten Basis, einem FOB oder einem Camp. Was das Baumenü anbietet, hängt davon ab, an welchem dieser Orte du dich befindest. Eine Struktur kostet ausschließlich Geld."
    Target_uk_ua "Будівництво додає споруди там, де опір уже контролює територію: на підконтрольній базі, FOB або в таборі. Вміст меню будівництва залежить від того, де саме ви перебуваєте, а споруди коштують лише грошей."
-   Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources. The old last clause ('costs money and nothing else', and the old comment's DO NOT write that building costs materials) is superseded: OVT_ResistanceFactionManager.BuildItem:896-899 raises a construction site for any buildable that authors m_aResourceRequirements, which is Guard Tower (buildables.conf:15), Garage (:87), Helipad (:116) and Warehouse (:153) and nothing else. Money is taken at placement: PlaceConstructionSite:1106. Town ground: Warehouse is the only entry setting m_bBuildInTown (:152), gated by OVT_BuildContext.CanBuild:330-348 and re-checked at TownControlAllowsBuild:1031-1046. Quantities deliberately unquoted (buildableResourceCostMultiplier, OVT_DifficultySettings.c:151-152). Tone unchanged: still describes the system, still no imperative, still safe whichever order the player met these things in. The longer version is the Field Manual Resources page. ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
+   Comment "Body of the 'build-first-structure' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. This tip fires on the first BUILD, never on a FOB deployment (there is no deploy event in the trigger catalogue), so it must NOT read as though the player just deployed a FOB. FACT-CHECKED 2026-08-09 for tutorial-content Phase 2. Sentence 1: OVT_BuildContext.CanBuild:293-349 - the base branch accepts only a base within m_Difficulty.baseRange that is NOT occupying-faction held (:294-303), plus m_bBuildAtCamp (:333-339) and m_bBuildAtFOB (:341-347); the town and village branches exist in code but no shipped buildable sets m_bBuildInTown or m_bBuildInVillage. Sentence 2, what is offered: Configs/Resistance/buildables.conf - all seven buildables set m_bBuildAtBase, five also set m_bBuildAtFOB, and only the Vehicle Maintenance Ramp (:51) sets m_bBuildAtCamp. Cost: OVT_ResistanceFactionManager.BuildItem:775-858 checks funds at :792 and charges economy.TakePlayerMoney at :849; the price is OVT_OverthrowConfigComponent.GetBuildableCost:255-258 (m_iCost x buildableCostMultiplier). DO NOT write that building costs supplies or materials: money is the only resource in the build path. Compresses #OVT-FieldManual_FOBs_Text and _Text4. Prices are not quoted because the multiplier is a difficulty setting. REVISED AND RE-FACT-CHECKED 2026-08-21 for logistics/resources. The old last clause ('costs money and nothing else', and the old comment's DO NOT write that building costs materials) is superseded: OVT_ResistanceFactionManager.BuildItem:896-899 raises a construction site for any buildable that authors m_aResourceRequirements, which is Garage (buildables.conf:77), Helipad (:107), Warehouse (:145) and Barracks (:175) and nothing else. CORRECTED 2026-08-22 for logistics/resource-production: the English sentence named the Guard Tower and omitted the Barracks. The Guard Tower entry (buildables.conf:5-17) authors no m_aResourceRequirements, and the Barracks (:167-193) authors all four resources. Production sites are DELIBERATELY NOT mentioned in this tip: it fires on the first PLAYER_BUILD and a site is neither built nor required for building; the Field Manual Production Sites page carries them instead. Money is taken at placement: PlaceConstructionSite:1106. Town ground: Warehouse is the only entry setting m_bBuildInTown (:152), gated by OVT_BuildContext.CanBuild:330-348 and re-checked at TownControlAllowsBuild:1031-1046. Quantities deliberately unquoted (buildableResourceCostMultiplier, OVT_DifficultySettings.c:151-152). Tone unchanged: still describes the system, still no imperative, still safe whichever order the player met these things in. The longer version is the Field Manual Resources page. ⚠ Target_de_de and Target_uk_ua still carry the old money-only sentence and need re-translating."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -18955,6 +18955,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B70D00000000053}" {
+   Id "OVT-Resource_RepairRequirements"
+   Target_en_us "Repair Requirements"
+   Comment "Name of the user action on a RUINED buildable that opens the repair materials readout. The ruin's counterpart to OVT-Resource_SiteRequirements; shown only when the buildable authors m_aResourceRequirements (OVT_RepairRequirementsAction.CanBeShownScript)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000054}" {
+   Id "OVT-Resource_RepairShortOf"
+   Target_en_us "Not enough"
+   Comment "Prefix of the Repair action's cannot-perform reason, followed by the translated name of the first resource the nearby crate piles are short of, e.g. 'Not enough Cement'. OVT_RepairRequirementsReader.ShortReason."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000055}" {
+   Id "OVT-Resource_RepairNeedsMaterials"
+   Target_en_us "Not enough materials nearby"
+   Comment "The Repair action's cannot-perform reason when the short resource cannot be named, and the body of the RepairNeedsMaterials notification the server sends when it refuses a repair for want of materials."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2E2000000031}" {
    Id "OVT-Resource_SiteRequirements"
    Target_en_us "Requirements"
@@ -19042,8 +19093,8 @@ StringTable {
   }
   CustomStringTableItem "{6A8E2E2000000036}" {
    Id "OVT-Resource_BuildRequires"
-   Target_en_us "Requires:"
-   Comment "Heading above the resource requirement rows on a build menu card. The rows below it are the figures for the CURRENT difficulty, which are the same figures the construction site will consume."
+   Target_en_us "Requires Resources"
+   Comment "One-line note on a build menu card marking a buildable that costs materials as well as money. CHANGED 2026-08-22 from the heading 'Requires:' plus a per-resource row list, which was tall enough to push the card's description over the preview image. The quantities are no longer shown here - a player reads them on the construction site's own Requirements action, which is where they can act on them."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -19060,7 +19111,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000037}" {
    Id "OVT-Resource_BuildRequirementRow"
    Target_en_us "%1 x %2"
-   Comment "One resource requirement row on a build menu card. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
+   Comment "⚠ UNUSED since 2026-08-22 - the build menu card was collapsed to the one-line #OVT-Resource_BuildRequires because the row list pushed the description over the preview image. Kept because the identical shape is still used by the truck cargo HUD row (#OVT-Resource_CargoRow) and a future per-resource readout would want it back. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -19246,8 +19297,8 @@ StringTable {
   }
   CustomStringTableItem "{6A8E2E20000000A1}" {
    Id "OVT-FieldManual_Resources_Text"
-   Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
-   Comment "Field Manual - Resources page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. The four resources and their per-unit figures: Configs/Resistance/resources.conf:3-42 - timber 0.1 cubic metres and 40 dollars base, cement 0.05 and 60, steel 0.04 and 120, hardware 0.02 and 200. Held as a quantity rather than as entities: Scripts/Game/Data/OVT_ResourceLedger.c (id to quantity, no entity anywhere). Cubic metres as the unit of capacity: OVT_ResourceStoreComponent.c:285 converts the authored m_fCargoVolume to integer litres. Holders: Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6, Prefabs/Props/Resources/OVT_ResourcePile.et:4-7, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11. Structures that require them: Configs/Resistance/buildables.conf:15, :87, :116, :153."
+   Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, production sites on the island make them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
+   Comment "Field Manual - Resources page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. The four resources and their per-unit figures: Configs/Resistance/resources.conf:3-42 - timber 0.1 cubic metres and 40 dollars base, cement 0.05 and 60, steel 0.04 and 120, hardware 0.02 and 200. Held as a quantity rather than as entities: Scripts/Game/Data/OVT_ResourceLedger.c (id to quantity, no entity anywhere). Cubic metres as the unit of capacity: OVT_ResourceStoreComponent.c:285 converts the authored m_fCargoVolume to integer litres. Holders: Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6, Prefabs/Props/Resources/OVT_ResourcePile.et:4-7, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11. Structures that require them: Configs/Resistance/buildables.conf:77, :107, :145, :175. REVISED 2026-08-22 for logistics/resource-production: 'production sites on the island make them' added to the last sentence, and the buildables.conf line references above were re-derived (the Guard Tower requirement at :15 no longer exists). Production sites: OVT_ResourceProductionManagerComponent.ProduceForHours:556-573 drips into each site's own OVT_ResourceStoreComponent once an in-game hour; the Production Sites page owns the detail so nothing is repeated here."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -19382,8 +19433,8 @@ StringTable {
   }
   CustomStringTableItem "{6A8E2E20000000A9}" {
    Id "OVT-FieldManual_Resources_Text5"
-   Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Guard Tower, the Helipad, the Garage and the Warehouse want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
-   Comment "Field Manual - Resources page, body paragraph under 'Building With Resources'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Money-only buildables are byte-identical to before: OVT_ResistanceFactionManager.BuildItem:896-899 branches to PlaceConstructionSite only when HasResourceRequirements() is true, otherwise straight to FinishBuild. Which four: Configs/Resistance/buildables.conf:15 Guard Tower, :87 Garage, :116 Helipad, :153 Warehouse; no other entry authors m_aResourceRequirements. Money charged at placement: OVT_ResistanceFactionManager.PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The two actions: OVT_SiteRequirementsAction.c:60 (#OVT-Resource_SiteRequirements) and OVT_BuildFromSiteAction.c:124-129, both on Prefabs/Structures/OVT_ConstructionSite.et. Thirty metres: OVT_ResourceManagerComponent.c:51-52 m_fSupplyRadius default 30, read by OVT_ResourceRequirements.CollectPiles:281. Nearest first: OVT_ResourceRequirements.Consume:173 through OVT_ResourceRules.SortPilesForConsumption. Piles only: CollectPiles runs an OVT_ResourcePileQuery, so a truck store or a warehouse store is never counted (requirements section D). No refund: OVT_ResistanceFactionManager.c:1091-1106 states it and no refund path exists anywhere in the mod. Difficulty: OVT_DifficultySettings.c:151-152 buildableResourceCostMultiplier, applied by OVT_ResourceRequirements.ScaleForDifficulty:33 - which is why no requirement quantity is quoted here."
+   Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
+   Comment "Field Manual - Resources page, body paragraph under 'Building With Resources'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Money-only buildables are byte-identical to before: OVT_ResistanceFactionManager.BuildItem:896-899 branches to PlaceConstructionSite only when HasResourceRequirements() is true, otherwise straight to FinishBuild. Which four: Garage (buildables.conf:77), Helipad (:107), Warehouse (:145) and Barracks (:175); no other entry authors m_aResourceRequirements. CORRECTED 2026-08-22 for logistics/resource-production: the sentence still named the Guard Tower and omitted the Barracks, which the 2026-08-21 comment had already flagged as re-checked but never applied to the English text. The Guard Tower entry (buildables.conf:5-17) authors no m_aResourceRequirements at all. Money charged at placement: OVT_ResistanceFactionManager.PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The two actions: OVT_SiteRequirementsAction.c:60 (#OVT-Resource_SiteRequirements) and OVT_BuildFromSiteAction.c:124-129, both on Prefabs/Structures/OVT_ConstructionSite.et. Thirty metres: OVT_ResourceManagerComponent.c:51-52 m_fSupplyRadius default 30, read by OVT_ResourceRequirements.CollectPiles:281. Nearest first: OVT_ResourceRequirements.Consume:173 through OVT_ResourceRules.SortPilesForConsumption. Piles only: CollectPiles runs an OVT_ResourcePileQuery, so a truck store or a warehouse store is never counted (requirements section D). No refund: OVT_ResistanceFactionManager.c:1091-1106 states it and no refund path exists anywhere in the mod. Difficulty: OVT_DifficultySettings.c:151-152 buildableResourceCostMultiplier, applied by OVT_ResourceRequirements.ScaleForDifficulty:33 - which is why no requirement quantity is quoted here."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -21390,6 +21441,694 @@ StringTable {
    Id "OVT-Tutorial_HighCommandFirstOpen_Body2"
    Target_en_us "Every player's map shows these groups as green symbols, your own at full strength and other players' dimmed. Selecting one shows its owner, stance, destination and status, and a group you own can be sent to the spot under the map cursor or have its stance cycled between Defend, Patrol and Attack. Travel happens in real time, on foot or by road, and carries on while you are offline. Manage Groups, on the main menu, lists what you own."
    Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 2 of 2, four sentences, no rich-text markup. TONE: informs, never instructs. Citations: OVT_MapHighCommandLayer.c:21 and :329 (OTHER_OWNER_OPACITY 0.45), :1012-1041 (owner, stance, destination, status lines), OnOrderPressed:1078-1099 (orders to the map cursor), OnStancePressed:1105-1126 (cycles DEFEND, PATROL, ATTACK); stance behaviour OVT_HighCommandManagerComponent.ApplyStance:1044-1077. Real-time travel and offline continuation are D1 in implementation.md section 5: the group is an always-live SCR_AIGroup with its own AI observer (OVT_HighCommandGroupComponent.c:50-67) and nothing on OVT_HighCommandManagerComponent despawns or freezes it when its owner disconnects. Manage Groups: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.ManageGroups:263. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000001}" {
+   Id "OVT-ProdSite_Sawmill"
+   Target_en_us "Sawmill"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_Sawmill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel. A map author may override it per placed instance."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000002}" {
+   Id "OVT-ProdSite_SteelMill"
+   Target_en_us "Steel Mill"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_SteelMill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000003}" {
+   Id "OVT-ProdSite_CementPlant"
+   Target_en_us "Cement Plant"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_CementPlant.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000004}" {
+   Id "OVT-ProdSite_Storage"
+   Target_en_us "Site Storage"
+   Comment "Default holder name for the OVT_ResourceStoreComponent on Prefabs/Production/OVT_ProductionSite_Base.et (m_sDefaultNameKey), and the static UIInfo fallback for OVT_OpenResourceStoreAction on that prefab (:61-70). CORRECTED 2026-08-22 for logistics/resource-production: it does NOT appear as the runtime action label. A site's store has a bounded capacity, so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'; the branch at :149 that would draw this name is UNLIMITED-capacity holders only. Where it IS drawn: the shared transfer screen's destination picker, via store.GetDisplayName()."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000005}" {
+   Id "OVT-ProdSite_Buy_Price"
+   Target_en_us "Buy site (%1)"
+   Comment "Label of OVT_BuySiteAction (Sort 1) on an unowned production site. ONE %1 - the buy price, already formatted by OVT_MoneyFormat.FormatMoney and already scaled by the difficulty's realEstateCostMultiplier via OVT_ResourceProductionRules.BuyCost. Cited: OVT_BuySiteAction.c:120 (LabelKey) and :176 (the single BuyCost call the label and the server charge share). The action is hidden on an owned site, visible-and-disabled when the player cannot afford it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000006}" {
+   Id "OVT-ProdSite_BuyResistance_Price"
+   Target_en_us "Buy site with resistance funds (%1)"
+   Comment "Label of OVT_BuySiteResistanceAction (Sort 2), shown only on an unowned site to an officer. ONE %1 - the same BuyCost figure as OVT-ProdSite_Buy_Price, formatted by OVT_MoneyFormat.FormatMoney. Cited: OVT_BuySiteResistanceAction.c:44. Officer gating is OVT_ResistanceFactionManager.IsOfficer on both sides."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000007}" {
+   Id "OVT-ProdSite_BuyStock"
+   Target_en_us "Buy stock (%1 units)"
+   Comment "Label of OVT_BuySiteStockAction (Sort 3) on an unowned production site. ONE %1 - the site's current stock count. Cited: OVT_BuySiteStockAction.c:82. Opens OVT_ProductionSiteBuyContext, which quotes 80 percent of the live import price. The action disappears once the site is owned - only unowned sites sell (requirements section 22)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000008}" {
+   Id "OVT-ProdSite_Buy"
+   Target_en_us "Buy"
+   Comment "The single mode label on OVT_ProductionSiteBuyContext's tool header - the buy-stock screen has exactly one mode. Cited: OVT_ProductionSiteBuyContext.c BuildModes."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000009}" {
+   Id "OVT-ProdSite_Summary"
+   Target_en_us "%1  -  %2"
+   Comment "Cart summary line on the buy-stock screen. TWO parameters: %1 the total cost already formatted by OVT_MoneyFormat.FormatMoney, %2 the total volume already formatted as cubic metres. Cited: OVT_ProductionSiteBuyContext.c:376 (GetSummaryText override)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000A}" {
+   Id "OVT-ProdSite_NoStock"
+   Target_en_us "This site has no stock yet"
+   Comment "Disabled-row reason on the buy-stock screen when the site's store is empty. The row is listed and DISABLED, never hidden - refusals are shown, not hidden. Cited: OVT_ProductionSiteBuyContext.c BuildEntries. A site drips one batch per in-game hour, so an untouched site is empty for its first hour."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000B}" {
+   Id "OVT-ProdSite_MakePublic"
+   Target_en_us "Make site public"
+   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is private. A public site lets anyone in the resistance open its storage. Cited: OVT_ToggleSitePrivacyAction.c. The action is shown only to someone OVT_ResourceProductionRules.MayTogglePrivacy admits - the owner, or an officer on a resistance-owned site."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000C}" {
+   Id "OVT-ProdSite_MakePrivate"
+   Target_en_us "Make site private"
+   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is public. Private is the default on purchase. Cited: OVT_ToggleSitePrivacyAction.c."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000D}" {
+   Id "OVT-ProdSite_NoPlayer"
+   Target_en_us "Could not identify you"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent - ResolveOwningPlayerId returned a non-positive id, or the caller's persistent id came back empty. Answers both RpcAsk_BuySite and RpcAsk_SetSitePrivacy. Identity is never an RPC parameter, so this means the server could not resolve the caller at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000E}" {
+   Id "OVT-ProdSite_NoSite"
+   Target_en_us "No production site here"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent when no site record matches the position within 10 m, or the matched record's entity carries no OVT_ResourceProductionComponent. Also the refusal from OVT_ResourceRequestComponent.MayBuyFromSite when a SITE_BUY names a holder that is not a site. Position is the identity on every wire (implementation.md D2)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000F}" {
+   Id "OVT-ProdSite_AlreadyOwned"
+   Target_en_us "Someone already owns this site"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent.RpcAsk_BuySite when OVT_ResourceProductionRules.MayBuySite is false. This is what a losing racer sees when two players buy the same site in the same second - the refusal lands before any money moves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000010}" {
+   Id "OVT-ProdSite_NotOfficer"
+   Target_en_us "Only officers can spend resistance funds"
+   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when OVT_ResistanceFactionManager.IsOfficer is false. Mirrors the client-side gate that hides OVT_BuySiteResistanceAction from non-officers."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000011}" {
+   Id "OVT-ProdSite_NoFunds"
+   Target_en_us "The resistance cannot afford this"
+   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when the treasury is short. Also the disabled reason shown on OVT_BuySiteResistanceAction for the same condition."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000012}" {
+   Id "OVT-ProdSite_NoMoney"
+   Target_en_us "You cannot afford this"
+   Comment "Server refusal from RpcAsk_BuySite's personal-money branch when OVT_EconomyManagerComponent.PlayerHasMoney is false. Also the disabled reason on OVT_BuySiteAction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000013}" {
+   Id "OVT-ProdSite_NotYours"
+   Target_en_us "This is not your site"
+   Comment "Server refusal from RpcAsk_SetSitePrivacy when OVT_ResourceProductionRules.MayTogglePrivacy refuses - the caller is neither the owner nor, on a resistance-owned site, an officer."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000014}" {
+   Id "OVT-ProdSite_Owned"
+   Target_en_us "This site is owned and does not sell"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayBuyFromSite - the ONE place an owned site refuses a SITE_BUY. A privately owned site does not sell its resource; only unowned sites do (requirements section 22). Because Commit re-runs the whole source ladder, a site bought between Begin and Commit refuses here before any money moves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000015}" {
+   Id "OVT-ProdSite_Failed"
+   Target_en_us "Could not complete that right now"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent when a required manager (production, economy, config, players or resistance) could not be resolved. A never-in-practice path kept answering rather than silent - every refusal answers with a key."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000016}" {
+   Id "OVT-ProdSite_MapDisplayName"
+   Target_en_us "Production Site"
+   Comment "Singular type label for OVT_MapLocationProductionSite in the map's layer filter. Cited: Configs/Map/OverthrowMap.conf, m_sDisplayName on the {6A8E2F2000000001} block."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000017}" {
+   Id "OVT-Map_Category_ProductionSites"
+   Target_en_us "Production Sites"
+   Comment "Plural category label for the production-site map layer. Cited: Configs/Map/OverthrowMap.conf, m_sCategoryName on the {6A8E2F2000000001} block."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000018}" {
+   Id "OVT-Public"
+   Target_en_us "Public"
+   Comment "Status row value in the production-site map info panel when the site is owned and not private - anyone in the resistance may open its storage. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000019}" {
+   Id "OVT-Private"
+   Target_en_us "Private"
+   Comment "Status row value in the production-site map info panel when the site is owned and private - only the owner may open its storage. Private is the default on purchase. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001A}" {
+   Id "OVT-Resistance"
+   Target_en_us "Resistance"
+   Comment "Owner row value in the production-site map info panel when the site was bought with resistance funds (the owner field holds the literal \"resistance\"). Everyone in the resistance may open such a site's storage, and its privacy toggle is officer-gated. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001B}" {
+   Id "OVT-ProdSite_Row_Volume"
+   Target_en_us "Volume"
+   Comment "Row label in the production-site map info panel for the store's used-of-total volume. Cited: OVT_MapLocationProductionSite.c:219."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001C}" {
+   Id "OVT-ProdSite_Row_VolumeValue"
+   Target_en_us "%1 / %2 m3"
+   Comment "Row value in the production-site map info panel for the store's volume. TWO parameters: %1 the used cubic metres, %2 the site's capacity. Cited: OVT_MapLocationProductionSite.c:219. Read from the store on location.GetEntity(), never from the manager's record - a registry must not become a second source of truth."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001D}" {
+   Id "OVT-ProdSite_Row_Rate"
+   Target_en_us "Output"
+   Comment "Row label in the production-site map info panel for the site's production rate. Cited: OVT_MapLocationProductionSite.c:233."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001E}" {
+   Id "OVT-ProdSite_Row_RateValue"
+   Target_en_us "%1 per hour"
+   Comment "Row value in the production-site map info panel for the production rate. ONE %1 - units per in-game hour to one decimal place, because sub-1 rates are supported (a steel mill at 1.5/hour). Cited: OVT_MapLocationProductionSite.c:232."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001F}" {
+   Id "OVT-ProdSite_Row_BuyPrice"
+   Target_en_us "Price"
+   Comment "Row label in the production-site map info panel for the site's buy price, shown only while the site is unowned. The value is formatted by OVT_MoneyFormat.FormatMoney and needs no key of its own. Cited: OVT_MapLocationProductionSite.c:257."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000020}" {
+   Id "OVT-ProdSite_BuyResistance"
+   Target_en_us "Buy site with resistance funds"
+   Comment "Static UIInfo fallback name for OVT_BuySiteResistanceAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 2). The action overrides its own label at runtime with the priced OVT-ProdSite_BuyResistance_Price, so this bare form is only ever the fallback - it deliberately carries NO parameter, because a fallback path cannot supply one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000021}" {
+   Id "OVT-ProdSite_BuyStockName"
+   Target_en_us "Buy stock"
+   Comment "Static UIInfo fallback name for OVT_BuySiteStockAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 3). Deliberately parameter-free: the runtime label OVT-ProdSite_BuyStock carries a %1 for the stock count, and a prefab UIInfo has nothing to substitute into it, so pointing the prefab at the parameterised key would render a literal percent-1 on screen if the script label were ever empty."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000001}" {
+   Id "OVT-FieldManual_ProductionSites_Title"
+   Target_en_us "Production Sites"
+   Comment "Field Manual - Production Sites page title, shown on the entry tile in the Money and Trade category, beside Resources. Two words, no rich-text markup. The page covers OVT_ResourceProductionComponent sites (Prefabs/Production/), which the Resources page deliberately only points at."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000002}" {
+   Id "OVT-FieldManual_ProductionSites_Text"
+   Target_en_us "A sawmill, a steel mill or a cement plant can be a production site, marked by a large sign standing at it. Each one makes a single construction resource and nothing else, dripping a set number of units into a cargo store of its own once every in-game hour, whether anybody owns it or not. That store is the throttle: twenty cubic metres on the shipped sites, and a site whose store is full pauses until room is made in it. A rate below one unit an hour still adds up, because the part unit is carried rather than lost, and hours slept through are produced as well."
+   Comment "Field Manual - Production Sites page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The three shipped variants: Prefabs/Production/OVT_ProductionSite_Sawmill.et, _SteelMill.et and _CementPlant.et. The large sign: Prefabs/Production/OVT_ProductionSite_Base.et:1 inherits {48C842DD171DE304}Prefabs/Structures/Signs/Large/SignLarge_01_base.et, whose mesh is Assets/Structures/Signs/Large/SignLarge_01_poles.xob. One resource per site: OVT_ResourceProductionComponent.c:26-27 (a single m_sResourceId) and the single-row screen built from it at OVT_ProductionSiteBuyContext.c:123-171. Once per in-game hour: OVT_ResourceProductionManagerComponent.CheckProduction:531-551 with OVT_ResourceProductionRules.ShouldProduce:106-109 (every hour, unlike price drift's four windows). Regardless of ownership: ProduceForHours:556-573 walks every record with no owner test anywhere in it. Twenty cubic metres: OVT_ProductionSite_Base.et:6-9 authors m_fCargoVolume 20; 'on the shipped sites' rather than a flat rule because a map author overrides it per placed instance. Pauses when full: OVT_ResourceProductionRules.FitProduction:151-161 fits whole units into the free litres and ProduceForSite:610-612 returns when nothing fits (whole units that do not fit are discarded, not banked - D7). Sub-1 rates and the carry: OVT_ResourceProductionRules.Produce:119-142, carry bounded to [0,1) at :135-139, and the carry is persisted in OVT_PersistedProductionSite. Sleep: OVT_ResourceProductionManagerComponent.HandleTimeSkip:632-651, called from OVT_SleepService.c:377-379 before the clock is advanced. Rates and prices are NOT quoted: every one of the four numbers is authored per placed instance (OVT_ResourceProductionComponent.c:23-33)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000003}" {
+   Id "OVT-FieldManual_ProductionSites_Head"
+   Target_en_us "Buying What a Site Has Made"
+   Comment "Field Manual - Production Sites page, section header above the unowned-sale paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000004}" {
+   Id "OVT-FieldManual_ProductionSites_Text2"
+   Target_en_us "While nobody owns it, a site sells what it has accumulated. Its Buy stock action carries the amount on hand and opens a one row screen quoting eighty per cent of what a port charges to import that resource at that moment, so a site undercuts the port it competes with. It sells only what it has actually produced, and the load has to go into another cargo store standing within twenty five metres of it, which the screen says plainly when there is none. A cart that will not fit, is not stocked or cannot be paid for is refused whole, so nothing is ever part bought."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Buying What a Site Has Made'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Unowned only, on both sides: OVT_BuySiteStockAction.CanBeShownScript:193-200 calls OVT_ResourceProductionRules.MayBuyStock:95-98, and the server refuses an owned site in exactly one place, OVT_ResourceRequestComponent.MayBuyFromSite:1039+ with #OVT-ProdSite_Owned. The action label carries the stock count: OVT_BuySiteStockAction.c:231 (#OVT-ProdSite_BuyStock, one %1). One row: OVT_ProductionSiteBuyContext.BuildEntries:123-171 emits exactly one entry, the site's own resource. Eighty per cent of the LIVE import price: :159 SitePrice(resources.GetPrice(defIndex), SITE_SELL_RATIO) with SITE_SELL_RATIO 0.8 at OVT_ResourceProductionRules.c:10, floored at 1 by :21-24. It is NOT the port's 0.5 export ratio (D10), and the server re-derives the same figure at commit so a client cannot supply a price. Capped by real stock: :160 m_iMaxQuantity = Math.Min(stock, MAX_BUY_QUANTITY 1000), and the server's own refusal on the ledger count at OVT_ResourceRequestComponent.c:641 (#OVT-Resource_NotEnough). Twenty five metres: OVT_ProductionSiteBuyContext.c:23 DESTINATION_RADIUS 25, used by BuildDestinations:184-223, which excludes the site itself. 'Another cargo store' rather than 'a truck' because a crate pile or warehouse in range is equally a destination. No destination is stated rather than silent: ValidateCart:278-286 returns #OVT-Resource_NeedTruck. Refused whole, never clamped: OVT_ResourceRequestComponent.c:715 (#OVT-Resource_NoSpace, whole cart) and :719 (PlayerHasMoney on the whole cart, #OVT-Resource_NoMoney)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000005}" {
+   Id "OVT-FieldManual_ProductionSites_Head2"
+   Target_en_us "Owning a Site"
+   Comment "Field Manual - Production Sites page, section header above the purchase paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000006}" {
+   Id "OVT-FieldManual_ProductionSites_Text3"
+   Target_en_us "Buying the site itself is an action on it, priced from what that site was set up to cost and scaled by the difficulty's real estate multiplier; the price on the label is the price that is charged. An officer can buy one out of resistance funds instead, which puts it in the resistance's name. Buying empties the store in the same moment it takes the money, so a site is never worth buying for the stock it was sitting on. A site is never sold back, costs nothing to keep, and is not something the occupying faction comes after."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Owning a Site'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The action: OVT_BuySiteAction on Prefabs/Production/OVT_ProductionSite_Base.et:21-30 (Sort Priority 1), shown only while unowned via MayBuySite (OVT_BuySiteAction.c:49-56). One price, two evaluations of the same static: OVT_BuySiteAction.GetCost:166-177 for the label and OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:153 for the charge, both OVT_ResourceProductionRules.BuyCost(authored base cost, config.GetRealEstateCostMultiplier()). realEstateCostMultiplier is a difficulty setting (OVT_DifficultySettings.c:123), which is why no figure is quoted here; this feature is its first reader. Resistance funds are officer-only: OVT_BuySiteResistanceAction.CanBeShownScript:21-31 (IsLocalPlayerOfficer, UX) and the authority at RpcAsk_BuySite:166-170 (resistance.IsOfficer(playerId) resolved from the request entity, never from anything the client says). Owner becomes the literal 'resistance' at :179. Stock destroyed in the same call as the charge: RpcAsk_BuySite:207-209 - SetSiteOwner, SetSitePrivacy(true), then manager.ClearSiteStock (OVT_ResourceProductionManagerComponent.c:343-360, ledger.Clear() then PublishContents()). Requirement section 19. No sell-back: MayBuySite (OVT_ResourceProductionRules.c:85-88) is true only while owner is empty, and no refund path exists anywhere in the mod. No upkeep and not a target: grep of Scripts/Game/GameMode/Managers/Factions/ and OVT_OccupyingFactionManager.c for OVT_ResourceProductionComponent or OVT_Global.GetProduction() returns 0 hits (2026-08-22), and nothing in the feature charges a recurring cost. Requirements sections 23 and 26."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000007}" {
+   Id "OVT-FieldManual_ProductionSites_Head3"
+   Target_en_us "Public and Private"
+   Comment "Field Manual - Production Sites page, section header above the access paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000008}" {
+   Id "OVT-FieldManual_ProductionSites_Text4"
+   Target_en_us "A site bought by a player starts private, and a private one opens its storage to that player alone. The owner can flip it to public, an officer can do the same on a resistance owned site, and a public or resistance owned site opens to anyone in the resistance. Anyone who may not open it still sees the site's Cargo action, blocked with a reason rather than hidden. An owned site stops selling altogether: what it makes goes into building, into a trade agreed with another player, or out to a port for export."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Public and Private'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Private on purchase: OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:208 SetSitePrivacy(rec.location, true). Who may open it, ONE predicate with two callers: OVT_ResourceProductionRules.MayAccessStore:44-59 - unowned opens to nobody, 'resistance' opens to everybody, public opens to everybody, private opens to the owner alone. Server caller: OVT_ResourceRequestComponent.SiteIsAccessible:1143-1150 feeding the holder ladder at :1020-1024 (#OVT-Resource_NoAccess). Client caller: OVT_OpenResourceStoreAction.SiteIsOpenTo:191-203 with the reason set at :97-99. Visible-and-blocked rather than hidden: OVT_OpenResourceStoreAction.c:97-99 calls SetCannotPerformReason, the shipped gate policy of that file. NAMED 'Cargo' RATHER THAN 'Storage' ON PURPOSE: a site's store has a bounded capacity (20 m3), so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'. #OVT-ProdSite_Storage ('Site Storage') is only the prefab's static UIInfo fallback and the name the destination picker draws; the UNLIMITED branch at :149 that would show it as the action label is never taken on a shipped site. The toggle: OVT_ToggleSitePrivacyAction on OVT_ProductionSite_Base.et:51-60, gated by OVT_ResourceProductionRules.MayTogglePrivacy:67-79 (owner, or an officer on a resistance-owned site) on the client at :103-118 and re-checked by RpcAsk_SetSitePrivacy. Labels flip between #OVT-ProdSite_MakePublic and #OVT-ProdSite_MakePrivate at :124-141. An owned site sells nothing: OVT_BuySiteStockAction.CanBeShownScript:193-200 hides the shop action the moment the site has an owner. Requirement section 23. Building, player-to-player trade and export are named as the uses because requirement section 26 states them and the mechanisms already exist (the Resources page covers construction sites and port export); no new mechanism is implied."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000009}" {
+   Id "OVT-FieldManual_ProductionSites_Head4"
+   Target_en_us "On the Map"
+   Comment "Field Manual - Production Sites page, section header above the map paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F400000000A}" {
+   Id "OVT-FieldManual_ProductionSites_Text5"
+   Target_en_us "Production sites draw at the same zoom as towns and bases. The icon is white while the site is unowned, green when it is yours, public or the resistance's, and half faded white when somebody else is keeping it private. Its info panel gives the status, the owner once it has one, what is in the store against how much room there is, its output per hour, and, while it is unowned, what buying it would cost."
+   Comment "Field Manual - Production Sites page, body paragraph under 'On the Map'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Same zoom as towns and bases: Configs/Map/OverthrowMap.conf:180 gives OVT_MapLocationProductionSite m_fVisibilityZoom 0, the same value OVT_MapLocationTown (:7) and OVT_MapLocationBase (:25) carry. Requirement section 21. The three colours: OVT_MapLocationProductionSite.c:19-26 authors them as [Attribute] ColorPicker defaults (1 1 1 1 white unowned, 0 1 0 1 green accessible, 1 1 1 0.5 half-alpha white private-not-yours) - CORRECTED 2026-08-22 after the user changed unowned and private from black/half-green to white; implementation.md F12 was updated to match and context.md records the change. GetIconColor (:74-93) never compares owner or isPrivate itself, it hands them to OVT_ResourceProductionRules.ColourState (:169-178), the same function the storage gate uses. Info panel rows: BuildInfoRows (:99-121)."
    DevNote ""
    Repro ""
    ActorGender NONE

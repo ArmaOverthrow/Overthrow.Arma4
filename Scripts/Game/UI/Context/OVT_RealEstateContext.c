@@ -216,6 +216,11 @@ class OVT_RealEstateContext : OVT_UIContext
 			o.SetVisible(true);
 			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyLabel"));
 			w.SetText("#OVT-Shop_Selling");
+			
+			// The label now reads "Selling", so the figure beside it must be what a sale PAYS, not
+			// what a purchase would cost - selling refunds below the buy price (SELL_BACK_RATIO).
+			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyPrice"));
+			if(w) w.SetText(OVT_MoneyFormat.FormatMoney(m_RealEstate.GetSellPrice(building)));
 		}
 		
 		o = OverlayWidget.Cast(m_wRoot.FindAnyWidget("Rent Price"));

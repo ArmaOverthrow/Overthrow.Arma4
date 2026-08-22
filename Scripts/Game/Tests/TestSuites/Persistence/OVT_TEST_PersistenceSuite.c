@@ -1636,3 +1636,120 @@ class OVT_TEST_Persistence_NewBase_DefaultsToOccupyingFaction : SCR_AutotestCase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A SAVE WRITTEN MID-WINDOW COMES BACK STILL OWING THE POOL, AND A PRE-DRIP SAVE OWES NOTHING.
+//!
+//! The defense share now leaves the reserve one hourly slice at a time, which means that at almost
+//! any instant a player can save, the deployment pool is still owed most of a window. That debt is
+//! live state with no other record anywhere: drop it on load and the money simply stays in the
+//! reserve until the next payday overwrites the window, and the occupying faction goes several
+//! in-game hours underfunded for reasons nothing logs and nothing can be traced back to a save.
+//!
+//! THE VERSION 1-3 HALF IS THE OTHER FAILURE, AND IT IS THE MORE DANGEROUS ONE. Those payloads were
+//! written when the whole share crossed at the payday, so the correct restored debt is ZERO - the
+//! money is already in the pool. Defaulting a legacy save to "a full window owed" would hand the
+//! pool the same share twice, which is BUG-183's family: free money on every load of an old campaign.
+//! ApplyPersistedDefenseDrip is driven directly here, because it is the exact seam the serializer
+//! calls on both paths.
+//!
+//! THE RECONCILIATION CLAIMS ARE NOT DEFENSIVE NICETIES. A restored debt is spendable money, so a
+//! payload claiming a debt with no drips left to pay it, or a negative debt, must be made coherent
+//! rather than trusted - an incoherent window is settled in full by the very next flush.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceSuite, timeoutS: 30)]
+class OVT_TEST_Persistence_DefenseDripDebtSurvivesTheRoundTrip : SCR_AutotestCaseBase
+{
+	//! A part-paid window: a 1069 share with two of six slices already delivered.
+	static const int SAVED_PENDING = 713;
+	static const int SAVED_DRIPS = 4;
+	static const int SAVED_MINUTE = 37;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		// BORROWED STATE - the live window, restored on every exit path.
+		int originalPending = occupying.GetPendingDefenseTransfer();
+		int originalDrips = occupying.GetDefenseDripsRemaining();
+		int originalMinute = occupying.GetDripMinute();
+
+		string failure = RunClaims(occupying);
+
+		occupying.ApplyPersistedDefenseDrip(originalPending, originalDrips, originalMinute);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Defense drip persistence: a mid-window save came back owing the pool %1 across %2 drips at minute %3, a version 1-3 payload came back owing nothing, and three incoherent windows were reconciled instead of trusted",
+			SAVED_PENDING.ToString(), SAVED_DRIPS.ToString(), SAVED_MINUTE.ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] occupying The occupying faction manager.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunClaims(notnull OVT_OccupyingFactionManager occupying)
+	{
+		// ---- (a) A MID-WINDOW SAVE COMES BACK EXACTLY AS WRITTEN ---------------------------------
+		occupying.ApplyPersistedDefenseDrip(SAVED_PENDING, SAVED_DRIPS, SAVED_MINUTE);
+
+		if (occupying.GetPendingDefenseTransfer() != SAVED_PENDING)
+			return string.Format("A save written mid-window came back owing the pool %1, expected %2 - the debt is dropped on load and the deployment pool goes hours underfunded with nothing logged",
+				occupying.GetPendingDefenseTransfer().ToString(), SAVED_PENDING.ToString());
+
+		if (occupying.GetDefenseDripsRemaining() != SAVED_DRIPS)
+			return string.Format("The restored window has %1 drips left, expected %2 - the debt comes back on a schedule it was not saved with, so the slices are the wrong size",
+				occupying.GetDefenseDripsRemaining().ToString(), SAVED_DRIPS.ToString());
+
+		if (occupying.GetDripMinute() != SAVED_MINUTE)
+			return string.Format("The restored window drips at minute %1, expected %2",
+				occupying.GetDripMinute().ToString(), SAVED_MINUTE.ToString());
+
+		// ---- (b) A VERSION 1-3 PAYLOAD OWES NOTHING ----------------------------------------------
+		// The serializer passes zeros for a payload written before the drip existed. Those campaigns
+		// already had their whole share credited at the payday; restoring a window would pay it twice.
+		occupying.ApplyPersistedDefenseDrip(0, 0, 0);
+
+		if (occupying.GetPendingDefenseTransfer() != 0)
+			return string.Format("A pre-drip payload came back owing the pool %1, expected 0 - an old campaign is handed its defense share a second time on every single load",
+				occupying.GetPendingDefenseTransfer().ToString());
+
+		if (occupying.GetDefenseDripsRemaining() != 0)
+			return string.Format("A pre-drip payload came back with %1 drips scheduled, expected 0",
+				occupying.GetDefenseDripsRemaining().ToString());
+
+		// ---- (c) INCOHERENT WINDOWS ARE RECONCILED, NOT TRUSTED -----------------------------------
+		// A negative debt would move money OUT of the pool on the next flush.
+		occupying.ApplyPersistedDefenseDrip(-500, 3, 10);
+		if (occupying.GetPendingDefenseTransfer() != 0 || occupying.GetDefenseDripsRemaining() != 0)
+			return string.Format("A negative debt restored to %1 across %2 drips, expected 0/0 - a negative transfer drains the deployment pool back into the reserve, silently",
+				occupying.GetPendingDefenseTransfer().ToString(), occupying.GetDefenseDripsRemaining().ToString());
+
+		// A debt with no schedule is payable, but only in full and only on the next flush - so it gets
+		// a whole window instead, which is the behaviour a mid-window load should produce.
+		occupying.ApplyPersistedDefenseDrip(SAVED_PENDING, 0, 10);
+		if (occupying.GetDefenseDripsRemaining() != OVT_BaseDefenseConversion.DRIP_STEPS)
+			return string.Format("A debt with no drips scheduled came back with %1, expected a full window of %2 - otherwise the whole debt lands in one lump, which is the burst this feature exists to remove",
+				occupying.GetDefenseDripsRemaining().ToString(), OVT_BaseDefenseConversion.DRIP_STEPS.ToString());
+
+		// An out-of-range minute would either never fire or fire every tick.
+		occupying.ApplyPersistedDefenseDrip(SAVED_PENDING, SAVED_DRIPS, 900);
+		int minute = occupying.GetDripMinute();
+		if (minute < 0 || minute >= OVT_BaseDefenseConversion.DRIP_MINUTE_SPREAD)
+			return string.Format("An out-of-range saved minute came back as %1 - a minute above 59 is never reached, so the window never drips again and the debt sits until the next payday",
+				minute.ToString());
+
+		return "";
+	}
+}

@@ -193,6 +193,39 @@ class OVT_ResourceRules
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The share of a build requirement that repairing a ruin of the same buildable costs.
+	//!
+	//! TAKES THE ALREADY-SCALED QUANTITY, so the difficulty's buildableResourceCostMultiplier is
+	//! applied exactly once, by ScaleForDifficulty, and this is the second, independent knob on top -
+	//! the same repairCostMultiplier the money price uses (core/damage D11's one-ladder rule).
+	//!
+	//! Two clamps carry the contract: a non-zero requirement never rounds away to nothing (you can
+	//! never repair a resource-costing building for free), and the repair never costs MORE than
+	//! building it did, however the preset is authored.
+	//! \param[in] scaledQty The construction requirement after ScaleForDifficulty.
+	//! \param[in] repairMultiplier OVT_DifficultySettings.repairCostMultiplier.
+	//! \return Units owed for the repair; 0 only when scaledQty was 0 or less.
+	static int RepairRequirement(int scaledQty, float repairMultiplier)
+	{
+		if (scaledQty <= 0)
+			return 0;
+
+		float multiplier = repairMultiplier;
+		if (multiplier < 0)
+			multiplier = 0;
+
+		int repair = Math.Round(scaledQty * multiplier);
+
+		if (repair < 1)
+			repair = 1;
+
+		if (repair > scaledQty)
+			repair = scaledQty;
+
+		return repair;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Whether every requirement is met by what is available.
 	//! \param[in] need The scaled requirements.
 	//! \param[in] have What is available nearby, summed across piles.

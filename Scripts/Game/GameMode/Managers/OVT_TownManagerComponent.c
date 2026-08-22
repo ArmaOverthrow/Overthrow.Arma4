@@ -217,6 +217,30 @@ class OVT_TownManagerComponent: OVT_Component
 	
 
 	//------------------------------------------------------------------------------------------------
+	//! Island-wide stability, weighted by population so the capital counts for more than a hamlet.
+	//! Answers 100 when there are no towns yet, which is the same baseline a fresh town starts at.
+	//! \return Population-weighted mean stability, 0-100
+	int GetGlobalStability()
+	{
+		if(!m_Towns || m_Towns.Count() == 0) return 100;
+		
+		int totalPopulation = 0;
+		int weighted = 0;
+		
+		foreach(OVT_TownData town : m_Towns)
+		{
+			if(town.population <= 0) continue;
+			
+			totalPopulation += town.population;
+			weighted += town.population * town.stability;
+		}
+		
+		if(totalPopulation == 0) return 100;
+		
+		return Math.Clamp(weighted / totalPopulation, 0, 100);
+	}
+	
+	//------------------------------------------------------------------------------------------------
 	//! Gets a random town from the list of managed towns.
 	//! \return A random OVT_TownData instance or null if no towns exist
 	OVT_TownData GetRandomTown()

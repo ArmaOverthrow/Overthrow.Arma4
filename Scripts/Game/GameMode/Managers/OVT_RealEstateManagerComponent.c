@@ -805,6 +805,13 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		return null;
 	}
 	
+	//! Fraction of the buy price a sale pays back. See GetSellPrice().
+	protected const float SELL_BACK_RATIO = 0.8;
+	
+	//! How much of the stability term comes from the building's own town rather than the island as a
+	//! whole. See DemandFactor().
+	protected const float LOCAL_STABILITY_WEIGHT = 0.5;
+	
 	//------------------------------------------------------------------------------------------------
 	//! Calculates the purchase price for a building based on its config and the nearest town's economy.
 	//! \param[in] entity The building entity
@@ -814,14 +821,22 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_RealEstateConfig config = GetConfig(entity);
 		if(!config) return 0;
 		
-		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		return ScaleRealEstate(config.m_BasePrice, DemandFactor(config, entity));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! What selling a building pays back. Deliberately BELOW the buy price: the buy price scales with
+	//! the town's stability, which the player raises as core gameplay, so a lossless round trip would
+	//! make property a money printer (buy destabilized, stabilize, sell). The friction keeps a genuine
+	//! turnaround profitable and kills the free flip.
+	//! \param[in] entity The building entity
+	//! \return The payout, or 0 if no config found
+	int GetSellPrice(IEntity entity)
+	{
+		int buy = GetBuyPrice(entity);
+		if(buy <= 0) return 0;
 		
-		if(config.m_IsWarehouse)
-		{
-			return config.m_BasePrice;
-		}
-		
-		return config.m_BasePrice + (config.m_BasePrice * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
+		return Math.Max(1, Math.Round(buy * SELL_BACK_RATIO));
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -833,14 +848,45 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_RealEstateConfig config = GetConfig(entity);
 		if(!config) return 0;
 		
+		return ScaleRealEstate(config.m_BaseRent, DemandFactor(config, entity));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Demand term shared by buy and rent. A warehouse is priced flat - it is an industrial building
+	//! that may sit outside any town, where GetNearestTown's answer is meaningless.
+	//!
+	//! Stability blends LOCAL with ISLAND-WIDE. Local alone made one town's firefight crater its own
+	//! property market in isolation (a 6.7x swing on the largest town's villas); the blend makes price
+	//! track how the war is going rather than how one street is going.
+	//! \param[in] config The matched real-estate config
+	//! \param[in] entity The building entity
+	//! \return 1.0 plus the town's demand contribution, never below 1.0
+	protected float DemandFactor(OVT_RealEstateConfig config, IEntity entity)
+	{
+		if(config.m_IsWarehouse) return 1;
+		
 		OVT_TownData town = m_Town.GetNearestTown(entity.GetOrigin());
+		if(!town) return 1;
 		
-		if(config.m_IsWarehouse)
-		{
-			return config.m_BaseRent;
-		}
+		float stability = (LOCAL_STABILITY_WEIGHT * town.stability)
+			+ ((1 - LOCAL_STABILITY_WEIGHT) * m_Town.GetGlobalStability());
 		
-		return config.m_BaseRent + (config.m_BaseRent * (config.m_DemandMultiplier * town.population * ((float)town.stability / 100)));
+		return 1 + (config.m_DemandMultiplier * town.population * (stability / 100));
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! The one place the difficulty's realEstateCostMultiplier is applied, so the price a screen shows
+	//! and the price the server charges cannot drift. Floors at 1 - a free building is not a price.
+	//! \param[in] base The authored base price or rent
+	//! \param[in] demand The demand factor from DemandFactor()
+	//! \return The scaled price
+	protected int ScaleRealEstate(int base, float demand)
+	{
+		float mult = 1;
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(config) mult = config.GetRealEstateCostMultiplier();
+		
+		return Math.Max(1, Math.Round(base * demand * mult));
 	}
 	
 	//------------------------------------------------------------------------------------------------

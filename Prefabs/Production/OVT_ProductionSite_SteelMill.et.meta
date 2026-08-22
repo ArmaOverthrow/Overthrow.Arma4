@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6A8E2F0000000102}Prefabs/Production/OVT_ProductionSite_SteelMill.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

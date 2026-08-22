@@ -12343,3 +12343,220 @@ class OVT_TEST_Init_Deployments_HouseSearchWaypointResolves : SCR_AutotestCaseBa
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! THE DRIP DELIVERS THE WHOLE DEFENSE SHARE ACROSS A WINDOW, AND NOTHING IS EVER STRANDED.
+//!
+//! The single transfer this replaced was safe because it was instantaneous: reserve down by X, pool
+//! up by X, in one statement, with no state in between. The drip deliberately introduces exactly the
+//! state that statement had none of - a debt the reserve owes the pool, outstanding for up to six
+//! in-game hours - and every way that debt can be lost is silent in play. A window that pays five of
+//! its six slices does not log anything; it just leaves the occupying faction unable to afford its
+//! next base defense, hours later, for no visible reason.
+//!
+//! WHAT IS ASSERTED HERE AND NOT AT THE LOGIC TIER. OVT_TEST_Logic_BaseDefenseConversion_DripPaysOut-
+//! ExactlyTheShare pins the ARITHMETIC - that six DripAmount calls sum to their share. This case pins
+//! the WIRING: that arming actually moves nothing, that each drip debits the live reserve and credits
+//! the live pool by the same number, that the six of them add up to what DefenseShare said, and that
+//! the flush at the next payday settles a window abandoned half-paid. Those are four different things
+//! and only the first is arithmetic.
+//!
+//! THE FLUSH CLAIM IS THE LOAD-BEARING ONE. CheckUpdate returns early for the whole of an engaged
+//! QRF, a campaign can be loaded mid-window, and a sleep replay only drips on the hour boundaries it
+//! walks - so windows WILL be abandoned part-paid in normal play. ArmDefenseShareDrip flushing first
+//! is what turns every one of those from a money loss into a timing wobble.
+//!
+//! ⚠ The reserve and the pool are borrowed and handed back exactly as found, on every exit path,
+//! inside ONE Execute() - the same contract as the funding case above.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_Deployments_DefenseShareDripsIntoThePool : SCR_AutotestCaseBase
+{
+	//! Deep enough that no drip is ever clamped by it.
+	static const int PLANTED_RESERVE = 9000;
+
+	//! Distinguishable from zero, so a credit is never confused with a reset.
+	static const int PLANTED_POOL = 777;
+
+	//! A tick whose 80 % share (1069) divides by six with a remainder, so the carry is exercised.
+	static const int TICK = 1337;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+		{
+			SetFailure("OVT_Global.GetOccupyingFaction() is null");
+			return true;
+		}
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null, so there is no pool for the drip to land in");
+			return true;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("OVT_Global.GetConfig() is null");
+			return true;
+		}
+
+		int factionIndex = config.GetOccupyingFactionIndex();
+		if (factionIndex < 0)
+		{
+			SetFailure("The occupying faction does not resolve to a faction index, so its pool cannot be addressed");
+			return true;
+		}
+
+		// BORROWED STATE - the reserve, the pool AND the live drip window, which this case overwrites.
+		int originalReserve = occupying.m_iResources;
+		int originalPool = manager.GetFactionResources(factionIndex);
+		int originalPending = occupying.GetPendingDefenseTransfer();
+		int originalDrips = occupying.GetDefenseDripsRemaining();
+		int originalMinute = occupying.GetDripMinute();
+
+		string failure = RunClaims(occupying, manager, factionIndex);
+
+		// TEARDOWN BEFORE REPORTING, ON EVERY PATH.
+		occupying.m_iResources = originalReserve;
+		RestorePool(manager, factionIndex, originalPool);
+		occupying.ApplyPersistedDefenseDrip(originalPending, originalDrips, originalMinute);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		PrintFormat("Defense drip: a tick of %1 armed a debt of %2 without moving anything, six drips delivered exactly that to the pool with reserve+pool conserved at every step, and a window abandoned half-paid was settled in full by the next payday's flush",
+			TICK.ToString(), OVT_BaseDefenseConversion.DefenseShare(TICK).ToString());
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The three claims, run against the live managers with the borrowed state planted.
+	//! \param[in] occupying The occupying faction manager.
+	//! \param[in] manager The deployment manager holding the pool.
+	//! \param[in] factionIndex The occupying faction's index.
+	//! \return An empty string when every claim holds, or the first broken one.
+	protected string RunClaims(notnull OVT_OccupyingFactionManager occupying, notnull OVT_DeploymentManagerComponent manager, int factionIndex)
+	{
+		int share = OVT_BaseDefenseConversion.DefenseShare(TICK);
+		if (share <= OVT_BaseDefenseConversion.DRIP_STEPS)
+			return string.Format("A tick of %1 splits to %2, which is not enough to tell a carried remainder from a truncated one - pick a bigger planted tick",
+				TICK.ToString(), share.ToString());
+
+		// ---- (a) ARMING MOVES NOTHING ------------------------------------------------------------
+		// The whole point of the change: at the payday the money STAYS in the reserve. If arming
+		// credited the pool, the drip would be decoration over the old burst behaviour.
+		occupying.m_iResources = PLANTED_RESERVE;
+		RestorePool(manager, factionIndex, PLANTED_POOL);
+		occupying.ApplyPersistedDefenseDrip(0, 0, 0);
+
+		occupying.ArmDefenseShareDrip(TICK);
+
+		if (manager.GetFactionResources(factionIndex) != PLANTED_POOL)
+			return string.Format("Arming the drip moved the pool to %1, expected it untouched at %2 - the share is still crossing at the payday and nothing has actually been smoothed",
+				manager.GetFactionResources(factionIndex).ToString(), PLANTED_POOL.ToString());
+
+		if (occupying.m_iResources != PLANTED_RESERVE)
+			return string.Format("Arming the drip moved the reserve to %1, expected it untouched at %2 - the money is meant to stay in the reserve until each slice is actually paid",
+				occupying.m_iResources.ToString(), PLANTED_RESERVE.ToString());
+
+		if (occupying.GetPendingDefenseTransfer() != share)
+			return string.Format("Arming a tick of %1 left a debt of %2, expected %3 - the drip window and the funding split disagree about what a tick is worth",
+				TICK.ToString(), occupying.GetPendingDefenseTransfer().ToString(), share.ToString());
+
+		if (occupying.GetDefenseDripsRemaining() != OVT_BaseDefenseConversion.DRIP_STEPS)
+			return string.Format("Arming left %1 drips to pay the debt with, expected %2",
+				occupying.GetDefenseDripsRemaining().ToString(), OVT_BaseDefenseConversion.DRIP_STEPS.ToString());
+
+		// ---- (b) SIX DRIPS DELIVER EXACTLY THE SHARE, CONSERVING THE TOTAL AT EVERY STEP ---------
+		int delivered = 0;
+
+		for (int i = 0; i < OVT_BaseDefenseConversion.DRIP_STEPS; i++)
+		{
+			int reserveBefore = occupying.m_iResources;
+			int poolBefore = manager.GetFactionResources(factionIndex);
+
+			int moved = occupying.DripDefenseShare();
+
+			int reserveAfter = occupying.m_iResources;
+			int poolAfter = manager.GetFactionResources(factionIndex);
+
+			if (poolAfter - poolBefore != moved)
+				return string.Format("Drip %1 reported moving %2 but the pool rose by %3 - the drip and the credit disagree",
+					(i + 1).ToString(), moved.ToString(), (poolAfter - poolBefore).ToString());
+
+			if (reserveBefore - reserveAfter != moved)
+				return string.Format("Drip %1 reported moving %2 but the reserve fell by %3 - resources are being created or destroyed one slice at a time",
+					(i + 1).ToString(), moved.ToString(), (reserveBefore - reserveAfter).ToString());
+
+			if (reserveAfter + poolAfter != reserveBefore + poolBefore)
+				return string.Format("Reserve+pool moved from %1 to %2 across drip %3 - the conserved-total identity does not survive being paid in slices",
+					(reserveBefore + poolBefore).ToString(), (reserveAfter + poolAfter).ToString(), (i + 1).ToString());
+
+			delivered += moved;
+		}
+
+		if (delivered != share)
+			return string.Format("Six drips delivered %1 of a %2 share - the remainder carry is losing or conjuring money, and a pool that is quietly short funds no defenses with nothing logged",
+				delivered.ToString(), share.ToString());
+
+		if (occupying.GetPendingDefenseTransfer() != 0)
+			return string.Format("A fully dripped window still owes %1 - the debt outlives the window that created it and the next payday's flush will pay it twice",
+				occupying.GetPendingDefenseTransfer().ToString());
+
+		// ---- (c) AN ABANDONED WINDOW IS SETTLED BY THE NEXT PAYDAY'S FLUSH ------------------------
+		// A QRF freeze, a mid-window load or a sleep replay all abandon windows part-paid. Arming the
+		// next one must pay off what the last one still owed FIRST, or the loss is permanent, silent,
+		// and only visible as an occupying faction that stopped defending itself.
+		occupying.m_iResources = PLANTED_RESERVE;
+		RestorePool(manager, factionIndex, PLANTED_POOL);
+		occupying.ApplyPersistedDefenseDrip(0, 0, 0);
+
+		occupying.ArmDefenseShareDrip(TICK);
+		occupying.DripDefenseShare();
+		occupying.DripDefenseShare();
+
+		int owed = occupying.GetPendingDefenseTransfer();
+		if (owed <= 0)
+			return "Two of six drips left nothing owed, so there is no abandoned window to settle - the drip is paying the whole share on its first slice";
+
+		int poolBeforeFlush = manager.GetFactionResources(factionIndex);
+
+		// The next payday. Its own share arms a fresh window; the abandoned one must be settled here.
+		occupying.ArmDefenseShareDrip(TICK);
+
+		int credited = manager.GetFactionResources(factionIndex) - poolBeforeFlush;
+		if (credited != owed)
+			return string.Format("The next payday credited %1 while the abandoned window owed %2 - a window that loses drips to a QRF freeze, a load or a sleep replay loses the money for good",
+				credited.ToString(), owed.ToString());
+
+		if (occupying.GetPendingDefenseTransfer() != share)
+			return string.Format("After the flush the new window owes %1, expected %2 - the flush and the arm are treading on each other",
+				occupying.GetPendingDefenseTransfer().ToString(), share.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves a faction's pool to an exact value, whichever way it has to go.
+	//! \param[in] manager The deployment manager.
+	//! \param[in] factionIndex The faction whose pool is being set.
+	//! \param[in] target The value to leave it on.
+	protected void RestorePool(notnull OVT_DeploymentManagerComponent manager, int factionIndex, int target)
+	{
+		int current = manager.GetFactionResources(factionIndex);
+
+		if (current > target)
+			manager.SubtractFactionResources(factionIndex, current - target);
+		else if (current < target)
+			manager.AddFactionResources(factionIndex, target - current);
+	}
+}

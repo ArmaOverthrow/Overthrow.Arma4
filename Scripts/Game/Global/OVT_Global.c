@@ -250,6 +250,11 @@ class OVT_Global : Managed
 		return OVT_ResourceManagerComponent.GetInstance();
 	}
 
+	static OVT_ResourceProductionManagerComponent GetProduction()
+	{
+		return OVT_ResourceProductionManagerComponent.GetInstance();
+	}
+
 	static OVT_PlayerManagerComponent GetPlayers()
 	{
 		return OVT_PlayerManagerComponent.GetInstance();

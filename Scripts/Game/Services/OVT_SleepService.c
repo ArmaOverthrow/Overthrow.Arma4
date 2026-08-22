@@ -373,6 +373,11 @@ class OVT_SleepService
 		if (occupying)
 			occupying.HandleTimeSkip(SKIP_HOURS);
 
+		// 2b. Production sites: one batch per skipped in-game hour, on every site, owned or not.
+		OVT_ResourceProductionManagerComponent production = OVT_Global.GetProduction();
+		if (production)
+			production.HandleTimeSkip(SKIP_HOURS);
+
 		// 3. The cooldown stamp - still read off the pre-skip clock, but recording the WAKE instant.
 		StampCooldown(persistentId);
 

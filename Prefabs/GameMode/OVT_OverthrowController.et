@@ -51,6 +51,8 @@ OVT_OverthrowController {
   }
   OVT_HighCommandRequestComponent "{6B1C3D0000000002}" {
   }
+  OVT_ResourceProductionRequestComponent "{6A8E2F0000000011}" {
+  }
   RplComponent "{65C4B2D3DE955867}" {
   }
  }

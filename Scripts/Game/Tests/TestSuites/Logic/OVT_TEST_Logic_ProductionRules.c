@@ -709,3 +709,277 @@ class OVT_TEST_Logic_ProdRules_ColourStateHasThreeAnswers : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! The hand-built table and cart the SITE_BUY composition cases share.
+//!
+//! The four shipped resources with their real litres and base prices, built by hand so the money a
+//! SITE_BUY cart costs is asserted against a table rather than against a live catalogue.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_ProductionCartFixture
+{
+	static const string TIMBER = "timber";
+	static const string CEMENT = "cement";
+	static const string STEEL = "steel";
+	static const string HARDWARE = "hardware";
+
+	//------------------------------------------------------------------------------------------------
+	//! \return A table matching the shipped resources.conf: litres are m³ × 1000.
+	static OVT_ResourceDefs MakeDefs()
+	{
+		OVT_ResourceDefs defs = new OVT_ResourceDefs();
+
+		defs.AddDef(TIMBER, 100, 25, 40, 1, 0);
+		defs.AddDef(CEMENT, 50, 50, 60, 1, 0);
+		defs.AddDef(STEEL, 40, 90, 120, 1, 0);
+		defs.AddDef(HARDWARE, 20, 10, 200, 1, 0);
+
+		return defs;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One cart line, every field set explicitly.
+	//! \param[in] resIndex Definition index.
+	//! \param[in] quantity How many units.
+	//! \return The line.
+	static OVT_ResourceCartLine MakeLine(int resIndex, int quantity)
+	{
+		OVT_ResourceCartLine line = new OVT_ResourceCartLine();
+		line.m_iResIndex = resIndex;
+		line.m_iQuantity = quantity;
+
+		return line;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the server's commit loop sums for a SITE_BUY: the site price of the LIVE price at each
+	//! line's OWN index, times that line's OWN quantity.
+	//! \param[in] cart The cart lines.
+	//! \param[in] livePrices Live import price per definition index.
+	//! \return The money total.
+	static int CartTotal(array<ref OVT_ResourceCartLine> cart, array<int> livePrices)
+	{
+		int total = 0;
+
+		foreach (OVT_ResourceCartLine line : cart)
+		{
+			int unit = OVT_ResourceProductionRules.SitePrice(livePrices[line.m_iResIndex], OVT_ResourceProductionRules.SITE_SELL_RATIO);
+			total = total + (unit * line.m_iQuantity);
+		}
+
+		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the same cart weighs in litres, from the same table.
+	//! \param[in] defs The definition table.
+	//! \param[in] cart The cart lines.
+	//! \return The litre total.
+	static int CartLitres(OVT_ResourceDefs defs, array<ref OVT_ResourceCartLine> cart)
+	{
+		int litres = 0;
+
+		foreach (OVT_ResourceCartLine line : cart)
+		{
+			litres = litres + (defs.LitresAt(line.m_iResIndex) * line.m_iQuantity);
+		}
+
+		return litres;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A SITE_BUY cart costs the sum of each line's own site price times its own quantity, and weighs
+//! the sum of each line's own litres. Both are keyed on the LINE's index, so a rule that priced the
+//! whole cart at one resource's rate would total differently.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ProdRules_SitePriceComposesOverACart : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ResourceDefs defs = OVT_TEST_ProductionCartFixture.MakeDefs();
+
+		// Deliberately NOT the base prices in the table. The site quotes the LIVE import price, so a
+		// case built on the base price would pass against a rule that read the wrong one.
+		array<int> live = new array<int>();
+		live.Insert(50);
+		live.Insert(75);
+		live.Insert(150);
+		live.Insert(200);
+
+		array<ref OVT_ResourceCartLine> cart = new array<ref OVT_ResourceCartLine>();
+		cart.Insert(OVT_TEST_ProductionCartFixture.MakeLine(0, 20));
+		cart.Insert(OVT_TEST_ProductionCartFixture.MakeLine(2, 5));
+		cart.Insert(OVT_TEST_ProductionCartFixture.MakeLine(1, 3));
+
+		foreach (OVT_ResourceCartLine line : cart)
+		{
+			if (defs.IdAt(line.m_iResIndex) == "")
+			{
+				SetFailure("The fixture cart names definition index %1, which the table does not hold", line.m_iResIndex.ToString());
+				return true;
+			}
+		}
+
+		// SitePrice(50) 40 × 20, SitePrice(150) 120 × 5, SitePrice(75) 60 × 3.
+		int total = OVT_TEST_ProductionCartFixture.CartTotal(cart, live);
+		if (total != 1580)
+		{
+			SetFailure("A 20 timber / 5 steel / 3 cement cart totalled %1, expected 1580 (40x20 + 120x5 + 60x3)", total.ToString());
+			return true;
+		}
+
+		// 100 × 20 + 40 × 5 + 50 × 3.
+		int litres = OVT_TEST_ProductionCartFixture.CartLitres(defs, cart);
+		if (litres != 2350)
+		{
+			SetFailure("The same cart weighed %1 litres, expected 2350 (100x20 + 40x5 + 50x3)", litres.ToString());
+			return true;
+		}
+
+		// The same three quantities against different resources. A flat per-cart rate would tie.
+		array<ref OVT_ResourceCartLine> swapped = new array<ref OVT_ResourceCartLine>();
+		swapped.Insert(OVT_TEST_ProductionCartFixture.MakeLine(0, 5));
+		swapped.Insert(OVT_TEST_ProductionCartFixture.MakeLine(2, 20));
+		swapped.Insert(OVT_TEST_ProductionCartFixture.MakeLine(1, 3));
+
+		int swappedTotal = OVT_TEST_ProductionCartFixture.CartTotal(swapped, live);
+		if (swappedTotal == total)
+		{
+			SetFailure("Moving the quantities between resources left the total at %1 - the price is not being read at each line's own index", swappedTotal.ToString());
+			return true;
+		}
+
+		if (swappedTotal != 2780)
+		{
+			SetFailure("The swapped cart totalled %1, expected 2780 (40x5 + 120x20 + 60x3)", swappedTotal.ToString());
+			return true;
+		}
+
+		Print("Site cart: priced and weighed per line, at each line's own definition index");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The worst cart the server can legally be asked to price - every line at MAX_LINE_QUANTITY, at a
+//! live price far above anything a shipped resource can drift to - stays a POSITIVE int.
+//!
+//! This is R6's headroom. PlayerHasMoney() accepts a negative amount and TakePlayerMoney() of a
+//! negative PAYS the player, so a wrapped total is an exploit that prints money. Raising
+//! MAX_LINE_QUANTITY or the cart-line cap re-derives this case rather than quietly reopening it.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ProdRules_SiteCartHasHeadroomAtTheShippedBounds : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// The m_iMaxCartLines attribute default on OVT_ResourceRequestComponent. An attribute cannot be
+		// read without a world, so it is restated here and the case fails loudly if the maths stops
+		// fitting - which is the only thing this number is used for.
+		int maxLines = 16;
+
+		int qty = OVT_ResourceRequestComponent.MAX_LINE_QUANTITY;
+		if (qty <= 0)
+		{
+			SetFailure("MAX_LINE_QUANTITY is %1 - the per-line bound is the first of the three money bounds and cannot be zero or negative", qty.ToString());
+			return true;
+		}
+
+		// 25× the dearest price any shipped resource can reach: base 200, price band max 2.0.
+		int unit = OVT_ResourceProductionRules.SitePrice(10000, OVT_ResourceProductionRules.SITE_SELL_RATIO);
+		if (unit != 8000)
+		{
+			SetFailure("SitePrice(10000, 0.8) is %1, expected 8000", unit.ToString());
+			return true;
+		}
+
+		int total = 0;
+
+		for (int i = 0; i < maxLines; i++)
+		{
+			total = total + (unit * qty);
+
+			if (total <= 0)
+			{
+				SetFailure("The worst legal SITE_BUY cart wrapped to %1 at line %2 - a negative total passes PlayerHasMoney and pays the player", total.ToString(), i.ToString());
+				return true;
+			}
+		}
+
+		int expected = maxLines * unit * qty;
+		if (total != expected)
+		{
+			SetFailure("The bounded cart totalled %1, expected %2", total.ToString(), expected.ToString());
+			return true;
+		}
+
+		// The dearest per-unit price the bounds can carry without wrapping.
+		int ceiling = int.MAX / (maxLines * qty);
+		if (unit > ceiling)
+		{
+			SetFailure("A unit price of %1 is above the %2 the bounds can carry - the cart total would wrap before the tripwire could read it", unit.ToString(), ceiling.ToString());
+			return true;
+		}
+
+		Print("Site cart: 16 lines at MAX_LINE_QUANTITY stay positive with headroom to spare");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A site undercuts the port it competes with, and still sells for MORE than a port pays - so
+//! buying stock at a site and exporting it at a port always loses money.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ProdRules_SitePriceUndercutsThePortPerResource : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ResourceDefs defs = OVT_TEST_ProductionCartFixture.MakeDefs();
+		if (defs.Count() != 4)
+		{
+			SetFailure("The fixture table holds %1 definitions, expected 4", defs.Count().ToString());
+			return true;
+		}
+
+		for (int i = 0; i < defs.Count(); i++)
+		{
+			string id = defs.IdAt(i);
+			int live = defs.BasePriceAt(i);
+
+			int site = OVT_ResourceProductionRules.SitePrice(live, OVT_ResourceProductionRules.SITE_SELL_RATIO);
+			if (site < 1)
+			{
+				SetFailure("'%1' priced at %2 - a site price is never below 1", id, site.ToString());
+				return true;
+			}
+
+			if (site >= live)
+			{
+				SetFailure("'%1' costs %2 at a site against %3 at a port - a site must undercut the port it competes with", id, site.ToString(), live.ToString());
+				return true;
+			}
+
+			int portPays = OVT_ResourceRules.SellPrice(live, 0.5);
+			if (site <= portPays)
+			{
+				SetFailure("'%1' costs %2 at a site and a port pays %3 for it - buying at a site and exporting would be free money", id, site.ToString(), portPays.ToString());
+				return true;
+			}
+		}
+
+		Print("Site price: undercuts the port on every shipped resource, and never below what a port pays");
+
+		return true;
+	}
+}

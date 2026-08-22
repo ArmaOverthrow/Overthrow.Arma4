@@ -4,6 +4,40 @@ SCR_DestructibleBuildingEntity : "{12310677867A85D4}Prefabs/Structures/Industria
   OVT_BuildableComponent "{6A8E2E0000000040}" {
    m_sBuildableType "Warehouse"
   }
+  ActionsManagerComponent "{6B70D00000000070}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000071}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D00000000072}" {
+      Offset 0 1 0
+     }
+     Radius 6
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000073}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000074}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D00000000075}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000076}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
   OVT_StructureDestructionComponent "{6A8E2E0000000041}" {
    Enabled 1
    "Additional hit zones" {

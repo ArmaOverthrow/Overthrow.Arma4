@@ -12,9 +12,14 @@
 //! for the tent's table child. The RplId sent to the server is the ROOT's, because the root is the
 //! entity the server prices by prefab and the entity that carries the replicated identity.
 //!
+//! Since logistics/resources, a buildable that costs materials to build also costs a difficulty-scaled
+//! share of them to repair, taken from the crate piles around the ruin. That gate is advisory here and
+//! authoritative on the server; a buildable with no resource requirement repairs for money alone.
+//!
 //! Nothing this class decides is authority: OVT_ResistanceRequestComponent.RpcAsk_RepairStructure
 //! re-resolves the entity, re-tests that it is ruined, re-tests proximity, and
-//! OVT_ResistanceFactionManager re-derives the price and takes the money.
+//! OVT_ResistanceFactionManager re-derives the price, the requirement and the availability, consumes
+//! the materials and takes the money.
 //!
 //! There is no script-side hold duration and adding one would give the same number two homes - the
 //! Duration is authored in each prefab's additionalActions block (implementation.md §3.6).
@@ -28,6 +33,11 @@ class OVT_RepairStructureAction : ScriptedUserAction
 	protected bool m_bCachedRuined;
 	//! Dollars, or -1 when the structure cannot be priced for repair at all.
 	protected int m_iCachedPrice;
+	//! Whether the crate piles around the ruin cover its repair requirement. True for a buildable that
+	//! costs no resources, so a money-only repair behaves exactly as core/damage shipped it.
+	protected bool m_bCachedResources;
+	//! The first resource that is short, for the refusal message; "" when nothing is.
+	protected string m_sCachedShortId;
 	protected float m_fCacheExpiresAt;
 	protected bool m_bHasCache;
 
@@ -84,6 +94,15 @@ class OVT_RepairStructureAction : ScriptedUserAction
 			return false;
 		}
 
+		// Materials come second in the message even though the server checks both together: a player
+		// who can see the price but not afford it is told about the money first, which is the older and
+		// more familiar refusal. The readout on the Requirements action carries the detail.
+		if(!m_bCachedResources)
+		{
+			SetCannotPerformReason(OVT_RepairRequirementsReader.ShortReason(m_sCachedShortId));
+			return false;
+		}
+
 		return true;
 	}
 
@@ -122,12 +141,16 @@ class OVT_RepairStructureAction : ScriptedUserAction
 
 		m_bCachedRuined = false;
 		m_iCachedPrice = -1;
+		m_bCachedResources = true;
+		m_sCachedShortId = "";
 
 		IEntity root = ResolveRoot(GetOwner());
 		if(!root) return;
 
 		m_bCachedRuined = OVT_StructureDamage.IsRuined(root);
 		if(!m_bCachedRuined) return;
+
+		m_bCachedResources = OVT_RepairRequirementsReader.IsSatisfied(root, m_sCachedShortId);
 
 		// A client that has not yet read the config stream has no difficulty to price with; leaving the
 		// price at -1 hides the action for that frame rather than drawing a wrong number.

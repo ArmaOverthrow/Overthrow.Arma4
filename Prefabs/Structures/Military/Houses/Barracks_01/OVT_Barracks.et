@@ -38,6 +38,40 @@ SCR_DestructibleBuildingEntity : "{80D7D3EAABADBD44}Prefabs/Structures/Military/
     }
    }
   }
+  ActionsManagerComponent "{6B70D00000000068}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000069}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000006A}" {
+      Offset 0 1 0
+     }
+     Radius 6
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D0000000006B}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000006C}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D0000000006D}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000006E}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
   OVT_StructureDestructionComponent "{6B1C3D0000000041}" {
    Enabled 1
    "Additional hit zones" {

@@ -1,4 +1,37 @@
-# Building Repair — Requirements
+# Building Repair — DESCOPED, BUILT AS A SMALL CHANGE 2026-08-22
+
+> **This was never built as a feature.** By the time `core/damage` and `logistics/resources` were both
+> done, everything this document specced except two small pieces already existed — the destructible
+> ruin, the held repair action, the money price, the difficulty ladder, the persistence, and the three
+> position-based resource helpers. User call 2026-08-22: *"now that all the systems are built we don't
+> need a whole feature… it only needs to add the Requirements action and wire the repair action up to
+> use nearby crates."*
+>
+> **What was built (2026-08-22), directly on the two existing seams:**
+> - `OVT_ResourceRules.RepairRequirement(scaledQty, repairMultiplier)` — the repair share of a build
+>   requirement, floored at 1 and capped at the build. Pure; Logic case
+>   `OVT_TEST_Logic_ResourceRules_RepairRequirementIsAShareOfTheBuild`.
+> - `OVT_RepairRequirementsAction` + `OVT_RepairRequirementsReader`
+>   (`Scripts/Game/UserActions/OVT_RepairRequirementsAction.c`) — the ruin's "Repair Requirements"
+>   readout, the counterpart of `OVT_SiteRequirementsAction`, shown only on a ruin that costs materials.
+> - `OVT_RepairStructureAction` — advisory resource gate with a reason naming the short resource.
+> - `OVT_ResistanceFactionManager.RepairStructure()` — validates money **and** materials, repairs, then
+>   consumes from the nearby piles and charges. Server-initiated repairs (`playerId == -1`) stay free.
+> - Three `.st` keys + a `RepairNeedsMaterials` notification; the Requirements action authored on all
+>   ten destructible buildables.
+> - ⚠ **Found on the way:** `OVT_Barracks.et` and `OVT_Warehouse.et` carried no `ActionsManagerComponent`
+>   at all, so both were ruinable and **impossible to repair**. Both now carry the repair pair.
+>
+> **Which buildables cost materials to repair (checked 2026-08-22):** Garage, Helipad, Warehouse,
+> Barracks. The other six — Guard Tower (its requirements were removed by the user), Recruitment Tent,
+> Medical Tent, Vehicle Maintenance Ramp, Bunkers, Fuel Depot — repair for money alone and the
+> Requirements action hides itself on them.
+>
+> **Deliberately not built** from the spec below: a separate Init case per buildable for repair pricing
+> (case F already spawns every config-listed buildable), and the `buildableRepairCostMultiplier` split
+> (one ladder, as specced). The original requirements are kept below for the record.
+
+---
 
 **Epic:** logistics
 **Created:** 2026-08-11 · **Rewritten:** 2026-08-20 against `core/damage` (In Progress, 16/70 — `docs/features/core/damage/implementation.md`), which now owns everything this feature originally planned except the resources.

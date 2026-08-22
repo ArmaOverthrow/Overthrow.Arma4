@@ -204,12 +204,14 @@ class OVT_BuildContext : OVT_UIContext
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! The resource requirement rows for one build card, at THIS difficulty.
+	//! Whether one build card should say it needs materials.
 	//!
-	//! The figures come from OVT_ResourceRequirements.ScaleForDifficulty(), which is the same call the
-	//! construction site consumes by - what a card shows and what a site takes cannot drift apart.
+	//! ONE LINE, NOT THE FIGURES. The card's description is a fixed-height block above the preview
+	//! image, so a four-resource list pushed the text over the icon. The quantities live on the
+	//! construction site's own Requirements readout, which is where a player acts on them; the card
+	//! only has to say that this building is not money-only.
 	//! \param[in] buildable The config entry.
-	//! \return A translated block, or "" for a money-only buildable.
+	//! \return A translated one-liner, or "" for a money-only buildable.
 	protected string BuildRequirementSummary(OVT_Buildable buildable)
 	{
 		if(!buildable || !buildable.m_aResourceRequirements) return "";
@@ -219,14 +221,7 @@ class OVT_BuildContext : OVT_UIContext
 
 		if(need.IsEmpty()) return "";
 
-		string rows = "";
-		foreach(OVT_ResourceAmount amount : need)
-		{
-			if(rows != "") rows = rows + "\n";
-			rows = rows + WidgetManager.Translate("#OVT-Resource_BuildRequirementRow", amount.m_iQuantity.ToString(), OVT_ResourceUtils.ResolveResourceTitle(amount.m_sId));
-		}
-
-		return WidgetManager.Translate("#OVT-Resource_BuildRequires") + "\n" + rows;
+		return WidgetManager.Translate("#OVT-Resource_BuildRequires");
 	}
 	
 	override void RegisterInputs()

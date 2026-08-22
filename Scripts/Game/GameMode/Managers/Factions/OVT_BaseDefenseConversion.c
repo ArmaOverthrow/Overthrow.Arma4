@@ -32,6 +32,19 @@ class OVT_BaseDefenseConversion
 	//! are deliberately excluded from this migration.
 	static const float DEFENSE_SHARE_OF_TICK = 0.8;
 
+	//! How many slices one six-hour defense share is paid to the deployment pool in. Six slices on a
+	//! six-hour payday grid is one an hour, which is the whole point: the pool is the CONTENDED
+	//! resource, so smoothing its arrival is what removes the faction's burst-spending rhythm without
+	//! touching income, its hour latches, or the sleep replay's granularity.
+	static const int DRIP_STEPS = 6;
+
+	//! Boundary spacing of the drip, for OVT_SleepSchedule.IsIntervalBoundary().
+	static const int DRIP_INTERVAL_HOURS = 1;
+
+	//! Exclusive upper bound of the minute-of-hour a drip is rolled onto, so a payday is never
+	//! followed by six transfers on the exact hour.
+	static const int DRIP_MINUTE_SPREAD = 60;
+
 	//! The average number of men a legacy base-upgrade group was worth, used to value the groups a
 	//! pre-migration save recorded as standing.
 	//!
@@ -126,5 +139,39 @@ class OVT_BaseDefenseConversion
 		}
 
 		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How much of a still-owed defense share the NEXT drip pays.
+	//!
+	//! REMAINDER-CARRYING BY CONSTRUCTION, which is why it divides the amount STILL OWED by the drips
+	//! STILL TO COME rather than the original share by DRIP_STEPS. A fixed share/6 truncates six times
+	//! and strands the remainder; this floor re-derives itself every step, so whatever the last floor
+	//! left behind is simply part of the next numerator, and the final drip - dividing by 1 - pays out
+	//! everything that is left. Nothing needs an accumulator and nothing can be stranded.
+	//!
+	//! A SHARE SMALLER THAN THE STEP COUNT PAYS ZERO ONLY UNTIL THE DIVISOR CATCHES UP, which is a
+	//! consequence of re-deriving it rather than a rule of its own: five owed over six drips is
+	//! 0,1,1,1,1,1 - the first floor is 0, and from the second drip on there are as many drips left as
+	//! there are resources, so it pays out one at a time instead of being held to the end.
+	//! \param[in] pendingTotal What the pool is still owed from this window. Non-positive pays nothing.
+	//! \param[in] dripsRemaining How many drips are left including this one. One means "pay it all".
+	//! \return The amount to move now, never negative and never more than pendingTotal.
+	static int DripAmount(int pendingTotal, int dripsRemaining)
+	{
+		if (pendingTotal <= 0)
+			return 0;
+
+		if (dripsRemaining <= 1)
+			return pendingTotal;
+
+		int amount = Math.Floor((float)pendingTotal / dripsRemaining);
+		if (amount < 0)
+			return 0;
+
+		if (amount > pendingTotal)
+			return pendingTotal;
+
+		return amount;
 	}
 }
