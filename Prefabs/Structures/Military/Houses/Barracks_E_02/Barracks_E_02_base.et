@@ -1,6 +1,17 @@
 SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
  ID "532EF6B341FA8C1B"
  components {
+  OVT_BarracksComponent "{6B1C3D0000000070}" {
+  }
+  OVT_MapMarkerComponent "{6A2C942A97C641C2}" {
+   m_eCategory POI
+   m_UiInfo SCR_UIInfo "{6A2C942A9403F140}" {
+    Name "#OVT-Barracks"
+    Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+    IconSetName "barracks"
+   }
+   m_bMustOwnBase 1
+  }
   OVT_SpawnPointComponent "{6B1C3D0000006300}" {
    m_aPoints {
     PointInfo "{6B1C3D0000006301}" {
@@ -21,8 +32,6 @@ SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Buil
      Offset 14 0 14
     }
    }
-  }
-  OVT_BarracksComponent "{6B1C3D0000000070}" {
   }
  }
 }

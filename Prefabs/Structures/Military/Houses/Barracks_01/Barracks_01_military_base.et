@@ -3,6 +3,15 @@ SCR_DestructibleBuildingEntity : "{80D7D3EAABADBD44}Prefabs/Structures/Military/
  components {
   OVT_BarracksComponent "{6B1C3D0000000050}" {
   }
+  OVT_MapMarkerComponent "{6A2C942AB5499A1A}" {
+   m_eCategory POI
+   m_UiInfo SCR_UIInfo "{6A2C942AB137ACC2}" {
+    Name "#OVT-Barracks"
+    Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+    IconSetName "barracks"
+   }
+   m_bMustOwnBase 1
+  }
   OVT_SpawnPointComponent "{6B1C3D0000006100}" {
    m_aPoints {
     PointInfo "{6B1C3D0000006101}" {

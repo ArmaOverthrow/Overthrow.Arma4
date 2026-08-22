@@ -261,11 +261,12 @@ FrameWidgetClass {
                        ImageWidgetClass "{6A8E2C100000101E}" {
                         Name "DetailsImage"
                         Slot OverlayWidgetSlot "{5D48CA00AF2180C8}" {
-                         HorizontalAlign 3
-                         VerticalAlign 3
+                         HorizontalAlign 1
+                         VerticalAlign 1
                         }
                         "Is Visible" 0
                         Image ""
+                        Size 250 250
                        }
                       }
                      }

@@ -11,7 +11,7 @@ SCR_DestructibleBuildingEntity : "{80D7D3EAABADBD44}Prefabs/Structures/Military/
    m_UiInfo SCR_UIInfo "{6A2C114657E6E055}" {
     Name "#OVT-Barracks"
     Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
-    IconSetName "house"
+    IconSetName "barracks"
    }
    m_bMustOwnBase 1
   }

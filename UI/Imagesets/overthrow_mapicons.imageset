@@ -1,9 +1,9 @@
 ImageSetClass {
- RefSize 784 522
+ RefSize 784 652
  Textures {
   ImageSetTextureClass "{6A12E8AE457B3F72}" {
    screenSize FHD
-   size 1 1
+   size 784 522
    path "{B2EDB8AD2EA10AD3}UI/Textures/Map/overthrow_mapicons_atlas.edds"
   }
  }
@@ -125,6 +125,16 @@ ImageSetClass {
   }
   ImageSetDefClass crate {
    Pos 652 392
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass barracks {
+   Pos 2 522
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass timber {
+   Pos 132 522
    Size 128 128
    Flags 0 0
   }

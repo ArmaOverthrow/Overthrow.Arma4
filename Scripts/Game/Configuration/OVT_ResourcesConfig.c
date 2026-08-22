@@ -47,4 +47,7 @@ class OVT_Resource
 
 	[Attribute(defvalue: "0", desc: "1 = needs the illegal-imports gate")]
 	int m_iIllegal;
+
+	[Attribute("", desc: "Map icon quad name in overthrow_mapicons.imageset. Empty falls back to the shipped crate quad")]
+	string m_sMapIconName;
 }
