@@ -1873,7 +1873,19 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 				continue;
 			}
 
-			if (!inventory.TrySpawnPrefabToStorage(res, null, -1, EStoragePurpose.PURPOSE_ANY, null, 1))
+			bool holderHasOwnStorage;
+			BaseInventoryStorageComponent target = ResolveHolderStorage(inventory, null, res, holderHasOwnStorage);
+
+			// A holder with its own storage but no room in it is FULL. Falling back to a null storage
+			// here would let the engine nest the withdrawal inside a bag that was itself just taken out.
+			if (holderHasOwnStorage && !target)
+			{
+				job.m_iShortfall += wanted;
+				job.DropFrontLine();
+				continue;
+			}
+
+			if (!inventory.TrySpawnPrefabToStorage(res, target, -1, EStoragePurpose.PURPOSE_ANY, null, 1))
 			{
 				job.m_iShortfall += wanted;
 				job.DropFrontLine();
@@ -1967,9 +1979,14 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			return CONVERT_SKIPPED;
 
 		// A part-used magazine stays in the vanilla inventory: a ledger line is a COUNT and has
-		// nowhere to record "27 of 30". The officer clear action is how they are discarded.
+		// nowhere to record "27 of 30". The officer clear action is how they are discarded. It is
+		// ejected from any container it sits in first, or ItemStillHoldsSomething strands the whole
+		// container over one half-magazine.
 		if (!MagazineConverts(item))
+		{
+			EjectToHolderStorage(inventory, item);
 			return CONVERT_SKIPPED;
+		}
 
 		// TryDeleteItem cascades into a container's contents (proven at runtime during BUG-083). The
 		// contents were queued AHEAD of the container, so this only fires when one of them failed -
@@ -2580,6 +2597,107 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		return OVT_StorageRules.MagazineIsFull(magazine.GetAmmoCount(), magazine.GetMaxAmmoCount());
 	}
 
+
+	//------------------------------------------------------------------------------------------------
+	//! A storage the HOLDER itself owns - never one that is an item stored inside it.
+	//!
+	//! TrySpawnPrefabToStorage with a null storage picks any storage in the hierarchy, so a bag
+	//! withdrawn a moment ago swallows everything withdrawn after it. Withdrawals land in the holder's
+	//! own storage or they do not land.
+	//! \param[in] inventory The holder's manager.
+	//! \param[in] item The entity about to be moved, or null when a prefab is about to be spawned.
+	//! \param[in] prefab The prefab about to be spawned; ignored when item is set.
+	//! \param[out] holderHasOwnStorage False when the holder owns no un-nested storage at all, which is
+	//!             the only case a caller may fall back to letting the engine choose.
+	//! \return The storage to use, or null when none of the holder's own will take it.
+	protected BaseInventoryStorageComponent ResolveHolderStorage(InventoryStorageManagerComponent inventory, IEntity item, ResourceName prefab, out bool holderHasOwnStorage)
+	{
+		holderHasOwnStorage = false;
+
+		if (!inventory)
+			return null;
+
+		array<BaseInventoryStorageComponent> storages = new array<BaseInventoryStorageComponent>();
+		inventory.GetStorages(storages, EStoragePurpose.PURPOSE_ANY);
+
+		foreach (BaseInventoryStorageComponent storage : storages)
+		{
+			if (!storage || StorageIsNested(storage))
+				continue;
+
+			holderHasOwnStorage = true;
+
+			if (item)
+			{
+				if (inventory.CanInsertItemInStorage(item, storage))
+					return storage;
+
+				continue;
+			}
+
+			if (inventory.CanInsertResourceInStorage(prefab, storage))
+				return storage;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a storage is itself an item inside another storage - a bag in the bed, a pouch in a bag.
+	//!
+	//! A vehicle's cargo storage sits on a structural child entity, which is in no inventory slot, so
+	//! it answers false; a stored container answers true through whichever of the two item components
+	//! carries its slot.
+	//! \param[in] storage The storage to classify.
+	//! \return True when it lives inside another storage.
+	protected bool StorageIsNested(BaseInventoryStorageComponent storage)
+	{
+		if (storage.GetParentSlot())
+			return true;
+
+		IEntity owner = storage.GetOwner();
+		if (!owner)
+			return false;
+
+		InventoryItemComponent item = InventoryItemComponent.Cast(owner.FindComponent(InventoryItemComponent));
+		if (!item)
+			return false;
+
+		return item.GetParentSlot() != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Moves an item that cannot become a ledger line out of the container holding it.
+	//!
+	//! The sweep queues contents AHEAD of their container, so by the time the container is examined
+	//! this has already run for everything in it. A no-op when the item is already loose in the holder
+	//! or when nothing of the holder's own will take it - the container is then skipped as before.
+	//! \param[in] inventory The holder's manager.
+	//! \param[in] item The item to eject.
+	protected void EjectToHolderStorage(InventoryStorageManagerComponent inventory, IEntity item)
+	{
+		if (!inventory || !item)
+			return;
+
+		InventoryItemComponent itemComp = InventoryItemComponent.Cast(item.FindComponent(InventoryItemComponent));
+		if (!itemComp)
+			return;
+
+		InventoryStorageSlot slot = itemComp.GetParentSlot();
+		if (!slot)
+			return;
+
+		BaseInventoryStorageComponent current = slot.GetStorage();
+		if (!current || !StorageIsNested(current))
+			return;
+
+		bool holderHasOwnStorage;
+		BaseInventoryStorageComponent target = ResolveHolderStorage(inventory, item, "", holderHasOwnStorage);
+		if (!target)
+			return;
+
+		inventory.TryMoveItemToStorage(item, target);
+	}
 
 	//-----------------------------------------------------------------------------------------------
 	// ENGINE HELPERS

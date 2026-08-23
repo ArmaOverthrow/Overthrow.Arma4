@@ -1,7 +1,7 @@
 # Storage (logistics/storage) — Context & Decisions
 
 **Last Updated:** 2026-08-23
-**Current Phase:** ✅ **CLOSED 2026-08-21** — two post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger, §§ below)
+**Current Phase:** ✅ **CLOSED 2026-08-21** — three post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger; two container defects, §§ below)
 **Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
 
@@ -182,6 +182,44 @@ action label, the shop's restocked stock and the town's absorption cap over a bu
 **Now dead:** `OVT_SellableItemScanner.CollectCargoItems` and `GetVehicleCargoStorage` have zero
 callers (verified by grep). Left in place — the scanner is still live for the character path — but
 they join PC9's deletion question.
+
+---
+
+## Post-close change 2026-08-23 (c) — two container defects in the sweep and the take
+
+User report: *"when doing 'move all items to storage' if there are half clips in a container such as
+a bag etc the whole container gets left, not just the clips"* and *"when taking stuff out of storage
+into an inventory if im taking a container such as a bag, it will put the other items into that
+container"*. Both are in `OVT_StorageRequestComponent.c`; neither touches the ledger or the wire.
+
+**1. One half-magazine stranded its whole container.** `ConvertItemToLedger` skips a part-used
+magazine (a ledger line is a count, so "27 of 30" has nowhere to go), and `ItemStillHoldsSomething`
+then skips the bag *because the skipped magazine is still in it* — the guard that stops a delete
+cascading over uncredited contents cannot tell "failed" from "deliberately left". Fixed by
+**ejecting** the magazine first: `EjectToHolderStorage` moves it out of the container and into one of
+the holder's own storages, so the container converts and only the clips are left loose. The sweep
+queues contents ahead of their container, so by the time the container is examined every eject has
+already run. A failed eject leaves the old behaviour exactly as it was — the container is skipped.
+
+**2. A withdrawn bag swallowed everything withdrawn after it.** `StepToInventory` called
+`TrySpawnPrefabToStorage(res, null, …)`, and the engine's own words for a null storage are *"most
+suitable storage would be chosen from owned storages"* — which includes the storage inside a bag that
+landed in the bed one item earlier. Fixed with `ResolveHolderStorage`: the first of the holder's
+**un-nested** storages that will take the item, and **no null fallback** when the holder has one —
+a full bed is FULL, not an invitation to nest. Verified against the vanilla layout: the truck's
+`SCR_UniversalInventoryStorageComponent` sits on the vehicle's own root entity
+(`Ural4320.et:594`), so it is never classified as nested.
+
+**`StorageIsNested`** is the shared predicate: a storage is nested when it, or its owner entity's
+`InventoryItemComponent`, has a parent slot. Both are checked because a container item's item
+component and its storage component may or may not be the same object.
+
+**Gate:** `compile-check.sh` exit 0 (6341 files). No suite run — see PE3.
+
+**Owed:** a play-test. Two things can only be judged in front of a real truck: whether the eject
+target the engine picks is somewhere sensible (it is "first storage that will take it", not "nearest
+the bag"), and whether the removed null fallback ever refuses a withdrawal that used to succeed on a
+holder whose only storage this predicate classifies as nested.
 
 ---
 

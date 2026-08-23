@@ -3,7 +3,7 @@
 **Feature:** gm/waypoint-viz (epic `gm`, feature 4 of 5)
 **Last Updated:** 2026-08-15 (Phase 5 complete — docs finalized)
 **Current Phase:** Complete
-**Status:** ✅ Built + user-verified 2026-08-16 (Workbench render rounds; dedicated-server GM client + non-admin negative path green)
+**Status:** 🔴 Built + Workbench-verified; **BROKEN ON DEDICATED SERVER** — reopened 2026-08-23. The 2026-08-16 "dedicated-server GM client green" claim was RETRACTED by the user on 2026-08-23: dedi testing had not actually started yet. Routes draw in single-player/Workbench and draw NOTHING on a dedicated server — i.e. **D4's wire has never been observed working**, which is the entire reason it exists.
 
 ---
 
@@ -327,6 +327,32 @@ altitude, and coexistence look-and-feel with hud-icons.
 
 ## Session Notes
 
+### 2026-08-23 - REOPENED: no routes on a dedicated server; temporary trace added
+- **The 2026-08-16 "dedicated-server GM client green" record was RETRACTED by the user** - dedi testing had
+  not begun. D4's wire has therefore never been observed working; the earlier MP row was recorded in error.
+- **Symptom:** GM on a dedicated server sees no waypoint lines at all. Single-player/Workbench is fine.
+- **Halved by one observation (user, 2026-08-23): the Overthrow panel and the hud-icons tooltips DO show
+  live data on the same dedicated server, authorized by admin login.** That proves, on the real server:
+  `IsAuthorizedGM`, `ResolveOwningPlayerId`, `IsLocalControllerOwner`/`OVT_Global.GetController()`, the
+  client->server ask direction, the server->owner fan direction and `WIRE_VERSION` are all GOOD. The fault
+  is isolated to the waypoint fan.
+- **Static analysis found no defect.** Every element of the waypoint path has a proven-working twin in the
+  same component: 6-arg arity (`RpcDo_Deployment`), `RplId` as a payload (`RpcDo_Deployment`/`RpcDo_Group`),
+  `vector` as a payload (proven across ~20 Overthrow RPCs and vanilla). Editable entities are engine-checked
+  to carry an `RplComponent` (`SCR_EditableEntityComponent.c:2237-2253`), so the client CAN name the group.
+- **Prime remaining suspect:** `RpcAsk_GroupWaypoints` performs the **only client->server `RplId`
+  resolution in the entire seam** - the snapshot only ever sends RplIds server->client. If
+  `ResolveEntity(groupRplId)` answers null on the server, the group casts null, the walk collects 0, and the
+  honest empty answer (`Begin(0,-1)` + `End(0)`) renders as **exactly nothing** - indistinguishable from the
+  designed "group has no waypoints" appearance. That is the shape of this bug.
+- **Temporary `[OVT-WPVIZ]` trace added** (compile-check OK, 6341 files) on both sides:
+  `OVT_GMWaypointRenderer.OnSelectionChanged`/`OnRouteUpdated`, and in `OVT_GMRequestComponent`
+  `RequestGroupWaypoints`, `RpcAsk_GroupWaypoints` (arrival / player / auth / **RplId resolution**),
+  `SendGroupWaypoints` (walk result) and the three client `RpcDo_Waypoint*` handlers.
+  **These MUST be stripped before this feature closes again** - `grep -rn "OVT-WPVIZ" Scripts/` must be 0.
+- Not yet done: run it on the dedi server and read both logs.
+
+
 ### 2026-08-15 — Phase 3 built (renderer + selection hookup)
 - `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c` (new, plain `Managed`, no widget/prefab/layout/GUID):
   `Attach(MenuRootBase)` / `Detach()` / `SubscribeFilter()` + `RetrySubscribeFilter()` / `OnSelectionChanged()` /
@@ -378,7 +404,8 @@ altitude, and coexistence look-and-feel with hud-icons.
 - **Not observed yet:** the real `GetWaypoints()` shape on a live cycled group — see "Observed cycle semantics".
 
 ### 2026-08-16 — Phase 4 closed: MP verification green — feature COMPLETE (29/29)
-- **User confirmed: dedicated-server GM client works and the non-admin negative path is green** — the two
+- ⚠ **RETRACTED 2026-08-23 — THIS ENTRY WAS WRONG.** The user reports dedi testing had not begun on 2026-08-16, so nothing below about the dedicated server was actually observed. Treat the whole MP row as UNVERIFIED. Original (false) text follows:
+- ~~**User confirmed: dedicated-server GM client works and the non-admin negative path is green**~~ — the two
   checks the wire extension exists for (D4/F-7). Combined with the earlier Workbench rounds, Phase 4 Steps
   1–2 are discharged and the feature is 29/29.
 - Not individually attested (minor, recorded for honesty, no action planned): listen-host Q-2 (the

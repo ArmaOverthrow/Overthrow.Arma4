@@ -236,6 +236,7 @@ class OVT_GMWaypointRenderer : Managed
 
 		if (!editable || editable.GetEntityType() != EEditableEntityType.GROUP)
 		{
+			Print("[OVT-WPVIZ] client: selection is not a GROUP - nothing to draw", LogLevel.NORMAL); // TEMP TRACE
 			ClearRoute();
 			return;
 		}
@@ -243,6 +244,7 @@ class OVT_GMWaypointRenderer : Managed
 		RplId groupRplId = GetEntityRplId(editable.GetOwner());
 		if (groupRplId == RplId.Invalid())
 		{
+			Print("[OVT-WPVIZ] client: GROUP has NO valid RplId - cannot ask", LogLevel.WARNING); // TEMP TRACE
 			ClearRoute();
 			return;
 		}
@@ -255,6 +257,8 @@ class OVT_GMWaypointRenderer : Managed
 		OVT_GMRequestComponent gm = OVT_ControllerComponent<OVT_GMRequestComponent>.Get();
 		if (!gm)
 			return;
+
+		Print(string.Format("[OVT-WPVIZ] client: asking for group RplId %1", groupRplId), LogLevel.NORMAL); // TEMP TRACE
 
 		m_RequestedGroupRplId = groupRplId;
 		gm.RequestGroupWaypoints(groupRplId);
@@ -275,6 +279,9 @@ class OVT_GMWaypointRenderer : Managed
 		OVT_GMWaypointRoute route = gm.GetRoute();
 		if (!route)
 			return;
+
+		Print(string.Format("[OVT-WPVIZ] client: route committed - group %1, waypoints %2, currentIndex %3, complete %4",
+			route.m_GroupRplId, route.m_aWaypoints.Count(), route.m_iCurrentIndex, route.m_bComplete), LogLevel.NORMAL); // TEMP TRACE
 
 		m_RequestedGroupRplId = route.m_GroupRplId;
 	}

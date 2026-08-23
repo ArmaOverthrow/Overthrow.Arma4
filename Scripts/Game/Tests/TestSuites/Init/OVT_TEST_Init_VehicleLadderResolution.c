@@ -53,23 +53,23 @@ class OVT_TEST_Init_VehicleLadderResolution : SCR_AutotestCaseBase
 		}
 
 		OVT_FactionVehicleEntry low;
-		if (!faction.ResolveVehicleForRole("armed", 0, 1, -1, low))
+		if (!faction.ResolveVehicleForRole("armed", 400, 1, -1, low))
 		{
-			SetFailure(string.Format("%1 role 'armed' at threat 0 must resolve to its bottom rung", key));
+			SetFailure(string.Format("%1 role 'armed' at threat 400 must resolve to its bottom rung", key));
 			return false;
 		}
 
 		OVT_FactionVehicleEntry mid;
-		if (!faction.ResolveVehicleForRole("armed", 400, 1, -1, mid))
+		if (!faction.ResolveVehicleForRole("armed", 900, 1, -1, mid))
 		{
-			SetFailure(string.Format("%1 role 'armed' at threat 400 must resolve to its middle rung", key));
+			SetFailure(string.Format("%1 role 'armed' at threat 900 must resolve to its middle rung", key));
 			return false;
 		}
 
 		OVT_FactionVehicleEntry high;
-		if (!faction.ResolveVehicleForRole("armed", 900, 1, -1, high))
+		if (!faction.ResolveVehicleForRole("armed", 1500, 1, -1, high))
 		{
-			SetFailure(string.Format("%1 role 'armed' at threat 900 must resolve to its top rung", key));
+			SetFailure(string.Format("%1 role 'armed' at threat 1500 must resolve to its top rung", key));
 			return false;
 		}
 

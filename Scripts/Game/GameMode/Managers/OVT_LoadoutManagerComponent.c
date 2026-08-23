@@ -1178,9 +1178,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			ExtractWeaponAttachments(weaponEntity, weaponItem);
 
 			loadout.AddItem(weaponItem);
-			equippedItems.Insert(weaponEntity);
-
-			Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
+			equippedItems.Insert(weaponEntity);			
 		}
 
 		// Note: For worn clothing items (uniform, vest, helmet), they appear in regular storage slots

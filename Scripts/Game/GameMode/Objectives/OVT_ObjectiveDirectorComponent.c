@@ -235,6 +235,13 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! There is no base to run a supply line from, so there is nowhere to site a forward base between.
 	static const string REFUSAL_NO_SOURCE_BASE = "the occupying faction holds no base to supply it from";
 
+	//! Refusal reason: a mounted rung was asked for below the vehicle ladder's bottom threshold.
+	static const string REFUSAL_LADDER_LOCKED = "the faction's threat has not unlocked any rung of the vehicle ladder";
+
+	//! The one harassment rung that IS its vehicle. It carries no infantry, so sending it without a
+	//! vehicle marches a crew across the map on foot.
+	static const string MOUNTED_HARASSMENT_CONFIG = "Objective Harassment (Mounted)";
+
 	//! In-game minutes between repeats of the "still cannot afford it" line while the idle clock is held.
 	//!
 	//! ⚠ A heartbeat, not a one-shot, and not per tick either. The affordability hold is DESIGNED to
@@ -1335,6 +1342,20 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			// not in HARASSMENT_LADDER lands here every in-game minute for the rest of the campaign.
 			LogOperationRefusal(configName, REFUSAL_UNREGISTERED, "check overthrowDeployments.conf against the director's config-name constants", LogLevel.ERROR);
 			return null;
+		}
+
+		// ⚠ BEFORE THE POOL QUESTION, because being unable to field the thing at all is a cheaper and
+		// more fundamental refusal than being unable to pay for it.
+		if (configName == MOUNTED_HARASSMENT_CONFIG)
+		{
+			OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+			if (occupying && !occupying.CanFieldLadderVehicle())
+			{
+				LogOperationRefusal(configName, REFUSAL_LADDER_LOCKED,
+					"threat is " + Math.Round(occupying.GetThreatFloat()).ToString(), LogLevel.NORMAL);
+				cost = 0;
+				return null;
+			}
 		}
 
 		cost = config.GetTotalResourceCost();

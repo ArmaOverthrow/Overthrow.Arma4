@@ -879,9 +879,7 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 			if (entry.m_iAttempts >= TRANSIENT_UNTRACK_MAX_ATTEMPTS)
 			{
 				// Never registered inside the window. Either it matches no rule (harmless) or the
-				// lazy registration is still pending and will produce a record the next save - the
-				// class name is the lead for the latter (BUG-118).
-				Print("[Overthrow] Transient entity never registered within the untrack window: " + entity.ClassName(), LogLevel.WARNING);
+				// lazy registration is still pending and will produce a record the next save
 				m_aTransientUntrack.Remove(i);
 			}
 		}

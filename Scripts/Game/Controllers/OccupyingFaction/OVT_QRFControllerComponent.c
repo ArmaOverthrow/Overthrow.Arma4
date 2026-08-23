@@ -1043,6 +1043,15 @@ class OVT_QRFControllerComponent: OVT_Component
 		if(!IsEchelonSourceReachable(source))
 			return 0;
 
+		// An echelon carries its crew and nothing else, so below the ladder's bottom rung there is no
+		// smaller echelon to send - only three crewmen walking into a battle. Refuse instead.
+		OVT_OccupyingFactionManager occupyingLadder = OVT_Global.GetOccupyingFaction();
+		if(occupyingLadder && !occupyingLadder.CanFieldLadderVehicle())
+		{
+			RefuseEchelon("the faction's threat has not unlocked any rung of the vehicle ladder yet");
+			return 0;
+		}
+
 		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
 		if(!deployments)
 		{

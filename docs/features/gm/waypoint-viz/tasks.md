@@ -2,7 +2,7 @@
 
 **Feature:** gm/waypoint-viz (epic `gm`, feature 4 of 5)
 **Last Updated:** 2026-08-15 (Phase 5 complete)
-**Progress:** 29/29 tasks complete (100%) — ✅ user-verified 2026-08-16 (Workbench render rounds + dedicated-server GM client + non-admin negative path green)
+**Progress:** 28/29 (Phase 4 Step 2 REOPENED 2026-08-23) — Workbench render rounds green; the **dedicated-server pass never happened** (user retracted the 2026-08-16 claim on 2026-08-23) and routes **do not draw on a dedicated server**
 
 > The remaining **2** are the deferred user-driven **Phase 4 Steps 1–2** (Workbench host pass and the
 > multiplayer/dedicated + negative-auth pass) — deferred by the user 2026-08-15 to a later session. All
@@ -154,7 +154,7 @@
   - File(s): n/a (manual)
   - Estimate: 🟡
 
-- [x] ✅ **Step 2 — Multiplayer** — Completed 2026-08-16: dedicated-server GM client + non-admin negative path green (user-confirmed); listen-host & dormant-group observations not individually attested
+- [ ] 🔴 **Step 2 — Multiplayer** — REOPENED 2026-08-23. The 2026-08-16 completion was recorded in error (dedi testing had not started). **Observed defect: a GM on a dedicated server sees no waypoint lines at all; single-player is fine.**
   - Description: GM client on dedicated server (the check the wire exists for); record auth path used (discharges gm-state Phase 5 debt); negative path without `-ovtGmDev` → zero `RpcDo_Waypoint*` for non-admin (F-7) + one throttled WARNING on coerced request; listen-server host (Q-2); dormant-group observation (D12); no log spam over 20 rapid selections
   - File(s): n/a (manual)
   - Estimate: 🟡

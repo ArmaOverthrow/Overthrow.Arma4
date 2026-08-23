@@ -399,3 +399,14 @@ User call after close. See `context.md` "Post-close change 2026-08-23 (b)" for t
 - [ ] PD9 🔴 Suite sweep — **never ran**, the harness refused `tools/run-tests.sh`
 - [ ] PD10 Play-test: park a stocked truck at a general shop, sell, check money, the action label, the shop restock and the town cap over a bulk dump
 - [ ] PD11 `OVT_SellableItemScanner.CollectCargoItems` / `GetVehicleCargoStorage` now have zero callers — folds into PC9's deletion question
+
+---
+
+## Post-close change 2026-08-23 (c) — container defects in the sweep and the take
+
+User report after close. See `context.md` "Post-close change 2026-08-23 (c)" for the full record.
+
+- [x] PE1 `EjectToHolderStorage` — a part-used magazine is moved out of its container before it is skipped, so the container is no longer stranded by `ItemStillHoldsSomething`
+- [x] PE2 `ResolveHolderStorage` + `StorageIsNested` — `StepToInventory` spawns into the holder's own un-nested storage, never into a container stored inside it; no null fallback when the holder owns a storage (a full holder shortfalls instead)
+- [x] PE3 Gate: `compile-check.sh` exit 0 (6341 files). 🔴 No suite ran — the harness still refuses `tools/run-tests.sh`; folds into PD9
+- [ ] PE4 Play-test: bag holding a half magazine on a truck → Transfer all to storage leaves only the clip; take a bag plus other items out of storage → nothing nests inside the bag

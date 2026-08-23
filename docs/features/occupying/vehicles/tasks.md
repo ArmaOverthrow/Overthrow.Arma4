@@ -392,6 +392,32 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
 
 ---
 
+## Play-test round 1 fixes (2026-08-23, after the feature closed its phases)
+
+- [x] **P1.1 Ladder thresholds raised** — `m_iMinThreat` 0/400/900 → **400/900/1500** in both faction
+  registries. `baseThreat` is 100 on Normal, so the bottom rung at 0 meant armed vehicles from minute one
+  (log: *"role 'armed' at threat 152 resolved to 'light_armed'"*).
+- [x] **P1.2 `m_bWalkWhenNoLadderRung`** (new attribute, defvalue 1) — a ladder miss returns an empty
+  `ResourceName` instead of substituting `m_sTruckVehicleType`. Authored 1 on harassment / echelon /
+  hunter-killer, 0 on the base armour sortie. Without it, "no vehicles below 400" would have shipped an
+  unarmed Ural parked as a mobile checkpoint instead.
+- [x] **P1.3 Radio towers are no longer hunter-killer targets** — `PickHunterKillerTarget()` skips
+  `BROADCAST_TOWER`. The director's specops tower recapture is untouched.
+- [x] **P1.4 Mounted forces carry crew only** — all four mounted configs to `m_sGroupType ""` / 0 / 0 /
+  cost 0; the two vehicle patrols re-crewed from `light_fireteam` / `light_patrol` to `vehicle_crew`.
+  Truck and insertion configs (`truck_crew`) deliberately untouched.
+- [x] **P1.5 A crew-only force marks itself eliminated when its crew dies** — override of
+  `DismountAndWalk()`; the crew-lost test is taken before `super` (see context.md).
+- [x] **P1.6 `CanFieldLadderVehicle()` gates all three dispatchers** — hunter-killer, QRF echelon, and the
+  director's mounted harassment rung, so nothing marches a crew on foot below the bottom rung.
+- [x] **P1.7 Init cases retuned** to the new thresholds (`OVT_TEST_Init_VehicleLadderResolution` now asks
+  400/900/1500; the `CrewUpOnAlarm` and `QRFMountedEchelon` fixtures ask at 100000 so they are
+  threshold-independent). `compile-check.sh` exit 0, 6341 files.
+- [ ] 🔴 **P1.8 No suite run and no play-test on any of the above.** Same deferral as the rest of the
+  feature — and the four config changes in P1.4 are the largest behavioural change in the list.
+
+---
+
 ## Needs Human Verification
 
 *(populated as phases close)*

@@ -343,7 +343,7 @@ class OVT_TEST_CrewUpFixture
 			faction.InitializeVehicleRegistry();
 
 			OVT_FactionVehicleEntry entry;
-			if (faction.ResolveVehicleForRole("armed", 0, 1, -1, entry) && !entry.m_sVehiclePrefab.IsEmpty())
+			if (faction.ResolveVehicleForRole("armed", 100000, 1, -1, entry) && !entry.m_sVehiclePrefab.IsEmpty())
 				return entry.m_sVehiclePrefab;
 
 			ResourceName named = faction.GetVehiclePrefabByName("truck");

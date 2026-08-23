@@ -28,6 +28,92 @@
 
 ---
 
+## Play-test round 1 (user, 2026-08-23) — three reports, two fixed, one confirmed against the log
+
+Server log: `console (2).log`. Only **one** mounted deployment ever ran in it — the hunter-killer sweep —
+which makes every line below attributable.
+
+**1. Too many vehicles, too early — FIXED (tuning).** The ladder shipped with its bottom rung at threat
+**0** and `baseThreat` on Normal is **100**, so armed vehicles were available from minute one. The log
+proves it: *"role 'armed' at threat 152 resolved to 'light_armed'"*. Every `m_iMinThreat` moved up a step
+in both faction registries — bottom 0 → **400**, middle 400 → **900**, top 900 → **1500**.
+
+⚠ **The threshold alone was not enough.** `GetVehiclePrefabFromFaction()` fell back to the authored
+`m_sTruckVehicleType` on a ladder miss, so below 400 the three ladder doctrines would have driven an
+**unarmed Ural** out and parked it as a mobile checkpoint — the same traffic, minus the gun. New attribute
+`m_bWalkWhenNoLadderRung` (defvalue 1) returns an empty `ResourceName` instead, which is one of the
+documented roads to walking. Authored **1** on harassment / echelon / hunter-killer, **0** on the base
+armour sortie (that one adopts a hull already parked; the ladder never decides whether it drives).
+
+⚠ **A second, pre-existing source of vehicle traffic is visible in the same log and was NOT touched:**
+`Light Vehicle Patrol` (`Deployment_VehiclePatrol_Light.conf`, `m_fChance 2`, no threat floor) respawned a
+`light_armed` at Chotain twice in 20 minutes. It belongs to `deployments`, not to this feature.
+
+**2. A hunter-killer sweep was sent at a radio tower the player owns — FIXED.** Log: *"Hunter-killer sweep
+sent to <6156, 5252> (score 44)"*. `UpdateKnownTargets()` inserts a `BROADCAST_TOWER` target for every
+tower the occupying faction does not hold, and `PickHunterKillerTarget()` scored it like any other, so an
+undefended tower could out-score everything else and buy a fighting vehicle. Towers are now skipped in the
+picker. The objective director's own tower recapture is untouched — that is a specops job and stays one.
+
+**3. 🔴 CONFIRMED, NOT YET FIXED — the mounted force is far bigger than the vehicle carrying it.**
+User: *"when I neutralized all of the guys in them a short time later 2 'crewmen' teleported to it and got
+into it ... I've also seen some crewmen walking the streets without a vehicle"*.
+
+The arithmetic, all authored:
+
+| | men | source |
+|---|---|---|
+| `vehicle_crew` | **3** | `OVT_Group_USSR_VehicleCrew.et` — three `Character_*_Crew`, so any of them reads as a "crewman" on sight |
+| `light_fireteam` | **4** | `Group_USSR_LightFireTeam.et` (`m_iMinGroupCount/m_iMaxGroupCount 1` on the sweep) |
+| `light_armed` UAZ-PKM | **3 seats** | `m_iMaxCapacity 3` in the faction registry |
+
+**Seven men are loaded into a three-seat car.** `SeatRider` cascades PILOT → TURRET → cab → cargo and then
+simply returns false; the four it cannot seat stay on their feet. Every one of them is registered at
+`RIDING_SPAWN_DISTANCE` (100 km) — *always materialised* — and `TickHold` calls
+`NudgeCrewMaterialisation()` → `ForceSpawn(m_iCrewHandle)` **every tick**, so a crew slot the survivor mask
+still counts alive but that has not materialised pops into the world beside the parked vehicle and boards
+it as a seat frees up. That is the observed teleport, and the log's timeline matches: the sweep arrived
+04:54:52, and the crew was not reported wiped until **05:10:00** — fifteen minutes and (by the user's
+account) two separate engagements later.
+
+The men on foot are the same arithmetic seen from outside: unseated riders of a `vehicle_crew` group,
+carrying the crew group's own MOVE waypoint.
+
+**FIXED — user's call, 2026-08-23: _"it should only be the crewmen, a driver and a gunner ... whatever the
+default crew of the vehicle is, and that's across all of the vehicle deployments including QRF unless it's a
+truck/insertion."_** A mounted force is now **its crew and nothing else**:
+
+- All four mounted configs carry `m_sGroupType ""`, `m_iMinGroupCount 0`, `m_iMaxGroupCount 0`,
+  `m_iCostPerGroup 0`. Nobody can be left unseated because nobody is loaded who does not have a seat.
+- The crew stays the authored **3**-man `vehicle_crew` (driver, gunner, commander) — the vehicle's default
+  crew, not a cut-down pair.
+- The rule extended past this feature, per the same instruction: `Deployment_VehiclePatrol_Light.conf` and
+  `Deployment_VehiclePatrol_Heavy.conf` were crewed by a 4-man `light_fireteam` / a `light_patrol` and now
+  use `vehicle_crew` too. **Truck and insertion configs are the stated exception and were not touched** —
+  the ten configs authoring the 2-man `truck_crew` are unchanged.
+- Costs drop with the groups: the hunter-killer sweep is now 150 rather than the 190 the log shows.
+
+⚠ **Two consequences that needed code, not config:**
+
+1. **A crew-only force has nobody left when its crew dies.** The crew is registered under its own owner key
+   and no wipe is ever attributed to the module, so without the passengers the deployment would sit in
+   `WALKING` with zero men and be **refunded as if intact**. `OVT_MountedForceSpawningDeploymentModule`
+   now overrides `DismountAndWalk()` and marks itself eliminated when the crew was the whole force. The
+   crew-lost test is taken **before** `super`, because `ReleaseConvoy()` hands the registration back and
+   `IsCrewAlive()` answers false for everything afterwards — a force that lost only its *vehicle* still has
+   men and must keep its deployment.
+2. **The walk fallback became nonsense for these configs.** With no passengers, a ladder miss under
+   `m_bWalkWhenNoLadderRung` marches three crewmen to the objective on foot. New
+   `OVT_OccupyingFactionManager.CanFieldLadderVehicle(role = "armed")` answers "has the campaign escalated
+   far enough for the ladder to answer anything" (unbounded budget — each module still checks its own
+   ceiling), and gates all three runtime dispatchers: `TickHunterKiller()` (gate 2b),
+   `OVT_QRFControllerComponent.SendMountedEchelon()` (a `RefuseEchelon`), and the director's
+   `CanSendObjectiveDeployment()` for `Objective Harassment (Mounted)` only, under a new
+   `REFUSAL_LADDER_LOCKED`, asked **before** the pool question. Below threat 400 the harassment ramp simply
+   tops out at rung 4, which is the pre-`vehicles` behaviour; rungs 1-4 are untouched, so no ramp stalls.
+
+---
+
 ## ⚠ Test suites are DEFERRED for this whole feature
 
 The user is running **Workbench / play-test sessions on `v1.5` for the duration of this build** (instruction, 2026-08-23). `tools/run-tests.sh` launches a real Reforger client that **steals desktop focus for ~15–20 s** and returns **INDETERMINATE (exit 2)** — not red, not green — when a Workbench session is concurrent.

@@ -1744,6 +1744,37 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! \return The threat value, unrounded.
 	float GetThreatFloat() {return m_iThreat;}
 
+	//------------------------------------------------------------------------------------------------
+	//! CAN THIS FACTION PUT A LADDER VEHICLE ON THE ROAD AT ALL, at the threat it has right now?
+	//!
+	//! Every mounted doctrine carries its crew and NOTHING ELSE, so a dispatch made below the bottom
+	//! rung does not degrade into a smaller convoy - it marches three crewmen across the map on foot.
+	//! Asked with an UNBOUNDED budget: this is "has the campaign escalated far enough for the ladder to
+	//! answer anything", not "can this config afford what it answered", which each module still asks
+	//! for itself against its own m_iTruckCostOverride.
+	//! \param[in] role The ladder role, as authored on the faction's vehicle registry.
+	//! \return True when at least one rung is unlocked.
+	bool CanFieldLadderVehicle(string role = "armed")
+	{
+		OVT_OverthrowConfigComponent gameConfig = OVT_Global.GetConfig();
+		if (!gameConfig)
+			return false;
+
+		OVT_Faction faction = gameConfig.GetOccupyingFaction();
+		if (!faction)
+			return false;
+
+		faction.InitializeVehicleRegistry();
+
+		float scale = 1;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (difficulty)
+			scale = difficulty.vehicleThresholdScale;
+
+		OVT_FactionVehicleEntry entry;
+		return faction.ResolveVehicleForRole(role, GetThreatFloat(), scale, -1, entry);
+	}
+
 	int GetBaseThreat(OVT_BaseData base)
 	{
 		return GetThreatByLocation(base.location);
@@ -2328,6 +2359,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (IsQRFEngaged())
 			return;
 
+		// GATE 2b: the sweep IS its vehicle. Below the bottom rung there is nothing to send.
+		if (!CanFieldLadderVehicle())
+			return;
+
 		OVT_TargetData best = PickHunterKillerTarget();
 		if (!best)
 			return;
@@ -2396,6 +2431,12 @@ class OVT_OccupyingFactionManager: OVT_Component
 		foreach (OVT_TargetData target : m_aKnownTargets)
 		{
 			if (!target)
+				continue;
+
+			// A radio tower is not worth armour. It is undefended by design, the faction already has a
+			// recapture path for it in the objective director, and sending a fighting vehicle at one
+			// reads as nonsense to the player who owns it.
+			if (target.type == OVT_TargetType.BROADCAST_TOWER)
 				continue;
 
 			int score = GetThreatByLocation(target.location);

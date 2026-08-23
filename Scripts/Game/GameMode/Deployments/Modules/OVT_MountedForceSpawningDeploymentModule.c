@@ -97,6 +97,9 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 	[Attribute(defvalue: "0", desc: "TRUE takes the vehicle handed in by AdoptVehicle() instead of spawning one. Used by the base armour sortie, which crews a hull the player could already see parked")]
 	bool m_bAdoptExistingVehicle;
 
+	[Attribute(defvalue: "1", desc: "TRUE puts the force on foot when the ladder answers no rung, instead of substituting the named transport type. A doctrine whose whole point is the fighting vehicle should not field an unarmed truck in its place")]
+	bool m_bWalkWhenNoLadderRung;
+
 	//------------------------------------------------------------------------------------------------
 	// RUNTIME STATE - none of it persisted, all of it re-derived. See the class header.
 	//------------------------------------------------------------------------------------------------
@@ -158,6 +161,13 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 		}
 
 		LogLadderMiss(threat);
+
+		// An empty name is one of the documented roads to walking (SpawnTruck refuses, and the parent
+		// falls back to the march) - which is the honest answer for a doctrine that exists to field a
+		// fighting vehicle: below the bottom rung the faction has nothing to send, so it sends nobody
+		// in a vehicle rather than substituting an unarmed truck.
+		if (m_bWalkWhenNoLadderRung)
+			return ResourceName.Empty;
 
 		return super.GetVehiclePrefabFromFaction(factionIndex);
 	}
@@ -373,6 +383,30 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 
 		Print(string.Format("[Overthrow] Mounted force '%1' has held its position for %2 update(s), which is what it was authored for",
 			DescribeSelf(), m_iHoldTicksElapsed.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE CREW IS THE FORCE on every shipped mounted config (they carry no passenger groups), and the
+	//! crew is registered under its OWN owner key - so no wipe is ever attributed to this module and
+	//! the deployment would otherwise linger with nobody in it and be refunded as if intact.
+	//!
+	//! ⚠ Measured BEFORE super, because ReleaseConvoy() hands the crew registration back and
+	//! IsCrewAlive() answers false for everything afterwards. A force that lost only its VEHICLE still
+	//! has men, and must keep its deployment.
+	//! \param[in] reason What ended the drive or the hold.
+	override protected void DismountAndWalk(string reason)
+	{
+		bool crewLost = !IsCrewAlive();
+
+		super.DismountAndWalk(reason);
+
+		if (!crewLost || !m_aHandles.IsEmpty())
+			return;
+
+		SetSpawnedUnitsEliminated(true);
+
+		if (m_ParentDeployment)
+			m_ParentDeployment.CheckAllSpawningModulesEliminated();
 	}
 
 	//------------------------------------------------------------------------------------------------
