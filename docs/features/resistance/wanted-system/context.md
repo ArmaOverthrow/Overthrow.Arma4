@@ -1,6 +1,6 @@
 # Wanted System - Context & Decisions
 
-**Last Updated:** 2026-08-03
+**Last Updated:** 2026-08-23
 **Current Phase:** Retrospective Documentation
 **Status:** ✅ Documented (Existing Feature)
 
@@ -58,3 +58,35 @@
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## Fix 2026-08-23 — mounted players were never "seen", so restricted areas did nothing in a vehicle
+
+User report: *"if im in a vehicle and in a restricted area it doesnt make me wanted"*. Two defects in
+`OVT_PlayerWantedComponent.c`, both of which made `m_bTempSeen` unreachable while mounted — and every
+restricted-area rule (base proximity, radio tower, the illegal-action window, the level-1 re-sighting
+escalation) is gated on it.
+
+1. **`CheckEntity` matched the perception target against the CHARACTER only.** Vanilla perception
+   deliberately looks past vehicle occupants — `SCR_AIGroupPerception` skips any target whose
+   `PerceivableComponent.IsInCompartment()` with the comment *"we don't care about vehicle
+   occupants"* — so what an AI actually holds as you drive past a base is the **vehicle**.
+   `realEnt == GetOwner()` therefore never matched, and the `inVehicle` branch already written inside
+   that block (the `TraceLOSVehicle` call, the armed-vehicle level 4, the Mobile FOB special case) was
+   only ever reachable when an AI happened to still be tracking the character itself. Now the target
+   is matched against the occupied vehicle as well.
+
+2. **Every distance was measured from the occupant's own origin.** A mounted character is parented to
+   the vehicle, and it is the vehicle the world sees and measures anyway. `GetDetectionOrigin()` is
+   now the single source for all of them — the AI sweep, the disguise close-range sweep, the base and
+   tower proximity checks and the tutorial's base-range edge — so the mounted and dismounted answers
+   cannot diverge.
+
+**Deliberately unchanged:** base proximity still requires being **seen**. Driving through an empty
+restricted area is still not a crime, exactly as on foot.
+
+**Gate:** `compile-check.sh` exit 0 (6341 files). No suite covers this path.
+
+**Owed:** a play-test — drive a civilian car into a base ring with AI present and confirm wanted 2
+("WantedBaseProximity"); confirm an unarmed car passing an AI on open ground still does **not**.

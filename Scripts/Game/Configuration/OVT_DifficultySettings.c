@@ -104,6 +104,9 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int objectiveStarvationMinutes;
 	[Attribute(defvalue: "1500", desc: "Reserve resources the occupying faction must hold before it will launch the counter-attack QRF", category: "Occupying Faction")]
 	int objectiveQRFResourceGate;
+
+	[Attribute(defvalue: "1", desc: "Scales how much reserve the occupying faction bothers to hold before it starts pushing ALL of its income into the deployment pool instead. The reserve it keeps is max(maxQRF, objectiveQRFResourceGate) times this, and everything above that is drained to the pool - so 2 makes it hoard for a second battle, and 0.5 makes it spend almost everything on garrisons and patrols", category: "Occupying Faction")]
+	float reserveTargetMultiplier;
 	//! Stretches or compresses every vehicle ladder rung's threat requirement (OVT_VehicleLadderRules.ScaledThreshold).
 	//! Authored Easy 2.0 (a rung needs twice the threat to unlock, so armour appears later) through
 	//! Insane 0.25 (a quarter the threat, so armour appears much earlier).

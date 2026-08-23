@@ -815,3 +815,44 @@ this phase is droppable and an old registry must not warn on every town.
 - Fixed: added a Shoes slot to all three (slot GUIDs `{6B4B2C5F000000A3/D3/E3}`, verified repo-unique; braces/quotes balanced). Note: **vanilla ships no civilian footwear** — 5 boot prefabs only, and vanilla's own civilian base loadout wears `CombatBoots_Soviet_01` — so the pools are curated boot mixes (businessman = clean tanker/US, villager = dirty variants).
 - Gate: conf-only change, suites deliberately skipped (policy) — also deferred because the user's Workbench session was live. The Init loadout-deserialization case covers it on the next run.
 - **Rule for future types: every per-type loadout conf MUST author all four slots (Pants/Top/Shoes/Hat)** — a missing slot is silently barefoot/topless, not a fallback to the global conf.
+
+---
+
+## Fix 2026-08-23 — floating supply crates where an ambient car used to be
+
+User report: cargo models left hanging in the air where ambient civilian cars had been, after a
+server restart and after single-player loads. **Not persistence.** Decoded every save point in
+`.saves/` (`tools/decode-savepoint.py strings`): no `SupplyCrate` / `SupplyStack` / `Prefabs/Props`
+record appears in any blob, and the Eden campaign save holds `Vehicle=2` — the ambient untracking is
+working. Nothing about the crates is ever written to a save.
+
+**The real cause is the deletion call, and this tree already had it written down** — in
+`OVT_ResistanceFactionManager.DeleteComposition`, found when finished construction sites kept their
+scaffolding:
+
+> ⚠ `SCR_EntityHelper.DeleteEntityAndChildren` **IS A MISNOMER**. Its whole body is
+> `RplComponent.DeleteRplEntity(entity, false)` (`SCR_EntityHelper.c:177`), which takes the ROOT out
+> of replication and out of the world and **leaves prefab-authored hierarchy children standing**.
+
+Every vanilla car and van carries `SupplyStorage_NN` `EntitySlotInfo` children holding
+`SupplyCrate_01_Vehicle.et` (e.g. `S1203_transport_base.et:27+`; all five ambient prefabs in
+`CivilianAmbience.conf` are `TRAIT_SUPPLYSTORAGE_*`). `SCR_ResourceComponent.EOnInit` hides only the
+stacks whose container reads zero, so any that were showing simply stayed in the world when the car's
+root was deleted — floating, because the car that held them is gone.
+
+Why a restart or a load makes it obvious: that is when ambient spawning churns hardest — every town
+activates at once, cars spawn, and the ones that cannot be placed or are immediately out of range are
+discarded in the same breath.
+
+**Fix:** `OVT_WorldUtils.DeleteEntityTree(root)` — the composition deleter's body, lifted to a shared
+helper (direct children only, each through its own subtree; `ChimeraCharacter` children skipped so an
+occupant is never deleted with the car; a child with an `RplComponent` leaves through replication, a
+plain prop through `delete`). Now used by the ambient despawn (`OVT_VirtualizationManagerComponent`),
+`OVT_TownVehicleSourceConfig.DiscardUnplaceable`, the two deployment vehicle-spawn modules and High
+Command's vehicle teardown. `DeleteComposition` now calls the helper, so the two cannot drift.
+
+**Gate:** `compile-check.sh` exit 0 (6341 files).
+
+**Owed:** a play-test — the crates already orphaned in an existing world are **not** swept up by this;
+they stay until that world is regenerated. Confirm no NEW ones appear across a restart, and that a
+recruit riding in an ambient car is still never deleted with it.

@@ -3205,7 +3205,9 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 				if (m_mAmbientByEntity)
 					m_mAmbientByEntity.Remove(entity.GetID());
 
-				SCR_EntityHelper.DeleteEntityAndChildren(entity);
+				// Tree, not root: an ambient car's SupplyStorage_NN crates are prefab children and
+				// SCR_EntityHelper's "AndChildren" does not touch them.
+				OVT_WorldUtils.DeleteEntityTree(entity);
 			}
 		}
 

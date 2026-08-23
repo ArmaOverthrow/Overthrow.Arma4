@@ -413,7 +413,16 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
 - [x] **P1.7 Init cases retuned** to the new thresholds (`OVT_TEST_Init_VehicleLadderResolution` now asks
   400/900/1500; the `CrewUpOnAlarm` and `QRFMountedEchelon` fixtures ask at 100000 so they are
   threshold-independent). `compile-check.sh` exit 0, 6341 files.
-- [ ] 🔴 **P1.8 No suite run and no play-test on any of the above.** Same deferral as the rest of the
+- [x] **P1.8 Patrol vehicles no longer vanish in front of the player who killed the crew** — a
+  `deployments` defect surfaced by P1.4. `OVT_MultiTownPatrolBehaviorDeploymentModule` now arms its
+  teardown and polls `TickPatrolTeardown()` against the base class's existing exfiltration rule instead of
+  calling `DeleteDeployment()` inline. See context.md → *Play-test round 1* item 4.
+- [x] **P1.9 The occupying reserve now has a ceiling** — `ReserveTarget` / `PoolTransferForWindow` /
+  `ReserveOverflow` on `OVT_BaseDefenseConversion`, a new `reserveTargetMultiplier` difficulty field across
+  all six presets, and `ArmDefenseShareDrip()` wired to them. One new Logic case
+  (`OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling`, 6 claims). See context.md → item 5, including the
+  double-pay fault the first draft had.
+- [ ] 🔴 **P1.10 No suite run and no play-test on any of the above.** Same deferral as the rest of the
   feature — and the four config changes in P1.4 are the largest behavioural change in the list.
 
 ---

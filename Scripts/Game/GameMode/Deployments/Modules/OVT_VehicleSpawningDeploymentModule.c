@@ -855,7 +855,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				continue;
 			}
 
-			SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+			OVT_WorldUtils.DeleteEntityTree(vehicle);
 		}
 
 		m_aSpawnedVehicles.Clear();

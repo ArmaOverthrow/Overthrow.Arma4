@@ -1587,7 +1587,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// answers a question about OWNERSHIP and says nothing about the men this module put in the cab.
 		EvacuateAiOccupants(m_Truck);
 
-		SCR_EntityHelper.DeleteEntityAndChildren(m_Truck);
+		OVT_WorldUtils.DeleteEntityTree(m_Truck);
 		m_Truck = null;
 		DisarmAbandonedTruck();
 

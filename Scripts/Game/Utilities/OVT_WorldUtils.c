@@ -644,4 +644,53 @@ class OVT_WorldUtils : Managed
 		// If no road found within range, return original position
 		return center;
 	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Deletes an entity AND the prefab-authored hierarchy children it was spawned with.
+	//!
+	//! ⚠ SCR_EntityHelper.DeleteEntityAndChildren IS A MISNOMER. Its whole body is
+	//! RplComponent.DeleteRplEntity(entity, false) (SCR_EntityHelper.c:177), which takes the ROOT out of
+	//! replication and out of the world and leaves prefab-authored hierarchy children standing. On a
+	//! vehicle those children are the SupplyStorage_NN slots every vanilla car and van carries, so a
+	//! despawned ambient car left its supply crates hanging in the air where it had been parked.
+	//!
+	//! Direct children only, each deleted through its own subtree - collecting the whole tree and
+	//! deleting deepest-first would hand back handles an ancestor's delete already freed.
+	//! \param[in] root The entity to remove. Null is a no-op.
+	static void DeleteEntityTree(IEntity root)
+	{
+		if (!root)
+			return;
+
+		array<IEntity> children = new array<IEntity>();
+
+		IEntity child = root.GetChildren();
+		while (child)
+		{
+			children.Insert(child);
+			child = child.GetSibling();
+		}
+
+		foreach (IEntity c : children)
+		{
+			if (!c)
+				continue;
+
+			// Never a player, a recruit or a civilian riding in the thing being deleted.
+			if (ChimeraCharacter.Cast(c))
+				continue;
+
+			// A replicated child must leave through replication; a plain prop has no RplComponent at
+			// all, and DeleteRplEntity does nothing for it.
+			if (RplComponent.Cast(c.FindComponent(RplComponent)))
+			{
+				SCR_EntityHelper.DeleteEntityAndChildren(c);
+				continue;
+			}
+
+			delete c;
+		}
+
+		SCR_EntityHelper.DeleteEntityAndChildren(root);
+	}
 }

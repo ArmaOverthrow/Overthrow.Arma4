@@ -1244,34 +1244,7 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! \param[in] root The structure to remove.
 	protected void DeleteComposition(notnull IEntity root)
 	{
-		array<IEntity> children = new array<IEntity>();
-
-		IEntity child = root.GetChildren();
-		while(child)
-		{
-			children.Insert(child);
-			child = child.GetSibling();
-		}
-
-		foreach(IEntity c : children)
-		{
-			if(!c) continue;
-
-			// A character is never part of a structure's composition, and deleting one could be a player.
-			if(ChimeraCharacter.Cast(c)) continue;
-
-			// A replicated child must leave through replication; a plain prop has no RplComponent at
-			// all, and DeleteRplEntity does nothing for it.
-			if(RplComponent.Cast(c.FindComponent(RplComponent)))
-			{
-				SCR_EntityHelper.DeleteEntityAndChildren(c);
-				continue;
-			}
-
-			delete c;
-		}
-
-		SCR_EntityHelper.DeleteEntityAndChildren(root);
+		OVT_WorldUtils.DeleteEntityTree(root);
 	}
 
 	//------------------------------------------------------------------------------------------------

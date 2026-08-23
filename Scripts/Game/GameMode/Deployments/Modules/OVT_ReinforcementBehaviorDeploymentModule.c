@@ -324,24 +324,13 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			string what = OVT_ResistancePresence.GetLastHold();
 			if (what == "")
 				what = "something the search did not name";
-
-			return string.Format("'%1' will NOT rebuy: the ground is held within %2 m - %3", name, radius.ToString(), what);
 		}
 
 		if (decision == REBUY_DECISION_CONTACT)
 		{
 			int since = Math.Round((GetGame().GetWorld().GetWorldTime() - m_fLastContactTime) / 1000);
-			int cooldown = Math.Round(m_fContactCooldown / 1000);
-
-			return string.Format("'%1' will NOT rebuy: %2 s since it last lost men, cooldown is %3 s (force strength %4)",
-				name, since.ToString(), cooldown.ToString(), m_iLastAliveSample.ToString());
+			int cooldown = Math.Round(m_fContactCooldown / 1000);			
 		}
-
-		if (decision == REBUY_DECISION_NOT_SHORT)
-			return string.Format("'%1' is not rebuying: no spawning module reports its force eliminated, so there is nothing to buy", name);
-
-		if (decision == REBUY_DECISION_SUPPRESSED)
-			return string.Format("'%1' will NOT rebuy: it is inside a suppressed battle area - nothing may materialise there while the QRF is engaged, whatever the faction can afford", name);
 
 		if (decision == REBUY_DECISION_UNAFFORDABLE)
 		{
@@ -349,9 +338,6 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 			if (manager && m_ParentDeployment)
 				pool = manager.GetFactionResources(m_ParentDeployment.GetControllingFaction());
-
-			return string.Format("'%1' will NOT rebuy: its force IS eliminated and both gates are clear, but no module could be afforded - the faction pool holds %2. Either the pool is short or the module has reinforcement switched off",
-				name, pool.ToString());
 		}
 
 		return string.Format("'%1' IS rebuying: nobody holding within %2 m, out of the contact cooldown, force strength %3",

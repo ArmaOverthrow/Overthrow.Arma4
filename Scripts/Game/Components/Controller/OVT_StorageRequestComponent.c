@@ -176,6 +176,13 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//! SERVER, so an unbounded one is a denial of service rather than a big loot run.
 	static const float LOOT_MAX_RADIUS = 50;
 
+	//! Stripping bodies in the open is a crime. The window is re-armed at every chunk and closed when
+	//! the run ends, so it covers exactly as long as the looting takes plus this much slack.
+	protected const int LOOT_ILLEGAL_SECONDS = 8;
+
+	//! Notification tag for the escalation - #OVT-Msg-WantedLooting.
+	protected const string LOOT_ILLEGAL_REASON = "WantedLooting";
+
 	//! What a loot job collects from when the caller does not say.
 	static const float LOOT_DEFAULT_RADIUS = 25;
 
@@ -1202,6 +1209,8 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 
 		BeginJob(job);
 
+		ArmLootIllegalWindow(playerId);
+
 		return true;
 	}
 
@@ -1633,7 +1642,10 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		else if (job.m_eOp == EOVT_StorageOp.CLEAR)
 			done = StepClear(job);
 		else if (job.m_eOp == EOVT_StorageOp.LOOT)
+		{
 			done = StepLoot(job);
+			ArmLootIllegalWindow(job.m_iPlayerId);
+		}
 		else if (job.m_eOp == EOVT_StorageOp.COLLECT)
 			done = StepCollect(job);
 
@@ -1692,6 +1704,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 
 		m_Job = null;
 
+		if (job.m_eOp == EOVT_StorageOp.LOOT)
+			ClearLootIllegalWindow(job.m_iPlayerId);
+
 		SendOperationComplete(job.m_iMoved, job.m_iShortfall);
 
 		if (job.m_iSeq != SEQ_NONE)
@@ -1744,6 +1759,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			GetGame().GetCallqueue().Remove(StepJob);
 
 		m_Job = null;
+
+		if (job.m_eOp == EOVT_StorageOp.LOOT)
+			ClearLootIllegalWindow(job.m_iPlayerId);
 
 		SendOperationError(reasonKey);
 
@@ -2697,6 +2715,55 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			return;
 
 		inventory.TryMoveItemToStorage(item, target);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Opens the "seen doing it" window for a loot run.
+	//!
+	//! Re-armed at every chunk rather than once for the whole run: the run's length is the size of the
+	//! battlefield and is not known when it starts, and the question the wanted system asks is whether
+	//! anyone saw you AT ANY POINT while you did it - the uprising hold's rule, applied to a job whose
+	//! duration is data.
+	//! \param[in] playerId The looting player.
+	protected void ArmLootIllegalWindow(int playerId)
+	{
+		OVT_PlayerWantedComponent wanted = ResolvePlayerWanted(playerId);
+		if (!wanted)
+			return;
+
+		wanted.BeginIllegalAction(LOOT_ILLEGAL_REASON, LOOT_ILLEGAL_SECONDS);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Closes the loot window, but only when it is still OURS - a window another act opened in the
+	//! meantime is not this job's to close.
+	//! \param[in] playerId The looting player.
+	protected void ClearLootIllegalWindow(int playerId)
+	{
+		OVT_PlayerWantedComponent wanted = ResolvePlayerWanted(playerId);
+		if (!wanted)
+			return;
+
+		if (wanted.GetIllegalActionReason() != LOOT_ILLEGAL_REASON)
+			return;
+
+		wanted.EndIllegalAction();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The wanted component on a player's live character.
+	//! \param[in] playerId Runtime player id.
+	//! \return The component, or null when the player has no character (a recruit-driven job included).
+	protected OVT_PlayerWantedComponent ResolvePlayerWanted(int playerId)
+	{
+		if (playerId <= 0)
+			return null;
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!character)
+			return null;
+
+		return OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
 	}
 
 	//-----------------------------------------------------------------------------------------------

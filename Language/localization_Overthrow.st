@@ -11261,6 +11261,13 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Lemmi"
   }
+  CustomStringTableItem "{6A2E8A8D2F652D08}" {
+   Id "OVT-MobileFOBDescription"
+   Target_en_us "Can be deployed into a forward base for the resistance, creating a Fast Travel/Respawn point and building area"
+   Modified 1781435208
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+  }
   CustomStringTableItem "{65D08ACC7FDB3C67}" {
    Id "OVT-MobileFOBHelp"
    Target_en_us "Place items in the world so you can hide behind them or put stuff in them"
@@ -12685,6 +12692,23 @@ StringTable {
    Modified 1754265600
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F1000000002}" {
+   Id "OVT-Msg-WantedLooting"
+   Target_en_us "You were seen looting the dead!"
+   Comment "Wanted notification - seen running the Loot battlefield action on a vehicle (OVT_StorageRequestComponent arms the illegal-action window for the whole loot job)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755993600
+   Author "Claude"
+   LastChanged ""
    ImageLink ""
    Hidden 0
   }

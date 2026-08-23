@@ -75,6 +75,93 @@ class OVT_BaseDefenseConversion
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! HOW MUCH RESERVE IS WORTH KEEPING - everything above this is dead money.
+	//!
+	//! The reserve has exactly two consumers and both are already difficulty-scaled, so this invents no
+	//! new number: `maxQRF` is the most one battle can ever spend, and `objectiveQRFResourceGate` is what
+	//! the objective director demands before it will launch the counter-attack. Holding the LARGER of the
+	//! two funds both; holding more than that funds nothing at all.
+	//!
+	//! ⚠ THE GATE MUST BE PART OF THIS. Draining to `maxQRF` alone would, on Easy (maxQRF 500,
+	//! gate 750), park the reserve permanently below the counter-attack's own funding gate and the
+	//! campaign would never see one.
+	//! \param[in] maxQRF The difficulty's maxQRF.
+	//! \param[in] counterAttackGate The difficulty's objectiveQRFResourceGate.
+	//! \param[in] multiplier The difficulty's reserveTargetMultiplier. Non-positive reads as 1, matching
+	//!            how OVT_VehicleLadderRules treats its own scale.
+	//! \return The reserve to hold, never negative.
+	static int ReserveTarget(int maxQRF, int counterAttackGate, float multiplier)
+	{
+		int anchor = maxQRF;
+		if (counterAttackGate > anchor)
+			anchor = counterAttackGate;
+
+		if (anchor <= 0)
+			return 0;
+
+		if (multiplier <= 0)
+			multiplier = 1;
+
+		int target = Math.Round((float)anchor * multiplier);
+		if (target < 0)
+			return 0;
+
+		return target;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHAT THE POOL IS OWED FOR ONE WINDOW - the ordinary share, or the surplus, whichever is larger.
+	//!
+	//! Two rules, and the MAX of them is what makes both hold at once:
+	//!   1. THE POOL NEVER GETS LESS THAN IT USED TO. DefenseShare() is the floor, so a reserve sitting
+	//!      on or under its target behaves exactly as the campaign always has.
+	//!   2. THE RESERVE IS NOT A ONE-WAY RATCHET. When it holds more than it can ever spend, the
+	//!      SURPLUS is what crosses - which lands the reserve exactly on its target rather than
+	//!      somewhere below it.
+	//!
+	//! ⚠ THE SURPLUS IS THE WHOLE TRANSFER, NOT AN ADDITION TO THE SHARE. The reserve figure passed in
+	//! ALREADY CONTAINS this tick's income, so `share + surplus` would hand the pool this tick's money
+	//! twice and walk the reserve under its own target - and under the counter-attack's funding gate
+	//! with it. This is the fault this method was rewritten to remove; do not re-add the two.
+	//!
+	//! THE STEADY STATE IS THE RESERVE PINNED EXACTLY ON ITS TARGET, and it is worth stating because it
+	//! is not obvious from the max(): once the reserve is on the target, the next tick's income makes
+	//! the surplus equal to the WHOLE tick, which always beats four fifths of it - so rule 2 wins every
+	//! window from then on and hands the pool the entire tick, leaving the reserve back on the target.
+	//! Below the target rule 1 wins, the reserve keeps its usual fifth, and it climbs until it arrives.
+	//! There is no oscillation in either direction.
+	//! \param[in] newResources The resources gained this tick.
+	//! \param[in] reserve The reserve AFTER this tick's income and after the previous window was flushed.
+	//! \param[in] reserveTarget What ReserveTarget() answered. Zero or below keeps the ordinary split.
+	//! \return What to move to the pool this window, never negative.
+	static int PoolTransferForWindow(int newResources, int reserve, int reserveTarget)
+	{
+		int share = DefenseShare(newResources);
+
+		int surplus = ReserveOverflow(reserve, reserveTarget);
+		if (surplus > share)
+			return surplus;
+
+		return share;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the reserve is holding that it can never spend.
+	//! \param[in] reserve The reserve after this tick's income.
+	//! \param[in] reserveTarget What ReserveTarget() answered. Zero or below overflows nothing.
+	//! \return The surplus, never negative.
+	static int ReserveOverflow(int reserve, int reserveTarget)
+	{
+		if (reserveTarget <= 0)
+			return 0;
+
+		if (reserve <= reserveTarget)
+			return 0;
+
+		return reserve - reserveTarget;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! What one group recorded in a legacy base-upgrade payload is worth in deployment resources.
 	//! \param[in] baseResourceCost The campaign difficulty's baseResourceCost - the per-man price the
 	//!            legacy valuation used.

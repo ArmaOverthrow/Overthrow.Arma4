@@ -112,6 +112,62 @@ truck/insertion."_** A mounted force is now **its crew and nothing else**:
    `REFUSAL_LADDER_LOCKED`, asked **before** the pool question. Below threat 400 the harassment ramp simply
    tops out at rung 4, which is the pre-`vehicles` behaviour; rungs 1-4 are untouched, so no ramp stalls.
 
+**4. 🔴 A patrol vehicle vanished in front of the player who had just killed its crew — FIXED.** Reported
+after the round-1 fixes went in. **It is a `deployments` defect, not a `vehicles` one** — the same thing
+happened with the old `light_fireteam` crew — but it surfaced here because re-crewing the patrols made
+players start shooting patrol *crews*. The chain:
+
+1. the last crewman dies → `OVT_VehicleSpawningDeploymentModule.OnVirtualGroupWiped()` →
+   `MarkEliminated("its crew has been wiped out")`;
+2. next update, `OVT_MultiTownPatrolBehaviorDeploymentModule.CheckPatrolComplete()` finds
+   `CollectCrewPositions()` empty and returns `AnySpawningModuleEliminated()` — **true**;
+3. `OnPatrolComplete()` calls `DeleteDeployment()` **directly**;
+4. `OVT_VehicleSpawningDeploymentModule.OnCleanup()` → `ReleaseVehicles()` → `DeleteEntityTree(vehicle)`.
+
+`ReleaseVehicles()`'s only vetoes are "a player or recruit is sitting in it" and "a player owns it" —
+neither of which covers *standing next to it*. Fixed at step 3 rather than step 4, by reusing
+`OVT_BaseBehaviorDeploymentModule`'s own exfiltration rule instead of inventing a second one: the deletion
+is now **armed** (`m_bTeardownPending`) and polled in `TickPatrolTeardown()`, which holds while
+`IsPlayerWatchingDeployment()` (radius `difficulty.baseCloseRange`) and logs the hold once. No deadline, by
+that rule's own design — camp the vehicle and it stays. `RecoverResources()` still runs exactly once at
+completion, so waiting cannot pay twice, and `TickPatrolTeardown()` is called from `OnUpdate` **before** the
+`m_bPatrolActive` guard, because `OnPatrolComplete()` clears that flag.
+
+⚠ The base-class rule's own header says patrols *"never come through here at all - they are meant to
+persist"*. That is about **collection**; this module deletes its own deployment on completion by a separate
+path, which is the one that had no watching check.
+
+**5. The reserve was a one-way ratchet — FIXED (new `deployments`/`core` behaviour).** User, 2026-08-23:
+*"they have accumulated 1438 resources because I haven't done any QRFs to deplete that, deployment pool is
+spent currently."* 20 % of every tick went into the reserve and the **only** thing that ever took money out
+was a battle, so a campaign with no QRFs banks a reserve it can never use while the deployment pool — which
+buys every garrison, patrol and checkpoint the player actually meets — runs dry.
+
+The reserve now has a **target**, above which its income stops feeding it:
+
+- `OVT_BaseDefenseConversion.ReserveTarget(maxQRF, objectiveQRFResourceGate, multiplier)` — the anchor is
+  the **larger** of the reserve's two consumers. ⚠ **Both must be in it:** Easy authors `maxQRF 500`
+  against a gate of `750`, so anchoring on `maxQRF` alone would park the reserve permanently below the
+  counter-attack's own funding gate and no counter-attack would ever fire on Easy. That is asserted with
+  Easy's shipped numbers.
+- New difficulty field **`reserveTargetMultiplier`** — Easy/Normal 1, Hard 1.25, Extreme 1.5, Insane 2,
+  TestWorld **1 explicitly**. On Normal the target is 750.
+- `PoolTransferForWindow(tick, reserve, target)` = `max(DefenseShare(tick), surplus)`. The ordinary 80 %
+  share is a **floor**, so nothing below the target changes at all.
+
+🔴 **The first version of this was wrong and the bug is worth recording.** It computed
+`PoolShareOfTick(...) + ReserveOverflow(...)` — but the reserve figure already contains the tick's income,
+so that paid this tick's money **twice** and walked the reserve *under* its own target, and under the
+counter-attack gate with it. The surplus **is** the whole transfer, never an addition to the share. There
+is a named case asserting exactly this (1438 → transfer 688 → reserve lands on exactly 750).
+
+Steady state, verified by simulating the loop: reserve pinned **exactly** on the target with the whole tick
+crossing to the pool every window. Once on the target, the next tick makes the surplus equal the whole tick,
+which always beats four fifths of it — so there is no oscillation in either direction. The surplus is paid
+through the **existing six-hour drip**, so a hoard does not arrive as a lump sum the evaluator spends in one
+burst. `ResolveReserveTarget()` reads the reserve **after** `FlushDefenseShareDrip()`, or money already owed
+to the pool would be counted as surplus and handed over twice.
+
 ---
 
 ## ⚠ Test suites are DEFERRED for this whole feature

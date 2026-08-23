@@ -487,3 +487,135 @@ class OVT_TEST_Logic_BaseDefenseConversion_DripPaysOutExactlyTheShare : SCR_Auto
 		return drips;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! THE RESERVE CEILING: the reserve stops being a one-way ratchet once it holds everything it can
+//! ever spend.
+//!
+//! 🔴 WHAT THIS IS FOR. 20 % of every tick went into the reserve and the ONLY thing that ever took
+//! money out was a battle, so a campaign in which the player fights no QRFs banks a reserve it can
+//! never use while the deployment pool - which buys every garrison, patrol and checkpoint the player
+//! actually meets - runs dry. Author, 2026-08-23, at 1438 banked on Normal against a 750 gate.
+//!
+//! THE ANCHOR IS THE LARGER OF THE TWO CONSUMERS AND BOTH MUST BE IN IT. maxQRF is the most one
+//! battle can spend; objectiveQRFResourceGate is what the counter-attack demands before it will
+//! launch. Easy authors maxQRF 500 against a gate of 750, so an anchor of maxQRF alone would park
+//! the reserve permanently below the gate and no counter-attack would ever fire on Easy - which is
+//! the fault this case exists to catch, and it is asserted with Easy's own shipped numbers.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling : SCR_AutotestCaseBase
+{
+	//! Normal's shipped pair. Both 750, so the anchor is unambiguous whichever wins.
+	static const int NORMAL_MAX_QRF = 750;
+	static const int NORMAL_GATE = 750;
+
+	//! Easy's shipped pair - the gate is the LARGER one here, which is the whole point of the case.
+	static const int EASY_MAX_QRF = 500;
+	static const int EASY_GATE = 750;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// --- CLAIM 1: the anchor is max(maxQRF, gate), on both shipped orderings.
+		int normal = OVT_BaseDefenseConversion.ReserveTarget(NORMAL_MAX_QRF, NORMAL_GATE, 1);
+		if (normal != 750)
+		{
+			SetFailure("Normal's pair (750/750) answered a target of %1, expected 750", normal.ToString());
+			return true;
+		}
+
+		int easy = OVT_BaseDefenseConversion.ReserveTarget(EASY_MAX_QRF, EASY_GATE, 1);
+		if (easy != EASY_GATE)
+		{
+			SetFailure("Easy's pair (maxQRF 500, gate 750) answered a target of %1, expected 750 - a target under the counter-attack's own funding gate means no counter-attack ever fires on Easy", easy.ToString());
+			return true;
+		}
+
+		// --- CLAIM 2: the multiplier scales it, and a non-positive one reads as 1.
+		if (OVT_BaseDefenseConversion.ReserveTarget(1000, 1000, 2) != 2000)
+		{
+			SetFailure("A multiplier of 2 against an anchor of 1000 answered %1, expected 2000", OVT_BaseDefenseConversion.ReserveTarget(1000, 1000, 2).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.ReserveTarget(1000, 1000, 0) != 1000)
+		{
+			SetFailure("A multiplier of 0 answered %1, expected the anchor (1000) - a zero multiplier must read as 1, not drain the reserve to nothing", OVT_BaseDefenseConversion.ReserveTarget(1000, 1000, 0).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.ReserveTarget(0, 0, 1) != 0)
+		{
+			SetFailure("An anchor of 0 answered a target above 0");
+			return true;
+		}
+
+		// --- CLAIM 3: under the target the transfer is the ordinary share, unchanged.
+		int under = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 700, 750);
+		if (under != OVT_BaseDefenseConversion.DefenseShare(250))
+		{
+			SetFailure("A reserve of 700 under a target of 750 transferred %1, expected the ordinary share of %2 - the 80/20 split must be untouched below the ceiling", under.ToString(), OVT_BaseDefenseConversion.DefenseShare(250).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750) != OVT_BaseDefenseConversion.DefenseShare(250))
+		{
+			SetFailure("A reserve sitting exactly on its target transferred %1, expected the ordinary share - the surplus is zero there and the share is the floor", OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750).ToString());
+			return true;
+		}
+
+		// --- CLAIM 4: THE ANTI-DOUBLE-PAY CLAIM, and the reason this method is not share + surplus.
+		//     The reserve figure ALREADY CONTAINS this tick, so the surplus IS the whole transfer.
+		//     1438 banked against a target of 750 must leave the reserve ON 750, never under it.
+		int hoarding = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 1438, 750);
+		if (hoarding != 688)
+		{
+			SetFailure("A reserve of 1438 against a target of 750 transferred %1, expected 688 - anything larger is this tick's income being paid twice, and it walks the reserve under the counter-attack's own funding gate", hoarding.ToString());
+			return true;
+		}
+
+		if (1438 - hoarding != 750)
+		{
+			SetFailure("After the transfer the reserve would hold %1, expected exactly its target of 750", (1438 - hoarding).ToString());
+			return true;
+		}
+
+		// --- CLAIM 5: no target restores the old behaviour exactly.
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 100000, 0) != OVT_BaseDefenseConversion.DefenseShare(250))
+		{
+			SetFailure("With no target, a huge reserve changed the transfer - a campaign with no difficulty preset must behave exactly as it did before the ceiling existed");
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.ReserveOverflow(100000, 0) != 0)
+		{
+			SetFailure("With no target, an overflow was reported - see above");
+			return true;
+		}
+
+		// --- CLAIM 6: the overflow is the surplus and nothing else.
+		if (OVT_BaseDefenseConversion.ReserveOverflow(1438, 750) != 688)
+		{
+			SetFailure("A reserve of 1438 against a target of 750 overflowed %1, expected 688", OVT_BaseDefenseConversion.ReserveOverflow(1438, 750).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.ReserveOverflow(750, 750) != 0)
+		{
+			SetFailure("A reserve sitting exactly on its target overflowed %1, expected 0", OVT_BaseDefenseConversion.ReserveOverflow(750, 750).ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.ReserveOverflow(100, 750) != 0)
+		{
+			SetFailure("A reserve under its target overflowed %1, expected 0", OVT_BaseDefenseConversion.ReserveOverflow(100, 750).ToString());
+			return true;
+		}
+
+		Print("BaseDefenseConversion reserve ceiling: the anchor covers both consumers, the multiplier scales it, the ordinary share is the floor, the surplus is the whole transfer rather than an addition to it, and no target restores the old split");
+
+		return true;
+	}
+}

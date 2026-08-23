@@ -2119,10 +2119,36 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		FlushDefenseShareDrip();
 
-		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.DefenseShare(newResources);
+		// ⚠ AFTER THE FLUSH, NEVER BEFORE IT. The flush pays the previous window's remainder out of the
+		// reserve, so a reserve read first would count money that is already owed to the pool as surplus
+		// and hand it over twice.
+		int reserveTarget = ResolveReserveTarget();
+
+		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.PoolTransferForWindow(newResources, m_iResources, reserveTarget);
+
 		m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
 
 		RollDripMinute();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE RESERVE THE FACTION ACTUALLY WANTS, above which its income stops feeding the reserve at all.
+	//!
+	//! Without this the reserve is a one-way ratchet: 20 % of every tick goes into it and the only thing
+	//! that ever takes money out is a battle, so a campaign in which the player fights no QRFs
+	//! accumulates a reserve it can never spend while the deployment pool - which buys every garrison,
+	//! patrol and checkpoint the player actually meets - runs dry. Author, 2026-08-23, at 1438 banked on
+	//! Normal against a 750 gate.
+	//! \return The reserve to hold, or 0 when there is no difficulty preset to ask (which restores the
+	//!         unconditional 80/20 split exactly).
+	protected int ResolveReserveTarget()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return 0;
+
+		return OVT_BaseDefenseConversion.ReserveTarget(difficulty.maxQRF, difficulty.objectiveQRFResourceGate,
+			difficulty.reserveTargetMultiplier);
 	}
 
 	//------------------------------------------------------------------------------------------------

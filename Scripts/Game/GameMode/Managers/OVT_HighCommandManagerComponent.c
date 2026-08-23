@@ -937,7 +937,7 @@ class OVT_HighCommandManagerComponent : OVT_Component
 		}
 
 		if (vehicle)
-			SCR_EntityHelper.DeleteEntityAndChildren(vehicle);
+			OVT_WorldUtils.DeleteEntityTree(vehicle);
 
 		if (group)
 			SCR_EntityHelper.DeleteEntityAndChildren(group);

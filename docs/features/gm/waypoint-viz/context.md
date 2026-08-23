@@ -350,7 +350,25 @@ altitude, and coexistence look-and-feel with hud-icons.
   `RequestGroupWaypoints`, `RpcAsk_GroupWaypoints` (arrival / player / auth / **RplId resolution**),
   `SendGroupWaypoints` (walk result) and the three client `RpcDo_Waypoint*` handlers.
   **These MUST be stripped before this feature closes again** - `grep -rn "OVT-WPVIZ" Scripts/` must be 0.
-- Not yet done: run it on the dedi server and read both logs.
+- **Round 1 logs (2026-08-23, dedicated server + client) - THE WIRE IS COMPLETELY INNOCENT.** Server:
+  `ask ARRIVED seq 1` -> `RplId -2147482596 resolved to entity 1, AIGroup cast 1` -> `walked group -> count 5,
+  currentIndex 0, flags 1` (CYCLIC). Client: `sending ask seq 1 (isServer 0)` -> `Begin ARRIVED count 5` ->
+  five `Waypoint ARRIVED` with real world positions -> `End ARRIVED sent 5` -> `route committed - waypoints 5,
+  currentIndex 0, complete 1`. **D4's wire demonstrably works on a dedicated server.** The prime suspect above
+  (client->server RplId resolution) is CLEARED - it resolved first try.
+- **The fault is therefore in the CLIENT DRAW PATH, with a fully valid route in hand.** At draw time
+  `HasRoute()` should be true (complete + 5 waypoints) and `route.m_GroupRplId` should equal
+  `m_RequestedGroupRplId` (both -2147482596, and `OnRouteUpdated` re-syncs it). Ruled out by reading:
+  `m_Route` is only cleared by `OnEditorClosed` and by a new request (`:391`, `:446`) - the 8-second snapshot
+  poll does NOT touch it; `m_aPoints[33]` is big enough for 5+1; `m_eFlags` is
+  `VISIBLE|NOZBUFFER|ONCE`. The renderer was definitely constructed and attached, because
+  `HandlerAttachedScripted` returns early when `GetMenu()` is null and `OnSelectionChanged` demonstrably fired.
+- **Round 2 trace added** (compile-check OK, 6341 files): `Attach` reports whether it got a menu;
+  `OnStateCleared` announces a spurious dedupe-key reset; `OnMenuUpdate` reports, throttled to ~once per 2 s,
+  which gate it exits at (no seam / `HasRoute()` false / id mismatch) or that it is DRAWING and with how many
+  points. Grep the client log for `OVT-WPVIZ] draw:` - **absence of those lines is itself the answer** (the
+  per-frame hook is not ticking).
+- Not yet done: run round 2 and read the client log.
 
 
 ### 2026-08-15 — Phase 3 built (renderer + selection hookup)

@@ -91,6 +91,8 @@ class OVT_GMWaypointRenderer : Managed
 	//! Reused out-buffer for the SELECTED filter's contents; touched on selection changes only.
 	protected ref set<SCR_EditableEntityComponent> m_aSelection = new set<SCR_EditableEntityComponent>();
 
+	protected int m_iDbgTick; // TEMP TRACE
+
 	//------------------------------------------------------------------------------------------------
 	// LIFECYCLE
 	//------------------------------------------------------------------------------------------------
@@ -115,6 +117,9 @@ class OVT_GMWaypointRenderer : Managed
 			m_Menu = menu;
 			m_Menu.GetOnMenuUpdate().Insert(OnMenuUpdate);
 		}
+
+		Print(string.Format("[OVT-WPVIZ] client: Attach - menu %1 (draw hook %2)",
+			menu != null, menu != null), LogLevel.NORMAL); // TEMP TRACE
 
 		SubscribeFilter();
 
@@ -291,6 +296,8 @@ class OVT_GMWaypointRenderer : Managed
 	//! old group cannot be drawn against a new session's selection.
 	protected void OnStateCleared()
 	{
+		Print("[OVT-WPVIZ] client: OnStateCleared - dedupe key RESET (route will stop drawing)", LogLevel.WARNING); // TEMP TRACE
+
 		m_RequestedGroupRplId = RplId.Invalid();
 	}
 
@@ -323,16 +330,30 @@ class OVT_GMWaypointRenderer : Managed
 	//! \param[in] timeSlice Frame time; unused - the drawing is stateless and re-issued whole.
 	protected void OnMenuUpdate(float timeSlice)
 	{
+		// TEMP TRACE - throttled to roughly once every 2s at 60fps
+		m_iDbgTick += 1;
+		bool say = (m_iDbgTick % 120) == 1;
+
 		OVT_GMRequestComponent gm = OVT_ControllerComponent<OVT_GMRequestComponent>.Get();
 		if (!gm)
+		{
+			if (say) Print("[OVT-WPVIZ] draw: TICKING but no seam component", LogLevel.WARNING);
 			return;
+		}
 
 		OVT_GMWaypointRoute route = gm.GetRoute();
 		if (!route || !route.HasRoute())
+		{
+			if (say) Print("[OVT-WPVIZ] draw: TICKING but HasRoute() false", LogLevel.NORMAL);
 			return;
+		}
 
 		if (route.m_GroupRplId != m_RequestedGroupRplId)
+		{
+			if (say) Print(string.Format("[OVT-WPVIZ] draw: TICKING but id MISMATCH - route %1 vs requested %2",
+				route.m_GroupRplId, m_RequestedGroupRplId), LogLevel.WARNING);
 			return;
+		}
 
 		int count = route.m_aWaypoints.Count();
 		if (count > MAX_WAYPOINTS)
@@ -356,6 +377,9 @@ class OVT_GMWaypointRenderer : Managed
 
 		int pointCount = count + offset;
 		int currentIndex = route.m_iCurrentIndex;
+
+		if (say) Print(string.Format("[OVT-WPVIZ] draw: DRAWING %1 points (offset %2, groupEntity %3), first %4",
+			pointCount, offset, groupEntity != null, m_aPoints[0]), LogLevel.NORMAL); // TEMP TRACE
 
 		// PER-LEG CreateLine, deliberately NOT one CreateLines strip. Two reasons, both learned in the
 		// 2026-08-16 play-test: a CreateLines strip fed from a member fixed array with num < the

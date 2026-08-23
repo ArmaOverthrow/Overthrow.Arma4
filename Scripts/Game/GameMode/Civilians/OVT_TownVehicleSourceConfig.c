@@ -721,7 +721,7 @@ class OVT_TownVehicleSourceConfig : OVT_AmbientSpawnSourceConfig
 		if (virt)
 			virt.ReleaseAmbientEntity(entity);
 
-		SCR_EntityHelper.DeleteEntityAndChildren(entity);
+		OVT_WorldUtils.DeleteEntityTree(entity);
 	}
 
 	//------------------------------------------------------------------------------------------------

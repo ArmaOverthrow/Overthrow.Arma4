@@ -81,6 +81,10 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 	//! true and stays there - a patrol does not un-depart.
 	protected bool m_bPatrolDeparted;
 
+	//! Armed when the patrol has finished and its deployment is owed a teardown, but a player is close
+	//! enough that deleting it now would take the vehicle out of the world in front of him. Polled.
+	protected bool m_bTeardownPending;
+
 	//------------------------------------------------------------------------------------------------
 	void OVT_MultiTownPatrolBehaviorDeploymentModule()
 	{
@@ -125,6 +129,10 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 	{
 		super.OnUpdate(deltaTime);
 
+		// ⚠ BEFORE THE m_bPatrolActive GUARD. OnPatrolComplete() clears that flag, so a teardown it
+		// could not carry out would never be retried from inside it.
+		TickPatrolTeardown();
+
 		if (!m_bPatrolActive || !m_ParentDeployment)
 			return;
 
@@ -133,6 +141,47 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 		{
 			OnPatrolComplete();
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE LOOK AT WHETHER A FINISHED PATROL MAY BE TAKEN AWAY YET.
+	//!
+	//! 🔴 THE DEFECT THIS EXISTS FOR: killing a patrol's crew flags the vehicle module eliminated,
+	//! which makes CheckPatrolComplete() answer true on the next update (no crew positions left), which
+	//! deleted the deployment - and OVT_VehicleSpawningDeploymentModule.OnCleanup() then deleted the
+	//! vehicle. The player who had just shot the crew watched the truck vanish in front of him.
+	//!
+	//! The rule is OVT_BaseBehaviorDeploymentModule's own, reused rather than reinvented: a poll, no
+	//! deadline, radius difficulty.baseCloseRange. A player who camps the vehicle keeps it there, which
+	//! is correct - the alternative is the thing the rule forbids.
+	//!
+	//! ⚠ THE MONEY IS ALREADY SETTLED before this is armed. OnPatrolComplete() runs RecoverResources()
+	//! once, on its own terms, so waiting cannot pay twice.
+	protected void TickPatrolTeardown()
+	{
+		if (!m_bTeardownPending)
+			return;
+
+		if (!m_ParentDeployment)
+		{
+			m_bTeardownPending = false;
+			return;
+		}
+
+		if (IsPlayerWatchingDeployment())
+		{
+			LogExfilHold();
+			return;
+		}
+
+		m_bTeardownPending = false;
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+			return;
+
+		Print(string.Format("Patrol complete - deleting deployment '%1'", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+		manager.DeleteDeployment(m_ParentDeployment);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -475,15 +524,16 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 			RecoverResources();
 		}
 
-		// Request deployment deletion if configured
+		// Request deployment deletion if configured. ⚠ ARMED, NOT DONE: see TickPatrolTeardown() - a
+		// patrol that finished because its crew was just killed must not delete its vehicle out of the
+		// world while the man who killed them is standing next to it.
 		if (m_bDeleteOnComplete)
 		{
-			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-			if (manager)
-			{
-				Print(string.Format("Patrol complete - deleting deployment '%1'", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
-				manager.DeleteDeployment(m_ParentDeployment);
-			}
+			m_bTeardownPending = true;
+			m_bExfilHoldLogged = false;
+
+			// Try immediately: a patrol that rolled home with nobody nearby should not wait an update.
+			TickPatrolTeardown();
 		}
 	}
 
