@@ -33,6 +33,11 @@ class OVT_BuildContext : OVT_UIContext
 	
 	const int MAX_FOB_BUILD_DIS = 100;
 	const int MAX_CAMP_BUILD_DIS = 50;
+
+	//! Build camera height above the surface under it, in metres. The ceiling was 25 until the
+	//! resource-costed buildings arrived: a warehouse does not fit on screen from there.
+	const float BUILD_CAM_MIN_HEIGHT = 10;
+	const float BUILD_CAM_MAX_HEIGHT = 50;
 	
 	bool m_bBuilding = false;
 	bool m_bRemovalMode = false;
@@ -491,14 +496,14 @@ class OVT_BuildContext : OVT_UIContext
 		pos = pos + move;
 		
 		float ground = GetGame().GetWorld().GetSurfaceY(pos[0],pos[2]);
-		if(pos[1] < ground + 10)
+		if(pos[1] < ground + BUILD_CAM_MIN_HEIGHT)
 		{
-			pos[1] = ground + 10;
+			pos[1] = ground + BUILD_CAM_MIN_HEIGHT;
 		}
-		
-		if(pos[1] > ground + 25)
+
+		if(pos[1] > ground + BUILD_CAM_MAX_HEIGHT)
 		{
-			pos[1] = ground + 25;
+			pos[1] = ground + BUILD_CAM_MAX_HEIGHT;
 		}
 		
 		m_Camera.SetOrigin(pos);		

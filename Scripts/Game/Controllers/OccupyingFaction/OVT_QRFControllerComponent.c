@@ -107,6 +107,48 @@ class OVT_QRFControllerComponent: OVT_Component
 	protected const int SIEGE_RING_INWARD_ATTEMPTS = 8;
 	protected const float SIEGE_RING_INWARD_FLOOR = 25;
 
+	//------------------------------------------------------------------------------------------------
+	// THE MOUNTED ECHELON (occupying/vehicles Phase 4)
+	//------------------------------------------------------------------------------------------------
+
+	//! How many mounted echelons ONE battle may ever stand up, across both modes and every source.
+	//!
+	//! ⚠ A CAP ON THE BATTLE, NOT ON THE SOURCE. The siege mode walks the source list again and again
+	//! until its budget is gone, so a per-source rule would put an armed vehicle on every pass.
+	static const int ECHELON_CAP_PER_BATTLE = 2;
+
+	//! How far from the objective an echelon stops, in metres. Far enough that it is a standoff and not
+	//! an assault, close enough that it is inside QRF_RANGE and therefore denies the resistance an
+	//! uncontested zone.
+	static const float ECHELON_STANDOFF_M = 450;
+
+	//! How far a road may be from a point and still count as that point's road, in metres. The same
+	//! figure OVT_WorldUtils.ROAD_SPAWN_MAX_DISTANCE uses for "the road you park on".
+	static const float ECHELON_ROAD_SEARCH_M = 200;
+
+	//! The registry name of the deployment config an echelon runs.
+	static const string ECHELON_CONFIG_NAME = "QRF Mounted Echelon";
+
+	//! How near a base record has to be to a wave source before its landIsolated flag is taken to be
+	//! ABOUT that source. GetNearestBase() answers at any distance, and a wave source can be the
+	//! occupying faction's forward base or the no-bases-left placeholder - neither of which any base
+	//! record describes. Reading a distant base's flag as this source's would refuse and accept for
+	//! reasons that have nothing to do with the place the vehicles set out from.
+	protected const float ECHELON_SOURCE_MATCH_M = 50;
+
+	//! How many echelons this battle has stood up. The cap is counted here rather than off m_aEchelons
+	//! so that an echelon destroyed, collected or unresolvable does not buy the battle another one.
+	protected int m_iEchelonsSent;
+
+	//! The deployment marker of every echelon this battle created, for the teardown on m_OnFinished.
+	//!
+	//! ⚠ IDs AND NOT COMPONENT POINTERS. A deployment entity can be deleted by anything at any time,
+	//! and FindEntityByID answering null is how this file already tells "gone" from "here" (m_Groups).
+	//! ⚠ NOT one of the four index-parallel spawn arrays, and deliberately not near them: an echelon is
+	//! a DEPLOYMENT, not a queued group. Nothing here is ever popped by SpawnFromQueue and nothing here
+	//! is ever counted by BuildSiegeRing.
+	protected ref array<ref EntityID> m_aEchelons;
+
 
 	override void OnPostInit(IEntity owner)
 	{
@@ -121,11 +163,46 @@ class OVT_QRFControllerComponent: OVT_Component
 		GetGame().GetCallqueue().CallLater(CheckUpdateTimer, 1000, true, owner);		
 		
 		m_Groups = new array<ref EntityID>;		
+		m_aEchelons = new array<ref EntityID>;
+
+		// ⚠ SUBSCRIBED HERE AND NOT BY THE CALLER. The occupying faction manager inserts its own
+		// OnQRFFinished* handler AFTER Start(), and that handler deletes this entity - so a teardown
+		// registered later than it would run against a component that no longer exists. Inserted once,
+		// in the one method that runs exactly once, because ScriptInvoker.Insert does not de-duplicate.
+		m_OnFinished.Insert(TearDownEchelons);
+
 		Replication.BumpMe();		
 		
 		GetGame().GetCallqueue().CallLater(CheckUpdatePoints, UPDATE_FREQUENCY, true, owner);		
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! The belt to m_OnFinished's braces: a battle whose controller is deleted WITHOUT finishing - a
+	//! campaign teardown, a save rolled back, a future caller - must not leave its echelons standing on
+	//! the map for the rest of the campaign.
+	//!
+	//! TearDownEchelons() clears its own list, so running twice tears nothing down twice.
+	//! \param[in] owner The entity being deleted.
+	override void OnDelete(IEntity owner)
+	{
+		if (m_OnFinished)
+			m_OnFinished.Remove(TearDownEchelons);
+
+		TearDownEchelons();
+
+		// ⚠ AND THE PENDING CALLS THIS COMPONENT PUT ON THE QUEUE ITSELF. SendWave() schedules a
+		// follow-up 4-8 minutes out whenever a wave left resources unspent, and nothing removed it: a
+		// battle that ended before it fired left a call queued against a component whose entity is
+		// gone. The two repeating ticks are removed on the winning path already; removing them here as
+		// well costs nothing and closes the same hole for every other way this entity can die.
+		GetGame().GetCallqueue().Remove(SendWave);
+		GetGame().GetCallqueue().Remove(CheckUpdateTimer);
+		GetGame().GetCallqueue().Remove(CheckUpdatePoints);
+
+		super.OnDelete(owner);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! ⚠ TAKES NO ARGUMENTS, DELIBERATELY. Everything this battle needs - the landing-zone band, the
 	//! preferred direction, and from this feature the MODE - is written onto the component by the
 	//! caller between SpawnQRFController() and here. Adding a parameter would give the mode two
@@ -446,9 +523,11 @@ class OVT_QRFControllerComponent: OVT_Component
 	//! Both questions, because they are different ones: GetLifeState() answers DEAD/INCAPACITATED, and
 	//! IsUnconscious() additionally covers the wake-up animation, during which the life state has
 	//! already flipped back to ALIVE (CharacterControllerComponent.c:262-267).
+	//! ⚠ PUBLIC ONLY SO THAT THE INITIALISATION TIER CAN ASK IT, exactly as CheckUpdatePoints and
+	//! CheckUpdateTimer are. Nothing outside this component calls it in the campaign.
 	//! \param[in] entity The character to test.
 	//! \return True when it is alive and conscious.
-	protected bool IsFightingFit(IEntity entity)
+	bool IsFightingFit(IEntity entity)
 	{
 		if(!entity) return false;
 
@@ -779,6 +858,17 @@ class OVT_QRFControllerComponent: OVT_Component
 					ii++;
 					allocated += SpawnTroops(lz, target);
 				}
+
+				// THE MOUNTED ECHELON, ONCE PER SOURCE, INSIDE THIS SOURCE'S OWN `allocated`. What it
+				// commits therefore reaches `spent`, m_iResourcesLeft and the ONE reserve debit below
+				// by the route the infantry already takes. ⚠ It must not add a debit of its own, and
+				// the debit below must not move: see SendMountedEchelon's ledger note.
+				//
+				// ⚠ THE SOURCE IS `base` AND NOT `lz`. A landing zone is a point near the OBJECTIVE
+				// that this wave's men appear at; the echelon really drives, so it has to set out from
+				// the place the wave is coming FROM.
+				allocated += SendMountedEchelon(base, qrfpos, EchelonSlice(allocated));
+
 				spent += allocated;
 				m_iResourcesLeft -= allocated;
 				Print("[Overthrow.QRFControllerComponent] Sent troops from " + lz.ToString() + ": " + allocated.ToString());
@@ -852,6 +942,13 @@ class OVT_QRFControllerComponent: OVT_Component
 					ii++;
 					allocated += SpawnTroops(lz, target);
 				}
+
+				// The same call the standard wave makes, in the same place relative to this source's
+				// infantry. ⚠ THIS LOOP RUNS AGAIN AND AGAIN until the budget is gone, so "once per
+				// source" here means once per source PER PASS - which is why the cap that bounds an
+				// echelon is a per-BATTLE one and not a per-source one.
+				allocated += SendMountedEchelon(base, qrfpos, EchelonSlice(allocated));
+
 				spentThisPass += allocated;
 				m_iResourcesLeft -= allocated;
 				Print("[Overthrow.QRFControllerComponent] Counter-attack: sent troops from " + lz.ToString() + ": " + allocated.ToString());
@@ -870,6 +967,476 @@ class OVT_QRFControllerComponent: OVT_Component
 			Print("[Overthrow.QRFControllerComponent] Counter-attack: the spend hit its pass ceiling with " + m_iResourcesLeft.ToString() + " unspent. This is a safety net, not a design bound - check maxQRF against baseResourceCost.");
 
 		return spent;
+	}
+
+
+	//------------------------------------------------------------------------------------------------
+	// THE MOUNTED ECHELON
+	//
+	// The battle layer does not spawn vehicles (occupying/vehicles D5). Per wave source it stands up a
+	// director-only DEPLOYMENT through the deployment manager, which drives an armed vehicle down real
+	// roads from that source with the same convoy machinery every insertion uses, and holds it at a
+	// standoff point. Everything below is that one decision and its gates.
+	//
+	// ==================================================================================================
+	// 🔴 THE ACCOUNTING, IN ONE PLACE, BECAUSE IT SPANS TWO LEDGERS AND ONLY ONE OF THEM IS OURS.
+	// ==================================================================================================
+	// A wave debits m_OccupyingFaction.m_iResources - the RESERVE - once, at the single site in
+	// SendWave() that lives outside the mode branch. The deployment framework's own COLLECT and RECALL
+	// teardowns credit AddFactionResources - the POOL - which is a different ledger. (Their names are
+	// spelt out in OVT_DeploymentManagerComponent's own headers; they are deliberately not written in
+	// full anywhere in this file, so that grepping it for either is a mechanical guard on the rule
+	// below.) So:
+	//
+	//   * an echelon is created with resourcesInvested = 0. There is nothing for a recall to pay back.
+	//   * its cost is RETURNED from SendMountedEchelon and joins the caller's `allocated`, which joins
+	//     `spent`, which reaches the one existing debit. No second debit, no second clamp.
+	//   * every echelon is DELETED at the end of the battle, never collected and never recalled.
+	//     Collecting one would move money from the reserve into the pool and therefore create it.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Stands up ONE mounted echelon for this battle from `source`, and reports what it committed.
+	//!
+	//! ⚠ THE RETURN VALUE IS THE CALLER'S WHOLE ACCOUNTING OBLIGATION. It is what this call spent, and
+	//! the caller adds it to the same `allocated` its infantry went into. Adding a debit of its own
+	//! would charge the faction twice for one force, which is BUG-027's shape in a new place.
+	//!
+	//! Refuses - returning 0, and saying why at VERBOSE - when the battle has already sent its cap, the
+	//! source is not somewhere a vehicle can drive out of, the remaining slice will not cover the
+	//! config's vehicle budget, the ladder answers no rung inside that budget, there is no road at the
+	//! standoff point, or the deployment manager refuses the creation. A refusal is an ordinary
+	//! outcome of an early campaign on a bad map, not an error.
+	//!
+	//! ⚠ IT TOUCHES NEITHER m_aSpawnQueue NOR ANY OF THE THREE ARRAYS PARALLEL TO IT. BuildSiegeRing()
+	//! runs after SendWave() returns and lays out exactly one ring slot per QUEUED GROUP; an echelon
+	//! that appended itself to the queue would take an infantry group's slot and shift every later
+	//! group onto somebody else's. An echelon is a deployment. It has no slot and needs none.
+	//!
+	//! ⚠ PUBLIC SO THAT THE INITIALISATION TIER CAN DRIVE ONE, exactly as CheckUpdatePoints is.
+	//! \param[in] source Where the wave this echelon belongs to is coming from.
+	//! \param[in] target The objective being fought over.
+	//! \param[in] budget What the wave has left to spend, in resources. Zero or negative refuses.
+	//! \return The resource cost of the rung that was committed, or 0 when nothing was.
+	int SendMountedEchelon(vector source, vector target, int budget)
+	{
+		// ⚠ SERVER ONLY, and stated rather than assumed. OnPostInit returns before it builds m_aEchelons
+		// on a client, so this is also what keeps the teardown list from being null here.
+		if(!m_aEchelons || !Replication.IsServer())
+		{
+			RefuseEchelon("this battle controller is not the server's, so it never built a teardown list");
+			return 0;
+		}
+
+		if(m_iEchelonsSent >= ECHELON_CAP_PER_BATTLE)
+		{
+			RefuseEchelon("this battle has already sent its " + ECHELON_CAP_PER_BATTLE.ToString() + " echelons");
+			return 0;
+		}
+
+		if(IsZeroVector(source))
+		{
+			RefuseEchelon("the wave source is the zero vector, so there is nowhere for one to come from");
+			return 0;
+		}
+
+		if(!IsEchelonSourceReachable(source))
+			return 0;
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if(!deployments)
+		{
+			RefuseEchelon("there is no deployment manager to stand one up with");
+			return 0;
+		}
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(ECHELON_CONFIG_NAME);
+		if(!config)
+		{
+			RefuseEchelon("the deployment registry holds no config named '" + ECHELON_CONFIG_NAME + "'");
+			return 0;
+		}
+
+		OVT_MountedForceSpawningDeploymentModule mounted = FindEchelonMountedTemplate(config);
+		if(!mounted)
+		{
+			RefuseEchelon("'" + ECHELON_CONFIG_NAME + "' authors no mounted force module");
+			return 0;
+		}
+
+		// ⚠ THE BUDGET GATE IS THE CONFIG'S VEHICLE CEILING, NOT THE CHEAPEST RUNG, AND THAT IS
+		// DELIBERATE. The module resolves the ladder AGAIN when it spawns, against m_iTruckCostOverride
+		// and nothing else (occupying/vehicles D4). Pricing here against a smaller number would let this
+		// method charge for a UAZ while the module fielded a BRDM - the reserve short by the difference,
+		// silently, on every echelon. Requiring the whole ceiling makes both resolutions ask the ladder
+		// the identical question and therefore get the identical answer.
+		int vehicleBudget = mounted.m_iTruckCostOverride;
+		if(vehicleBudget <= 0)
+		{
+			RefuseEchelon("'" + ECHELON_CONFIG_NAME + "' authors a vehicle budget of " + vehicleBudget.ToString() + ", which can never resolve a rung");
+			return 0;
+		}
+
+		if(budget < vehicleBudget)
+		{
+			RefuseEchelon("the wave has " + budget.ToString() + " left, under the echelon's vehicle budget of " + vehicleBudget.ToString());
+			return 0;
+		}
+
+		int cost;
+		if(!ResolveEchelonRungCost(mounted, vehicleBudget, cost))
+			return 0;
+
+		vector standoff;
+		if(!ResolveEchelonStandoff(source, target, standoff))
+			return 0;
+
+		int factionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+
+		// ⚠ ZERO INVESTED, AND IT IS NOT AN OVERSIGHT. See the ledger note above: what this costs is
+		// returned to the caller and leaves the RESERVE at the wave's one debit, so there must be
+		// nothing stamped on the deployment for a recall to hand back out of the POOL.
+		OVT_DeploymentComponent echelon = deployments.ForceCreateDeploymentFrom(config, standoff, factionIndex, source, 0);
+		if(!echelon)
+		{
+			RefuseEchelon("the deployment manager refused to create one at " + standoff.ToString());
+			return 0;
+		}
+
+		m_iEchelonsSent++;
+		m_aEchelons.Insert(echelon.GetOwner().GetID());
+
+		Print("[Overthrow.QRFControllerComponent] Mounted echelon " + m_iEchelonsSent.ToString() + " of " + ECHELON_CAP_PER_BATTLE.ToString() + " is driving from " + source.ToString() + " to a standoff at " + standoff.ToString() + " for " + cost.ToString() + " resources");
+
+		return cost;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What a wave source may still spend on an echelon after its infantry has been allocated.
+	//!
+	//! ⚠ CLAMPED AT ZERO. OVT_VehicleLadderRules.RungAffordable treats a NEGATIVE budget as UNBOUNDED,
+	//! and the raw arithmetic really does go negative in ordinary play - the infantry loop spends in
+	//! whole groups and routinely overshoots its slice. SendMountedEchelon's own gate refuses anything
+	//! under the config's vehicle budget and would therefore catch a negative anyway; this is the
+	//! second line rather than the only one, and it is here so that a future caller which hands the
+	//! slice to something else does not inherit a number that means "buy the most expensive thing".
+	//! \param[in] allocated What this source has already committed to infantry.
+	//! \return The remaining slice, never below zero.
+	protected int EchelonSlice(int allocated)
+	{
+		int slice = m_iResourcesLeft - allocated;
+		if(slice < 0) slice = 0;
+
+		return slice;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHETHER A VEHICLE CAN PLAUSIBLY DRIVE OUT OF THIS SOURCE AT ALL (occupying/vehicles D10).
+	//!
+	//! There is no A-to-B land-reachability query anywhere in the engine or in this campaign, and this
+	//! feature invents none. Two statements that DO exist are asked instead: the map author's
+	//! landIsolated flag on the base record, and whether there is a road near the source. A source with
+	//! a road at both ends that is nonetheless unreachable across water still passes both, the crew
+	//! stalls, the insertion module's stuck test fires and THE FORCE WALKS. That is a degradation and
+	//! not a failure, and it is written into the epic's Tech Debt rather than implied by a helper name.
+	//! \param[in] source The wave source.
+	//! \return True when an echelon may be sent from it.
+	protected bool IsEchelonSourceReachable(vector source)
+	{
+		if(m_OccupyingFaction)
+		{
+			OVT_BaseData nearest = m_OccupyingFaction.GetNearestBase(source);
+
+			// ⚠ ONLY WHEN THE RECORD IS ACTUALLY THIS SOURCE. GetNearestBase answers at any distance,
+			// and two wave sources are not bases at all - the occupying faction's forward operating
+			// base, and the "no bases left" placeholder offset from the objective. A distant base's
+			// isolation says nothing about either.
+			if(nearest && vector.Distance(nearest.location, source) <= ECHELON_SOURCE_MATCH_M && nearest.landIsolated)
+			{
+				RefuseEchelon("the source at " + source.ToString() + " is a land-isolated base");
+				return false;
+			}
+		}
+
+		vector roadPosition;
+		vector roadAngles;
+		if(!OVT_WorldUtils.FindNearestRoadSpawn(source, ECHELON_ROAD_SEARCH_M, roadPosition, roadAngles))
+		{
+			RefuseEchelon("no road within " + ECHELON_ROAD_SEARCH_M.ToString() + " m of the source at " + source.ToString());
+			return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the rung this echelon will field costs, asked of the same ladder the module will ask.
+	//! \param[in] mounted The config's mounted module TEMPLATE - the role and the ceiling are read off
+	//!            it rather than restated here, so the two can never drift apart.
+	//! \param[in] vehicleBudget The module's authored vehicle ceiling.
+	//! \param[out] cost The rung's resource cost. Untouched on a false return.
+	//! \return True when the ladder answered a rung.
+	protected bool ResolveEchelonRungCost(notnull OVT_MountedForceSpawningDeploymentModule mounted, int vehicleBudget, out int cost)
+	{
+		if(mounted.m_sVehicleRole.IsEmpty())
+		{
+			RefuseEchelon("'" + ECHELON_CONFIG_NAME + "' authors no ladder role, so there is no rung to price");
+			return false;
+		}
+
+		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
+		if(!faction)
+		{
+			RefuseEchelon("the occupying faction did not resolve");
+			return false;
+		}
+
+		faction.InitializeVehicleRegistry();
+
+		float threat = 0;
+		if(m_OccupyingFaction) threat = m_OccupyingFaction.GetThreatFloat();
+
+		float scale = 1;
+		if(m_Config && m_Config.m_Difficulty) scale = m_Config.m_Difficulty.vehicleThresholdScale;
+
+		OVT_FactionVehicleEntry entry;
+		if(!faction.ResolveVehicleForRole(mounted.m_sVehicleRole, threat, scale, vehicleBudget, entry))
+		{
+			RefuseEchelon("role '" + mounted.m_sVehicleRole + "' answers no rung at threat " + Math.Round(threat).ToString() + " inside a budget of " + vehicleBudget.ToString());
+			return false;
+		}
+
+		cost = entry.m_iCost;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! WHERE AN ECHELON STOPS, which is a different question in each mode.
+	//!
+	//! A standard battle is a wave rolling in from a direction, so the standoff sits on the line from
+	//! the objective out towards the source. A counter-attack is an ENCIRCLEMENT, so it sits on a
+	//! bearing of the ring instead - the same geometry BuildSiegeRing lays the infantry out on, at the
+	//! echelon's own radius.
+	//!
+	//! ⚠ ROAD-SNAPPED IN BOTH MODES, AND THE SNAP IS WHAT MAKES IT A ROADBLOCK. It is also the second
+	//! half of the reachability gate: a standoff with no road near it is somewhere this force could not
+	//! drive to even if it could leave home.
+	//! \param[in] source Where the force sets out from.
+	//! \param[in] target The objective.
+	//! \param[out] standoff A road point to hold. Untouched on a false return.
+	//! \return True when there is somewhere to send it.
+	protected bool ResolveEchelonStandoff(vector source, vector target, out vector standoff)
+	{
+		vector anchor;
+
+		bool anchored;
+		if(m_eMode == OVT_EQRFMode.COUNTER_ATTACK)
+			anchored = SiegeEchelonAnchor(target, anchor);
+		else
+			anchored = LineEchelonAnchor(source, target, anchor);
+
+		if(!anchored)
+			return false;
+
+		vector roadPosition;
+		vector roadAngles;
+		if(!OVT_WorldUtils.FindNearestRoadSpawn(anchor, ECHELON_ROAD_SEARCH_M, roadPosition, roadAngles))
+		{
+			RefuseEchelon("no road within " + ECHELON_ROAD_SEARCH_M.ToString() + " m of the standoff point at " + anchor.ToString());
+			return false;
+		}
+
+		standoff = roadPosition;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The standard mode's standoff: ECHELON_STANDOFF_M out from the objective, on the source's side.
+	//!
+	//! ⚠ NEVER PAST THE SOURCE. A source nearer to the objective than the standoff distance would put
+	//! the point BEHIND the men who are driving to it, and the echelon would set off away from the
+	//! battle. It is pulled in to half the separation instead, which always leaves a real drive.
+	//!
+	//! ⚠ THE HEIGHT IS NOT CORRECTED HERE. The road snap in the caller replaces it with the road's own
+	//! surface height, which is the only Y an echelon ever uses.
+	//! \param[in] source Where the force sets out from.
+	//! \param[in] target The objective.
+	//! \param[out] anchor The point to look for a road near.
+	//! \return True unless the source is standing on the objective.
+	protected bool LineEchelonAnchor(vector source, vector target, out vector anchor)
+	{
+		vector line = source - target;
+		line[1] = 0;
+
+		float span = line.Length();
+		if(span < 1)
+		{
+			RefuseEchelon("the source is on top of the objective, so there is no line to stand off along");
+			return false;
+		}
+
+		line.Normalize();
+
+		float standoffDistance = ECHELON_STANDOFF_M;
+		float half = span * 0.5;
+		if(half < standoffDistance) standoffDistance = half;
+
+		anchor = target + (line * standoffDistance);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The counter-attack's standoff: a bearing of the encirclement, at the echelon's own radius.
+	//!
+	//! ⚠ THE SLOT COUNT IS THE CAP AND NOT THE LIVE COUNT. RingSlotOffset's own header records why: a
+	//! count that grows collapses the ring, because "slot 0 of 1" and "slot 0 of 2" are the same
+	//! direction. Asking for slot N of ECHELON_CAP_PER_BATTLE puts the two echelons on opposite sides
+	//! of the objective from the first one onwards.
+	//!
+	//! ⚠ A WET SLOT IS WALKED INWARD, exactly as BuildSiegeRing walks its infantry slots in, so the
+	//! bearing - which is what makes a ring a ring - survives a coastal objective. What is NOT copied
+	//! is that method's last resort of falling back to the objective's own centre: a vehicle standing
+	//! ON the objective is not a standoff, it is an assault, so this refuses instead.
+	//! \param[in] target The objective being besieged.
+	//! \param[out] anchor The point to look for a road near.
+	//! \return True when a dry bearing was found.
+	protected bool SiegeEchelonAnchor(vector target, out vector anchor)
+	{
+		float radius = ECHELON_STANDOFF_M;
+		vector slot = target + OVT_QRFSiege.RingSlotOffset(m_iEchelonsSent, ECHELON_CAP_PER_BATTLE, radius);
+
+		int attempts = 0;
+		while(OVT_WorldUtils.IsOceanAtPosition(slot) && attempts < SIEGE_RING_INWARD_ATTEMPTS)
+		{
+			attempts++;
+
+			radius = radius - SIEGE_RING_INWARD_STEP;
+			if(radius < SIEGE_RING_INWARD_FLOOR) radius = SIEGE_RING_INWARD_FLOOR;
+
+			slot = target + OVT_QRFSiege.RingSlotOffset(m_iEchelonsSent, ECHELON_CAP_PER_BATTLE, radius);
+		}
+
+		if(OVT_WorldUtils.IsOceanAtPosition(slot))
+		{
+			RefuseEchelon("ring slot " + m_iEchelonsSent.ToString() + " is in the sea all the way in");
+			return false;
+		}
+
+		anchor = slot;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The echelon's deployment config.
+	//! \return Its mounted force module TEMPLATE, or null when it authors none. The template, not a
+	//! clone: this is asked BEFORE any deployment exists, only ever read, and never written to.
+	protected OVT_MountedForceSpawningDeploymentModule FindEchelonMountedTemplate(notnull OVT_DeploymentConfig config)
+	{
+		if(!config.m_aModules)
+			return null;
+
+		foreach(OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			OVT_MountedForceSpawningDeploymentModule mounted = OVT_MountedForceSpawningDeploymentModule.Cast(module);
+			if(mounted)
+				return mounted;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Says why no echelon was sent. VERBOSE because every one of these is an ordinary outcome - an
+	//! early campaign, a map with no roads at the source, a wave that spent its budget on men - and a
+	//! battle asks this question once per source per pass.
+	//! \param[in] reason What refused it.
+	protected void RefuseEchelon(string reason)
+	{
+		Print("[Overthrow.QRFControllerComponent] No mounted echelon: " + reason, LogLevel.VERBOSE);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! TAKES EVERY ECHELON THIS BATTLE CREATED OFF THE MAP. Subscribed to m_OnFinished in OnPostInit
+	//! and called again from OnDelete.
+	//!
+	//! ==================================================================================================
+	//! 🔴 DELETE, NEVER COLLECT AND NEVER RECALL. IT IS AN ACCOUNTING RULE, NOT A TIDINESS ONE.
+	//! ==================================================================================================
+	//! The deployment manager's COLLECT and RECALL teardowns both credit AddFactionResources - the
+	//! deployment POOL. A wave debits m_OccupyingFaction.m_iResources - the RESERVE. An echelon paid
+	//! for out of the reserve and then collected would land its refund in the other ledger, so the
+	//! faction would end the battle with more money than it started with, once per echelon, for ever.
+	//! DeleteDeployment() pays nothing, which is exactly right: the money was genuinely spent.
+	//!
+	//! ⚠ NEITHER OF THE OTHER TWO METHOD NAMES APPEARS ANYWHERE IN THIS FILE, in code or in prose, so
+	//! that grepping it for them is a mechanical guard rather than a reading exercise.
+	//!
+	//! IDEMPOTENT. The list is cleared here, so the OnDelete call that follows an ordinary finish tears
+	//! nothing down a second time.
+	void TearDownEchelons()
+	{
+		if(!m_aEchelons || m_aEchelons.IsEmpty()) return;
+
+		BaseWorld world = GetGame().GetWorld();
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+
+		int torn = 0;
+
+		if(world && deployments)
+		{
+			foreach(EntityID id : m_aEchelons)
+			{
+				IEntity entity = world.FindEntityByID(id);
+				if(!entity) continue;
+
+				OVT_DeploymentComponent echelon = OVT_DeploymentComponent.Cast(entity.FindComponent(OVT_DeploymentComponent));
+				if(!echelon) continue;
+
+				deployments.DeleteDeployment(echelon);
+				torn++;
+			}
+		}
+
+		m_aEchelons.Clear();
+
+		Print("[Overthrow.QRFControllerComponent] The battle is over: " + torn.ToString() + " mounted echelon(s) deleted (never collected - a collection would credit the deployment pool for money the war chest paid)");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return How many echelons this battle has stood up.
+	int GetEchelonsSent()
+	{
+		return m_iEchelonsSent;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return How many echelon deployments are still recorded for teardown.
+	int GetLiveEchelonCount()
+	{
+		if(!m_aEchelons) return 0;
+
+		return m_aEchelons.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One recorded echelon, resolved through its id.
+	//! \param[in] index Which one, in creation order.
+	//! \return The deployment, or null when the index is out of range or the entity is already gone.
+	OVT_DeploymentComponent GetEchelon(int index)
+	{
+		if(!m_aEchelons || index < 0 || index >= m_aEchelons.Count()) return null;
+
+		BaseWorld world = GetGame().GetWorld();
+		if(!world) return null;
+
+		IEntity entity = world.FindEntityByID(m_aEchelons[index]);
+		if(!entity) return null;
+
+		return OVT_DeploymentComponent.Cast(entity.FindComponent(OVT_DeploymentComponent));
 	}
 
 	protected int SpawnTroops(vector pos, vector targetPos)

@@ -31,8 +31,8 @@ GenericEntity : "{2660E3988DF90EBB}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
   }
   SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
    m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
-    Name "#OVT-Place_AmmoBox"
-    Description "#OVT-Place_AmmoBox_Description"
+    Name "#OVT-Place_EquipmentBox"
+    Description "#OVT-Place_EquipmentBox_Description"
    }
    m_Flags PLACEABLE
   }

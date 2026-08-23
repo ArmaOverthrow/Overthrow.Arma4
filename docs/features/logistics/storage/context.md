@@ -1,7 +1,7 @@
 # Storage (logistics/storage) — Context & Decisions
 
 **Last Updated:** 2026-08-23
-**Current Phase:** ✅ **CLOSED 2026-08-21** — one post-close change 2026-08-23 (loot → ledger, § below)
+**Current Phase:** ✅ **CLOSED 2026-08-21** — two post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger, §§ below)
 **Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
 
@@ -126,6 +126,62 @@ is an unproven one.
 **Left alone, still dead:** `OVT_InventoryManagerComponent.LootBattlefieldIntoVehicle` /
 `StartBattlefieldLooting` / `ProcessBattlefieldLoot` / `LootBodyItems` / `ExtractItemsFromClothing`
 (~150 lines, zero callers since Phase 8, filters by class-name string). A deletion candidate.
+
+---
+
+## Post-close change 2026-08-23 (b) — Sell Cargo Here sells the LEDGER
+
+User call: *"the 'sell all' action from vehicles is still using base game inventory, needs to sell
+from storage now"*. `OVT_SellVehicleCargoAction` was the last shipped flow still reading vanilla
+cargo entities — Phase 8 rerouted Load/Unload/Loot/import but left the trunk sale alone.
+
+**What changed**
+
+1. **`RpcAsk_SellVehicleCargo` sells out of `OVT_StorageComponent`'s ledger.** The
+   `GetVehicleCargoStorage` null-gate and the `CollectCargoItems` scan are gone; the RPC resolves
+   `OVT_StorageUtils.GetStorage(vehicle)` and calls a new `ExecuteSellLedger`. Every gate ahead of it
+   (range, shop buys, lock/ownership, driver seat) is unchanged.
+2. **`ExecuteSellLedger` is a second routine, not a branch inside `ExecuteSell`.** The two disagree
+   about what a *unit* is: `ExecuteSell` prices entities and destroys them one `TryDeleteItem` at a
+   time, so it needs the delete-then-count discipline and the `HasStoredContents` container guard. A
+   ledger line is `(prefab, count)` with no entity to delete and no container to walk — `ledger.Take`
+   is the commit and cannot partially fail, so both guards have nothing to act on. Folding them
+   together would have meant a routine where half the body is inapplicable on either path.
+3. **Everything that decides MONEY is shared and identical.** Same `ResolvePricingResource` → id
+   (R7), same `ResourceIsAccepted`, same per-unit marginal pricing down the scarcity curve
+   (BUG-117), same `CanTownAbsorbStock` cap, same restock, same `m_OnPlayerSell` /
+   `m_OnPlayerTransaction`. A truckload sold out of a ledger earns exactly what the same items earn
+   out of a trunk. The shared tail is now `SettleSale()` and the town lookup is now
+   `ResolveShopTownId()`, both called by *both* routines so they cannot drift.
+4. **The ledger loop still prices unit by unit.** It looks like it could sell a line in one step, but
+   the price *falls* with each unit already sold this call, so a per-line price would overpay a bulk
+   dump. Both break conditions (the town cap refusing a unit, the price reaching zero) end the line —
+   past that point every further unit of that id gives the same answer.
+5. **`storage.PublishCount()` after a successful sale**, so every client's action label and count
+   follow the sale. Missing this leaves the pre-sale number on screen until something else bumps it.
+6. **The action's `VehicleHasCargo` reads `GetTotalCount() > 0`** instead of scanning entities — the
+   same ledger the server sells out of, so the offer and the sale agree.
+
+**Behaviour narrowed, deliberately:** items lying loose in the vanilla cargo bed are **no longer
+sold** by this action. They are moved into storage through the transfer screen (Transfer all to
+storage) first. This is the same narrowing the loot change made and follows from the same rule — the
+bed is where withdrawals land, the ledger is what the mod owns.
+
+**No `.st` change, so no re-export owed.** Grepped: no Field Manual or tutorial entry describes what
+the trunk sale enumerates, only `#OVT-SellCargoHere` (the label) and the three result hints, all
+still accurate.
+
+**Gate:** `compile-check.sh` exit 0 (6340 files). 🔴 **No suite ran** — the harness refused
+`tools/run-tests.sh` (auto-mode classifier), the same block `resource-production` hit. Nothing here
+has automated coverage either way: the sell path has never had a test above `OVT_ShopSellRules`'
+pure-rule cases, and `ExecuteSellLedger` needs an economy manager, so it is not Logic-tier testable.
+
+**Owed:** a play-test — park a stocked truck at a general shop, sell, and check the money, the
+action label, the shop's restocked stock and the town's absorption cap over a bulk dump.
+
+**Now dead:** `OVT_SellableItemScanner.CollectCargoItems` and `GetVehicleCargoStorage` have zero
+callers (verified by grep). Left in place — the scanner is still live for the character path — but
+they join PC9's deletion question.
 
 ---
 

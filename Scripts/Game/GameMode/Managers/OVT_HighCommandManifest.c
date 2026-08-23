@@ -175,12 +175,11 @@ class OVT_HighCommandManifest : Managed
 			if (!source || source.m_iNeeded <= 0)
 				continue;
 
-			// REGISTRATION BEFORE EVERY LOOKUP - an unregistered prefab indexes to id 0, which is some
-			// other item's price, and GetPrice() answers 500 for an id it has never heard of.
-			if (!economy.IsRegisteredResource(source.m_sResource))
+			// Registered, inherited or classified - only a prefab no route can price is omitted
+			// (GetBuyPriceForPrefab never indexes an unregistered name to id 0).
+			int unitPrice = economy.GetBuyPriceForPrefab(source.m_sResource, pos, playerId);
+			if (unitPrice < 0)
 				continue;
-
-			int unitPrice = economy.GetBuyPrice(economy.GetInventoryId(source.m_sResource), pos, playerId);
 
 			OVT_ItemSourcingLine line = new OVT_ItemSourcingLine();
 			line.m_sResource = source.m_sResource;

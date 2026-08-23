@@ -2700,12 +2700,14 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//! \return Dollars per item, or 0 when the port refuses it.
 	protected int ResolveExportUnitPrice(OVT_EconomyManagerComponent economy, OVT_PlayerData player, vector pos, string res)
 	{
-		if (!economy.IsRegisteredResource(res))
+		// An uncatalogued variant exports as the registered prefab it inherits.
+		ResourceName pricing = economy.ResolvePricingResource(res);
+		if (pricing.IsEmpty())
 			return 0;
 
-		int id = economy.GetInventoryId(res);
+		int id = economy.GetInventoryId(pricing);
 
-		bool soldAtShop = economy.IsSoldAtAnyNonVehicleShop(res);
+		bool soldAtShop = economy.IsSoldAtAnyNonVehicleShop(pricing);
 
 		int minShopBuyPrice = -1;
 		if (soldAtShop)

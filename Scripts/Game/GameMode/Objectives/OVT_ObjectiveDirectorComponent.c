@@ -116,11 +116,13 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 	//! THE HARASSMENT GROUP LADDER, one registered deployment config per rung, in ascending order.
 	//!
-	//! ⚠ The ramp is carried by four thin registry VARIANTS of one config, not by a per-create group
-	//! override. Every rung is the same Deployment_ObjectiveHarassment.conf inherited with a different
-	//! m_sGroupType, cost and name. A director-side override applied after the create would be a
-	//! second way of deciding what a deployment contains, invisible to everything that reads a config
-	//! - the evaluator's cost model, the Game Master panel, the reinforcement rebuy and the save.
+	//! ⚠ The ramp is carried by CONFIGS, not by a per-create group override. The first four rungs are
+	//! thin registry variants of one file, Deployment_ObjectiveHarassment.conf, inherited with a
+	//! different m_sGroupType, cost and name; the fifth is its own file because it swaps the spawning
+	//! module itself, which a registry delta cannot do. A director-side override applied after the
+	//! create would be a second way of deciding what a deployment contains, invisible to everything
+	//! that reads a config - the evaluator's cost model, the Game Master panel, the reinforcement
+	//! rebuy and the save.
 	//!
 	//! ⚠ The names are the keys and are matched BY STRING three times each: FindConfigByName() resolves
 	//! the rung, GetDeploymentNearPosition() and the concurrency count match live deployments back to
@@ -130,11 +132,22 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//!
 	//! ⚠ ORDER IS THE RAMP. HarassmentLadderIndex indexes straight into this, saturating at the top
 	//! rung; reordering it re-tunes the whole escalation.
+	//!
+	//! ⚠ THE TOP RUNG SATURATES, SO IT IS THE ONE THAT RUNS FOREVER, and that is why the mounted rung
+	//! is last and why it still authors a town harassment behaviour of its own. A top rung that did
+	//! not push support down would stall the ramp at the phase gate the moment it was reached: the
+	//! forward-base phase opens on the town's support falling, and after four successes every
+	//! subsequent operation is this one.
+	//!
+	//! ⚠ THE FIFTH RUNG ESCALATES BY VEHICLE, NOT BY GROUP. It fields the same light fireteam as rung
+	//! two, in an armed vehicle picked off the faction's threat ladder, so "each rung fields a bigger
+	//! group than the last" stops being true here on purpose.
 	static const ref array<string> HARASSMENT_LADDER = {
 		"Objective Harassment (Patrol)",
 		"Objective Harassment (Fireteam)",
 		"Objective Harassment (Rifle Squad)",
-		"Objective Harassment (Heavy)"
+		"Objective Harassment (Heavy)",
+		"Objective Harassment (Mounted)"
 	};
 
 	//! The one recapture config, by name. Same string-matching hazard as the ladder above.

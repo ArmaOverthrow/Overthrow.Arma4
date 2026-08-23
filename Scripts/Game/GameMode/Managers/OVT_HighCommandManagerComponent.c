@@ -522,13 +522,14 @@ class OVT_HighCommandManagerComponent : OVT_Component
 			return 0;
 		}
 
-		if (!economy.IsRegisteredResource(vehiclePrefab))
+		int price = economy.GetBuyPriceForPrefab(vehiclePrefab, pos, playerId);
+		if (price < 0)
 		{
-			WarnUnpriceableVehicle(vehiclePrefab, "is not a registered economy resource");
+			WarnUnpriceableVehicle(vehiclePrefab, "is not a registered economy resource and inherits none");
 			return 0;
 		}
 
-		return economy.GetBuyPrice(economy.GetInventoryId(vehiclePrefab), pos, playerId);
+		return price;
 	}
 
 	//------------------------------------------------------------------------------------------------

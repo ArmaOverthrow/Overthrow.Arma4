@@ -4,9 +4,9 @@
 //! A gun dealer's panel answers "is it worth walking to this one?", and top-N price carets cannot
 //! answer that. What this dealer STOCKS can.
 //!
-//! Of everything a dealer carries, exactly four ids are per-dealer picks - one RIFLE, one
-//! SNIPER_RIFLE, one MACHINE_GUN and one ROCKET_LAUNCHER, each rolled by m_bSingleRandomItem
-//! (OVT_TownController.c:303-325). Every pistol (including occupying-faction ones), all ammunition,
+//! Of everything a dealer carries, only a handful of ids are per-dealer picks - one RIFLE, one
+//! SNIPER_RIFLE, one MACHINE_GUN and one ROCKET_LAUNCHER, plus one WEAPON_VARIANTS roll each for
+//! rifle/sniper/MG, each rolled by m_bSingleRandomItem (OVT_TownController.c:288-310). Every pistol (including occupying-faction ones), all ammunition,
 //! every attachment, throwable and explosive is IDENTICAL AT EVERY DEALER, so listing them would pad
 //! the panel with rows that read the same everywhere and bury the four that differ.
 //!

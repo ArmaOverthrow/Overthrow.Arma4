@@ -44,7 +44,15 @@
 
 //------------------------------------------------------------------------------------------------
 //! Every rung of the ramp, and the recapture config, is registered, valid, correctly ordered and
-//! names a group both factions can actually field.
+//! names a group both factions can actually field - plus the FIFTH rung's own claims, which are
+//! different in kind from the other four's.
+//!
+//! ⚠ THE MOUNTED RUNG BREAKS THE "EVERY RUNG IS A BIGGER GROUP" RULE ON PURPOSE. It fields the same
+//! light fireteam as rung two and escalates by VEHICLE instead, so the distinctness check is skipped
+//! for it and three claims nothing else can make are checked in its place: that it is LAST (the ladder
+//! index saturates at the top rung), that its authored vehicle budget actually buys an armed vehicle in
+//! both shipped registries at threat 0, and that it carries a mobile checkpoint behaviour with a sane
+//! band. Every one of those fails SILENTLY: the operation still lands, with an unarmed truck.
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
@@ -57,6 +65,12 @@
 //!       Fails on "must be authored before the reinforcement module".
 //!   A5. The recapture config's `m_bRequireControl` set to 1. Fails on "must be authored with
 //!       m_bRequireControl 0".
+//!   A6. `"Objective Harassment (Mounted)"` moved above `"(Heavy)"` in HARASSMENT_LADDER. Fails on
+//!       "has to be the LAST one".
+//!   A7. `m_iTruckCostOverride` on the mounted rung dropped to 10. Fails on "answers NO rung for role
+//!       'armed' at threat 0".
+//!   A8. The mobile checkpoint module removed from the mounted rung's `.conf`. Fails on "authors no
+//!       mobile checkpoint behaviour".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_AutotestCaseBase
@@ -82,7 +96,7 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 			return true;
 		}
 
-		Print("Objective operations: four harassment rungs and the tower recapture config are registered, valid, ordered behaviour-before-reinforcement, and every rung fields a distinct group both factions have");
+		Print("Objective operations: every harassment rung and the tower recapture config are registered, valid and ordered behaviour-before-reinforcement; each infantry rung fields a distinct group both factions have; and the ladder ends in exactly one mounted rung whose budget buys an armed vehicle in both registries at threat 0");
 
 		return true;
 	}
@@ -93,6 +107,8 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 	protected string CheckLadder(notnull OVT_DeploymentManagerComponent deployments)
 	{
 		array<string> groupTypes = new array<string>();
+
+		int mountedRungs = 0;
 
 		int rungs = OVT_ObjectiveDirectorComponent.HARASSMENT_LADDER.Count();
 		if (rungs < 2)
@@ -134,15 +150,125 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 			if (!insertion.m_Source)
 				return string.Format("the harassment rung '%1' authors no source provider, so its insertion module registers nothing at all", name);
 
-			if (groupTypes.Contains(insertion.m_sGroupType))
-				return string.Format("two rungs of the ladder field the same group ('%1') - rung %2 is not an escalation",
-					insertion.m_sGroupType, rung.ToString());
+			// ⚠ THE MOUNTED RUNG ESCALATES BY VEHICLE, NOT BY GROUP, so it is deliberately exempt from
+			// the distinctness rule below - it fields the same light fireteam as rung two. Its own
+			// escalation claim is checked instead, and it is a stronger one.
+			OVT_MountedForceSpawningDeploymentModule mounted = OVT_MountedForceSpawningDeploymentModule.Cast(insertion);
+			if (mounted)
+			{
+				mountedRungs = mountedRungs + 1;
 
-			groupTypes.Insert(insertion.m_sGroupType);
+				if (rung != rungs - 1)
+					return string.Format("the mounted rung '%1' is rung %2 of %3 and has to be the LAST one. The ladder index SATURATES at the top rung, so a mounted rung authored anywhere else would be stepped back down to an infantry rung by every operation after it",
+						name, rung.ToString(), rungs.ToString());
+
+				string mountedFailure = CheckMountedRung(config, mounted, name);
+				if (mountedFailure != "")
+					return mountedFailure;
+			}
+			else
+			{
+				if (groupTypes.Contains(insertion.m_sGroupType))
+					return string.Format("two rungs of the ladder field the same group ('%1') - rung %2 is not an escalation",
+						insertion.m_sGroupType, rung.ToString());
+
+				groupTypes.Insert(insertion.m_sGroupType);
+			}
 
 			string resolvable = CheckGroupResolves(insertion.m_sGroupType);
 			if (resolvable != "")
 				return resolvable;
+		}
+
+		if (mountedRungs != 1)
+			return string.Format("the harassment ladder carries %1 mounted rung(s). It must carry exactly one: none and the escalation this feature exists for never appears on the ground, two and the top of the ramp is decided by which of them the registry happened to order last",
+				mountedRungs.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE FIFTH RUNG'S OWN CLAIMS - the ones no other rung can make and no `.conf` can carry a comment
+	//! about.
+	//!
+	//! ⚠ THE BUDGET CLAIM IS THE ONE THAT GOES WRONG SILENTLY. m_iTruckCostOverride is a CEILING the
+	//! ladder pick has to fit under (D4), and it is charged from the config TEMPLATE before any faction
+	//! is known - so a rung authored under the cheapest armed vehicle either faction fields resolves NO
+	//! rung at all, falls back to m_sTruckVehicleType, and quietly sends an unarmed truck to do the one
+	//! job this whole feature exists for. Nothing warns; the operation still lands.
+	//! \param[in] config The rung's config.
+	//! \param[in] mounted Its mounted spawning module.
+	//! \param[in] name The rung's registered name, for the message.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckMountedRung(notnull OVT_DeploymentConfig config,
+		notnull OVT_MountedForceSpawningDeploymentModule mounted, string name)
+	{
+		if (mounted.m_sVehicleRole == "")
+			return string.Format("the mounted rung '%1' authors no vehicle role, so its module skips the ladder entirely and fields whatever m_sTruckVehicleType names - an unarmed truck", name);
+
+		if (mounted.m_sTruckVehicleType == "")
+			return string.Format("the mounted rung '%1' authors an empty m_sTruckVehicleType. That is NOT 'use the ladder': the parent's SpawnTruck() refuses on an empty one BEFORE it asks for a prefab, so the force would never put a vehicle on the road at all", name);
+
+		if (mounted.m_bDismountOnArrival)
+			return string.Format("the mounted rung '%1' authors m_bDismountOnArrival - the force would be dropped at the landing zone and the vehicle sent home, so there would be no checkpoint and no gun", name);
+
+		string budget = CheckLadderFitsTheBudget(mounted, name);
+		if (budget != "")
+			return budget;
+
+		string ordering = CheckBehaviourBeforeReinforcement(config, OVT_MobileCheckpointBehaviorDeploymentModule);
+		if (ordering != "")
+			return ordering;
+
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			OVT_MobileCheckpointBehaviorDeploymentModule checkpoint = OVT_MobileCheckpointBehaviorDeploymentModule.Cast(module);
+			if (!checkpoint)
+				continue;
+
+			if (checkpoint.m_fApproachMinDistance <= 0 || checkpoint.m_fApproachMaxDistance < checkpoint.m_fApproachMinDistance)
+				return string.Format("the mounted rung '%1' authors an approach band of %2..%3 m. A collapsed or inverted band puts the checkpoint on the objective instead of on the road into it",
+					name, checkpoint.m_fApproachMinDistance.ToString(), checkpoint.m_fApproachMaxDistance.ToString());
+
+			if (checkpoint.m_fRoadSearchRadius <= 0)
+				return string.Format("the mounted rung '%1' authors a road search radius of %2 - no bearing would ever have a road inside it, so no checkpoint is ever established and the infantry stays aboard until the patience clock lets it out",
+					name, checkpoint.m_fRoadSearchRadius.ToString());
+
+			return "";
+		}
+
+		return string.Format("the mounted rung '%1' authors no mobile checkpoint behaviour, so its armed vehicle would sit wherever the insertion happened to stop and never cover a road", name);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! That the authored vehicle budget actually buys an armed vehicle, in BOTH shipped registries, at
+	//! a threat of zero - which is the campaign's first minute and the hardest case for the ladder.
+	//! \param[in] mounted The rung's mounted spawning module.
+	//! \param[in] name The rung's registered name, for the message.
+	//! \return An empty string when both registries answer a rung, or why one did not.
+	protected string CheckLadderFitsTheBudget(notnull OVT_MountedForceSpawningDeploymentModule mounted, string name)
+	{
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return "OVT_Global.GetFactions() is null - the faction registries are not loaded";
+
+		array<string> factionKeys = {"US", "USSR"};
+
+		foreach (string factionKey : factionKeys)
+		{
+			OVT_Faction faction = factions.GetOverthrowFactionByKey(factionKey);
+			if (!faction)
+				return string.Format("there is no Overthrow faction config for '%1', so the mounted rung's budget could not be checked against it", factionKey);
+
+			faction.InitializeVehicleRegistry();
+
+			OVT_FactionVehicleEntry entry;
+			if (!faction.ResolveVehicleForRole(mounted.m_sVehicleRole, 0, 1, mounted.m_iTruckCostOverride, entry))
+				return string.Format("the %1 registry answers NO rung for role '%2' at threat 0 inside the mounted rung's budget of %3. The module would fall back to its named vehicle type and send an unarmed truck, with one NORMAL log line as the only symptom",
+					factionKey, mounted.m_sVehicleRole, mounted.m_iTruckCostOverride.ToString());
+
+			if (!entry || entry.m_sVehiclePrefab.IsEmpty())
+				return string.Format("the %1 registry's answer for role '%2' names no prefab at all", factionKey, mounted.m_sVehicleRole);
 		}
 
 		return "";
@@ -486,6 +612,8 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 			failure = CheckRecaptureClone();
 		if (failure == "")
 			failure = CheckConditionClone();
+		if (failure == "")
+			failure = CheckCheckpointClone();
 
 		if (failure != "")
 		{
@@ -493,7 +621,7 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 			return true;
 		}
 
-		Print("Objective operation modules: the harassment, recapture and objective condition clones all carry every authored attribute, and neither latch is copied");
+		Print("Objective operation modules: the harassment, recapture, objective condition and mobile checkpoint clones all carry every authored attribute, and neither latch is copied");
 
 		return true;
 	}
@@ -614,6 +742,56 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 		if (clone.m_fMaxDistanceFromObjective != source.m_fMaxDistanceFromObjective)
 			return string.Format("the objective condition clone dropped m_fMaxDistanceFromObjective: %1, expected %2 - it would refuse every position but the objective's exact centre",
 				clone.m_fMaxDistanceFromObjective.ToString(), source.m_fMaxDistanceFromObjective.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The mobile checkpoint's six.
+	//!
+	//! ⚠ EVERY PROBE VALUE IS DIFFERENT FROM WHAT `new` PRODUCES, which for this module is 0 and "".
+	//! [Attribute] defvalues do NOT apply to a hand-built instance, so a probe value that happened to
+	//! match a fresh field would prove nothing at all - a dropped copy line and a correct one would read
+	//! identically. That is why m_iRelocateMinutes is 7 rather than 0 and why the band is authored the
+	//! wrong way round from the shipped one.
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckCheckpointClone()
+	{
+		OVT_MobileCheckpointBehaviorDeploymentModule source = new OVT_MobileCheckpointBehaviorDeploymentModule();
+
+		source.m_sModuleName = "fixture checkpoint";
+		source.m_fApproachMinDistance = 211;
+		source.m_fApproachMaxDistance = 417;
+		source.m_fRoadSearchRadius = 83;
+		source.m_iRelocateMinutes = 7;
+		source.m_fCheckpointSpread = 31;
+
+		OVT_MobileCheckpointBehaviorDeploymentModule clone = OVT_MobileCheckpointBehaviorDeploymentModule.Cast(source.CloneModule());
+		if (!clone)
+			return "the mobile checkpoint module's CloneModule did not return a module of its own type - every deployment running that config would get the wrong class";
+
+		if (clone.m_sModuleName != source.m_sModuleName)
+			return "the mobile checkpoint clone dropped m_sModuleName";
+
+		if (clone.m_fApproachMinDistance != source.m_fApproachMinDistance)
+			return string.Format("the mobile checkpoint clone dropped m_fApproachMinDistance: %1, expected %2 - the band collapses towards zero and the checkpoint is set up ON the objective instead of on the road into it",
+				clone.m_fApproachMinDistance.ToString(), source.m_fApproachMinDistance.ToString());
+
+		if (clone.m_fApproachMaxDistance != source.m_fApproachMaxDistance)
+			return string.Format("the mobile checkpoint clone dropped m_fApproachMaxDistance: %1, expected %2 - the same collapse from the other end",
+				clone.m_fApproachMaxDistance.ToString(), source.m_fApproachMaxDistance.ToString());
+
+		if (clone.m_fRoadSearchRadius != source.m_fRoadSearchRadius)
+			return string.Format("the mobile checkpoint clone dropped m_fRoadSearchRadius: %1, expected %2 - a radius of zero means no bearing ever has a road inside it, so no checkpoint is ever established and the infantry rides until the patience clock lets it out",
+				clone.m_fRoadSearchRadius.ToString(), source.m_fRoadSearchRadius.ToString());
+
+		if (clone.m_iRelocateMinutes != source.m_iRelocateMinutes)
+			return string.Format("the mobile checkpoint clone dropped m_iRelocateMinutes: %1, expected %2 - zero is the authored way of saying 'park and never roam', so a dropped line turns every roaming checkpoint into a static one and nothing warns",
+				clone.m_iRelocateMinutes.ToString(), source.m_iRelocateMinutes.ToString());
+
+		if (clone.m_fCheckpointSpread != source.m_fCheckpointSpread)
+			return string.Format("the mobile checkpoint clone dropped m_fCheckpointSpread: %1, expected %2 - the whole dismounted section would be put down on one spot",
+				clone.m_fCheckpointSpread.ToString(), source.m_fCheckpointSpread.ToString());
 
 		return "";
 	}
@@ -901,7 +1079,7 @@ class OVT_TEST_Init_ObjectiveOperations_ModifierIsLastAndStacks : SCR_AutotestCa
 //! "nowhere". See OVT_DeploymentConfig.IsSelectableByEvaluator().
 //!
 //! THREE CLAIMS:
-//!   1. All EIGHT director-owned configs resolve. The four harassment rungs and the FOB pair are easy to
+//!   1. EVERY director-owned config resolves. The harassment rungs and the FOB pair are easy to
 //!      forget when a new one is added.
 //!   2. Every one of them is director-only. A rung added to overthrowDeployments.conf without the flag
 //!      is bought by the evaluator on the next 30 s pass, at some place the director never chose.
@@ -916,7 +1094,7 @@ class OVT_TEST_Init_ObjectiveOperations_ModifierIsLastAndStacks : SCR_AutotestCa
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; each exited tools/compile-check.sh
 //! 0, and the subject was restored and re-compiled clean):
 //!   D1. `m_bDirectorOnly 1` removed from Deployment_ObjectiveHarassment.conf. Fails on "is not marked
-//!       director-only" for all four rungs, which inherit it from that file.
+//!       director-only" for the four rungs that inherit it from that file.
 //!   D2. `m_bDirectorOnly 1` added to Deployment_TownPatrol.conf. Fails on "'Town Patrol' is marked
 //!       director-only but the objective director never sends it".
 //!   D3. `IsSelectableByEvaluator()` returning `m_bDirectorOnly` rather than its negation. Fails both
@@ -958,7 +1136,7 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 	//! Every config name the objective director creates by hand, read off the director's own constants
 	//! rather than re-typed here - a rung renamed in one place and not the other is a different case's
 	//! job (case A), and duplicating the list would hide it from both.
-	//! \return The eight names.
+	//! \return Every director-owned name: the whole harassment ladder plus the four singletons.
 	protected array<string> CollectDirectorOwnedNames()
 	{
 		array<string> directorOwned = new array<string>();
@@ -1025,7 +1203,7 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 //! half nothing else can see.
 //!
 //! WHAT WENT WRONG, AND WHY A CONFIG FILE IS THE ONLY PLACE IT SHOWS. All six Phase 1 configs - the
-//! four harassment rungs, tower recapture and sabotage - authored
+//! every harassment rung, tower recapture and sabotage - authored
 //! OVT_ObjectiveConditionDeploymentModule with `m_sFromPhase "Harassment"` and nothing else, and the module
 //! compared with ==. BasePhase2Gate() promotes a base objective on its FIRST completed sabotage
 //! mission, and BasePhase3Gate() demands six of them on Easy; so the promotion made the remaining five
@@ -1067,14 +1245,14 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
 //!   P1. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveSabotage.conf - the pre-fix authoring.
 //!       Fails on "'Objective Sabotage' must span the forward-base phase".
-//!   P2. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveHarassment.conf, which all four rungs
+//!   P2. `m_sThroughPhase "ForwardBase"` deleted from Deployment_ObjectiveHarassment.conf, which the first four rungs
 //!       inherit. Fails on the same claim for the first rung walked, 'Objective Harassment (Patrol)'.
 //!   P3. `m_sThroughPhase "CounterAttack"` authored on Deployment_ObjectiveTowerRecapture.conf. Fails on "must
 //!       reach the counter-attack phase".
 //!   P4. `m_sFromPhase "ForwardBase"` authored on Deployment_ObjectiveSabotage.conf. Fails on "must be
 //!       creatable during harassment".
 //!   P5. m_Source on Deployment_ObjectiveHarassment.conf reverted to
-//!       OVT_NearestControlledBaseSourceProvider - the pre-fix authoring, inherited by all four rungs.
+//!       OVT_NearestControlledBaseSourceProvider - the pre-fix authoring, inherited by the first four rungs.
 //!       Fails on "must be sourced from the forward base" for the first rung walked.
 //! No polling, no waiting, no world state touched, no maxAttempts.
 //------------------------------------------------------------------------------------------------
@@ -1095,7 +1273,9 @@ class OVT_TEST_Init_ObjectiveOperations_RampSpansTheForwardBasePhaseAndLaunchesF
 		array<string> rampConfigs = CollectRampConfigNames();
 
 		// The ladder is read off the director's own constant, so a rung deleted there would silently
-		// shrink what this case checks. Six is four rungs plus recapture plus sabotage.
+		// shrink what this case checks. Six is the four infantry rungs plus recapture plus sabotage; the
+		// mounted rung takes it to seven, and the floor is deliberately left at the older, smaller number
+		// so removing the fifth rung does not silently disarm this guard as well.
 		if (rampConfigs.Count() < 6)
 		{
 			SetFailure("only %1 Phase 1 config names were collected - the harassment ladder or the director's constants have shrunk, and this case would pass without checking the missing ones",
@@ -1125,7 +1305,7 @@ class OVT_TEST_Init_ObjectiveOperations_RampSpansTheForwardBasePhaseAndLaunchesF
 	//! Every config the director sends as Phase 1 work, read off the director's own constants rather
 	//! than re-typed - a rung renamed in one place and not the other is case A's job, and duplicating
 	//! the list would hide it from both.
-	//! \return The six names.
+	//! \return Every Phase 1 name: the whole harassment ladder plus recapture and sabotage.
 	protected array<string> CollectRampConfigNames()
 	{
 		array<string> names = new array<string>();
@@ -1211,5 +1391,216 @@ class OVT_TEST_Init_ObjectiveOperations_RampSpansTheForwardBasePhaseAndLaunchesF
 			return string.Format("'%1' must be sourced from the forward base (OVT_ObjectiveAnchorSourceProvider) - with any other provider the ramp keeps driving the whole way from the rear even once a forward base is standing, which is half of §3.2 unimplemented and makes the middle phase cost the occupying faction resources for nothing but a garrison", name);
 
 		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Exposes the mobile checkpoint's approach chooser, and gives it an objective without a deployment.
+//!
+//! A SUBCLASS RATHER THAN A WIDENED PRODUCTION API. ChooseApproach() is protected because nothing but
+//! the module's own update may call it, and building a real deployment to reach it would arm a
+//! repeating update that converges a mounted force - a real armed vehicle on a real road, with the
+//! autotest camera inside its registration ring.
+//------------------------------------------------------------------------------------------------
+class OVT_TEST_MobileCheckpointProbe : OVT_MobileCheckpointBehaviorDeploymentModule
+{
+	protected vector m_vProbeObjective;
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] objective Where this probe's objective is.
+	void ProbeSetObjective(vector objective)
+	{
+		m_vProbeObjective = objective;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The planted objective, since this probe has no parent deployment to take one from.
+	override protected vector ObjectivePosition()
+	{
+		return m_vProbeObjective;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] bearing The bearing to treat as the one just used.
+	void ProbeSetPreviousBearing(float bearing)
+	{
+		m_fCheckpointBearing = bearing;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[out] position The road point chosen.
+	//! \param[out] angles The road's heading there.
+	//! \param[out] bearing The bearing from the objective.
+	//! \return True when an approach was found.
+	bool ProbeChooseApproach(out vector position, out vector angles, out float bearing)
+	{
+		return ChooseApproach(position, angles, bearing);
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! THE APPROACH CHOOSER against a real map: a bearing with no road inside the search radius is
+//! refused, and a relocation never lands back on the bearing it just left.
+//!
+//! WHAT THIS TIER CAN SEE THAT THE PURE ONE CANNOT. OVT_CheckpointApproachRules is proven function by
+//! function in OVT_TEST_Logic_CheckpointApproach.c and knows nothing about roads. What is NOT pure is
+//! the wiring: that the module samples bearings around ITS objective, that it keeps only the samples a
+//! road answered for, that the point it returns is the ROAD point and not the sample, and that it
+//! carries its own last bearing into the exclusion rule. A chooser that sampled correctly and then
+//! forgot to pass the previous bearing would look right in every pure case and oscillate forever.
+//!
+//! ⚠ THE REFUSAL HALF IS DETERMINISTIC AND THE ROTATION HALF IS NOT. A search radius of zero refuses
+//! every sample whatever the map looks like, so that claim is asserted outright. Whether this world's
+//! town has TWO road approaches in the band is a property of the map, so the rotation half asserts a
+//! conditional - if a second approach was found it must be a different one - and reports a diagnostic
+//! when the map offered nothing to rotate to. A world with one road cannot make that claim false, and
+//! saying so is better than a case that passes for the wrong reason without saying anything.
+//!
+//! ⚠ NOTHING HERE BUILDS A DEPLOYMENT AND NOTHING TICKS. The subject is a bare `new` module driven
+//! through OVT_TEST_MobileCheckpointProbe; no group is registered, no vehicle is spawned and no order
+//! is issued.
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
+//! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
+//!   M1. The `if (!OVT_WorldUtils.FindNearestRoadSpawn(...)) continue;` line in ChooseApproach()
+//!       replaced with an unconditional insert of the sampled probe point. Fails on "a search radius
+//!       of zero must refuse every approach".
+//!   M2. m_fCheckpointBearing replaced with NO_PREVIOUS_BEARING in the ChooseBearingIndex() call.
+//!       Fails on "a relocation came back to the bearing it just left".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveOperations_MountedCheckpointApproachChooser : SCR_AutotestCaseBase
+{
+	//! How many relocations are asked for. Three is enough to catch a chooser that alternates between
+	//! two bearings without excluding either, and short enough to be a few dozen road queries.
+	static const int ROUNDS = 3;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || !towns.m_Towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("The world produced no town to sample approaches around");
+			return true;
+		}
+
+		vector objective = towns.m_Towns[0].location;
+
+		string failure = CheckRefusesWithoutARoad(objective);
+		if (failure == "")
+			failure = CheckRotatesAwayFromTheLastBearing(objective);
+
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Mobile checkpoint: the approach chooser refuses every bearing with no road inside its search radius, and a relocation never comes back to the bearing it just left");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] objective Where the fixture objective is.
+	//! \return An empty string when the claim held, or why it did not.
+	protected string CheckRefusesWithoutARoad(vector objective)
+	{
+		OVT_TEST_MobileCheckpointProbe probe = BuildProbe(objective);
+
+		// ⚠ ZERO, NOT NEGATIVE. FindNearestRoadSpawn refuses anything further than the radius, so a
+		// radius of zero refuses every road that is not exactly underfoot - which no sampled point on a
+		// ring 150-300 m out ever is. A negative radius would prove the same thing through a degenerate
+		// input the module can never be authored with.
+		probe.m_fRoadSearchRadius = 0;
+
+		vector position;
+		vector angles;
+		float bearing;
+
+		if (probe.ProbeChooseApproach(position, angles, bearing))
+			return string.Format("a search radius of zero must refuse every approach, and the chooser answered the point %1 on bearing %2. The road test is what makes a checkpoint a ROADBLOCK rather than a vehicle parked in a field",
+				position.ToString(), bearing.ToString());
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] objective Where the fixture objective is.
+	//! \return An empty string when the claim held, or why it did not.
+	protected string CheckRotatesAwayFromTheLastBearing(vector objective)
+	{
+		OVT_TEST_MobileCheckpointProbe probe = BuildProbe(objective);
+
+		vector position;
+		vector angles;
+		float bearing;
+
+		if (!probe.ProbeChooseApproach(position, angles, bearing))
+		{
+			Print("[OVT_TEST] Approach diagnostic: this world's first town has no road within the checkpoint's search radius anywhere in the 150-300 m band, so the rotation claim could not be exercised here at all", LogLevel.NORMAL);
+			return "";
+		}
+
+		float reach = probe.m_fApproachMaxDistance + probe.m_fRoadSearchRadius;
+		float measured = vector.Distance(position, objective);
+		if (measured > reach)
+			return string.Format("the chosen approach is %1 m from the objective, further than the band plus the search radius (%2 m). A checkpoint outside its own band is not on an approach to anything",
+				measured.ToString(), reach.ToString());
+
+		int rotations = 0;
+
+		for (int round = 0; round < ROUNDS; round++)
+		{
+			float previous = bearing;
+
+			probe.ProbeSetPreviousBearing(previous);
+
+			vector nextPosition;
+			vector nextAngles;
+			float nextBearing;
+
+			// A refusal is a legal answer: an objective with one usable road has nowhere else to go, and
+			// the module keeps the checkpoint where it is rather than announcing a move it did not make.
+			if (!probe.ProbeChooseApproach(nextPosition, nextAngles, nextBearing))
+				continue;
+
+			float separation = OVT_CheckpointApproachRules.AngularSeparation(nextBearing, previous);
+			if (separation < OVT_MobileCheckpointBehaviorDeploymentModule.MIN_BEARING_SEPARATION_DEG)
+				return string.Format("a relocation came back to the bearing it just left: %1 degrees from %2, which is only %3 degrees apart. Two usable approaches and no exclusion is a checkpoint that oscillates between the same pair forever",
+					nextBearing.ToString(), previous.ToString(), separation.ToString());
+
+			rotations = rotations + 1;
+			bearing = nextBearing;
+		}
+
+		if (rotations == 0)
+			Print("[OVT_TEST] Approach diagnostic: this world's first town offered only ONE usable approach, so every relocation was refused and the exclusion rule was never exercised against a real second choice", LogLevel.NORMAL);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ EVERY FIELD IS SET BY HAND. [Attribute] defvalues do not apply to `new`, so an unset band
+	//! would be 0..0 and the whole case would sample the objective's own centre twelve times.
+	//! \param[in] objective Where the fixture objective is.
+	//! \return A probe authored like the shipped mounted rung.
+	protected OVT_TEST_MobileCheckpointProbe BuildProbe(vector objective)
+	{
+		OVT_TEST_MobileCheckpointProbe probe = new OVT_TEST_MobileCheckpointProbe();
+
+		probe.m_sModuleName = "approach fixture";
+		probe.m_fApproachMinDistance = 150;
+		probe.m_fApproachMaxDistance = 300;
+		probe.m_fRoadSearchRadius = 120;
+		probe.m_iRelocateMinutes = 4;
+		probe.m_fCheckpointSpread = 25;
+
+		probe.ProbeSetObjective(objective);
+		probe.ProbeSetPreviousBearing(OVT_CheckpointApproachRules.NO_PREVIOUS_BEARING);
+
+		return probe;
 	}
 }

@@ -799,9 +799,12 @@ class OVT_ShopContext : OVT_TabHostContext
 			ResourceName res = OVT_Global.GetPrefabName(item);
 			if(res.IsEmpty()) continue;
 
-			if(!m_Economy.IsRegisteredResource(res)) continue;
+			// Same resolution the server sells by: an uncatalogued variant lists under the registered
+			// prefab it inherits.
+			ResourceName pricing = m_Economy.ResolvePricingResource(res);
+			if(pricing.IsEmpty()) continue;
 
-			int id = m_Economy.GetInventoryId(res);
+			int id = m_Economy.GetInventoryId(pricing);
 			if(!counts.Contains(id)) counts[id] = 0;
 			counts[id] = counts[id] + 1;
 		}

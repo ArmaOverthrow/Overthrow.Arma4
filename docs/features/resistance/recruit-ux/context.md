@@ -216,6 +216,33 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 - Feature started via /autorun-feature (Discord). Docs scaffolded from the existing plan; status flipped to In Progress.
 - Next: Phase 1 implementation agent.
 
+### Loadout quote "item has no price" (2026-08-23, post-close fix)
+
+Players hit `RESULT_UNPRICEABLE` on loadouts wearing looted civilian clothes (vanilla's `*_Dirty`
+variants live only on character prefabs, in no ITEM catalogue) and on weapon presets/modded guns.
+`OVT_RecruitLoadoutPricing.AddResource` gated on `IsRegisteredResource`, and the resource database is
+built from faction catalogues only - so "has a price" meant "is catalogued", which nothing a player
+loots is guaranteed to be. The `itemPrices.conf` type rules are NOT a fallback for that: they only ever
+ran over catalogue entries.
+
+Fix: `AddResource` now prices through the new `OVT_EconomyManagerComponent.GetBuyPriceForPrefab(res,
+pos, player)` - (1) registered → as before; (2) `ResolvePricingResource`: nearest registered prefab
+**ancestor** (dirty trousers → `Pants_M70`), same price, same town curve; (3) `GetFallbackBasePrice`:
+`OVT_PrefabItemClassifier` reads the prefab's components (WeaponType / clothing AreaType / magazine /
+consumable / gadget / mine) and runs the same price configs, margin applied, no town curve; (4) -1 only
+when none of those place it. **Nothing is ever registered** - the int ids are the wire format. Both
+lookups are cached per prefab. Case: `OVT_TEST_Init_EconomyPrefabPricing` (compile clean; the suite run
+is owed - `tools/run-tests.sh OVT_TEST_Init_EconomyPrefabPricing`). Play-test: save a loadout wearing a
+civilian's dirty shirt + a looted AK-74N 1P29, quote an equipped recruit.
+
+Same day, the other gates were moved onto the seam: shop sell (server `OVT_ShopTransactionComponent`
++ client sell browser `OVT_ShopContext`), port export price (`OVT_StorageRequestComponent.
+ResolveExportUnitPrice`), port/warehouse browse categories, the high-command manifest and vehicle quote,
+and vehicle storage-capacity identity (`OVT_StorageComponent`). Where an int id is needed (sell, export,
+category, capacity) only the ancestor route applies - a looted dirty shirt sells/exports/lists AS the
+clean catalogue shirt and restocks it; a prefab with no registered ancestor stays unsellable. Price-only
+callers (HC manifest/vehicle) use all three routes.
+
 ---
 
 *Update this file at the end of each work session. Run `/dev-docs-update` before compacting conversations.*

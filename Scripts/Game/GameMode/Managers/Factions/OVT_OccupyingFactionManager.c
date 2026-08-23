@@ -162,6 +162,15 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	ref array<ref OVT_TargetData> m_aKnownTargets = new array<ref OVT_TargetData>;
 
+	//! THE HUNTER-KILLER SWEEP (occupying/vehicles T6.4). ONE LIVE SWEEP AT A TIME - a single-slot field,
+	//! never a list - paired with a bool for the same reason Phase 5's m_bHasSortie is paired with its
+	//! own id: EntityID has no meaningful "unset" test from script. Public, not protected, matching every
+	//! other piece of QRF/target bookkeeping on this class (m_CurrentQRF, m_bQRFActive) rather than the
+	//! newer Deployments-module convention of protected fields with getters - the Init tier drives this
+	//! dispatcher directly, the same way it drives SendMountedEchelon and OnBattleStarted.
+	EntityID m_HunterKillerDeployment;
+	bool m_bHunterKillerActive;
+
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
 
@@ -280,6 +289,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
+	//! Registered name of the hunter-killer's deployment config (occupying/vehicles T6.4). Read the same
+	//! way OVT_QRFControllerComponent.ECHELON_CONFIG_NAME is - a caller resolves it once, through
+	//! FindConfigByName, rather than restating the module's own attributes as a second set of constants.
+	static const string HUNTER_KILLER_CONFIG_NAME = "Hunter Killer Sweep";
+
+	//! The score floor below which a hotspot is not worth a bounded armoured sweep. Under
+	//! THREAT_WEIGHT_ENEMY_CAMP (below) - which is the weight a single reported vehicle loss is inserted
+	//! at (T6.1/T6.6) - so a fresh loss clears it on its own at its own exact position, while an empty
+	//! spot with nothing known nearby (score 0) does not.
+	static const int HUNTER_KILLER_THREAT_FLOOR = 15;
+
 	//! Town support percentage required before players can start an uprising at the town flag
 	static const int UPRISING_SUPPORT_THRESHOLD = 75;
 
@@ -299,6 +319,23 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! would use. Server-side only - m_bQRFActive / m_iCurrentQRFTown remain the replicated truth and
 	//! are unchanged by this invoker.
 	ref ScriptInvoker<int> m_OnQRFTownChanged = new ScriptInvoker<int>;
+
+	//! A battle has started, ANYWHERE - base or town, STANDARD or COUNTER_ATTACK - published once,
+	//! at m_vQRFLocation, from the tail of StartBaseQRF and the tail of StartTownQRF, after the mode is
+	//! configured and Start() has run (occupying/vehicles T5.1).
+	//!
+	//! ⚠ WHY THIS IS NOT m_OnQRFTownChanged (C9). That invoker is deliberately narrower on TWO axes: it
+	//! is TOWN-ONLY (a base QRF never touches it - D6 of counter-attacks) and it is STANDARD-ONLY (a
+	//! siege stays silent on it until BATTLE, so the resistance is not tipped off by the same signal
+	//! that would arm a garrison). m_OnBattleStarted answers a different question - "is there a fight
+	//! near THIS position a mounted force should react to" - which a garrison sitting on a base's own
+	//! parked armour needs answered for base battles too, and needs answered the instant the QRF is
+	//! stood up rather than delayed until a siege reveals itself. Firing it for COUNTER_ATTACK as well
+	//! is deliberate: a garrison crewing up in secret is exactly what a silent siege should provoke.
+	//!
+	//! Server-side only, like every QRF invoker in this file - a client's m_CurrentQRF is never set, so
+	//! StartBaseQRF/StartTownQRF never run there and this never fires there either.
+	ref ScriptInvoker<vector> m_OnBattleStarted = new ScriptInvoker<vector>;
 
 	static OVT_OccupyingFactionManager s_Instance;
 
@@ -1269,6 +1306,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
 		Rpc(RpcDo_SetQRFRevealed, m_bQRFRevealed);
+
+		// ⚠ AFTER the mode is configured and Start() has run (occupying/vehicles T5.1/C9) - a base QRF
+		// publishes here even though m_OnQRFTownChanged never does for a base.
+		m_OnBattleStarted.Invoke(m_vQRFLocation);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1346,6 +1387,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 		// path that lets it.
 		if(mode == OVT_EQRFMode.STANDARD)
 			m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
+
+		// ⚠ UNLIKE m_OnQRFTownChanged above, THIS FIRES FOR BOTH MODES (C9) - after the mode is
+		// configured and Start() has run.
+		m_OnBattleStarted.Invoke(m_vQRFLocation);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1620,6 +1665,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 	static const float THREAT_WEIGHT_ENEMY_CAMP = 20;
 	static const float THREAT_WEIGHT_ENEMY_WAREHOUSE = 5;
 
+	//! How close two vehicle losses have to be to count as the SAME incident, in metres (T6.1). Loose
+	//! enough that a convoy wiped out along one stretch of road becomes one known target, not one wreck
+	//! at a time - deduplicated against GetNearestKnownTarget(), never against an exact position match.
+	static const float VEHICLE_LOSS_DEDUP_RADIUS_M = 200;
+
 	int GetThreatByLocation(vector pos)
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
@@ -1778,6 +1828,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 				DecayThreatStep();
 			}
 		}
+
+		// Every tick: the hunter-killer dispatcher (T6.4). No latch of its own - its four gates are
+		// idempotent and self-healing (see the method header), so asking every 60 s is the whole design.
+		TickHunterKiller();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2204,6 +2258,155 @@ class OVT_OccupyingFactionManager: OVT_Component
 			}
 		}
 		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A vehicle was lost at `position` (occupying/vehicles T6.1) - a mounted force's own hull, or any
+	//! other insertion's transport. Inserted through the SAME PATH every other known-target insert above
+	//! uses (new OVT_TargetData, three fields set, m_aKnownTargets.Insert), so GetThreatByLocation() and
+	//! TickHunterKiller() see it exactly like any other enemy holding.
+	//!
+	//! ⚠ NOT CALLED FROM A DEPLOYMENT ENDING NORMALLY. The one caller
+	//! (OVT_InsertionSpawningDeploymentModule.ReleaseConvoy()) only reaches here when the transport
+	//! itself failed IsTruckOperational() - a deployment collected with an intact vehicle has lost
+	//! nothing and never calls this, even though its own teardown also runs ReleaseConvoy().
+	//!
+	//! TYPED AS CAMP, not a new enum member: OVT_TargetType has no "a vehicle died here" value and this
+	//! feature does not add one (context.md explains why CAMP was the closest existing fit rather than
+	//! widening the enum for one caller).
+	//!
+	//! DEDUPLICATED AGAINST THE NEAREST EXISTING TARGET, not an exact match: two losses along the same
+	//! stretch of road, or a wreck already standing where a base's own known-target insert already
+	//! covers, count as one incident rather than stacking the score at that spot.
+	//! \param[in] position Where the vehicle was lost.
+	void ReportVehicleLoss(vector position)
+	{
+		OVT_TargetData nearest = GetNearestKnownTarget(position);
+		if (nearest && vector.Distance(nearest.location, position) < VEHICLE_LOSS_DEDUP_RADIUS_M)
+			return;
+
+		OVT_TargetData target = new OVT_TargetData();
+		target.location = position;
+		target.type = OVT_TargetType.CAMP;
+		target.order = OVT_OrderType.ATTACK;
+		m_aKnownTargets.Insert(target);
+
+		Print(string.Format("[Overthrow] A vehicle was lost at %1 - the location is now a known target", position.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE HUNTER-KILLER DISPATCHER (T6.4). The deployment evaluator cannot be pointed at a hotspot at
+	//! all (C5 - CollectSeedCandidates and FindDeploymentCandidates only ever produce NAMED-LOCATION
+	//! positions: town / base / port / airfield / radio tower / checkpoint), so this is a deliberate
+	//! caller, exactly like the QRF echelon (T4.3) and the base armour sortie (T5.4/SendSortie) before
+	//! it - CREATE, THEN DEBIT, at this one call site, matching
+	//! OVT_ObjectiveDirectorComponent.CreateObjectiveDeployment (:1225) and SendSortie's own choke point.
+	//!
+	//! FOUR REFUSAL GATES, cheapest first, mirroring CanSendObjectiveDeployment's own ordering rule:
+	//!   1. ONE LIVE SWEEP AT A TIME - m_bHunterKillerActive, self-healing: a sweep that has already been
+	//!      collected or deleted (the entity no longer resolves) clears the flag and this tick may still
+	//!      send a new one.
+	//!   2. A BATTLE IS ENGAGED (IsQRFEngaged()) - the same "we don't spend or drive while shots are
+	//!      being fired over the objective" rule CheckUpdate()'s own early return already applies to
+	//!      everything else this tick does.
+	//!   3. THE BEST KNOWN TARGET'S SCORE IS UNDER THE FLOOR - GetThreatByLocation() asked of the
+	//!      highest-scoring entry in m_aKnownTargets, never a fabricated "average" or a raw count.
+	//!   4. THE DEPLOYMENT POOL CANNOT AFFORD THE CONFIG'S OWN TOTAL COST - read once, through
+	//!      GetTotalResourceCost(), and reused as both the affordability question and the amount debited,
+	//!      so the two numbers can never drift apart.
+	//!
+	//! ⚠ PUBLIC ONLY SO THAT THE INITIALISATION TIER CAN DRIVE ONE - the same note IsFightingFit and
+	//! SendMountedEchelon already carry on the QRF controller. Nothing in the campaign calls this
+	//! directly; production reaches it only from CheckUpdate()'s own 60 s tick.
+	void TickHunterKiller()
+	{
+		if (m_bHunterKillerActive && IsHunterKillerStillLive())
+			return;
+
+		m_bHunterKillerActive = false;
+
+		if (IsQRFEngaged())
+			return;
+
+		OVT_TargetData best = PickHunterKillerTarget();
+		if (!best)
+			return;
+
+		int score = GetThreatByLocation(best.location);
+		if (score < HUNTER_KILLER_THREAT_FLOOR)
+			return;
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+			return;
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(HUNTER_KILLER_CONFIG_NAME);
+		if (!config)
+			return;
+
+		OVT_OverthrowConfigComponent gameConfig = OVT_Global.GetConfig();
+		if (!gameConfig)
+			return;
+
+		int factionIndex = gameConfig.GetOccupyingFactionIndex();
+		int cost = config.GetTotalResourceCost();
+
+		if (deployments.GetFactionResources(factionIndex) < cost)
+			return;
+
+		OVT_DeploymentComponent created = deployments.ForceCreateDeployment(config, best.location, factionIndex, cost);
+		if (!created)
+			return;
+
+		// ⚠ THE LINE THE WHOLE ACCOUNTING IDENTITY RESTS ON (G5/Q5) - see the header. Debited only AFTER
+		// a successful create, never before, so a refusal never burns the pool on nothing.
+		deployments.SubtractFactionResources(factionIndex, cost);
+
+		m_HunterKillerDeployment = created.GetOwner().GetID();
+		m_bHunterKillerActive = true;
+
+		Print(string.Format("[Overthrow] Hunter-killer sweep sent to %1 (score %2) for %3 resources",
+			best.location.ToString(), score.ToString(), cost.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Whether the sweep this manager thinks is out there still resolves to a real entity - the
+	//! self-healing half of gate 1. A sweep collected by its own behaviour module (T6.2) or torn down by
+	//! anything else leaves nothing for FindEntityByID to find.
+	protected bool IsHunterKillerStillLive()
+	{
+		if (!m_bHunterKillerActive)
+			return false;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		return world.FindEntityByID(m_HunterKillerDeployment) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The known target with the highest GetThreatByLocation() score, or null when there are
+	//! none. Ties break to the first found - m_aKnownTargets carries no authored order to break them by.
+	protected OVT_TargetData PickHunterKillerTarget()
+	{
+		OVT_TargetData best;
+		int bestScore = -1;
+
+		foreach (OVT_TargetData target : m_aKnownTargets)
+		{
+			if (!target)
+				continue;
+
+			int score = GetThreatByLocation(target.location);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = target;
+			}
+		}
+
+		return best;
 	}
 
 	void OnBaseControlChange(OVT_BaseControllerComponent base)

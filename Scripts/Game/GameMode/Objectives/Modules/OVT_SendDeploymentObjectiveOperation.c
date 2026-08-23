@@ -83,7 +83,7 @@ enum OVT_EObjectiveConcurrencyLimit
 //! ledger only grows until a reset, so a team that was wiped out or collected is still in it and would
 //! block its tower from ever being worked on again.
 //!
-//! ⚠ THE LADDER NAMES REGISTRY ENTRIES, IT DOES NOT BUILD THEM. The four harassment rungs are four thin
+//! ⚠ THE LADDER NAMES REGISTRY ENTRIES, IT DOES NOT BUILD THEM. The first four harassment rungs are thin
 //! inherit-and-delta variants of one .conf in overthrowDeployments.conf, each with its own group type,
 //! cost and name. A per-create group override would be a second way of deciding what a deployment
 //! contains, parallel to the config system and invisible to the evaluator's cost model, the Game Master

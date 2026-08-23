@@ -181,7 +181,7 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 	//!
 	//! Validation order: server -> requesting player -> character -> vehicle -> shop -> player near
 	//! vehicle -> vehicle near shop -> shop buys -> lock/ownership -> nobody in the driver's seat ->
-	//! cargo storage exists. Lock/ownership and the driver rule are the same checks
+	//! the vehicle has a storage ledger. Lock/ownership and the driver rule are the same checks
 	//! OVT_UnloadStorageAction applies client-side, re-derived here because a user action's gates are
 	//! not authority.
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
@@ -241,19 +241,15 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		SCR_VehicleInventoryStorageManagerComponent vehicleStorage = OVT_SellableItemScanner.GetVehicleCargoStorage(vehicle);
-		if(!vehicleStorage)
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(vehicle);
+		if(!storage)
 		{
 			SendSellResult(playerId, 0, 0, 0, OVT_ShopSellResult.NOTHING_SOLD);
 			return;
 		}
 
-		array<IEntity> candidates = new array<IEntity>;
-		OVT_SellableItemScanner.CollectCargoItems(vehicle, candidates);
-
 		int soldCount, skippedCount;
-		// -1 / -1: no resource filter and no quantity clamp - the trunk sells everything eligible.
-		int earned = ExecuteSell(playerId, shop, candidates, vehicleStorage, -1, -1, soldCount, skippedCount);
+		int earned = ExecuteSellLedger(playerId, shop, storage, soldCount, skippedCount);
 
 		SendSellResult(playerId, soldCount, earned, skippedCount, ResultFor(soldCount));
 	}
@@ -598,17 +594,7 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 		float multiplier = OVT_ShopSellRules.GetSellMultiplier(shop.m_ShopType, GetGunDealerMultiplier());
 		bool typeHasRules = ShopTypeHasInventoryRules(economy, shop.m_ShopType);
 
-		// Resolved the same way GetSellPriceAtOffset resolves it internally, so the buy-cap check
-		// and the price read agree on which town's stock they are talking about. -1 (no town in
-		// range of this shop) disables the cap, matching the price model, which has no scarcity
-		// term there either.
-		int townId = -1;
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		if(towns)
-		{
-			OVT_TownData town = towns.GetNearestTown(shopPos);
-			if(town) townId = towns.GetTownID(town);
-		}
+		int townId = ResolveShopTownId(shopPos);
 
 		map<int, int> collated = new map<int, int>;
 
@@ -627,14 +613,16 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 			}
 
 			// R7: looted gear that never entered the resource DB has no id of its own and would
-			// otherwise resolve to id 0, i.e. some other item's price.
-			if(!economy.IsRegisteredResource(res))
+			// otherwise resolve to id 0, i.e. some other item's price. Uncatalogued variants (dirty
+			// clothes, weapon presets) sell as the registered prefab they inherit, and restock it.
+			ResourceName pricing = economy.ResolvePricingResource(res);
+			if(pricing.IsEmpty())
 			{
 				skippedCount++;
 				continue;
 			}
 
-			int id = economy.GetInventoryId(res);
+			int id = economy.GetInventoryId(pricing);
 
 			// Not what was asked for: silently ignored rather than reported as skipped.
 			if(filterResourceId != -1 && id != filterResourceId) continue;
@@ -696,6 +684,144 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 
 		if(soldCount == 0) return 0;
 
+		SettleSale(playerId, shop, economy, collated, total);
+
+		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The other sell routine: the same rules and the same prices, applied to a holder's STORAGE
+	//! LEDGER instead of to entities in a vanilla inventory.
+	//!
+	//! Split from ExecuteSell rather than folded into it because the two disagree about what a unit
+	//! IS. ExecuteSell prices entities and destroys them one TryDeleteItem at a time; a ledger holds
+	//! (prefab, count) with no entity to delete and no container to walk, so HasStoredContents and the
+	//! delete-then-count discipline have nothing to act on here - ledger.Take is the commit, and it
+	//! cannot partially fail. Everything that decides MONEY is shared: the same marginal pricing, the
+	//! same town absorption cap, the same eligibility rules, the same restock and the same two events.
+	//! \param[in] playerId Runtime id of the paying player.
+	//! \param[in] shop The buying shop.
+	//! \param[in] storage The holder whose ledger is being sold.
+	//! \param[out] soldCount Units actually taken out of the ledger.
+	//! \param[out] skippedCount Units the shop would not take.
+	//! \return Total money credited.
+	protected int ExecuteSellLedger(int playerId, OVT_ShopComponent shop, OVT_StorageComponent storage,
+									out int soldCount, out int skippedCount)
+	{
+		soldCount = 0;
+		skippedCount = 0;
+
+		if(!shop || !storage) return 0;
+
+		OVT_StorageLedger ledger = storage.GetLedger();
+		if(!ledger) return 0;
+
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if(!economy) return 0;
+
+		IEntity shopEntity = shop.GetOwner();
+		if(!shopEntity) return 0;
+
+		vector shopPos = shopEntity.GetOrigin();
+		float multiplier = OVT_ShopSellRules.GetSellMultiplier(shop.m_ShopType, GetGunDealerMultiplier());
+		bool typeHasRules = ShopTypeHasInventoryRules(economy, shop.m_ShopType);
+		int townId = ResolveShopTownId(shopPos);
+
+		array<string> res = new array<string>;
+		array<int> counts = new array<int>;
+		ledger.GetLines(res, counts);
+
+		map<int, int> collated = new map<int, int>;
+		int total = 0;
+
+		for(int i = 0; i < res.Count(); i++)
+		{
+			string line = res[i];
+			int held = counts[i];
+			if(line == "" || held <= 0) continue;
+
+			// Same R7 reasoning as ExecuteSell: an unregistered prefab has no id of its own and would
+			// resolve to id 0, i.e. some other item's price. Ledger keys are prefab ResourceNames
+			// precisely so this resolution happens here and not at credit time.
+			ResourceName pricing = economy.ResolvePricingResource(line);
+			if(pricing.IsEmpty())
+			{
+				skippedCount += held;
+				continue;
+			}
+
+			int id = economy.GetInventoryId(pricing);
+
+			if(!ResourceIsAccepted(economy, shop.m_ShopType, typeHasRules, id))
+			{
+				skippedCount += held;
+				continue;
+			}
+
+			// Priced unit by unit down the same scarcity curve ExecuteSell rides (BUG-117), so a
+			// truckload dumped from a ledger earns exactly what the same items earn out of a trunk.
+			// Both terminating conditions come from that curve, not from the line: once the cap
+			// refuses a unit or the price reaches zero, every further unit of this id does the same.
+			int sold = 0;
+			int lineTotal = 0;
+
+			while(sold < held)
+			{
+				int alreadySold = 0;
+				if(collated.Contains(id)) alreadySold = collated[id];
+
+				if(townId >= 0 && !economy.CanTownAbsorbStock(townId, id, alreadySold))
+					break;
+
+				int unitPrice = ResolveUnitPrice(economy, id, shopPos, multiplier, alreadySold);
+				if(unitPrice <= 0)
+					break;
+
+				collated[id] = alreadySold + 1;
+				lineTotal = lineTotal + unitPrice;
+				sold++;
+			}
+
+			if(sold > 0)
+			{
+				int taken = ledger.Take(line, sold);
+
+				// Take is clamped to what is held and the count came from this same snapshot, so a
+				// shortfall is impossible; if one ever happened, credit only what left the ledger.
+				if(taken < sold)
+				{
+					collated[id] = collated[id] - (sold - taken);
+					lineTotal = (lineTotal * taken) / sold;
+					sold = taken;
+				}
+
+				soldCount += sold;
+				total = total + lineTotal;
+			}
+
+			skippedCount += held - sold;
+		}
+
+		if(soldCount == 0) return 0;
+
+		storage.PublishCount();
+
+		SettleSale(playerId, shop, economy, collated, total);
+
+		return total;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pays the seller, restocks the shop and fires the two sell events. Shared so the entity path and
+	//! the ledger path cannot drift on what a completed sale does.
+	//! \param[in] playerId Runtime id of the paying player.
+	//! \param[in] shop The buying shop.
+	//! \param[in] economy The economy manager, already resolved by the caller.
+	//! \param[in] collated Resource id -> units sold this call.
+	//! \param[in] total Money to credit.
+	protected void SettleSale(int playerId, OVT_ShopComponent shop, OVT_EconomyManagerComponent economy,
+							  map<int, int> collated, int total)
+	{
 		economy.DoAddPlayerMoney(playerId, total);
 		RestockShop(shop, collated);
 
@@ -703,8 +829,23 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 		// the stability/support transaction modifiers with isBuying = false (I2).
 		economy.m_OnPlayerSell.Invoke(playerId, total);
 		economy.m_OnPlayerTransaction.Invoke(playerId, shop, false, total);
+	}
 
-		return total;
+	//------------------------------------------------------------------------------------------------
+	//! The town whose stock the sale moves, resolved the way GetSellPriceAtOffset resolves it
+	//! internally so the buy-cap check and the price read agree on which town they mean.
+	//! \param[in] shopPos The shop's position.
+	//! \return The town id, or -1 when no town is in range (which disables the cap, matching the price
+	//! model, which has no scarcity term there either).
+	protected int ResolveShopTownId(vector shopPos)
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return -1;
+
+		OVT_TownData town = towns.GetNearestTown(shopPos);
+		if(!town) return -1;
+
+		return towns.GetTownID(town);
 	}
 
 	//------------------------------------------------------------------------------------------------

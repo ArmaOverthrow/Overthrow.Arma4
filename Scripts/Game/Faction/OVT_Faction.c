@@ -74,9 +74,19 @@ class OVT_FactionVehicleEntry
 	
 	[Attribute(defvalue: "4", desc: "Maximum capacity including crew")]
 	int m_iMaxCapacity;
-	
+
 	[Attribute(desc: "Optional description")]
 	string m_sDescription;
+
+	//! Escalation ladder this vehicle belongs to, e.g. "armed". Empty means this entry is on no
+	//! ladder and is only ever reached by name.
+	[Attribute(desc: "Ladder role this vehicle answers to, e.g. \"armed\". Empty = not on a ladder, only reachable by name")]
+	string m_sLadderRole;
+
+	//! Threat this rung requires before it unlocks, before the difficulty's threshold scalar is
+	//! applied. See OVT_VehicleLadderRules.ScaledThreshold.
+	[Attribute(defvalue: "0", desc: "Threat required to unlock this rung, before the difficulty threshold scalar. 0 = always unlocked")]
+	int m_iMinThreat;
 }
 
 //! Vehicle registry for flexible vehicle management
@@ -154,6 +164,44 @@ class OVT_FactionVehicleRegistry
 			names.Insert(entry.m_sVehicleName);
 		}
 		return names;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the highest ladder rung unlocked at a threat and affordable inside a budget, for one
+	//! named role, e.g. "armed".
+	//! \param[in] role The ladder role to filter to. An unauthored role answers false.
+	//! \param[in] threat The live threat figure.
+	//! \param[in] scale The difficulty's threshold scalar.
+	//! \param[in] budget The purse the pick must fit inside; negative is unbounded.
+	//! \param[out] entry The picked entry. Untouched on a false return.
+	//! \return False rather than an empty ResourceName when nothing qualifies, so "no rung
+	//! available" stays distinguishable from "a rung resolved to a bad prefab".
+	bool ResolveLadderRung(string role, float threat, float scale, int budget, out OVT_FactionVehicleEntry entry)
+	{
+		array<OVT_FactionVehicleEntry> roleEntries = new array<OVT_FactionVehicleEntry>;
+		foreach (OVT_FactionVehicleEntry candidate : m_aVehicleEntries)
+		{
+			if (candidate.m_sLadderRole == role)
+				roleEntries.Insert(candidate);
+		}
+
+		if (roleEntries.IsEmpty())
+			return false;
+
+		array<int> minThreats = new array<int>;
+		array<int> costs = new array<int>;
+		foreach (OVT_FactionVehicleEntry roleEntry : roleEntries)
+		{
+			minThreats.Insert(roleEntry.m_iMinThreat);
+			costs.Insert(roleEntry.m_iCost);
+		}
+
+		int pickedIndex = OVT_VehicleLadderRules.PickRung(minThreats, costs, scale, threat, budget);
+		if (pickedIndex < 0)
+			return false;
+
+		entry = roleEntries[pickedIndex];
+		return true;
 	}
 }
 
@@ -691,7 +739,28 @@ class OVT_Faction
 	{
 		if (!m_VehicleRegistry)
 			return "";
-		
+
 		return m_VehicleRegistry.GetRandomVehiclePrefab();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Null-safe wrapper over the vehicle registry's ladder resolver. Mirrors
+	//! GetVehiclePrefabByName's shape.
+	//! \param[in] role The ladder role to resolve, e.g. "armed".
+	//! \param[in] threat The live threat figure.
+	//! \param[in] scale The difficulty's threshold scalar.
+	//! \param[in] budget The purse the pick must fit inside; negative is unbounded.
+	//! \param[out] entry The picked entry. Untouched on a false return.
+	//! \return False when the registry is not initialized, the role is unauthored, or nothing
+	//! qualifies.
+	bool ResolveVehicleForRole(string role, float threat, float scale, int budget, out OVT_FactionVehicleEntry entry)
+	{
+		if (!m_VehicleRegistry)
+		{
+			Print(string.Format("Vehicle registry not initialized for faction %1", m_sFactionKey), LogLevel.WARNING);
+			return false;
+		}
+
+		return m_VehicleRegistry.ResolveLadderRung(role, threat, scale, budget, entry);
 	}
 }

@@ -2789,3 +2789,321 @@ running the game. Anyone re-running the feature's DoD greps against the working 
 - `ABANDONED_TRUCK_TIMEOUT_TICKS` has **no live caller**; it survives only as the Logic case's realistic limit
   value. Delete it and give the test a literal, or leave it — recorded either way.
 - MP/JIP untouched and untested throughout.
+
+---
+
+## 🔴 Play-test 2026-08-23 (v1.5 Workbench testing) — an insertion transport STALLED WITH A LIVE, PINNED, SEATED CREW
+
+Reported by the user during `v1.5` testing, mid-way through building `occupying/vehicles` (which subclasses
+this module). Recorded here rather than as a BUG because the insertion module is dev-branch code that has
+never shipped — see the no-bugs-for-in-dev-features rule.
+
+```
+Insertion 'Objective Sabotage/Sabotage Team': its transport stalled at <7479.61, 5.44885, 6244.23>
+  - crew handle 88: 2 of 2 alive in the mask, 2 materialised, 2 AI-active, worst LOD 9 of 10;
+    lifecycle ProximityDriven on a 100000 m ring, nearest player 1931 m
+Insertion ... its transport is left standing ... stopped making progress 1592 m short of the landing zone
+Insertion ... is on foot ...
+Insertion ... its abandoned transport ... was collected after 0 update(s)
+```
+
+### What the fallback did: exactly the right thing
+
+Stall → `DismountAndWalk` → force on foot holding its plan → abandoned transport collected on the next update
+because nobody was within 320 m. **That is the spine working**, and it is the behaviour `occupying/vehicles`
+G4/F8 depends on inheriting. Nothing about the fallback is implicated.
+
+### Two hypotheses KILLED by the log itself — do not re-open them
+
+1. **It is not the crew/spawn gate.** `2 of 2 alive, 2 materialised, 2 AI-active`. Neither the
+   "crew never materialised" nor the "nobody took the wheel" branch fired, so a driver was in the seat with a
+   running behaviour tree for the whole stall window.
+2. **🔴 It is not the LOD pin, and "LOD 9 is too slow to drive" is NOT an available explanation.**
+   `worst LOD 9 of 10` is precisely what `OVT_MountedGroupActivation.HoldAgentActive` sets — `maxLod - 1`,
+   the vanilla `SCR_ResupplyTaskSolver` recipe. That is the pin **working**.
+   And the tempting follow-up — "yes, but a driver thinking at LOD 9 steers too rarely to hold a road" —
+   is disproved by vanilla's own table:
+
+   `SCR_AIDecideBehavior.s_aUpdateIntervals` (`ArmaReforger/Scripts/Game/AI/ScriptedNodes/Soldier/SCR_AIDecideBehavior.c:6-16`)
+   is `{0.55, 1.3, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0}` — it **saturates at 2.0 s from LOD 2 upward**.
+   A driver at LOD 9 re-decides on exactly the same 2 s interval as one at LOD 2, and only LOD 0 (0.55 s) and
+   LOD 1 (1.3 s) are faster. **Pinning deeper than `maxLod - 1` would buy nothing** and would cost simulation
+   on every convoy. Do not "fix" this by lowering the pin.
+
+### What is therefore left
+
+The transport had a driver, a running tree, an operational hull, and it sat **below 1 m/s for 6 consecutive
+deployment ticks ≈ 60 s** (`m_fStuckSpeedThreshold` 1, `m_iStuckTicks` 6) at **y = 5.45 m — essentially sea
+level**, 1592 m short. That is an **AI vehicle driving / pathing** failure, the same class the Ural prefab
+tuning addressed on 2026-08-19 (`FrictionCoefficient 0.055 → 0.1`, `MaxReverseTravelDistance 30`,
+`Min Prediction Distance 2`), not a virtualization, LOD or spawn failure.
+
+`Prefabs/Vehicles/Wheeled/Ural4320/Ural4320_transport.et` **does** carry that tuning today, so if the stalled
+transport was the USSR `truck` entry the tuning was already applied and was not sufficient at that spot. The
+near-sea-level Y strongly suggests a coastal road, causeway or bridge approach.
+
+### 🔴 The diagnostic gap that makes this expensive, and why it was NOT closed here
+
+The stall line names the crew in forensic detail and says **nothing about the vehicle**: not which prefab, and
+not **how far it had already travelled**. Those two facts separate two completely different bugs —
+
+- *never moved at all* → the waypoint/path was never issued or the driver never took the order, versus
+- *drove several km and wedged* → a specific piece of terrain beat `AICarMovementComponent`.
+
+— and without them every occurrence needs a fresh repro. **The fix is one `DescribeTransport()` line beside
+the existing `DescribeCrewLiveness()` one.**
+
+⚠ It was deliberately **not** written during `occupying/vehicles`: that feature's G6 freezes this file to
+**one appended enum value** for its entire duration, and quietly widening the diff would destroy the guarantee
+that the mounted module inherited a play-tested spine unchanged. It is queued as the **first** edit to make
+after `occupying/vehicles` closes.
+
+### ⛔ CORRECTION (same day, after the user's second report) — it is NOT pathing, and the section above's conclusion is SUPERSEDED
+
+The user: *"its not pathing. the spawn position is a proven good position at chotain base that ive seen them
+drive away from a hundred times. the only difference here is that I wasnt watching them in GM or nearby."*
+
+So the truck **never moved at all**, from a spawn point that works reliably **when observed**, and the single
+variable is **observation**. That kills the terrain/tuning explanation outright — the `FrictionCoefficient` /
+`MaxReverseTravelDistance` / `Min Prediction Distance` recipe is about a truck that drives *badly*, and this
+truck did not drive at all.
+
+**A third hypothesis also dies here, before anyone spends a day on it.** "At LOD ≠ 0 the driver cannot be
+*told* to drive, because AI speech is gated" is wrong: `SCR_AICommsHandler.CanBypass()`
+(`ArmaReforger/Scripts/Game/AI/Talk/SCR_AICommsHandler.c:120-123`) returns **true** — i.e. *bypass the
+transmission and complete the request successfully* — precisely when `GetLOD() != 0`. The voice line is
+skipped; the order is not. Comms is not a blocker.
+
+### 🔴 The hypothesis that fits every data point: THE VEHICLE'S OWN SIMULATION IS ASLEEP
+
+Everything the stall line measures is about the **men**. Nothing anywhere in this module measures the
+**vehicle**. And the engine has a distance-gated vehicle simulation:
+
+- **`VehicleWheeledSimulation.ForceEnableSimulation()`** exists as an engine proto
+  (`ArmaReforger/Scripts/Game/generated/Vehicle/VehicleWheeledSimulation.c:17`, and the same on
+  `VehicleTrackedSimulation` and `VehicleWheeledSimulation_SA_B`), documented verbatim as *"Forcibly enables
+  simulation of vehicle, only meant for cinematics, not to be used in any game logic!"*
+- **It has ZERO callers in the entire vanilla script tree.** A proto that exists only to force vehicle
+  simulation on is proof that vehicle simulation is **conditionally off**, and BI's own warning is that script
+  is not supposed to be the thing that overrides it.
+- The governing distance is **`DYNAMICSIM_LASTLOD_DISTANCE`** — the same per-prefab dynamic-simulation budget
+  the AI LOD system steps over (`SCR_AIGroup.c:118-123`), defaulting to max LOD at **≥ 1000 m**.
+- The stall was at **nearest player 1931 m** — nearly twice that.
+
+That reads: the driver had a running behaviour tree and was holding the throttle down on a hull the engine was
+not simulating. Every crew gate reports perfect health, the truck reports 0 m/s, and the two are consistent.
+
+It also explains the discriminator exactly. **A Game Master free camera is an observer**, and so is a nearby
+player: watching the convoy pulls the truck inside dynamic-simulation range and it drives away — "a hundred
+times".
+
+⚠ `DYNAMICSIM_LASTLOD_DISTANCE` does **not** appear in any `.et` as text (0 hits across both trees). It is a
+prefab/entity property, so it is a **Workbench** inspection, not a grep.
+
+### The decisive experiment (cheap, one session)
+
+Put a GM camera ~900 m from a driving convoy — it should drive. Pull back to ~1200 m and watch. **If the truck
+stops within a second or two of crossing ~1 km and resumes as the camera closes, it is dynamic simulation, and
+nothing about AI, LOD, pathing or prefab tuning is involved.**
+
+If confirmed, the lever is `DYNAMICSIM_LASTLOD_DISTANCE` on the vehicle prefabs — Overthrow already owns
+same-GUID deltas for `Ural4320_transport`, `BTR70`, and (as of `occupying/vehicles` Phase 1) `BRDM2` and
+`LAV25`, so it is authorable in the place the friction tuning already lives.
+
+### 🔴 What this means for `occupying/vehicles`, which is being built right now
+
+**Every mounted deployment in that feature is designed to drive unobserved**, and the QRF mounted echelon's
+entire premise (F4) is *"the vehicles really drive from that base, so they can be ambushed and they arrive
+late."* If vehicle simulation is observer-gated at ~1 km then the echelon will routinely fail to cover the
+last stretch, the harassment checkpoint will not relocate, and the hunter-killer sweep will not sweep — all of
+them degrading silently to the walk fallback, which is *correct behaviour* and therefore **invisible**.
+
+This is a risk to the feature's premise, not to its correctness. It is recorded here and in
+`docs/features/occupying/vehicles/context.md` so it is settled before the play-test rather than during it.
+
+### ✅ THE LEVER, FOUND — and the `DYNAMICSIM_LASTLOD_DISTANCE` recommendation above is WRONG, ignore it
+
+`DYNAMICSIM_LASTLOD_DISTANCE` is documented (`SCR_AIGroup.c:118-123`) as a property set **on character
+prefabs**, governing the **AI agent LOD** stepping — the axis already proved irrelevant here. It is **not** the
+vehicle-physics gate, and it has **0 text hits** across both trees, so the "Workbench edit on the vehicle
+prefabs" suggestion above is unfounded. Struck.
+
+**The engine documents the real mechanism in one sentence.** `ObserversSystem.InsertObserverSP`
+(`ArmaReforger/Scripts/Game/generated/System/ObserversSystem.c:14-22`):
+
+> `\warning Temporary observers can keep distant entities simulated, so be mindful of their lifetime.`
+
+That is BI stating both halves at once: **distant entities are not simulated by default**, and **an observer is
+the supported way to keep one simulated**. The identical warning is repeated on `InsertObserverMP`. It explains
+the discriminator exactly — a Game Master camera is an observer, so watching the convoy is what was making it
+drive.
+
+**Overthrow already owns the wrapper**, built for exactly this shape of problem by `virtualization/core`:
+
+| API | Contract |
+|---|---|
+| `OVT_VirtualizationManagerComponent.AddEntityObserver(IEntity)` (`:3375`) | Parks an SP observer that **follows** the entity (zero offsets, so it moves with it). Server-only, idempotent per entity, reuses the key when one already exists. **Refuses null** (a null insert hard-freezes the client) and refuses an invalid `EntityID`. |
+| `RemoveEntityObserver(IEntity)` (`:3450`) | The pair. |
+| `HasEntityObserver` / `GetEntityObserverCount` | Answer from core's own map, **never** the engine — application is deferred one frame both ways, so an engine query straight after an add reads a false negative. |
+
+Keys count up from `ENTITY_OBSERVER_KEY_BASE = 771000`; session-local, never persisted, never replicated.
+Two production callers already pair add/remove correctly: `OVT_InactiveRecruitGroupComponent.c:128/197` and
+`OVT_HighCommandGroupComponent.c:66/171`. `OVT_TEST_InitSuite.c:6713` already guards the null-freeze.
+
+**The fix:** `AddEntityObserver(m_Truck)` while the transport is driving; `RemoveEntityObserver(m_Truck)` on
+every exit path.
+
+⚠ **The hazard is the lifetime, and it is the one BI's warning names.** This module has ~17 release paths
+(its own `TickAbandonedTruck` header counts them). A missed removal leaks an observer that keeps a chunk of the
+map simulated **for the rest of the session** — a real server-cost regression, and worse than the bug it fixes.
+The change is two lines; the **audit of every exit path, plus a case asserting the observer is gone on each,
+is the actual work.**
+
+⚠ **It breaks G6** (`occupying/vehicles` freezes this file to one appended enum value). That is a deliberate,
+documented break to be taken **after** that feature's Phase 2 stops editing the file — not a quiet widening.
+Raised with the user 2026-08-23; awaiting their call on timing.
+
+### 🔴 THE MODULE'S OWN "TWO STAMPS" MODEL IS INCOMPLETE — there is a THIRD, and it is on the HULL
+
+User observation, 2026-08-23: *"the insertion module is a monolith, much of its code may have been trying to
+code around this very problem."* The file's own header settles it. Its central diagnosis reads:
+
+> *"A live convoy needs TWO stamps, not one. The crew has to EXIST wherever the players are (the 100 km
+> RIDING_SPAWN_DISTANCE ring) and it also has to be RUNNING, which no ring can deliver... A crew with only the
+> first stamp is a materialised driver asleep at the wheel — a convoy that 'never left its spawn point' with a
+> perfectly alive crew. OVT_MountedGroupActivation is the second stamp."*
+
+**The 2026-08-23 log carries BOTH stamps and the truck still never moved.** `2 materialised` (stamp 1),
+`2 AI-active, worst LOD 9 of 10` (stamp 2, the pin working exactly as designed), 0 m/s for six ticks.
+
+**Stamp 3: the VEHICLE must be simulated.** Every gate in this file measures *people* — alive, materialised,
+AI-active, seated, driving. Nothing anywhere measures the *hull*. That is why the diagnostics read perfect
+while the thing that was not running went unnamed.
+
+Consequences for how the file's history should be read:
+
+- **The LOD pin is necessary but NOT sufficient**, and was credited with a fix it can only have half-made. A
+  driver with no behaviour tree certainly cannot drive — but supplying one does not make an unsimulated hull
+  move. The play-tests that "confirmed" the pin were almost certainly run with an observer present.
+- **`NudgeCrewMaterialisation` already admits it is not a fix** in its own header: *"measured over three
+  failing insertions it FIRED on all three crews and NONE of them materialised, so it is not the fix and is not
+  claimed to be."* Symptom-chasing, honestly labelled.
+- **The stuck test, the uncrewed grace, the abandoned-truck countdown and the walk fallback are all "the truck
+  is not moving" machinery.** Some of it is legitimate design (a truck really can be destroyed or blocked, and
+  the header is explicit that the march is the spine by intent). Some of it may be scaffolding around a root
+  cause nobody had named. **Which is which cannot be decided from the code — it needs one play-test with the
+  observer fix in.**
+
+⚠ **Delete nothing on this basis yet.** The fallback is what currently makes these failures safe-but-invisible;
+removing it on a hunch would trade an invisible degradation for a visible defect.
+
+### ✅ CORRECTION: the release audit is ONE path, not seventeen
+
+An earlier note here worried about ~17 release paths. Wrong, and the file says so: every exit funnels through
+**`ReleaseConvoy(reason, deleteTruck)`** (`:1959`), described in `ReleaseRidersActive`'s header as *"this
+file's single audited teardown, so there is exactly one release to keep correct rather than five."*
+`ReleaseRidersActive()` already sits there. The observer removal goes beside it.
+
+### The shape of the fix
+
+1. `AddEntityObserver(m_Truck)` where the transport is spawned / the drive begins (`m_Truck` is assigned at
+   exactly one place, `:746`).
+2. `RemoveEntityObserver(m_Truck)` in `ReleaseConvoy()`, beside `ReleaseRidersActive()`.
+3. **An authored off-switch attribute**, following the established convention. This is mandatory, not polish:
+   core's own header warns that an entity observer means *"registered groups near it materialise even with no
+   player anywhere near. That is the feature and it is the budget risk in one sentence, which is why the
+   consumer is expected to carry an off-switch"* (`m_bRecruitGroupsAreObservers` is the precedent). A truck
+   crossing 2 km will wake ambient groups and other deployments along its route.
+4. An Init case asserting the observer is present while DRIVING and **gone after teardown** — the leak is the
+   expensive failure mode, per BI's own `\warning` about observer lifetime.
+5. Correct the class header's "TWO stamps" to three; mark the pin's play-test claim and
+   `NudgeCrewMaterialisation` as superseded.
+
+### ✅ FIXED 2026-08-23 — the third stamp is parked and dropped; `compile-check.sh` exit 0, suites deferred
+
+Landed on `v1.5`, uncommitted. Five files of production code and test, no config, no prefab, no persistence.
+
+**What landed, and where:**
+
+| | |
+|---|---|
+| The off-switch | `OVT_InsertionSpawningDeploymentModule.m_bTransportIsObserver`, `[Attribute(defvalue: "1")]` — **ON as shipped**, because the stall is the common case. Read **at the consumer** in `HoldTruckSimulated()`, never inside `AddEntityObserver` — the `m_bRecruitGroupsAreObservers` convention. |
+| The add | `HoldTruckSimulated()` (beside `HoldRidersActive`/`ReleaseRidersActive`), called from **`EnsureConvoy()`**, on the line after the transport is secured. |
+| The drop | Two lines in **`ReleaseConvoy()`**, immediately after `ReleaseRidersActive()` and before `UnsubscribeRiders()` / `ReleaseTruck()` — the same ordering rule the line above it carries. |
+| The header | "TWO stamps" → **THREE**, with the third named as being on the hull and the note that nothing else in the file measures the vehicle. The LOD pin's "never left its spawn point" fix is marked **superseded — necessary but not sufficient**. One line added to `NudgeCrewMaterialisation` pointing at the real cause. Nothing was deleted: the stuck test, the uncrewed grace, the nudge and the walk fallback all stand until a play-test says otherwise. |
+
+⚠ **The add is in `EnsureConvoy()`, NOT at the `m_Truck = ...` line the diagnosis pointed at (`:746`), and the
+reason is load-bearing.** `OVT_MountedForceSpawningDeploymentModule` **overrides `SpawnTruck()`** and assigns
+`m_Truck` itself on its adopted-hull branch, so a call inside the parent's spawn would have missed exactly the
+vehicles `occupying/vehicles` cares about. `EnsureConvoy()` is `SpawnTruck()`'s only caller, runs only in
+`DRIVING`, and both assignment routes pass through it. It re-asserts on every convergence, which is free
+(idempotent per entity).
+
+#### The leak audit — verdict: CLEAN on every module-driven path, with one named residual
+
+- **`m_Truck` is nulled at exactly one function, `ReleaseTruck()`, on both of its branches** (the deletion and
+  the ownership veto). Its three callers are `ReleaseConvoy(deleteTruck: true)`, `TickAbandonedTruck()` and
+  `ArmAbandonedTruck()` — and the **last two are only reachable downstream of `ReleaseConvoy`** (the abandoned
+  countdown is armed nowhere else). So no path nulls the field before the removal runs.
+- **The truck is never re-assigned over a live one.** `SpawnTruck()` is called only behind `if (!m_Truck && ...)`.
+- **Arrival does NOT release**, and must not: `CompleteInsertion()` moves to `RETURNING` and the transport
+  drives home, so the observer has to survive it. All four `TickReturn` exits go through `ReleaseConvoy`.
+- **An entity handle nulls itself if something else deletes the vehicle** (not a destroyed one — a wreck is
+  still an entity), which would orphan the map entry. That case is covered by core's own 2 s
+  `SweepEntityObservers()`, whose documented job is exactly "an entity destroyed by something that never runs
+  script". Session-long leak avoided.
+- **World teardown** is covered by `RemoveAllEntityObservers()` on the manager's `OnDelete`.
+- 🔴 **Residual, not fixed:** a module instance discarded *without* `OnCleanup` while its truck still exists
+  would leak the observer. That path would equally leak the convoy reservation and the crew registration, both
+  of which already depend on the same single teardown — so it is not a new class of leak, and closing it means
+  auditing module destruction generally, which is out of this repair's scope.
+- ⚠ **Not a leak but worth knowing:** for a `HOLDING` mounted force (`occupying/vehicles`), `ReleaseConvoy` is
+  not reached until the deployment ends, so **the observer's lifetime becomes the deployment's** rather than
+  the drive's. Defensible (a parked echelon's gunner is manned and it may be ordered to relocate), but it is a
+  much longer-lived observer than a convoy's and that feature should decide it deliberately.
+
+#### The clone counts, all three of them
+
+`CloneModule` is not chained; three classes hand-copy this module's fields and **all three were updated**:
+
+| Class | Was | Now |
+|---|---|---|
+| `OVT_InsertionSpawningDeploymentModule` | 13 inherited + **10** own | 13 + **11** |
+| `OVT_MountedForceSpawningDeploymentModule` | **27** (13 + 10 + 4) | **28** (13 + **11** + 4) |
+| `OVT_FOBRaiseSpawningDeploymentModule` | **25** (13 + 10 + 2) | **26** (13 + **11** + 2) |
+
+Their three clone cases were extended with the new field (probe value `true`, so a dropped line is caught —
+`new` gives `false`), and every count in their prose was corrected.
+
+#### The test, and what it cannot prove
+
+`OVT_TEST_Init_ObjectiveInsertion_ObserverParkedWhileDrivingAndGoneAfterTeardown` (Init tier), driven through
+a test-local `OVT_TEST_InsertionObserverProbe : OVT_InsertionSpawningDeploymentModule` — the
+`OVT_TEST_MountedForceProbe` pattern, no production API widened. It spawns one real transport near the fixture
+town, waits for a valid `EntityID`, and asserts three things in **one synchronous frame**:
+
+1. switch **on** + a planted transport → `HasEntityObserver` true and the count moves by exactly one;
+2. `ReleaseConvoy(reason, **deleteTruck false**)` → `HasEntityObserver` false and the count comes back;
+3. switch **off** → nothing is parked and the count does not move.
+
+⚠ `deleteTruck` is **false on purpose**: against a deleted truck the handle nulls itself and
+`HasEntityObserver(null)` is false for free, so the leak assertion would pass whether or not the removal was
+ever written. The count assertion is the leak check that does not depend on the entity at all.
+
+⚠ Presence is read from **core's own map**, never the engine — engine application is deferred one frame in
+both directions. All three claims in one frame is also what makes the case safe in the shared init world: the
+engine never applies the observer, so nothing near the fixture is pulled awake.
+
+**It cannot prove that a convoy drives.** Everything asserted is core bookkeeping. That the engine then
+simulates the hull, that the truck covers ground with nobody near it, and what the observer costs along a 2 km
+route are all **play-test** questions, and the decisive experiment described above is still the thing to run.
+The suites were **not** run for this change (user in Workbench); `tools/compile-check.sh` exit 0 is the only
+gate it has had.
+
+#### ⚠ This DELIBERATELY BREAKS `occupying/vehicles` G6
+
+That feature froze `OVT_InsertionSpawningDeploymentModule.c` to **one appended enum value** for its whole
+duration, and this repair widens that diff by an attribute, a method, two call sites and a header rewrite. The
+user was consulted 2026-08-23 and left the call to the implementer; the break is **recorded rather than
+quiet**. Q1 of that feature's DoD (the `git diff` grep) will now legitimately fail and must be **re-stated**,
+not "repaired" — see `docs/features/occupying/vehicles/context.md`.

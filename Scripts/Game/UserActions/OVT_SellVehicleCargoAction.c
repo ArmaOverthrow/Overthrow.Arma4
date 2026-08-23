@@ -2,7 +2,7 @@
 //! "Sell Cargo Here" - the returning Arma 3 Overthrow trunk action.
 //!
 //! Appears on a vehicle only while it is parked within selling range of a shop that actually buys
-//! from players, and only while it has something in cargo. Performing it hands the whole job to
+//! from players, and only while its STORAGE LEDGER holds something. Performing it hands the whole job to
 //! OVT_ShopTransactionComponent.SellVehicleCargo: ONE client->server request regardless of cargo size
 //! (quality bar Q4), after which the server re-derives the shop, the range, the lock/ownership rule,
 //! the driver rule, per-item eligibility and every price. Nothing this class decides is authority -
@@ -22,8 +22,8 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 
 	//! How long a visibility answer is reused before it is recomputed, in milliseconds of world time.
 	//! CanBeShownScript runs every frame per nearby action, and the honest answer costs a shop scan
-	//! plus a full cargo enumeration (R6). One second is far below the time it takes a player to walk
-	//! into or out of range and far above the frame rate.
+	//! (R6). One second is far below the time it takes a player to walk into or out of range and far
+	//! above the frame rate.
 	protected const float VISIBILITY_TTL_MS = 1000;
 
 	//! Cached CanBeShownScript answer and the world time (ms) at which it goes stale.
@@ -198,18 +198,18 @@ class OVT_SellVehicleCargoAction : ScriptedUserAction
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Whether the vehicle has anything in its registered cargo storages.
+	//! Whether the vehicle's storage ledger holds anything.
 	//!
-	//! Uses the shared scanner so "what the action offers" and "what the server sells" enumerate the
-	//! same storages - including cargo that lives on attached child entities (R4).
-	//! \param[in] vehicle The vehicle to scan.
-	//! \return True when there is at least one cargo item.
+	//! Reads the same ledger the server sells out of. Items sitting loose in the vanilla cargo bed do
+	//! NOT count - they are moved into storage through the transfer screen first.
+	//! \param[in] vehicle The vehicle to check.
+	//! \return True when the ledger holds at least one item.
 	protected bool VehicleHasCargo(IEntity vehicle)
 	{
-		array<IEntity> items = new array<IEntity>;
-		OVT_SellableItemScanner.CollectCargoItems(vehicle, items);
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(vehicle);
+		if(!storage) return false;
 
-		return !items.IsEmpty();
+		return storage.GetTotalCount() > 0;
 	}
 
 	//------------------------------------------------------------------------------------------------

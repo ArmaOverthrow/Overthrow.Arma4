@@ -1012,6 +1012,51 @@ Overthrow component.
 
 ---
 
+## `tools/check-shop-coverage.py`
+
+Static config check, no Workbench and no game: reports every base-game catalogue
+item that **no shop rule can ever stock**. Shop inventories are catalogue
+*queries* (`OVT_ShopInventoryItem`: type + mode + `m_sFind`), so new vanilla
+items flow onto the shelves for free — until Bohemia adds a new
+`SCR_EArsenalItemType` (HANDWEAR, RADIO_BACKPACK) or files items under a mode
+no rule asks for (WEAPON_VARIANTS). Then the item is priced, registered and
+lootable but unbuyable, and nobody notices until a player asks where the gloves
+are (the 2026-08-23 sweep found 33 such items).
+
+```
+tools/check-shop-coverage.py [--reforger DIR] [--mode missing|summary|all]
+                             [--ignore PATTERN]... [--no-default-ignores] [--quiet]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--reforger <dir>` | Base-game reference tree. Default `../ArmaReforger`, or `$OVERTHROW_REFORGER_DIR`. |
+| `--mode missing` | (default) Unreachable items grouped by type/mode. |
+| `--mode summary` | Reachable/missing counts per type/mode. |
+| `--mode all` | Every sellable item with the shops whose rules match it (`(rnd)` = `m_bSingleRandomItem`). |
+| `--ignore <pattern>` | Prefab-path substring to treat as deliberately unsold; repeatable, adds to the built-in list. |
+| `--no-default-ignores` | Drop the built-in design-exclusion list (crew-served/mortar parts, sandbags, barbed tape, mortar/heli/vehicle ammo, ballistic tables, the FIA tent). |
+| `--quiet` | Summary line only (stderr). |
+
+| Exit | Meaning |
+|---|---|
+| `0` | Every non-ignored item is reachable by at least one rule in `ShopConfig.conf` / `GunDealerConfig.conf`. |
+| `1` | Unreachable items found; details on stdout. |
+| `2` | Indeterminate — a config, the faction manager prefab or the reference tree could not be read. |
+
+It mirrors the runtime: the universe is the ITEM catalogue of every faction
+`OVT_OverthrowFactionManager.et` loads (resolving same-GUID mod deltas over the
+vanilla confs), minus disabled entries, `SCR_NonArsenalItemCostCatalogData`
+entries and anything a `hidden 1` `OVT_PriceConfig` matches
+(`BuildResourceDatabase`); a rule matches under `FindInventoryItems` semantics
+(type equal, `m_sFind` substring, mode `DEFAULT` = any,
+`m_bIncludeSupportStationItems 0` drops SUPPORT_STATION). Faction include flags
+and `m_bSingleRandomItem` are stocking choices, not reachability, and are
+ignored. **Run it after every Reforger update** (`/update-reforger`) and after
+editing either shop config.
+
+---
+
 ## `tools/decode-savepoint.py`
 
 Reads a Reforger persistence save point — what is in it, what changed between
@@ -1070,6 +1115,7 @@ reproduce locally — see the `persistence-forensics` skill.
 
 ```bash
 tools/check-placeables.py --quiet                 # placeable/buildable prefabs: component + RplComponent reachable?
+tools/check-shop-coverage.py --quiet             # every base-game catalogue item reachable by some shop rule?
 bash tools/lib/common.sh --self-test              # 29 assertions: path round-trips,
                                                   # resolvers, sweep, trap save/restore
 bash tools/lib/common.sh --sweep-stale            # LIST registered orphans (STALE\t<pid>\t<image>)

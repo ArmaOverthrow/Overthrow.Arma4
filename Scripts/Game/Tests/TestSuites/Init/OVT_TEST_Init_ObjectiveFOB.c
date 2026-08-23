@@ -30,9 +30,9 @@
 //!      nothing about how the faction fights.
 //!   4. THE TEARDOWN. Three exits share one path; a deployment left standing at a torn-down base is a
 //!      force with no orders and a marker nothing will ever collect.
-//!   5. THE CLONE. CloneModule is not chained and copies by hand - twenty-five lines here, thirteen
-//!      inherited from the infantry module, ten from the insertion module and two of its own. A dropped
-//!      line ships the class default on every deployment, forever.
+//!   5. THE CLONE. CloneModule is not chained and copies by hand - twenty-six lines here, thirteen
+//!      inherited from the infantry module, eleven from the insertion module and two of its own. A
+//!      dropped line ships the class default on every deployment, forever.
 //!
 //! ⚠ NOTHING HERE RAISES A STRUCTURE, AND NOTHING MAY. A real raise puts a persisted flagpole into the
 //! shared initialisation world - the one thing in this suite that would still be there on the next run.
@@ -894,10 +894,10 @@ class OVT_TEST_Init_ObjectiveFOB_GDismantleRefusalsAreStated : SCR_AutotestCaseB
 }
 
 //------------------------------------------------------------------------------------------------
-//! The raise module's clone carries every one of its twenty-five attributes.
+//! The raise module's clone carries every one of its twenty-six attributes.
 //!
 //! ⚠ CloneModule IS NOT CHAINED. Each subclass rebuilds the whole list BY HAND, so this module repeats
-//! thirteen lines from OVT_InfantrySpawningDeploymentModule, ten from
+//! thirteen lines from OVT_InfantrySpawningDeploymentModule, eleven from
 //! OVT_InsertionSpawningDeploymentModule and adds two of its own. A dropped line does not warn, does
 //! not log and does not fail to parse - it ships the CLASS DEFAULT on every deployment for the rest of
 //! the campaign, which is exactly how m_fMaxCruiseSpeed was lost on the vehicle module for a release.
@@ -958,7 +958,7 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 			return true;
 		}
 
-		Print("Objective forward base: the raise module's clone carries all twenty-five attributes - thirteen inherited from the infantry module, ten from the insertion module, two of its own - and does not inherit a fired latch");
+		Print("Objective forward base: the raise module's clone carries all twenty-six attributes - thirteen inherited from the infantry module, eleven from the insertion module, two of its own - and does not inherit a fired latch");
 
 		return true;
 	}
@@ -977,7 +977,7 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 		subject.m_bScaleByTownSize = true;
 		subject.m_fSpawnRadius = 37;
 		subject.m_iCostPerGroup = 91;
-		subject.m_bAllowReinforcement = false;
+		subject.m_bAllowReinforcement = true;
 		subject.m_iReinforcementCost = 83;
 		subject.m_bSpawnAtNearestBase = true;
 		subject.m_bReinforceFromNearestBase = true;
@@ -993,7 +993,8 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 		subject.m_iStuckTicks = 13;
 		subject.m_fArrivalRadius = 47;
 		subject.m_iTruckCostOverride = 61;
-		subject.m_bWalkWhenInsertionRefused = false;
+		subject.m_bWalkWhenInsertionRefused = true;
+		subject.m_bTransportIsObserver = true;
 
 		subject.m_rFOBPrefab = "{6B8C3F5D0000009A}Prefabs/Bases/OVT_OccupyingFOB.et";
 		subject.m_fRaiseOnFootRadius = 93;
@@ -1031,6 +1032,7 @@ class OVT_TEST_Init_ObjectiveFOB_JCloneCarriesEveryAttribute : SCR_AutotestCaseB
 		if (clone.m_fArrivalRadius != subject.m_fArrivalRadius) return "m_fArrivalRadius";
 		if (clone.m_iTruckCostOverride != subject.m_iTruckCostOverride) return "m_iTruckCostOverride";
 		if (clone.m_bWalkWhenInsertionRefused != subject.m_bWalkWhenInsertionRefused) return "m_bWalkWhenInsertionRefused";
+		if (clone.m_bTransportIsObserver != subject.m_bTransportIsObserver) return "m_bTransportIsObserver";
 
 		if (clone.m_rFOBPrefab != subject.m_rFOBPrefab) return "m_rFOBPrefab";
 		if (clone.m_fRaiseOnFootRadius != subject.m_fRaiseOnFootRadius) return "m_fRaiseOnFootRadius";

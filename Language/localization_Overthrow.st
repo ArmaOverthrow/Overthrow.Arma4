@@ -69,6 +69,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D00000000BF}" {
+   Id "OVT-Barracks"
+   Target_en_us "Barracks"
+   Comment "Map POI name for a High Command barracks (OVT_MapMarkerComponent on OVT_Barracks.et and the three same-GUID vanilla overrides). Referenced by the user's prefab authoring since before this key existed."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6468E2321E96E602}" {
    Id "OVT-Base_Chotain"
    Target_en_us "Chotain Base"
@@ -245,6 +261,38 @@ StringTable {
    Modified 1780504322
    Author "Aaron Static"
    LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C0}" {
+   Id "OVT-Build_Barracks"
+   Target_en_us "Barracks"
+   Comment "Build menu title for the Barracks buildable, Configs/Resistance/buildables.conf. The most expensive buildable in the resistance's build list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C1}" {
+   Id "OVT-Build_Barracks_Description"
+   Target_en_us "Raises High Command groups you can command from the map. The costliest structure the resistance can build."
+   Comment "Build menu description for the Barracks buildable, Configs/Resistance/buildables.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -1022,6 +1070,91 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E2000000043}" {
+   Id "OVT-Cargo_Line"
+   Target_en_us "%1 x %2"
+   Comment "One resource line on the truck cargo HUD. %1 is the unit count, %2 the resource's name, e.g. '40 x Timber'. Same order and shape as the build-menu requirement row #OVT-Resource_BuildRequirementRow."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000044}" {
+   Id "OVT-Cargo_More"
+   Target_en_us "+%1 more"
+   Comment "Overflow line on the truck cargo HUD, replacing the last resource line when the truck holds more kinds of resource than the panel has rows. %1 is how many kinds are not listed, including the one the row displaced."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000040}" {
+   Id "OVT-Cargo_Title"
+   Target_en_us "Cargo"
+   Comment "Header of the cargo panel on a truck's HUD, shown only while the local player occupies a truck that carries a resource store. One word, title case; the volume and the resource lines are drawn underneath it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000041}" {
+   Id "OVT-Cargo_Volume"
+   Target_en_us "%1 / %2 m³"
+   Comment "Volume line on the truck cargo HUD when the truck has a capacity. %1 is the cubic metres currently loaded, %2 the truck's capacity, both to one decimal. Keep the unit as m³ - it matches every other resource readout in the mod."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000042}" {
+   Id "OVT-Cargo_VolumeUnlimited"
+   Target_en_us "%1 m³"
+   Comment "Volume line on the truck cargo HUD when the holder has no capacity limit. %1 is the cubic metres currently loaded, to one decimal. No shipped truck is unlimited; this is the defensive branch for a modded or mis-authored capacity of -1."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A6ED8D1D1EF6CA}" {
    Id "OVT-CatchBus"
    Target_en_us "Catch a bus"
@@ -1461,6 +1594,57 @@ StringTable {
    Modified 1780505998
    Author "Aaron Static"
    LastChanged "lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001D}" {
+   Id "OVT-Export"
+   Target_en_us "Export"
+   Comment "Transfer screen mode label for the port Export list, where a vehicle's storage is sold."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001E}" {
+   Id "OVT-Export_Body"
+   Target_en_us "The port pays less than any shop charges for the same item."
+   Comment "Details pane body on every sellable row of the port Export list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001F}" {
+   Id "OVT-Export_NotSellable"
+   Target_en_us "The port will not buy this"
+   Comment "Port Export row disabled - the item is unregistered, or illegal and the player lacks the import permission at a port the resistance does not hold."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -2716,6 +2900,262 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000007202}" {
+   Id "OVT-FieldManual_HighCommand_Head"
+   Target_en_us "Barracks"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, one word. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007204}" {
+   Id "OVT-FieldManual_HighCommand_Head2"
+   Target_en_us "Buying a Group"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007206}" {
+   Id "OVT-FieldManual_HighCommand_Head3"
+   Target_en_us "Orders and Stances"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007208}" {
+   Id "OVT-FieldManual_HighCommand_Head4"
+   Target_en_us "Manage Groups"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. Must match the main-menu button label #OVT-MainMenu_ManageGroups. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720A}" {
+   Id "OVT-FieldManual_HighCommand_Head5"
+   Target_en_us "Ammunition and Fuel"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720C}" {
+   Id "OVT-FieldManual_HighCommand_Head6"
+   Target_en_us "Turning Recruits Over"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720E}" {
+   Id "OVT-FieldManual_HighCommand_Head7"
+   Target_en_us "Holding Ground"
+   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007201}" {
+   Id "OVT-FieldManual_HighCommand_Text"
+   Target_en_us "High Command is how the resistance fields soldiers of its own rather than an escort. A player buys a whole group at a barracks, owns it outright, and moves it anywhere on the island from the map. The group is really there: it walks or drives to where it is sent, fights what it meets on the way, and holds its ground whether or not anybody is nearby to watch."
+   Comment "Field Manual - The Resistance category, High Command page. Opening paragraph, three sentences. Ownership is by persistent id and orders from anyone else are refused: OVT_HighCommandRequestComponent.c RpcAsk_OrderGroup / RESULT_NOT_OWNER. 'Really there' is D1 in docs/features/resistance/high-command/implementation.md section 5: the group is an always-live SCR_AIGroup that carries its own virtualization AI observer (OVT_HighCommandGroupComponent.c:50-67), so nothing depends on a player being nearby and nothing despawns it when its owner disconnects (no disconnect path exists on OVT_HighCommandManagerComponent). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007203}" {
+   Id "OVT-FieldManual_HighCommand_Text2"
+   Target_en_us "Groups are bought at a barracks standing on a base the resistance holds. Some bases already have military barracks on them, and a barracks can also be built at a base like any other structure, at the highest price on the build list: $20000 along with timber, cement, steel and hardware. The action sits on the radio set inside the barracks, the same kind of radio a recruitment tent carries, and any player at that base can use it. A barracks reduced to a ruin offers nothing until it is repaired."
+   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Price and resources: Configs/Resistance/buildables.conf:165-193 (m_iCost 20000, timber 170, cement 280, steel 170, hardware 70, m_bBuildAtBase 1); 20000 is the highest m_iCost in that file. Three vanilla barracks families carry OVT_BarracksComponent: Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_military_base.et:4, Barracks_USSR_01_military_base.et:4, Barracks_E_02/Barracks_E_02_base.et. The action is authored on a RadioStation_R123M_01 child inside the barracks furniture (Barracks_01_military_furniture_01.et:4-18), the same prefab OVT_RecruitmentTent.et uses. Friendly-base and any-player gating plus the ruin gate: OVT_ManageHighCommandAction.c:52-85 (OVT_StructureDamage.IsUsable, OVT_BarracksComponent.FindNearest at BARRACKS_USE_RADIUS 5 m, IsAtFriendlyBase). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007205}" {
+   Id "OVT-FieldManual_HighCommand_Text3"
+   Target_en_us "The screen lists eleven groups, from small teams up to a rifle squad, three of which arrive with a vehicle. Picking one asks the server for a price and shows what it is made of: the recruit cost of every man in it, the gear each of them needs, and, where there is a vehicle, that vehicle at the full price a shop would charge. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, so a town with no support left cannot raise a group. Each player has a cap on how many High Command soldiers they can hold at once, and a purchase that would pass it is refused before any money moves."
+   Comment "Field Manual - The Resistance category, High Command page. Five sentences. Eleven authored entries, three with m_sVehiclePrefab: Configs/Factions/FIA_OverthrowData.conf:5-88. Pricing is made in one place, server side: OVT_HighCommandManagerComponent.QuoteEntry:458-500 (baseRecruitCost x members, the gear manifest, OVT_RecruitPurchaseRules.TotalPrice, then OVT_HighCommandRules.PurchaseTotal adds the vehicle at its full shop buy price outside the fee multiplier, PriceVehicle / OVT_HighCommandRules.c:114-126). Warehouse coverage: OVT_HighCommandRules.WAREHOUSE_RANGE = 150.0 (OVT_HighCommandRules.c:10) with OVT_WarehouseStockUtils.CollectStores and OVT_ItemSourcingRules.SplitCoverage at QuoteEntry:485-493; the covered figure renders as #OVT-HC_QuoteCovered. Supporters: OVT_HighCommandRules.SupportersRequired with GetHighCommandSupportersPerMember (default 1, OVT_OverthrowConfigComponent.c:144) and the gate-8 refusal #OVT-Msg-HCPurchaseNoSupporters. Cap: OVT_HighCommandRules.DEFAULT_MEMBER_CAP = 48 (OVT_HighCommandRules.c:15), server-configurable via highCommandMemberCap, enforced server-side; the cap NUMBER is deliberately not quoted here because a server may change it. The funds check is last in the ladder, so a refusal costs nothing. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007207}" {
+   Id "OVT-FieldManual_HighCommand_Text4"
+   Target_en_us "Every player's map draws every High Command group as a green symbol, your own at full strength and other players' dimmed, and the map's layer panel can switch them off again. Selecting one shows who owns it, its stance, how far it is from its destination, how far it is from you, and how many of its men are still alive. A group you own can be ordered to the spot under the map cursor, and its stance cycled between Defend, which holds the ground it was sent to, Patrol, which walks a ring around it, and Attack, which sweeps it for the enemy. A group on the move draws a dashed line to where it is going. A mark appears on the symbol while it is in contact with the enemy, and an ammunition badge when it has run dry. Ordering a group another player owns is refused."
+   Comment "Field Manual - The Resistance category, High Command page. Six sentences. Markers, opacity and the layer filter: OVT_MapHighCommandLayer.c:21 (OTHER_OWNER_OPACITY 0.45), :26 (QUAD_NORMAL Friend_Land_Bcg), :329; OVT_MapLayersUI.c:64-74 and BuildHighCommandRow:789. Panel lines: OVT_MapHighCommandLayer.c:1012-1041 (#OVT-HC_Map_StanceLine / DestinationLine / DistanceLine / StatusLine, the last carrying alive and total). Order to cursor: OnOrderPressed:1078-1099. Stance cycle DEFEND -> PATROL -> ATTACK: OnStancePressed:1105-1126 with OVT_EHighCommandStance (OVT_HighCommandRecord.c:6-10). What each stance does: OVT_HighCommandManagerComponent.ApplyStance:1044-1077 (ATTACK = SpawnSearchAndDestroyWaypoint, PATROL = move plus a ring at OVT_HighCommandRules.PATROL_RADIUS 150 m, DEFEND = move plus SpawnDefendWaypoint). Dashed destination line: OVT_MapHighCommandLineLayer.c, drawn only while OVT_HighCommandRules.IsMoving. Contact and ammo tags: OVT_HighCommandStatus TAG_CONTACT / TAG_NO_AMMO, OVT_MapHighCommandLayer.c:584. Non-owner refusal: #OVT-HC_Map_NotOwner client-side and RESULT_NOT_OWNER server-side. KEYBINDS ARE DELIBERATELY NOT NAMED: the order and stance verbs are bound actions (OverthrowHCOrder, OverthrowHCStance) with both keyboard and gamepad sources and the panel buttons carry their own labels. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007209}" {
+   Id "OVT-FieldManual_HighCommand_Text5"
+   Target_en_us "Manage Groups, on the Overthrow main menu, lists the groups you own with their status and how many of your soldier slots are in use. From there a group can be shown on the map, or dismissed after a confirmation, which takes it, its vehicle and its orders out of the world for good."
+   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Main-menu button: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.c:160 and ManageGroups():263. Roster contents: OVT_HighCommandRosterContext.c:343 (#OVT-HC_Roster_Capacity, count and cap) and :440 (alive over total); Show on Map and Dismiss buttons at UI/Layouts/Menu/HighCommandRoster.layout:228 and :240, dismissal confirmed by the server (OVT_HighCommandManagerComponent.DismissGroup:911-949, which deletes members, vehicle, group entity, waypoints and observer). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720B}" {
+   Id "OVT-FieldManual_HighCommand_Text6"
+   Target_en_us "A group left near a registered warehouse tops its magazines back up out of the stock held there, by itself, every so often. A group with a vehicle parked near a fuel source fills its tank the same way, and the fuel is charged to the group's owner at the same price a player filling up by hand would pay; a fuel depot the resistance built is free."
+   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Rearm: OVT_HighCommandManagerComponent.RearmTick / RearmGroup:2969-3046, which collects registered warehouse stores at OVT_HighCommandRules.WAREHOUSE_RANGE (150 m) around the group and refills deficient magazines; interval m_iRearmIntervalMs, default 60000 ms (:31-33). Refuel: RefuelTick / RefuelGroup:3136 onward, m_iRefuelIntervalMs default 60000 ms (:35-37), using the player fill's own call path (OVT_FuelUtils.GetFuelCostPerLitre, OVT_FuelPricing.ComputeFillPlan) and charging the owner for the litres that actually arrived. Free source: OVT_FuelSourceComponent.IsFree:29-32, authored m_bFree 1 on Prefabs/Structures/Military/FOB/OVT_FuelDepot.et:14. INTERVALS ARE DELIBERATELY NOT QUOTED - they are configurable attributes on the manager. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720D}" {
+   Id "OVT-FieldManual_HighCommand_Text7"
+   Target_en_us "Recruits that are holding position can be handed to High Command instead of being managed one by one. The Manage Recruits screen shows the ones holding position grouped by where they are standing, and each of those groups carries a Convert to High Command action. The change is one way. Those recruits leave your recruit roster and give their slots back, and their names, experience and skill tracking end with their records, but the same bodies carry on in the new group with the gear they were already wearing."
+   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Split roster and the button: OVT_RecruitsContext.c:371 (#OVT-Recruits_GroupHeader per cluster), :444 (OVT_RecruitInactiveGrouping.SelectClusterCandidates), :664-695 (UpdateConvertButton, disabled with a reason for an active or bodiless selection), :748 (RequestConvertRecruitGroup); label #OVT-Recruits_ConvertToHC at UI/Layouts/Menu/RecruitsMenu.layout:317. Server side: OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 spawns a group under the reserved key hc_converted from the EXISTING bodies, then DropConvertedRecruitRecords:2513-2526 clears each body id and calls the shipped RemoveRecruit, which frees the recruit cap. One way: no reverse path exists on the seam (OVT_HighCommandRequestComponent.c has only RpcAsk_ConvertRecruitGroup:412). Cap refusal: RESULT_CONVERT_AT_CAP (:50), shown as #OVT-Recruits_ConvertAtCap. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000720F}" {
+   Id "OVT-FieldManual_HighCommand_Text8"
+   Target_en_us "Bases, camps and FOBs no longer take a bought garrison, and the menus that sold one are gone. Ground is held by parking a High Command group on it in Defend stance, which unlike a garrison can be picked up and sent somewhere else at any time. A campaign saved before the change loads without its old garrisons."
+   Comment "Field Manual - The Resistance category, High Command page. Three sentences, written for returning players. The purchase paths, spawn helpers and menu copy were removed in Phase 11 of resistance/high-command: no AddToGarrison remains on OVT_BaseMenuContext or OVT_FOBMenuContext, no AddGarrison/AddGarrisonFOB/AddGarrisonCamp/SpawnGarrisons on OVT_ResistanceFactionManager, and the map's Garrison row and GARRISON_COUNT key are gone. Old saves: OVT_ResistanceManagerSerializer went 1 to 2 and OVT_OccupyingFactionManagerSerializer 2 to 3, each reading the persisted garrison list and discarding it (no field was deleted, the record shape is unchanged); see docs/features/resistance/high-command/context.md, Phase 11. Defend stance: OVT_HighCommandManagerComponent.ApplyStance:1044-1077, re-orderable at any time through OrderGroup:875-898. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007200}" {
+   Id "OVT-FieldManual_HighCommand_Title"
+   Target_en_us "High Command"
+   Comment "Field Manual - The Resistance category, High Command page. Tile and page title, two words. Matches the Manage Groups main-menu wording (#OVT-MainMenu_ManageGroups) and the purchase screen title (#OVT-HC_MenuTitle). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{599083306EFCACF6}" {
    Id "OVT-FieldManual_MainMenu_Text"
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
@@ -3177,6 +3617,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B5A11C00000010D}" {
+   Id "OVT-FieldManual_OccupyingForces_Head5"
+   Target_en_us "Armour and Checkpoints"
+   Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the three paragraphs about the occupying faction's armed vehicles. Two to four words, no markup. Added 2026-08-23 by occupying/vehicles Phase 7."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B5A11C000000102}" {
    Id "OVT-FieldManual_OccupyingForces_Text"
    Target_en_us "The occupying faction keeps standing forces in the field: defences at the military bases it holds, foot patrols working the towns it still controls, vehicle patrols on the roads, and a garrison at each radio tower it holds. Base defences, vehicle patrols and tower garrisons are all bought out of one and the same pool of resources, so a faction that is short of them fields fewer of every kind; foot patrols in a town cost it nothing."
@@ -3189,6 +3646,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1786665600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C000000110}" {
+   Id "OVT-FieldManual_OccupyingForces_Text10"
+   Target_en_us "Armed vehicles are also driven to battles. When a base or a town is being fought over, the faction can send as many as two of them by road from a holding of its own; they take the time the drive takes, arriving behind the men who came in on foot, and the road they come down is a road somebody could be waiting on. Stopping one does not end the force it carried: the men get out and carry on walking. A vehicle lost in the open marks that ground as somewhere worth looking at, and another may be sent to work the area over for a while before it leaves again. An anti-tank launcher starts paying for the weight it costs around the middle of a campaign."
+   Comment "Field Manual - Patrols and Garrisons page, third body paragraph under the 'Armour and Checkpoints' header. Four sentences, no rich-text markup. Reference voice: describes, never instructs; the anti-tank sentence is deliberately a statement about the weapon and not an instruction to carry one. FACT-CHECKED 2026-08-23 for occupying/vehicles Phase 7. 'As many as two': OVT_QRFControllerComponent.c:118 ECHELON_CAP_PER_BATTLE = 2, enforced at :1031. 'From a holding of its own' and 'by road': SendMountedEchelon refuses a land-isolated source and refuses when OVT_WorldUtils.FindNearestRoadSpawn finds no road within ECHELON_ROAD_SEARCH_M (:127, 200 m) of the source or of the standoff point (:1163, :1244); the echelon really drives, which is the whole point of the feature (Configs/Deployment/Deployment_QRFMountedEchelon.conf). The standoff ring is ECHELON_STANDOFF_M (:123, 450 m) and is NOT quoted here - it is an internal constant. 'Arriving behind the men who came in on foot' is the consequence of the drive, not an authored delay. 'The men get out and carry on walking' is OVT_MountedForceSpawningDeploymentModule.c:333 DismountAndWalk(\"its vehicle was destroyed\") and :339 for a dead crew - the documented walk fallback (feature goals G4/F8). The sweep: OVT_OccupyingFactionManager.ReportVehicleLoss inserts the loss position as a known target (deduplicated against the nearest existing one), and TickHunterKiller() on the manager's existing 60 s tick (OF_UPDATE_FREQUENCY at :289, called at :1834, defined at :2321) may buy Configs/Deployment/Deployment_HunterKillerSweep.conf - m_iMinimumThreatLevel 300, m_iBaseCost 60, and an OVT_ArmouredSweepBehaviorDeploymentModule authoring m_fSweepRadius 400 / m_iSweepMinutes 12, which is 'for a while before it leaves again'. 'MAY be sent' is load-bearing and must not become 'is sent': the dispatcher has four refusal gates (one live sweep at a time, no battle engaged, a threat-score floor, and the deployment pool affording the config's total cost). The anti-tank sentence is the one interpretive gloss on this page: it renders m_iMinThreat 400 (the mid rung, against a top rung at 900) as 'around the middle of a campaign' rather than quoting a threat number, and claims nothing about damage models or launcher availability."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -3296,6 +3770,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B5A11C00000010E}" {
+   Id "OVT-FieldManual_OccupyingForces_Text8"
+   Target_en_us "The armed vehicles the occupying faction puts on the road get heavier as the campaign turns against it. Early on an armed jeep is the worst of it. Later a gun truck or a scout car, and late on a wheeled armoured carrier with a cannon or a heavy machine gun on it. Each rung up costs the faction several times what the one below it does, and a mounted force only fields what its own budget covers, so a stretched faction keeps sending the cheap one. Campaign difficulty moves the whole scale: on the harder settings the heavier vehicles turn up far earlier than they would otherwise."
+   Comment "Field Manual - Patrols and Garrisons page, first body paragraph under the 'Armour and Checkpoints' header. Five sentences, no rich-text markup. Reference voice: describes, never instructs; no imperative and no implied sequence. FACT-CHECKED 2026-08-23 for occupying/vehicles Phase 7. The three rungs are the role 'armed' ladder authored in Configs/Factions/USSR_OverthrowData.conf:67-92 (light_armed UAZ469_PKM m_iMinThreat 0 m_iCost 25; medium_armed BRDM2 m_iMinThreat 400 m_iCost 70; heavy_armed BTR70 m_iMinThreat 900 m_iCost 120) and Configs/Factions/US_OverthrowData.conf:66-95 (light_armed M151A2_M2HB 0/25; heavy_armed M1025_armed_M2HB 400/70; heavy_armor LAV25 900/120). 'Gun truck or a scout car' covers the two mid rungs honestly because they differ by faction (an armed M1025 and a BRDM-2 are not the same kind of thing); 'a cannon or a heavy machine gun' is the LAV-25 and the BTR-70 respectively. 'Several times what the one below it does' is 25 -> 70 -> 120 and is deliberately not quoted as numbers, matching this page's existing rule for resource figures (see OccupyingForces_Text). NO THREAT NUMBER IS QUOTED, for the same reason OccupyingForces_Text6 quotes none: threat is a campaign-wide scale the manual explains elsewhere. The budget clause is OVT_VehicleLadderRules.RungAffordable plus decision D4 (the authored m_iTruckCostOverride on each mounted config is a ceiling, and any rung dearer than it is refused): Configs/Deployment/Deployment_ObjectiveHarassment_Mounted.conf:27 authors 70 and Deployment_HunterKillerSweep.conf authors 90. Difficulty is the vehicleThresholdScale field, authored in all six presets: Configs/Difficulty/Difficulty_Easy.conf:26 (2.0), Difficulty_Normal.conf:22 (1.0), Difficulty_Hard.conf:27 (0.5), Difficulty_Extreme.conf:27 (0.35), Difficulty_Insane.conf:27 (0.25), Difficulty_TestWorld.conf:12 (1.0) - a smaller scale means a lower effective threshold, hence 'far earlier'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B5A11C00000010F}" {
+   Id "OVT-FieldManual_OccupyingForces_Text9"
+   Target_en_us "An armed vehicle standing inside a base compound is not scenery. It belongs to that base, it sits there unmanned while the place is quiet, and when fighting starts at that base a crew takes it out to a firing position short of the shooting rather than driving into it. A vehicle parked on a road into a town the faction is currently working against is put there on purpose too: the men who rode in spread out around it while its gun stays manned, and it moves to a different approach every few minutes instead of holding one road all day."
+   Comment "Field Manual - Patrols and Garrisons page, second body paragraph under the 'Armour and Checkpoints' header. Two sentences, no rich-text markup. Reference voice: describes, never instructs. FACT-CHECKED 2026-08-23 for occupying/vehicles Phase 7. Parked armour: the 'Base Parked Armour' registry delta at Configs/Deployment/overthrowDeployments.conf:48-67 - one vehicle (m_iVehicleCount 1), role 'armed', m_iCostPerVehicle 120, m_iMinimumThreatLevel 400, m_fChance 60, and it carries no crew of its own, which is why 'unmanned' is literal. Crew-up: OVT_CrewUpOnAlarmBehaviorDeploymentModule authored on that same delta with m_fAlarmRadius 750, so it answers ONLY a battle at its own base and not one elsewhere on the island. 'Short of the shooting': Configs/Deployment/Deployment_BaseArmourSortie.conf:38-41 authors m_fApproachMinDistance 150 / m_fApproachMaxDistance 250 and m_iRelocateMinutes 0 (park, do not roam). Checkpoint: Configs/Deployment/Deployment_ObjectiveHarassment_Mounted.conf:44-47 authors m_fApproachMinDistance 150, m_fApproachMaxDistance 300, m_fRoadSearchRadius 120 and m_iRelocateMinutes 4, and its OVT_ObjectiveConditionDeploymentModule (:57-61) restricts it to the CURRENT objective from the Harassment phase through the ForwardBase phase, which is what 'currently working against' means. 'The men who rode in spread out around it while its gun stays manned' is OVT_MobileCheckpointBehaviorDeploymentModule.c:333 and :366 - every member of the force dismounts, the crew does not. NO DISTANCES ARE QUOTED: they are authored per config and differ between the sortie (150-250) and the checkpoint (150-300)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787443200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B5A11C000000101}" {
    Id "OVT-FieldManual_OccupyingForces_Title"
    Target_en_us "Patrols and Garrisons"
@@ -3355,6 +3863,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000AC}" {
+   Id "OVT-FieldManual_Ports_Head3"
+   Target_en_us "Resources"
+   Comment "Field Manual - Ports page, section header above the resources paragraph. One word, no rich-text markup. Matches the port screen's tab label (#OVT-ShopCategory_Resources)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B5A2E0100000003}" {
    Id "OVT-FieldManual_Ports_Text"
    Target_en_us "A port trades in bulk with the vehicle you are sitting in, and both you and the vehicle have to be within thirty metres of it. The vehicle needs storage of its own, so an illegal or armed one cannot trade there at all. The port screen has an Import side and an Export side."
@@ -3406,6 +3931,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000AD}" {
+   Id "OVT-FieldManual_Ports_Text4"
+   Target_en_us "Both sides of the port screen carry a Resources tab as well, trading bulk construction materials into and out of the cargo store of the truck you are sitting in. Those are priced separately from everything else here, and their price moves over the campaign instead of holding still. The Resources page covers them in full."
+   Comment "Field Manual - Ports page, body paragraph under 'Resources'. Three sentences, no rich-text markup. Deliberately short: it exists to point at the Resources page, which owns the detail, so nothing here is repeated there. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Cargo store of the occupied vehicle, not its item storage: OVT_PortContext.c:750 resolves OVT_ResourceUtils.GetStore(GetOccupiedVehicle()), which is the OVT_ResourceStoreComponent authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6. Live price rather than the fixed catalogue one: :778 reads resources.GetPrice(i), drifted by OVT_ResourceManagerComponent.CheckPrices:320-340."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B5A2E0100000006}" {
    Id "OVT-FieldManual_Ports_Title"
    Target_en_us "Ports"
@@ -3418,6 +3960,166 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000003}" {
+   Id "OVT-FieldManual_ProductionSites_Head"
+   Target_en_us "Buying What a Site Has Made"
+   Comment "Field Manual - Production Sites page, section header above the unowned-sale paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000005}" {
+   Id "OVT-FieldManual_ProductionSites_Head2"
+   Target_en_us "Owning a Site"
+   Comment "Field Manual - Production Sites page, section header above the purchase paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000007}" {
+   Id "OVT-FieldManual_ProductionSites_Head3"
+   Target_en_us "Public and Private"
+   Comment "Field Manual - Production Sites page, section header above the access paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000009}" {
+   Id "OVT-FieldManual_ProductionSites_Head4"
+   Target_en_us "On the Map"
+   Comment "Field Manual - Production Sites page, section header above the map paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000002}" {
+   Id "OVT-FieldManual_ProductionSites_Text"
+   Target_en_us "A sawmill, a steel mill or a cement plant can be a production site, marked by a large sign standing at it. Each one makes a single construction resource and nothing else, dripping a set number of units into a cargo store of its own once every in-game hour, whether anybody owns it or not. That store is the throttle: twenty cubic metres on the shipped sites, and a site whose store is full pauses until room is made in it. A rate below one unit an hour still adds up, because the part unit is carried rather than lost, and hours slept through are produced as well."
+   Comment "Field Manual - Production Sites page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The three shipped variants: Prefabs/Production/OVT_ProductionSite_Sawmill.et, _SteelMill.et and _CementPlant.et. The large sign: Prefabs/Production/OVT_ProductionSite_Base.et:1 inherits {48C842DD171DE304}Prefabs/Structures/Signs/Large/SignLarge_01_base.et, whose mesh is Assets/Structures/Signs/Large/SignLarge_01_poles.xob. One resource per site: OVT_ResourceProductionComponent.c:26-27 (a single m_sResourceId) and the single-row screen built from it at OVT_ProductionSiteBuyContext.c:123-171. Once per in-game hour: OVT_ResourceProductionManagerComponent.CheckProduction:531-551 with OVT_ResourceProductionRules.ShouldProduce:106-109 (every hour, unlike price drift's four windows). Regardless of ownership: ProduceForHours:556-573 walks every record with no owner test anywhere in it. Twenty cubic metres: OVT_ProductionSite_Base.et:6-9 authors m_fCargoVolume 20; 'on the shipped sites' rather than a flat rule because a map author overrides it per placed instance. Pauses when full: OVT_ResourceProductionRules.FitProduction:151-161 fits whole units into the free litres and ProduceForSite:610-612 returns when nothing fits (whole units that do not fit are discarded, not banked - D7). Sub-1 rates and the carry: OVT_ResourceProductionRules.Produce:119-142, carry bounded to [0,1) at :135-139, and the carry is persisted in OVT_PersistedProductionSite. Sleep: OVT_ResourceProductionManagerComponent.HandleTimeSkip:632-651, called from OVT_SleepService.c:377-379 before the clock is advanced. Rates and prices are NOT quoted: every one of the four numbers is authored per placed instance (OVT_ResourceProductionComponent.c:23-33)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000004}" {
+   Id "OVT-FieldManual_ProductionSites_Text2"
+   Target_en_us "While nobody owns it, a site sells what it has accumulated. Its Buy stock action carries the amount on hand and opens a one row screen quoting eighty per cent of what a port charges to import that resource at that moment, so a site undercuts the port it competes with. It sells only what it has actually produced, and the load has to go into another cargo store standing within twenty five metres of it, which the screen says plainly when there is none. A cart that will not fit, is not stocked or cannot be paid for is refused whole, so nothing is ever part bought."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Buying What a Site Has Made'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Unowned only, on both sides: OVT_BuySiteStockAction.CanBeShownScript:193-200 calls OVT_ResourceProductionRules.MayBuyStock:95-98, and the server refuses an owned site in exactly one place, OVT_ResourceRequestComponent.MayBuyFromSite:1039+ with #OVT-ProdSite_Owned. The action label carries the stock count: OVT_BuySiteStockAction.c:231 (#OVT-ProdSite_BuyStock, one %1). One row: OVT_ProductionSiteBuyContext.BuildEntries:123-171 emits exactly one entry, the site's own resource. Eighty per cent of the LIVE import price: :159 SitePrice(resources.GetPrice(defIndex), SITE_SELL_RATIO) with SITE_SELL_RATIO 0.8 at OVT_ResourceProductionRules.c:10, floored at 1 by :21-24. It is NOT the port's 0.5 export ratio (D10), and the server re-derives the same figure at commit so a client cannot supply a price. Capped by real stock: :160 m_iMaxQuantity = Math.Min(stock, MAX_BUY_QUANTITY 1000), and the server's own refusal on the ledger count at OVT_ResourceRequestComponent.c:641 (#OVT-Resource_NotEnough). Twenty five metres: OVT_ProductionSiteBuyContext.c:23 DESTINATION_RADIUS 25, used by BuildDestinations:184-223, which excludes the site itself. 'Another cargo store' rather than 'a truck' because a crate pile or warehouse in range is equally a destination. No destination is stated rather than silent: ValidateCart:278-286 returns #OVT-Resource_NeedTruck. Refused whole, never clamped: OVT_ResourceRequestComponent.c:715 (#OVT-Resource_NoSpace, whole cart) and :719 (PlayerHasMoney on the whole cart, #OVT-Resource_NoMoney)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000006}" {
+   Id "OVT-FieldManual_ProductionSites_Text3"
+   Target_en_us "Buying the site itself is an action on it, priced from what that site was set up to cost and scaled by the difficulty's real estate multiplier; the price on the label is the price that is charged. An officer can buy one out of resistance funds instead, which puts it in the resistance's name. Buying empties the store in the same moment it takes the money, so a site is never worth buying for the stock it was sitting on. A site is never sold back, costs nothing to keep, and is not something the occupying faction comes after."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Owning a Site'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The action: OVT_BuySiteAction on Prefabs/Production/OVT_ProductionSite_Base.et:21-30 (Sort Priority 1), shown only while unowned via MayBuySite (OVT_BuySiteAction.c:49-56). One price, two evaluations of the same static: OVT_BuySiteAction.GetCost:166-177 for the label and OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:153 for the charge, both OVT_ResourceProductionRules.BuyCost(authored base cost, config.GetRealEstateCostMultiplier()). realEstateCostMultiplier is a difficulty setting (OVT_DifficultySettings.c:123), which is why no figure is quoted here; this feature is its first reader. Resistance funds are officer-only: OVT_BuySiteResistanceAction.CanBeShownScript:21-31 (IsLocalPlayerOfficer, UX) and the authority at RpcAsk_BuySite:166-170 (resistance.IsOfficer(playerId) resolved from the request entity, never from anything the client says). Owner becomes the literal 'resistance' at :179. Stock destroyed in the same call as the charge: RpcAsk_BuySite:207-209 - SetSiteOwner, SetSitePrivacy(true), then manager.ClearSiteStock (OVT_ResourceProductionManagerComponent.c:343-360, ledger.Clear() then PublishContents()). Requirement section 19. No sell-back: MayBuySite (OVT_ResourceProductionRules.c:85-88) is true only while owner is empty, and no refund path exists anywhere in the mod. No upkeep and not a target: grep of Scripts/Game/GameMode/Managers/Factions/ and OVT_OccupyingFactionManager.c for OVT_ResourceProductionComponent or OVT_Global.GetProduction() returns 0 hits (2026-08-22), and nothing in the feature charges a recurring cost. Requirements sections 23 and 26."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000008}" {
+   Id "OVT-FieldManual_ProductionSites_Text4"
+   Target_en_us "A site bought by a player starts private, and a private one opens its storage to that player alone. The owner can flip it to public, an officer can do the same on a resistance owned site, and a public or resistance owned site opens to anyone in the resistance. Anyone who may not open it still sees the site's Cargo action, blocked with a reason rather than hidden. An owned site stops selling altogether: what it makes goes into building, into a trade agreed with another player, or out to a port for export."
+   Comment "Field Manual - Production Sites page, body paragraph under 'Public and Private'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Private on purchase: OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:208 SetSitePrivacy(rec.location, true). Who may open it, ONE predicate with two callers: OVT_ResourceProductionRules.MayAccessStore:44-59 - unowned opens to nobody, 'resistance' opens to everybody, public opens to everybody, private opens to the owner alone. Server caller: OVT_ResourceRequestComponent.SiteIsAccessible:1143-1150 feeding the holder ladder at :1020-1024 (#OVT-Resource_NoAccess). Client caller: OVT_OpenResourceStoreAction.SiteIsOpenTo:191-203 with the reason set at :97-99. Visible-and-blocked rather than hidden: OVT_OpenResourceStoreAction.c:97-99 calls SetCannotPerformReason, the shipped gate policy of that file. NAMED 'Cargo' RATHER THAN 'Storage' ON PURPOSE: a site's store has a bounded capacity (20 m3), so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'. #OVT-ProdSite_Storage ('Site Storage') is only the prefab's static UIInfo fallback and the name the destination picker draws; the UNLIMITED branch at :149 that would show it as the action label is never taken on a shipped site. The toggle: OVT_ToggleSitePrivacyAction on OVT_ProductionSite_Base.et:51-60, gated by OVT_ResourceProductionRules.MayTogglePrivacy:67-79 (owner, or an officer on a resistance-owned site) on the client at :103-118 and re-checked by RpcAsk_SetSitePrivacy. Labels flip between #OVT-ProdSite_MakePublic and #OVT-ProdSite_MakePrivate at :124-141. An owned site sells nothing: OVT_BuySiteStockAction.CanBeShownScript:193-200 hides the shop action the moment the site has an owner. Requirement section 23. Building, player-to-player trade and export are named as the uses because requirement section 26 states them and the mechanisms already exist (the Resources page covers construction sites and port export); no new mechanism is implied."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F400000000A}" {
+   Id "OVT-FieldManual_ProductionSites_Text5"
+   Target_en_us "Production sites draw at the same zoom as towns and bases. The icon is white while the site is unowned, green when it is yours, public or the resistance's, and half faded white when somebody else is keeping it private. Its info panel gives the status, the owner once it has one, what is in the store against how much room there is, its output per hour, and, while it is unowned, what buying it would cost."
+   Comment "Field Manual - Production Sites page, body paragraph under 'On the Map'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Same zoom as towns and bases: Configs/Map/OverthrowMap.conf:180 gives OVT_MapLocationProductionSite m_fVisibilityZoom 0, the same value OVT_MapLocationTown (:7) and OVT_MapLocationBase (:25) carry. Requirement section 21. The three colours: OVT_MapLocationProductionSite.c:19-26 authors them as [Attribute] ColorPicker defaults (1 1 1 1 white unowned, 0 1 0 1 green accessible, 1 1 1 0.5 half-alpha white private-not-yours) - CORRECTED 2026-08-22 after the user changed unowned and private from black/half-green to white; implementation.md F12 was updated to match and context.md records the change. GetIconColor (:74-93) never compares owner or isPrivate itself, it hands them to OVT_ResourceProductionRules.ColourState (:169-178), the same function the storage gate uses. Info panel rows: BuildInfoRows (:99-121)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F4000000001}" {
+   Id "OVT-FieldManual_ProductionSites_Title"
+   Target_en_us "Production Sites"
+   Comment "Field Manual - Production Sites page title, shown on the entry tile in the Money and Trade category, beside Resources. Two words, no rich-text markup. The page covers OVT_ResourceProductionComponent sites (Prefabs/Production/), which the Resources page deliberately only points at."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -3575,6 +4277,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000007210}" {
+   Id "OVT-FieldManual_Recruits_Head9"
+   Target_en_us "Handing Recruits to High Command"
+   Comment "Field Manual - The Resistance category, Recruits page. Ninth section header, five words. Added 2026-08-22 by resistance/high-command Phase 13; points at the High Command page rather than repeating it. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B00000000010E}" {
    Id "OVT-FieldManual_Recruits_Text"
    Target_en_us "Civilians can be hired as recruits and fight alongside you. Recruits belong to the player who hired them, stay with that player between sessions, and one player can hold up to sixteen at a time."
@@ -3591,6 +4309,22 @@ StringTable {
    Modified 1754611200
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007211}" {
+   Id "OVT-FieldManual_Recruits_Text10"
+   Target_en_us "Recruits that are holding position can also be handed over to High Command, which fields whole groups a player orders from the map. The Holding Position section is split by where the recruits are standing, and each of those groups carries a Convert to High Command action. It is one way: the recruits leave your roster and free their slots, and their names, experience and skills stop being tracked, while the same bodies and their gear carry on in the new group."
+   Comment "Field Manual - The Resistance category, Recruits page, body paragraph under the 'Handing Recruits to High Command' header. Three sentences. Same citations as #OVT-FieldManual_HighCommand_Text7: OVT_RecruitsContext.c:371, :444, :664-695, :748; UI/Layouts/Menu/RecruitsMenu.layout:317; OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 and DropConvertedRecruitRecords:2513-2526 (RemoveRecruit frees the recruit cap). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -3785,6 +4519,210 @@ StringTable {
    Modified 1706583682
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A2}" {
+   Id "OVT-FieldManual_Resources_Head"
+   Target_en_us "Buying and Selling at a Port"
+   Comment "Field Manual - Resources page, section header above the port paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A4}" {
+   Id "OVT-FieldManual_Resources_Head2"
+   Target_en_us "Hauling"
+   Comment "Field Manual - Resources page, section header above the truck paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A6}" {
+   Id "OVT-FieldManual_Resources_Head3"
+   Target_en_us "Crate Piles"
+   Comment "Field Manual - Resources page, section header above the crate pile paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A8}" {
+   Id "OVT-FieldManual_Resources_Head4"
+   Target_en_us "Building With Resources"
+   Comment "Field Manual - Resources page, section header above the construction site paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AA}" {
+   Id "OVT-FieldManual_Resources_Head5"
+   Target_en_us "Warehouses"
+   Comment "Field Manual - Resources page, section header above the warehouse paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A1}" {
+   Id "OVT-FieldManual_Resources_Text"
+   Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, production sites on the island make them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
+   Comment "Field Manual - Resources page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. The four resources and their per-unit figures: Configs/Resistance/resources.conf:3-42 - timber 0.1 cubic metres and 40 dollars base, cement 0.05 and 60, steel 0.04 and 120, hardware 0.02 and 200. Held as a quantity rather than as entities: Scripts/Game/Data/OVT_ResourceLedger.c (id to quantity, no entity anywhere). Cubic metres as the unit of capacity: OVT_ResourceStoreComponent.c:285 converts the authored m_fCargoVolume to integer litres. Holders: Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6, Prefabs/Props/Resources/OVT_ResourcePile.et:4-7, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11. Structures that require them: Configs/Resistance/buildables.conf:77, :107, :145, :175. REVISED 2026-08-22 for logistics/resource-production: 'production sites on the island make them' added to the last sentence, and the buildables.conf line references above were re-derived (the Guard Tower requirement at :15 no longer exists). Production sites: OVT_ResourceProductionManagerComponent.ProduceForHours:556-573 drips into each site's own OVT_ResourceStoreComponent once an in-game hour; the Production Sites page owns the detail so nothing is repeated here."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A3}" {
+   Id "OVT-FieldManual_Resources_Text2"
+   Target_en_us "The port screen carries a Resources tab on both the Import and the Export side. What a resource costs there is a live price that moves over the campaign rather than the fixed one a shop uses: it changes at most once in each six-hour window of game time, stays inside a band around its base price, and the details panel says whether it currently sits below, near or above that base. Occupying pressure pushes prices up and resistance control of the ports pushes them down. A port pays half the going price to take a resource back off you. Either way the trade runs through the store of the truck you are sitting in, so a resource is listed disabled with a reason when there is no truck under you or no room left in it. Difficulty scales both the price and how far it swings."
+   Comment "Field Manual - Resources page, body paragraph under 'Buying and Selling at a Port'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Live price: OVT_PortContext.c:778 reads resources.GetPrice(i), never the config base. Six-hour window: OVT_ResourceRules.c:54-83 (IsDriftWindowHour plus the one-drift-per-window latch) driven by OVT_ResourceManagerComponent.CheckPrices:320-340. Band: OVT_ResourceManagerComponent.c:36-40 m_fPriceBandMin 0.5 and m_fPriceBandMax 2.0, clamped inside OVT_ResourceRules.DriftStep. Below/near/above line: OVT_PortContext.c:905-908. Direction of the pressure term: OVT_ResourceRules.WarPressure:113-120 - the threat term is positive and the controlled-port fraction is subtracted. Half: OVT_ResourceManagerComponent.c:45-46 m_fSellRatio default 0.5, applied at :227. Trade runs through the occupied vehicle's store: OVT_PortContext.c:750. Disabled with a reason: :776-786 (#OVT-Resource_NeedTruck and #OVT-Resource_NoCargoSpace). Difficulty: OVT_DifficultySettings.c resourcePriceMultiplier and resourcePriceVolatility, set per level in Configs/Difficulty/Difficulty_Easy.conf, _Hard.conf, _Extreme.conf and _Insane.conf. Numbers are not quoted because all three are difficulty settings."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A5}" {
+   Id "OVT-FieldManual_Resources_Text3"
+   Target_en_us "Trucks are the only vehicles with a cargo store, so no car, armoured carrier or helicopter shows a cargo action at all. An ordinary truck takes fifteen cubic metres, the transport variants of the M923A1 and the Ural take twenty, and the Mobile FOB truck takes eight because it is already carrying a base. Sitting in a truck puts a panel on the screen listing what is aboard and how much of the space is gone. A load that will not fit is refused whole, with the space left over named in the message, so nothing is ever part-bought or half-moved."
+   Comment "Field Manual - Resources page, body paragraph under 'Hauling'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Trucks only: OVT_ResourceStoreComponent and OVT_OpenResourceStoreAction are authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-21, which only ArmaReforger Prefabs/Vehicles/Wheeled/M923A1/M923A1.et and Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et inherit (grep of the vanilla tree, 2026-08-21); cars and helicopters inherit Wheeled_Base.et or another base and therefore have neither component nor action. Capacities: Wheeled_Truck_Base.et:5 is 15, M923A1_transport.et:5 and Ural4320_transport.et:5 are 20, OverthrowMobileFOB.et:5 and OverthrowMobileFOBDeployed.et:5 are 8. HUD panel: OVT_CargoInfo.c, declared on Wheeled_Truck_Base.et:32-35; it lists up to six resource lines (MAX_LINES, :20) and the used-of-total volume. Whole-cart refusal with the remaining volume: OVT_ResourceTransferContext.ValidateCart:306-320 (#OVT-Resource_NoSpaceVolume) and the server's re-check in OVT_ResourceRequestComponent. Deliberately NOT written: any claim that weight affects handling. Physics.SetMass is never called; weight is display only (OVT_ResourceLedger.TotalWeightKg)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A7}" {
+   Id "OVT-FieldManual_Resources_Text4"
+   Target_en_us "A cargo store opens a screen with a Take side and a Put side, and a list of everywhere nearby the load could go, nearest first. In Take, one of those destinations is the ground. Sending a load there drops a crate pile in front of you, and dropping a second load within a few metres of that pile adds to it rather than starting another. A pile has no capacity limit of its own, shows on the map with its contents and its volume, opens like any other store, and disappears once it has been emptied."
+   Comment "Field Manual - Resources page, body paragraph under 'Crate Piles'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Take and Put: OVT_ResourceTransferContext.BuildModes:131-134. Nearby destinations sorted nearest-first, within m_fHolderRadius (default 25 m, OVT_ResourceRequestComponent.c:166-167, unoverridden on Prefabs/GameMode/OVT_OverthrowController.et:48-49): OVT_ResourceTransferContext.BuildDestinations:225-241. Ground offered in Take only: :243-255. Dropped in front of the player: m_fUnloadOffset default 4 m, OVT_ResourceRequestComponent.c:178-179. Merging: OVT_ResourceManagerComponent.c:48-49 m_fMergeRadius default 6 m, selected by OVT_ResourceRules.SelectMergeTarget at :579 - 'a few metres' rather than the number because the radius is a prefab attribute. Unlimited: Prefabs/Props/Resources/OVT_ResourcePile.et:5 authors m_fCargoVolume -1. Map: OVT_MapLocationResourcePile.c:86-92 draws the contents and volume rows; the marker is the OVT_MapMarkerComponent with category RESOURCE_PILE on OVT_ResourcePile.et:11-13. Deleted when emptied: OVT_ResourceManagerComponent.DeletePileIfEmpty:629-648."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A9}" {
+   Id "OVT-FieldManual_Resources_Text5"
+   Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
+   Comment "Field Manual - Resources page, body paragraph under 'Building With Resources'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Money-only buildables are byte-identical to before: OVT_ResistanceFactionManager.BuildItem:896-899 branches to PlaceConstructionSite only when HasResourceRequirements() is true, otherwise straight to FinishBuild. Which four: Garage (buildables.conf:77), Helipad (:107), Warehouse (:145) and Barracks (:175); no other entry authors m_aResourceRequirements. CORRECTED 2026-08-22 for logistics/resource-production: the sentence still named the Guard Tower and omitted the Barracks, which the 2026-08-21 comment had already flagged as re-checked but never applied to the English text. The Guard Tower entry (buildables.conf:5-17) authors no m_aResourceRequirements at all. Money charged at placement: OVT_ResistanceFactionManager.PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The two actions: OVT_SiteRequirementsAction.c:60 (#OVT-Resource_SiteRequirements) and OVT_BuildFromSiteAction.c:124-129, both on Prefabs/Structures/OVT_ConstructionSite.et. Thirty metres: OVT_ResourceManagerComponent.c:51-52 m_fSupplyRadius default 30, read by OVT_ResourceRequirements.CollectPiles:281. Nearest first: OVT_ResourceRequirements.Consume:173 through OVT_ResourceRules.SortPilesForConsumption. Piles only: CollectPiles runs an OVT_ResourcePileQuery, so a truck store or a warehouse store is never counted (requirements section D). No refund: OVT_ResistanceFactionManager.c:1091-1106 states it and no refund path exists anywhere in the mod. Difficulty: OVT_DifficultySettings.c:151-152 buildableResourceCostMultiplier, applied by OVT_ResourceRequirements.ScaleForDifficulty:33 - which is why no requirement quantity is quoted here."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AB}" {
+   Id "OVT-FieldManual_Resources_Text6"
+   Target_en_us "A warehouse building holds resources beside the items it already stores, under an action of its own, and neither side of it has a limit. A warehouse is also something the resistance can build, for money and all four resources. It can go up at a base the resistance holds, and inside a town the resistance controls, which is the only place the build list reaches beyond bases, FOBs and camps; a town the occupying faction still holds refuses it, and so does a village. Once it is up it is a warehouse like any other, on the map, in who owns it and in what it will hold."
+   Comment "Field Manual - Resources page, body paragraph under 'Warehouses'. Four sentences, no rich-text markup. Cross-references the Storage page rather than restating the item side. FACT-CHECKED 2026-08-21 for logistics/resources. The resource store and its own action at Sort Priority 3: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11 and :43-52. Both unlimited: m_eCapacityMode UNLIMITED on the item store (:4-7) and m_fCargoVolume -1 on the resource store (:9). Buildable entry: Configs/Resistance/buildables.conf:142-172 - m_iCost 12000 (not quoted, buildableCostMultiplier is a difficulty setting), m_bBuildAtBase 1, m_bBuildInTown 1, and all four resources at :153-172. Town control: OVT_BuildContext.CanBuild:330-348 refuses an uncontrolled town with #OVT-CannotBuildUncontrolledTown and a village with #OVT-CannotBuildVillage, and the server re-checks through the same pure predicate in OVT_ResistanceFactionManager.TownControlAllowsBuild:1031-1046. Warehouse is the only shipped buildable that sets m_bBuildInTown (grep of buildables.conf, 2026-08-21). Indistinguishable afterwards: OVT_ResistanceFactionManager.RegisterBuiltWarehouse:1002-1016 registers it through OVT_RealEstateManagerComponent.SetOwnerPersistentId, which is the same record a bought warehouse carries."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000A0}" {
+   Id "OVT-FieldManual_Resources_Title"
+   Target_en_us "Resources"
+   Comment "Field Manual - Resources page title, shown on the entry tile in the Money and Trade category. One word, no rich-text markup. Matches the port screen's Resources tab label (#OVT-ShopCategory_Resources)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -5802,6 +6740,1174 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D00000000C3}" {
+   Id "OVT-HC_AtCap"
+   Target_en_us "Your High Command groups are at capacity"
+   Comment "OVT_ManageHighCommandAction.CanBePerformedScript SetCannotPerformReason - shown when the player's member count already meets or exceeds their High Command cap."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CE}" {
+   Id "OVT-HC_BuyButton"
+   Target_en_us "Buy ($%1)"
+   Comment "Barracks purchase screen Buy button label once an OK quote has arrived. %1 is the quoted total."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CF}" {
+   Id "OVT-HC_BuyButtonPlain"
+   Target_en_us "Buy"
+   Comment "Barracks purchase screen Buy button label before a quote has arrived, while none is pending, or after a refusal."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000D0}" {
+   Id "OVT-HC_Buying"
+   Target_en_us "Raising group..."
+   Comment "Barracks purchase screen status line and Buy button label between pressing Buy and the server's RpcDo_HCResult answer."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005201}" {
+   Id "OVT-HC_ConvertedGroupDesc"
+   Target_en_us "Recruits promoted into High Command. They keep the gear they were carrying."
+   Comment "Description of a converted High Command group (OVT_HighCommandManagerComponent.GetConvertedEntry). Never shown in the barracks purchase list - a converted group cannot be bought."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005200}" {
+   Id "OVT-HC_ConvertedGroupName"
+   Target_en_us "Converted Squad"
+   Comment "Name shown on the map and in the Manage Groups roster for a High Command group made by converting a parked recruit squad. It names no purchasable catalog entry, so this is its only title (OVT_HighCommandManagerComponent.GetConvertedEntry)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B3}" {
+   Id "OVT-HC_Group_AntiTankTeam"
+   Target_en_us "Anti-Tank Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B4}" {
+   Id "OVT-HC_Group_AntiTankTeamDesc"
+   Target_en_us "Four fighters carrying anti-armour weapons."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B5}" {
+   Id "OVT-HC_Group_FireTeam"
+   Target_en_us "Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B6}" {
+   Id "OVT-HC_Group_FireTeamDesc"
+   Target_en_us "Five riflemen with a designated marksman."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B1}" {
+   Id "OVT-HC_Group_LightFireTeam"
+   Target_en_us "Light Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B2}" {
+   Id "OVT-HC_Group_LightFireTeamDesc"
+   Target_en_us "Four riflemen, fast to raise and easy to keep supplied."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AB}" {
+   Id "OVT-HC_Group_MachineGunTeam"
+   Target_en_us "Machine Gun Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AC}" {
+   Id "OVT-HC_Group_MachineGunTeamDesc"
+   Target_en_us "A gunner and loader built to hold a line under fire."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BB}" {
+   Id "OVT-HC_Group_MotorFireTeam"
+   Target_en_us "Motorised Fire Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BC}" {
+   Id "OVT-HC_Group_MotorFireTeamDesc"
+   Target_en_us "A light fire team riding a jeep for a fast response."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AF}" {
+   Id "OVT-HC_Group_ReconTeam"
+   Target_en_us "Recon Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B0}" {
+   Id "OVT-HC_Group_ReconTeamDesc"
+   Target_en_us "Two fighters built for scouting, not sustained combat."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B7}" {
+   Id "OVT-HC_Group_RifleSquad"
+   Target_en_us "Rifle Squad"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B8}" {
+   Id "OVT-HC_Group_RifleSquadDesc"
+   Target_en_us "A full seven-man squad, the backbone of a defence."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A9}" {
+   Id "OVT-HC_Group_SentryTeam"
+   Target_en_us "Sentry Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AA}" {
+   Id "OVT-HC_Group_SentryTeamDesc"
+   Target_en_us "Two riflemen who hold a position and watch for movement."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AD}" {
+   Id "OVT-HC_Group_SharpshooterTeam"
+   Target_en_us "Sharpshooter Team"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000AE}" {
+   Id "OVT-HC_Group_SharpshooterTeamDesc"
+   Target_en_us "A marksman and spotter for long-range overwatch."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000B9}" {
+   Id "OVT-HC_Group_TechnicalPKM"
+   Target_en_us "Technical (PKM)"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BA}" {
+   Id "OVT-HC_Group_TechnicalPKMDesc"
+   Target_en_us "A sentry team mounted on a machine-gun-armed jeep."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BD}" {
+   Id "OVT-HC_Group_TruckSquad"
+   Target_en_us "Truck Squad"
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000BE}" {
+   Id "OVT-HC_Group_TruckSquadDesc"
+   Target_en_us "A fire team riding a covered truck for a long haul."
+   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Description shown in the barracks purchase screen's details panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004112}" {
+   Id "OVT-HC_Map_BadDestination"
+   Target_en_us "Put the map cursor on a destination first"
+   Comment "Reason line on the map info panel when an order was refused because the destination was not a real point on the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410F}" {
+   Id "OVT-HC_Map_Deselect"
+   Target_en_us "Deselect"
+   Comment "Label on the map info panel's close button for a selected High Command group. It drops the selection and closes the panel; it does not close the map."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004102}" {
+   Id "OVT-HC_Map_DestinationLine"
+   Target_en_us "Destination: %1 away"
+   Comment "Map info panel line for a selected High Command group. %1 is the distance from the group to its ordered destination, already formatted with its units, so it reads as 'Destination: 1.2 km away'. Reads '0 m away' for a group that has arrived."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004103}" {
+   Id "OVT-HC_Map_DistanceLine"
+   Target_en_us "From you: %1"
+   Comment "Map info panel line for a selected High Command group. %1 is the distance from the local player to the group, already formatted with its units."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004105}" {
+   Id "OVT-HC_Map_DistanceUnknown"
+   Target_en_us "unknown"
+   Comment "Substituted into the map info panel's From you line when the local player has no controlled character to measure from - spectating, or mid-respawn. Lower case: it sits inside a sentence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004113}" {
+   Id "OVT-HC_Map_NoSeam"
+   Target_en_us "High Command is not available right now"
+   Comment "Reason line on the map info panel when the local controller has no High Command request component, so the order could not be sent at all. Almost always a client that has just connected."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004110}" {
+   Id "OVT-HC_Map_NotOwner"
+   Target_en_us "Only %1 can order this group"
+   Comment "Reason line under the map info panel's disabled order buttons when the selected High Command group belongs to another player. %1 is that player's name. The buttons stay visible and disabled rather than being hidden, so the refusal is explained."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410D}" {
+   Id "OVT-HC_Map_Order"
+   Target_en_us "Order move"
+   Comment "Label on the map info panel's order button for a selected High Command group. The button carries the key or pad glyph beside it, so the label is the verb only. Pressing it sends the group to wherever the map cursor is, keeping its current stance."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004116}" {
+   Id "OVT-HC_Map_RefusedBadStance"
+   Target_en_us "That stance is not valid"
+   Comment "Reason line on the map info panel after the server refused an order with BAD_STANCE. A player should never see this; it means the client sent a stance value outside the enum."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004117}" {
+   Id "OVT-HC_Map_RefusedGeneric"
+   Target_en_us "The order was refused"
+   Comment "Fallback reason line on the map info panel for an order refusal the panel has no dedicated sentence for - NO_PLAYER, or a future RESULT_ code it has not been taught yet."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004115}" {
+   Id "OVT-HC_Map_RefusedNoGroup"
+   Target_en_us "That group no longer exists"
+   Comment "Reason line on the map info panel after the server refused an order with NO_GROUP - the group was wiped or dismissed between the marker being drawn and the order arriving."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004114}" {
+   Id "OVT-HC_Map_RefusedNotOwner"
+   Target_en_us "That group is not yours"
+   Comment "Reason line on the map info panel after the server refused an order with NOT_OWNER. The server is the only gate that matters; this sentence is what the player sees when the client-side check was bypassed or the group changed hands."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410E}" {
+   Id "OVT-HC_Map_Stance"
+   Target_en_us "Change stance"
+   Comment "Label on the map info panel's stance button for a selected High Command group. Pressing it cycles Defend to Patrol to Attack and re-issues the order at the same destination."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004101}" {
+   Id "OVT-HC_Map_StanceLine"
+   Target_en_us "Stance: %1"
+   Comment "Map info panel line for a selected High Command group. %1 is the already-translated stance name - Defend, Patrol or Attack."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004109}" {
+   Id "OVT-HC_Map_StatusContact"
+   Target_en_us "In contact"
+   Comment "One-word-ish status for a High Command group whose members can currently see an enemy. Takes priority over every other status. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410C}" {
+   Id "OVT-HC_Map_StatusHolding"
+   Target_en_us "Holding"
+   Comment "Status for a High Command group that has arrived at its destination and is doing whatever its stance says. The default status. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004104}" {
+   Id "OVT-HC_Map_StatusLine"
+   Target_en_us "%1 - %2 / %3 alive"
+   Comment "Map info panel line for a selected High Command group. %1 is the already-translated one-word status, %2 the members still alive and %3 the members the group was bought with."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410B}" {
+   Id "OVT-HC_Map_StatusMoving"
+   Target_en_us "Moving"
+   Comment "Status for a High Command group that is still further than the arrival radius from its ordered destination. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000410A}" {
+   Id "OVT-HC_Map_StatusNoAmmo"
+   Target_en_us "Out of ammo"
+   Comment "Status for a High Command group where no member can put rounds downrange. Shown only when the group is not also in contact. Substituted into the map info panel's status line."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004111}" {
+   Id "OVT-HC_Map_UnknownOwner"
+   Target_en_us "an unknown player"
+   Comment "Substituted for a High Command group owner's name when the player roster cannot resolve it - usually an owner who has never connected to this session. Lower case: it sits inside a sentence."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C6}" {
+   Id "OVT-HC_MemberCountFormat"
+   Target_en_us "%1 fighters"
+   Comment "Format string for a High Command entry's member count, shown on each purchase screen row and in the details panel. %1 is the member count, read client-side from the prefab source with nothing spawned."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C4}" {
+   Id "OVT-HC_MenuTitle"
+   Target_en_us "High Command"
+   Comment "Header title of the barracks purchase screen, UI/Layouts/Menu/HighCommandMenu.layout."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C5}" {
+   Id "OVT-HC_NoSelectionHelp"
+   Target_en_us "Select a group to see its price."
+   Comment "Barracks purchase screen details panel placeholder text, shown before any row has been selected or when the catalog is empty."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C8}" {
+   Id "OVT-HC_QuoteChecking"
+   Target_en_us "Checking price..."
+   Comment "Barracks purchase screen status line and Buy button label while a debounced quote is on the wire (RequestQuoteGroup asked, RpcDo_HCQuote not yet answered for this row)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CA}" {
+   Id "OVT-HC_QuoteCovered"
+   Target_en_us "$%1 covered by nearby warehouse stock"
+   Comment "Barracks purchase screen quote line - RpcDo_HCQuote coveredValue, shown when greater than zero. %1 is the covered value at buy price."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000D1}" {
+   Id "OVT-HC_QuoteError"
+   Target_en_us "Unable to price this group right now"
+   Comment "Barracks purchase screen fallback reason text for a quote refusal this screen has no dedicated sentence for (NO_PLAYER, NO_ACTOR, or a future RESULT_* code the screen has not been taught yet)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CB}" {
+   Id "OVT-HC_QuoteNoCoverage"
+   Target_en_us "No nearby warehouse stock"
+   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteCovered when RpcDo_HCQuote's coveredValue is zero."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CD}" {
+   Id "OVT-HC_QuoteNoSupporters"
+   Target_en_us "No supporters required"
+   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteSupporters when RpcDo_HCQuote's supportersNeeded is zero."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000CC}" {
+   Id "OVT-HC_QuoteSupporters"
+   Target_en_us "%1 supporters required"
+   Comment "Barracks purchase screen quote line - RpcDo_HCQuote supportersNeeded, shown when greater than zero. %1 is the count taken from the nearest town."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C9}" {
+   Id "OVT-HC_QuoteTotal"
+   Target_en_us "$%1"
+   Comment "Barracks purchase screen quote line - the server's total price for the selected entry (RpcDo_HCQuote total). %1 is the amount. Labelled as an estimate: the purchase re-derives and charges its own number."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005102}" {
+   Id "OVT-HC_Roster_Capacity"
+   Target_en_us "%1 / %2 members"
+   Comment "Capacity line on the Manage Groups roster. %1 is OVT_HighCommandManagerComponent.GetMemberCount for the local player, %2 is GetMemberCap - members across every owned group, whatever they are doing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005107}" {
+   Id "OVT-HC_Roster_Dismiss"
+   Target_en_us "Dismiss"
+   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterDismiss) - opens the DISMISS_HC_GROUP confirmation dialog."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000510A}" {
+   Id "OVT-HC_Roster_Dismissed"
+   Target_en_us "Group dismissed"
+   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult on RESULT_OK after a confirmed dismiss - the server's answer, never shown optimistically."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000510B}" {
+   Id "OVT-HC_Roster_DismissFailed"
+   Target_en_us "Could not dismiss the group"
+   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult when a dismiss ask answers anything other than RESULT_OK."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005109}" {
+   Id "OVT-HC_Roster_DismissMessage"
+   Target_en_us "This will permanently disband the group, its vehicle and its orders. This cannot be undone."
+   Comment "Message of the DISMISS_HC_GROUP confirmation dialog."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005108}" {
+   Id "OVT-HC_Roster_DismissTitle"
+   Target_en_us "Dismiss Group"
+   Comment "Title of the DISMISS_HC_GROUP confirmation dialog (Configs/UI/Dialogs/DialogPresets_Campaign.conf), the DISMISS_RECRUIT shape."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005104}" {
+   Id "OVT-HC_Roster_MembersFormat"
+   Target_en_us "%1 / %2 alive"
+   Comment "Selected-group member count on the Manage Groups roster's details panel. %1 is OVT_HighCommandRecord.m_iAliveMembers, %2 is m_iTotalMembers."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005103}" {
+   Id "OVT-HC_Roster_NoGroupsHelp"
+   Target_en_us "You do not own any High Command groups yet. Buy one at a barracks."
+   Comment "Manage Groups roster right panel placeholder text, shown when the local player owns no High Command groups at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005105}" {
+   Id "OVT-HC_Roster_RowSubtitle"
+   Target_en_us "%1 / %2 • %3"
+   Comment "Second line of one Manage Groups roster row (OVT_HighCommandRosterRowHandler.Populate). %1/%2 are alive/total members, %3 is the already-translated stance label (OVT-HC_Stance_*)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005106}" {
+   Id "OVT-HC_Roster_ShowOnMap"
+   Target_en_us "Show on Map"
+   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterShowOnMap) - opens the fullscreen map and selects the group there."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000005101}" {
+   Id "OVT-HC_Roster_YourGroups"
+   Target_en_us "Your Groups"
+   Comment "Left panel sub-heading on the Manage Groups roster (HighCommandRoster.layout), above the scrollable group list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004108}" {
+   Id "OVT-HC_Stance_Attack"
+   Target_en_us "Attack"
+   Comment "One of the three High Command stances. The group sweeps its destination looking for enemies. One word, title case."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004106}" {
+   Id "OVT-HC_Stance_Defend"
+   Target_en_us "Defend"
+   Comment "One of the three High Command stances. The group hunkers at its destination. One word, title case - it is substituted into the map info panel's Stance line and will be reused by the roster screen."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000004107}" {
+   Id "OVT-HC_Stance_Patrol"
+   Target_en_us "Patrol"
+   Comment "One of the three High Command stances. The group walks a ring around its destination indefinitely. One word, title case."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000C7}" {
+   Id "OVT-HC_VehicleIncluded"
+   Target_en_us "+ vehicle"
+   Comment "Tag shown on a barracks purchase screen row when the entry's m_sVehiclePrefab is set (a crewed vehicle group, not a foot group)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59C527544D0B9EF0}" {
    Id "OVT-Heal"
    Target_en_us "Heal"
@@ -5944,57 +8050,6 @@ StringTable {
    Modified 1708573829
    Author "Aaron Static"
    LastChanged "Lemmi"
-  }
-  CustomStringTableItem "{6A8E2D200000001D}" {
-   Id "OVT-Export"
-   Target_en_us "Export"
-   Comment "Transfer screen mode label for the port Export list, where a vehicle's storage is sold."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787529600
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2D200000001E}" {
-   Id "OVT-Export_Body"
-   Target_en_us "The port pays less than any shop charges for the same item."
-   Comment "Details pane body on every sellable row of the port Export list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787529600
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2D200000001F}" {
-   Id "OVT-Export_NotSellable"
-   Target_en_us "The port will not buy this"
-   Comment "Port Export row disabled - the item is unregistered, or illegal and the player lacks the import permission at a port the resistance does not hold."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787529600
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
   }
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
@@ -7597,6 +9652,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000005100}" {
+   Id "OVT-MainMenu_ManageGroups"
+   Target_en_us "Manage Groups"
+   Comment "Main menu button (OVT_MainMenuContext.ManageGroups) and header title of UI/Layouts/Menu/HighCommandRoster.layout - the same key on both, the OVT-MainMenu_ManageRecruits precedent."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{598AB6769FBB6531}" {
    Id "OVT-MainMenu_ManageRecruits"
    Target_en_us "Manage Recruits"
@@ -7849,6 +9920,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D00000000C2}" {
+   Id "OVT-ManageHighCommand"
+   Target_en_us "Manage High Command"
+   Comment "UIInfo Name on the barracks desk's OVT_ManageHighCommandAction (hover/action label), authored on OVT_Barracks.et and the three same-GUID vanilla barracks overrides."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
@@ -8079,6 +10166,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F3000000017}" {
+   Id "OVT-Map_Category_ProductionSites"
+   Target_en_us "Production Sites"
+   Comment "Plural category label for the production-site map layer. Cited: Configs/Map/OverthrowMap.conf, m_sCategoryName on the {6A8E2F2000000001} block."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A85D1E000000046}" {
    Id "OVT-Map_Category_RadioTowers"
    Target_en_us "Radio Towers"
@@ -8095,6 +10198,23 @@ StringTable {
    Modified 1754870400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000045}" {
+   Id "OVT-Map_Category_ResourcePiles"
+   Target_en_us "Crate Piles"
+   Comment "Category name in the map layer-filter panel - the row that switches dropped resource crate pile markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Resource_Pile and should stay consistent with this one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -8362,6 +10482,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000004100}" {
+   Id "OVT-Map_Layer_HighCommand"
+   Target_en_us "High Command"
+   Comment "Row label in the map layer-filter panel for the green NATO symbols showing every player's High Command groups. Two words, title case - it sits directly under the Recruits row in the same short list. It only ever labels a live control: a campaign with no High Command groups gets no row at all rather than a disabled one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A86D5E100000001}" {
    Id "OVT-Map_Layer_Influence"
    Target_en_us "Influence"
@@ -8528,6 +10664,57 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Author "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000048}" {
+   Id "OVT-Map_PileEmpty"
+   Target_en_us "Empty"
+   Comment "Full-width line on a crate pile's map info panel when the pile holds nothing. Replaces the per-resource rows and the volume row entirely. An empty pile is normally short-lived, so this reads as a state, not an error."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000046}" {
+   Id "OVT-Map_PileVolume"
+   Target_en_us "Volume"
+   Comment "Map info panel row label on a crate pile marker - the caption for the pile's total loaded volume. The value is #OVT-Map_PileVolumeValue. Appears below one row per resource the pile holds."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000047}" {
+   Id "OVT-Map_PileVolumeValue"
+   Target_en_us "%1 m³"
+   Comment "Value of the volume row on a crate pile's map info panel. %1 is the pile's total loaded volume in cubic metres to one decimal. A pile has no capacity, so there is no denominator to show."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -9076,12 +11263,12 @@ StringTable {
   }
   CustomStringTableItem "{65D08ACC7FDB3C67}" {
    Id "OVT-MobileFOBHelp"
-   Target_en_us "FOBs are now deployed from a \"Mobile FOB\" truck, purchase one at any vehicle store"
+   Target_en_us "Place items in the world so you can hide behind them or put stuff in them"
    Target_de_de "FOBs werden jetzt von einem \"Mobile FOB\"-Lkw aus errichtet. Kaufe einen bei einem beliebigen Fahrzeughändler."
    Target_uk_ua "FOB тепер розгортаються з вантажівки \"Мобільна FOB\", придбайте її в будь-якому магазині техніки"
-   Modified 1716473479
+   Modified 1781336132
    Author "Aaron Static"
-   LastChanged "Lemmi"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
@@ -9641,6 +11828,150 @@ StringTable {
    Modified 1706582217
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A0}" {
+   Id "OVT-Msg-HCGroupPurchased"
+   Target_en_us "High Command group bought - %1 fighters for $%2"
+   Comment "Purchase confirmation at a barracks, to the buying player only. %1 is the group's member count, %2 is the amount actually charged (member cost plus the fee-multiplied gear that nearby warehouse stock did NOT cover). Sent AFTER the group is standing in the world - a failed spawn shows OVT-Msg-HCPurchaseSpawnFailed instead and charges nothing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A5}" {
+   Id "OVT-Msg-HCPurchaseAtCap"
+   Target_en_us "You already command too many fighters to add %1 more"
+   Comment "Purchase refusal, to the buying player only. %1 is how many members the refused group would have added. The cap counts MEMBERS across every group the player owns, not groups (decision D12); its value is highCommandMemberCap, default 48."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A4}" {
+   Id "OVT-Msg-HCPurchaseBadEntry"
+   Target_en_us "That group is not available here"
+   Comment "Purchase refusal, to the buying player only. The entry index the client sent names nothing in the player faction's m_aHighCommandGroups, or its group prefab defines no members at all. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A2}" {
+   Id "OVT-Msg-HCPurchaseBarracksRuined"
+   Target_en_us "This barracks is in ruins and cannot raise anyone"
+   Comment "Purchase refusal, to the buying player only. The barracks exists but OVT_StructureDamage.IsUsable is false - it is in its ruined destruction phase. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A3}" {
+   Id "OVT-Msg-HCPurchaseBaseNotFriendly"
+   Target_en_us "The resistance does not hold this base"
+   Comment "Purchase refusal, to the buying player only. The nearest base is either further than baseRange away or still held by the occupying faction. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A7}" {
+   Id "OVT-Msg-HCPurchaseCannotAfford"
+   Target_en_us "You cannot afford this group ($%1)"
+   Comment "Purchase refusal, to the buying player only. %1 is the re-derived total the funds check ran against, which is the amount that would have been charged. The funds check is deliberately the LAST gate, so this never appears for a group the cap or the town would have refused anyway."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A6}" {
+   Id "OVT-Msg-HCPurchaseNoSupporters"
+   Target_en_us "The nearest town cannot spare %1 supporters"
+   Comment "Purchase refusal, to the buying player only. %1 is how many supporters the group would have drawn down - one per member by default (highCommandSupportersPerMember). Also shown when there is no town near enough to draw from at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A1}" {
+   Id "OVT-Msg-HCPurchaseNotAtBarracks"
+   Target_en_us "You must be standing at a barracks to raise a group"
+   Comment "Purchase refusal, to the buying player only. The server found no OVT_BarracksComponent within OVT_BarracksComponent.BARRACKS_USE_RADIUS (5 m) of the caller. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D00000000A8}" {
+   Id "OVT-Msg-HCPurchaseSpawnFailed"
+   Target_en_us "The group could not be raised - nothing was charged"
+   Comment "Purchase refusal, to the buying player only. Every gate passed but the group entity or its members failed to spawn. The effect order is spawn -> stock -> supporters -> money, so no money, no supporters and no warehouse stock moved. No parameters."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -10264,9 +12595,26 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{68A0C7D24B913A76}" {
+   Id "OVT-Msg-WantedBaseAssault"
+   Target_en_us "You were seen calling the attack on this base!"
+   Comment "Wanted notification - seen starting a base capture battle"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A1B2C3D4E5F678F}" {
    Id "OVT-Msg-WantedBaseProximity"
-   Target_en_us "You are now wanted for being too close to an enemy base!"
+   Target_en_us "You are now wanted for being in a restricted area"
    Target_de_de "Du wirst jetzt gesucht, weil du einer feindlichen Basis zu nahe gekommen bist!"
    Target_uk_ua "Вас оголошено в розшук за наближення до ворожої бази"
    Comment ""
@@ -10277,9 +12625,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716471764
+   Modified 1781403248
    Author "Claude AI"
-   LastChanged "Lemmi"
+   LastChanged "Aaron Static"
    ImageLink ""
    Hidden 0
   }
@@ -10340,40 +12688,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{68A0C7D24B913A75}" {
-   Id "OVT-Msg-WantedUprising"
-   Target_en_us "You were seen calling the uprising!"
-   Comment "Wanted notification - seen raising the flag to start a town uprising"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755734400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{68A0C7D24B913A76}" {
-   Id "OVT-Msg-WantedBaseAssault"
-   Target_en_us "You were seen calling the attack on this base!"
-   Comment "Wanted notification - seen starting a base capture battle"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755734400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A7D9B2E0000002A}" {
    Id "OVT-Msg-WantedSabotage"
    Target_en_us "You were seen committing sabotage!"
@@ -10409,6 +12723,23 @@ StringTable {
    Modified 1755216000
    Author "Claude AI"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{68A0C7D24B913A75}" {
+   Id "OVT-Msg-WantedUprising"
+   Target_en_us "You were seen calling the uprising!"
+   Comment "Wanted notification - seen raising the flag to start a town uprising"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755734400
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -11784,6 +14115,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E200000009A}" {
+   Id "OVT-Port_SummaryVolume"
+   Target_en_us "%1  ·  Cargo %2"
+   Comment "Port screen checkout - the money total with the truck's projected cargo volume appended, shown only when the cart orders resources. %1 is the already-translated money summary (OVT-Transfer_SummaryPrice), %2 the already-translated volume (OVT-Resource_SummaryVolume). Translate only the word Cargo and the separator."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A310C893DBDD}" {
    Id "OVT-PriorityFOBSet"
    Target_en_us "%1 has been set as the priority FOB"
@@ -11822,6 +14170,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F3000000019}" {
+   Id "OVT-Private"
+   Target_en_us "Private"
+   Comment "Status row value in the production-site map info panel when the site is owned and private - only the owner may open its storage. Private is the default on purchase. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5E4A6E76C0D01F62}" {
    Id "OVT-Procurement"
    Target_en_us "Procurement"
@@ -11840,6 +14204,470 @@ StringTable {
    Modified 1706587304
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000F}" {
+   Id "OVT-ProdSite_AlreadyOwned"
+   Target_en_us "Someone already owns this site"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent.RpcAsk_BuySite when OVT_ResourceProductionRules.MayBuySite is false. This is what a losing racer sees when two players buy the same site in the same second - the refusal lands before any money moves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000008}" {
+   Id "OVT-ProdSite_Buy"
+   Target_en_us "Buy"
+   Comment "The single mode label on OVT_ProductionSiteBuyContext's tool header - the buy-stock screen has exactly one mode. Cited: OVT_ProductionSiteBuyContext.c BuildModes."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000005}" {
+   Id "OVT-ProdSite_Buy_Price"
+   Target_en_us "Buy site (%1)"
+   Comment "Label of OVT_BuySiteAction (Sort 1) on an unowned production site. ONE %1 - the buy price, already formatted by OVT_MoneyFormat.FormatMoney and already scaled by the difficulty's realEstateCostMultiplier via OVT_ResourceProductionRules.BuyCost. Cited: OVT_BuySiteAction.c:120 (LabelKey) and :176 (the single BuyCost call the label and the server charge share). The action is hidden on an owned site, visible-and-disabled when the player cannot afford it."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000020}" {
+   Id "OVT-ProdSite_BuyResistance"
+   Target_en_us "Buy site with resistance funds"
+   Comment "Static UIInfo fallback name for OVT_BuySiteResistanceAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 2). The action overrides its own label at runtime with the priced OVT-ProdSite_BuyResistance_Price, so this bare form is only ever the fallback - it deliberately carries NO parameter, because a fallback path cannot supply one."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000006}" {
+   Id "OVT-ProdSite_BuyResistance_Price"
+   Target_en_us "Buy site with resistance funds (%1)"
+   Comment "Label of OVT_BuySiteResistanceAction (Sort 2), shown only on an unowned site to an officer. ONE %1 - the same BuyCost figure as OVT-ProdSite_Buy_Price, formatted by OVT_MoneyFormat.FormatMoney. Cited: OVT_BuySiteResistanceAction.c:44. Officer gating is OVT_ResistanceFactionManager.IsOfficer on both sides."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000007}" {
+   Id "OVT-ProdSite_BuyStock"
+   Target_en_us "Buy stock (%1 units)"
+   Comment "Label of OVT_BuySiteStockAction (Sort 3) on an unowned production site. ONE %1 - the site's current stock count. Cited: OVT_BuySiteStockAction.c:82. Opens OVT_ProductionSiteBuyContext, which quotes 80 percent of the live import price. The action disappears once the site is owned - only unowned sites sell (requirements section 22)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000021}" {
+   Id "OVT-ProdSite_BuyStockName"
+   Target_en_us "Buy stock"
+   Comment "Static UIInfo fallback name for OVT_BuySiteStockAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 3). Deliberately parameter-free: the runtime label OVT-ProdSite_BuyStock carries a %1 for the stock count, and a prefab UIInfo has nothing to substitute into it, so pointing the prefab at the parameterised key would render a literal percent-1 on screen if the script label were ever empty."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000003}" {
+   Id "OVT-ProdSite_CementPlant"
+   Target_en_us "Cement Plant"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_CementPlant.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000015}" {
+   Id "OVT-ProdSite_Failed"
+   Target_en_us "Could not complete that right now"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent when a required manager (production, economy, config, players or resistance) could not be resolved. A never-in-practice path kept answering rather than silent - every refusal answers with a key."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000C}" {
+   Id "OVT-ProdSite_MakePrivate"
+   Target_en_us "Make site private"
+   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is public. Private is the default on purchase. Cited: OVT_ToggleSitePrivacyAction.c."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000B}" {
+   Id "OVT-ProdSite_MakePublic"
+   Target_en_us "Make site public"
+   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is private. A public site lets anyone in the resistance open its storage. Cited: OVT_ToggleSitePrivacyAction.c. The action is shown only to someone OVT_ResourceProductionRules.MayTogglePrivacy admits - the owner, or an officer on a resistance-owned site."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000016}" {
+   Id "OVT-ProdSite_MapDisplayName"
+   Target_en_us "Production Site"
+   Comment "Singular type label for OVT_MapLocationProductionSite in the map's layer filter. Cited: Configs/Map/OverthrowMap.conf, m_sDisplayName on the {6A8E2F2000000001} block."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000011}" {
+   Id "OVT-ProdSite_NoFunds"
+   Target_en_us "The resistance cannot afford this"
+   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when the treasury is short. Also the disabled reason shown on OVT_BuySiteResistanceAction for the same condition."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000012}" {
+   Id "OVT-ProdSite_NoMoney"
+   Target_en_us "You cannot afford this"
+   Comment "Server refusal from RpcAsk_BuySite's personal-money branch when OVT_EconomyManagerComponent.PlayerHasMoney is false. Also the disabled reason on OVT_BuySiteAction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000D}" {
+   Id "OVT-ProdSite_NoPlayer"
+   Target_en_us "Could not identify you"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent - ResolveOwningPlayerId returned a non-positive id, or the caller's persistent id came back empty. Answers both RpcAsk_BuySite and RpcAsk_SetSitePrivacy. Identity is never an RPC parameter, so this means the server could not resolve the caller at all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000E}" {
+   Id "OVT-ProdSite_NoSite"
+   Target_en_us "No production site here"
+   Comment "Server refusal from OVT_ResourceProductionRequestComponent when no site record matches the position within 10 m, or the matched record's entity carries no OVT_ResourceProductionComponent. Also the refusal from OVT_ResourceRequestComponent.MayBuyFromSite when a SITE_BUY names a holder that is not a site. Position is the identity on every wire (implementation.md D2)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000000A}" {
+   Id "OVT-ProdSite_NoStock"
+   Target_en_us "This site has no stock yet"
+   Comment "Disabled-row reason on the buy-stock screen when the site's store is empty. The row is listed and DISABLED, never hidden - refusals are shown, not hidden. Cited: OVT_ProductionSiteBuyContext.c BuildEntries. A site drips one batch per in-game hour, so an untouched site is empty for its first hour."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000010}" {
+   Id "OVT-ProdSite_NotOfficer"
+   Target_en_us "Only officers can spend resistance funds"
+   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when OVT_ResistanceFactionManager.IsOfficer is false. Mirrors the client-side gate that hides OVT_BuySiteResistanceAction from non-officers."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000013}" {
+   Id "OVT-ProdSite_NotYours"
+   Target_en_us "This is not your site"
+   Comment "Server refusal from RpcAsk_SetSitePrivacy when OVT_ResourceProductionRules.MayTogglePrivacy refuses - the caller is neither the owner nor, on a resistance-owned site, an officer."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000014}" {
+   Id "OVT-ProdSite_Owned"
+   Target_en_us "This site is owned and does not sell"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayBuyFromSite - the ONE place an owned site refuses a SITE_BUY. A privately owned site does not sell its resource; only unowned sites do (requirements section 22). Because Commit re-runs the whole source ladder, a site bought between Begin and Commit refuses here before any money moves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001F}" {
+   Id "OVT-ProdSite_Row_BuyPrice"
+   Target_en_us "Price"
+   Comment "Row label in the production-site map info panel for the site's buy price, shown only while the site is unowned. The value is formatted by OVT_MoneyFormat.FormatMoney and needs no key of its own. Cited: OVT_MapLocationProductionSite.c:257."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001D}" {
+   Id "OVT-ProdSite_Row_Rate"
+   Target_en_us "Output"
+   Comment "Row label in the production-site map info panel for the site's production rate. Cited: OVT_MapLocationProductionSite.c:233."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001E}" {
+   Id "OVT-ProdSite_Row_RateValue"
+   Target_en_us "%1 per hour"
+   Comment "Row value in the production-site map info panel for the production rate. ONE %1 - units per in-game hour to one decimal place, because sub-1 rates are supported (a steel mill at 1.5/hour). Cited: OVT_MapLocationProductionSite.c:232."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001B}" {
+   Id "OVT-ProdSite_Row_Volume"
+   Target_en_us "Volume"
+   Comment "Row label in the production-site map info panel for the store's used-of-total volume. Cited: OVT_MapLocationProductionSite.c:219."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F300000001C}" {
+   Id "OVT-ProdSite_Row_VolumeValue"
+   Target_en_us "%1 / %2 m3"
+   Comment "Row value in the production-site map info panel for the store's volume. TWO parameters: %1 the used cubic metres, %2 the site's capacity. Cited: OVT_MapLocationProductionSite.c:219. Read from the store on location.GetEntity(), never from the manager's record - a registry must not become a second source of truth."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000001}" {
+   Id "OVT-ProdSite_Sawmill"
+   Target_en_us "Sawmill"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_Sawmill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel. A map author may override it per placed instance."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000002}" {
+   Id "OVT-ProdSite_SteelMill"
+   Target_en_us "Steel Mill"
+   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_SteelMill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000004}" {
+   Id "OVT-ProdSite_Storage"
+   Target_en_us "Site Storage"
+   Comment "Default holder name for the OVT_ResourceStoreComponent on Prefabs/Production/OVT_ProductionSite_Base.et (m_sDefaultNameKey), and the static UIInfo fallback for OVT_OpenResourceStoreAction on that prefab (:61-70). CORRECTED 2026-08-22 for logistics/resource-production: it does NOT appear as the runtime action label. A site's store has a bounded capacity, so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'; the branch at :149 that would draw this name is UNLIMITED-capacity holders only. Where it IS drawn: the shared transfer screen's destination picker, via store.GetDisplayName()."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000009}" {
+   Id "OVT-ProdSite_Summary"
+   Target_en_us "%1  -  %2"
+   Comment "Cart summary line on the buy-stock screen. TWO parameters: %1 the total cost already formatted by OVT_MoneyFormat.FormatMoney, %2 the total volume already formatted as cubic metres. Cited: OVT_ProductionSiteBuyContext.c:376 (GetSummaryText override)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -12170,6 +14998,22 @@ StringTable {
    Modified 1716472168
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F3000000018}" {
+   Id "OVT-Public"
+   Target_en_us "Public"
+   Comment "Status row value in the production-site map info panel when the site is owned and not private - anyone in the resistance may open its storage. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -12902,6 +15746,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000007100}" {
+   Id "OVT-Recruit_QuoteCovered"
+   Target_en_us "Covered by nearby warehouse stock: $%1"
+   Comment "OVT_LoadoutsContext.OnRecruitQuote - the equipped-recruit quote's second line, showing how much of the gear cost nearby warehouse stock covers. %1 is the covered value in dollars."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B4C000000000074}" {
    Id "OVT-Recruit_QuotePrice"
    Target_en_us "%1 items, $%2 equipped"
@@ -13216,6 +16076,150 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B1C3D0000007108}" {
+   Id "OVT-Recruits_ConvertAtCap"
+   Target_en_us "Your High Command roster is full"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_CONVERT_AT_CAP."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D000000710A}" {
+   Id "OVT-Recruits_ConvertFailed"
+   Target_en_us "The conversion failed"
+   Comment "OVT_RecruitsContext.OnHCResult - fallback hint for any refusal without a specific message."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007104}" {
+   Id "OVT-Recruits_ConvertGroupMessage"
+   Target_en_us "Convert this group to a High Command group? This is one-way. They leave your recruit roster and cap, and their names, XP and skills stop being tracked. They keep their bodies and equipment."
+   Comment "CONVERT_RECRUIT_GROUP dialog body - must name the one-way consequence (implementation.md T9.5)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007103}" {
+   Id "OVT-Recruits_ConvertGroupTitle"
+   Target_en_us "Convert to High Command"
+   Comment "CONVERT_RECRUIT_GROUP dialog title, DialogPresets_Campaign.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007106}" {
+   Id "OVT-Recruits_ConvertNeedsBody"
+   Target_en_us "That recruit has no body in the world to convert"
+   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit has no spawned body."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007105}" {
+   Id "OVT-Recruits_ConvertNeedsInactive"
+   Target_en_us "Select a parked recruit to convert their group"
+   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit is active rather than parked."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007109}" {
+   Id "OVT-Recruits_ConvertNoGroup"
+   Target_en_us "Those recruits are not parked as a group"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_NO_RECRUIT_GROUP."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007107}" {
+   Id "OVT-Recruits_ConvertSuccess"
+   Target_en_us "Group converted to High Command"
+   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_OK."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007102}" {
+   Id "OVT-Recruits_ConvertToHC"
+   Target_en_us "Convert to High Command"
+   Comment "RecruitsMenu.layout - label of the button that converts a parked recruit group into a High Command group."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D5C558A6E391A05}" {
    Id "OVT-Recruits_Dismiss"
    Target_en_us "Dismiss"
@@ -13242,6 +16246,22 @@ StringTable {
    Modified 1716473054
    Author "Claude Code"
    LastChanged "Lemmi"
+  }
+  CustomStringTableItem "{6B1C3D0000007101}" {
+   Id "OVT-Recruits_GroupHeader"
+   Target_en_us "Group (%1)"
+   Comment "OVT_RecruitsContext - sub-header over one cluster of parked recruits in the inactive section. %1 is the number of recruits in that group."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
   }
   CustomStringTableItem "{5D5C558A6E391A02}" {
    Id "OVT-Recruits_NoRecruitsHelp"
@@ -13599,6 +16619,22 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F300000001A}" {
+   Id "OVT-Resistance"
+   Target_en_us "Resistance"
+   Comment "Owner row value in the production-site map info panel when the site was bought with resistance funds (the owner field holds the literal \"resistance\"). Everyone in the resistance may open such a site's storage, and its privacy toggle is officer-gated. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"
@@ -13733,6 +16769,975 @@ StringTable {
    Modified 1706587501
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001C}" {
+   Id "OVT-Resource_BadRequest"
+   Target_en_us "That order was malformed"
+   Comment "Server refusal for a checkout whose streamed lines do not match what was announced: a short or long stream, an unknown resource index, a quantity outside the allowed bounds, or the same resource listed twice. Refused once, whole, at commit."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000032}" {
+   Id "OVT-Resource_BuildFromSite"
+   Target_en_us "Build"
+   Comment "Fallback name of the 'finish this construction site' user action, authored on the prefab. The action rewrites it every second with #OVT-Resource_BuildNow or #OVT-Resource_ShortOf, so this only shows if that rewrite fails."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000033}" {
+   Id "OVT-Resource_BuildNow"
+   Target_en_us "Build %1"
+   Comment "Name of the 'finish this construction site' user action when the crate piles around it cover every requirement. %1 is the building's name, e.g. 'Build Guard Tower'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000037}" {
+   Id "OVT-Resource_BuildRequirementRow"
+   Target_en_us "%1 x %2"
+   Comment "⚠ UNUSED since 2026-08-22 - the build menu card was collapsed to the one-line #OVT-Resource_BuildRequires because the row list pushed the description over the preview image. Kept because the identical shape is still used by the truck cargo HUD row (#OVT-Resource_CargoRow) and a future per-resource readout would want it back. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000036}" {
+   Id "OVT-Resource_BuildRequires"
+   Target_en_us "Requires Resources"
+   Comment "One-line note on a build menu card marking a buildable that costs materials as well as money. CHANGED 2026-08-22 from the heading 'Requires:' plus a per-resource row list, which was tall enough to push the card's description over the preview image. The quantities are no longer shown here - a player reads them on the construction site's own Requirements action, which is where they can act on them."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000004}" {
+   Id "OVT-Resource_Cargo"
+   Target_en_us "Cargo"
+   Comment "Name of the 'open resource store' action on a truck. Rendered with the volume appended by OVT_OpenResourceStoreAction, e.g. 'Cargo (12.5 / 20 m³)'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000F}" {
+   Id "OVT-Resource_Cement"
+   Target_en_us "Cement"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Bagged cement; dense and mid-priced."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000010}" {
+   Id "OVT-Resource_Cement_Description"
+   Target_en_us "Bagged cement. Heavy for its volume, and needed wherever something has to stay put."
+   Comment "Details-panel description of the Cement resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000030}" {
+   Id "OVT-Resource_ConstructionSite"
+   Target_en_us "Construction Site"
+   Comment "Generic name of a construction site, used as the requirements dialog title and as the build action's label when the site cannot name the building it will become (a buildables.conf edit removed its entry)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000003}" {
+   Id "OVT-Resource_DestGround"
+   Target_en_us "Drop on the ground"
+   Comment "Last entry in the resource transfer screen's destination picker, in Take mode only. Drops the cart as a crate pile at the player's feet; the pile merges into an existing pile if one is close enough."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000021}" {
+   Id "OVT-Resource_DropFailed"
+   Target_en_us "The load could not be put down"
+   Comment "Server refusal for a drop on the ground: the crate pile could not be spawned or merged. The pile is filled before the source is emptied, so a failure here costs the player nothing."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000022}" {
+   Id "OVT-Resource_Failed"
+   Target_en_us "That did not work"
+   Comment "Server refusal of last resort when a resource request failed for a reason with no more specific key. Every refusal answers with a key; a silent return would be the defect."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000013}" {
+   Id "OVT-Resource_Hardware"
+   Target_en_us "Hardware"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Fittings and fixings; the smallest and most valuable resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000014}" {
+   Id "OVT-Resource_Hardware_Description"
+   Target_en_us "Fittings, fixings, wiring and tools. Takes almost no space and costs the most."
+   Comment "Details-panel description of the Hardware resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000027}" {
+   Id "OVT-Resource_Illegal"
+   Target_en_us "Smuggling that needs the right contacts"
+   Comment "Refusal for a port trade in a resource flagged illegal when the player has neither the IllegalImports permission nor a port the resistance controls. Also the reason on a disabled Export row for such a resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000019}" {
+   Id "OVT-Resource_Locked"
+   Target_en_us "That is locked"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 5: the holder is a locked vehicle, or is owned by another player. Also used by the open-store action's client-side mirror of the same rule."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000024}" {
+   Id "OVT-Resource_NeedTruck"
+   Target_en_us "You need a vehicle with cargo space"
+   Comment "Reason shown on a DISABLED resource row in the port's Import list when the player is on foot, or in a vehicle that carries no resource store. The row is listed rather than hidden so the player can see the price and learn what is missing (requirement C). Also the client-side refusal when a resource import is accepted with no store to put it in."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001A}" {
+   Id "OVT-Resource_NoAccess"
+   Target_en_us "You do not have access to this warehouse"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 6: the holder is a warehouse this player may not use. Also used by the open-store action's client-side mirror of the same rule."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000B}" {
+   Id "OVT-Resource_NoCargoSpace"
+   Target_en_us "No room in the destination"
+   Comment "Shown on a dimmed row of the resource transfer screen: the destination cannot take even one unit of that resource. The row is listed rather than hidden so the reason is visible."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001B}" {
+   Id "OVT-Resource_NoCatalogue"
+   Target_en_us "The resource catalogue is unavailable"
+   Comment "Server refusal when the resource manager or its catalogue could not be reached while running a checkout. A configuration failure, not a player one; it aborts the order rather than moving nothing quietly."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000A}" {
+   Id "OVT-Resource_NoDestination"
+   Target_en_us "Pick a destination"
+   Comment "Resource transfer screen checkout refusal: the destination picker is empty, so there is nowhere for the cart to go (Take) or nothing to take it from (Put). Disables Accept."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000028}" {
+   Id "OVT-Resource_NoMoney"
+   Target_en_us "You cannot afford that"
+   Comment "Server refusal at commit for a PORT_IMPORT whose whole-cart cost exceeds the player's money. The cart is refused entire; nothing is clamped and nothing is bought."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000020}" {
+   Id "OVT-Resource_NoPilePrefab"
+   Target_en_us "Dropping resources is not configured"
+   Comment "Server refusal for a drop on the ground: no crate pile prefab is wired on the resource manager. A configuration failure, refused before anything leaves the source holder."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000015}" {
+   Id "OVT-Resource_NoPlayer"
+   Target_en_us "You are not a player here"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 1: the request arrived with no resolvable player identity. Should never be seen in normal play; it names the failure rather than dropping the request silently."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001F}" {
+   Id "OVT-Resource_NoPosition"
+   Target_en_us "There is nowhere to put it down"
+   Comment "Server refusal for a drop on the ground: the caller's position could not be resolved, so the crate pile has nowhere to land. Refused before anything leaves the source holder."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002F}" {
+   Id "OVT-Resource_NoSite"
+   Target_en_us "That is not a construction site"
+   Comment "Server refusal from OVT_ResourceRequestComponent.RpcAsk_BuildFromSite. Shown as a hint when the entity a build request names is not a construction site - normally because the site was demolished between the click and the request arriving."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001E}" {
+   Id "OVT-Resource_NoSpace"
+   Target_en_us "Not enough room in the destination"
+   Comment "Server refusal at commit: the destination cannot take the whole cart. The client shows #OVT-Resource_NoSpaceVolume with the figures before it gets this far; this is the answer when the destination filled up in between."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000C}" {
+   Id "OVT-Resource_NoSpaceVolume"
+   Target_en_us "Not enough room: %1 m³ ordered, %2 m³ free"
+   Comment "Resource transfer screen checkout refusal when the whole cart will not fit. %1 is the cart's volume, %2 what the destination can still take, both in cubic metres to one decimal. The WHOLE cart is refused - nothing is ever clamped to a partial load."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000016}" {
+   Id "OVT-Resource_NoStore"
+   Target_en_us "That cannot hold resources"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 2: the holder named by the request carries no resource store. Also raised client-side when the holder has no RplComponent and therefore cannot be named across the network."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000029}" {
+   Id "OVT-Resource_NotAtPort"
+   Target_en_us "You are not at a port"
+   Comment "Server refusal for a PORT_IMPORT or PORT_EXPORT when the caller or the holder is outside the port radius. The screen cannot be opened away from a port, so this answers a player who drove off mid-order."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000001D}" {
+   Id "OVT-Resource_NotEnough"
+   Target_en_us "There is not that much left"
+   Comment "Server refusal at commit: the source holder no longer holds everything the cart ordered, because somebody else took it first. The WHOLE cart is refused - nothing is ever clamped to what is left."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000025}" {
+   Id "OVT-Resource_NotImportable"
+   Target_en_us "That cannot be bought here"
+   Comment "Server refusal at commit for a PORT_IMPORT line naming a resource the catalogue does not flag importable. The Import list never offers one, so this only answers a hand-crafted or stale request."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000026}" {
+   Id "OVT-Resource_NotSellable"
+   Target_en_us "That cannot be sold here"
+   Comment "Refusal for a PORT_EXPORT line naming a resource the catalogue does not know. Also the reason on a disabled Export row for a resource the vehicle carries that the port will not buy."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000005}" {
+   Id "OVT-Resource_OpenStore"
+   Target_en_us "Resources"
+   Comment "Fallback name of the 'open resource store' action when the holder's store cannot be read (a worldless preview instance, or a prefab whose component failed to initialise). The normal labels are #OVT-Resource_Cargo for a truck and the holder's own name for a pile or a warehouse."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000007}" {
+   Id "OVT-Resource_PerUnit"
+   Target_en_us "%1 m³ · %2 kg per unit"
+   Comment "Details-panel line on the resource transfer screen. %1 is the cubic metres one unit occupies (two decimals), %2 its display weight in kilograms. Volume gates capacity; weight is display only."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000006}" {
+   Id "OVT-Resource_Pile"
+   Target_en_us "Crate pile"
+   Comment "Display name of a dropped resource crate pile: the action label, the destination picker entry and the transfer screen title. Rendered with the volume appended, e.g. 'Crate pile (4.4 m³)'."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002D}" {
+   Id "OVT-Resource_PriceAbove"
+   Target_en_us "Prices are above normal here"
+   Comment "Drift readout on the port screen's resource details, live price between 105 and 150 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002B}" {
+   Id "OVT-Resource_PriceBelow"
+   Target_en_us "Prices are below normal here"
+   Comment "Drift readout on the port screen's resource details, live price between 75 and 95 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002E}" {
+   Id "OVT-Resource_PriceFarAbove"
+   Target_en_us "Prices are far above normal here"
+   Comment "Drift readout on the port screen's resource details, live price over 150 percent of the config base."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002A}" {
+   Id "OVT-Resource_PriceFarBelow"
+   Target_en_us "Prices are far below normal here"
+   Comment "Drift readout on the port screen's resource details, shown when the live price is under 75 percent of the config base. Text and not an icon (D10): FillDetails has no image channel and the row image is already the resource icon."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000002C}" {
+   Id "OVT-Resource_PriceNormal"
+   Target_en_us "Prices are about normal here"
+   Comment "Drift readout on the port screen's resource details, live price within 5 percent of the config base either way."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787702400
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000002}" {
+   Id "OVT-Resource_Put"
+   Target_en_us "Put"
+   Comment "Mode 2 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Put moves resources INTO the holder you opened, out of a nearby holder chosen in the destination picker."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000055}" {
+   Id "OVT-Resource_RepairNeedsMaterials"
+   Target_en_us "Not enough materials nearby"
+   Comment "The Repair action's cannot-perform reason when the short resource cannot be named, and the body of the RepairNeedsMaterials notification the server sends when it refuses a repair for want of materials."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000053}" {
+   Id "OVT-Resource_RepairRequirements"
+   Target_en_us "Repair Requirements"
+   Comment "Name of the user action on a RUINED buildable that opens the repair materials readout. The ruin's counterpart to OVT-Resource_SiteRequirements; shown only when the buildable authors m_aResourceRequirements (OVT_RepairRequirementsAction.CanBeShownScript)."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B70D00000000054}" {
+   Id "OVT-Resource_RepairShortOf"
+   Target_en_us "Not enough"
+   Comment "Prefix of the Repair action's cannot-perform reason, followed by the translated name of the first resource the nearby crate piles are short of, e.g. 'Not enough Cement'. OVT_RepairRequirementsReader.ShortReason."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000017}" {
+   Id "OVT-Resource_Ruined"
+   Target_en_us "That is wrecked"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 3: the holder is a ruin. Ruined structures offer no actions at all, so this is the race where it was destroyed with the screen open."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000035}" {
+   Id "OVT-Resource_Short"
+   Target_en_us "short"
+   Comment "One word, used inside a construction site's requirements readout to mark a line that is not covered, e.g. 'Timber: 12 / 40 (short 28)'. The numbers around it are built in code."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000034}" {
+   Id "OVT-Resource_ShortOf"
+   Target_en_us "Need %1 more %2"
+   Comment "Name of the 'finish this construction site' user action when the nearby crate piles are short. %1 is how many units are missing, %2 the resource's name, e.g. 'Need 28 more Timber'. Only the FIRST shortfall is named; the requirements action lists them all."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000031}" {
+   Id "OVT-Resource_SiteRequirements"
+   Target_en_us "Requirements"
+   Comment "Name of the user action on a construction site that opens the requirements readout, and the placeholder message of the SITE_REQUIREMENTS dialog before OVT_SiteRequirementsAction fills it in."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787788800
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000011}" {
+   Id "OVT-Resource_Steel"
+   Target_en_us "Steel"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Steel stock; compact, heavy and expensive."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000012}" {
+   Id "OVT-Resource_Steel_Description"
+   Target_en_us "Girders, plate and rebar. Compact, very heavy, and not cheap."
+   Comment "Details-panel description of the Steel resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000009}" {
+   Id "OVT-Resource_SummaryUnlimited"
+   Target_en_us "%1 m³"
+   Comment "Running checkout summary on the resource transfer screen when the receiver has no capacity limit - a crate pile, a warehouse or the ground. %1 is the cart's own volume in cubic metres to one decimal; there is no denominator to show."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000008}" {
+   Id "OVT-Resource_SummaryVolume"
+   Target_en_us "%1 m³ of %2 m³"
+   Comment "Running checkout summary on the resource transfer screen when the receiving holder has a capacity. %1 is what it would hold once the cart lands, %2 its capacity, both in cubic metres to one decimal."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000001}" {
+   Id "OVT-Resource_Take"
+   Target_en_us "Take"
+   Comment "Mode 1 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Take moves resources OUT of the holder you opened, into a nearby holder or onto the ground. Paired with #OVT-Resource_Put; the vocabulary is deliberately not Load/Unload, which logistics/storage already uses on its ammo-box actions."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000D}" {
+   Id "OVT-Resource_Timber"
+   Target_en_us "Timber"
+   Comment "Resource name, from Configs/Resistance/resources.conf. Sawn wood; the cheapest and bulkiest construction resource."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E200000000E}" {
+   Id "OVT-Resource_Timber_Description"
+   Target_en_us "Sawn planks and beams. Bulky and cheap - the backbone of every field structure."
+   Comment "Details-panel description of the Timber resource on the transfer screen, from Configs/Resistance/resources.conf."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E2000000018}" {
+   Id "OVT-Resource_TooFar"
+   Target_en_us "You are too far away"
+   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 4: the caller has walked or driven out of the holder's use radius since the screen was opened."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787616000
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -15566,6 +19571,40 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D2000000016}" {
+   Id "OVT-Storage_ClearInventory"
+   Target_en_us "Clear inventory"
+   Comment "Officer-only user action on an ammo box: empties the holder's VANILLA inventory and never its storage ledger. This is how the leftovers a transfer refuses get discarded."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001C}" {
+   Id "OVT-Storage_DestinationInventory"
+   Target_en_us "This container"
+   Comment "First entry in the Open Storage destination picker: the holder's own vanilla inventory, i.e. spawn the items back into the box or vehicle you are standing at."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2D2000000002}" {
    Id "OVT-Storage_Failed"
    Target_en_us "Storage request failed"
@@ -15578,6 +19617,23 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1787356800
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D200000001A}" {
+   Id "OVT-Storage_Loading"
+   Target_en_us "Loading contents..."
+   Comment "Standing message on the Open Storage screen while the holder's contents are being pulled from the server. Contents never replicate; the one player looking pulls them on open."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
    Author "Claude"
    LastChanged "Lemmi"
    ImageLink ""
@@ -15651,6 +19707,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2D200000001B}" {
+   Id "OVT-Storage_NoDestination"
+   Target_en_us "Choose where these items should go"
+   Comment "Open Storage checkout refused before any request is sent - no destination is selected. Fit is deliberately NOT checked here; the server reports a shortfall instead."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787529600
+   Author "Claude"
+   LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2D2000000011}" {
    Id "OVT-Storage_NotAtPort"
    Target_en_us "You must be at a port to sell storage"
@@ -15685,57 +19758,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000008}" {
-   Id "OVT-Storage_NotOfficer"
-   Target_en_us "Only officers can do that"
-   Comment "Storage request refused - clearing a container's vanilla inventory is officer-only."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787356800
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2D2000000009}" {
-   Id "OVT-Storage_Ruined"
-   Target_en_us "That building is ruined"
-   Comment "Storage request refused - the holder has been destroyed and cannot be used until it is repaired."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787356800
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2D200000000A}" {
-   Id "OVT-Storage_TooFar"
-   Target_en_us "You are too far from that storage"
-   Comment "Storage request refused - the player is not standing near the holder they asked to act on."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787356800
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A8E2D2000000012}" {
    Id "OVT-Storage_NothingToMove"
    Target_en_us "There is nothing to move"
@@ -15753,10 +19775,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000013}" {
-   Id "OVT-Storage_Open"
-   Target_en_us "Storage"
-   Comment "Open Storage user action label on an ammo box, a vehicle door and a warehouse. The holder's replicated item count is appended by the action as " (N)", so this value must read naturally with a number after it."
+  CustomStringTableItem "{6A8E2D2000000008}" {
+   Id "OVT-Storage_NotOfficer"
+   Target_en_us "Only officers can do that"
+   Comment "Storage request refused - clearing a container's vanilla inventory is officer-only."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15764,16 +19786,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1787356800
    Author "Claude"
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000014}" {
-   Id "OVT-Storage_TransferAll"
-   Target_en_us "Transfer all to storage"
-   Comment "User action on an ammo box and a vehicle door: converts the holder's whole vanilla inventory into its storage ledger. Part-used magazines are deliberately left behind."
+  CustomStringTableItem "{6A8E2D2000000013}" {
+   Id "OVT-Storage_Open"
+   Target_en_us "Storage"
+   Comment "Open Storage user action label on an ammo box, a vehicle door and a warehouse. The holder's replicated item count is appended by the action as "
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15804,10 +19826,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000016}" {
-   Id "OVT-Storage_ClearInventory"
-   Target_en_us "Clear inventory"
-   Comment "Officer-only user action on an ammo box: empties the holder's VANILLA inventory and never its storage ledger. This is how the leftovers a transfer refuses get discarded."
+  CustomStringTableItem "{6A8E2D2000000018}" {
+   Id "OVT-Storage_RenameMessage"
+   Target_en_us "Enter a new name for this storage (1-32 characters)"
+   Comment "Message above the edit box in the storage rename dialog. The length rule is enforced by the server, not only here."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15838,10 +19860,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000018}" {
-   Id "OVT-Storage_RenameMessage"
-   Target_en_us "Enter a new name for this storage (1-32 characters)"
-   Comment "Message above the edit box in the storage rename dialog. The length rule is enforced by the server, not only here."
+  CustomStringTableItem "{6A8E2D2000000009}" {
+   Id "OVT-Storage_Ruined"
+   Target_en_us "That building is ruined"
+   Comment "Storage request refused - the holder has been destroyed and cannot be used until it is repaired."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15849,7 +19871,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1787356800
    Author "Claude"
    LastChanged "Lemmi"
    ImageLink ""
@@ -15872,10 +19894,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D200000001A}" {
-   Id "OVT-Storage_Loading"
-   Target_en_us "Loading contents..."
-   Comment "Standing message on the Open Storage screen while the holder's contents are being pulled from the server. Contents never replicate; the one player looking pulls them on open."
+  CustomStringTableItem "{6A8E2D200000000A}" {
+   Id "OVT-Storage_TooFar"
+   Target_en_us "You are too far from that storage"
+   Comment "Storage request refused - the player is not standing near the holder they asked to act on."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -15883,33 +19905,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1787356800
    Author "Claude"
    LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D200000001B}" {
-   Id "OVT-Storage_NoDestination"
-   Target_en_us "Choose where these items should go"
-   Comment "Open Storage checkout refused before any request is sent - no destination is selected. Fit is deliberately NOT checked here; the server reports a shortfall instead."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787529600
-   Author "Claude"
-   LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2D200000001C}" {
-   Id "OVT-Storage_DestinationInventory"
-   Target_en_us "This container"
-   Comment "First entry in the Open Storage destination picker: the holder's own vanilla inventory, i.e. spawn the items back into the box or vehicle you are standing at."
+  CustomStringTableItem "{6A8E2D2000000014}" {
+   Id "OVT-Storage_TransferAll"
+   Target_en_us "Transfer all to storage"
+   Comment "User action on an ammo box and a vehicle door: converts the holder's whole vanilla inventory into its storage ledger. Part-used magazines are deliberately left behind."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -16543,23 +20548,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2D2000000021}" {
-   Id "OVT-Transfer_NoSpace"
-   Target_en_us "Not enough room in the vehicle"
-   Comment "Transfer screen checkout refusal - the cart holds more items than the destination's storage can still take. Disables Accept rather than letting the server clamp the purchase and charge for a partial delivery."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787270400
-   Author "Claude"
-   LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A8E2C1D00000014}" {
    Id "OVT-Transfer_DestinationVehicle"
    Target_en_us "Vehicle"
@@ -16625,6 +20613,23 @@ StringTable {
    Modified 1787270400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2D2000000021}" {
+   Id "OVT-Transfer_NoSpace"
+   Target_en_us "Not enough room in the vehicle"
+   Comment "Transfer screen checkout refusal - the cart holds more items than the destination's storage can still take. Disables Accept rather than letting the server clamp the purchase and charge for a partial delivery."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1787270400
+   Author "Claude"
+   LastChanged ""
    ImageLink ""
    Hidden 0
   }
@@ -17033,6 +21038,54 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1755475200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007213}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Body"
+   Target_en_us "Groups bought here are yours, and stay yours between sessions. The price covers the recruit cost of every man, the gear each of them needs, and, for a group that comes with a vehicle, that vehicle at its full shop price. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, and there is a cap on how many High Command soldiers one player can hold at once."
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 1 of 2, four sentences, no rich-text markup. TONE: informs, never instructs, and reads correctly whatever the player has already done. Citations: pricing OVT_HighCommandManagerComponent.QuoteEntry:458-500 with OVT_HighCommandRules.PurchaseTotal (OVT_HighCommandRules.c:114-126, the vehicle at full shop price outside the fee multiplier); warehouse coverage OVT_HighCommandRules.WAREHOUSE_RANGE 150.0 (:10) via CollectStores/SplitCoverage at QuoteEntry:485-493, rendered as #OVT-HC_QuoteCovered; supporters SupportersRequired plus the gate-8 refusal; cap OVT_HighCommandRules.DEFAULT_MEMBER_CAP 48 (:15), enforced server-side and configurable, so the number is not quoted; persistence OVT_HighCommandManagerSerializer. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007214}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Body2"
+   Target_en_us "Every player's map shows these groups as green symbols, your own at full strength and other players' dimmed. Selecting one shows its owner, stance, destination and status, and a group you own can be sent to the spot under the map cursor or have its stance cycled between Defend, Patrol and Attack. Travel happens in real time, on foot or by road, and carries on while you are offline. Manage Groups, on the main menu, lists what you own."
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 2 of 2, four sentences, no rich-text markup. TONE: informs, never instructs. Citations: OVT_MapHighCommandLayer.c:21 and :329 (OTHER_OWNER_OPACITY 0.45), :1012-1041 (owner, stance, destination, status lines), OnOrderPressed:1078-1099 (orders to the map cursor), OnStancePressed:1105-1126 (cycles DEFEND, PATROL, ATTACK); stance behaviour OVT_HighCommandManagerComponent.ApplyStance:1044-1077. Real-time travel and offline continuation are D1 in implementation.md section 5: the group is an always-live SCR_AIGroup with its own AI observer (OVT_HighCommandGroupComponent.c:50-67) and nothing on OVT_HighCommandManagerComponent despawns or freezes it when its owner disconnects. Manage Groups: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.ManageGroups:263. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B1C3D0000007212}" {
+   Id "OVT-Tutorial_HighCommandFirstOpen_Title"
+   Target_en_us "High Command"
+   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Popup title, two words. Matches the Field Manual page title it links to (#OVT-FieldManual_HighCommand_Title). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -18155,3991 +22208,6 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "Lemmi"
-  }
-  CustomStringTableItem "{6A8E2E2000000001}" {
-   Id "OVT-Resource_Take"
-   Target_en_us "Take"
-   Comment "Mode 1 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Take moves resources OUT of the holder you opened, into a nearby holder or onto the ground. Paired with #OVT-Resource_Put; the vocabulary is deliberately not Load/Unload, which logistics/storage already uses on its ammo-box actions."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000002}" {
-   Id "OVT-Resource_Put"
-   Target_en_us "Put"
-   Comment "Mode 2 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Put moves resources INTO the holder you opened, out of a nearby holder chosen in the destination picker."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000003}" {
-   Id "OVT-Resource_DestGround"
-   Target_en_us "Drop on the ground"
-   Comment "Last entry in the resource transfer screen's destination picker, in Take mode only. Drops the cart as a crate pile at the player's feet; the pile merges into an existing pile if one is close enough."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000004}" {
-   Id "OVT-Resource_Cargo"
-   Target_en_us "Cargo"
-   Comment "Name of the 'open resource store' action on a truck. Rendered with the volume appended by OVT_OpenResourceStoreAction, e.g. 'Cargo (12.5 / 20 m³)'."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000005}" {
-   Id "OVT-Resource_OpenStore"
-   Target_en_us "Resources"
-   Comment "Fallback name of the 'open resource store' action when the holder's store cannot be read (a worldless preview instance, or a prefab whose component failed to initialise). The normal labels are #OVT-Resource_Cargo for a truck and the holder's own name for a pile or a warehouse."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000006}" {
-   Id "OVT-Resource_Pile"
-   Target_en_us "Crate pile"
-   Comment "Display name of a dropped resource crate pile: the action label, the destination picker entry and the transfer screen title. Rendered with the volume appended, e.g. 'Crate pile (4.4 m³)'."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000007}" {
-   Id "OVT-Resource_PerUnit"
-   Target_en_us "%1 m³ · %2 kg per unit"
-   Comment "Details-panel line on the resource transfer screen. %1 is the cubic metres one unit occupies (two decimals), %2 its display weight in kilograms. Volume gates capacity; weight is display only."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000008}" {
-   Id "OVT-Resource_SummaryVolume"
-   Target_en_us "%1 m³ of %2 m³"
-   Comment "Running checkout summary on the resource transfer screen when the receiving holder has a capacity. %1 is what it would hold once the cart lands, %2 its capacity, both in cubic metres to one decimal."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000009}" {
-   Id "OVT-Resource_SummaryUnlimited"
-   Target_en_us "%1 m³"
-   Comment "Running checkout summary on the resource transfer screen when the receiver has no capacity limit - a crate pile, a warehouse or the ground. %1 is the cart's own volume in cubic metres to one decimal; there is no denominator to show."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000A}" {
-   Id "OVT-Resource_NoDestination"
-   Target_en_us "Pick a destination"
-   Comment "Resource transfer screen checkout refusal: the destination picker is empty, so there is nowhere for the cart to go (Take) or nothing to take it from (Put). Disables Accept."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000B}" {
-   Id "OVT-Resource_NoCargoSpace"
-   Target_en_us "No room in the destination"
-   Comment "Shown on a dimmed row of the resource transfer screen: the destination cannot take even one unit of that resource. The row is listed rather than hidden so the reason is visible."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000C}" {
-   Id "OVT-Resource_NoSpaceVolume"
-   Target_en_us "Not enough room: %1 m³ ordered, %2 m³ free"
-   Comment "Resource transfer screen checkout refusal when the whole cart will not fit. %1 is the cart's volume, %2 what the destination can still take, both in cubic metres to one decimal. The WHOLE cart is refused - nothing is ever clamped to a partial load."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000D}" {
-   Id "OVT-Resource_Timber"
-   Target_en_us "Timber"
-   Comment "Resource name, from Configs/Resistance/resources.conf. Sawn wood; the cheapest and bulkiest construction resource."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000E}" {
-   Id "OVT-Resource_Timber_Description"
-   Target_en_us "Sawn planks and beams. Bulky and cheap - the backbone of every field structure."
-   Comment "Details-panel description of the Timber resource on the transfer screen, from Configs/Resistance/resources.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000000F}" {
-   Id "OVT-Resource_Cement"
-   Target_en_us "Cement"
-   Comment "Resource name, from Configs/Resistance/resources.conf. Bagged cement; dense and mid-priced."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000010}" {
-   Id "OVT-Resource_Cement_Description"
-   Target_en_us "Bagged cement. Heavy for its volume, and needed wherever something has to stay put."
-   Comment "Details-panel description of the Cement resource on the transfer screen, from Configs/Resistance/resources.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000011}" {
-   Id "OVT-Resource_Steel"
-   Target_en_us "Steel"
-   Comment "Resource name, from Configs/Resistance/resources.conf. Steel stock; compact, heavy and expensive."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000012}" {
-   Id "OVT-Resource_Steel_Description"
-   Target_en_us "Girders, plate and rebar. Compact, very heavy, and not cheap."
-   Comment "Details-panel description of the Steel resource on the transfer screen, from Configs/Resistance/resources.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000013}" {
-   Id "OVT-Resource_Hardware"
-   Target_en_us "Hardware"
-   Comment "Resource name, from Configs/Resistance/resources.conf. Fittings and fixings; the smallest and most valuable resource."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000014}" {
-   Id "OVT-Resource_Hardware_Description"
-   Target_en_us "Fittings, fixings, wiring and tools. Takes almost no space and costs the most."
-   Comment "Details-panel description of the Hardware resource on the transfer screen, from Configs/Resistance/resources.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000015}" {
-   Id "OVT-Resource_NoPlayer"
-   Target_en_us "You are not a player here"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 1: the request arrived with no resolvable player identity. Should never be seen in normal play; it names the failure rather than dropping the request silently."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000016}" {
-   Id "OVT-Resource_NoStore"
-   Target_en_us "That cannot hold resources"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 2: the holder named by the request carries no resource store. Also raised client-side when the holder has no RplComponent and therefore cannot be named across the network."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000017}" {
-   Id "OVT-Resource_Ruined"
-   Target_en_us "That is wrecked"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 3: the holder is a ruin. Ruined structures offer no actions at all, so this is the race where it was destroyed with the screen open."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000018}" {
-   Id "OVT-Resource_TooFar"
-   Target_en_us "You are too far away"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 4: the caller has walked or driven out of the holder's use radius since the screen was opened."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000019}" {
-   Id "OVT-Resource_Locked"
-   Target_en_us "That is locked"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 5: the holder is a locked vehicle, or is owned by another player. Also used by the open-store action's client-side mirror of the same rule."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001A}" {
-   Id "OVT-Resource_NoAccess"
-   Target_en_us "You do not have access to this warehouse"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 6: the holder is a warehouse this player may not use. Also used by the open-store action's client-side mirror of the same rule."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001B}" {
-   Id "OVT-Resource_NoCatalogue"
-   Target_en_us "The resource catalogue is unavailable"
-   Comment "Server refusal when the resource manager or its catalogue could not be reached while running a checkout. A configuration failure, not a player one; it aborts the order rather than moving nothing quietly."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001C}" {
-   Id "OVT-Resource_BadRequest"
-   Target_en_us "That order was malformed"
-   Comment "Server refusal for a checkout whose streamed lines do not match what was announced: a short or long stream, an unknown resource index, a quantity outside the allowed bounds, or the same resource listed twice. Refused once, whole, at commit."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001D}" {
-   Id "OVT-Resource_NotEnough"
-   Target_en_us "There is not that much left"
-   Comment "Server refusal at commit: the source holder no longer holds everything the cart ordered, because somebody else took it first. The WHOLE cart is refused - nothing is ever clamped to what is left."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001E}" {
-   Id "OVT-Resource_NoSpace"
-   Target_en_us "Not enough room in the destination"
-   Comment "Server refusal at commit: the destination cannot take the whole cart. The client shows #OVT-Resource_NoSpaceVolume with the figures before it gets this far; this is the answer when the destination filled up in between."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000001F}" {
-   Id "OVT-Resource_NoPosition"
-   Target_en_us "There is nowhere to put it down"
-   Comment "Server refusal for a drop on the ground: the caller's position could not be resolved, so the crate pile has nowhere to land. Refused before anything leaves the source holder."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000020}" {
-   Id "OVT-Resource_NoPilePrefab"
-   Target_en_us "Dropping resources is not configured"
-   Comment "Server refusal for a drop on the ground: no crate pile prefab is wired on the resource manager. A configuration failure, refused before anything leaves the source holder."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000021}" {
-   Id "OVT-Resource_DropFailed"
-   Target_en_us "The load could not be put down"
-   Comment "Server refusal for a drop on the ground: the crate pile could not be spawned or merged. The pile is filled before the source is emptied, so a failure here costs the player nothing."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000022}" {
-   Id "OVT-Resource_Failed"
-   Target_en_us "That did not work"
-   Comment "Server refusal of last resort when a resource request failed for a reason with no more specific key. Every refusal answers with a key; a silent return would be the defect."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000024}" {
-   Id "OVT-Resource_NeedTruck"
-   Target_en_us "You need a vehicle with cargo space"
-   Comment "Reason shown on a DISABLED resource row in the port's Import list when the player is on foot, or in a vehicle that carries no resource store. The row is listed rather than hidden so the player can see the price and learn what is missing (requirement C). Also the client-side refusal when a resource import is accepted with no store to put it in."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000025}" {
-   Id "OVT-Resource_NotImportable"
-   Target_en_us "That cannot be bought here"
-   Comment "Server refusal at commit for a PORT_IMPORT line naming a resource the catalogue does not flag importable. The Import list never offers one, so this only answers a hand-crafted or stale request."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000026}" {
-   Id "OVT-Resource_NotSellable"
-   Target_en_us "That cannot be sold here"
-   Comment "Refusal for a PORT_EXPORT line naming a resource the catalogue does not know. Also the reason on a disabled Export row for a resource the vehicle carries that the port will not buy."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000027}" {
-   Id "OVT-Resource_Illegal"
-   Target_en_us "Smuggling that needs the right contacts"
-   Comment "Refusal for a port trade in a resource flagged illegal when the player has neither the IllegalImports permission nor a port the resistance controls. Also the reason on a disabled Export row for such a resource."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000028}" {
-   Id "OVT-Resource_NoMoney"
-   Target_en_us "You cannot afford that"
-   Comment "Server refusal at commit for a PORT_IMPORT whose whole-cart cost exceeds the player's money. The cart is refused entire; nothing is clamped and nothing is bought."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000029}" {
-   Id "OVT-Resource_NotAtPort"
-   Target_en_us "You are not at a port"
-   Comment "Server refusal for a PORT_IMPORT or PORT_EXPORT when the caller or the holder is outside the port radius. The screen cannot be opened away from a port, so this answers a player who drove off mid-order."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002A}" {
-   Id "OVT-Resource_PriceFarBelow"
-   Target_en_us "Prices are far below normal here"
-   Comment "Drift readout on the port screen's resource details, shown when the live price is under 75 percent of the config base. Text and not an icon (D10): FillDetails has no image channel and the row image is already the resource icon."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002B}" {
-   Id "OVT-Resource_PriceBelow"
-   Target_en_us "Prices are below normal here"
-   Comment "Drift readout on the port screen's resource details, live price between 75 and 95 percent of the config base."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002C}" {
-   Id "OVT-Resource_PriceNormal"
-   Target_en_us "Prices are about normal here"
-   Comment "Drift readout on the port screen's resource details, live price within 5 percent of the config base either way."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002D}" {
-   Id "OVT-Resource_PriceAbove"
-   Target_en_us "Prices are above normal here"
-   Comment "Drift readout on the port screen's resource details, live price between 105 and 150 percent of the config base."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002E}" {
-   Id "OVT-Resource_PriceFarAbove"
-   Target_en_us "Prices are far above normal here"
-   Comment "Drift readout on the port screen's resource details, live price over 150 percent of the config base."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787702400
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000002F}" {
-   Id "OVT-Resource_NoSite"
-   Target_en_us "That is not a construction site"
-   Comment "Server refusal from OVT_ResourceRequestComponent.RpcAsk_BuildFromSite. Shown as a hint when the entity a build request names is not a construction site - normally because the site was demolished between the click and the request arriving."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000030}" {
-   Id "OVT-Resource_ConstructionSite"
-   Target_en_us "Construction Site"
-   Comment "Generic name of a construction site, used as the requirements dialog title and as the build action's label when the site cannot name the building it will become (a buildables.conf edit removed its entry)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B70D00000000053}" {
-   Id "OVT-Resource_RepairRequirements"
-   Target_en_us "Repair Requirements"
-   Comment "Name of the user action on a RUINED buildable that opens the repair materials readout. The ruin's counterpart to OVT-Resource_SiteRequirements; shown only when the buildable authors m_aResourceRequirements (OVT_RepairRequirementsAction.CanBeShownScript)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B70D00000000054}" {
-   Id "OVT-Resource_RepairShortOf"
-   Target_en_us "Not enough"
-   Comment "Prefix of the Repair action's cannot-perform reason, followed by the translated name of the first resource the nearby crate piles are short of, e.g. 'Not enough Cement'. OVT_RepairRequirementsReader.ShortReason."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B70D00000000055}" {
-   Id "OVT-Resource_RepairNeedsMaterials"
-   Target_en_us "Not enough materials nearby"
-   Comment "The Repair action's cannot-perform reason when the short resource cannot be named, and the body of the RepairNeedsMaterials notification the server sends when it refuses a repair for want of materials."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000031}" {
-   Id "OVT-Resource_SiteRequirements"
-   Target_en_us "Requirements"
-   Comment "Name of the user action on a construction site that opens the requirements readout, and the placeholder message of the SITE_REQUIREMENTS dialog before OVT_SiteRequirementsAction fills it in."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000032}" {
-   Id "OVT-Resource_BuildFromSite"
-   Target_en_us "Build"
-   Comment "Fallback name of the 'finish this construction site' user action, authored on the prefab. The action rewrites it every second with #OVT-Resource_BuildNow or #OVT-Resource_ShortOf, so this only shows if that rewrite fails."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000033}" {
-   Id "OVT-Resource_BuildNow"
-   Target_en_us "Build %1"
-   Comment "Name of the 'finish this construction site' user action when the crate piles around it cover every requirement. %1 is the building's name, e.g. 'Build Guard Tower'."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000034}" {
-   Id "OVT-Resource_ShortOf"
-   Target_en_us "Need %1 more %2"
-   Comment "Name of the 'finish this construction site' user action when the nearby crate piles are short. %1 is how many units are missing, %2 the resource's name, e.g. 'Need 28 more Timber'. Only the FIRST shortfall is named; the requirements action lists them all."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000035}" {
-   Id "OVT-Resource_Short"
-   Target_en_us "short"
-   Comment "One word, used inside a construction site's requirements readout to mark a line that is not covered, e.g. 'Timber: 12 / 40 (short 28)'. The numbers around it are built in code."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000036}" {
-   Id "OVT-Resource_BuildRequires"
-   Target_en_us "Requires Resources"
-   Comment "One-line note on a build menu card marking a buildable that costs materials as well as money. CHANGED 2026-08-22 from the heading 'Requires:' plus a per-resource row list, which was tall enough to push the card's description over the preview image. The quantities are no longer shown here - a player reads them on the construction site's own Requirements action, which is where they can act on them."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000037}" {
-   Id "OVT-Resource_BuildRequirementRow"
-   Target_en_us "%1 x %2"
-   Comment "⚠ UNUSED since 2026-08-22 - the build menu card was collapsed to the one-line #OVT-Resource_BuildRequires because the row list pushed the description over the preview image. Kept because the identical shape is still used by the truck cargo HUD row (#OVT-Resource_CargoRow) and a future per-resource readout would want it back. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000040}" {
-   Id "OVT-Cargo_Title"
-   Target_en_us "Cargo"
-   Comment "Header of the cargo panel on a truck's HUD, shown only while the local player occupies a truck that carries a resource store. One word, title case; the volume and the resource lines are drawn underneath it."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000041}" {
-   Id "OVT-Cargo_Volume"
-   Target_en_us "%1 / %2 m³"
-   Comment "Volume line on the truck cargo HUD when the truck has a capacity. %1 is the cubic metres currently loaded, %2 the truck's capacity, both to one decimal. Keep the unit as m³ - it matches every other resource readout in the mod."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000042}" {
-   Id "OVT-Cargo_VolumeUnlimited"
-   Target_en_us "%1 m³"
-   Comment "Volume line on the truck cargo HUD when the holder has no capacity limit. %1 is the cubic metres currently loaded, to one decimal. No shipped truck is unlimited; this is the defensive branch for a modded or mis-authored capacity of -1."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000043}" {
-   Id "OVT-Cargo_Line"
-   Target_en_us "%1 x %2"
-   Comment "One resource line on the truck cargo HUD. %1 is the unit count, %2 the resource's name, e.g. '40 x Timber'. Same order and shape as the build-menu requirement row #OVT-Resource_BuildRequirementRow."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000044}" {
-   Id "OVT-Cargo_More"
-   Target_en_us "+%1 more"
-   Comment "Overflow line on the truck cargo HUD, replacing the last resource line when the truck holds more kinds of resource than the panel has rows. %1 is how many kinds are not listed, including the one the row displaced."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000045}" {
-   Id "OVT-Map_Category_ResourcePiles"
-   Target_en_us "Crate Piles"
-   Comment "Category name in the map layer-filter panel - the row that switches dropped resource crate pile markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Resource_Pile and should stay consistent with this one."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000046}" {
-   Id "OVT-Map_PileVolume"
-   Target_en_us "Volume"
-   Comment "Map info panel row label on a crate pile marker - the caption for the pile's total loaded volume. The value is #OVT-Map_PileVolumeValue. Appears below one row per resource the pile holds."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000047}" {
-   Id "OVT-Map_PileVolumeValue"
-   Target_en_us "%1 m³"
-   Comment "Value of the volume row on a crate pile's map info panel. %1 is the pile's total loaded volume in cubic metres to one decimal. A pile has no capacity, so there is no denominator to show."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E2000000048}" {
-   Id "OVT-Map_PileEmpty"
-   Target_en_us "Empty"
-   Comment "Full-width line on a crate pile's map info panel when the pile holds nothing. Replaces the per-resource rows and the volume row entirely. An empty pile is normally short-lived, so this reads as a state, not an error."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A0}" {
-   Id "OVT-FieldManual_Resources_Title"
-   Target_en_us "Resources"
-   Comment "Field Manual - Resources page title, shown on the entry tile in the Money and Trade category. One word, no rich-text markup. Matches the port screen's Resources tab label (#OVT-ShopCategory_Resources)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A1}" {
-   Id "OVT-FieldManual_Resources_Text"
-   Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, production sites on the island make them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
-   Comment "Field Manual - Resources page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. The four resources and their per-unit figures: Configs/Resistance/resources.conf:3-42 - timber 0.1 cubic metres and 40 dollars base, cement 0.05 and 60, steel 0.04 and 120, hardware 0.02 and 200. Held as a quantity rather than as entities: Scripts/Game/Data/OVT_ResourceLedger.c (id to quantity, no entity anywhere). Cubic metres as the unit of capacity: OVT_ResourceStoreComponent.c:285 converts the authored m_fCargoVolume to integer litres. Holders: Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6, Prefabs/Props/Resources/OVT_ResourcePile.et:4-7, Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11. Structures that require them: Configs/Resistance/buildables.conf:77, :107, :145, :175. REVISED 2026-08-22 for logistics/resource-production: 'production sites on the island make them' added to the last sentence, and the buildables.conf line references above were re-derived (the Guard Tower requirement at :15 no longer exists). Production sites: OVT_ResourceProductionManagerComponent.ProduceForHours:556-573 drips into each site's own OVT_ResourceStoreComponent once an in-game hour; the Production Sites page owns the detail so nothing is repeated here."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A2}" {
-   Id "OVT-FieldManual_Resources_Head"
-   Target_en_us "Buying and Selling at a Port"
-   Comment "Field Manual - Resources page, section header above the port paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A3}" {
-   Id "OVT-FieldManual_Resources_Text2"
-   Target_en_us "The port screen carries a Resources tab on both the Import and the Export side. What a resource costs there is a live price that moves over the campaign rather than the fixed one a shop uses: it changes at most once in each six-hour window of game time, stays inside a band around its base price, and the details panel says whether it currently sits below, near or above that base. Occupying pressure pushes prices up and resistance control of the ports pushes them down. A port pays half the going price to take a resource back off you. Either way the trade runs through the store of the truck you are sitting in, so a resource is listed disabled with a reason when there is no truck under you or no room left in it. Difficulty scales both the price and how far it swings."
-   Comment "Field Manual - Resources page, body paragraph under 'Buying and Selling at a Port'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Live price: OVT_PortContext.c:778 reads resources.GetPrice(i), never the config base. Six-hour window: OVT_ResourceRules.c:54-83 (IsDriftWindowHour plus the one-drift-per-window latch) driven by OVT_ResourceManagerComponent.CheckPrices:320-340. Band: OVT_ResourceManagerComponent.c:36-40 m_fPriceBandMin 0.5 and m_fPriceBandMax 2.0, clamped inside OVT_ResourceRules.DriftStep. Below/near/above line: OVT_PortContext.c:905-908. Direction of the pressure term: OVT_ResourceRules.WarPressure:113-120 - the threat term is positive and the controlled-port fraction is subtracted. Half: OVT_ResourceManagerComponent.c:45-46 m_fSellRatio default 0.5, applied at :227. Trade runs through the occupied vehicle's store: OVT_PortContext.c:750. Disabled with a reason: :776-786 (#OVT-Resource_NeedTruck and #OVT-Resource_NoCargoSpace). Difficulty: OVT_DifficultySettings.c resourcePriceMultiplier and resourcePriceVolatility, set per level in Configs/Difficulty/Difficulty_Easy.conf, _Hard.conf, _Extreme.conf and _Insane.conf. Numbers are not quoted because all three are difficulty settings."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A4}" {
-   Id "OVT-FieldManual_Resources_Head2"
-   Target_en_us "Hauling"
-   Comment "Field Manual - Resources page, section header above the truck paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A5}" {
-   Id "OVT-FieldManual_Resources_Text3"
-   Target_en_us "Trucks are the only vehicles with a cargo store, so no car, armoured carrier or helicopter shows a cargo action at all. An ordinary truck takes fifteen cubic metres, the transport variants of the M923A1 and the Ural take twenty, and the Mobile FOB truck takes eight because it is already carrying a base. Sitting in a truck puts a panel on the screen listing what is aboard and how much of the space is gone. A load that will not fit is refused whole, with the space left over named in the message, so nothing is ever part-bought or half-moved."
-   Comment "Field Manual - Resources page, body paragraph under 'Hauling'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Trucks only: OVT_ResourceStoreComponent and OVT_OpenResourceStoreAction are authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-21, which only ArmaReforger Prefabs/Vehicles/Wheeled/M923A1/M923A1.et and Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et inherit (grep of the vanilla tree, 2026-08-21); cars and helicopters inherit Wheeled_Base.et or another base and therefore have neither component nor action. Capacities: Wheeled_Truck_Base.et:5 is 15, M923A1_transport.et:5 and Ural4320_transport.et:5 are 20, OverthrowMobileFOB.et:5 and OverthrowMobileFOBDeployed.et:5 are 8. HUD panel: OVT_CargoInfo.c, declared on Wheeled_Truck_Base.et:32-35; it lists up to six resource lines (MAX_LINES, :20) and the used-of-total volume. Whole-cart refusal with the remaining volume: OVT_ResourceTransferContext.ValidateCart:306-320 (#OVT-Resource_NoSpaceVolume) and the server's re-check in OVT_ResourceRequestComponent. Deliberately NOT written: any claim that weight affects handling. Physics.SetMass is never called; weight is display only (OVT_ResourceLedger.TotalWeightKg)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A6}" {
-   Id "OVT-FieldManual_Resources_Head3"
-   Target_en_us "Crate Piles"
-   Comment "Field Manual - Resources page, section header above the crate pile paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A7}" {
-   Id "OVT-FieldManual_Resources_Text4"
-   Target_en_us "A cargo store opens a screen with a Take side and a Put side, and a list of everywhere nearby the load could go, nearest first. In Take, one of those destinations is the ground. Sending a load there drops a crate pile in front of you, and dropping a second load within a few metres of that pile adds to it rather than starting another. A pile has no capacity limit of its own, shows on the map with its contents and its volume, opens like any other store, and disappears once it has been emptied."
-   Comment "Field Manual - Resources page, body paragraph under 'Crate Piles'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Take and Put: OVT_ResourceTransferContext.BuildModes:131-134. Nearby destinations sorted nearest-first, within m_fHolderRadius (default 25 m, OVT_ResourceRequestComponent.c:166-167, unoverridden on Prefabs/GameMode/OVT_OverthrowController.et:48-49): OVT_ResourceTransferContext.BuildDestinations:225-241. Ground offered in Take only: :243-255. Dropped in front of the player: m_fUnloadOffset default 4 m, OVT_ResourceRequestComponent.c:178-179. Merging: OVT_ResourceManagerComponent.c:48-49 m_fMergeRadius default 6 m, selected by OVT_ResourceRules.SelectMergeTarget at :579 - 'a few metres' rather than the number because the radius is a prefab attribute. Unlimited: Prefabs/Props/Resources/OVT_ResourcePile.et:5 authors m_fCargoVolume -1. Map: OVT_MapLocationResourcePile.c:86-92 draws the contents and volume rows; the marker is the OVT_MapMarkerComponent with category RESOURCE_PILE on OVT_ResourcePile.et:11-13. Deleted when emptied: OVT_ResourceManagerComponent.DeletePileIfEmpty:629-648."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A8}" {
-   Id "OVT-FieldManual_Resources_Head4"
-   Target_en_us "Building With Resources"
-   Comment "Field Manual - Resources page, section header above the construction site paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000A9}" {
-   Id "OVT-FieldManual_Resources_Text5"
-   Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
-   Comment "Field Manual - Resources page, body paragraph under 'Building With Resources'. Six sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/resources. Money-only buildables are byte-identical to before: OVT_ResistanceFactionManager.BuildItem:896-899 branches to PlaceConstructionSite only when HasResourceRequirements() is true, otherwise straight to FinishBuild. Which four: Garage (buildables.conf:77), Helipad (:107), Warehouse (:145) and Barracks (:175); no other entry authors m_aResourceRequirements. CORRECTED 2026-08-22 for logistics/resource-production: the sentence still named the Guard Tower and omitted the Barracks, which the 2026-08-21 comment had already flagged as re-checked but never applied to the English text. The Guard Tower entry (buildables.conf:5-17) authors no m_aResourceRequirements at all. Money charged at placement: OVT_ResistanceFactionManager.PlaceConstructionSite:1057-1106, TakePlayerMoney at :1106. The two actions: OVT_SiteRequirementsAction.c:60 (#OVT-Resource_SiteRequirements) and OVT_BuildFromSiteAction.c:124-129, both on Prefabs/Structures/OVT_ConstructionSite.et. Thirty metres: OVT_ResourceManagerComponent.c:51-52 m_fSupplyRadius default 30, read by OVT_ResourceRequirements.CollectPiles:281. Nearest first: OVT_ResourceRequirements.Consume:173 through OVT_ResourceRules.SortPilesForConsumption. Piles only: CollectPiles runs an OVT_ResourcePileQuery, so a truck store or a warehouse store is never counted (requirements section D). No refund: OVT_ResistanceFactionManager.c:1091-1106 states it and no refund path exists anywhere in the mod. Difficulty: OVT_DifficultySettings.c:151-152 buildableResourceCostMultiplier, applied by OVT_ResourceRequirements.ScaleForDifficulty:33 - which is why no requirement quantity is quoted here."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000AA}" {
-   Id "OVT-FieldManual_Resources_Head5"
-   Target_en_us "Warehouses"
-   Comment "Field Manual - Resources page, section header above the warehouse paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000AB}" {
-   Id "OVT-FieldManual_Resources_Text6"
-   Target_en_us "A warehouse building holds resources beside the items it already stores, under an action of its own, and neither side of it has a limit. A warehouse is also something the resistance can build, for money and all four resources. It can go up at a base the resistance holds, and inside a town the resistance controls, which is the only place the build list reaches beyond bases, FOBs and camps; a town the occupying faction still holds refuses it, and so does a village. Once it is up it is a warehouse like any other, on the map, in who owns it and in what it will hold."
-   Comment "Field Manual - Resources page, body paragraph under 'Warehouses'. Four sentences, no rich-text markup. Cross-references the Storage page rather than restating the item side. FACT-CHECKED 2026-08-21 for logistics/resources. The resource store and its own action at Sort Priority 3: Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et:8-11 and :43-52. Both unlimited: m_eCapacityMode UNLIMITED on the item store (:4-7) and m_fCargoVolume -1 on the resource store (:9). Buildable entry: Configs/Resistance/buildables.conf:142-172 - m_iCost 12000 (not quoted, buildableCostMultiplier is a difficulty setting), m_bBuildAtBase 1, m_bBuildInTown 1, and all four resources at :153-172. Town control: OVT_BuildContext.CanBuild:330-348 refuses an uncontrolled town with #OVT-CannotBuildUncontrolledTown and a village with #OVT-CannotBuildVillage, and the server re-checks through the same pure predicate in OVT_ResistanceFactionManager.TownControlAllowsBuild:1031-1046. Warehouse is the only shipped buildable that sets m_bBuildInTown (grep of buildables.conf, 2026-08-21). Indistinguishable afterwards: OVT_ResistanceFactionManager.RegisterBuiltWarehouse:1002-1016 registers it through OVT_RealEstateManagerComponent.SetOwnerPersistentId, which is the same record a bought warehouse carries."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000AC}" {
-   Id "OVT-FieldManual_Ports_Head3"
-   Target_en_us "Resources"
-   Comment "Field Manual - Ports page, section header above the resources paragraph. One word, no rich-text markup. Matches the port screen's tab label (#OVT-ShopCategory_Resources)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E20000000AD}" {
-   Id "OVT-FieldManual_Ports_Text4"
-   Target_en_us "Both sides of the port screen carry a Resources tab as well, trading bulk construction materials into and out of the cargo store of the truck you are sitting in. Those are priced separately from everything else here, and their price moves over the campaign instead of holding still. The Resources page covers them in full."
-   Comment "Field Manual - Ports page, body paragraph under 'Resources'. Three sentences, no rich-text markup. Deliberately short: it exists to point at the Resources page, which owns the detail, so nothing here is repeated there. FACT-CHECKED 2026-08-21 for logistics/resources. Tab on both sides: OVT_PortContext.c:31 CATEGORY_RESOURCES, appended in Import at :773 and in Export at :835, labelled at :209. Cargo store of the occupied vehicle, not its item storage: OVT_PortContext.c:750 resolves OVT_ResourceUtils.GetStore(GetOccupiedVehicle()), which is the OVT_ResourceStoreComponent authored on Prefabs/Vehicles/Core/Wheeled_Truck_Base.et:4-6. Live price rather than the fixed catalogue one: :778 reads resources.GetPrice(i), drifted by OVT_ResourceManagerComponent.CheckPrices:320-340."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787788800
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2E200000009A}" {
-   Id "OVT-Port_SummaryVolume"
-   Target_en_us "%1  ·  Cargo %2"
-   Comment "Port screen checkout - the money total with the truck's projected cargo volume appended, shown only when the cart orders resources. %1 is the already-translated money summary (OVT-Transfer_SummaryPrice), %2 the already-translated volume (OVT-Resource_SummaryVolume). Translate only the word Cargo and the separator."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1787616000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A0}" {
-   Id "OVT-Msg-HCGroupPurchased"
-   Target_en_us "High Command group bought - %1 fighters for $%2"
-   Comment "Purchase confirmation at a barracks, to the buying player only. %1 is the group's member count, %2 is the amount actually charged (member cost plus the fee-multiplied gear that nearby warehouse stock did NOT cover). Sent AFTER the group is standing in the world - a failed spawn shows OVT-Msg-HCPurchaseSpawnFailed instead and charges nothing."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A1}" {
-   Id "OVT-Msg-HCPurchaseNotAtBarracks"
-   Target_en_us "You must be standing at a barracks to raise a group"
-   Comment "Purchase refusal, to the buying player only. The server found no OVT_BarracksComponent within OVT_BarracksComponent.BARRACKS_USE_RADIUS (5 m) of the caller. No parameters."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A2}" {
-   Id "OVT-Msg-HCPurchaseBarracksRuined"
-   Target_en_us "This barracks is in ruins and cannot raise anyone"
-   Comment "Purchase refusal, to the buying player only. The barracks exists but OVT_StructureDamage.IsUsable is false - it is in its ruined destruction phase. No parameters."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A3}" {
-   Id "OVT-Msg-HCPurchaseBaseNotFriendly"
-   Target_en_us "The resistance does not hold this base"
-   Comment "Purchase refusal, to the buying player only. The nearest base is either further than baseRange away or still held by the occupying faction. No parameters."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A4}" {
-   Id "OVT-Msg-HCPurchaseBadEntry"
-   Target_en_us "That group is not available here"
-   Comment "Purchase refusal, to the buying player only. The entry index the client sent names nothing in the player faction's m_aHighCommandGroups, or its group prefab defines no members at all. No parameters."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A5}" {
-   Id "OVT-Msg-HCPurchaseAtCap"
-   Target_en_us "You already command too many fighters to add %1 more"
-   Comment "Purchase refusal, to the buying player only. %1 is how many members the refused group would have added. The cap counts MEMBERS across every group the player owns, not groups (decision D12); its value is highCommandMemberCap, default 48."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A6}" {
-   Id "OVT-Msg-HCPurchaseNoSupporters"
-   Target_en_us "The nearest town cannot spare %1 supporters"
-   Comment "Purchase refusal, to the buying player only. %1 is how many supporters the group would have drawn down - one per member by default (highCommandSupportersPerMember). Also shown when there is no town near enough to draw from at all."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A7}" {
-   Id "OVT-Msg-HCPurchaseCannotAfford"
-   Target_en_us "You cannot afford this group ($%1)"
-   Comment "Purchase refusal, to the buying player only. %1 is the re-derived total the funds check ran against, which is the amount that would have been charged. The funds check is deliberately the LAST gate, so this never appears for a group the cap or the town would have refused anyway."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A8}" {
-   Id "OVT-Msg-HCPurchaseSpawnFailed"
-   Target_en_us "The group could not be raised - nothing was charged"
-   Comment "Purchase refusal, to the buying player only. Every gate passed but the group entity or its members failed to spawn. The effect order is spawn -> stock -> supporters -> money, so no money, no supporters and no warehouse stock moved. No parameters."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000A9}" {
-   Id "OVT-HC_Group_SentryTeam"
-   Target_en_us "Sentry Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AA}" {
-   Id "OVT-HC_Group_SentryTeamDesc"
-   Target_en_us "Two riflemen who hold a position and watch for movement."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AB}" {
-   Id "OVT-HC_Group_MachineGunTeam"
-   Target_en_us "Machine Gun Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AC}" {
-   Id "OVT-HC_Group_MachineGunTeamDesc"
-   Target_en_us "A gunner and loader built to hold a line under fire."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AD}" {
-   Id "OVT-HC_Group_SharpshooterTeam"
-   Target_en_us "Sharpshooter Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AE}" {
-   Id "OVT-HC_Group_SharpshooterTeamDesc"
-   Target_en_us "A marksman and spotter for long-range overwatch."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000AF}" {
-   Id "OVT-HC_Group_ReconTeam"
-   Target_en_us "Recon Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B0}" {
-   Id "OVT-HC_Group_ReconTeamDesc"
-   Target_en_us "Two fighters built for scouting, not sustained combat."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B1}" {
-   Id "OVT-HC_Group_LightFireTeam"
-   Target_en_us "Light Fire Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B2}" {
-   Id "OVT-HC_Group_LightFireTeamDesc"
-   Target_en_us "Four riflemen, fast to raise and easy to keep supplied."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B3}" {
-   Id "OVT-HC_Group_AntiTankTeam"
-   Target_en_us "Anti-Tank Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B4}" {
-   Id "OVT-HC_Group_AntiTankTeamDesc"
-   Target_en_us "Four fighters carrying anti-armour weapons."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B5}" {
-   Id "OVT-HC_Group_FireTeam"
-   Target_en_us "Fire Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B6}" {
-   Id "OVT-HC_Group_FireTeamDesc"
-   Target_en_us "Five riflemen with a designated marksman."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B7}" {
-   Id "OVT-HC_Group_RifleSquad"
-   Target_en_us "Rifle Squad"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B8}" {
-   Id "OVT-HC_Group_RifleSquadDesc"
-   Target_en_us "A full seven-man squad, the backbone of a defence."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000B9}" {
-   Id "OVT-HC_Group_TechnicalPKM"
-   Target_en_us "Technical (PKM)"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BA}" {
-   Id "OVT-HC_Group_TechnicalPKMDesc"
-   Target_en_us "A sentry team mounted on a machine-gun-armed jeep."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BB}" {
-   Id "OVT-HC_Group_MotorFireTeam"
-   Target_en_us "Motorised Fire Team"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BC}" {
-   Id "OVT-HC_Group_MotorFireTeamDesc"
-   Target_en_us "A light fire team riding a jeep for a fast response."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BD}" {
-   Id "OVT-HC_Group_TruckSquad"
-   Target_en_us "Truck Squad"
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BE}" {
-   Id "OVT-HC_Group_TruckSquadDesc"
-   Target_en_us "A fire team riding a covered truck for a long haul."
-   Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Description shown in the barracks purchase screen's details panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000BF}" {
-   Id "OVT-Barracks"
-   Target_en_us "Barracks"
-   Comment "Map POI name for a High Command barracks (OVT_MapMarkerComponent on OVT_Barracks.et and the three same-GUID vanilla overrides). Referenced by the user's prefab authoring since before this key existed."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C0}" {
-   Id "OVT-Build_Barracks"
-   Target_en_us "Barracks"
-   Comment "Build menu title for the Barracks buildable, Configs/Resistance/buildables.conf. The most expensive buildable in the resistance's build list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C1}" {
-   Id "OVT-Build_Barracks_Description"
-   Target_en_us "Raises High Command groups you can command from the map. The costliest structure the resistance can build."
-   Comment "Build menu description for the Barracks buildable, Configs/Resistance/buildables.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C2}" {
-   Id "OVT-ManageHighCommand"
-   Target_en_us "Manage High Command"
-   Comment "UIInfo Name on the barracks desk's OVT_ManageHighCommandAction (hover/action label), authored on OVT_Barracks.et and the three same-GUID vanilla barracks overrides."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C3}" {
-   Id "OVT-HC_AtCap"
-   Target_en_us "Your High Command groups are at capacity"
-   Comment "OVT_ManageHighCommandAction.CanBePerformedScript SetCannotPerformReason - shown when the player's member count already meets or exceeds their High Command cap."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C4}" {
-   Id "OVT-HC_MenuTitle"
-   Target_en_us "High Command"
-   Comment "Header title of the barracks purchase screen, UI/Layouts/Menu/HighCommandMenu.layout."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C5}" {
-   Id "OVT-HC_NoSelectionHelp"
-   Target_en_us "Select a group to see its price."
-   Comment "Barracks purchase screen details panel placeholder text, shown before any row has been selected or when the catalog is empty."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C6}" {
-   Id "OVT-HC_MemberCountFormat"
-   Target_en_us "%1 fighters"
-   Comment "Format string for a High Command entry's member count, shown on each purchase screen row and in the details panel. %1 is the member count, read client-side from the prefab source with nothing spawned."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C7}" {
-   Id "OVT-HC_VehicleIncluded"
-   Target_en_us "+ vehicle"
-   Comment "Tag shown on a barracks purchase screen row when the entry's m_sVehiclePrefab is set (a crewed vehicle group, not a foot group)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C8}" {
-   Id "OVT-HC_QuoteChecking"
-   Target_en_us "Checking price..."
-   Comment "Barracks purchase screen status line and Buy button label while a debounced quote is on the wire (RequestQuoteGroup asked, RpcDo_HCQuote not yet answered for this row)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000C9}" {
-   Id "OVT-HC_QuoteTotal"
-   Target_en_us "$%1"
-   Comment "Barracks purchase screen quote line - the server's total price for the selected entry (RpcDo_HCQuote total). %1 is the amount. Labelled as an estimate: the purchase re-derives and charges its own number."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CA}" {
-   Id "OVT-HC_QuoteCovered"
-   Target_en_us "$%1 covered by nearby warehouse stock"
-   Comment "Barracks purchase screen quote line - RpcDo_HCQuote coveredValue, shown when greater than zero. %1 is the covered value at buy price."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CB}" {
-   Id "OVT-HC_QuoteNoCoverage"
-   Target_en_us "No nearby warehouse stock"
-   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteCovered when RpcDo_HCQuote's coveredValue is zero."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CC}" {
-   Id "OVT-HC_QuoteSupporters"
-   Target_en_us "%1 supporters required"
-   Comment "Barracks purchase screen quote line - RpcDo_HCQuote supportersNeeded, shown when greater than zero. %1 is the count taken from the nearest town."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CD}" {
-   Id "OVT-HC_QuoteNoSupporters"
-   Target_en_us "No supporters required"
-   Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteSupporters when RpcDo_HCQuote's supportersNeeded is zero."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CE}" {
-   Id "OVT-HC_BuyButton"
-   Target_en_us "Buy ($%1)"
-   Comment "Barracks purchase screen Buy button label once an OK quote has arrived. %1 is the quoted total."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000CF}" {
-   Id "OVT-HC_BuyButtonPlain"
-   Target_en_us "Buy"
-   Comment "Barracks purchase screen Buy button label before a quote has arrived, while none is pending, or after a refusal."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000D0}" {
-   Id "OVT-HC_Buying"
-   Target_en_us "Raising group..."
-   Comment "Barracks purchase screen status line and Buy button label between pressing Buy and the server's RpcDo_HCResult answer."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D00000000D1}" {
-   Id "OVT-HC_QuoteError"
-   Target_en_us "Unable to price this group right now"
-   Comment "Barracks purchase screen fallback reason text for a quote refusal this screen has no dedicated sentence for (NO_PLAYER, NO_ACTOR, or a future RESULT_* code the screen has not been taught yet)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004100}" {
-   Id "OVT-Map_Layer_HighCommand"
-   Target_en_us "High Command"
-   Comment "Row label in the map layer-filter panel for the green NATO symbols showing every player's High Command groups. Two words, title case - it sits directly under the Recruits row in the same short list. It only ever labels a live control: a campaign with no High Command groups gets no row at all rather than a disabled one."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004101}" {
-   Id "OVT-HC_Map_StanceLine"
-   Target_en_us "Stance: %1"
-   Comment "Map info panel line for a selected High Command group. %1 is the already-translated stance name - Defend, Patrol or Attack."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004102}" {
-   Id "OVT-HC_Map_DestinationLine"
-   Target_en_us "Destination: %1 away"
-   Comment "Map info panel line for a selected High Command group. %1 is the distance from the group to its ordered destination, already formatted with its units, so it reads as 'Destination: 1.2 km away'. Reads '0 m away' for a group that has arrived."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004103}" {
-   Id "OVT-HC_Map_DistanceLine"
-   Target_en_us "From you: %1"
-   Comment "Map info panel line for a selected High Command group. %1 is the distance from the local player to the group, already formatted with its units."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004104}" {
-   Id "OVT-HC_Map_StatusLine"
-   Target_en_us "%1 - %2 / %3 alive"
-   Comment "Map info panel line for a selected High Command group. %1 is the already-translated one-word status, %2 the members still alive and %3 the members the group was bought with."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004105}" {
-   Id "OVT-HC_Map_DistanceUnknown"
-   Target_en_us "unknown"
-   Comment "Substituted into the map info panel's From you line when the local player has no controlled character to measure from - spectating, or mid-respawn. Lower case: it sits inside a sentence."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004106}" {
-   Id "OVT-HC_Stance_Defend"
-   Target_en_us "Defend"
-   Comment "One of the three High Command stances. The group hunkers at its destination. One word, title case - it is substituted into the map info panel's Stance line and will be reused by the roster screen."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004107}" {
-   Id "OVT-HC_Stance_Patrol"
-   Target_en_us "Patrol"
-   Comment "One of the three High Command stances. The group walks a ring around its destination indefinitely. One word, title case."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004108}" {
-   Id "OVT-HC_Stance_Attack"
-   Target_en_us "Attack"
-   Comment "One of the three High Command stances. The group sweeps its destination looking for enemies. One word, title case."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004109}" {
-   Id "OVT-HC_Map_StatusContact"
-   Target_en_us "In contact"
-   Comment "One-word-ish status for a High Command group whose members can currently see an enemy. Takes priority over every other status. Substituted into the map info panel's status line."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410A}" {
-   Id "OVT-HC_Map_StatusNoAmmo"
-   Target_en_us "Out of ammo"
-   Comment "Status for a High Command group where no member can put rounds downrange. Shown only when the group is not also in contact. Substituted into the map info panel's status line."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410B}" {
-   Id "OVT-HC_Map_StatusMoving"
-   Target_en_us "Moving"
-   Comment "Status for a High Command group that is still further than the arrival radius from its ordered destination. Substituted into the map info panel's status line."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410C}" {
-   Id "OVT-HC_Map_StatusHolding"
-   Target_en_us "Holding"
-   Comment "Status for a High Command group that has arrived at its destination and is doing whatever its stance says. The default status. Substituted into the map info panel's status line."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410D}" {
-   Id "OVT-HC_Map_Order"
-   Target_en_us "Order move"
-   Comment "Label on the map info panel's order button for a selected High Command group. The button carries the key or pad glyph beside it, so the label is the verb only. Pressing it sends the group to wherever the map cursor is, keeping its current stance."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410E}" {
-   Id "OVT-HC_Map_Stance"
-   Target_en_us "Change stance"
-   Comment "Label on the map info panel's stance button for a selected High Command group. Pressing it cycles Defend to Patrol to Attack and re-issues the order at the same destination."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000410F}" {
-   Id "OVT-HC_Map_Deselect"
-   Target_en_us "Deselect"
-   Comment "Label on the map info panel's close button for a selected High Command group. It drops the selection and closes the panel; it does not close the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004110}" {
-   Id "OVT-HC_Map_NotOwner"
-   Target_en_us "Only %1 can order this group"
-   Comment "Reason line under the map info panel's disabled order buttons when the selected High Command group belongs to another player. %1 is that player's name. The buttons stay visible and disabled rather than being hidden, so the refusal is explained."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004111}" {
-   Id "OVT-HC_Map_UnknownOwner"
-   Target_en_us "an unknown player"
-   Comment "Substituted for a High Command group owner's name when the player roster cannot resolve it - usually an owner who has never connected to this session. Lower case: it sits inside a sentence."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004112}" {
-   Id "OVT-HC_Map_BadDestination"
-   Target_en_us "Put the map cursor on a destination first"
-   Comment "Reason line on the map info panel when an order was refused because the destination was not a real point on the map."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004113}" {
-   Id "OVT-HC_Map_NoSeam"
-   Target_en_us "High Command is not available right now"
-   Comment "Reason line on the map info panel when the local controller has no High Command request component, so the order could not be sent at all. Almost always a client that has just connected."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004114}" {
-   Id "OVT-HC_Map_RefusedNotOwner"
-   Target_en_us "That group is not yours"
-   Comment "Reason line on the map info panel after the server refused an order with NOT_OWNER. The server is the only gate that matters; this sentence is what the player sees when the client-side check was bypassed or the group changed hands."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004115}" {
-   Id "OVT-HC_Map_RefusedNoGroup"
-   Target_en_us "That group no longer exists"
-   Comment "Reason line on the map info panel after the server refused an order with NO_GROUP - the group was wiped or dismissed between the marker being drawn and the order arriving."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004116}" {
-   Id "OVT-HC_Map_RefusedBadStance"
-   Target_en_us "That stance is not valid"
-   Comment "Reason line on the map info panel after the server refused an order with BAD_STANCE. A player should never see this; it means the client sent a stance value outside the enum."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000004117}" {
-   Id "OVT-HC_Map_RefusedGeneric"
-   Target_en_us "The order was refused"
-   Comment "Fallback reason line on the map info panel for an order refusal the panel has no dedicated sentence for - NO_PLAYER, or a future RESULT_ code it has not been taught yet."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005100}" {
-   Id "OVT-MainMenu_ManageGroups"
-   Target_en_us "Manage Groups"
-   Comment "Main menu button (OVT_MainMenuContext.ManageGroups) and header title of UI/Layouts/Menu/HighCommandRoster.layout - the same key on both, the OVT-MainMenu_ManageRecruits precedent."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005101}" {
-   Id "OVT-HC_Roster_YourGroups"
-   Target_en_us "Your Groups"
-   Comment "Left panel sub-heading on the Manage Groups roster (HighCommandRoster.layout), above the scrollable group list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005102}" {
-   Id "OVT-HC_Roster_Capacity"
-   Target_en_us "%1 / %2 members"
-   Comment "Capacity line on the Manage Groups roster. %1 is OVT_HighCommandManagerComponent.GetMemberCount for the local player, %2 is GetMemberCap - members across every owned group, whatever they are doing."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005103}" {
-   Id "OVT-HC_Roster_NoGroupsHelp"
-   Target_en_us "You do not own any High Command groups yet. Buy one at a barracks."
-   Comment "Manage Groups roster right panel placeholder text, shown when the local player owns no High Command groups at all."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005104}" {
-   Id "OVT-HC_Roster_MembersFormat"
-   Target_en_us "%1 / %2 alive"
-   Comment "Selected-group member count on the Manage Groups roster's details panel. %1 is OVT_HighCommandRecord.m_iAliveMembers, %2 is m_iTotalMembers."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005105}" {
-   Id "OVT-HC_Roster_RowSubtitle"
-   Target_en_us "%1 / %2 • %3"
-   Comment "Second line of one Manage Groups roster row (OVT_HighCommandRosterRowHandler.Populate). %1/%2 are alive/total members, %3 is the already-translated stance label (OVT-HC_Stance_*)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005106}" {
-   Id "OVT-HC_Roster_ShowOnMap"
-   Target_en_us "Show on Map"
-   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterShowOnMap) - opens the fullscreen map and selects the group there."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005107}" {
-   Id "OVT-HC_Roster_Dismiss"
-   Target_en_us "Dismiss"
-   Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterDismiss) - opens the DISMISS_HC_GROUP confirmation dialog."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005108}" {
-   Id "OVT-HC_Roster_DismissTitle"
-   Target_en_us "Dismiss Group"
-   Comment "Title of the DISMISS_HC_GROUP confirmation dialog (Configs/UI/Dialogs/DialogPresets_Campaign.conf), the DISMISS_RECRUIT shape."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005109}" {
-   Id "OVT-HC_Roster_DismissMessage"
-   Target_en_us "This will permanently disband the group, its vehicle and its orders. This cannot be undone."
-   Comment "Message of the DISMISS_HC_GROUP confirmation dialog."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000510A}" {
-   Id "OVT-HC_Roster_Dismissed"
-   Target_en_us "Group dismissed"
-   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult on RESULT_OK after a confirmed dismiss - the server's answer, never shown optimistically."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000510B}" {
-   Id "OVT-HC_Roster_DismissFailed"
-   Target_en_us "Could not dismiss the group"
-   Comment "Hint shown by OVT_HighCommandRosterContext.OnResult when a dismiss ask answers anything other than RESULT_OK."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005200}" {
-   Id "OVT-HC_ConvertedGroupName"
-   Target_en_us "Converted Squad"
-   Comment "Name shown on the map and in the Manage Groups roster for a High Command group made by converting a parked recruit squad. It names no purchasable catalog entry, so this is its only title (OVT_HighCommandManagerComponent.GetConvertedEntry)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000005201}" {
-   Id "OVT-HC_ConvertedGroupDesc"
-   Target_en_us "Recruits promoted into High Command. They keep the gear they were carrying."
-   Comment "Description of a converted High Command group (OVT_HighCommandManagerComponent.GetConvertedEntry). Never shown in the barracks purchase list - a converted group cannot be bought."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007100}" {
-   Id "OVT-Recruit_QuoteCovered"
-   Target_en_us "Covered by nearby warehouse stock: $%1"
-   Comment "OVT_LoadoutsContext.OnRecruitQuote - the equipped-recruit quote's second line, showing how much of the gear cost nearby warehouse stock covers. %1 is the covered value in dollars."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007101}" {
-   Id "OVT-Recruits_GroupHeader"
-   Target_en_us "Group (%1)"
-   Comment "OVT_RecruitsContext - sub-header over one cluster of parked recruits in the inactive section. %1 is the number of recruits in that group."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007102}" {
-   Id "OVT-Recruits_ConvertToHC"
-   Target_en_us "Convert to High Command"
-   Comment "RecruitsMenu.layout - label of the button that converts a parked recruit group into a High Command group."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007103}" {
-   Id "OVT-Recruits_ConvertGroupTitle"
-   Target_en_us "Convert to High Command"
-   Comment "CONVERT_RECRUIT_GROUP dialog title, DialogPresets_Campaign.conf."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007104}" {
-   Id "OVT-Recruits_ConvertGroupMessage"
-   Target_en_us "Convert this group to a High Command group? This is one-way. They leave your recruit roster and cap, and their names, XP and skills stop being tracked. They keep their bodies and equipment."
-   Comment "CONVERT_RECRUIT_GROUP dialog body - must name the one-way consequence (implementation.md T9.5)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007105}" {
-   Id "OVT-Recruits_ConvertNeedsInactive"
-   Target_en_us "Select a parked recruit to convert their group"
-   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit is active rather than parked."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007106}" {
-   Id "OVT-Recruits_ConvertNeedsBody"
-   Target_en_us "That recruit has no body in the world to convert"
-   Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit has no spawned body."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007107}" {
-   Id "OVT-Recruits_ConvertSuccess"
-   Target_en_us "Group converted to High Command"
-   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_OK."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007108}" {
-   Id "OVT-Recruits_ConvertAtCap"
-   Target_en_us "Your High Command roster is full"
-   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_CONVERT_AT_CAP."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007109}" {
-   Id "OVT-Recruits_ConvertNoGroup"
-   Target_en_us "Those recruits are not parked as a group"
-   Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_NO_RECRUIT_GROUP."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000710A}" {
-   Id "OVT-Recruits_ConvertFailed"
-   Target_en_us "The conversion failed"
-   Comment "OVT_RecruitsContext.OnHCResult - fallback hint for any refusal without a specific message."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007200}" {
-   Id "OVT-FieldManual_HighCommand_Title"
-   Target_en_us "High Command"
-   Comment "Field Manual - The Resistance category, High Command page. Tile and page title, two words. Matches the Manage Groups main-menu wording (#OVT-MainMenu_ManageGroups) and the purchase screen title (#OVT-HC_MenuTitle). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007201}" {
-   Id "OVT-FieldManual_HighCommand_Text"
-   Target_en_us "High Command is how the resistance fields soldiers of its own rather than an escort. A player buys a whole group at a barracks, owns it outright, and moves it anywhere on the island from the map. The group is really there: it walks or drives to where it is sent, fights what it meets on the way, and holds its ground whether or not anybody is nearby to watch."
-   Comment "Field Manual - The Resistance category, High Command page. Opening paragraph, three sentences. Ownership is by persistent id and orders from anyone else are refused: OVT_HighCommandRequestComponent.c RpcAsk_OrderGroup / RESULT_NOT_OWNER. 'Really there' is D1 in docs/features/resistance/high-command/implementation.md section 5: the group is an always-live SCR_AIGroup that carries its own virtualization AI observer (OVT_HighCommandGroupComponent.c:50-67), so nothing depends on a player being nearby and nothing despawns it when its owner disconnects (no disconnect path exists on OVT_HighCommandManagerComponent). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007202}" {
-   Id "OVT-FieldManual_HighCommand_Head"
-   Target_en_us "Barracks"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, one word. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007203}" {
-   Id "OVT-FieldManual_HighCommand_Text2"
-   Target_en_us "Groups are bought at a barracks standing on a base the resistance holds. Some bases already have military barracks on them, and a barracks can also be built at a base like any other structure, at the highest price on the build list: $20000 along with timber, cement, steel and hardware. The action sits on the radio set inside the barracks, the same kind of radio a recruitment tent carries, and any player at that base can use it. A barracks reduced to a ruin offers nothing until it is repaired."
-   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Price and resources: Configs/Resistance/buildables.conf:165-193 (m_iCost 20000, timber 170, cement 280, steel 170, hardware 70, m_bBuildAtBase 1); 20000 is the highest m_iCost in that file. Three vanilla barracks families carry OVT_BarracksComponent: Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_military_base.et:4, Barracks_USSR_01_military_base.et:4, Barracks_E_02/Barracks_E_02_base.et. The action is authored on a RadioStation_R123M_01 child inside the barracks furniture (Barracks_01_military_furniture_01.et:4-18), the same prefab OVT_RecruitmentTent.et uses. Friendly-base and any-player gating plus the ruin gate: OVT_ManageHighCommandAction.c:52-85 (OVT_StructureDamage.IsUsable, OVT_BarracksComponent.FindNearest at BARRACKS_USE_RADIUS 5 m, IsAtFriendlyBase). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007204}" {
-   Id "OVT-FieldManual_HighCommand_Head2"
-   Target_en_us "Buying a Group"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007205}" {
-   Id "OVT-FieldManual_HighCommand_Text3"
-   Target_en_us "The screen lists eleven groups, from small teams up to a rifle squad, three of which arrive with a vehicle. Picking one asks the server for a price and shows what it is made of: the recruit cost of every man in it, the gear each of them needs, and, where there is a vehicle, that vehicle at the full price a shop would charge. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, so a town with no support left cannot raise a group. Each player has a cap on how many High Command soldiers they can hold at once, and a purchase that would pass it is refused before any money moves."
-   Comment "Field Manual - The Resistance category, High Command page. Five sentences. Eleven authored entries, three with m_sVehiclePrefab: Configs/Factions/FIA_OverthrowData.conf:5-88. Pricing is made in one place, server side: OVT_HighCommandManagerComponent.QuoteEntry:458-500 (baseRecruitCost x members, the gear manifest, OVT_RecruitPurchaseRules.TotalPrice, then OVT_HighCommandRules.PurchaseTotal adds the vehicle at its full shop buy price outside the fee multiplier, PriceVehicle / OVT_HighCommandRules.c:114-126). Warehouse coverage: OVT_HighCommandRules.WAREHOUSE_RANGE = 150.0 (OVT_HighCommandRules.c:10) with OVT_WarehouseStockUtils.CollectStores and OVT_ItemSourcingRules.SplitCoverage at QuoteEntry:485-493; the covered figure renders as #OVT-HC_QuoteCovered. Supporters: OVT_HighCommandRules.SupportersRequired with GetHighCommandSupportersPerMember (default 1, OVT_OverthrowConfigComponent.c:144) and the gate-8 refusal #OVT-Msg-HCPurchaseNoSupporters. Cap: OVT_HighCommandRules.DEFAULT_MEMBER_CAP = 48 (OVT_HighCommandRules.c:15), server-configurable via highCommandMemberCap, enforced server-side; the cap NUMBER is deliberately not quoted here because a server may change it. The funds check is last in the ladder, so a refusal costs nothing. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007206}" {
-   Id "OVT-FieldManual_HighCommand_Head3"
-   Target_en_us "Orders and Stances"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007207}" {
-   Id "OVT-FieldManual_HighCommand_Text4"
-   Target_en_us "Every player's map draws every High Command group as a green symbol, your own at full strength and other players' dimmed, and the map's layer panel can switch them off again. Selecting one shows who owns it, its stance, how far it is from its destination, how far it is from you, and how many of its men are still alive. A group you own can be ordered to the spot under the map cursor, and its stance cycled between Defend, which holds the ground it was sent to, Patrol, which walks a ring around it, and Attack, which sweeps it for the enemy. A group on the move draws a dashed line to where it is going. A mark appears on the symbol while it is in contact with the enemy, and an ammunition badge when it has run dry. Ordering a group another player owns is refused."
-   Comment "Field Manual - The Resistance category, High Command page. Six sentences. Markers, opacity and the layer filter: OVT_MapHighCommandLayer.c:21 (OTHER_OWNER_OPACITY 0.45), :26 (QUAD_NORMAL Friend_Land_Bcg), :329; OVT_MapLayersUI.c:64-74 and BuildHighCommandRow:789. Panel lines: OVT_MapHighCommandLayer.c:1012-1041 (#OVT-HC_Map_StanceLine / DestinationLine / DistanceLine / StatusLine, the last carrying alive and total). Order to cursor: OnOrderPressed:1078-1099. Stance cycle DEFEND -> PATROL -> ATTACK: OnStancePressed:1105-1126 with OVT_EHighCommandStance (OVT_HighCommandRecord.c:6-10). What each stance does: OVT_HighCommandManagerComponent.ApplyStance:1044-1077 (ATTACK = SpawnSearchAndDestroyWaypoint, PATROL = move plus a ring at OVT_HighCommandRules.PATROL_RADIUS 150 m, DEFEND = move plus SpawnDefendWaypoint). Dashed destination line: OVT_MapHighCommandLineLayer.c, drawn only while OVT_HighCommandRules.IsMoving. Contact and ammo tags: OVT_HighCommandStatus TAG_CONTACT / TAG_NO_AMMO, OVT_MapHighCommandLayer.c:584. Non-owner refusal: #OVT-HC_Map_NotOwner client-side and RESULT_NOT_OWNER server-side. KEYBINDS ARE DELIBERATELY NOT NAMED: the order and stance verbs are bound actions (OverthrowHCOrder, OverthrowHCStance) with both keyboard and gamepad sources and the panel buttons carry their own labels. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007208}" {
-   Id "OVT-FieldManual_HighCommand_Head4"
-   Target_en_us "Manage Groups"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. Must match the main-menu button label #OVT-MainMenu_ManageGroups. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007209}" {
-   Id "OVT-FieldManual_HighCommand_Text5"
-   Target_en_us "Manage Groups, on the Overthrow main menu, lists the groups you own with their status and how many of your soldier slots are in use. From there a group can be shown on the map, or dismissed after a confirmation, which takes it, its vehicle and its orders out of the world for good."
-   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Main-menu button: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.c:160 and ManageGroups():263. Roster contents: OVT_HighCommandRosterContext.c:343 (#OVT-HC_Roster_Capacity, count and cap) and :440 (alive over total); Show on Map and Dismiss buttons at UI/Layouts/Menu/HighCommandRoster.layout:228 and :240, dismissal confirmed by the server (OVT_HighCommandManagerComponent.DismissGroup:911-949, which deletes members, vehicle, group entity, waypoints and observer). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720A}" {
-   Id "OVT-FieldManual_HighCommand_Head5"
-   Target_en_us "Ammunition and Fuel"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720B}" {
-   Id "OVT-FieldManual_HighCommand_Text6"
-   Target_en_us "A group left near a registered warehouse tops its magazines back up out of the stock held there, by itself, every so often. A group with a vehicle parked near a fuel source fills its tank the same way, and the fuel is charged to the group's owner at the same price a player filling up by hand would pay; a fuel depot the resistance built is free."
-   Comment "Field Manual - The Resistance category, High Command page. Two sentences. Rearm: OVT_HighCommandManagerComponent.RearmTick / RearmGroup:2969-3046, which collects registered warehouse stores at OVT_HighCommandRules.WAREHOUSE_RANGE (150 m) around the group and refills deficient magazines; interval m_iRearmIntervalMs, default 60000 ms (:31-33). Refuel: RefuelTick / RefuelGroup:3136 onward, m_iRefuelIntervalMs default 60000 ms (:35-37), using the player fill's own call path (OVT_FuelUtils.GetFuelCostPerLitre, OVT_FuelPricing.ComputeFillPlan) and charging the owner for the litres that actually arrived. Free source: OVT_FuelSourceComponent.IsFree:29-32, authored m_bFree 1 on Prefabs/Structures/Military/FOB/OVT_FuelDepot.et:14. INTERVALS ARE DELIBERATELY NOT QUOTED - they are configurable attributes on the manager. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720C}" {
-   Id "OVT-FieldManual_HighCommand_Head6"
-   Target_en_us "Turning Recruits Over"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720D}" {
-   Id "OVT-FieldManual_HighCommand_Text7"
-   Target_en_us "Recruits that are holding position can be handed to High Command instead of being managed one by one. The Manage Recruits screen shows the ones holding position grouped by where they are standing, and each of those groups carries a Convert to High Command action. The change is one way. Those recruits leave your recruit roster and give their slots back, and their names, experience and skill tracking end with their records, but the same bodies carry on in the new group with the gear they were already wearing."
-   Comment "Field Manual - The Resistance category, High Command page. Four sentences. Split roster and the button: OVT_RecruitsContext.c:371 (#OVT-Recruits_GroupHeader per cluster), :444 (OVT_RecruitInactiveGrouping.SelectClusterCandidates), :664-695 (UpdateConvertButton, disabled with a reason for an active or bodiless selection), :748 (RequestConvertRecruitGroup); label #OVT-Recruits_ConvertToHC at UI/Layouts/Menu/RecruitsMenu.layout:317. Server side: OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 spawns a group under the reserved key hc_converted from the EXISTING bodies, then DropConvertedRecruitRecords:2513-2526 clears each body id and calls the shipped RemoveRecruit, which frees the recruit cap. One way: no reverse path exists on the seam (OVT_HighCommandRequestComponent.c has only RpcAsk_ConvertRecruitGroup:412). Cap refusal: RESULT_CONVERT_AT_CAP (:50), shown as #OVT-Recruits_ConvertAtCap. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720E}" {
-   Id "OVT-FieldManual_HighCommand_Head7"
-   Target_en_us "Holding Ground"
-   Comment "Field Manual - The Resistance category, High Command page. Section header, two words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D000000720F}" {
-   Id "OVT-FieldManual_HighCommand_Text8"
-   Target_en_us "Bases, camps and FOBs no longer take a bought garrison, and the menus that sold one are gone. Ground is held by parking a High Command group on it in Defend stance, which unlike a garrison can be picked up and sent somewhere else at any time. A campaign saved before the change loads without its old garrisons."
-   Comment "Field Manual - The Resistance category, High Command page. Three sentences, written for returning players. The purchase paths, spawn helpers and menu copy were removed in Phase 11 of resistance/high-command: no AddToGarrison remains on OVT_BaseMenuContext or OVT_FOBMenuContext, no AddGarrison/AddGarrisonFOB/AddGarrisonCamp/SpawnGarrisons on OVT_ResistanceFactionManager, and the map's Garrison row and GARRISON_COUNT key are gone. Old saves: OVT_ResistanceManagerSerializer went 1 to 2 and OVT_OccupyingFactionManagerSerializer 2 to 3, each reading the persisted garrison list and discarding it (no field was deleted, the record shape is unchanged); see docs/features/resistance/high-command/context.md, Phase 11. Defend stance: OVT_HighCommandManagerComponent.ApplyStance:1044-1077, re-orderable at any time through OrderGroup:875-898. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007210}" {
-   Id "OVT-FieldManual_Recruits_Head9"
-   Target_en_us "Handing Recruits to High Command"
-   Comment "Field Manual - The Resistance category, Recruits page. Ninth section header, five words. Added 2026-08-22 by resistance/high-command Phase 13; points at the High Command page rather than repeating it. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007211}" {
-   Id "OVT-FieldManual_Recruits_Text10"
-   Target_en_us "Recruits that are holding position can also be handed over to High Command, which fields whole groups a player orders from the map. The Holding Position section is split by where the recruits are standing, and each of those groups carries a Convert to High Command action. It is one way: the recruits leave your roster and free their slots, and their names, experience and skills stop being tracked, while the same bodies and their gear carry on in the new group."
-   Comment "Field Manual - The Resistance category, Recruits page, body paragraph under the 'Handing Recruits to High Command' header. Three sentences. Same citations as #OVT-FieldManual_HighCommand_Text7: OVT_RecruitsContext.c:371, :444, :664-695, :748; UI/Layouts/Menu/RecruitsMenu.layout:317; OVT_HighCommandManagerComponent.ConvertRecruitGroup:2487-2511 and DropConvertedRecruitRecords:2513-2526 (RemoveRecruit frees the recruit cap). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007212}" {
-   Id "OVT-Tutorial_HighCommandFirstOpen_Title"
-   Target_en_us "High Command"
-   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Popup title, two words. Matches the Field Manual page title it links to (#OVT-FieldManual_HighCommand_Title). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007213}" {
-   Id "OVT-Tutorial_HighCommandFirstOpen_Body"
-   Target_en_us "Groups bought here are yours, and stay yours between sessions. The price covers the recruit cost of every man, the gear each of them needs, and, for a group that comes with a vehicle, that vehicle at its full shop price. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, and there is a cap on how many High Command soldiers one player can hold at once."
-   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 1 of 2, four sentences, no rich-text markup. TONE: informs, never instructs, and reads correctly whatever the player has already done. Citations: pricing OVT_HighCommandManagerComponent.QuoteEntry:458-500 with OVT_HighCommandRules.PurchaseTotal (OVT_HighCommandRules.c:114-126, the vehicle at full shop price outside the fee multiplier); warehouse coverage OVT_HighCommandRules.WAREHOUSE_RANGE 150.0 (:10) via CollectStores/SplitCoverage at QuoteEntry:485-493, rendered as #OVT-HC_QuoteCovered; supporters SupportersRequired plus the gate-8 refusal; cap OVT_HighCommandRules.DEFAULT_MEMBER_CAP 48 (:15), enforced server-side and configurable, so the number is not quoted; persistence OVT_HighCommandManagerSerializer. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B1C3D0000007214}" {
-   Id "OVT-Tutorial_HighCommandFirstOpen_Body2"
-   Target_en_us "Every player's map shows these groups as green symbols, your own at full strength and other players' dimmed. Selecting one shows its owner, stance, destination and status, and a group you own can be sent to the spot under the map cursor or have its stance cycled between Defend, Patrol and Attack. Travel happens in real time, on foot or by road, and carries on while you are offline. Manage Groups, on the main menu, lists what you own."
-   Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 2 of 2, four sentences, no rich-text markup. TONE: informs, never instructs. Citations: OVT_MapHighCommandLayer.c:21 and :329 (OTHER_OWNER_OPACITY 0.45), :1012-1041 (owner, stance, destination, status lines), OnOrderPressed:1078-1099 (orders to the map cursor), OnStancePressed:1105-1126 (cycles DEFEND, PATROL, ATTACK); stance behaviour OVT_HighCommandManagerComponent.ApplyStance:1044-1077. Real-time travel and offline continuation are D1 in implementation.md section 5: the group is an always-live SCR_AIGroup with its own AI observer (OVT_HighCommandGroupComponent.c:50-67) and nothing on OVT_HighCommandManagerComponent despawns or freezes it when its owner disconnects. Manage Groups: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.ManageGroups:263. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000001}" {
-   Id "OVT-ProdSite_Sawmill"
-   Target_en_us "Sawmill"
-   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_Sawmill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel. A map author may override it per placed instance."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000002}" {
-   Id "OVT-ProdSite_SteelMill"
-   Target_en_us "Steel Mill"
-   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_SteelMill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000003}" {
-   Id "OVT-ProdSite_CementPlant"
-   Target_en_us "Cement Plant"
-   Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_CementPlant.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000004}" {
-   Id "OVT-ProdSite_Storage"
-   Target_en_us "Site Storage"
-   Comment "Default holder name for the OVT_ResourceStoreComponent on Prefabs/Production/OVT_ProductionSite_Base.et (m_sDefaultNameKey), and the static UIInfo fallback for OVT_OpenResourceStoreAction on that prefab (:61-70). CORRECTED 2026-08-22 for logistics/resource-production: it does NOT appear as the runtime action label. A site's store has a bounded capacity, so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'; the branch at :149 that would draw this name is UNLIMITED-capacity holders only. Where it IS drawn: the shared transfer screen's destination picker, via store.GetDisplayName()."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000005}" {
-   Id "OVT-ProdSite_Buy_Price"
-   Target_en_us "Buy site (%1)"
-   Comment "Label of OVT_BuySiteAction (Sort 1) on an unowned production site. ONE %1 - the buy price, already formatted by OVT_MoneyFormat.FormatMoney and already scaled by the difficulty's realEstateCostMultiplier via OVT_ResourceProductionRules.BuyCost. Cited: OVT_BuySiteAction.c:120 (LabelKey) and :176 (the single BuyCost call the label and the server charge share). The action is hidden on an owned site, visible-and-disabled when the player cannot afford it."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000006}" {
-   Id "OVT-ProdSite_BuyResistance_Price"
-   Target_en_us "Buy site with resistance funds (%1)"
-   Comment "Label of OVT_BuySiteResistanceAction (Sort 2), shown only on an unowned site to an officer. ONE %1 - the same BuyCost figure as OVT-ProdSite_Buy_Price, formatted by OVT_MoneyFormat.FormatMoney. Cited: OVT_BuySiteResistanceAction.c:44. Officer gating is OVT_ResistanceFactionManager.IsOfficer on both sides."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000007}" {
-   Id "OVT-ProdSite_BuyStock"
-   Target_en_us "Buy stock (%1 units)"
-   Comment "Label of OVT_BuySiteStockAction (Sort 3) on an unowned production site. ONE %1 - the site's current stock count. Cited: OVT_BuySiteStockAction.c:82. Opens OVT_ProductionSiteBuyContext, which quotes 80 percent of the live import price. The action disappears once the site is owned - only unowned sites sell (requirements section 22)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000008}" {
-   Id "OVT-ProdSite_Buy"
-   Target_en_us "Buy"
-   Comment "The single mode label on OVT_ProductionSiteBuyContext's tool header - the buy-stock screen has exactly one mode. Cited: OVT_ProductionSiteBuyContext.c BuildModes."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000009}" {
-   Id "OVT-ProdSite_Summary"
-   Target_en_us "%1  -  %2"
-   Comment "Cart summary line on the buy-stock screen. TWO parameters: %1 the total cost already formatted by OVT_MoneyFormat.FormatMoney, %2 the total volume already formatted as cubic metres. Cited: OVT_ProductionSiteBuyContext.c:376 (GetSummaryText override)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000A}" {
-   Id "OVT-ProdSite_NoStock"
-   Target_en_us "This site has no stock yet"
-   Comment "Disabled-row reason on the buy-stock screen when the site's store is empty. The row is listed and DISABLED, never hidden - refusals are shown, not hidden. Cited: OVT_ProductionSiteBuyContext.c BuildEntries. A site drips one batch per in-game hour, so an untouched site is empty for its first hour."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000B}" {
-   Id "OVT-ProdSite_MakePublic"
-   Target_en_us "Make site public"
-   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is private. A public site lets anyone in the resistance open its storage. Cited: OVT_ToggleSitePrivacyAction.c. The action is shown only to someone OVT_ResourceProductionRules.MayTogglePrivacy admits - the owner, or an officer on a resistance-owned site."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000C}" {
-   Id "OVT-ProdSite_MakePrivate"
-   Target_en_us "Make site private"
-   Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is public. Private is the default on purchase. Cited: OVT_ToggleSitePrivacyAction.c."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000D}" {
-   Id "OVT-ProdSite_NoPlayer"
-   Target_en_us "Could not identify you"
-   Comment "Server refusal from OVT_ResourceProductionRequestComponent - ResolveOwningPlayerId returned a non-positive id, or the caller's persistent id came back empty. Answers both RpcAsk_BuySite and RpcAsk_SetSitePrivacy. Identity is never an RPC parameter, so this means the server could not resolve the caller at all."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000E}" {
-   Id "OVT-ProdSite_NoSite"
-   Target_en_us "No production site here"
-   Comment "Server refusal from OVT_ResourceProductionRequestComponent when no site record matches the position within 10 m, or the matched record's entity carries no OVT_ResourceProductionComponent. Also the refusal from OVT_ResourceRequestComponent.MayBuyFromSite when a SITE_BUY names a holder that is not a site. Position is the identity on every wire (implementation.md D2)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000000F}" {
-   Id "OVT-ProdSite_AlreadyOwned"
-   Target_en_us "Someone already owns this site"
-   Comment "Server refusal from OVT_ResourceProductionRequestComponent.RpcAsk_BuySite when OVT_ResourceProductionRules.MayBuySite is false. This is what a losing racer sees when two players buy the same site in the same second - the refusal lands before any money moves."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000010}" {
-   Id "OVT-ProdSite_NotOfficer"
-   Target_en_us "Only officers can spend resistance funds"
-   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when OVT_ResistanceFactionManager.IsOfficer is false. Mirrors the client-side gate that hides OVT_BuySiteResistanceAction from non-officers."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000011}" {
-   Id "OVT-ProdSite_NoFunds"
-   Target_en_us "The resistance cannot afford this"
-   Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when the treasury is short. Also the disabled reason shown on OVT_BuySiteResistanceAction for the same condition."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000012}" {
-   Id "OVT-ProdSite_NoMoney"
-   Target_en_us "You cannot afford this"
-   Comment "Server refusal from RpcAsk_BuySite's personal-money branch when OVT_EconomyManagerComponent.PlayerHasMoney is false. Also the disabled reason on OVT_BuySiteAction."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000013}" {
-   Id "OVT-ProdSite_NotYours"
-   Target_en_us "This is not your site"
-   Comment "Server refusal from RpcAsk_SetSitePrivacy when OVT_ResourceProductionRules.MayTogglePrivacy refuses - the caller is neither the owner nor, on a resistance-owned site, an officer."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000014}" {
-   Id "OVT-ProdSite_Owned"
-   Target_en_us "This site is owned and does not sell"
-   Comment "Server refusal from OVT_ResourceRequestComponent.MayBuyFromSite - the ONE place an owned site refuses a SITE_BUY. A privately owned site does not sell its resource; only unowned sites do (requirements section 22). Because Commit re-runs the whole source ladder, a site bought between Begin and Commit refuses here before any money moves."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000015}" {
-   Id "OVT-ProdSite_Failed"
-   Target_en_us "Could not complete that right now"
-   Comment "Server refusal from OVT_ResourceProductionRequestComponent when a required manager (production, economy, config, players or resistance) could not be resolved. A never-in-practice path kept answering rather than silent - every refusal answers with a key."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000016}" {
-   Id "OVT-ProdSite_MapDisplayName"
-   Target_en_us "Production Site"
-   Comment "Singular type label for OVT_MapLocationProductionSite in the map's layer filter. Cited: Configs/Map/OverthrowMap.conf, m_sDisplayName on the {6A8E2F2000000001} block."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000017}" {
-   Id "OVT-Map_Category_ProductionSites"
-   Target_en_us "Production Sites"
-   Comment "Plural category label for the production-site map layer. Cited: Configs/Map/OverthrowMap.conf, m_sCategoryName on the {6A8E2F2000000001} block."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000018}" {
-   Id "OVT-Public"
-   Target_en_us "Public"
-   Comment "Status row value in the production-site map info panel when the site is owned and not private - anyone in the resistance may open its storage. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000019}" {
-   Id "OVT-Private"
-   Target_en_us "Private"
-   Comment "Status row value in the production-site map info panel when the site is owned and private - only the owner may open its storage. Private is the default on purchase. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001A}" {
-   Id "OVT-Resistance"
-   Target_en_us "Resistance"
-   Comment "Owner row value in the production-site map info panel when the site was bought with resistance funds (the owner field holds the literal \"resistance\"). Everyone in the resistance may open such a site's storage, and its privacy toggle is officer-gated. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001B}" {
-   Id "OVT-ProdSite_Row_Volume"
-   Target_en_us "Volume"
-   Comment "Row label in the production-site map info panel for the store's used-of-total volume. Cited: OVT_MapLocationProductionSite.c:219."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001C}" {
-   Id "OVT-ProdSite_Row_VolumeValue"
-   Target_en_us "%1 / %2 m3"
-   Comment "Row value in the production-site map info panel for the store's volume. TWO parameters: %1 the used cubic metres, %2 the site's capacity. Cited: OVT_MapLocationProductionSite.c:219. Read from the store on location.GetEntity(), never from the manager's record - a registry must not become a second source of truth."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001D}" {
-   Id "OVT-ProdSite_Row_Rate"
-   Target_en_us "Output"
-   Comment "Row label in the production-site map info panel for the site's production rate. Cited: OVT_MapLocationProductionSite.c:233."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001E}" {
-   Id "OVT-ProdSite_Row_RateValue"
-   Target_en_us "%1 per hour"
-   Comment "Row value in the production-site map info panel for the production rate. ONE %1 - units per in-game hour to one decimal place, because sub-1 rates are supported (a steel mill at 1.5/hour). Cited: OVT_MapLocationProductionSite.c:232."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F300000001F}" {
-   Id "OVT-ProdSite_Row_BuyPrice"
-   Target_en_us "Price"
-   Comment "Row label in the production-site map info panel for the site's buy price, shown only while the site is unowned. The value is formatted by OVT_MoneyFormat.FormatMoney and needs no key of its own. Cited: OVT_MapLocationProductionSite.c:257."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000020}" {
-   Id "OVT-ProdSite_BuyResistance"
-   Target_en_us "Buy site with resistance funds"
-   Comment "Static UIInfo fallback name for OVT_BuySiteResistanceAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 2). The action overrides its own label at runtime with the priced OVT-ProdSite_BuyResistance_Price, so this bare form is only ever the fallback - it deliberately carries NO parameter, because a fallback path cannot supply one."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F3000000021}" {
-   Id "OVT-ProdSite_BuyStockName"
-   Target_en_us "Buy stock"
-   Comment "Static UIInfo fallback name for OVT_BuySiteStockAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 3). Deliberately parameter-free: the runtime label OVT-ProdSite_BuyStock carries a %1 for the stock count, and a prefab UIInfo has nothing to substitute into it, so pointing the prefab at the parameterised key would render a literal percent-1 on screen if the script label were ever empty."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000001}" {
-   Id "OVT-FieldManual_ProductionSites_Title"
-   Target_en_us "Production Sites"
-   Comment "Field Manual - Production Sites page title, shown on the entry tile in the Money and Trade category, beside Resources. Two words, no rich-text markup. The page covers OVT_ResourceProductionComponent sites (Prefabs/Production/), which the Resources page deliberately only points at."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000002}" {
-   Id "OVT-FieldManual_ProductionSites_Text"
-   Target_en_us "A sawmill, a steel mill or a cement plant can be a production site, marked by a large sign standing at it. Each one makes a single construction resource and nothing else, dripping a set number of units into a cargo store of its own once every in-game hour, whether anybody owns it or not. That store is the throttle: twenty cubic metres on the shipped sites, and a site whose store is full pauses until room is made in it. A rate below one unit an hour still adds up, because the part unit is carried rather than lost, and hours slept through are produced as well."
-   Comment "Field Manual - Production Sites page, opening paragraph. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The three shipped variants: Prefabs/Production/OVT_ProductionSite_Sawmill.et, _SteelMill.et and _CementPlant.et. The large sign: Prefabs/Production/OVT_ProductionSite_Base.et:1 inherits {48C842DD171DE304}Prefabs/Structures/Signs/Large/SignLarge_01_base.et, whose mesh is Assets/Structures/Signs/Large/SignLarge_01_poles.xob. One resource per site: OVT_ResourceProductionComponent.c:26-27 (a single m_sResourceId) and the single-row screen built from it at OVT_ProductionSiteBuyContext.c:123-171. Once per in-game hour: OVT_ResourceProductionManagerComponent.CheckProduction:531-551 with OVT_ResourceProductionRules.ShouldProduce:106-109 (every hour, unlike price drift's four windows). Regardless of ownership: ProduceForHours:556-573 walks every record with no owner test anywhere in it. Twenty cubic metres: OVT_ProductionSite_Base.et:6-9 authors m_fCargoVolume 20; 'on the shipped sites' rather than a flat rule because a map author overrides it per placed instance. Pauses when full: OVT_ResourceProductionRules.FitProduction:151-161 fits whole units into the free litres and ProduceForSite:610-612 returns when nothing fits (whole units that do not fit are discarded, not banked - D7). Sub-1 rates and the carry: OVT_ResourceProductionRules.Produce:119-142, carry bounded to [0,1) at :135-139, and the carry is persisted in OVT_PersistedProductionSite. Sleep: OVT_ResourceProductionManagerComponent.HandleTimeSkip:632-651, called from OVT_SleepService.c:377-379 before the clock is advanced. Rates and prices are NOT quoted: every one of the four numbers is authored per placed instance (OVT_ResourceProductionComponent.c:23-33)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000003}" {
-   Id "OVT-FieldManual_ProductionSites_Head"
-   Target_en_us "Buying What a Site Has Made"
-   Comment "Field Manual - Production Sites page, section header above the unowned-sale paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000004}" {
-   Id "OVT-FieldManual_ProductionSites_Text2"
-   Target_en_us "While nobody owns it, a site sells what it has accumulated. Its Buy stock action carries the amount on hand and opens a one row screen quoting eighty per cent of what a port charges to import that resource at that moment, so a site undercuts the port it competes with. It sells only what it has actually produced, and the load has to go into another cargo store standing within twenty five metres of it, which the screen says plainly when there is none. A cart that will not fit, is not stocked or cannot be paid for is refused whole, so nothing is ever part bought."
-   Comment "Field Manual - Production Sites page, body paragraph under 'Buying What a Site Has Made'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Unowned only, on both sides: OVT_BuySiteStockAction.CanBeShownScript:193-200 calls OVT_ResourceProductionRules.MayBuyStock:95-98, and the server refuses an owned site in exactly one place, OVT_ResourceRequestComponent.MayBuyFromSite:1039+ with #OVT-ProdSite_Owned. The action label carries the stock count: OVT_BuySiteStockAction.c:231 (#OVT-ProdSite_BuyStock, one %1). One row: OVT_ProductionSiteBuyContext.BuildEntries:123-171 emits exactly one entry, the site's own resource. Eighty per cent of the LIVE import price: :159 SitePrice(resources.GetPrice(defIndex), SITE_SELL_RATIO) with SITE_SELL_RATIO 0.8 at OVT_ResourceProductionRules.c:10, floored at 1 by :21-24. It is NOT the port's 0.5 export ratio (D10), and the server re-derives the same figure at commit so a client cannot supply a price. Capped by real stock: :160 m_iMaxQuantity = Math.Min(stock, MAX_BUY_QUANTITY 1000), and the server's own refusal on the ledger count at OVT_ResourceRequestComponent.c:641 (#OVT-Resource_NotEnough). Twenty five metres: OVT_ProductionSiteBuyContext.c:23 DESTINATION_RADIUS 25, used by BuildDestinations:184-223, which excludes the site itself. 'Another cargo store' rather than 'a truck' because a crate pile or warehouse in range is equally a destination. No destination is stated rather than silent: ValidateCart:278-286 returns #OVT-Resource_NeedTruck. Refused whole, never clamped: OVT_ResourceRequestComponent.c:715 (#OVT-Resource_NoSpace, whole cart) and :719 (PlayerHasMoney on the whole cart, #OVT-Resource_NoMoney)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000005}" {
-   Id "OVT-FieldManual_ProductionSites_Head2"
-   Target_en_us "Owning a Site"
-   Comment "Field Manual - Production Sites page, section header above the purchase paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000006}" {
-   Id "OVT-FieldManual_ProductionSites_Text3"
-   Target_en_us "Buying the site itself is an action on it, priced from what that site was set up to cost and scaled by the difficulty's real estate multiplier; the price on the label is the price that is charged. An officer can buy one out of resistance funds instead, which puts it in the resistance's name. Buying empties the store in the same moment it takes the money, so a site is never worth buying for the stock it was sitting on. A site is never sold back, costs nothing to keep, and is not something the occupying faction comes after."
-   Comment "Field Manual - Production Sites page, body paragraph under 'Owning a Site'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. The action: OVT_BuySiteAction on Prefabs/Production/OVT_ProductionSite_Base.et:21-30 (Sort Priority 1), shown only while unowned via MayBuySite (OVT_BuySiteAction.c:49-56). One price, two evaluations of the same static: OVT_BuySiteAction.GetCost:166-177 for the label and OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:153 for the charge, both OVT_ResourceProductionRules.BuyCost(authored base cost, config.GetRealEstateCostMultiplier()). realEstateCostMultiplier is a difficulty setting (OVT_DifficultySettings.c:123), which is why no figure is quoted here; this feature is its first reader. Resistance funds are officer-only: OVT_BuySiteResistanceAction.CanBeShownScript:21-31 (IsLocalPlayerOfficer, UX) and the authority at RpcAsk_BuySite:166-170 (resistance.IsOfficer(playerId) resolved from the request entity, never from anything the client says). Owner becomes the literal 'resistance' at :179. Stock destroyed in the same call as the charge: RpcAsk_BuySite:207-209 - SetSiteOwner, SetSitePrivacy(true), then manager.ClearSiteStock (OVT_ResourceProductionManagerComponent.c:343-360, ledger.Clear() then PublishContents()). Requirement section 19. No sell-back: MayBuySite (OVT_ResourceProductionRules.c:85-88) is true only while owner is empty, and no refund path exists anywhere in the mod. No upkeep and not a target: grep of Scripts/Game/GameMode/Managers/Factions/ and OVT_OccupyingFactionManager.c for OVT_ResourceProductionComponent or OVT_Global.GetProduction() returns 0 hits (2026-08-22), and nothing in the feature charges a recurring cost. Requirements sections 23 and 26."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000007}" {
-   Id "OVT-FieldManual_ProductionSites_Head3"
-   Target_en_us "Public and Private"
-   Comment "Field Manual - Production Sites page, section header above the access paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000008}" {
-   Id "OVT-FieldManual_ProductionSites_Text4"
-   Target_en_us "A site bought by a player starts private, and a private one opens its storage to that player alone. The owner can flip it to public, an officer can do the same on a resistance owned site, and a public or resistance owned site opens to anyone in the resistance. Anyone who may not open it still sees the site's Cargo action, blocked with a reason rather than hidden. An owned site stops selling altogether: what it makes goes into building, into a trade agreed with another player, or out to a port for export."
-   Comment "Field Manual - Production Sites page, body paragraph under 'Public and Private'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Private on purchase: OVT_ResourceProductionRequestComponent.RpcAsk_BuySite:208 SetSitePrivacy(rec.location, true). Who may open it, ONE predicate with two callers: OVT_ResourceProductionRules.MayAccessStore:44-59 - unowned opens to nobody, 'resistance' opens to everybody, public opens to everybody, private opens to the owner alone. Server caller: OVT_ResourceRequestComponent.SiteIsAccessible:1143-1150 feeding the holder ladder at :1020-1024 (#OVT-Resource_NoAccess). Client caller: OVT_OpenResourceStoreAction.SiteIsOpenTo:191-203 with the reason set at :97-99. Visible-and-blocked rather than hidden: OVT_OpenResourceStoreAction.c:97-99 calls SetCannotPerformReason, the shipped gate policy of that file. NAMED 'Cargo' RATHER THAN 'Storage' ON PURPOSE: a site's store has a bounded capacity (20 m3), so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'. #OVT-ProdSite_Storage ('Site Storage') is only the prefab's static UIInfo fallback and the name the destination picker draws; the UNLIMITED branch at :149 that would show it as the action label is never taken on a shipped site. The toggle: OVT_ToggleSitePrivacyAction on OVT_ProductionSite_Base.et:51-60, gated by OVT_ResourceProductionRules.MayTogglePrivacy:67-79 (owner, or an officer on a resistance-owned site) on the client at :103-118 and re-checked by RpcAsk_SetSitePrivacy. Labels flip between #OVT-ProdSite_MakePublic and #OVT-ProdSite_MakePrivate at :124-141. An owned site sells nothing: OVT_BuySiteStockAction.CanBeShownScript:193-200 hides the shop action the moment the site has an owner. Requirement section 23. Building, player-to-player trade and export are named as the uses because requirement section 26 states them and the mechanisms already exist (the Resources page covers construction sites and port export); no new mechanism is implied."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F4000000009}" {
-   Id "OVT-FieldManual_ProductionSites_Head4"
-   Target_en_us "On the Map"
-   Comment "Field Manual - Production Sites page, section header above the map paragraph. No rich-text markup."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F400000000A}" {
-   Id "OVT-FieldManual_ProductionSites_Text5"
-   Target_en_us "Production sites draw at the same zoom as towns and bases. The icon is white while the site is unowned, green when it is yours, public or the resistance's, and half faded white when somebody else is keeping it private. Its info panel gives the status, the owner once it has one, what is in the store against how much room there is, its output per hour, and, while it is unowned, what buying it would cost."
-   Comment "Field Manual - Production Sites page, body paragraph under 'On the Map'. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-22 for logistics/resource-production Phase 8. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. Same zoom as towns and bases: Configs/Map/OverthrowMap.conf:180 gives OVT_MapLocationProductionSite m_fVisibilityZoom 0, the same value OVT_MapLocationTown (:7) and OVT_MapLocationBase (:25) carry. Requirement section 21. The three colours: OVT_MapLocationProductionSite.c:19-26 authors them as [Attribute] ColorPicker defaults (1 1 1 1 white unowned, 0 1 0 1 green accessible, 1 1 1 0.5 half-alpha white private-not-yours) - CORRECTED 2026-08-22 after the user changed unowned and private from black/half-green to white; implementation.md F12 was updated to match and context.md records the change. GetIconColor (:74-93) never compares owner or isPrivate itself, it hands them to OVT_ResourceProductionRules.ColourState (:169-178), the same function the storage gate uses. Info panel rows: BuildInfoRows (:99-121)."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
   }
  }
 }

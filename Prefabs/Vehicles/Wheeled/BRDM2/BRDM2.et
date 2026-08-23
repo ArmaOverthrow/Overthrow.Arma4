@@ -1,0 +1,14 @@
+Vehicle : "{532B5F3CF8496E59}Prefabs/Vehicles/Wheeled/BRDM2/BRDM2_base.et" {
+ ID "BBCBA43A9778AE21"
+ components {
+  ChimeraAIVehicleControlComponent "{61C2E46781A66E82}" {
+   components {
+    AICarMovementComponent "{61C2E46796C28D80}" {
+     "Min Prediction Distance" 2
+     FrictionCoefficient 0.1
+     MaxReverseTravelDistance 30
+    }
+   }
+  }
+ }
+}

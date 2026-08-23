@@ -359,8 +359,8 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 	//! EVERY inherited attribute plus this module's own two.
 	//!
 	//! ⚠ CloneModule IS NOT CHAINED. It builds a fresh instance and copies BY HAND, so the thirteen
-	//! lines from OVT_InfantrySpawningDeploymentModule AND the ten from
-	//! OVT_InsertionSpawningDeploymentModule are repeated here verbatim - twenty-three inherited lines,
+	//! lines from OVT_InfantrySpawningDeploymentModule AND the eleven from
+	//! OVT_InsertionSpawningDeploymentModule are repeated here verbatim - twenty-four inherited lines,
 	//! and anything appended to either parent has to be appended here as well. A forgotten line does not
 	//! warn, does not log and does not fail to parse: it ships the CLASS DEFAULT on every deployment,
 	//! forever, which is how m_fMaxCruiseSpeed was lost on the vehicle module for a whole release.
@@ -389,7 +389,7 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 		clone.m_eImportance = m_eImportance;
 		clone.m_bSnapToRoad = m_bSnapToRoad;
 
-		// --- Inherited from OVT_InsertionSpawningDeploymentModule, all ten.
+		// --- Inherited from OVT_InsertionSpawningDeploymentModule, all eleven.
 		clone.m_Source = m_Source;
 		clone.m_fWalkThresholdDistance = m_fWalkThresholdDistance;
 		clone.m_sTruckVehicleType = m_sTruckVehicleType;
@@ -400,6 +400,7 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 		clone.m_fArrivalRadius = m_fArrivalRadius;
 		clone.m_iTruckCostOverride = m_iTruckCostOverride;
 		clone.m_bWalkWhenInsertionRefused = m_bWalkWhenInsertionRefused;
+		clone.m_bTransportIsObserver = m_bTransportIsObserver;
 
 		// --- This module's own two.
 		clone.m_rFOBPrefab = m_rFOBPrefab;

@@ -2606,6 +2606,67 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! ForceCreateDeployment, plus "and this force sets out from HERE".
+	//!
+	//! WHY A RUNTIME SOURCE RATHER THAN A PROVIDER (D7). A mounted force's origin is sometimes a
+	//! RUNTIME fact - the base a QRF wave is drawing from, the compound whose parked armour has just
+	//! been crewed - and OVT_DeploymentSourceProvider is authored. Rather than invent a mutable
+	//! provider, the mounted module carries an override its own source resolution prefers, and this is
+	//! the one place that applies it.
+	//!
+	//! ⚠ IT MUST LAND BEFORE THE FIRST CONVERGENCE, and it does, with a whole update interval to spare.
+	//! Creation and activation are NOT the same call stack: CreateDeployment() -> InitializeDeployment()
+	//! clones the modules, calls Initialize() on each (which reaches only the empty OnInitialize hook -
+	//! nothing in the tree overrides it) and arms a repeating 8-12 s UpdateDeployment; ActivateDeployment()
+	//! - which is what calls OnActivate() and therefore EnsureGroups() - runs at the END of the FIRST of
+	//! those ticks. So a source applied here is in place a full update interval before anything asks for
+	//! it, and the override does not have to be threaded through CreateDeployment itself.
+	//!
+	//! ⚠ It does NOT debit the pool, exactly as ForceCreateDeployment does not. A forcing caller owns
+	//! its own accounting.
+	//! \param[in] config The config to run.
+	//! \param[in] position Where the marker goes.
+	//! \param[in] factionIndex The owning faction.
+	//! \param[in] sourcePosition Where the force sets out from. vector.Zero applies no override, which
+	//!            leaves every module on its authored provider.
+	//! \param[in] resourcesInvested What the caller is about to debit. Stamped, not moved.
+	//! \param[in] threatLevel Threat to stamp on the deployment.
+	//! \param[in] yaw Heading for the marker.
+	//! \return The created deployment, or null when it could not be built.
+	OVT_DeploymentComponent ForceCreateDeploymentFrom(OVT_DeploymentConfig config, vector position, int factionIndex, vector sourcePosition, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0)
+	{
+		OVT_DeploymentComponent deployment = CreateDeployment(config, position, factionIndex, resourcesInvested, threatLevel, yaw);
+		if (!deployment)
+			return null;
+
+		if (sourcePosition == vector.Zero)
+			return deployment;
+
+		ApplyMountedSourceOverride(deployment, sourcePosition);
+
+		return deployment;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells every mounted module on a freshly created deployment where its force comes from.
+	//!
+	//! ⚠ THE RUNTIME MODULES, NOT THE CONFIG'S. A deployment holds CLONES; writing to the config's own
+	//! module objects would set the source on the template and therefore on every deployment that
+	//! config ever creates afterwards.
+	//! \param[in] deployment The created deployment.
+	//! \param[in] sourcePosition Where its mounted forces set out from.
+	protected void ApplyMountedSourceOverride(notnull OVT_DeploymentComponent deployment, vector sourcePosition)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_MountedForceSpawningDeploymentModule mounted = OVT_MountedForceSpawningDeploymentModule.Cast(spawningModule);
+			if (mounted)
+				mounted.SetSourceOverride(sourcePosition);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! One registered config, by the name it was authored under.
 	//!
 	//! EXISTS SO NOBODY WALKS m_aDeploymentConfigs FROM OUTSIDE THIS FILE. A caller that creates a

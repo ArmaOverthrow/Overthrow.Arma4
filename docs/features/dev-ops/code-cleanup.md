@@ -13,7 +13,7 @@ inside runs of 6+ consecutive comment lines** — that is the target. Almost all
 
 | | |
 |---|---|
-| **Aggression** | Keep the one-line `//!` summary, keep every `\param` / `\return`, keep 1–3 lines for a genuinely load-bearing trap (prefix `⚠` / `🔴` as the original did). Cut history, dated forensics, play-test narratives, "PROVEN ABLE TO FAIL" blocks, rationale essays, and paragraphs that only restate a `\param`. |
+| **Aggression** | **Revised 2026-08-23 after the user called the first pass still too long.** Keep the summary paragraph (1–3 lines) and every `\param` / `\return`; a const or member variable gets ONE line, two at most. At most one `⚠`/`🔴` line for a genuinely load-bearing trap, and only where the code cannot say it. Cut everything else — history, dated forensics, play-test narratives, rationale essays, restatements of a `\param`, and "why this is correct" arguments. The feature docs already carry it. Practical rule that generated most of the second pass: **keep the first paragraph plus the trailing tag block, delete the rest**, then hand-trim what is still over two lines. |
 | **Deleted rationale** | Just delete it. `docs/features/` covers it and git history has the rest. Do **not** append it to feature docs. |
 | **Scope** | Top 13 offenders by essay-line count, then stop and report. |
 | **Hard invariant** | Non-comment lines must be **byte-identical** before and after. Verify every file (command below). |
@@ -27,7 +27,7 @@ inside runs of 6+ consecutive comment lines** — that is the target. Almost all
 | `Scripts/Game/Tests/TestSuites/Init/OVT_TEST_InitSuite.c` | 13301 → 12345 |
 | `Scripts/Game/Tests/TestSuites/Persistence/OVT_TEST_PersistenceRoundTripSuite.c` | 13530 → 12822 |
 | `Scripts/Game/GameMode/Objectives/OVT_ObjectiveDirectorComponent.c` | 4509 → 4212 |
-| `Scripts/Game/GameMode/Deployments/Modules/OVT_InsertionSpawningDeploymentModule.c` | 3749 → 3368 |
+| `Scripts/Game/GameMode/Deployments/Modules/OVT_InsertionSpawningDeploymentModule.c` | 3749 → 3368, then 3455 → **2587** (file had grown; orphaned `DescribeCrewLiveness` doc moved back onto its method) |
 | `Scripts/Game/GameMode/Deployments/OVT_DeploymentManager.c` | 3018 → 2824 |
 
 All uncommitted, nothing committed yet. Nothing has been re-compiled or suite-run — comments only,

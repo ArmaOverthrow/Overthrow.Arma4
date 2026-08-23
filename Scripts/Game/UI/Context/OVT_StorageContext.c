@@ -181,9 +181,10 @@ class OVT_StorageContext : OVT_TransferContext
 	protected int ResolveCategory(ResourceName prefab)
 	{
 		if(!m_Economy) return OVT_ShopCategory.OTHER;
-		if(!m_Economy.IsRegisteredResource(prefab)) return OVT_ShopCategory.OTHER;
+		ResourceName pricing = m_Economy.ResolvePricingResource(prefab);
+		if(pricing.IsEmpty()) return OVT_ShopCategory.OTHER;
 
-		return m_Economy.GetItemCategory(m_Economy.GetInventoryId(prefab));
+		return m_Economy.GetItemCategory(m_Economy.GetInventoryId(pricing));
 	}
 
 	//------------------------------------------------------------------------------------------------

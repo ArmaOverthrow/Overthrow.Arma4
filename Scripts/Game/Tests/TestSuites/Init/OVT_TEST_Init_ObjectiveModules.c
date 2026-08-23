@@ -455,7 +455,7 @@ class OVT_TEST_Init_ObjectiveModules_HarassmentPhaseAuthorsTheShippedChain : SCR
 			}
 		}
 
-		Print("Objective harassment phase: a town authors tower recapture then the ladder then sabotage, a base authors the ladder then sabotage and no tower recapture at all; the ladder is the director's own four rungs in order; and every config name resolves in the live deployment registry");
+		Print("Objective harassment phase: a town authors tower recapture then the ladder then sabotage, a base authors the ladder then sabotage and no tower recapture at all; the ladder is the director's own rungs in order; and every config name resolves in the live deployment registry");
 
 		return true;
 	}

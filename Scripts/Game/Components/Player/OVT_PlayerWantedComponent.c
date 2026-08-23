@@ -650,11 +650,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}		
 						
-		// Only increase wanted level for base/tower proximity if not disguised
+		// Only increase wanted level for base/tower proximity if not disguised.
+		// Ownership is deliberately NOT checked: a base is restricted ground whoever holds it, so
+		// capturing one does not make standing in it legal. Safe against false positives because
+		// m_bTempSeen can only ever be set by an occupying-faction AI (see FilterEntities).
 		if (!m_bIsDisguised)
 		{
 			OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-			if(base && base.IsOccupyingFaction())
+			if(base)
 			{
 				float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
 				if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
@@ -664,7 +667,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 			
 			OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
-			if(tower && tower.IsOccupyingFaction())
+			if(tower)
 			{
 				float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
 				if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)

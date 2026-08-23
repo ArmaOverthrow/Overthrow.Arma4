@@ -381,3 +381,21 @@ User call after close. See `context.md` "Post-close change 2026-08-23" for the f
 - [x] PC7 Gate: `compile-check.sh` exit 0 (6325) · Init **221/221** · Logic **304/304** · RoundTrip **45/45**
 - [ ] PC8 Play-test: loot a real body pile next to a truck; watch the progress bar, the ledger count and a 25 m town sweep
 - [ ] PC9 Decide the fate of the dead legacy loot path in `OVT_InventoryManagerComponent` (~150 lines, zero callers)
+
+---
+
+## Post-close change 2026-08-23 (b) — "Sell Cargo Here" -> the ledger
+
+User call after close. See `context.md` "Post-close change 2026-08-23 (b)" for the full record.
+
+- [x] PD1 `RpcAsk_SellVehicleCargo` resolves `OVT_StorageUtils.GetStorage(vehicle)`; the `GetVehicleCargoStorage` gate and the `CollectCargoItems` scan are gone
+- [x] PD2 `ExecuteSellLedger` — the ledger sell routine: same pricing-resource resolution, eligibility, per-unit marginal pricing, town absorption cap and restock as `ExecuteSell`
+- [x] PD3 Shared tail extracted — `SettleSale()` (money + restock + `m_OnPlayerSell` + `m_OnPlayerTransaction`) and `ResolveShopTownId()`, both called by **both** routines so the two cannot drift
+- [x] PD4 `storage.PublishCount()` after a successful sale, so the count and the action label follow it on every client
+- [x] PD5 `OVT_SellVehicleCargoAction.VehicleHasCargo` reads `GetTotalCount() > 0` — the same ledger the server sells out of
+- [x] PD6 Class/method doc comments corrected where the change made them false (RPC validation order, action header, TTL rationale)
+- [x] PD7 `.st` audit: no help or Field Manual entry describes what the trunk sale enumerates, so **no re-export is owed**
+- [x] PD8 Gate: `compile-check.sh` exit 0 (6340 files)
+- [ ] PD9 🔴 Suite sweep — **never ran**, the harness refused `tools/run-tests.sh`
+- [ ] PD10 Play-test: park a stocked truck at a general shop, sell, check money, the action label, the shop restock and the town cap over a bulk dump
+- [ ] PD11 `OVT_SellableItemScanner.CollectCargoItems` / `GetVehicleCargoStorage` now have zero callers — folds into PC9's deletion question

@@ -192,13 +192,15 @@ class OVT_PortContext : OVT_TransferContext
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! \return The shop browse category for a prefab. An unregistered prefab would resolve to id 0,
-	//! i.e. some other item's category, so it is filed under OTHER instead.
+	//! \return The shop browse category for a prefab, resolved through the registered prefab it is or
+	//! inherits. A prefab with no registered ancestor would resolve to id 0, i.e. some other item's
+	//! category, so it is filed under OTHER instead.
 	protected int ResolveCategory(ResourceName prefab, int id)
 	{
-		if(!m_Economy.IsRegisteredResource(prefab)) return OVT_ShopCategory.OTHER;
+		ResourceName pricing = m_Economy.ResolvePricingResource(prefab);
+		if(pricing.IsEmpty()) return OVT_ShopCategory.OTHER;
 
-		return m_Economy.GetItemCategory(id);
+		return m_Economy.GetItemCategory(m_Economy.GetInventoryId(pricing));
 	}
 
 	//------------------------------------------------------------------------------------------------

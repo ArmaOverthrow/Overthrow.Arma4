@@ -589,9 +589,10 @@ class OVT_MapShopPriceIndicator
 	//------------------------------------------------------------------------------------------------
 	//! The four weapons THIS dealer rolled (implementation plan section 4.6b).
 	//!
-	//! Of everything a dealer carries, exactly four ids are per-dealer picks - one RIFLE, one
-	//! SNIPER_RIFLE, one MACHINE_GUN, one ROCKET_LAUNCHER (m_bSingleRandomItem,
-	//! OVT_TownController.c:303-325). Every pistol, all ammunition, every attachment, throwable and
+	//! Of everything a dealer carries, only a handful of ids are per-dealer picks - one RIFLE, one
+	//! SNIPER_RIFLE, one MACHINE_GUN, one ROCKET_LAUNCHER, plus one WEAPON_VARIANTS roll each for
+	//! rifle/sniper/MG (m_bSingleRandomItem, OVT_TownController.c:288-310). One row per kind is
+	//! shown, so a dealer that rolled both a rifle and a rifle variant lists the first found. Every pistol, all ammunition, every attachment, throwable and
 	//! explosive is identical at every dealer and is excluded, because a row that reads the same at
 	//! every dealer answers nobody's "is it worth walking to this one?".
 	//!

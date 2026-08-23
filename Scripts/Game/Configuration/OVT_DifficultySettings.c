@@ -102,7 +102,12 @@ class OVT_DifficultySettings : ScriptAndConfig
 	int objectiveStarvationMinutes;
 	[Attribute(defvalue: "1500", desc: "Reserve resources the occupying faction must hold before it will launch the counter-attack QRF", category: "Occupying Faction")]
 	int objectiveQRFResourceGate;
-	
+	//! Stretches or compresses every vehicle ladder rung's threat requirement (OVT_VehicleLadderRules.ScaledThreshold).
+	//! Authored Easy 2.0 (a rung needs twice the threat to unlock, so armour appears later) through
+	//! Insane 0.25 (a quarter the threat, so armour appears much earlier).
+	[Attribute(defvalue: "1", desc: "Vehicle ladder threat thresholds are multiplied by this value. Easy 2.0 ... Insane 0.25 - lower means armed vehicles unlock at a lower threat", category: "Occupying Faction")]
+	float vehicleThresholdScale;
+
 	//Economy
 	[Attribute(defvalue: "100", desc: "Player starting cash", category: "Economy")]
 	int startingCash;

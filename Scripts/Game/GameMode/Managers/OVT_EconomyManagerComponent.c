@@ -84,6 +84,9 @@ class OVT_EconomyManagerComponent: OVT_Component
 	protected ref array<ref SCR_EntityCatalogEntry> m_aEntityCatalogEntries; //!< Cached entity catalog entries for faster lookup.
 	protected ref map<int,ref array<int>> m_mFactionResources; //!< Mapping from Faction ID to an array of resource IDs belonging to that faction.
 
+	protected ref map<ResourceName, ResourceName> m_mPricingResourceCache; //!< Lazily built prefab -> registered resource that prices it ("" = none). See ResolvePricingResource.
+	protected ref map<ResourceName, int> m_mFallbackBasePriceCache; //!< Lazily built prefab -> classified base price (-1 = unpriceable). See GetFallbackBasePrice.
+
 	protected ref map<int, OVT_ShopCategory> m_mResourceCategory; //!< Lazily built resource ID -> browse category cache. Null until the first GetItemCategory call.
 	protected ref map<int, ref set<int>> m_mShopTypeResources; //!< Lazily built shop type -> set of resource IDs sold there. Filled one shop type at a time by IsSoldAtShopCached.
 	
@@ -733,7 +736,16 @@ class OVT_EconomyManagerComponent: OVT_Component
 	//! \return The calculated buy price.
 	int GetBuyPrice(int id, vector pos = "0 0 0", int playerId=-1)
 	{
-		int price = GetSellPrice(id, pos);
+		return ApplyBuyMargin(GetSellPrice(id, pos), playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Turns a sell/base price into what a player pays: shop margin, then the player's multiplier, never equal to the input.
+	//! \param[in] price The sell (or base) price.
+	//! \param[in] playerId The buying player, or -1.
+	//! eturn The buy price.
+	int ApplyBuyMargin(int price, int playerId = -1)
+	{
 		int buy = Math.Round(price + (price * OVT_Global.GetConfig().m_fShopProfitMargin));
 		if(playerId > -1)
 		{
@@ -743,6 +755,158 @@ class OVT_EconomyManagerComponent: OVT_Component
 		}
 		if(buy == price) buy += 1;
 		return buy;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Buy price for ANY prefab a player can hold, registered or not - see ResolvePricingResource and
+	//! GetFallbackBasePrice for the two fallbacks. The one lookup routes that quote looted, inherited
+	//! or modded gear should use instead of refusing on IsRegisteredResource.
+	//! \param[in] res The prefab.
+	//! \param[in] pos Where it is bought (town stock/port terms, registered resources only).
+	//! \param[in] playerId The buying player, or -1.
+	//! eturn The buy price, or -1 when the prefab cannot be priced at all.
+	int GetBuyPriceForPrefab(ResourceName res, vector pos = "0 0 0", int playerId = -1)
+	{
+		ResourceName pricing = ResolvePricingResource(res);
+		if (!pricing.IsEmpty())
+			return GetBuyPrice(GetInventoryId(pricing), pos, playerId);
+
+		int base = GetFallbackBasePrice(res);
+		if (base < 0)
+			return -1;
+
+		return ApplyBuyMargin(base, playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The registered resource whose price applies to a prefab: the prefab itself when registered,
+	//! otherwise the nearest registered ancestor in its prefab chain (a dirty clothing variant, a
+	//! weapon preset, a modded re-skin all inherit the catalogue prefab). NEVER registers anything:
+	//! the int resource ids are the wire format and must stay identical on every machine.
+	//! \param[in] res The prefab.
+	//! eturn The pricing resource, or empty when neither it nor any ancestor is registered.
+	ResourceName ResolvePricingResource(ResourceName res)
+	{
+		if (res.IsEmpty())
+			return ResourceName.Empty;
+
+		if (IsRegisteredResource(res))
+			return res;
+
+		if (!m_mPricingResourceCache)
+			m_mPricingResourceCache = new map<ResourceName, ResourceName>();
+
+		ResourceName cached;
+		if (m_mPricingResourceCache.Find(res, cached))
+			return cached;
+
+		ResourceName found = ResourceName.Empty;
+		Resource loaded = Resource.Load(res);
+		if (loaded && loaded.IsValid())
+		{
+			BaseContainer container = SCR_BaseContainerTools.FindEntitySource(loaded);
+			while (container)
+			{
+				container = container.GetAncestor();
+				if (!container)
+					break;
+
+				ResourceName ancestor = container.GetResourceName();
+				if (IsRegisteredResource(ancestor))
+				{
+					found = ancestor;
+					break;
+				}
+			}
+		}
+
+		m_mPricingResourceCache[res] = found;
+		return found;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Base price for a prefab with no registered ancestor: classify it from its components
+	//! (OVT_PrefabItemClassifier) and run the same price configs the catalogue walk uses. No town
+	//! stock curve - an unregistered item has no stock anywhere.
+	//! \param[in] res The prefab.
+	//! eturn The configured base price, or -1 when it cannot be loaded, classified, or is hidden.
+	int GetFallbackBasePrice(ResourceName res)
+	{
+		if (res.IsEmpty())
+			return -1;
+
+		if (!m_mFallbackBasePriceCache)
+			m_mFallbackBasePriceCache = new map<ResourceName, int>();
+
+		int cached;
+		if (m_mFallbackBasePriceCache.Find(res, cached))
+			return cached;
+
+		int result = -1;
+		Resource loaded = Resource.Load(res);
+		if (loaded && loaded.IsValid())
+		{
+			SCR_EArsenalItemType type;
+			SCR_EArsenalItemMode mode;
+			bool classified = OVT_PrefabItemClassifier.Classify(SCR_BaseContainerTools.FindEntitySource(loaded), type, mode);
+
+			int cost, demand;
+			bool hidden;
+			if (ResolveConfiguredPrice(res, classified, type, mode, cost, demand, hidden) && !hidden)
+				result = cost;
+		}
+
+		if (result < 0)
+			Print(string.Format("[Overthrow] OVT_EconomyManagerComponent: %1 is in no entity catalogue, inherits no registered prefab and cannot be classified - it has no price", res), LogLevel.WARNING);
+
+		m_mFallbackBasePriceCache[res] = result;
+		return result;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Runs the price configs over one item, in order, later matches overriding earlier ones.
+	//! A rule with m_sFind matches by prefab name; a rule without one matches by arsenal type/mode and
+	//! so needs arsenal data to match at all. A hidden match stops the walk.
+	//! \param[in] res The prefab.
+	//! \param[in] hasArsenalData Whether type/mode are meaningful for this item.
+	//! \param[in] type The arsenal type.
+	//! \param[in] mode The arsenal mode.
+	//! \param[out] cost The matched cost (untouched when nothing matched).
+	//! \param[out] demand The matched demand (untouched when nothing matched).
+	//! \param[out] hidden True when a hidden rule matched.
+	//! eturn True when at least one rule matched (hidden or not).
+	protected bool ResolveConfiguredPrice(ResourceName res, bool hasArsenalData, SCR_EArsenalItemType type, SCR_EArsenalItemMode mode, out int cost, out int demand, out bool hidden)
+	{
+		hidden = false;
+		bool matched = false;
+		foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
+		{
+			bool matches = false;
+			if(config.m_sFind == "")
+			{
+				if(hasArsenalData && type == config.m_eItemType)
+				{
+					if(config.m_eItemMode == SCR_EArsenalItemMode.DEFAULT || mode == config.m_eItemMode)
+						matches = true;
+				}
+			}
+			else
+			{
+				matches = res.IndexOf(config.m_sFind) > -1;
+			}
+
+			if(!matches) continue;
+
+			if(config.hidden)
+			{
+				hidden = true;
+				return true;
+			}
+			cost = config.cost;
+			demand = config.demand;
+			matched = true;
+		}
+		return matched;
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -1561,42 +1725,15 @@ class OVT_EconomyManagerComponent: OVT_Component
 				int cost = 50;
 				int demand = 5;
 				
-				// Check price configs sequentially - later configs override earlier ones
-				foreach(OVT_PriceConfig config : m_PriceConfig.m_aPrices)
+				SCR_ArsenalItem catalogArsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
+				SCR_EArsenalItemType catalogType;
+				SCR_EArsenalItemMode catalogMode;
+				if(catalogArsenalItem)
 				{
-					bool matches = false;
-					
-					// Check if this config matches the item
-					if(config.m_sFind == "")
-					{
-						// Empty find string matches all items of the specified type/mode
-						SCR_ArsenalItem arsenalItem = SCR_ArsenalItem.Cast(item.GetEntityDataOfType(SCR_ArsenalItem));
-						if(arsenalItem && arsenalItem.GetItemType() == config.m_eItemType)
-						{
-							if(config.m_eItemMode == SCR_EArsenalItemMode.DEFAULT || arsenalItem.GetItemMode() == config.m_eItemMode)
-							{
-								matches = true;
-							}
-						}
-					}
-					else
-					{
-						// Find string found in prefab name
-						matches = res.IndexOf(config.m_sFind) > -1;
-					}
-					
-					if(!matches) continue;
-					
-					if(config.hidden) 
-					{
-						hidden = true;
-						break;
-					}
-					cost = config.cost;
-					demand = config.demand;
-					configMatched = true;
-					// Continue to allow later configs to override this one
+					catalogType = catalogArsenalItem.GetItemType();
+					catalogMode = catalogArsenalItem.GetItemMode();
 				}
+				configMatched = ResolveConfiguredPrice(res, catalogArsenalItem != null, catalogType, catalogMode, cost, demand, hidden);
 				
 				if(hidden) continue;
 				

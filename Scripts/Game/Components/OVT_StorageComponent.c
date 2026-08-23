@@ -403,10 +403,17 @@ class OVT_StorageComponent : OVT_Component
 
 		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(owner);
 
+		// A vehicle variant in no catalogue takes its legality and parking from the registered
+		// prefab it inherits.
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
 		bool registered = false;
 		if (economy)
-			registered = economy.IsRegisteredResource(prefab);
+		{
+			ResourceName pricing = economy.ResolvePricingResource(prefab);
+			registered = !pricing.IsEmpty();
+			if (registered)
+				prefab = pricing;
+		}
 
 		if (!registered && m_iResolveAttempts < MAX_RESOLVE_ATTEMPTS)
 		{

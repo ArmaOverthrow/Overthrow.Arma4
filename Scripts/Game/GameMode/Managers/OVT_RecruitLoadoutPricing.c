@@ -205,21 +205,25 @@ class OVT_RecruitLoadoutPricing : Managed
 	//! An EMPTY resource name is skipped rather than refused: the record is malformed for that entry,
 	//! the apply cannot spawn it either, and nothing arrives - so nothing is owed. It still counts
 	//! against the top-level total, which is what makes the outcome PARTIAL rather than silently OK.
+	//!
+	//! Priced through GetBuyPriceForPrefab, not a bare IsRegisteredResource gate: a saved loadout is
+	//! whatever the player was wearing, and looted civilian clothes (the _Dirty variants), weapon
+	//! presets and modded gear are in no entity catalogue. They price off the registered prefab they
+	//! inherit, or off their components; only a prefab neither route can place is refused.
 	//! \param[in] res The prefab to price.
-	//! \return False when the resource has no catalog price.
+	//! \return False when the resource has no price by any route.
 	protected bool AddResource(ResourceName res)
 	{
 		if (res.IsEmpty()) return true;
 
-		if (!m_Economy.IsRegisteredResource(res))
+		int unitPrice = m_Economy.GetBuyPriceForPrefab(res, m_vPosition, m_iPlayerId);
+		if (unitPrice < 0)
 		{
 			m_Result.m_sUnpriceableResource = res;
 
-			Print(string.Format("[Overthrow] OVT_RecruitLoadoutPricing: %1 is not a registered resource - the loadout cannot be priced", res), LogLevel.WARNING);
+			Print(string.Format("[Overthrow] OVT_RecruitLoadoutPricing: %1 has no price by any route - the loadout cannot be priced", res), LogLevel.WARNING);
 			return false;
 		}
-
-		int unitPrice = m_Economy.GetBuyPrice(m_Economy.GetInventoryId(res), m_vPosition, m_iPlayerId);
 
 		m_Result.m_iSubtotal = m_Result.m_iSubtotal + unitPrice;
 		m_Result.m_iItemCount = m_Result.m_iItemCount + 1;
