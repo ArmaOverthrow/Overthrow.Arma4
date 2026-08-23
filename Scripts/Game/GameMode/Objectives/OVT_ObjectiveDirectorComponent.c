@@ -801,6 +801,51 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Gives a freshly committed objective its breathing room: the in-game minutes it waits before it
+	//! sends anything at all.
+	//!
+	//! ⚠ COMMIT ONLY, NOT PHASE ENTRY. The grace is what a player gets when the faction picks a NEW
+	//! target - time to settle, build and repair before the first team arrives. A phase TRANSITION is
+	//! the same objective escalating and is deliberately not slowed: the ramp's own cadence governs it.
+	//!
+	//! ⚠ IT IS SPENT WHETHER OR NOT THE FACTION COULD HAVE AFFORDED ANYTHING, because it arms the same
+	//! countdown a successful operation arms and the tick serves that countdown unconditionally. A
+	//! faction that was broke for the whole grace does not get the grace back.
+	//!
+	//! ⚠ A RESTORED OBJECTIVE KEEPS ITS SAVED COUNTDOWN. ApplyPersistedObjective() writes nextOpTicks
+	//! directly rather than committing, so a save taken mid-grace comes back mid-grace and a save taken
+	//! after it does not serve it again.
+	protected void ArmFirstOperationDelay()
+	{
+		int delay = ResolveFirstOperationDelay();
+		if (delay <= 0)
+			return;
+
+		SetOperationCountdown(delay);
+
+		Print(LOG + "Objective '" + m_Objective.name + "': holding fire for " + delay.ToString() + " in-game minute(s) before the first operation (objectiveFirstOperationDelayMinutes)", LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How long a newly committed objective holds fire.
+	//!
+	//! ⚠ NO DIFFICULTY MEANS NO GRACE, which is the pre-setting behaviour and the safe direction to
+	//! fail in: a world with nothing loaded (the World Editor, a test world) behaves exactly as it did
+	//! before this setting existed rather than freezing the director for an unauthored number.
+	//! \return In-game minutes to wait, or 0 when there is no grace to serve.
+	protected int ResolveFirstOperationDelay()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return 0;
+
+		if (difficulty.objectiveFirstOperationDelayMinutes < 0)
+			return 0;
+
+		return difficulty.objectiveFirstOperationDelayMinutes;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Says ONCE, per objective, that a live objective has no plan behind it and is therefore doing
 	//! nothing at all.
 	//!
@@ -2579,6 +2624,10 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		m_bReselectPending = false;
 
 		EnterObjectivePhaseIndex(m_Instance, 0);
+
+		// ⚠ AFTER THE PHASE ENTRY, NEVER BEFORE. EnterObjectivePhase() zeroes the cadence on every entry,
+		// so a grace armed ahead of it would be wiped by the entry it was armed for.
+		ArmFirstOperationDelay();
 	}
 
 	//------------------------------------------------------------------------------------------------

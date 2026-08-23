@@ -38,6 +38,12 @@ class OVT_BuildContext : OVT_UIContext
 	//! resource-costed buildings arrived: a warehouse does not fit on screen from there.
 	const float BUILD_CAM_MIN_HEIGHT = 10;
 	const float BUILD_CAM_MAX_HEIGHT = 50;
+
+	//! Metres of camera pan per input tick at full stick/key deflection.
+	const float BUILD_CAM_PAN_STEP = 0.07;
+
+	//! What holding the run binding multiplies the pan step by.
+	const float BUILD_CAM_PAN_SPRINT = 3;
 	
 	bool m_bBuilding = false;
 	bool m_bRemovalMode = false;
@@ -453,12 +459,30 @@ class OVT_BuildContext : OVT_UIContext
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! How far one pan tick moves the camera, boosted while the run binding is held.
+	//!
+	//! Polled rather than listened to: CharacterSprint is a hold, so a DOWN/UP listener pair would have
+	//! to track state and would go stale if the key came up while the build UI had focus. It lives in
+	//! the same ActionContext as CharacterForward/CharacterRight, which this context already listens
+	//! to, so it needs no binding of its own.
+	//! \return Metres per tick at full deflection.
+	protected float PanStep()
+	{
+		if(!m_InputManager) return BUILD_CAM_PAN_STEP;
+
+		if(m_InputManager.GetActionValue("CharacterSprint") > 0)
+			return BUILD_CAM_PAN_STEP * BUILD_CAM_PAN_SPRINT;
+
+		return BUILD_CAM_PAN_STEP;
+	}
+
 	void MoveRight(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
 		if(!m_bBuilding && !m_bRemovalMode) return;
 		
 		vector move = "0 0 0";
-		move[0] = value * 0.07;
+		move[0] = value * PanStep();
 		vector pos = m_Camera.GetOrigin() + move;
 		
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
@@ -473,7 +497,7 @@ class OVT_BuildContext : OVT_UIContext
 	{
 		if(!m_bBuilding && !m_bRemovalMode) return;
 		vector move = "0 0 0";
-		move[2] = value * 0.07;
+		move[2] = value * PanStep();
 		vector pos = m_Camera.GetOrigin() + move;
 		
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();

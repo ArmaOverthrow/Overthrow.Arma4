@@ -57,9 +57,8 @@ class OVT_ResourceProductionComponent : OVT_Component
 		if (SCR_Global.IsEditMode())
 			return;
 
-		// ItemPreviewManagerEntity spawns a throwaway worldless instance to render an icon. It is not
-		// a site, so it gets neither validation nor a complaint.
-		if (!owner || !owner.GetWorld())
+		// A throwaway ItemPreview icon: not a site, so neither validation nor a complaint.
+		if (IsPreviewInstance(owner))
 			return;
 
 		if (m_sResourceId == "")

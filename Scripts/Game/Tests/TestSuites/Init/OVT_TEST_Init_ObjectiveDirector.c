@@ -2518,3 +2518,100 @@ class OVT_TEST_Init_ObjectiveDirector_TheRefusalLedgerDedupsAcrossItsCallers : S
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A NEWLY CHOSEN OBJECTIVE HOLDS FIRE BEFORE ITS FIRST TEAM.
+//!
+//! User play-test 2026-08-23: *"they are relentlessly sending specops and the player has almost no
+//! time to settle, build, repair."* The cadence was a metronome with no starting offset - the tick
+//! that committed to a target could spend on the very next in-game minute, so the moment a place
+//! became the objective the first team was already on its way.
+//!
+//! objectiveFirstOperationDelayMinutes arms the SAME countdown a completed operation arms, at the one
+//! commit funnel, which is what makes this one line rather than a second clock to keep correct.
+//!
+//! THREE CLAIMS, IN ORDER:
+//!   1. COMMITTING ARMS IT. The countdown reads the authored grace, not zero.
+//!   2. THE GRACE IS SERVED, NOT SKIPPED. A tick takes exactly one in-game minute off it and creates
+//!      nothing while it runs.
+//!   3. IT IS THE COMMIT'S, NOT THE PHASE ENTRY'S. EnterObjectivePhase() zeroes the cadence on every
+//!      entry, so arming before it - the obvious place, right next to the other record fields - would
+//!      be silently wiped. This case would read zero at claim 1 if anybody moved it back there.
+//!
+//! ⚠ IT ASSERTS AGAINST THE DIFFICULTY, NOT A NUMBER. The five .conf files are the author's to tune
+//! and a case that hard-coded 150 would fail the next time they were. A world whose difficulty
+//! authors ZERO has no grace to test, and that is reported as a skip rather than a pass.
+//!
+//! PROVEN ABLE TO FAIL: ArmFirstOperationDelay() removed from CommitObjective() - reports "a freshly
+//! committed objective may send its first team on the very next in-game minute".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveDirector_ANewObjectiveHoldsFireBeforeItsFirstTeam : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ObjectiveDirectorComponent director = OVT_Global.GetObjectiveDirector();
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+
+		if (!director || !towns || !difficulty)
+		{
+			SetFailure("The director, the town manager or the difficulty settings did not resolve");
+			return true;
+		}
+
+		if (!towns.m_Towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("The world produced no town to hang a fixture objective on");
+			return true;
+		}
+
+		int grace = difficulty.objectiveFirstOperationDelayMinutes;
+		if (grace <= 0)
+		{
+			Print("Objective director: this world's difficulty authors no first-operation grace, so there is nothing to serve - skipped");
+			return true;
+		}
+
+		vector fixturePosition = towns.m_Towns[0].location;
+
+		// --- ARRANGE: the commit funnel, exactly as a selection round reaches it.
+		director.CommitObjective(OVT_EObjectiveKind.TOWN, fixturePosition, "first-operation grace fixture");
+
+		int armed = director.GetNextOpTicks();
+
+		// --- ONE TICK: the grace is served like any other countdown.
+		director.DirectorTick();
+
+		int afterTick = director.GetNextOpTicks();
+		string phaseAtEnd = director.GetObjectivePhaseName();
+
+		director.ResetObjective("initialisation-tier first-operation grace fixture torn down", false);
+
+		if (armed != grace)
+		{
+			SetFailure("a freshly committed objective's operation countdown reads %1, and the campaign authors a %2 in-game minute grace. At zero it may send its first team on the very next in-game minute, which is the objective arriving before the player has been given any time to settle, build or repair. ⚠ ArmFirstOperationDelay() must be called AFTER EnterObjectivePhaseIndex(), which zeroes the cadence on every entry",
+				armed.ToString(), grace.ToString());
+			return true;
+		}
+
+		if (afterTick != grace - 1)
+		{
+			SetFailure("one director tick left the grace at %1, expected %2. It must be served down like any other countdown - a grace that never decrements is an objective that never acts",
+				afterTick.ToString(), (grace - 1).ToString());
+			return true;
+		}
+
+		if (phaseAtEnd != "Harassment")
+		{
+			SetFailure("the fixture left the harassment phase during the grace, so the readings above belong to some other phase: %1", phaseAtEnd);
+			return true;
+		}
+
+		Print("Objective director: a freshly committed objective holds fire for the authored grace before its first operation, and the grace is served a minute at a time");
+
+		return true;
+	}
+}

@@ -80,6 +80,8 @@ class OVT_DifficultySettings : ScriptAndConfig
 	//------------------------------------------------------------------------------------------------
 	[Attribute(defvalue: "45", desc: "In-game minutes between operations sent at the current objective. Lower = the occupying faction presses harder", category: "Occupying Faction")]
 	int objectiveHarassmentIntervalMinutes;
+	[Attribute(defvalue: "0", desc: "In-game minutes a NEWLY CHOSEN objective waits before it sends its first team. The breathing room a player gets to settle, build and repair after the faction picks a new target. 0 = the first operation may go out on the very next minute, which is what the campaign did before this setting existed. Counted from the commit, so it is spent whether or not the faction could have afforded anything", category: "Occupying Faction")]
+	int objectiveFirstOperationDelayMinutes;
 	[Attribute(defvalue: "2", desc: "Maximum harassment/sabotage operations alive at the current objective at once", category: "Occupying Faction")]
 	int objectiveHarassmentMaxConcurrent;
 	[Attribute(defvalue: "180", desc: "Seconds a harassment group must hold a town centre before it applies its support debuff", category: "Occupying Faction")]

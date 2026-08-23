@@ -12,8 +12,8 @@
 //! ==========================================================================================
 //! 🔴 A RESTORED DEPLOYMENT RAISES NOTHING. THIS IS THE WHOLE REASON THE CLASS IS A DECISION (D11).
 //! ==========================================================================================
-//! The structure is a PERSISTENCE-TRACKED WORLD ENTITY. Vanilla persistence saves it and puts it back
-//! before any deployment ticks, and the director's own serializer brings back the RECORD of it, so a
+//! The structure is a PERSISTENCE-TRACKED WORLD ENTITY. Persistence puts it back before any
+//! deployment ticks, and the director's own serializer brings back the RECORD of it, so a
 //! restored deployment that raised one anyway would give the campaign a SECOND forward base on every
 //! single load - in a slightly different place each time, because the site is re-sampled. Ten loads
 //! into a long campaign that is ten flagpoles in a field, every one of them findable, dismantleable
@@ -265,6 +265,12 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 		// Tracking is what puts the structure in save points. Without it the forward base vanishes on
 		// the next load while the director's record still says it is standing, and the objective sits in
 		// the forward-base phase pointing at nothing until its timeout.
+		//
+		// ⚠ TRACKING ALONE IS NOT ENOUGH AND THAT COST A PLAY-TEST (2026-08-23). An entity only comes
+		// BACK when the configuration it matches has SelfSpawn set, and the FOB prefab matched none of
+		// Overthrow's rules until one was added for OVT_OccupyingFlagComponent - see
+		// Configs/Systems/Persistence/Overthrow.conf and OVT_OccupyingFlagComponentSerializer. Any
+		// modded structure prefab authored here must carry that component or bring its own rule.
 		OVT_PersistenceTracking.Track(structure);
 
 		// The structure carves a hole in the navmesh, and the AI that has to garrison it needs to be

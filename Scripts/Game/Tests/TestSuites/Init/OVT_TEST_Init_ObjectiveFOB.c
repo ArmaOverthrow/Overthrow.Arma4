@@ -3,7 +3,7 @@
 //! loaded configs and a live deployment framework.
 //!
 //! 🔴 THE HEADLINE CLAIM IS THAT A CAMPAIGN DOES NOT GROW A FORWARD BASE PER LOAD. The structure is a
-//! persistence-tracked world entity: vanilla persistence puts it back before any deployment ticks, and
+//! persistence-tracked world entity: persistence puts it back before any deployment ticks, and
 //! the director's own serializer brings back the record of it. A restored deployment that raised one
 //! anyway would leave a second flagpole in a field on every single load, in a slightly different place
 //! each time because the site is re-sampled, every one of them persisted, findable and dismantleable.
@@ -2241,5 +2241,188 @@ class OVT_TEST_Init_ObjectiveFOB_RCeilingArmsWithTheAssetAndTheSetIsClones : SCR
 			return "the registered asset owner is not one of the phase's runtime modules, so the director is holding a module nothing is ticking";
 
 		return "";
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! 🔴 THE FORWARD BASE COMES BACK ON LOAD. Play-test 2026-08-23: it did not, and the garrison stood
+//! around a flagpole that was no longer there.
+//!
+//! The raise module tracks the structure (OVT_PersistenceTracking.Track) and its header claimed that
+//! was enough. It is not. An entity only RETURNS when the PersistenceConfig it MATCHES has SelfSpawn
+//! set, and the four rules in Configs/Systems/Persistence/Overthrow.conf match on component class -
+//! OVT_PlaceableComponent, OVT_BuildableComponent, OVT_DeploymentComponent, OVT_ResourcePileComponent.
+//! The FOB prefab carried none of them, so it was tracked, written and never spawned back, while the
+//! garrison deployment (OVT_DeploymentComponent) returned every time. The fix is a fifth rule on
+//! OVT_OccupyingFlagComponent; this case is what stops the prefab, the component or the rule from
+//! drifting apart again.
+//!
+//! ⚠ WHY THIS CASE MAY SPAWN THE STRUCTURE WHEN THE REST OF THE FILE MAY NOT. The file's rule is that
+//! no case RAISES a forward base - a raise leaves a persisted flagpole in the shared initialisation
+//! world. This one stands the prefab up as a PROBE and takes it back down on every exit path,
+//! Untrack(keepData: false) BEFORE the delete, so no record is left to spawn on the next run.
+//!
+//! PROVEN ABLE TO FAIL: the OVT_OccupyingFlagComponent configuration removed from Overthrow.conf -
+//! fails on "matched persistence configuration does NOT self-spawn".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveFOB_MStructureConfigSelfSpawns : SCR_AutotestCaseBase
+{
+	//! How far from the fixture town to stand the probe.
+	static const float PROBE_OFFSET = 180;
+
+	//! Frames allowed for a town to appear and for tracking to be resolved. Registration is LAZY, so
+	//! IsTracked can legitimately read false on the frame the entity was spawned.
+	static const int SETTLE_FRAMES = 30;
+
+	protected int m_iPhase;
+	protected int m_iFrames;
+	protected IEntity m_Structure;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == 0)
+			return Arrange();
+
+		return AwaitTracking();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Stands the AUTHORED structure prefab near the fixture town - read off the config, not a constant
+	//! here, so a modded prefab is the thing tested.
+	//! \return True when the case is already over.
+	protected bool Arrange()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+		{
+			SetFailure("OVT_Global.GetDeploymentManager() is null - the forward-base config cannot be resolved in this world");
+			return true;
+		}
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+		if (!config || !config.m_aModules)
+		{
+			SetFailure("'%1' is not registered, so there is no authored structure prefab to test", OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+			return true;
+		}
+
+		ResourceName prefab;
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			OVT_FOBRaiseSpawningDeploymentModule raise = OVT_FOBRaiseSpawningDeploymentModule.Cast(module);
+			if (raise)
+				prefab = raise.GetFOBPrefab();
+		}
+
+		if (prefab.IsEmpty())
+		{
+			SetFailure("'%1' authors no structure prefab", OVT_ObjectiveDirectorComponent.FOB_CONFIG);
+			return true;
+		}
+
+		vector anchor = OVT_TEST_VirtualizationFixture.PickPosition();
+		if (anchor == vector.Zero)
+		{
+			m_iFrames++;
+			if (m_iFrames <= SETTLE_FRAMES)
+				return false;
+
+			SetFailure("No town is registered after %1 frames, so there is nowhere to stand the probe structure", m_iFrames.ToString());
+			return true;
+		}
+
+		m_Structure = OVT_Global.SpawnEntityPrefab(prefab, anchor + Vector(PROBE_OFFSET, 0, PROBE_OFFSET));
+		if (!m_Structure)
+		{
+			SetFailure("SpawnEntityPrefab() produced nothing from the authored forward-base prefab %1", prefab);
+			return true;
+		}
+
+		if (!OVT_ComponentFinder<OVT_OccupyingFlagComponent>.Find(m_Structure))
+		{
+			CleanUp();
+			SetFailure("The authored forward-base prefab carries NO OVT_OccupyingFlagComponent. That component is what the persistence rule matches on, so the structure is saved and never spawned back: on the next load the garrison stands around a base that is not there and the dismantle action goes with it");
+			return true;
+		}
+
+		// The raise path's own line, so this probe is registered exactly as a real forward base is.
+		OVT_PersistenceTracking.Track(m_Structure);
+
+		m_iPhase = 1;
+		m_iFrames = 0;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Waits out lazy registration, then asserts the matched configuration self-spawns.
+	//! \return True when the case is finished on this frame.
+	protected bool AwaitTracking()
+	{
+		m_iFrames++;
+
+		if (!m_Structure)
+		{
+			SetFailure("The probe structure disappeared before its persistence configuration could be read");
+			return true;
+		}
+
+		SCR_PersistenceSystem persistence = SCR_PersistenceSystem.GetByEntityWorld(m_Structure);
+		if (!persistence)
+		{
+			CleanUp();
+			SetFailure("This world has no persistence system, so nothing about save behaviour can be asserted in it");
+			return true;
+		}
+
+		if (!persistence.IsTracked(m_Structure))
+		{
+			if (m_iFrames < SETTLE_FRAMES)
+				return false;
+
+			CleanUp();
+			SetFailure("The forward-base structure is still not tracked after %1 frames - OVT_PersistenceTracking.Track() no longer takes on it, so it is never written to a save point at all", m_iFrames.ToString());
+			return true;
+		}
+
+		EntityPersistenceConfig config = EntityPersistenceConfig.Cast(persistence.GetConfig(m_Structure));
+		if (!config)
+		{
+			CleanUp();
+			SetFailure("GetConfig() handed back no entity configuration for the tracked forward-base structure");
+			return true;
+		}
+
+		if (!config.m_bSelfSpawn)
+		{
+			CleanUp();
+			SetFailure("The forward-base structure's matched persistence configuration does NOT self-spawn. Tracking alone only WRITES the record: on the next load the flagpole is gone, its garrison deployment (which does self-spawn) is still standing on the site, the director's asset record still says the base is up, and the dismantle action that ends the objective went with the entity. Add the OVT_OccupyingFlagComponent configuration back to Configs/Systems/Persistence/Overthrow.conf");
+			return true;
+		}
+
+		CleanUp();
+
+		Print("Forward base: the authored structure prefab carries OVT_OccupyingFlagComponent and matches a self-spawning persistence configuration, so it comes back on load");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drops the probe's record and deletes it. Called on every exit path.
+	//!
+	//! ⚠ UNTRACK BEFORE DELETE, AND keepData FALSE. A tracked structure left behind by this case would
+	//! be spawned back into the shared initialisation world on the next run, which is the one thing
+	//! this file's header forbids.
+	protected void CleanUp()
+	{
+		if (!m_Structure)
+			return;
+
+		OVT_PersistenceTracking.Untrack(m_Structure, false);
+
+		SCR_EntityHelper.DeleteEntityAndChildren(m_Structure);
+		m_Structure = null;
 	}
 }

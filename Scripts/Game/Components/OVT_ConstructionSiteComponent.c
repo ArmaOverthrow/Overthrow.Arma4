@@ -52,9 +52,8 @@ class OVT_ConstructionSiteComponent : OVT_Component
 		if (SCR_Global.IsEditMode())
 			return;
 
-		// An ItemPreview instance has no world. It is a throwaway icon and gets no RplComponent
-		// complaint - without this guard every previewable prefab null-crashes here.
-		if (!owner || !owner.GetWorld())
+		// A throwaway ItemPreview icon: no site, no RplComponent complaint.
+		if (IsPreviewInstance(owner))
 			return;
 
 		// Without an RplComponent the site has no RplId, so no client can name it in a build request

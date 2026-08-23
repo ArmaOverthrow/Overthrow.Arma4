@@ -20,6 +20,7 @@
   and all three temporary fallback paths.
 
 **Post-build (2026-08-23):**
+- ✅ **The forward base now comes back on load.** It never did: `Track()` makes an entity saveable, but only a `.conf` rule with `SelfSpawn` makes it RETURN, and the FOB prefab matched none of Overthrow's four rules. Fixed with a fifth rule on `OVT_OccupyingFlagComponent` + a serializer that re-queues the navmesh. See the 2026-08-23 section at the end of this file.
 - ✅ **Land-isolated targets are gated out of objective selection.** Erquy Harbour is on an island and was selectable (~4.7 km to the nearest holding, inside the 5 km cutoff). New authored `m_bLandIsolated` flag → `OVT_BaseData.landIsolated`/`OVT_TownData.landIsolated` → a `continue` in `OVT_ObjectiveCandidateSet.AddResistanceBases/AddResistanceTowns`. ⚠ **The general lesson: every water check in the tree is a POINT test (`IsOceanAtPosition`, 9 call sites); there is no reachability test anywhere, and the engine offers no A→B query to build one from.** Any future doctrine that moves a force overland inherits this and must respect the flag.
 
 **What's Next:**
@@ -3107,3 +3108,50 @@ duration, and this repair widens that diff by an attribute, a method, two call s
 user was consulted 2026-08-23 and left the call to the implementer; the break is **recorded rather than
 quiet**. Q1 of that feature's DoD (the `git diff` grep) will now legitimately fail and must be **re-stated**,
 not "repaired" — see `docs/features/occupying/vehicles/context.md`.
+
+## 🔴 FIXED 2026-08-23 — THE FORWARD BASE WAS NEVER RESTORED ON LOAD: tracking is not self-spawning
+
+User report during `v1.5` Workbench testing: *"a FOB has disappeared with its garrison still standing there. was it pulled down?"* It was not. Nothing removed it — it was never brought back.
+
+**What the logs show** (`logs_2026-08-23_10-45-12`, then `_11-35-39`):
+
+- 11:12:21 `Forward base 'Objective Forward Base/Forward Base Party' raised at <7415.72, 113.914, 5298.08>`, garrisoned 11:18 and 11:28.
+- No dismantle / teardown / abandon line in either session.
+- Saves at 11:27:06 and 11:31:59, load at 11:40:37. The garrison and the objective came back (`Objective Forward Base Garrison … came back from a save point`; objective still in `ForwardBase` at `#OVT-Base_Levie`). The structure did not, and D11's gate correctly stopped the restored deployment re-raising one.
+- The savepoint blob was decoded directly (`playthrough009/savepoint001`): **zero records for the FOB prefab**, while `OVT_DeploymentComponent`, `OVT_BuildableComponent`, `OVT_PlaceableComponent` and `OVT_ResourcePileComponent` records were all present.
+
+**Root cause.** `OVT_FOBRaiseSpawningDeploymentModule` calls `OVT_PersistenceTracking.Track(structure)` and its header claimed *"Vanilla persistence saves it and puts it back."* **Tracking only WRITES the record.** An entity comes BACK only when the `PersistenceConfig` it MATCHES carries `SelfSpawn 1`, and matching is done by the `ComponentClassPersistenceConfigRule` entries in `Configs/Systems/Persistence/Overthrow.conf` — which were `OVT_PlaceableComponent`, `OVT_BuildableComponent`, `OVT_DeploymentComponent`, `OVT_ResourcePileComponent`. `Prefabs/Bases/OVT_OccupyingFOB.et` carries **none** of them (it is a `FlagPole_02_V1` delta with `OVT_OccupyingFlagComponent` + `ActionsManagerComponent` + `RplComponent`), so it was tracked, saved and never spawned back.
+
+⚠ **The generalisation, and it applies to anything this epic spawns and wants back:** `Track()` makes an entity SAVEABLE; a matching `.conf` rule with `SelfSpawn` makes it RETURN. The two are separate and nothing in the tree pairs them. BUG-018's finding is the neighbour of this one: a *scripted* rule is never consulted either, so the `.conf` is the only place this can be declared.
+
+**The symptom compound.** The director's `OVT_PersistedObjective` record restores intact, so `IsAssetUp(ASSET_FOB)` keeps answering true against a structure that is gone; the garrison stands on an empty site; and the dismantle action rides on the flagpole, so **the player can no longer end the objective the intended way** — it can only time out.
+
+### What landed (uncommitted on `v1.5`, `compile-check.sh` exit 0)
+
+| | |
+|---|---|
+| The rule | A fifth `EntityPersistenceConfig` in `Configs/Systems/Persistence/Overthrow.conf` matching `ComponentClass "OVT_OccupyingFlagComponent"`, `SelfSpawn 1`, `Priority 35000`, `ParentHandling "Ignore always"`, `Collection {6B0E7A11D0F5A34B}` — the `OVT_ResourcePileComponent` block's shape verbatim. GUIDs `{6B0E7A7A3B4C5D6E}` / `{6B0E7A7B4C5D6E7F}` / `{6B0E7A7C5D6E7F80}` / `{6B0E7A7D6E7F8091}`. |
+| The serializer | `OVT_OccupyingFlagComponentSerializer` (`Scripts/Game/Persistence/Serializers/Components/`). **It carries no component state on purpose** — the flag component's one field, the faction index of the material on the pole, is re-derived by its own 10 s re-check on every machine, and storing it would let a save outvote a campaign started against the other occupier. Its real job is `OVT_NavmeshRebuild.Queue(owner)` on load: the world's navmesh is the BAKED one and the raise path's `RebuildNow()` never runs for a restored structure. That is the `OVT_PlaceableComponentSerializer` / `OVT_BuildableComponentSerializer` precedent verbatim. |
+| The header | The raise module's "vanilla persistence puts it back" claim corrected in two places, with the rule named at the `Track()` call site so a modded structure prefab is told it must carry `OVT_OccupyingFlagComponent` or bring its own rule. Same correction in `OVT_TEST_Init_ObjectiveFOB.c`'s file header. |
+| The test | `OVT_TEST_Init_ObjectiveFOB_MStructureConfigSelfSpawns`. Reads the prefab **off the config** (not a constant), stands it near the fixture town as a probe, asserts it carries `OVT_OccupyingFlagComponent` and that its matched `EntityPersistenceConfig.m_bSelfSpawn` is true, then `Untrack(keepData: false)` **before** deleting on every exit path — the file's standing rule is that no case may leave a persisted flagpole in the shared init world. |
+
+**What did NOT need changing, and why that is worth knowing:** the teardown was already correct. `OVT_RaiseForwardBaseObjectiveOperation.RemoveStructure()` finds the structure **by prefab resource name inside a sphere**, not by the module's runtime `EntityID`, precisely because that link does not survive a load. So a restored FOB is torn down and dismantled correctly the moment it exists again. And deleting a tracked entity drops its record with it (`SelfDelete` defaults on), so a dismantled base does not come back on the next load.
+
+⏸️ **Owed:** the **All** suite has not been run against this (it is one config rule, one new serializer, one new case), and the play-test that actually settles it is *raise a forward base, save, load, and see it standing with its garrison* — plus one AI walk past it to confirm the queued navmesh rebuild took.
+
+## 2026-08-23 — `objectiveFirstOperationDelayMinutes`: a newly chosen objective holds fire
+
+User play-test: *"they are relentlessly sending specops and the player has almost no time to settle, build, repair."* The cadence had **no starting offset** — the tick that committed to a target could spend on the very next in-game minute, so the moment a place became the objective the first team was already driving. Measured from the logs: at 6× time acceleration Normal's 60 in-game-minute interval is exactly 10 real minutes, and the director fired on it like a metronome (10:47, 10:57, 11:08, 11:18, 11:28) because it never skips an interval it can afford.
+
+**The setting.** `OVT_DifficultySettings.objectiveFirstOperationDelayMinutes` — in-game minutes a newly committed objective waits before its first operation. Authored Easy 240 / Normal 150 / Hard 100 / Extreme 60 / Insane 30; class default **0**, which is the pre-setting behaviour, so a difficulty file that never authors it behaves exactly as before.
+
+**Where it is armed, and why that is load-bearing.** `ArmFirstOperationDelay()` is called from `CommitObjective()` **after** `EnterObjectivePhaseIndex(m_Instance, 0)`. `EnterObjectivePhase()` zeroes `nextOpTicks` on every entry, so arming it beside the other record fields — the obvious place — is silently wiped by the entry it was armed for. The Init case reads zero at its first claim if anybody moves it back.
+
+**Three deliberate scope decisions:**
+- **Commit only, not phase entry.** A phase transition is the same objective escalating, and the ramp's own cadence governs it. The grace is what the player gets when the faction picks a NEW target.
+- **It is spent whether or not the faction could have afforded anything.** It arms the same countdown a successful operation arms, and the tick serves that countdown unconditionally. A faction that was broke through the whole grace does not get it back.
+- **A restored objective keeps its saved countdown.** `ApplyPersistedObjective()` writes `nextOpTicks` directly rather than committing, so a save taken mid-grace comes back mid-grace and one taken after it does not serve it again.
+
+Coverage: `OVT_TEST_Init_ObjectiveDirector_ANewObjectiveHoldsFireBeforeItsFirstTeam` — asserts against the **difficulty**, never a hard-coded number, and reports a skip rather than a pass in a world that authors zero. `compile-check.sh` exit 0; suites owed.
+
+⚠ Unrelated but noticed while editing the difficulty files: `Difficulty_Extreme.conf` has **lost** its `objectiveHarassmentMaxConcurrent 3` and `objectiveMaxConcurrentInsertions 4` lines, so both now fall back to the class default of 2. If that was a Workbench re-save rather than an intentional edit, Extreme is quietly weaker than it was.

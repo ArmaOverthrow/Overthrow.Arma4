@@ -127,9 +127,9 @@ class OVT_StorageComponent : OVT_Component
 		if (SCR_Global.IsEditMode())
 			return;
 
-		// An item-preview instance (the real-estate screen renders the warehouse this way) has no world.
-		// It is a throwaway icon, so it gets no ledger, no RplComponent complaint and no resolve.
-		if (!owner || !owner.GetWorld())
+		// A throwaway ItemPreview icon (the real-estate screen renders the warehouse this way): no
+		// ledger, no RplComponent complaint and no resolve.
+		if (IsPreviewInstance(owner))
 			return;
 
 		m_Ledger = new OVT_StorageLedger();

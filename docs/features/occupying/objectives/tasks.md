@@ -531,6 +531,12 @@
   - Coverage: `OVT_TEST_Init_Objectives_LandIsolatedTargetsAreNeverCandidates` (plants the flag on a live record and collects twice — reachable IS collected, isolated is NOT, so the absence proves the flag and not an unrelated ineligibility) plus **`tools/check-land-isolated.py`**, because no test tier loads Eden and a Workbench re-save drops an authored attribute silently. Checker proven can-fail. **All 602/602.**
   - ⏸️ **Play-test owed** — confirm the faction now picks a mainland objective instead and that Erquy still defends/captures normally.
 
+- [x] ✅ **The forward base is restored on load (2026-08-23)** — user play-test: *"a FOB has disappeared with its garrison still standing there."* Nothing removed it. `OVT_PersistenceTracking.Track()` only makes an entity SAVEABLE; it comes BACK only when the `PersistenceConfig` it matches carries `SelfSpawn`, and matching is by the `ComponentClassPersistenceConfigRule` entries in `Configs/Systems/Persistence/Overthrow.conf`. `Prefabs/Bases/OVT_OccupyingFOB.et` matched none of the four, proven by decoding the savepoint blob (zero records for it, while every deployment and buildable was present). Fixed with a fifth rule on `OVT_OccupyingFlagComponent` plus `OVT_OccupyingFlagComponentSerializer`, whose real job is re-queuing the navmesh a restored structure does not carve on its own. Coverage: `OVT_TEST_Init_ObjectiveFOB_MStructureConfigSelfSpawns`. `compile-check.sh` exit 0.
+  - ⏸️ **Suite run + play-test owed** — raise a forward base, save, load, and see it standing with its garrison; walk an AI past it for the navmesh.
+
+- [x] ✅ **`objectiveFirstOperationDelayMinutes` (2026-08-23)** — user: the faction sent teams the instant a place became the objective. New difficulty field; `ArmFirstOperationDelay()` at the commit funnel, **after** the phase entry (which zeroes the cadence). Easy 240 / Normal 150 / Hard 100 / Extreme 60 / Insane 30, class default 0 = pre-setting behaviour. Coverage: `OVT_TEST_Init_ObjectiveDirector_ANewObjectiveHoldsFireBeforeItsFirstTeam`. `compile-check.sh` exit 0.
+  - ⏸️ **Play-test owed** — a new objective must log "holding fire for N in-game minute(s)" and send nothing until it elapses.
+
 ## Needs Human Verification
 
 Filled in as phases complete. Seeded from implementation.md §6 "Verification Method":

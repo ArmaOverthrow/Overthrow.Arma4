@@ -56,8 +56,8 @@ class OVT_ResourceCargoBedComponent : OVT_Component
 		if (SCR_Global.IsEditMode())
 			return;
 
-		// An ItemPreview instance has no world; it gets no crates and no callqueue entry.
-		if (!owner || !owner.GetWorld())
+		// A throwaway ItemPreview icon: no crates and no callqueue entry.
+		if (IsPreviewInstance(owner))
 			return;
 
 		// The bed is a slotted child and its SCR_ResourceComponent.EOnInit hides the stacks, so the
