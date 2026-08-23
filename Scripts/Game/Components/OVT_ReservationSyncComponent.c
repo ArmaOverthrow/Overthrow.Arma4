@@ -34,10 +34,11 @@ class OVT_ReservationSyncComponent : OVT_Component
 	[RplProp(onRplName: "OnReservedChanged")]
 	protected bool m_bReserved;
 
-	//! The interaction layer the owner's physics body had before a reservation zeroed it. Local to
-	//! this machine on purpose - every peer has its own physics body and reads its own layer back.
-	//! -1 = nothing saved (interaction layers are bitmasks, 0 would be a legal-looking value).
-	protected int m_iSavedInteractionLayer = -1;
+	//! The simulation state the owner's physics body had before a reservation took it out of the
+	//! physics world. Local to this machine on purpose - every peer has its own body and reads its
+	//! own state back. NONE is a legal value, so the guard is a separate flag, not a sentinel.
+	protected SimulationState m_eSavedSimulationState;
+	protected bool m_bHasSavedSimulationState;
 
 	//------------------------------------------------------------------------------------------------
 	//! Mirrors the reservation state and broadcasts it. Authority only; the authority's own entity
@@ -89,11 +90,17 @@ class OVT_ReservationSyncComponent : OVT_Component
 	//! straight into (BUG-189) - on clients from the moment BUG-185's fix hid it there too, and on the
 	//! authority machine (single player, listen host, server-side AI traffic) all along.
 	//!
-	//! Zeroing the interaction layer is what removes it from collision; SetActive(INACTIVE) is what
-	//! keeps the freed body from being simulated meanwhile. The pre-reservation layer is saved per
-	//! machine and restored on release, then the body is woken so it can settle if the world changed
-	//! under it. Runs on the authority from SetReserved() and on proxies from OnReservedChanged(),
-	//! because each machine resolves collision against its own copy.
+	//! SIMULATION STATE, NOT INTERACTION LAYERS. This zeroed the body's interaction layer and restored
+	//! the saved mask until 2026-08-23. GetInteractionLayer() answers for the BODY while collision is
+	//! resolved per geometry, so the restore stamped one aggregate mask onto every geom: a released
+	//! vehicle came back with its chassis and its wheels on the same layer and could no longer drive
+	//! itself out of its own parking spot - it moved only when something shoved it, and the server put
+	//! it straight back where it was parked. SimulationState.NONE is the documented way to take a body
+	//! out of BOTH the simulation and the collision world, it is one body-level value, and restoring
+	//! the state saved at reserve time is exactly symmetric.
+	//!
+	//! Runs on the authority from SetReserved() and on proxies from OnReservedChanged(), because each
+	//! machine resolves collision against its own copy.
 	protected void ApplyPhysicsState(bool reserved)
 	{
 		IEntity owner = GetOwner();
@@ -106,20 +113,27 @@ class OVT_ReservationSyncComponent : OVT_Component
 
 		if (reserved)
 		{
-			if (m_iSavedInteractionLayer == -1)
-				m_iSavedInteractionLayer = phys.GetInteractionLayer();
+			if (!m_bHasSavedSimulationState)
+			{
+				m_eSavedSimulationState = phys.GetSimulationState();
+				m_bHasSavedSimulationState = true;
+			}
 
 			phys.SetActive(ActiveState.INACTIVE);
-			phys.SetInteractionLayer(0);
+			phys.ChangeSimulationState(SimulationState.NONE);
 		}
 		else
 		{
-			if (m_iSavedInteractionLayer != -1)
+			SimulationState restored = SimulationState.SIMULATION;
+			if (m_bHasSavedSimulationState)
 			{
-				phys.SetInteractionLayer(m_iSavedInteractionLayer);
-				m_iSavedInteractionLayer = -1;
+				restored = m_eSavedSimulationState;
+				m_bHasSavedSimulationState = false;
 			}
 
+			phys.ChangeSimulationState(restored);
+
+			// Woken after the state is back so it settles on a fresh contact set, not a stale one.
 			phys.SetActive(ActiveState.ACTIVE);
 		}
 	}

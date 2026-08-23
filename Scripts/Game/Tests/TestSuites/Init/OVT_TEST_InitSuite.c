@@ -972,8 +972,8 @@ class OVT_TEST_Init_Persistence_ReservationHidesACharacterReversibly : SCR_Autot
 //!  1. the WIRING - the ownable-vehicle, player-character and recruit prefab chains still carry the
 //!     component (BUG-191 was the recruit prefab, the one the original fix missed);
 //!  2. the MIRROR - Reserve()/Release() drive the replicated state, through the production seams;
-//!  3. the COLLISION half (BUG-189) - Reserve() zeroes the authority body's interaction layer and
-//!     Release() restores the exact layer it saved.
+//!  3. the COLLISION half (BUG-189) - Reserve() takes the authority body out of the physics world
+//!     and Release() restores the exact simulation state it saved.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
 class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCaseBase
@@ -1023,19 +1023,19 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 		}
 
 		// The collision half (BUG-189) is pinned against the authority's own body, which is the one
-		// this world has: reserve must take the body out of collision, release must put it back with
-		// the layer it had. A vehicle prefab without physics would be a test-world defect worth
-		// hearing about, so that is a failure too.
+		// this world has: reserve must take the body out of the physics world, release must put it
+		// back in the state it was in. A vehicle prefab without physics would be a test-world defect
+		// worth hearing about, so that is a failure too.
 		Physics phys = m_Vehicle.GetPhysics();
 		if (!phys)
 		{
 			SetFailure("The spawned vehicle has no Physics body - the BUG-189 collision half cannot be pinned");
 			return FinishAndCleanUp();
 		}
-		int layerBefore = phys.GetInteractionLayer();
-		if (layerBefore == 0)
+		SimulationState stateBefore = phys.GetSimulationState();
+		if (stateBefore == SimulationState.NONE)
 		{
-			SetFailure("A freshly spawned vehicle already has interaction layer 0 - the restore assertion below would pass vacuously");
+			SetFailure("A freshly spawned vehicle is already out of the physics world - the restore assertion below would pass vacuously");
 			return FinishAndCleanUp();
 		}
 
@@ -1051,9 +1051,9 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 			return FinishAndCleanUp();
 		}
 
-		if (phys.GetInteractionLayer() != 0)
+		if (phys.GetSimulationState() != SimulationState.NONE)
 		{
-			SetFailure("Reserve() hid the vehicle but its physics body still has interaction layer %1 - the invisible car still collides (BUG-189)", phys.GetInteractionLayer().ToString());
+			SetFailure("Reserve() hid the vehicle but its physics body is still in the physics world (%1) - the invisible car still collides (BUG-189)", typename.EnumToString(SimulationState, phys.GetSimulationState()));
 			return FinishAndCleanUp();
 		}
 
@@ -1069,9 +1069,11 @@ class OVT_TEST_Init_Persistence_ReservationReplicatesToClients : SCR_AutotestCas
 			return FinishAndCleanUp();
 		}
 
-		if (phys.GetInteractionLayer() != layerBefore)
+		// The restore has to be the state the body actually had, not a plausible default: an aggregate
+		// restore is what made a released car undrivable while it still looked and traced fine.
+		if (phys.GetSimulationState() != stateBefore)
 		{
-			SetFailure("Release() did not restore the physics interaction layer (%1, expected %2) - a returned vehicle would collide wrongly or not at all", phys.GetInteractionLayer().ToString(), layerBefore.ToString());
+			SetFailure("Release() did not restore the physics simulation state (%1, expected %2) - a returned vehicle would collide wrongly, or sit in its parking spot refusing to drive", typename.EnumToString(SimulationState, phys.GetSimulationState()), typename.EnumToString(SimulationState, stateBefore));
 			return FinishAndCleanUp();
 		}
 

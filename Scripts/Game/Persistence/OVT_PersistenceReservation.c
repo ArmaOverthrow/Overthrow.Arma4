@@ -47,9 +47,16 @@
 //! THE COLLISION HALF (BUG-189, closed 2026-08-20). None of the three flags touches the PHYSICS
 //! body - a sleeping rigid body still collides - so a reserved vehicle stayed a solid, invisible
 //! obstacle on every machine. OVT_ReservationSyncComponent.ApplyPhysicsState() is that half: it
-//! zeroes the body's interaction layer (saved and restored per machine) on the authority from
-//! SetReserved() and on proxies from the replication callback. An entity WITHOUT the sync component
-//! therefore still collides while reserved - there is nowhere stateless to save its layer.
+//! takes the body out of the physics world with SimulationState.NONE (the pre-reservation state is
+//! saved and restored per machine) on the authority from SetReserved() and on proxies from the
+//! replication callback. An entity WITHOUT the sync component therefore still collides while
+//! reserved - there is nowhere stateless to save its simulation state.
+//!
+//! THE PHYSICS HALF IS DRIVEN BY THE SYNC COMPONENT, NOT BY THE FLAGS. Both methods below mirror
+//! the state into the component OUTSIDE their idempotence guard. The guard reads the VISIBLE flag,
+//! the physics half lives in the component, and a release that early-returned on the flag used to
+//! leave a vehicle visible and traceable with a dead rigid body - drivable on the client, pinned to
+//! its parking spot by the server. SetReserved() is itself a no-op when it already agrees.
 //!
 //! NON-RECURSIVE ON PURPOSE. `recursively: true` would also clear VISIBLE on every child entity - the
 //! character's clothing, weapons and the items inside them - and the restore could not be exact,
@@ -79,7 +86,10 @@ class OVT_PersistenceReservation
 			return false;
 
 		if (IsReserved(entity))
+		{
+			MirrorToSync(entity, true);
 			return true;
+		}
 
 		// A character that was walking when its player left would keep its movement input. Vanilla does
 		// exactly this on the path this class replaces (SCR_BaseGameMode.c:967-969, the reconnect branch
@@ -91,10 +101,7 @@ class OVT_PersistenceReservation
 		entity.ClearFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
 		entity.ClearFlags(EntityFlags.ACTIVE);
 
-		// Tell the clients - the flags above are local to the authority (see the class header).
-		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(entity);
-		if (sync)
-			sync.SetReserved(true);
+		MirrorToSync(entity, true);
 
 		return true;
 	}
@@ -111,19 +118,31 @@ class OVT_PersistenceReservation
 			return false;
 
 		if (!IsReserved(entity))
+		{
+			MirrorToSync(entity, false);
 			return true;
+		}
 
 		// ACTIVE first: the entity has to be updating again before it is put back in front of anything
 		// that can trace it.
 		entity.SetFlags(EntityFlags.ACTIVE);
 		entity.SetFlags(EntityFlags.VISIBLE | EntityFlags.TRACEABLE);
 
-		// Tell the clients - the flags above are local to the authority (see the class header).
-		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(entity);
-		if (sync)
-			sync.SetReserved(false);
+		MirrorToSync(entity, false);
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the clients, and applies the physics half on this machine. The flags above are local to
+	//! the authority (see the class header); this component is what carries the state everywhere else.
+	//! \param[in] entity The entity being reserved or released.
+	//! \param[in] reserved The state the caller has just applied, or asserted.
+	protected static void MirrorToSync(notnull IEntity entity, bool reserved)
+	{
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(entity);
+		if (sync)
+			sync.SetReserved(reserved);
 	}
 
 	//------------------------------------------------------------------------------------------------
