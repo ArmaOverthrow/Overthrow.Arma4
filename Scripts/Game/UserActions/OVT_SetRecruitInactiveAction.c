@@ -5,12 +5,17 @@
 //! Shown only while the recruit is ACTIVE - the opposite action (OVT_SetRecruitActiveAction) takes
 //! over from there, so the pair is never visible at the same time.
 //!
-//! REFUSED, NOT HIDDEN, FOR A RECRUIT IN A VEHICLE. Parking changes which AI group commands the
-//! body; it does not move the body. A recruit parked in a seat would be "holding position" inside a
-//! vehicle that can then drive away with it. The server refuses this too
-//! (OVT_RecruitCommandComponent.RESULT_IN_VEHICLE) - this just says so before the hold starts,
-//! following OVT_SabotageTowerAction's rule that a relevant-but-blocked action stays VISIBLE with a
-//! reason rather than silently vanishing.
+//! ⚠ HIDDEN, NOT REFUSED, FOR A RECRUIT IN A VEHICLE - AND THAT CHANGED ON 2026-08-24. It used to
+//! stay visible with a reason, following OVT_SabotageTowerAction's rule for a relevant-but-blocked
+//! action. Play-test overruled it: a seated recruit's actions crowd the VEHICLE's own actions out of
+//! the shared context menu, so OVT_BaseRecruitUserAction.CanBeShownScript() now hides every recruit
+//! action on a body in a compartment. The reason string below is therefore UNREACHABLE in normal
+//! play and is kept only as belt-and-braces behind the base rule.
+//!
+//! The rule it enforces is unchanged and still real: parking changes which AI group commands the
+//! body, it does not move the body, so a recruit parked in a seat would be "holding position" inside
+//! a vehicle that can then drive away with it. The server refuses it too
+//! (OVT_RecruitCommandComponent.RESULT_IN_VEHICLE).
 //------------------------------------------------------------------------------------------------
 class OVT_SetRecruitInactiveAction : OVT_BaseRecruitUserAction
 {

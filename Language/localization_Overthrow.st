@@ -15253,6 +15253,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F1000000003}" {
+   Id "OVT-RealEstate_BaseProperty"
+   Target_en_us "Part of the base"
+   Comment "Real estate menu - a warehouse standing inside a base's close range belongs to whoever holds the base: it is neither for sale nor for rent, and access follows base control (OVT_RealEstateManagerComponent.IsBaseWarehouse)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755993600
+   Author "Claude"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7E1A2D00000002}" {
    Id "OVT-RealEstate_NotForSale"
    Target_en_us "This property is not for sale"

@@ -337,7 +337,12 @@ class OVT_StorageContainerQuery : Managed
 		if (!e || !m_aResults)
 			return false;
 
-		if (!e.FindComponent(UniversalInventoryStorageComponent))
+		// A LEDGER IS A CONTAINER TOO. The one caller is the FOB undeploy sweep, and what it sweeps
+		// must match what OVT_ResistanceFactionManager.CleanupFOBArea then DELETES - which is every
+		// placeable and buildable in the radius, whether or not it has a vanilla inventory. A
+		// recruitment tent's crate and a built warehouse both hold stock in a ledger only, and both
+		// used to be destroyed with their contents.
+		if (!e.FindComponent(UniversalInventoryStorageComponent) && !OVT_StorageUtils.GetStorage(e))
 			return false;
 
 		if (e.FindComponent(OVT_PlaceableComponent) || e.FindComponent(OVT_BuildableComponent))

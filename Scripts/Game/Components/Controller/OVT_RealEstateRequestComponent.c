@@ -158,6 +158,9 @@ class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 		IEntity building = re.GetNearestBuilding(player.GetOrigin());
 		if(!building) return;
 
+		// A warehouse inside a base is the base's, not real estate. Nobody buys their way into one.
+		if(re.IsBaseWarehouse(building)) return;
+
 		EntityID entId = building.GetID();
 		if(re.IsOwned(entId) || re.IsRented(entId)) return;
 
@@ -265,6 +268,9 @@ class OVT_RealEstateRequestComponent : OVT_ControllerRequestComponent
 
 		IEntity building = re.GetNearestBuilding(player.GetOrigin());
 		if(!building) return;
+
+		// Base property is not real estate - see RpcAsk_BuyBuilding.
+		if(re.IsBaseWarehouse(building)) return;
 
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
 		if(!players) return;

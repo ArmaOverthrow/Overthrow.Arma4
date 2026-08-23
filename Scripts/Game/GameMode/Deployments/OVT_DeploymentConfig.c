@@ -55,6 +55,12 @@ class OVT_DeploymentConfig : ScriptAndConfig
 	[Attribute(defvalue: "0", desc: "Only a deliberate caller may create this - the objective director's own operations. The 30 s evaluator will never pick it as a candidate and the free-at-game-start pass will never seed it, whatever its location mask, priority or cost say. ForceCreateDeployment() is unaffected")]
 	bool m_bDirectorOnly;
 
+	[Attribute(defvalue: "0", desc: "Exempts this config from the deployment manager's daylight window, so the evaluator may buy it at any hour. The window only ever gated the 30 s evaluator - campaign-start seeding, the objective director's own operations and reinforcement rebuys were never inside it - so this is for a config that must be purchasable at 3am specifically")]
+	bool m_bIgnoreDaylightWindow;
+
+	[Attribute(defvalue: "0", desc: "Minimum IN-GAME hours between two of this deployment being created for the same faction. 0 = no cooldown, create it whenever else allows. Use it on anything that would otherwise be re-bought the instant the last one dies - a tower recapture thrown at the same tower over and over reads as the faction spamming rather than responding")]
+	float m_fCooldownHours;
+
 	//------------------------------------------------------------------------------------------------
 	void OVT_DeploymentConfig()
 	{

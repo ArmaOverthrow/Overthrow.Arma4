@@ -432,11 +432,7 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	//! \param[in] groupRplId The group entity's RplId, read from its RplComponent by the caller.
 	void RequestGroupWaypoints(RplId groupRplId)
 	{
-		if(!IsLocalControllerOwner())
-		{
-			Print("[OVT-WPVIZ] client: RequestGroupWaypoints REFUSED - not the local controller owner", LogLevel.WARNING); // TEMP TRACE
-			return;
-		}
+		if(!IsLocalControllerOwner()) return;
 
 		m_iRouteSeq += 1;
 
@@ -446,9 +442,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		m_Route.Clear();
 
 		int requestType = OVT_EGMRequestType.GROUP_WAYPOINTS;
-
-		Print(string.Format("[OVT-WPVIZ] client: sending ask seq %1 group %2 (isServer %3)",
-			m_iRouteSeq, groupRplId, Replication.IsServer()), LogLevel.NORMAL); // TEMP TRACE
 
 		if(Replication.IsServer())
 		{
@@ -521,20 +514,13 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_GroupWaypoints(int requestType, int seq, RplId groupRplId)
 	{
-		Print(string.Format("[OVT-WPVIZ] server: ask ARRIVED seq %1 group %2 type %3", seq, groupRplId, requestType), LogLevel.NORMAL); // TEMP TRACE
-
 		if(!Replication.IsServer()) return;
 
 		int playerId = ResolveOwningPlayerId();
-		if(playerId <= 0)
-		{
-			Print("[OVT-WPVIZ] server: ask DROPPED - could not resolve owning player", LogLevel.WARNING); // TEMP TRACE
-			return;
-		}
+		if(playerId <= 0) return;
 
 		if(!IsAuthorizedGM(playerId))
 		{
-			Print(string.Format("[OVT-WPVIZ] server: ask REFUSED - player %1 is not an authorized GM", playerId), LogLevel.WARNING); // TEMP TRACE
 			LogRefusal(playerId);
 			return;
 		}
@@ -544,10 +530,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 		IEntity entity = ResolveEntity(groupRplId);
 
 		AIGroup group = AIGroup.Cast(entity);
-
-		// TEMP TRACE - the one client->server RplId resolution in this whole seam
-		Print(string.Format("[OVT-WPVIZ] server: RplId %1 resolved to entity %2, AIGroup cast %3",
-			groupRplId, entity != null, group != null), LogLevel.NORMAL);
 
 		SendGroupWaypoints(playerId, seq, groupRplId, group);
 	}
@@ -721,9 +703,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 
 		vector groupPos = vector.Zero;
 		if(group) groupPos = group.GetOrigin();
-
-		Print(string.Format("[OVT-WPVIZ] server: walked group %1 -> count %2, currentIndex %3, flags %4",
-			groupRplId, count, currentIndex, flags), LogLevel.NORMAL); // TEMP TRACE
 
 		SendWaypointsBegin(playerId, seq, groupRplId, count, currentIndex, flags);
 
@@ -1290,9 +1269,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 			return;
 		}
 
-		Print(string.Format("[OVT-WPVIZ] client: Begin ARRIVED seq %1 group %2 count %3 currentIndex %4",
-			seq, groupRplId, count, currentIndex), LogLevel.NORMAL); // TEMP TRACE
-
 		m_iRouteStagingSeq = seq;
 		m_bRouteStaging = true;
 
@@ -1312,9 +1288,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	protected void RpcDo_Waypoint(int seq, int index, vector pos, int type)
 	{
-		Print(string.Format("[OVT-WPVIZ] client: Waypoint ARRIVED seq %1 index %2 pos %3 (staging %4)",
-			seq, index, pos, m_bRouteStaging), LogLevel.NORMAL); // TEMP TRACE
-
 		if(!IsStagingRouteRecord(seq)) return;
 
 		OVT_GMWaypointRecord record = new OVT_GMWaypointRecord();
@@ -1333,9 +1306,6 @@ class OVT_GMRequestComponent : OVT_ControllerRequestComponent
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
 	protected void RpcDo_WaypointsEnd(int seq, int sent)
 	{
-		Print(string.Format("[OVT-WPVIZ] client: End ARRIVED seq %1 sent %2 (staging %3, stagingSeq %4)",
-			seq, sent, m_bRouteStaging, m_iRouteStagingSeq), LogLevel.NORMAL); // TEMP TRACE
-
 		if(!IsStagingRouteRecord(seq)) return;
 
 		m_bRouteStaging = false;

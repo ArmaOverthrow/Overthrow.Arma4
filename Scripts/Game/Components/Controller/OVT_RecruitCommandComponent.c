@@ -1077,6 +1077,11 @@ class OVT_RecruitCommandComponent : OVT_Component
 		quote.m_aStores = new array<OVT_StorageComponent>();
 		OVT_WarehouseStockUtils.CollectStores(quote.m_vTentPosition, OVT_HighCommandRules.WAREHOUSE_RANGE, persId, quote.m_aStores);
 
+		// THE TENT'S OWN CRATE IS THE FIRST SOURCE. It is prepended rather than collected because
+		// CollectStores only offers registered WAREHOUSES, and the tent is a buildable with a ledger -
+		// which is the point: this is the pre-warehouse supply line, filled with early-game loot.
+		OVT_WarehouseStockUtils.PrependStore(quote.m_aStores, OVT_StorageUtils.GetStorage(quote.m_Tent));
+
 		array<int> availablePerLine = {};
 		foreach (OVT_ItemSourcingLine line : quote.m_aManifest)
 		{

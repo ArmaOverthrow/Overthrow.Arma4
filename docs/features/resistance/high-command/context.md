@@ -1245,3 +1245,17 @@ Also opened the two-part architectural gap above (load walk unassigned; HC bodie
 
 ### 2026-08-22 — Scaffolded
 Docs created from `implementation.md`: 75 tasks across 13 phases (2, 3, 6, 7, 9, 11 ADVANCED). Baseline clean on `v1.5`.
+
+---
+
+## Amendment 2026-08-24 — the recruitment tent is now the FIRST gear source
+
+`OVT_WarehouseStockUtils.CollectStores` still returns registered warehouses only. The equipped-recruit
+quote in `OVT_RecruitCommandComponent` now calls the new `OVT_WarehouseStockUtils.PrependStore()` to
+put the **tent's own supply crate** at index 0 of `quote.m_aStores` before coverage is computed —
+position is priority in that array, because `TakeUpTo` walks it in order.
+
+Consequence for §3.8's coverage model: gear can now be covered with **no warehouse in range at all**,
+which was previously impossible. `SplitCoverage` is unchanged; only the store list is longer.
+
+Full record: `docs/features/logistics/storage/context.md`, "Post-close change 2026-08-24 (f)".

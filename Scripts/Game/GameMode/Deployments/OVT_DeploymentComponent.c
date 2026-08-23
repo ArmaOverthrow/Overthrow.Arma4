@@ -238,7 +238,21 @@ class OVT_DeploymentComponent : OVT_Component
 	{
 		if (!Replication.IsServer())
 			return;
-			
+
+		// AN EMPTY SERVER TICKS NOBODY (author, 2026-08-23). The deployment MANAGER's guard only ever
+		// blocked CREATION - see EvaluateDeployments() - so every deployment already standing kept
+		// running its modules on an empty server: reinforcement rebuys spending whatever was left in the
+		// pool, patrol behaviours, condition modules, teardown polls. Nothing could be watching any of
+		// it, because nothing materialises without an observer.
+		//
+		// ⚠ EVERY TIMER IN HERE IS EITHER WORLD-TIME OR A TICK COUNT, so a skipped stretch is safe both
+		// ways: a world-time comparison (a reinforcement cooldown, an activation delay) simply reads as
+		// long expired when players return, and a tick counter (the insertion module's stuck and
+		// arrival counters) is paused rather than banked.
+		PlayerManager players = GetGame().GetPlayerManager();
+		if (players && players.GetPlayerCount() == 0)
+			return;
+
 		// Safety check to prevent crashes during cleanup
 		if (!m_aActiveModules)
 			return;

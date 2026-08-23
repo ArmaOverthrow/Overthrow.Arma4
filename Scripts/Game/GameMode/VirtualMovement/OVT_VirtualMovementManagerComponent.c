@@ -259,6 +259,20 @@ class OVT_VirtualMovementManagerComponent : OVT_Component
 		if (!m_mState)
 			return;
 
+		// AN EMPTY SERVER ADVANCES NOBODY (author, 2026-08-23). Every other campaign system already
+		// stops dead at zero players - income, the deployment evaluator, the objective director, the
+		// player economy - and this tick did not, so an idle server quietly walked every registered
+		// group along its plan for as long as it was left running. Nothing MATERIALISES with no
+		// observers, so the only thing that was happening was the world silently rearranging itself.
+		//
+		// ⚠ SAFE TO RESUME, and it is the dt clamp that makes it safe rather than anything here: dt is
+		// per-group and capped at OVT_VirtualMovementMath.MAX_STEP_SECONDS (30 s), so the first tick
+		// after a player joins takes ONE ordinary step no matter how many hours the queue was skipped.
+		// The stale m_fLastTickMs needs no fixing up for the same reason.
+		PlayerManager players = GetGame().GetPlayerManager();
+		if (players && players.GetPlayerCount() == 0)
+			return;
+
 		// Core absent (a world without the manager, or a client) means there is nothing to advance. Not a
 		// warning: this feature is a consumer of core, not a requirement of it.
 		OVT_VirtualizationManagerComponent virt = OVT_Global.GetVirtualization();

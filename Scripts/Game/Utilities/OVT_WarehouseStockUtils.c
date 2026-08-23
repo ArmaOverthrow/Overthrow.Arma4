@@ -62,6 +62,26 @@ class OVT_WarehouseStockUtils
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Puts one store at the FRONT of a collected list, so it is drained before anything else.
+	//!
+	//! POSITION IS PRIORITY here: CountAvailable sums the whole array, but TakeUpTo walks it in order
+	//! and stops as soon as the need is met. A recruitment tent's own crate goes in front of the
+	//! warehouses this way, which is what makes storage-equipped recruits work before a player owns a
+	//! warehouse at all.
+	//! \param[in,out] stores Stores from CollectStores().
+	//! \param[in] store The store to promote. Null, or one already in the list, is a no-op.
+	static void PrependStore(notnull array<OVT_StorageComponent> stores, OVT_StorageComponent store)
+	{
+		if (!store)
+			return;
+
+		if (stores.Find(store) != -1)
+			return;
+
+		stores.InsertAt(store, 0);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! How many of one resource the collected stores hold between them.
 	//! \param[in] stores Stores from CollectStores().
 	//! \param[in] res Prefab ResourceName, never an economy id.

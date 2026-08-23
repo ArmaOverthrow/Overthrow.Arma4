@@ -8953,6 +8953,12 @@ class OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig : SCR_AutotestCaseBa
 		fixture.m_iAllowedFactionTypes = OVT_FactionTypeFlag.OCCUPYING_FACTION;
 		fixture.m_iAllowedLocationTypes = 0; // "no restrictions" - the probe's classification is irrelevant
 
+		// ⚠ AND THE DAYLIGHT WINDOW, for the same reason as m_fChance above: the test world's clock is
+		// authored at 21:17 (OVT_TestIsland_Layers/default.layer, "Initial Day Time" 21.295), which is
+		// outside the shipped 05:00-17:00 window, so without this every claim below would be asserting
+		// against a filter that refused the fixtures before priority was ever consulted.
+		fixture.m_bIgnoreDaylightWindow = true;
+
 		// IsValidConfig() demands at least one spawning module. This one is left entirely unauthored,
 		// so it wants 0 groups and costs 0, and the deployment is made inert before it could tick.
 		OVT_InfantrySpawningDeploymentModule spawning = new OVT_InfantrySpawningDeploymentModule();

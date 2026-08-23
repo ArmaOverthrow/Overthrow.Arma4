@@ -117,10 +117,18 @@ class OVT_QRFControllerComponent: OVT_Component
 	//! until its budget is gone, so a per-source rule would put an armed vehicle on every pass.
 	static const int ECHELON_CAP_PER_BATTLE = 2;
 
-	//! How far from the objective an echelon stops, in metres. Far enough that it is a standoff and not
-	//! an assault, close enough that it is inside QRF_RANGE and therefore denies the resistance an
-	//! uncontested zone.
-	static const float ECHELON_STANDOFF_M = 450;
+	//! How far from the objective an echelon stops, in metres. ZERO: IT DRIVES INTO THE BATTLE.
+	//!
+	//! It was 450 - "far enough that it is a standoff and not an assault" - and play-test overruled it
+	//! (author, 2026-08-23): *"they should really just push into the QRF because that's where the
+	//! resistance will be."* A gun parked half a kilometre out is not denying the resistance anything;
+	//! it is a technical idling in a field while the battle happens somewhere else.
+	//!
+	//! ⚠ THE ROAD SNAP IN ResolveEchelonStandoff() STILL APPLIES, so this is "the nearest road to the
+	//! objective" rather than the objective's exact metre, and the reachability half of the gate is
+	//! unchanged. COUNTER_ATTACK mode is NOT affected: it anchors on the siege ring instead
+	//! (SiegeEchelonAnchor), because an encirclement that drives into its own middle is not a siege.
+	static const float ECHELON_STANDOFF_M = 0;
 
 	//! How far a road may be from a point and still count as that point's road, in metres. The same
 	//! figure OVT_WorldUtils.ROAD_SPAWN_MAX_DISTANCE uses for "the road you park on".

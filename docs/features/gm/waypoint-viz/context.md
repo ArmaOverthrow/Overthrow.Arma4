@@ -3,7 +3,7 @@
 **Feature:** gm/waypoint-viz (epic `gm`, feature 4 of 5)
 **Last Updated:** 2026-08-15 (Phase 5 complete — docs finalized)
 **Current Phase:** Complete
-**Status:** 🔴 Built + Workbench-verified; **BROKEN ON DEDICATED SERVER** — reopened 2026-08-23. The 2026-08-16 "dedicated-server GM client green" claim was RETRACTED by the user on 2026-08-23: dedi testing had not actually started yet. Routes draw in single-player/Workbench and draw NOTHING on a dedicated server — i.e. **D4's wire has never been observed working**, which is the entire reason it exists.
+**Status:** 🔴 ROOT-CAUSED, needs a rendering rework - the visual is built on `Shape.Create*`, which is **Workbench-only debug geometry** and paints nothing in a shipped client. Wire/walk/logic all positively confirmed good against a real dedicated server. Previously described as: Built + Workbench-verified; **BROKEN ON DEDICATED SERVER** — reopened 2026-08-23. The 2026-08-16 "dedicated-server GM client green" claim was RETRACTED by the user on 2026-08-23: dedi testing had not actually started yet. Routes draw in single-player/Workbench and draw NOTHING on a dedicated server — i.e. **D4's wire has never been observed working**, which is the entire reason it exists.
 
 ---
 
@@ -44,6 +44,12 @@
   (`epic-overview.md` feature row + D13 upstream findings attributed to `occupying`)
 
 **What's Next:**
+- 🔴 **Phase 6 — rendering rework, `Shape` → `CanvasWidget`** (planned 2026-08-24, 9 tasks, `ui-developer`).
+  See `implementation.md` §4 Phase 6 for D14–D16 and the full work list. Its last task discharges the
+  reopened Phase 4 Step 2. Everything else about this feature is confirmed working on a real dedicated
+  server; only the draw primitive changes.
+
+**Superseded (kept for history):**
 - ⏸️ Phase 4 Steps 1–2 — **deferred by the user 2026-08-15** to a later session. The drawing, the selection
   hookup, the mode-switch teardown, the dedicated-server path and the negative auth path are all still
   unobserved; see "Needs human verification" below for the exact list. The feature is **code-complete pending
@@ -368,7 +374,36 @@ altitude, and coexistence look-and-feel with hud-icons.
   which gate it exits at (no seam / `HasRoute()` false / id mismatch) or that it is DRAWING and with how many
   points. Grep the client log for `OVT-WPVIZ] draw:` - **absence of those lines is itself the answer** (the
   per-frame hook is not ticking).
-- Not yet done: run round 2 and read the client log.
+- **Round 2 logs: `draw: DRAWING 3 points (offset 1, groupEntity 1), first <7016.82,96.86,4686.44>` every
+  frame, forever.** The renderer ticks, `HasRoute()` is true, the ids match, the group entity resolves and
+  valid world coordinates go into `Shape.CreateLine`. **Every line of this feature's logic is correct.**
+
+### 2026-08-23 - ROOT CAUSE: `Shape` is DEBUG-ONLY geometry and does not render in a shipped client
+- **User's diagnosis, and it is right: `Shape.Create*` draws only in Workbench.** The API lives in
+  `scripts/Core/generated/`**`Debug`**`/Shape.c`. In a real client the calls succeed, return a `ref Shape`,
+  log nothing, and paint nothing. Corroboration: essentially **every** vanilla `Shape.Create` call site is
+  inside `#ifdef WORKBENCH` / `ENABLE_DIAG` / a DiagMenu gate, and the one notable ungated user,
+  `SCR_WaypointLinesEditorUIComponent.c`, **also carries a `CanvasWidget` path** - BI knows the Shape half
+  is debug-only.
+- **So "works in single player" meant "works in Workbench".** Phase 4 Step 1 only ever exercised Workbench
+  Play mode, and no automated gate can see this: it compiles, runs, and silently draws nothing.
+  **A per-frame "I am drawing" trace that still shows nothing on screen means the DRAW PRIMITIVE is wrong,
+  not the data** - that is the reusable lesson, saved to memory as `shape-debug-lines-workbench-only`.
+- **This is not a bug in the wire, the walk, the classification or the renderer's logic** - all four are now
+  positively confirmed working against a real dedicated server, which is more than the feature could claim
+  before. It is the choice of draw primitive, made in plan 3.4 / Phase 3, that is invalid for shipped builds.
+- **The fix is a rendering rework**, not a patch: project each vertex with
+  `workspace.ProjWorldToScreenNative(worldPos, world)` and emit `LineDrawCommand`s into a `CanvasWidget`
+  (`canvas.SetDrawCommands(...)`), the way vanilla's cycle-arrow branch does. Consequences to face when it is
+  planned: the renderer stops being widget-free (plan 3.4's "owns no widget and needs no layout" is dead, and
+  a layout + `.meta` + GUID may now be needed - **re-grep `{6B0A` before allocating**, that series is
+  reserved for gm-map); `SetDrawCommands` **replaces** the whole list so the canvas must not be shared with
+  vanilla's own writer; behind-camera and off-screen vertices need culling that 3D shapes gave for free;
+  and terrain occlusion is gone (acceptable - `NOZBUFFER` was already the intent). D6's closing-leg rule and
+  the highlight-leg logic carry over unchanged.
+- Temporary `[OVT-WPVIZ]` trace **stripped** (`grep -rn "OVT-WPVIZ" Scripts/` = 0, compile-check OK 6341
+  files). Note: commit `c525181d` "(fix) various dedi bugs from testing" **captured the trace** before it
+  was removed; the removal is a working-tree change on top of it.
 
 
 ### 2026-08-15 — Phase 3 built (renderer + selection hookup)

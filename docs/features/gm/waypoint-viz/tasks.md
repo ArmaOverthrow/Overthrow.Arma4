@@ -1,12 +1,13 @@
 # Waypoint Viz — Task Checklist
 
 **Feature:** gm/waypoint-viz (epic `gm`, feature 4 of 5)
-**Last Updated:** 2026-08-15 (Phase 5 complete)
-**Progress:** 28/29 (Phase 4 Step 2 REOPENED 2026-08-23) — Workbench render rounds green; the **dedicated-server pass never happened** (user retracted the 2026-08-16 claim on 2026-08-23) and routes **do not draw on a dedicated server**
+**Last Updated:** 2026-08-24 (Phase 6 planned — rendering rework)
+**Progress:** 28/38 (Phase 6 planned 2026-08-24, 0/9) - ROOT-CAUSED 2026-08-23, needs a Phase 6 rendering rework. The visual is built on `Shape.Create*`, which is **Workbench-only debug geometry**: it paints nothing in a shipped client. Wire, walk, classification and renderer logic are all now positively confirmed good against a real dedicated server. (Phase 4 Step 2 REOPENED 2026-08-23) — Workbench render rounds green; the **dedicated-server pass never happened** (user retracted the 2026-08-16 claim on 2026-08-23) and routes **do not draw on a dedicated server**
 
-> The remaining **2** are the deferred user-driven **Phase 4 Steps 1–2** (Workbench host pass and the
-> multiplayer/dedicated + negative-auth pass) — deferred by the user 2026-08-15 to a later session. All
-> implementation and documentation work is complete; see `context.md` → "Needs human verification".
+> **Phases 0–3 and 5 stand: the wire, the walk, the classification and the renderer's logic are all
+> positively confirmed working against a real dedicated server (2026-08-23 trace).** What does not work is
+> the draw primitive — `Shape.Create*` is Workbench-only debug geometry. **Phase 6 replaces it with a
+> `CanvasWidget`**; Phase 4 Step 2 is reopened and is discharged by Phase 6's final task.
 
 > Agent tiers per `implementation.md` §4: **no phase is routed to an advanced agent.** Phase 0 → orchestrator
 > (no agent); Phase 1 → `component-developer`; Phase 2 → `network-specialist` (highest-risk phase — additive
@@ -147,7 +148,7 @@
 
 ---
 
-## Phase 4: Verification gate (3/3 complete) — M, user-driven
+## Phase 4: Verification gate (2/3 — Step 2 REOPENED) — M, user-driven
 
 - [x] ✅ **Step 1 — Workbench Play mode (host path)** — Completed 2026-08-16 via live feedback rounds (route draws, selection resolution, solid lines + blue current leg)
   - Description: §8 checks F-1…F-8, Q-3, I-4, I-5 per Verification Method Step 1 (perimeter patrol = closed 8-vertex loop; 1 vertex = cycle recursion failed). ⚠️ Warn the user before launching anything
@@ -185,6 +186,60 @@
 
 ---
 
+## Phase 6: 🔴 Rendering rework — `Shape` → `CanvasWidget` (0/9 complete) — L, `ui-developer`
+
+> **Why:** `Shape.Create*` is Workbench-only debug geometry and paints nothing in a shipped client, so this
+> feature has never actually drawn for a real player. See `implementation.md` §4 Phase 6 (D14–D16) and
+> `context.md` → 2026-08-23 root-cause note. The wire, the walk and the renderer's logic are all confirmed
+> good against a real dedicated server — **only the draw primitive changes.**
+
+- [ ] **Mint the canvas layout**
+  - Description: `UI/Layouts/GM/GMWaypointCanvas.layout` + `.meta`, GUID `{6B08D3A17C4B1016}` (next free in the gm series; highest in use `…1015`). Root `CanvasWidgetClass` named `OVT_GMWaypointCanvas`, `FrameWidgetSlot` anchored `0 0 1 1`, **must not take cursor input**. ⚠️ re-grep `{6B0A` (braced) first — reserved for gm-map
+  - File(s): `UI/Layouts/GM/GMWaypointCanvas.layout` (new), `.layout.meta` (new)
+  - Estimate: 🟡
+
+- [ ] **Hookup: create the canvas before the panel and pass it to the renderer**
+  - Description: In `HandlerAttachedScripted`, create the canvas **before** `PANEL_LAYOUT` so panel/hud-icons keep z-order above the route; widen to `Attach(menu, canvas)`
+  - File(s): `Scripts/Game/UI/Modded/SCR_EditModeEditorUIComponent.c`
+  - Estimate: 🟢
+
+- [ ] **Renderer: cache workspace/world + the projection helper**
+  - Description: Cache `GetWorkspace()`/`GetWorld()` at Attach; `ProjWorldToScreenNative(pos, world)`, native result straight into `m_Vertices` (no DPI conversion). Behind-camera test is `posScreen[2] > 0`; **D16 — drop the leg, never clamp**
+  - File(s): `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c`
+  - Estimate: 🟡
+
+- [ ] **Renderer: legs as `LineDrawCommand`s**
+  - Description: One command per contiguous same-colour run, highlight leg always its own. `m_fWidth = LINE_THICKNESS`, `m_fOutlineWidth = 0`, `m_bShouldEnclose = false`. ⚠️ **D6 survives**: the cyclic closing leg is an explicit extra vertex last→first — never `m_bShouldEnclose`, which would close back to the GROUP vertex
+  - File(s): `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c`
+  - Estimate: 🟡
+
+- [ ] **Renderer: waypoint markers as projected world-space N-gons (D15)**
+  - Description: No canvas circle command exists. Build the circle in **world** space on the xz-plane at `CIRCLE_RADIUS` metres, `CIRCLE_SEGMENTS = 12`, project each vertex, emit one enclosed `LineDrawCommand`. Keeps the metre-based radius so markers shrink with distance as before
+  - File(s): `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c`
+  - Estimate: 🟡
+
+- [ ] **Renderer: per-frame command lifecycle + Detach flush**
+  - Description: One reusable array, `Clear()` each frame, **exactly one `SetDrawCommands` per frame even when empty** (skipping it leaves the last route painted forever); `Detach()` pushes one empty `SetDrawCommands` before dropping the canvas
+  - File(s): `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c`
+  - Estimate: 🟢
+
+- [ ] **Extract the colour-run split as a pure static + Logic case**
+  - Description: Move "legs → contiguous colour runs" into `OVT_GMWaypointFormat` so it stays Logic-testable; extend `OVT_TEST_Logic_GMWaypointFormat`. Projection itself is NOT unit-testable and must not hide behind an untested helper
+  - File(s): `Scripts/Game/GameMode/GM/OVT_GMWaypointFormat.c`, `Scripts/Game/Tests/TestSuites/Logic/OVT_TEST_Logic_GMWaypointFormat.c`
+  - Estimate: 🟡
+
+- [ ] **Strip `Shape` entirely + grep gate**
+  - Description: Delete `m_eFlags`, `m_aPoints[33]` and every `Shape.` reference. Gate: `grep -n "Shape\." Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c` = 0. Run `compile-check.sh` + the All group
+  - File(s): `Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c`
+  - Estimate: 🟢
+
+- [ ] 🔴 **Verify on a REAL client against a dedicated server** (discharges the reopened Phase 4 Step 2)
+  - Description: ⚠️ **Workbench is no longer evidence of anything visual.** Route draws with the current leg highlighted; cyclic patrol closes (finally count R1's vertices); route does NOT block click-select or box-select; panel + hud-icons tooltips render ABOVE the route; camera turned so the group is behind it drops the route cleanly with no screen-spanning artefacts; deselect / editor close / Photo mode leave no residue. ⚠️ Warn the user before launching
+  - File(s): n/a (manual)
+  - Estimate: 🟡
+
+---
+
 ## Bugs & Issues
 
 **Active Bugs:**
@@ -197,7 +252,7 @@
 
 ## Technical Debt
 
-- (none yet)
+- 🔴 **The whole visual must move off `Shape.Create*` onto a `CanvasWidget`** (found 2026-08-23). `Shape` is debug-only geometry that renders in Workbench and nowhere else, so this feature has never actually drawn for a real player. Replacement: `workspace.ProjWorldToScreenNative()` + `LineDrawCommand` + `canvas.SetDrawCommands()`, per vanilla `SCR_WaypointLinesEditorUIComponent`'s cycle-arrow branch. Kills plan 3.4's "owns no widget, needs no layout" premise; needs off-screen/behind-camera culling; must NOT share a canvas with vanilla's writer (`SetDrawCommands` replaces the list). See `context.md` → 2026-08-23 root-cause note.
 
 ---
 

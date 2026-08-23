@@ -519,6 +519,85 @@ no waypoints?" from `context.md` alone.
 
 ---
 
+### Phase 6 — 🔴 Rendering rework: `Shape` → `CanvasWidget` — **L — `ui-developer`**
+
+**Why this phase exists (2026-08-23).** The feature's entire visual was built on `Shape.CreateLine` /
+`CreateCircle`. That API lives in `scripts/Core/generated/`**`Debug`**`/Shape.c` and is **debug-only
+geometry: it renders in Workbench and paints nothing in a shipped client.** The calls succeed, return a
+`ref Shape`, and log nothing, so every automated gate passes and Workbench Play mode looks perfect. On a
+real dedicated server a GM sees nothing at all. Confirmation: essentially every vanilla `Shape.Create` call
+site sits behind `#ifdef WORKBENCH` / `ENABLE_DIAG` / a DiagMenu gate, and the one notable ungated user,
+`SCR_WaypointLinesEditorUIComponent.c`, **also carries a `CanvasWidget` path**.
+
+Nothing else is wrong. The 2026-08-23 dedicated-server trace positively confirmed the ask crossing, the
+server-side `RplId` resolution, the cycle-flattening walk (`count 5, currentIndex 0, flags CYCLIC`), the
+owner fan, the client commit (`complete 1`) **and** the renderer's own gates (`DRAWING 3 points` every
+frame, valid world coordinates, group entity resolved). **This phase changes the draw primitive and
+nothing else.**
+
+**D14 — our own canvas, never vanilla's.** `m_wCanvas` is declared in `UI/layouts/Editor/Modes/Mode_Edit.layout`
+— the very root our modded component attaches to — and `SCR_WaypointLinesEditorUIComponent` **clears and
+rewrites it every frame**. `SetDrawCommands` replaces the whole list, so a shared canvas means last-writer-wins
+and one of the two visuals silently vanishes. We add our own full-screen canvas.
+
+**D15 — world-space circles, not screen-space.** There is no canvas circle command. Markers are generated as
+an N-gon **in world space** on the xz-plane at `CIRCLE_RADIUS` metres and then projected per vertex, so they
+keep shrinking with distance exactly as `Shape.CreateCircle` did. A fixed screen-radius circle would look
+wrong at GM camera altitudes.
+
+**D16 — drop a leg, never clamp it.** A vertex behind the camera projects to garbage; clamping it draws a line
+across the whole screen. Any leg with an endpoint failing the vanilla behind-camera test is skipped for that
+frame. Proper near-plane clipping is explicitly **out of scope**.
+
+**Work:**
+
+1. **New layout** `UI/Layouts/GM/GMWaypointCanvas.layout` + `.meta`, GUID **`{6B08D3A17C4B1016}`** — the next
+   free id in the gm epic's own series (highest in use is `…1015`). ⚠️ **`{6B0A…}` stays reserved for
+   `gm-map` — re-grep with the brace before allocating anything.** Root is a `CanvasWidgetClass` named
+   `OVT_GMWaypointCanvas` in a `FrameWidgetSlot` anchored `0 0 1 1` (full screen), and it **must not take
+   cursor input** — a full-screen widget over the editor that swallows clicks would break GM selection and
+   box-select.
+2. **Hookup** (`SCR_EditModeEditorUIComponent.HandlerAttachedScripted`): create the canvas **before**
+   `PANEL_LAYOUT` so the panel and `hud-icons`' widgets keep z-order above the route, then pass the
+   `CanvasWidget` into `OVT_GMWaypointRenderer.Attach(menu, canvas)`.
+3. **Renderer rework** (`OVT_GMWaypointRenderer.c`):
+   - Cache `GetGame().GetWorkspace()` and `GetGame().GetWorld()` at `Attach`.
+   - Project every vertex with `m_Workspace.ProjWorldToScreenNative(worldPos, m_World)`. Feed the **native**
+     result straight into `m_Vertices` — no DPI conversion (vanilla precedent,
+     `SCR_WaypointLinesEditorUIComponent.c:63-71`).
+   - Behind-camera test is **`posScreen[2] > 0`** (`SCR_SelectContextAction.c:18`,
+     `SCR_SelectionEditorUIComponent.c:216`). Apply D16.
+   - Legs: one `LineDrawCommand` per contiguous same-colour run, with the highlight leg always its own
+     command. `m_iColor` packed as today, `m_fWidth = LINE_THICKNESS`, `m_fOutlineWidth = 0`,
+     `m_bShouldEnclose = false`.
+   - **D6 survives and still matters:** the closing leg of a cyclic route is an explicit extra vertex from
+     the last waypoint back to waypoint 0. Do **not** reach for `m_bShouldEnclose` on the route polyline —
+     it would close back to the *group* vertex, which is precisely the bug D6 was written to avoid.
+   - Markers: per D15, `CIRCLE_SEGMENTS = 12`, one enclosed `LineDrawCommand` each.
+   - One reusable command array, `Clear()`ed each frame, and **exactly one `SetDrawCommands` per frame even
+     when the list is empty** — skipping the empty write leaves the previous route painted forever.
+   - `Detach()` pushes one empty `SetDrawCommands` before dropping the canvas reference.
+4. **Extract the colour-run split** into `OVT_GMWaypointFormat` as a pure static so it stays Logic-testable;
+   projection itself is not unit-testable and must not be hidden behind an untested helper.
+5. **Delete** `m_eFlags`, `m_aPoints[33]` and every `Shape.` reference.
+
+**Grep gates:** `grep -n "Shape\." Scripts/Game/Components/GM/OVT_GMWaypointRenderer.c` = **0**;
+`grep -rn "{6B0A" .` unchanged from baseline.
+
+**Carried over untouched:** the whole wire, the walk, `ClassifyPrefab`, `LegCount`, `IsHighlightLeg`, the live
+group-vertex offset rule, D3's fetch-once-at-selection, and D10's single-route store.
+
+**Acceptance — and Workbench is no longer evidence of anything visual.** Every check below is on a **real
+client against a dedicated server**:
+- a selected group's route draws, with the current leg highlighted;
+- a cyclic perimeter patrol closes (and this is finally the chance to count R1's vertices);
+- the route does **not** block click-selection or box-select;
+- the GM panel and `hud-icons` tooltips still render **above** the route;
+- turning the camera until the group is behind it drops the route cleanly, with no screen-spanning artefacts;
+- deselect, editor close and a Photo-mode switch each leave **no** painted residue.
+
+---
+
 ## 5. Key Technical Decisions
 
 ### D1 — The E_ editable waypoint set is not used — **epic decision, settled, not re-litigated**

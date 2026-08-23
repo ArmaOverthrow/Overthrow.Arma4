@@ -116,6 +116,36 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	[Attribute(defvalue: "2", desc: "Maximum live insertion convoys per faction. Overwritten from the difficulty preset at game start. 0 disables live insertion - every force then walks in")]
 	int m_iMaxConcurrentInsertions;
 
+	//! THE DAYLIGHT WINDOW. Forces do not muster in the dark: outside these hours the 30 s evaluator
+	//! buys nothing, and the pool it would have spent simply accumulates until morning.
+	//!
+	//! ⚠ WHAT IS **NOT** GATED, and none of it by omission:
+	//!   - CAMPAIGN-START SEEDING (SeedFreeConfigs). A campaign that opens at 22:00 must not open on an
+	//!     empty map, and baseline presence is not something the faction "decides" to do at all;
+	//!   - THE OBJECTIVE DIRECTOR'S OPERATIONS. They are ForceCreateDeployment callers and never touch
+	//!     the evaluator; the counter-attack already carries its own, narrower daylight condition;
+	//!   - REINFORCEMENT REBUYS. A garrison that loses men at 02:00 still tops itself up, because that
+	//!     is an existing force reacting rather than a new one being raised.
+	//!
+	//! The bounds are read by OVT_ObjectivePhaseRules.IsCounterAttackWindow(), which is reused rather
+	//! than reimplemented: it already honours a window that crosses midnight and already treats an
+	//! out-of-range bound or a zero-width window as NO RESTRICTION rather than as "never".
+	[Attribute(defvalue: "5", desc: "First hour (0-23) of the day the evaluator may buy deployments, INCLUSIVE. A bound outside 0-23, or a start equal to the end, means no restriction at all")]
+	int m_iDaylightStartHour;
+
+	[Attribute(defvalue: "17", desc: "First hour (0-23) the evaluator may no longer buy deployments, EXCLUSIVE - so 17 means the last purchase of the day is at 16:59. Set equal to the start hour to switch the window off")]
+	int m_iDaylightEndHour;
+
+	//! The world clock, resolved on first use. Cached because this is asked once per evaluator pass.
+	protected TimeAndWeatherManagerEntity m_DaylightClock;
+
+	//! Latches the "the faction is not raising anything until morning" line to once per nightfall.
+	protected bool m_bNightHoldLogged;
+
+	//! "<factionIndex>|<config name>" -> the in-game minute the last one was created at. See
+	//! ResolveInGameMinute() for why the stamp is an INT of minutes and not a float of hours.
+	protected ref map<string, int> m_mConfigCooldownStamp;
+
 	protected ref array<ref EntityID> m_aActiveDeployments;
 	protected ref map<int, ref array<ref EntityID>> m_mFactionDeployments; // factionIndex -> deployments
 	protected ref map<int, int> m_mFactionResources; // factionIndex -> available resources
@@ -1587,9 +1617,162 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! \param[in] threatLevel The candidate's scored threat.
 	//! \param[in] availableResources That faction's deployment pool.
 	//! \return The next config to create here, or null.
+	//------------------------------------------------------------------------------------------------
+	//! THE PER-CONFIG COOLDOWN. \return True when this config was created too recently to create again.
+	//!
+	//! 🔴 WHAT IT IS FOR. Play-test, 2026-08-23: *"the OF was relentlessly throwing TowerRecaptureUnrest
+	//! specops at a single tower which was pretty annoying."* `m_iMaxInstances 1` only stops TWO existing
+	//! at once - the moment the last specops team dies the deployment is deleted and the evaluator buys
+	//! another on its next pass, which reads as spamming rather than responding.
+	//!
+	//! ⚠ PER FACTION AS WELL AS PER CONFIG. Two factions running the same config are two different
+	//! stories and neither should silence the other.
+	//! \param[in] config The config being considered.
+	//! \param[in] factionIndex The faction that would own it.
+	//! \return True when it must wait.
+	bool IsConfigOnCooldown(notnull OVT_DeploymentConfig config, int factionIndex)
+	{
+		if (config.m_fCooldownHours <= 0)
+			return false;
+
+		if (!m_mConfigCooldownStamp)
+			return false;
+
+		int last;
+		if (!m_mConfigCooldownStamp.Find(CooldownKey(config, factionIndex), last))
+			return false;
+
+		int now = ResolveInGameMinute();
+		if (now < 0)
+			return false;
+
+		// A stamp in the future means the clock went backwards (a load into an earlier save). Treat it as
+		// expired rather than locking the config out for the rest of the campaign.
+		if (now < last)
+			return false;
+
+		return (now - last) < Math.Round(config.m_fCooldownHours * 60);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Records that one was just created, so the next is held off.
+	//! \param[in] config The config that was created.
+	//! \param[in] factionIndex The faction that owns it.
+	protected void StampConfigCooldown(notnull OVT_DeploymentConfig config, int factionIndex)
+	{
+		if (config.m_fCooldownHours <= 0)
+			return;
+
+		if (!m_mConfigCooldownStamp)
+			m_mConfigCooldownStamp = new map<string, int>();
+
+		int now = ResolveInGameMinute();
+		if (now < 0)
+			return;
+
+		m_mConfigCooldownStamp.Set(CooldownKey(config, factionIndex), now);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config.
+	//! \param[in] factionIndex The faction.
+	//! \return The map key for this (faction, config) pair.
+	protected string CooldownKey(notnull OVT_DeploymentConfig config, int factionIndex)
+	{
+		return factionIndex.ToString() + "|" + config.m_sDeploymentName;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE CAMPAIGN CLOCK AS A MONOTONIC INTEGER NUMBER OF MINUTES.
+	//!
+	//! ⚠ AN INT OF MINUTES, NEVER A FLOAT OF HOURS, AND THAT IS NOT STYLE. EnforceScript `float` is IEEE
+	//! binary32: an absolute time measured from year zero has a ~2-hour quantum by the present day, so a
+	//! six-hour cooldown expressed as a float difference of two absolute stamps is unusable - a delta of
+	//! twelve minutes reads as 0.0. Minutes as an int stay exact: the present day lands near 1.1e9, well
+	//! inside int range.
+	//!
+	//! ⚠ THE DAY INDEX IS APPROXIMATE AND ONLY HAS TO BE MONOTONIC. 31 days per month and 12 months per
+	//! year over-counts, which shifts every stamp by the same amount and therefore cancels in the
+	//! subtraction. It must never go BACKWARDS, which is why month and year are included at all.
+	//! \return Minutes, or -1 when there is no clock to read.
+	protected int ResolveInGameMinute()
+	{
+		if (!m_DaylightClock)
+		{
+			ChimeraWorld world = ChimeraWorld.CastFrom(GetGame().GetWorld());
+			if (world)
+				m_DaylightClock = world.GetTimeAndWeatherManager();
+		}
+
+		if (!m_DaylightClock)
+			return -1;
+
+		TimeContainer time = m_DaylightClock.GetTime();
+		if (!time)
+			return -1;
+
+		int year, month, day;
+		m_DaylightClock.GetDate(year, month, day);
+
+		int dayIndex = ((year * 12) + month) * 31 + day;
+
+		return ((dayIndex * 24) + time.m_iHours) * 60 + time.m_iMinutes;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! IS THE EVALUATOR ALLOWED TO RAISE ANYTHING RIGHT NOW?
+	//!
+	//! ⚠ INCOME IS NOT GATED, ONLY SPENDING. The deployment pool keeps filling all night - the author's
+	//! own framing, 2026-08-23: *"its ok if they accrue deployment pool etc in this time"* - so a night
+	//! costs the faction nothing but timing, and dawn is when it spends what it banked.
+	//!
+	//! ⚠ FAILS OPEN ON A MISSING CLOCK, exactly as OVT_DaylightWindowObjectiveCondition does. A world
+	//! with no time manager is a test world, and failing closed there would silently stop every
+	//! evaluator purchase in the whole Init tier with nothing logged.
+	//! \return True when deployments may be bought.
+	bool IsInDaylightWindow()
+	{
+		if (!m_DaylightClock)
+		{
+			ChimeraWorld world = ChimeraWorld.CastFrom(GetGame().GetWorld());
+			if (world)
+				m_DaylightClock = world.GetTimeAndWeatherManager();
+		}
+
+		if (!m_DaylightClock)
+			return true;
+
+		TimeContainer time = m_DaylightClock.GetTime();
+		if (!time)
+			return true;
+
+		bool open = OVT_ObjectivePhaseRules.IsCounterAttackWindow(time.m_iHours, m_iDaylightStartHour, m_iDaylightEndHour);
+
+		if (open)
+		{
+			m_bNightHoldLogged = false;
+			return true;
+		}
+
+		if (!m_bNightHoldLogged)
+		{
+			m_bNightHoldLogged = true;
+
+			Print(string.Format("[Overthrow] Deployments: it is %1:00, outside the %2:00-%3:00 window - nothing new is raised until morning, and the pool keeps filling meanwhile",
+				time.m_iHours.ToString(), m_iDaylightStartHour.ToString(), m_iDaylightEndHour.ToString()), LogLevel.NORMAL);
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	OVT_DeploymentConfig FindBestDeploymentConfig(vector position, int factionIndex, float threatLevel, int availableResources)
 	{
 		array<OVT_DeploymentConfig> suitableConfigs = new array<OVT_DeploymentConfig>;
+
+		// Read ONCE for the whole pass rather than per config: it is a clock read and every config in
+		// the registry would otherwise ask the same question the same number of times.
+		bool inDaylight = IsInDaylightWindow();
 
 		// Parallel to suitableConfigs, for the world-free selection below.
 		array<string> suitableNames = new array<string>;
@@ -1612,6 +1795,11 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			// objective, outside the director's accounting and with no objective behind it. The director
 			// reaches them through FindConfigByName() + ForceCreateDeployment(), which ignore this flag.
 			if (!config.IsSelectableByEvaluator())
+				continue;
+
+			// Forces are not raised in the dark. Asked per config rather than as one early return on the
+			// whole pass, so a config can author its way out of the window - see m_bIgnoreDaylightWindow.
+			if (!inDaylight && !config.m_bIgnoreDaylightWindow)
 				continue;
 
 			// Check if faction can use this config
@@ -1872,7 +2060,19 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		
 		if (!config || !config.IsValidConfig())
 			return null;
-		
+
+		// ⚠ HERE RATHER THAN IN THE EVALUATOR, so a deliberate ForceCreateDeployment caller is held to
+		// the same tempo as the 30 s pass. A config that authors no cooldown never reaches the map
+		// lookup. ⚠ EXEMPT AT CAMPAIGN START: the free-at-game-start pass seeds many instances of the
+		// same config in one go, and a cooldown would let through the first and silently drop the rest.
+		if (!seededAtGameStart && IsConfigOnCooldown(config, factionIndex))
+		{
+			Print(string.Format("[Overthrow] Deployment '%1' is on cooldown for faction %2 (%3 in-game hours between them) - not creating another yet",
+				config.m_sDeploymentName, factionIndex.ToString(), config.m_fCooldownHours.ToString()), LogLevel.NORMAL);
+
+			return null;
+		}
+
 		// Create deployment entity
 		if (!m_DeploymentPrefab || m_DeploymentPrefab.IsEmpty())
 		{
@@ -1930,6 +2130,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// write either, so without this RecoverResources() refunds 0 and the GM snapshot reads 0.
 		deployment.SetResourcesInvested(resourcesInvested);
 		deployment.SetThreatLevel(threatLevel);
+
+		// ⚠ ON SUCCESS ONLY, AND AT THE END. Stamping beside the refusal check would start the clock on
+		// a creation that then failed for one of the six reasons above, and the faction would sit out a
+		// whole cooldown for a deployment that never existed. Seeded instances are exempt both ways -
+		// they never stamp, so the first evaluator purchase after game start is not held off by them.
+		if (!seededAtGameStart)
+			StampConfigCooldown(config, factionIndex);
 
 		string townName = OVT_Global.GetTowns().GetNearestTownName(position);
 				

@@ -168,6 +168,238 @@ through the **existing six-hour drip**, so a hoard does not arrive as a lump sum
 burst. `ResolveReserveTarget()` reads the reserve **after** `FlushDefenseShareDrip()`, or money already owed
 to the pool would be counted as surplus and handed over twice.
 
+**6. Nothing new is raised at night — ADDED (a `deployments` gate).** User, 2026-08-23: *"add a time gate
+for pretty much all deployments so they dont start at night, 5am to 5pm only maybe. its ok if they accrue
+deployment pool etc in this time."*
+
+`OVT_DeploymentManagerComponent.IsInDaylightWindow()` reads the world clock through
+`OVT_ObjectivePhaseRules.IsCounterAttackWindow()` — **reused, not reimplemented**: it already honours a
+window that crosses midnight and already treats an out-of-range bound or a zero-width window as *no
+restriction* rather than *never*. Two new authored bounds on the manager, `m_iDaylightStartHour 5` /
+`m_iDaylightEndHour 17`. Asked **once per evaluator pass** and applied as a per-config filter inside
+`FindBestDeploymentConfig()`, so a config can author its way out with the new
+`OVT_DeploymentConfig.m_bIgnoreDaylightWindow`.
+
+**Income is untouched — only spending is gated.** The pool fills all night and the faction spends what it
+banked at dawn.
+
+⚠ **What is deliberately NOT gated,** none of it by omission:
+- **campaign-start seeding** (`SeedFreeConfigs` → `PassesSeedConditions`, a separate path) — a campaign
+  that opens at 22:00 must not open on an empty map;
+- **the objective director's operations** — `ForceCreateDeployment` callers that never touch the
+  evaluator; the counter-attack already carries its own, narrower 05:00-15:00 condition;
+- **reinforcement rebuys** — an existing force reacting, not a new one being raised, so a garrison that
+  loses men at 02:00 still tops up.
+
+🔴 **This would have silently broken a shipped Init case.** The test world's clock is authored at **21:17**
+(`Worlds/TestIsland/OVT_TestIsland_Layers/default.layer`, `"Initial Day Time" 21.295`) — night — and
+`OVT_TEST_InitSuite`'s escalation-ladder case calls `FindBestDeploymentConfig()` directly. Its fixture
+configs now set `m_bIgnoreDaylightWindow`, which keeps the case independent of the world clock and exercises
+the new opt-out at the same time. `IsInDaylightWindow()` also **fails open when there is no clock at all**,
+matching `OVT_DaylightWindowObjectiveCondition` — failing closed in a clockless world would stop every
+evaluator purchase in the Init tier with nothing logged.
+
+**7. Town patrols can only be farmed three times — ADDED (a `deployments` gate).** User, 2026-08-23:
+*"a max cap on reinforcements, just for town patrols I think they should only be reinforced up to 3 times,
+otherwise you can just farm them for loot."* There was **no** such cap: every existing rebuy gate on
+`OVT_ReinforcementBehaviorDeploymentModule` — the no-rebuy zone, the contact cooldown, the pool check, the
+town-size check — is a *"not right now"*, and all of them clear on their own, so an unlimited town patrol
+was a loot farm with a timer rather than a fight.
+
+New `m_iMaxReinforcements` (defvalue **0 = no limit**, so every other config is untouched), authored **3**
+on `Deployment_TownPatrol.conf`. Counted in `CheckReinforcement()`'s `anyReinforced` block — **one pass is
+one rebuy** however many modules it topped up, because the cap is about how many times a player can farm
+the deployment and a player kills a force once whether it was one group or four.
+
+Details that carry the intent:
+- the gate is asked **before every other one**, since it is the only permanent refusal — that also keeps it
+  out of the "not right now" latch's way, so an exhausted deployment says so once and then goes quiet;
+- `m_iReinforcementsBought` is **not** reset by `OnActivate()`. A deployment deactivates when the last
+  player walks away and reactivates when one returns; resetting there would hand the farm its budget back
+  every time the player left, which is precisely the exploit;
+- `CloneModule()` copies the new field. That file already carries a 🔴 warning about this exact trap
+  (it caught `m_fNoRebuyZoneMultiple`, and the vehicle module's `m_fMaxCruiseSpeed` before that): a dropped
+  clone line ships the class default of 0, which is *no limit*, silently, on every config in the game.
+
+One new Init case (`OVT_TEST_Init_ReinforcementCap`, 5 claims) covering the default, a negative, the clone,
+and that the **shipped** town patrol actually authors 3 — a cap nothing uses is dead code.
+
+**8. The per-decision rebuy diagnostic is gone — REMOVAL FINISHED.** What looked like a defect
+(`DescribeReinforcementDecision()` computing locals in its `HELD` / `CONTACT` / `UNAFFORDABLE` branches and
+discarding them, falling through to a single `"IS rebuying"` string) was a **half-finished removal**: the
+author had already deleted the log lines those branches built because they spammed, and the gates they were
+written to debug are play-test proven. Finished it — removed `DescribeReinforcementDecision()`,
+`m_iLastDecision`, all eight `REBUY_DECISION_*` constants, both latch blocks, the `anyShort` /
+`anyAffordable` locals that only fed them, and the module's own now-unused `IsBattleSuppressed()` wrapper.
+`CheckReinforcement()`'s held/contact branch is now a bare `return`.
+
+Kept deliberately: `OVT_DeploymentManagerComponent.IsBattleSuppressedAt()` (used by
+`OVT_InfantrySpawningDeploymentModule` and its own Init case), `ResolveNoRebuyRadius()`,
+`m_iLastAliveSample` and `m_fLastContactTime` — all still load-bearing for the gates themselves.
+`OVT_ResistancePresence.GetLastHold()` lost its only caller but the class is left alone.
+
+⚠ The rebuy **cap** from item 7 keeps its single line, moved off the deleted latch onto its own
+`m_bExhaustedLogged` bool. It is one line per deployment for the life of the campaign, and the cap is the
+one thing here that has never been play-tested.
+
+**9. An empty dedicated server now really does stop — TWO GATES ADDED.** Author asked, 2026-08-23, whether
+everything halts with no players online. **It did not.** Four systems already stopped dead at zero players:
+
+| System | Gate |
+|---|---|
+| Occupying faction tick (income, threat decay, the defense drip, the hunter-killer dispatcher, known targets) | `OVT_OccupyingFactionManager.c:1792` |
+| Deployment evaluator (creation only — its own comment says so) | `OVT_DeploymentManager.c:1042` |
+| Objective director (the whole campaign) | `OVT_ObjectiveDirectorComponent.c:603` |
+| Player economy | `OVT_EconomyManagerComponent.c:179` |
+
+Two did not, and both were silent:
+
+- 🔴 **`OVT_VirtualMovementManagerComponent.MovementTick()` had no player or observer gate at all.** It
+  self-cancels only for a dead world, a missing state map or an empty registry, so an idle server walked
+  **every registered group along its plan** for as long as it was left running. Nothing materialised (that
+  needs an observer), so the only visible effect was returning to a world that had quietly rearranged
+  itself.
+- 🔴 **`OVT_DeploymentComponent.UpdateDeployment()` had none either.** It is a per-deployment `CallLater`,
+  and the manager's guard only ever blocked *creation* — so every deployment already standing kept running
+  its spawning, behaviour and condition modules on an empty server, including reinforcement rebuys
+  spending whatever was left in the pool.
+
+⚠ **Why resuming is safe, and it is not new code that makes it safe:**
+- movement `dt` is per-group and already clamped to `OVT_VirtualMovementMath.MAX_STEP_SECONDS` (**30 s**) —
+  the comment there calls out "a stalled call queue or a paused debugger cannot bank time into one enormous
+  jump" — so the first tick after a join takes one ordinary step however many hours were skipped, and the
+  stale `m_fLastTickMs` needs no fixing up;
+- every timer inside a deployment module is either **world time** (a reinforcement cooldown, an activation
+  delay — reads as long expired, which is correct) or a **tick count** (the insertion module's stuck and
+  arrival counters — paused rather than banked).
+
+⚠ **The suites were checked before adding these, not after.** Both gates read `GetPlayerCount()`, and the
+autotest world **does** have a real player — `OVT_TEST_InitSuite.c:721-735` polls for a player-controlled
+body and fails without one — so the movement case that installs the real tick
+(`OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup`) still runs. An observer-count gate was considered
+and dropped as unnecessary plumbing once that was established.
+
+**Radio towers cannot change hands on an empty server, but by consequence rather than by a gate:** the
+garrison's `OVT_RadioTowerCaptureBehaviorDeploymentModule` only fires when the garrison is wiped and nothing
+wipes it with nobody shooting, and the director-driven unrest recapture is frozen with the director.
+
+---
+
+## Play-test round 2 (user, 2026-08-23) — the echelon that idled in a field with its horn stuck on
+
+*"had a QRF and they did send a technical but I found it some way out from the base with the horn going
+permanently. I think we made them stop short of QRFs but they should really just push into the QRF because
+that's where the resistance will be."* Two separate faults, one report.
+
+**A. 🔴 THE HORN: a mounted force never released its outbound move order — FIXED.** This is the real bug and
+it affects **every** mounted doctrine, not just the echelon.
+
+Arrival is judged by this module's own `m_fArrivalRadius` test, **not** by the waypoint completing. So a
+force that has "arrived" is still carrying a live MOVE order to a point it is merely *near*. The parent
+never had the problem because its `CompleteInsertion()` immediately replaces the order with the drive home
+(`IssueCrewMove(HomePosition())`, which clears first); the mounted override issues **nothing** and cleared
+**nothing**, so the crew spent the rest of the deployment trying to inch onto the exact metre — and a
+blocked AI driver leans on the horn while it fails. `CompleteInsertion()` now calls
+`ClearOwnedWaypoints(ResolveCrewGroup())`, placed **before** `OnInsertionArrived()` so a behaviour module's
+own first order still lands on a clean queue.
+
+⚠ **Why it took a play-test to find, and why the echelon specifically.**
+`OVT_MobileCheckpointBehaviorDeploymentModule.IssueDrive()` already calls `DetachForeignWaypoints()`, and
+its header describes this exact hazard: *"The insertion module's own landing-zone order is still on the
+queue when a mounted force arrives — arrival is judged by that module's radius test, not by the waypoint
+completing."* That workaround was **masking** the defect on the harassment config, which relocates every 4
+minutes and therefore runs `IssueDrive()` regularly. The **QRF echelon** authors `m_iRelocateMinutes 0`, so
+`Relocate()` never fires, `IssueDrive()` never runs, and nothing ever detached the stale order. The
+workaround is left in place — it is still correct for foreign waypoints — but it is no longer load-bearing.
+
+**B. The echelon deliberately stopped short — CHANGED to push in.** `ECHELON_STANDOFF_M` was **450** and
+authored as *"far enough that it is a standoff and not an assault"*. Play-test overruled it: a gun parked
+half a kilometre out denies the resistance nothing. Now **0**.
+
+⚠ The road snap in `ResolveEchelonStandoff()` still applies, so this is "the nearest road to the objective"
+rather than its exact metre, and the reachability half of the gate is unchanged. ⚠ **`COUNTER_ATTACK` mode
+is deliberately NOT affected** — it anchors on the siege ring through `SiegeEchelonAnchor()`, because an
+encirclement that drives into its own middle is not a siege. The mounted **harassment** config's own 250 m
+standoff is also untouched: that one is a town checkpoint on an approach road, which is what it is for.
+
+### 🔴 OPEN: AI drivers drive with the horn held down on CLEAR road
+
+Reported immediately after the above, and it is **not** the same fault — these vehicles were **moving**, so
+the stale-arrival-waypoint fix cannot explain them. Two sightings: a technical on the road, and a **plain
+specops insertion truck** (which is not a `vehicles` deployment at all, so this predates and outlives this
+feature).
+
+**Author's observation, 2026-08-23, and it is the load-bearing one:** *"all times there was nothing in
+front of it, they were just driving with the horn constantly on."* That **kills the obvious explanation** —
+vanilla AI honking at civilians and patrols on Overthrow's busy roads — and leaves "the driver believes it
+is permanently obstructed by nothing".
+
+**What is established:**
+- `CharacterInputContext.SetVehicleHorn(int)` has **ZERO callers** in Overthrow *and* in the whole vanilla
+  script tree. The only `Horn` hits anywhere are `SCR_AIDangerReaction_VehicleHorn` and
+  `MoveFromDanger_VehicleHorn.bt`, which are the **reaction** (AI clearing out of a horn's way), not the
+  source. The horn is therefore driven **engine-side by the C++ AI driver**, and script cannot see why.
+- So the horn is a **symptom**: it means the driver thinks something is in its path.
+
+**The `AICarMovementComponent` lead is DISPROVEN (2026-08-24).** The suspicion was the tuning Overthrow
+carries as prefab deltas — `FrictionCoefficient 0.1`, `MaxReverseTravelDistance 30`,
+`"Min Prediction Distance" 2` — which is on the **Ural** (2026-08-19) and, from this feature's T1.7, on the
+**BRDM-2 and LAV-25**. The author then saw it on a **`UAZ469_PKM`**, and that hull carries none of it:
+`grep -rl AICarMovementComponent Prefabs/` returns exactly those three files, and Overthrow's only UAZ delta
+is `UAZ469_base.et` (`{99F1610551D54D17}`), a **different prefab** from the vanilla
+`{0B4DEA8078B78A9B}...UAZ469_PKM.et` the faction registry actually spawns — and it has no
+`AICarMovementComponent` either.
+
+So it is **not our driving tuning**, and it is not specific to this feature's vehicles. It is general
+Reforger AI driving. Nothing further to try from the script side; still under observation.
+
+### Per-deployment cooldown (author request, 2026-08-24)
+
+*"deployment configs need to be able to set a cooldown per deployment. in the last test the OF was
+relentlessly throwing TowerRecaptureUnrest specops at a single tower."*
+
+`m_iMaxInstances 1` only stops **two existing at once** — the moment the last specops team dies the
+deployment is deleted and the evaluator buys another on its next 30 s pass. New
+`OVT_DeploymentConfig.m_fCooldownHours` (**0 = no cooldown**, so every unauthored config is untouched),
+enforced in `OVT_DeploymentManagerComponent.CreateDeployment()`.
+
+| Config | Cooldown | Why |
+|---|---|---|
+| `Deployment_TowerRecaptureUnrest.conf` | **6 h** | the reported case, at the author's number |
+| `Deployment_VehiclePatrol_Light.conf` | **3 h** | ⚠ **my call, not asked for** — the author said *"we might also add"*. The 2026-08-23 log shows it respawning at Chotain twice in 20 real minutes, which is the same "too many vehicles" complaint from round 1. One line to revert |
+| `Deployment_VehiclePatrol_Heavy.conf` | **6 h** | as above; heavy is the escalation, so twice the spacing |
+
+Decisions worth keeping:
+- **In `CreateDeployment()`, not in the evaluator**, so a deliberate `ForceCreateDeployment` caller is held
+  to the same tempo. A config authoring no cooldown never even reaches the map lookup.
+- **The stamp is written on SUCCESS and at the END.** Stamping beside the refusal check would start the
+  clock on a creation that then failed for one of the six reasons below it, and the faction would sit out a
+  full cooldown for a deployment that never existed.
+- **Campaign-start seeding is exempt both ways** — it neither checks nor stamps. The free-at-game-start pass
+  seeds many instances of one config in a single go, so a cooldown would let the first through and silently
+  drop the rest; and not stamping means the first real purchase after game start is not held off either.
+- **Per faction as well as per config** (`"<factionIndex>|<name>"`), so two factions running the same config
+  do not silence each other.
+- 🔴 **The clock is an INT OF MINUTES, never a float of hours.** EnforceScript `float` is IEEE binary32 and
+  an absolute time from year zero has a **~2-hour quantum** by the present day — a six-hour cooldown
+  expressed as a difference of two absolute float stamps is unusable (a twelve-minute delta reads 0.0). The
+  day index over-counts deliberately (31 days/month, 12 months/year); it only has to be **monotonic**,
+  because the same offset appears in both stamps and cancels in the subtraction.
+- A stamp in the **future** (a load into an earlier save) reads as expired rather than locking the config
+  out for the rest of the campaign.
+
+⚠ **Not persisted.** The map is rebuilt empty on load, so a save/load clears every cooldown. Deliberate —
+persisting it would mean a serializer and a version bump for a timer whose worst failure is one early
+tower recapture after a load.
+
+**Deliberately NOT mitigated.** Forcing `SetVehicleHorn(0)` on convoy drivers every tick would silence it,
+but it fights the engine every frame and suppresses legitimate honking, and it would hide whatever is
+actually wrong with the pathing underneath. Author's call, 2026-08-23: *"we wont do any blunt mitigation
+just yet ill keep an eye on it."*
+
+**Owed:** whether it also happens on a hull with **no** Overthrow `AICarMovementComponent` delta, which
+would settle the lead above in one sighting.
+
 ---
 
 ## ⚠ Test suites are DEFERRED for this whole feature

@@ -304,10 +304,37 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 		m_iStuckTicksElapsed = 0;
 		m_bHaveLastTruckPosition = false;
 
+		// 🔴 THE OUTBOUND ORDER MUST DIE HERE. Arrival is judged by this module's own radius test
+		// (m_fArrivalRadius), NOT by the waypoint completing - so a force that has "arrived" is still
+		// carrying a live MOVE order to a point it is merely near. The parent never had this problem
+		// because its CompleteInsertion immediately replaces the order with the drive home; a mounted
+		// force is issued nothing, so without this the crew spends the rest of the deployment trying to
+		// inch onto the exact metre and the driver LEANS ON THE HORN FOREVER while it fails.
+		//
+		// Play-test, 2026-08-23: a QRF echelon found parked short of the battle sounding continuously.
+		// Its behaviour module is a mobile checkpoint authored with m_iRelocateMinutes 0, so Relocate()
+		// never fires and IssueDrive()'s DetachForeignWaypoints() - the workaround that had been hiding
+		// this on the harassment config, which relocates every 4 minutes - never ran either.
+		ClearOwnedWaypoints(ResolveCrewGroup());
+
 		OnInsertionArrived(m_vLZ);
 
 		Print(string.Format("[Overthrow] Mounted force '%1' arrived at %2 with %3 group(s) still aboard; it holds its vehicle from here",
 			DescribeSelf(), m_vLZ.ToString(), delivered.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return This force's crew group, or null when there is no registration or no manager to ask.
+	protected SCR_AIGroup ResolveCrewGroup()
+	{
+		if (m_iCrewHandle == -1)
+			return null;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return null;
+
+		return virtualization.GetGroup(m_iCrewHandle);
 	}
 
 	//------------------------------------------------------------------------------------------------

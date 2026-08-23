@@ -422,7 +422,37 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
   all six presets, and `ArmDefenseShareDrip()` wired to them. One new Logic case
   (`OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling`, 6 claims). See context.md → item 5, including the
   double-pay fault the first draft had.
-- [ ] 🔴 **P1.10 No suite run and no play-test on any of the above.** Same deferral as the rest of the
+- [x] **P1.10 Daylight window on the deployment evaluator** — `IsInDaylightWindow()` +
+  `m_iDaylightStartHour 5` / `m_iDaylightEndHour 17` on the manager, `m_bIgnoreDaylightWindow` on the
+  config, one filter line in `FindBestDeploymentConfig()`. Seeding, director operations and reinforcement
+  rebuys are outside it by design. Fixed the Init fixture the test world's 21:17 clock would have broken.
+- [x] **P1.11 Reinforcement cap** — `m_iMaxReinforcements` on the reinforcement module (0 = no limit),
+  authored 3 on the town patrol, cloned, counted per rebuy pass, not reset by reactivation. One new Init
+  case. See context.md → item 7.
+- [x] **P1.12 Finished the removal of the per-decision rebuy diagnostic** — it was a half-finished deletion,
+  not a defect. `DescribeReinforcementDecision()`, `m_iLastDecision`, the `REBUY_DECISION_*` constants, both
+  latch blocks and the unused `IsBattleSuppressed()` wrapper are gone. See context.md → item 8.
+- [x] **P1.13 An empty dedicated server now halts** — player-count gates added to
+  `OVT_VirtualMovementManagerComponent.MovementTick()` and `OVT_DeploymentComponent.UpdateDeployment()`,
+  the two systems that kept running with nobody online. See context.md → item 9 for why resuming is safe
+  and why the autotest world is unaffected.
+- [x] **P2.1 The stuck horn** — a mounted force never cleared its outbound move order on arrival, so the
+  crew kept trying to reach a point it was already at. Affected every mounted doctrine; only visible on the
+  QRF echelon because the mobile checkpoint's `DetachForeignWaypoints()` was masking it wherever
+  `m_iRelocateMinutes > 0`. See context.md → *Play-test round 2* A.
+- [x] **P2.2 The QRF echelon pushes into the battle** — `ECHELON_STANDOFF_M` 450 → 0. `COUNTER_ATTACK`'s
+  siege-ring anchor and the harassment config's 250 m are untouched. See *Play-test round 2* B.
+- [ ] 🔴 **P2.3 OPEN — AI drivers hold the horn on clear road while MOVING.** Not the P2.1 fault (those
+  were parked). Engine-side: nothing in Overthrow or vanilla script ever calls `SetVehicleHorn`. Lead is the
+  `AICarMovementComponent` delta (Ural/BRDM-2/LAV-25); the decisive observation is whether an undelta'd hull
+  does it too. No mitigation by author's decision. See context.md → *Play-test round 2*.
+- [x] **P2.4 Per-deployment cooldown** — `m_fCooldownHours` on the config (0 = none), enforced and stamped
+  in `CreateDeployment()`, seeding exempt, int-minute clock. Authored 6 h on tower recapture, and 3 h / 6 h
+  on the light / heavy vehicle patrols (**my call** — the author said "might"). See context.md.
+- [x] **P2.5 The horn lead is disproven** — a `UAZ469_PKM` carries none of Overthrow's
+  `AICarMovementComponent` tuning. General Reforger AI driving, still open, still unmitigated.
+- [ ] 🔴 **P1.14 No suite run and no play-test on any of the above.** Seventeen changes deep now, across
+  `vehicles`, `deployments` and the resource economy. Same deferral as the rest of the
   feature — and the four config changes in P1.4 are the largest behavioural change in the list.
 
 ---

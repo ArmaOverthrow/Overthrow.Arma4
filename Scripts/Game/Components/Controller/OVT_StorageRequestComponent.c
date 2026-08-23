@@ -1996,6 +1996,11 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		if (prefab == "")
 			return CONVERT_SKIPPED;
 
+		// A part its holder's prefab declares goes with the holder and is recreated by respawning it.
+		// Crediting one would mint an item on every withdrawal.
+		if (OVT_PrefabPartUtils.IsDeclaredPart(item))
+			return CONVERT_SKIPPED;
+
 		// A part-used magazine stays in the vanilla inventory: a ledger line is a COUNT and has
 		// nowhere to record "27 of 30". The officer clear action is how they are discarded. It is
 		// ejected from any container it sits in first, or ItemStillHoldsSomething strands the whole
@@ -2197,6 +2202,17 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			}
 		}
 
+		// A slot-declared part is a CHILD ENTITY, not storage content, so the loop above cannot see it.
+		// It is never priced itself - the guard below drops it - but a harness pouch holds magazines
+		// that would otherwise be destroyed with the vest.
+		array<IEntity> attached = new array<IEntity>();
+		OVT_PrefabPartUtils.CollectAttachedParts(item, attached);
+
+		foreach (IEntity part : attached)
+		{
+			discarded += CollectLootTree(part, false, lines, seen);
+		}
+
 		// A WeaponAttachmentsStorageComponent is not a universal storage, so a loaded magazine and a
 		// mounted optic are invisible to the loop above and would be destroyed with the weapon.
 		BaseWeaponComponent weapon = BaseWeaponComponent.Cast(item.FindComponent(BaseWeaponComponent));
@@ -2224,6 +2240,10 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			if (cloth && cloth.GetAreaType() && OVT_StorageRules.IsBaseClothingArea(cloth.GetAreaType().Type()))
 				return discarded;
 		}
+
+		// Priced as part of its holder's prefab, which is what recreates it.
+		if (!isRoot && OVT_PrefabPartUtils.IsDeclaredPart(item))
+			return discarded;
 
 		if (!MagazineConverts(item))
 			return discarded + 1;
@@ -2485,8 +2505,17 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 
 		foreach (AttachmentSlotComponent slot : slots)
 		{
-			if (slot)
-				DetachWeaponPart(inventory, slot.GetAttachedEntity(), pending);
+			if (!slot)
+				continue;
+
+			IEntity part = slot.GetAttachedEntity();
+
+			// A scope the weapon's own prefab declares stays mounted: detaching it would strand a
+			// loose optic in the container, since it converts to nothing.
+			if (OVT_PrefabPartUtils.IsDeclaredPart(part))
+				continue;
+
+			DetachWeaponPart(inventory, part, pending);
 		}
 	}
 
@@ -2533,6 +2562,17 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//! \param[out] pending The work list being built.
 	protected void QueueStoredContents(IEntity item, out array<EntityID> pending)
 	{
+		// A harness carries no storage of its own - its pouches do, and they are child entities that
+		// go with it when it converts. Their contents must be queued AHEAD of it or they are deleted
+		// uncredited.
+		array<IEntity> attached = new array<IEntity>();
+		OVT_PrefabPartUtils.CollectAttachedParts(item, attached);
+
+		foreach (IEntity part : attached)
+		{
+			QueueStoredContents(part, pending);
+		}
+
 		array<Managed> storages = new array<Managed>();
 		item.FindComponents(BaseUniversalInventoryStorageComponent, storages);
 
@@ -2583,6 +2623,15 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 				return true;
 		}
 
+		array<IEntity> attached = new array<IEntity>();
+		OVT_PrefabPartUtils.CollectAttachedParts(item, attached);
+
+		foreach (IEntity part : attached)
+		{
+			if (ItemStillHoldsSomething(part))
+				return true;
+		}
+
 		BaseWeaponComponent weapon = BaseWeaponComponent.Cast(item.FindComponent(BaseWeaponComponent));
 		if (!weapon)
 			return false;
@@ -2595,7 +2644,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 
 		foreach (AttachmentSlotComponent slot : slots)
 		{
-			if (slot && slot.GetAttachedEntity())
+			// A declared attachment is meant to go with the weapon; only a mounted part that would
+			// have converted on its own blocks the delete.
+			if (slot && slot.GetAttachedEntity() && !OVT_PrefabPartUtils.IsDeclaredPart(slot.GetAttachedEntity()))
 				return true;
 		}
 

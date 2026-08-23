@@ -111,6 +111,35 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 
 ---
 
+## Post-close change: recruit actions are hidden in a vehicle (2026-08-24)
+
+Author, during an `occupying/vehicles` play-test: *"one small tweak we need to do for recruits is hide all
+their actions when they are in a vehicle (ie remove from group and switch gear). it makes it hard to access
+the vehicle actions when they are in one."*
+
+A recruit's actions and the **vehicle's** actions share one context menu, so every recruit riding along
+pushes Get Out, the turret and the inventory further down a list the player is trying to use while sitting
+in the thing.
+
+**One check, on the base class:** `OVT_BaseRecruitUserAction.CanBeShownScript()` now returns false when
+`IsInCompartment(GetOwner())`. It is on the base for the same reason the ownership rule is — so a later
+action cannot forget it. That covers all three body actions: `OVT_SetRecruitActiveAction`,
+`OVT_SetRecruitInactiveAction` and `OVT_SwapLoadoutWithRecruitAction`. Actions that sit on other entities
+(the tent, the vehicle) are unaffected.
+
+⚠ **This SUPERSEDES a deliberate earlier decision.** `OVT_SetRecruitInactiveAction` used to stay **visible
+with a reason** (`#OVT-Recruit_CannotParkInVehicle`) when the recruit was seated, following
+`OVT_SabotageTowerAction`'s rule that a relevant-but-blocked action should say why rather than silently
+vanish. Play-test overruled it for this case. The refusal branch is **kept** as belt-and-braces behind the
+base rule but is now unreachable in normal play, and its class header says so — the rule it enforces is
+still real (parking changes which AI group commands the body without moving it, so a parked recruit would
+be "holding position" inside a vehicle that then drives off, and the server refuses it too via
+`OVT_RecruitCommandComponent.RESULT_IN_VEHICLE`).
+
+`IsInCompartment()` already existed on the base class, written for that earlier decision — no new helper.
+
+---
+
 ## Session Notes
 
 ### 2026-08-18 — Parked-recruit wander fix: [move → wait] hold cycle (user report)

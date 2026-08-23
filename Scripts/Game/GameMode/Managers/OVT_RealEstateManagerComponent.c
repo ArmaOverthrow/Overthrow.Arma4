@@ -607,6 +607,69 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! The base whose close range this building stands in, or null when it stands in none.
+	//!
+	//! The SAME radius the wanted system treats as restricted ground and the map draws as a restricted
+	//! ring (OVT_MapRestrictedAreas), so "inside the base" means one thing everywhere.
+	//! \param[in] pos The building's position.
+	//! \return The base, whichever faction holds it, or null.
+	OVT_BaseData GetBaseAt(vector pos)
+	{
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		if (!occupying)
+			return null;
+
+		OVT_BaseData base = occupying.GetNearestBase(pos);
+		if (!base)
+			return null;
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config || !config.m_Difficulty)
+			return null;
+
+		if (vector.Distance(base.location, pos) > config.m_Difficulty.baseCloseRange)
+			return null;
+
+		return base;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether this warehouse is part of a base rather than real estate.
+	//!
+	//! A warehouse inside a base's ring belongs to whoever holds the base: it is never for sale, never
+	//! for rent, and no ownership record decides who may open it. Anything that is not a warehouse
+	//! answers false, so callers can use this as a filter.
+	//! \param[in] building The candidate building.
+	//! \return True when the building is a warehouse standing inside a base.
+	bool IsBaseWarehouse(IEntity building)
+	{
+		if (!building)
+			return false;
+
+		OVT_RealEstateConfig config = GetConfig(building);
+		if (!config || !config.m_IsWarehouse)
+			return false;
+
+		return GetBaseAt(building.GetOrigin()) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether the base a warehouse belongs to is held by the player faction.
+	//! \param[in] building The warehouse.
+	//! \return True when the base is ours; false when it is not a base warehouse at all.
+	bool BaseWarehouseIsControlled(IEntity building)
+	{
+		if (!building)
+			return false;
+
+		OVT_BaseData base = GetBaseAt(building.GetOrigin());
+		if (!base)
+			return false;
+
+		return base.faction == OVT_Global.GetConfig().GetPlayerFactionIndex();
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! THE warehouse accessibility rule. One body, called by the server gate
 	//! (OVT_StorageRequestComponent.MayUseHolder), by the storage user actions and by the vehicle
 	//! menu's two warehouse buttons, so they cannot drift (logistics/storage I5).
@@ -629,6 +692,13 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		OVT_RealEstateConfig config = GetConfig(building);
 		if (!config || !config.m_IsWarehouse)
 			return true;
+
+		// BASE PROPERTY SHORT-CIRCUITS THE OWNERSHIP MAP, and does so BEFORE the record lookup: a
+		// warehouse inside a base has never been bought, so it has no OVT_WarehouseData at all (records
+		// are minted by SetOwner / SetOwnerPersistentId) and the lookup below would refuse everyone.
+		// Holding the base is the whole permission.
+		if (GetBaseAt(building.GetOrigin()))
+			return BaseWarehouseIsControlled(building);
 
 		OVT_WarehouseData warehouse = GetNearestWarehouse(building.GetOrigin(), WAREHOUSE_MATCH_RANGE);
 		if (!warehouse)
