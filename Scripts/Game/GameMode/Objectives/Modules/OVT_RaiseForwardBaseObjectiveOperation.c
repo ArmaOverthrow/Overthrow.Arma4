@@ -486,7 +486,7 @@ class OVT_RaiseForwardBaseObjectiveOperation : OVT_BaseObjectiveAssetModule
 		else
 			m_Asset.sourceBasePosition = source;
 
-		Print(LOG + "Objective '" + objective.GetTargetName() + "': a supply party is on its way to raise a forward base at " + site.ToString(), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Objective '" + objective.GetTargetName() + "': a supply party is on its way to raise a forward base at " + site.ToString());
 
 		return true;
 	}
@@ -646,7 +646,7 @@ class OVT_RaiseForwardBaseObjectiveOperation : OVT_BaseObjectiveAssetModule
 			// Math.Round answers a float, and a float's ToString puts six decimal places in the log line.
 			int authoredFacing = Math.Round(yaw);
 
-			Print(LOG + "Forward base for objective '" + label + "' will use an authored site at " + authored.ToString() + " facing " + authoredFacing.ToString() + " deg (the marker's own)", LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(LOG + "Forward base for objective '" + label + "' will use an authored site at " + authored.ToString() + " facing " + authoredFacing.ToString() + " deg (the marker's own)");
 
 			return true;
 		}
@@ -655,7 +655,7 @@ class OVT_RaiseForwardBaseObjectiveOperation : OVT_BaseObjectiveAssetModule
 		{
 			int generatedFacing = Math.Round(yaw);
 
-			Print(LOG + "Forward base for objective '" + label + "' sited at " + site.ToString() + " facing " + generatedFacing.ToString() + " deg towards the objective (generated, score " + bestScore.ToString() + ")", LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(LOG + "Forward base for objective '" + label + "' sited at " + site.ToString() + " facing " + generatedFacing.ToString() + " deg towards the objective (generated, score " + bestScore.ToString() + ")");
 		}
 
 		return found;
@@ -1000,7 +1000,7 @@ class OVT_RaiseForwardBaseObjectiveOperation : OVT_BaseObjectiveAssetModule
 		// ever names one site - a run that reports "1 of 1" is a siting question about the corridor and
 		// the filters, while a run that reports "1 of 4" repeatedly is a randomness question. One number
 		// tells the two apart without anybody reading this file again.
-		Print(LOG + "Forward base siting: drew authored site " + (chosen + 1).ToString() + " of " + eligible.Count().ToString() + " eligible in the corridor, at " + best.ToString(), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Forward base siting: drew authored site " + (chosen + 1).ToString() + " of " + eligible.Count().ToString() + " eligible in the corridor, at " + best.ToString());
 
 		return true;
 	}

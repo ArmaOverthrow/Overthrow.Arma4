@@ -410,8 +410,8 @@ class OVT_ObjectiveRegistry : ScriptAndConfig
 	//! OVT_DeploymentRegistry.PrintRegistryInfo().
 	void PrintRegistryInfo()
 	{
-		Print(LOG + "Objective Registry: " + m_sRegistryName);
-		Print(LOG + "  Plans: " + GetConfigCount().ToString() + ", skipped: " + GetSkippedCount().ToString() + ", selection every " + GetSelectionCooldownTicks().ToString() + " in-game minute(s)");
+		OVT_DeploymentLog.Debug(LOG + "Objective Registry: " + m_sRegistryName);
+		OVT_DeploymentLog.Debug(LOG + "  Plans: " + GetConfigCount().ToString() + ", skipped: " + GetSkippedCount().ToString() + ", selection every " + GetSelectionCooldownTicks().ToString() + " in-game minute(s)");
 
 		if (!m_aObjectiveConfigs)
 			return;
@@ -425,7 +425,7 @@ class OVT_ObjectiveRegistry : ScriptAndConfig
 			if (config.m_Selector)
 				selector = config.m_Selector.GetSelectorName();
 
-			Print(LOG + "  '" + config.m_sObjectiveName + "' - " + config.GetPhaseCount().ToString() + " phase(s), priority " + config.m_fPriority.ToString() + ", targets " + selector);
+			OVT_DeploymentLog.Debug(LOG + "  '" + config.m_sObjectiveName + "' - " + config.GetPhaseCount().ToString() + " phase(s), priority " + config.m_fPriority.ToString() + ", targets " + selector);
 		}
 	}
 }

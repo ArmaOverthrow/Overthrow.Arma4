@@ -40,6 +40,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	
 	protected ref TraceParam m_TraceParams;
+	protected ref array<IEntity> m_aTraceExclude;
 	
 	protected ref OVT_PlayerData m_PlayerData;
 	protected ref OVT_RecruitData m_RecruitData;
@@ -111,6 +112,21 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 
 		return GetOwner().GetOrigin();
+	}
+
+	//! The AI-side mirror of GetDetectionOrigin. A mounted crewman is PARENTED to its vehicle, so
+	//! GetOrigin() hands back a vehicle-local coordinate and every distance gate against it is wrong.
+	protected vector GetAIWorldOrigin(IEntity entity)
+	{
+		IEntity root = entity;
+		int guard = 0;
+		while(root.GetParent() && guard < 4)
+		{
+			root = root.GetParent();
+			guard++;
+		}
+
+		return root.GetOrigin();
 	}
 
 	protected void CheckBaseRangeForTutorial()
@@ -503,7 +519,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				IEntity entity = member.GetControlledEntity();
 				if(!entity) continue;
 				
-				float dist = vector.Distance(entity.GetOrigin(), pos);
+				float dist = vector.Distance(GetAIWorldOrigin(entity), pos);
 				if(dist > closeRangeDistance) continue;
 				
 				if(FilterEntities(entity))
@@ -668,7 +684,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			{			
 				IEntity entity = member.GetControlledEntity();
 				if(!entity) continue;
-				float dist = vector.Distance(entity.GetOrigin(), pos);
+				float dist = vector.Distance(GetAIWorldOrigin(entity), pos);
 				if(dist > distanceSeen) continue;
 				if(FilterEntities(entity))
 				{
@@ -834,7 +850,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			targets.Insert(enemyTarget);
 		}
 		
-		float dist = vector.Distance(GetDetectionOrigin(), entity.GetOrigin());
+		float dist = vector.Distance(GetDetectionOrigin(), GetAIWorldOrigin(entity));
 		
 		//Is player in a vehicle?
 		bool inVehicle = false;
@@ -986,17 +1002,56 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 	}
 	
+	//! Bone matrices are model-space, and CoordToParent only reaches the PARENT's space - which for a
+	//! mounted crewman is the vehicle, not the world. Compose against the world transform instead.
+	private vector GetHeadWorldPos(IEntity entity)
+	{
+		Animation anim = entity.GetAnimation();
+		if(!anim) return entity.GetOrigin();
+
+		vector boneMat[4];
+		anim.GetBoneMatrix(anim.GetBoneIndex("head"), boneMat);
+
+		if(!entity.GetParent())
+			return entity.CoordToParent(boneMat[3]);
+
+		vector worldMat[4];
+		entity.GetWorldTransform(worldMat);
+
+		vector res[4];
+		Math3D.MatrixMultiply4(worldMat, boneMat, res);
+		return res[3];
+	}
+
+	//! A mounted AI's head bone sits INSIDE its own hull, so excluding only the crewman makes every
+	//! trace out of an armoured vehicle hit the vehicle and report no LOS. Exclude the whole parent
+	//! chain (crewman -> compartment/turret -> vehicle), as vanilla SCR_AIUpdateTargetSuppressionData does.
+	private void SetTraceExcludes(IEntity source)
+	{
+		if(!m_aTraceExclude)
+			m_aTraceExclude = {};
+
+		m_aTraceExclude.Clear();
+		m_aTraceExclude.Insert(source);
+
+		IEntity parent = source.GetParent();
+		int guard = 0;
+		while(parent && guard < 4)
+		{
+			m_aTraceExclude.Insert(parent);
+			parent = parent.GetParent();
+			guard++;
+		}
+
+		// Never set both - the engine warns it costs performance
+		m_TraceParams.Exclude = null;
+		m_TraceParams.ExcludeArray = m_aTraceExclude;
+	}
+
 	private bool TraceLOS(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetAnimation().GetBoneIndex("head");
-		vector matPos[4];
-		
-		source.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector headPos = source.CoordToParent(matPos[3]);
-		
-		headBone = dest.GetAnimation().GetBoneIndex("head");		
-		dest.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector destHead = dest.CoordToParent(matPos[3]);
+		vector headPos = GetHeadWorldPos(source);
+		vector destHead = GetHeadWorldPos(dest);
 		
 		
 		if (!m_TraceParams)
@@ -1008,7 +1063,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_TraceParams.Start = headPos;
 		m_TraceParams.End = destHead;		
-		m_TraceParams.Exclude = source;
+		SetTraceExcludes(source);
 			
 		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
 			
@@ -1027,12 +1082,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	private bool TraceLOSVehicle(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetAnimation().GetBoneIndex("head");
-		vector matPos[4];
-		
-		source.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector headPos = source.CoordToParent(matPos[3]);		
-		
+		vector headPos = GetHeadWorldPos(source);
 		vector destVeh = dest.GetOrigin();		
 		
 		if (!m_TraceParams)
@@ -1044,7 +1094,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_TraceParams.Start = headPos;
 		m_TraceParams.End = destVeh;		
-		m_TraceParams.Exclude = source;
+		SetTraceExcludes(source);
 			
 		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
 			

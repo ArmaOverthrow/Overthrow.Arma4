@@ -163,8 +163,8 @@ class OVT_ParkedVehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModu
 				parked++;
 		}
 
-		Print(string.Format("[Overthrow] Deployment '%1' parked %2/%3 '%4'",
-			m_ParentDeployment.GetDeploymentName(), parked.ToString(), m_iVehicleCount.ToString(), m_sVehicleType), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' parked %2/%3 '%4'",
+			m_ParentDeployment.GetDeploymentName(), parked.ToString(), m_iVehicleCount.ToString(), m_sVehicleType));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -326,8 +326,8 @@ class OVT_ParkedVehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModu
 		if (entry.m_sVehiclePrefab.IsEmpty())
 			return ResourceName.Empty;
 
-		Print(string.Format("[Overthrow] Deployment '%1': role '%2' at threat %3 resolved to '%4'",
-			m_ParentDeployment.GetDeploymentName(), m_sVehicleRole, Math.Round(threat).ToString(), entry.m_sVehicleName), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1': role '%2' at threat %3 resolved to '%4'",
+			m_ParentDeployment.GetDeploymentName(), m_sVehicleRole, Math.Round(threat).ToString(), entry.m_sVehicleName));
 
 		return entry.m_sVehiclePrefab;
 	}

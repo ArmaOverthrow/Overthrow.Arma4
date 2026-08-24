@@ -284,8 +284,8 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 
 		int facingDegrees = Math.Round(yaw);
 
-		Print(string.Format("[Overthrow] Forward base '%1' raised at %2 facing %3 deg - %4",
-			DescribeSelf(), site.ToString(), facingDegrees.ToString(), arrival), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Forward base '%1' raised at %2 facing %3 deg - %4",
+			DescribeSelf(), site.ToString(), facingDegrees.ToString(), arrival));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ class OVT_FOBRaiseSpawningDeploymentModule : OVT_InsertionSpawningDeploymentModu
 
 		m_bRaiseAttempted = true;
 
-		Print(string.Format("[Overthrow] Forward base '%1' will not be raised: %2", DescribeSelf(), reason), LogLevel.VERBOSE);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Forward base '%1' will not be raised: %2", DescribeSelf(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------

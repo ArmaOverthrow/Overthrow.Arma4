@@ -154,8 +154,8 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 		{
 			m_sResolvedVehicleName = entry.m_sVehicleName;
 
-			Print(string.Format("[Overthrow] Mounted force '%1': role '%2' at threat %3 resolved to '%4'",
-				DescribeSelf(), m_sVehicleRole, Math.Round(threat).ToString(), entry.m_sVehicleName), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mounted force '%1': role '%2' at threat %3 resolved to '%4'",
+				DescribeSelf(), m_sVehicleRole, Math.Round(threat).ToString(), entry.m_sVehicleName));
 
 			return entry.m_sVehiclePrefab;
 		}
@@ -234,8 +234,8 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 
 		m_bLadderMissLogged = true;
 
-		Print(string.Format("[Overthrow] Mounted force '%1': role '%2' answered no rung at threat %3 inside a budget of %4 - falling back to the named vehicle type",
-			DescribeSelf(), m_sVehicleRole, Math.Round(threat).ToString(), m_iTruckCostOverride.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mounted force '%1': role '%2' answered no rung at threat %3 inside a budget of %4 - falling back to the named vehicle type",
+			DescribeSelf(), m_sVehicleRole, Math.Round(threat).ToString(), m_iTruckCostOverride.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -256,8 +256,8 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 		// anywhere - and the two readers of this fall back to the source anyway.
 		m_vHome = m_Truck.GetOrigin();
 
-		Print(string.Format("[Overthrow] Mounted force '%1' adopted a vehicle already standing at %2 instead of spawning one",
-			DescribeSelf(), m_vHome.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mounted force '%1' adopted a vehicle already standing at %2 instead of spawning one",
+			DescribeSelf(), m_vHome.ToString()));
 
 		return true;
 	}
@@ -319,8 +319,8 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 
 		OnInsertionArrived(m_vLZ);
 
-		Print(string.Format("[Overthrow] Mounted force '%1' arrived at %2 with %3 group(s) still aboard; it holds its vehicle from here",
-			DescribeSelf(), m_vLZ.ToString(), delivered.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mounted force '%1' arrived at %2 with %3 group(s) still aboard; it holds its vehicle from here",
+			DescribeSelf(), m_vLZ.ToString(), delivered.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -408,8 +408,8 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 
 		m_bHoldExpired = true;
 
-		Print(string.Format("[Overthrow] Mounted force '%1' has held its position for %2 update(s), which is what it was authored for",
-			DescribeSelf(), m_iHoldTicksElapsed.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mounted force '%1' has held its position for %2 update(s), which is what it was authored for",
+			DescribeSelf(), m_iHoldTicksElapsed.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------

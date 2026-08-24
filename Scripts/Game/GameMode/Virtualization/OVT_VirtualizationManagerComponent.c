@@ -1802,6 +1802,24 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Which faction a registered group belongs to.
+	//!
+	//! ADDITIVE READ-ONLY ACCESSOR (2026-08-24). m_sFactionKey was already stored at RegisterGroup and
+	//! round-tripped by persistence; nothing outside this class could read it. Needed by the radio
+	//! tower's ground-control rule, which has to count the OCCUPYING force at a tower without caring
+	//! which deployment - or which system - registered it.
+	//! \param[in] handle Handle from RegisterGroup.
+	//! \return The group's faction key, or an empty string for an unknown handle.
+	string GetGroupFactionKey(int handle)
+	{
+		OVT_VirtualGroupRecord record = GetRecord(handle);
+		if (!record)
+			return string.Empty;
+
+		return record.m_sFactionKey;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Living members.
 	//!
 	//! MASK FIRST (Phase 1 amendment 4 / context.md "Core-layer defensive requirements" #1): when the

@@ -63,3 +63,34 @@
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## 2026-08-24 — A tower belongs to whoever holds the ground under it
+
+**Author, on the test server:** *"they successfully recaptured it, and then after that I killed the specops team, but the tower is still theirs, probably because there's no tower guards yet but that blocks recapture."* Exactly right, and worse than it looks.
+
+**What the code said.** Grepping every caller of `ChangeRadioTowerControl` found **two**, and both require a *deployment* to exist:
+
+| Direction | Only mechanism | Requires |
+|---|---|---|
+| → resistance | `OVT_RadioTowerCaptureBehaviorDeploymentModule` | a live `Deployment_TowerGarrison` **whose own garrison is wiped** |
+| → occupying | `OVT_TowerRecaptureBehaviorDeploymentModule` | a live recapture deployment |
+
+So a tower the occupying faction had just recaptured and **not yet garrisoned** could not be taken back by any means at all: there was no garrison deployment in existence to be wiped, and killing every man standing on it did nothing. The recapture deployment itself is collected the moment it captures (its `OVT_RadioTowerControlConditionDeploymentModule` authors `m_bRequireControl 0`, so the condition fails as soon as the tower is theirs), which is why the specops team the author killed was already irrelevant to ownership.
+
+**Fix — `CheckTowerGroundControl()` on the existing 9 s `CheckRadioTowers` tick.** An occupying-held tower with **no living occupying force inside 80 m** and **a resistance presence inside 80 m** flips to the resistance, whatever deployment is or is not there. `TOWER_CONTROL_RADIUS_M` 80 matches the recapture module's own `m_fHoldRadius`, so "who holds this tower" has one answer whichever side is asking. Chosen by the author over two narrower options (hold-until-relieved, and force-buying the garrison on recapture).
+
+🔴 **Registered alive members, never spawned agents.** This is precisely the rule that historically let a player capture a tower by *walking away* — the old per-tower garrison list held whatever was materialised that tick, so a despawned garrison read as an empty tower. It counts through `OVT_VirtualizationManagerComponent.GetAliveMemberCount()`, which answers from the survivor mask and from dormant counts, so an unspawned garrison still holds its tower. The header on `OVT_RadioTowerData` that says "THERE IS NO GARRISON LIST ON A TOWER ANY MORE" is the record of that bug and still holds.
+
+⚠ **A resistance presence is required**, and that is the second half of the same safety: an empty tower in occupied territory is not captured by nobody. Ground held is players *and* their recruits (`OVT_ResistancePresence.IsGroundHeld`), the same test the deployment behaviours use.
+
+⚠ **One direction only.** Taking a tower *for* the occupying faction stays the recapture module's job, where it is paid for and announced.
+
+⚠ **Cost order matters and is deliberate:** faction check (free) → 80 m sphere query, only on towers they hold → the handle sweep, only for a tower somebody is actually standing on.
+
+**Additive API:** `OVT_VirtualizationManagerComponent.GetGroupFactionKey(int handle)`. `m_sFactionKey` was already stored at `RegisterGroup` and round-tripped by persistence; nothing outside the class could read it, and the rule needs the occupying count *whatever system registered the group*. Read-only, no behaviour change — but `docs/features/virtualization/core/api.md` should pick it up.
+
+⚠ **Consequence the author should weigh:** an occupying tower that has *never* been garrisoned is now free to take by standing next to it. `Deployment_TowerGarrison` is `m_bFreeAtGameStart 1` with `m_iMaxInstances -1`, so this should be rare outside the post-recapture window — but a faction with an empty pool, or the moments before the seeding pass, would leave towers takeable for nothing. That falls directly out of the rule as chosen; narrowing it would mean reintroducing the garrison dependency that was the bug.
+
+`tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.

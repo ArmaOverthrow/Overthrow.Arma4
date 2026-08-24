@@ -340,8 +340,8 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 
 		NotifyOnce(base);
 
-		Print(string.Format("[Overthrow] Sabotage: demolishing a structure worth %1 at %2",
-			m_aTargetCosts[index], target.GetOrigin().ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Sabotage: demolishing a structure worth %1 at %2",
+			m_aTargetCosts[index], target.GetOrigin().ToString()));
 
 		// ⚠ RUIN FIRST, REMOVE ONLY IF IT CANNOT BE RUINED. A retrofitted structure stays in the world as
 		// wreckage the resistance can repair; anything without a destruction component is removed exactly
@@ -563,8 +563,8 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		// framework cannot find the latch still down and demolish one more.
 		AbortMission();
 
-		Print(string.Format("[Overthrow] Sabotage mission complete after %1 structure(s): %2",
-			m_iDestroyed, reason), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Sabotage mission complete after %1 structure(s): %2",
+			m_iDestroyed, reason));
 
 		// 🔴 IT REPORTS INTO THE OBJECTIVE'S BAG AND DOES NOTHING ELSE. The signal is PULLED by the
 		// director's tick, which compares the counter against a mark; a report that advanced a phase or

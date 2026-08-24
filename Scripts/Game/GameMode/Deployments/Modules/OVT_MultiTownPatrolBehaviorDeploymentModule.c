@@ -180,7 +180,7 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 		if (!manager)
 			return;
 
-		Print(string.Format("Patrol complete - deleting deployment '%1'", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("Patrol complete - deleting deployment '%1'", m_ParentDeployment.GetDeploymentName()));
 		manager.DeleteDeployment(m_ParentDeployment);
 	}
 
@@ -333,10 +333,10 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 			}
 		}
 
-		Print(string.Format("Planned patrol route with %1 towns", m_aPatrolRoute.Count()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("Planned patrol route with %1 towns", m_aPatrolRoute.Count()));
 		foreach (OVT_TownData town : m_aPatrolRoute)
 		{
-			Print(string.Format("  - %1", OVT_Global.GetTowns().GetNearestTownName(town.location)), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("  - %1", OVT_Global.GetTowns().GetNearestTownName(town.location)));
 		}
 
 		return !m_aPatrolRoute.IsEmpty();
@@ -511,7 +511,7 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 	//! second pass can never re-enter it.
 	protected void OnPatrolComplete()
 	{
-		Print(string.Format("Patrol completed for deployment '%1'", m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("Patrol completed for deployment '%1'", m_ParentDeployment.GetDeploymentName()));
 
 		m_bPatrolActive = false;
 
@@ -556,8 +556,8 @@ class OVT_MultiTownPatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMo
 			int factionIndex = m_ParentDeployment.GetControllingFaction();
 			manager.AddFactionResources(factionIndex, recoveredResources);
 
-			Print(string.Format("Recovered %1 resources from completed patrol (%.0f%% of %2)",
-				recoveredResources, m_fResourceRecoveryFraction * 100, totalResources), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("Recovered %1 resources from completed patrol (%.0f%% of %2)",
+				recoveredResources, m_fResourceRecoveryFraction * 100, totalResources));
 		}
 	}
 

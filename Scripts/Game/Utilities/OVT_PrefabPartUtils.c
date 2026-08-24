@@ -2,9 +2,11 @@
 //! Slot-declared parts: the sub-entities a prefab's OWN slots spawn with it.
 //!
 //! Vanilla builds gear variants by authoring a slot with a default Prefab rather than by making a
-//! new model - Vest_SovietHarness_AR declares two pouches on its BaseLoadoutClothComponent, and
-//! Rifle_SVD_PSO declares an Optic_PSO1 on its AttachmentSlotComponent. Those parts are separate
-//! entities at runtime, so an inventory walk returns them alongside their holder.
+//! new model - Vest_SovietHarness_AR declares two pouches on its BaseLoadoutClothComponent,
+//! Rifle_SVD_PSO declares an Optic_PSO1 on its AttachmentSlotComponent, and Scabbard_Bayonet_6Kh4
+//! declares its Bayonet_6Kh4 twice over, on an EquipmentStorageComponent InitialStorageSlot and on a
+//! BaseSlotComponent AttachType. Those parts are separate entities at runtime, so an inventory walk
+//! returns them alongside their holder.
 //!
 //! They must never become ledger lines: respawning the holder's prefab recreates them, so crediting
 //! one mints an item on every withdrawal, and many of them (the harness belt dummies) carry no
@@ -23,6 +25,10 @@ class OVT_PrefabPartUtils : Managed
 	//!
 	//! Ordered cheapest-first: only an item sitting in a cloth or attachment slot reaches the prefab
 	//! read, so container content - the overwhelming majority of every sweep - costs two casts.
+	//!
+	//! A part with NO InventoryItemComponent has no parent slot to read, so it falls through to the
+	//! prefab test alone: nothing without an item component can be storage CONTENT, which makes "an
+	//! entity child of a holder that declares its prefab" the whole answer for it.
 	//! \param[in] item The candidate.
 	//! \return True when respawning the holder's prefab would recreate this item.
 	static bool IsDeclaredPart(IEntity item)
@@ -30,20 +36,33 @@ class OVT_PrefabPartUtils : Managed
 		if (!item)
 			return false;
 
-		InventoryItemComponent itemComp = InventoryItemComponent.Cast(item.FindComponent(InventoryItemComponent));
-		if (!itemComp)
-			return false;
-
-		InventoryStorageSlot slot = itemComp.GetParentSlot();
-		if (!slot)
-			return false;
-
-		// A storage slot is player-filled: its occupant is never recreated by respawning the holder.
-		GenericComponent container = slot.GetParentContainer();
-		if (!BaseLoadoutClothComponent.Cast(container) && !AttachmentSlotComponent.Cast(container))
-			return false;
-
 		IEntity holder = item.GetParent();
+
+		InventoryItemComponent itemComp = InventoryItemComponent.Cast(item.FindComponent(InventoryItemComponent));
+		if (itemComp)
+		{
+			InventoryStorageSlot slot = itemComp.GetParentSlot();
+			if (!slot)
+				return false;
+
+			// A CARGO slot is player-filled: its occupant is never recreated by respawning the holder.
+			// An EquipmentStorageComponent slot is not - it is authored with its prefab and an
+			// AllowedItemTypes list, which is how a scabbard carries its bayonet.
+			GenericComponent container = slot.GetParentContainer();
+			if (!BaseLoadoutClothComponent.Cast(container) && !AttachmentSlotComponent.Cast(container)
+				&& !BaseEquipmentStorageComponent.Cast(container))
+				return false;
+
+			// The SLOT'S OWNER, not the entity parent. A garment worn on a body reparents its slotted
+			// parts to the character, so GetParent() answers "the soldier" and the prefab read then
+			// looks for a scabbard among a character's declared parts and finds nothing.
+			// Only a storage component exposes GetOwner(); a cloth or attachment slot falls back to the
+			// entity parent, which is correct while the garment is not being worn.
+			BaseInventoryStorageComponent slotStorage = slot.GetStorage();
+			if (slotStorage && slotStorage.GetOwner())
+				holder = slotStorage.GetOwner();
+		}
+
 		if (!holder)
 			return false;
 
@@ -79,10 +98,13 @@ class OVT_PrefabPartUtils : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Every prefab a prefab's own cloth and attachment slots spawn with it.
+	//! Every prefab a prefab's own slots spawn with it.
 	//!
-	//! Attachment slots hang off WeaponComponent rather than off the entity, so the search must go
-	//! through component children - hence FindComponentSourcesOfClass with its child flag set.
+	//! Four spellings, because vanilla uses four: BaseLoadoutClothComponent.Slots,
+	//! AttachmentSlotComponent.AttachmentSlot, BaseEquipmentStorageComponent.InitialStorageSlots and
+	//! BaseSlotComponent.AttachType. Attachment slots hang off WeaponComponent rather than off the
+	//! entity, so the search must go through component children - hence FindComponentSourcesOfClass
+	//! with its child flag set.
 	//! \param[in] prefab The holder's prefab.
 	//! \return The declared prefabs; never null, and owned by the cache - do not modify it.
 	static array<string> GetDeclaredParts(ResourceName prefab)
@@ -95,13 +117,15 @@ class OVT_PrefabPartUtils : Managed
 			return cached;
 
 		array<string> parts = new array<string>();
-		s_mDeclared.Insert(prefab, parts);
 
 		if (prefab == "")
 			return parts;
 
 		IEntitySource source = SCR_BaseContainerTools.FindEntitySource(Resource.Load(prefab));
-		if (!source)
+		// An UNLOADED resource answers with a source that has ZERO components rather than with null.
+		// Caching that would memoise "declares nothing" for the rest of the session, which is silent
+		// and permanent: the guard would go on crediting the parts it exists to drop.
+		if (!source || source.GetComponentCount() == 0)
 			return parts;
 
 		array<IEntityComponentSource> found = new array<IEntityComponentSource>();
@@ -124,6 +148,29 @@ class OVT_PrefabPartUtils : Managed
 		{
 			InsertSlotPrefab(attachment.GetObject("AttachmentSlot"), parts);
 		}
+
+		SCR_BaseContainerTools.FindComponentSourcesOfClass(source, BaseEquipmentStorageComponent, true, found);
+		foreach (IEntityComponentSource equipment : found)
+		{
+			BaseContainerList slots = equipment.GetObjectArray("InitialStorageSlots");
+			if (!slots)
+				continue;
+
+			for (int i = 0, count = slots.Count(); i < count; i++)
+			{
+				InsertSlotPrefab(slots.Get(i), parts);
+			}
+		}
+
+		// A scabbard declares its bayonet on BOTH an equipment slot and a BaseSlotComponent AttachType.
+		// Which one holds it at runtime is vanilla's business; either spelling makes it a declared part.
+		SCR_BaseContainerTools.FindComponentSourcesOfClass(source, BaseSlotComponent, true, found);
+		foreach (IEntityComponentSource attach : found)
+		{
+			InsertSlotPrefab(attach.GetObject("AttachType"), parts);
+		}
+
+		s_mDeclared.Insert(prefab, parts);
 
 		return parts;
 	}

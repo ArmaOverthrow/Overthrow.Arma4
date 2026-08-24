@@ -662,7 +662,7 @@ class OVT_PatrolBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 			}
 
 			// Fallback to deployment position if no town found
-			Print("Patrol behavior: No town found, using deployment position as patrol center", LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug("Patrol behavior: No town found, using deployment position as patrol center");
 		}
 
 		return m_ParentDeployment.GetPosition();

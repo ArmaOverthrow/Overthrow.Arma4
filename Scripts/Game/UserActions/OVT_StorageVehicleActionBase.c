@@ -68,11 +68,14 @@ class OVT_StorageVehicleQuery : Managed
 //------------------------------------------------------------------------------------------------
 class OVT_StorageVehicleActionBase : OVT_StorageActionBase
 {
-	//! Sphere query radius for candidate vehicles. The shipped number.
-	protected const float VEHICLE_SEARCH_RADIUS = 10;
+	//! Authored, defaulting to the shipped ammobox numbers. A warehouse needs bigger ones: the search
+	//! is measured from the OWNER's origin, and a building's origin is its centre, so a truck at the
+	//! loading door is already outside the crate-sized 15 m.
+	[Attribute(defvalue: "10", desc: "Sphere query radius (m) for candidate vehicles, measured from this action's owner")]
+	protected float m_fVehicleSearchRadius;
 
-	//! How far the chosen vehicle may be. The shipped number.
-	protected const float VEHICLE_MAX_DISTANCE = 15;
+	[Attribute(defvalue: "15", desc: "How far (m) the chosen vehicle may be from this action's owner")]
+	protected float m_fVehicleMaxDistance;
 
 	//------------------------------------------------------------------------------------------------
 	//! The vehicle this action moves storage to or from, with every shipped refusal reported.
@@ -81,7 +84,7 @@ class OVT_StorageVehicleActionBase : OVT_StorageActionBase
 	protected IEntity ResolveVehicle(IEntity pOwnerEntity)
 	{
 		OVT_StorageVehicleQuery query = new OVT_StorageVehicleQuery();
-		IEntity nearest = query.FindNearest(pOwnerEntity.GetOrigin(), VEHICLE_SEARCH_RADIUS, VEHICLE_MAX_DISTANCE);
+		IEntity nearest = query.FindNearest(pOwnerEntity.GetOrigin(), m_fVehicleSearchRadius, m_fVehicleMaxDistance);
 
 		if (!nearest)
 		{

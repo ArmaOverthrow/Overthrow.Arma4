@@ -357,9 +357,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		int driveMetres = Math.Round(vector.Distance(m_vSource, m_vLZ));
 		int standoffMetres = Math.Round(vector.Distance(m_vLZ, target));
 
-		Print(string.Format("[Overthrow] Insertion '%1': driving %2 m from %3 to a landing zone at %4, %5 m short of the objective",
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': driving %2 m from %3 to a landing zone at %4, %5 m short of the objective",
 			DescribeSelf(), driveMetres.ToString(), m_vSource.ToString(), m_vLZ.ToString(),
-			standoffMetres.ToString()), LogLevel.NORMAL);
+			standoffMetres.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -569,8 +569,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// its nose.
 		angles = GetUprightSpawnRotation(markers[chosen].GetYawPitchRoll()[0]);
 
-		Print(string.Format("[Overthrow] Insertion '%1': transport spawning on authored vehicle spawn %2 of %3 at %4",
-			DescribeSelf(), (chosen + 1).ToString(), markers.Count().ToString(), position.ToString()), LogLevel.VERBOSE);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': transport spawning on authored vehicle spawn %2 of %3 at %4",
+			DescribeSelf(), (chosen + 1).ToString(), markers.Count().ToString(), position.ToString()));
 
 		return true;
 	}
@@ -662,7 +662,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			// Whoever is already standing. Everyone who arrives after this is pinned by
 			// OnRiderAgentAdded as the spawn queue produces him, and the whole crew is re-pinned on
 			// every drive tick - a crew fills PROGRESSIVELY, so one pass over it is never enough.
-			OVT_MountedGroupActivation.HoldGroupActive(crew);
+			// No-op while the transport is an observer - see HoldRidersActive().
+			if (!m_bTransportIsObserver)
+				OVT_MountedGroupActivation.HoldGroupActive(crew);
 		}
 
 		return true;
@@ -831,8 +833,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			{
 				int settleTicks = m_iInsideRadiusTicks;
 
-				Print(string.Format("[Overthrow] Insertion '%1': its transport reached the landing zone but never came to a stop in %2 update(s); dropping the force anyway",
-					DescribeSelf(), settleTicks.ToString()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its transport reached the landing zone but never came to a stop in %2 update(s); dropping the force anyway",
+					DescribeSelf(), settleTicks.ToString()));
 
 				CompleteInsertion();
 				return;
@@ -863,9 +865,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 				// ⚠ One line per tick, on purpose: a single line at the end of the window cannot tell a slow
 				// queue from a count that was flat at zero. Bounded by CREW_MATERIALISE_TICKS.
-				Print(string.Format("[Overthrow] Insertion '%1': waiting for its crew, update %2 of %3 - %4",
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': waiting for its crew, update %2 of %3 - %4",
 					DescribeSelf(), m_iUnmaterialisedTicksElapsed.ToString(), ResolveMaterialiseTicks().ToString(),
-					DescribeCrewFill()), LogLevel.NORMAL);
+					DescribeCrewFill()));
 
 				if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUnmaterialisedTicksElapsed, ResolveMaterialiseTicks()))
 				{
@@ -884,8 +886,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 				// about a minute and walks. A disabled stall budget disables this too.
 				if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUncrewedTicksElapsed, m_iStuckTicks))
 				{
-					Print(string.Format("[Overthrow] Insertion '%1': its crew is on the ground but nobody took the wheel in %2 update(s) - %3",
-						DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
+					OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its crew is on the ground but nobody took the wheel in %2 update(s) - %3",
+						DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()));
 
 					DismountAndWalk("its transport never got a driver");
 					return;
@@ -916,8 +918,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 				// ⚠ The crew's state goes in the log on its own line, always - "never left its spawn point" is
 				// equally true of an unmaterialised crew, a sleeping one and a truck wedged against a wall.
-				Print(string.Format("[Overthrow] Insertion '%1': its transport stalled at %2 - %3",
-					DescribeSelf(), truckPosition.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its transport stalled at %2 - %3",
+					DescribeSelf(), truckPosition.ToString(), DescribeCrewLiveness()));
 
 				DismountAndWalk(string.Format("its transport stopped making progress %1 m short of the landing zone",
 					shortfallMetres.ToString()));
@@ -956,8 +958,19 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//------------------------------------------------------------------------------------------------
 	//! Keeps the transport CREW out of max LOD, so its behaviour tree keeps running whatever the
 	//! distance to the nearest observer.
+	//!
+	//! ⚠ SUPERSEDED BY THE OBSERVER, AND ONLY A FALLBACK NOW (2026-08-24). HoldTruckSimulated() parks an
+	//! engine observer ON THE TRANSPORT, and the LOD system is driven by observer distance - so the crew
+	//! of an observing transport is permanently at distance ~0 and can never reach max LOD on its own.
+	//! Pinning on top of that bought nothing and yanked every crewman's LOD every tick, which is a prime
+	//! suspect for the latched AI horn (the native driving code writes the horn input and nothing in
+	//! script can write it back). The pin therefore now runs ONLY when an author has switched the
+	//! observer off, which is the one configuration where it is still load-bearing.
 	protected void HoldRidersActive()
 	{
+		if (m_bTransportIsObserver)
+			return;
+
 		if (m_iCrewHandle == -1)
 			return;
 
@@ -1068,8 +1081,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (previous == -1)
 			return;
 
-		Print(string.Format("[Overthrow] HORN-DIAG '%1': driver horn %2 -> %3 | speed %4 | stuckTicks %5 | crewAtWheel %6",
-			DescribeSelf(), previous.ToString(), horn.ToString(), speed.ToString(), stuckTicks.ToString(), CrewIsAtTheWheel().ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] HORN-DIAG '%1': driver horn %2 -> %3 | speed %4 | stuckTicks %5 | crewAtWheel %6",
+			DescribeSelf(), previous.ToString(), horn.ToString(), speed.ToString(), stuckTicks.ToString(), CrewIsAtTheWheel().ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1321,8 +1334,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 			if (OVT_InsertionGeometry.IsUncrewedGraceExpired(m_iUncrewedTicksElapsed, m_iStuckTicks))
 			{
-				Print(string.Format("[Overthrow] Insertion '%1': nobody is driving its empty transport home after %2 update(s) - %3",
-					DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': nobody is driving its empty transport home after %2 update(s) - %3",
+					DescribeSelf(), m_iUncrewedTicksElapsed.ToString(), DescribeCrewLiveness()));
 
 				ReleaseConvoy("nobody is driving its transport home - the crew left it", false);
 				m_eState = OVT_EInsertionState.FINISHED;
@@ -1377,9 +1390,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (!ReleaseTruck())
 			return;
 
-		Print(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 was collected after %3 update(s) - nobody was within %4 m of it, and a transport left on this road is the next convoy's obstacle",
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 was collected after %3 update(s) - nobody was within %4 m of it, and a transport left on this road is the next convoy's obstacle",
 			DescribeSelf(), where.ToString(), m_iAbandonedTicksElapsed.ToString(),
-			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
+			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1398,8 +1411,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// falls back to the road snap and strands itself somewhere worse.
 		if (m_vHome != vector.Zero && vector.Distance(m_Truck.GetOrigin(), m_vHome) <= ABANDONED_AT_SPAWN_RADIUS_M)
 		{
-			Print(string.Format("[Overthrow] Insertion '%1': its transport never left its spawn point - %2. Collecting it immediately, without even waiting for the coast to clear, because it is standing on a vehicle spawn the next insertion needs",
-				DescribeSelf(), reason), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its transport never left its spawn point - %2. Collecting it immediately, without even waiting for the coast to clear, because it is standing on a vehicle spawn the next insertion needs",
+				DescribeSelf(), reason));
 
 			ReleaseTruck();
 			return;
@@ -1411,9 +1424,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		// ⚠ NORMAL, not VERBOSE: a reader has to be able to tell "waiting for the coast to clear" apart
 		// from "nothing is watching it" without a debugger.
-		Print(string.Format("[Overthrow] Insertion '%1': its transport is left standing at %2 - %3. It will be collected on the next update once nobody is within %4 m of it",
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its transport is left standing at %2 - %3. It will be collected on the next update once nobody is within %4 m of it",
 			DescribeSelf(), m_Truck.GetOrigin().ToString(), reason,
-			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
+			ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1444,8 +1457,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// NORMAL for the same reason ArmAbandonedTruck's line is: this is the answer to "why is that
 		// truck still standing there", it is latched to exactly one line per abandoned transport, and a
 		// reader who cannot see it concludes the countdown is broken.
-		Print(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 is overdue for collection but a player is within %3 m, so it stays until nobody is",
-			DescribeSelf(), m_Truck.GetOrigin().ToString(), ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its abandoned transport at %2 is overdue for collection but a player is within %3 m, so it stays until nobody is",
+			DescribeSelf(), m_Truck.GetOrigin().ToString(), ABANDONED_TRUCK_PLAYER_RADIUS_M.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1473,8 +1486,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		IssueCrewMove(HomePosition());
 
-		Print(string.Format("[Overthrow] Insertion '%1' delivered %2 group(s) at %3; its transport is going home",
-			DescribeSelf(), delivered.ToString(), m_vLZ.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1' delivered %2 group(s) at %3; its transport is going home",
+			DescribeSelf(), delivered.ToString(), m_vLZ.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1519,7 +1532,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	{
 		m_eState = OVT_EInsertionState.WALKING;
 
-		Print(string.Format("[Overthrow] Insertion '%1' is on foot: %2", DescribeSelf(), reason), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1' is on foot: %2", DescribeSelf(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1619,7 +1632,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		m_iInsideRadiusTicks = 0;
 
 		if (!reason.IsEmpty())
-			Print(string.Format("[Overthrow] Insertion '%1': convoy stood down - %2", DescribeSelf(), reason), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': convoy stood down - %2", DescribeSelf(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1684,14 +1697,15 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		string veto = TruckDeletionVeto(m_Truck);
 		if (veto != "")
 		{
-			Print(string.Format("[Overthrow] Insertion '%1': transport left standing - %2", DescribeSelf(), veto), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': transport left standing - %2", DescribeSelf(), veto));
 			m_Truck = null;
 			DisarmAbandonedTruck();
 			return false;
 		}
 
 		// ⚠ The last line of defence against deleting a vehicle over its occupants. TruckDeletionVeto()
-		// answers a question about OWNERSHIP and says nothing about the men this module put in the cab.
+		// answers a question about who the vehicle BELONGS to and says nothing about the men this
+		// module put in the cab.
 		EvacuateAiOccupants(m_Truck);
 
 		OVT_WorldUtils.DeleteEntityTree(m_Truck);
@@ -1740,8 +1754,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		if (evacuated > 0)
 		{
-			Print(string.Format("[Overthrow] Insertion '%1': %2 AI occupant(s) put on the ground before their transport was removed",
-				DescribeSelf(), evacuated.ToString()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': %2 AI occupant(s) put on the ground before their transport was removed",
+				DescribeSelf(), evacuated.ToString()));
 		}
 	}
 
@@ -1752,43 +1766,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! \return An empty string when it is safe to delete, or the reason it is not.
 	protected string TruckDeletionVeto(notnull Vehicle vehicle)
 	{
-		OVT_PlayerOwnerComponent owner = OVT_PlayerOwnerComponent.Cast(vehicle.FindComponent(OVT_PlayerOwnerComponent));
-		if (owner && !owner.GetPlayerOwnerUid().IsEmpty())
-			return "a player owns it";
-
-		BaseCompartmentManagerComponent compartments = BaseCompartmentManagerComponent.Cast(
-			vehicle.FindComponent(BaseCompartmentManagerComponent)
-		);
-
-		if (!compartments)
-			return "";
-
-		PlayerManager players = GetGame().GetPlayerManager();
-
-		array<BaseCompartmentSlot> slots = {};
-		compartments.GetCompartments(slots);
-
-		foreach (BaseCompartmentSlot slot : slots)
-		{
-			if (!slot)
-				continue;
-
-			IEntity occupant = slot.GetOccupant();
-			if (!occupant)
-				continue;
-
-			if (players && players.GetPlayerIdFromControlledEntity(occupant) > 0)
-				return "a player is riding in it";
-
-			OVT_PlayerOwnerComponent occupantOwner = OVT_PlayerOwnerComponent.Cast(
-				occupant.FindComponent(OVT_PlayerOwnerComponent)
-			);
-
-			if (occupantOwner && !occupantOwner.GetPlayerOwnerUid().IsEmpty())
-				return "a player's recruit is riding in it";
-		}
-
-		return "";
+		return OVT_VehicleClaim.DeletionVeto(vehicle);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2008,10 +1986,11 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		bool isCrew = m_mRiderIsCrew.Get(groupId);
 
-		// THE PIN FIRST AND UNCONDITIONALLY FOR A CREWMAN, before any test that can bail out. It is what
-		// makes him drive; losing it to a transport that has just gone would leave a live crew asleep
-		// while ReleaseConvoy is still a tick away. Releasing it again there is free.
-		if (isCrew)
+		// THE PIN FIRST FOR A CREWMAN, before any test that can bail out. It is what makes him drive;
+		// losing it to a transport that has just gone would leave a live crew asleep while ReleaseConvoy
+		// is still a tick away. Releasing it again there is free. Skipped while the transport is an
+		// observer, which keeps him off max LOD by itself - see HoldRidersActive().
+		if (isCrew && !m_bTransportIsObserver)
 			OVT_MountedGroupActivation.HoldAgentActive(agent);
 
 		if (!m_Truck)
@@ -2239,8 +2218,8 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		if (SeatPassengerInCargo(vehicle, agent, compartmentManager, cargo, cabCount))
 		{
-			Print(string.Format("[Overthrow] Insertion '%1': a member of the force had taken the driver's seat - moved to a passenger seat before it could drive the convoy to the objective instead of the landing zone",
-				DescribeSelf()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': a member of the force had taken the driver's seat - moved to a passenger seat before it could drive the convoy to the objective instead of the landing zone",
+				DescribeSelf()));
 
 			return true;
 		}

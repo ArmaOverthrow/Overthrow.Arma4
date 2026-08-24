@@ -1895,19 +1895,18 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 			BaseInventoryStorageComponent target = ResolveHolderStorage(inventory, null, res, holderHasOwnStorage);
 
 			// A holder with its own storage but no room in it is FULL. Falling back to a null storage
-			// here would let the engine nest the withdrawal inside a bag that was itself just taken out.
-			if (holderHasOwnStorage && !target)
+			// here would let the engine nest the withdrawal inside a bag that was itself just taken out,
+			// so the line goes to the GROUND instead. That is not a nicety: a ledger's only exit is this
+			// spawn, and some prefabs no cargo storage will EVER take - a vanilla scabbard among them -
+			// so leaving the line on the holder makes it permanent, unmovable and undeletable.
+			if ((holderHasOwnStorage && !target) || !inventory.TrySpawnPrefabToStorage(res, target, -1, EStoragePurpose.PURPOSE_ANY, null, 1))
 			{
-				job.m_iShortfall += wanted;
-				job.DropFrontLine();
-				continue;
-			}
-
-			if (!inventory.TrySpawnPrefabToStorage(res, target, -1, EStoragePurpose.PURPOSE_ANY, null, 1))
-			{
-				job.m_iShortfall += wanted;
-				job.DropFrontLine();
-				continue;
+				if (!DropLineAtHolder(storage.GetOwner(), res))
+				{
+					job.m_iShortfall += wanted;
+					job.DropFrontLine();
+					continue;
+				}
 			}
 
 			ledger.Take(res, 1);
@@ -2709,6 +2708,26 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		}
 
 		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts one unit of a line on the ground beside its holder, for when no storage of the holder's
+	//! will take it.
+	//!
+	//! Slightly above and beside the holder's origin so a truckload does not spawn inside the truck's
+	//! own collision and get pushed through the world.
+	//! \param[in] holder The storage holder.
+	//! \param[in] prefab The prefab to place.
+	//! \return True when the entity reached the world.
+	protected bool DropLineAtHolder(IEntity holder, ResourceName prefab)
+	{
+		if (!holder || prefab == "")
+			return false;
+
+		vector origin = holder.GetOrigin();
+		origin[1] = origin[1] + 0.5;
+
+		return OVT_Global.SpawnEntityPrefab(prefab, origin) != null;
 	}
 
 	//------------------------------------------------------------------------------------------------

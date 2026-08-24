@@ -1,6 +1,6 @@
 # Deployments - Context & Decisions
 
-**Last Updated:** 2026-08-21
+**Last Updated:** 2026-08-24
 **Current Phase:** Retrospective documentation + incremental enhancements (dated entries below)
 **Status:** ✅ Documented (Existing Feature) — the epic's only force-placement system; 20 shipped configs
 
@@ -732,3 +732,45 @@ from a flag:
   reads as "having a look". Author to open both `.bt` files in the BT editor once and resave (the files are
   text copies and have never been through the editor).
 - Still owed from the previous entry: All-suite run before commit; civilian reaction later.
+
+---
+
+## 2026-08-24 — Log spam gated behind `m_bDebugMode`; one line per created deployment
+
+**Author, on the test server:** *"the systems are working well now and most of it was for debugging purposes. we only need to know when a deployment is actually created successfully for now and what it cost in a single log entry."*
+
+**Scale of the problem, measured:** a real Workbench session log (`logs_2026-08-24_13-07-04/console.log`) carried **408 `[Overthrow]` lines**, dominated by 113 `Creating deployment 'X'`, 73 `Created deployment 'X'`, 40 creation refusals, and per-module chatter from composition building, parked vehicles and the pool reserve.
+
+🔴 **`LogLevel.VERBOSE` is NOT a sink.** The obvious fix — demote everything to VERBOSE — does nothing: VERBOSE prints to `console.log` like every other level. Proven against that same log, where the two `LogLevel.VERBOSE` cooldown/grace refusals in `CreateDeployment` appear **24 times**. Silencing has to be a gate in script.
+
+**What shipped:**
+- **`OVT_DeploymentLog`** (`Scripts/Game/GameMode/Deployments/OVT_DeploymentLog.c`) — `Debug(string)` prints only when `OVT_Global.GetConfig().m_bDebugMode` is set, the same flag the director's own `LogSelectionRound` already used. `Log(string, LogLevel)` is for callers that carry a level through: WARNING/ERROR/FATAL are never gated.
+- **114 informational `Print` sites** across `Scripts/Game/GameMode/Deployments/**` and `Scripts/Game/GameMode/Objectives/**` routed through it (mechanical paren-matched rewrite, so multi-line `string.Format` calls converted intact).
+- **Untouched on purpose:** the **65 WARNING/ERROR** sites, and the **138 prints inside the `Print*DebugInfo()` dumps** — those methods have *no callers* and are reachable only from the script console, so gating them would make them print nothing when invoked.
+- **The one ungated line**, at the end of `OVT_DeploymentManager.CreateDeployment`:
+  `[Overthrow] Created deployment '<name>' for faction <n> near <town> - cost <resourcesInvested>`
+  The cost needed no new plumbing — `resourcesInvested` is already a parameter of that method, stamped onto the component two lines above. The `Creating deployment` precursor is now gated, so the paired-line noise is gone with it.
+
+⚠ **`LogOperationRefusal`/`LogObjectiveRefusal` take a `LogLevel` and would have swallowed it.** Their call sites pass `LogLevel.ERROR` twice and `WARNING` once; routing them through `Debug()` would have silenced three genuine faults. They use `OVT_DeploymentLog.Log(..., level)` instead.
+
+Net effect on that sample log: 408 `[Overthrow]` lines → the 73 `Created deployment` lines plus warnings/errors. `tools/compile-check.sh` exit 0 (6345 files). Suite not run.
+
+---
+
+## 2026-08-24 — A vehicle patrol's teardown deleted an intact technical in front of the player
+
+**Author, on the test server:** *"another technical just disappeared in front of me after I killed the crew driving it, that should never happen with resistance around"* — a light vehicle patrol.
+
+**The chain, all in one tick:** last crewman dies → `OVT_VehicleSpawningDeploymentModule` empties `m_aCrewHandles` → `MarkEliminated("its crew has been wiped out")` → the deployment is torn down → `OnCleanup()` → `ReleaseVehicles()` → `VehicleDeletionVeto()` finds no player owner and no occupant → `OVT_WorldUtils.DeleteEntityTree(vehicle)`. The vehicle is *intact*; the player has just fought for it and it evaporates in front of them.
+
+**Root cause:** the veto answered only *"is this vehicle somebody else's?"* and never *"is anybody looking?"*. It was also **duplicated byte-for-byte** in two places — `OVT_VehicleSpawningDeploymentModule.VehicleDeletionVeto` and `OVT_InsertionSpawningDeploymentModule.TruckDeletionVeto` — so both teardown paths had the same hole.
+
+**Fix:** `OVT_VehicleClaim` (`Scripts/Game/GameMode/Deployments/OVT_VehicleClaim.c`) holds the single copy, with **proximity as a third veto reason** alongside the two ownership ones, at `PLAYER_WATCHING_RADIUS_M` 320 — the number the insertion module's abandoned-transport sweep and `OVT_NoPlayersNearbyConditionDeploymentModule` already use (baseCloseRange 220 + 100). Both modules' methods are now one-line delegations, so the two call sites and their comments stay where readers expect them.
+
+⚠ **A veto is FINAL — there is no retry and deliberately no collection queue.** Author's rule, given during the fix: *"it should never retry if that check fails, the vehicle is lost at that point whether a player is nearby or they own it now."* A vetoed vehicle is given up permanently: the occupying faction has lost it exactly as it lost the crew, and it becomes ordinary world content the player can take. A deferred-collection queue on the manager was built and then removed on this instruction — the manager is the only thing that outlives the deployment, so any retry design has to live there, if one is ever wanted.
+
+⚠ **`TickAbandonedTruck` still retries, and that is left alone on purpose.** It is a different case: a transport the convoy *walked away from*, held only so a stuck truck does not block a road forever. It gates on the same 320 m before it ever reaches `ReleaseTruck`, so the new veto never fires underneath it.
+
+⚠ **Consequence to watch on a long campaign:** patrol vehicles killed near players now accumulate as permanent world entities. Nothing collects them — the modded `SCR_GarbageSystem` only filters what vanilla inserts, and nothing inserts an abandoned-but-intact vehicle. This is the intended trade.
+
+`tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.

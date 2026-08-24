@@ -445,8 +445,8 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 			// this kind is an ordinary property of the terrain the author called out by name: *"some
 			// bases simply don't have the slots or anywhere to put them"*. A WARNING on every base
 			// startup for a normal condition is noise that hides real ones.
-			Print(string.Format("[Overthrow] Deployment '%1' did not place composition '%2': it needs a %3 slot and %4 - nothing was charged for it",
-				m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), reason), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' did not place composition '%2': it needs a %3 slot and %4 - nothing was charged for it",
+				m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, typename.EnumToString(OVT_EDeploymentSlotType, m_eSlotType), reason));
 
 			m_bCompositionAttempted = true;
 			return;
@@ -486,8 +486,8 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 		if (m_bFillAmmoBoxes)
 			FillAmmoBoxes(structure);
 
-		Print(string.Format("[Overthrow] Deployment '%1' built composition '%2' at %3",
-			m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, structure.GetOrigin().ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' built composition '%2' at %3",
+			m_ParentDeployment.GetDeploymentName(), m_sCompositionTag, structure.GetOrigin().ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------

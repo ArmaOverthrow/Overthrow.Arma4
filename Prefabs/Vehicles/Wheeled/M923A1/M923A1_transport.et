@@ -31,6 +31,16 @@ Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
      m_sActionStateOff ""
      m_bInteriorOnly 1
     }
+    OVT_OpenStorageMenuAction "{6BB40000000000B2}" {
+     ParentContextList {
+      "starter_switch"
+     }
+     UIInfo UIInfo "{6BB40000000000B3}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
    }
   }
  }

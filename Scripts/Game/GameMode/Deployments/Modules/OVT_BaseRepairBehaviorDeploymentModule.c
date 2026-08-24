@@ -181,8 +181,8 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 			return;
 		}
 
-		Print(string.Format("[Overthrow] Base repair: restoring a structure worth %1 at %2",
-			m_aTargetCosts[index], target.GetOrigin().ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Base repair: restoring a structure worth %1 at %2",
+			m_aTargetCosts[index], target.GetOrigin().ToString()));
 
 		// -1 = server-initiated and free, the convention BuildItem() uses.
 		if (!resistance.RepairStructure(target, -1))
@@ -295,8 +295,8 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		// Latch first, so a re-entrant path cannot find it down and repair one more.
 		AbortMission();
 
-		Print(string.Format("[Overthrow] Base repair detail finished after %1 structure(s): %2",
-			m_iRepaired, reason), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Base repair detail finished after %1 structure(s): %2",
+			m_iRepaired, reason));
 
 		// Collected NEXT FRAME - an inline delete from a non-last behaviour module walks off the end
 		// of the module list it is being iterated in.

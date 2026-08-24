@@ -244,8 +244,8 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 
 		IssueDrive(mounted, position);
 
-		Print(string.Format("[Overthrow] Mobile checkpoint '%1': setting up on the approach at bearing %2 from the objective, %3 m out",
-			DescribeSelf(), Math.Round(bearing).ToString(), Math.Round(vector.Distance(position, ObjectivePosition())).ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1': setting up on the approach at bearing %2 from the objective, %3 m out",
+			DescribeSelf(), Math.Round(bearing).ToString(), Math.Round(vector.Distance(position, ObjectivePosition())).ToString()));
 
 		return true;
 	}
@@ -302,8 +302,8 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 		m_bParked = true;
 		m_iTicksSinceRelocate = 0;
 
-		Print(string.Format("[Overthrow] Mobile checkpoint '%1' is set at %2 - %3",
-			DescribeSelf(), m_vCheckpoint.ToString(), reason), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1' is set at %2 - %3",
+			DescribeSelf(), m_vCheckpoint.ToString(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -330,8 +330,8 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 			int opened = DisembarkForce(mounted);
 			if (opened > 0)
 			{
-				Print(string.Format("[Overthrow] Mobile checkpoint '%1': %2 man/men dismounted; the crew stays aboard so the gun stays manned",
-					DescribeSelf(), opened.ToString()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1': %2 man/men dismounted; the crew stays aboard so the gun stays manned",
+					DescribeSelf(), opened.ToString()));
 
 				m_iDismountStage = 1;
 				return;
@@ -349,8 +349,8 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 
 			m_iDismountStage = 2;
 
-			Print(string.Format("[Overthrow] Mobile checkpoint '%1': nobody was aboard to dismount after %2 update(s) - its force either walked in or is gone, and the vehicle holds the approach on its own",
-				DescribeSelf(), m_iDismountWaitTicks.ToString()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1': nobody was aboard to dismount after %2 update(s) - its force either walked in or is gone, and the vehicle holds the approach on its own",
+				DescribeSelf(), m_iDismountWaitTicks.ToString()));
 
 			return;
 		}
@@ -620,8 +620,8 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 
 		IssueDrive(mounted, position);
 
-		Print(string.Format("[Overthrow] Mobile checkpoint '%1' is moving from the approach at bearing %2 to the one at bearing %3",
-			DescribeSelf(), Math.Round(previous).ToString(), Math.Round(bearing).ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1' is moving from the approach at bearing %2 to the one at bearing %3",
+			DescribeSelf(), Math.Round(previous).ToString(), Math.Round(bearing).ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -730,9 +730,9 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 
 		m_bNoApproachLogged = true;
 
-		Print(string.Format("[Overthrow] Mobile checkpoint '%1': no approach to the objective has a road within %2 m of the %3-%4 m band, so there is nowhere to set up",
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1': no approach to the objective has a road within %2 m of the %3-%4 m band, so there is nowhere to set up",
 			DescribeSelf(), Math.Round(m_fRoadSearchRadius).ToString(), Math.Round(m_fApproachMinDistance).ToString(),
-			Math.Round(m_fApproachMaxDistance).ToString()), LogLevel.NORMAL);
+			Math.Round(m_fApproachMaxDistance).ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -927,7 +927,7 @@ class OVT_MobileCheckpointBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentM
 		m_iTicksSinceRelocate = 0;
 
 		if (reason != "")
-			Print(string.Format("[Overthrow] Mobile checkpoint '%1' stood down: %2", DescribeSelf(), reason), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Mobile checkpoint '%1' stood down: %2", DescribeSelf(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------

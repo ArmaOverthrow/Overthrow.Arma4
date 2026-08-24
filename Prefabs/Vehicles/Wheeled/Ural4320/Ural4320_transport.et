@@ -31,6 +31,16 @@ Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
      m_sActionStateOff ""
      m_bInteriorOnly 1
     }
+    OVT_OpenStorageMenuAction "{6BB40000000000B0}" {
+     ParentContextList {
+      "starter_switch"
+     }
+     UIInfo UIInfo "{6BB40000000000B1}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
    }
   }
  }

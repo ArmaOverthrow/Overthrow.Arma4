@@ -96,7 +96,7 @@ class OVT_AssetStarvedObjectiveAbort : OVT_BaseObjectiveAbortModule
 			if (m_bStarvationLogged)
 			{
 				m_bStarvationLogged = false;
-				Print(OVT_ObjectiveDirectorComponent.LOG + "The forward base for objective '" + objective.GetTargetName() + "' is supplied again after " + asset.starvationTicks.ToString() + " in-game minute(s) cut off", LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(OVT_ObjectiveDirectorComponent.LOG + "The forward base for objective '" + objective.GetTargetName() + "' is supplied again after " + asset.starvationTicks.ToString() + " in-game minute(s) cut off");
 			}
 
 			asset.starvationTicks = 0;
@@ -108,7 +108,7 @@ class OVT_AssetStarvedObjectiveAbort : OVT_BaseObjectiveAbortModule
 		if (!m_bStarvationLogged)
 		{
 			m_bStarvationLogged = true;
-			Print(OVT_ObjectiveDirectorComponent.LOG + "The forward base for objective '" + objective.GetTargetName() + "' is cut off - it has " + ResolveStarvationMinutes().ToString() + " in-game minute(s) before it is abandoned", LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(OVT_ObjectiveDirectorComponent.LOG + "The forward base for objective '" + objective.GetTargetName() + "' is cut off - it has " + ResolveStarvationMinutes().ToString() + " in-game minute(s) before it is abandoned");
 		}
 	}
 

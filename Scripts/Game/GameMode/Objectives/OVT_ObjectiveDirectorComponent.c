@@ -837,7 +837,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		SetOperationCountdown(delay);
 
-		Print(LOG + "Objective '" + m_Objective.name + "': holding fire for " + delay.ToString() + " in-game minute(s) before the first operation (objectiveFirstOperationDelayMinutes)", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "': holding fire for " + delay.ToString() + " in-game minute(s) before the first operation (objectiveFirstOperationDelayMinutes)");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1031,7 +1031,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 				// moment the order became random: a reader who knows the authored chain can no longer
 				// derive which operation was asked first. One line per successful operation - which is at
 				// most one per cadence per objective - names the winner and how many it beat.
-				Print(LOG + "Objective '" + m_Objective.name + "' phase '" + instance.GetPhaseName() + "': ran operation '" + operation.m_sModuleName + "', drawn " + (position + 1).ToString() + " of " + offered.ToString() + " offered this cadence", LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "' phase '" + instance.GetPhaseName() + "': ran operation '" + operation.m_sModuleName + "', drawn " + (position + 1).ToString() + " of " + offered.ToString() + " offered this cadence");
 
 				return true;
 			}
@@ -1230,7 +1230,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 
 		EnterObjectivePhaseIndex(instance, next);
 
-		Print(LOG + "Objective '" + m_Objective.name + "' has met every condition of phase '" + leaving + "' on plan '" + instance.GetConfigName() + "' - entering '" + instance.GetPhaseName() + "'", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "' has met every condition of phase '" + leaving + "' on plan '" + instance.GetConfigName() + "' - entering '" + instance.GetPhaseName() + "'");
 
 		return true;
 	}
@@ -1332,7 +1332,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		// swallowed by a latch set an hour ago.
 		ForgetOperationRefusals(configName);
 
-		Print(LOG + "Sent '" + configName + "' at " + position.ToString() + " for " + cost.ToString() + " resources", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Sent '" + configName + "' at " + position.ToString() + " for " + cost.ToString() + " resources");
 
 		return true;
 	}
@@ -1481,7 +1481,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (detail != "")
 			line = line + " (" + detail + ")";
 
-		Print(line + ". It will keep asking every in-game minute; this line repeats only if the reason changes or the operation is bought and then refused again", level);
+		OVT_DeploymentLog.Log(line + ". It will keep asking every in-game minute; this line repeats only if the reason changes or the operation is bought and then refused again", level);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1844,7 +1844,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (raise)
 			raise.OnAssetRaised(position);
 
-		Print(LOG + "Objective '" + m_Objective.name + "': the forward operating base is standing at " + position.ToString(), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "': the forward operating base is standing at " + position.ToString());
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2206,7 +2206,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (what == "")
 			what = "a condition it cannot influence";
 
-		Print(LOG + "Objective '" + m_Objective.name + "' has done everything it can and is waiting on '" + what + "'. Its idle clock is HELD while it waits - a wait nobody can shorten is not a failure of the objective - but nothing else is: its operations still run and whatever it has standing can still be taken off it", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "' has done everything it can and is waiting on '" + what + "'. Its idle clock is HELD while it waits - a wait nobody can shorten is not a failure of the objective - but nothing else is: its operations still run and whatever it has standing can still be taken off it");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2545,7 +2545,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		if (!config || !config.m_bDebugMode)
 			return;
 
-		Print(LOG + "Selection round: " + candidateCount.ToString() + " candidate(s) x " + planCount.ToString() + " plan(s) in " + elapsedMs.ToString() + " ms", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "Selection round: " + candidateCount.ToString() + " candidate(s) x " + planCount.ToString() + " plan(s) in " + elapsedMs.ToString() + " ms");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2688,7 +2688,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			return;
 
 		m_bIdleLogged = true;
-		Print(LOG + "No objective: the resistance holds nothing worth taking back yet", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(LOG + "No objective: the resistance holds nothing worth taking back yet");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2747,7 +2747,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		else
 			line = line + " (the only candidate)";
 
-		Print(line, LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(line);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3141,7 +3141,7 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			}
 
 			if (refunded > 0)
-				Print(LOG + "Objective '" + m_Objective.name + "': " + recalled.ToString() + " operation(s) were recalled before they finished and " + refunded.ToString() + " resources returned to the pool", LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "': " + recalled.ToString() + " operation(s) were recalled before they finished and " + refunded.ToString() + " resources returned to the pool");
 		}
 
 		// ⚠ CLEARED WHATEVER HAPPENED, and it is the outer half of the "cannot pay twice" guarantee: a

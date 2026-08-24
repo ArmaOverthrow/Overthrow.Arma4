@@ -301,7 +301,7 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 		m_bExfilHoldLogged = false;
 
 		if (reason != "")
-			Print(string.Format("[Overthrow] Deployment collection requested: %1", reason), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment collection requested: %1", reason));
 
 		// Try immediately - the common case is a mission that finished with nobody near it, and making
 		// that wait a whole update tick would be a needless delay.
@@ -366,8 +366,8 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 
 		m_bExfilHoldLogged = true;
 
-		Print(string.Format("[Overthrow] Deployment '%1' has finished its job but a player is at the objective - the team holds until the coast is clear rather than vanishing in front of him",
-			m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' has finished its job but a player is at the objective - the team holds until the coast is clear rather than vanishing in front of him",
+			m_ParentDeployment.GetDeploymentName()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -480,8 +480,8 @@ class OVT_BaseBehaviorDeploymentModule : OVT_BaseDeploymentModule
 		if (standDown == 0)
 			return;
 
-		Print(string.Format("[Overthrow] Deployment '%1' has finished and nobody is watching - %2 of its group(s) were on the ground and have been taken off it before collection",
-			m_ParentDeployment.GetDeploymentName(), standDown.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' has finished and nobody is watching - %2 of its group(s) were on the ground and have been taken off it before collection",
+			m_ParentDeployment.GetDeploymentName(), standDown.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------

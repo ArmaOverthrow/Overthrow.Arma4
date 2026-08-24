@@ -112,7 +112,7 @@ class OVT_StartBattleObjectiveOperation : OVT_BaseObjectiveOperationModule
 
 		m_bStarted = true;
 
-		Print(OVT_ObjectiveDirectorComponent.LOG + "Objective '" + objective.GetTargetName() + "': the counter-attack has begun", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(OVT_ObjectiveDirectorComponent.LOG + "Objective '" + objective.GetTargetName() + "': the counter-attack has begun");
 
 		return true;
 	}

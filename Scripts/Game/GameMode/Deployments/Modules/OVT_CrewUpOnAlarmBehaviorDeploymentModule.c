@@ -246,8 +246,8 @@ class OVT_CrewUpOnAlarmBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		m_SortieDeploymentId = sortie.GetOwner().GetID();
 		m_bHasSortie = true;
 
-		Print(string.Format("[Overthrow] Crew-up '%1': base at %2 crewed its parked vehicle and sortied it towards %3 for %4 resources",
-			DescribeSelf(), source.ToString(), target.ToString(), m_iSortieBudget.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Crew-up '%1': base at %2 crewed its parked vehicle and sortied it towards %3 for %4 resources",
+			DescribeSelf(), source.ToString(), target.ToString(), m_iSortieBudget.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -257,7 +257,7 @@ class OVT_CrewUpOnAlarmBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	//! \param[in] reason What refused it.
 	protected void RefuseSortie(string reason)
 	{
-		Print("[Overthrow] Crew-up '" + DescribeSelf() + "': no sortie sent - " + reason, LogLevel.VERBOSE);
+		OVT_DeploymentLog.Debug("[Overthrow] Crew-up '" + DescribeSelf() + "': no sortie sent - " + reason);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -369,7 +369,7 @@ class OVT_CrewUpOnAlarmBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 
 		deployments.CollectDeployment(sortie);
 
-		Print(string.Format("[Overthrow] Crew-up '%1': the battle is over - its sortie has been collected", DescribeSelf()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Crew-up '%1': the battle is over - its sortie has been collected", DescribeSelf()));
 	}
 
 	//------------------------------------------------------------------------------------------------

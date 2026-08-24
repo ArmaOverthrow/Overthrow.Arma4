@@ -1,8 +1,43 @@
 SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/Camps/TentUSSR_01/TentUSSRMedical_01.et" {
  ID "F0DBA538AC2A0552"
  components {
+  MeshObject "{506EDA9D46FC6C06}" {
+   Materials {
+    MaterialAssignClass "{6A8E2F3100000031}" {
+     SourceMaterial "BaseFabric_Tent"
+     AssignedMaterial "{0C2A70FDB9D874BE}Assets/Structures/Military/Camps/TentUSSR_01/Data/Tent_Soviet_01_Fabric_FIA.emat"
+    }
+    MaterialAssignClass "{6A8E2F3100000032}" {
+     SourceMaterial "Tent_Soviet_01_Fabric_MLOD"
+     AssignedMaterial "{3C5C70981B855375}Assets/Structures/Military/Camps/TentUSSR_01/Data/Tent_FIA_01_Fabric_MLOD.emat"
+    }
+   }
+  }
   OVT_BuildableComponent "{5D7C4894D47812BE}" {
    m_sBuildableType "MedicalTent"
+  }
+  OVT_StructureDestructionComponent "{6B70D00000000006}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     DamageThreshold 50
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000007}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{0F7DDAB5C669F262}Assets/Structures/Debris/DebrisPiles/DebrisPile_Wood_01.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_TENT
   }
   SCR_EditableEntityComponent "{65B90A292DB356FC}" {
    m_UIInfo SCR_EditableEntityUIInfo "{65B90A2928A5D0DD}" {
@@ -11,15 +46,11 @@ SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/
    }
    m_Flags PLACEABLE
   }
+  SCR_HealSupportStationComponent "{5EE8A81A8ACCE524}" {
+   m_fRange 4
+  }
   ActionsManagerComponent "{59C5275583D9D629}" {
    ActionContexts {
-    UserActionContext "{59C5275581D4961F}" {
-     ContextName "default"
-     Position PointInfo "{59C527558D30CB57}" {
-      Offset 0 1.8 0
-     }
-     Radius 0.65
-    }
     UserActionContext "{6B70D00000000014}" {
      ContextName "repair"
      Position PointInfo "{6B70D00000000015}" {
@@ -50,38 +81,7 @@ SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/
      }
      Duration 20
     }
-    OVT_HealAction "{59C527559C561625}" {
-     ParentContextList {
-      "default"
-     }
-     UIInfo UIInfo "{59C527546741BE98}" {
-      Name "#OVT-Heal"
-     }
-    }
    }
-  }
-  OVT_StructureDestructionComponent "{6B70D00000000006}" {
-   Enabled 1
-   "Additional hit zones" {
-    SCR_HitZone Default {
-     HZDefault 1
-     "Melee multiplier" 0.01
-     "Kinetic multiplier" 0.1
-     "Explosive multiplier" 1
-     "Incendiary multiplier" 0.1
-     DamageThreshold 50
-    }
-   }
-   m_fBaseHealth 32000
-   m_fDamageThresholdMaximum 50000
-   m_bDeleteAfterFinalPhase 0
-   m_aDamagePhases {
-    SCR_DamagePhaseData "{6B70D00000000007}" {
-     m_fPhaseHealth 32000
-     m_PhaseModel "{0F7DDAB5C669F262}Assets/Structures/Debris/DebrisPiles/DebrisPile_Wood_01.xob"
-    }
-   }
-   m_eMaterialSoundType BREAK_TENT
   }
   RplComponent "{50A4E7C9B5728062}" {
    Enabled 1
@@ -91,10 +91,146 @@ SCR_DestructibleBuildingEntity : "{CBE5E0D2DC08E178}Prefabs/Structures/Military/
  {
   GenericEntity {
    ID "54FAC13F64B3CE23"
+  }
+  GenericEntity : "{03C914505C4CF12C}Prefabs/Props/Medical/ToolsSurgical_01_kidneydish_V1.et" {
+   ID "6A8E2F3100000107"
    components {
-    Hierarchy "{59C4FEDF822ABF00}" {
+    Hierarchy "{6A8E2F310000002A}" {
     }
    }
+   coords 1.7 0.95 -0.6
+  }
+  GenericEntity : "{27EA47994266D9DD}Prefabs/Props/Services/Healthcare/BinMedical_01.et" {
+   ID "6A8E2F310000010A"
+   components {
+    Hierarchy "{6A8E2F310000002D}" {
+    }
+   }
+   coords -0.622 0.045 -2.569
+  }
+  $grp GenericEntity : "{2B6508FE121FCAC9}Prefabs/Props/Medical/InfusionStand_01/InfusionStand_01.et" {
+   {
+    ID "6A8E2F3100000104"
+    components {
+     Hierarchy "{6A8E2F3100000027}" {
+     }
+    }
+    coords -2.56 0.065 -2.35
+   }
+   {
+    ID "6A8E2F3100000105"
+    components {
+     Hierarchy "{6A8E2F3100000028}" {
+     }
+    }
+    coords 2.539 0.045 -0.55
+   }
+  }
+  GameEntity : "{2CB0AA2A87842C18}Prefabs/Props/Civilian/LampKerosene_01/LampKerosene_01_military_USSR.et" {
+   ID "6A8E2F310000010D"
+   components {
+    Hierarchy "{6A8E2F3100000030}" {
+    }
+   }
+   coords -0.02 0.075 -2.519
+  }
+  GenericEntity : "{452C9FF31AAF2B82}Prefabs/Props/Services/Healthcare/CabinetMedical_01.et" {
+   ID "6A8E2F3100000109"
+   components {
+    Hierarchy "{6A8E2F310000002C}" {
+    }
+   }
+   coords 0.79 0.045 -2.481
+   angles 0 1.345 0
+  }
+  GenericEntity : "{9305F7BAF1317EE0}Prefabs/Props/Medical/TableSurgical_01/TableSurgical_01.et" {
+   ID "6A8E2F3100000106"
+   components {
+    Hierarchy "{6A8E2F3100000029}" {
+    }
+   }
+   coords 1.426 0.045 -0.741
+   angles 0 176.397 0
+  }
+  $grp StaticModelEntity : "{C6BFE324CCCFE6C4}Prefabs/Props/Military/Furniture/CotMilitary_USSR_01.et" {
+   {
+    ID "6A8E2F3100000101"
+    components {
+     ActionsManagerComponent "{6A8E2F3100000001}" {
+      ActionContexts {
+       UserActionContext "{6A8E2F3100000002}" {
+        ContextName "bed"
+        Position PointInfo "{6A8E2F3100000003}" {
+         Offset 0 0.55 0
+        }
+        Radius 0.8
+       }
+      }
+      additionalActions {
+       OVT_HealAction "{6A8E2F3100000004}" {
+        ParentContextList {
+         "bed"
+        }
+        UIInfo UIInfo "{6A8E2F3100000005}" {
+         Name "#OVT-Heal"
+        }
+        ActionTitle "Treating wounds"
+        Duration 5
+       }
+      }
+     }
+     Hierarchy "{6A8E2F3100000006}" {
+     }
+    }
+    coords -1.9 0.064 -1.5
+    angles 0 90 0
+   }
+   {
+    ID "6A8E2F3100000103"
+    components {
+     ActionsManagerComponent "{6A8E2F3100000021}" {
+      ActionContexts {
+       UserActionContext "{6A8E2F3100000022}" {
+        ContextName "bed"
+        Position PointInfo "{6A8E2F3100000023}" {
+         Offset 0 0.55 0
+        }
+        Radius 0.8
+       }
+      }
+      additionalActions {
+       OVT_HealAction "{6A8E2F3100000024}" {
+        ParentContextList {
+         "bed"
+        }
+        UIInfo UIInfo "{6A8E2F3100000025}" {
+         Name "#OVT-Heal"
+        }
+        ActionTitle "Treating wounds"
+        Duration 5
+       }
+      }
+     }
+     Hierarchy "{6A8E2F3100000026}" {
+     }
+    }
+    coords -1.9 0.06 1.638
+    angles 0 90 0
+   }
+  }
+  StaticModelEntity : "{E44BFFEB602037B1}Prefabs/Compositions/Misc/SubCompositions/Furniture/Chair_Medical_USSR_01.et" {
+   ID "6A30D3E885B16854"
+   coords -1.187 0.055 -2.438
+   angles 0 0 0
+  }
+  GenericEntity : "{F06EAC6F2F97767F}Prefabs/Props/Medical/MedicalScreen_01.et" {
+   ID "6A8E2F310000010B"
+   components {
+    Hierarchy "{6A8E2F310000002E}" {
+    }
+   }
+   coords 1.286 0.045 1.35
+   angles 0 178.796 0
   }
  }
 }

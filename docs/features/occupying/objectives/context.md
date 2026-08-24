@@ -3155,3 +3155,73 @@ User play-test: *"they are relentlessly sending specops and the player has almos
 Coverage: `OVT_TEST_Init_ObjectiveDirector_ANewObjectiveHoldsFireBeforeItsFirstTeam` — asserts against the **difficulty**, never a hard-coded number, and reports a skip rather than a pass in a world that authors zero. `compile-check.sh` exit 0; suites owed.
 
 ⚠ Unrelated but noticed while editing the difficulty files: `Difficulty_Extreme.conf` has **lost** its `objectiveHarassmentMaxConcurrent 3` and `objectiveMaxConcurrentInsertions 4` lines, so both now fall back to the class default of 2. If that was a Workbench re-save rather than an intentional edit, Extreme is quietly weaker than it was.
+
+---
+
+## 2026-08-24 — Director logging gated
+
+The director and its modules were part of the log-spam sweep. 16 informational `Print` sites here now go through `OVT_DeploymentLog.Debug` (off unless `m_bDebugMode`); `LogOperationRefusal`/`LogObjectiveRefusal` use `OVT_DeploymentLog.Log(msg, level)` so the `ERROR`/`WARNING` levels their callers pass are still honoured. Full write-up, including why `LogLevel.VERBOSE` is not a sink, is in `../deployments/context.md` (2026-08-24).
+
+---
+
+## 2026-08-24 — Tower recapture approach warning re-arms
+
+**Author, on the test server:** *"spec ops are currently at my radio tower trying to recapture (its from the objective director) and I was not notified. I believe it only notifies in the unrest recapture deployment."*
+
+**The diagnosis in the report is not what the code says, and that is worth recording.** `Deployment_ObjectiveTowerRecapture.conf` and `Deployment_TowerRecaptureUnrest.conf` both use `OVT_TowerRecaptureBehaviorDeploymentModule` and both author `m_fApproachWarningRadius 300`; diffing them shows the two module blocks are identical apart from their GUIDs. The `RadioTowerCapture` preset is registered in `overthrowBroadcastMessages.conf:132`. Nothing about the warning is unrest-only.
+
+**The gap that is real:** `m_bApproachAnnounced` was a **one-way latch for the life of the deployment**, while `OVT_ReinforcementBehaviorDeploymentModule` ("Rebuy losses, or collect the team once the tower is ours") **rebuys losses into that same deployment**. So the first team announced itself and every replacement team afterwards arrived in silence — for a deployment with `m_iHoldSeconds 600` and `m_iMaxInstances -1`, that is most of the teams a player will actually meet.
+
+**Fix:** the latch re-arms. `WarnOnApproach` now clears it whenever no living registered member of the force is within the warning radius, so a fresh approach is a fresh warning; the ten-second repeat it was written to prevent still cannot happen, because the latch is only cleared once the force is *gone* from the ring.
+
+⚠ **Not proven to be the whole story.** This is the one mechanism that survives reading the code, and it fits the report; the session's own log was not available to confirm (the test server writes elsewhere, and this session's logs predate it). If a *first* recapture team is ever seen arriving unannounced, the warning is not the suspect — the suspect is `CountAliveRegisteredMembersWithin`, which counts only groups the spawning module registered with the virtualization core.
+
+⚠ **Unrelated but adjacent:** `OVT_RadioTowerCaptureBehaviorDeploymentModule` (used by `Deployment_TowerGarrison.conf`, a different class from the recapture module) sends **no notification at all**. It only flips a tower when its own garrison is wiped, which is news in the player's favour, so it was left alone.
+
+`tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.
+
+### Reinforcement is defensive-only; offensive operations are paid for in full (2026-08-24)
+
+**Author, correcting the design:** *"that's not what reinforcement is supposed to be for though. reinforcement should only ever be for defensive deployments, these are offensive and should be paid for in full every time"* — and, on the same thread: *"it also means they will keep trying to retake the same tower even if they keep failing, never picking a different tower to go for."*
+
+**Both of the player-visible symptoms were the same root cause**, and neither was a targeting bug. `OVT_SendDeploymentObjectiveOperation` already walks every candidate tower and skips the ones inside `m_fDedupRadius` of a live deployment (`m_iMaxConcurrent 0` on tower recapture is *no cap* — it bounds itself per tower). What blocked it was that the operation at the first tower **never ended**: the reinforcement module rebought its force forever, so the deployment stayed live, that tower stayed deduplicated, and from outside it read as the faction fixating on one tower. It is also why replacement teams arrived unannounced (the entry above).
+
+🔴 **`m_bEnableReinforcement 0` alone would have been a serious bug.** `OVT_ReinforcementBehaviorDeploymentModule` owns **two unrelated jobs** — "buy the force back" and "take this deployment away when it is over" — and `OnUpdate` opened with `if (!m_bEnableReinforcement) return;`, so the flag disabled **both**. Turning reinforcement off on an offensive config would have left its marker in the world forever once the force died, and the director's own dedup would then have read that dead marker as "already sent" and never bought another — the exact fixation the change is meant to end, made permanent.
+
+**What shipped:**
+- `TickCollection()` lifted out of `CheckReinforcement()` and runs **regardless of the flag**. It keeps the existing condition-fail teardown verbatim, and adds one rule: *reinforcement off + every spawning module eliminated → delete the deployment*. That deletion is what makes "paid in full" true — the dedup stops seeing an operation there, and the next send is a fresh purchase at full price.
+- `m_bEnableReinforcement 0` on the five offensive configs: `Deployment_ObjectiveTowerRecapture`, `Deployment_TowerRecaptureUnrest`, `Deployment_ObjectiveHarassment`, `Deployment_ObjectiveHarassment_Mounted`, `Deployment_ObjectiveSabotage`. Their `m_sModuleName`s now say what the module does there.
+- `SampleCasualties()` is now called only when reinforcement is enabled — it exists solely to feed the rebuy's contact cooldown. Defensive configs are unaffected in every respect.
+
+⚠ **Two configs deliberately left reinforcing, and they need a ruling:** `Deployment_ObjectiveFOB` ("Rebuy the free garrison…") and `Deployment_ObjectiveFOBGarrison`. Both *garrison* a forward base rather than strike at one, which reads as defensive under the new rule — but the first is bought as an objective operation, so it is genuinely ambiguous and was not changed on a guess.
+
+⚠ Re-picking the **same** tower after a collection is now possible and is not fixation: it costs the faction a full purchase, gated by the operation cadence and the pool.
+
+`tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.
+
+### The enemy FOB left its props standing when it was pulled down (2026-08-24)
+
+**Author, on the test server:** *"I just pulled down an enemy FOB and the camo net disappeared but not the prefab's children."*
+
+**Two independent faults, and the camo net is the tell for the second.**
+
+**1. `OVT_WorldUtils.DeleteEntityTree` was ONE LEVEL DEEP despite its name.** It walked the root's *direct* children and handed each to `SCR_EntityHelper.DeleteEntityAndChildren` — which `OVT_ResistanceFactionManager` already documents as a misnomer: its whole body is `RplComponent.DeleteRplEntity(entity, false)`, so it removes the entity it is given and leaves that entity's own children in the world. Anything two levels down survived. Now genuinely recursive, deepest-first, re-reading each level's children rather than pre-collecting the tree (a pre-collected list hands back handles an ancestor's delete already freed). `MAX_TREE_DEPTH` 16 guards a cycle, and the "never delete a character" rule is now applied at **every** level instead of only the first.
+
+**2. Only one of the FOB's five props could ever be a hierarchy child.** Walking each child's prefab chain:
+
+| Child | Chain root | `Hierarchy`? |
+|---|---|---|
+| CamoNet_Tent_Soviet | `CamoNet_Base.et` | ✅ **yes** |
+| CrateWooden_01_base | `Props_Base.et` | ❌ |
+| CzechHedgehog_01_base | `Fortifications_Base.et` | ❌ |
+| BarbedTape_Coil | `DestructibleMultiPhase_Props_Base.et` | ❌ |
+| ShellContainerstack_01_pile_big | `ShellContainerstack_01_base.et` | ❌ |
+| **the FOB root itself** | `FlagPole_Base.et` | ❌ |
+
+The camo net is the only one whose chain carries a `Hierarchy` component, and it is the only prop that came down — an exact correlation with the report. `Hierarchy` components authored in `OVT_OccupyingFOB.et` on the **root** (without one, nothing under it is a child at all) and on each child that does not inherit one.
+
+⚠ **The four Czech hedgehogs were a `$grp StaticModelEntity` block**, which shares one prefab reference across instances and has no place to hang a per-instance component. They are now four individual `StaticModelEntity` entries carrying the same IDs, coords and angles, each with its own `Hierarchy`. `$grp` is vanilla's baked-static form, so **this is the one edit here that a Workbench load must confirm** — `compile-check.sh` does not parse `.et` files.
+
+⚠ **The recursion change touches five other callers** — town vehicle cleanup, the insertion transport, vehicle-patrol teardown, high command, and the virtualization core. For all of them it fixes the same latent leak (a vehicle's turret sub-entities are exactly the two-levels-down case), and the deepest-first order means a parent is never freed before its children are read. It is still a behaviour change on paths this report did not cover, and it deserves a look on the next vehicle play-test.
+
+`tools/compile-check.sh` exit 0 (6346 files). Workbench prefab load owed; suite not run.

@@ -289,6 +289,10 @@ class OVT_OccupyingFactionManager: OVT_Component
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
 
+	//! How close to a tower a force has to be to be holding its ground. Matches the recapture module's
+	//! own m_fHoldRadius (80), so "who holds this tower" has one answer whichever side is asking.
+	const float TOWER_CONTROL_RADIUS_M = 80;
+
 	//! Registered name of the hunter-killer's deployment config (occupying/vehicles T6.4). Read the same
 	//! way OVT_QRFControllerComponent.ECHELON_CONFIG_NAME is - a caller resolves it once, through
 	//! FindConfigByName, rather than restating the module's own attributes as a second set of constants.
@@ -961,6 +965,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! double every garrison, because the deployment config is already producing one.
 	void CheckRadioTowers()
 	{
+		CheckTowerGroundControl();
+
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(tower.disabledRemaining > 0)
@@ -977,6 +983,90 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! A tower belongs to whoever actually holds the ground under it.
+	//!
+	//! 🔴 THE HOLE THIS CLOSES (author, test server 2026-08-24): "they successfully recaptured it, and
+	//! then after that I killed the specops team, but the tower is still theirs, probably because
+	//! there's no tower guards yet but that blocks recapture". Exactly right. Before this, the ONLY two
+	//! callers of ChangeRadioTowerControl were a deployment's own behaviour modules - the tower
+	//! garrison's capture module (which fires when THAT garrison is wiped) and the recapture module.
+	//! So a tower the occupying faction had just taken, and had not yet garrisoned, could not be taken
+	//! back by any means: there was no garrison deployment in existence to be wiped, and killing every
+	//! man standing on it did nothing at all.
+	//!
+	//! ⚠ REGISTERED ALIVE MEMBERS, NEVER SPAWNED AGENTS. This is the rule that historically let a
+	//! player capture a tower by WALKING AWAY - the old garrison list held whatever was materialised
+	//! this tick, and a despawned garrison read as an empty tower. GetAliveMemberCount() answers from
+	//! the survivor mask and from dormant counts, so a garrison that is merely unspawned still holds
+	//! its tower.
+	//!
+	//! ⚠ AND A RESISTANCE PRESENCE IS REQUIRED, which is the second half of the same safety. An empty
+	//! tower in the middle of occupied territory is not captured by nobody; somebody has to be standing
+	//! on it. Ground held is players AND their recruits, the same test the deployment behaviours use.
+	//!
+	//! ⚠ ONE DIRECTION ONLY. Occupying → resistance. Taking a tower FOR the occupying faction stays the
+	//! recapture module's job, where it is paid for and announced.
+	protected void CheckTowerGroundControl()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return;
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+
+		foreach (OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if (!tower || tower.faction != occupyingFaction)
+				continue;
+
+			// Cheapest useful gate first: an 80 m sphere query, and only on towers they hold. The
+			// handle sweep below runs only for a tower somebody is actually standing on.
+			if (!OVT_ResistancePresence.IsGroundHeld(tower.location, TOWER_CONTROL_RADIUS_M))
+				continue;
+
+			if (CountOccupyingHolding(tower.location) > 0)
+				continue;
+
+			ChangeRadioTowerControl(tower, config.GetPlayerFactionIndex());
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Living occupying-faction members registered with the virtualization core within the control
+	//! radius of a point, whatever registered them.
+	//! \param[in] position The tower's location.
+	//! \return How many are holding it.
+	protected int CountOccupyingHolding(vector position)
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return 0;
+
+		string occupyingKey = OVT_Global.GetConfig().m_sOccupyingFaction;
+
+		int holding = 0;
+
+		array<int> handles = virtualization.GetAllHandles();
+		foreach (int handle : handles)
+		{
+			if (virtualization.GetGroupFactionKey(handle) != occupyingKey)
+				continue;
+
+			int members = virtualization.GetAliveMemberCount(handle);
+			if (members < 1)
+				continue;
+
+			if (!OVT_VirtualGroupGeometry.IsGroupWithin(virtualization, handle, position, TOWER_CONTROL_RADIUS_M))
+				continue;
+
+			holding = holding + members;
+		}
+
+		return holding;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	void ChangeRadioTowerControl(OVT_RadioTowerData tower, int faction)
 	{
 		if(faction == tower.faction) return;

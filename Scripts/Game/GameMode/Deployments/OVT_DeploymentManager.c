@@ -765,7 +765,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// Cache available slots from the world
 		CacheAvailableSlots();
 				
-		Print("[Overthrow] DeploymentManager initialized with " + m_DeploymentRegistry.m_aDeploymentConfigs.Count() + " deployment configs", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug("[Overthrow] DeploymentManager initialized with " + m_DeploymentRegistry.m_aDeploymentConfigs.Count() + " deployment configs");
 	}
 	
 	
@@ -784,7 +784,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			m_aAvailableSlots.Insert(slotEntity.GetOrigin());
 		}
 		
-		Print("[Overthrow] Cached " + m_aAvailableSlots.Count() + " available deployment slots", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug("[Overthrow] Cached " + m_aAvailableSlots.Count() + " available deployment slots");
 	}
 	
 	//------------------------------------------------------------------------------------------------
@@ -847,7 +847,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		}
 
 		if (seeded > 0)
-			Print(string.Format("[Overthrow] Seeded %1 free-at-game-start deployment(s)", seeded), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Seeded %1 free-at-game-start deployment(s)", seeded));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1711,8 +1711,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		m_bServerWasEmpty = false;
 		m_fPostJoinGraceUntilMs = world.GetWorldTime() + (m_fPostJoinGraceSeconds * 1000);
 
-		Print(string.Format("[Overthrow] Deployments: somebody has just arrived on an empty world - the occupying faction raises nothing for %1 s. Its pool keeps filling meanwhile",
-			Math.Round(m_fPostJoinGraceSeconds).ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployments: somebody has just arrived on an empty world - the occupying faction raises nothing for %1 s. Its pool keeps filling meanwhile",
+			Math.Round(m_fPostJoinGraceSeconds).ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1856,8 +1856,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		{
 			m_bNightHoldLogged = true;
 
-			Print(string.Format("[Overthrow] Deployments: it is %1:00, outside the %2:00-%3:00 window - nothing new is raised until morning, and the pool keeps filling meanwhile",
-				time.m_iHours.ToString(), m_iDaylightStartHour.ToString(), m_iDaylightEndHour.ToString()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployments: it is %1:00, outside the %2:00-%3:00 window - nothing new is raised until morning, and the pool keeps filling meanwhile",
+				time.m_iHours.ToString(), m_iDaylightStartHour.ToString(), m_iDaylightEndHour.ToString()));
 		}
 
 		return false;
@@ -2168,8 +2168,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		{
 			// VERBOSE: the arming line already said the grace period is on, and the hunter-killer
 			// dispatcher alone would otherwise print this every 10 s for ten minutes.
-			Print(string.Format("[Overthrow] Deployment '%1' was not created: the world is inside its post-join grace period",
-				config.m_sDeploymentName), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' was not created: the world is inside its post-join grace period",
+				config.m_sDeploymentName));
 
 			return null;
 		}
@@ -2182,8 +2182,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		{
 			// VERBOSE for the same reason as the grace refusal above: an evaluator that wants this
 			// config will ask again on every pass for as long as the cooldown lasts.
-			Print(string.Format("[Overthrow] Deployment '%1' is on cooldown for faction %2 (%3 in-game hours between them) - not creating another yet",
-				config.m_sDeploymentName, factionIndex.ToString(), config.m_fCooldownHours.ToString()), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1' is on cooldown for faction %2 (%3 in-game hours between them) - not creating another yet",
+				config.m_sDeploymentName, factionIndex.ToString(), config.m_fCooldownHours.ToString()));
 
 			return null;
 		}
@@ -2192,7 +2192,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// refusal printed "Creating deployment 'X'" immediately followed by "X was not created" - and
 		// the hunter-killer dispatcher retries every 10 s, so one grace period produced hundreds of
 		// pairs. A line here means a deployment is actually being built.
-		Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex));
 
 		// Create deployment entity
 		if (!m_DeploymentPrefab || m_DeploymentPrefab.IsEmpty())
@@ -2261,7 +2261,11 @@ class OVT_DeploymentManagerComponent : OVT_Component
 
 		string townName = OVT_Global.GetTowns().GetNearestTownName(position);
 				
-		Print(string.Format("[Overthrow] Created deployment '%1' for faction %2 near %3", config.m_sDeploymentName, factionIndex, townName), LogLevel.NORMAL);
+		// ⚠ THE ONE UNGATED LINE in the whole deployment/objective tree (author, 2026-08-24): a
+		// deployment was actually created, and what it cost. Everything else informational now goes
+		// through OVT_DeploymentLog.Debug and needs m_bDebugMode.
+		Print(string.Format("[Overthrow] Created deployment '%1' for faction %2 near %3 - cost %4",
+			config.m_sDeploymentName, factionIndex.ToString(), townName, resourcesInvested.ToString()), LogLevel.NORMAL);
 		
 		return deployment;
 	}
@@ -2788,7 +2792,7 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		else
 			line = line + ". Routine garrisoning continues out of the remainder";
 
-		Print(line + ". This line repeats only if the operation or its price changes", LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(line + ". This line repeats only if the operation or its price changes");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3071,8 +3075,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			int factionIndex = deployment.GetControllingFaction();
 			AddFactionResources(factionIndex, refund);
 
-			Print(string.Format("[Overthrow] Collected deployment '%1' after it finished its job - %2 resources returned to faction %3's pool for the groups that came through it intact",
-				deployment.GetDeploymentName(), refund.ToString(), factionIndex.ToString()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Collected deployment '%1' after it finished its job - %2 resources returned to faction %3's pool for the groups that came through it intact",
+				deployment.GetDeploymentName(), refund.ToString(), factionIndex.ToString()));
 		}
 
 		DeleteDeployment(deployment);
@@ -3118,8 +3122,8 @@ class OVT_DeploymentManagerComponent : OVT_Component
 			int factionIndex = deployment.GetControllingFaction();
 			AddFactionResources(factionIndex, refund);
 
-			Print(string.Format("[Overthrow] Recalled deployment '%1' before it finished - %2 resources returned to faction %3's pool",
-				deployment.GetDeploymentName(), refund.ToString(), factionIndex.ToString()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Recalled deployment '%1' before it finished - %2 resources returned to faction %3's pool",
+				deployment.GetDeploymentName(), refund.ToString(), factionIndex.ToString()));
 		}
 
 		DeleteDeployment(deployment);

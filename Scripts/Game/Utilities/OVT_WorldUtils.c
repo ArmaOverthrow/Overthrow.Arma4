@@ -662,9 +662,34 @@ class OVT_WorldUtils : Managed
 		if (!root)
 			return;
 
+		DeleteSubtree(root, 0);
+	}
+
+	//! Depth guard. A prefab hierarchy is a handful of levels; anything deeper is a cycle, and a cycle
+	//! here would recurse until the stack gives out.
+	protected static const int MAX_TREE_DEPTH = 16;
+
+	//------------------------------------------------------------------------------------------------
+	//! One node and everything under it, DEEPEST FIRST.
+	//!
+	//! ⚠ IT USED TO BE ONE LEVEL DEEP DESPITE THE NAME (fixed 2026-08-24, author: an enemy FOB was
+	//! pulled down and its props stayed standing). The old body walked the root's DIRECT children and
+	//! handed each to SCR_EntityHelper.DeleteEntityAndChildren - which is a misnomer whose whole body
+	//! is RplComponent.DeleteRplEntity(entity, false), so it removes the entity it is given and leaves
+	//! that entity's own children in the world. Anything two levels down survived.
+	//!
+	//! ⚠ CHILDREN ARE RE-READ AT EACH LEVEL rather than the whole tree being collected up front. A
+	//! pre-collected list would hand back handles an ancestor's delete had already freed.
+	//! \param[in] node The subtree root.
+	//! \param[in] depth Recursion depth, against MAX_TREE_DEPTH.
+	protected static void DeleteSubtree(IEntity node, int depth)
+	{
+		if (!node || depth > MAX_TREE_DEPTH)
+			return;
+
 		array<IEntity> children = new array<IEntity>();
 
-		IEntity child = root.GetChildren();
+		IEntity child = node.GetChildren();
 		while (child)
 		{
 			children.Insert(child);
@@ -676,21 +701,22 @@ class OVT_WorldUtils : Managed
 			if (!c)
 				continue;
 
-			// Never a player, a recruit or a civilian riding in the thing being deleted.
+			// Never a player, a recruit or a civilian riding in the thing being deleted. Asked at every
+			// level now, not just the first.
 			if (ChimeraCharacter.Cast(c))
 				continue;
 
-			// A replicated child must leave through replication; a plain prop has no RplComponent at
-			// all, and DeleteRplEntity does nothing for it.
-			if (RplComponent.Cast(c.FindComponent(RplComponent)))
-			{
-				SCR_EntityHelper.DeleteEntityAndChildren(c);
-				continue;
-			}
-
-			delete c;
+			DeleteSubtree(c, depth + 1);
 		}
 
-		SCR_EntityHelper.DeleteEntityAndChildren(root);
+		// A replicated entity must leave through replication; a plain prop has no RplComponent at all,
+		// and DeleteRplEntity does nothing for it.
+		if (RplComponent.Cast(node.FindComponent(RplComponent)))
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(node);
+			return;
+		}
+
+		delete node;
 	}
 }

@@ -144,14 +144,13 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	override void OnUpdate(int deltaTime)
 	{
 		super.OnUpdate(deltaTime);
-		
-		if (!m_bEnableReinforcement)
-			return;
 
 		// ⚠ BEFORE THE INTERVAL GATE BELOW, AND THAT PLACEMENT IS THE POINT. Everything after it runs
 		// once a minute; the casualty signal has to be sampled on every deployment update or a
-		// ninety-second cooldown carries a minute of error. See SampleCasualties().
-		SampleCasualties();
+		// ninety-second cooldown carries a minute of error. See SampleCasualties(). Only the rebuy
+		// reads it, so a config with reinforcement off does not pay for it.
+		if (m_bEnableReinforcement)
+			SampleCasualties();
 
 		float currentTime = GetGame().GetWorld().GetWorldTime();
 		
@@ -160,6 +159,18 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			return;
 		
 		m_fLastCheckTime = currentTime;
+
+		// 🔴 COLLECTION IS NOT A REINFORCEMENT CONCERN, and it used to sit behind the same flag. This
+		// module owns two unrelated jobs - "buy the force back" and "take this deployment away when it
+		// is over" - and an early `if (!m_bEnableReinforcement) return;` above disabled BOTH. Turning
+		// reinforcement off on an offensive config would have left its marker in the world forever
+		// after the force died, and the objective director's dedup radius would then have read it as
+		// "already sent" and never bought another.
+		if (!TickCollection())
+			return;
+
+		if (!m_bEnableReinforcement)
+			return;
 		
 		// Check if initial delay has passed
 		if (currentTime - m_fActivationTime < m_fInitialDelay)
@@ -217,6 +228,52 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether this deployment should still exist. Runs whether or not reinforcement is enabled.
+	//!
+	//! TWO WAYS AN OPERATION ENDS:
+	//!   - ITS CONDITIONS NO LONGER HOLD (the objective moved on, the tower is ours again). Unchanged
+	//!     behaviour, just relocated out from behind the reinforcement flag.
+	//!   - ITS FORCE IS DEAD AND IT MAY NOT BUY ANOTHER. Only reachable with reinforcement off, which
+	//!     is how an OFFENSIVE deployment is authored (author, 2026-08-24: "reinforcement should only
+	//!     ever be for defensive deployments, these are offensive and should be paid for in full every
+	//!     time"). Deleting it is what makes "paid in full" true: the director's dedup stops seeing an
+	//!     operation here, and the next one it sends is a fresh purchase at the full price.
+	//! \return True when the deployment survives this check, false when deletion was requested.
+	protected bool TickCollection()
+	{
+		if (!m_ParentDeployment)
+			return false;
+
+		if (!EvaluateReinforcementConditions())
+		{
+			if (m_bDeleteOnConditionFail)
+				RequestDeploymentDeletion();
+
+			return false;
+		}
+
+		if (m_bEnableReinforcement)
+			return true;
+
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = m_ParentDeployment.GetSpawningModules();
+		if (spawningModules.IsEmpty())
+			return true;
+
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			if (spawningModule && !spawningModule.AreSpawnedUnitsEliminated())
+				return true;
+		}
+
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Offensive deployment '%1' is finished - its force is dead and it does not reinforce, so it is collected and the next one is a fresh purchase",
+			m_ParentDeployment.GetDeploymentName()));
+
+		RequestDeploymentDeletion();
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected void CheckReinforcement()
 	{
 		if (!m_ParentDeployment)
@@ -231,8 +288,8 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			{
 				m_bExhaustedLogged = true;
 
-				Print(string.Format("[Overthrow] Reinforcement: '%1' has bought its force back %2 time(s), which is all it is allowed - it will not rebuy again",
-					m_ParentDeployment.GetDeploymentName(), m_iReinforcementsBought.ToString()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Reinforcement: '%1' has bought its force back %2 time(s), which is all it is allowed - it will not rebuy again",
+					m_ParentDeployment.GetDeploymentName(), m_iReinforcementsBought.ToString()));
 			}
 
 			return;
@@ -247,16 +304,8 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			return;
 		}
 		
-		// Check if reinforcement conditions are met
-		if (!EvaluateReinforcementConditions())
-		{
-			if (m_bDeleteOnConditionFail)
-			{				
-				RequestDeploymentDeletion();
-			}
-			return;
-		}
-		
+		// The condition test and its teardown moved to TickCollection() - see its header.
+
 		// Check each spawning module for reinforcement needs
 
 		
@@ -459,7 +508,7 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		{
 			if (!conditionModule.EvaluateCondition())
 			{
-				Print(string.Format("Reinforcement denied: Condition module %1 failed", conditionModule.Type().ToString()), LogLevel.VERBOSE);
+				OVT_DeploymentLog.Debug(string.Format("Reinforcement denied: Condition module %1 failed", conditionModule.Type().ToString()));
 				return false;
 			}
 		}
@@ -509,8 +558,8 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 			bool success = infantryModule.Reinforce(unitsNeeded);
 			if (success)
 			{
-				Print(string.Format("Reinforcement behavior: Successfully reinforced %1 with %2 groups", 
-					infantryModule.Type().ToString(), unitsNeeded), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("Reinforcement behavior: Successfully reinforced %1 with %2 groups", 
+					infantryModule.Type().ToString(), unitsNeeded));
 			}
 			else
 			{
@@ -553,8 +602,8 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
 		if (manager)
 		{
-			Print(string.Format("Requesting deletion of deployment %1 due to failed conditions",
-				m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("Requesting deletion of deployment %1 due to failed conditions",
+				m_ParentDeployment.GetDeploymentName()));
 			manager.CollectDeployment(m_ParentDeployment);
 		}
 	}

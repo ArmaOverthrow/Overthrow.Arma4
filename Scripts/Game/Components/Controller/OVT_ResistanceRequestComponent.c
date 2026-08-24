@@ -64,6 +64,11 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 	//! BUILD_MAX_DISTANCE's 250 m, which exists only because the build camera detaches from the body.
 	protected const float REPAIR_MAX_DISTANCE = 10;
 
+	//! How far the caller may be from a medical bed before the server refuses to heal them. The
+	//! interaction number again, for the same reason REPAIR_MAX_DISTANCE is: the player is standing at
+	//! the bed holding an action on it.
+	protected const float HEAL_MAX_DISTANCE = 10;
+
 	//! Server-side timestamp of this player's last conversion attempt. Per-player because there is one
 	//! controller entity - and therefore one of these components - per player, exactly as the monolith
 	//! had one per character.
@@ -158,6 +163,19 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 			RpcAsk_RepairStructure(entityId);
 		}else{
 			Rpc(RpcAsk_RepairStructure, entityId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server to fully heal this player at a medical structure.
+	//! \param[in] entityId The replicated bed/structure the action was held on.
+	void HealPlayer(RplId entityId)
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_HealPlayer(entityId);
+		}else{
+			Rpc(RpcAsk_HealPlayer, entityId);
 		}
 	}
 
@@ -404,6 +422,77 @@ class OVT_ResistanceRequestComponent : OVT_ControllerRequestComponent
 		{
 			RejectResistanceRequest(playerId, "repair structure", "the manager refused the repair (unpriceable structure or insufficient funds)");
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: fully heal the caller at a medical structure.
+	//!
+	//! DAMAGE IS SERVER-AUTHORITATIVE. The old action wrote SetHealthScaled() on the client, which is
+	//! why it appeared to restore health and cured nothing: a proxy's damage manager is not the one the
+	//! game reads, and setting the default hit zone was never going to touch bleedings, limb damage or
+	//! the persistent effects driving them. SCR_CharacterDamageManagerComponent.FullHeal() heals every
+	//! hit zone and removes every bleeding in one call, which is what vanilla's own GM heal uses.
+	//!
+	//! The bed is only a PLACE. Nothing about the heal depends on which entity was held, so the entity
+	//! is used for the proximity test and the ruin gate and for nothing else - which is what lets the
+	//! same action sit on three cots and on the tent itself.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_HealPlayer(RplId entityId)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		IEntity entity = ResolveEntity(entityId);
+		if(!entity)
+		{
+			RejectResistanceRequest(playerId, "heal", "no replicated entity with that id");
+			return;
+		}
+
+		if(!OVT_StructureDamage.IsUsable(entity))
+		{
+			RejectResistanceRequest(playerId, "heal", "the structure is ruined");
+			return;
+		}
+
+		if(!CallerIsWithin(playerId, entity.GetOrigin(), HEAL_MAX_DISTANCE))
+		{
+			RejectResistanceRequest(playerId, "heal", "the caller is not at the structure");
+			return;
+		}
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character) return;
+
+		SCR_CharacterDamageManagerComponent damage = SCR_CharacterDamageManagerComponent.Cast(character.FindComponent(SCR_CharacterDamageManagerComponent));
+		if(!damage)
+		{
+			RejectResistanceRequest(playerId, "heal", "the caller's character has no damage manager");
+			return;
+		}
+
+		damage.FullHeal();
+
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_HealResult();
+			return;
+		}
+
+		Rpc(RpcDo_HealResult);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: tell the healed player it worked, and only them.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_HealResult()
+	{
+		SCR_HintManagerComponent hints = SCR_HintManagerComponent.GetInstance();
+		if(!hints) return;
+
+		hints.ShowCustom("#OVT-Healed");
 	}
 
 	//------------------------------------------------------------------------------------------------

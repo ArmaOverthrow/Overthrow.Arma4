@@ -96,9 +96,16 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	//! flip again the tower is already ours, and the faction guard in EvaluateRecapture refuses it.
 	protected bool m_bCaptureFired;
 
-	//! Announced-once latch for the approach warning. Same rules as m_bCaptureFired: not an attribute,
-	//! not persisted, NOT copied by CloneModule. Without it the warning would repeat every update for as
-	//! long as the team stood near the tower - once every ten seconds, for the whole ten-minute hold.
+	//! Announced latch for the approach warning. Not an attribute, not persisted, NOT copied by
+	//! CloneModule. Without it the warning would repeat every update for as long as the team stood near
+	//! the tower - once every ten seconds, for the whole ten-minute hold.
+	//!
+	//! ⚠ IT RE-ARMS, and that is the fix for "spec ops are at my radio tower and I was not notified"
+	//! (author, test server 2026-08-24). It used to be one-way for the life of the deployment, but the
+	//! reinforcement module REBUYS LOSSES INTO THE SAME DEPLOYMENT - so the first team announced itself,
+	//! and every replacement team after it arrived in silence while the deployment lived on. Cleared
+	//! whenever nothing of this force is left near the tower, so a fresh approach is a fresh warning
+	//! without the ten-second repeat coming back.
 	protected bool m_bApproachAnnounced;
 
 	protected int m_iTicksLeft;
@@ -161,8 +168,8 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 
 		occupying.ChangeRadioTowerControl(tower, myFaction);
 
-		Print(string.Format("[Overthrow] A recapture team held the radio tower at %1 and it changes hands",
-			tower.location.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] A recapture team held the radio tower at %1 and it changes hands",
+			tower.location.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -182,10 +189,15 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	//! \param[in] tower The tower this team is going for.
 	protected void WarnOnApproach(notnull OVT_RadioTowerData tower)
 	{
-		if (m_bApproachAnnounced)
-			return;
-
+		// Re-arm first: no living member near the tower means the last team is gone, so the next one to
+		// arrive is news again.
 		if (CountAliveRegisteredMembersWithin(tower.location, m_fApproachWarningRadius) < 1)
+		{
+			m_bApproachAnnounced = false;
+			return;
+		}
+
+		if (m_bApproachAnnounced)
 			return;
 
 		m_bApproachAnnounced = true;

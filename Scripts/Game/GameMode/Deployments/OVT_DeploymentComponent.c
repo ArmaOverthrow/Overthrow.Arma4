@@ -82,7 +82,7 @@ class OVT_DeploymentComponent : OVT_Component
 			foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
 			{
 				spawningModule.SetSpawnedUnitsEliminated(true);
-				Print(string.Format("Set spawning module as eliminated on load for deployment '%1'", GetDeploymentName()), LogLevel.VERBOSE);
+				OVT_DeploymentLog.Debug(string.Format("Set spawning module as eliminated on load for deployment '%1'", GetDeploymentName()));
 			}
 		}
 		

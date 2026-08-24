@@ -314,8 +314,8 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 			if (access.MoveInVehicle(vehicle, ECompartmentType.TURRET, false, emptyTurret))
 			{
-				Print(string.Format("[Overthrow] Deployment '%1': its patrol vehicle was driving with an unmanned gun - moved a passenger into the turret",
-					m_ParentDeployment.GetDeploymentName()), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1': its patrol vehicle was driving with an unmanned gun - moved a passenger into the turret",
+					m_ParentDeployment.GetDeploymentName()));
 			}
 		}
 	}
@@ -826,12 +826,12 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			m_aSpawnedVehicles.Insert(vehicle);
 			m_iSpawnedCount++;
 
-			Print(string.Format("Spawned vehicle %1 (%2) at %3", i + 1, m_sVehicleType, spawnPos.ToString()), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("Spawned vehicle %1 (%2) at %3", i + 1, m_sVehicleType, spawnPos.ToString()));
 		}
 
-		Print(string.Format("[Overthrow] Vehicle spawning complete: %1/%2 vehicles for type '%3' near %4",
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Vehicle spawning complete: %1/%2 vehicles for type '%3' near %4",
 			m_aSpawnedVehicles.Count(), m_iVehicleCount, m_sVehicleType,
-			OVT_Global.GetTowns().GetNearestTownName(deploymentPos)), LogLevel.NORMAL);
+			OVT_Global.GetTowns().GetNearestTownName(deploymentPos)));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -851,7 +851,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			string veto = VehicleDeletionVeto(vehicle);
 			if (veto != "")
 			{
-				Print(string.Format("[Overthrow] Deployment vehicle left standing at teardown: %1", veto), LogLevel.NORMAL);
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment vehicle left standing at teardown: %1", veto));
 				continue;
 			}
 
@@ -878,43 +878,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	//! \return An empty string when it is safe to delete, or the reason it is not.
 	protected string VehicleDeletionVeto(notnull Vehicle vehicle)
 	{
-		OVT_PlayerOwnerComponent owner = OVT_PlayerOwnerComponent.Cast(vehicle.FindComponent(OVT_PlayerOwnerComponent));
-		if (owner && !owner.GetPlayerOwnerUid().IsEmpty())
-			return "a player owns it";
-
-		BaseCompartmentManagerComponent compartments = BaseCompartmentManagerComponent.Cast(
-			vehicle.FindComponent(BaseCompartmentManagerComponent)
-		);
-
-		if (!compartments)
-			return "";
-
-		PlayerManager players = GetGame().GetPlayerManager();
-
-		array<BaseCompartmentSlot> slots = {};
-		compartments.GetCompartments(slots);
-
-		foreach (BaseCompartmentSlot slot : slots)
-		{
-			if (!slot)
-				continue;
-
-			IEntity occupant = slot.GetOccupant();
-			if (!occupant)
-				continue;
-
-			if (players && players.GetPlayerIdFromControlledEntity(occupant) > 0)
-				return "a player is riding in it";
-
-			OVT_PlayerOwnerComponent occupantOwner = OVT_PlayerOwnerComponent.Cast(
-				occupant.FindComponent(OVT_PlayerOwnerComponent)
-			);
-
-			if (occupantOwner && !occupantOwner.GetPlayerOwnerUid().IsEmpty())
-				return "a player's recruit is riding in it";
-		}
-
-		return "";
+		return OVT_VehicleClaim.DeletionVeto(vehicle);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -968,7 +932,7 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		if (m_ParentDeployment)
 			deploymentName = m_ParentDeployment.GetDeploymentName();
 
-		Print(string.Format("[Overthrow] Vehicle patrol '%1' is finished: %2", deploymentName, reason), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Vehicle patrol '%1' is finished: %2", deploymentName, reason));
 
 		if (m_ParentDeployment)
 			m_ParentDeployment.CheckAllSpawningModulesEliminated();

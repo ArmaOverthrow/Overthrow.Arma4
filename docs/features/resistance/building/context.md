@@ -1,6 +1,6 @@
 # Resistance Building - Context & Decisions
 
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-24
 **Current Phase:** Maintenance / bug fixing
 **Status:** ✅ Documented (Existing Feature)
 
@@ -60,6 +60,56 @@
 - `RemoveCamp` in the same manager already solves delete-by-network-reference correctly with `RplId` — the fix pattern for `RemovePlacedItem` is local.
 - `m_aFurniturePrefabs` is dead config; `Placeables/README.md` documents a nonexistent `OVT_PlaceableFOBHandler` and claims EPF persistence.
 - **A listen host used to build a whole UI-context set per joined player** (BUG-178, fixed 2026-08-16). `OVT_UIManagerComponent` is on `Character_Player.et`, so the host owns an instance for every player character in the world, and `SCR_CharacterControllerComponent.m_OnControlledByPlayer` fires there with `controlled=true` for *remote* characters (vanilla says so out loud in `SCR_GadgetManagerComponent.c:666-672`). The host therefore got N+1 stacked main menus per press of U; Place closed only the clicked one, and each survivor kept calling `ActivateContext("OverthrowMenuContext")` every frame, which is what stole the placement rotate keys. Guard is now `if (controlled && owner != SCR_PlayerController.GetLocalControlledEntity()) controlled = false;` in `AfterControlledByPlayer` — **any new `m_OnControlledByPlayer` subscriber needs the same discard**, and the null local controller on a dedicated server means the one line covers the DS misfire too.
+
+---
+
+## Change 2026-08-24 — the medical tent heals for real, and has something in it
+
+User report: *"our medical tent needs some love. its empty atm and the heal action doesnt work
+properly... the heal action does set your health to 100% but does not cure your injuries/bleeding/etc"*.
+
+**The heal was a client-side write.** `OVT_HealAction.PerformAction` called `SetHealthScaled()` on the
+performing machine's own damage manager, with `HasLocalEffectOnly` true. Two things follow, and the
+report describes both: damage is **server-authoritative**, so a proxy's manager is not the one the game
+reads; and the default hit zone is not the character, so nothing it did could ever touch a bleeding, a
+broken limb or the persistent effects driving them. (It also passed `GetMaxHealth()` to a call that
+takes a 0..1 scale, which only ever worked because the clamp saved it.)
+
+Now: the action asks `OVT_ResistanceRequestComponent.HealPlayer(rplId)`, and the server calls
+`SCR_CharacterDamageManagerComponent.**FullHeal()**` — every hit zone plus `RemoveAllBleedings()`,
+the same call vanilla's own Game Master heal uses. The handler re-resolves the entity, re-tests
+`OVT_StructureDamage.IsUsable` (phase-0 gate) and the 10 m proximity, and answers the caller alone with
+`#OVT-Healed` through the listen-host-safe `ShouldRespondLocally` branch.
+
+`CanBePerformedScript` now gates on vanilla's `CanBeHealed()` — *"any physical damage or a bleeding"* —
+instead of `GetHealth() < GetMaxHealth()`, which is what greyed the action out for a bleeding player
+whose bar was full.
+
+**The tent is dressed and the heal moved onto beds** (user's call, "adding the heal actions to some beds
+or something"), built the way `OVT_RecruitmentTent.et` is: FIA fabric reskin, thirteen authored children
+— three `CotMilitary_USSR_01` cots, two infusion stands, a surgical table with a kidney dish, an
+autoclave stand, a medical cabinet, a bin, a screen, a small medical table and a kerosene lamp. Each cot
+carries its OWN `ActionsManagerComponent` (the cot prefab inherits none, so no duplicate-manager trap)
+with a `bed` context and `OVT_HealAction` at **`Duration 5`** — the hold is authored per prefab, the same
+rule `OVT_RepairStructureAction` follows. The root's `default` context is gone; only `repair` remains.
+
+**Gate:** `compile-check.sh` exit 0 (6347 files) · `OVT_TEST_Init_MedicalTent_BedsCarryTheHealAction`
+green and fail-proven (deleted one cot's action block → "2 of the tent's children carry an
+OVT_HealAction, expected 3") · `OVT_TEST_Init_Controller_ResistanceRequestResolves` green. No `.st` key
+was added — `#OVT-Heal` and `#OVT-Healed` already exist — so **no re-export is owed**.
+
+**🔴 A wrong furniture prefab reference is not detectable by any test.** Three attempts failed on the
+same wall: a child whose prefab does not resolve is still CREATED (empty), so the child count is
+unchanged; and `Resource.Load()` + `FindEntitySource()` answer with a usable source both for a corrupted
+GUID and for a path naming no file at all. Both were fail-probed and stayed green. Only Workbench or an
+eye on the tent will catch it.
+
+**Owed:**
+- Workbench: open `OVT_MedicalTent.et` and nudge the furniture — every coordinate was authored blind
+  from the recruitment tent's layout, so props may clip the tent walls or each other.
+- Play-test: take damage AND a bleeding, hold the bed action for 5 s, confirm both are gone; confirm it
+  greys out when there is nothing to treat; confirm it is hidden on a ruined tent; confirm it works on a
+  dedicated server (the whole point of the change) and on a listen host.
 
 ---
 

@@ -1,6 +1,6 @@
 # Storage (logistics/storage) — Context & Decisions
 
-**Last Updated:** 2026-08-23
+**Last Updated:** 2026-08-24
 **Current Phase:** ✅ **CLOSED 2026-08-21** — three post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger; two container defects, §§ below)
 **Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
@@ -220,6 +220,65 @@ component and its storage component may or may not be the same object.
 target the engine picks is somewhere sensible (it is "first storage that will take it", not "nearest
 the bag"), and whether the removed null fallback ever refuses a withdrawal that used to succeed on a
 holder whose only storage this predicate classifies as nested.
+
+---
+
+## Post-close change 2026-08-24 (h) — the declared-part guard was mostly inert
+
+User report: a `{F759F0488730620F}Scabbard_Bayonet_6Kh4` is still looted off spec-ops despite change
+(g), renders as a raw prefab path, and **cannot be moved or deleted once it is in a storage**.
+
+**Change (g) shipped correct code behind a cache that poisoned itself.**
+`OVT_PrefabPartUtils.GetDeclaredParts` inserted its result array into the cache *before* reading the
+prefab, and an **UNLOADED resource answers `FindEntitySource` with a source of ZERO components
+rather than with null** — so the first read of any prefab whose resource was not yet in memory cached
+"declares nothing" for the rest of the session, permanently and silently. A first loot run is exactly
+where that happens. Case J never caught it because a spawn had already loaded everything it asks
+about. Proven by instrumenting the read: `Vest_6B3.et` → 12 components, `Scabbard_Bayonet_6Kh4.et` →
+**0**, before anything had spawned one.
+
+**Three more holes, all found from the same report**
+
+1. **Only two of vanilla's four slot spellings were read.** A scabbard declares its bayonet on an
+   `EquipmentStorageComponent.InitialStorageSlots` entry *and* on a `BaseSlotComponent.AttachType`;
+   `GetDeclaredParts` looked at `BaseLoadoutClothComponent.Slots` and
+   `AttachmentSlotComponent.AttachmentSlot` only. All four are read now.
+2. **`IsDeclaredPart` rejected an equipment slot outright.** Its container test accepted a cloth or
+   attachment slot and nothing else, so the bayonet inside the scabbard was ordinary loot. An
+   `EquipmentStorageComponent` slot is authored with its prefab and an `AllowedItemTypes` list — it is
+   not player-filled — so it now counts as declared.
+3. **The holder was taken from `GetParent()`.** A garment worn on a body can reparent its slotted
+   parts to the character, and the prefab read then asks whether a *soldier* declares a scabbard. The
+   holder is now the **slot's storage owner** where one exists, falling back to the entity parent.
+
+**The stranding is a separate defect and is fixed separately.** A ledger line's only exit is
+`TrySpawnPrefabToStorage`, and some vanilla prefabs no cargo storage will ever accept — so a line
+naming one could not be withdrawn, and the transfer screen offers no discard. `StepToInventory` now
+**puts the line on the ground beside the holder** (`DropLineAtHolder`, 0.5 m up so it does not spawn
+inside the truck's own collision) instead of shortfalling and leaving it. This also drains lines
+already stuck in an existing save the moment the player tries to take them out — no migration needed,
+and nothing is deleted on the player's behalf.
+
+⚠ **Behaviour change beyond the bug:** the same branch fires when a holder's storage is simply FULL.
+A withdrawal into a full truck bed used to shortfall silently and keep the items on the ledger; it now
+delivers them to the ground at the truck. PE2's rule that a full holder must never NEST a withdrawal
+inside a bag is unchanged.
+
+**Gate:** `compile-check.sh` exit 0 (6346 files) · `OVT_TEST_InitSuite` **242/249**, with **all 11
+storage cases green**. The 7 reds are `occupying/deployments`, `occupying/objectives` and
+`virtualization` cases from a concurrent session's uncommitted work in this tree — none is storage,
+and the tree would not compile at all twice during this session for the same reason.
+
+**New case:** `OVT_TEST_Init_StorageSeam_LDeclaredPartsResolveInheritance` — fail-proven twice on the
+way in (empty declared list, then the missing bayonet). `Vest_6B3.et` is an EMPTY delta over
+`Vest_6B3_base.et`, so it is also the control for the read resolving inheritance, which it does.
+
+**Owed:** a play-test. Loot a spec-ops soldier and confirm no scabbard and no bayonet line; withdraw a
+vest and confirm the scabbard comes back on it; withdraw into a full truck bed and confirm the
+overflow lands on the ground rather than vanishing from the screen.
+
+**Not covered:** ledgers saved before this change still hold scabbard lines, but they are no longer
+permanent — withdrawing one drops it on the ground.
 
 ---
 
@@ -1223,3 +1282,23 @@ vest line with no pouch lines, then withdraw it and confirm the pouches come bac
 
 **Not migrated:** ledgers saved before this change still carry the orphan part lines. They are
 withdrawable and harmless, but they render as raw paths until removed by hand.
+
+---
+
+## 2026-08-24 — Action-manager tweaks from test-server play
+
+Author-reported during test-server play. All four reuse existing localization keys, so **no `.st` change and no re-export is owed**.
+
+**1. Load/Unload storage on both warehouse deltas.** `OVT_LoadStorageAction` + `OVT_UnloadStorageAction` added to the `storage` context of `OVT_Warehouse.et` (the player-buildable, sort 6/7 — the repair actions already hold 4/5) and `Warehouse_01_Base.et` (the **same-GUID delta over vanilla's warehouse**, i.e. every warehouse already on the map — sort 4/5). GUID series `{6BB40000...}`.
+
+⚠ **The shipped vehicle-search numbers do not fit a building.** `OVT_StorageVehicleActionBase` measured from the *owner's* origin with a hardcoded 10 m query / 15 m max — crate-sized. A warehouse's origin is the centre of the shed, so a truck at the loading door is already outside 15 m and the action would have answered `#OVT-NoVehiclesNearby` from a truck the player is standing next to. The two constants are now `[Attribute]`s, **defaulting to the shipped 10/15 so the ammobox is byte-identical in behaviour**, and both warehouse deltas author 30/30.
+
+**2. "Storage" on the Ural 4320 and M923A1 transports.** `OVT_OpenStorageMenuAction` on the `starter_switch` context — where the Loot action already sits, i.e. reachable from the driver's seat — sort 2. Note the two trucks' `*_cargo.et` children already carried the full storage action set on `door_rear`; this is the cab-side entry point, not a duplicate of that.
+
+⚠ The `m_bIsToggle` / `m_bTargetState` / `m_sActionState*` / `m_bInteriorOnly` fields authored on `OVT_LootIntoVehicleAction` in both transport prefabs are **inert** — they belong to `SCR_VehicleActionBase` and that action is a plain `ScriptedUserAction`. They were not copied onto the new entry.
+
+**3. Deliver Medical Supplies sorts after the vanilla trunk, and greys out.** `UAZ469_base.et` authored it at Sort Priority **1**, ahead of everything; vanilla's `SCR_OpenVehicleStorageAction` ("open trunk") is **16** on the same `door_rear` context, so it is now **17**. It also gained `CanBePerformedScript`: out of range it greys out with `#OVT-MedicalSupplies_TooFar` instead of being always available and refusing after the hold.
+
+⚠ The range test was **factored out into `IsInTownRange()` and shared** with `PerformAction`, deliberately — a gate that duplicates the act's own test is a gate that will drift from it. It keeps `GetNearestTown` + `GetTownRange` rather than the tempting `GetNearestTownInRange`: the latter would pick a *different* town near a village/city boundary, and `town` is also what prices the delivery and receives the stability/support credit, so swapping it is a behaviour change, not a refactor.
+
+`tools/compile-check.sh` exit 0 (6345 files). Workbench prefab check + play-test owed; suite not run.

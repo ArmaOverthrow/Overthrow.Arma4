@@ -155,8 +155,8 @@ class OVT_ArmouredSweepBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		m_iTicksSweeping = 0;
 		m_bNoRoadLogged = false;
 
-		Print(string.Format("[Overthrow] Armoured sweep '%1' is loitering around %2 for %3 minute(s)",
-			DescribeSelf(), SweepCentre().ToString(), m_iSweepMinutes.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Armoured sweep '%1' is loitering around %2 for %3 minute(s)",
+			DescribeSelf(), SweepCentre().ToString(), m_iSweepMinutes.ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -323,8 +323,8 @@ class OVT_ArmouredSweepBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 
 		m_bNoRoadLogged = true;
 
-		Print(string.Format("[Overthrow] Armoured sweep '%1': no road within %2 m of any sampled point around %3 - holding at the hotspot instead",
-			DescribeSelf(), ROAD_SEARCH_RADIUS_M.ToString(), SweepCentre().ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Armoured sweep '%1': no road within %2 m of any sampled point around %3 - holding at the hotspot instead",
+			DescribeSelf(), ROAD_SEARCH_RADIUS_M.ToString(), SweepCentre().ToString()));
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -456,7 +456,7 @@ class OVT_ArmouredSweepBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		m_bNoRoadLogged = false;
 
 		if (reason != "")
-			Print(string.Format("[Overthrow] Armoured sweep '%1' stood down: %2", DescribeSelf(), reason), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Armoured sweep '%1' stood down: %2", DescribeSelf(), reason));
 	}
 
 	//------------------------------------------------------------------------------------------------

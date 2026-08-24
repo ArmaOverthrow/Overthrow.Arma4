@@ -470,7 +470,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		}
 
 		anchor = nearestBasePos;
-		Print(string.Format("Infantry will be registered at nearest base: %1", anchor.ToString()), LogLevel.VERBOSE);
+		OVT_DeploymentLog.Debug(string.Format("Infantry will be registered at nearest base: %1", anchor.ToString()));
 
 		return true;
 	}
@@ -584,7 +584,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				{
 					// Scale by town size: multiply by town size (1-4)
 					numGroups = numGroups * nearestTown.size;
-					Print(string.Format("Scaling groups by town size %1: %2 groups", nearestTown.size, numGroups), LogLevel.VERBOSE);
+					OVT_DeploymentLog.Debug(string.Format("Scaling groups by town size %1: %2 groups", nearestTown.size, numGroups));
 				}
 			}
 		}
@@ -592,7 +592,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		// Clamp to min/max bounds
 		numGroups = Math.Clamp(numGroups, m_iMinGroupCount, m_iMaxGroupCount);
 
-		Print(string.Format("Calculated %1 groups for deployment (min: %2, max: %3)", numGroups, m_iMinGroupCount, m_iMaxGroupCount), LogLevel.VERBOSE);
+		OVT_DeploymentLog.Debug(string.Format("Calculated %1 groups for deployment (min: %2, max: %3)", numGroups, m_iMinGroupCount, m_iMaxGroupCount));
 
 		return numGroups;
 	}
@@ -730,11 +730,11 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				return false;
 			}
 
-			Print(string.Format("Reinforced with %1/%2 groups, cost: %3 resources (%4 refunded for the %5 that could not be registered)", successfulSpawns, groupsNeeded, totalCost - refund, refund, undelivered), LogLevel.NORMAL);
+			OVT_DeploymentLog.Debug(string.Format("Reinforced with %1/%2 groups, cost: %3 resources (%4 refunded for the %5 that could not be registered)", successfulSpawns, groupsNeeded, totalCost - refund, refund, undelivered));
 			return true;
 		}
 
-		Print(string.Format("Reinforced with %1/%2 groups, cost: %3 resources", successfulSpawns, groupsNeeded, totalCost), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("Reinforced with %1/%2 groups, cost: %3 resources", successfulSpawns, groupsNeeded, totalCost));
 		return true;
 	}
 

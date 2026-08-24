@@ -123,8 +123,8 @@ class OVT_RadioTowerCaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeployment
 
 		occupyingFaction.ChangeRadioTowerControl(tower, config.GetPlayerFactionIndex());
 
-		Print(string.Format("[Overthrow] Tower garrison at %1 was wiped out - the tower changes hands",
-			tower.location.ToString()), LogLevel.NORMAL);
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Tower garrison at %1 was wiped out - the tower changes hands",
+			tower.location.ToString()));
 
 		return true;
 	}

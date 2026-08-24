@@ -51,15 +51,15 @@ class OVT_TownConditionalDeploymentModule : OVT_BaseConditionDeploymentModule
 		OVT_TownData town = GetNearestTown();
 		if (!town)
 		{
-			Print("Town conditional: No town found within range", LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug("Town conditional: No town found within range");
 			return false;
 		}
 		
 		// Check town size requirements
 		if (town.size < m_iMinTownSize || town.size > m_iMaxTownSize)
 		{
-			Print(string.Format("Town conditional: Town size %1 outside range [%2-%3]", 
-				town.size, m_iMinTownSize, m_iMaxTownSize), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("Town conditional: Town size %1 outside range [%2-%3]", 
+				town.size, m_iMinTownSize, m_iMaxTownSize));
 			return false;
 		}
 		
@@ -67,16 +67,16 @@ class OVT_TownConditionalDeploymentModule : OVT_BaseConditionDeploymentModule
 		int supportPercentage = town.SupportPercentage();
 		if (supportPercentage < m_iMinSupportPercentage || supportPercentage > m_iMaxSupportPercentage)
 		{
-			Print(string.Format("Town conditional: Support %1%% outside range [%2%%-3%%]", 
-				supportPercentage, m_iMinSupportPercentage, m_iMaxSupportPercentage), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("Town conditional: Support %1%% outside range [%2%%-3%%]", 
+				supportPercentage, m_iMinSupportPercentage, m_iMaxSupportPercentage));
 			return false;
 		}
 		
 		// Check stability requirements
 		if (town.stability < m_iMinStability || town.stability > m_iMaxStability)
 		{
-			Print(string.Format("Town conditional: Stability %1 outside range [%2-%3]", 
-				town.stability, m_iMinStability, m_iMaxStability), LogLevel.VERBOSE);
+			OVT_DeploymentLog.Debug(string.Format("Town conditional: Stability %1 outside range [%2-%3]", 
+				town.stability, m_iMinStability, m_iMaxStability));
 			return false;
 		}
 		
@@ -86,8 +86,8 @@ class OVT_TownConditionalDeploymentModule : OVT_BaseConditionDeploymentModule
 			int deploymentFaction = m_ParentDeployment.GetControllingFaction();
 			if (town.faction != deploymentFaction)
 			{
-				Print(string.Format("Town conditional: Town controlled by faction %1, deployment by faction %2", 
-					town.faction, deploymentFaction), LogLevel.VERBOSE);
+				OVT_DeploymentLog.Debug(string.Format("Town conditional: Town controlled by faction %1, deployment by faction %2", 
+					town.faction, deploymentFaction));
 				return false;
 			}
 		}
@@ -143,8 +143,8 @@ class OVT_TownConditionalDeploymentModule : OVT_BaseConditionDeploymentModule
 			float distance = vector.Distance(deploymentPos, nearestTown.location);
 			if (distance > m_fMaxTownDistance)
 			{
-				Print(string.Format("Town conditional: Nearest town at distance %1m exceeds max %2m", 
-					distance, m_fMaxTownDistance), LogLevel.VERBOSE);
+				OVT_DeploymentLog.Debug(string.Format("Town conditional: Nearest town at distance %1m exceeds max %2m", 
+					distance, m_fMaxTownDistance));
 				return null;
 			}
 		}

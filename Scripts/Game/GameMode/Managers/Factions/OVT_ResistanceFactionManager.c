@@ -1239,8 +1239,9 @@ class OVT_ResistanceFactionManager: OVT_Component
 	//! Every composition structure therefore left its props behind: a finished construction site kept
 	//! the Site_*.et scaffolding (planks, cargo containers) sitting inside the new building.
 	//!
-	//! Direct children only, each deleted through its own subtree - collecting the whole tree and
-	//! deleting deepest-first would hand back handles already freed by an ancestor's delete.
+	//! OVT_WorldUtils.DeleteEntityTree walks the WHOLE subtree deepest-first (it was one level deep
+	//! until 2026-08-24), re-reading each level's children rather than pre-collecting the tree, which
+	//! would hand back handles already freed by an ancestor's delete.
 	//! \param[in] root The structure to remove.
 	protected void DeleteComposition(notnull IEntity root)
 	{

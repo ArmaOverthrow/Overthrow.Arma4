@@ -483,3 +483,20 @@ User report after close. See `context.md` "Post-close change 2026-08-24 (g)".
 - [ ] PG7 🔴 Run the Init case — the `GetParentContainer()` assumption is unproven at runtime
 - [ ] PG8 Play-test: loot a Soviet-harness soldier → one vest line, no pouch lines; withdraw → pouches attached. Loot a `Rifle_SVD_PSO` → one rifle line, no optic line
 - [ ] PG9 Pre-existing ledgers still hold orphan part lines; no migration was written
+
+---
+
+## Post-close change 2026-08-24 (h) — declared-part guard was inert; stranded lines
+
+**Reported:** a vanilla bayonet scabbard still looted off spec-ops, renders as a raw prefab path, and cannot be moved or deleted once on a ledger.
+
+- [x] PK1 `GetDeclaredParts` no longer caches before it reads — an UNLOADED resource answers with a ZERO-component source, and caching that memoised "declares nothing" for the session
+- [x] PK2 Two more slot spellings read: `BaseEquipmentStorageComponent.InitialStorageSlots` and `BaseSlotComponent.AttachType` (a scabbard declares its bayonet on both)
+- [x] PK3 `IsDeclaredPart` accepts an `BaseEquipmentStorageComponent` slot — authored with its prefab and an `AllowedItemTypes` list, so not player-filled
+- [x] PK4 Holder resolved from the SLOT'S storage owner, not `GetParent()` — a worn garment can reparent its parts to the character
+- [x] PK5 `StepToInventory` drops an unplaceable line on the ground beside the holder (`DropLineAtHolder`) instead of shortfalling and stranding it — a ledger's only exit is `TrySpawnPrefabToStorage` and some vanilla prefabs no cargo storage will take
+- [x] PK6 `OVT_TEST_Init_StorageSeam_LDeclaredPartsResolveInheritance` — fail-proven twice (empty list, then missing bayonet); `Vest_6B3.et` is an EMPTY delta, so it is also the inheritance control
+- [x] PK7 Gate: `compile-check.sh` exit 0 (6346 files) · `OVT_TEST_InitSuite` 242/249, **all 11 storage cases green** (the 7 reds are a concurrent session's uncommitted deployments/objectives/virtualization work)
+- [ ] PK8 Play-test: loot a spec-ops soldier → no scabbard line, no bayonet line; withdraw the vest → scabbard attached
+- [ ] PK9 Play-test the new full-holder behaviour: withdraw into a FULL truck bed → overflow lands on the ground (it used to shortfall silently). PE2's no-nesting rule is unchanged
+- [ ] PK10 Pre-existing saves still hold scabbard lines; they are no longer permanent (withdrawing drops them on the ground) but no migration was written

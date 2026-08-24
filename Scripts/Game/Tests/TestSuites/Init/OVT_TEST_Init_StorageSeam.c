@@ -1137,3 +1137,95 @@ class OVT_TEST_Init_StorageSeam_JDeclaredPartsAreDetected : SCR_AutotestCaseBase
 		return true;
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+//! The declared-part read must survive a variant delta AND an unloaded resource.
+//!
+//! WHY THIS FILE NEEDS A SECOND PART CASE. Case J proves the read on Vest_SovietHarness_AR, which
+//! declares its pouches in its OWN file, and on prefabs whose resources a spawn had already loaded.
+//! Two things it cannot see, both found by a player looting spec-ops:
+//!
+//!   1. An UNLOADED prefab resource answers with an entity source of ZERO components rather than
+//!      with null, and GetDeclaredParts used to cache that as "declares nothing" for the rest of the
+//!      session - permanently, silently, and for exactly the prefabs a first loot run meets first.
+//!   2. Scabbard_Bayonet_6Kh4 declares its bayonet on an EquipmentStorageComponent InitialStorageSlot
+//!      and on a BaseSlotComponent AttachType, neither of which the cloth/attachment read looked at.
+//!
+//! Vest_6B3.et is the inheritance control: an EMPTY delta over Vest_6B3_base.et, which declares the
+//! scabbard on a LoadoutSlotInfo. A worn 6B3 reports Vest_6B3.et as its prefab.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_StorageSeam_LDeclaredPartsResolveInheritance : SCR_AutotestCaseBase
+{
+	static const ResourceName VEST_6B3 = "{4CBDC206FEF9897C}Prefabs/Characters/Vests/Vest_6B3/Vest_6B3.et";
+	static const ResourceName SCABBARD = "{F759F0488730620F}Prefabs/Items/Equipment/Accessories/Scabbard_Bayonet_6Kh4/Scabbard_Bayonet_6Kh4.et";
+	static const ResourceName BAYONET = "{98C79F5FAE12F9B6}Prefabs/Weapons/Attachments/Bayonets/Bayonet_6Kh4.et";
+
+	protected IEntity m_Vest;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (OVT_PrefabPartUtils.GetDeclaredParts(VEST_6B3).Find(SCABBARD) == -1)
+		{
+			SetFailure("Vest_6B3.et does not report the scabbard its BASE declares. The prefab read stops at the variant's own delta, so every piece of vanilla gear that is a thin delta - which is nearly all of it - loses its declared-part guard.");
+			return true;
+		}
+
+		return CheckSpawnedVest();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the vest, which is what loads the scabbard resource the second read needs.
+	//! \return Always true - the case is over either way.
+	protected bool CheckSpawnedVest()
+	{
+		vector position;
+		if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("780 0 660", position))
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test vest");
+			return true;
+		}
+
+		m_Vest = OVT_Global.SpawnEntityPrefab(VEST_6B3, position);
+		if (!m_Vest)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", VEST_6B3);
+			return FinishAndCleanUp();
+		}
+
+		array<IEntity> parts = new array<IEntity>();
+		OVT_PrefabPartUtils.CollectAttachedParts(m_Vest, parts);
+
+		if (parts.IsEmpty())
+		{
+			SetFailure("A spawned Vest_6B3 reports no declared parts. Its scabbard is then ordinary loot: a nameless raw-path ledger line that no cargo storage will take back, which is how this was found.");
+			return FinishAndCleanUp();
+		}
+
+		// The scabbard's own resource is loaded now, so its slot reads can answer.
+		if (OVT_PrefabPartUtils.GetDeclaredParts(SCABBARD).Find(BAYONET) == -1)
+		{
+			SetFailure("Scabbard_Bayonet_6Kh4 does not report its own bayonet even with its resource loaded. Neither the EquipmentStorageComponent InitialStorageSlots read nor the BaseSlotComponent AttachType read is reaching it, so a looted scabbard mints a spare bayonet on every withdrawal.");
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: declared parts survive a variant delta and an unloaded resource");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Vest)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Vest);
+			m_Vest = null;
+		}
+
+		return true;
+	}
+}

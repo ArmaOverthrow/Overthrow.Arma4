@@ -12,12 +12,7 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 		
 		OVT_TownData town = towns.GetNearestTown(pOwnerEntity.GetOrigin());
 		
-		float dist = vector.Distance(town.location, pOwnerEntity.GetOrigin());
-		float range = towns.m_iCityRange;
-		if(town.size == 1) range = towns.m_iVillageRange;
-		if(town.size == 2) range = towns.m_iTownRange;
-		
-		if(dist > range)
+		if(!IsInTownRange(pOwnerEntity, town))
 		{
 			SCR_HintManagerComponent.GetInstance().ShowCustom("#OVT-MedicalSupplies_TooFar");
 			return;
@@ -61,6 +56,40 @@ class OVT_DeliverMedicalSuppliesAction : ScriptedUserAction
 	}
 	
 	override bool HasLocalEffectOnlyScript() { return true; };
+	
+	//------------------------------------------------------------------------------------------------
+	//! Greys the action out away from a town instead of letting the player hold it and be told no. The
+	//! same test PerformAction makes, so the button and the act can never disagree.
+	//! \param[in] user The acting character.
+	//! \return True when the vehicle is inside the nearest settlement's own radius.
+	override event bool CanBePerformedScript(IEntity user)
+	{
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return false;
+		
+		if(!IsInTownRange(GetOwner(), towns.GetNearestTown(GetOwner().GetOrigin())))
+		{
+			SetCannotPerformReason("#OVT-MedicalSupplies_TooFar");
+			return false;
+		}
+		
+		return true;
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Whether \a vehicle is within the settlement's size-dependent radius of its centre.
+	//! \param[in] vehicle The vehicle carrying the supplies.
+	//! \param[in] town The nearest town, village or city.
+	//! \return True when the delivery point has been reached.
+	protected bool IsInTownRange(IEntity vehicle, OVT_TownData town)
+	{
+		if(!vehicle || !town) return false;
+		
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(!towns) return false;
+		
+		return vector.Distance(town.location, vehicle.GetOrigin()) <= towns.GetTownRange(town);
+	}
 	
 	override event bool CanBeShownScript(IEntity user)
 	{		
