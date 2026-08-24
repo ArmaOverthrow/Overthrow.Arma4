@@ -146,6 +146,9 @@ class OVT_StorageComponent : OVT_Component
 			return;
 
 		GetGame().GetCallqueue().CallLater(TryResolveCapacity, 0, false);
+
+		// A BUILDING holder must be tracked BEFORE it holds anything - see EnsureTracked()'s header.
+		EnsureTracked();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -328,16 +331,29 @@ class OVT_StorageComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Makes a BUILDING holder known to the persistence system the first time it holds something or is
-	//! given a name. Server only, latched, and never undone - nothing here ever untracks.
+	//! Makes a BUILDING holder known to the persistence system. Server only, latched, and never undone -
+	//! nothing here ever untracks.
 	//!
 	//! Vanilla registers an intact building with the persistence system NEVER; it registers one only
 	//! when it is destroyed (SCR_DestructibleBuildingComponent.GoToDestroyedState). So without this a
 	//! warehouse's ledger has no record to be written into, and the serializer bound to the vanilla
 	//! Building configuration would simply never run.
 	//!
-	//! Vehicles carry vanilla's own Persistence component and placed boxes are tracked where they are
-	//! placed, so those latch out on the class test and never reach the lookup.
+	//! ⚠ CALLED AT OnPostInit, NOT ON FIRST CONTENT. It used to run only when the ledger became
+	//! non-empty or a name was set, and that is a DEADLOCK for the one holder class that is neither
+	//! spawned nor self-spawned. A vehicle carries vanilla's own Persistence component and registers
+	//! itself; a placed box and a BUILT warehouse have SelfSpawn and are re-created from their record.
+	//! A map-placed warehouse building is already standing at load and must have its record MATCHED to
+	//! it - which cannot happen if it only registers once it has content, because its content is what
+	//! the record was going to supply. Every other storage holder survived a restart; this one did not,
+	//! and this is why.
+	//!
+	//! Tracking an empty warehouse costs one small record per warehouse building on the map. It is not
+	//! an orphan (the BUG-118 shape): the same building re-registers under the same deterministic id
+	//! next boot and claims it.
+	//!
+	//! Vehicles and placed boxes latch out on the class test or the IsTracked check and never reach the
+	//! lookup, so nothing else on the map gains a record from this.
 	protected void EnsureTracked()
 	{
 		if (m_bTrackingEnsured)
@@ -362,6 +378,8 @@ class OVT_StorageComponent : OVT_Component
 			return;
 		}
 
+		// lazy=false, the vanilla building call site's own choice (SCR_DestructibleBuildingComponent
+		// :1339): the owner is a world entity that is already live, not one being spawned.
 		if (OVT_PersistenceTracking.Track(owner))
 			m_bTrackingEnsured = true;
 	}

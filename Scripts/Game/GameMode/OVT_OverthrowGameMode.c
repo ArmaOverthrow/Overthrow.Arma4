@@ -1010,12 +1010,51 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Announces an arrival on the external channel. Server-only by vanilla contract.
+	//!
+	//! DELIBERATELY NOT m_OnPlayerConnected. That invoker fires from FinalizePlayerPreparation, which
+	//! early-returns for anyone already in m_aInitializedPlayers - so a RECONNECT would never announce.
+	//! This override is the one hook that fires on every arrival.
+	//! \param[in] playerId The ID of the connecting player.
+	override void OnPlayerConnected(int playerId)
+	{
+		super.OnPlayerConnected(playerId);
+
+		AnnouncePlayerToWebhook("PlayerJoined", playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Posts one player arrival/departure to the external channel and NOWHERE else.
+	//!
+	//! No SendTextNotification pairing on purpose: vanilla already shows its own connect/disconnect
+	//! lines in game, and a second set would be duplicate spam. SendExternalNotifications is a separate
+	//! call from SendTextNotification, so "external only" is simply the one call.
+	//! \param[in] tag The message preset tag.
+	//! \param[in] playerId The player to name.
+	protected void AnnouncePlayerToWebhook(string tag, int playerId)
+	{
+		if(!Replication.IsServer()) return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(!notify) return;
+
+		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		if(playerName == "") return;
+
+		notify.SendExternalNotifications(tag, playerName);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Handles player disconnection. Persists the character, releases tracking and removes the player from the initialized list.
 	//! \\param[in] playerId The ID of the disconnecting player.
 	//! \\param[in] cause The reason for disconnection.
 	//! \\param[in] timeout The disconnection timeout duration.
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{
+		// FIRST, while the name is still resolvable: super's teardown drops the player from the manager.
+		// Every departure counts - quit, timeout and kick alike - so KickCauseCode is not branched on.
+		AnnouncePlayerToWebhook("PlayerLeft", playerId);
+
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 

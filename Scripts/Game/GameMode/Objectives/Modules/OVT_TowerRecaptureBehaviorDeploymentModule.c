@@ -210,7 +210,10 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		if (!towns)
 			return;
 
-		notify.SendTextNotification("RadioTowerCapture", -1, towns.GetNearestTownName(tower.location));
+		string townName = towns.GetNearestTownName(tower.location);
+
+		notify.SendTextNotification("RadioTowerCapture", -1, townName);
+		notify.SendExternalNotifications("RadioTowerCapture", townName);
 	}
 
 	//------------------------------------------------------------------------------------------------

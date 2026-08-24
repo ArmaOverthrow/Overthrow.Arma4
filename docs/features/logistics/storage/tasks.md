@@ -500,3 +500,16 @@ User report after close. See `context.md` "Post-close change 2026-08-24 (g)".
 - [ ] PK8 Play-test: loot a spec-ops soldier → no scabbard line, no bayonet line; withdraw the vest → scabbard attached
 - [ ] PK9 Play-test the new full-holder behaviour: withdraw into a FULL truck bed → overflow lands on the ground (it used to shortfall silently). PE2's no-nesting rule is unchanged
 - [ ] PK10 Pre-existing saves still hold scabbard lines; they are no longer permanent (withdrawing drops them on the ground) but no migration was written
+
+---
+
+## Post-close change 2026-08-25 (i) — map-placed warehouse could never load its ledger
+
+**Reported:** a captured map warehouse was empty after a server restart; every other storage holder was fine.
+
+- [x] PL1 `OVT_StorageComponent.EnsureTracked()` called from `OnPostInit`, not only on first content — a building that is neither spawned nor self-spawned must be registered BEFORE load, or its record can never be matched to it
+- [x] PL2 Same for `OVT_ResourceStoreComponent`, guarded by `Building.Cast` so trucks and piles are untouched
+- [x] PL3 🔴 `lazy = false` reverted — measured 171 s pass → 300 s timeout on `..._Recruits_SurvivesSaveAndReload`; 17 s with the lazy default. `OVT_PersistenceTracking.Track` gained a documented `lazy` param solely to record it
+- [x] PL4 Gate: `compile-check.sh` exit 0 (6347 files) · `OVT_TEST_PersistenceRoundTripSuite` 45/45
+- [ ] PL5 🔴 UNCONFIRMED against the affected server — found by reading, not measured. If it recurs, get that server's save-point dir + the LOADING session's console.log
+- [ ] PL6 Restart test on a real server: stock a map-placed warehouse, restart, confirm both the item ledger and the resource stock return

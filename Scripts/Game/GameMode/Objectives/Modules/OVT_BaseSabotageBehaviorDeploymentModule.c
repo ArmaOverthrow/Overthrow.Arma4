@@ -507,7 +507,10 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		if (!notify)
 			return;
 
-		notify.SendTextNotification(SABOTAGE_NOTIFICATION, -1, ResolveBaseName(base));
+		string baseName = ResolveBaseName(base);
+
+		notify.SendTextNotification(SABOTAGE_NOTIFICATION, -1, baseName);
+		notify.SendExternalNotifications(SABOTAGE_NOTIFICATION, baseName);
 	}
 
 	//------------------------------------------------------------------------------------------------

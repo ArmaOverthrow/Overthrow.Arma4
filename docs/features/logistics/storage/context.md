@@ -1,6 +1,6 @@
 # Storage (logistics/storage) — Context & Decisions
 
-**Last Updated:** 2026-08-24
+**Last Updated:** 2026-08-25
 **Current Phase:** ✅ **CLOSED 2026-08-21** — three post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger; two container defects, §§ below)
 **Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
@@ -279,6 +279,62 @@ overflow lands on the ground rather than vanishing from the screen.
 
 **Not covered:** ledgers saved before this change still hold scabbard lines, but they are no longer
 permanent — withdrawing one drops it on the ground.
+
+---
+
+## Post-close change 2026-08-25 (i) — a map-placed warehouse could never load its own ledger
+
+User report: a **captured** (not bought) warehouse standing on the map was empty after a server
+restart — *"its working for all other storages, just not this one"*.
+
+**That second sentence is the whole diagnosis.** Nothing in the storage or persistence path
+distinguishes a captured base warehouse from a bought one — same prefab, same component, same
+serializer, and `OVT_WarehouseData` is never consulted. What it distinguishes is the HOLDER CLASS, and
+the map-placed building is the only holder that is neither spawned nor self-spawned:
+
+| holder | how its record finds it again |
+|---|---|
+| vehicle | carries vanilla's own `Persistence` component and registers itself at load |
+| placed box / **built** warehouse / tent | Overthrow's Placeable config has `SelfSpawn 1` — the record re-creates the entity |
+| **map-placed warehouse building** | already standing at load; its record has to be MATCHED to it |
+
+`EnsureTracked()` ran only from `PublishCount()` when the ledger became non-empty, or from
+`SetCustomName()`. For that last row this is a **deadlock**: on the next boot the building has no
+content, so nothing calls `EnsureTracked()`, so it is never registered, so the stored record is never
+matched to it — and the content that would have triggered the registration is exactly what the record
+was going to supply. The ledger it saved before the restart is unreachable.
+
+**Fix:** `EnsureTracked()` is now called from `OnPostInit` as well, for `Building` owners only. Both
+`OVT_StorageComponent` and `OVT_ResourceStoreComponent` do it — the warehouse's resource stock had the
+identical deadlock, and it is the same building. Trucks and piles are untouched: `OVT_StorageComponent`
+latches out on its existing `Building.Cast` test, and the resource store's init-time call is guarded by
+the same cast, deliberately rather than relying on `IsTracked` (at `OnPostInit` a truck's own lazy
+registration may not have landed, so asking would be guessing at a lifetime this component does not
+own).
+
+Cost: one small record per warehouse building on the map, even empty. Not the BUG-118 orphan shape —
+the same building re-registers under the same deterministic id next boot and claims it.
+
+**🔴 `lazy = false` IS NOT AN OPTIMISATION, IT IS A REGRESSION.** The first version of this fix passed
+`lazy = false` to `StartTracking`, copying vanilla's own building call site
+(`SCR_DestructibleBuildingComponent:1339`). Measured: `OVT_TEST_PersistenceRoundTrip_Recruits_
+SurvivesSaveAndReload` went from a **171 s pass to a 300 s timeout**, and the whole round-trip suite
+with it. Reverted to the lazy default, the same case runs in **17 s**. `OVT_PersistenceTracking.Track`
+now carries a `lazy` parameter whose only purpose is to document that.
+
+**Gate:** `compile-check.sh` exit 0 (6347 files) · `OVT_TEST_PersistenceRoundTripSuite` **45/45** in
+69 s (the regression above was caught by this suite and is the reason it was run three times).
+
+**⚠ NOT CONFIRMED AGAINST THE AFFECTED SERVER.** This is a defect found by reading the code against the
+user's "every other storage works" observation, not a measurement: the save point that lost the stock
+is on a server this machine cannot reach, and the local DS save is a different playthrough. The
+persistence-forensics rule is *read the save file*, and that was not possible here. If the next restart
+still empties a map warehouse, the artifacts to get are that server's save-point directory
+(`meta-info.json` + `WorldState/*.blob`) and the console.log of the session that LOADED it — the
+in-session round-trip suites cannot see this class of defect at all, by construction.
+
+**Owed:** a restart test on a real server — stock a map-placed warehouse, restart, confirm the ledger
+AND the resource stock come back.
 
 ---
 

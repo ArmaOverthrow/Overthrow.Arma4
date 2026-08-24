@@ -11753,6 +11753,36 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F5000000001}" {
+   Id "OVT-Msg-PlayerJoined"
+   Target_en_us "%1 joined the server"
+   Comment "EXTERNAL CHANNEL ONLY - this is never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerConnected, which is server-only and fires for a RECONNECT as well as a first join (the once-per-session guard lives in FinalizePlayerPreparation, not here). %1 is the player's display name as the platform reports it. Paired with OVT-Msg-PlayerLeft. Vanilla already shows its own connect message in game, which is why no SendTextNotification accompanies this."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F5000000002}" {
+   Id "OVT-Msg-PlayerLeft"
+   Target_en_us "%1 left the server"
+   Comment "EXTERNAL CHANNEL ONLY - never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerDisconnected, read BEFORE super runs so the player's name is still resolvable. %1 is the player's display name. Covers every departure - quit, timeout and kick alike - because the disconnect handler does not branch on KickCauseCode. Paired with OVT-Msg-PlayerJoined."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B8C3F5D000000C6}" {
    Id "OVT-Msg-CounterAttackTown"
    Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"

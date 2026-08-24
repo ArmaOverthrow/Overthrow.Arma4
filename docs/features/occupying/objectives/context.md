@@ -3225,3 +3225,67 @@ The camo net is the only one whose chain carries a `Hierarchy` component, and it
 ⚠ **The recursion change touches five other callers** — town vehicle cleanup, the insertion transport, vehicle-patrol teardown, high command, and the virtualization core. For all of them it fixes the same latent leak (a vehicle's turret sub-entities are exactly the two-levels-down case), and the deepest-first order means a parent is never freed before its children are read. It is still a behaviour change on paths this report did not cover, and it deserves a look on the next vehicle play-test.
 
 `tools/compile-check.sh` exit 0 (6346 files). Workbench prefab load owed; suite not run.
+
+---
+
+## Change 2026-08-25 — two objective announcements reach the Discord webhook
+
+User ask: post to the webhook when a deployment is trying to recapture a radio tower, and when spec-ops
+have sabotaged a buildable; and confirm the counter-attack announcement already does.
+
+Both were sending the in-game text notification only. `SendExternalNotifications` is a separate call —
+`SendTextNotification` does not imply it — so anything that wants both has to make both calls.
+
+- `OVT_TowerRecaptureBehaviorDeploymentModule.WarnOnApproach()` → `RadioTowerCapture`
+- `OVT_BaseSabotageBehaviorDeploymentModule.NotifyOnce()` → `ObjectiveSabotage`
+
+Both are already once-per-mission behind their own latch (`m_bApproachAnnounced`, `m_bNotified`), so the
+webhook inherits that rate limiting rather than needing its own — the tower one re-arms only when no
+living team member is left near the tower, which is the behaviour a player sees in chat too.
+
+Both tags already exist as `SCR_SimpleMessagePreset`s in `Configs/overthrowBroadcastMessages.conf`
+(`RadioTowerCapture` :133, `ObjectiveSabotage` :574) with a `Description`, which is what
+`SendExternalNotifications` localizes — a tag with no preset returns early and posts nothing, silently.
+**No `.st` change and no re-export owed.**
+
+**Counter-attack: already correct, no change made.** `OVT_OccupyingFactionManager.RevealQRF()` is the
+single announcement path (SILENT_DEPLOY → MUSTER, idempotent) and it already sends both the text and the
+webhook for `CounterAttackTown` and `CounterAttackBase`. Grepped for a second announcement path; there
+is none.
+
+`tools/compile-check.sh` exit 0 (6347 files). Suites not run — the user was play-testing. Owed: confirm
+the two posts actually land in the channel on a server with `discordWebHookURL` set.
+
+---
+
+## Change 2026-08-25 (b) — player join/leave on the Discord webhook
+
+User ask: post to the webhook when players join and disconnect.
+
+`OVT_OverthrowGameMode` gained an `OnPlayerConnected` override and one line at the top of
+`OnPlayerDisconnected`, both routed through a new `AnnouncePlayerToWebhook(tag, playerId)`.
+
+**Two placement decisions, both load-bearing:**
+
+1. **NOT `m_PlayerManager.m_OnPlayerConnected`.** That invoker fires from `FinalizePlayerPreparation`,
+   which early-returns for anyone already in `m_aInitializedPlayers` — the RECONNECT path. Hooking it
+   would have announced first joins only and silently missed every reconnect. The vanilla
+   `OnPlayerConnected` override is the one hook that fires on every arrival, and it is server-only by
+   vanilla's own contract.
+2. **The leave post runs BEFORE `super.OnPlayerDisconnected`**, and before the id mappings are cleared,
+   because that teardown is what makes `GetPlayerName(playerId)` stop resolving. It does not branch on
+   `KickCauseCode`, so a quit, a timeout and a kick all announce identically.
+
+**External channel ONLY — no `SendTextNotification` pairing.** Vanilla already prints its own
+connect/disconnect lines in game; a second set would be duplicate spam. `SendExternalNotifications` is
+a separate call, so "webhook only" is simply the one call.
+
+**New content:** presets `PlayerJoined` / `PlayerLeft` in `Configs/overthrowBroadcastMessages.conf`
+(GUIDs from a verified-free `6A8E2F50…` series) and `#OVT-Msg-PlayerJoined` / `#OVT-Msg-PlayerLeft` in
+`Language/localization_Overthrow.st` — braces counted 2445 → 2449, balanced at both ends.
+
+🔴 **A `.st` re-export is owed.** Both keys render as raw `#OVT-Msg-…` in the webhook post until
+`Configs/Language/*.conf` is regenerated in Workbench. Those exports were NOT written by hand.
+
+`tools/compile-check.sh` exit 0 (6347 files). Suites not run — the user was play-testing. Owed: confirm
+the posts land on a server with `discordWebHookURL` set, including that a reconnect announces.

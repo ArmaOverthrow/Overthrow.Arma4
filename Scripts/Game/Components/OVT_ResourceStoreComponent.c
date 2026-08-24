@@ -127,6 +127,14 @@ class OVT_ResourceStoreComponent : OVT_Component
 		// so no client can ever name it and its contents can never replicate.
 		if (!GetRpl())
 			Print(string.Format("[Overthrow] OVT_ResourceStoreComponent on '%1' has no RplComponent. The holder cannot be named across the network and its contents will never reach a client.", OVT_PrefabUtils.GetPrefabName(owner)), LogLevel.ERROR);
+
+		// A BUILDING holder must be tracked BEFORE it holds anything, or its record can never be
+		// matched back to it - the map-placed warehouse deadlock, see OVT_StorageComponent's
+		// EnsureTracked() header. A truck or a pile is tracked by another route and is NOT touched
+		// here: at OnPostInit its own registration may not have landed yet, and tracking it a second
+		// time from here would be guessing at a lifetime this component does not own.
+		if (Replication.IsServer() && Building.Cast(owner))
+			EnsureTracked();
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -380,6 +388,8 @@ class OVT_ResourceStoreComponent : OVT_Component
 			return;
 		}
 
+		// lazy=false, the vanilla building call site's own choice (SCR_DestructibleBuildingComponent
+		// :1339): a world entity that is already live, not one being spawned.
 		if (OVT_PersistenceTracking.Track(owner))
 			m_bTrackingEnsured = true;
 	}

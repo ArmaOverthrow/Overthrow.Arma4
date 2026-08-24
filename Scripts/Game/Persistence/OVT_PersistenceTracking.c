@@ -31,10 +31,18 @@ class OVT_PersistenceTracking
 	//! Safe to call more than once on the same entity: the system ignores instances it already
 	//! tracks. Registration is LAZY (the vanilla default), so the cost at the spawn site is a lookup
 	//! and a flag, not serialization work.
+	//! ⚠ THE RETURN VALUE IS NOT AN ORACLE. StartTracking() answers true even when it tracks nothing
+	//! (measured; the same finding OVT_PersistenceManagerComponent.UntrackTransient records). Only
+	//! IsTracked() answers whether registration actually landed, and because registration is LAZY it
+	//! answers false for some frames after a true return. A caller that must KNOW has to poll.
 	//! \param[in] entity The freshly spawned entity. Null is tolerated and reported as not tracked.
-	//! \return True when the entity is now tracked; false on clients, in worlds with no persistence
-	//! system, or when the entity was null.
-	static bool Track(IEntity entity)
+	//! \param[in] lazy Leave TRUE. False registers immediately rather than on the system's own
+	//!        schedule, which vanilla does at one call site (SCR_DestructibleBuildingComponent:1339) -
+	//!        but MEASURED 2026-08-25, passing false from OVT_StorageComponent's init-time track took
+	//!        OVT_TEST_PersistenceRoundTrip_Recruits_SurvivesSaveAndReload from a 171 s pass to a
+	//!        300 s timeout. The parameter exists so that finding has somewhere to live.
+	//! \return True when the call was accepted; NOT proof the entity is tracked - see above.
+	static bool Track(IEntity entity, bool lazy = true)
 	{
 		if (!entity)
 			return false;
@@ -43,7 +51,7 @@ class OVT_PersistenceTracking
 		if (!persistence)
 			return false;
 
-		return persistence.StartTracking(entity);
+		return persistence.StartTracking(entity, lazy);
 	}
 
 	//------------------------------------------------------------------------------------------------
