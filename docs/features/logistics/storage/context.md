@@ -1172,3 +1172,54 @@ need a vanilla inventory — Open Storage, Transfer all, Rename, Load and Unload
 **Owed:** the play-test that matters here is conservation — apply the same loadout twice out of one
 box and confirm the second attempt is short exactly what the first consumed, that a rucksack's
 contents and a rifle's optic are debited too, and that the displaced gear comes back on the ledger.
+
+---
+
+## Post-close change 2026-08-24 (g) — slot-declared parts are not ledger lines
+
+User report: `Vest_SovietHarness` variants loot as the vest **plus** its pouches and belt dummies;
+the parts render as raw `{GUID}path` strings because several carry no `InventoryItemComponent` and so
+have no `ItemDisplayName` to read, and withdrawing the vest spawns the parts **again**.
+
+**The mechanism is vanilla's variant trick, not a storage bug.** `Vest_SovietHarness_AR.et` is the
+plain harness plus two `Pouch_Soviet_45rnd_RPK74` declared as `LoadoutSlotInfo` entries on its
+`BaseLoadoutClothComponent`; `Rifle_SVD_PSO.et` is the same trick on a weapon, an `Optic_PSO1`
+declared on an `AttachmentSlotComponent`. The parts are separate entities at runtime, so
+`InventoryStorageManagerComponent.GetItems` returns them beside their holder and each became its own
+ledger line — which mints an item on every withdrawal, and made the scoped-rifle variants a free
+money loop through port Export.
+
+**The test is the HOLDER's prefab, not the part's class.** `OVT_PrefabPartUtils.IsDeclaredPart` asks
+"does the holder's prefab declare *this* prefab in *that* slot", so there is no loss case: an optic
+the player mounted on a plain `Rifle_SVD` is still credited (its prefab declares none), and a part
+swapped for a different one is credited too (the respawn will not bring that one back). Only an
+occupant the respawn recreates exactly is dropped.
+
+**What was added**
+
+1. `Scripts/Game/Utilities/OVT_PrefabPartUtils.c` — `IsDeclaredPart` (cheap casts first: only an item
+   in a cloth or attachment slot reaches the prefab read), `CollectAttachedParts` (declared parts are
+   entity CHILDREN, not storage content) and a per-prefab cache behind
+   `SCR_BaseContainerTools.FindComponentSourcesOfClass(..., true, ...)` — the child flag is load-bearing,
+   `AttachmentSlotComponent` hangs off `WeaponComponent`, not off the entity.
+2. `OVT_StorageRequestComponent` — five wiring points: `ConvertItemToLedger` and `CollectLootTree`
+   refuse to credit a declared part; `CollectLootTree` and `QueueStoredContents` now walk INTO declared
+   parts so a harness pouch's magazines are still priced/queued ahead of the vest; `StripWeapon` leaves
+   a declared scope mounted (detaching one would strand a loose optic that converts to nothing); and
+   `ItemStillHoldsSomething` ignores declared attachments while blocking on a declared part that still
+   holds something.
+3. `OVT_TEST_Init_StorageSeam_JDeclaredPartsAreDetected` — the guard rests on
+   `InventoryStorageSlot.GetParentContainer()` being the holder's cloth/attachment component, which
+   nothing in the generated API documents. If that is wrong the whole change is **inert and silent**,
+   so the case spawns a real `Vest_SovietHarness_AR` and asserts the detection, on top of three
+   prefab-read assertions (harness declares its pouch, scoped SVD declares its optic, plain SVD does not).
+
+**Gate:** `compile-check.sh` exit 0 (6343 files).
+
+**Owed:** run `OVT_TEST_InitSuite` (or the case alone) — the runtime half of the new case is the only
+proof the detection is not inert. Play-test: loot a soldier wearing a Soviet harness and confirm one
+vest line with no pouch lines, then withdraw it and confirm the pouches come back attached; loot a
+`Rifle_SVD_PSO` and confirm one rifle line with no optic line.
+
+**Not migrated:** ledgers saved before this change still carry the orphan part lines. They are
+withdrawable and harmless, but they render as raw paths until removed by hand.

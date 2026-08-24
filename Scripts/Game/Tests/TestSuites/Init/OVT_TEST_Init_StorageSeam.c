@@ -1032,3 +1032,108 @@ class OVT_TEST_Init_StorageSeam_ILootQueryTakesItemsNotHolders : SCR_AutotestCas
 		return true;
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A part a prefab's own slot declares is never a ledger line, and IS detected at runtime.
+//!
+//! ⚠ THIS CASE EXISTS FOR ONE UNPROVABLE ASSUMPTION. OVT_PrefabPartUtils decides "this item came
+//! with its holder's prefab" from InventoryStorageSlot.GetParentContainer() being the holder's
+//! BaseLoadoutClothComponent or AttachmentSlotComponent. Nothing in the generated API documents what
+//! that call returns for a cloth-declared slot, and if it answers anything else the whole guard is
+//! INERT: harness pouches go back to being nameless ledger lines that duplicate on every withdrawal.
+//! Compile-check cannot see it and no other case touches it.
+//!
+//! Vest_SovietHarness_AR is vanilla's own example of the pattern - it is the plain harness plus two
+//! Pouch_Soviet_45rnd_RPK74 declared on its cloth slots. Rifle_SVD_PSO is the same trick on a weapon,
+//! and plain Rifle_SVD is the control: an optic on THAT one is a player's and must still be credited.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_JDeclaredPartsAreDetected : SCR_AutotestCaseBase
+{
+	static const ResourceName HARNESS_AR = "{4711A4CAF64C4CEE}Prefabs/Characters/Vests/Vest_SovietHarness/Variants/Vest_SovietHarness_AR.et";
+	static const ResourceName HARNESS_POUCH = "{B6EEF03975F21E4E}Prefabs/Items/Equipment/Accessories/Pouch_Soviet_45rnd_RPK74/Pouch_Soviet_45rnd_RPK74.et";
+
+	static const ResourceName SVD_SCOPED = "{6415B7923DE28C1B}Prefabs/Weapons/Rifles/SVD/Rifle_SVD_PSO.et";
+	static const ResourceName SVD_PLAIN = "{3EB02CDAD5F23C82}Prefabs/Weapons/Rifles/SVD/Rifle_SVD.et";
+	static const ResourceName OPTIC_PSO1 = "{C850A33226B8F9C1}Prefabs/Weapons/Attachments/Optics/Optic_PSO1/Optic_PSO1.et";
+
+	protected IEntity m_Vest;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (OVT_PrefabPartUtils.GetDeclaredParts(HARNESS_AR).Find(HARNESS_POUCH) == -1)
+		{
+			SetFailure("Vest_SovietHarness_AR does not report its own declared pouch. The prefab read in OVT_PrefabPartUtils.GetDeclaredParts is not reaching BaseLoadoutClothComponent's Slots array, so every harness part is a ledger line again.");
+			return true;
+		}
+
+		if (OVT_PrefabPartUtils.GetDeclaredParts(SVD_SCOPED).Find(OPTIC_PSO1) == -1)
+		{
+			SetFailure("Rifle_SVD_PSO does not report the optic its own prefab declares. AttachmentSlotComponent hangs off WeaponComponent, so the search has lost its child-component flag - a scoped rifle mints a spare optic on every withdrawal.");
+			return true;
+		}
+
+		if (OVT_PrefabPartUtils.GetDeclaredParts(SVD_PLAIN).Find(OPTIC_PSO1) != -1)
+		{
+			SetFailure("Plain Rifle_SVD reports the PSO-1 as a declared part. The prefab read is resolving a SIBLING variant's slot, so an optic a player mounted themselves would be destroyed uncredited.");
+			return true;
+		}
+
+		return CheckRuntimeDetection();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the harness and asserts the engine's own slot answers the way the guard assumes.
+	//! \return Always true - the case is over either way.
+	protected bool CheckRuntimeDetection()
+	{
+		vector position;
+		if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("780 0 660", position))
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test vest");
+			return true;
+		}
+
+		m_Vest = OVT_Global.SpawnEntityPrefab(HARNESS_AR, position);
+		if (!m_Vest)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", HARNESS_AR);
+			return FinishAndCleanUp();
+		}
+
+		array<IEntity> parts = new array<IEntity>();
+		OVT_PrefabPartUtils.CollectAttachedParts(m_Vest, parts);
+
+		if (parts.IsEmpty())
+		{
+			int children = 0;
+			IEntity child = m_Vest.GetChildren();
+			while (child)
+			{
+				children += 1;
+				child = child.GetSibling();
+			}
+
+			SetFailure("A spawned Vest_SovietHarness_AR reports no declared parts among its %1 child entities. IsDeclaredPart's GetParentContainer() test does not hold for a cloth slot, so the whole guard is inert and harness pouches are ledger lines again.", children.ToString());
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: slot-declared parts are detected on the prefab and at runtime");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Vest)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Vest);
+			m_Vest = null;
+		}
+
+		return true;
+	}
+}

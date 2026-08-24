@@ -467,3 +467,19 @@ User call after close. See `context.md` "Post-close change 2026-08-24 (g)".
 - [x] PJ6 Ledger + the five storage actions (Open Storage, Transfer all, Rename, Load, Unload) on the three Load Loadout hosts that had none (cabinet, FIA equipment box, FIA medical box) — the `OVT_AmmoBox_Base` set minus the vanilla-inventory ones; all appended to the EXISTING `ActionsManagerComponent`; GUIDs verified repo-unique and 16 hex digits
 - [x] PJ7 Gate: `compile-check.sh` exit 0 (6342 files); 2390 → 1998 lines
 - [ ] PJ8 Play-test conservation: apply one loadout twice from one box; check nested contents and optics are debited; check displaced gear returns to the ledger
+
+---
+
+## Post-close change 2026-08-24 (g) — slot-declared parts are not ledger lines
+
+User report after close. See `context.md` "Post-close change 2026-08-24 (g)".
+
+- [x] PG1 `OVT_PrefabPartUtils.c` — `IsDeclaredPart` / `CollectAttachedParts` / cached `GetDeclaredParts`, keyed on the HOLDER's prefab so a player-mounted attachment is never absorbed
+- [x] PG2 `ConvertItemToLedger` + `CollectLootTree` refuse to credit a declared part
+- [x] PG3 `CollectLootTree` + `QueueStoredContents` walk into declared parts, so a pouch's magazines are still priced and queued ahead of the vest
+- [x] PG4 `StripWeapon` leaves a declared scope mounted; `ItemStillHoldsSomething` ignores declared attachments but blocks on a declared part that still holds something
+- [x] PG5 `OVT_TEST_Init_StorageSeam_JDeclaredPartsAreDetected` — 3 prefab-read assertions + a real spawn, because an inert guard is otherwise silent
+- [x] PG6 Gate: `compile-check.sh` exit 0 (6343 files)
+- [ ] PG7 🔴 Run the Init case — the `GetParentContainer()` assumption is unproven at runtime
+- [ ] PG8 Play-test: loot a Soviet-harness soldier → one vest line, no pouch lines; withdraw → pouches attached. Loot a `Rifle_SVD_PSO` → one rifle line, no optic line
+- [ ] PG9 Pre-existing ledgers still hold orphan part lines; no migration was written
