@@ -451,7 +451,12 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
   on the light / heavy vehicle patrols (**my call** — the author said "might"). See context.md.
 - [x] **P2.5 The horn lead is disproven** — a `UAZ469_PKM` carries none of Overthrow's
   `AICarMovementComponent` tuning. General Reforger AI driving, still open, still unmitigated.
-- [ ] 🔴 **P1.14 No suite run and no play-test on any of the above.** Seventeen changes deep now, across
+- [x] **P2.6 Post-join grace period** — `IsInPostJoinGrace()` on the deployment manager, checked in
+  `CreateDeployment()`, `m_fPostJoinGraceSeconds` 600. Seeding exempt, income unaffected. See context.md.
+- [x] **P2.7 Grace period armed 40 minutes late (my defect, caught in Workbench)** — the observation now
+  rides the evaluator's 30 s tick instead of the first creation attempt. Refusal logging dropped to VERBOSE
+  and the "Creating deployment" line moved below the gates. See context.md.
+- [ ] 🔴 **P1.14 No suite run and no play-test on any of the above.** Nineteen changes deep now, across
   `vehicles`, `deployments` and the resource economy. Same deferral as the rest of the
   feature — and the four config changes in P1.4 are the largest behavioural change in the list.
 

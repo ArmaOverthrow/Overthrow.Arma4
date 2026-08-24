@@ -238,6 +238,13 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! Refusal reason: a mounted rung was asked for below the vehicle ladder's bottom threshold.
 	static const string REFUSAL_LADDER_LOCKED = "the faction's threat has not unlocked any rung of the vehicle ladder";
 
+	//! Refusal reason: the world is inside its post-join grace period. A DECISION, not a fault - it
+	//! clears on its own within OVT_DeploymentManagerComponent.m_fPostJoinGraceSeconds.
+	static const string REFUSAL_POST_JOIN_GRACE = "the world is inside its post-join grace period, so nothing new is raised yet";
+
+	//! Refusal reason: this config was created too recently. Also a decision, also self-clearing.
+	static const string REFUSAL_CONFIG_COOLDOWN = "this deployment config is still on its per-config cooldown";
+
 	//! The one harassment rung that IS its vehicle. It carries no infantry, so sending it without a
 	//! vehicle marches a crew across the map on foot.
 	static const string MOUNTED_HARASSMENT_CONFIG = "Objective Harassment (Mounted)";
@@ -1290,6 +1297,22 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		OVT_DeploymentComponent created = deployments.ForceCreateDeployment(config, position, factionIndex, cost, 0, yaw);
 		if (!created)
 		{
+			// ⚠ NOT ALWAYS A FAULT ANY MORE. CreateDeployment() gained two DECISIONS that answer null -
+			// the post-join grace period and the per-config cooldown - and reporting either of those as
+			// "the framework declined" sends the reader hunting a broken config. Ask which it was, and
+			// say so at a level that matches: a decision clears on its own, a fault does not.
+			if (deployments.IsInPostJoinGrace())
+			{
+				LogOperationRefusal(configName, REFUSAL_POST_JOIN_GRACE, "at " + position.ToString(), LogLevel.NORMAL);
+				return false;
+			}
+
+			if (deployments.IsConfigOnCooldown(config, factionIndex))
+			{
+				LogOperationRefusal(configName, REFUSAL_CONFIG_COOLDOWN, "at " + position.ToString(), LogLevel.NORMAL);
+				return false;
+			}
+
 			// A fault, not a decision: an invalid config, a missing deployment prefab, a spawn the world
 			// refused. ERROR rather than WARNING because nothing about it will clear on its own.
 			LogOperationRefusal(configName, REFUSAL_FRAMEWORK_DECLINED, "at " + position.ToString(), LogLevel.ERROR);

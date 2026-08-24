@@ -12,7 +12,15 @@ class OVT_AdminCommandsComponentClass : OVT_ControllerRequestComponentClass {};
 //!                               typed (admin-gated) - see OnTickResourcesCommand;
 //!   "/ruin-structure"           ruins the nearest built structure to the caller (admin-gated);
 //!   "/repair-structure"         restores it (admin-gated);
+//!   "/give-pool [amount]"       credits the deployment POOL directly, skipping the six-hour
+//!                               drip that "/give-resources" is subject to (admin-gated);
+//!   "/capture-base"             hands the nearest base to the resistance (admin-gated);
+//!   "/capture-town"             hands the nearest town to the resistance (admin-gated);
+//!   "/max-support"              takes the nearest town to 100 % support (admin-gated);
 //!   "/respawn-screen"           toggles the local respawn screen (no gate, no state change).
+//!
+//! The three capture/support commands exist because the debug menu is unreachable from a real
+//! multiplayer client, which is the only place an MP-only fault reproduces (author, 2026-08-24).
 //!
 //! First command: "/givemoney <amount>" adds money to the calling player's account so server
 //! admins can legitimately seed the economy - buy stock from gun dealers into real storage
@@ -208,6 +216,67 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 			invoker.Insert(OnRepairStructureCommand);
 		}
 
+		// "/capture-base", "/capture-town", "/max-support" - the debug-menu equivalents for a client
+		// that has no debug menu (a real MP client, which is the only place MP-only faults show up).
+		// Same hyphenated/unhyphenated pairs and the same Remove()-then-Insert() as everything above.
+		invoker = chat.GetCommandInvoker("capture-base");
+		if (invoker)
+		{
+			invoker.Remove(OnCaptureBaseCommand);
+			invoker.Insert(OnCaptureBaseCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("capturebase");
+		if (invoker)
+		{
+			invoker.Remove(OnCaptureBaseCommand);
+			invoker.Insert(OnCaptureBaseCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("capture-town");
+		if (invoker)
+		{
+			invoker.Remove(OnCaptureTownCommand);
+			invoker.Insert(OnCaptureTownCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("capturetown");
+		if (invoker)
+		{
+			invoker.Remove(OnCaptureTownCommand);
+			invoker.Insert(OnCaptureTownCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("max-support");
+		if (invoker)
+		{
+			invoker.Remove(OnMaxSupportCommand);
+			invoker.Insert(OnMaxSupportCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("maxsupport");
+		if (invoker)
+		{
+			invoker.Remove(OnMaxSupportCommand);
+			invoker.Insert(OnMaxSupportCommand);
+		}
+
+		// "/give-pool" - the pool twin of "/give-resources". It CREATES resources, so it needs the same
+		// Remove()-then-Insert() discipline as the other two creating commands.
+		invoker = chat.GetCommandInvoker("give-pool");
+		if (invoker)
+		{
+			invoker.Remove(OnGivePoolCommand);
+			invoker.Insert(OnGivePoolCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("givepool");
+		if (invoker)
+		{
+			invoker.Remove(OnGivePoolCommand);
+			invoker.Insert(OnGivePoolCommand);
+		}
+
 		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
 		invoker = chat.GetCommandInvoker("respawn-screen");
 		if (invoker)
@@ -222,6 +291,334 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 			invoker.Remove(OnRespawnScreenCommand);
 			invoker.Insert(OnRespawnScreenCommand);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// CAPTURE + SUPPORT - "/capture-base", "/capture-town", "/max-support".
+	//
+	// The debug menu's equivalents, as chat commands, because the debug menu is not reachable from a
+	// real multiplayer client - and a real client is the only place an MP-only fault reproduces
+	// (author, 2026-08-24, hunting a horn that never sounds in single-player).
+	//
+	// ⚠ EACH ONE DRIVES THE SAME METHOD THE CAMPAIGN ITSELF DRIVES - ChangeBaseControl(),
+	// ChangeTownControl(), AddSupport() - rather than writing the fields. A capture made from chat is
+	// therefore the same capture in every respect: it notifies, it replicates and it saves. Writing
+	// town.support directly would set it on the server only, and the client's HUD would disagree with
+	// the server for the rest of the session.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/capture-base". Runs on the typing player's client.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnCaptureBaseCommand(SCR_ChatPanel panel, string data)
+	{
+		RequestCaptureBase();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to hand the nearest base to the resistance. Admin-gated server-side.
+	void RequestCaptureBase()
+	{
+		if (Replication.IsServer())
+			RpcAsk_CaptureBase();
+		else
+			Rpc(RpcAsk_CaptureBase);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_CaptureBase()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		if (!AssertAdmin(playerId, "/capture-base"))
+			return;
+
+		vector pos;
+		if (!ResolveCallerPosition(playerId, pos))
+			return;
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!occupying || !config)
+			return;
+
+		OVT_BaseData baseData = occupying.GetNearestBase(pos);
+		if (!baseData)
+		{
+			Print(string.Format("[Overthrow] /capture-base: no base found near player %1", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		// The marker's controller, not the record: ChangeBaseControl drives the controller, which is
+		// what owns the garrison, the map marker and the notification.
+		OVT_BaseControllerComponent base = occupying.GetBase(baseData.entId);
+		if (!base)
+		{
+			Print(string.Format("[Overthrow] /capture-base: the nearest base to player %1 has no live controller", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		int resistance = config.GetPlayerFactionIndex();
+		if (baseData.faction == resistance)
+		{
+			Print(string.Format("[Overthrow] /capture-base: the nearest base to player %1 is already the resistance's", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		occupying.ChangeBaseControl(base, resistance);
+
+		Print(string.Format("[Overthrow] Admin (player %1) captured the nearest base via /capture-base", playerId), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/capture-town". Runs on the typing player's client.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnCaptureTownCommand(SCR_ChatPanel panel, string data)
+	{
+		RequestCaptureTown();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to hand the nearest town to the resistance. Admin-gated server-side.
+	void RequestCaptureTown()
+	{
+		if (Replication.IsServer())
+			RpcAsk_CaptureTown();
+		else
+			Rpc(RpcAsk_CaptureTown);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_CaptureTown()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		if (!AssertAdmin(playerId, "/capture-town"))
+			return;
+
+		vector pos;
+		if (!ResolveCallerPosition(playerId, pos))
+			return;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!towns || !config)
+			return;
+
+		OVT_TownData town = towns.GetNearestTown(pos);
+		if (!town)
+		{
+			Print(string.Format("[Overthrow] /capture-town: no town found near player %1", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		int resistance = config.GetPlayerFactionIndex();
+		if (town.faction == resistance)
+		{
+			Print(string.Format("[Overthrow] /capture-town: the nearest town to player %1 is already the resistance's", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		towns.ChangeTownControl(town, resistance);
+
+		Print(string.Format("[Overthrow] Admin (player %1) captured the nearest town via /capture-town", playerId), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/max-support". Runs on the typing player's client.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word (unused).
+	protected void OnMaxSupportCommand(SCR_ChatPanel panel, string data)
+	{
+		RequestMaxSupport();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to take the nearest town's support to 100 %. Admin-gated server-side.
+	void RequestMaxSupport()
+	{
+		if (Replication.IsServer())
+			RpcAsk_MaxSupport();
+		else
+			Rpc(RpcAsk_MaxSupport);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_MaxSupport()
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		if (!AssertAdmin(playerId, "/max-support"))
+			return;
+
+		vector pos;
+		if (!ResolveCallerPosition(playerId, pos))
+			return;
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns)
+			return;
+
+		OVT_TownData town = towns.GetNearestTown(pos);
+		if (!town)
+		{
+			Print(string.Format("[Overthrow] /max-support: no town found near player %1", playerId), LogLevel.WARNING);
+			return;
+		}
+
+		// ⚠ SUPPORT IS A HEADCOUNT, NOT A PERCENTAGE (OVT_TownData.SupportPercentage divides by
+		// population). 100 % is therefore "every civilian", and AddSupport already clamps to the
+		// population - so asking for the whole population is both the right number and unable to
+		// overshoot it. It is also the one broadcasting write path, so clients agree.
+		towns.AddSupport(pos, town.population);
+
+		Print(string.Format("[Overthrow] Admin (player %1) took '%2' to %3 %% support via /max-support",
+			playerId, towns.GetTownName(towns.GetTownID(town)), town.SupportPercentage()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/give-pool [amount]". Runs on the typing player's client.
+	//!
+	//! THE POOL TWIN OF "/give-resources", and the difference is the whole point: that command credits
+	//! the RESERVE, which reaches the pool only through the six-hour defense share paid one slice an
+	//! hour, so a tester waits up to an in-game hour per slice. This lands in the pool immediately
+	//! (author, 2026-08-24: "to save me waiting for the drip").
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word - an optional amount.
+	protected void OnGivePoolCommand(SCR_ChatPanel panel, string data)
+	{
+		data.TrimInPlace();
+
+		int amount = GIVE_RESOURCES_DEFAULT;
+		if (data != "")
+		{
+			// Same text check as "/give-resources": ToInt() answers 0 for "abc" and parses the leading
+			// digits of "50x", so the result alone cannot tell a typo from an amount.
+			if (!IsPositiveInteger(data))
+			{
+				Print(string.Format("[Overthrow] Usage: /give-pool [amount] - '%1' is not a whole positive number (default %2)", data, GIVE_RESOURCES_DEFAULT), LogLevel.WARNING);
+				return;
+			}
+
+			amount = data.ToInt();
+		}
+
+		if (amount <= 0)
+		{
+			Print(string.Format("[Overthrow] Usage: /give-pool [amount] - amount must be greater than zero (default %1)", GIVE_RESOURCES_DEFAULT), LogLevel.WARNING);
+			return;
+		}
+
+		RequestGivePool(amount);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to credit the occupying faction's deployment pool. Admin-gated server-side.
+	//! \param[in] amount Resources to credit. Re-validated and clamped on the server.
+	void RequestGivePool(int amount)
+	{
+		if (Replication.IsServer())
+			RpcAsk_GivePool(amount);
+		else
+			Rpc(RpcAsk_GivePool, amount);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_GivePool(int amount)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		if (!AssertAdmin(playerId, "/give-pool"))
+			return;
+
+		// ⚠ RE-VALIDATED HERE, not trusted from the wire: the client-side parse is a convenience, this
+		// is the bound. Same reasoning as every other amount in this file.
+		if (amount <= 0)
+			return;
+
+		if (amount > GIVE_RESOURCES_MAX)
+			amount = GIVE_RESOURCES_MAX;
+
+		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!occupying || !deployments || !config)
+			return;
+
+		occupying.DebugCreditPool(amount);
+
+		int pool = deployments.GetFactionResources(config.GetOccupyingFactionIndex());
+
+		// Server console record: resources were created from nothing, an audit line is the least it costs.
+		Print(string.Format("[Overthrow] Admin (player %1) credited %2 resources straight to the deployment pool via /give-pool - pool is now %3", playerId, amount, pool), LogLevel.NORMAL);
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if (notify)
+			notify.SendTextNotification("AdminResourcesAdded", playerId, amount.ToString(), pool.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The admin gate, shared by the capture/support/give-pool commands. The older commands still
+	//! carry their own inline copy - deliberately not refactored mid-session; they are play-tested.
+	//! \param[in] playerId The caller.
+	//! \param[in] via The command name, for the log line.
+	//! \return True when the caller may proceed.
+	protected bool AssertAdmin(int playerId, string via)
+	{
+		if (SCR_Global.IsAdmin(playerId))
+			return true;
+
+		Print(string.Format("[Overthrow] Player %1 used %2 without admin rights - refused", playerId, via), LogLevel.WARNING);
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if (notify)
+			notify.SendTextNotification("AdminCommandRefused", playerId);
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where the calling admin is standing. Everything here acts on "nearest to me".
+	//! \param[in] playerId The caller.
+	//! \param[out] pos Their position. Untouched on a false return.
+	//! \return True when the caller has a body in the world.
+	protected bool ResolveCallerPosition(int playerId, out vector pos)
+	{
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if (!character)
+		{
+			Print(string.Format("[Overthrow] Admin command: player %1 has no controlled entity", playerId), LogLevel.WARNING);
+			return false;
+		}
+
+		pos = character.GetOrigin();
+		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------

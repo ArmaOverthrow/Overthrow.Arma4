@@ -45,10 +45,10 @@ Default client argument set (each individually overridable — see merge rule):
     -gproj <base game ArmaReforger.gproj>      (the client takes the BASE GAME
                                                 project; Overthrow is loaded
                                                 via -addonsDir/-addons)
-    -addonsDir <repo parent>,<My Games>\\ArmaReforgerWorkbench\\addons
-                                               (source Overthrow + packed
-                                                EPF/EDF; comma-separated,
-                                                single flag)
+    -addonsDir <addon farm>                    (a junction to THIS worktree
+                                                and nothing else - see
+                                                ovt_addon_farm(); Overthrow has
+                                                no workshop dependencies)
     -addons Overthrow
     -profile <name>                            (default OverthrowCI)
     -noFocus -noThrow -window -logLevel debug  (BI's own autotest defaults)
@@ -204,30 +204,43 @@ passthrough_has_flag() {
 }
 
 # game_addons_dir_arg — the client's default -addonsDir VALUE (Windows form):
-#   <repo parent>,<My Games>\ArmaReforgerWorkbench\addons
-# i.e. source Overthrow (the client scans one level deep, finding
-# Overthrow.Arma4/addon.gproj) + packed workshop EPF/EDF (the SOURCE EPF/EDF
-# repos do not compile on 1.7.0.54 — finding 1.8f). Overridable wholesale via
-# OVERTHROW_GAME_ADDONS_DIRS (already-Windows-form, comma-separated).
+# a farm holding a junction to THIS worktree and nothing else. See
+# ovt_addon_farm() for why the repo parent is the wrong answer.
+#
+# ⚠ THE WORKSHOP ADDONS DIR IS NO LONGER PART OF THIS. Overthrow's addon.gproj
+# declares exactly one dependency - 58D0FB3206B6F859, the base game - so the
+# packed EPF/EDF workshop copies are not needed and including that directory
+# only re-exposes a rival 'Overthrow' for '-addons' to pick (author, 2026-08-24:
+# "overthrow has zero dependancies now"). The hard error this used to raise when
+# that directory was absent would now fail a clean checkout for no reason.
+# Overridable wholesale via OVERTHROW_GAME_ADDONS_DIRS.
 game_addons_dir_arg() {
     if [[ -n "${OVERTHROW_GAME_ADDONS_DIRS:-}" ]]; then
         printf '%s\n' "$OVERTHROW_GAME_ADDONS_DIRS"
         return 0
     fi
-    local parent mg wb_addons w1 w2
-    parent="$(dirname "$OVT_REPO_ROOT")"
-    mg="$(ovt_mygames_dir)" || return 2
-    wb_addons="$mg/ArmaReforgerWorkbench/addons"
-    if [[ ! -d "$wb_addons" ]]; then
-        ovt_err "Workbench workshop addons dir not found: '$wb_addons'. The packed EPF/EDF dependencies live there; without them the client cannot load Overthrow. Download the dependencies in Workbench once, or set OVERTHROW_GAME_ADDONS_DIRS."
-        return 2
-    fi
-    w1="$(ovt_win_path "$parent")" || return 2
-    w2="$(ovt_win_path "$wb_addons")" || return 2
-    printf '%s,%s\n' "$w1" "$w2"
+    ovt_addon_farm
 }
 
+
+# --- pass-through sanity: OUR flags do not belong after '--' -------------------
+# Everything after '--' goes to the client verbatim, so a launcher flag typed
+# there is silently ignored - the client shrugs at an argument it does not know
+# and the script keeps its default. Observed 2026-08-24: '-- -client ... --timeout
+# 60000' ran with the default 600 s and the client was killed mid-session, which
+# reads as "the timeout flag does not work".
+for _arg in "${PASS_ARGS[@]}"; do
+    case "$_arg" in
+        --timeout|--profile|--quiet|--allow-concurrent|--scenario|--mode|--port|--max-players|--config|--admin-password)
+            ovt_err "'$_arg' is a launcher flag but appears AFTER '--', so it was passed to the client and ignored by this script. Put launcher flags BEFORE '--'."
+            exit 2
+            ;;
+    esac
+done
+
 # --- preflight (exit 2 with a specific message on any failure) ------------------
+
+ovt_assert_unpacked || exit 2
 
 mkdir -p "$OUT_DIR" || { ovt_err "cannot create '$OUT_DIR'"; exit 2; }
 

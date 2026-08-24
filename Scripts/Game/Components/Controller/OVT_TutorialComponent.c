@@ -266,9 +266,12 @@ class OVT_TutorialComponent : OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! SERVER: hands this controller's owning client its persisted tutorial state.
 	//!
-	//! Called from OVT_OverthrowGameMode.FinalizePlayerPreparation beside SetSpawnContext, so a
-	//! continue, a reconnect and a JIP all deliver the campaign's record before the player can
-	//! trigger anything. Mirrors SetSpawnContext's local-direct branch for the same reason: the
+	//! Called from OVT_OverthrowGameMode.PushTutorialStateToPlayer(), which FinalizePlayerPreparation
+	//! runs UNCONDITIONALLY on both of its exits, so a continue, a reconnect and a JIP all deliver the
+	//! campaign's record before the player can trigger anything. It is deliberately not routed through
+	//! SetSpawnContext: that only runs on the branches that hand out a home, which left every
+	//! returning player with an empty client store and every client-local tip re-firing on login.
+	//! Mirrors SetSpawnContext's local-direct branch for the same reason: the
 	//! engine never loops an RPC back to the sender, so a listen host would otherwise never receive
 	//! its own state.
 	//! \param[in] playerId Runtime id of the player this controller belongs to.
@@ -937,6 +940,17 @@ class OVT_TutorialComponent : OVT_Component
 			m_SeenStore = new OVT_TutorialSeenStore();
 
 		return m_SeenStore;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether THIS machine's mirror already holds an entry. The read half of the store, public so a
+	//! test tier can observe that the server's push landed - the mirror is otherwise unobservable and
+	//! its being empty is exactly how the returning-player push gap shipped.
+	//! \param[in] entryId Id to look for.
+	//! \return True when this client has the id.
+	bool HasSeenLocally(string entryId)
+	{
+		return GetSeenStore().HasSeen(entryId);
 	}
 
 	//-----------------------------------------------------------------------------------------------

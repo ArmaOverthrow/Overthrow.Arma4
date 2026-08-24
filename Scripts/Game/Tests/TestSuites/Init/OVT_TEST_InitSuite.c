@@ -12705,3 +12705,179 @@ class OVT_TEST_Init_Objectives_LandIsolatedTargetsAreNeverCandidates : SCR_Autot
 		return false;
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+//! A reserved CHARACTER must lose its hitbox without losing its simulation.
+//!
+//! Two regressions meet on this body, and fixing either one naively causes the other:
+//!
+//!  1. LOCOMOTION. Reserve() used to take the body to SimulationState.NONE and hand back a bare enum
+//!     value on release. Every machine that ran that round trip then computed movement speed 0 for
+//!     that character forever - a reconnected player slid along with motionless legs while stances
+//!     and gestures, which are discrete replicated commands rather than body-derived, still worked.
+//!     Clients that streamed the body in fresh afterwards were fine, which is what located it.
+//!  2. THE HITBOX. Simply skipping the physics half left a reserved body as an invisible obstacle on
+//!     every machine - you could walk into a player who logged out days ago.
+//!
+//! So the contract is BOTH halves at once: the simulation state is never touched, and collision goes
+//! away through the per-GEOM interaction masks, each saved and restored as itself. Per geom is
+//! load-bearing - GetInteractionLayer() answers for the whole body, and stamping that one aggregate
+//! back onto every geom is what previously left a released vehicle unable to drive itself.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-24: OVT_ReservationSyncComponent.s_bPhysicsHalfOnCharacters = true
+//! puts characters back through the simulation-state path and this case goes red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Persistence_ReservedCharacterKeepsItsSimulation : SCR_AutotestCaseBase
+{
+	protected IEntity m_Character;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
+		if (!spawnLogic || spawnLogic.m_rDefaultPrefab.IsEmpty())
+		{
+			SetFailure("No spawn logic instance (or no default character prefab) - there is no character to reserve");
+			return true;
+		}
+
+		string diagnostic;
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetFailure("Cannot resolve somewhere to put a character: %1", diagnostic);
+			return true;
+		}
+
+		m_Character = OVT_Global.SpawnEntityPrefab(spawnLogic.m_rDefaultPrefab, position);
+		if (!m_Character)
+		{
+			SetFailure("SpawnEntityPrefab() produced no character from %1", spawnLogic.m_rDefaultPrefab);
+			return true;
+		}
+
+		if (!ChimeraCharacter.Cast(m_Character))
+		{
+			SetFailure("The spawned default prefab is not a ChimeraCharacter - the character branch under test would never be taken");
+			return FinishAndCleanUp();
+		}
+
+		OVT_ReservationSyncComponent sync = OVT_ComponentFinder<OVT_ReservationSyncComponent>.Find(m_Character);
+		if (!sync)
+		{
+			SetFailure("The spawned character has no OVT_ReservationSyncComponent - neither half of this contract can run");
+			return FinishAndCleanUp();
+		}
+
+		Physics phys = m_Character.GetPhysics();
+		if (!phys)
+		{
+			SetFailure("The spawned character has no Physics body - the hitbox half cannot be pinned");
+			return FinishAndCleanUp();
+		}
+
+		int numGeoms = phys.GetNumGeoms();
+		if (numGeoms < 1)
+		{
+			SetFailure("The spawned character's body has no geometries - the mask assertions below would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
+		// Snapshot every geom's own mask, and refuse to run on a body that already collides with
+		// nothing - a zeroed-from-the-start character would satisfy the reserve assertion for free.
+		ref array<int> before = new array<int>();
+		bool anyNonZero = false;
+		for (int i = 0; i < numGeoms; i++)
+		{
+			int mask = phys.GetGeomInteractionLayer(i);
+			before.Insert(mask);
+			if (mask != 0)
+				anyNonZero = true;
+		}
+
+		if (!anyNonZero)
+		{
+			SetFailure("Every geometry on a freshly spawned character already has an empty interaction mask - the reserve assertion would pass vacuously");
+			return FinishAndCleanUp();
+		}
+
+		SimulationState stateBefore = phys.GetSimulationState();
+
+		if (!OVT_PersistenceReservation.Reserve(m_Character))
+		{
+			SetFailure("Reserve() refused a live character");
+			return FinishAndCleanUp();
+		}
+
+		if (!sync.IsReserved())
+		{
+			SetFailure("Reserve() hid the character but did NOT mirror the state into OVT_ReservationSyncComponent - no client is told, and every one keeps rendering the body");
+			return FinishAndCleanUp();
+		}
+
+		// Regression 1. The simulation state is the character controller's, and taking it away is what
+		// froze locomotion on every proxy that ran the round trip.
+		if (phys.GetSimulationState() != stateBefore)
+		{
+			SetFailure("Reserve() changed the character's simulation state to %1 - a released player slides with motionless legs on every machine that ran this", typename.EnumToString(SimulationState, phys.GetSimulationState()));
+			return FinishAndCleanUp();
+		}
+
+		// Regression 2. Nothing may be left to walk into.
+		for (int i = 0; i < numGeoms; i++)
+		{
+			if (phys.GetGeomInteractionLayer(i) != 0)
+			{
+				SetFailure("Reserve() left geometry %1 on interaction mask %2 - a reserved player is an invisible hitbox", i.ToString(), phys.GetGeomInteractionLayer(i).ToString());
+				return FinishAndCleanUp();
+			}
+		}
+
+		if (!OVT_PersistenceReservation.Release(m_Character))
+		{
+			SetFailure("Release() refused a reserved character");
+			return FinishAndCleanUp();
+		}
+
+		if (sync.IsReserved())
+		{
+			SetFailure("Release() put the character back in play but left the replicated state reserved - clients would hide a player standing in front of them");
+			return FinishAndCleanUp();
+		}
+
+		if (phys.GetSimulationState() != stateBefore)
+		{
+			SetFailure("Release() left the character's simulation state at %1 - locomotion is still broken after the round trip", typename.EnumToString(SimulationState, phys.GetSimulationState()));
+			return FinishAndCleanUp();
+		}
+
+		// Restored as ITSELF, geom by geom. An aggregate restore would put every geometry on one
+		// merged mask and pass a "collision is back" check while quietly changing what hits what.
+		for (int i = 0; i < numGeoms; i++)
+		{
+			if (phys.GetGeomInteractionLayer(i) != before.Get(i))
+			{
+				SetFailure("Release() restored geometry %1 to mask %2, not the %3 it had - the body is back in the physics world on the wrong layers", i.ToString(), phys.GetGeomInteractionLayer(i).ToString(), before.Get(i).ToString());
+				return FinishAndCleanUp();
+			}
+		}
+
+		Print("A reserved character keeps its simulation state through the whole round trip and loses collision per geom, restored mask for mask");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Removes the subject from the world after the verdict is in, whichever verdict it was.
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Character)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Character);
+
+		m_Character = null;
+		return true;
+	}
+}

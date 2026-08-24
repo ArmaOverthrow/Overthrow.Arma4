@@ -146,6 +146,17 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! ResolveInGameMinute() for why the stamp is an INT of minutes and not a float of hours.
 	protected ref map<string, int> m_mConfigCooldownStamp;
 
+	[Attribute(defvalue: "600", desc: "Seconds of REAL time after the first player joins an empty server (or loads a save in single-player/hosted) during which the occupying faction creates no new deployments at all. The pool still fills. 0 disables the grace period")]
+	float m_fPostJoinGraceSeconds;
+
+	//! World time the post-join grace period ends at, or 0 when none is armed.
+	protected float m_fPostJoinGraceUntilMs;
+
+	//! True while the server has nobody on it, so the NEXT player seen arms the grace period. Starts
+	//! true: a fresh server and a loaded save both begin with nobody in them.
+	protected bool m_bServerWasEmpty = true;
+
+
 	protected ref array<ref EntityID> m_aActiveDeployments;
 	protected ref map<int, ref array<ref EntityID>> m_mFactionDeployments; // factionIndex -> deployments
 	protected ref map<int, int> m_mFactionResources; // factionIndex -> available resources
@@ -1041,6 +1052,10 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if (!m_bInitialized || !Replication.IsServer())
 			return;
 
+		// ⚠ ABOVE THE PLAYER-COUNT RETURN. This is the only tick that runs whether or not anything is
+		// being built, so it is the only place the post-join grace period can start its clock on time.
+		TickPostJoinGrace();
+
 		//Don't create deployments if all players are offline
 		PlayerManager mgr = GetGame().GetPlayerManager();
 		if(mgr.GetPlayerCount() == 0)
@@ -1618,6 +1633,89 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! \param[in] availableResources That faction's deployment pool.
 	//! \return The next config to create here, or null.
 	//------------------------------------------------------------------------------------------------
+	//! THE POST-JOIN GRACE PERIOD: nothing new is raised for a while after somebody arrives.
+	//!
+	//! 🔴 WHY IT EXISTS. Nothing runs on an empty server, so the occupying faction banks its whole
+	//! deployment pool while nobody is on - and the first tick after a player joins spends it, at the
+	//! hottest known target, which for a returning player is usually the base they are standing in.
+	//! Server log 2026-08-24: a player connected at 02:29:33 and a hunter-killer sweep was dispatched at
+	//! their own base **8 seconds later**. Author: *"that should extend slightly into after they login to
+	//! an empty server or load a save into single player/hosted."*
+	//!
+	//! ⚠ ARMED ON THE 0 -> N TRANSITION, WHICH IS ALSO WHAT COVERS SINGLE-PLAYER AND A HOSTED LOAD. A
+	//! listen host has its player from the first frame, so the first call sees the count rise from the
+	//! initial "empty" state and arms exactly as a dedicated server's first join does. No separate case.
+	//!
+	//! 🔴 ARMED FROM THE EVALUATOR'S OWN 30 s TICK, NOT FROM THE FIRST THING THAT ASKS. The first cut of
+	//! this observed the player count inside the predicate, which is only reached when something tries
+	//! to CREATE a deployment - so on a world where nothing tried for forty minutes, the ten-minute
+	//! clock started forty minutes late. Workbench log 2026-08-24: player set up 13:20:48, first
+	//! creation attempt (and therefore the arming) 14:00:53. The observation has to ride a tick that
+	//! runs whether or not anything is being built.
+	//!
+	//! ⚠ INCOME IS NOT PAUSED. The pool goes on filling through the grace period exactly as it does
+	//! while the server is empty; this only stops it being SPENT. The faction is not made poorer, it is
+	//! made slower off the mark.
+	//! \return True while no new deployment may be created.
+	bool IsInPostJoinGrace()
+	{
+		if (m_fPostJoinGraceSeconds <= 0)
+			return false;
+
+		if (m_fPostJoinGraceUntilMs <= 0)
+			return false;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		return world.GetWorldTime() < m_fPostJoinGraceUntilMs;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE OBSERVATION OF WHETHER THE WORLD HAS JUST GONE FROM EMPTY TO OCCUPIED.
+	//!
+	//! ⚠ CALLED BEFORE THE EVALUATOR'S OWN PLAYER-COUNT RETURN, so the 0 -> N transition is seen on the
+	//! tick it happens rather than on the first tick that gets far enough to want a deployment.
+	//!
+	//! A listen host and a single-player load have their player from the first frame, so the initial
+	//! "empty" state arms on the first tick after the world is up - the same path a dedicated server's
+	//! first join takes, with no separate case.
+	protected void TickPostJoinGrace()
+	{
+		if (m_fPostJoinGraceSeconds <= 0)
+			return;
+
+		PlayerManager players = GetGame().GetPlayerManager();
+
+		int count = 0;
+		if (players)
+			count = players.GetPlayerCount();
+
+		if (count == 0)
+		{
+			// Nothing is created on an empty world anyway; this just re-arms for the next arrival.
+			m_bServerWasEmpty = true;
+			m_fPostJoinGraceUntilMs = 0;
+
+			return;
+		}
+
+		if (!m_bServerWasEmpty)
+			return;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return;
+
+		m_bServerWasEmpty = false;
+		m_fPostJoinGraceUntilMs = world.GetWorldTime() + (m_fPostJoinGraceSeconds * 1000);
+
+		Print(string.Format("[Overthrow] Deployments: somebody has just arrived on an empty world - the occupying faction raises nothing for %1 s. Its pool keeps filling meanwhile",
+			Math.Round(m_fPostJoinGraceSeconds).ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! THE PER-CONFIG COOLDOWN. \return True when this config was created too recently to create again.
 	//!
 	//! 🔴 WHAT IT IS FOR. Play-test, 2026-08-23: *"the OF was relentlessly throwing TowerRecaptureUnrest
@@ -2055,11 +2153,26 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//!            OVT_DeploymentComponent.WasSeededAtGameStart() for what reads it and why.
 	OVT_DeploymentComponent CreateDeployment(OVT_DeploymentConfig config, vector position, int factionIndex, int resourcesInvested = 0, float threatLevel = 0, float yaw = 0, bool seededAtGameStart = false)
 	{
-		if (config)
-			Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
-		
 		if (!config || !config.IsValidConfig())
 			return null;
+
+		// THE POST-JOIN GRACE PERIOD, here for the same reason the cooldown below is: every route to a
+		// new deployment funnels through this method, so the evaluator, the objective director, the
+		// hunter-killer dispatcher and the QRF's mounted echelon are all held to it without any of them
+		// knowing it exists.
+		//
+		// ⚠ EXEMPT AT CAMPAIGN START. A listen host or a single-player load has its player present from
+		// the first frame, so the grace period is armed BEFORE SeedFreeConfigs runs - and gating the
+		// seed on it would open the campaign on an empty map.
+		if (!seededAtGameStart && IsInPostJoinGrace())
+		{
+			// VERBOSE: the arming line already said the grace period is on, and the hunter-killer
+			// dispatcher alone would otherwise print this every 10 s for ten minutes.
+			Print(string.Format("[Overthrow] Deployment '%1' was not created: the world is inside its post-join grace period",
+				config.m_sDeploymentName), LogLevel.VERBOSE);
+
+			return null;
+		}
 
 		// ⚠ HERE RATHER THAN IN THE EVALUATOR, so a deliberate ForceCreateDeployment caller is held to
 		// the same tempo as the 30 s pass. A config that authors no cooldown never reaches the map
@@ -2067,11 +2180,19 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		// same config in one go, and a cooldown would let through the first and silently drop the rest.
 		if (!seededAtGameStart && IsConfigOnCooldown(config, factionIndex))
 		{
+			// VERBOSE for the same reason as the grace refusal above: an evaluator that wants this
+			// config will ask again on every pass for as long as the cooldown lasts.
 			Print(string.Format("[Overthrow] Deployment '%1' is on cooldown for faction %2 (%3 in-game hours between them) - not creating another yet",
-				config.m_sDeploymentName, factionIndex.ToString(), config.m_fCooldownHours.ToString()), LogLevel.NORMAL);
+				config.m_sDeploymentName, factionIndex.ToString(), config.m_fCooldownHours.ToString()), LogLevel.VERBOSE);
 
 			return null;
 		}
+
+		// ⚠ BELOW THE GATES, NOT ABOVE THEM. It used to be the first line of this method, so every
+		// refusal printed "Creating deployment 'X'" immediately followed by "X was not created" - and
+		// the hunter-killer dispatcher retries every 10 s, so one grace period produced hundreds of
+		// pairs. A line here means a deployment is actually being built.
+		Print(string.Format("[Overthrow] Creating deployment '%1' for faction %2", config.m_sDeploymentName, factionIndex), LogLevel.NORMAL);
 
 		// Create deployment entity
 		if (!m_DeploymentPrefab || m_DeploymentPrefab.IsEmpty())

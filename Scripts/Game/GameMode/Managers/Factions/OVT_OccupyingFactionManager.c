@@ -2535,11 +2535,38 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! THE SINGLE POINT AT WHICH THE OCCUPYING FACTION'S DEPLOYMENT POOL IS CREDITED. Three callers,
-	//! and there must never be a fourth without a reason written down:
+	//! DEBUG ENTRY POINT - the "/give-pool" admin chat command and nothing else.
+	//!
+	//! IT CREDITS THE POOL DIRECTLY, which is the whole point: DebugCreditReserve() above puts money in
+	//! the RESERVE, and the reserve only reaches the pool through the six-hour defense share, one slice
+	//! an hour. This skips that wait. It is the documented fourth caller of
+	//! AllocateDeploymentResources() - see that method's header.
+	//!
+	//! Server-only by contract - the caller (OVT_AdminCommandsComponent.RpcAsk_GivePool) is the admin
+	//! gate and the authority check; this method performs neither.
+	//! \param[in] amount Resources to credit. A non-positive amount is a no-op.
+	void DebugCreditPool(int amount)
+	{
+		if (amount <= 0)
+			return;
+
+		AllocateDeploymentResources(amount);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE SINGLE POINT AT WHICH THE OCCUPYING FACTION'S DEPLOYMENT POOL IS CREDITED.
+	//! FOUR callers now, and there must never be a fifth without a reason written down:
 	//!   - SeedOpeningDeploymentResources()  the opening budget, once per new campaign;
 	//!   - TransferDefenseShareToPool()      80 % of every resource tick;
 	//!   - CreditPendingLegacyRefund()       the legacy base-upgrade refund, once per legacy save.
+	//!   - DebugCreditPool()                 the "/give-pool" admin chat command, and nothing else.
+	//!
+	//! ⚠ THE FOURTH CALLER IS A DEBUG AFFORDANCE AND ITS REASON IS THIS (2026-08-24). The pool is what
+	//! every visible thing is bought from, but the only production route into it is the six-hour defense
+	//! share paid one slice an hour - so a tester who wants the faction to DO something waits up to an
+	//! in-game hour per slice with nothing on screen explaining the delay. "/give-resources" credits the
+	//! RESERVE and is therefore subject to exactly that wait. This is the shortcut, it is admin-gated,
+	//! and it is the ONLY caller that may ever be added for a reason of this kind.
 	//!
 	//! Keeping it in one place is what makes "resource accounting is closed" checkable at all: a grep
 	//! for AddFactionResources across the tree answers this method and the deployment framework's own

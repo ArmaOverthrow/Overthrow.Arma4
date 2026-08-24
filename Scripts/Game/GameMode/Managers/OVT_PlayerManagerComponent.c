@@ -229,8 +229,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 			// flake. It is KEPT (dropping it would delete the player's progress from the next save),
 			// and on a non-dedicated session SetupPlayer() adopts it for the local player. On a
 			// dedicated server nothing can claim it, so say so once per load.
+			// The DEV_ exemption is SetupPlayer()'s (see there): a synthesised dev uid does not parse
+			// as a UUID and would otherwise be reported as an orphaned record on every load of a
+			// -ovtDevUid campaign, which is the opposite of true.
 			UUID recordUuid = record.persistentId;
-			if (recordUuid.IsNull())
+			if (recordUuid.IsNull() && !record.persistentId.StartsWith(OVT_Global.DEV_UID_PREFIX))
 				Print("[Overthrow] Loaded a player record keyed to the NULL UUID (name: " + record.name + ") - orphaned by the zero-identity flake; a non-dedicated host will adopt it on spawn", LogLevel.WARNING);
 
 			OVT_PlayerData player = GetPlayer(record.persistentId);
@@ -733,11 +736,21 @@ class OVT_PlayerManagerComponent: OVT_Component
 		// campaign - player record, home, vehicle, body - was keyed to it). GetPlayerUID() now
 		// recovers an identity instead of handing the zero id out, so reaching this line means a
 		// new caller bypassed it - refuse loudly rather than let the corruption class back in.
-		UUID persistentUuid = persistentId;
-		if (persistentUuid.IsNull())
+		// ⚠ A SYNTHESISED DEV UID IS NOT A UUID AND MUST NOT BE READ AS ONE. `UUID x = "DEV_1"` does
+		// not parse, and the result answers IsNull() TRUE - so without this exemption the tripwire
+		// below rejects the very identity OVT_Global.GetPlayerUID() just synthesised for a
+		// -ovtDevUid session. Observed 2026-08-24 on tools/launch-server.sh --mode local: the log
+		// read "Setting up player data for: DEV_1" and then refused it one line later, the player
+		// got no record, and they spawned at 0,0 with no money while Game Master sat on "waiting
+		// for campaign data" forever. The two features are both v1.5 and had never met.
+		if (!persistentId.StartsWith(OVT_Global.DEV_UID_PREFIX))
 		{
-			Print("[Overthrow] ERROR: SetupPlayer called with the NULL UUID for playerId: " + playerId + " - refusing to key player data to it", LogLevel.ERROR);
-			return;
+			UUID persistentUuid = persistentId;
+			if (persistentUuid.IsNull())
+			{
+				Print("[Overthrow] ERROR: SetupPlayer called with the NULL UUID for playerId: " + playerId + " - refusing to key player data to it", LogLevel.ERROR);
+				return;
+			}
 		}
 
 		Print("Setting up player: " + persistentId + " with playerId: " + playerId);

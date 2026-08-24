@@ -74,6 +74,14 @@ Options:
                     campaign), or a full resource name '{GUID}Missions/x.conf'.
   --mode <m>        local (default) or dedicated. See the header of this file
                     for the difference; it is not cosmetic.
+                    🔴 REFUSED without --config: dedicated mode declares the mod
+                    in the config's mods[], and a mods[] entry pointing at a
+                    SOURCE project makes the server PACK this repo into
+                    data.pak and DELETE non-addon files from the repo root
+                    (verified 2026-08-24: it removed README.md, LICENSE.md,
+                    CHANGES.md, .gitignore, update-arma-scripts.ps1 and
+                    CLAUDE.md). The pak then silently overrides the sources for
+                    every later launch. Use local mode.
   --config <file>   dedicated mode only: use this server config verbatim
                     instead of the generated one. --port/--max-players/
                     --scenario/--admin-password are then NOT applied.
@@ -286,6 +294,34 @@ if [[ -n "$CONFIG_FILE" && "$MODE" != "dedicated" ]]; then
     ovt_err "--config only applies to --mode dedicated (mode 'local' takes the scenario on the command line)"
     exit 2
 fi
+# 🔴 DEDICATED MODE PACKS THE WORKING TREE AND DELETES FILES FROM ITS ROOT.
+#
+# Verified destructively 2026-08-24. In dedicated mode the mod cannot be named
+# with -addons (mutually exclusive with -config), so it is declared in the
+# config's mods[] by GUID. The dedicated server treats a mods[] entry that
+# resolves to a SOURCE project as something to BUILD: it runs the workshop pack
+# pipeline in place, writing data.pak, *_manifest.json, ServerData.json, meta/
+# and thumbnail.png into the project root - and PRUNING that root of everything
+# that is not addon content.
+#
+# What it removed from this repo on 2026-08-24, in one run:
+#     .gitignore  CHANGES.md  CLAUDE.md  CLAUDE.md.example  LICENSE.md
+#     README.md   update-arma-scripts.ps1
+# Six were tracked and came back with `git checkout --`. CLAUDE.md is
+# gitignored and could NOT be recovered from git.
+#
+# It is also silently self-perpetuating: once data.pak exists in the tree, every
+# later launch of ANY tool loads the PACKED build instead of the sources, and
+# the log's 'Loaded addons:' block still names the source path. That cost a full
+# session of debugging "why is my code not running" before the pak was found.
+#
+# So: refuse. --mode local uses -server + -addons, never touches the tree, and
+# is what the verified join recipe in tools/README.md uses.
+if [[ "$MODE" == "dedicated" && -z "${CONFIG_FILE:-}" ]]; then
+    ovt_err "--mode dedicated is REFUSED against the working tree: it packs this repo into data.pak and DELETES non-addon files from the repo root (on 2026-08-24 it removed README.md, LICENSE.md, CHANGES.md, .gitignore, update-arma-scripts.ps1 and CLAUDE.md — the last unrecoverable from git). Use --mode local, which is the default and what the verified client-join recipe uses. If you genuinely need a dedicated server, pass --config <file> naming a mods[] entry that points at a PUBLISHED addon, never at this project."
+    exit 2
+fi
+
 if [[ "$MODE" == "local" ]] && (( PORT != 2001 )); then
     # Verified 2026-08-06: the -server route has no bind-port flag. -bindPort
     # is accepted on the command line and ignored; the engine logs "RPL listen
@@ -319,13 +355,35 @@ passthrough_has_flag() {
 
 # --- resolution ---------------------------------------------------------------
 
+
+# --- pass-through sanity: OUR flags do not belong after '--' -------------------
+# Everything after '--' goes to the client verbatim, so a launcher flag typed
+# there is silently ignored - the client shrugs at an argument it does not know
+# and the script keeps its default. Observed 2026-08-24: '-- -client ... --timeout
+# 60000' ran with the default 600 s and the client was killed mid-session, which
+# reads as "the timeout flag does not work".
+for _arg in "${PASS_ARGS[@]}"; do
+    case "$_arg" in
+        --timeout|--profile|--quiet|--allow-concurrent|--scenario|--mode|--port|--max-players|--config|--admin-password)
+            ovt_err "'$_arg' is a launcher flag but appears AFTER '--', so it was passed to the server and ignored by this script. Put launcher flags BEFORE '--'."
+            exit 2
+            ;;
+    esac
+done
+
+ovt_assert_unpacked || exit 2
+
 SERVER_EXE="$(ovt_server_exe)" || exit 2
 
 ADDONS_DIR_ARG="${OVERTHROW_SERVER_ADDONS_DIRS:-}"
 if [[ -z "$ADDONS_DIR_ARG" ]]; then
-    # The repo's PARENT: the server scans it for addon.gproj files and finds
-    # this working tree among them. Pointing at the repo itself does not work.
-    ADDONS_DIR_ARG="$(ovt_win_path "$(dirname "$OVT_REPO_ROOT")")" || exit 2
+    # 🔴 A FARM CONTAINING ONLY THIS WORKTREE - NOT THE REPO PARENT. The parent
+    # holds every sibling checkout, they all share addon ID 'Overthrow' and GUID
+    # 59B657D731E2A11D, and '-addons Overthrow' then resolves to whichever the
+    # engine picks. That is not hypothetical: on 2026-08-24 a server launched
+    # from v1.5 ran Overthrow.Arma4-main for a whole session, and the log's
+    # 'Loaded addons:' block still named the v1.5 path. See ovt_addon_farm().
+    ADDONS_DIR_ARG="$(ovt_addon_farm)" || exit 2
 fi
 
 mkdir -p "$OUT_DIR"

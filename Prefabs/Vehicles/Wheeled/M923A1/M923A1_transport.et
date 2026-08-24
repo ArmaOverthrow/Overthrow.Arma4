@@ -4,6 +4,13 @@ Vehicle : "{9A0D72816DFFDB7F}Prefabs/Vehicles/Wheeled/M923A1/M923A1.et" {
   OVT_ResourceStoreComponent "{6A8E2E0000000010}" {
    m_fCargoVolume 20
   }
+  ChimeraAIVehicleControlComponent "{61C2E46781A66E82}" {
+   components {
+    AICarMovementComponent "{61C2E46796C28D80}" {
+     FrictionCoefficient 0.1
+    }
+   }
+  }
   SCR_UniversalInventoryStorageComponent "{5916C580F1DA28BB}" {
    MaxCumulativeVolume 1000000
    m_fMaxWeight 4500

@@ -159,6 +159,10 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 	protected int m_iCrewHandle;
 
+	//! ⚠ TEMPORARY DIAGNOSTIC (2026-08-24) - the stuck-horn hunt. Last horn value seen on the driver,
+	//! -1 before the first read. Remove with TickHornDiagnostic() once the trigger is known.
+	protected int m_iLastHornValue = -1;
+
 	//! THIS INSERTION'S OWN crew owner key, minted once on first use and never recomputed. See
 	//! GetCrewOwnerKey() - the whole point is that no other insertion, ever, can compose this string.
 	protected string m_sCrewOwnerKey;
@@ -627,8 +631,19 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 			vector crewPosition = m_Truck.GetOrigin() + Vector(CREW_SPAWN_OFFSET_M, 0, 0);
 
+			// 🔴 THE CREW GETS THE MARCH PLAN TOO, and it used to get null. While the crew is riding the
+			// plan is inert - the movement tick skips a spawned group, and a crew on the riding ring is
+			// always spawned - so this changes nothing about a drive. It matters in exactly one place:
+			// AFTER A LOAD.
+			//
+			// A convoy is never resumed across a load (D9), and the documented consequence was "a
+			// restored mounted deployment WALKS". That was only ever true because the force was
+			// PASSENGERS, which are re-registered with this plan. Since the mounted configs became
+			// crew-only (2026-08-24) there are no passengers, so a restored deployment had nothing that
+			// could walk: the crew came back with a null plan and stood in the road beside an abandoned
+			// truck, forever, blocking it (author play-test, same day).
 			m_iCrewHandle = virtualization.RegisterGroup(OWNER_SYSTEM, crewKey, factionKey, m_sTruckCrewGroup,
-				crewPosition, null, RIDING_SPAWN_DISTANCE, CREW_IMPORTANCE);
+				crewPosition, ResolveVirtualPlan(crewPosition), RIDING_SPAWN_DISTANCE, CREW_IMPORTANCE);
 
 			if (m_iCrewHandle == -1)
 			{
@@ -892,6 +907,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		{
 			m_iStuckTicksElapsed = OVT_InsertionGeometry.AdvanceStuckTicks(speed, m_fStuckSpeedThreshold, m_iStuckTicksElapsed);
 
+			// ⚠ TEMPORARY (2026-08-24) - see TickHornDiagnostic(). Remove with it.
+			TickHornDiagnostic(speed, m_iStuckTicksElapsed);
+
 			if (OVT_InsertionGeometry.IsStuck(speed, m_fStuckSpeedThreshold, m_iStuckTicksElapsed, m_iStuckTicks, distanceToLZ, m_fArrivalRadius))
 			{
 				int shortfallMetres = Math.Round(distanceToLZ);
@@ -1009,6 +1027,95 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//------------------------------------------------------------------------------------------------
 	//! IS ANYBODY DRIVING THIS THING: a crewman with his AI running, in THIS transport's PILOT seat.
 	//! \return True when the transport has a working driver in its driver's seat.
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ TEMPORARY DIAGNOSTIC (2026-08-24). Says the moment the driver's horn input changes, with the
+	//! numbers that would explain it.
+	//!
+	//! WHY: a Ural carrying a sabotage team held its horn down mid-route, on clear road, with a full
+	//! seated crew. It does not reproduce in single-player, nor on a hand-placed vehicle with a
+	//! waypoint, and NOTHING in Overthrow or in the vanilla script tree ever calls SetVehicleHorn - it
+	//! is an engine-side input flag. The author confirmed it was OFF shortly after the convoy left its
+	//! source and ON later, so something DURING the drive starts it.
+	//!
+	//! The two things this module does to a driver that nothing else does are re-asserted on this same
+	//! tick, which is why their effects are printed beside it: the LOD pin (HoldAgentActive - SetLOD
+	//! then PreventMaxLOD, EVERY tick) and ForceSpawn via NudgeCrewMaterialisation(). A transition in
+	//! the same tick as either is the answer.
+	//! \param[in] speed The convoy's measured speed this tick, m/s.
+	//! \param[in] stuckTicks Stall ticks accumulated so far.
+	protected void TickHornDiagnostic(float speed, int stuckTicks)
+	{
+		IEntity driver = ResolveDriverCharacter();
+		if (!driver)
+			return;
+
+		CharacterControllerComponent controller = CharacterControllerComponent.Cast(driver.FindComponent(CharacterControllerComponent));
+		if (!controller)
+			return;
+
+		CharacterInputContext input = controller.GetInputContext();
+		if (!input)
+			return;
+
+		int horn = input.GetVehicleHorn();
+		if (horn == m_iLastHornValue)
+			return;
+
+		int previous = m_iLastHornValue;
+		m_iLastHornValue = horn;
+
+		// The first read is a baseline, not a transition.
+		if (previous == -1)
+			return;
+
+		Print(string.Format("[Overthrow] HORN-DIAG '%1': driver horn %2 -> %3 | speed %4 | stuckTicks %5 | crewAtWheel %6",
+			DescribeSelf(), previous.ToString(), horn.ToString(), speed.ToString(), stuckTicks.ToString(), CrewIsAtTheWheel().ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ TEMPORARY, with TickHornDiagnostic(). \return The character in the transport's pilot seat.
+	protected IEntity ResolveDriverCharacter()
+	{
+		if (!m_Truck || m_iCrewHandle == -1)
+			return null;
+
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return null;
+
+		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
+		if (!crew)
+			return null;
+
+		array<AIAgent> agents = {};
+		crew.GetAgents(agents);
+
+		foreach (AIAgent agent : agents)
+		{
+			if (!agent)
+				continue;
+
+			IEntity character = agent.GetControlledEntity();
+			if (!character)
+				continue;
+
+			CompartmentAccessComponent access = CompartmentAccessComponent.Cast(character.FindComponent(CompartmentAccessComponent));
+			if (!access)
+				continue;
+
+			BaseCompartmentSlot slot = access.GetCompartment();
+			if (!slot || !PilotCompartmentSlot.Cast(slot))
+				continue;
+
+			if (slot.GetVehicle() != m_Truck)
+				continue;
+
+			return character;
+		}
+
+		return null;
+	}
+
 	protected bool CrewIsAtTheWheel()
 	{
 		if (!m_Truck)

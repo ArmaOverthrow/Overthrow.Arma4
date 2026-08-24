@@ -37,6 +37,7 @@ which makes every line below attributable.
 **0** and `baseThreat` on Normal is **100**, so armed vehicles were available from minute one. The log
 proves it: *"role 'armed' at threat 152 resolved to 'light_armed'"*. Every `m_iMinThreat` moved up a step
 in both faction registries — bottom 0 → **400**, middle 400 → **900**, top 900 → **1500**.
+**Superseded on 2026-08-24 — see the round-2 table below.**
 
 ⚠ **The threshold alone was not enough.** `GetVehiclePrefabFromFaction()` fell back to the authored
 `m_sTruckVehicleType` on a ladder miss, so below 400 the three ladder doctrines would have driven an
@@ -353,6 +354,137 @@ is `UAZ469_base.et` (`{99F1610551D54D17}`), a **different prefab** from the vani
 So it is **not our driving tuning**, and it is not specific to this feature's vehicles. It is general
 Reforger AI driving. Nothing further to try from the script side; still under observation.
 
+**Still present on the new build (server log, 2026-08-24).** The build was confirmed live by the cost line:
+*"Hunter-killer sweep sent to ... for **150** resources"* — 60 base + 90 truck + **0** groups, where the
+old crewed-plus-fireteam config cost 190. So the crew-only change shipped and the horn survived it, which
+also rules out "an unseated passenger standing near the vehicle" as the cause.
+
+### 🔴 OPEN: the hunter-killer sweep is dispatched AT a player who has just logged in
+
+Same log, and this is a **new** finding rather than the horn:
+
+| | |
+|---|---|
+| 02:19:50 | server starts from a save point, **0 connected players** |
+| **02:29:33** | the player connects; body restored at `<7484.42, 164.56, 4312.23>` |
+| **02:29:41** | `Hunter-killer sweep sent to <7468.14, 164.56, 4314.69> (score 79) for 150 resources` |
+| 02:29:51 | it sets out — *"driving 2450 m ... to a landing zone 30 m short of the objective"* |
+| 02:34:21 | `Light Vehicle Patrol` created |
+
+The sweep's target `<7468.14, 164.56, 4314.69>` is **`#OVT-Base_Levie`, base 3, faction 1** — a base the
+PLAYER holds (`Initialized base 3 at <7468.14, 164.562, 4314.69> with faction 1`). It set out from
+`<7457.63, 7.814, 6730.84>`, which is base 4, `#OVT-Base_Chotain`, faction 3.
+
+⚠ **So the TARGET CHOICE IS CORRECT and an earlier reading of this log was wrong.** It is not hunting the
+player's body; it is hunting a player-held base, which is exactly what a known target is. The player was
+merely standing in their own base, 16 m away, when it arrived. What is wrong is only the **timing**: the
+dispatch is **8 seconds after they joined**, because the pool banked while the server idled and the first
+resumed tick spends it.
+
+**The player-count gates are NOT at fault and the report that it spawned with nobody online is wrong** —
+every creation here is after the connect. What it looks like from inside the game is worse than a gate
+failure though: the faction banks its deployment pool all the while the server idles (by design, and by the
+author's own instruction) and then spends it in the first tick after somebody joins, at the hottest known
+target — which, for a returning player restored onto their own home, **is the player**.
+
+⚠ **It was a BRDM-2, not a BTR-70**: `role 'armed' at threat 1538 resolved to 'medium_armed'`. The sweep
+can **never** field a BTR-70 whatever the threat — `m_iTruckCostOverride` is 90 on that config and
+`heavy_armed` costs 120, so D4's ceiling refuses it. Worth knowing before anyone retunes the ladder from
+this sighting.
+
+**FIXED by a post-join grace period (2026-08-24).** ⚠ A "minimum range from a live player" rule was
+**rejected** once the target was identified: the sweep is supposed to go at player-held holdings, and a
+player standing in their own base must not make that base immune. See *Post-join grace period* below.
+
+⚠ **The honking BRDM never reached `HOLDING`, and the log proves it** — there is no
+*"arrived at ... holds its vehicle from here"* line anywhere. It set out at 02:29:51 and the log ends at
+02:36:48 with it still in `DRIVING`. So P2.1 (the stale arrival waypoint) **was never going to fix this
+sighting**, and the horn while driving remains its own unexplained thing.
+
+**On the drive time**, which was queried as suspiciously fast: 2450 m in **at most 6 min 57 s** is an
+average of **≥5.9 m/s (~21 km/h)**, which is ordinary AI road driving rather than an anomaly. It is a
+lower bound on the speed and an upper bound on the time - it had not formally arrived when the log ended.
+
+### Ladder round 2 — the middle rung moves to 2000 (author calibration, 2026-08-24)
+
+*"our threat is 1527 which is about normal for our current state (normal difficulty) we have 1 base, 1 town,
+2 radio towers. BRDMs at this point might still be a little over the top for normal difficulty, maybe BRDMs
+should be gated around 2000?"*
+
+| Rung | USSR / US | Shipped | Round 1 | **Round 2** |
+|---|---|---|---|---|
+| bottom | UAZ-PKM / M151-M2HB | 0 | 400 | **400** |
+| middle | BRDM-2 / M1025 | 400 | 900 | **2000** |
+| top | BTR-70 / LAV-25 | 900 | 1500 | **3000** |
+
+The top rung is pushed clear of the new middle. The effect is a long stretch — threat **400 to 2000** — in
+which the faction fields **technicals only**, which is the escalation curve the ladder was meant to have.
+`vehicleThresholdScale` still stretches the whole scale per difficulty (Easy ×2, Insane ×0.25).
+
+🔴 **WORTH KNOWING BEFORE ANYONE TUNES THIS AGAIN: three of the four doctrines can never reach the top rung
+at all, and it is the BUDGET that stops them, not the threshold (D4).** The vehicle price is a ceiling the
+pick must fit under:
+
+| Config | `m_iTruckCostOverride` | Best rung it can ever field |
+|---|---|---|
+| Objective Harassment (Mounted) | 70 | **BRDM-2** (70) |
+| Hunter Killer Sweep | 90 | **BRDM-2** (70) |
+| QRF Mounted Echelon | 90 | **BRDM-2** (70) |
+| Base Armour Sortie | 0 (`m_bAdoptExistingVehicle`) | whatever is parked |
+
+`heavy_armed` costs **120**, so the BTR-70 / LAV-25 reaches the map by exactly one route: the **"Base Parked
+Armour"** deployment (`m_iCostPerVehicle 120`, role `armed`), which parks it at a base for the armour sortie
+to crew. That is a coherent design — heavy armour is base armour — but it means raising the top rung's
+threshold only ever moves when **parked base armour** appears, and never what a mobile doctrine drives.
+
+---
+
+### Post-join grace period (author request, 2026-08-24)
+
+*"I dont think many deployments apart from possibly base defense and reinforcements should be firing until
+a grace period, the same reason they dont happen when a player is offline ... 10 mins (1 hour in game) is a
+good number ... same with director objective deployments. if its easier we can just lock off the entire
+deployment system."*
+
+`OVT_DeploymentManagerComponent.IsInPostJoinGrace()`, checked in **`CreateDeployment()`** — the one method
+every route to a new deployment funnels through, so the evaluator, the objective director, the
+hunter-killer dispatcher and the QRF's mounted echelon are all held to it without any of them knowing it
+exists. Authored as `m_fPostJoinGraceSeconds`, **600 s** (0 disables).
+
+- **Armed on the 0 → N player transition**, which is also what covers single-player and a hosted load with
+  no separate case: a listen host has its player from the first frame, so the first call sees the count
+  rise from the initial "empty" state and arms exactly as a dedicated server's first join does.
+- 🔴 **ARMED FROM THE EVALUATOR'S 30 s TICK, and the first cut of this was WRONG.** It observed the
+  player count inside the predicate, which is only reached when something tries to **create** a
+  deployment — so on a world where nothing tried for forty minutes, the ten-minute clock started forty
+  minutes late. Workbench log 2026-08-24: player set up **13:20:48**, first creation attempt and therefore
+  the arming **14:00:53**, so the author sat through a 40-minute silence and then a 10-minute grace.
+  `TickPostJoinGrace()` now rides `EvaluateDeployments()` **above** its player-count return — the one tick
+  that runs whether or not anything is being built — and `IsInPostJoinGrace()` is a pure read of the
+  armed window.
+- ⚠ **Campaign-start seeding is exempt.** On a listen host the grace period is armed *before*
+  `SeedFreeConfigs` runs, so gating the seed on it would open the campaign on an empty map.
+- ⚠ **Income is NOT paused**, matching the empty-server behaviour the author signed off on: the pool goes
+  on filling, and only the spending stops. The faction is not made poorer, it is made slower off the mark.
+
+**The offered "lock the entire deployment system including defense/reinforcement" was NOT taken**, and the
+reason is worth recording: creation-gating already stops everything that can be *sent at* a player, while
+gating `UpdateDeployment()` would additionally freeze the reinforcement and behaviour modules of forces
+that already exist — the two things the author named as the acceptable exceptions. (`EnsureGroups()` was
+checked and is called from `OnActivate()`, **not** from `Update()`, so the broad lock would not have
+delayed group registration on a restore — it was rejected on scope, not on that risk.)
+
+⚠ **Log volume, fixed in the same pass.** The hunter-killer dispatcher retries every **10 s**, and
+`CreateDeployment()` printed `"Creating deployment 'X'"` as its very first line — so every refusal produced
+that line immediately followed by `"X was not created"`, hundreds of pairs per grace period. The creating
+line moved **below** the gates (a line now means something is actually being built) and both refusal lines
+dropped to **VERBOSE**; the one-off arming line already says the grace period is on.
+
+⚠ **The `Light Vehicle Patrol` at 02:34:21 was NOT created on an empty server** (reported as such, and
+checked twice): the single session runs 02:29:33 → 02:36:04, so it landed five minutes in. It is an
+ordinary evaluator purchase at Chotain — no preceding loss, no rebuy, nothing restored and deleted. It is
+the exact repeat-purchase pattern the new `m_fCooldownHours 3` on that config exists to space out.
+
 ### Per-deployment cooldown (author request, 2026-08-24)
 
 *"deployment configs need to be able to set a cooldown per deployment. in the last test the OF was
@@ -399,6 +531,52 @@ just yet ill keep an eye on it."*
 
 **Owed:** whether it also happens on a hull with **no** Overthrow `AICarMovementComponent` delta, which
 would settle the lead above in one sighting.
+
+**Workbench control test, 2026-08-24 — IT IS NOT VANILLA AI DRIVING.** Author spawned a vanilla UAZ-PKM,
+dragged a **2-man** editor team into it and gave it a waypoint down the road: **no horn.** So the honk is
+not what a Reforger AI driver does on an ordinary road drive, and something Overthrow does differently is
+responsible.
+
+**The obstacle theory is dead too.** Author, on every server sighting: *"never have I seen one of the crew
+in front of the vehicle ... all 3 were seated."* So the driver holds the horn with a full seated crew and
+nothing in its path — which is what the engine's honk is supposed to *mean*.
+
+**Differences still unexcluded, cheapest first:**
+1. **Crew size / prefab** — ours is a **3**-man `vehicle_crew`; the control test used 2.
+2. **The LOD pin** — `OVT_MountedGroupActivation.HoldAgentActive()` does `SetLOD(maxLod - 1)` then
+   `PreventMaxLOD()` on every crewman, **re-asserted every drive tick**. Nothing in an editor test does
+   this, and it is the least ordinary thing done to a driver anywhere in the project.
+3. **The seating path** — `SeatRider()` calls `MoveInVehicle()` with an explicit compartment type
+   (PILOT → TURRET → cargo); dragging a man in through the editor takes a different route.
+4. **The transport as a virtualization entity observer**, plus `HoldTruckSimulated()`.
+
+⚠ **The crew prefabs cannot be spawned from Game Master** — it lists only the `E_` group variants, and
+`OVT_Group_USSR_VehicleCrew.et` / `OVT_Group_US_VehicleCrew.et` have none. Any future editor repro needs an
+`E_` variant or a script-console spawn.
+
+🔴 **EVERY ONE OF THOSE FOUR WAS RULED OUT IN WORKBENCH, 2026-08-24 — IT LOOKS LIKE AN MP-ONLY PROBLEM.**
+The author ran a **real hunter-killer sweep** in a Workbench session (so: the actual `vehicle_crew` group,
+the virtualization registration, the LOD pin, the `MoveInVehicle()` seating path and the
+transport-as-entity-observer, all of it) and let it drive the whole route to Levie base untouched.
+**No horn at any point.** Earlier in the same session a 2-man and a 3-man crew in a hand-placed UAZ-PKM
+also stayed silent, and civilians and soldiers dropped in front of them **would not make them honk at
+all** — so the engine's "get out of my way" honk does not even fire in single-player.
+
+**What that leaves.** Every sighting has been on the **dedicated server, observed from a client**, and
+nothing reproduces in a local session. The remaining differences are all MP-shaped:
+
+- the horn is a **`CharacterInputContext` flag** (`SetVehicleHorn`), and input contexts are replicated -
+  a flag that arrives set and is never cleared on the client would sound exactly like this;
+- a convoy drives **kilometres**, so on a client the vehicle and its driver **stream in mid-drive**, which
+  cannot happen in a local session where it spawns in view;
+- ⚠ it may therefore be a **client-side audio artifact and not a gameplay fault at all** - the server may
+  not think the horn is on. Nothing in Overthrow or in the vanilla script tree calls `SetVehicleHorn`, so
+  script is not setting it on either side.
+
+**Cheapest discriminators, next MP session:** does a **second client** hear it on the same vehicle (client
+-local vs replicated)? Does it stop if that client **re-logs** while the vehicle keeps driving (client
+audio state vs server state)? If it is one client only and clears on a re-log, this is an upstream
+Reforger issue rather than an Overthrow one, and belongs in the RFG/ARMD series rather than here.
 
 ---
 

@@ -100,6 +100,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! Gap between those attempts, in milliseconds.
 	static const int TUTORIAL_SPAWN_PUSH_RETRY_MS = 500;
 
+	//! How many times the SERVER's per-player tutorial-state push is attempted before giving up
+	//! quietly - see PushTutorialStateToPlayer().
+	static const int TUTORIAL_STATE_PUSH_ATTEMPTS = 20;
+
+	//! Gap between those attempts, in milliseconds.
+	static const int TUTORIAL_STATE_PUSH_RETRY_MS = 500;
+
 	//! Attempts made for the current spawn. Reset by TryPushSpawnedTutorialTrigger().
 	protected int m_iTutorialSpawnPushAttempts;
 
@@ -1147,6 +1154,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        // the house page. An unknown context resolves to "" and SetPlayerSpawnContext refuses it,
 	        // so this is a no-op for anyone the cache never saw.
 	        SetPlayerSpawnContext(playerId, persistentId, GetPlayerSpawnContext(persistentId));
+
+	        // Unconditional, and NOT inside the call above: the spawn context is refused when unknown,
+	        // but the seen-tutorial record must reach the client on every arrival path.
+	        PushTutorialStateToPlayer(playerId);
 	        return;
 	    }
 
@@ -1242,6 +1253,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
 	    if (spawnLogic)
 	        spawnLogic.SpawnDeferredPlayer(playerId);
+
+	    // Last, and unconditionally: a RETURNING player takes neither home branch above, so this is the
+	    // only place their client is handed the campaign's record of what they have already read.
+	    PushTutorialStateToPlayer(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1295,11 +1310,47 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 
 		tutorials.SetSpawnContext(playerId, filter);
+	}
 
-		// The campaign's tutorial record rides the same moment: this is the one per-player push that
-		// provably runs on every path a player arrives by (new spawn, continue, reconnect, JIP), and
-		// the state must land before the player can trigger anything worth suppressing.
-		tutorials.PushTutorialState(playerId);
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: hands one player's persisted tutorial state to their client, retrying while their
+	//! OVT_OverthrowController is not registered yet.
+	//!
+	//! SEPARATE FROM THE SPAWN CONTEXT, DELIBERATELY. This push used to ride SetPlayerSpawnContext(),
+	//! which runs only on the two branches that HAND OUT a home - so a returning player (every player
+	//! after their first session, and every player on a server restart) was pushed nothing and their
+	//! client's seen store stayed empty. Every client-local trigger (MENU_OPENED, MAP_OPENED,
+	//! PLAYER_SPAWNED) reads only that store and never the server's veto, so those tips re-fired on
+	//! every login.
+	//!
+	//! BOUNDED AND SILENT for the same reasons as PushSpawnedTutorialTrigger(): a player who is
+	//! mid-disconnect never resolves, and a timer that never stops is worse than a tip that repeats.
+	//! \param[in] playerId Runtime id of the player to push to.
+	//! \param[in] attempt Attempts already made. Callers pass nothing.
+	void PushTutorialStateToPlayer(int playerId, int attempt = 0)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return;
+
+		OVT_OverthrowController controller = players.GetController(playerId);
+		if (controller)
+		{
+			OVT_TutorialComponent tutorials = OVT_TutorialComponent.Cast(controller.FindComponent(OVT_TutorialComponent));
+			if (tutorials)
+			{
+				tutorials.PushTutorialState(playerId);
+				return;
+			}
+		}
+
+		if (attempt + 1 >= TUTORIAL_STATE_PUSH_ATTEMPTS)
+			return;
+
+		GetGame().GetCallqueue().CallLater(PushTutorialStateToPlayer, TUTORIAL_STATE_PUSH_RETRY_MS, false, playerId, attempt + 1);
 	}
 
 	//------------------------------------------------------------------------------------------------
