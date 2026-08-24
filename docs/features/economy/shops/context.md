@@ -62,3 +62,53 @@ Deliberately still unsold (design, not oversight): tripod/mortar parts, sandbags
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## Change 2026-08-25 — mortars/tripods priced, and two catch-alls that had never worked
+
+User report: mortars were importable at the port for **$50 a part** (three parts = $150 a mortar), and
+"they dont have a price config atm".
+
+**Why $50.** `Configs/Pricing/itemPrices.conf`'s very first entry hides item type **`MORTARS`**, mode
+`SUPPORT_STATION`. But the CARRYABLE parts are typed **`EQUIPMENT`/`SUPPORT_STATION`** in the vanilla
+entity catalogs — `MORTARS` is only ever the assembled support-station entry — so that rule has never
+matched a mortar part. They fell through to the bare `EQUIPMENT` catch-all, whose `cost` attribute
+DEFAULTS to 50. Nobody authored $50; it is the attribute default showing through.
+
+**Priced by PATH, not by type+mode.** `ResolveConfiguredPrice` ignores type and mode entirely when
+`m_sFind` is set, and `EQUIPMENT`/`SUPPORT_STATION` also covers jerrycans, sandbags, barbed tape and
+repair/rearming kits — so a type+mode rule would have swept those up too.
+
+| `m_sFind` | cost | effect |
+|---|---|---|
+| `Items/Equipment/Mortars/` | 4000 | all six parts — **$12,000** per working mortar |
+| `Items/Equipment/Tripods/` | 2500 | NSV/M2/M60/PKM gun + tripod parts — **$5,000** per HMG |
+
+Mortar SHELLS appear in no inventory catalog, so there is no cheap-ammo hole behind this.
+
+**🔴 The second defect, found on the way: `ResolveConfiguredPrice` has NO `break`, so the LAST matching
+rule wins.** That is deliberate — the `cost` attribute's own description is *"will override any above
+this one"* — which makes a bare rule (no `m_sFind`, matching every item of its type) a **position**
+bug wherever it sits below the specific rules it is meant to back. Two did:
+
+| catch-all | was resetting | authored | was actually |
+|---|---|---|---|
+| `EQUIPMENT` (cost defaulted to 50) | `Binoculars_` / `Radio_` / `Watch_` | 100 / 75 / 45 | 50 / 50 / 50 |
+| `HEAL` cost 5 | `MorphineInjection_` / `SalineBag_` / `Tourniquet_` | 10 / 8 / 6 | 5 / 5 / 5 |
+
+Both moved to the TOP of `m_aPrices`. Six prices change as a result — that is a real gameplay change
+and it was the user's call, not a silent tidy-up. `hidden` is unaffected either way: a hidden rule
+`return`s the moment it matches, so its position never mattered.
+
+**Verified by simulating `ResolveConfiguredPrice` against the real file** (mortar 4000, tripod 2500,
+binoculars 100, radio 75, watch 45, flashlight 15, morphine 10, saline 8, tourniquet 6, bandage 5,
+medical kit HIDDEN, repair kit HIDDEN, jerrycan/sandbag untouched at 50). Config-only change, so there
+is nothing for `compile-check.sh` to say and no `.st` key was added.
+
+**⚠ NO COMMENT WAS LEFT IN THE .conf.** A `//` line was written and then removed: no Overthrow config
+and no vanilla config contains one, so there is no evidence the BaseContainer parser tolerates them and
+a Workbench save could eat the file. The ordering rule is documented here instead — **a new bare rule
+must go at the top of `m_aPrices`, not the bottom.**
+
+**Owed:** eyeball a port screen after deploy — mortar rows should read $4,000, and binoculars $100.
