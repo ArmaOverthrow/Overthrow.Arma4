@@ -13034,3 +13034,222 @@ class OVT_TEST_Init_Deployments_HornWatchdogReleasesOnlyALatch : SCR_AutotestCas
 		return true;
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+//! HURTING YOURSELF IS NOT A CRIME.
+//!
+//! SCR_CharacterDamageManagerComponent.WhenDamaged raises the wanted level of whoever the damage is
+//! attributed to, and the instigator of a car crash resolves to the DRIVER - so every prang, fall and
+//! own-grenade made the player wanted, with no witness and no victim but himself (reported
+//! 2026-08-25). WhenDamageStateChanged had the same shape at level 3, so a fatal crash convicted you
+//! as you died.
+//!
+//! It also pins the OWN-SIDE exemption (user decision, 2026-08-25): winging a comrade is not a crime
+//! the occupiers would ever charge anybody with. Damaging a CIVILIAN still convicts - being seen
+//! shooting a civilian is murder, and the undercover conceit depends on that staying true.
+//!
+//! ⚠ THE CONTROL IS WHAT KEEPS THIS HONEST. A guard that simply stopped raising the level at all would
+//! satisfy both exemptions and silently disarm the whole wanted system, so the case also drives the
+//! SAME damage path against a CIV victim and REQUIRES the level to rise. Three verdicts, one code
+//! path. That control has already earned its keep: it caught this case being vacuous when the damage
+//! was fully mitigated and never landed at all (health 100 -> 100), which is why the hit is
+//! EDamageType.TRUE rather than COLLISION.
+//!
+//! PROVEN ABLE TO FAIL 2026-08-25, both exemptions independently: dropping !IsSelfInflicted() from
+//! WhenDamaged reproduces the reported bug ("Injuring yourself raised your own wanted level to 2"),
+//! and dropping !IsPlayerFaction() turns the comrade assertion red.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_Wanted_OnlySomebodyElsesSideIsACrime : SCR_AutotestCaseBase
+{
+	protected IEntity m_Victim;
+	protected IEntity m_Attacker;
+	protected IEntity m_Comrade;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
+		if (!spawnLogic || spawnLogic.m_rDefaultPrefab.IsEmpty())
+		{
+			SetFailure("No spawn logic instance (or no default character prefab) - there is nobody to injure");
+			return true;
+		}
+
+		string diagnostic;
+		vector position;
+		if (!OVT_TEST_PersistenceSubject.ResolveVehicleSpawnPosition(position, diagnostic))
+		{
+			SetFailure("Cannot resolve somewhere to put a character: %1", diagnostic);
+			return true;
+		}
+
+		m_Victim = OVT_Global.SpawnEntityPrefab(spawnLogic.m_rDefaultPrefab, position);
+		m_Attacker = OVT_Global.SpawnEntityPrefab(spawnLogic.m_rDefaultPrefab, position + Vector(3, 0, 0));
+		if (!m_Victim || !m_Attacker)
+		{
+			SetFailure("SpawnEntityPrefab() could not produce both characters from %1", spawnLogic.m_rDefaultPrefab);
+			return true;
+		}
+
+		OVT_PlayerWantedComponent victimWanted = OVT_ComponentFinder<OVT_PlayerWantedComponent>.Find(m_Victim);
+		OVT_PlayerWantedComponent attackerWanted = OVT_ComponentFinder<OVT_PlayerWantedComponent>.Find(m_Attacker);
+		if (!victimWanted || !attackerWanted)
+		{
+			SetFailure("A spawned character has no OVT_PlayerWantedComponent - the prefab has lost it and nothing below could ever fail");
+			return FinishAndCleanUp();
+		}
+
+		SCR_CharacterDamageManagerComponent damage = SCR_CharacterDamageManagerComponent.Cast(m_Victim.FindComponent(SCR_CharacterDamageManagerComponent));
+		if (!damage)
+		{
+			SetFailure("The victim has no SCR_CharacterDamageManagerComponent - the modded WhenDamaged under test would never run");
+			return FinishAndCleanUp();
+		}
+
+		if (victimWanted.GetWantedLevel() != 0 || attackerWanted.GetWantedLevel() != 0)
+		{
+			SetFailure("A freshly spawned character is already wanted (victim %1, attacker %2) - the assertions below would be vacuous", victimWanted.GetWantedLevel().ToString(), attackerWanted.GetWantedLevel().ToString());
+			return FinishAndCleanUp();
+		}
+
+		// THE BUG: the victim injures himself. Nobody else is involved and nothing may follow.
+		Hit(damage, m_Victim);
+
+		if (victimWanted.GetWantedLevel() != 0)
+		{
+			SetFailure("Injuring yourself raised your own wanted level to %1 - crashing your car makes you a criminal", victimWanted.GetWantedLevel().ToString());
+			return FinishAndCleanUp();
+		}
+
+		// OWN SIDE: the same attacker wings a comrade. The occupiers would never charge anybody with
+		// that, so nothing may follow. Asserted BEFORE the control below, while his level is still 0.
+		if (!InjureAComrade(position, attackerWanted))
+			return FinishAndCleanUp();
+
+		// THE CONTROL: the identical damage path, attributed to somebody else, must still convict him.
+		float healthBefore = damage.GetDefaultHitZone().GetHealth();
+		Hit(damage, m_Attacker);
+		float healthAfter = damage.GetDefaultHitZone().GetHealth();
+
+		if (attackerWanted.GetWantedLevel() < 1)
+		{
+			SetFailure("Injuring another character did NOT raise the attacker's wanted level (victim health %1 -> %2) - either the guard has disarmed the wanted system or this damage never landed", healthBefore.ToString(), healthAfter.ToString());
+			return FinishAndCleanUp();
+		}
+
+		if (victimWanted.GetWantedLevel() != 0)
+		{
+			SetFailure("Being injured by somebody else raised the VICTIM's wanted level to %1 - the wrong man is wanted", victimWanted.GetWantedLevel().ToString());
+			return FinishAndCleanUp();
+		}
+
+		Print("Self-inflicted damage leaves the wanted level alone, and the same path still convicts a real attacker");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Drives the REAL damage path - the modded WhenDamaged listens on GetOnDamage(), so nothing here
+	//! may shortcut to the wanted component.
+	//! \param[in] damage The victim's damage manager.
+	//! \param[in] instigatorEntity Who the damage is attributed to.
+	protected void Hit(notnull SCR_CharacterDamageManagerComponent damage, IEntity instigatorEntity)
+	{
+		IEntity owner = damage.GetOwner();
+
+		vector hitPosDirNorm[3];
+		hitPosDirNorm[0] = owner.GetOrigin() + Vector(0, 1, 0);
+		hitPosDirNorm[1] = vector.Forward;
+		hitPosDirNorm[2] = vector.Up;
+
+		SCR_DamageContext context = new SCR_DamageContext(EDamageType.TRUE, 20, hitPosDirNorm, owner, damage.GetDefaultHitZone(), Instigator.CreateInstigator(instigatorEntity), null, -1, -1);
+		damage.HandleDamage(context);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a character on the PLAYER'S OWN faction and has the attacker injure him.
+	//!
+	//! The default character prefab is affiliated CIV - the player is undercover, which is the whole
+	//! conceit - so the comrade's affiliation is set explicitly rather than assumed. It is set BEFORE
+	//! the first damage on purpose: the damage manager resolves and caches its side on first use.
+	//! \param[in] position Where to put him.
+	//! \param[in] attackerWanted The attacker's wanted component, still at 0.
+	//! \return True to carry on; false when a named failure has been set.
+	protected bool InjureAComrade(vector position, notnull OVT_PlayerWantedComponent attackerWanted)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+		{
+			SetFailure("No Overthrow config - the player faction cannot be resolved");
+			return false;
+		}
+
+		Faction playerFaction = config.GetPlayerFactionData();
+		if (!playerFaction)
+		{
+			SetFailure("The faction manager does not know the player faction '%1' - the own-side exemption cannot be exercised", config.m_sPlayerFaction);
+			return false;
+		}
+
+		m_Comrade = OVT_Global.SpawnEntityPrefab(OVT_SpawnLogic.GetInstance().m_rDefaultPrefab, position + Vector(6, 0, 0));
+		if (!m_Comrade)
+		{
+			SetFailure("SpawnEntityPrefab() produced no comrade");
+			return false;
+		}
+
+		FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(m_Comrade.FindComponent(FactionAffiliationComponent));
+		if (!affiliation)
+		{
+			SetFailure("The comrade has no FactionAffiliationComponent - his side cannot be set, so this half would be vacuous");
+			return false;
+		}
+
+		affiliation.SetAffiliatedFaction(playerFaction);
+
+		Faction readBack = affiliation.GetAffiliatedFaction();
+		if (!readBack || readBack.GetFactionKey() != config.m_sPlayerFaction)
+		{
+			SetFailure("Setting the comrade's faction to '%1' did not take - he is not on the player's side, so this half would be vacuous", config.m_sPlayerFaction);
+			return false;
+		}
+
+		SCR_CharacterDamageManagerComponent comradeDamage = SCR_CharacterDamageManagerComponent.Cast(m_Comrade.FindComponent(SCR_CharacterDamageManagerComponent));
+		if (!comradeDamage)
+		{
+			SetFailure("The comrade has no SCR_CharacterDamageManagerComponent");
+			return false;
+		}
+
+		Hit(comradeDamage, m_Attacker);
+
+		if (attackerWanted.GetWantedLevel() != 0)
+		{
+			SetFailure("Injuring a comrade on the player's own side raised the attacker's wanted level to %1 - friendly fire in a resistance firefight makes you a criminal", attackerWanted.GetWantedLevel().ToString());
+			return false;
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Victim)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Victim);
+
+		if (m_Attacker)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Attacker);
+
+		if (m_Comrade)
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Comrade);
+
+		m_Victim = null;
+		m_Attacker = null;
+		m_Comrade = null;
+		return true;
+	}
+}

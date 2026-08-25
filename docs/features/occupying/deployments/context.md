@@ -829,3 +829,38 @@ Together they answer "which pass created these men, and how far away was anybody
 ⚠ Also fixed in passing: `FilterLivingResistance`'s own log message measured `character.GetOrigin()`, parent-space for a mounted character. Both filters now share `IsLivingSearchFactionCharacter` and use `OVT_WorldUtils.GetWorldOrigin`.
 
 **Next step is the author's:** reproduce with `m_bDebugMode` on and send the two lines.
+
+### 2026-08-25 (RESOLVED) — `OVT_ResistancePresence` never matched a player
+
+**The Workbench log settled it.** Standing in the middle of Levie base while its garrison reinforced around him, the author's own diagnostic reported:
+
+```
+'TownPatrol@7459_4737#SpawnInfantry' converging: registering 2 group(s);
+    nearest resistance 3.40282e+38 m; module eliminated=false deployment eliminated=false
+...
+Reinforcement behavior: Successfully reinforced OVT_InfantrySpawningDeploymentModule with 2 groups
+```
+
+`3.40282e+38` is `float.MAX` — **the query found nobody** — and the engine's kill line seconds later named him: *"Aaron Static ... from **CIV** faction ... killed by AI from USSR faction ... 3.2 m away from the corpse"*.
+
+🔴 **`Character_Player.et` authors `"faction affiliation" "CIV"`. `OVT_ResistancePresence` searches `m_sPlayerFaction`, which is `"FIA"`. They have never matched.** As the author put it: *"yeh of course players are civilians you need to be matching both players and FIA."*
+
+That is not a defect in the player prefab — Overthrow's entire wanted system rests on the player being a civilian who is only *perceived* as hostile once seen. It is a defect in this file, which was written to replace players-only tests with one faction test and in doing so **dropped the players**. It found recruits, which is why the fix it originally shipped for (a base demolished while recruits fought over it) appeared to work.
+
+**Every gate downstream failed OPEN**, silently, for players:
+
+| Gate | Consequence |
+|---|---|
+| `IsRebuyBlockedByDefender` | **the reported bug** — garrisons rebought around a player standing in the base |
+| `OVT_BaseRepairBehaviorDeploymentModule`, `OVT_BaseSabotageBehaviorDeploymentModule` | holds completed with a player contesting them |
+| `OVT_TownHarassmentBehaviorDeploymentModule`, `OVT_TowerRecaptureBehaviorDeploymentModule` | ditto |
+| `OVT_AssetStarvedObjectiveAbort` | a forward base never read as starved by a player alone |
+| `OVT_NoPlayersNearbyConditionDeploymentModule` | ⚠ this one only became affected **earlier the same day**, when it was switched off its own `PlayerManager` walk onto this primitive |
+
+**Fix:** `IsLivingSearchFactionCharacter` accepts a living character that is *either* affiliated to the searched faction **or** — on a resistance search only — player-controlled, or carrying a player-owner uid (a recruit, whatever its cover). Guarded by `s_bResistanceSearch` so an occupying search can never widen to include players.
+
+⚠ **Not the PERCEIVED faction.** A disguised player perceives as CIV by design, and being undercover must not make somebody stop contesting ground they are standing on.
+
+⚠ **This supersedes the three "fixes" filed above it.** The vehicle-origin bug, the 320-vs-280 arithmetic and the players-only complaint were all real and are all still worth having, but **none of them was the cause of the reports** — the author said so twice and was right both times. The instrumentation added to settle it is worth keeping.
+
+`tools/compile-check.sh` exit 0 (6349 files). Suite not run; play-test owed — and it is now worth re-testing every hold in the table above, all of which have been quietly inoperative against a lone player.

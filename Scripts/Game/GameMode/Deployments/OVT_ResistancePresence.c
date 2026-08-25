@@ -100,6 +100,7 @@ class OVT_ResistancePresence
 		if (!config)
 			return false;
 
+		s_bResistanceSearch = true;
 		return IsGroundHeldBy(config.GetPlayerFactionData(), position, radius);
 	}
 
@@ -121,6 +122,7 @@ class OVT_ResistancePresence
 		if (!config)
 			return false;
 
+		s_bResistanceSearch = false;
 		return IsGroundHeldBy(config.GetOccupyingFactionData(), position, radius);
 	}
 
@@ -170,15 +172,28 @@ class OVT_ResistancePresence
 		if (!character)
 			return false;
 
-		FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
-		if (!affiliation || affiliation.GetAffiliatedFaction() != s_SearchFaction)
-			return false;
-
 		SCR_DamageManagerComponent damage = SCR_DamageManagerComponent.Cast(character.FindComponent(SCR_DamageManagerComponent));
 		if (damage && damage.IsDestroyed())
 			return false;
 
-		return true;
+		FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
+		if (affiliation && affiliation.GetAffiliatedFaction() == s_SearchFaction)
+			return true;
+
+		if (!s_bResistanceSearch)
+			return false;
+
+		PlayerManager players = GetGame().GetPlayerManager();
+		if (players && players.GetPlayerIdFromControlledEntity(character) > 0)
+			return true;
+
+		// And his recruits, by the same argument and the same test the vehicle-deletion veto uses: a
+		// character carrying a player's uid belongs to a player whatever its cover says.
+		OVT_PlayerOwnerComponent owner = OVT_PlayerOwnerComponent.Cast(character.FindComponent(OVT_PlayerOwnerComponent));
+		if (owner && !owner.GetPlayerOwnerUid().IsEmpty())
+			return true;
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -203,6 +218,7 @@ class OVT_ResistancePresence
 		if (!s_SearchFaction)
 			return float.MAX;
 
+		s_bResistanceSearch = true;
 		s_fNearest = float.MAX;
 		s_vSearchCentre = position;
 
@@ -215,6 +231,10 @@ class OVT_ResistancePresence
 
 	//! Accumulator for DistanceToNearest, on the same single-threaded contract as s_bFound.
 	protected static float s_fNearest;
+
+	//! Whether the running search is FOR THE RESISTANCE. Gates the player/recruit fallback above, which
+	//! must never widen an occupying-faction search.
+	protected static bool s_bResistanceSearch;
 
 	//------------------------------------------------------------------------------------------------
 	//! DistanceToNearest's filter: keeps the closest match rather than stopping at the first.
