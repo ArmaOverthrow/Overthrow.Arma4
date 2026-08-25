@@ -19636,6 +19636,38 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B3D000000000210}" {
+   Id "OVT-StartingTown"
+   Target_en_us "Starting Town"
+   Comment "Label of the starting-town spinner on the campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, StartingTownSpinner). Picks the town players get their first house in; the dedicated-server equivalent is the startingTown key in Overthrow_Config.json."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000211}" {
+   Id "OVT-StartingTown_Random"
+   Target_en_us "Random"
+   Comment "First entry of the starting-town spinner on the campaign-setup screen, and the default - the behaviour every campaign had before the spinner existed. Every other entry is a town name straight off the map and is not translated."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"

@@ -35,6 +35,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	protected ref array<EntityID> m_aStartingHomes;
 	protected ref array<EntityID> m_aTownStartingHomes;
 	int m_iStartingTownId = -1;
+
+	//! Has the configured starting town had its one chance? See NewStartingTown().
+	protected bool m_bStartingTownChosen = false;
 	
 	ref array<ref OVT_WarehouseData> m_aWarehouses;
 
@@ -159,6 +162,33 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		{
 			m_Town = OVT_Global.GetTowns();
 		}
+
+		// The operator's / host's chosen town gets first refusal, and only on the FIRST pick: once it
+		// has run out of houses the campaign has to move on, and the flag below is what stops this
+		// from handing back the same exhausted town for ever.
+		if(!m_bStartingTownChosen)
+		{
+			m_bStartingTownChosen = true;
+
+			string chosen = OVT_Global.GetConfig().GetStartingTown();
+			if(chosen != "")
+			{
+				int chosenId = m_Town.FindTownIdByName(chosen);
+				if(chosenId == -1)
+				{
+					Print("[Overthrow] Unknown starting town '" + chosen + "' - picking one at random", LogLevel.WARNING);
+				}
+				else if(TryStartingTown(chosenId))
+				{
+					Print("Starting Home Town (chosen): " + m_Town.GetTownName(m_iStartingTownId));
+					return;
+				}
+				else
+				{
+					Print("[Overthrow] Starting town '" + chosen + "' has no starting homes - picking one at random", LogLevel.WARNING);
+				}
+			}
+		}
 		
 		while(attempts < 50)
 		{
@@ -167,19 +197,7 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 			int townId = m_Town.GetTownID(town);
 			if(town && townId != m_iStartingTownId)
 			{
-				m_iStartingTownId = townId;
-				m_aTownStartingHomes.Clear();
-				foreach(EntityID id : m_aStartingHomes)
-				{
-					IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-					OVT_TownData nearestTown = m_Town.GetNearestTown(ent.GetOrigin());
-					int nearestId = m_Town.GetTownID(nearestTown);
-					if(nearestId == m_iStartingTownId)
-					{
-						m_aTownStartingHomes.Insert(id);
-					}
-				}
-				if(m_aTownStartingHomes.Count() > 0) 
+				if(TryStartingTown(townId))
 				{
 					Print("New Starting Home Town: " + m_Town.GetTownName(m_iStartingTownId));
 					return;
@@ -188,6 +206,49 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 		}
 		//Cannot find a new starting town
 		m_iStartingTownId = -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Which towns can actually give a player a starting home right now. One pass over the whole
+	//! starting-home pool, so the caller never has to scan it per town.
+	//! \param[out] townIds Town ids with at least one unowned starting home, in no particular order
+	void GetTownsWithStartingHomes(out array<int> townIds)
+	{
+		if(!m_Town)
+			m_Town = OVT_Global.GetTowns();
+
+		if(!m_Town) return;
+
+		foreach(EntityID id : m_aStartingHomes)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			if(!ent) continue;
+
+			int townId = m_Town.GetTownID(m_Town.GetNearestTown(ent.GetOrigin()));
+			if(townId > -1 && townIds.Find(townId) == -1)
+				townIds.Insert(townId);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Makes a town the current source of starting homes and fills m_aTownStartingHomes from it.
+	//! \param townId The town to try
+	//! \return True when the town has at least one unowned starting home
+	protected bool TryStartingTown(int townId)
+	{
+		m_iStartingTownId = townId;
+		m_aTownStartingHomes.Clear();
+		foreach(EntityID id : m_aStartingHomes)
+		{
+			IEntity ent = GetGame().GetWorld().FindEntityByID(id);
+			OVT_TownData nearestTown = m_Town.GetNearestTown(ent.GetOrigin());
+			int nearestId = m_Town.GetTownID(nearestTown);
+			if(nearestId == m_iStartingTownId)
+			{
+				m_aTownStartingHomes.Insert(id);
+			}
+		}
+		return m_aTownStartingHomes.Count() > 0;
 	}
 	
 	//------------------------------------------------------------------------------------------------

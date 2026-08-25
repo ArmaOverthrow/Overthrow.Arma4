@@ -43,6 +43,12 @@ class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
 	string supportingFaction;
+
+	//! Display name of the town players start in, e.g. "Levie". Empty = pick one at random, which is
+	//! what every campaign did before this key existed. Resolved to a town id lazily by
+	//! OVT_RealEstateManagerComponent.NewStartingTown(), so an unknown name degrades to random rather
+	//! than to no starting homes at all.
+	string startingTown;
 	string discordWebHookURL;
 	ref array<string> officers;
 	string difficulty;
@@ -124,6 +130,7 @@ class OVT_OverthrowConfigStruct
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
 		supportingFaction = "";
+		startingTown = "";
 		officers = new array<string>;
 		difficulty = "";	
 		showPlayerPosition = true;	
@@ -168,6 +175,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	string m_sDefaultSupportingFaction;
 
 	string m_sSupportingFaction = "US";
+
+	//! Display name of the town the campaign starts in, as chosen on the start menu. Empty = random.
+	//! Never an attribute: it is a per-campaign choice, not authored data.
+	string m_sStartingTown;
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;
@@ -415,6 +426,26 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	int GetFOBItemLimit()
 	{
 		return m_ConfigFile.fobItemLimit;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] name Town display name, or "" for random.
+	void SetStartingTown(string name)
+	{
+		m_sStartingTown = name;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The town the campaign should start in, or "" for random.
+	//!
+	//! A dedicated server has no start menu, so Overthrow_Config.json is its only source; everywhere
+	//! else the menu selection wins, exactly as it does for the two factions (see DoStartNewGame).
+	string GetStartingTown()
+	{
+		if(RplSession.Mode() == RplMode.Dedicated && m_ConfigFile && m_ConfigFile.startingTown != "")
+			return m_ConfigFile.startingTown;
+
+		return m_sStartingTown;
 	}
 
 	void SetOccupyingFaction(string key)

@@ -902,6 +902,50 @@ class OVT_TownManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Finds a town by name, case-insensitively.
+	//!
+	//! A town's name is the raw stringtable KEY, not English - "#AR-MapLocation_Levie" (see
+	//! m_aIgnoreTowns on the game mode prefab, which is authored in that form and compared against
+	//! GetTownName). A hand-written Overthrow_Config.json is the one place a human types one of these,
+	//! so the plain town name is accepted too: both sides are reduced past the "#AR-MapLocation_"
+	//! prefix before comparing.
+	//! \param name The town's name, as a key or as the bare name
+	//! \return The town ID, or -1 when no town carries that name
+	int FindTownIdByName(string name)
+	{
+		if(name == "") return -1;
+
+		string needle = SimplifyTownName(name);
+
+		for(int i = 0; i < m_Towns.Count(); i++)
+		{
+			if(SimplifyTownName(GetTownName(i)) == needle) return i;
+		}
+
+		return -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reduces a town name to something two spellings of it can be compared by: lowercase, and with
+	//! any stringtable-key prefix dropped ("#AR-MapLocation_Levie" and "Levie" both become "levie").
+	//! \param name A town name or key
+	//! \return The comparable form
+	protected string SimplifyTownName(string name)
+	{
+		string simplified = name;
+
+		if(simplified.StartsWith("#"))
+		{
+			int underscore = simplified.LastIndexOf("_");
+			if(underscore > -1)
+				simplified = simplified.Substring(underscore + 1, simplified.Length() - underscore - 1);
+		}
+
+		simplified.ToLower();
+		return simplified;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Gets the display name of the town nearest to a given location.
 	//! \param location The position vector
 	//! \return The string name of the nearest town
