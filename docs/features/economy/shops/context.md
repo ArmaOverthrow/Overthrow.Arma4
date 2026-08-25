@@ -112,3 +112,30 @@ a Workbench save could eat the file. The ordering rule is documented here instea
 must go at the top of `m_aPrices`, not the bottom.**
 
 **Owed:** eyeball a port screen after deploy — mortar rows should read $4,000, and binoculars $100.
+
+---
+
+## 2026-08-25 — The map garage sold only legal vehicles; the buildable one sells everything
+
+**Author:** *"in a garage on the map (not built) inside a base the procurement screen is showing a BRDM-2 ... also the rest of the vehicles are only legal ones, a garage is supposed to have all vehicles apart from OF ones. check the configs on the garage deltas we have compared to our buildable garage to see whats missing"* — then, on the BRDM: *"it might also be in the FIA configs which is fine, FIA vehicles are allowed"*, and *"I dont see non-occupying faction illegal vehicles like I would if I built one."*
+
+**The script was never the problem.** `OVT_ShopContext.CollectProcurementVehicles` already asks for `GetAllNonOccupyingFactionVehicles(vehicles, true)` — includeIllegal **true**. It then filters that list by *the parking types this site actually has*, and that is where the two garages diverge:
+
+| Prefab | Parking spot types |
+|---|---|
+| `Garage_E_02.et` (buildable) | CAR, LIGHT, CAR, **TRUCK**, **HEAVY** |
+| `GarageMilitary_E_01_base.et` (on the map) | CAR, CAR, CAR, CAR |
+
+And in `vehiclePrices.conf`, **every** armed/illegal vehicle is authored `PARKING_LIGHT` or `PARKING_HEAVY` (`M151A2_M2HB`, `M1025_armed`, `UAZ469_UK59`, `UAZ469_PKM`, `BTR70`, `LAV25`). A garage with only `PARKING_CAR` bays therefore filters out the entire illegal catalogue — exactly the reported symptom, and nothing to do with legality or faction logic.
+
+**Fix:** the map garage's four bays are retyped in place to CAR / LIGHT / HEAVY / TRUCK, matching the buildable's *coverage*. Retyped rather than added to, deliberately: adding bays would mean inventing offsets that cannot be verified outside Workbench, and coverage is what governs the shop list. One consequence worth knowing: that garage now parks one of each class instead of four cars.
+
+**The BRDM-2 was two separate things, and only one was a bug.**
+- Faction: **not a bug.** `BRDM2_FIA.et` is in the FIA catalog and `BRDM2.et` in the USSR one — different prefabs. The player saw the FIA variant, which is allowed. `ItemIsFromFaction` was working.
+- Parking: **a bug.** `m_sFind "BRDM2"` authored no `parking`, and `OVT_VehiclePriceConfig.parking` defvalues to `0` = `PARKING_CAR` — so an armoured car was classed as a car and appeared in a car-only garage. Now `PARKING_HEAVY`, consistent with the other armour (`BTR70`, `LAV25`). ⚠ Safe for storage: `OVT_StorageRules.ResolveAutoCapacity` only branches on `PARKING_TRUCK`, so CAR→HEAVY changes no capacity.
+
+⚠ **Twelve more entries silently inherit `PARKING_CAR` from that same defvalue** (`M1025.et`, `M997`, `M998_`, `M151A2`, `S1203`, `UAZ452`, `UAZ469`, `S105_`, and the `_Conflict`/`_Arsenal`/`_engineer`/`_command`/`_arsenal`/`_ammo`/`_repair` suffix rules). For the civilian cars that is correct; the list is recorded here so the defvalue is not mistaken for an authored decision next time.
+
+⚠ **Only these two prefabs have `m_bProcurement 1`** — verified by sweeping every prefab carrying an `OVT_ParkingComponent`. The sheds, fuel station and village houses have parking but no shop, so they are unaffected.
+
+`tools/compile-check.sh` exit 0 (6349 files). Workbench load + play-test owed: confirm the four bays read back correctly and that the illegal vehicles now list.

@@ -89,7 +89,7 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 		// high command groups contest this place exactly as a player does. See DefenderWithin().
 		bool enemyPresent = DefenderWithin(base.location, m_fClearRadius);
 
-		if (!EvaluateRepair(aliveInside, enemyPresent, m_iTicksLeft))
+		if (!EvaluateRepair(aliveInside, enemyPresent, ResolveIntervalTicks(), m_iTicksLeft))
 			return;
 
 		RepairNextStructure(base);
@@ -100,18 +100,30 @@ class OVT_BaseRepairBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModule
 	//! re-arms the clock, so the fired-once latch belongs to the MISSION.
 	//! \param[in] aliveInside Living members of this deployment's force inside the clear radius.
 	//! \param[in] enemyPresent Whether a player is standing inside the same circle.
-	//! \param[inout] ticksLeft Updates still owed. PAUSED, never reset, on an interrupted tick.
+	//! \param[in] fullTicks The whole interval, restored on any interrupted tick.
+	//! \param[inout] ticksLeft Updates still owed. RESET to fullTicks on an interrupted tick.
 	//! \return True when THIS call completed an interval and one structure may now be repaired.
-	bool EvaluateRepair(int aliveInside, bool enemyPresent, inout int ticksLeft)
+	bool EvaluateRepair(int aliveInside, bool enemyPresent, int fullTicks, inout int ticksLeft)
 	{
 		if (m_bMissionReported)
 			return false;
 
+		// 🔴 RESET, NOT PAUSE (author, 2026-08-25). It used to pause, so a mission banked progress
+		// while the base was quiet and completed the instant it went quiet again - a team could be
+		// driven off five times and still finish on the sixth visit without ever holding the ground for
+		// a whole interval. An interruption now costs the whole interval, which is what "they have to
+		// hold it" means.
 		if (aliveInside < 1)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		if (enemyPresent)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		// ⚠ A NON-POSITIVE INTERVAL MUST STILL COST ONE TICK, so a misauthored zero cannot put a
 		// structure back on the update the detail is registered.

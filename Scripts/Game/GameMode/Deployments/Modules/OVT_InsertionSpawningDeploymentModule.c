@@ -419,7 +419,16 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		vector roadPosition;
 		vector roadAngles;
 		if (OVT_WorldUtils.FindNearestRoadSpawn(point, OVT_WorldUtils.ROAD_SPAWN_MAX_DISTANCE, roadPosition, roadAngles))
-			return roadPosition;
+		{
+			// ⚠ A ROAD IS NOT AUTOMATICALLY A LANDING ZONE. The search runs 200 m in every direction
+			// and does not care which way it moves the point - see IsAcceptableLZ.
+			if (OVT_InsertionGeometry.IsAcceptableLZ(roadPosition, target, m_fLZStandoffDistance))
+				return roadPosition;
+
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': the nearest road to its landing zone is %2 m from the objective, inside the %3 m standoff - dropping off the road instead",
+				DescribeSelf(), Math.Round(vector.Distance(roadPosition, target)).ToString(),
+				Math.Round(m_fLZStandoffDistance).ToString()));
+		}
 
 		// The geometry interpolates Y between two endpoints and knows nothing about the ground between
 		// them; over 300 m of hillside that is metres out, and a landing zone under the terrain is one

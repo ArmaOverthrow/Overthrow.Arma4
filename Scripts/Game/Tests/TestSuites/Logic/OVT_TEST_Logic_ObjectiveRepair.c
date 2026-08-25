@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------------------------
 //! TIER A - THE OCCUPYING FACTION'S REPAIR DETAIL, as arithmetic.
 //!
-//! Three pure rules: the repair DECISION (held, unopposed, a whole interval, paused not reset), the
+//! Three pure rules: the repair DECISION (held, unopposed, a whole interval, RESET on interruption), the
 //! INTERVAL (seconds to updates, campaign figure over authored fallback, floored at one) and the
 //! QUOTA (same precedence, same floor).
 //!
@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------
-//! The repair clock runs only while the detail holds the base unopposed, pauses rather than resets,
+//! The repair clock runs only while the detail holds the base unopposed, RESETS to the whole interval on an interruption,
 //! fires repeatedly rather than once, and stops dead when the mission ends.
 //!
 //! ⚠ THE LATCH BELONGS TO THE MISSION, NOT TO A FIRING. Spent on the first completed interval it
@@ -39,7 +39,7 @@
 //!   A2. `if (enemyPresent) return false;` deleted. Fails on "a defended base must not advance the
 //!       repair clock".
 //!   A3. The interrupted branch changed to reset ticksLeft to its starting value. Fails on "an
-//!       interruption must PAUSE the clock, not reset it".
+//!       interruption must RESET the clock to the whole interval, not pause it".
 //!   A4. `if (m_bMissionReported) return false;` deleted. Fails on "a finished mission must never
 //!       repair again".
 //!   A5. A PER-FIRING LATCH ADDED - `m_bMissionReported = true;` inserted before EvaluateRepair's
@@ -61,7 +61,7 @@ class OVT_TEST_Logic_ObjectiveRepair_ADecisionHoldsAndPauses : SCR_AutotestCaseB
 			return true;
 		}
 
-		Print("Objective repair: the repair clock runs only while the base is held and unopposed, pauses rather than resets on an interruption, fires repeatedly rather than once, and stops dead once the mission has finished");
+		Print("Objective repair: the repair clock runs only while the base is held and unopposed, RESETS to the whole interval on an interruption, fires repeatedly rather than once, and stops dead once the mission has finished");
 
 		return true;
 	}
@@ -72,41 +72,45 @@ class OVT_TEST_Logic_ObjectiveRepair_ADecisionHoldsAndPauses : SCR_AutotestCaseB
 	{
 		OVT_BaseRepairBehaviorDeploymentModule repair = new OVT_BaseRepairBehaviorDeploymentModule();
 
-		int ticks = 3;
+		const int FULL = 3;
+		int ticks = FULL;
 
 		// --- Nobody there yet: the detail is still walking in.
-		if (repair.EvaluateRepair(0, false, ticks))
+		if (repair.EvaluateRepair(0, false, FULL, ticks))
 			return "an empty base must not complete a repair interval";
 
-		if (ticks != 3)
-			return string.Format("an empty base must not advance the repair clock: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an empty base must leave the clock at the full interval: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Contested. The detail is there, so is a player.
-		if (repair.EvaluateRepair(4, true, ticks))
+		// --- Contested. The detail is there, so is a defender.
+		if (repair.EvaluateRepair(4, true, FULL, ticks))
 			return "a defended base must not complete a repair interval";
 
-		if (ticks != 3)
-			return string.Format("a defended base must not advance the repair clock: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("a defended base must leave the clock at the full interval: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
 		// --- Held and unopposed: one tick.
-		if (repair.EvaluateRepair(4, false, ticks))
+		if (repair.EvaluateRepair(4, false, FULL, ticks))
 			return "an interval with three ticks left must not complete on the first of them";
 
 		if (ticks != 2)
 			return string.Format("a held, unopposed tick must advance the clock by exactly one: %1 tick(s) left, expected 2", ticks.ToString());
 
-		// --- Interrupted mid-interval. THE CLOCK MUST PAUSE, NOT RESET.
-		if (repair.EvaluateRepair(0, false, ticks))
+		// --- 🔴 INTERRUPTED MID-INTERVAL. THE CLOCK MUST RESET, NOT PAUSE (author, 2026-08-25).
+		if (repair.EvaluateRepair(0, false, FULL, ticks))
 			return "the detail being wiped mid-interval must not complete it";
 
-		if (ticks != 2)
-			return string.Format("an interruption must PAUSE the clock, not reset it: %1 tick(s) left, expected 2", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an interruption must RESET the clock to the whole interval, not pause it: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Run it out.
-		if (repair.EvaluateRepair(4, false, ticks))
-			return "an interval with two ticks left must not complete on the first of them";
+		// --- And the whole interval must now be served from the top.
+		if (repair.EvaluateRepair(4, false, FULL, ticks))
+			return "a reset interval must not complete on its first tick";
 
-		if (!repair.EvaluateRepair(4, false, ticks))
+		if (repair.EvaluateRepair(4, false, FULL, ticks))
+			return "a reset interval must not complete on its second tick";
+
+		if (!repair.EvaluateRepair(4, false, FULL, ticks))
 			return "an interval whose last tick was served must complete";
 
 		// --- ⚠ AND IT MUST BE ABLE TO FIRE AGAIN. A detail puts back several structures; the caller
@@ -115,13 +119,13 @@ class OVT_TEST_Logic_ObjectiveRepair_ADecisionHoldsAndPauses : SCR_AutotestCaseB
 			return "one completed interval must not end the whole mission - a detail puts back the campaign's authored quota of structures, not one";
 
 		ticks = 1;
-		if (!repair.EvaluateRepair(4, false, ticks))
+		if (!repair.EvaluateRepair(4, false, 1, ticks))
 			return "a re-armed interval must be able to complete again - a per-firing latch would cap every mission at one structure";
 
 		// --- A MISAUTHORED ZERO INTERVAL STILL COSTS ONE TICK, so nothing can come back on the update
 		// the detail is registered, before it is anywhere near the base.
 		ticks = 0;
-		if (!repair.EvaluateRepair(4, false, ticks))
+		if (!repair.EvaluateRepair(4, false, 0, ticks))
 			return "a zero interval must still complete on a held, unopposed tick";
 
 		if (ticks != 0)
@@ -134,7 +138,7 @@ class OVT_TEST_Logic_ObjectiveRepair_ADecisionHoldsAndPauses : SCR_AutotestCaseB
 			return "the fixture could not put the module into its stopped state, so the next claim would pass vacuously";
 
 		ticks = 1;
-		if (repair.EvaluateRepair(4, false, ticks))
+		if (repair.EvaluateRepair(4, false, 1, ticks))
 			return "a finished mission must never repair again";
 
 		if (ticks != 1)

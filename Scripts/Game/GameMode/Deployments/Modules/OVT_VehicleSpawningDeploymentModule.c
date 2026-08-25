@@ -86,6 +86,10 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 	protected ref array<Vehicle> m_aSpawnedVehicles;
 
+	//! How long each patrol vehicle's driver has been holding the horn, in milliseconds. Bounded by
+	//! this module's own vehicle count; entries are dropped the moment a horn reads off. See TickHorns.
+	protected ref map<EntityID, int> m_mHornHeldMs;
+
 	//! Registry handles for this module's crews. NOT persisted and NOT authoritative: the registry is,
 	//! and this list is re-derived from it by every convergence pass.
 	protected ref array<int> m_aCrewHandles;
@@ -194,6 +198,46 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		// An armed patrol vehicle whose gun nobody is manning is not a patrol. See the method.
 		EnsureTurretsManned();
+
+		TickHorns(deltaTime);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Releases a latched horn on any of this module's patrol vehicles.
+	//!
+	//! ⚠ THE MOUNTED FAMILY GETS THIS FOR FREE AND THIS MODULE DID NOT.
+	//! OVT_MountedForceSpawningDeploymentModule extends OVT_InsertionSpawningDeploymentModule, so the
+	//! QRF echelon, hunter-killer sweep, base armour sortie and mounted harassment all inherit the
+	//! insertion module's horn tick. A patrol vehicle spawned here inherits nothing, so it needed its
+	//! own call (author, 2026-08-25: "the fix should have been deployed to everything").
+	//!
+	//! ⚠ KEYED ON THE VEHICLE, NOT INDEXED ALONGSIDE m_aSpawnedVehicles. A parallel array would be
+	//! corrupted by PruneDestroyedVehicles: EnforceScript's array.Remove() is swap-with-last, so the
+	//! accumulators would silently follow the wrong vehicles.
+	//! \param[in] deltaTime Milliseconds since the last update.
+	protected void TickHorns(int deltaTime)
+	{
+		if (!m_mHornHeldMs)
+			m_mHornHeldMs = new map<EntityID, int>();
+
+		foreach (Vehicle vehicle : m_aSpawnedVehicles)
+		{
+			if (!vehicle)
+				continue;
+
+			EntityID id = vehicle.GetID();
+
+			int held = 0;
+			if (m_mHornHeldMs.Contains(id))
+				held = m_mHornHeldMs.Get(id);
+
+			held = OVT_VehicleHornWatchdog.TickVehicle(vehicle, deltaTime, held);
+
+			if (held > 0)
+				m_mHornHeldMs.Set(id, held);
+			else if (m_mHornHeldMs.Contains(id))
+				m_mHornHeldMs.Remove(id);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

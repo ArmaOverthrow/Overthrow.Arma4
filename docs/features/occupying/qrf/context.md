@@ -83,3 +83,35 @@
 ⚠ **Points only. `m_iQRFTimer` looks like the same bug and is not:** `CheckUpdateTimer` runs on a 1 000 ms call from the controller's own `OnPostInit` and publishes `m_iTimer` on its first tick, so the clock is this battle's within a second. Zeroing it here would need the lead time in the controller's units — **milliseconds**, `m_iTimer` defaults to `120000` — and would buy one second of correctness for a units mistake waiting to happen.
 
 `tools/compile-check.sh` exit 0 (6347 files). Suite not run; play-test owed.
+
+---
+
+## 2026-08-25 — Zone control is weighted by distance to the objective
+
+**Author:** *"I think QRF scoring should be weighted a little by distance to the QRF so closer characters count for slightly more points than distant ones."*
+
+Zone control was a flat head count inside `QRF_POINT_RANGE` (220 m): a man standing on the flag and a man 219 m away at the edge of the ring were worth exactly the same, so a force could win a battle without ever contesting the ground it was fighting over.
+
+**`OVT_QRFScoring`** (`Scripts/Game/Controllers/OccupyingFaction/`), pure statics on the `OVT_QRFBearing` pattern — no world, no manager, no clock, no randomness:
+- `FighterWeight(distance, pointRange)` — linear from **1.0** on the objective to **EDGE_WEIGHT** at the ring's edge, **0** beyond. The caller's old `dist < QRF_POINT_RANGE` test is folded in, so "outside the ring" and "worth nothing" are one statement instead of two that can drift.
+- `ResolveSwing(resistanceWeight, occupyingWeight, occupyingAnywhere, currentPoints)` — the shipped rules unchanged, with weighted sums in place of head counts.
+
+⚠ **The first number tried was too steep, and the tuning is the interesting part.** At `EDGE_WEIGHT 0.5` a man on the objective is worth **1.9×** a man at the edge, and four defenders on the flag beat **six** attackers — position overturning a 50% numerical advantage is a different game mode, not a weighting. Shipped at **0.75** (flag ≈ 1.3× the edge):
+
+| Case | Outcome |
+|---|---|
+| 3 on the flag vs 3 at the edge | the closer side wins — position breaks an even fight |
+| 4 on the flag vs 5 at the edge | stalemate — position offsets one man |
+| 4 on the flag vs 6 at the edge | the attackers win — numbers still beat position |
+
+Those three cases are the whole of the intent and are named in the class header for whoever retunes it.
+
+⚠ **`STALEMATE_DEADBAND` (0.5 men) is not padding — without it one branch becomes unreachable.** The old code compared two ints and had a `resistanceNum == enemyNum` "push towards zero" arm. Weighted sums are essentially never exactly equal, so a literal port would make 3.0001 vs 3.0 read as a decisive advantage and that arm would never run again.
+
+⚠ **The +5 fast push still gates on a HEAD COUNT** (`enemyTotal`, measured over the whole `QRF_RANGE`), not on a weight. "Is anybody left to fight" is a presence question, and a defender at the far edge weighs almost nothing but is still alive — gating it on weight would end a contested battle at five points a tick.
+
+⚠ **XP is deliberately NOT weighted.** Being in the fight earns it; scaling it by distance would pay a player for standing on the flag rather than for fighting.
+
+**Two Logic-tier cases added** (`OVT_TEST_Logic_QRFScoring`) covering the weight curve, the exclusive boundary, the monotonicity, the "slightly" band, both swing directions, the deadband and the stalemate decay. Every assertion was also re-checked against a standalone model of the shipped constants before commit — all green — but ⚠ **the suite itself has not been run.**
+
+`tools/compile-check.sh` exit 0 (6351 files). Play-test owed: this changes how every battle resolves.

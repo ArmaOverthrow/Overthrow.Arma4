@@ -1133,3 +1133,82 @@ class OVT_TEST_Logic_ObjectiveInsertion_CollectsAbandonedTransportsOnlyWhenDue :
 		return "keep";
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! A road-snapped landing zone must still keep most of the authored standoff.
+//!
+//! 🔴 WHAT THIS PINS, AND WHY THE SEGMENT CASE ABOVE DOES NOT ALREADY PIN IT. LZPointOnLine() puts the
+//! point at exactly the authored standoff and is asserted to - but ResolveLandingZone() then hands that
+//! point to FindNearestRoadSpawn, which searches 200 m in EVERY DIRECTION and has no opinion about the
+//! objective. A base's access road is a road, so with sabotage's authored 300 m the snap could legally
+//! move the drop to 100 m from the objective and the convoy would drive inside the wire and park
+//! (author, 2026-08-25: "a sabotage insertion is driving all the way into a base").
+//!
+//! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
+//! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
+//!   A1. `>=` changed to `<=`. Fails on "a road at the full standoff must be accepted".
+//!   A2. `standoff * MIN_RETAINED_STANDOFF` changed to `standoff`. Fails on "a road slightly inside".
+//!   A3. `if (standoff <= 0) return true;` deleted. Fails on "a config with no standoff".
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ObjectiveInsertion_RoadSnapKeepsItsStandoff : SCR_AutotestCaseBase
+{
+	//! Sabotage's authored figure, and the case that produced the report.
+	protected const float STANDOFF = 300;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		string failure = CheckAcceptance();
+		if (failure != "")
+		{
+			SetFailure(failure);
+			return true;
+		}
+
+		Print("Objective insertion: a road-snapped landing zone is rejected when it erodes the authored standoff, so a convoy cannot be snapped onto the objective's own access road and driven inside");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return An empty string when every claim held, or the first that did not.
+	protected string CheckAcceptance()
+	{
+		vector target = "1000 0 1000";
+
+		// --- A road at the full standoff is exactly what the geometry asked for.
+		if (!OVT_InsertionGeometry.IsAcceptableLZ(target + Vector(STANDOFF, 0, 0), target, STANDOFF))
+			return "a road at the full standoff must be accepted";
+
+		// --- Further out is fine too: a longer walk in is not a fault.
+		if (!OVT_InsertionGeometry.IsAcceptableLZ(target + Vector(STANDOFF + 150, 0, 0), target, STANDOFF))
+			return "a road further from the objective than the standoff must be accepted - walking further in is never the problem";
+
+		// --- 🔴 THE REPORTED CASE. 200 m of snap against a 300 m standoff leaves 100 m, which is inside
+		// a base.
+		if (OVT_InsertionGeometry.IsAcceptableLZ(target + Vector(100, 0, 0), target, STANDOFF))
+			return "a road 100 m from the objective must be rejected against a 300 m standoff - that is the snap driving the convoy into the base";
+
+		// --- On the objective itself, which is what an access road ends at.
+		if (OVT_InsertionGeometry.IsAcceptableLZ(target, target, STANDOFF))
+			return "a road at the objective itself must be rejected";
+
+		// --- The boundary, both sides of it.
+		float boundary = STANDOFF * OVT_InsertionGeometry.MIN_RETAINED_STANDOFF;
+
+		if (!OVT_InsertionGeometry.IsAcceptableLZ(target + Vector(boundary + 1, 0, 0), target, STANDOFF))
+			return "a road just outside MIN_RETAINED_STANDOFF must be accepted";
+
+		if (OVT_InsertionGeometry.IsAcceptableLZ(target + Vector(boundary - 1, 0, 0), target, STANDOFF))
+			return "a road just inside MIN_RETAINED_STANDOFF must be rejected";
+
+		// --- ⚠ A CONFIG THAT AUTHORS NO STANDOFF IS ASKING TO BE DRIVEN TO THE DOOR, and must not be
+		// second-guessed - the mounted configs rely on it.
+		if (!OVT_InsertionGeometry.IsAcceptableLZ(target, target, 0))
+			return "a config with no authored standoff must accept any road, including one at the objective";
+
+		return "";
+	}
+}

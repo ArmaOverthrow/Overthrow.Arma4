@@ -439,7 +439,7 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 //!       hold".
 //!   E3. `if (enemyPresent) return false;` deleted. Fails on "a contested hold must not advance".
 //!   E4. The interrupted branch changed to reset ticksLeft to its starting value. Fails on "an
-//!       interruption must PAUSE the clock, not reset it".
+//!       interruption must RESET the clock to the whole interval, not pause it".
 //!   E5. `if (towerFaction == myFaction) return false;` deleted from EvaluateRecapture. Fails on "a
 //!       tower the faction already holds must never be recaptured".
 //!   E6. The decrement in EvaluateRecapture moved above the holding test. Fails on "an unheld tower
@@ -478,48 +478,52 @@ class OVT_TEST_Init_ObjectiveOperations_EHoldDecisionsFireOnceAndPause : SCR_Aut
 	{
 		OVT_TownHarassmentBehaviorDeploymentModule harassment = new OVT_TownHarassmentBehaviorDeploymentModule();
 
-		int ticks = 3;
+		const int FULL = 3;
+		int ticks = FULL;
 
 		// --- Nobody there yet: the force is still on the road.
-		if (harassment.EvaluateHold(0, false, ticks))
+		if (harassment.EvaluateHold(0, false, FULL, ticks))
 			return "an empty circle must not complete a hold";
 
-		if (ticks != 3)
-			return string.Format("an empty circle must not advance the hold: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an empty circle must leave the hold at its full length: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Contested: men are there, so is a player.
-		if (harassment.EvaluateHold(4, true, ticks))
+		// --- Contested: men are there, so is a defender.
+		if (harassment.EvaluateHold(4, true, FULL, ticks))
 			return "a contested hold must not complete";
 
-		if (ticks != 3)
-			return string.Format("a contested hold must not advance: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("a contested hold must leave the clock at its full length: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
 		// --- Held and unopposed: one tick.
-		if (harassment.EvaluateHold(4, false, ticks))
+		if (harassment.EvaluateHold(4, false, FULL, ticks))
 			return "a hold with three ticks left must not complete on the first of them";
 
 		if (ticks != 2)
 			return string.Format("a held, unopposed tick must advance the clock by exactly one: %1 tick(s) left, expected 2", ticks.ToString());
 
-		// --- Interrupted mid-hold. THE CLOCK MUST PAUSE, NOT RESET.
-		if (harassment.EvaluateHold(0, false, ticks))
+		// --- 🔴 INTERRUPTED MID-HOLD. THE CLOCK MUST RESET, NOT PAUSE (author, 2026-08-25).
+		if (harassment.EvaluateHold(0, false, FULL, ticks))
 			return "the force being wiped mid-hold must not complete it";
 
-		if (ticks != 2)
-			return string.Format("an interruption must PAUSE the clock, not reset it: %1 tick(s) left, expected 2", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an interruption must RESET the hold to its full length, not pause it: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Run it out.
-		if (harassment.EvaluateHold(4, false, ticks))
-			return "a hold with two ticks left must not complete on the first of them";
+		// --- And the whole hold must now be served from the top.
+		if (harassment.EvaluateHold(4, false, FULL, ticks))
+			return "a reset hold must not complete on its first tick";
 
-		if (!harassment.EvaluateHold(4, false, ticks))
+		if (harassment.EvaluateHold(4, false, FULL, ticks))
+			return "a reset hold must not complete on its second tick";
+
+		if (!harassment.EvaluateHold(4, false, FULL, ticks))
 			return "a hold whose last tick was served must complete";
 
 		if (!harassment.HasHoldFired())
 			return "a completed hold must latch";
 
 		// --- And never again, however the inputs read afterwards.
-		if (harassment.EvaluateHold(4, false, ticks))
+		if (harassment.EvaluateHold(4, false, FULL, ticks))
 			return "a completed hold must not fire a second time - it would re-stack the town's support debuff every ten seconds";
 
 		return "";
@@ -531,43 +535,49 @@ class OVT_TEST_Init_ObjectiveOperations_EHoldDecisionsFireOnceAndPause : SCR_Aut
 	{
 		OVT_TowerRecaptureBehaviorDeploymentModule recapture = new OVT_TowerRecaptureBehaviorDeploymentModule();
 
-		int ticks = 2;
+		const int RFULL = 2;
+		int ticks = RFULL;
 
 		// --- Already ours. Nothing to take, and nothing to spend a latch on.
-		if (recapture.EvaluateRecapture(true, false, MY_FACTION, MY_FACTION, ticks))
-			return "a tower the faction already holds must never be recaptured";
+		if (recapture.EvaluateRecapture(true, false, MY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a tower this faction already holds must never be recaptured - the hold would run and the flip would be a no-op";
 
-		if (ticks != 2)
-			return string.Format("a tower the faction already holds must not advance the clock: %1 tick(s) left, expected 2", ticks.ToString());
+		if (recapture.EvaluateRecapture(false, false, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a tower nobody of ours is standing at must not complete a hold";
 
-		// --- Nobody at the tower.
-		if (recapture.EvaluateRecapture(false, false, ENEMY_FACTION, MY_FACTION, ticks))
-			return "an unheld tower must not be recaptured";
+		if (ticks != RFULL)
+			return string.Format("an unheld tower must leave the clock at its full length: %1 tick(s) left, expected %2", ticks.ToString(), RFULL.ToString());
 
-		if (ticks != 2)
-			return string.Format("an unheld tower must not advance the recapture clock: %1 tick(s) left, expected 2", ticks.ToString());
+		if (recapture.EvaluateRecapture(true, true, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a contested tower must not complete a hold";
 
-		// --- A player standing on it.
-		if (recapture.EvaluateRecapture(true, true, ENEMY_FACTION, MY_FACTION, ticks))
-			return "a contested tower must not be recaptured";
+		if (ticks != RFULL)
+			return string.Format("a contested tower must leave the clock at its full length: %1 tick(s) left, expected %2", ticks.ToString(), RFULL.ToString());
 
-		if (ticks != 2)
-			return string.Format("a contested tower must not advance the recapture clock: %1 tick(s) left, expected 2", ticks.ToString());
-
-		// --- Held, unopposed, enemy-owned.
-		if (recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, ticks))
-			return "a recapture with two ticks left must not complete on the first of them";
+		// --- Held and unopposed: one tick.
+		if (recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a hold with two ticks left must not complete on the first of them";
 
 		if (ticks != 1)
-			return string.Format("a held, unopposed tick must advance the recapture clock by exactly one: %1 tick(s) left, expected 1", ticks.ToString());
+			return string.Format("a held, unopposed tick must advance the clock by exactly one: %1 tick(s) left, expected 1", ticks.ToString());
 
-		if (!recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, ticks))
-			return "a recapture whose last tick was served must complete";
+		// --- 🔴 INTERRUPTED. THE CLOCK MUST RESET, NOT PAUSE (author, 2026-08-25).
+		if (recapture.EvaluateRecapture(true, true, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "an interrupted hold must not complete";
+
+		if (ticks != RFULL)
+			return string.Format("an interruption must RESET the hold to its full length, not pause it: %1 tick(s) left, expected %2", ticks.ToString(), RFULL.ToString());
+
+		if (recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a reset hold must not complete on its first tick";
+
+		if (!recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
+			return "a hold whose last tick was served must complete";
 
 		if (!recapture.HasCaptureFired())
 			return "a completed recapture must latch";
 
-		if (recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, ticks))
+				if (recapture.EvaluateRecapture(true, false, ENEMY_FACTION, MY_FACTION, RFULL, ticks))
 			return "a completed recapture must not fire a second time - it would re-notify every ten seconds";
 
 		return "";
@@ -639,7 +649,7 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 
 		// Fire the latch, so the clone has something it could wrongly inherit.
 		int ticks = 1;
-		source.EvaluateHold(1, false, ticks);
+		source.EvaluateHold(1, false, 1, ticks);
 
 		OVT_TownHarassmentBehaviorDeploymentModule clone = OVT_TownHarassmentBehaviorDeploymentModule.Cast(source.CloneModule());
 		if (!clone)
@@ -678,7 +688,7 @@ class OVT_TEST_Init_ObjectiveOperations_CloneFidelity : SCR_AutotestCaseBase
 		source.m_iHoldSeconds = 519;
 
 		int ticks = 1;
-		source.EvaluateRecapture(true, false, 8, 7, ticks);
+		source.EvaluateRecapture(true, false, 8, 7, 1, ticks);
 
 		OVT_TowerRecaptureBehaviorDeploymentModule clone = OVT_TowerRecaptureBehaviorDeploymentModule.Cast(source.CloneModule());
 		if (!clone)

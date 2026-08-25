@@ -171,8 +171,17 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		// play-test that made it necessary.
 		bool enemyPresent = DefenderWithin(base.location, m_fClearRadius);
 
-		if (!EvaluateDemolition(aliveInside, enemyPresent, m_iTicksLeft))
+		if (!EvaluateDemolition(aliveInside, enemyPresent, ResolveIntervalTicks(), m_iTicksLeft))
 			return;
+
+		// 🔴 THE LINE THAT SETTLES THE NEXT REPORT (author, 2026-08-25: a team demolished a buildable
+		// "after they were dead", bodies 40 m from the flag). This fires ONLY on the update that
+		// actually takes a structure, so it costs nothing on the other ninety-nine, and it prints the
+		// two numbers the decision turned on. aliveInside > 0 here with a visibly dead team means the
+		// survivor mask is the thing at fault, not this module.
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] Sabotage demolishing at %1: %2 living member(s) of this force inside %3 m; defenders present=%4, nearest resistance %5 m",
+			base.location.ToString(), aliveInside.ToString(), m_fClearRadius.ToString(), enemyPresent.ToString(),
+			Math.Round(OVT_ResistancePresence.DistanceToNearest(base.location, 1000)).ToString()));
 
 		DemolishNextStructure(base);
 	}
@@ -187,21 +196,33 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	//! \param[in] aliveInside Living members of this deployment's force inside the clear radius.
 	//! \param[in] enemyPresent Whether a DEFENDER - a player or any player's living recruit - is standing
 	//!            inside the same circle.
-	//! \param[inout] ticksLeft Updates still owed. PAUSED, never reset, on an interrupted tick.
+	//! \param[in] fullTicks The whole interval, restored on any interrupted tick.
+	//! \param[inout] ticksLeft Updates still owed. RESET to fullTicks on an interrupted tick.
 	//! \return True when THIS call completed an interval and one structure may now be taken.
-	bool EvaluateDemolition(int aliveInside, bool enemyPresent, inout int ticksLeft)
+	bool EvaluateDemolition(int aliveInside, bool enemyPresent, int fullTicks, inout int ticksLeft)
 	{
 		if (m_bMissionReported)
 			return false;
 
-		// Nobody there: the team is dead, still on the road, or scattered. The clock waits for them.
+		// 🔴 RESET, NOT PAUSE (author, 2026-08-25). It used to pause, so a mission banked progress
+		// while the base was quiet and completed the instant it went quiet again - a team could be
+		// driven off five times and still finish on the sixth visit without ever holding the ground for
+		// a whole interval. An interruption now costs the whole interval, which is what "they have to
+		// hold it" means.
+		// Nobody there: the team is dead, still on the road, or scattered.
 		if (aliveInside < 1)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
-		// Contested - by a player or by his recruits. Men being shot at are not quietly rigging charges.
-		// Pause; do not roll back.
+		// Contested - by a player, his recruits or his high command. Men being shot at are not quietly
+		// rigging charges, and they start again from the top.
 		if (enemyPresent)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		// ⚠ A NON-POSITIVE INTERVAL MUST STILL TAKE ONE TICK. A misauthored zero would otherwise
 		// demolish something on the update the team is registered - before they are out of the truck,

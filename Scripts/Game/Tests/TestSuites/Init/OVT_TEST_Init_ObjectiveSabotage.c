@@ -231,7 +231,7 @@ class OVT_TEST_Init_ObjectiveSabotage_AConfigResolvesAndIsOrdered : SCR_Autotest
 //!   D2. `if (enemyPresent) return false;` deleted. Fails on "a defended base must not advance the
 //!       demolition clock" - the live consequence being structures demolished under a player's feet.
 //!   D3. The interrupted branch changed to reset ticksLeft to its starting value. Fails on "an
-//!       interruption must PAUSE the clock, not reset it".
+//!       interruption must RESET the clock to the whole interval, not pause it".
 //!   D4. `if (m_bMissionReported) return false;` deleted. Fails on "a reported mission must never
 //!       demolish again".
 //!   D5. A PER-FIRING LATCH ADDED - `m_bMissionReported = true;` inserted before EvaluateDemolition's
@@ -252,7 +252,7 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 			return true;
 		}
 
-		Print("Objective sabotage: the demolition clock runs only while the base is held and unopposed, pauses rather than resets on an interruption, fires repeatedly rather than once, and stops dead once the mission has reported");
+		Print("Objective sabotage: the demolition clock runs only while the base is held and unopposed, RESETS to the whole interval on an interruption, fires repeatedly rather than once, and stops dead once the mission has reported");
 
 		return true;
 	}
@@ -263,41 +263,47 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 	{
 		OVT_BaseSabotageBehaviorDeploymentModule sabotage = new OVT_BaseSabotageBehaviorDeploymentModule();
 
-		int ticks = 3;
+		const int FULL = 3;
+		int ticks = FULL;
 
 		// --- Nobody there yet: the team is still on the road.
-		if (sabotage.EvaluateDemolition(0, false, ticks))
+		if (sabotage.EvaluateDemolition(0, false, FULL, ticks))
 			return "an empty base must not complete a demolition interval";
 
-		if (ticks != 3)
-			return string.Format("an empty base must not advance the demolition clock: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an empty base must leave the clock at the full interval: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Defended: the team is there, so is a player. NOTHING MAY BE DESTROYED.
-		if (sabotage.EvaluateDemolition(4, true, ticks))
+		// --- Defended: the team is there, so is a defender. NOTHING MAY BE DESTROYED.
+		if (sabotage.EvaluateDemolition(4, true, FULL, ticks))
 			return "a defended base must not complete a demolition interval";
 
-		if (ticks != 3)
-			return string.Format("a defended base must not advance the demolition clock: %1 tick(s) left, expected 3", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("a defended base must leave the clock at the full interval: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
 		// --- Held and unopposed: one tick.
-		if (sabotage.EvaluateDemolition(4, false, ticks))
+		if (sabotage.EvaluateDemolition(4, false, FULL, ticks))
 			return "an interval with three ticks left must not complete on the first of them";
 
 		if (ticks != 2)
 			return string.Format("a held, unopposed tick must advance the clock by exactly one: %1 tick(s) left, expected 2", ticks.ToString());
 
-		// --- Interrupted mid-interval. THE CLOCK MUST PAUSE, NOT RESET.
-		if (sabotage.EvaluateDemolition(0, false, ticks))
+		// --- 🔴 INTERRUPTED MID-INTERVAL. THE CLOCK MUST RESET, NOT PAUSE (author, 2026-08-25).
+		// Progress banked before an interruption is exactly what let a team that never held the ground
+		// finish anyway.
+		if (sabotage.EvaluateDemolition(0, false, FULL, ticks))
 			return "the team being wiped mid-interval must not complete it";
 
-		if (ticks != 2)
-			return string.Format("an interruption must PAUSE the clock, not reset it: %1 tick(s) left, expected 2", ticks.ToString());
+		if (ticks != FULL)
+			return string.Format("an interruption must RESET the clock to the whole interval, not pause it: %1 tick(s) left, expected %2", ticks.ToString(), FULL.ToString());
 
-		// --- Run it out.
-		if (sabotage.EvaluateDemolition(4, false, ticks))
-			return "an interval with two ticks left must not complete on the first of them";
+		// --- And the whole interval must now be served from the top.
+		if (sabotage.EvaluateDemolition(4, false, FULL, ticks))
+			return "a reset interval must not complete on its first tick";
 
-		if (!sabotage.EvaluateDemolition(4, false, ticks))
+		if (sabotage.EvaluateDemolition(4, false, FULL, ticks))
+			return "a reset interval must not complete on its second tick";
+
+		if (!sabotage.EvaluateDemolition(4, false, FULL, ticks))
 			return "an interval whose last tick was served must complete";
 
 		// --- ⚠ AND IT MUST BE ABLE TO FIRE AGAIN. A mission takes several structures; the caller
@@ -306,7 +312,7 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 			return "one completed interval must not report the whole mission - a mission takes objectiveSabotageStructuresPerMission structures, not one";
 
 		ticks = 1;
-		if (!sabotage.EvaluateDemolition(4, false, ticks))
+		if (!sabotage.EvaluateDemolition(4, false, 1, ticks))
 			return "a re-armed interval must be able to complete again - a per-firing latch would cap every mission at one structure";
 
 		// --- Once the MISSION is over, nothing more comes down.
@@ -322,7 +328,7 @@ class OVT_TEST_Init_ObjectiveSabotage_DDemolitionDecisionHoldsAndPauses : SCR_Au
 			return "the fixture could not put the module into its stopped state, so the next claim would pass vacuously";
 
 		ticks = 1;
-		if (sabotage.EvaluateDemolition(4, false, ticks))
+		if (sabotage.EvaluateDemolition(4, false, 1, ticks))
 			return "a reported mission must never demolish again";
 
 		if (ticks != 1)

@@ -112,7 +112,7 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		// high command groups contest this place exactly as a player does. See DefenderWithin().
 		bool enemyPresent = DefenderWithin(centre, m_fHoldRadius);
 
-		if (!EvaluateHold(aliveInside, enemyPresent, m_iTicksLeft))
+		if (!EvaluateHold(aliveInside, enemyPresent, ResolveHoldTicks(), m_iTicksLeft))
 			return;
 
 		ApplyHarassment(centre);
@@ -128,23 +128,35 @@ class OVT_TownHarassmentBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	//!
 	//! \param[in] aliveInside Living members of this deployment's force inside the hold radius.
 	//! \param[in] enemyPresent Whether a player is standing inside the same circle.
-	//! \param[inout] ticksLeft Updates still owed. PAUSED, never reset, on an interrupted tick -
+	//! \param[in] fullTicks The whole hold, restored on any interrupted tick.
+	//! \param[inout] ticksLeft Updates still owed. RESET to fullTicks on an interrupted tick -
 	//!               see the class header.
 	//! \return True when THIS call completed the hold. False on every other path, including a second
 	//!         call after a successful one.
-	bool EvaluateHold(int aliveInside, bool enemyPresent, inout int ticksLeft)
+	bool EvaluateHold(int aliveInside, bool enemyPresent, int fullTicks, inout int ticksLeft)
 	{
 		if (m_bHoldFired)
 			return false;
 
-		// Nobody there: the men are dead, still on the road, or scattered. The clock waits for them.
+		// 🔴 RESET, NOT PAUSE (author, 2026-08-25). It used to pause, so a mission banked progress
+		// while the base was quiet and completed the instant it went quiet again - a team could be
+		// driven off five times and still finish on the sixth visit without ever holding the ground for
+		// a whole interval. An interruption now costs the whole interval, which is what "they have to
+		// hold it" means.
+		// Nobody there: the men are dead, still on the road, or scattered.
 		if (aliveInside < 1)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		// Contested. The occupying faction is standing in the square being shot at, not intimidating
-		// anybody. Pause; do not roll back.
+		// anybody, and the hold starts again from the top.
 		if (enemyPresent)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		// ⚠ A NON-POSITIVE HOLD MUST STILL TAKE ONE TICK. An authored zero would otherwise fire on the
 		// first update of the first operation, before the men have got out of the truck - which is the

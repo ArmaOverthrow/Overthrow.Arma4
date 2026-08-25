@@ -1595,6 +1595,47 @@ class OVT_HighCommandManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Is one of this command's groups holding ground here?
+	//!
+	//! ⚠ NOT A DORMANCY WORKAROUND. A high command group is an AI OBSERVER
+	//! (OVT_HighCommandGroupComponent installs one) and its lifecycle policy is deliberately Manual, so
+	//! its men are always materialised and OVT_ResistancePresence's entity query finds them. This is a
+	//! cheap early answer - a walk over a handful of records instead of a sphere over the world - and a
+	//! belt to that braces if a group is ever spawned with observers switched off
+	//! (GetHighCommandGroupsAreObservers).
+	//! \param[in] position Centre of the search.
+	//! \param[in] radius How close counts, in metres. Non-positive is never held.
+	//! \return True when at least one high command group with living members is inside it.
+	bool HasLivingGroupWithin(vector position, float radius)
+	{
+		if (radius <= 0 || !m_mEntityToGroup)
+			return false;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		foreach (EntityID entityId, string groupId : m_mEntityToGroup)
+		{
+			SCR_AIGroup group = SCR_AIGroup.Cast(world.FindEntityByID(entityId));
+			if (!group)
+				continue;
+
+			int alive = group.GetAgentsCount();
+			if (group.IsDormant())
+				alive = group.GetDormantAliveCount();
+
+			if (alive < 1)
+				continue;
+
+			if (vector.Distance(ResolveGroupPosition(group), position) <= radius)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \param[in] character A member body.
 	//! \return The group its agent belongs to, straight from the agent hierarchy.
 	protected SCR_AIGroup FindParentGroup(notnull IEntity character)

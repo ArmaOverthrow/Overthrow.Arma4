@@ -163,7 +163,7 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		// high command groups contest this place exactly as a player does. See DefenderWithin().
 		bool enemyPresent = DefenderWithin(tower.location, m_fHoldRadius);
 
-		if (!EvaluateRecapture(holding, enemyPresent, tower.faction, myFaction, m_iTicksLeft))
+		if (!EvaluateRecapture(holding, enemyPresent, tower.faction, myFaction, ResolveHoldTicks(), m_iTicksLeft))
 			return;
 
 		occupying.ChangeRadioTowerControl(tower, myFaction);
@@ -228,10 +228,11 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 	//! \param[in] enemyPresent Whether a player is standing at the tower.
 	//! \param[in] towerFaction Which faction currently holds the tower.
 	//! \param[in] myFaction This deployment's controlling faction.
-	//! \param[inout] ticksLeft Updates still owed. PAUSED, never reset, on an interrupted tick.
+	//! \param[in] fullTicks The whole hold, restored on any interrupted tick.
+	//! \param[inout] ticksLeft Updates still owed. RESET to fullTicks on an interrupted tick.
 	//! \return True when THIS call completed the recapture. False on every other path, including a
 	//!         second call after a successful one.
-	bool EvaluateRecapture(bool holding, bool enemyPresent, int towerFaction, int myFaction, inout int ticksLeft)
+	bool EvaluateRecapture(bool holding, bool enemyPresent, int towerFaction, int myFaction, int fullTicks, inout int ticksLeft)
 	{
 		if (m_bCaptureFired)
 			return false;
@@ -245,11 +246,22 @@ class OVT_TowerRecaptureBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentMod
 		if (towerFaction == myFaction)
 			return false;
 
+		// 🔴 RESET, NOT PAUSE (author, 2026-08-25). It used to pause, so a mission banked progress
+		// while the base was quiet and completed the instant it went quiet again - a team could be
+		// driven off five times and still finish on the sixth visit without ever holding the ground for
+		// a whole interval. An interruption now costs the whole interval, which is what "they have to
+		// hold it" means.
 		if (!holding)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		if (enemyPresent)
+		{
+			ticksLeft = fullTicks;
 			return false;
+		}
 
 		// ⚠ A NON-POSITIVE HOLD MUST STILL TAKE ONE TICK, so a misauthored zero cannot flip a tower on
 		// the update the team is registered.

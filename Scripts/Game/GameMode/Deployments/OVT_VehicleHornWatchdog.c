@@ -62,6 +62,37 @@ class OVT_VehicleHornWatchdog
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The same observation, for a caller that holds a VEHICLE rather than a driver.
+	//!
+	//! ⚠ NO WORLD WALK. It reads the vehicle's own compartment manager, which the caller's module is
+	//! already holding a reference to - the cost is one component lookup and one array of occupants per
+	//! vehicle per deployment update (~10 s), not a sweep over the AI world.
+	//! \param[in] vehicle The vehicle to check. Null is legal (nothing to check).
+	//! \param[in] deltaTime Milliseconds since the caller's last update.
+	//! \param[in] heldMs The accumulator as it stands for THIS vehicle.
+	//! \return The new accumulator.
+	static int TickVehicle(IEntity vehicle, int deltaTime, int heldMs)
+	{
+		if (!vehicle)
+			return 0;
+
+		SCR_BaseCompartmentManagerComponent compartments = SCR_BaseCompartmentManagerComponent.Cast(
+			vehicle.FindComponent(SCR_BaseCompartmentManagerComponent)
+		);
+
+		if (!compartments)
+			return 0;
+
+		array<IEntity> pilots = {};
+		compartments.GetOccupantsOfType(pilots, ECompartmentType.PILOT);
+
+		if (pilots.IsEmpty())
+			return 0;
+
+		return Tick(pilots[0], deltaTime, heldMs);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \param[in] driver The character to read. Null is legal.
 	//! \return His input context, or null when there is no driver or no controller.
 	static CharacterInputContext ResolveInput(IEntity driver)

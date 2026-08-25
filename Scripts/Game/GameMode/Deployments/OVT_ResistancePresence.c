@@ -101,6 +101,17 @@ class OVT_ResistancePresence
 			return false;
 
 		s_bResistanceSearch = true;
+		// A cheap early answer, not a dormancy workaround: HC groups are observers with a Manual
+		// lifecycle, so their men are materialised and the sphere query below finds them anyway. This
+		// is a map walk over a handful of records, and it covers the case where somebody switches
+		// GetHighCommandGroupsAreObservers off.
+		OVT_HighCommandManagerComponent highCommand = OVT_Global.GetHighCommand();
+		if (highCommand && highCommand.HasLivingGroupWithin(position, radius))
+		{
+			s_sLastHold = "a high command group";
+			return true;
+		}
+
 		return IsGroundHeldBy(config.GetPlayerFactionData(), position, radius);
 	}
 

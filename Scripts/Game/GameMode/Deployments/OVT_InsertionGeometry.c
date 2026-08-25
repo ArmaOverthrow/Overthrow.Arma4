@@ -54,6 +54,37 @@ class OVT_InsertionGeometry
 		return target + (direction * standoff);
 	}
 
+	//! The least of the authored standoff a road-snapped landing zone must still keep. Below this the
+	//! road is rejected and the geometric point is used instead.
+	static const float MIN_RETAINED_STANDOFF = 0.75;
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a road-snapped landing zone is still far enough from the objective to be one.
+	//!
+	//! 🔴 THE SNAP HAD NO OPINION ABOUT THE TARGET, AND THAT IS THE BUG (author, 2026-08-25: "a
+	//! sabotage insertion is driving all the way into a base, its supposed to drop them off a little
+	//! away"). ResolveLandingZone() puts a point m_fLZStandoffDistance short of the objective and then
+	//! hands it to FindNearestRoadSpawn with a 200 m search - and a base's own access road is a road.
+	//! With sabotage's authored 300 m standoff the snap could legally move the drop to 100 m from the
+	//! objective, which is inside the wire; the convoy then drove in and parked, because as far as the
+	//! module was concerned it had arrived at its landing zone.
+	//!
+	//! ⚠ THE ROAD IS STILL WANTED. A truck that stops in a field is a truck the dismounts walk further
+	//! from and a wreck the next convoy has to path around, so this rejects a bad road rather than
+	//! refusing to snap at all.
+	//! \param[in] candidate The road position the snap offered.
+	//! \param[in] target The objective.
+	//! \param[in] standoff The authored standoff. Non-positive accepts anything - a config that asks
+	//!            for no standoff is asking to be driven to the door.
+	//! \return True when the candidate keeps at least MIN_RETAINED_STANDOFF of the authored distance.
+	static bool IsAcceptableLZ(vector candidate, vector target, float standoff)
+	{
+		if (standoff <= 0)
+			return true;
+
+		return vector.Distance(candidate, target) >= standoff * MIN_RETAINED_STANDOFF;
+	}
+
 	//------------------------------------------------------------------------------------------------
 	//! Whether the convoy is within the landing zone's radius - the place half of arriving, with
 	//! nothing said about whether it is still moving.

@@ -3289,3 +3289,48 @@ a separate call, so "webhook only" is simply the one call.
 
 `tools/compile-check.sh` exit 0 (6347 files). Suites not run — the user was play-testing. Owed: confirm
 the posts land on a server with `discordWebHookURL` set, including that a reconnect announces.
+
+### 2026-08-25 — Sabotage completed with the team dead and high command holding the base
+
+**Author:** *"a specops team just sabotaged a buildable at our base after they were dead and there is resistance everywhere (high command groups)"*; *"I wasnt there myself, but it looks like they didnt even make it to the flag, their bodies are like 40m away"*; and, correcting a wrong diagnosis: *"a high command group cannot be dormant, they are an observer, and besides I was only about 300m away and could hear the firefight."*
+
+**UNRESOLVED. Instrumented, not explained.** Two source-read explanations were offered and both were wrong; this entry records what has been RULED OUT so the next reader does not re-walk them.
+
+❌ **Ruled out — "the HC groups were dormant so the entity query could not see them."** Wrong, and the author said so. `OVT_HighCommandGroupComponent.InstallObserver` makes every HC group an **AI observer**, and its header forbids `SetLifecyclePolicy` precisely so the group stays Manual/always-live: *"Manual (the engine default) is what 'always live' means; ProximityDriven would delete its bodies at 800 m."* Their men are materialised, `OVT_ResistancePresence`'s sphere query finds them, and the author was 300 m away with the firefight audible regardless.
+
+❌ **Ruled out — a surviving transport crew standing in for the dead team.** The insertion module registers its crew under a separate `crewKey` and `CollectRegisteredHandles` returns only `m_aHandles`, so the crew is never counted by `CountAliveRegisteredMembersWithin`.
+
+❌ **Ruled out — HC groups being the wrong faction for the query.** `Group_FIA_*` → `Character_FIA_Rifleman` → `Character_FIA_Base` authors `"faction affiliation" "FIA"`, which is `m_sPlayerFaction`, so the affiliation branch matches them directly.
+
+**What is left.** `EvaluateDemolition` fires only on `aliveInside >= 1 && !enemyPresent && ticks exhausted`. With the team dead `aliveInside` should be 0 (the survivor mask), and with HC groups at the base `enemyPresent` should be true. Both should have blocked, and one of them demonstrably did not. Which one cannot be settled from source — so it is logged instead, on the update that actually takes a structure: `aliveInside`, the clear radius, `enemyPresent`, and the **measured distance to the nearest resistance**. A positive count beside a dead team indicts the survivor mask; `enemyPresent=false` with a small distance indicts `OVT_ResistancePresence`.
+
+⚠ One note on timing the author raised implicitly: `ticksLeft` **pauses** rather than resets when contested, so a mission can bank progress while the base is quiet and finish the instant it goes quiet again. That is by design, but it means "the demolition happened after they died" and "the ticks were earned before they died" are not mutually exclusive.
+
+**Kept from the wrong diagnosis:** `OVT_HighCommandManagerComponent.HasLivingGroupWithin(position, radius)` and its use as `IsGroundHeld`'s first question. It is no longer justified as a dormancy fix - it is a cheap early answer (a walk over a handful of records instead of a world sphere query) and a fallback for a server running with `GetHighCommandGroupsAreObservers` off. Harmless and useful; not a fix for this report.
+
+**Next step is the author's:** reproduce with `m_bDebugMode` on and send the `Sabotage demolishing at` line.
+
+`tools/compile-check.sh` exit 0 (6349 files). Suite not run.
+
+### 2026-08-25 — An interrupted hold now RESETS instead of pausing
+
+**Author:** *"it should reset though"* — on learning that `ticksLeft` paused rather than reset when a hold was contested.
+
+**Why it matters:** a paused clock banks progress. A sabotage team could be driven off five times and still finish on the sixth visit, because every quiet minute counted towards the same interval. Resetting is what makes "they have to hold the ground" true, and it is a large behaviour change in the player's favour on every timed occupying operation.
+
+**All four hold decisions changed together**, because they are the same rule copied four times:
+
+| Module | Decision |
+|---|---|
+| `OVT_BaseSabotageBehaviorDeploymentModule` | `EvaluateDemolition` |
+| `OVT_TownHarassmentBehaviorDeploymentModule` | `EvaluateHold` |
+| `OVT_TowerRecaptureBehaviorDeploymentModule` | `EvaluateRecapture` |
+| `OVT_BaseRepairBehaviorDeploymentModule` | `EvaluateRepair` |
+
+⚠ **The reset value is passed IN, as a new `int fullTicks` parameter, rather than read from difficulty inside the decision.** These four methods are deliberately pure — that is the whole point of the split, and the Logic/Init tiers pin them by calling them directly on a bare module with no deployment and no world. Reaching for `ResolveIntervalTicks()` inside them would have made them depend on `OVT_Global.GetDifficulty()` and broken every one of those cases. The callers, which already hold the module, pass `ResolveIntervalTicks()` / `ResolveHoldTicks()`.
+
+⚠ **The tests were rewritten, not mechanically re-signatured.** Their assertions *were* the old rule — three separate suites asserted "an interruption must PAUSE the clock, not reset it" in as many words. Each now asserts the reset and then serves the whole interval from the top, which is the claim that actually distinguishes the two designs; a test that only checked the tick count after an interruption would pass under either.
+
+⚠ **Interaction with the unresolved sabotage report above:** this removes the "banked ticks" explanation for it entirely. If a demolition still completes with defenders present, the cause is one of the two gates, not accumulated progress.
+
+`tools/compile-check.sh` exit 0 (6349 files). ⚠ **Suite not run** — 3 rewritten case bodies across `OVT_TEST_Init_ObjectiveSabotage`, `OVT_TEST_Init_ObjectiveOperations` and `OVT_TEST_Logic_ObjectiveRepair` are unproven until the **All** group runs.

@@ -13,7 +13,17 @@ to file it (the file records why).
 **2026-08-12: all eight live reports submitted** to BI's feedback tracker as
 `ARMD-10`…`ARMD-17` (see the table). RFG-005 was cancelled before submission: the arsenal box not
 saving physical contents is intended base-game behaviour for Conflict-style modes — the real issue
-is RFG-006, which blocks modders from overriding it.
+was believed to be RFG-006, which appeared to block modders from overriding it.
+
+**2026-08-25 retest of the two persistence reports** (BI reported both settled in 1.8; measured on
+1.8.0.10 with purpose-built autotests, both probes reverted):
+
+- **RFG-004 is NOT fixed.** A script-defined `PersistenceConfigRule` is still never dispatched to —
+  `IsMatch` and `GetTypePriority` both zero across world load plus 50 forced re-matches. Reply owed.
+- **RFG-006 is NOT A BUG** and never was. `Priority` works fine for mod configs; vanilla's *unset
+  default* is ~32500, so our original 30000 test simply lost. Withdrawal owed. **This unblocks a
+  mod-side fix for RFG-005** — an override at `Priority >= 32500` is selected (serializer round-trip
+  still untested).
 
 ## Index
 
@@ -22,9 +32,9 @@ is RFG-006, which blocks modders from overriding it.
 | [RFG-001](RFG-001.md) | `MovePlayerToGroup` strips the old group before the full-check — failed move leaves player groupless | major | [ARMD-10](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-10) |
 | [RFG-002](RFG-002.md) | `RequestJoinGroup` is a silent no-op server-side — private-group approvals do nothing on dedicated (but notify "accepted") | major | [ARMD-11](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-11) |
 | [RFG-003](RFG-003.md) | `OnItemAdded` NULL VME when inventory manager's owner is not a character | major | [ARMD-12](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-12) |
-| [RFG-004](RFG-004.md) | Scripted `PersistenceConfigRule.IsMatch` is never called — silent never-match | minor | [ARMD-13](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-13) |
-| [RFG-005](RFG-005.md) | Arsenal boxes silently destroy all deposited items on load (no storage serializer, no error) | major | cancelled — intended vanilla behaviour; real issue is RFG-006 |
-| [RFG-006](RFG-006.md) | Mod persistence config can never win a prefab match vs vanilla; Priority not honoured | minor | [ARMD-14](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-14) — BI responded 2026-08-19; clean-profile retest owed |
+| [RFG-004](RFG-004.md) | Scripted `PersistenceConfigRule.IsMatch` is never called — silent never-match | minor | [ARMD-13](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-13) — BI reported fixed in 1.8; **retested 2026-08-25 on 1.8.0.10: NOT fixed** (`IsMatch` and `GetTypePriority` both 0 calls across world load + 50 forced re-matches); reply owed |
+| [RFG-005](RFG-005.md) | Arsenal boxes silently destroy all deposited items on load (no storage serializer, no error) | major | cancelled — intended vanilla behaviour; **now fixable mod-side** (RFG-006 retest 2026-08-25: an override at `Priority >= 32500` wins) |
+| [RFG-006](RFG-006.md) | Mod persistence config can never win a prefab match vs vanilla; Priority not honoured | minor | [ARMD-14](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-14) — closed by BI; **retested 2026-08-25 on 1.8.0.10: NOT A BUG** — `Priority` works, vanilla's unset default is ~32500 and our test used 30000. Withdrawal owed |
 | [RFG-007](RFG-007.md) | `RequestSpawn` on a live record retries forever; batch requests can wedge all saves for the session | major | [ARMD-15](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-15) — BI can't repro (used `Include`; ours had none); reply + `-persistence dig` log owed |
 | [RFG-008](RFG-008.md) | GetIn/RemoveCasualty missing the same-faction guard the door/handbrake actions have | minor | [ARMD-16](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-16) |
 | [RFG-009](RFG-009.md) | `Rpc()` arity/type mismatch compiles clean and fails silently at runtime | minor (QoL) | [ARMD-17](https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-17) |
