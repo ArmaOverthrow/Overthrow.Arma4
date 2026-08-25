@@ -159,10 +159,6 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 	protected int m_iCrewHandle;
 
-	//! How long this transport's driver has been holding the horn, in milliseconds. See
-	//! OVT_VehicleHornWatchdog - the engine presses it and sometimes never writes it back.
-	protected int m_iHornHeldMs;
-
 	//! THIS INSERTION'S OWN crew owner key, minted once on first use and never recomputed. See
 	//! GetCrewOwnerKey() - the whole point is that no other insertion, ever, can compose this string.
 	protected string m_sCrewOwnerKey;
@@ -652,7 +648,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 			// could walk: the crew came back with a null plan and stood in the road beside an abandoned
 			// truck, forever, blocking it (author play-test, same day).
 			m_iCrewHandle = virtualization.RegisterGroup(OWNER_SYSTEM, crewKey, factionKey, m_sTruckCrewGroup,
-				crewPosition, ResolveVirtualPlan(crewPosition), RIDING_SPAWN_DISTANCE, CREW_IMPORTANCE);
+				crewPosition, ResolveCrewPlan(crewPosition), RIDING_SPAWN_DISTANCE, CREW_IMPORTANCE);
 
 			if (m_iCrewHandle == -1)
 			{
@@ -677,6 +673,61 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		}
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] vehicle The vehicle the garbage system is about to book.
+	//! \return True when it is this insertion's transport.
+	override bool OwnsVehicle(IEntity vehicle)
+	{
+		return vehicle && vehicle == m_Truck;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Where the crew is now, for building a plan from. The truck when there is one - the crew is in it.
+	//! \return A world position.
+	protected vector CrewPosition()
+	{
+		if (m_Truck)
+			return m_Truck.GetOrigin();
+
+		if (m_ParentDeployment)
+			return m_ParentDeployment.GetPosition();
+
+		return m_vSource;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE CREW'S PLAN, WHICH ENDS AT THE LANDING ZONE AND NOT AT THE OBJECTIVE.
+	//!
+	//! 🔴 THE REGRESSION THIS FIXES (author, 2026-08-26: "a sabotage insertion just drove right up to
+	//! the flag again"). The crew used to be registered with a NULL plan. Commit 519b8238 gave it
+	//! ResolveVirtualPlan() so a crew restored across a load could not end up standing in the road
+	//! beside an abandoned truck forever - a real fix, but that resolver's fallback marches onto
+	//! m_ParentDeployment.GetPosition(), i.e. THE OBJECTIVE. So the driver had a movement plan that
+	//! pointed past his own landing zone and he drove to the flag.
+	//!
+	//! ⚠ IT WAS INVISIBLE ON THE CONFIGS IT WAS WRITTEN FOR, which is why it survived a play-test. The
+	//! mounted family - hunter-killer, QRF echelon, armour sortie - all author m_fLZStandoffDistance 0,
+	//! so their landing zone IS the objective and a plan pointing at either is the same plan. Only a
+	//! config with a real standoff could show it, and sabotage's 300 m is the only one.
+	//!
+	//! ⚠ THE LANDING ZONE IS THE RIGHT ANSWER FOR BOTH. With a standoff of 0 this is byte-identical to
+	//! what the mounted configs do today; with a standoff it is what the insertion was always supposed
+	//! to do. The deployment position stays as the fallback for the one case m_vLZ is not resolved yet.
+	//! \param[in] crewPosition Where the crew is about to be registered.
+	//! \return The plan. Never null once there is a landing zone or a deployment to drive to.
+	protected OVT_VirtualWaypointPlan ResolveCrewPlan(vector crewPosition)
+	{
+		if (m_vLZ != vector.Zero)
+		{
+			array<vector> stops = {};
+			stops.Insert(m_vLZ);
+
+			return OVT_VirtualPlanFactory.BuildRoutePlan(stops, MARCH_HOLD_SECONDS, false, crewPosition);
+		}
+
+		return ResolveVirtualPlan(crewPosition);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -714,6 +765,18 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
 		if (!virtualization)
 			return;
+
+		// 🔴 THE PLAN MOVES WITH THE ORDER, AND IT USED NOT TO. A waypoint drives a group only while it
+		// is MATERIALISED; the moment it goes dormant the virtual movement tick walks its PLAN instead.
+		// A crew ordered home therefore drove home only while somebody was watching, and otherwise
+		// resumed marching to wherever the plan still pointed - the landing zone on the way back, and
+		// the objective before that (author, 2026-08-26: "the insertion crew are not moving, not going
+		// back to base"). Both destinations are now one statement.
+		array<vector> stops = {};
+		stops.Insert(destination);
+
+		virtualization.SetGroupPlan(m_iCrewHandle,
+			OVT_VirtualPlanFactory.BuildRoutePlan(stops, MARCH_HOLD_SECONDS, false, CrewPosition()));
 
 		SCR_AIGroup crew = virtualization.GetGroup(m_iCrewHandle);
 		if (!crew)
@@ -770,10 +833,6 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// would never run at all. It is a no-op on every other path (the flag is false).
 		TickAbandonedTruck();
 
-		// ⚠ BEFORE THE STATE DISPATCH, FOR THE SAME REASON: every branch below returns, and a latched
-		// horn is not confined to the drive. A mounted force that has arrived sits in HOLDING, which is
-		// where one of the two recorded latches happened.
-		m_iHornHeldMs = OVT_VehicleHornWatchdog.Tick(ResolveDriverCharacter(), deltaTime, m_iHornHeldMs);
 
 		// ⚠ The retry, and the only place it can live: EnsureGroups() is called once, at activation, so an
 		// insertion that could not resolve an origin on that pass would register nothing ever again.
@@ -1529,7 +1588,23 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		if (virtualization && m_iCrewHandle != -1)
 			crew = virtualization.GetGroup(m_iCrewHandle);
 
-		ClearOwnedWaypoints(crew);
+		// 🔴 A CREW THAT WAS SEEN KEEPS ITS ORDERS (author, 2026-08-26: "if a player has seen the truck
+		// perform an insertion they expect it to exist ... as long as they do attempt to drive home").
+		// Teardown exists for things nobody watched; a transport a player has just watched deliver a
+		// team is not one, and stripping its waypoints here left the driver sitting in the road with the
+		// deployment already gone. Vetoed and still driving home = leave him to it.
+		bool leaveDriving = m_Truck && m_eState == OVT_EInsertionState.RETURNING
+			&& OVT_VehicleClaim.DeletionVeto(m_Truck) != "";
+
+		if (leaveDriving)
+		{
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': torn down mid-return in view of a player - its crew keeps its orders and drives home under its own steam",
+				DescribeSelf()));
+		}
+		else
+		{
+			ClearOwnedWaypoints(crew);
+		}
 
 		// ⚠ BEFORE THE UNREGISTER AND BEFORE UnsubscribeRiders(), because both of those take away the
 		// handles this reads. It is the single release point for the activation pin - see
@@ -1546,10 +1621,31 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 		if (virtualization && m_iCrewHandle != -1)
 		{
-			// ⚠ TAKE THE MEN OUT AND PUT THEM AWAY BEFORE HANDING THE REGISTRATION BACK. See
-			// StandDownCrew() - without this the truck is deleted a few lines below with a live crew
-			// inside it, and the registration is retired around men who never despawn.
-			StandDownCrew(virtualization, m_iCrewHandle);
+			// 🔴 NOT IN FRONT OF SOMEBODY. The truck below is spared when a player is close enough to
+			// watch it go (OVT_VehicleClaim.DeletionVeto), and standing its CREW down anyway left a
+			// player looking at a driver and co-driver blinking out of an intact vehicle - the exact
+			// thing the veto exists to prevent, one layer down (author, 2026-08-26).
+			//
+			// ⚠ The registration is still handed back either way: what is skipped is emptying the men
+			// out of the cab first, so UnregisterGroup takes its held-members branch and retires the
+			// group in place around them. They become ordinary world AI in a truck nobody owns, which
+			// is what a watcher already believes they are.
+			if (m_Truck && !leaveDriving && OVT_VehicleClaim.DeletionVeto(m_Truck) == "")
+			{
+				// ⚠ TAKE THE MEN OUT AND PUT THEM AWAY BEFORE HANDING THE REGISTRATION BACK. See
+				// StandDownCrew() - without this the truck is deleted a few lines below with a live crew
+				// inside it, and the registration is retired around men who never despawn.
+				StandDownCrew(virtualization, m_iCrewHandle);
+			}
+			else if (m_Truck)
+			{
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Insertion '%1': its crew is left in the cab - %2",
+					DescribeSelf(), OVT_VehicleClaim.DeletionVeto(m_Truck)));
+			}
+			else
+			{
+				StandDownCrew(virtualization, m_iCrewHandle);
+			}
 
 			// UnregisterGroup respects held members: a crewman still sitting in the truck retires the
 			// group in place rather than having it deleted out from under him. StandDownCrew() has

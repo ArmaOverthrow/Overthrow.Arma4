@@ -288,8 +288,10 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		
 		vector p = mat[3];
 	
+		// +90, not -90: the kerb's forward points into the road, so this leaves the kerb on the car's
+		// RIGHT. Everon drives on the right; -90 parked every car facing oncoming traffic.
 		vector angles = Math3D.MatrixToAngles(mat);
-		angles[0] = angles[0] - 90;
+		angles[0] = angles[0] + 90;
 		Math3D.AnglesToMatrix(angles, outMat);
 		outMat[3] = p;
 		

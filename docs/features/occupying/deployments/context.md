@@ -864,3 +864,77 @@ That is not a defect in the player prefab — Overthrow's entire wanted system r
 ⚠ **This supersedes the three "fixes" filed above it.** The vehicle-origin bug, the 320-vs-280 arithmetic and the players-only complaint were all real and are all still worth having, but **none of them was the cause of the reports** — the author said so twice and was right both times. The instrumentation added to settle it is worth keeping.
 
 `tools/compile-check.sh` exit 0 (6349 files). Suite not run; play-test owed — and it is now worth re-testing every hold in the table above, all of which have been quietly inoperative against a lone player.
+
+### 2026-08-26 — The garbage system now protects active deployment vehicles
+
+**Author:** *"i think the garbage system should probably protect active deployment vehicles just in case."*
+
+**The gap:** Overthrow's `SCR_GarbageSystem` override refused to collect a vehicle with a **player owner** — and a deployment vehicle never has one. So every patrol truck, transport and parked vehicle the occupying faction owned carried vanilla's ordinary lifetime and could be collected mid-patrol, **taking its mounted crew with it**, because a mounted crew is parented to its vehicle. That is one event, not two, and it produces no Overthrow log line anywhere — which matches the standing report of a patrol UAZ and its crew vanishing together as a GM camera arrived, with both editor budgets well below their limits.
+
+⚠ **Still a hypothesis, not a proven cause.** It is the only mechanism found that can remove a vehicle silently, but the report has not been reproduced against the new instrumentation. The diagnostic that settles it is in `PruneDestroyedVehicles`: a **null** reference now logs *"it was DELETED by something, not destroyed"*, distinct from a wreck, and `ReleaseVehicles` logs its own deletes. A null line with no teardown line above it is somebody else's deletion.
+
+**Shape of the fix — answered from the modules, never from a registry:**
+
+| Layer | Responsibility |
+|---|---|
+| `OVT_BaseSpawningDeploymentModule.OwnsVehicle()` | default: checks `m_aSpawnedEntities`, which the shared `SpawnEntity()` helper already fills — covers parked vehicles |
+| `OVT_VehicleSpawningDeploymentModule` override | its own `m_aSpawnedVehicles` |
+| `OVT_InsertionSpawningDeploymentModule` override | its `m_Truck` — and so every mounted config, by inheritance |
+| `OVT_DeploymentManagerComponent.IsDeploymentVehicle()` | walks live deployments and asks each spawning module |
+| `SCR_GarbageSystem.OnInsertRequested` | asks the manager, for vehicles only, after the player-owner test |
+
+⚠ **A parallel "deployment vehicles" set was deliberately not built.** It would have to be kept in step with every spawn, teardown, theft and destruction, and a stale `EntityID` in it would protect litter forever — or protect whatever entity next reused that id. Asking the owning module means a vehicle stops being protected the exact moment its deployment stops owning it.
+
+⚠ **Cost** is paid only on a garbage *insert* (when an entity becomes collectable), not per frame, and only for `Vehicle` casts. The walk is bounded by the per-faction deployment ceiling.
+
+⚠ **Consequence to watch:** a vehicle a deployment still owns is now permanently exempt from collection. If a module ever leaks a vehicle into its own list without clearing it, that vehicle becomes immortal litter rather than being tidied by vanilla. The teardown paths all clear their lists, and `PruneDestroyedVehicles` drops wrecks and deleted entities — but this is the failure mode to look for if derelicts start accumulating.
+
+`tools/compile-check.sh` exit 0 (6351 files). Needs a Workbench restart and a repro to confirm.
+
+### 2026-08-26 — Marching groups get a travel formation
+
+**Author:** *"sabotage specops team running from the FOB, the squad leader runs far ahead and they dont travel as a group, what kind of waypoint do they get?"* — then, after the analysis: *"yeh lets add formation then, dont worry about virtualization and despawn/respawn."*
+
+**The answer to the question asked:** a planned march builds `OVT_EVirtualWaypointType.MOVE` → `OVT_OverthrowConfigComponent.SpawnMoveWaypoint()` → vanilla `AIWaypoint_Move.et`:
+
+```
+Type "Move" · AIBehaviorTreeMoveTo WP_Move.bt · CompletionRadius 5 · CompletionType Any
+```
+
+🔴 **`CompletionType` was NOT the lever, and changing it would have been a trap.** `EAIWaypointCompletionType` is `{All, Leader, Any}` and vanilla ships `Any`, so the waypoint completes when the first man arrives. But `OVT_VirtualPlanFactory.BuildRoutePlan` builds a **single** MOVE waypoint for a march, so completion type decides only when that one waypoint is *marked done* — it has no bearing on how strung out the group gets walking to it. Switching to `All` would therefore not have fixed the symptom, and **would** have deadlocked the group whenever one man never arrives — which the author reports is the common stuck case (a man left on the insertion truck). Formation degrades gracefully instead: a straggler falls behind and nothing stalls.
+
+**`OVT_GroupFormation.Apply(group, formation)`** — the vanilla recipe, lifted from `SCR_AISetGroupFormation`:
+- `AIFormationComponent.SetFormation(name)`, **and**
+- `AIGroupMovementComponent.SetFormationDefinition(handlerId, name)` for **every** move handler, walked until `GetMoveHandlerAgentCount()` answers `-1`. A group that has split (men mounted, men on foot) has more than one, and handlers left on the default walk a different shape.
+- ⚠ Both setters take the enum's **name**, not its value — `typename.EnumToString(SCR_EAIGroupFormation, ...)`, as vanilla does.
+
+**Wired in** at `OVT_InfantrySpawningDeploymentModule.OnGroupRegistered/OnGroupReclaimed`, so every infantry group gets it — and the insertion module already chains `super.OnGroupRegistered()`, so the sabotage team and every mounted force inherit it. Authored as `m_eTravelFormation`, defaulting to **StaggeredColumn** (ordinal 3); Wedge (0) is vanilla's default and is a *combat* spread.
+
+⚠ **`clone.m_eTravelFormation` added to `CloneModule`** — D1's standing trap. Dropped, every group in the game would silently march on the enum's zero value, which is Wedge, i.e. exactly the behaviour being fixed.
+
+⚠ **Applied at registration only, by instruction.** A group that despawns and materialises again may come back on the engine's default. `ApplyTravelFormation()` is the single line that would need re-asserting on materialisation if marches start looking ragged again after a despawn.
+
+⚠ **Untested beyond compile.** Whether StaggeredColumn is the right shape — versus Column, or Wedge for the last leg onto a target — is a feel question for play-test, and it is one authored value away.
+
+`tools/compile-check.sh` exit 0 (6352 files).
+
+### 2026-08-26 — Horn workaround and diagnostics REMOVED; filed upstream as ARMD-42
+
+**Author:** *"horn bug was reported to bohemia as ARMD-42. I found an old bug that they marked resolved but I think it wasnt resolved for dedicated servers, can we remove any of our diagnostics or workarounds we'll just have to live with it for now."*
+
+**Upstream:** https://report.bistudio.com/projects/arma-reforger/reforger-modding/ARMD-42 — a previously-closed report that appears **not** to have been resolved for dedicated servers.
+
+**Removed in full:**
+- `Scripts/Game/GameMode/Deployments/OVT_VehicleHornWatchdog.c` — deleted
+- `OVT_InsertionSpawningDeploymentModule`: `m_iHornHeldMs` and its `OnUpdate` tick (which the whole mounted family inherited)
+- `OVT_VehicleSpawningDeploymentModule`: `m_mHornHeldMs`, `TickHorns()` and its call
+- `OVT_TEST_Init_Deployments_HornWatchdogReleasesOnlyALatch` — the Init case
+- The earlier temporary diagnostic (`TickHornDiagnostic`) was already gone in `d236101a`
+
+⚠ **The workaround never demonstrably worked.** Its release line was `LogLevel.NORMAL` and ungated, and it never printed once across every log on the machine — including sessions where the author watched covered vehicles honking. That is consistent with the server reading `GetVehicleHorn()` as off while clients hear it, which is exactly the dedicated-server-only shape ARMD-42 describes and which no server-side write could ever fix.
+
+⚠ **What the investigation established, kept here so it is not re-derived:** `SetVehicleHorn` has **zero callers** in the vanilla script tree and zero in Overthrow — both the press and the release are native. A player cannot latch it because the input system rewrites the value from the device every frame; an AI driver has no device, so whatever the native driving code last wrote just sits in his `CharacterInputContext`. Ruled out as causes: Overthrow's LOD pin (removed 2026-08-24, still latched) and the vehicle prefab driving deltas (reverted to stock the same day, still latched).
+
+⚠ **Verification of the removal:** the Init suite's case list was diffed against HEAD — exactly one class removed (`...HornWatchdogReleasesOnlyALatch`), none added, 88 → 87. Worth noting because the first delete attempt took the *following* case's doc comment with it; that was caught and restored from git.
+
+`tools/compile-check.sh` exit 0 (6351 files).

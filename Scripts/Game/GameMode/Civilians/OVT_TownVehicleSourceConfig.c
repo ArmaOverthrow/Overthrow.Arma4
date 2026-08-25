@@ -650,7 +650,8 @@ class OVT_TownVehicleSourceConfig : OVT_AmbientSpawnSourceConfig
 		// roadMat[0] is the RIGHT vector of a matrix built from the road's direction of travel, so this
 		// steps squarely onto one verge or the other.
 		float offset = m_Template.m_fRoadLateralOffset;
-		if (s_AIRandomGenerator.RandInt(0, 2) == 0)
+		bool leftVerge = s_AIRandomGenerator.RandInt(0, 2) == 0;
+		if (leftVerge)
 			offset = -offset;
 
 		vector candidate = roadPosition + (roadMat[0] * offset);
@@ -660,6 +661,10 @@ class OVT_TownVehicleSourceConfig : OVT_AmbientSpawnSourceConfig
 			return false;
 
 		candidate[1] = world.GetSurfaceY(candidate[0], candidate[2]);
+
+		// Everon drives on the right: a car on the left verge belongs to traffic going the other way.
+		if (leftVerge)
+			roadAngles[0] = roadAngles[0] + 180;
 
 		position = candidate;
 		angles = roadAngles;

@@ -2796,6 +2796,47 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! IS THIS VEHICLE IN ACTIVE SERVICE WITH A DEPLOYMENT?
+	//!
+	//! 🔴 WHY THE GARBAGE SYSTEM NEEDS TO ASK (author, 2026-08-26: "the garbage system should probably
+	//! protect active deployment vehicles just in case"). Overthrow's SCR_GarbageSystem override
+	//! refuses to collect a vehicle with a PLAYER OWNER, and a deployment vehicle never has one - so a
+	//! patrol truck inherits vanilla's ordinary lifetime and can be collected out from under a live
+	//! deployment, taking its mounted crew with it (a crew is parented to its vehicle). That is the
+	//! leading explanation for a patrol UAZ and its crew vanishing together with nothing in the log.
+	//!
+	//! ⚠ ANSWERED FROM THE MODULES, NOT FROM A REGISTRY. Every module answers from the list it already
+	//! keeps, so a vehicle stops being protected the moment its deployment stops owning it - no
+	//! bookkeeping to leak, and no stale EntityID that could protect litter or, worse, whatever entity
+	//! next reuses that id.
+	//!
+	//! ⚠ COST IS PAID ONLY ON A GARBAGE INSERT, which happens when an entity becomes collectable - not
+	//! per frame and not per vehicle.
+	//! \param[in] vehicle The vehicle the garbage system is about to book.
+	//! \return True when some live deployment still owns it.
+	bool IsDeploymentVehicle(IEntity vehicle)
+	{
+		if (!vehicle)
+			return false;
+
+		array<OVT_DeploymentComponent> deployments = GetAllDeployments();
+		foreach (OVT_DeploymentComponent deployment : deployments)
+		{
+			if (!deployment)
+				continue;
+
+			array<OVT_BaseSpawningDeploymentModule> spawningModules = deployment.GetSpawningModules();
+			foreach (OVT_BaseSpawningDeploymentModule module : spawningModules)
+			{
+				if (module && module.OwnsVehicle(vehicle))
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// Utility methods
 	//------------------------------------------------------------------------------------------------
 	array<OVT_DeploymentComponent> GetDeploymentsInRadius(vector position, float radius)

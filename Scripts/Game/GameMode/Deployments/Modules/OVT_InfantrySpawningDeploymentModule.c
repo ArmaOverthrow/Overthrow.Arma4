@@ -23,6 +23,13 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
+	//! 🔴 HOW THEY WALK, not how the waypoint completes (author, 2026-08-26: "the squad leader runs far
+	//! ahead and they dont travel as a group"). Wedge is vanilla's default and is a COMBAT spread; a
+	//! team marching from a forward base to a target wants a travel column instead. See
+	//! OVT_GroupFormation for why the waypoint's completion type was deliberately NOT the lever.
+	[Attribute(defvalue: "3", uiwidget: UIWidgets.ComboBox, desc: "Formation this module's groups march in. StaggeredColumn is the travel default; Wedge is vanilla's combat spread", enums: ParamEnumArray.FromEnum(SCR_EAIGroupFormation))]
+	SCR_EAIGroupFormation m_eTravelFormation;
+
 	[Attribute(defvalue: "light_patrol", desc: "Group type name from faction registry")]
 	string m_sGroupType;
 
@@ -249,6 +256,9 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		clone.m_bSpawnAtNearestBase = m_bSpawnAtNearestBase;
 		clone.m_bReinforceFromNearestBase = m_bReinforceFromNearestBase;
 		clone.m_eImportance = m_eImportance;
+
+		// ⚠ DROP THIS AND EVERY GROUP MARCHES ON THE ENUM'S ZERO VALUE (Wedge), silently.
+		clone.m_eTravelFormation = m_eTravelFormation;
 		clone.m_bSnapToRoad = m_bSnapToRoad;
 
 		return clone;
@@ -534,6 +544,24 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	//! \param[in] position Where it was registered.
 	protected void OnGroupRegistered(int handle, vector position)
 	{
+		ApplyTravelFormation(handle);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a freshly registered or reclaimed group into this module's travel formation.
+	//!
+	//! ⚠ APPLIED AT REGISTRATION ONLY. A group that despawns and materialises again may come back on
+	//! the engine's default - deliberately out of scope (author, 2026-08-26: "dont worry about
+	//! virtualization and despawn/respawn"). If marches start looking ragged again after a despawn,
+	//! this is the line that would need re-asserting on materialisation.
+	//! \param[in] handle The group's registry handle.
+	protected void ApplyTravelFormation(int handle)
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return;
+
+		OVT_GroupFormation.Apply(virtualization.GetGroup(handle), m_eTravelFormation);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -547,6 +575,7 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	//! \param[in] handle The reclaimed group's registry handle. Already present in m_aHandles.
 	protected void OnGroupReclaimed(int handle)
 	{
+		ApplyTravelFormation(handle);
 	}
 
 	//------------------------------------------------------------------------------------------------

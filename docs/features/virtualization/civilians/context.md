@@ -856,3 +856,29 @@ Command's vehicle teardown. `DeleteComposition` now calls the helper, so the two
 **Owed:** a play-test — the crates already orphaned in an existing world are **not** swept up by this;
 they stay until that world is regenerated. Confirm no NEW ones appear across a restart, and that a
 recruit riding in an ambient car is still never deleted with it.
+
+---
+
+## Fix 2026-08-26 — parked cars faced oncoming traffic (Everon drives on the right)
+
+User report: ambient cars park as if traffic ran on the left. Two independent causes, both fixed:
+
+1. **Kerb path (`OVT_VehicleManagerComponent.FindNearestKerbParking`, the dominant path in towns).**
+   The kerb piece's forward points INTO the road (the function steps `+mat[2] * 3` to leave the
+   pavement), and the yaw was then `-90`, which makes the car's RIGHT vector equal the kerb normal —
+   i.e. the kerb ends up on the car's LEFT, which is left-hand-traffic parking. Now `+90`, so the kerb
+   sits on the car's right. Shared production code: the starting car, shop purchases and the
+   save-restore reparking path all inherited the same wrong side and are corrected with it.
+
+2. **Roadside fallback (`OVT_TownVehicleSourceConfig.FindRoadsideSpot`).** It rolled a verge by
+   negating the lateral offset but always emitted the road polyline's own heading, so every car placed
+   on the far verge faced against that verge's traffic. The heading now flips 180° with the offset.
+
+The polyline direction itself is arbitrary (whichever way the road was authored), which is fine — only
+the car's heading *relative to the verge it stands on* carries the traffic convention.
+
+**Gate:** `compile-check.sh` exit 0 (6351 files). No automated case pins parking yaw; suites skipped
+(no behavioural target and the user's Workbench session was live).
+
+**Owed:** a play-test — walk a city street and confirm cars stand with the kerb on their right, and that
+cars on opposite verges of the same street point in opposite directions.

@@ -86,10 +86,6 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 	protected ref array<Vehicle> m_aSpawnedVehicles;
 
-	//! How long each patrol vehicle's driver has been holding the horn, in milliseconds. Bounded by
-	//! this module's own vehicle count; entries are dropped the moment a horn reads off. See TickHorns.
-	protected ref map<EntityID, int> m_mHornHeldMs;
-
 	//! Registry handles for this module's crews. NOT persisted and NOT authoritative: the registry is,
 	//! and this list is re-derived from it by every convergence pass.
 	protected ref array<int> m_aCrewHandles;
@@ -199,46 +195,8 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		// An armed patrol vehicle whose gun nobody is manning is not a patrol. See the method.
 		EnsureTurretsManned();
 
-		TickHorns(deltaTime);
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Releases a latched horn on any of this module's patrol vehicles.
-	//!
-	//! ⚠ THE MOUNTED FAMILY GETS THIS FOR FREE AND THIS MODULE DID NOT.
-	//! OVT_MountedForceSpawningDeploymentModule extends OVT_InsertionSpawningDeploymentModule, so the
-	//! QRF echelon, hunter-killer sweep, base armour sortie and mounted harassment all inherit the
-	//! insertion module's horn tick. A patrol vehicle spawned here inherits nothing, so it needed its
-	//! own call (author, 2026-08-25: "the fix should have been deployed to everything").
-	//!
-	//! ⚠ KEYED ON THE VEHICLE, NOT INDEXED ALONGSIDE m_aSpawnedVehicles. A parallel array would be
-	//! corrupted by PruneDestroyedVehicles: EnforceScript's array.Remove() is swap-with-last, so the
-	//! accumulators would silently follow the wrong vehicles.
-	//! \param[in] deltaTime Milliseconds since the last update.
-	protected void TickHorns(int deltaTime)
-	{
-		if (!m_mHornHeldMs)
-			m_mHornHeldMs = new map<EntityID, int>();
-
-		foreach (Vehicle vehicle : m_aSpawnedVehicles)
-		{
-			if (!vehicle)
-				continue;
-
-			EntityID id = vehicle.GetID();
-
-			int held = 0;
-			if (m_mHornHeldMs.Contains(id))
-				held = m_mHornHeldMs.Get(id);
-
-			held = OVT_VehicleHornWatchdog.TickVehicle(vehicle, deltaTime, held);
-
-			if (held > 0)
-				m_mHornHeldMs.Set(id, held);
-			else if (m_mHornHeldMs.Contains(id))
-				m_mHornHeldMs.Remove(id);
-		}
-	}
 
 	//------------------------------------------------------------------------------------------------
 	//! Keeps every crew this module owns out of max LOD, so their behaviour trees keep running however
@@ -879,6 +837,23 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! \param[in] vehicle The vehicle the garbage system is about to book.
+	//! \return True when it is one of this patrol's.
+	override bool OwnsVehicle(IEntity vehicle)
+	{
+		if (!vehicle || !m_aSpawnedVehicles)
+			return false;
+
+		foreach (Vehicle mine : m_aSpawnedVehicles)
+		{
+			if (mine == vehicle)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Deletes this module's vehicles at teardown - EXCEPT the ones that have become somebody else's.
 	//!
 	//! THE 40 m RULE IS GONE. It existed because deactivation used to delete everything on a proximity
@@ -898,6 +873,12 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment vehicle left standing at teardown: %1", veto));
 				continue;
 			}
+
+			// ⚠ THE DELETE BRANCH USED TO SAY NOTHING while the veto branch spoke - so "my patrol vehicle
+			// vanished" was indistinguishable from a despawn, a garbage collection and a fault (author,
+			// 2026-08-26).
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment vehicle at %1 deleted at teardown",
+				vehicle.GetOrigin().ToString()));
 
 			OVT_WorldUtils.DeleteEntityTree(vehicle);
 		}
@@ -932,8 +913,33 @@ class OVT_VehicleSpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		for (int i = m_aSpawnedVehicles.Count() - 1; i >= 0; i--)
 		{
 			Vehicle vehicle = m_aSpawnedVehicles[i];
-			if (!vehicle || !IsVehicleOperational(vehicle))
+
+			// 🔴 THE TWO CASES ARE NOT THE SAME EVENT AND THIS USED TO CONFLATE THEM (author,
+			// 2026-08-26: a patrol UAZ and its mounted crew vanished together as a GM camera arrived,
+			// with nothing in the log and the editor budgets nowhere near full).
+			//
+			// A WRECK is ordinary - somebody destroyed it. A reference that has gone NULL means the
+			// entity was DELETED, and this module deletes its vehicles in exactly one place
+			// (ReleaseVehicles, which now says so). A null here with no teardown line above it is
+			// therefore somebody else's deletion - the vanilla garbage system, the editor, or the
+			// engine - and this is the only place in Overthrow that can witness it.
+			//
+			// ⚠ A mounted crew is PARENTED to its vehicle, so whoever deletes the vehicle takes the men
+			// in the cab with it. One event, not two.
+			if (!vehicle)
 			{
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1': a patrol vehicle entity has gone - it was DELETED by something, not destroyed. If no teardown line precedes this, it was not this module",
+					GetOwnerKey()));
+
+				m_aSpawnedVehicles.Remove(i);
+				continue;
+			}
+
+			if (!IsVehicleOperational(vehicle))
+			{
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1': a patrol vehicle at %2 is a wreck - dropping it",
+					GetOwnerKey(), vehicle.GetOrigin().ToString()));
+
 				m_aSpawnedVehicles.Remove(i);
 			}
 		}

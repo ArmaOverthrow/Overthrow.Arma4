@@ -3334,3 +3334,48 @@ the posts land on a server with `discordWebHookURL` set, including that a reconn
 ⚠ **Interaction with the unresolved sabotage report above:** this removes the "banked ticks" explanation for it entirely. If a demolition still completes with defenders present, the cause is one of the two gates, not accumulated progress.
 
 `tools/compile-check.sh` exit 0 (6349 files). ⚠ **Suite not run** — 3 rewritten case bodies across `OVT_TEST_Init_ObjectiveSabotage`, `OVT_TEST_Init_ObjectiveOperations` and `OVT_TEST_Logic_ObjectiveRepair` are unproven until the **All** group runs.
+
+### 2026-08-26 — Sabotage insertions drove past their landing zone to the flag
+
+**Author:** *"a sabotage insertion just drove right up to the flag again rather than dropping the specops team a little away from the objective. I know you said this wasnt changed recently but it definitely has. The time it changed was when I asked for the hunter-killer and/or QRF vehicles to go to the flag but it affected insertions as well."* Correct on every point, including the date.
+
+**The log settled it.** From the live Workbench session:
+
+```
+Insertion 'Objective Sabotage/Sabotage Team': driving 2078 m from <7457, 7, 6730>
+    to a landing zone at <7541.78, 144.709, 4659.29>, 353 m short of the objective
+...
+its transport is left standing at <7532.37, 164.854, 4379.67>
+```
+
+The landing zone was resolved **correctly** at 353 m. The truck finished ~280 m past it, ~65 m from the base. So the LZ geometry was never the fault — the transport **overshot its own landing zone**.
+
+🔴 **Cause: commit `519b8238` gave the transport CREW a movement plan that points at the objective.** It changed the crew's registration from a `null` plan to `ResolveVirtualPlan(crewPosition)`, whose fallback is `BuildRoutePlan([m_ParentDeployment.GetPosition()])` — the objective. `IssueCrewMove(m_vLZ)` still ordered the driver to the landing zone, but the virtual movement plan pointed past it, so he drove on to the flag.
+
+That commit's own change was a real fix (a crew restored across a load came back with a null plan and stood in the road beside an abandoned truck forever). What it did not account for is where the plan ends.
+
+⚠ **Why a play-test could not have caught it on the configs it was written for.** The whole mounted family — `Deployment_HunterKillerSweep`, `Deployment_QRFMountedEchelon`, `Deployment_BaseArmourSortie` — authors `m_fLZStandoffDistance 0`, so their landing zone **is** the objective and a plan pointing at either is the same plan. Sabotage's 300 m is the only standoff in the registry, so it is the only config that can show the defect. The same log line proves it: the hunter-killer in that session reported *"30 m short of the objective"*, which is right.
+
+**Fix:** `ResolveCrewPlan()` routes the crew to `m_vLZ`. With a standoff of 0 that is byte-identical to today's behaviour for the mounted configs; with a standoff it is what the insertion always meant. `ResolveVirtualPlan()` remains the fallback for the one tick where `m_vLZ` is not resolved yet, so 519b8238's abandoned-crew fix is untouched. Passengers are unaffected — marching onto the objective after dismount is their job.
+
+⚠ **Two wrong diagnoses were published before this one**, both from reading code rather than the log: a road-snap erosion (`ResolveLandingZone` snapping the LZ up to 200 m toward the objective) and "nothing changed recently, check the git log". The first is a **real but separate** defect and its guard is kept - see `OVT_InsertionGeometry.IsAcceptableLZ`; the second was simply wrong, and `git log -S` on the crew-plan string would have found the regression in one command. **The author's own dating of a regression was right and the git-log sweep that contradicted it was too narrow** - it searched the LZ geometry and the config, not the crew registration.
+
+`tools/compile-check.sh` exit 0 (6351 files). Play-test owed: confirm a sabotage team dismounts ~300 m out and that the hunter-killer still drives to the flag.
+
+### 2026-08-26 — Insertion return leg: the crew sat at the LZ, and was deleted in front of the player
+
+**Author, after the crew-plan fix landed:** *"insertion team got worked properly, landed at the LZ and team dismounted. However now the insertion crew are not moving, not going back to base. after the sabotage team was successfull the driver and co-driver were deleted and the truck remained. note that my player character is very close to where they were dropped."*
+
+**Confirmed working first**, from the same log: `353 m short of the objective`, `delivered 1 group(s) at <7541.78...>`, `its transport is going home`, and — the resistance-presence fix proving itself — `nearest resistance 363 m` in real metres rather than `float.MAX`, with the demolition correctly reading `defenders present=false` at that range.
+
+**Fault 1 — a MOVE ORDER IS NOT A PLAN, and only one of them survives dormancy.** `IssueCrewMove()` cleared the crew's waypoints and added a new one, which drives a group only while it is **materialised**. The virtual movement tick walks the group's `m_Plan` instead, and nothing ever re-pointed it: the crew was registered with a plan and kept it for life. So an insertion ordered home drove home only while somebody watched, and otherwise resumed marching to wherever the plan still said — the landing zone since yesterday's fix, and the **objective** before that. The outbound bug and this one are the same defect seen from two ends; fixing the registration plan only made the return leg visible.
+
+`IssueCrewMove()` now re-points both together. That required a new core entry point, because a plan was write-once:
+
+**`OVT_VirtualizationManagerComponent.SetGroupPlan(handle, plan)`** — deletes core's owned waypoints, replaces `record.m_Plan`, rebuilds them. ⚠ It touches **core's** waypoints only; consumer-owned waypoints stay the consumer's business, which is the D6 line this class already draws. ⚠ `docs/features/virtualization/core/api.md` needs this adding, along with `GetGroupFactionKey` from the tower work.
+
+**Fault 2 — the crew was stood down in front of a watcher while the truck was spared.** `OVT_VehicleClaim.DeletionVeto` left the transport standing (*"a player is close enough to see it go"*) and `ReleaseConvoy` then emptied the cab anyway, so the author watched a driver and co-driver blink out of an intact vehicle. That is precisely what the veto exists to prevent, one layer down. `StandDownCrew()` is now skipped when the truck is vetoed; `UnregisterGroup` takes its held-members branch and retires the group **in place** around the men, who become ordinary world AI in a truck nobody owns — which is what a watcher already believes they are.
+
+⚠ **Consequence, stated rather than discovered:** a vetoed transport now keeps a live crew indefinitely. `TickAbandonedTruck` collects the truck once nobody is within 320 m, but the module is gone by then, so those men are nobody's. That is the same trade as the vehicle itself and follows the author's standing rule (*"the vehicle is lost at that point"*) — but if abandoned crews accumulate on a long campaign, this is the entry that explains why.
+
+`tools/compile-check.sh` exit 0 (6351 files). Play-test owed: the transport should now drive home and be gone; a watched one should keep its crew.

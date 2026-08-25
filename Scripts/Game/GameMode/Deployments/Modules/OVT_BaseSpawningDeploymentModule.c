@@ -170,6 +170,38 @@ class OVT_BaseSpawningDeploymentModule : OVT_BaseDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! IS THIS VEHICLE ONE OF MINE, and therefore not litter?
+	//!
+	//! Asked by OVT_DeploymentManagerComponent.IsDeploymentVehicle() on behalf of the modded
+	//! SCR_GarbageSystem. A module that spawns no vehicles answers false and costs one virtual call.
+	//!
+	//! ⚠ ANSWERED FROM THE MODULE'S OWN LIVE LIST, NEVER FROM A SEPARATE REGISTRY. A parallel set of
+	//! "deployment vehicles" would have to be kept in step with every spawn, teardown, theft and
+	//! destruction, and a stale EntityID in it would protect litter forever - or, worse, protect
+	//! whatever entity next reused that id.
+	//! \param[in] vehicle The vehicle the garbage system is about to book.
+	//! \return True when this module owns it.
+	bool OwnsVehicle(IEntity vehicle)
+	{
+		if (!vehicle || !m_aSpawnedEntities)
+			return false;
+
+		// The shared SpawnEntity() helper records everything it puts in the world here, which covers
+		// the parked-vehicle module and anything else that spawns by hand. The two modules that keep
+		// their vehicles in their own lists - the patrol module and the insertion transport - override
+		// this and answer from those.
+		EntityID id = vehicle.GetID();
+
+		foreach (EntityID spawned : m_aSpawnedEntities)
+		{
+			if (spawned == id)
+				return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Appends this module's virtualization handles to a caller's list.
 	//!
 	//! ⚠ HANDLES, NOT ENTITIES, AND THE DIFFERENCE IS THE WHOLE REASON THIS EXISTS. GetSpawnedEntities()

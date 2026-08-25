@@ -1802,6 +1802,39 @@ class OVT_VirtualizationManagerComponent : OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Re-points a registered group's PLAN, and rebuilds the waypoints core owns for it.
+	//!
+	//! 🔴 WHY A LIVE GROUP NEEDS THIS AT ALL (author, 2026-08-26: an insertion crew delivered its team
+	//! and then sat at the landing zone instead of driving home). A plan is not just a persistence
+	//! payload - it is what the VIRTUAL MOVEMENT tick walks while the group is dormant, and it is what
+	//! core's own waypoints were built from. A consumer that changes its mind mid-mission could add a
+	//! waypoint of its own but could not touch either of those, so the moment the group went dormant it
+	//! resumed marching to wherever the plan still said.
+	//!
+	//! ⚠ IT REBUILDS CORE'S WAYPOINTS AND NOTHING ELSE. Waypoints the CONSUMER owns are its own to
+	//! clear - core has never known about them and must not start guessing now.
+	//! \param[in] handle Handle from RegisterGroup.
+	//! \param[in] plan The new plan. Null clears the plan and core's waypoints with it.
+	//! \return True when the record was found and re-pointed.
+	bool SetGroupPlan(int handle, OVT_VirtualWaypointPlan plan)
+	{
+		OVT_VirtualGroupRecord record = GetRecord(handle);
+		if (!record)
+			return false;
+
+		SCR_AIGroup group = record.m_Group;
+
+		DeleteOwnedWaypoints(record, group);
+
+		record.m_Plan = plan;
+
+		if (group)
+			BuildOwnedWaypoints(record, group, record.m_Plan);
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Which faction a registered group belongs to.
 	//!
 	//! ADDITIVE READ-ONLY ACCESSOR (2026-08-24). m_sFactionKey was already stored at RegisterGroup and
