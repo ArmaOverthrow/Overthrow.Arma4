@@ -564,10 +564,16 @@ class OVT_QRFControllerComponent: OVT_Component
 
 		if(m_iTimer <= 0)
 		{
-			int enemyNum = 0;
-			int playerNum = 0;
-			int recruitNum = 0;
+			// ⚠ WEIGHTED SUMS, NOT HEAD COUNTS, since 2026-08-25 - a fighter is worth more the closer he
+			// is to the objective (OVT_QRFScoring.FighterWeight). enemyTotal stays an int because it
+			// answers a presence question, not a strength one.
+			float enemyWeight = 0;
+			float playerWeight = 0;
+			float recruitWeight = 0;
 			int enemyTotal = 0;
+
+			// A head count, kept only so the tick can say how many humans were in the ring.
+			int playerNum = 0;
 
 			PlayerManager mgr = GetGame().GetPlayerManager();
 
@@ -601,14 +607,12 @@ class OVT_QRFControllerComponent: OVT_Component
 					//default. Players are counted in their own loop below for XP, and a player-
 					//controlled character can still surface as an agent, so don't count it twice.
 					if(mgr.GetPlayerIdFromControlledEntity(entity) > 0) continue;
-					if(dist < QRF_POINT_RANGE) recruitNum++;
+					recruitWeight += OVT_QRFScoring.FighterWeight(dist, QRF_POINT_RANGE);
 					continue;
 				}
 
-				if(dist < QRF_POINT_RANGE)
-				{
-					enemyNum += 1;
-				}
+				enemyWeight += OVT_QRFScoring.FighterWeight(dist, QRF_POINT_RANGE);
+
 				if(dist < QRF_RANGE)
 				{
 					enemyTotal += 1;
@@ -629,36 +633,24 @@ class OVT_QRFControllerComponent: OVT_Component
 					float distance = vector.Distance(player.GetOrigin(), GetOwner().GetOrigin());
 					if(distance < QRF_POINT_RANGE)
 					{
+						// XP is NOT weighted - being in the fight is what earns it, and scaling it by
+						// distance would pay a player for standing on the flag rather than for fighting.
 						OVT_Global.GetSkills().GiveXP(playerID, 2);
 						playerNum++;
+						playerWeight += OVT_QRFScoring.FighterWeight(distance, QRF_POINT_RANGE);
 					}
 				}
 			}
 			
-			//Zone control is a head count: every fighter the resistance has in the zone counts,
-			//human or recruit
-			int resistanceNum = playerNum + recruitNum;
+			//Zone control weighs every fighter the resistance has in the zone, human or recruit, by how
+			//close he is to the objective. The whole decision is OVT_QRFScoring.ResolveSwing.
+			float resistanceWeight = playerWeight + recruitWeight;
 
-			if(resistanceNum > 0 && enemyTotal == 0){
-				//push towards resistance fast
-				m_iPoints += 5;
-			}else{
-				if(resistanceNum == enemyNum)
-				{
-					//push towards zero
-					if(m_iPoints > 0) m_iPoints--;
-					if(m_iPoints < 0) m_iPoints++;
-				}else{
-					if(resistanceNum > enemyNum)
-					{
-						//push towards resistance
-						m_iPoints++;
-					}else{
-						//push towards OF
-						m_iPoints--;
-					}
-				}	
-			}		
+			m_iPoints += OVT_QRFScoring.ResolveSwing(resistanceWeight, enemyWeight, enemyTotal, m_iPoints);
+
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] QRF scoring: resistance %1 (%2 player(s)) vs occupying %3 in the ring, %4 enemy left in the battle, score now %5",
+				resistanceWeight.ToString(), playerNum.ToString(), enemyWeight.ToString(),
+				enemyTotal.ToString(), m_iPoints.ToString()));
 			
 			int toWin = m_Config.m_Difficulty.QRFPointsToWin;
 			
