@@ -177,7 +177,10 @@ class OVT_MapLocationBase : OVT_MapLocationType
 			return false;
 		}
 
-		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		// Mirrors the server's enumeration: inside the ring is not a refusal on its own, being the
+		// base under attack is.
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition) &&
+			!OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(location.m_vPosition))
 		{
 			reason = "#OVT-Respawn_QRF";
 			return false;

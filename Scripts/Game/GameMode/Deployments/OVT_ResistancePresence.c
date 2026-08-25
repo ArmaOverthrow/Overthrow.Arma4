@@ -96,20 +96,50 @@ class OVT_ResistancePresence
 	//! \return True when at least one living resistance character is inside it.
 	static bool IsGroundHeld(vector position, float radius)
 	{
-		if (radius <= 0)
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return false;
+
+		return IsGroundHeldBy(config.GetPlayerFactionData(), position, radius);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The same question asked of the OCCUPYING faction: is anybody of theirs standing here?
+	//!
+	//! ⚠ AN ENTITY QUERY, NOT A VIRTUALIZATION READ, AND THAT IS THE POINT (author, 2026-08-25: "im
+	//! here, its owned by them, theres noone here (confirmed in GM)"). A registered group that has not
+	//! materialised reports its RECORD position, and a recapture team is registered AT the tower it is
+	//! walking towards - so the virtualization answer is "they are holding it" while the ground is
+	//! visibly empty. Any test a player is standing in front of has to ask the world, because the
+	//! player can see the world.
+	//! \param[in] position Centre of the sphere.
+	//! \param[in] radius Sphere radius in metres. Non-positive is never held.
+	//! \return True when at least one living occupying-faction character is inside it.
+	static bool IsGroundHeldByOccupying(vector position, float radius)
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return false;
+
+		return IsGroundHeldBy(config.GetOccupyingFactionData(), position, radius);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The shared body. One faction, one sphere, one answer.
+	//! \param[in] faction The faction being looked for.
+	//! \param[in] position Centre of the sphere.
+	//! \param[in] radius Sphere radius in metres.
+	//! \return True when at least one living character of \a faction is inside it.
+	protected static bool IsGroundHeldBy(Faction faction, vector position, float radius)
+	{
+		if (radius <= 0 || !faction)
 			return false;
 
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
 			return false;
 
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-			return false;
-
-		s_SearchFaction = config.GetPlayerFactionData();
-		if (!s_SearchFaction)
-			return false;
+		s_SearchFaction = faction;
 
 		s_bFound = false;
 		s_sLastHold = "";
@@ -125,6 +155,81 @@ class OVT_ResistancePresence
 		s_SearchFaction = null;
 
 		return s_bFound;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The one membership test both filters make: a living character of s_SearchFaction.
+	//! \param[in] entity One candidate inside the sphere.
+	//! \return True when it counts.
+	protected static bool IsLivingSearchFactionCharacter(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		ChimeraCharacter character = ChimeraCharacter.Cast(entity);
+		if (!character)
+			return false;
+
+		FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
+		if (!affiliation || affiliation.GetAffiliatedFaction() != s_SearchFaction)
+			return false;
+
+		SCR_DamageManagerComponent damage = SCR_DamageManagerComponent.Cast(character.FindComponent(SCR_DamageManagerComponent));
+		if (damage && damage.IsDestroyed())
+			return false;
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How far the nearest living resistance character is, for DIAGNOSTICS.
+	//!
+	//! ⚠ NOT a gate. IsGroundHeld short-circuits on its first hit, which is what makes it cheap; this
+	//! cannot, so it walks every match. Call it from a debug-gated log line, not from a tick.
+	//! \param[in] position Centre of the search.
+	//! \param[in] searchRadius How far to look, in metres.
+	//! \return Metres to the nearest, or float.MAX when there is none inside \a searchRadius.
+	static float DistanceToNearest(vector position, float searchRadius)
+	{
+		if (searchRadius <= 0)
+			return float.MAX;
+
+		BaseWorld world = GetGame().GetWorld();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!world || !config)
+			return float.MAX;
+
+		s_SearchFaction = config.GetPlayerFactionData();
+		if (!s_SearchFaction)
+			return float.MAX;
+
+		s_fNearest = float.MAX;
+		s_vSearchCentre = position;
+
+		world.QueryEntitiesBySphere(position, searchRadius, null, FilterNearestResistance, EQueryEntitiesFlags.ALL);
+
+		s_SearchFaction = null;
+
+		return s_fNearest;
+	}
+
+	//! Accumulator for DistanceToNearest, on the same single-threaded contract as s_bFound.
+	protected static float s_fNearest;
+
+	//------------------------------------------------------------------------------------------------
+	//! DistanceToNearest's filter: keeps the closest match rather than stopping at the first.
+	//! \param[in] entity One candidate inside the sphere.
+	//! \return Always false - the query runs to completion.
+	protected static bool FilterNearestResistance(IEntity entity)
+	{
+		if (!IsLivingSearchFactionCharacter(entity))
+			return false;
+
+		float distance = vector.Distance(OVT_WorldUtils.GetWorldOrigin(entity), s_vSearchCentre);
+		if (distance < s_fNearest)
+			s_fNearest = distance;
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -148,19 +253,10 @@ class OVT_ResistancePresence
 			return true;
 
 		ChimeraCharacter character = ChimeraCharacter.Cast(entity);
-		if (!character)
+		if (!IsLivingSearchFactionCharacter(entity))
 			return true;
 
 		FactionAffiliationComponent affiliation = FactionAffiliationComponent.Cast(character.FindComponent(FactionAffiliationComponent));
-		if (!affiliation)
-			return true;
-
-		if (affiliation.GetAffiliatedFaction() != s_SearchFaction)
-			return true;
-
-		SCR_DamageManagerComponent damage = SCR_DamageManagerComponent.Cast(character.FindComponent(SCR_DamageManagerComponent));
-		if (damage && damage.IsDestroyed())
-			return true;
 
 		s_bFound = true;
 
@@ -168,7 +264,7 @@ class OVT_ResistancePresence
 		// what a reader needs is which entity, whose faction it thinks it is, and how far out - because
 		// the three failure modes are a body nobody remembers, a faction key that matches more than it
 		// should, and a radius that is simply too big.
-		int metres = Math.Round(vector.Distance(character.GetOrigin(), s_vSearchCentre));
+		int metres = Math.Round(vector.Distance(OVT_WorldUtils.GetWorldOrigin(character), s_vSearchCentre));
 
 		string factionKey = "no faction key";
 		Faction held = affiliation.GetAffiliatedFaction();

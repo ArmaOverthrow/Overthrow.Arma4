@@ -65,3 +65,21 @@
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## 2026-08-25 — The leadup HUD showed the previous battle's score
+
+**Author:** *"when a battle starts the HUD always shows the points from the last battle during the leadup phase."*
+
+**Nothing ever reset `m_iQRFPoints`.** It has exactly one writer — `OVT_OccupyingFactionManager.UpdateQRFPoints`, called from `OVT_QRFControllerComponent.CheckUpdatePoints` **from inside its `if(m_iTimer <= 0)` block**, so no value is pushed until the countdown has already run out. The controller does zero its own `m_iPoints` in `OnPostInit`, but that copy is not the replicated one `OVT_EconomyInfo.UpdateQRF` reads for the two sliders (`OVT_EconomyInfo.c:381`).
+
+⚠ **The stale value was always a decisive one.** A battle ends *at* the cap (`m_iPoints >= toWin || <= -toWin`), so what sat on screen for the whole leadup was a full ±`QRFPointsToWin` bar for whoever won last time.
+
+**Fix:** `ResetQRFScore()` beside `UpdateQRFPoints`, called from `StartBaseQRF` and `StartTownQRF` at the point the rest of the QRF state is stamped — before `m_bQRFRevealed` is set, so the panel cannot be shown with the old score even for a frame.
+
+⚠ **At start, not at finish.** A finish handler that does not run — a rolled-back save, a campaign teardown, a future caller — would leave the stale value behind again. Opening every battle from a known state cannot.
+
+⚠ **Points only. `m_iQRFTimer` looks like the same bug and is not:** `CheckUpdateTimer` runs on a 1 000 ms call from the controller's own `OnPostInit` and publishes `m_iTimer` on its first tick, so the clock is this battle's within a second. Zeroing it here would need the lead time in the controller's units — **milliseconds**, `m_iTimer` defaults to `120000` — and would buy one second of correctness for a units mistake waiting to happen.
+
+`tools/compile-check.sh` exit 0 (6347 files). Suite not run; play-test owed.

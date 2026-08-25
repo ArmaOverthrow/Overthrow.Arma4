@@ -774,3 +774,58 @@ Net effect on that sample log: 408 `[Overthrow]` lines → the 73 `Created deplo
 ⚠ **Consequence to watch on a long campaign:** patrol vehicles killed near players now accumulate as permanent world entities. Nothing collects them — the modded `SCR_GarbageSystem` only filters what vanilla inserts, and nothing inserts an abandoned-but-intact vehicle. This is the intended trade.
 
 `tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.
+
+---
+
+## 2026-08-25 — Garrisons and snipers still appeared in front of players after a base was cleared
+
+**Author:** *"we still have garrisons, snipers and stuff spawning right in front of us after we clear a base. this isnt supposed to be happening"*, and on the fix: *"it shouldnt be line of sight gated at all, simply distance to the nearest resistance."*
+
+**Three faults. The middle one is arithmetic and fired every single time.**
+
+**1. The gate could not see a player in a vehicle.** `OVT_BaseConditionDeploymentModule.GetPlayerProximity` measured `player.GetOrigin()` — and a mounted character is **parented to its vehicle**, so `GetOrigin()` returns a vehicle-local coordinate, not a world one. The distance came out enormous and the gate passed. Same root cause as the wanted-system fix the day before; the shared walk now lives in `OVT_WorldUtils.GetWorldOrigin()` and both call it.
+
+**2. 🔴 The gate on the deployment's CENTRE was never a gate on where the men APPEAR.**
+
+| | |
+|---|---|
+| `OVT_NoPlayersNearbyConditionDeploymentModule.m_fMinPlayerDistance` | **320 m** from the deployment centre |
+| `m_fSearchRadius` on `Deployment_BaseSniperPositions`, `_BaseTowerGuards`, `_BaseDefensePositions` | **280 m** to look for a post |
+
+A player 330 m from the base centre passed the creation gate, and a post 280 m out **on their side** put a sniper 50 m from them. Not a race — the two numbers simply never accounted for each other, which is why it reproduced every time. `FilterPostsHeldByResistance()` in `OVT_PlacedInfantrySpawningDeploymentModule.EnsurePosts()` now drops any post with living resistance within `m_fNoSpawnNearResistance` (320, matching) **of that post**.
+
+**3. It was players-only, against the author's own standing rule.** Both tests now go through `OVT_ResistancePresence.IsGroundHeld` — a plain sphere query, so recruits (and high command when it lands) count, positions are world-space whatever anybody is riding in, and there is **no line-of-sight component at all**: a post behind a wall is still a man appearing next to you.
+
+⚠ **An empty post list is the correct answer, not a failure.** `CalculateGroupCount` caps at the post count, so no clear posts means no new groups *this pass* and a retry on the next — which is exactly "put them there once the players have gone". Groups already placed keep their post; `AssignPost` returns early rather than clearing.
+
+⚠ **The filter lives in `EnsurePosts()`, not `ResolvePlacements()`,** because the latter is deliberately pure — callable off a bare config template, and pinned that way by the Init tier.
+
+🔴 **`CloneModule` is copy-by-hand and a missed line would have made the whole fix a silent no-op:** a fresh module's float is **zero**, and zero *disables* the filter. `clone.m_fNoSpawnNearResistance` is added with a comment saying so, and a scripted check confirms every `[Attribute]` on that class is now copied.
+
+`tools/compile-check.sh` exit 0 (6348 files). Suite not run; play-test owed.
+
+### 2026-08-25 (cont.) — the roof snipers are NOT explained by the three fixes above
+
+**Author, correctly pushing back:** *"I dont think any of those explain 3 snipers spawning meters from me on a roof, while I wasnt in a vehicle"*, and *"I dont think they were dormant we had just cleared the base."*
+
+**Agreed, and this is recorded as UNRESOLVED rather than closed.** On foot and standing at the base, every gate that exists should have held:
+
+| Path | Gate | Should have blocked? |
+|---|---|---|
+| Evaluator creates a new deployment | `OVT_NoPlayersNearbyConditionDeploymentModule`, 320 m from the deployment centre | **yes** — the player was at the centre |
+| Reinforcement rebuys a wiped force | `IsRebuyBlockedByDefender`, `(baseCloseRange 220 + 50) × 2` = **540 m** | **yes** |
+| Post choice puts men far from the centre | the new `FilterPostsHeldByResistance` | downstream of both |
+
+The 320 m default is confirmed applied (`Deployment_BaseSniperPositions.conf` authors only `m_sModuleName` on that module, and the whole design rests on the `[Attribute]` defvalue being honoured, as it visibly is elsewhere).
+
+**The one route left is convergence.** `EnsureGroups()` → `OVT_InfantrySpawningDeploymentModule` registers `MissingCount(GetMaxGroupCount(), m_aHandles.Count())` groups — and it carries **no proximity gate of its own**, because the two gates above are supposed to sit upstream of it. Its only guard against re-spawning a force the player just killed is `m_bSpawnedUnitsEliminated || m_ParentDeployment.GetSpawnedUnitsEliminated()`, which depends on wipe events having been delivered for every handle. `m_iMaxGroupCount 4` on that config, and the author saw 3. That is a *credible* mechanism and **not a proven one** — the flags cannot be observed from source.
+
+**So this was instrumented rather than guessed at.** Two `OVT_DeploymentLog.Debug` lines (so they need `m_bDebugMode`):
+- in `OVT_InfantrySpawningDeploymentModule.EnsureGroups`, on the pass that is actually about to register: owner key, how many groups, **distance to the nearest resistance**, and both eliminated flags;
+- in `OVT_PlacedInfantrySpawningDeploymentModule.OnPlacedAgentAdded`, at the teleport: the post position and the distance to the nearest resistance.
+
+Together they answer "which pass created these men, and how far away was anybody" in one line each. `OVT_ResistancePresence.DistanceToNearest()` added for it — ⚠ **diagnostics only**: `IsGroundHeld` is cheap *because* it short-circuits on its first hit, and this cannot, so it must not be put on a tick.
+
+⚠ Also fixed in passing: `FilterLivingResistance`'s own log message measured `character.GetOrigin()`, parent-space for a mounted character. Both filters now share `IsLivingSearchFactionCharacter` and use `OVT_WorldUtils.GetWorldOrigin`.
+
+**Next step is the author's:** reproduce with `m_bDebugMode` on and send the two lines.

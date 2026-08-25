@@ -94,3 +94,21 @@ So a tower the occupying faction had just recaptured and **not yet garrisoned** 
 ⚠ **Consequence the author should weigh:** an occupying tower that has *never* been garrisoned is now free to take by standing next to it. `Deployment_TowerGarrison` is `m_bFreeAtGameStart 1` with `m_iMaxInstances -1`, so this should be rare outside the post-recapture window — but a faction with an empty pool, or the moments before the seeding pass, would leave towers takeable for nothing. That falls directly out of the rule as chosen; narrowing it would mean reintroducing the garrison dependency that was the bug.
 
 `tools/compile-check.sh` exit 0 (6346 files). Suite not run; play-test owed.
+
+### 2026-08-25 — "Capture Radio Tower" action, because the automatic rule cannot see the truth
+
+**Author, on the test server:** *"still issues with the radio tower, im here, its owned by them, theres noone here (confirmed in GM). maybe there is a team walking here from somewhere but I cant see them. we might need to add a 'Capture radio tower' action on it, long press (same as sabotage) that is disabled if you are wanted and/or there are soldiers within a reasonable distance."*
+
+🔴 **The automatic ground-control rule (entry above) has a blind spot it cannot fix.** It counts REGISTERED members through the virtualization core, and `OVT_VirtualGroupGeometry.ResolveLivePosition` answers a **dormant** group with its RECORD position — which for a recapture team is *the tower it is still walking towards*. So a tower reads as garrisoned by men who are kilometres away and not yet materialised. That file's own header documents this exact trap (it is what made a forward base spring up while its party was still a kilometre out), and it is deliberate: the alternative — counting agents — answers "nobody is here" for every dormant group on a quiet server, which is worse. The registry simply cannot answer this question honestly, so the player is given a way to answer it instead.
+
+**What shipped:**
+- `OVT_CaptureRadioTowerAction` — a 20 s hold on all three `TransmitterTower_01_*_base.et` deltas, in the **same `sabotage` context and at the same duration** as `OVT_SabotageTowerAction`, read off that action's own block rather than re-authored. Shown only on occupying-held towers.
+- Both of the author's gates, with stated reasons: `#OVT-CaptureTower_Wanted` and `#OVT-CaptureTower_Defended` (`DEFENDER_RADIUS_M` 100 — wider than the action context on purpose; the question is whether the place is contested, not whether somebody is touching the mast).
+- `OVT_ResistancePresence.IsGroundHeldByOccupying()`, and the existing body refactored to `IsGroundHeldBy(faction, …)` so both sides ask one query. ⚠ **An entity query, not a virtualization read** — that is the whole point: a test the player is standing in front of has to ask the world, because the player can see the world.
+- `OVT_TowerSabotageComponent.RequestCapture` / `RpcAsk_CaptureTower`, re-running **every** gate server-side. BUG-025 is this epic's headline debt and this adds no third unvalidated capture RPC: the client's position is a hint, the server re-resolves the tower from its own registry, measures the caller's own character against it, and re-asks both refusals against its own world. Same `Replication.IsServer()` branch as `RequestSabotage`, or it would silently do nothing on a listen host.
+
+⚠ **Three new `.st` keys** (`OVT-CaptureTower`, `_Wanted`, `_Defended`) — master only. **A Workbench localization re-export is owed** or they render as raw keys.
+
+⚠ Placed on `OVT_TowerSabotageComponent` rather than a new controller component, so it needs no `OVT_OverthrowController.et` edit and no `OVT_TEST_Init_ControllerSeam` entry. Its `ComponentEditorProps` description now says "radio tower actions (sabotage, capture)"; the class name is now narrower than what it does.
+
+`tools/compile-check.sh` exit 0 (6348 files). Workbench prefab load + play-test owed.

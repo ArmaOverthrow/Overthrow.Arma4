@@ -66,6 +66,11 @@ class OVT_RespawnService
 	//! Overthrow and larger than any transport error.
 	static const float MATCH_TOLERANCE = 2.0;
 
+	//! How close a base record has to be to the broadcast QRF point to be read as the battle's target.
+	//! Generous, because it only ever makes the rule STRICTER. A TOWN QRF has no base near its centre,
+	//! which is why the distance is checked at all - GetNearestBase answers at any range.
+	static const float QRF_TARGET_RESOLVE_M = 50.0;
+
 	//------------------------------------------------------------------------------------------------
 	// PURE PREDICATES - no world, no manager, no game mode.
 	//
@@ -227,6 +232,56 @@ class OVT_RespawnService
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether a position is a base the RESISTANCE holds that is not itself the battle.
+	//!
+	//! 🔴 THE RULE (author, 2026-08-25): "you should be able to fast travel or respawn at a captured
+	//! base inside a QRF as long as that base isn't the actual QRF being counter-attacked". A QRF ring
+	//! is 1 km wide and used to blank out every destination inside it; a base the player already took,
+	//! sitting inside that ring but not under attack, is not part of the fight and refusing it just
+	//! strands people a kilometre away from where they are needed.
+	//!
+	//! ⚠ MATCHED ON POSITION AGAINST m_vQRFLocation, NEVER ON m_iCurrentQRFBase. The index is NOT in
+	//! the JIP payload (a standing epic defect - it is why JIP clients draw the wrong map circle),
+	//! while m_vQRFLocation is broadcast by RpcDo_SetQRFActive to every machine. This predicate runs on
+	//! both the client (to enable the button) and the server (to allow the act), so it may only read
+	//! state that both of them provably have.
+	//!
+	//! ⚠ IT DOES NOT ASK WHETHER THE QRF IS ACTIVE. Callers have already established that; this answers
+	//! only "is this destination the thing being fought over".
+	//! \param[in] pos The destination being tested.
+	//! \return True when pos is a resistance-held base other than the QRF's target.
+	static bool IsCapturedBaseAwayFromQrfTarget(vector pos)
+	{
+		OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
+		if (!occupyingFaction || !occupyingFaction.m_Bases)
+			return false;
+
+		// The battle itself is never exempt, whichever base it is - and it is identified TWO ways on
+		// purpose. m_vQRFLocation is base.GetOwner().GetOrigin() while the record carries
+		// ent.GetOrigin() of that same entity, so the two agree today; a rule that INVERTS on a few
+		// metres of drift (letting a player travel into the base being counter-attacked) is not one to
+		// rest on a 2 m tolerance.
+		if (PositionsMatch(occupyingFaction.m_vQRFLocation, pos))
+			return false;
+
+		OVT_BaseData target = occupyingFaction.GetNearestBase(occupyingFaction.m_vQRFLocation);
+		if (target && vector.Distance(target.location, occupyingFaction.m_vQRFLocation) <= QRF_TARGET_RESOLVE_M
+			&& PositionsMatch(target.location, pos))
+			return false;
+
+		foreach (OVT_BaseData base : occupyingFaction.m_Bases)
+		{
+			if (!base || !PositionsMatch(base.location, pos))
+				continue;
+
+			// Ours, and not the one under attack.
+			return !base.IsOccupyingFaction();
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// SERVER ENUMERATION
 	//
 	// The authority half. This does NOT re-run the map's checks - OVT_MapLocationType instances only
@@ -271,7 +326,8 @@ class OVT_RespawnService
 				if (!IsBaseEligible(base.IsOccupyingFaction()))
 					continue;
 
-				if (excludeActiveQrf && IsPositionInActiveQRF(base.location))
+				// A base we already hold, inside the ring but not the battle, stays a destination.
+				if (excludeActiveQrf && IsPositionInActiveQRF(base.location) && !IsCapturedBaseAwayFromQrfTarget(base.location))
 					continue;
 
 				positions.Insert(base.location);

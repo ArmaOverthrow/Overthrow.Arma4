@@ -1348,6 +1348,30 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Clears the scoreboard so a new battle does not open showing the last one's.
+	//!
+	//! 🔴 THE HUD READS THESE TWO, AND NOTHING RESET THEM (author, 2026-08-25: "when a battle starts
+	//! the HUD always shows the points from the last battle during the leadup phase"). m_iQRFPoints is
+	//! written ONLY by UpdateQRFPoints, which OVT_QRFControllerComponent calls from inside
+	//! CheckUpdatePoints' `if(m_iTimer <= 0)` block - so nothing pushes a value until the countdown has
+	//! already run out. The controller zeroes its OWN m_iPoints in OnPostInit, but that copy is not the
+	//! replicated one the panel reads. A battle ends AT the cap, so the stale value on show for the
+	//! whole leadup was always a decisive ±QRFPointsToWin.
+	//!
+	//! ⚠ AT START, NOT AT FINISH. A finish handler that does not run - a rolled-back save, a campaign
+	//! teardown, a future caller - would leave the stale value behind again; opening every battle from
+	//! a known state cannot.
+	//! ⚠ POINTS ONLY. m_iQRFTimer looks like the same bug and is not: the controller's CheckUpdateTimer
+	//! runs on a 1 000 ms call from its own OnPostInit and publishes m_iTimer on the first tick, so the
+	//! clock is this battle's within a second. Zeroing it here would need the lead time in the
+	//! controller's units (MILLISECONDS - m_iTimer defaults to 120000) and would buy one second of
+	//! correctness for a units mistake waiting to happen.
+	protected void ResetQRFScore()
+	{
+		UpdateQRFPoints(0);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Starts a battle for a base.
 	//!
 	//! ⚠ THE MODE IS CONFIGURED BEFORE Start(), following the SpawnQRFController -> configure -> Start()
@@ -1381,6 +1405,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_bQRFActive = true;
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
+
+		// Before anyone can look at the panel - see ResetQRFScore.
+		ResetQRFScore();
 
 		// A standard battle is announced the instant it starts, exactly as it always has been. A siege
 		// says nothing until its encirclement is complete - RevealQRF() sends the notification then.
@@ -1449,6 +1476,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_bQRFActive = true;
 		m_vQRFLocation = town.location;
 		m_iCurrentQRFTown = townID;
+
+		// Before anyone can look at the panel - see ResetQRFScore.
+		ResetQRFScore();
 
 		// A standard battle is announced the instant it starts. A siege says nothing until RevealQRF().
 		m_bQRFRevealed = false;

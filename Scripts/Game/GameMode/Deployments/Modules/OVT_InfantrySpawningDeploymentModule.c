@@ -314,6 +314,17 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		if (missing <= 0)
 			return 0;
 
+		// 🔴 THE LINE THAT NAMES THE PATH when men appear next to somebody (author, 2026-08-25: "3
+		// snipers spawning meters from me on a roof"). Convergence is the ONLY route to a fresh group
+		// that carries no proximity gate of its own - the creation gate and the rebuy gate both sit
+		// upstream of it - so if this fires with the resistance a few metres away, this is where they
+		// came from and the eliminated flags above are the thing that failed. Costs a sphere query, and
+		// only on a pass that is actually about to register.
+		OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1' converging: registering %2 group(s); nearest resistance %3 m; module eliminated=%4 deployment eliminated=%5",
+			GetOwnerKey(), missing.ToString(),
+			Math.Round(OVT_ResistancePresence.DistanceToNearest(GetDeploymentPosition(), 1000)).ToString(),
+			m_bSpawnedUnitsEliminated.ToString(), m_ParentDeployment.GetSpawnedUnitsEliminated().ToString()));
+
 		return RegisterGroups(virtualization, ownerKey, missing, fromNearestBase);
 	}
 

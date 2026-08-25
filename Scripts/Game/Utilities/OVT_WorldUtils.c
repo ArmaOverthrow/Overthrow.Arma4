@@ -657,6 +657,36 @@ class OVT_WorldUtils : Managed
 	//! Direct children only, each deleted through its own subtree - collecting the whole tree and
 	//! deleting deepest-first would hand back handles an ancestor's delete already freed.
 	//! \param[in] root The entity to remove. Null is a no-op.
+	//------------------------------------------------------------------------------------------------
+	//! An entity's position in WORLD space, whatever it is attached to.
+	//!
+	//! 🔴 GetOrigin() IS PARENT SPACE, AND A MOUNTED CHARACTER IS PARENTED TO ITS VEHICLE. So
+	//! `player.GetOrigin()` on somebody sitting in a truck is a vehicle-local coordinate a few metres
+	//! from the vehicle's own origin - not a place on the map. Every distance test against it is then
+	//! wrong by however far that vehicle is from the map origin, and wrong in the PERMISSIVE direction:
+	//! the answer comes out enormous, so a proximity gate reads "nobody is near".
+	//!
+	//! Found twice in one day (2026-08-24/25): OVT_PlayerWantedComponent could not see a player in a
+	//! vehicle, and OVT_BaseConditionDeploymentModule.GetPlayerProximity - the gate whose whole job is
+	//! "do not spawn a force in front of a player" - could not either.
+	//! \param[in] entity The entity to locate. Null answers vector.Zero.
+	//! \return A world-space position.
+	static vector GetWorldOrigin(IEntity entity)
+	{
+		if (!entity)
+			return vector.Zero;
+
+		IEntity root = entity;
+		int guard = 0;
+		while (root.GetParent() && guard < 4)
+		{
+			root = root.GetParent();
+			guard++;
+		}
+
+		return root.GetOrigin();
+	}
+
 	static void DeleteEntityTree(IEntity root)
 	{
 		if (!root)

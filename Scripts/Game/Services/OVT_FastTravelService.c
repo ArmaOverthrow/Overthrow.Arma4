@@ -122,7 +122,15 @@ class OVT_FastTravelService
 				// machines (m_FOBs is replicated), so the panel's enable state and the server's
 				// refusal cannot disagree.
 				bool fobExempt = config.m_Difficulty.allowFOBDuringQRF && IsFobPosition(targetPos);
-				if (!fobExempt)
+
+				// A base the resistance already holds, inside the ring but NOT the base being
+				// counter-attacked, is not part of the fight (author, 2026-08-25). Exempt from BOTH
+				// modes for the same reason the FOB is: the ring is a kilometre wide, and blanking a
+				// captured base inside it strands players away from where the battle is. The battle's
+				// own base is never exempt - see the predicate.
+				bool capturedBaseExempt = OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(targetPos);
+
+				if (!fobExempt && !capturedBaseExempt)
 				{
 					if (config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 						return OVT_TravelResult.QRF_ACTIVE;

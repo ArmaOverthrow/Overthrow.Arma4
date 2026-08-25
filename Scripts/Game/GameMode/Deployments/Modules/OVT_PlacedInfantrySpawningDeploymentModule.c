@@ -62,6 +62,19 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 	[Attribute(defvalue: "280", desc: "How far from the deployment to look for posts")]
 	float m_fSearchRadius;
 
+	//! 🔴 THE GATE ON THE DEPLOYMENT'S CENTRE IS NOT A GATE ON WHERE THE MEN APPEAR, and the two
+	//! numbers did not add up (author, 2026-08-25: "we still have garrisons, snipers and stuff spawning
+	//! right in front of us after we clear a base"). OVT_NoPlayersNearbyConditionDeploymentModule keeps
+	//! a deployment from being CREATED with resistance inside 320 m of its centre - but the shipped
+	//! sniper, tower-guard and defend-position configs all search 280 m for a post. A player 330 m from
+	//! the base centre therefore passed the creation gate while a post 280 m out on their side of it
+	//! put a sniper 50 m away. Arithmetic, not a race, which is why it happened every time.
+	//!
+	//! ⚠ DISTANCE ONLY, NO LINE OF SIGHT (author, same message). A post behind a wall is still a man
+	//! appearing next to you.
+	[Attribute(defvalue: "320", desc: "A post is not used while living resistance is within this many metres OF THAT POST. Matches OVT_NoPlayersNearbyConditionDeploymentModule's own 320 m, which gates the deployment's centre; this gates where the men actually stand. 0 disables the filter")]
+	float m_fNoSpawnNearResistance;
+
 	//! Sideways step between two members of one group on the same post, along the post's own right
 	//! vector. 1.2 m is the legacy sniper team's TEAM_MEMBER_OFFSET.
 	//!
@@ -134,6 +147,10 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 		// have.
 		clone.m_Placement = m_Placement;
 		clone.m_fSearchRadius = m_fSearchRadius;
+
+		// ⚠ DROP THIS LINE AND THE FILTER IS DEAD. CloneModule is copy-by-hand; a fresh module's float is
+		// ZERO, and zero DISABLES FilterPostsHeldByResistance - silently, on every config in the game.
+		clone.m_fNoSpawnNearResistance = m_fNoSpawnNearResistance;
 
 		return clone;
 	}
@@ -406,6 +423,44 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 	//! The cache and the deployment's own position/faction are all this adds over the pure
 	//! ResolvePlacements() above, which is where the provider is actually called.
 	//! \return The posts. NEVER null; empty when there is no provider or nothing qualifies.
+	//! Drops every post the resistance is standing near.
+	//!
+	//! ⚠ HERE AND NOT IN ResolvePlacements(). That method is deliberately pure - callable off a bare
+	//! config template, and pinned that way by the Init tier - so a world query belongs on this side of
+	//! it, in the per-pass cache that already has a live deployment.
+	//!
+	//! ⚠ AN EMPTY RESULT IS THE CORRECT ANSWER, not a failure. CalculateGroupCount() caps at the post
+	//! count, so no posts means no new groups THIS PASS and the module tries again on the next one -
+	//! which is exactly "do not put men in front of them; put them there once they have gone". Groups
+	//! already placed keep the post they were given: AssignPost() returns early rather than clearing.
+	//! \param[in] posts What the provider offered. Never null.
+	//! \return The subset nobody is standing on.
+	protected array<ref OVT_DeploymentPlacement> FilterPostsHeldByResistance(notnull array<ref OVT_DeploymentPlacement> posts)
+	{
+		if (m_fNoSpawnNearResistance <= 0)
+			return posts;
+
+		array<ref OVT_DeploymentPlacement> clear = new array<ref OVT_DeploymentPlacement>();
+
+		foreach (OVT_DeploymentPlacement post : posts)
+		{
+			if (!post)
+				continue;
+
+			if (OVT_ResistancePresence.IsGroundHeld(post.m_vPosition, m_fNoSpawnNearResistance))
+				continue;
+
+			clear.Insert(post);
+		}
+
+		if (clear.Count() != posts.Count())
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] %1 of %2 post(s) held by the resistance - not placing men there this pass",
+				(posts.Count() - clear.Count()).ToString(), posts.Count().ToString()));
+
+		return clear;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	protected array<ref OVT_DeploymentPlacement> EnsurePosts()
 	{
 		if (m_aPostsThisPass)
@@ -415,7 +470,7 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 		if (m_ParentDeployment)
 			factionIndex = m_ParentDeployment.GetControllingFaction();
 
-		m_aPostsThisPass = ResolvePlacements(GetDeploymentPosition(), m_fSearchRadius, factionIndex);
+		m_aPostsThisPass = FilterPostsHeldByResistance(ResolvePlacements(GetDeploymentPosition(), m_fSearchRadius, factionIndex));
 
 		return m_aPostsThisPass;
 	}
@@ -545,6 +600,12 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 			ArrivalTransform(post, arrival, ResolveSpread(group), mat);
 
 			character.Teleport(mat);
+
+			// The moment a man visibly APPEARS on a post. If the number here is small, he was put in
+			// front of somebody, and the convergence line above says which pass created him.
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1' placed a member on his post at %2; nearest resistance %3 m",
+				GetOwnerKey(), post.m_vPosition.ToString(),
+				Math.Round(OVT_ResistancePresence.DistanceToNearest(post.m_vPosition, 1000)).ToString()));
 		}
 
 		m_mArrivalsByHandle.Set(handle, arrival + 1);

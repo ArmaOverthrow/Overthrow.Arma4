@@ -728,3 +728,9 @@ most, because each would have invalidated a design decision rather than needing 
 (P8-A); Overthrow may have exactly **one** SPAWNSCREEN config (P1-G4/R11); P6-G2's spawn-failure gap is
 documented rather than closed; and `OVT_AdminCommandsComponent`'s chat commands are likely dead in
 single player (found out of scope, not fixed, not this feature's to fix).
+
+---
+
+## 2026-08-25 — A captured base inside a QRF ring stays respawnable
+
+Author's rule: a captured base inside an active QRF is a valid respawn destination unless it is the base being counter-attacked. Implemented as `OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(vector)` and applied in `EnumerateEligible`'s base loop and in `OVT_MapLocationBase.CanRespawn`, so the server's enumeration and the client's markers agree. Full write-up, including why the target base is matched on `m_vQRFLocation` rather than `m_iCurrentQRFBase` (JIP), is in `../fast-travel/context.md` (2026-08-25).

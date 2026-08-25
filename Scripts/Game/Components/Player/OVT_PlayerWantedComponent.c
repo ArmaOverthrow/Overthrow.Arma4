@@ -118,15 +118,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	//! GetOrigin() hands back a vehicle-local coordinate and every distance gate against it is wrong.
 	protected vector GetAIWorldOrigin(IEntity entity)
 	{
-		IEntity root = entity;
-		int guard = 0;
-		while(root.GetParent() && guard < 4)
-		{
-			root = root.GetParent();
-			guard++;
-		}
-
-		return root.GetOrigin();
+		return OVT_WorldUtils.GetWorldOrigin(entity);
 	}
 
 	protected void CheckBaseRangeForTutorial()

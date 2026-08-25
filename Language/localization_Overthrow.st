@@ -17999,6 +17999,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6BB4000000000210}" {
+   Id "OVT-CaptureTower"
+   Target_en_us "Capture Radio Tower"
+   Comment "Hold action on occupying radio towers, beside Sabotage Radio Tower"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BB4000000000211}" {
+   Id "OVT-CaptureTower_Wanted"
+   Target_en_us "You cannot capture a tower while wanted"
+   Comment "Disabled reason on the Capture Radio Tower action"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BB4000000000212}" {
+   Id "OVT-CaptureTower_Defended"
+   Target_en_us "Enemy soldiers are still defending this tower"
+   Comment "Disabled reason on the Capture Radio Tower action"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E00000029}" {
    Id "OVT-SabotageTower"
    Target_en_us "Sabotage Radio Tower"

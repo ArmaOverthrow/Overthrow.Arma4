@@ -185,7 +185,10 @@ class OVT_BaseConditionDeploymentModule : OVT_BaseDeploymentModule
 			if (!player)
 				continue;
 				
-			float distance = vector.Distance(player.GetOrigin(), position);
+			// ⚠ NOT player.GetOrigin(). A player in a vehicle is PARENTED to it, so GetOrigin() hands
+			// back a vehicle-local coordinate and this gate reads "nobody is near" - permissively,
+			// which is the direction that spawns a garrison on top of somebody. See GetWorldOrigin.
+			float distance = vector.Distance(OVT_WorldUtils.GetWorldOrigin(player), position);
 			if (distance < nearestDistance)
 				nearestDistance = distance;
 		}

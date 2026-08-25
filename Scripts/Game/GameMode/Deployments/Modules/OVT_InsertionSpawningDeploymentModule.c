@@ -159,9 +159,9 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 
 	protected int m_iCrewHandle;
 
-	//! ⚠ TEMPORARY DIAGNOSTIC (2026-08-24) - the stuck-horn hunt. Last horn value seen on the driver,
-	//! -1 before the first read. Remove with TickHornDiagnostic() once the trigger is known.
-	protected int m_iLastHornValue = -1;
+	//! How long this transport's driver has been holding the horn, in milliseconds. See
+	//! OVT_VehicleHornWatchdog - the engine presses it and sometimes never writes it back.
+	protected int m_iHornHeldMs;
 
 	//! THIS INSERTION'S OWN crew owner key, minted once on first use and never recomputed. See
 	//! GetCrewOwnerKey() - the whole point is that no other insertion, ever, can compose this string.
@@ -761,6 +761,11 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		// would never run at all. It is a no-op on every other path (the flag is false).
 		TickAbandonedTruck();
 
+		// ⚠ BEFORE THE STATE DISPATCH, FOR THE SAME REASON: every branch below returns, and a latched
+		// horn is not confined to the drive. A mounted force that has arrived sits in HOLDING, which is
+		// where one of the two recorded latches happened.
+		m_iHornHeldMs = OVT_VehicleHornWatchdog.Tick(ResolveDriverCharacter(), deltaTime, m_iHornHeldMs);
+
 		// ⚠ The retry, and the only place it can live: EnsureGroups() is called once, at activation, so an
 		// insertion that could not resolve an origin on that pass would register nothing ever again.
 		if (m_eState == OVT_EInsertionState.UNDECIDED)
@@ -909,8 +914,6 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 		{
 			m_iStuckTicksElapsed = OVT_InsertionGeometry.AdvanceStuckTicks(speed, m_fStuckSpeedThreshold, m_iStuckTicksElapsed);
 
-			// ⚠ TEMPORARY (2026-08-24) - see TickHornDiagnostic(). Remove with it.
-			TickHornDiagnostic(speed, m_iStuckTicksElapsed);
 
 			if (OVT_InsertionGeometry.IsStuck(speed, m_fStuckSpeedThreshold, m_iStuckTicksElapsed, m_iStuckTicks, distanceToLZ, m_fArrivalRadius))
 			{
@@ -1041,52 +1044,7 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//! IS ANYBODY DRIVING THIS THING: a crewman with his AI running, in THIS transport's PILOT seat.
 	//! \return True when the transport has a working driver in its driver's seat.
 	//------------------------------------------------------------------------------------------------
-	//! ⚠ TEMPORARY DIAGNOSTIC (2026-08-24). Says the moment the driver's horn input changes, with the
-	//! numbers that would explain it.
-	//!
-	//! WHY: a Ural carrying a sabotage team held its horn down mid-route, on clear road, with a full
-	//! seated crew. It does not reproduce in single-player, nor on a hand-placed vehicle with a
-	//! waypoint, and NOTHING in Overthrow or in the vanilla script tree ever calls SetVehicleHorn - it
-	//! is an engine-side input flag. The author confirmed it was OFF shortly after the convoy left its
-	//! source and ON later, so something DURING the drive starts it.
-	//!
-	//! The two things this module does to a driver that nothing else does are re-asserted on this same
-	//! tick, which is why their effects are printed beside it: the LOD pin (HoldAgentActive - SetLOD
-	//! then PreventMaxLOD, EVERY tick) and ForceSpawn via NudgeCrewMaterialisation(). A transition in
-	//! the same tick as either is the answer.
-	//! \param[in] speed The convoy's measured speed this tick, m/s.
-	//! \param[in] stuckTicks Stall ticks accumulated so far.
-	protected void TickHornDiagnostic(float speed, int stuckTicks)
-	{
-		IEntity driver = ResolveDriverCharacter();
-		if (!driver)
-			return;
-
-		CharacterControllerComponent controller = CharacterControllerComponent.Cast(driver.FindComponent(CharacterControllerComponent));
-		if (!controller)
-			return;
-
-		CharacterInputContext input = controller.GetInputContext();
-		if (!input)
-			return;
-
-		int horn = input.GetVehicleHorn();
-		if (horn == m_iLastHornValue)
-			return;
-
-		int previous = m_iLastHornValue;
-		m_iLastHornValue = horn;
-
-		// The first read is a baseline, not a transition.
-		if (previous == -1)
-			return;
-
-		OVT_DeploymentLog.Debug(string.Format("[Overthrow] HORN-DIAG '%1': driver horn %2 -> %3 | speed %4 | stuckTicks %5 | crewAtWheel %6",
-			DescribeSelf(), previous.ToString(), horn.ToString(), speed.ToString(), stuckTicks.ToString(), CrewIsAtTheWheel().ToString()));
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! ⚠ TEMPORARY, with TickHornDiagnostic(). \return The character in the transport's pilot seat.
+	//! \return The character in the transport's pilot seat, or null when nobody is driving it.
 	protected IEntity ResolveDriverCharacter()
 	{
 		if (!m_Truck || m_iCrewHandle == -1)

@@ -33,6 +33,15 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
      }
      Duration 20
     }
+    OVT_CaptureRadioTowerAction "{6BB4000000000204}" {
+     ParentContextList {
+      "sabotage"
+     }
+     UIInfo UIInfo "{6BB4000000000205}" {
+      Name "#OVT-CaptureTower"
+     }
+     Duration 20
+    }
    }
   }
  }

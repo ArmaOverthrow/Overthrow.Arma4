@@ -1,4 +1,4 @@
-[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Client->server relay for radio tower sabotage")]
+[ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Client->server relay for radio tower actions (sabotage, capture)")]
 class OVT_TowerSabotageComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
@@ -93,6 +93,94 @@ class OVT_TowerSabotageComponent : OVT_ControllerRequestComponent
 		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
 		if(wanted)
 			wanted.OnIllegalActionSeen("WantedSabotage");
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to hand the tower nearest towerPos to the resistance.
+	//!
+	//! ⚠ SAME LISTEN-HOST BRANCH AS RequestSabotage, AND FOR THE SAME REASON: an RplRcver.Server RPC
+	//! marshalled BY the authority is delivered to nobody, so on a listen-server host the action would
+	//! silently do nothing. See that method's header.
+	//! \param[in] towerPos Client's idea of where the tower is; the server re-resolves the nearest one.
+	void RequestCapture(vector towerPos)
+	{
+		if(Replication.IsServer())
+		{
+			RpcAsk_CaptureTower(towerPos);
+		}else{
+			Rpc(RpcAsk_CaptureTower, towerPos);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: flip the tower nearest the claimed position to the resistance.
+	//!
+	//! EVERY GATE THE ACTION SHOWS IS RE-ASKED HERE (BUG-025 is this epic's headline debt and this
+	//! feature adds no third unvalidated capture RPC). The client's towerPos is a HINT: the server
+	//! re-resolves the nearest recorded tower from its own registry, measures the CALLER'S CHARACTER
+	//! against that record, and re-runs both of the action's own refusals against its own world.
+	//! \param[in] towerPos Client's idea of where the tower is.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_CaptureTower(vector towerPos)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0)
+		{
+			RejectCapture(playerId, "could not resolve the requesting player");
+			return;
+		}
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character)
+		{
+			RejectCapture(playerId, "the caller has no controlled character");
+			return;
+		}
+
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		if(!of) return;
+
+		OVT_RadioTowerData tower = of.GetNearestRadioTower(towerPos);
+		if(!tower || !tower.IsOccupyingFaction())
+		{
+			RejectCapture(playerId, "no occupying-faction radio tower at the claimed position");
+			return;
+		}
+
+		if(vector.Distance(character.GetOrigin(), tower.location) > SABOTAGE_MAX_DISTANCE)
+		{
+			RejectCapture(playerId, "the caller is not at the tower");
+			return;
+		}
+
+		OVT_PlayerWantedComponent wanted = OVT_PlayerWantedComponent.Cast(character.FindComponent(OVT_PlayerWantedComponent));
+		if(wanted && wanted.GetWantedLevel() > 0)
+		{
+			RejectCapture(playerId, "the caller is wanted");
+			return;
+		}
+
+		if(OVT_ResistancePresence.IsGroundHeldByOccupying(tower.location, OVT_CaptureRadioTowerAction.DEFENDER_RADIUS_M))
+		{
+			RejectCapture(playerId, "the tower is still defended");
+			return;
+		}
+
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if(!config) return;
+
+		of.ChangeRadioTowerControl(tower, config.GetPlayerFactionIndex());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Logs a refused capture with its reason.
+	//! \param[in] playerId The rejected player, or -1 when even that could not be resolved.
+	//! \param[in] reason Why.
+	protected void RejectCapture(int playerId, string reason)
+	{
+		Print(string.Format("[OVT_TowerSabotageComponent] Rejected capture request from player %1: %2", playerId.ToString(), reason), LogLevel.WARNING);
 	}
 
 	//------------------------------------------------------------------------------------------------
