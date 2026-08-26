@@ -40,6 +40,162 @@ class OVT_WorldUtils : Managed
 	}
 	// Static array for spawn point search results
 	static ref array<IEntity> s_SpawnPointSearchResults;
+
+	//! How far above the standing surface a resolved spawn position is placed, so the character drops
+	//! onto the floor instead of starting fractionally inside it.
+	static const float SPAWN_GROUND_CLEARANCE = 0.5;
+
+	//! Ring radii used when the close-in probes are all inside whatever the caller is trying to get out
+	//! of. Deliberately short: a spawn that walks the player across the street is a nuisance, a spawn
+	//! that walks them across the town is a bug of its own.
+	static const ref array<float> SPAWN_RING_RADII = {4.0, 6.0, 8.0, 12.0};
+
+	//------------------------------------------------------------------------------------------------
+	//! The height a character standing at this XZ should have.
+	//!
+	//! GetSurfaceY answers for the TERRAIN ONLY, so any point sitting on something the terrain does not
+	//! know about - a building floor, a raised foundation, a concrete pad, a jetty - is dropped into
+	//! whatever is underneath it, which is the inside of the structure. Trace down through terrain AND
+	//! entities from just above the point instead, and keep GetSurfaceY as the answer when the trace
+	//! finds nothing (a point over a cliff edge, or one whose owner is floating).
+	//! \param[in] pos The position whose XZ is being resolved; its Y is the vertical search anchor.
+	//! \param[in] searchUp How far above pos to start the downward trace.
+	//! \param[in] searchDown How far below pos to give up.
+	//! \return The Y of the first surface found, else the terrain height.
+	static float ResolveGroundY(vector pos, float searchUp = 1.0, float searchDown = 3.0)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return pos[1];
+
+		TraceParam param = new TraceParam();
+		param.Start = pos + Vector(0, searchUp, 0);
+		param.End = pos - Vector(0, searchDown, 0);
+		param.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
+
+		float travelled = world.TraceMove(param, null);
+		if (travelled < 1.0)
+			return param.Start[1] - ((searchUp + searchDown) * travelled);
+
+		return world.GetSurfaceY(pos[0], pos[2]);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a body-sized box at this position is free of geometry.
+	//!
+	//! ENTS only, matching every other clearance test here: the box is placed clear of the surface, so
+	//! including terrain would make the ground itself read as an obstruction.
+	//! \param[in] pos The position to test.
+	//! \param[in] mins Box minimum corner, relative to pos.
+	//! \param[in] maxs Box maximum corner, relative to pos.
+	//! \param[in] exclude An entity the test should ignore - normally the thing the position belongs to.
+	//! \return True when nothing is in the way.
+	static bool IsPositionClear(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", IEntity exclude = null)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return true;
+
+		TraceBox trace = new TraceBox;
+		trace.Flags = TraceFlags.ENTS;
+		trace.Start = pos;
+		trace.Mins = mins;
+		trace.Maxs = maxs;
+		trace.Exclude = exclude;
+
+		return world.TracePosition(trace, null) >= 0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether something solid is directly overhead.
+	//!
+	//! THE ONLY TEST THAT TELLS "inside a building" APART FROM "in the open". A clearance box cannot:
+	//! an empty room passes it exactly as a field does, which is why a gun dealer standing in somebody's
+	//! living room looked like a perfectly good placement to every check Overthrow had. Used to judge a
+	//! position that was MEANT to be outdoors - never to reject one that was deliberately put indoors.
+	//! \param[in] pos The standing position to test.
+	//! \param[in] height How far up to look.
+	//! \return True when the position is roofed.
+	static bool HasGeometryOverhead(vector pos, float height = 5.0)
+	{
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		TraceParam param = new TraceParam();
+		param.Start = pos + Vector(0, 0.5, 0);
+		param.End = pos + Vector(0, height, 0);
+		param.Flags = TraceFlags.ENTS;
+
+		return world.TraceMove(param, null) < 1.0;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A clear, grounded standing position just OUTSIDE a building's footprint.
+	//!
+	//! TryFindSafeSpawnPosition samples a 2 m sphere centred on what it is given, so anchoring it on a
+	//! building ORIGIN - a point inside the shell - answers with another point inside the shell, and an
+	//! open room passes the clearance test perfectly well. That is what puts gun dealers in living
+	//! rooms. This starts outside the entity's world bounds and rings outward instead.
+	//! \param[in] building The building to stand next to.
+	//! \param[out] foundPos A clear position outside it, or its origin when there is none.
+	//! \param[in] mins Clearance box minimum corner.
+	//! \param[in] maxs Clearance box maximum corner.
+	//! \return True when a clear position outside the footprint was found.
+	static bool FindSpawnPositionOutside(notnull IEntity building, out vector foundPos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5")
+	{
+		foundPos = building.GetOrigin();
+
+		vector boundsMin, boundsMax;
+		building.GetWorldBounds(boundsMin, boundsMax);
+
+		vector centre = (boundsMin + boundsMax) * 0.5;
+		centre[1] = foundPos[1];
+
+		float footprint = Math.Max(boundsMax[0] - boundsMin[0], boundsMax[2] - boundsMin[2]) * 0.5;
+
+		vector firstClear;
+		bool haveClear = false;
+
+		for (int step = 0; step < 4; step++)
+		{
+			float radius = footprint + 2.0 + (step * 3.0);
+			for (int bearing = 0; bearing < 12; bearing++)
+			{
+				float angle = bearing * 30.0 * Math.DEG2RAD;
+				vector candidate = centre + Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+				candidate[1] = ResolveGroundY(Vector(candidate[0], centre[1], candidate[2])) + SPAWN_GROUND_CLEARANCE;
+
+				if (!IsPositionClear(candidate, mins, maxs))
+					continue;
+
+				if (!haveClear)
+				{
+					firstClear = candidate;
+					haveClear = true;
+				}
+
+				// OPEN SKY IS THE POINT, not merely a gap. A bounding box is quantized and can end short
+				// of a wing, an awning or a porch, so a "clear" candidate can still be under the very
+				// roof this is escaping - and a caller that re-judges its own recorded position would
+				// then move it again every session. Take a roofed spot only if nothing better exists.
+				if (!HasGeometryOverhead(candidate))
+				{
+					foundPos = candidate;
+					return true;
+				}
+			}
+		}
+
+		if (haveClear)
+		{
+			foundPos = firstClear;
+			return true;
+		}
+
+		return false;
+	}
+
 	static vector FindSafeSpawnPosition(vector pos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5", bool skipSpawnPointSearch = false)
 	{
 		vector foundPos;
@@ -86,49 +242,61 @@ class OVT_WorldUtils : Managed
 				
 				if (closestEntity)
 				{
+					// HasSpawnPoints() first: GetSpawnPoint() falls back to the HOLDER'S OWN ORIGIN when
+					// nothing is authored, and for a building that is a point inside it - the exact
+					// answer this method exists to avoid. The clearance re-test is for the other half:
+					// an authored point can be blocked by something that was not there when it was
+					// authored (a placeable, a wreck, a neighbour's fence), and falling through to the
+					// probe below beats handing back a point we can see is occupied.
 					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestEntity.FindComponent(OVT_SpawnPointComponent));
-					if (spawnComp)
+					if (spawnComp && spawnComp.HasSpawnPoints())
 					{
-						foundPos = spawnComp.GetSpawnPoint();
-						return true;
+						vector authored = spawnComp.GetSpawnPoint();
+						if (IsPositionClear(authored, mins, maxs))
+						{
+							foundPos = authored;
+							return true;
+						}
 					}
 				}
 			}
 		}
 
-		//a crude and brute-force way to find a spawn position, try to improve this later
-		int i = 0;
-		
-		BaseWorld world = GetGame().GetWorld();
-		float ground = world.GetSurfaceY(pos[0],pos[2]);
-		
+		// A crude random search close in, then rings outward. Every candidate is put ON the surface
+		// under it: the old code lifted the probe by a random 0-2 m from the INPUT's Y and traced ENTS
+		// only, so a candidate buried in a hillside or hanging two metres over it both read as clear
+		// (terrain is TraceFlags.WORLD, which the box test does not ask for) - that is a spawn in a
+		// wall wearing the disguise of a successful probe.
 		vector checkpos;
-		TraceBox trace;
-		while(i < 30)
+		for (int i = 0; i < 30; i++)
 		{
-			i++;
-			
-			//Get a random vector in a 2m radius sphere centered on pos and above the ground
-			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0,2,pos,false);
-			checkpos[1] = pos[1] + s_AIRandomGenerator.RandFloatXY(0, 2);
-						
-			//check if a box on that position collides with anything
-			trace = new TraceBox;
-			trace.Flags = TraceFlags.ENTS;
-			trace.Start = checkpos;
-			trace.Mins = mins;
-			trace.Maxs = maxs;
-			
-			float result = world.TracePosition(trace, null);
-				
-			if (result < 0)
+			//Get a random vector in a 2m radius sphere centered on pos, standing on whatever is under it
+			checkpos = s_AIRandomGenerator.GenerateRandomPointInRadius(0, 2, pos, false);
+			checkpos[1] = ResolveGroundY(Vector(checkpos[0], pos[1], checkpos[2])) + SPAWN_GROUND_CLEARANCE;
+
+			if (IsPositionClear(checkpos, mins, maxs))
 			{
-				//collision, try again
-				continue;
-			}else{
-				//no collision, this pos is safe
 				foundPos = checkpos;
 				return true;
+			}
+		}
+
+		// Still nothing: the 2 m sphere is inside the thing we are trying to get out of. Ring outward
+		// rather than hand back the colliding input - the same escape the vehicle path already has in
+		// FindVehicleSpawnNear, which the character path never got.
+		foreach (float radius : SPAWN_RING_RADII)
+		{
+			for (int bearing = 0; bearing < 8; bearing++)
+			{
+				float angle = bearing * 45.0 * Math.DEG2RAD;
+				checkpos = pos + Vector(Math.Sin(angle) * radius, 0, Math.Cos(angle) * radius);
+				checkpos[1] = ResolveGroundY(Vector(checkpos[0], pos[1], checkpos[2])) + SPAWN_GROUND_CLEARANCE;
+
+				if (IsPositionClear(checkpos, mins, maxs))
+				{
+					foundPos = checkpos;
+					return true;
+				}
 			}
 		}
 

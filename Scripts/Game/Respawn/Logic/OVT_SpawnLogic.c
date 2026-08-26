@@ -1229,13 +1229,19 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			if(!IsSpawnLocationSafe(housePos))
 				continue;
 
+			// HasSpawnPoints() gates this: without it GetSpawnPoint() answers with the building's own
+			// origin whenever the component authors nothing, which is the inside-the-shell vector this
+			// whole method exists to avoid.
 			OVT_SpawnPointComponent spawn = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
-			if(spawn)
+			if(spawn && spawn.HasSpawnPoints())
 				return spawn.GetSpawnPoint();
 
-			// No authored point - search for a clear spot near the building, and skip the house
-			// entirely when there is none rather than hand back a position inside its shell.
+			// No authored point - stand them beside the building, and skip the house entirely when
+			// there is nowhere clear rather than hand back a position inside its shell.
 			vector clearPos;
+			if(OVT_WorldUtils.FindSpawnPositionOutside(building, clearPos))
+				return clearPos;
+
 			if(OVT_WorldUtils.TryFindSafeSpawnPosition(housePos, clearPos))
 				return clearPos;
 		}

@@ -215,40 +215,53 @@ class OVT_TownControllerComponent: OVT_Component
 		return false;
 	}
 
+	//! A standing position for this town's gun dealer, OUTSIDE the house he belongs to.
+	//!
+	//! Anchoring on the building origin and asking FindSafeSpawnPosition was what stood dealers in
+	//! living rooms: the origin is a point inside the shell, the 2 m probe around it stays inside the
+	//! shell, and an empty room passes the clearance test. \see OVT_WorldUtils.FindSpawnPositionOutside
+	//! \param[in] house The building the dealer trades from.
+	//! \return A position beside the house, or its authored spawn point when it has one.
+	protected vector ResolveGunDealerPosition(notnull IEntity house)
+	{
+		OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(house.FindComponent(OVT_SpawnPointComponent));
+		if(spawnPoint && spawnPoint.HasSpawnPoints())
+			return spawnPoint.GetSpawnPoint();
+
+		vector outside;
+		if(OVT_WorldUtils.FindSpawnPositionOutside(house, outside))
+			return outside;
+
+		return OVT_WorldUtils.FindSafeSpawnPosition(house.GetOrigin());
+	}
+
 	protected void SpawnGunDealer()
 	{
 		vector spawnPosition;
 
-		if(m_Town.gunDealerPosition && m_Town.gunDealerPosition[0] != 0)
+		// A RECORDED POSITION IS RE-TESTED, NOT TRUSTED. It is written to the save and re-used verbatim
+		// every session, so a dealer who once landed inside a house stayed there for the life of the
+		// campaign - re-judging it here is what heals an existing save on its next load. Both tests are
+		// needed: a dealer standing in an empty living room passes the clearance box exactly as one in
+		// the street does, and only the overhead trace can tell them apart. Compared against the zero
+		// vector rather than X != 0: a legitimate position can have X exactly 0 (BUG-005's shape).
+		if(m_Town.gunDealerPosition != vector.Zero
+			&& OVT_WorldUtils.IsPositionClear(m_Town.gunDealerPosition)
+			&& !OVT_WorldUtils.HasGeometryOverhead(m_Town.gunDealerPosition))
 		{
 			spawnPosition = m_Town.gunDealerPosition;
 		}else{
 			IEntity entity = GetRandomGunDealerHouse();
-			if(entity)
+			if(!entity)
+				entity = m_TownManager.GetRandomUnownedHouseInTown(m_Town);
+
+			if(!entity)
 			{
-				OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
-				if(spawnPoint)
-				{
-					spawnPosition = spawnPoint.GetSpawnPoint();
-				}else{
-					spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(entity.GetOrigin());
-				}
-			}else{
-				IEntity house = m_TownManager.GetRandomUnownedHouseInTown(m_Town);
-				if(house)
-				{
-					OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(house.FindComponent(OVT_SpawnPointComponent));
-					if(spawnPoint)
-					{
-						spawnPosition = spawnPoint.GetSpawnPoint();
-					}else{
-						spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(house.GetOrigin());
-					}
-				}else{
-					Print("[Overthrow] No gun dealer locations found in town: " + m_sName);
-					return;
-				}
-			}			
+				Print("[Overthrow] No gun dealer locations found in town: " + m_sName);
+				return;
+			}
+
+			spawnPosition = ResolveGunDealerPosition(entity);
 		}
 
 		BaseWorld world = GetGame().GetWorld();
