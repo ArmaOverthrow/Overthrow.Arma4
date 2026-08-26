@@ -3379,3 +3379,27 @@ That commit's own change was a real fix (a crew restored across a load came back
 ⚠ **Consequence, stated rather than discovered:** a vetoed transport now keeps a live crew indefinitely. `TickAbandonedTruck` collects the truck once nobody is within 320 m, but the module is gone by then, so those men are nobody's. That is the same trade as the vehicle itself and follows the author's standing rule (*"the vehicle is lost at that point"*) — but if abandoned crews accumulate on a long campaign, this is the entry that explains why.
 
 `tools/compile-check.sh` exit 0 (6351 files). Play-test owed: the transport should now drive home and be gone; a watched one should keep its crew.
+
+### 2026-08-26 — The director now re-evaluates on a tower change AND once a day at dawn
+
+**Author:** *"we control the town of Morton however the OF controls the radio tower near it, so the support in Morton has dropped to zero yet the objective director is focused currently on Chotain base (phase 1: harassment). so does the objective selection take into account the support level? and maybe it could re-evaluate objectives daily."* Then: *"I think we can do both now ... he should re-evaluate just before dawn and the deployment pool is opened up after the night rest, and as you say, stay focused if its past phase 0."*
+
+**Support was never the gap — it is already the heaviest signal in the score.** `OVT_ResistanceTownObjectiveSelector.ScoreTown()` *inverts* it, so 0 % support pays the full `m_fSupportCollapseWeight`, and an occupying tower still covering the town pays `m_fTowerCoverageWeight` on top. Morton was scoring near its maximum. The director simply never looked again.
+
+**Two reasons it stayed on Chotain:**
+1. **The free-slot path was blocked.** `SelectObjective()` runs only when `liveAtTickStart < MaxConcurrentObjectives()`. A live objective occupies the slot, so the ordinary re-selection never happens and the selection cooldown is irrelevant.
+2. **Nothing signalled the change.** `m_bReselectPending` had exactly two writers — `OnBaseControlChanged` and `OnTownControlChanged`. **A radio tower had no signal at all**, and it is the third way a town's value moves. Slow support drift crosses no edge whatsoever.
+
+**Fix 1 — the tower is now an edge.** `OVT_OccupyingFactionManager.m_OnRadioTowerControlChanged`, fired from `ChangeRadioTowerControl()` before the notification, with `OnRadioTowerControlChanged` on the director. ⚠ Subscribed in its **own** `if`, not folded into the base-invoker block: a null invoker on either side must not stop the other being hooked, and `m_HookedOccupying` is the cached handle **both** unsubscribes go through. One tower change moves two of `ScoreTown`'s terms.
+
+**Fix 2 — `TickDawnReselect()`, one re-evaluation a day.** Because *"a tower hook may still miss a support drift"* — every event route is an edge, and support bleeding away over hours crosses none.
+
+⚠ **The hour is read from `OVT_DeploymentManagerComponent.m_iDaylightStartHour`, not duplicated.** "Just before dawn, when the pool opens after the night rest" is **one** moment; a second copy of that hour is how the two drift apart. If the window is switched off (bound outside 0-23, or start == end) there is no dawn and this does nothing — the event routes still work.
+
+⚠ **Latched on the DATE, not a bool.** The tick runs once per in-game *minute*, so without a latch the flag would be raised sixty times across the dawn hour; using the date means a time skip landing past the hour cannot leave it armed for a day it already served. Not persisted — a load after dawn waits for the next one, which is ordinary behaviour rather than a save-format change.
+
+⚠ **It only ASKS.** `ConsumeReselectRequest()` still refuses past phase 0, so a committed objective — forward base going up, battle mustering — is never moved by the clock. The author's *"stay focused if its past phase 0"* is enforced in one place, not two.
+
+⚠ **Feel is explicitly unsettled** (author: *"the feel is still up in the air as this isnt released yet so we can tweak it later"*). A daily re-score can now abandon a harassment-phase objective for a better one; the levers are the dawn hour, the phase-0 lock, and the selector weights.
+
+`tools/compile-check.sh` exit 0 (6351 files). Untested beyond compile — needs an in-game day boundary to exercise.

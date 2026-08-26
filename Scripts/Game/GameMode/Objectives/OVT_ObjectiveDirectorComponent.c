@@ -311,6 +311,11 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! inline - see OnBaseControlChanged() for why.
 	protected bool m_bReselectPending;
 
+	//! Which day the dawn re-evaluation last fired on, as a packed date. -1 before the first one. NOT
+	//! persisted: a load that lands after dawn simply waits for the next one, which is a day of
+	//! ordinary behaviour rather than a bug worth a save-format change. See TickDawnReselect().
+	protected int m_iLastDawnReselectDay = -1;
+
 	//! In-game minutes left before an IDLE tick may run another selection round (D6). Re-armed by
 	//! SelectObjective() itself and served by IsSelectionDue(), so every path that runs a round pays
 	//! the same cooldown and no path can run two rounds in one minute.
@@ -623,6 +628,9 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			// so it runs before anything reads the phase.
 			ResolveRestoredObjective();
 		}
+
+		// Before anything reads the phase or the reselect flag: a new day may be the reason to look again.
+		TickDawnReselect();
 
 		bool alreadySelected = ConsumeReselectRequest();
 
@@ -1233,6 +1241,63 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 		OVT_DeploymentLog.Debug(LOG + "Objective '" + m_Objective.name + "' has met every condition of phase '" + leaving + "' on plan '" + instance.GetConfigName() + "' - entering '" + instance.GetPhaseName() + "'");
 
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! ONE RE-EVALUATION A DAY, AT THE HOUR THE FACTION'S MONEY UNLOCKS.
+	//!
+	//! 🔴 WHY A CLOCK AND NOT JUST EVENTS (author, 2026-08-26): *"a tower hook may still miss a support
+	//! drift"*. Every other route into re-selection is an EDGE - a base, a town or a tower changing
+	//! hands - and a town whose support bleeds away over hours crosses no edge at all. Morton sat at
+	//! zero support with an occupying tower over it while the director stayed on a base across the map,
+	//! and nothing in the campaign was ever going to tell it.
+	//!
+	//! ⚠ THE HOUR IS THE DEPLOYMENT MANAGER'S OWN m_iDaylightStartHour, READ FROM IT RATHER THAN
+	//! DUPLICATED. "Re-evaluate just before dawn, when the pool opens after the night rest" is ONE
+	//! moment, and authoring a second copy of that hour is how the two drift apart. If the window is
+	//! switched off (a bound outside 0-23, or start == end) there is no dawn to fire on and this does
+	//! nothing - the event routes still work.
+	//!
+	//! ⚠ LATCHED PER DAY, NOT PER HOUR. The tick runs once per in-game MINUTE, so without the day latch
+	//! this would raise the flag sixty times across the dawn hour. The date is used rather than a bool
+	//! so a time skip that lands past the hour cannot leave it armed for a day it already served.
+	//!
+	//! ⚠ IT ONLY ASKS. ConsumeReselectRequest() still refuses past phase 0, so a committed objective -
+	//! forward base going up, battle mustering - is never moved by the clock. That is the author's
+	//! "stay focused if its past phase 0" and it is enforced in one place, not two.
+	protected void TickDawnReselect()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+			return;
+
+		int dawnHour = deployments.m_iDaylightStartHour;
+		if (dawnHour < 0 || dawnHour > 23 || dawnHour == deployments.m_iDaylightEndHour)
+			return;
+
+		ChimeraWorld world = ChimeraWorld.CastFrom(GetGame().GetWorld());
+		if (!world)
+			return;
+
+		TimeAndWeatherManagerEntity clock = world.GetTimeAndWeatherManager();
+		if (!clock)
+			return;
+
+		TimeContainer time = clock.GetTime();
+		if (!time || time.m_iHours != dawnHour)
+			return;
+
+		int year, month, day;
+		clock.GetDate(year, month, day);
+
+		int dayIndex = ((year * 12) + month) * 31 + day;
+		if (dayIndex == m_iLastDawnReselectDay)
+			return;
+
+		m_iLastDawnReselectDay = dayIndex;
+		m_bReselectPending = true;
+
+		OVT_DeploymentLog.Debug(LOG + "A new day has opened the deployment pool - re-evaluating the objective in case the map has moved under it");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -3346,6 +3411,15 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 			m_HookedOccupying = occupying;
 		}
 
+		// ⚠ ITS OWN `if`, NOT FOLDED INTO THE ONE ABOVE. A null invoker on either side must not stop the
+		// other being hooked, and m_HookedOccupying is the handle BOTH unsubscribes go through.
+		if (occupying && occupying.m_OnRadioTowerControlChanged)
+		{
+			occupying.m_OnRadioTowerControlChanged.Remove(OnRadioTowerControlChanged);
+			occupying.m_OnRadioTowerControlChanged.Insert(OnRadioTowerControlChanged);
+			m_HookedOccupying = occupying;
+		}
+
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
 		if (towns && towns.m_OnTownControlChange)
 		{
@@ -3367,6 +3441,9 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	{
 		if (m_HookedOccupying && m_HookedOccupying.m_OnBaseControlChanged)
 			m_HookedOccupying.m_OnBaseControlChanged.Remove(OnBaseControlChanged);
+
+		if (m_HookedOccupying && m_HookedOccupying.m_OnRadioTowerControlChanged)
+			m_HookedOccupying.m_OnRadioTowerControlChanged.Remove(OnRadioTowerControlChanged);
 
 		if (m_HookedTowns && m_HookedTowns.m_OnTownControlChange)
 			m_HookedTowns.m_OnTownControlChange.Remove(OnTownControlChanged);
@@ -3397,6 +3474,22 @@ class OVT_ObjectiveDirectorComponent : OVT_Component
 	//! would score a half-updated campaign.
 	//! \param[in] town The town that changed hands. Deliberately unused.
 	protected void OnTownControlChanged(OVT_TownData town)
+	{
+		m_bReselectPending = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A radio tower changed hands: ask for a re-selection on the next tick.
+	//!
+	//! 🔴 THE THIRD WAY A TOWN'S VALUE MOVES, and the one that had no signal (author, 2026-08-26): the
+	//! occupying faction took the tower covering Morton, the town's support collapsed to zero, and the
+	//! director stayed on a base objective across the map because nothing told it the map had changed.
+	//! A tower is worth a re-score for two separate terms - ScoreTown's support-collapse term AND its
+	//! tower-coverage term both move when one changes hands.
+	//!
+	//! ⚠ Flag-only, for the same reason as the other two handlers: the invoker fires mid-dispatch.
+	//! \param[in] tower The tower that changed hands. Deliberately unused.
+	protected void OnRadioTowerControlChanged(OVT_RadioTowerData tower)
 	{
 		m_bReselectPending = true;
 	}

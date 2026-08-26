@@ -112,3 +112,27 @@ So a tower the occupying faction had just recaptured and **not yet garrisoned** 
 ⚠ Placed on `OVT_TowerSabotageComponent` rather than a new controller component, so it needs no `OVT_OverthrowController.et` edit and no `OVT_TEST_Init_ControllerSeam` entry. Its `ComponentEditorProps` description now says "radio tower actions (sabotage, capture)"; the class name is now narrower than what it does.
 
 `tools/compile-check.sh` exit 0 (6348 files). Workbench prefab load + play-test owed.
+
+### 2026-08-26 — The deployment pool now has a ceiling; income stays in reserve above it
+
+**Author, from the live server:** *"the deployment pool has grown to 2000 resources while the reserve is about 175, i think we already cap the pool so the next distribution would go into reserve but is there any mechanic that can shift out of the pool and back into reserve if its needed?"*
+
+**Two premises corrected before anything was built.** There was **no pool cap** — `OVT_DeploymentManagerComponent.AddFactionResources()` is a bare `current + amount` with no ceiling anywhere in the tree, so the next distribution went into the pool like every other one. And there is **no mechanic that moves pool → reserve**; there never was.
+
+🔴 **Worse, every flow ran the same way.** `PoolTransferForWindow` sent the 80 % defense share into the pool *and* swept any reserve **above** its target in after it. So a quiet map — where the evaluator is throttled by the daylight window, config cooldowns, max-instances and the per-faction ceiling — fills the pool faster than it drains while the reserve starves underneath. On Normal the reserve target is **750** (`max(maxQRF 750, objectiveQRFResourceGate 750) × 1`); at 175 the reserve can never clear `objectiveQRFResourceGate`, **so no counter-attack is ever funded**. The faction ends up rich and passive, which is exactly what the author was watching.
+
+**Fix: a ceiling, not a claw-back** (author agreed the multiple). `PoolCap(reserveTarget) = reserveTarget × POOL_CAP_MULTIPLE (2)` — 1500 on Normal — and `PoolTransferForWindow` returns **0** at or above it.
+
+⚠ **Why a ceiling beats a reverse pump, since the author asked for the latter.** Suppressing the transfer needs no new direction of flow, no change to the drip machinery, and cannot oscillate: with the tap shut the reserve keeps **100 %** of income and refills itself within a few ticks. A pool → reserve pump would have to decide how much, how fast, and what to do when both are hungry — three tuning decisions for a problem that closes with one comparison.
+
+⚠ **The cap outranks the surplus sweep**, and that is the half that matters. The reserve-above-target rule would otherwise keep filling an already-full pool, so the pool could only ever grow. Asserted directly.
+
+⚠ **Scaled off the reserve target rather than authored**, so it follows difficulty for free — one target is what a counter-attack costs, two is "a couple of operations' worth in hand" — and adds no field to five `.conf` presets.
+
+⚠ **A zero/negative target means NO cap (`int.MAX`), not a cap of zero.** Read the other way, a campaign with no difficulty preset would never fund its defences at all. Asserted.
+
+⚠ **Read once, at ARM time.** The decision is "was the pool full when this income landed", not a per-drip re-test that could strand half a share mid-window.
+
+**Tests:** five new assertions in `OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling` — the cap value, the reported 2000/175/750 case, exactly-at-cap, hoarding-reserve-into-full-pool, one-under-cap unchanged, and no-target-means-no-cap. The four pre-existing `PoolTransferForWindow` assertions were given `pool 0` so they still mean what they meant. **Case run and GREEN** (`run-tests.sh OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling` → OK, 1 test).
+
+`tools/compile-check.sh` exit 0 (6351 files).

@@ -553,23 +553,23 @@ class OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling : SCR_AutotestCaseBase
 		}
 
 		// --- CLAIM 3: under the target the transfer is the ordinary share, unchanged.
-		int under = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 700, 750);
+		int under = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 700, 750, 0);
 		if (under != OVT_BaseDefenseConversion.DefenseShare(250))
 		{
 			SetFailure("A reserve of 700 under a target of 750 transferred %1, expected the ordinary share of %2 - the 80/20 split must be untouched below the ceiling", under.ToString(), OVT_BaseDefenseConversion.DefenseShare(250).ToString());
 			return true;
 		}
 
-		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750) != OVT_BaseDefenseConversion.DefenseShare(250))
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750, 0) != OVT_BaseDefenseConversion.DefenseShare(250))
 		{
-			SetFailure("A reserve sitting exactly on its target transferred %1, expected the ordinary share - the surplus is zero there and the share is the floor", OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750).ToString());
+			SetFailure("A reserve sitting exactly on its target transferred %1, expected the ordinary share - the surplus is zero there and the share is the floor", OVT_BaseDefenseConversion.PoolTransferForWindow(250, 750, 750, 0).ToString());
 			return true;
 		}
 
 		// --- CLAIM 4: THE ANTI-DOUBLE-PAY CLAIM, and the reason this method is not share + surplus.
 		//     The reserve figure ALREADY CONTAINS this tick, so the surplus IS the whole transfer.
 		//     1438 banked against a target of 750 must leave the reserve ON 750, never under it.
-		int hoarding = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 1438, 750);
+		int hoarding = OVT_BaseDefenseConversion.PoolTransferForWindow(250, 1438, 750, 0);
 		if (hoarding != 688)
 		{
 			SetFailure("A reserve of 1438 against a target of 750 transferred %1, expected 688 - anything larger is this tick's income being paid twice, and it walks the reserve under the counter-attack's own funding gate", hoarding.ToString());
@@ -582,8 +582,55 @@ class OVT_TEST_Logic_BaseDefenseConversion_ReserveCeiling : SCR_AutotestCaseBase
 			return true;
 		}
 
+		// --- CLAIM 4b: 🔴 THE POOL CEILING. Reported from the live server, 2026-08-26: the pool had grown
+		// to 2000 against a reserve of 175 and a target of 750, so the reserve could never clear
+		// objectiveQRFResourceGate and no counter-attack was ever funded. Every flow in this class ran
+		// one way; the cap is what stops the transfer so the reserve keeps its own income.
+		int cap = OVT_BaseDefenseConversion.PoolCap(750);
+		if (cap != 1500)
+		{
+			SetFailure("The pool cap against a 750 target is %1, expected 1500 - two counter-attacks' worth", cap.ToString());
+			return true;
+		}
+
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 175, 750, 2000) != 0)
+		{
+			SetFailure("The reported case transferred %1 into an already-full pool, expected 0 - a starved reserve must keep its income", OVT_BaseDefenseConversion.PoolTransferForWindow(250, 175, 750, 2000).ToString());
+			return true;
+		}
+
+		// ⚠ EXACTLY AT THE CAP IS FULL. A pool holding precisely its ceiling has nothing more owing.
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 175, 750, 1500) != 0)
+		{
+			SetFailure("A pool sitting exactly on its cap still took a transfer - the ceiling is inclusive");
+			return true;
+		}
+
+		// ⚠ AND THE CAP OUTRANKS THE SURPLUS SWEEP, which is the half that would otherwise keep filling a
+		// full pool: a reserve ABOVE its target used to be swept in whatever the pool held.
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 1438, 750, 2000) != 0)
+		{
+			SetFailure("A hoarding reserve was still swept into a full pool - the ceiling must outrank the surplus rule, or the pool can only ever grow");
+			return true;
+		}
+
+		// ⚠ ONE UNDER THE CAP IS STILL AN ORDINARY WINDOW. The cap must not leak into the normal path.
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 175, 750, 1499) != OVT_BaseDefenseConversion.DefenseShare(250))
+		{
+			SetFailure("A pool one short of its cap did not take the ordinary share - the ceiling is changing behaviour below itself");
+			return true;
+		}
+
+		// ⚠ NO TARGET MEANS NO CAP, NOT A CAP OF ZERO. Read the other way, a campaign with no difficulty
+		// preset would never fund its defences at all.
+		if (OVT_BaseDefenseConversion.PoolCap(0) != int.MAX)
+		{
+			SetFailure("With no reserve target the pool cap was not int.MAX - an unfunded pool would stop the faction defending anything");
+			return true;
+		}
+
 		// --- CLAIM 5: no target restores the old behaviour exactly.
-		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 100000, 0) != OVT_BaseDefenseConversion.DefenseShare(250))
+		if (OVT_BaseDefenseConversion.PoolTransferForWindow(250, 100000, 0, 0) != OVT_BaseDefenseConversion.DefenseShare(250))
 		{
 			SetFailure("With no target, a huge reserve changed the transfer - a campaign with no difficulty preset must behave exactly as it did before the ceiling existed");
 			return true;

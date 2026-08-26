@@ -309,6 +309,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
+
+	//! Fired when a radio tower changes hands, either way. Args: the tower's record.
+	//!
+	//! 🔴 WHY IT EXISTS (author, 2026-08-26): the occupying faction took the tower covering Morton, the
+	//! town's support collapsed to zero - and the objective director never noticed, because the only
+	//! two things that could ask it to re-select were a BASE or a TOWN changing hands. A tower is the
+	//! third way a town's value moves, and it was the one with no signal.
+	ref ScriptInvoker<OVT_RadioTowerData> m_OnRadioTowerControlChanged = new ScriptInvoker<OVT_RadioTowerData>;
 	ref ScriptInvoker<IEntity> m_OnPlayerLoot = new ScriptInvoker<IEntity>;
 
 	//! Which TOWN is currently under QRF attack, published the moment it changes: the town's id when a
@@ -1072,6 +1080,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if(faction == tower.faction) return;
 		tower.faction = faction;
 		Rpc(RpcDo_SetRadioTowerFaction, tower.location, faction);
+
+		if(m_OnRadioTowerControlChanged) m_OnRadioTowerControlChanged.Invoke(tower);
 
 		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
 
@@ -2244,7 +2254,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		// and hand it over twice.
 		int reserveTarget = ResolveReserveTarget();
 
-		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.PoolTransferForWindow(newResources, m_iResources, reserveTarget);
+		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.PoolTransferForWindow(newResources, m_iResources,
+			reserveTarget, ResolveDeploymentPool());
 
 		m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
 
@@ -2261,6 +2272,24 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! Normal against a 750 gate.
 	//! \return The reserve to hold, or 0 when there is no difficulty preset to ask (which restores the
 	//!         unconditional 80/20 split exactly).
+	//------------------------------------------------------------------------------------------------
+	//! What the occupying faction's deployment pool holds right now.
+	//!
+	//! Read at ARM time, once per window, so a pool that drains during the window still receives the
+	//! whole armed transfer - the decision is "was the pool full when this income landed", not a
+	//! per-drip re-test that could strand half a share.
+	//! \return The pool, or 0 when the manager or the faction cannot be resolved.
+	protected int ResolveDeploymentPool()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		if (!deployments || !config)
+			return 0;
+
+		return deployments.GetFactionResources(config.GetOccupyingFactionIndex());
+	}
+
 	protected int ResolveReserveTarget()
 	{
 		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();

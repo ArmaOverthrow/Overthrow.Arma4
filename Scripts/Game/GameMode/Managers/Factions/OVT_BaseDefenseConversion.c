@@ -32,6 +32,11 @@ class OVT_BaseDefenseConversion
 	//! are deliberately excluded from this migration.
 	static const float DEFENSE_SHARE_OF_TICK = 0.8;
 
+	//! How many reserve targets the deployment pool may bank before the transfer is suppressed
+	//! (author, 2026-08-26). One target is what a counter-attack costs, so two is "a couple of
+	//! operations' worth in hand".
+	static const int POOL_CAP_MULTIPLE = 2;
+
 	//! How many slices one six-hour defense share is paid to the deployment pool in. Six slices on a
 	//! six-hour payday grid is one an hour, which is the whole point: the pool is the CONTENDED
 	//! resource, so smoothing its arrival is what removes the faction's burst-spending rhythm without
@@ -134,8 +139,23 @@ class OVT_BaseDefenseConversion
 	//! \param[in] reserve The reserve AFTER this tick's income and after the previous window was flushed.
 	//! \param[in] reserveTarget What ReserveTarget() answered. Zero or below keeps the ordinary split.
 	//! \return What to move to the pool this window, never negative.
-	static int PoolTransferForWindow(int newResources, int reserve, int reserveTarget)
+	static int PoolTransferForWindow(int newResources, int reserve, int reserveTarget, int pool)
 	{
+		// 🔴 THE TAP CLOSES WHEN THE POOL IS FULL (author, 2026-08-26: pool at 2000, reserve at 175).
+		// Every flow in this class ran ONE WAY - the 80 % share into the pool, AND any reserve above its
+		// target swept in after it - while nothing ever moved the other way. The evaluator is throttled
+		// by the daylight window, config cooldowns, max-instances and the per-faction ceiling, so on a
+		// quiet map the pool fills faster than it drains and the reserve starves underneath it. A
+		// starved reserve never clears objectiveQRFResourceGate, so no counter-attack is ever funded -
+		// the faction ends up rich and passive.
+		//
+		// ⚠ A CEILING, NOT A CLAW-BACK, AND THAT IS THE WHOLE DESIGN. Suppressing the transfer needs no
+		// new direction of flow, no change to the drip machinery and cannot oscillate: with the tap shut
+		// the reserve simply keeps 100 % of income and refills itself. A pool -> reserve pump would have
+		// to decide how much, how fast, and what to do when both are hungry.
+		if (pool >= PoolCap(reserveTarget))
+			return 0;
+
 		int share = DefenseShare(newResources);
 
 		int surplus = ReserveOverflow(reserve, reserveTarget);
@@ -143,6 +163,27 @@ class OVT_BaseDefenseConversion
 			return surplus;
 
 		return share;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How much the deployment pool may bank before income stops being transferred into it.
+	//!
+	//! Expressed as a multiple of the RESERVE TARGET rather than as an authored number, so it scales
+	//! with difficulty for free: the target is already max(maxQRF, objectiveQRFResourceGate) x
+	//! reserveTargetMultiplier, which is "what one counter-attack costs". A cap of two of those says the
+	//! pool may bank a couple of operations' worth and no more.
+	//!
+	//! ⚠ A ZERO OR NEGATIVE TARGET MEANS NO CAP, not a cap of zero. An unauthored or switched-off
+	//! reserve target already means "no reserve discipline" everywhere else in this class, and reading
+	//! it as "the pool may never be funded" would silently stop the faction defending anything.
+	//! \param[in] reserveTarget The reserve target, from ReserveTarget().
+	//! \return The pool ceiling, or int.MAX when there is no target to scale from.
+	static int PoolCap(int reserveTarget)
+	{
+		if (reserveTarget <= 0)
+			return int.MAX;
+
+		return reserveTarget * POOL_CAP_MULTIPLE;
 	}
 
 	//------------------------------------------------------------------------------------------------
