@@ -1741,3 +1741,28 @@ module, where "truck crew" is the right default. Every config built on `OVT_Moun
 must override it, and nothing in the type system or the test tier enforces that. A future mounted doctrine will
 hit this again. Worth an Init case asserting every config whose modules include the mounted class authors a
 crew group with a gunner — filed as a follow-up, not built here.
+
+---
+
+## 2026-08-26 — Hunter-killer targeting is now an ALLOW-LIST (bases and FOBs only)
+
+**Author, first:** *"the OF just sent a BRDM to one of our radio towers, but I thought we removed radio towers as a hunter-killer target."* Then, on seeing the cause: *"I also have a camp nearby that tower so maybe it was going there, but camps shouldnt be targets for armor either, they should only go to bases, FOBs, maybe towns."*
+
+**The original exclusion was real and correct** — `PickHunterKillerTarget()` skipped `OVT_TargetType.BROADCAST_TOWER`. It was defeated by something the deny-list shape could not defend against.
+
+🔴 **A target's TYPE is decided by whichever writer reaches that spot first, and `IsKnownTarget()` matches at ONE METRE.** So one place can carry several differently-typed entries, and excluding one type excludes nothing. Two separate routes put a non-tower entry beside a tower:
+
+- `ReportVehicleLoss()` — added by this feature — plants a **`CAMP`** wherever an occupying vehicle dies. Kill the tower's guards while the tower is still *theirs* (no `BROADCAST_TOWER` entry exists yet, so the 200 m loss-dedup does not fire), then capture it, and the tower has an armour-eligible CAMP metres away.
+- A player **camp** genuinely near the tower — which is what the author had, and is the likelier explanation of the sighting.
+
+⚠ **The scenario is the ordinary way a player takes a tower.** That is why it appeared in play and not in the Init tier, which builds targets directly and never exercises two writers on one place.
+
+**Fix — `IsArmourTarget(type)`, an allow-list of `BASE` and `FOB`.** Naming what armour MAY attack cannot fail the way a deny-list did: a new target type is simply not a target until somebody adds it here on purpose. This supersedes an intermediate location-based fix (a 300 m "is this near a tower" ring) that was written first and then removed — the allow-list makes it redundant, and it would have wrongly excluded a legitimate base that happened to sit near a tower.
+
+⚠ **Excluding `CAMP` also closes a feedback loop, not just a wrong answer.** `ReportVehicleLoss` plants a CAMP at every wreck, so camps-as-targets meant armour was sent to wherever armour last died. Those wrecks still raise the **spatial threat score** through `GetThreatByLocation`, so a contested area still pulls sweeps towards the *base or FOB* near it — which is the intended signal without the loop.
+
+⚠ **"Maybe towns" is deliberately NOT implemented.** There is no `TOWN` member of `OVT_TargetType` and towns never enter `m_aKnownTargets`, so it means feeding the picker from the town manager as well, plus a decision about which towns qualify (size? stability? resistance-held only?). Left for the author.
+
+⚠ **The same shape may exist elsewhere.** Anything filtering `m_aKnownTargets` by type inherits the assumption that one place has one entry, which `ReportVehicleLoss` broke. This was the only such filter.
+
+`tools/compile-check.sh` exit 0 (6351 files). Not covered by a case — the Init tier cannot reproduce the ordering that causes it.

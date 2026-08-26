@@ -3,6 +3,9 @@ GenericEntity : "{48C842DD171DE304}Prefabs/Structures/Signs/Large/SignLarge_01_b
  components {
   OVT_ResourceProductionComponent "{6A8E2F0000000001}" {
   }
+  RplComponent "{566CB016AAC374C6}" {
+   Streamable Disabled
+  }
   OVT_ResourceStoreComponent "{6A8E2F0000000002}" {
    m_fCargoVolume 20
    m_sDefaultNameKey "#OVT-ProdSite_Storage"

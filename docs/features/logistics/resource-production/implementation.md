@@ -173,8 +173,8 @@ class OVT_ResourceProductionComponent : OVT_Component
 |---|---|---|
 | `m_sSiteName` | `[Attribute]` string | Localization key, e.g. `#OVT-ProdSite_Sawmill`. Authored per instance. |
 | `m_sResourceId` | `[Attribute]` string | Must match an `OVT_Resource.m_sId` in `resources.conf`. |
-| `m_fUnitsPerHour` | `[Attribute(defvalue: "2")]` float | Units of that resource per in-game hour. Sub-1 works (D7). |
-| `m_iBaseCost` | `[Attribute(defvalue: "8000")]` int | Multiplied by `realEstateCostMultiplier` at display and charge time. |
+| `m_fUnitsPerHour` | `[Attribute(defvalue: "10")]` float | Units of that resource per in-game hour. Sub-1 works (D7). |
+| `m_iBaseCost` | `[Attribute(defvalue: "150000")]` int | Multiplied by `realEstateCostMultiplier` at display and charge time. |
 
 **No replicated state.** Every field is authored in a world file that is byte-identical on every machine, so a client reads them locally — the same reasoning that keeps `OVT_ResourceStoreComponent`'s capacity off the wire (`resources` D3 corollary). Everything mutable is a manager record (§3.4).
 
@@ -185,13 +185,13 @@ class OVT_ResourceProductionComponent : OVT_Component
 | Prefab | Contents |
 |---|---|
 | `OVT_ProductionSite_Base.et` | `GenericEntity`, **no mesh**. `OVT_ResourceProductionComponent`, `OVT_ResourceStoreComponent { m_fCargoVolume 20; m_sDefaultNameKey "#OVT-ProdSite_Storage" }`, **one** `ActionsManagerComponent` (one `UserActionContext`, `ContextName "default"`, `Radius 8`), `RplComponent` (mandatory — the store's `RplProp` is dead without it, BUG-193). Entity flags copied from `Prefabs/Controllers/OVT_BaseController.et:81`. |
-| `OVT_ProductionSite_Sawmill.et` | `m_sResourceId "timber"`, rate 3, cost 8000, `m_sSiteName "#OVT-ProdSite_Sawmill"` |
-| `OVT_ProductionSite_SteelMill.et` | `m_sResourceId "steel"`, rate 1.5, cost 20000 |
-| `OVT_ProductionSite_CementPlant.et` | `m_sResourceId "cement"`, rate 2, cost 14000 |
+| `OVT_ProductionSite_Sawmill.et` | `m_sResourceId "timber"`, rate 18/h, cost 120000, capacity 90 m3, `m_sSiteName "#OVT-ProdSite_Sawmill"` |
+| `OVT_ProductionSite_SteelMill.et` | `m_sResourceId "steel"`, rate 10/h, cost 200000, capacity 20 m3 |
+| `OVT_ProductionSite_CementPlant.et` | `m_sResourceId "cement"`, rate 15/h, cost 150000, capacity 40 m3 |
 
 The variants are convenience defaults; **the map author overrides all four attributes on the placed instance**, which is what requirement §25 asks for. The base carries no mesh because a site is placed beside existing industrial scenery — the map icon is how a player finds it, and the 8 m action radius is how they use it. If play-test says sites are hard to find on foot, adding a small vanilla sign prop to each variant is a one-line prefab edit; the asset choice is deferred to the user rather than invented here.
 
-**Capacity is the throttle.** 20 m³ of timber at 0.1 m³/unit is 200 units; at 3 units/hour an untouched sawmill fills in ~67 in-game hours and then **pauses**. That is the whole overflow model (D7).
+**Capacity is the throttle.** Each variant is sized at ~48 in-game hours of its own output and then **pauses** — 90 m³ of timber at 0.1 m³/unit is 900 units, which an 18/hour sawmill fills in 50 hours. That is the whole overflow model (D7). See D16 for how the three numbers are derived.
 
 ### 3.4 The manager — `OVT_ResourceProductionManagerComponent`
 
@@ -577,7 +577,7 @@ Every implementation-agent prompt must carry, verbatim:
 
 **D2 — Position is the identity on every wire and in the save.** World-query order is not contractually identical across machines, so an index would be a silent mis-address; `OVT_FOBRequestComponent.RpcAsk_SetCampPrivacy` already addresses camps this way and its own comment explains why the **server's** copy of the position is what gets passed on. Matching is nearest-within-10 m by **squared** distance (`vector.Distance` is not correctly rounded). *Rejected:* a sorted-index scheme (a stable sort is one more thing that must agree, for a saving of a few bytes per message); an `RplId` (a site's `RplComponent` id is not stable across a save/load).
 
-**D3 — Per-site capacity is the authored `m_fCargoVolume`, and production pauses when full.** (User decision, 2026-08-22.) The store component already caps in integer litres, already replicates its contents in one string, and already exposes `GetFreeLitres()`. A full site simply drips what fits and discards the remainder for that hour — there is no partial-overflow accounting to design, no spillage entity, and no second failure mode. 20 m³ is the base default; a map author raises it for a flagship site. *Rejected:* unlimited capacity (an unowned site would accumulate for a whole campaign and be worth more than the base it sits next to).
+**D3 — Per-site capacity is the authored `m_fCargoVolume`, and production pauses when full.** (User decision, 2026-08-22.) The store component already caps in integer litres, already replicates its contents in one string, and already exposes `GetFreeLitres()`. A full site simply drips what fits and discards the remainder for that hour — there is no partial-overflow accounting to design, no spillage entity, and no second failure mode. 20 m³ is the base default and each variant overrides it (D16); a map author raises it again for a flagship site. *Rejected:* unlimited capacity (an unowned site would accumulate for a whole campaign and be worth more than the base it sits next to).
 
 **D4 — `SITE_BUY` is an appended op on the shipped checkout, not a new protocol.** The fan already provides whole-cart atomicity, the six-step `MayUseHolder` gate, `MAX_LINE_QUANTITY`, the negative-total tripwires, the `spent` reply field and a client that knows how to drive it. A dedicated `RpcAsk_BuySiteStock` would have to re-earn every one of those, and the two would drift. The enum's own header says append-only, and appending is the whole change. *Rejected:* a bespoke purchase RPC; routing site purchases through the port's `PORT_IMPORT` (it would need an `AtAPort` exemption, an importable-flag exemption and an illegal-gate exemption — three holes in a shipped gate to save one enum value).
 
@@ -598,6 +598,23 @@ Every implementation-agent prompt must carry, verbatim:
 **D12 — The site prefab carries no mesh.** Sites are placed beside existing industrial scenery, so a mesh would either clash with it or duplicate it; the map icon is discovery and the 8 m action radius is use. If play-test says a site is hard to find on foot, adding a vanilla sign prop to each variant is a one-line prefab edit — the asset choice is the user's, not this plan's to invent.
 
 **D13 — The store action is authored in Phase 5, not Phase 2.** Authoring it earlier would leave a build in which any player can open any site's storage, because the server gate does not exist until Phase 5. Deferring the prefab entry by three phases removes that window entirely and costs nothing.
+
+**D16 — Site prices are anchored to real estate, and the rate is DERIVED from a one-week export payback.** (User decision, 2026-08-26, after the first dedicated play-test.) The shipped numbers (12-20k effective) made a whole sawmill cheaper than the cheapest house while a warehouse cost $55k, which read as nonsense. The tuning rule is now explicit, so any future site can be priced by filling it in:
+
+1. Pick the effective price against the real-estate ladder (warehouse $55k, top villa $60k on Normal). A site sits at or above that.
+2. `m_iBaseCost` = effective price / `realEstateCostMultiplier` (0.5 on Normal, defaulted rather than authored in `Difficulty_Normal.conf`).
+3. `m_fUnitsPerHour` = effective price / (168 x the resource's SELL price), where sell = `m_fSellRatio` 0.5 x the live import price. One week of pure export therefore repays the purchase.
+4. `m_fCargoVolume` = 48 x rate x `m_fCubicMetresPerUnit`, so a site holds two in-game days before it pauses.
+
+| Site | Base | Normal | Rate | Capacity | Truckloads/week |
+|---|---|---|---|---|---|
+| Sawmill | 120,000 | $60,000 | 18 timber/h | 90 m3 | 15 |
+| Cement plant | 150,000 | $75,000 | 15 cement/h | 40 m3 | 6 |
+| Steel mill | 200,000 | $100,000 | 10 steel/h | 20 m3 | 3 |
+
+**The hauling burden is deliberately uneven and cannot be fixed here.** A 20 m3 truckload is worth $4,000 of timber, $12,000 of cement and $30,000 of steel — a 7.5x spread in value density that falls out of `resources.conf`. Pricing all three sites in one band therefore means the sawmill needs several truck runs to the port for the same money the steel mill earns in one. Flattening it would mean re-pricing the resources themselves, which the whole construction economy is built on. Accepted as-is: timber is the bulk resource and a sawmill's real case is feeding your own building, not export.
+
+The component defaults moved with the ladder (rate 2 -> 10, cost 8000 -> 150000) so a site an author drops with nothing filled in lands in the shipped band. The Logic cases use their own synthetic base costs and are unaffected.
 
 **D14 — `OVT_OpenResourceStoreAction` is edited, not subclassed.** It is already "one class, N hosts" (truck, pile, warehouse), the site is the fourth, and a subclass would fork the 1 s label cache and the m³ formatting. It belongs to the sibling `resources` feature, which is Ready-for-Review rather than closed, so the edit is small, additive and called out in §9 R7 as a merge-conflict risk.
 
@@ -788,7 +805,7 @@ Every implementation-agent prompt must carry, verbatim:
 | R8 | **Players cannot find a mesh-less site on foot** | Medium | The feature is only usable through the map | D12: 8 m action radius, a map icon at town zoom, and a one-line prefab edit reserved if play-test step 17 is awkward. The asset choice stays with the user |
 | R9 | **The hour latch is wrong after a load or a sleep** | Medium | A double batch on the first hour after loading, or a whole day of production lost | `AssertHourLatchFromClock()` at Init (BUG-183's shape), `ShouldProduce` compares against the latched hour rather than a period, and `HandleTimeSkip` re-asserts from the **pre-skip** clock — the three-step order `OVT_EconomyManagerComponent.HandleTimeSkip` documents |
 | R10 | **Two players buy the same site in the same second** | Low | Both charged, one owner | Both asks run on the server, serially; the second finds `owner != ""` and refuses at ladder step 3 **before** any money moves. Play-test step 34 is the proof |
-| R11 | **A site accumulates a campaign's worth of stock and unbalances the economy** | Medium | An unowned sawmill is worth more than the base beside it | D3: capacity is the throttle and production pauses when full; 20 m³ is ~67 hours of timber; every number is an attribute and retunable without a script change |
+| R11 | **A site accumulates a campaign's worth of stock and unbalances the economy** | Medium | An unowned sawmill is worth more than the base beside it | D3: capacity is the throttle and production pauses when full; D16 sizes every variant at ~48 hours of its own output; every number is an attribute and retunable without a script change |
 | R12 | **The controller seam's hard-coded "10"** is not updated with the new component | Medium | A passing test whose message lies | Called out as an explicit Phase 3 task and an acceptance criterion, and filed as a bug-report candidate (§6) so the next feature does not hit it |
 | R13 | **`Clear()` fires no invoker**, so a cleared store is not republished and clients keep showing the old stock | Medium | A bought site appears to still hold its stock on every other machine | `ClearSiteStock` is the only caller and always follows `Clear()` with `PublishContents()`; the Init case asserts the packed string is empty afterwards |
 | R14 | **Concurrent sessions** change the tree between phases | Medium | Stale line references, a phase built against a moved seam | Re-baseline before every phase; every claim here carries a `file:line`; the GUID series is re-verified immediately before authoring |

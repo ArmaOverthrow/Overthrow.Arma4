@@ -59,6 +59,58 @@ unchanged**, no RPC added, `array<…>` on none. Two files touched; every walled
 
 ## Decisions Made
 
+### Re-balance 2026-08-26 - sites were priced far below real estate
+
+A sawmill cost $16,000 on Normal while a warehouse cost $55,000 and the cheapest house $12,500. Re-anchored
+per **D16** (implementation.md): pick the effective price against the real-estate ladder, then DERIVE the rate
+from a one-week (168 in-game h) pure-export payback and the capacity from a 48 h fill window. Normal's
+`realEstateCostMultiplier` is 0.5 - defaulted in `OVT_DifficultySettings.c`, not authored in
+`Difficulty_Normal.conf` - and export pays `m_fSellRatio` 0.5 x the live import price.
+
+| Site | Base | Normal | Rate | Capacity | Truckloads/week |
+|---|---|---|---|---|---|
+| Sawmill | 120,000 | $60,000 | 18 timber/h | 90 m3 | 15 |
+| Cement plant | 150,000 | $75,000 | 15 cement/h | 40 m3 | 6 |
+| Steel mill | 200,000 | $100,000 | 10 steel/h | 20 m3 | 3 |
+
+Capacity is now authored **per variant**; the base prefab keeps 20 m3 as the fallback. Component defaults moved
+with the ladder (rate 2 -> 10, cost 8000 -> 150000). The Logic cases price a synthetic 8000 base and are
+unaffected. **The uneven truckload column is accepted, not a defect** - a 20 m3 load is worth $4,000 of timber
+and $30,000 of steel, a 7.5x value-density spread that comes from `resources.conf`; flattening it would mean
+re-pricing the resources the whole construction economy is built on.
+
+**Unverified:** never play-tested at these numbers, and the suites have still never run.
+
+### Play-test fix 2026-08-26 - a distant site read EMPTY on the map (replication streaming)
+
+**Symptom (dedicated, fresh load).** A resistance-owned sawmill showed no stock on the map info panel.
+Walking to it and opening the store showed empty, then it filled with 200 timber a moment later.
+
+**Cause.** The stock is one `RplProp` on the entity (`OVT_ResourceStoreComponent.m_sPacked`) and
+`OVT_MapLocationProductionSite.AddStockRows()` reads that component LOCALLY, by design. Reforger streams
+replicated nodes per connection by proximity (`BaseRplComponent.EnableStreaming`;
+`SCR_DynamicSimulationEditorComponent` exists only to force it on for the GM), so a site the client has
+never approached is not streamed and `m_sPacked` is still the empty default there. The server was correct
+throughout - the value arrived on stream-in, which is the "filled while I watched" moment.
+
+**Fix.** `OVT_ProductionSite_Base.et` now re-declares the inherited `RplComponent` GUID
+`{566CB016AAC374C6}` (from vanilla `Signs_Base.et`) with `Streamable Disabled` - the vanilla idiom for a
+node that must be known from anywhere (managers, spawn points, `MapMarkerSquadLeader`; Overthrow already
+uses it on the FOB flag and the ammo caches). Four site instances exist world-wide, so always-replicating
+them costs nothing. The GUID is RE-DECLARED, never minted fresh - a duplicate component silently kills the
+ones after it.
+
+**Crate piles: suppressed, not replicated (user call 2026-08-26).** Piles can be numerous, so they keep
+streaming on and a distant pile still reads zero. Instead `OVT_MapLocationResourcePile.BuildInfoRows()` now
+shows NO rows at zero, where it used to assert `#OVT-Map_PileEmpty`. That row was always a lie: a pile that
+really runs dry is deleted server-side (`OVT_ResourceManagerComponent.DeletePileIfEmpty`), so a live pile
+reading zero on a client can ONLY be the un-streamed case - and telling the player "empty" reads as their
+resources having vanished. `#OVT-Map_PileEmpty` is now an orphan key in the `.st`; left in place rather than
+force another export. Warehouses have no map stock readout, so they need nothing.
+
+**Unverified:** the fix is prefab-only, so `compile-check.sh` cannot see it. Needs a Workbench open and a
+dedicated re-test from a cold client.
+
 The fourteen plan decisions (D1–D14) live in `implementation.md` §5 and are the authority. Recorded here only when a
 phase discovers something the plan did not know.
 

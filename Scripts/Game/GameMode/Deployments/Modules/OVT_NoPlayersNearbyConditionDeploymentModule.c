@@ -54,11 +54,19 @@ class OVT_NoPlayersNearbyConditionDeploymentModule : OVT_BaseConditionDeployment
 	{
 		// ⚠ THE RESISTANCE, BY DISTANCE, AND NOTHING ELSE (author, 2026-08-25: "it shouldnt be line of
 		// sight gated at all, simply distance to the nearest resistance"). This used to walk
-		// PlayerManager and measure player.GetOrigin() - players-only, against the author's standing
-		// "it's resistance always" rule, and reading PARENT SPACE for anybody sitting in a vehicle, so
-		// the answer came out enormous and the gate passed. A sphere query answers both at once: it
-		// finds recruits as well as players, and it reports world positions whatever they are riding in.
-		return !OVT_ResistancePresence.IsGroundHeld(position, m_fMinPlayerDistance);
+		// PlayerManager only - against the author's standing "it's resistance always" rule, and reading
+		// PARENT SPACE for anybody in a vehicle, so the answer came out enormous and the gate passed.
+		//
+		// 🔴 BOTH TESTS, AND THE GATE FAILS CLOSED. Replacing the player walk with the sphere query
+		// ALONE regressed OVT_TEST_Init_Deployments_NoPlayersNearbyGatesCreationOnly: the query answered
+		// "nobody" with a real player-controlled character standing on the candidate position, so a base
+		// fortified itself in his face. Whatever the query's blind spot is, this gate is the one place
+		// in the framework where a false negative materialises men in somebody's view - so it asks the
+		// direct question as well and refuses if EITHER says the ground is held.
+		if (OVT_ResistancePresence.IsGroundHeld(position, m_fMinPlayerDistance))
+			return false;
+
+		return GetPlayerProximity(position) >= m_fMinPlayerDistance;
 	}
 
 	//------------------------------------------------------------------------------------------------

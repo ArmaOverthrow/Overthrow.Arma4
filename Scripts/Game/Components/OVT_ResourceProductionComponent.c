@@ -26,10 +26,10 @@ class OVT_ResourceProductionComponent : OVT_Component
 	[Attribute("", desc: "Which resource this site produces. Must match an OVT_Resource id in resources.conf")]
 	protected string m_sResourceId;
 
-	[Attribute(defvalue: "2", desc: "Units produced per in-game hour. Below 1 works - the manager carries the fraction")]
+	[Attribute(defvalue: "10", desc: "Units produced per in-game hour. Below 1 works - the manager carries the fraction")]
 	protected float m_fUnitsPerHour;
 
-	[Attribute(defvalue: "8000", desc: "Purchase price before the difficulty's real-estate cost multiplier")]
+	[Attribute(defvalue: "150000", desc: "Purchase price before the difficulty's real-estate cost multiplier")]
 	protected int m_iBaseCost;
 
 	//-----------------------------------------------------------------------------------------------

@@ -2569,6 +2569,28 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//------------------------------------------------------------------------------------------------
 	//! \return The known target with the highest GetThreatByLocation() score, or null when there are
 	//! none. Ties break to the first found - m_aKnownTargets carries no authored order to break them by.
+	//------------------------------------------------------------------------------------------------
+	//! WHAT AN ARMOURED SWEEP IS ALLOWED TO BE SENT AT.
+	//!
+	//! Bases and forward bases: places the resistance HOLDS, that are worth a fighting vehicle and that
+	//! read as a sensible thing to drive one at.
+	//!
+	//! ⚠ EVERYTHING ELSE IS EXCLUDED BY OMISSION, WHICH IS THE POINT. A radio tower is undefended by
+	//! design and the objective director already has a recapture path for it. A CAMP is a tent - and it
+	//! is also what ReportVehicleLoss() plants at every vehicle wreck, so treating camps as targets
+	//! sends armour to wherever armour last died, which is a feedback loop as much as a wrong answer.
+	//!
+	//! ⚠ TOWNS ARE NOT HERE, and the author's "maybe towns" is deliberately NOT implemented on a guess:
+	//! there is no TOWN member of OVT_TargetType and towns never enter m_aKnownTargets, so adding them
+	//! means feeding the picker from the town manager as well - a different change needing a decision
+	//! about which towns qualify.
+	//! \param[in] type An OVT_TargetType.
+	//! \return True when armour may be sent there.
+	protected bool IsArmourTarget(int type)
+	{
+		return type == OVT_TargetType.BASE || type == OVT_TargetType.FOB;
+	}
+
 	protected OVT_TargetData PickHunterKillerTarget()
 	{
 		OVT_TargetData best;
@@ -2579,10 +2601,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 			if (!target)
 				continue;
 
-			// A radio tower is not worth armour. It is undefended by design, the faction already has a
-			// recapture path for it in the objective director, and sending a fighting vehicle at one
-			// reads as nonsense to the player who owns it.
-			if (target.type == OVT_TargetType.BROADCAST_TOWER)
+			// 🔴 AN ALLOW-LIST, NOT A DENY-LIST (author, 2026-08-26: "camps shouldnt be targets for armor
+			// either, they should only go to bases, FOBs, maybe towns"). This started as a single
+			// BROADCAST_TOWER exclusion and was already proven too narrow: a target's TYPE is decided by
+			// whichever writer reached that spot first, and ReportVehicleLoss() plants a CAMP wherever an
+			// occupying vehicle dies - so a radio tower the player fought over ended up with a CAMP
+			// beside it and took a BRDM anyway. Naming what armour MAY attack cannot fail that way; a
+			// new target type is simply not a target until somebody adds it here on purpose.
+			if (!IsArmourTarget(target.type))
 				continue;
 
 			int score = GetThreatByLocation(target.location);

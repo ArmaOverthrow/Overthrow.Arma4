@@ -116,6 +116,22 @@
 8. **Play-test C (dedicated + JIP)** — §6 steps 31–35, including the two concurrent-buy races. **All MP behaviour is unproven**; the suites run one machine.
 9. **A real quit → Continue** — the round-trip suite re-applies in-session; a cold load with the world still being built (R4) has never been exercised.
 
+## Play-test fixes
+
+- [x] **2026-08-26 (dedicated)** - a site the client had never approached read EMPTY on the map and on first open.
+  Replication streaming: the stock `RplProp` is only delivered inside the network bubble. Fixed by
+  `Streamable Disabled` on the re-declared inherited `RplComponent` in `OVT_ProductionSite_Base.et`.
+  **Prefab-only - unverified by any gate; needs a Workbench open + a cold-client dedicated re-test.**
+- [x] **2026-08-26** - crate piles keep streaming on (there can be many); instead the map panel now shows no
+  rows at zero rather than the `#OVT-Map_PileEmpty` row, which could only ever fire on an un-streamed pile
+  and read as "my resources vanished". Gate: `compile-check.sh` exit 0 (6351 files).
+
+- [x] **2026-08-26 (re-balance)** - site prices were 12-20k effective against a $55k warehouse. Re-anchored to the
+  real-estate ladder with the rate DERIVED from a one-week export payback and capacity from a 48 h fill window
+  (implementation.md **D16**): sawmill 120,000/18 per h/90 m3, cement 150,000/15 per h/40 m3, steel 200,000/10 per h/20 m3.
+  Component defaults moved with it (rate 2 -> 10, cost 8000 -> 150000). Gate: `compile-check.sh` exit 0 (6351 files).
+  **Never play-tested at these numbers.**
+
 ## Owed / not done
 
 - **R.2, the suite sweep** (above) — the one blocking item.

@@ -6,10 +6,13 @@
 //! manager-held array.
 //!
 //! CONTENTS COME FROM THE PILE ITSELF. The info rows read the pile entity's own
-//! OVT_ResourceStoreComponent, whose contents are replicated in one RplProp, so every machine reads
-//! them locally and correctly. Nothing about the pile's stock is copied onto the marker or onto the
-//! location record - the marker registry must not become a second source of truth for non-map state
-//! (OVT_MapMarkerComponent.c:22-24).
+//! OVT_ResourceStoreComponent, replicated in one RplProp. Nothing about the stock is copied onto the
+//! marker or onto the location record - the marker registry must not become a second source of truth
+//! for non-map state (OVT_MapMarkerComponent.c:22-24).
+//!
+//! That read is only correct inside the client's replication bubble: a pile the client has never been
+//! near is not streamed, so its ledger reads zero. BuildInfoRows shows NO rows in that case rather than
+//! claiming the pile is empty.
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationResourcePile : OVT_MapLocationType
 {
@@ -81,11 +84,11 @@ class OVT_MapLocationResourcePile : OVT_MapLocationType
 			drawn++;
 		}
 
+		// A pile that really runs dry is deleted server-side (OVT_ResourceManagerComponent.DeletePileIfEmpty),
+		// so a zero read here only ever means the pile is outside this client's replication bubble. Saying
+		// "empty" would claim the player's resources are gone; show no rows instead.
 		if (drawn == 0)
-		{
-			AddInfoRow(rowsContainer, "", "#OVT-Map_PileEmpty");
 			return;
-		}
 
 		float cubicMetres = store.GetUsedLitres() / 1000.0;
 		AddInfoRow(rowsContainer, "#OVT-Map_PileVolume",
