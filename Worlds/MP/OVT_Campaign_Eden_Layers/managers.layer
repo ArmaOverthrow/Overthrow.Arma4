@@ -25,8 +25,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_GunDealerConfig OVT_GunDealerConfig "{647B49A766FFC49B}" : "{A8A5CE6C72E6D899}Configs/System/GunDealerConfig.conf" {
    }
   }
-  OVT_JobManagerComponent "{59A8D178EC1AA2AE}" {
-  }
   OVT_NotificationManagerComponent "{5D8680DB07CF50FD}" {
    m_Messages SCR_SimpleMessagePresets "{5D8680DB04A58A20}" : "{36405F298C9B3186}Configs/overthrowBroadcastMessages.conf" {
    }
@@ -35,24 +33,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_pQRFControllerPrefab "{A7D27DFA72B705D0}Prefabs/Controllers/OVT_QRFController.et"
   }
   OVT_OverthrowConfigComponent "{59724C8C935D8E5D}" {
-   m_aCameraPositions {
-    OVT_CameraPosition "{5D5826DD31952987}" {
-     position 10455.49 40.22 413.76
-     angles 5.1 -498.11 0
-    }
-    OVT_CameraPosition "{5D5826D532072C15}" {
-     position 4875.03 53.47 10470.618
-     angles -0.21 702.18 0
-    }
-    OVT_CameraPosition "{5D5826D5F3BEBDD1}" {
-     position 8100.65 380.56 2753.78
-     angles -5.31 962.88 0
-    }
-    OVT_CameraPosition "{5D5826D5A7568205}" {
-     position 9973.95 333.08 2269.49
-     angles -12.81 1270.68 0
-    }
-   }
    m_pTownControllerPrefab "{75CB2B42ADFB0EA7}Prefabs/Controllers/OVT_TownController.et"
    m_Difficulty OVT_DifficultySettings "{598AD54E1DA56EB1}" : "{C0CB40B3E8B87FD4}Configs/Difficulty/Difficulty_Normal.conf" {
    }
@@ -69,7 +49,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
     }
    }
    m_pGunDealerPrefab "{59929550D81A3045}Prefabs/Characters/Factions/INDFOR/FIA/Character_FIA_GunDealer.et"
-   m_pCivilianPrefab "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et"
    m_pMoveWaypointPrefab "{750A8D1695BD6998}Prefabs/AI/Waypoints/AIWaypoint_Move.et"
    m_pDefendWaypointPrefab "{93291E72AC23930F}Prefabs/AI/Waypoints/AIWaypoint_Defend.et"
    m_pDefendBaseWaypointPrefab "{06B1B14B6DE3C983}Prefabs/AI/Waypoints/AIWaypoint_Defend_ConflictBaseTeamPatrol.et"
@@ -140,9 +119,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    m_pPlayerGroupPrefab "{9BED5CCD52C87E26}Prefabs/Groups/INDFOR/Group_Player.et"
    m_CivilianLoadout OVT_LoadoutConfig "{61C8AC0BB681EDAF}" : "{AB39AD8BD8554967}Configs/Civilians/CivilianClothes.conf" {
    }
-   m_bDebugMode 0
-  }
-  OVT_PersistenceManagerComponent "{5D7009B844876186}" {
   }
   OVT_ResistanceFactionManager "{59A49A9CD87CBC92}" {
    m_rPlaceablesConfigFile "{A4E760D069AE00F8}Configs/Resistance/placeables.conf"
@@ -159,9 +135,6 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
     }
    }
    m_pHiredCivilianPrefab "{365CD448A5DABCCC}Prefabs/Groups/INDFOR/Group_CIV_Recruit.et"
-  }
-  OVT_RespawnSystemComponent "{5DEA8B45ED838B55}" {
-   m_rDefaultPrefab "{3A99A99836F6B3DC}Prefabs/Characters/Factions/INDFOR/FIA/Character_Player.et"
   }
   OVT_SkillManagerComponent "{5D90EE077169A8A2}" {
    m_Skills OVT_SkillsConfig "{5D91035951D22CD1}" : "{F7740B6A7C4F6FB7}Configs/Player/overthrowSkills.conf" {
@@ -191,6 +164,11 @@ OVT_OverthrowGameMode OVT_OverthrowGameMode1 : "{4DC10DCB8BE06D32}Prefabs/GameMo
    }
    m_CivilianVehicleEntityCatalog SCR_EntityCatalogMultiList "{5EE51BB6ADFBE791}" : "{77243A71AF0E5A75}Configs/EntityCatalog/FactionLess/Vehicles_EntityCatalog_Factionless.conf" {
    }
+  }
+  OVT_VirtualizationManagerComponent "{6B4A1D3E00000010}" {
+   m_fDebugTestGroupOffset 200
+   m_sDebugTestGroupName "light_patrol"
+   m_iDebugTestGroupSpawnDistance 80
   }
   SCR_CommandingManagerComponent "{5DFEE7C53D7244B0}" {
    m_sCommandsConfigPath "{54764D4E706F348C}Configs/Commanding/Commands.conf"
@@ -271,7 +249,7 @@ OVT_OverthrowFactionManager OVT_OverthrowFactionManager : "{51EBC0CFD56DA130}Pre
   }
  }
 }
-RadioManagerEntity RadioManager : "{B8E09FAB91C4ECCD}Prefabs/Radio/RadioManager.et" {
+RadioManagerEntity RadioManager : "{B8E09FAB91C4ECCD}Prefabs/Systems/Radio/RadioManager.et" {
  coords 3201.473 0 11071.047
 }
 ScriptedChatEntity : "{F69BC912AC8236F9}Prefabs/MP/ScriptedChatEntity.et" {

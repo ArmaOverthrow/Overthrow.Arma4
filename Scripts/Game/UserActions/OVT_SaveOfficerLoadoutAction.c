@@ -90,23 +90,17 @@ class OVT_SaveOfficerLoadoutAction : OVT_DialogUserAction
 			return;
 		}
 		
-		// Get player persistent ID
-		string playerId = OVT_Global.GetPlayers().GetPersistentIDFromControlledEntity(userEntity);
-		if (playerId.IsEmpty())
+		// Save the officer template via the controller seam. The owner is resolved SERVER-SIDE from the
+		// controller entity the request arrives on (BUG-043), and the officer gate is re-derived there
+		// too by OVT_LoadoutManagerComponent.SaveOfficerTemplate() - CanBeShownScript above is the
+		// client-side half of the same rule and is advisory only.
+		OVT_LoadoutRequestComponent loadouts = OVT_ControllerComponent<OVT_LoadoutRequestComponent>.Get();
+		if (loadouts)
 		{
-			SCR_HintManagerComponent.ShowCustomHint("Failed to get player ID", "Error", 3.0);
-			ClearDialog();
-			return;
-		}
-		
-		// Save the officer template loadout via RPC for multiplayer support
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
-		{
-			comms.SaveLoadout(playerId, loadoutName, "", true); // Officer template
+			loadouts.SaveLoadout(loadoutName, "", true); // Officer template
 			SCR_HintManagerComponent.ShowCustomHint(
-				string.Format("Officer template '%1' saved successfully!", loadoutName), 
-				"Officer Template Saved", 
+				string.Format("Officer template '%1' saved successfully!", loadoutName),
+				"Officer Template Saved",
 				3.0
 			);
 		}
@@ -114,7 +108,7 @@ class OVT_SaveOfficerLoadoutAction : OVT_DialogUserAction
 		{
 			SCR_HintManagerComponent.ShowCustomHint("Communication component not available", "Error", 3.0);
 		}
-		
+
 		ClearDialog();
 	}
 	

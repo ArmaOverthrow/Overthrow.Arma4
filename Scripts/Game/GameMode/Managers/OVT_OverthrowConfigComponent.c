@@ -16,15 +16,39 @@ enum OVT_FactionTypeFlag {
 	SUPPORTING_FACTION = 4
 }
 
+//! How a group patrols. ⚠ APPEND ONLY, NEVER RENUMBER: the members' integer values are what
+//! Configs/Deployment/*.conf and every authored job stage carry, so inserting a member in the middle
+//! silently re-points every existing authored value at the wrong behaviour.
 enum OVT_PatrolType {
+	//! Hold one post. Nothing movable, so a dormant group holding this plan is never walked.
 	DEFEND,
-	PERIMETER
+	//! Circle the centre on a ROAD-SNAPPED ring - the town patrol's geometry. Each corner is pulled
+	//! onto the nearest road, which is right for a town and wrong for a base (a base's roads run
+	//! through it, not around it), which is what PERIMETER_BASE exists for.
+	PERIMETER,
+	//! Circle the nearest base's AUTHORED PERIMETER SQUARE (OVT_BaseControllerComponent's
+	//! m_fPerimeterRadius / m_fPerimeterRotation, jittered a little per patrol), NOT road-snapped.
+	//! Appended 2026-08-18 by amendment A1 of virtualization/base-defense-migration.
+	PERIMETER_BASE,
+	//! The town sweep: rolled PER GROUP between searching a handful of the town's houses one after
+	//! another (the vanilla Search & Destroy waypoint on each, so the men poke around and inside it)
+	//! and a loose ring of random radius up to the town's own range, ground-snapped and NOT pulled
+	//! onto roads. Replaces PERIMETER as the town patrol's type: a road-snapped ring parks four men in
+	//! the middle of a road at every corner, in the way of every convoy and in front of every player's
+	//! bumper. Appended 2026-08-21 (occupying/deployments).
+	TOWN_SWEEP
 }
 
 class OVT_OverthrowConfigStruct
 {
 	string occupyingFaction;
 	string supportingFaction;
+
+	//! Display name of the town players start in, e.g. "Levie". Empty = pick one at random, which is
+	//! what every campaign did before this key existed. Resolved to a town id lazily by
+	//! OVT_RealEstateManagerComponent.NewStartingTown(), so an unknown name degrades to random rather
+	//! than to no starting homes at all.
+	string startingTown;
 	string discordWebHookURL;
 	ref array<string> officers;
 	string difficulty;
@@ -42,17 +66,71 @@ class OVT_OverthrowConfigStruct
 	float gunDealerSellPriceMultiplier;
 	float procurementMultiplier;
 	float vehiclePriceMultiplier;
+	//! Price per litre charged at static fuel stations. 0 disables fuel charging entirely. Unlike the
+	//! server-only fields below this one IS replicated (CONFIG_STREAM_VERSION 4) — the client needs it
+	//! for the Refuel action's price suffix and its own affordability gate.
+	float fuelPricePerLitre;
 	//! Gear fee multiplier for equipped tent recruits. Server-side only - see the note on
 	//! OVT_DifficultySettings.recruitLoadoutFeeMultiplier. Nothing replicates this and nothing may
 	//! start to: it is deliberately absent from RplSave/RplLoad below, which is why
 	//! CONFIG_STREAM_VERSION did not have to move for the equipped-recruit purchase (decision D18).
 	float recruitLoadoutFeeMultiplier;
 
+	//! Per-player member cap across every High Command group they own. SERVER-SIDE ONLY, same
+	//! treatment as recruitLoadoutFeeMultiplier: the resolved value ships on the HC manager's OWN
+	//! JIP payload (D12) once Phase 6 adds it, never on this config stream, so
+	//! CONFIG_STREAM_VERSION does not move for it.
+	int highCommandMemberCap;
+
+	//! Town supporters drawn down per High Command member. SERVER-SIDE ONLY, same treatment as
+	//! highCommandMemberCap.
+	int highCommandSupportersPerMember;
+
+	//! Global spawn distance (metres) for virtualized AI groups - the distance at which a registered
+	//! group's members materialise (implementation.md D5, issue #100). Each registration may override
+	//! it; a very large value keeps every registered group spawned permanently.
+	//! SERVER-ONLY, exactly like recruitLoadoutFeeMultiplier: it is deliberately absent from
+	//! RplSave/RplLoad below, so CONFIG_STREAM_VERSION does not move for it. It is now the ONLY spawn
+	//! distance the campaign has: the separate military and civilian distances it used to sit beside
+	//! both went with the systems that read them (the town-civilian spawner, then base defense), and
+	//! ambient civilians ride this value through their source's m_iSpawnDistanceOverride.
+	int virtualizationSpawnDistance;
+
+	//! Operator multiplier on town civilian ambience density (civilians implementation.md §3.6). The
+	//! per-town crowd is population x the authored rate x THIS, so 0 is the documented "no civilians
+	//! on this server" switch and 2.0 doubles every town. The per-town hard cap below still applies
+	//! on top of it.
+	//! SERVER-ONLY, exactly like virtualizationSpawnDistance: it is deliberately absent from
+	//! RplSave/RplLoad below, so no client ever reads it and CONFIG_STREAM_VERSION does not move.
+	float civilianDensityMultiplier;
+
+	//! Absolute per-town ceiling on ambient civilians, applied after the source's own min/max clamps.
+	//! 0 or below means NO CAP, and that asymmetry is deliberate: LoadConfig() runs SetDefaults()
+	//! before ReadValue, so a config file written before this key existed keeps the 30 below - but a
+	//! file that explicitly carries 0 is an operator saying "uncapped", never "no civilians". Turning
+	//! civilians off is civilianDensityMultiplier's job.
+	//! SERVER-ONLY, same as the two fields above - not in RplSave/RplLoad, CONFIG_STREAM_VERSION
+	//! unchanged.
+	int maxCiviliansPerTown;
+
+	//! Should a town's ambient crowd be DESPAWNED while a QRF is being fought in that town?
+	//!
+	//! DEFAULT FALSE, and that is a deliberate change from the pre-migration game (civilians decision
+	//! D13, user amendment 2026-08-17). The old spawner despawned every town's civilians during any
+	//! QRF anywhere, which was a performance shortcut from when Reforger AI was expensive - and it
+	//! actively fights the way people play, because players recruit civilians specifically to help
+	//! defend a town against the QRF and then watch them vanish as the battle starts. Heavy servers
+	//! that want the AI budget back turn this on; when they do, only the town actually under attack
+	//! loses its crowd (never the whole map), and that town re-rolls a fresh one after the battle.
+	//! SERVER-ONLY, same as the fields above - not in RplSave/RplLoad, CONFIG_STREAM_VERSION unchanged.
+	bool despawnCiviliansDuringQRF;
+
 	void SetDefaults()
 	{
 		discordWebHookURL = "see wiki: https://github.com/ArmaOverthrow/Overthrow.Arma4/wiki/Discord-Web-Hook";
 		occupyingFaction = "";
 		supportingFaction = "";
+		startingTown = "";
 		officers = new array<string>;
 		difficulty = "";	
 		showPlayerPosition = true;	
@@ -67,7 +145,14 @@ class OVT_OverthrowConfigStruct
 		gunDealerSellPriceMultiplier = 0.5;
 		procurementMultiplier = 0.8;
 		vehiclePriceMultiplier = 1.0;
+		fuelPricePerLitre = 1.0;
 		recruitLoadoutFeeMultiplier = OVT_RecruitPurchaseRules.DEFAULT_LOADOUT_FEE_MULTIPLIER;
+		highCommandMemberCap = OVT_HighCommandRules.DEFAULT_MEMBER_CAP;
+		highCommandSupportersPerMember = 1;
+		virtualizationSpawnDistance = 1750;
+		civilianDensityMultiplier = 1.0;
+		maxCiviliansPerTown = 30;
+		despawnCiviliansDuringQRF = false;
 	}
 }
 
@@ -91,6 +176,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	string m_sSupportingFaction = "US";
 
+	//! Display name of the town the campaign starts in, as chosen on the start menu. Empty = random.
+	//! Never an attribute: it is a per-campaign choice, not authored data.
+	string m_sStartingTown;
+
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Town Controller Prefab", params: "et", category: "Controllers")]
 	ResourceName m_pTownControllerPrefab;
 
@@ -106,8 +195,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Gun Dealer Prefab", params: "et")]
 	ResourceName m_pGunDealerPrefab;
 
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Civilian Prefab", params: "et")]
-	ResourceName m_pCivilianPrefab;
+	// RETIRED 2026-08-17 (virtualization/civilians Phase 2): the civilian group prefab moved into
+	// Configs/Civilians/CivilianAmbience.conf, where each authored civilian TYPE names its own
+	// one-man group - one global prefab could never describe a pool.
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Move Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pMoveWaypointPrefab;
@@ -146,6 +236,9 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Search and Destroy Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pSearchAndDestroyWaypointPrefab;
 
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "House Search Waypoint Prefab - the RELAXED search (walk, stand, weapon down) a town sweep uses on each house; falls back to the Search and Destroy prefab when unset", params: "et", category: "Waypoints")]
+	ResourceName m_pHouseSearchWaypointPrefab;
+
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Get In Waypoint Prefab", params: "et", category: "Waypoints")]
 	ResourceName m_pGetInWaypointPrefab;
 
@@ -158,14 +251,18 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	[Attribute(desc: "Real estate configs to set prices and rents for building types", category: "Real Estate", UIWidgets.Object)]
 	ref array<ref OVT_RealEstateConfig> m_aBuildingTypes;
 
-	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "Civilians to spawn per population")]
-	float m_fCivilianSpawnRate;
+	// RETIRED 2026-08-17 (virtualization/civilians Phase 2): the civilian density rate and the civilian
+	// spawn distance both moved off this component. Density is authored per source in
+	// Configs/Civilians/CivilianAmbience.conf (m_fPopulationRate) and scaled at runtime by the
+	// operator's civilianDensityMultiplier / maxCiviliansPerTown; the spawn distance is now the
+	// ambient source's own m_iSpawnDistanceOverride, which rides virtualizationSpawnDistance by
+	// default. Nothing read either of them once the town-controller spawner was retired.
 
-	[Attribute(defvalue: "1000", UIWidgets.EditBox, desc: "Civilian spawn distance")]
-	int m_iCivilianSpawnDistance;
-
-	[Attribute(defvalue: "1750", UIWidgets.EditBox, desc: "Military spawn distance")]
-	int m_iMilitarySpawnDistance;
+	// RETIRED 2026-08-18 (virtualization/base-defense-migration T7.7): the military spawn distance
+	// attribute is gone. Its last reader was the base-upgrade patrol proximity gate, which was deleted
+	// with the whole base-upgrade system, and it was authored in no prefab, config or world. Every
+	// systemic force is virtualized now and rides virtualizationSpawnDistance (or a per-registration
+	// override) instead. It was never in RplSave/RplLoad, so CONFIG_STREAM_VERSION does not move.
 
 	[Attribute(defvalue: "0.1", UIWidgets.EditBox, desc: "NPC Shop Buy Rate", category: "Economy")]
 	float m_fNPCBuyRate;
@@ -268,7 +365,54 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		return Math.Round(m_Difficulty.buildableCostMultiplier * buildable.m_iCost);
 	}
-	
+
+	//------------------------------------------------------------------------------------------------
+	//! Scales one authored resource requirement of a buildable to this difficulty. The single call
+	//! behind both the displayed figure and the consumed one.
+	//! \param[in] baseQty The quantity buildables.conf authors.
+	//! \return The scaled quantity; never zero unless baseQty was.
+	int GetBuildableResourceCost(int baseQty)
+	{
+		return OVT_ResourceRules.ScaleRequirement(baseQty, m_Difficulty.buildableResourceCostMultiplier);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The difficulty's real-estate cost multiplier, already replicated by RplSave/RplLoad, so this
+	//! accessor adds nothing to the stream and CONFIG_STREAM_VERSION does not move for it.
+	//! \return The multiplier a production site's authored base cost is scaled by.
+	float GetRealEstateCostMultiplier()
+	{
+		return m_Difficulty.realEstateCostMultiplier;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The multiplier applied to a stored resource price at read time, after the band clamp.
+	float GetResourcePriceMultiplier()
+	{
+		return m_Difficulty.resourcePriceMultiplier;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The multiplier on one price drift step. Never touches the drift band.
+	float GetResourcePriceVolatility()
+	{
+		return m_Difficulty.resourcePriceVolatility;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The resolved per-player High Command member cap (D12).
+	int GetHighCommandMemberCap()
+	{
+		return m_Difficulty.highCommandMemberCap;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The resolved town supporters drawn down per High Command member.
+	int GetHighCommandSupportersPerMember()
+	{
+		return m_Difficulty.highCommandSupportersPerMember;
+	}
+
 	int GetHouseItemLimit()
 	{
 		return m_ConfigFile.houseItemLimit;
@@ -282,6 +426,26 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	int GetFOBItemLimit()
 	{
 		return m_ConfigFile.fobItemLimit;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] name Town display name, or "" for random.
+	void SetStartingTown(string name)
+	{
+		m_sStartingTown = name;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The town the campaign should start in, or "" for random.
+	//!
+	//! A dedicated server has no start menu, so Overthrow_Config.json is its only source; everywhere
+	//! else the menu selection wins, exactly as it does for the two factions (see DoStartNewGame).
+	string GetStartingTown()
+	{
+		if(RplSession.Mode() == RplMode.Dedicated && m_ConfigFile && m_ConfigFile.startingTown != "")
+			return m_ConfigFile.startingTown;
+
+		return m_sStartingTown;
 	}
 
 	void SetOccupyingFaction(string key)
@@ -338,6 +502,25 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	// THE FACTION ACCESSORS
+	//
+	// ⚠ THE FACTION MANAGER MAY NOT EXIST YET, AND THAT IS NOT A FAULT. A component's OnPostInit() runs
+	// in the WORLD EDITOR, before anybody presses play: the game mode entity's components ARE
+	// constructed, but GetGame().GetFactionManager() is null because no game has started. Anything
+	// asked of these accessors in that context has exactly one honest answer - "cannot tell yet" - and
+	// it is null from the three data accessors and -1 from the three index accessors. Before
+	// 2026-08-19 all six dereferenced the manager unguarded and the first caller to reach one from an
+	// OnPostInit() took the whole editor down with a NULL-pointer VM exception.
+	//
+	// ⚠ AND -1 IS NEVER WRITTEN INTO THE CACHE. -1 is this component's NOT-YET-RESOLVED sentinel - it
+	// is what the members are born holding and what OVT_OccupyingFactionManager deliberately resets
+	// them to when a campaign restarts - so caching it as an ANSWER would make one unlucky early call
+	// permanent: the index would still read -1 for the rest of the session, long after the faction
+	// manager existed. Each guard returns WITHOUT touching the member, so the real index is still
+	// resolved by the first call that can see a faction manager.
+	//------------------------------------------------------------------------------------------------
+
 	OVT_Faction GetOccupyingFaction()
 	{
 		return OVT_Global.GetFactions().GetOverthrowFactionByKey(m_sOccupyingFaction);
@@ -345,7 +528,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetOccupyingFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sOccupyingFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sOccupyingFaction);
 	}
 
 	int GetOccupyingFactionIndex()
@@ -353,6 +539,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iOccupyingFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iOccupyingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sOccupyingFaction));
 		}
 		return m_iOccupyingFactionIndex;
@@ -365,7 +553,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetSupportingFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sSupportingFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sSupportingFaction);
 	}
 
 	int GetSupportingFactionIndex()
@@ -373,6 +564,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iSupportingFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iSupportingFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sSupportingFaction));
 		}
 		return m_iSupportingFactionIndex;
@@ -385,7 +578,10 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 	Faction GetPlayerFactionData()
 	{
-		return GetGame().GetFactionManager().GetFactionByKey(m_sPlayerFaction);
+		FactionManager fm = GetGame().GetFactionManager();
+		if(!fm) return null;
+
+		return fm.GetFactionByKey(m_sPlayerFaction);
 	}
 
 	int GetPlayerFactionIndex()
@@ -393,6 +589,8 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		if(m_iPlayerFactionIndex == -1)
 		{
 			FactionManager fm = GetGame().GetFactionManager();
+			if(!fm) return -1;
+
 			m_iPlayerFactionIndex = fm.GetFactionIndex(fm.GetFactionByKey(m_sPlayerFaction));
 		}
 		return m_iPlayerFactionIndex;
@@ -426,6 +624,16 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	{
 		AIWaypoint wp = SpawnWaypoint(m_pMoveWaypointPrefab, pos);
 		return wp;
+	}
+
+	//! The relaxed house search (OVT_AIWaypoint_HouseSearch.et). Falls back to the vanilla Search and
+	//! Destroy prefab when none is authored, so an old game-mode prefab still searches - tactically.
+	AIWaypoint SpawnHouseSearchWaypoint(vector pos)
+	{
+		if (m_pHouseSearchWaypointPrefab)
+			return SpawnWaypoint(m_pHouseSearchWaypointPrefab, pos);
+
+		return SpawnSearchAndDestroyWaypoint(pos);
 	}
 
 	AIWaypoint SpawnSearchAndDestroyWaypoint(vector pos)
@@ -494,6 +702,22 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		return wp;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Spawns a wait waypoint that actually waits for the duration asked for.
+	//!
+	//! ⚠ THE DURATION USED TO BE DROPPED ON THE FLOOR (defect F-C). Every caller since this method was
+	//! written has passed a time that was never applied, so every "wait" waypoint in Overthrow held for
+	//! whatever AIWaypoint_Wait.et authors (60 s) instead. SetHoldingTime() is the missing call.
+	//!
+	//! SetHoldingTime() itself silently does nothing when the prefab does not author
+	//! m_TimedWaypointParameters (SCR_TimedWaypoint.SetHoldingTime guards on it). The vanilla
+	//! Prefabs/AI/Waypoints/AIWaypoint_Wait.et this component is bound to DOES author that object
+	//! (m_holdingTime 60), verified 2026-08-17 against the 1.8.0.10 reference tree - so if a future
+	//! edit points m_pWaitWaypointPrefab at a different prefab, check that prefab before trusting the
+	//! duration.
+	//! \param[in] pos Where the waypoint goes.
+	//! \param[in] time Seconds to hold there.
+	//! \return The waypoint, or null when the prefab failed to spawn or is not a timed waypoint.
 	SCR_TimedWaypoint SpawnWaitWaypoint(vector pos, float time)
 	{
 		SCR_TimedWaypoint wp = SCR_TimedWaypoint.Cast(OVT_Global.SpawnEntityPrefab(m_pWaitWaypointPrefab, pos));
@@ -526,7 +750,14 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			return;
 		}
 
-		if(type == OVT_PatrolType.PERIMETER)
+		// PERIMETER_BASE is handled HERE AS AN ORDINARY PERIMETER, deliberately. This is the LEGACY
+		// hand-authored waypoint path and its only caller is OVT_SpawnGroupJobStage, which spawns a
+		// group at a JOB location - there is no base controller to read an authored perimeter square
+		// off, so the road-snapped ring is the only thing this path can build. Falling through instead
+		// would give a job group NO waypoints at all and it would stand still, which is worse than the
+		// wrong shape. No shipped job authors PERIMETER_BASE (the member did not exist until 2026-08-18),
+		// so nothing's behaviour changes today.
+		if(type == OVT_PatrolType.PERIMETER || type == OVT_PatrolType.PERIMETER_BASE)
 		{
 			float dist = radius;
 			if(radius == 0)
@@ -541,7 +772,7 @@ class OVT_OverthrowConfigComponent: OVT_Component
 			for(int i=0; i< 4; i++)
 			{
 				vector pos = center + (Vector(0,angle,0).AnglesToVector() * dist);
-				vector roadPos = OVT_Global.FindNearestRoad(pos);
+				vector roadPos = OVT_WorldUtils.FindNearestRoad(pos);
 
 				AIWaypoint wp = SpawnPatrolWaypoint(roadPos);
 				queueOfWaypoints.Insert(wp);
@@ -578,7 +809,28 @@ class OVT_OverthrowConfigComponent: OVT_Component
 	//! ValidateTravel (the travel button's enable state) and OVT_MapLocationFOB.CanRespawn (the
 	//! respawn marker) — without it a client whose server disabled the FOB exemption would show an
 	//! enabled button the server then refuses.
-	protected const int CONFIG_STREAM_VERSION = 3;
+	//!
+	//! Version 4 appended fuelPricePerLitre to the difficulty block. It is read client-side by the
+	//! Refuel action's price suffix and by the local affordability gate that greys that action out —
+	//! without it a client would draw its own preset's price and refuse (or offer) a refuel the
+	//! server prices differently, which is the gate disagreeing with the authority, not a cosmetic
+	//! difference.
+	//!
+	//! Version 5 appended repairCostMultiplier to the difficulty block, for the same reason version 4
+	//! appended the fuel price: the repair action draws the price in its own label and greys itself out
+	//! locally when the player cannot pay it. Without it a client would price a repair from whatever
+	//! preset its game-mode prefab happened to instantiate, and offer (or refuse) a repair the server
+	//! charges differently for.
+	//!
+	//! Version 6 appended the three resource multipliers to the difficulty block. The port's Resources
+	//! tab prices every row client-side from the replicated stored price times resourcePriceMultiplier,
+	//! and a construction site draws its requirement rows through buildableResourceCostMultiplier —
+	//! both are quoted locally and re-derived by the server, so a client running its own preset's
+	//! values would show a price it is not charged and a requirement it does not owe.
+	//! resourcePriceVolatility rides with them: it is server-only today (only the drift tick reads it),
+	//! but splitting one difficulty concept across two transports invites the next reader to assume it
+	//! is there.
+	protected const int CONFIG_STREAM_VERSION = 6;
 
 	override bool RplSave(ScriptBitWriter writer)
 	{
@@ -607,6 +859,11 @@ class OVT_OverthrowConfigComponent: OVT_Component
 		writer.WriteFloat(m_Difficulty.radioTowerRange);
 		writer.WriteFloat(m_Difficulty.baseSupportRange);
 		writer.WriteBool(m_Difficulty.allowFOBDuringQRF);
+		writer.WriteFloat(m_Difficulty.fuelPricePerLitre);
+		writer.WriteFloat(m_Difficulty.repairCostMultiplier);
+		writer.WriteFloat(m_Difficulty.buildableResourceCostMultiplier);
+		writer.WriteFloat(m_Difficulty.resourcePriceMultiplier);
+		writer.WriteFloat(m_Difficulty.resourcePriceVolatility);
 
 		//Send server config options
 		writer.WriteBool(m_ConfigFile.mobileFOBOfficersOnly);	
@@ -698,6 +955,21 @@ class OVT_OverthrowConfigComponent: OVT_Component
 
 		if (!reader.ReadBool(b)) return false;
 		m_Difficulty.allowFOBDuringQRF = b;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.fuelPricePerLitre = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.repairCostMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.buildableResourceCostMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.resourcePriceMultiplier = f;
+
+		if (!reader.ReadFloat(f)) return false;
+		m_Difficulty.resourcePriceVolatility = f;
 
 		//Receive server config options
 		if (!reader.ReadBool(b)) return false;

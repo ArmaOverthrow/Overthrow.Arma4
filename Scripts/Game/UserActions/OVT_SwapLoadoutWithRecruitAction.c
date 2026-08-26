@@ -26,7 +26,7 @@ class OVT_SwapLoadoutWithRecruitAction : OVT_BaseRecruitUserAction
 	{
 		if(!pOwnerEntity) return;
 
-		OVT_RecruitCommandComponent commands = OVT_Global.GetRecruitCommands();
+		OVT_RecruitCommandComponent commands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 		if(!commands) return;
 
 		// The body has to be nameable across the wire. A recruit body always carries an RplComponent

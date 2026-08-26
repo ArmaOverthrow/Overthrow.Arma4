@@ -20,12 +20,6 @@ GenericEntity : "{160E4E4110803F26}Prefabs/Structures/Military/Flags/FlagPole_02
       Name "#OVT-SetHome"
      }
     }
-    OVT_ManageBaseAction "{5E66A8E424754555}" {
-     ParentContextList {
-      "default"
-     }
-     "Sort Priority" 1
-    }
    }
   }
   RplComponent "{5E66A8E424754552}" {

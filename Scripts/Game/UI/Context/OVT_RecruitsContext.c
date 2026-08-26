@@ -32,6 +32,11 @@ class OVT_RecruitsContext : OVT_UIContext
 	[Attribute("{AA94A214B16CB2C8}UI/Layouts/Menu/RecruitsMenu/RecruitListItem.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for recruit list items", params: "layout")]
 	ResourceName m_RecruitItemLayout;
 
+	//! One text row over each cluster the Inactive section is split into (T9.4). Bare TextWidgetClass
+	//! root - no handler component needed, the caller sets its text directly.
+	[Attribute("{6B1C3D0000007050}UI/Layouts/Menu/RecruitsMenu/RecruitGroupHeader.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Layout for one inactive cluster's sub-header", params: "layout")]
+	ResourceName m_GroupHeaderLayout;
+
 	protected OVT_RecruitManagerComponent m_RecruitManager;
 	protected ref array<ref OVT_RecruitData> m_aPlayerRecruits;
 	//! The flat, ordered display list - actives then inactives. THE selection model (D16).
@@ -46,7 +51,18 @@ class OVT_RecruitsContext : OVT_UIContext
 	protected int m_iSelectedIndex = -1;
 	protected OVT_RecruitData m_CurrentRenamingRecruit;
 	protected SCR_ConfigurableDialogUi m_RenameDialog;
-	
+
+	//! Resolved lazily in OnShow, guarded everywhere it is used - the controller can still be absent
+	//! the first frame after possession (the OVT_HighCommandRosterContext precedent).
+	protected OVT_HighCommandRequestComponent m_HCRequests;
+	protected SCR_InputButtonComponent m_ConvertAction;
+
+	//! True between asking RpcAsk_ConvertRecruitGroup and its answer. RpcDo_HCResult carries the NEW
+	//! group id on success and "" on every refusal, so - unlike the dismiss guard this is modelled on -
+	//! the in-flight guard is keyed on the ANCHOR RECRUIT ID that was sent, not on groupId.
+	protected bool m_bConvertInFlight;
+	protected string m_sConvertAnchorId;
+
 	override void PostInit()
 	{		
 		m_RecruitManager = OVT_RecruitManagerComponent.GetInstance();
@@ -104,10 +120,27 @@ class OVT_RecruitsContext : OVT_UIContext
 			if (action)
 				action.m_OnActivated.Insert(CloseLayout);
 		}
-		
+
+		// High Command conversion (T9.5). Resolved lazily like every other controller-side seam in
+		// this feature - the controller can still be absent the first frame after possession.
+		m_HCRequests = OVT_ControllerComponent<OVT_HighCommandRequestComponent>.Get();
+		if (m_HCRequests)
+			m_HCRequests.m_OnHCResult.Insert(OnHCResult);
+
+		Widget convertButton = m_wRoot.FindAnyWidget("ConvertButton");
+		if (convertButton)
+		{
+			m_ConvertAction = SCR_InputButtonComponent.Cast(convertButton.FindHandler(SCR_InputButtonComponent));
+			if (m_ConvertAction)
+				m_ConvertAction.m_OnActivated.Insert(ConvertSelectedGroup);
+		}
+
+		m_bConvertInFlight = false;
+		m_sConvertAnchorId = "";
+
 		Refresh();
 	}
-	
+
 	override void OnClose()
 	{
 		// Clean up event listeners
@@ -117,6 +150,17 @@ class OVT_RecruitsContext : OVT_UIContext
 			m_RecruitManager.m_OnRecruitAdded.Remove(OnRecruitAdded);
 			m_RecruitManager.m_OnRecruitActiveStateChanged.Remove(OnRecruitActiveStateChanged);
 		}
+
+		if (m_HCRequests)
+			m_HCRequests.m_OnHCResult.Remove(OnHCResult);
+
+		if (m_ConvertAction)
+			m_ConvertAction.m_OnActivated.Remove(ConvertSelectedGroup);
+
+		m_HCRequests = null;
+		m_ConvertAction = null;
+		m_bConvertInFlight = false;
+		m_sConvertAnchorId = "";
 
 		// The rows are gone with the layout; holding widget pointers past OnClose is how a screen ends
 		// up selecting a destroyed widget on its second open.
@@ -272,6 +316,11 @@ class OVT_RecruitsContext : OVT_UIContext
 	//!
 	//! An EMPTY SECTION HIDES ITS HEADER AND ITS CONTAINER rather than showing a heading with nothing
 	//! under it - the same "no control beats a dead control" rule the map layer panel uses.
+	//!
+	//! THE INACTIVE SECTION IS SPLIT BY GROUP (T9.4): each cluster BuildInactiveClusters finds gets its
+	//! own sub-header before its rows. The active section is unchanged - one flat run, no clusters,
+	//! because an active recruit is in its owner's slave group and has no inactive-group host to split
+	//! by in the first place.
 	//! \param[in] recruits The records for this section, in table order.
 	//! \param[in] container The list container to build into.
 	//! \param[in] headerName The name of this section's heading widget.
@@ -297,31 +346,138 @@ class OVT_RecruitsContext : OVT_UIContext
 
 		// Null on a client whose controller has not been assigned yet, and on a dedicated server.
 		// A missing cache reads as "no status", which every row renders as an empty icon slot.
-		OVT_RecruitCommandComponent commands = OVT_Global.GetRecruitCommands();
+		OVT_RecruitCommandComponent commands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 
+		if (!inactive)
+		{
+			foreach (OVT_RecruitData recruit : recruits)
+			{
+				BuildRecruitRow(recruit, container, workspace, commands, false);
+			}
+
+			return;
+		}
+
+		array<ref array<ref OVT_RecruitData>> clusters = BuildInactiveClusters(recruits);
+
+		foreach (array<ref OVT_RecruitData> cluster : clusters)
+		{
+			if (!cluster || cluster.IsEmpty())
+				continue;
+
+			Widget groupHeaderWidget = workspace.CreateWidgets(m_GroupHeaderLayout, container);
+			TextWidget groupHeaderText = TextWidget.Cast(groupHeaderWidget);
+			if (groupHeaderText)
+				groupHeaderText.SetTextFormat("#OVT-Recruits_GroupHeader", cluster.Count());
+
+			foreach (OVT_RecruitData recruit : cluster)
+			{
+				BuildRecruitRow(recruit, container, workspace, commands, true);
+			}
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Build one recruit's row and append it to the flat entry array (D16). The active loop and every
+	//! inactive cluster both call this, so there is exactly one place that writes m_aEntries.
+	//! \param[in] recruit The record to draw. A null entry is skipped, same as the old inline loop.
+	//! \param[in] container The list container to build into.
+	//! \param[in] workspace The workspace to create the row widget with.
+	//! \param[in] commands The client's status cache, or null when it has not resolved yet.
+	//! \param[in] inactive Which section this row belongs to.
+	protected void BuildRecruitRow(OVT_RecruitData recruit, notnull Widget container, notnull WorkspaceWidget workspace, OVT_RecruitCommandComponent commands, bool inactive)
+	{
+		if (!recruit)
+			return;
+
+		Widget itemWidget = workspace.CreateWidgets(m_RecruitItemLayout, container);
+		if (!itemWidget)
+			return;
+
+		int statusFlags = 0;
+		if (commands)
+			statusFlags = commands.GetStatusFlags(recruit.m_sRecruitId);
+
+		OVT_RecruitListEntryHandler handler = OVT_RecruitListEntryHandler.Cast(itemWidget.FindHandler(OVT_RecruitListEntryHandler));
+		if (handler)
+		{
+			// The row's index is its position in the FLAT list, not in this section.
+			handler.Populate(recruit, m_aEntries.Count(), inactive, statusFlags);
+			handler.m_OnClicked.Insert(OnRecruitItemClicked);
+		}
+
+		m_aEntries.Insert(new OVT_RecruitEntryRef(recruit, itemWidget, inactive));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Approximate which parked recruits share a real in-world AI group, for display only (T9.4).
+	//!
+	//! THIS IS AN APPROXIMATION, DELIBERATELY. A client cannot read which live group a body actually
+	//! belongs to (that is server-only state), so this clusters purely by the records' own
+	//! m_vLastKnownPosition through OVT_RecruitInactiveGrouping.SelectClusterCandidates - the same pure
+	//! rule the recruit manager itself uses to pick a host when parking a NEW recruit. It can disagree
+	//! with the server's real grouping (implementation.md Phase 9's warning), which is exactly why
+	//! Convert always sends the SELECTED recruit's own id and lets the server resolve the real group,
+	//! and why the confirm dialog says "this group" rather than promising a count.
+	//! \param[in] inactiveRecruits Every parked recruit this owner holds, in table order.
+	//! \return Clusters in first-seen order. Never null; every recruit appears in exactly one cluster.
+	protected array<ref array<ref OVT_RecruitData>> BuildInactiveClusters(array<ref OVT_RecruitData> inactiveRecruits)
+	{
+		array<ref array<ref OVT_RecruitData>> clusters = new array<ref array<ref OVT_RecruitData>>();
+		if (!inactiveRecruits)
+			return clusters;
+
+		map<string, bool> assigned = new map<string, bool>();
+
+		foreach (OVT_RecruitData recruit : inactiveRecruits)
+		{
+			if (!recruit)
+				continue;
+
+			if (assigned.Contains(recruit.m_sRecruitId))
+				continue;
+
+			array<ref OVT_RecruitData> cluster = new array<ref OVT_RecruitData>();
+			cluster.Insert(recruit);
+			assigned.Set(recruit.m_sRecruitId, true);
+
+			array<string> candidateIds = OVT_RecruitInactiveGrouping.SelectClusterCandidates(inactiveRecruits, recruit.m_sRecruitId, recruit.m_vLastKnownPosition, OVT_RecruitInactiveGrouping.DEFAULT_CLUSTER_RADIUS);
+
+			foreach (string candidateId : candidateIds)
+			{
+				if (assigned.Contains(candidateId))
+					continue;
+
+				OVT_RecruitData candidate = FindRecruitById(inactiveRecruits, candidateId);
+				if (!candidate)
+					continue;
+
+				cluster.Insert(candidate);
+				assigned.Set(candidateId, true);
+			}
+
+			clusters.Insert(cluster);
+		}
+
+		return clusters;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] recruits The table to search.
+	//! \param[in] recruitId The id to find.
+	//! \return The matching record, or null when it is not on the table.
+	protected OVT_RecruitData FindRecruitById(array<ref OVT_RecruitData> recruits, string recruitId)
+	{
 		foreach (OVT_RecruitData recruit : recruits)
 		{
 			if (!recruit)
 				continue;
 
-			Widget itemWidget = workspace.CreateWidgets(m_RecruitItemLayout, container);
-			if (!itemWidget)
-				continue;
-
-			int statusFlags = 0;
-			if (commands)
-				statusFlags = commands.GetStatusFlags(recruit.m_sRecruitId);
-
-			OVT_RecruitListEntryHandler handler = OVT_RecruitListEntryHandler.Cast(itemWidget.FindHandler(OVT_RecruitListEntryHandler));
-			if (handler)
-			{
-				// The row's index is its position in the FLAT list, not in this section.
-				handler.Populate(recruit, m_aEntries.Count(), inactive, statusFlags);
-				handler.m_OnClicked.Insert(OnRecruitItemClicked);
-			}
-
-			m_aEntries.Insert(new OVT_RecruitEntryRef(recruit, itemWidget, inactive));
+			if (recruit.m_sRecruitId == recruitId)
+				return recruit;
 		}
+
+		return null;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -397,6 +553,11 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!m_SelectedRecruit)
 		{
 			SetButtonsVisible(false);
+
+			TextWidget reasonText = TextWidget.Cast(m_wRoot.FindAnyWidget("ConvertReasonText"));
+			if (reasonText)
+				reasonText.SetVisible(false);
+
 			return;
 		}
 		
@@ -461,6 +622,7 @@ class OVT_RecruitsContext : OVT_UIContext
 		}
 
 		UpdateToggleButton(recruitEntity != null, inactive);
+		UpdateConvertButton(inactive, recruitEntity != null);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -487,6 +649,139 @@ class OVT_RecruitsContext : OVT_UIContext
 			comp.SetLabel("#OVT-Recruits_ToggleHold");
 
 		comp.SetEnabled(hasBody);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Point the Convert button at whether the current selection could actually be converted (T9.5).
+	//!
+	//! DISABLED, NOT HIDDEN (BUG-102), for the two blockers this screen CAN check locally: an active
+	//! recruit is not parked at all, and a parked recruit with no live body has no group for the server
+	//! to find. The HC member cap is deliberately NOT checked here - it cannot be pre-checked precisely
+	//! client-side (implementation.md Phase 9), so the button stays enabled and a RESULT_CONVERT_AT_CAP
+	//! answer is what tells the player.
+	//! \param[in] inactive Whether the selected recruit is parked.
+	//! \param[in] hasBody Whether it has a live body in the world.
+	protected void UpdateConvertButton(bool inactive, bool hasBody)
+	{
+		Widget button = m_wRoot.FindAnyWidget("ConvertButton");
+		if (!button)
+			return;
+
+		SCR_InputButtonComponent comp = SCR_InputButtonComponent.Cast(button.FindHandler(SCR_InputButtonComponent));
+		if (!comp)
+			return;
+
+		TextWidget reasonText = TextWidget.Cast(m_wRoot.FindAnyWidget("ConvertReasonText"));
+
+		if (!inactive)
+		{
+			comp.SetEnabled(false);
+
+			if (reasonText)
+			{
+				reasonText.SetText("#OVT-Recruits_ConvertNeedsInactive");
+				reasonText.SetVisible(true);
+			}
+
+			return;
+		}
+
+		if (!hasBody)
+		{
+			comp.SetEnabled(false);
+
+			if (reasonText)
+			{
+				reasonText.SetText("#OVT-Recruits_ConvertNeedsBody");
+				reasonText.SetVisible(true);
+			}
+
+			return;
+		}
+
+		comp.SetEnabled(true);
+
+		if (reasonText)
+			reasonText.SetVisible(false);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Confirm before asking the server to convert the selected recruit's parked group (T9.5). ONE WAY:
+	//! nothing here or anywhere else turns a High Command group back into recruits.
+	protected void ConvertSelectedGroup()
+	{
+		if (!m_SelectedRecruit || !m_RecruitManager)
+			return;
+
+		if (m_bConvertInFlight)
+			return;
+
+		if (!m_RecruitManager.IsRecruitInactive(m_SelectedRecruit.m_sRecruitId))
+			return;
+
+		if (!m_RecruitManager.GetRecruitEntity(m_SelectedRecruit.m_sRecruitId))
+			return;
+
+		SCR_ConfigurableDialogUi dialog = SCR_ConfigurableDialogUi.CreateFromPreset("{26C9263913A8D1BD}Configs/UI/Dialogs/DialogPresets_Campaign.conf", "CONVERT_RECRUIT_GROUP");
+		if (!dialog)
+			return;
+
+		dialog.m_OnConfirm.Insert(OnConfirmConvert);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server - it resolves the recruit's real inactive group and converts every member in it,
+	//! not just the one selected here. Nothing client-side removes a recruit or creates a group; that
+	//! happens on m_OnRecruitRemoved / m_OnHCGroupAdded, which this screen and Manage Groups already
+	//! subscribe to independently.
+	protected void OnConfirmConvert()
+	{
+		if (!m_SelectedRecruit || !m_HCRequests)
+		{
+			ShowHint("#OVT-Recruits_ConvertFailed");
+			return;
+		}
+
+		m_sConvertAnchorId = m_SelectedRecruit.m_sRecruitId;
+		m_bConvertInFlight = true;
+
+		m_HCRequests.RequestConvertRecruitGroup(m_sConvertAnchorId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The server's answer to a convert ask, whatever it says. m_OnHCResult is shared by every High
+	//! Command request this controller sends, but only one is ever in flight from THIS screen at a
+	//! time, so the in-flight flag alone is the correlation - RpcDo_HCResult never echoes the anchor id.
+	//! \param[in] resultCode An OVT_HighCommandRequestComponent.RESULT_* value.
+	//! \param[in] charged Unused - conversion never charges.
+	//! \param[in] groupId The NEW group's id on success, or "" on every refusal.
+	protected void OnHCResult(int resultCode, int charged, string groupId)
+	{
+		if (!m_bConvertInFlight)
+			return;
+
+		m_bConvertInFlight = false;
+		m_sConvertAnchorId = "";
+
+		if (resultCode == OVT_HighCommandRequestComponent.RESULT_OK)
+		{
+			ShowHint("#OVT-Recruits_ConvertSuccess");
+			return;
+		}
+
+		if (resultCode == OVT_HighCommandRequestComponent.RESULT_CONVERT_AT_CAP)
+		{
+			ShowHint("#OVT-Recruits_ConvertAtCap");
+			return;
+		}
+
+		if (resultCode == OVT_HighCommandRequestComponent.RESULT_NO_RECRUIT_GROUP)
+		{
+			ShowHint("#OVT-Recruits_ConvertNoGroup");
+			return;
+		}
+
+		ShowHint("#OVT-Recruits_ConvertFailed");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -518,7 +813,7 @@ class OVT_RecruitsContext : OVT_UIContext
 			return;
 		}
 
-		OVT_RecruitCommandComponent commands = OVT_Global.GetRecruitCommands();
+		OVT_RecruitCommandComponent commands = OVT_ControllerComponent<OVT_RecruitCommandComponent>.Get();
 		if (!commands)
 		{
 			// Null until the controller has been assigned to this client; nothing to do but say so.
@@ -584,7 +879,8 @@ class OVT_RecruitsContext : OVT_UIContext
 			"DismissButton",
 			"RenameButton",
 			"ShowOnMapButton",
-			"ToggleActiveButton"
+			"ToggleActiveButton",
+			"ConvertButton"
 		};
 		
 		foreach (string name : buttonNames)
@@ -624,11 +920,11 @@ class OVT_RecruitsContext : OVT_UIContext
 		if (!m_SelectedRecruit)
 			return;
 			
-		// Request dismissal from server via player comms component
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-		if (comms)
+		// Ask the server - it validates that this recruit is ours before deleting anything
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (recruitRequests)
 		{
-			comms.DismissRecruit(m_SelectedRecruit.m_sRecruitId);
+			recruitRequests.DismissRecruit(m_SelectedRecruit.m_sRecruitId);
 		}
 		
 		// Clear UI selection (the actual recruit removal will be handled when server broadcasts)
@@ -693,7 +989,15 @@ class OVT_RecruitsContext : OVT_UIContext
 		}
 
 		// Ask the server - it validates ownership, renames the authoritative record and broadcasts
-		OVT_Global.GetServer().RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (!recruitRequests)
+		{
+			m_CurrentRenamingRecruit = null;
+			m_RenameDialog = null;
+			return;
+		}
+
+		recruitRequests.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);
 
 		// Apply to the local replica too so the UI updates immediately (the broadcast confirms it)
 		m_RecruitManager.RenameRecruit(m_CurrentRenamingRecruit.m_sRecruitId, newName);

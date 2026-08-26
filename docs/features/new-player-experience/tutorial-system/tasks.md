@@ -1,6 +1,6 @@
 # Tutorial System - Task Checklist
 
-**Last Updated:** 2026-08-18 (post-close change set 2 — campaign-persisted seen store, real modality, BUG-159)
+**Last Updated:** 2026-08-24 (post-close change set 3 — the seen-state push never ran for a returning player)
 **Progress:** 61/61 tasks complete (100%) · **2 tasks cancelled by risk R3** (5.4, 6.8) · **F5 deferred**
 
 **Epic:** `new-player-experience` (feature #1 of 5) · **Plan:** `implementation.md` · **Scope truth:** `requirements.md`
@@ -912,6 +912,21 @@ Runtime/visual items the harness structurally cannot reach. Populated as phases 
 
 ### ~~From Phase 4 — the settings store's cross-restart half (Q3)~~ RETIRED 2026-08-18
 *The per-machine profile store was deleted outright (it was re-showing tips on every load in practice — the user's report). Seen state now rides the campaign save via `OVT_PlayerManagerSerializer` v4; the checks below replace this block.*
+
+### From the 2026-08-24 change set — the seen-state push on every arrival path
+
+*Root cause and reasoning: `context.md` -> 2026-08-24. The mechanism half is now covered by
+`OVT_TEST_Campaign_Tutorial_StatePushReachesClient`; everything below is the call-site half, which no
+tier can reach.*
+
+- [ ] **Run the suites first** — Fast `{6A6E29FF47ECB840}` and All `{6A6E2A002F53A581}`. The new Campaign case must pass, and it has never been proven red.
+- [ ] **The reported failure, on the dedicated server.** Dismiss several tips (at least one menu tip and one shop tip), let the server save, **restart the server**, log back in: not one dismissed tip may return. This is the exact case that was broken.
+- [ ] **Reconnect inside one session.** Dismiss a tip, disconnect, reconnect without restarting the server — still gone. (The push now runs on the already-finalized early return too.)
+- [ ] **Single player / listen host.** Same check across a save + quit + Continue. SP takes the same call site and had the same defect.
+- [ ] **A brand-new player still gets everything.** Fresh persistent id on the same server: the welcome modal fires and the tips behave as they always did — the push must not suppress an empty record.
+- [ ] **"Don't show tips again" survives a restart** for a returning player, and Reset still turns them back on.
+- [ ] **Two-client:** A dismisses a tip and reconnects (no re-show); B, who never dismissed it, still gets theirs. This is the same per-player isolation the epic still owes an observation of.
+- [ ] ⚠️ **Watch the log on a busy join.** The push retries 20 x 500 ms while the controller is unregistered and then gives up **silently**. If a tip repeats for one player and not another, that retry expiring is the first suspect — it has no log line by design.
 
 ### From the 2026-08-18 change set — campaign-persisted seen store, real modality, BUG-159
 

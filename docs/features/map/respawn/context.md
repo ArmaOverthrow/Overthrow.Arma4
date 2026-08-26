@@ -678,7 +678,7 @@ autotest world has no players, so `OnPlayerKilled_S` never fires, no RPC ever cr
 is no UI tier at all. See **Still unverified** above for the single consolidated list, and
 **Where to look when it doesn't work** for the three distinguishing failure signatures.
 
-### 2026-08-18 — BUG-175: chosen-location respawns spawned players inside geometry
+### 2026-08-18 — BUG-182: chosen-location respawns spawned players inside geometry
 
 **Post-ship defect, filed and fixed.** Players picking a location on the respawn screen materialised
 inside the FOB truck / building walls: `CollectEligiblePositions` records **raw entity origins** and
@@ -690,7 +690,7 @@ authored points on `OverthrowMobileFOBDeployed.et` / `OVT_RecruitmentTent.et` / 
 through `TryFindSafeSpawnPosition` **after** the eligibility match (the raw origin stays the lookup
 key; only the spawn moves), with a loud WARNING fallback to the origin when nothing clear is found.
 The stale "re-safety-checking would move the player away" premise in `CreateFreshCharacterAt`'s doc
-comment is corrected. Compile 0 / 6059 files; acceptance is manual (see `docs/bugs/BUG-175.md`) —
+comment is corrected. Compile 0 / 6059 files; acceptance is manual (see `docs/bugs/BUG-182.md`) —
 the bug stays open until the FOB/camp/base/house respawns are observed landing on authored points.
 
 ### 2026-08-11 — Phase 9 discharged: the user ran the gate and reported all green
@@ -728,3 +728,9 @@ most, because each would have invalidated a design decision rather than needing 
 (P8-A); Overthrow may have exactly **one** SPAWNSCREEN config (P1-G4/R11); P6-G2's spawn-failure gap is
 documented rather than closed; and `OVT_AdminCommandsComponent`'s chat commands are likely dead in
 single player (found out of scope, not fixed, not this feature's to fix).
+
+---
+
+## 2026-08-25 — A captured base inside a QRF ring stays respawnable
+
+Author's rule: a captured base inside an active QRF is a valid respawn destination unless it is the base being counter-attacked. Implemented as `OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(vector)` and applied in `EnumerateEligible`'s base loop and in `OVT_MapLocationBase.CanRespawn`, so the server's enumeration and the client's markers agree. Full write-up, including why the target base is matched on `m_vQRFLocation` rather than `m_iCurrentQRFBase` (JIP), is in `../fast-travel/context.md` (2026-08-25).

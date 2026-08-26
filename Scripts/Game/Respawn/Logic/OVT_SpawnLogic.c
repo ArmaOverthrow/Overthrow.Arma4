@@ -357,7 +357,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//!
 	//! The chosen position is used as given. It is only ever a vector the SERVER produced from its own
 	//! eligible-location enumeration AND then healed through the spawn-point/clear-ground search
-	//! (CompleteRespawn, BUG-175) - by the time it arrives here it is an authored
+	//! (CompleteRespawn, BUG-182) - by the time it arrives here it is an authored
 	//! OVT_SpawnPointComponent point or a traced-clear spot, and this method has no second opinion to
 	//! add. The raw recorded origin must never reach this parameter: it is the location entity's own
 	//! origin and spawning at it puts the player inside that entity.
@@ -919,7 +919,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 		if(world.TracePosition(trace, null) >= 0)
 			return pos;
 
-		return OVT_Global.FindSafeSpawnPosition(pos);
+		return OVT_WorldUtils.FindSafeSpawnPosition(pos);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1181,7 +1181,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			{
 				if(town && IsSpawnLocationSafe(town.location))
 				{
-					vector safeSpawn = OVT_Global.FindSafeSpawnPosition(town.location);
+					vector safeSpawn = OVT_WorldUtils.FindSafeSpawnPosition(town.location);
 					// Update their home to this safe town
 					if(updateHome && realEstate)
 						realEstate.SetHomePos(playerId, safeSpawn);
@@ -1236,7 +1236,7 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 			// No authored point - search for a clear spot near the building, and skip the house
 			// entirely when there is none rather than hand back a position inside its shell.
 			vector clearPos;
-			if(OVT_Global.TryFindSafeSpawnPosition(housePos, clearPos))
+			if(OVT_WorldUtils.TryFindSafeSpawnPosition(housePos, clearPos))
 				return clearPos;
 		}
 		return vector.Zero;
@@ -1663,13 +1663,13 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 
 		// The recorded vector is the location's ORIGIN - the base controller, the deployed FOB truck,
 		// the camp tent, the house building - never a standing position, and spawning at it puts the
-		// player inside that geometry (BUG-175). Route it through the spawn-point query so a location
+		// player inside that geometry (BUG-182). Route it through the spawn-point query so a location
 		// that authors OVT_SpawnPointComponent points (bases, FOBs, camps and spawn-point houses all
 		// do) spawns the player at one of them, and anything without one heals to a traced-clear spot
 		// nearby. AFTER the eligibility match on purpose: the raw origin stays the lookup key the
 		// client and server agree on, only the spawn moves.
 		vector spawnPos;
-		if (!OVT_Global.TryFindSafeSpawnPosition(resolvedPos, spawnPos))
+		if (!OVT_WorldUtils.TryFindSafeSpawnPosition(resolvedPos, spawnPos))
 			Print("[Overthrow] No authored spawn point or clear ground near " + resolvedPos.ToString() + " - spawning player " + playerId + " at the recorded origin", LogLevel.WARNING);
 
 		CreateFreshCharacterAt(playerId, characterPersistenceId, true, spawnPos);
@@ -1696,8 +1696,9 @@ class OVT_SpawnLogic : SCR_SpawnLogic
 	//------------------------------------------------------------------------------------------------
 	//! One player's respawn request component, resolved on the server from their controller entity.
 	//!
-	//! Deliberately NOT OVT_Global.GetRespawnRequests(), which resolves the LOCAL machine's controller
-	//! and would answer with the host's own component for every player on a listen server.
+	//! Deliberately NOT OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get(), which resolves the
+	//! LOCAL machine's controller and would answer with the host's own component for every player on a
+	//! listen server.
 	//! \param[in] playerId The player whose component to find.
 	//! \return The component, or null when the player has no controller entity or it lacks one.
 	protected OVT_RespawnRequestComponent FindRespawnRequests(int playerId)

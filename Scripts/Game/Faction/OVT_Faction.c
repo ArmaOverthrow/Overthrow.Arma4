@@ -74,9 +74,19 @@ class OVT_FactionVehicleEntry
 	
 	[Attribute(defvalue: "4", desc: "Maximum capacity including crew")]
 	int m_iMaxCapacity;
-	
+
 	[Attribute(desc: "Optional description")]
 	string m_sDescription;
+
+	//! Escalation ladder this vehicle belongs to, e.g. "armed". Empty means this entry is on no
+	//! ladder and is only ever reached by name.
+	[Attribute(desc: "Ladder role this vehicle answers to, e.g. \"armed\". Empty = not on a ladder, only reachable by name")]
+	string m_sLadderRole;
+
+	//! Threat this rung requires before it unlocks, before the difficulty's threshold scalar is
+	//! applied. See OVT_VehicleLadderRules.ScaledThreshold.
+	[Attribute(defvalue: "0", desc: "Threat required to unlock this rung, before the difficulty threshold scalar. 0 = always unlocked")]
+	int m_iMinThreat;
 }
 
 //! Vehicle registry for flexible vehicle management
@@ -154,6 +164,44 @@ class OVT_FactionVehicleRegistry
 			names.Insert(entry.m_sVehicleName);
 		}
 		return names;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves the highest ladder rung unlocked at a threat and affordable inside a budget, for one
+	//! named role, e.g. "armed".
+	//! \param[in] role The ladder role to filter to. An unauthored role answers false.
+	//! \param[in] threat The live threat figure.
+	//! \param[in] scale The difficulty's threshold scalar.
+	//! \param[in] budget The purse the pick must fit inside; negative is unbounded.
+	//! \param[out] entry The picked entry. Untouched on a false return.
+	//! \return False rather than an empty ResourceName when nothing qualifies, so "no rung
+	//! available" stays distinguishable from "a rung resolved to a bad prefab".
+	bool ResolveLadderRung(string role, float threat, float scale, int budget, out OVT_FactionVehicleEntry entry)
+	{
+		array<OVT_FactionVehicleEntry> roleEntries = new array<OVT_FactionVehicleEntry>;
+		foreach (OVT_FactionVehicleEntry candidate : m_aVehicleEntries)
+		{
+			if (candidate.m_sLadderRole == role)
+				roleEntries.Insert(candidate);
+		}
+
+		if (roleEntries.IsEmpty())
+			return false;
+
+		array<int> minThreats = new array<int>;
+		array<int> costs = new array<int>;
+		foreach (OVT_FactionVehicleEntry roleEntry : roleEntries)
+		{
+			minThreats.Insert(roleEntry.m_iMinThreat);
+			costs.Insert(roleEntry.m_iCost);
+		}
+
+		int pickedIndex = OVT_VehicleLadderRules.PickRung(minThreats, costs, scale, threat, budget);
+		if (pickedIndex < 0)
+			return false;
+
+		entry = roleEntries[pickedIndex];
+		return true;
 	}
 }
 
@@ -299,6 +347,28 @@ class OVT_FactionComposition
 	ref array<ResourceName> m_aGroupPrefabs;
 }
 
+[BaseContainerProps(), SCR_BaseContainerCustomTitleField("m_sKey")]
+class OVT_HighCommandGroupEntry
+{
+	[Attribute(desc: "Stable key - the wire, the save and the icon all use it")]
+	string m_sKey;
+
+	[Attribute(desc: "Display name (localization key)")]
+	string m_sTitle;
+
+	[Attribute(desc: "Description (localization key)")]
+	string m_sDescription;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Source group prefab - its m_aUnitPrefabSlots IS the composition", params: "et")]
+	ResourceName m_sGroupPrefab;
+
+	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Optional vehicle - empty = foot group", params: "et")]
+	ResourceName m_sVehiclePrefab;
+
+	[Attribute(defvalue: "Infantry_Friend", desc: "ICO_Land quad name for the map symbol")]
+	string m_sMapIcon;
+}
+
 [BaseContainerProps(configRoot:true), SCR_BaseContainerCustomTitleField("m_sFactionKey")]
 class OVT_Faction
 {
@@ -320,55 +390,28 @@ class OVT_Faction
 	[Attribute(desc: "Named single characters for this faction", category: "Character Registry")]
 	ref OVT_FactionCharacterRegistry m_CharacterRegistry;
 		
-	//! Legacy group prefabs - deprecated, use m_GroupRegistry instead
-	//! Kept for compatibility with BaseUpgrade systems
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "LEGACY: Faction groups (Light Infantry)", params: "et", category: "Legacy Faction Groups")]
-	ref array<ResourceName> m_aGroupInfantryPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Heavy Infantry)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aHeavyInfantryPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (AT)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aGroupATPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction groups (Special Forces)", params: "et", category: "Faction Groups")]
-	ref array<ResourceName> m_aGroupSpecialPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupSniperPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Sniper Team - spotter + sniper)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupSniperTeamPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (MG)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupMGPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (AT)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupATPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (FRAG)", params: "et", category: "Faction Groups")]
-	ResourceName m_aGroupFRAGPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Light Town Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aLightTownPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Heavy Town Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aHeavyTownPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (SpecOps Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aSpecOpsPatrolPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Faction group (Tower Defense Patrol)", params: "et", category: "Faction Groups")]
-	ResourceName m_aTowerDefensePatrolPrefab;
-	
+	// RETIRED 2026-08-18 (virtualization/base-defense-migration, decision D9). The whole "Legacy
+	// Faction Groups" / "Faction Groups" prefab-slot block is gone, along with the by-enum resolver
+	// that picked a random element out of it (GetGroupPrefabByType below is its replacement, and it
+	// answers from the registry). It was the last path in the codebase that resolved a force to a RAW
+	// PREFAB rather than to a (factionKey, groupName) pair, which is the only identity the
+	// virtualization core can register a composition under - so anything reached through it could
+	// never have dead members that stay dead.
+	// Every meaning it carried survives as a NAMED ENTRY in m_GroupRegistry above:
+	//   Light Infantry / Light Town Patrol / Tower Defense Patrol -> "light_patrol"
+	//   Heavy Infantry (and Special Forces) -> "heavy_infantry"      AT -> "at_team"
+	//   Sniper -> "sniper"                   Sniper Team -> "sniper_team"
+	// The MG, AT-single, FRAG, Heavy Town Patrol and SpecOps Patrol entries were swept in the same pass:
+	// they had neither a reader nor an authored value in any faction config, in either shipped faction
+	// prefab, or anywhere else in the tree.
+	// The checkpoint prefabs that used to live under "Faction Objects" went with them - they are now the
+	// "MediumCheckpoint" / "LargeCheckpoint" entries in m_aCompositionConfig - and the Cars / Trucks
+	// vehicle arrays are the "car" / "truck" entries in m_VehicleRegistry.
+	// ⚠ The attributes and their authored values were deleted in ONE change-set. An authored value with
+	// no attribute behind it is a parse warning on every load.
+
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (all)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehiclePrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Cars)", params: "et", category: "Faction Vehicles")]
-	ref array<ResourceName> m_aVehicleCarPrefabSlots;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Trucks)", params: "et", category: "Faction Vehicles")]
-	ref array<ResourceName> m_aVehicleTruckPrefabSlots;
 	
 	[Attribute(uiwidget: UIWidgets.ResourceAssignArray, desc: "Faction vehicles (Lightly Armed)", params: "et", category: "Faction Vehicles")]
 	ref array<ResourceName> m_aVehicleLightPrefabSlots;
@@ -384,15 +427,14 @@ class OVT_Faction
 		
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Flag Pole Prefab", params: "et", category: "Faction Objects")]
 	ResourceName m_sFlagPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Medium Checkpoint Prefab", params: "et", category: "Faction Objects")]
-	ResourceName m_aMediumCheckpointPrefab;
-	
-	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Large Checkpoint Prefab", params: "et", category: "Faction Objects")]
-	ResourceName m_aLargeCheckpointPrefab;
 		
 	[Attribute()]
 	ref OVT_FactionCompositionConfig m_aCompositionConfig;
+
+	//! The purchasable High Command set. Curated and priced by Overthrow - deliberately NOT the vanilla
+	//! GROUP entity catalog that fills m_aGroupPrefabSlots, which has no icons, no vehicles and no order.
+	[Attribute(desc: "Groups a player may buy at a barracks", category: "High Command")]
+	ref array<ref OVT_HighCommandGroupEntry> m_aHighCommandGroups;
 	
 	ref array<ResourceName> m_aGroupPrefabSlots = {};
 	
@@ -458,6 +500,62 @@ class OVT_Faction
 		return true;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! \return How many High Command entries this faction publishes; 0 when it publishes none.
+	int GetHighCommandGroupCount()
+	{
+		if (!m_aHighCommandGroups) return 0;
+
+		return m_aHighCommandGroups.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One purchasable High Command entry by position. The INDEX is what crosses the wire, so an
+	//! out-of-range index must answer null rather than clamp - a clamped index would sell the caller a
+	//! different group from the one they pressed.
+	//! \param[in] index Position in m_aHighCommandGroups.
+	//! \return The entry, or null when the index names nothing.
+	OVT_HighCommandGroupEntry GetHighCommandGroup(int index)
+	{
+		if (!m_aHighCommandGroups) return null;
+
+		if (index < 0 || index >= m_aHighCommandGroups.Count()) return null;
+
+		return m_aHighCommandGroups[index];
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One purchasable High Command entry by its stable key - what a record stores and a save restores.
+	//! \param[in] key The entry's m_sKey.
+	//! \return The entry, or null when this faction has no such key.
+	OVT_HighCommandGroupEntry GetHighCommandGroupByKey(string key)
+	{
+		if (!m_aHighCommandGroups || key == "") return null;
+
+		foreach (OVT_HighCommandGroupEntry entry : m_aHighCommandGroups)
+		{
+			if (entry && entry.m_sKey == key) return entry;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] key The entry's m_sKey.
+	//! \return Its index in m_aHighCommandGroups, or -1 when this faction has no such key.
+	int FindHighCommandGroupIndex(string key)
+	{
+		if (!m_aHighCommandGroups || key == "") return -1;
+
+		for (int i = 0; i < m_aHighCommandGroups.Count(); i++)
+		{
+			OVT_HighCommandGroupEntry entry = m_aHighCommandGroups[i];
+			if (entry && entry.m_sKey == key) return i;
+		}
+
+		return -1;
+	}
+
 	OVT_FactionComposition GetCompositionConfig(string tag)
 	{
 		if(!m_aCompositionConfig) return null;
@@ -468,23 +566,63 @@ class OVT_Faction
 		return null;
 	}
 	
-	ResourceName GetRandomGroupByType(OVT_GroupType type)
+	//------------------------------------------------------------------------------------------------
+	//! A group prefab for a coarse OVT_GroupType, resolved through the GROUP REGISTRY.
+	//!
+	//! WHY THE ENUM STILL EXISTS AT ALL. It is a job-stage authoring convenience
+	//! (OVT_SpawnGroupJobStage.m_GroupType), not a resolution mechanism: a job config picks a rough
+	//! shape of force and does not want to know a faction's registry names. Everything systemic - every
+	//! deployment, every garrison, every patrol - asks for a registry NAME instead, because that is the
+	//! only identity the virtualization core resolves a composition from.
+	//!
+	//! THE MAP, AND THE ONE JUDGEMENT CALL IN IT. LIGHT_INFANTRY -> "light_patrol",
+	//! HEAVY_INFANTRY -> "heavy_infantry", ANTI_TANK -> "at_team", SNIPER -> "sniper" are each the
+	//! registry entry that replaced the legacy array of the same meaning. SPECIAL_FORCES has no
+	//! registry entry and maps to "heavy_infantry", which is the only general-purpose combat group both
+	//! shipped factions define; the legacy USSR value for it was a manoeuvre group (itself a member of
+	//! the heavy-infantry list) and the legacy US value was a sniper team, which reads as an authoring
+	//! accident rather than a design worth inheriting. Nothing authors SPECIAL_FORCES today.
+	//!
+	//! THE FALLBACK IS THE VANILLA GROUP CATALOG and it is load-bearing, not defensive: a modded
+	//! faction that ships no registry entry under one of these names still gets a group of some sort
+	//! rather than an empty ResourceName and a silent no-spawn. m_aGroupPrefabSlots is built from the
+	//! faction's own vanilla GROUP entity catalog in Init(), so it is never empty for a real faction.
+	//! \param[in] type The coarse group type authored on the job stage.
+	//! \return A group prefab, or an empty ResourceName only when the faction has no catalog at all.
+	ResourceName GetGroupPrefabByType(OVT_GroupType type)
 	{
+		string groupName;
+
 		switch(type)
-		{				
+		{
+			case OVT_GroupType.LIGHT_INFANTRY:
+				groupName = "light_patrol";
+				break;
 			case OVT_GroupType.HEAVY_INFANTRY:
-				return m_aHeavyInfantryPrefabSlots.GetRandomElement();
+				groupName = "heavy_infantry";
+				break;
 			case OVT_GroupType.ANTI_TANK:
-				return m_aGroupATPrefabSlots.GetRandomElement();
+				groupName = "at_team";
+				break;
 			case OVT_GroupType.SPECIAL_FORCES:
-				return m_aGroupSpecialPrefabSlots.GetRandomElement();
+				groupName = "heavy_infantry";
+				break;
 			case OVT_GroupType.SNIPER:
-				return m_aGroupSniperPrefab;
+				groupName = "sniper";
+				break;
 		}
-		
+
+		if(groupName != "")
+		{
+			ResourceName prefab = GetGroupPrefabByName(groupName);
+			if(prefab != "") return prefab;
+		}
+
+		if(!m_aGroupPrefabSlots || m_aGroupPrefabSlots.IsEmpty()) return "";
+
 		return m_aGroupPrefabSlots.GetRandomElement();
 	}
-	
+
 	//------------------------------------------------------------------------------------------------
 	// New group registry methods
 	//------------------------------------------------------------------------------------------------
@@ -601,7 +739,28 @@ class OVT_Faction
 	{
 		if (!m_VehicleRegistry)
 			return "";
-		
+
 		return m_VehicleRegistry.GetRandomVehiclePrefab();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Null-safe wrapper over the vehicle registry's ladder resolver. Mirrors
+	//! GetVehiclePrefabByName's shape.
+	//! \param[in] role The ladder role to resolve, e.g. "armed".
+	//! \param[in] threat The live threat figure.
+	//! \param[in] scale The difficulty's threshold scalar.
+	//! \param[in] budget The purse the pick must fit inside; negative is unbounded.
+	//! \param[out] entry The picked entry. Untouched on a false return.
+	//! \return False when the registry is not initialized, the role is unauthored, or nothing
+	//! qualifies.
+	bool ResolveVehicleForRole(string role, float threat, float scale, int budget, out OVT_FactionVehicleEntry entry)
+	{
+		if (!m_VehicleRegistry)
+		{
+			Print(string.Format("Vehicle registry not initialized for faction %1", m_sFactionKey), LogLevel.WARNING);
+			return false;
+		}
+
+		return m_VehicleRegistry.ResolveLadderRung(role, threat, scale, budget, entry);
 	}
 }

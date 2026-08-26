@@ -1,0 +1,83 @@
+SCR_DestructibleBuildingEntity : "{A43A100E3C377DB2}Prefabs/Structures/Core/Building_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_StorageComponent "{6A8E2D0000000003}" {
+   m_eCapacityMode UNLIMITED
+   m_sDefaultNameKey "#OVT-Warehouse"
+  }
+  OVT_ResourceStoreComponent "{6A8E2E0000000011}" {
+   m_fCargoVolume -1
+   m_sDefaultNameKey "#OVT-Warehouse"
+  }
+  ActionsManagerComponent "{6A8E2D0000000030}" {
+   ActionContexts {
+    UserActionContext "{6A8E2D0000000031}" {
+     ContextName "storage"
+     Position PointInfo "{6A8E2D0000000032}" {
+      Offset 0 1 0
+     }
+     Radius 20
+    }
+   }
+   additionalActions {
+    OVT_OpenStorageMenuAction "{6A8E2D0000000033}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2D0000000034}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_RenameStorageAction "{6A8E2D0000000035}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2D0000000036}" {
+      Name "#OVT-Storage_Rename"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
+    OVT_OpenResourceStoreAction "{6A8E2E1000000014}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6A8E2E1000000015}" {
+      Name "#OVT-Warehouse"
+     }
+     Duration 0
+     "Sort Priority" 3
+    }
+    OVT_LoadStorageAction "{6BB40000000000A4}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6BB40000000000A5}" {
+      Name "#OVT-LoadStorage"
+     }
+     Duration 0
+     "Sort Priority" 4
+     m_fVehicleSearchRadius 30
+     m_fVehicleMaxDistance 30
+    }
+    OVT_UnloadStorageAction "{6BB40000000000A6}" {
+     ParentContextList {
+      "storage"
+     }
+     UIInfo UIInfo "{6BB40000000000A7}" {
+      Name "#OVT-UnloadStorage"
+     }
+     Duration 0
+     "Sort Priority" 5
+     m_fVehicleSearchRadius 30
+     m_fVehicleMaxDistance 30
+    }
+   }
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
+}

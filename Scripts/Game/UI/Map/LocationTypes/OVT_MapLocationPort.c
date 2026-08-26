@@ -2,7 +2,7 @@
 //!
 //! The panel's two lines are the only two things a port actually does for a player, and both are
 //! grounded in code rather than flavour text:
-//!  - Bulk import. OVT_PortContext is the buy-in-bulk menu, and OVT_PlayerCommsComponent's import RPC
+//!  - Bulk import. OVT_PortContext is the buy-in-bulk menu, and OVT_VehicleRequestComponent's import RPC
 //!    rejects the purchase unless BOTH the player and the receiving vehicle are within
 //!    IMPORT_MAX_PORT_DISTANCE (30m) of a port.
 //!  - Cheaper goods nearby. OVT_EconomyManagerComponent.GetSellPriceAtOffset adds

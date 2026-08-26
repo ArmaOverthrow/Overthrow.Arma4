@@ -1,5 +1,5 @@
 //! Military base location type for the new map system
-//! Handles military bases with faction control and garrison display
+//! Handles military bases with faction control display
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationBase : OVT_MapLocationType
 {	
@@ -36,7 +36,7 @@ class OVT_MapLocationBase : OVT_MapLocationType
 
 			// The entity is only the source of the display name and is OPTIONAL: entId is
 			// [NonSerialized] and assigned by the server's world query, so on a client it can be
-			// unset (BUG-172 - skipping here left clients with no base markers at all). The marker
+			// unset (BUG-176 - skipping here left clients with no base markers at all). The marker
 			// itself needs only the replicated record
 			string baseName = "Military Base";
 			IEntity baseEntity = GetGame().GetWorld().FindEntityByID(base.entId);
@@ -53,7 +53,6 @@ class OVT_MapLocationBase : OVT_MapLocationType
 			locationData.m_iID = i;
 			locationData.SetDataInt("faction", base.faction);
 			locationData.SetDataBool("isOccupying", base.IsOccupyingFaction());
-			locationData.SetDataInt("garrisonCount", base.garrison.Count());
 			
 						
 			locations.Insert(locationData);
@@ -75,14 +74,6 @@ class OVT_MapLocationBase : OVT_MapLocationType
 	{
 		if (!baseInfoWidget || !location)
 			return;
-		
-		// Garrison size
-		TextWidget garrisonText = TextWidget.Cast(baseInfoWidget.FindAnyWidget("Garrison"));
-		if (garrisonText)
-		{
-			int garrisonCount = location.GetDataInt("garrisonCount", 0);
-			garrisonText.SetText(garrisonCount.ToString());
-		}
 		
 		// Controlling faction icon
 		ImageWidget factionIcon = ImageWidget.Cast(baseInfoWidget.FindAnyWidget("FactionIcon"));
@@ -186,7 +177,10 @@ class OVT_MapLocationBase : OVT_MapLocationType
 			return false;
 		}
 
-		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition))
+		// Mirrors the server's enumeration: inside the ring is not a refusal on its own, being the
+		// base under attack is.
+		if (OVT_RespawnService.IsPositionInActiveQRF(location.m_vPosition) &&
+			!OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(location.m_vPosition))
 		{
 			reason = "#OVT-Respawn_QRF";
 			return false;

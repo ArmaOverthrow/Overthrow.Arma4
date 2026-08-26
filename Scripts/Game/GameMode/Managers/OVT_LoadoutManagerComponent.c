@@ -269,23 +269,36 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			return false;
 		}
 		
-		// Get storage components
 		InventoryStorageManagerComponent targetStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(targetEntity);
-		InventoryStorageManagerComponent boxStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(equipmentBox);
-		
-		if (!targetStorageManager || !boxStorageManager)
+		if (!targetStorageManager)
 		{
-			Print(string.Format("[OVT_LoadoutManagerComponent] Missing storage managers - Target: %1, Box: %2", 
-				!targetStorageManager, !boxStorageManager), LogLevel.ERROR);
+			Print("[OVT_LoadoutManagerComponent] Target has no inventory storage manager", LogLevel.ERROR);
 			return false;
 		}
-		
-			
+
+		// THE BOX IS A LEDGER NOW. Its contents stopped being entities when logistics/storage landed,
+		// so there is nothing left to find, remove and re-insert - the source of truth is the count on
+		// OVT_StorageComponent, and an item leaves it by being debited and spawned.
+		OVT_StorageComponent boxStorage = OVT_StorageUtils.GetStorage(equipmentBox);
+		OVT_StorageLedger ledger;
+		if (boxStorage)
+			ledger = boxStorage.GetLedger();
+
+		if (!ledger)
+		{
+			Print("[OVT_LoadoutManagerComponent] Equipment box carries no storage ledger", LogLevel.ERROR);
+			return false;
+		}
+
 		// Update usage stats
 		loadout.UpdateLastUsed();
 		
 		// Apply equipment from box to entity
-		bool success = ApplyEquipmentFromBox(loadout, targetEntity, targetStorageManager, equipmentBox, boxStorageManager);
+		bool success = ApplyEquipmentFromBox(loadout, targetEntity, targetStorageManager, ledger);
+
+		// One bump for the whole apply, not one per item - the batch boundary OVT_StorageComponent's
+		// header defines. Without it every client keeps reading the pre-apply count.
+		boxStorage.PublishCount();
 		
 		// Send notification about loadout application
 		SendLoadoutApplicationNotification(loadout.m_sLoadoutName, targetEntity, success);
@@ -559,141 +572,67 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return successCount > 0;
 	}
 	
-	//! Apply equipment from box to entity
-	protected bool ApplyEquipmentFromBox(OVT_PlayerLoadout loadout, IEntity targetEntity, InventoryStorageManagerComponent targetStorageManager, IEntity equipmentBox, InventoryStorageManagerComponent boxStorageManager)
+	//! Apply equipment from the box's LEDGER to an entity.
+	//!
+	//! Same shape as it always had - per-slot, displaced item goes back to the box - but every item is
+	//! now debited from the ledger and spawned rather than found and moved. Conservation is unchanged
+	//! (BUG-042): no item appears that the box did not hold.
+	protected bool ApplyEquipmentFromBox(OVT_PlayerLoadout loadout, IEntity targetEntity, InventoryStorageManagerComponent targetStorageManager, OVT_StorageLedger ledger)
 	{
 		array<ref OVT_LoadoutItem> items = loadout.GetItems();
 		int successCount = 0;
 		int totalItems = items.Count();
-		
-			
-		// Process all items with EPF-style slot targeting
+
 		foreach (OVT_LoadoutItem item : items)
 		{
-			
 			bool success = false;
 			if (item.m_bIsEquipped)
-			{
-				// Equipped weapons obey the same conservation rule as everything else: they
-				// come out of the box or not at all (BUG-042 - this used to spawn free rifles)
-				success = ApplyEquippedItemFromBox(item, targetEntity, boxStorageManager);
-			}
+				success = ApplyEquippedItem(item, targetEntity, ledger);
 			else
-			{
-				success = ApplyLoadoutItemFromBox(item, targetEntity, targetStorageManager, boxStorageManager);
-			}
-			
+				success = ApplyLoadoutItemFromBox(item, targetEntity, targetStorageManager, ledger);
+
 			if (success)
-			{
 				successCount++;
-			}
 			else
-			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to apply item: %1", item.m_sResourceName));
-			}
 		}
-		
+
 		// Apply quick slots after all items are in place
-		ApplyQuickSlots(targetEntity, loadout, boxStorageManager);
-		
+		ApplyQuickSlots(targetEntity, loadout);
+
 		// Store result counts for notification
 		m_iLastApplySuccessCount = successCount;
 		m_iLastApplyTotalCount = totalItems;
-		
+
 		return successCount > 0;
 	}
 	
 	
-	//! Apply a single loadout item from equipment box (EPF-style with exact slot targeting)
-	protected bool ApplyLoadoutItemFromBox(OVT_LoadoutItem loadoutItem, IEntity targetEntity, InventoryStorageManagerComponent targetStorageManager, InventoryStorageManagerComponent boxStorageManager)
+	
+	//! Apply one non-equipped loadout item out of the box's ledger.
+	//!
+	//! The DISPLACED item goes to the ledger before the new one is placed, which is the ledger version
+	//! of the shipped "put the old item back in the box". It is credited even when the placement then
+	//! fails: the reserve is refunded on that path, so nothing is created or destroyed either way -
+	//! everything is recoverable from the box.
+	protected bool ApplyLoadoutItemFromBox(OVT_LoadoutItem loadoutItem, IEntity targetEntity, InventoryStorageManagerComponent targetStorageManager, OVT_StorageLedger ledger)
 	{
 		if (!loadoutItem || loadoutItem.m_sResourceName.IsEmpty())
 			return false;
-		
-		// Find matching item in equipment box
-		IEntity foundItem = FindItemInBox(loadoutItem.m_sResourceName, boxStorageManager);
-		if (!foundItem)
-		{
-			// Item not found in box, skip silently
-			return false;
-		}
-		
-		// If this item is a container, empty its contents back into the box before transferring
-		// This prevents conflicts with our nested item restoration system
-		EmptyContainerIntoBox(foundItem, boxStorageManager);
-		
-		// Find the exact storage component on target that matches the saved storage properties
-		BaseInventoryStorageComponent targetStorage = FindMatchingStorage(targetStorageManager, 
+
+		BaseInventoryStorageComponent targetStorage = FindMatchingStorage(targetStorageManager,
 			loadoutItem.m_iStoragePriority, loadoutItem.m_eStoragePurpose);
-		
-		if (!targetStorage)
+
+		if (targetStorage)
 		{
-			return false;
+			IEntity currentItem = targetStorage.Get(loadoutItem.m_iSlotIndex);
+			if (currentItem && targetStorageManager.TryRemoveItemFromStorage(currentItem, targetStorage))
+				CreditToLedger(ledger, currentItem);
 		}
-		
-		// Check if the specific slot already has an item that needs to be swapped
-		IEntity currentItem = targetStorage.Get(loadoutItem.m_iSlotIndex);
-		if (currentItem)
-		{			
-			// Remove current item from the specific slot
-			if (!targetStorageManager.TryRemoveItemFromStorage(currentItem, targetStorage))
-			{
-				return false;
-			}
-		}
-		
-		// Find which storage the box item is in and remove it
-		BaseInventoryStorageComponent itemStorage = null;
-		array<BaseInventoryStorageComponent> boxStorages = new array<BaseInventoryStorageComponent>();
-		boxStorageManager.GetStorages(boxStorages);
-		
-		foreach (BaseInventoryStorageComponent storage : boxStorages)
-		{
-			if (storage.Contains(foundItem))
-			{
-				itemStorage = storage;
-				break;
-			}
-		}
-		
-		if (!itemStorage || !boxStorageManager.TryRemoveItemFromStorage(foundItem, itemStorage))
-		{
-			// Failed to remove from box, put current item back if we removed one
-			if (currentItem)
-				targetStorageManager.TryInsertItemInStorage(currentItem, targetStorage, loadoutItem.m_iSlotIndex);
-			return false;
-		}
-		
-		// Try to place new item in the exact slot
-		if (targetStorageManager.TryInsertItemInStorage(foundItem, targetStorage, loadoutItem.m_iSlotIndex))
-		{
-			
-			// Apply nested items if this item is a container (using our loadout data, not box contents)
-			if (loadoutItem.HasChildItems())
-			{
-				ApplyNestedItems(foundItem, loadoutItem, boxStorageManager);
-			}
-			
-			// Successfully placed new item, put old item in box if there was one
-			if (currentItem)
-			{
-				if (!boxStorageManager.TryInsertItem(currentItem))
-				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Could not fit replaced item in box, deleting"));
-					SCR_EntityHelper.DeleteEntityAndChildren(currentItem);
-				}
-			}
-			return true;
-		}
-		else
-		{
-			// Failed to place new item, restore everything
-			boxStorageManager.TryInsertItem(foundItem); // Put new item back in box
-			if (currentItem)
-				targetStorageManager.TryInsertItemInStorage(currentItem, targetStorage, loadoutItem.m_iSlotIndex); // Put old item back
-			return false;
-		}
+
+		return ApplyLoadoutItem(loadoutItem, targetEntity, targetStorageManager, ledger);
 	}
+	
 	
 	//! Find matching storage component by priority and purpose (like EPF does)
 	protected BaseInventoryStorageComponent FindMatchingStorage(InventoryStorageManagerComponent storageManager, int priority, EStoragePurpose purpose)
@@ -712,118 +651,8 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return null;
 	}
 	
-	//! Find item in equipment box by resource name using box's UniversalInventoryStorageComponent
-	protected IEntity FindItemInBox(string resourceName, InventoryStorageManagerComponent boxStorageManager)
-	{
-		// Get the equipment box entity from the storage manager
-		IEntity boxEntity = boxStorageManager.GetOwner();
-		if (!boxEntity)
-		{
-			Print("[OVT_LoadoutManagerComponent] FindItemInBox: Could not get box entity", LogLevel.ERROR);
-			return null;
-		}
-		
-		// Use the box's UniversalInventoryStorageComponent directly
-		UniversalInventoryStorageComponent boxStorage = UniversalInventoryStorageComponent.Cast(boxEntity.FindComponent(UniversalInventoryStorageComponent));
-		if (!boxStorage)
-		{
-			Print("[OVT_LoadoutManagerComponent] FindItemInBox: Equipment box has no UniversalInventoryStorageComponent", LogLevel.ERROR);
-			return null;
-		}
-		
-		// Get all items from the box storage (only root items)
-		array<IEntity> allItems = new array<IEntity>();
-		boxStorage.GetAll(allItems);
-		
-		// Search through all items
-		foreach (IEntity item : allItems)
-		{
-			// Check if this item matches what we're looking for
-			ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
-			if (itemResourceName == resourceName)
-			{
-				return item;
-			}
-			
-			// If this item is a container, search recursively within it
-			IEntity foundInContainer = FindItemInContainer(resourceName, item);
-			if (foundInContainer)
-			{
-				return foundInContainer;
-			}
-		}
-		
-		return null;
-	}
 	
-	//! Empty a container's contents into the equipment box before transferring the container
-	protected void EmptyContainerIntoBox(IEntity containerEntity, InventoryStorageManagerComponent boxStorageManager)
-	{
-		// Check for UniversalInventoryStorageComponent first (most containers)
-		UniversalInventoryStorageComponent universalStorage = UniversalInventoryStorageComponent.Cast(containerEntity.FindComponent(UniversalInventoryStorageComponent));
-		if (universalStorage)
-		{
-				EmptyUniversalStorageIntoBox(universalStorage, boxStorageManager, containerEntity);
-			return;
-		}
-		
-		// Fallback to InventoryStorageManagerComponent (for complex entities)
-		InventoryStorageManagerComponent inventoryStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
-		if (inventoryStorageManager)
-		{
-				EmptyStorageManagerIntoBox(inventoryStorageManager, boxStorageManager, containerEntity);
-			return;
-		}
-		
-	}
 	
-	//! Empty UniversalInventoryStorageComponent into box
-	protected void EmptyUniversalStorageIntoBox(UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent boxStorageManager, IEntity containerEntity)
-	{
-		array<IEntity> itemsToMove = new array<IEntity>();
-		
-		// Collect all items from the universal storage
-		for (int slotIndex = 0, slotsCount = universalStorage.GetSlotsCount(); slotIndex < slotsCount; slotIndex++)
-		{
-			IEntity item = universalStorage.Get(slotIndex);
-			if (item)
-			{
-				itemsToMove.Insert(item);
-			}
-		}
-		
-		// Move all collected items to the box
-		foreach (IEntity item : itemsToMove)
-		{
-			// Try to move item directly to box
-			array<BaseInventoryStorageComponent> boxStorages = new array<BaseInventoryStorageComponent>();
-			boxStorageManager.GetStorages(boxStorages, EStoragePurpose.PURPOSE_ANY);
-			
-			bool moved = false;
-			foreach (BaseInventoryStorageComponent boxStorage : boxStorages)
-			{
-				if (boxStorageManager.TryMoveItemToStorage(item, boxStorage))
-				{
-							moved = true;
-					break;
-				}
-			}
-			
-			if (!moved)
-			{
-				// If we can't move to box, try to delete the item instead
-				if (boxStorageManager.TryDeleteItem(item))
-				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Box full, deleted item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.WARNING);
-				}
-				else
-				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Failed to move or delete item from container: %1", OVT_Global.GetPrefabName(item)), LogLevel.ERROR);
-				}
-			}
-		}
-		
-		}
 	
 	//! Empty InventoryStorageManagerComponent into box
 	protected void EmptyStorageManagerIntoBox(InventoryStorageManagerComponent containerStorageManager, InventoryStorageManagerComponent boxStorageManager, IEntity containerEntity)
@@ -878,73 +707,6 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 	}
 	
-	//! Recursively search for item within a container
-	protected IEntity FindItemInContainer(string resourceName, IEntity containerEntity)
-	{
-		// Check for UniversalInventoryStorageComponent first (most containers)
-		UniversalInventoryStorageComponent universalStorage = UniversalInventoryStorageComponent.Cast(containerEntity.FindComponent(UniversalInventoryStorageComponent));
-		if (universalStorage)
-		{
-			// Search directly in the universal storage (it IS the storage)
-			for (int slotIndex = 0, slotsCount = universalStorage.GetSlotsCount(); slotIndex < slotsCount; slotIndex++)
-			{
-				IEntity item = universalStorage.Get(slotIndex);
-				if (!item)
-					continue; // Empty slot
-				
-				// Check if this item matches what we're looking for
-				ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
-				if (itemResourceName == resourceName)
-				{
-					return item;
-				}
-				
-				// Recursively search if this item is also a container
-				IEntity foundInNestedContainer = FindItemInContainer(resourceName, item);
-				if (foundInNestedContainer)
-				{
-					return foundInNestedContainer;
-				}
-			}
-			return null;
-		}
-		
-		// Fallback to InventoryStorageManagerComponent (for complex entities)
-		InventoryStorageManagerComponent inventoryStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
-		if (!inventoryStorageManager)
-			return null; // Not a container
-		
-		// Get all storages within this container
-		array<BaseInventoryStorageComponent> containerStorages = new array<BaseInventoryStorageComponent>();
-		inventoryStorageManager.GetStorages(containerStorages, EStoragePurpose.PURPOSE_ANY);
-		
-		foreach (BaseInventoryStorageComponent storage : containerStorages)
-		{
-			// Search each slot in this container's storage
-			for (int slotIndex = 0, slotsCount = storage.GetSlotsCount(); slotIndex < slotsCount; slotIndex++)
-			{
-				IEntity item = storage.Get(slotIndex);
-				if (!item)
-					continue; // Empty slot
-				
-				// Check if this item matches what we're looking for
-				ResourceName itemResourceName = OVT_Global.GetPrefabName(item);
-				if (itemResourceName == resourceName)
-				{
-					return item;
-				}
-				
-				// Recursively search if this item is also a container
-				IEntity foundInNestedContainer = FindItemInContainer(resourceName, item);
-				if (foundInNestedContainer)
-				{
-					return foundInNestedContainer;
-				}
-			}
-		}
-		
-		return null;
-	}
 	
 	//! Generate unique key for loadout caching
 	protected string GetLoadoutKey(string playerId, string loadoutName)
@@ -1178,9 +940,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			ExtractWeaponAttachments(weaponEntity, weaponItem);
 
 			loadout.AddItem(weaponItem);
-			equippedItems.Insert(weaponEntity);
-
-			Print(string.Format("[OVT_LoadoutManagerComponent] Extracted equipped weapon: %1", weaponPrefab));
+			equippedItems.Insert(weaponEntity);			
 		}
 
 		// Note: For worn clothing items (uniform, vest, helmet), they appear in regular storage slots
@@ -1356,6 +1116,64 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Takes ONE unit of a prefab off the source ledger.
+	//!
+	//! A NULL LEDGER IS THE SPAWNING PATH and always answers true: a fresh recruit body or a respawn
+	//! gear snapshot has no store to conserve. A non-null one is the equipment box, and then the rule
+	//! is consume-or-fail - nothing may appear that the box did not hold (BUG-042).
+	//! \param[in] ledger The source, or null for the spawning path.
+	//! \param[in] prefab The item's ResourceName.
+	//! \return True when the caller may spawn one.
+	protected bool ReserveFromLedger(OVT_StorageLedger ledger, string prefab)
+	{
+		if (!ledger)
+			return true;
+
+		return ledger.Take(prefab, 1) == 1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Puts a reserved unit back, for every path that fails after reserving.
+	//! \param[in] ledger The source, or null.
+	//! \param[in] prefab The item's ResourceName.
+	protected void RefundToLedger(OVT_StorageLedger ledger, string prefab)
+	{
+		if (!ledger)
+			return;
+
+		ledger.Add(prefab, 1, OVT_StorageComponent.UNLIMITED_CAPACITY);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Sends one live item back to the box: credit the ledger, then destroy the entity.
+	//!
+	//! CREDIT THEN DELETE, deliberately the opposite order from the storage sweep's delete-then-credit.
+	//! The sweep must not mint a line for an item it failed to destroy; here the item has ALREADY been
+	//! removed from its storage by the caller, so the risk is losing it, not duplicating it.
+	//! A part-used magazine is destroyed rather than credited - a ledger line is a count and has
+	//! nowhere to record "27 of 30", the same call the loot path makes.
+	//! \param[in] ledger The box's ledger, or null.
+	//! \param[in] item The displaced item. Deleted either way.
+	protected void CreditToLedger(OVT_StorageLedger ledger, IEntity item)
+	{
+		if (!item)
+			return;
+
+		if (ledger)
+		{
+			ResourceName prefab = OVT_Global.GetPrefabName(item);
+			BaseMagazineComponent magazine = BaseMagazineComponent.Cast(item.FindComponent(BaseMagazineComponent));
+
+			bool converts = !magazine || OVT_StorageRules.MagazineIsFull(magazine.GetAmmoCount(), magazine.GetMaxAmmoCount());
+
+			if (prefab != "" && converts)
+				ledger.Add(prefab, 1, OVT_StorageComponent.UNLIMITED_CAPACITY);
+		}
+
+		SCR_EntityHelper.DeleteEntityAndChildren(item);
+	}
+
 	//! Clear existing equipment from entity
 	protected void ClearEntityEquipment(IEntity entity, InventoryStorageManagerComponent storageManager)
 	{
@@ -1385,9 +1203,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	}
 	
 	//! Apply equipped item (weapon in hands) to entity
-	protected bool ApplyEquippedItem(OVT_LoadoutItem loadoutItem, IEntity entity)
+	protected bool ApplyEquippedItem(OVT_LoadoutItem loadoutItem, IEntity entity, OVT_StorageLedger ledger = null)
 	{
 		if (!loadoutItem || loadoutItem.m_sResourceName.IsEmpty())
+			return false;
+
+		// Equipped weapons obey the same conservation rule as everything else: they come off the box's
+		// ledger or not at all (BUG-042 - this used to hand out free rifles).
+		if (!ReserveFromLedger(ledger, loadoutItem.m_sResourceName))
 			return false;
 		
 		// Spawn the weapon entity
@@ -1398,6 +1221,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		if (!weaponResource)
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load weapon resource: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
@@ -1405,13 +1229,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		if (!weaponEntity)
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to spawn weapon: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
 		// Apply weapon attachments
 		if (loadoutItem.HasAttachments())
 		{
-			ApplyWeaponAttachments(weaponEntity, loadoutItem);
+			ApplyWeaponAttachments(weaponEntity, loadoutItem, ledger);
 		}
 		
 		// Apply custom properties
@@ -1426,6 +1251,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		{
 			Print("[OVT_LoadoutManagerComponent] Missing required components for weapon equipping", LogLevel.WARNING);
 			SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
@@ -1435,6 +1261,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] No weapon component found on weapon entity: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
 			SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
@@ -1479,113 +1306,20 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		Print(string.Format("[OVT_LoadoutManagerComponent] Could not find suitable slot for weapon: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
 		SCR_EntityHelper.DeleteEntityAndChildren(weaponEntity);
+		RefundToLedger(ledger, loadoutItem.m_sResourceName);
 		return false;
 	}
 
-	//! Apply equipped item (weapon in a weapon slot) to entity by consuming it from the equipment box
-	protected bool ApplyEquippedItemFromBox(OVT_LoadoutItem loadoutItem, IEntity entity, InventoryStorageManagerComponent boxStorageManager)
-	{
-		if (!loadoutItem || loadoutItem.m_sResourceName.IsEmpty())
-			return false;
-
-		// The weapon must exist in the box - consume-or-fail, never spawn
-		IEntity weaponEntity = FindItemInBox(loadoutItem.m_sResourceName, boxStorageManager);
-		if (!weaponEntity)
-			return false;
-
-		// Get required components
-		BaseWeaponManagerComponent weaponManager = BaseWeaponManagerComponent.Cast(entity.FindComponent(BaseWeaponManagerComponent));
-		InventoryStorageManagerComponent storageManager = InventoryStorageManagerComponent.Cast(entity.FindComponent(InventoryStorageManagerComponent));
-		EquipedWeaponStorageComponent weaponStorage = EquipedWeaponStorageComponent.Cast(entity.FindComponent(EquipedWeaponStorageComponent));
-
-		if (!weaponManager || !storageManager || !weaponStorage)
-		{
-			Print("[OVT_LoadoutManagerComponent] Missing required components for weapon equipping", LogLevel.WARNING);
-			return false;
-		}
-
-		WeaponComponent weaponComponent = WeaponComponent.Cast(weaponEntity.FindComponent(WeaponComponent));
-		if (!weaponComponent)
-		{
-			Print(string.Format("[OVT_LoadoutManagerComponent] No weapon component found on box weapon: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
-			return false;
-		}
-
-		// Remove the weapon from the box before placing it
-		BaseInventoryStorageComponent itemStorage = null;
-		array<BaseInventoryStorageComponent> boxStorages = new array<BaseInventoryStorageComponent>();
-		boxStorageManager.GetStorages(boxStorages);
-
-		foreach (BaseInventoryStorageComponent storage : boxStorages)
-		{
-			if (storage.Contains(weaponEntity))
-			{
-				itemStorage = storage;
-				break;
-			}
-		}
-
-		if (!itemStorage || !boxStorageManager.TryRemoveItemFromStorage(weaponEntity, itemStorage))
-			return false;
-
-		array<WeaponSlotComponent> weaponSlots = new array<WeaponSlotComponent>();
-		weaponManager.GetWeaponsSlots(weaponSlots);
-
-		// Prefer an empty slot of the matching type
-		foreach (WeaponSlotComponent slot : weaponSlots)
-		{
-			if (slot.GetWeaponSlotType().Compare(weaponComponent.GetWeaponSlotType()) != 0)
-				continue;
-
-			if (slot.GetWeaponEntity())
-				continue;
-
-			if (storageManager.TryInsertItemInStorage(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
-			{
-				ApplyWeaponAttachmentsFromBox(weaponEntity, loadoutItem, boxStorageManager);
-				ApplyItemProperties(weaponEntity, loadoutItem);
-				return true;
-			}
-		}
-
-		// No empty slot - swap the occupant of a matching slot into the box
-		foreach (WeaponSlotComponent slot : weaponSlots)
-		{
-			if (slot.GetWeaponSlotType().Compare(weaponComponent.GetWeaponSlotType()) != 0)
-				continue;
-
-			IEntity currentWeapon = slot.GetWeaponEntity();
-			if (!currentWeapon)
-				continue;
-
-			if (!storageManager.TryRemoveItemFromStorage(currentWeapon, weaponStorage))
-				continue;
-
-			if (storageManager.TryInsertItemInStorage(weaponEntity, weaponStorage, slot.GetWeaponSlotIndex()))
-			{
-				if (!boxStorageManager.TryInsertItem(currentWeapon))
-				{
-					Print(string.Format("[OVT_LoadoutManagerComponent] Could not fit replaced weapon in box, deleting"));
-					SCR_EntityHelper.DeleteEntityAndChildren(currentWeapon);
-				}
-				ApplyWeaponAttachmentsFromBox(weaponEntity, loadoutItem, boxStorageManager);
-				ApplyItemProperties(weaponEntity, loadoutItem);
-				return true;
-			}
-
-			// Could not place the new weapon - put the old one back
-			storageManager.TryInsertItemInStorage(currentWeapon, weaponStorage, slot.GetWeaponSlotIndex());
-		}
-
-		// Could not place the weapon at all - return it to the box
-		boxStorageManager.TryInsertItem(weaponEntity);
-		return false;
-	}
 
 	//! Apply individual loadout item to entity
-	protected bool ApplyLoadoutItem(OVT_LoadoutItem loadoutItem, IEntity entity, InventoryStorageManagerComponent storageManager)
+	protected bool ApplyLoadoutItem(OVT_LoadoutItem loadoutItem, IEntity entity, InventoryStorageManagerComponent storageManager, OVT_StorageLedger ledger = null)
 	{
 		if (!loadoutItem || loadoutItem.m_sResourceName.IsEmpty())
+			return false;
+
+		// Sourced from the box: take it off the ledger BEFORE spawning, and hand it back on every
+		// failure below. A null ledger is the spawning path and reserves nothing.
+		if (!ReserveFromLedger(ledger, loadoutItem.m_sResourceName))
 			return false;
 		
 		// Spawn the item entity
@@ -1596,6 +1330,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		if (!itemResource)
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load resource: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
@@ -1603,13 +1338,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		if (!itemEntity)
 		{
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to spawn item: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
 		// Apply weapon attachments if this is a weapon
 		if (loadoutItem.HasAttachments())
 		{
-			ApplyWeaponAttachments(itemEntity, loadoutItem);
+			ApplyWeaponAttachments(itemEntity, loadoutItem, ledger);
 		}
 		
 		// Apply custom properties
@@ -1624,6 +1360,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			Print(string.Format("[OVT_LoadoutManagerComponent] No matching storage found for spawned item %1 (priority: %2, purpose: %3)", 
 				loadoutItem.m_sResourceName, loadoutItem.m_iStoragePriority, loadoutItem.m_eStoragePurpose));
 			SCR_EntityHelper.DeleteEntityAndChildren(itemEntity);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			return false;
 		}
 		
@@ -1640,6 +1377,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		{
 			// Failed to insert, delete the spawned item
 			SCR_EntityHelper.DeleteEntityAndChildren(itemEntity);
+			RefundToLedger(ledger, loadoutItem.m_sResourceName);
 			Print(string.Format("[OVT_LoadoutManagerComponent] Failed to insert item into storage: %1", loadoutItem.m_sResourceName), LogLevel.WARNING);
 			return false;
 		}
@@ -1649,32 +1387,12 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		// manager is the one that can reach into the container's own storage (BUG-085).
 		if (loadoutItem.HasChildItems())
 		{
-			ApplyNestedItemsSpawn(itemEntity, loadoutItem, storageManager);
+			ApplyNestedItemsSpawn(itemEntity, loadoutItem, storageManager, ledger);
 		}
 
 		return true;
 	}
 	
-	//! Apply nested items to a container item
-	protected void ApplyNestedItems(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent boxStorageManager)
-	{
-		// For containers, we need to use the storage component directly, not a storage manager
-		UniversalInventoryStorageComponent universalStorage = UniversalInventoryStorageComponent.Cast(containerEntity.FindComponent(UniversalInventoryStorageComponent));
-		if (universalStorage)
-		{
-				ApplyNestedItemsToUniversalStorage(containerEntity, containerLoadoutItem, universalStorage, boxStorageManager);
-			return;
-		}
-		
-		// Fallback to InventoryStorageManagerComponent (for complex entities like characters)
-		InventoryStorageManagerComponent inventoryStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
-		if (inventoryStorageManager)
-		{
-				ApplyNestedItemsToStorageManager(containerEntity, containerLoadoutItem, inventoryStorageManager, boxStorageManager);
-			return;
-		}
-		
-	}
 	
 	//! Apply nested items to a container item by spawning new items (used when spawning loadouts).
 	//! \param ownerStorageManager The storage manager of the entity that OWNS the container (the
@@ -1682,13 +1400,13 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	//!        component but never a storage manager, so this is the only manager able to insert
 	//!        into them - looking one up on the container itself always failed and destroyed every
 	//!        nested item (BUG-085).
-	protected void ApplyNestedItemsSpawn(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent ownerStorageManager)
+	protected void ApplyNestedItemsSpawn(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent ownerStorageManager, OVT_StorageLedger ledger = null)
 	{
 		// For containers, we need to use the storage component directly, not a storage manager
 		UniversalInventoryStorageComponent universalStorage = UniversalInventoryStorageComponent.Cast(containerEntity.FindComponent(UniversalInventoryStorageComponent));
 		if (universalStorage)
 		{
-			ApplyNestedItemsSpawnToUniversalStorage(containerEntity, containerLoadoutItem, universalStorage, ownerStorageManager);
+			ApplyNestedItemsSpawnToUniversalStorage(containerEntity, containerLoadoutItem, universalStorage, ownerStorageManager, ledger);
 			return;
 		}
 
@@ -1696,13 +1414,13 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		InventoryStorageManagerComponent inventoryStorageManager = InventoryStorageManagerComponent.Cast(containerEntity.FindComponent(InventoryStorageManagerComponent));
 		if (inventoryStorageManager)
 		{
-			ApplyNestedItemsSpawnToStorageManager(containerEntity, containerLoadoutItem, inventoryStorageManager);
+			ApplyNestedItemsSpawnToStorageManager(containerEntity, containerLoadoutItem, inventoryStorageManager, ledger);
 			return;
 		}
 	}
 
 	//! Apply nested items by spawning to UniversalInventoryStorageComponent
-	protected void ApplyNestedItemsSpawnToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent ownerStorageManager)
+	protected void ApplyNestedItemsSpawnToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent ownerStorageManager, OVT_StorageLedger ledger = null)
 	{
 		array<ref OVT_LoadoutItem> childItems = containerLoadoutItem.GetChildItems();
 		if (!childItems)
@@ -1716,6 +1434,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 
 		foreach (OVT_LoadoutItem childItem : childItems)
 		{
+			// A rucksack's contents come out of the box like everything else, or the box path would
+			// mint a free magazine for every pocket of every applied loadout.
+			if (!ReserveFromLedger(ledger, childItem.m_sResourceName))
+				continue;
+
 			// Spawn the nested item
 			EntitySpawnParams spawnParams();
 			spawnParams.Transform[3] = containerEntity.GetOrigin();
@@ -1724,6 +1447,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!itemResource)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load nested item resource: %1", childItem.m_sResourceName), LogLevel.WARNING);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				continue;
 			}
 			
@@ -1731,13 +1455,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!nestedItemEntity)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to spawn nested item: %1", childItem.m_sResourceName), LogLevel.WARNING);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				continue;
 			}
 			
 			// Apply weapon attachments if this nested item is a weapon
 			if (childItem.HasAttachments())
 			{
-				ApplyWeaponAttachments(nestedItemEntity, childItem);
+				ApplyWeaponAttachments(nestedItemEntity, childItem, ledger);
 			}
 			
 			// Apply custom properties
@@ -1760,6 +1485,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			{
 				// Failed to insert nested item, delete it
 				SCR_EntityHelper.DeleteEntityAndChildren(nestedItemEntity);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to insert spawned nested item into container: %1", childItem.m_sResourceName), LogLevel.WARNING);
 				continue;
 			}
@@ -1768,13 +1494,13 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			// Still the same owner - a pouch inside a backpack is inside the character's tree too.
 			if (childItem.HasChildItems())
 			{
-				ApplyNestedItemsSpawn(nestedItemEntity, childItem, ownerStorageManager);
+				ApplyNestedItemsSpawn(nestedItemEntity, childItem, ownerStorageManager, ledger);
 			}
 		}
 	}
 
 	//! Apply nested items by spawning to InventoryStorageManagerComponent (fallback)
-	protected void ApplyNestedItemsSpawnToStorageManager(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent inventoryStorageManager)
+	protected void ApplyNestedItemsSpawnToStorageManager(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent inventoryStorageManager, OVT_StorageLedger ledger = null)
 	{
 		array<ref OVT_LoadoutItem> childItems = containerLoadoutItem.GetChildItems();
 		if (!childItems)
@@ -1782,6 +1508,11 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		
 		foreach (OVT_LoadoutItem childItem : childItems)
 		{
+			// A rucksack's contents come out of the box like everything else, or the box path would
+			// mint a free magazine for every pocket of every applied loadout.
+			if (!ReserveFromLedger(ledger, childItem.m_sResourceName))
+				continue;
+
 			// Spawn the nested item
 			EntitySpawnParams spawnParams();
 			spawnParams.Transform[3] = containerEntity.GetOrigin();
@@ -1790,6 +1521,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!itemResource)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load nested item resource: %1", childItem.m_sResourceName), LogLevel.WARNING);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				continue;
 			}
 			
@@ -1797,13 +1529,14 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!nestedItemEntity)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to spawn nested item: %1", childItem.m_sResourceName), LogLevel.WARNING);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				continue;
 			}
 			
 			// Apply weapon attachments if this nested item is a weapon
 			if (childItem.HasAttachments())
 			{
-				ApplyWeaponAttachments(nestedItemEntity, childItem);
+				ApplyWeaponAttachments(nestedItemEntity, childItem, ledger);
 			}
 			
 			// Apply custom properties
@@ -1817,6 +1550,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] No matching storage found in container for spawned nested item %1", childItem.m_sResourceName), LogLevel.WARNING);
 				SCR_EntityHelper.DeleteEntityAndChildren(nestedItemEntity);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				continue;
 			}
 			
@@ -1833,6 +1567,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			{
 				// Failed to insert nested item, delete it
 				SCR_EntityHelper.DeleteEntityAndChildren(nestedItemEntity);
+				RefundToLedger(ledger, childItem.m_sResourceName);
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to insert spawned nested item into container: %1", childItem.m_sResourceName), LogLevel.WARNING);
 				continue;
 			}
@@ -1841,123 +1576,12 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			// Here the container owns the tree, so its own manager is the owning one.
 			if (childItem.HasChildItems())
 			{
-				ApplyNestedItemsSpawn(nestedItemEntity, childItem, inventoryStorageManager);
+				ApplyNestedItemsSpawn(nestedItemEntity, childItem, inventoryStorageManager, ledger);
 			}
 		}
 	}
 
-	//! Apply nested items to UniversalInventoryStorageComponent
-	protected void ApplyNestedItemsToUniversalStorage(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, UniversalInventoryStorageComponent universalStorage, InventoryStorageManagerComponent boxStorageManager)
-	{
-		array<ref OVT_LoadoutItem> childItems = containerLoadoutItem.GetChildItems();
-		if (!childItems)
-			return;
-		
-		foreach (OVT_LoadoutItem childItem : childItems)
-		{
-			// Only use items that exist in the box - never spawn new ones
-			IEntity foundItem = FindItemInBox(childItem.m_sResourceName, boxStorageManager);
-			if (!foundItem)
-			{
-				Print(string.Format("[OVT_LoadoutManagerComponent] Nested item %1 not found in box, skipping", childItem.m_sResourceName));
-				continue; // Silently fail if item not in box
-			}
-			
-			Print(string.Format("[OVT_LoadoutManagerComponent] Found existing nested item in box: %1", childItem.m_sResourceName));
-
-			// Apply weapon attachments if this nested item is a weapon - from box stock only (BUG-042)
-			if (childItem.HasAttachments())
-			{
-				ApplyWeaponAttachmentsFromBox(foundItem, childItem, boxStorageManager);
-			}
-			
-			// Apply custom properties
-			ApplyItemProperties(foundItem, childItem);
-			
-			// Use the box storage manager to move the item from box to container
-			bool insertSuccess = boxStorageManager.TryMoveItemToStorage(foundItem, universalStorage, childItem.m_iSlotIndex);
-			
-			if (!insertSuccess)
-			{
-				// If exact slot failed, try any slot in the container
-				insertSuccess = boxStorageManager.TryMoveItemToStorage(foundItem, universalStorage);
-			}
-			
-			if (!insertSuccess)
-			{
-				// Failed to insert nested item - leave it in the box
-				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to insert nested item into container: %1", childItem.m_sResourceName), LogLevel.WARNING);
-				continue;
-			}
-			
-			// Recursively apply nested items if this child item is also a container
-			if (childItem.HasChildItems())
-			{
-				ApplyNestedItems(foundItem, childItem, boxStorageManager);
-			}
-			
-			Print(string.Format("[OVT_LoadoutManagerComponent] Successfully applied nested item %1 to container %2", 
-				childItem.m_sResourceName, containerLoadoutItem.m_sResourceName));
-		}
-	}
 	
-	//! Apply nested items to InventoryStorageManagerComponent (fallback)
-	protected void ApplyNestedItemsToStorageManager(IEntity containerEntity, OVT_LoadoutItem containerLoadoutItem, InventoryStorageManagerComponent inventoryStorageManager, InventoryStorageManagerComponent boxStorageManager)
-	{
-		array<ref OVT_LoadoutItem> childItems = containerLoadoutItem.GetChildItems();
-		if (!childItems)
-			return;
-		
-		foreach (OVT_LoadoutItem childItem : childItems)
-		{
-			// Only use items that exist in the box - never spawn new ones
-			IEntity foundItem = FindItemInBox(childItem.m_sResourceName, boxStorageManager);
-			if (!foundItem)
-			{
-				continue; // Silently fail if item not in box
-			}
-			
-			// Apply weapon attachments if this nested item is a weapon - from box stock only (BUG-042)
-			if (childItem.HasAttachments())
-			{
-				ApplyWeaponAttachmentsFromBox(foundItem, childItem, boxStorageManager);
-			}
-
-			// Apply custom properties
-			ApplyItemProperties(foundItem, childItem);
-
-			// Find the exact storage component within the container
-			BaseInventoryStorageComponent targetStorage = FindMatchingStorage(inventoryStorageManager,
-				childItem.m_iStoragePriority, childItem.m_eStoragePurpose);
-			
-			if (!targetStorage)
-			{
-				continue;
-			}
-			
-			// Try to insert the found item into the exact slot within the container
-			bool insertSuccess = inventoryStorageManager.TryInsertItemInStorage(foundItem, targetStorage, childItem.m_iSlotIndex);
-			
-			if (!insertSuccess)
-			{
-				// If exact slot failed, try any slot in the same storage within the container
-				insertSuccess = inventoryStorageManager.TryInsertItemInStorage(foundItem, targetStorage);
-			}
-			
-			if (!insertSuccess)
-			{
-				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to insert nested item into container: %1", childItem.m_sResourceName), LogLevel.WARNING);
-				continue;
-			}
-			
-			// Recursively apply nested items if this child item is also a container
-			if (childItem.HasChildItems())
-			{
-				ApplyNestedItems(foundItem, childItem, boxStorageManager);
-			}
-			
-		}
-	}
 	
 	//! Extract quick slots from entity
 	protected void ExtractQuickSlots(IEntity entity, OVT_PlayerLoadout loadout)
@@ -2003,7 +1627,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 	}
 	
 	//! Apply quick slots to entity
-	protected void ApplyQuickSlots(IEntity entity, OVT_PlayerLoadout loadout, InventoryStorageManagerComponent boxStorageManager = null)
+	protected void ApplyQuickSlots(IEntity entity, OVT_PlayerLoadout loadout)
 	{
 		SCR_CharacterInventoryStorageComponent charInventory = SCR_CharacterInventoryStorageComponent.Cast(entity.FindComponent(SCR_CharacterInventoryStorageComponent));
 		
@@ -2111,48 +1735,30 @@ class OVT_LoadoutManagerComponent: OVT_Component
 		return false;
 	}
 
-	//! Apply weapon attachments by consuming them from the equipment box - never spawns.
-	//! Attachments already mounted on the (box-sourced) weapon are kept; missing ones are moved
-	//! from box stock when available and silently skipped otherwise (BUG-042).
-	protected void ApplyWeaponAttachmentsFromBox(IEntity weapon, OVT_LoadoutItem loadoutItem, InventoryStorageManagerComponent boxStorageManager)
+
+	//! Apply weapon attachments to weapon entity
+	protected void ApplyWeaponAttachments(IEntity weapon, OVT_LoadoutItem loadoutItem, OVT_StorageLedger ledger = null)
 	{
 		WeaponAttachmentsStorageComponent attachmentStorage = WeaponAttachmentsStorageComponent.Cast(weapon.FindComponent(WeaponAttachmentsStorageComponent));
 		if (!attachmentStorage)
 			return;
-
+		
 		array<string> attachments = loadoutItem.GetAttachments();
 		if (!attachments || attachments.IsEmpty())
 			return;
-
+		
 		foreach (string attachmentPrefab : attachments)
 		{
+			// The prefab may already ship it mounted - fitting a second one just fails below, and on
+			// the box path it would debit and refund a unit for nothing.
 			if (WeaponHasAttachment(weapon, attachmentPrefab))
 				continue;
 
-			IEntity attachmentEntity = FindItemInBox(attachmentPrefab, boxStorageManager);
-			if (!attachmentEntity)
+			// An optic is an item like any other: on the box path it is debited or it is not fitted.
+			// Skipping this is how a loadout applied ten times yields ten free scopes.
+			if (!ReserveFromLedger(ledger, attachmentPrefab))
 				continue;
 
-			if (!boxStorageManager.TryMoveItemToStorage(attachmentEntity, attachmentStorage))
-			{
-				Print(string.Format("[OVT_LoadoutManagerComponent] Could not attach %1 from box, leaving in box", attachmentPrefab));
-			}
-		}
-	}
-
-	//! Apply weapon attachments to weapon entity
-	protected void ApplyWeaponAttachments(IEntity weapon, OVT_LoadoutItem loadoutItem)
-	{
-		WeaponAttachmentsStorageComponent attachmentStorage = WeaponAttachmentsStorageComponent.Cast(weapon.FindComponent(WeaponAttachmentsStorageComponent));
-		if (!attachmentStorage)
-			return;
-		
-		array<string> attachments = loadoutItem.GetAttachments();
-		if (!attachments || attachments.IsEmpty())
-			return;
-		
-		foreach (string attachmentPrefab : attachments)
-		{
 			// Spawn attachment
 			EntitySpawnParams spawnParams();
 			spawnParams.Transform[3] = weapon.GetOrigin();
@@ -2161,6 +1767,7 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!attachmentResource)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to load attachment resource: %1", attachmentPrefab), LogLevel.WARNING);
+				RefundToLedger(ledger, attachmentPrefab);
 				continue;
 			}
 			
@@ -2168,19 +1775,18 @@ class OVT_LoadoutManagerComponent: OVT_Component
 			if (!attachmentEntity)
 			{
 				Print(string.Format("[OVT_LoadoutManagerComponent] Failed to spawn attachment: %1", attachmentPrefab), LogLevel.WARNING);
+				RefundToLedger(ledger, attachmentPrefab);
 				continue;
 			}
 			
 			// Try to attach to weapon
 			InventoryStorageManagerComponent weaponStorageManager = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(weapon);
-			if (weaponStorageManager)
-			{
-				if (!weaponStorageManager.TryInsertItem(attachmentEntity))
-				{
-					// If attachment failed, clean up
-					SCR_EntityHelper.DeleteEntityAndChildren(attachmentEntity);
-				}
-			}
+			if (weaponStorageManager && weaponStorageManager.TryInsertItem(attachmentEntity))
+				continue;
+
+			// Could not be fitted - destroy it and give the unit back.
+			SCR_EntityHelper.DeleteEntityAndChildren(attachmentEntity);
+			RefundToLedger(ledger, attachmentPrefab);
 		}
 	}
 	

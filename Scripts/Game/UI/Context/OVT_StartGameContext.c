@@ -1,3 +1,17 @@
+//------------------------------------------------------------------------------------------------
+//! One entry of the starting-town spinner. SCR_SpinBoxComponent item data is a Managed, so the plain
+//! town name has to travel in a box; "" is the Random entry.
+//------------------------------------------------------------------------------------------------
+class OVT_StartingTownItem : Managed
+{
+	string m_sName;
+
+	void OVT_StartingTownItem(string name)
+	{
+		m_sName = name;
+	}
+}
+
 class OVT_StartGameContext : OVT_UIContext
 {
 	[Attribute(defvalue: "{6B0F11B0AA01C001}UI/Layouts/Menu/ContinueGameMenu.layout", uiwidget: UIWidgets.ResourceNamePicker, desc: "Continue/new-game chooser, shown instead of the start menu when a save exists", params: "layout")]
@@ -130,9 +144,75 @@ class OVT_StartGameContext : OVT_UIContext
 			config.m_Difficulty = preset;
 		}
 
+		BuildStartingTownSpinner();
+
 		// One redraw for all four lines, at the end of both branches. The two branches above used to
 		// carry a SetText each, which is exactly the shape that drifts when only one is edited.
 		RefreshDescriptions();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Fills the starting-town spinner: "Random" (the behaviour every campaign had before this
+	//! existed, and the default) followed by every town on the map in alphabetical order.
+	//!
+	//! The item DATA is the town NAME, never the town id: ids are indices into the town manager's
+	//! array, which is built by a world entity query, and the name is what Overthrow_Config.json
+	//! carries for a dedicated server. One representation for both paths, resolved once at campaign
+	//! start by OVT_RealEstateManagerComponent.
+	protected void BuildStartingTownSpinner()
+	{
+		Widget widget = m_wRoot.FindAnyWidget("StartingTownSpinner");
+		if(!widget)
+			return;
+
+		SCR_SpinBoxComponent spin = SCR_SpinBoxComponent.Cast(widget.FindHandler(SCR_SpinBoxComponent));
+		if(!spin)
+			return;
+
+		spin.m_OnChanged.Insert(OnSpinStartingTown);
+		spin.AddItem("#OVT-StartingTown_Random", false, new OVT_StartingTownItem(""));
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if(towns)
+		{
+			// Only towns that can actually hand out a house. A town listed here but unable to house
+			// anybody would silently fall back to a random town at campaign start, which reads as the
+			// menu ignoring the choice. An empty answer means the starting-home sweep has not run
+			// (or found nothing), and then every town is offered rather than none.
+			array<int> housed = {};
+			OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+			if(realEstate)
+				realEstate.GetTownsWithStartingHomes(housed);
+
+			array<string> names = {};
+			for(int i = 0; i < towns.m_Towns.Count(); i++)
+			{
+				if(housed.Count() > 0 && housed.Find(i) == -1) continue;
+
+				string name = towns.GetTownName(i);
+				if(name == "") continue;
+				if(towns.m_aIgnoreTowns && towns.m_aIgnoreTowns.Find(name) > -1) continue;
+				names.Insert(name);
+			}
+			names.Sort();
+
+			foreach(string townName : names)
+			{
+				spin.AddItem(townName, false, new OVT_StartingTownItem(townName));
+			}
+		}
+
+		spin.SetCurrentItem(0);
+		OVT_Global.GetConfig().SetStartingTown("");
+	}
+
+	protected void OnSpinStartingTown(SCR_SpinBoxComponent spinner, int index)
+	{
+		OVT_StartingTownItem item = OVT_StartingTownItem.Cast(spinner.GetItemData(index));
+		if(!item)
+			return;
+
+		OVT_Global.GetConfig().SetStartingTown(item.m_sName);
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -13,7 +13,7 @@
 //! distance, the need and the price in OVT_ShopTransactionComponent.RpcAsk_RearmVehicle.
 //!
 //! Local-effect-only: the client wrapper resolves the LOCAL player's controller entity
-//! (OVT_Global.GetShopTransactions), so PerformAction must run on the machine that clicked.
+//! (OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get), so PerformAction must run on the machine that clicked.
 //------------------------------------------------------------------------------------------------
 class OVT_RearmVehicleAction : ScriptedUserAction
 {
@@ -36,7 +36,7 @@ class OVT_RearmVehicleAction : ScriptedUserAction
 	//! \param[in] pUserEntity The performing character.
 	override void PerformAction(IEntity pOwnerEntity, IEntity pUserEntity)
 	{
-		OVT_ShopTransactionComponent transactions = OVT_Global.GetShopTransactions();
+		OVT_ShopTransactionComponent transactions = OVT_ControllerComponent<OVT_ShopTransactionComponent>.Get();
 		if(!transactions) return;
 
 		transactions.RearmVehicle(pOwnerEntity);

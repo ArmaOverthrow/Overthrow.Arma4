@@ -33,6 +33,11 @@ class OVT_RecruitLoadoutPrice : Managed
 	//! The first resource with no catalog price, or empty when everything priced.
 	string m_sUnpriceableResource;
 
+	//! One line per distinct resource, aggregated across every occurrence in the loadout - feeds the
+	//! recruitment-tent warehouse discount (implementation.md §3.8). m_iSubtotal keeps its present
+	//! meaning (everything, uncovered); this is additive.
+	ref array<ref OVT_ItemSourcingLine> m_aManifest;
+
 	//------------------------------------------------------------------------------------------------
 	//! Whether this loadout can be sold at all.
 	//! \return True when the walk completed and named no unpriceable resource.
@@ -112,6 +117,7 @@ class OVT_RecruitLoadoutPricing : Managed
 	protected OVT_RecruitLoadoutPrice Run(OVT_PlayerLoadout loadout, vector pos, int playerId)
 	{
 		m_Result = new OVT_RecruitLoadoutPrice();
+		m_Result.m_aManifest = new array<ref OVT_ItemSourcingLine>();
 
 		// SERVER-SIDE ONLY: a client's copy of a loadout has no items to price
 		if (!Replication.IsServer())
@@ -199,23 +205,58 @@ class OVT_RecruitLoadoutPricing : Managed
 	//! An EMPTY resource name is skipped rather than refused: the record is malformed for that entry,
 	//! the apply cannot spawn it either, and nothing arrives - so nothing is owed. It still counts
 	//! against the top-level total, which is what makes the outcome PARTIAL rather than silently OK.
+	//!
+	//! Priced through GetBuyPriceForPrefab, not a bare IsRegisteredResource gate: a saved loadout is
+	//! whatever the player was wearing, and looted civilian clothes (the _Dirty variants), weapon
+	//! presets and modded gear are in no entity catalogue. They price off the registered prefab they
+	//! inherit, or off their components; only a prefab neither route can place is refused.
 	//! \param[in] res The prefab to price.
-	//! \return False when the resource has no catalog price.
+	//! \return False when the resource has no price by any route.
 	protected bool AddResource(ResourceName res)
 	{
 		if (res.IsEmpty()) return true;
 
-		if (!m_Economy.IsRegisteredResource(res))
+		int unitPrice = m_Economy.GetBuyPriceForPrefab(res, m_vPosition, m_iPlayerId);
+		if (unitPrice < 0)
 		{
 			m_Result.m_sUnpriceableResource = res;
 
-			Print(string.Format("[Overthrow] OVT_RecruitLoadoutPricing: %1 is not a registered resource - the loadout cannot be priced", res), LogLevel.WARNING);
+			Print(string.Format("[Overthrow] OVT_RecruitLoadoutPricing: %1 has no price by any route - the loadout cannot be priced", res), LogLevel.WARNING);
 			return false;
 		}
 
-		m_Result.m_iSubtotal = m_Result.m_iSubtotal + m_Economy.GetBuyPrice(m_Economy.GetInventoryId(res), m_vPosition, m_iPlayerId);
+		m_Result.m_iSubtotal = m_Result.m_iSubtotal + unitPrice;
 		m_Result.m_iItemCount = m_Result.m_iItemCount + 1;
 
+		AddManifestLine(res, unitPrice);
+
 		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Add one priced occurrence to the per-resource manifest, aggregated by resource.
+	//!
+	//! AGGREGATED, NOT ONE LINE PER OCCURRENCE. OVT_ItemSourcingRules.SplitCoverage checks each line's
+	//! stock independently, so two lines naming the same resource would each see the SAME warehouse
+	//! total and double-count coverage that exists once.
+	//! \param[in] res The resource just priced.
+	//! \param[in] unitPrice What one unit costs at this position, for this player.
+	protected void AddManifestLine(ResourceName res, int unitPrice)
+	{
+		foreach (OVT_ItemSourcingLine line : m_Result.m_aManifest)
+		{
+			if (line.m_sResource == res)
+			{
+				line.m_iNeeded = line.m_iNeeded + 1;
+				return;
+			}
+		}
+
+		OVT_ItemSourcingLine line = new OVT_ItemSourcingLine();
+		line.m_sResource = res;
+		line.m_iNeeded = 1;
+		line.m_iUnitPrice = unitPrice;
+
+		m_Result.m_aManifest.Insert(line);
 	}
 }

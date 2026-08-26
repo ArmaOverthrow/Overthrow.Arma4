@@ -31,9 +31,19 @@ class OVT_MainMenuContextOverrideComponent : OVT_Component
 		SetEventMask(owner, EntityEvent.INIT);
 	}
 
+	//! False while the structure this menu belongs to is a ruin (core/damage D15) - no procurement from
+	//! a flattened garage, no vehicle management at a wrecked ramp. Asked by BOTH entry points: the
+	//! menu's own sphere query (OVT_MainMenuContext.FindOverride) and the HUD prompt's (OVT_EconomyInfo).
+	//! \return True unless the owning structure is currently wreckage.
+	bool IsOwnerUsable()
+	{
+		return OVT_StructureDamage.IsUsable(GetOwner());
+	}
+	
 	bool CanShow(IEntity player)
 	{
 		if(!player) return false;
+		if(!IsOwnerUsable()) return false;
 		bool isDriver = false;
 		
 		SCR_CompartmentAccessComponent compartment = SCR_CompartmentAccessComponent.Cast(player.FindComponent(SCR_CompartmentAccessComponent));

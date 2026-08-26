@@ -1,6 +1,12 @@
 Vehicle : "{14FD2616BAB3157D}Prefabs/Vehicles/Wheeled/M923A1/M923A1_MERDC.et" {
  ID "BBCBA43A9778AE21"
  components {
+  OVT_ResourceStoreComponent "{6A8E2E0000000010}" {
+   m_fCargoVolume 8
+  }
+  OVT_StorageComponent "{6A8E2D0000000001}" {
+   m_eCapacityMode UNLIMITED
+  }
   OVT_SpawnPointComponent "{65D69CE073A53270}" {
    m_aPoints {
     PointInfo "{65D69CE07EB7DFAC}" {

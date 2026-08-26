@@ -85,7 +85,8 @@ class OVT_BaseRecruitUserAction : ScriptedUserAction
 	//!
 	//! Here rather than on the one action that needs it today because the server-side refusal it
 	//! mirrors (OVT_RecruitCommandComponent.RESULT_IN_VEHICLE) is a rule about recruit bodies in
-	//! general, and Phase 7's swap will want the same question.
+	//! general. As of 2026-08-24 CanBeShownScript() asks it for EVERY recruit action, so a derived
+	//! class asking it again is belt-and-braces rather than the gate.
 	//! \param[in] entity The character to test.
 	//! \return True when the entity is in a compartment.
 	protected bool IsInCompartment(IEntity entity)
@@ -105,6 +106,18 @@ class OVT_BaseRecruitUserAction : ScriptedUserAction
 		if(!recruit) return false;
 
 		if(!IsOwnedByUser(user, recruit)) return false;
+
+		// 🔴 A RECRUIT IN A SEAT OFFERS NOTHING. Author, 2026-08-24: *"hide all their actions when they
+		// are in a vehicle (ie remove from group and switch gear). it makes it hard to access the
+		// vehicle actions when they are in one."* The recruit's actions and the VEHICLE's actions share
+		// one context menu, so every recruit riding along pushes Get Out, the turret and the inventory
+		// further down a list the player is trying to use while sitting in the thing.
+		//
+		// ⚠ ON THE BASE, so it cannot be forgotten by a later action - the same reason the ownership
+		// rule lives here. Nothing a player wants to do to a recruit is worth doing while it is seated:
+		// parking one in a seat is nonsense (the vehicle drives off with a body "holding position"),
+		// and a gear swap with someone in a compartment is worse.
+		if(IsInCompartment(GetOwner())) return false;
 
 		return CanShowRecruitAction(user, recruit);
 	}

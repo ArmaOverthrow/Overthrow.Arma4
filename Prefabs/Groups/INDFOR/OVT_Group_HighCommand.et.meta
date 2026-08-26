@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6B1C3D0000000003}Prefabs/Groups/INDFOR/OVT_Group_HighCommand.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

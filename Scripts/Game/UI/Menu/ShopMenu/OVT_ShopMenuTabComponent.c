@@ -1,9 +1,9 @@
 //------------------------------------------------------------------------------------------------
-//! One category tab in the shop browser's tab row.
+//! One tab in a tab host's tab row.
 //!
-//! Instantiated per populated category at runtime by OVT_ShopContext through
-//! workspace.CreateWidgets(ShopMenu_Tab.layout, tabsContainer) - the same dynamic-list pattern
-//! OVT_PortContext / OVT_WarehouseContext use for their rows.
+//! Instantiated per tab at runtime by an OVT_TabHostContext through
+//! workspace.CreateWidgets(ShopMenu_Tab.layout, tabsContainer) - the same dynamic-list pattern the
+//! transfer screen uses for its rows. The tab id is the host's own, opaque here.
 //!
 //! CLICKS ARRIVE THROUGH THE BUTTON'S m_OnClicked INVOKER, NOT THROUGH OnClick. Both input paths
 //! funnel into that one invoker - the mouse through SCR_ButtonBaseComponent.OnClick and a gamepad
@@ -24,25 +24,28 @@ class OVT_ShopMenuTabComponent : SCR_ScriptedWidgetComponent
 	protected const float OPACITY_SELECTED = 1.0;
 	protected const float OPACITY_UNSELECTED = 0.6;
 
-	protected OVT_ShopCategory m_eCategory;
-	protected OVT_ShopContext m_Context;
+	protected int m_iTabId;
+	protected string m_sLabelKey;
+	protected OVT_TabHostContext m_Host;
 	protected bool m_bSelected;
 	protected bool m_bWiredToButton;
 
 	//------------------------------------------------------------------------------------------------
 	//! Fills in the tab, wires its click and remembers who to notify.
-	//! \param[in] category The category this tab selects. ALL is a legal value - it is the "no filter" tab.
-	//! \param[in] context The shop menu that owns this tab.
+	//! \param[in] tabId The host's id for the tab this widget selects.
+	//! \param[in] labelKey The #OVT- key to draw on the tab.
+	//! \param[in] host The menu that owns this tab.
 	//! \param[in] selected Whether this tab is the currently active one.
-	void Init(OVT_ShopCategory category, OVT_ShopContext context, bool selected = false)
+	void Init(int tabId, string labelKey, OVT_TabHostContext host, bool selected = false)
 	{
-		m_eCategory = category;
-		m_Context = context;
+		m_iTabId = tabId;
+		m_sLabelKey = labelKey;
+		m_Host = host;
 
 		if(m_wRoot)
 		{
 			TextWidget label = TextWidget.Cast(m_wRoot.FindAnyWidget("TabLabel"));
-			if(label) label.SetText(OVT_ShopCategoryHelper.GetLabelKey(category));
+			if(label) label.SetText(labelKey);
 		}
 
 		WireButton();
@@ -77,10 +80,10 @@ class OVT_ShopMenuTabComponent : SCR_ScriptedWidgetComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! \return The category this tab selects.
-	OVT_ShopCategory GetCategory()
+	//! \return The host's id for the tab this widget selects.
+	int GetTabId()
 	{
-		return m_eCategory;
+		return m_iTabId;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -123,9 +126,9 @@ class OVT_ShopMenuTabComponent : SCR_ScriptedWidgetComponent
 	//! Tells the menu this tab was picked.
 	void Activate()
 	{
-		if(!m_Context) return;
+		if(!m_Host) return;
 
-		m_Context.SelectTab(m_eCategory);
+		m_Host.SelectTabId(m_iTabId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -140,7 +143,7 @@ class OVT_ShopMenuTabComponent : SCR_ScriptedWidgetComponent
 		if(m_bWiredToButton)
 			return false;
 
-		if(!m_Context)
+		if(!m_Host)
 			return false;
 
 		Activate();

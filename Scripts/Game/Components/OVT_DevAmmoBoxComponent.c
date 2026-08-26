@@ -1,7 +1,7 @@
 //! Fills this box's storage from script shortly after init. The prefab-side
 //! InitialInventoryItems mechanism does not populate plain storage boxes (verified on
 //! OVT_AmmoBox_Dev even with TargetPurpose set), so dev/test boxes stock themselves the same
-//! way OVT_BaseUpgradeComposition.FillAmmoboxes stocks base ammo caches.
+//! way OVT_CompositionSpawningDeploymentModule.FillAmmoBoxes stocks base ammo caches.
 [ComponentEditorProps(category: "Overthrow", description: "Fills this storage with configured items on init (dev/test convenience)")]
 class OVT_DevAmmoBoxComponentClass : ScriptComponentClass
 {

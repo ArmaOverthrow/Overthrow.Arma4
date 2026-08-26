@@ -32,13 +32,17 @@ Located in the `Player` subdirectory:
 
 Handles the wanted/reputation system for players, including wanted levels, criminal activities, and law enforcement responses.
 
-### OVT_PlayerCommsComponent
-
-Central point for all player-triggered functions to be run on the server. Each connected player will own one of these
-
 ### OVT_UIManagerComponent
 
 Controls player-specific UI elements and interface functionality.
+
+## Controller Components
+
+Located in the `Controller` subdirectory:
+
+These are the client->server request seam. Each connected player owns one `OVT_OverthrowController` entity, and every domain that needs a client->server request carries a component on it: vehicles, real estate and warehouses, economy, shop transactions, resistance operations, FOBs and camps, recruits, loadouts, possession, jobs, campaign actions, fast travel, respawn, tower sabotage, container transfer, tutorials and admin commands. All of them are reached with `OVT_ControllerComponent<T>.Get()`, never through a getter on `OVT_Global`.
+
+The single 2,001-line comms monolith that used to serve all of these - one component listed on both the game-mode prefab and the player-character prefab - was replaced domain by domain and deleted in Phase 10 of `docs/features/core/controller-migration/`. New client->server operations belong on a controller component; see the `overthrow-architecture` skill's `overthrow-controller.md`.
 
 ## Economy Components
 

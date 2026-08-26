@@ -97,7 +97,7 @@ class OVT_RespawnMapUI : OVT_OverthrowMapUI
 		if (!location)
 			return;
 
-		OVT_RespawnRequestComponent respawn = OVT_Global.GetRespawnRequests();
+		OVT_RespawnRequestComponent respawn = OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get();
 		if (!respawn)
 		{
 			// A component that exists in script but not on OVT_OverthrowController.et is a silent

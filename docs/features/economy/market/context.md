@@ -48,6 +48,17 @@
 - `OVT_EconomyInfoWidgets.c` is dead; the HUD uses `FindAnyWidget("MoneyText")` directly.
 - Anti-double-spend latches (`addingMoney`/`takingMoney`) can permanently deadlock a client's money ops if one RPC drops.
 
+### Pricing prefabs outside the catalogue (2026-08-23)
+
+New seam on the manager: `GetBuyPriceForPrefab` / `ResolvePricingResource` / `GetFallbackBasePrice`
+(+ `OVT_PrefabItemClassifier` in Utilities) price a prefab that is in no faction ITEM catalogue by its
+nearest registered prefab ancestor, else by component classification through the same `itemPrices.conf`
+rules. It never registers anything (ids are the wire format). Consumers: the equipped-recruit loadout
+quote (see `resistance/recruit-ux`), shop sell (server + client browser), port export price, port/warehouse
+browse categories, HC manifest + vehicle quote, vehicle storage identity - id-needing callers use only the
+ancestor route (`ResolvePricingResource`), price-only callers use `GetBuyPriceForPrefab`. `BuildResourceDatabase`'s price-config loop was factored
+into `ResolveConfiguredPrice`, semantics unchanged; `GetBuyPrice` now goes through `ApplyBuyMargin`.
+
 ---
 
 *This context file was created retrospectively by analyzing existing code.*

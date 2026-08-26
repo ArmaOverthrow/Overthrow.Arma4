@@ -9,9 +9,10 @@
 //!     the resource database - resolves to id 0, which is SOME OTHER ITEM'S PRICE.
 //!   - GetPrice() cannot answer "unknown": it returns 500 for any id it has not heard of.
 //!
-//! So an unpriceable item cannot be detected by a zero check or a sanity range. Registration is the
-//! only real signal, and the second half of this case is what proves the code asks that question
-//! before every lookup rather than trusting the price it gets back.
+//! So an unpriceable item cannot be detected by a zero check or a sanity range. The walk prices through
+//! OVT_EconomyManagerComponent.GetBuyPriceForPrefab (registered, else inherited, else classified - see
+//! OVT_TEST_Init_EconomyPrefabPricing), and the second half of this case proves that a name NO route
+//! can place is still refused rather than priced off some other item.
 //!
 //! THE FIRST HALF IS ABOUT COMPLETENESS, and it is a money question too, in the opposite direction: a
 //! walk that misses attachments or the contents of a rucksack charges the player for a fraction of

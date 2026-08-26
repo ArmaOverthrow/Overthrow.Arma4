@@ -6,6 +6,9 @@ GenericEntity : "{2660E3988DF90EBB}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
   }
   OVT_PlayerOwnerComponent "{5E68F65911AA6ADA}" {
   }
+  OVT_StorageComponent "{6A8E2F22020A0005}" {
+   m_eCapacityMode UNLIMITED
+  }
   RplComponent "{5476B36C54387F41}" {
    Enabled 1
   }
@@ -31,8 +34,8 @@ GenericEntity : "{2660E3988DF90EBB}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
   }
   SCR_EditableEntityComponent "{65B90A24B6E114CC}" {
    m_UIInfo SCR_EditableEntityUIInfo "{65B90A2B75ED14CD}" {
-    Name "#OVT-Place_AmmoBox"
-    Description "#OVT-Place_AmmoBox_Description"
+    Name "#OVT-Place_EquipmentBox"
+    Description "#OVT-Place_EquipmentBox_Description"
    }
    m_Flags PLACEABLE
   }
@@ -78,6 +81,56 @@ GenericEntity : "{2660E3988DF90EBB}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
      "Sort Priority" 9
     }
     OVT_SaveOfficerLoadoutAction "{65AAD8FB97F659E8}" {
+    OVT_OpenStorageMenuAction "{6A8E2F22020A0001}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22020A0002}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 11
+    }
+    OVT_TransferAllToStorageAction "{6A8E2F22020A0003}" {
+    OVT_RenameStorageAction "{6A8E2F22020A0006}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22020A0007}" {
+      Name "#OVT-Storage_Rename"
+     }
+     Duration 0
+     "Sort Priority" 13
+    }
+    OVT_LoadStorageAction "{6A8E2F22020A0008}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22020A0009}" {
+      Name "#OVT-LoadStorage"
+     }
+     Duration 0
+     "Sort Priority" 14
+    }
+    OVT_UnloadStorageAction "{6A8E2F22020A000A}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22020A000B}" {
+      Name "#OVT-UnloadStorage"
+     }
+     Duration 0
+     "Sort Priority" 15
+    }
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22020A0004}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     Duration 0
+     "Sort Priority" 12
+    }
      ParentContextList {
       "default"
      }

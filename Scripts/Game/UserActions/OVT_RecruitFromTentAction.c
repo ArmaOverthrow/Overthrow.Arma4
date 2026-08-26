@@ -51,9 +51,13 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 			return;
 		}
 
-		// Call server to handle the actual recruitment
-		OVT_Global.GetServer().RecruitFromTent(tentPos, playerId);
-		
+		// Ask the server - it re-validates the cap, supporters, proximity and funds, and takes the money
+		OVT_RecruitRequestComponent recruitRequests = OVT_ControllerComponent<OVT_RecruitRequestComponent>.Get();
+		if (!recruitRequests)
+			return;
+
+		recruitRequests.RecruitFromTent(tentPos);
+
 		SCR_HintManagerComponent.ShowHint(m_RecruitedFromTentHint);
  	}
 	
@@ -71,7 +75,9 @@ class OVT_RecruitFromTentAction : ScriptedUserAction
 	}	
 	
 	override bool CanBeShownScript(IEntity user) {
-		return true;
+		// PHASE-0 GATE (core/damage D15): a ruin offers nothing. IsUsable() answers true for every
+		// owner that is not a retrofitted structure, so this costs the other contexts nothing.
+		return OVT_StructureDamage.IsUsable(GetOwner());
 	}
 
 	override bool HasLocalEffectOnlyScript() { return true; }

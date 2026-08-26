@@ -23,9 +23,10 @@ class OVT_RespawnScreenHandlerComponentClass : ScriptComponentClass {}
 //! over Scripts/, so this comment deliberately does not spell the accessor out.
 //!
 //! ONE HANDLER PER MACHINE, NOT ONE PER PLAYER. On a server every connected player has a player
-//! controller entity and therefore a copy of this component, but OVT_Global.GetRespawnRequests()
-//! resolves the LOCAL machine's controller, so on a listen server every copy would subscribe to the
-//! host's invokers and N screens would open for one host death. The owning-player check below is what
+//! controller entity and therefore a copy of this component, but
+//! OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get() resolves the LOCAL machine's
+//! controller, so on a listen server every copy would subscribe to the host's invokers and N screens
+//! would open for one host death. The owning-player check below is what
 //! stops that; it is the client-side twin of the reason OVT_SpawnLogic resolves the request component
 //! per player rather than through OVT_Global.
 //------------------------------------------------------------------------------------------------
@@ -140,7 +141,7 @@ class OVT_RespawnScreenHandlerComponent : ScriptComponent
 		if (controller.GetPlayerId() != localPlayerId)
 			return;
 
-		OVT_RespawnRequestComponent requests = OVT_Global.GetRespawnRequests();
+		OVT_RespawnRequestComponent requests = OVT_ControllerComponent<OVT_RespawnRequestComponent>.Get();
 		if (!requests)
 			return;
 

@@ -1,8 +1,8 @@
 # QRF - Context & Decisions
 
-**Last Updated:** 2026-08-18
-**Current Phase:** Enhancements
-**Status:** ✅ Documented (Existing Feature) + player-initiated uprisings landed
+**Last Updated:** 2026-08-20 (CLOSED)
+**Current Phase:** CLOSED — legacy
+**Status:** 🗄️ CLOSED 2026-08-20 — legacy. `OVT_QRFControllerComponent` still resolves every battle (standard + the `counter-attacks` siege mode) and is consumed as-is by `occupying/objectives`' `StartBattle` module; no further feature work here. Open retrospective debt (JIP payload gaps, live battle rolls back on load) is tracked in the epic's Tech Debt, not here.
 
 ---
 
@@ -41,6 +41,12 @@
 - **Town controller is now a flagpole:** `OVT_TownController.et` inherits `FlagPole_02_V1_FIA.et` exactly like `OVT_BaseController.et` (same `SlotManagerComponent {55DAE04E55ECE7FA}` override → USSR flag). Flag material tracks the replicated town faction via a 10 s check on every machine (`CheckUpdateFlag` — same `SCR_FlagComponent.ChangeMaterial` pattern as bases). The medical-supplies sign child was kept (jobs use it as the delivery landmark); world instances need repositioning by hand — the entity was invisible before and some sit on roads.
 - **Ephemeral battle entity:** one controller entity per battle, spawned at the objective, deleted on resolution; consequences flow only through the manager's `m_OnFinished` callbacks. One QRF at a time (`m_CurrentQRF` singleton slot).
 - **Global garrison despawn:** all garrison/patrol/civilian spawn predicates check `!m_CurrentQRF`; the QRF delays its own spawning 15 s so they clear first. The contested base loses its defenders by design (perf headroom).
+  - ⚠ **SUPERSEDED IN PART, 2026-08-19 — read this before acting on the bullet above.** The "global" half of that sentence is history: `virtualization/base-defense-migration` moved base defence off base upgrades and onto **deployments**, whose groups live on the engine's proximity lifecycle and honoured no QRF predicate at all — a play-test found tower guards materialising at a contested base mid-battle. The **intent** of the bullet survives; its **scope** does not. The rule as built is now:
+    - suppression is **local**, not global — only within the QRF's own `QRF_RANGE` (750 m) of `m_vQRFLocation`. Deployments elsewhere on the map keep being maintained, which is the migration's own improvement and is deliberately preserved;
+    - it is gated on **`IsQRFEngaged()`**, not on `m_CurrentQRF` existing. A counter-attack siege is a battle object for up to 31 minutes before a shot is fired, and emptying the objective during `SILENT_DEPLOY`/`MUSTER` would be exactly the tell `occupying/counter-attacks` §3.9 exists to avoid. A **standard, player-initiated battle is engaged from creation**, so nothing about a player's own battle changed;
+    - it is scoped to the **occupying faction**. Resistance-faction deployments are never suppressed — this battle's zone-control scoring deliberately counts resistance AI (see the zone-control bullet below), so holding those men back would score the player down for it;
+    - it **suppresses materialisation** of groups that are not yet up (`SCR_AIGroup.SetLifecyclePolicy(Manual)`, reversed when the battle ends). Groups **already standing** when the battle reaches them are left alone — the contested base is emptied by the player as it always was, it simply stops being refilled. Forcibly despawning standing groups was considered and deliberately **not** done; see `occupying/counter-attacks/context.md` for the feasibility verdict.
+    - Owner: `OVT_DeploymentManagerComponent.TickBattleSuppression()`; the rule itself is the pure `OVT_DeploymentBattleSuppression`. Civilians are unaffected by any of this — they are still the town invoker, unchanged.
 - **Zone control is a head count of everyone still standing (2026-08-18):** counted every 10 s inside 220 m. Human players **and** resistance-faction AI (recruits, and any future resistance deployment) score for the resistance — the old players-only model made an all-AI assault lose by default. Player-controlled entities are skipped in the agent loop so a player is never double-counted. Dead and unconscious characters count for neither side (`IsFightingFit`), which also stops a corpse earning the 2 XP/tick. +5/tick still requires zero OF AI within 750 m. Recruits alone can now carry a battle — deliberate: they are forces the player paid for and committed.
 - **Not persisted, by omission:** no QRF state in the serializer, controller/troops never persistence-tracked — a load mid-battle cleanly rolls back to "no battle".
 - **Survivors stay:** QRF AI is intentionally not cleaned up after battle (commit `e115965`).
@@ -54,8 +60,58 @@
 - **Two replication channels, one live:** the controller's `RplProp m_iPoints/m_iWinningFaction` stop replicating the moment the battle phase starts (BumpMe unreachable); the manager's broadcast RPCs are the real channel the HUD uses.
 - **`m_iCurrentQRFBase/Town` are not in the JIP payload** — JIP clients mis-draw map restricted areas during a battle.
 - The economy freeze during a QRF is total (no resources/threat/spending/counter-attacks/town checks anywhere) — long battles visibly stall the whole faction.
-- Deployment AI within 750 m counts toward the QRF's enemy tally (unintended coupling); deployments also stop evaluating during battles.
+- Deployment AI within 750 m counts toward the QRF's enemy tally (unintended coupling); deployments also stop evaluating during battles. ⚠ **Updated 2026-08-19:** "stop evaluating" is `IsQRFEngaged()`, not "a battle exists", and it only ever blocked **creating** deployments. Existing occupying-faction deployment groups within 750 m of an engaged battle are now additionally held dormant — see the amendment under *Global garrison despawn* above.
 
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## 2026-08-25 — The leadup HUD showed the previous battle's score
+
+**Author:** *"when a battle starts the HUD always shows the points from the last battle during the leadup phase."*
+
+**Nothing ever reset `m_iQRFPoints`.** It has exactly one writer — `OVT_OccupyingFactionManager.UpdateQRFPoints`, called from `OVT_QRFControllerComponent.CheckUpdatePoints` **from inside its `if(m_iTimer <= 0)` block**, so no value is pushed until the countdown has already run out. The controller does zero its own `m_iPoints` in `OnPostInit`, but that copy is not the replicated one `OVT_EconomyInfo.UpdateQRF` reads for the two sliders (`OVT_EconomyInfo.c:381`).
+
+⚠ **The stale value was always a decisive one.** A battle ends *at* the cap (`m_iPoints >= toWin || <= -toWin`), so what sat on screen for the whole leadup was a full ±`QRFPointsToWin` bar for whoever won last time.
+
+**Fix:** `ResetQRFScore()` beside `UpdateQRFPoints`, called from `StartBaseQRF` and `StartTownQRF` at the point the rest of the QRF state is stamped — before `m_bQRFRevealed` is set, so the panel cannot be shown with the old score even for a frame.
+
+⚠ **At start, not at finish.** A finish handler that does not run — a rolled-back save, a campaign teardown, a future caller — would leave the stale value behind again. Opening every battle from a known state cannot.
+
+⚠ **Points only. `m_iQRFTimer` looks like the same bug and is not:** `CheckUpdateTimer` runs on a 1 000 ms call from the controller's own `OnPostInit` and publishes `m_iTimer` on its first tick, so the clock is this battle's within a second. Zeroing it here would need the lead time in the controller's units — **milliseconds**, `m_iTimer` defaults to `120000` — and would buy one second of correctness for a units mistake waiting to happen.
+
+`tools/compile-check.sh` exit 0 (6347 files). Suite not run; play-test owed.
+
+---
+
+## 2026-08-25 — Zone control is weighted by distance to the objective
+
+**Author:** *"I think QRF scoring should be weighted a little by distance to the QRF so closer characters count for slightly more points than distant ones."*
+
+Zone control was a flat head count inside `QRF_POINT_RANGE` (220 m): a man standing on the flag and a man 219 m away at the edge of the ring were worth exactly the same, so a force could win a battle without ever contesting the ground it was fighting over.
+
+**`OVT_QRFScoring`** (`Scripts/Game/Controllers/OccupyingFaction/`), pure statics on the `OVT_QRFBearing` pattern — no world, no manager, no clock, no randomness:
+- `FighterWeight(distance, pointRange)` — linear from **1.0** on the objective to **EDGE_WEIGHT** at the ring's edge, **0** beyond. The caller's old `dist < QRF_POINT_RANGE` test is folded in, so "outside the ring" and "worth nothing" are one statement instead of two that can drift.
+- `ResolveSwing(resistanceWeight, occupyingWeight, occupyingAnywhere, currentPoints)` — the shipped rules unchanged, with weighted sums in place of head counts.
+
+⚠ **The first number tried was too steep, and the tuning is the interesting part.** At `EDGE_WEIGHT 0.5` a man on the objective is worth **1.9×** a man at the edge, and four defenders on the flag beat **six** attackers — position overturning a 50% numerical advantage is a different game mode, not a weighting. Shipped at **0.75** (flag ≈ 1.3× the edge):
+
+| Case | Outcome |
+|---|---|
+| 3 on the flag vs 3 at the edge | the closer side wins — position breaks an even fight |
+| 4 on the flag vs 5 at the edge | stalemate — position offsets one man |
+| 4 on the flag vs 6 at the edge | the attackers win — numbers still beat position |
+
+Those three cases are the whole of the intent and are named in the class header for whoever retunes it.
+
+⚠ **`STALEMATE_DEADBAND` (0.5 men) is not padding — without it one branch becomes unreachable.** The old code compared two ints and had a `resistanceNum == enemyNum` "push towards zero" arm. Weighted sums are essentially never exactly equal, so a literal port would make 3.0001 vs 3.0 read as a decisive advantage and that arm would never run again.
+
+⚠ **The +5 fast push still gates on a HEAD COUNT** (`enemyTotal`, measured over the whole `QRF_RANGE`), not on a weight. "Is anybody left to fight" is a presence question, and a defender at the far edge weighs almost nothing but is still alive — gating it on weight would end a contested battle at five points a tick.
+
+⚠ **XP is deliberately NOT weighted.** Being in the fight earns it; scaling it by distance would pay a player for standing on the flag rather than for fighting.
+
+**Two Logic-tier cases added** (`OVT_TEST_Logic_QRFScoring`) covering the weight curve, the exclusive boundary, the monotonicity, the "slightly" band, both swing directions, the deadband and the stalemate decay. Every assertion was also re-checked against a standalone model of the shipped constants before commit — all green — but ⚠ **the suite itself has not been run.**
+
+`tools/compile-check.sh` exit 0 (6351 files). Play-test owed: this changes how every battle resolves.

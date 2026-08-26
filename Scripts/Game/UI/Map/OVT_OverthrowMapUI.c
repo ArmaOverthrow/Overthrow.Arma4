@@ -422,7 +422,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		// Gate the new marker through the same four visibility gates every existing marker has
 		// already passed. Without this a marker is born fully visible regardless of zoom or filter
 		// and only snaps to the right state on the NEXT zoom/filter event - players saw camps appear
-		// on map open and vanish at the first touch of the zoom (BUG-184's second half).
+		// on map open and vanish at the first touch of the zoom (BUG-188's second half).
 		element.RefreshVisibility();
 
 		return element;
@@ -1455,7 +1455,7 @@ class OVT_OverthrowMapUI : SCR_MapUIElementContainer
 		HideLocationInfo();
 		HideMap();
 
-		OVT_TravelRequestComponent travel = OVT_Global.GetTravelRequests();
+		OVT_TravelRequestComponent travel = OVT_ControllerComponent<OVT_TravelRequestComponent>.Get();
 		if (!travel)
 		{
 			// R2: a component that exists in script but not on OVT_OverthrowController.et is a silent

@@ -1,6 +1,6 @@
 # Wanted System - Context & Decisions
 
-**Last Updated:** 2026-08-03
+**Last Updated:** 2026-08-24
 **Current Phase:** Retrospective Documentation
 **Status:** ✅ Documented (Existing Feature)
 
@@ -58,3 +58,58 @@
 ---
 
 *This context file was created retrospectively by analyzing existing code.*
+
+---
+
+## Fix 2026-08-23 — mounted players were never "seen", so restricted areas did nothing in a vehicle
+
+User report: *"if im in a vehicle and in a restricted area it doesnt make me wanted"*. Two defects in
+`OVT_PlayerWantedComponent.c`, both of which made `m_bTempSeen` unreachable while mounted — and every
+restricted-area rule (base proximity, radio tower, the illegal-action window, the level-1 re-sighting
+escalation) is gated on it.
+
+1. **`CheckEntity` matched the perception target against the CHARACTER only.** Vanilla perception
+   deliberately looks past vehicle occupants — `SCR_AIGroupPerception` skips any target whose
+   `PerceivableComponent.IsInCompartment()` with the comment *"we don't care about vehicle
+   occupants"* — so what an AI actually holds as you drive past a base is the **vehicle**.
+   `realEnt == GetOwner()` therefore never matched, and the `inVehicle` branch already written inside
+   that block (the `TraceLOSVehicle` call, the armed-vehicle level 4, the Mobile FOB special case) was
+   only ever reachable when an AI happened to still be tracking the character itself. Now the target
+   is matched against the occupied vehicle as well.
+
+2. **Every distance was measured from the occupant's own origin.** A mounted character is parented to
+   the vehicle, and it is the vehicle the world sees and measures anyway. `GetDetectionOrigin()` is
+   now the single source for all of them — the AI sweep, the disguise close-range sweep, the base and
+   tower proximity checks and the tutorial's base-range edge — so the mounted and dismounted answers
+   cannot diverge.
+
+**Deliberately unchanged:** base proximity still requires being **seen**. Driving through an empty
+restricted area is still not a crime, exactly as on foot.
+
+**Gate:** `compile-check.sh` exit 0 (6341 files). No suite covers this path.
+
+**Owed:** a play-test — drive a civilian car into a base ring with AI present and confirm wanted 2
+("WantedBaseProximity"); confirm an unarmed car passing an AI on open ground still does **not**.
+
+---
+
+## Fix 2026-08-24 — mounted AI (armoured vehicle crews) never detected anyone
+
+**Reported by the author during test-server play (2026-08-24):** unwanted, having just respawned at a base, an armoured vehicle was parked in view and no eye icon appeared — the vehicle's crew could not "see" the player at all. Surfaced by `occupying/vehicles` putting crewed armour into ordinary play; the defect is in the wanted system and is older than that feature (it applied to every crewed vehicle patrol).
+
+**Root cause — three compounding faults, all from the same fact: a mounted character is *parented* to its vehicle.**
+
+1. **`GetOrigin()` on a mounted crewman is vehicle-local, not world.** Both agent-scan loops (`CheckUpdate` and the disguise-blown check) and `CheckEntity`'s early distance cut gated on `vector.Distance(entity.GetOrigin(), pos)`, so a crewman's distance came out as garbage and the agent was `continue`d before anything else ran. `GetDetectionOrigin()` already handled the mirror case for the *player* being mounted — the AI side never got the same treatment.
+2. **`CoordToParent(boneMatrix[3])` is vehicle-space for a mounted crewman**, so `TraceLOS`/`TraceLOSVehicle` started their trace at a point near the vehicle's own local origin rather than at the crewman's head in the world.
+3. **The trace excluded only the crewman.** A crewman's head bone sits *inside* the hull, so even with a correct start point the very first thing `TraceMove` hits is the crew's own vehicle → LOS always false.
+
+**Fix (`OVT_PlayerWantedComponent.c`):**
+- `GetAIWorldOrigin(IEntity)` — the AI-side mirror of `GetDetectionOrigin()`; walks the parent chain (bounded at 4) and returns the root's origin. Swapped into all three distance gates.
+- `GetHeadWorldPos(IEntity)` — composes the model-space head bone matrix against `GetWorldTransform()` when the entity has a parent, and falls back to the **unchanged** `CoordToParent` path when it does not (zero regression risk for on-foot AI).
+- `SetTraceExcludes(IEntity)` — replaces `m_TraceParams.Exclude = source` in both trace methods with an `ExcludeArray` holding the source *and its whole parent chain* (crewman → compartment/turret → vehicle). This is the vanilla idiom: `SCR_AIUpdateTargetSuppressionData.CheckTargetVisibility` excludes `myEntity`, its parent and its grandparent for exactly this reason. `Exclude` is nulled when the array is set — the engine's own comment warns against setting both.
+
+⚠ **The detector is the crew, not the vehicle.** No new "vehicle" entity is scanned: crewmen *are* AI agents with `PerceptionComponent`s and were already in the scan; they were simply thrown out by the distance gate and then failed the trace. Vanilla perception had already put the player in their target list — Overthrow's `TraceLOS` is only a second gate on top of it, and it was the broken half.
+
+⚠ **Unverified, needs play-test:** whether a buttoned-up crew now feels *too* all-seeing. The trace passes straight through the crew's own hull by design, so an APC detects through its own armour in every direction with no vision-block modelling. If that reads badly, the lever is a reduced `m_fBaseDistanceSeenAt` for mounted sources, not re-blocking the trace.
+
+`tools/compile-check.sh` exit 0 (6344 files). Suite not run.

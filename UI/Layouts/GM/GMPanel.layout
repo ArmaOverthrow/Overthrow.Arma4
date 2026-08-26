@@ -1,0 +1,420 @@
+VerticalLayoutWidgetClass {
+ Name "OVT_GMPanel"
+ Slot FrameWidgetSlot "{59DA9581738989B8}" {
+  Anchor 0 0 0 0
+  PositionX 22
+  OffsetLeft 22
+  PositionY 110
+  OffsetTop 110
+  SizeToContent 1
+ }
+ Clipping False
+ components {
+  OVT_GMPanelUIComponent "{6B08D3A17C4B0001}" {
+  }
+ }
+ {
+  OverlayWidgetClass "{6B08D3A17C4B0002}" {
+   Name "GMPanel_Content"
+   Slot LayoutSlot "{59DA95AAB32F41BC}" {
+    HorizontalAlign 0
+   }
+   "Z Order" 2
+   {
+    ImageWidgetClass "{6B08D3A17C4B0003}" {
+     Name "GMPanel_Background"
+     Slot OverlayWidgetSlot "{59DA95AAA82AE9C3}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     Color 0.007 0.012 0.014 1
+    }
+    SizeLayoutWidgetClass "{6B08D3A17C4B0004}" {
+     Name "GMPanel_SizeSetter"
+     Slot OverlayWidgetSlot "{59DA95ABC86D8968}" {
+      HorizontalAlign 3
+      VerticalAlign 3
+     }
+     AllowWidthOverride 1
+     WidthOverride 380
+     {
+      VerticalLayoutWidgetClass "{6B08D3A17C4B0024}" {
+       Name "GMPanel_Stack"
+       Slot AlignableSlot "{5D9B399BD2BDD752}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       {
+        OverlayWidgetClass "{6B08D3A17C4B0025}" {
+         Name "GMPanel_Header"
+         Slot LayoutSlot "{56EEDE046853BD3D}" {
+          HorizontalAlign 3
+          Padding 0 0 0 12
+         }
+         {
+          ImageWidgetClass "{6B08D3A17C4B0026}" {
+           Name "GMPanel_HeaderBackground"
+           Slot OverlayWidgetSlot "{59DA95AAA82AE9C3}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           Color 0.0681 0.0986 0.1046 1
+          }
+          ImageWidgetClass "{6B08D3A17C4B0006}" {
+           Name "GMPanel_Logo"
+           Slot OverlayWidgetSlot "{59DA95AAA82AE9C3}" {
+            HorizontalAlign 1
+            VerticalAlign 1
+            Padding 0 12 0 12
+           }
+           Texture "{6932D2D4F869C81D}UI/Textures/logo_overthrow_nopad.edds"
+           Image ""
+           Size 140 45
+          }
+         }
+        }
+        VerticalLayoutWidgetClass "{6B08D3A17C4B0005}" {
+         Name "GMPanel_Inner"
+         Slot LayoutSlot "{56EEDE046853BD3D}" {
+          HorizontalAlign 3
+          Padding 36 0 36 0
+         }
+         {
+          VerticalLayoutWidgetClass "{6B08D3A17C4B0007}" {
+           Name "CampaignSection"
+           Slot LayoutSlot "{56EEDE046853BD3D}" {
+            HorizontalAlign 3
+           }
+           "Is Visible" 0
+           {
+            VerticalLayoutWidgetClass "{6B08D3A17C4B0008}" {
+             Name "Row_Threat"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B0009}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Threat"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_Threat"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B000A}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_Threat"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B0027}" {
+             Name "Row_Objective"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B0028}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Objective"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_Objective"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B0029}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_Objective"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B002A}" {
+             Name "Row_Phase"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B002B}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Phase"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_ObjectivePhase"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B002C}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_Phase"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B000B}" {
+             Name "Row_OFResources"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B000C}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_OFResources"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_OFResources"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B000D}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_OFResources"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B000E}" {
+             Name "Row_OFDeployment"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B000F}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_OFDeployment"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_OFDeployment"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B0010}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_OFDeployment"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B0011}" {
+             Name "Row_Distribution"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B0012}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Distribution"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_NextDistribution"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              HorizontalLayoutWidgetClass "{6B08D3A17C4B0013}" {
+               Name "Row_Distribution_Values"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               {
+                TextWidgetClass "{6B08D3A17C4B0014}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                 Name "Value_Distribution"
+                 Slot LayoutSlot "{56EEDE046853BD3D}" {
+                  VerticalAlign 3
+                 }
+                 Text "-"
+                 "Font Size" 12
+                 "Min Font Size" 12
+                 Wrap 0
+                }
+                TextWidgetClass "{6B08D3A17C4B0015}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                 Name "Status_Distribution"
+                 Slot LayoutSlot "{56EEDE046853BD3D}" {
+                  VerticalAlign 3
+                  Padding 8 0 0 0
+                  SizeMode Fill
+                 }
+                 Text ""
+                 "Font Size" 12
+                 "Min Font Size" 12
+                 Wrap 0
+                }
+               }
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B0016}" {
+             Name "Row_Payout"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B0017}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Payout"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_NextPayout"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              HorizontalLayoutWidgetClass "{6B08D3A17C4B0018}" {
+               Name "Row_Payout_Values"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               {
+                TextWidgetClass "{6B08D3A17C4B0019}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                 Name "Value_Payout"
+                 Slot LayoutSlot "{56EEDE046853BD3D}" {
+                  VerticalAlign 3
+                 }
+                 Text "-"
+                 "Font Size" 12
+                 "Min Font Size" 12
+                 Wrap 0
+                }
+                TextWidgetClass "{6B08D3A17C4B001A}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+                 Name "Status_Payout"
+                 Slot LayoutSlot "{56EEDE046853BD3D}" {
+                  VerticalAlign 3
+                  Padding 8 0 0 0
+                  SizeMode Fill
+                 }
+                 Text ""
+                 "Font Size" 12
+                 "Min Font Size" 12
+                 Wrap 0
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+          TextWidgetClass "{6B08D3A17C4B001B}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+           Name "NoDataLabel"
+           Slot LayoutSlot "{56EEDE046853BD3D}" {
+            HorizontalAlign 3
+            Padding 0 0 0 8
+           }
+           Color 0.6 0.6 0.6 1
+           Text "#OVT-GMPanel_NoData"
+          }
+          VerticalLayoutWidgetClass "{6B08D3A17C4B001C}" {
+           Name "LocalSection"
+           Slot LayoutSlot "{56EEDE046853BD3D}" {
+            HorizontalAlign 3
+            Padding 0 0 0 16
+           }
+           {
+            VerticalLayoutWidgetClass "{6B08D3A17C4B001D}" {
+             Name "Row_Funds"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+              Padding 0 0 0 8
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B001E}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_Funds"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_Funds"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B001F}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_Funds"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+            VerticalLayoutWidgetClass "{6B08D3A17C4B0020}" {
+             Name "Row_QRF"
+             Slot LayoutSlot "{56EEDE046853BD3D}" {
+              HorizontalAlign 3
+             }
+             {
+              RichTextWidgetClass "{6B08D3A17C4B0021}" : "{B537936D5B7E2BA1}UI/layouts/WidgetLibrary/TextWidgets/Text_BodySmall.layout" {
+               Name "Label_QRF"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Color 0.6 0.6 0.6 1
+               Text "#OVT-GMPanel_QRF"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+              TextWidgetClass "{6B08D3A17C4B0022}" : "{3132F64DB8B4CB44}UI/layouts/WidgetLibrary/TextWidgets/Text_Body.layout" {
+               Name "Value_QRF"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                HorizontalAlign 3
+               }
+               Text "-"
+               "Font Size" 12
+               "Min Font Size" 12
+              }
+             }
+            }
+           }
+          }
+          VerticalLayoutWidgetClass "{6B08D3A17C4B0023}" {
+           Name "DetailSection"
+           Slot LayoutSlot "{56EEDE046853BD3D}" {
+            HorizontalAlign 3
+            Padding 0 0 0 16
+           }
+           "Is Visible" 0
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

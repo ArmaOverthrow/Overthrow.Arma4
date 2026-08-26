@@ -32,13 +32,16 @@ class OVT_BaseData : Managed
 	[NonSerialized()]
 	EntityID entId;
 
-	[NonSerialized()]
-	ref array<ref EntityID> garrisonEntities = {};
-
-	ref array<ref ResourceName> garrison = {};
-	
 	[SortAttribute(),NonSerialized()]
 	int sortBy;
+
+	//! No land route reaches this base - see OVT_BaseControllerComponent.m_bLandIsolated.
+	//!
+	//! NOT SERIALIZED, because it is WORLD-DERIVED like the location it is read beside: the map author
+	//! states it on the controller and discovery copies it here on every Init. Persisting it would let
+	//! a save outvote a map that had since been corrected.
+	[NonSerialized()]
+	bool landIsolated;
 
 	bool IsOccupyingFaction()
 	{
@@ -69,8 +72,10 @@ class OVT_RadioTowerData : Managed
 	[NonSerialized()]
 	float disabledStamp;
 
-	[NonSerialized()]
-	ref array<ref EntityID> garrison = {};
+	//! THERE IS NO GARRISON LIST ON A TOWER ANY MORE. A tower's garrison is an ordinary deployment
+	//! (Configs/Deployment/Deployment_TowerGarrison.conf) whose groups the virtualization core owns.
+	//! Nothing here may rebuild one: the old list held whatever was materialised right now, and
+	//! "the list is empty this tick" is precisely what used to make walking away capture a tower.
 
 	bool IsOccupyingFaction()
 	{
@@ -144,12 +149,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	bool m_bDistributeInitial = true;
 
+	//! Resources a legacy save conversion owes the occupying faction's deployment pool but has not
+	//! handed over yet. NEVER PERSISTED and never replicated - it exists only between a deserialization
+	//! and the first safe moment to credit it. See QueueLegacyUpgradeRefund() for why it cannot be
+	//! credited on the spot.
+	protected int m_iPendingLegacyRefund;
+
 	int m_iResources;
 	float m_iThreat;
 	ref array<ref OVT_BaseData> m_Bases = new array<ref OVT_BaseData>;
 	ref array<ref OVT_RadioTowerData> m_RadioTowers = new array<ref OVT_RadioTowerData>;
 
 	ref array<ref OVT_TargetData> m_aKnownTargets = new array<ref OVT_TargetData>;
+
+	//! THE HUNTER-KILLER SWEEP (occupying/vehicles T6.4). ONE LIVE SWEEP AT A TIME - a single-slot field,
+	//! never a list - paired with a bool for the same reason Phase 5's m_bHasSortie is paired with its
+	//! own id: EntityID has no meaningful "unset" test from script. Public, not protected, matching every
+	//! other piece of QRF/target bookkeeping on this class (m_CurrentQRF, m_bQRFActive) rather than the
+	//! newer Deployments-module convention of protected fields with getters - the Init tier drives this
+	//! dispatcher directly, the same way it drives SendMountedEchelon and OnBattleStarted.
+	EntityID m_HunterKillerDeployment;
+	bool m_bHunterKillerActive;
 
 	protected int m_iOccupyingFactionIndex;
 	protected int m_iPlayerFactionIndex;
@@ -159,13 +179,35 @@ class OVT_OccupyingFactionManager: OVT_Component
 	protected OVT_TownData m_CurrentQRFTown;
 
 	bool m_bQRFActive = false;
+
+	//------------------------------------------------------------------------------------------------
+	// THREE FLAGS, BECAUSE THERE ARE THREE QUESTIONS (occupying/counter-attacks D15)
+	//
+	// Before the counter-attack siege there was one question with three answers, and it worked because
+	// a battle became all three at once. A siege breaks that: it EXISTS for up to 31 minutes before it
+	// is FOUGHT, and it is fought in secret for up to a minute before anyone is TOLD.
+	//
+	//   m_bQRFActive   - "may a new battle start? may this player capture, or rise up?"
+	//                    Set for the whole siege, from the moment the first truck rolls. UNCHANGED.
+	//   m_bQRFRevealed - "does the client know?"  HUD panel, map circle, fast travel, respawn.
+	//   IsQRFEngaged() - "is the shooting on?"    Economy tick, deployments, the town's civilians.
+	//
+	// ⚠ EVERY ONE OF THEM IS SET SO THAT A **STANDARD** BATTLE BEHAVES EXACTLY AS IT DOES TODAY:
+	// revealed at creation, engaged at creation. A player-initiated battle must be incapable of taking
+	// a new code path.
+	//------------------------------------------------------------------------------------------------
+
+	//! Whether the resistance has been told about the current battle. TRUE FROM CREATION for a standard
+	//! battle; true at the MUSTER transition for a counter-attack siege (see RevealQRF).
+	//!
+	//! Replicated the same way m_bQRFActive is - broadcast RPC on change, plus the JIP payload.
+	bool m_bQRFRevealed = false;
+
 	vector m_vQRFLocation = "0 0 0";
 	int m_iCurrentQRFBase = -1;
 	int m_iCurrentQRFTown = -1;
 	int m_iQRFPoints = 0;
 	int m_iQRFTimer = 0;
-
-	int m_bCounterAttackTimeout = 0;
 
 	//------------------------------------------------------------------------------------------------
 	// TICK LATCHES (2026-08-19 review fix)
@@ -192,7 +234,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 	// latch lives on the LIVE gate. That is deliberate and is a strict de-duplication: it can only ever
 	// remove a repeat of a payload that has already run in the same in-game minute.
 	//
-	// NOT PERSISTED, on purpose. Same reasoning as BUG-179's fix on the economy manager: a latch
+	// NOT PERSISTED, on purpose. Same reasoning as BUG-183's fix on the economy manager: a latch
 	// restored from a save would be about a clock that no longer applies. The armed -1 costs at most
 	// one extra gain in the minute a campaign happens to load in, which is the pre-existing behaviour.
 	//------------------------------------------------------------------------------------------------
@@ -203,15 +245,109 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! Minute of hour the quarter-hourly threat decay last ran in, or -1 when it has not run yet.
 	protected int m_iMinuteDecayedThreat = -1;
 
+	//! Hour of day the hourly defense-share drip last ran in, or -1 when it has not run yet. Same
+	//! latch contract, and NOT PERSISTED for the same reason as the two above.
+	protected int m_iHourDripped = -1;
+
+	//------------------------------------------------------------------------------------------------
+	// THE DEFENSE-SHARE DRIP (2026-08-22)
+	//
+	// WHAT CHANGED AND WHAT DELIBERATELY DID NOT. Income is untouched: the reserve is still paid in a
+	// lump on the four six-hour boundaries, still latched by m_iHourGainedResources, and the sleep
+	// replay still walks the same grid. What moved is the TRANSFER. The share no longer leaves for the
+	// deployment pool all at once - it is ARMED as a debt the reserve owes the pool, and paid off one
+	// slice an hour.
+	//
+	// WHY THE TRANSFER AND NOT THE INCOME. resistance/sleep replays income through the very same
+	// methods the live tick uses, walking a skipped window in quarter-hour steps; change the income
+	// cadence and the replay's granularity has to change with it, which is BUG-183's family (an
+	// unpersisted hour latch paying a sweep twice on load is a repeatable money exploit). The pool is
+	// the CONTENDED resource - nothing spends directly out of the reserve on defense - so smoothing
+	// its arrival lands exactly where the burst behaviour is, and the half of the system carrying the
+	// save-format and time-skip hazards does not move at all.
+	//
+	// THE MONEY STAYS IN THE RESERVE WHILE IT IS OWED (author decision 2026-08-22, over an escrow
+	// bucket). One consequence is deliberate and is not a bug: the reserve now sits ~80 % fatter for
+	// most of each six-hour window, and the reserve is what OVT_ObjectiveDirectorComponent reads for
+	// objectiveQRFResourceGate - so a counter-attack clears its funding gate EARLIER than it did.
+	//
+	// NOTHING CAN BE STRANDED. ArmDefenseShareDrip() flushes whatever the previous window still owed
+	// before arming the new one, so a window that lost drips to a QRF freeze, a missed tick or a load
+	// pays in full at the next payday rather than silently evaporating.
+	//------------------------------------------------------------------------------------------------
+
+	//! What the deployment pool is still owed from the current window, still sitting in m_iResources.
+	protected int m_iPendingDefenseTransfer = 0;
+
+	//! How many drips are left to pay it off with, including the next one.
+	protected int m_iDefenseDripsRemaining = 0;
+
+	//! Minute of hour the next drip fires at - rolled fresh after every drip so the six transfers do
+	//! not land on the exact hour in lockstep.
+	protected int m_iDripMinute = 0;
+
 	const int OF_UPDATE_FREQUENCY = 60000;
 	const int RADIO_TOWER_CHECK_FREQUENCY = 9000;
+
+	//! How close to a tower a force has to be to be holding its ground. Matches the recapture module's
+	//! own m_fHoldRadius (80), so "who holds this tower" has one answer whichever side is asking.
+	const float TOWER_CONTROL_RADIUS_M = 80;
+
+	//! Registered name of the hunter-killer's deployment config (occupying/vehicles T6.4). Read the same
+	//! way OVT_QRFControllerComponent.ECHELON_CONFIG_NAME is - a caller resolves it once, through
+	//! FindConfigByName, rather than restating the module's own attributes as a second set of constants.
+	static const string HUNTER_KILLER_CONFIG_NAME = "Hunter Killer Sweep";
+
+	//! The score floor below which a hotspot is not worth a bounded armoured sweep. Under
+	//! THREAT_WEIGHT_ENEMY_CAMP (below) - which is the weight a single reported vehicle loss is inserted
+	//! at (T6.1/T6.6) - so a fresh loss clears it on its own at its own exact position, while an empty
+	//! spot with nothing known nearby (score 0) does not.
+	static const int HUNTER_KILLER_THREAT_FLOOR = 15;
 
 	//! Town support percentage required before players can start an uprising at the town flag
 	static const int UPRISING_SUPPORT_THRESHOLD = 75;
 
 	ref ScriptInvoker<IEntity> m_OnAIKilled = new ScriptInvoker<IEntity>;
 	ref ScriptInvoker<OVT_BaseControllerComponent> m_OnBaseControlChanged = new ScriptInvoker<OVT_BaseControllerComponent>;
+
+	//! Fired when a radio tower changes hands, either way. Args: the tower's record.
+	//!
+	//! 🔴 WHY IT EXISTS (author, 2026-08-26): the occupying faction took the tower covering Morton, the
+	//! town's support collapsed to zero - and the objective director never noticed, because the only
+	//! two things that could ask it to re-select were a BASE or a TOWN changing hands. A tower is the
+	//! third way a town's value moves, and it was the one with no signal.
+	ref ScriptInvoker<OVT_RadioTowerData> m_OnRadioTowerControlChanged = new ScriptInvoker<OVT_RadioTowerData>;
 	ref ScriptInvoker<IEntity> m_OnPlayerLoot = new ScriptInvoker<IEntity>;
+
+	//! Which TOWN is currently under QRF attack, published the moment it changes: the town's id when a
+	//! town QRF starts, -1 when it finishes.
+	//!
+	//! Exists so town-local systems (the ambient civilian crowd) can suppress themselves for ONE town
+	//! instead of polling m_iCurrentQRFTown, and so the old "any QRF anywhere despawns every town's
+	//! civilians" shortcut never has to come back.
+	//!
+	//! ⚠ BASE QRFs DELIBERATELY DO NOT PUBLISH HERE (decision D6). A base QRF happens at a base, not in
+	//! a town, and has no town id to name; m_vQRFLocation is what a future distance-based consumer
+	//! would use. Server-side only - m_bQRFActive / m_iCurrentQRFTown remain the replicated truth and
+	//! are unchanged by this invoker.
+	ref ScriptInvoker<int> m_OnQRFTownChanged = new ScriptInvoker<int>;
+
+	//! A battle has started, ANYWHERE - base or town, STANDARD or COUNTER_ATTACK - published once,
+	//! at m_vQRFLocation, from the tail of StartBaseQRF and the tail of StartTownQRF, after the mode is
+	//! configured and Start() has run (occupying/vehicles T5.1).
+	//!
+	//! ⚠ WHY THIS IS NOT m_OnQRFTownChanged (C9). That invoker is deliberately narrower on TWO axes: it
+	//! is TOWN-ONLY (a base QRF never touches it - D6 of counter-attacks) and it is STANDARD-ONLY (a
+	//! siege stays silent on it until BATTLE, so the resistance is not tipped off by the same signal
+	//! that would arm a garrison). m_OnBattleStarted answers a different question - "is there a fight
+	//! near THIS position a mounted force should react to" - which a garrison sitting on a base's own
+	//! parked armour needs answered for base battles too, and needs answered the instant the QRF is
+	//! stood up rather than delayed until a siege reveals itself. Firing it for COUNTER_ATTACK as well
+	//! is deliberate: a garrison crewing up in secret is exactly what a silent siege should provoke.
+	//!
+	//! Server-side only, like every QRF invoker in this file - a client's m_CurrentQRF is never set, so
+	//! StartBaseQRF/StartTownQRF never run there and this never fires there either.
+	ref ScriptInvoker<vector> m_OnBattleStarted = new ScriptInvoker<vector>;
 
 	static OVT_OccupyingFactionManager s_Instance;
 
@@ -272,7 +408,7 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (!baseData) return true;
 
 		// entId is [NonSerialized] and otherwise only assigned by the server's world query -
-		// without this a client record never resolves its entity (BUG-172: no base name on the map)
+		// without this a client record never resolves its entity (BUG-176: no base name on the map)
 		baseData.entId = entity.GetID();
 
 		// Set the faction affiliation
@@ -324,8 +460,81 @@ class OVT_OccupyingFactionManager: OVT_Component
 			Print(string.Format("[Overthrow] NewGameStart: Set %1 towns to occupying faction", townManager.m_Towns.Count()));
 		}
 
-		// Allocate initial resources to deployment manager
-		AllocateDeploymentResources(m_Config.m_Difficulty.baseResourcesPerTick);
+		// THE OCCUPYING FACTION'S OPENING DEFENSE BUDGET - ONE CREDIT, AND THE ONLY ONE.
+		//
+		// It replaces TWO opening paths. The free baseResourcesPerTick that used to be credited here,
+		// and a +5 s per-base distribution that handed every base
+		// (startingResources * m_fStartingResourcesMultiplier) and had it SPEND that immediately through
+		// the base controller's legacy spender - money that never passed through m_iResources, never
+		// appeared in any pool, and was therefore invisible to every accounting the campaign had. Both
+		// are now one number in the deployment pool, which the evaluator spends on the nine
+		// Deployment_Base*.conf configs, concern by concern, as threat and cost allow.
+		//
+		// IT RUNS HERE AND NOT ON A TIMER. The deleted distribution was deferred 5 s because SPENDING
+		// needed each base controller's discovered slots (InitBase() runs out of PostGameStart). A
+		// CREDIT needs only m_fStartingResourcesMultiplier, which is an [Attribute] readable the instant
+		// the controller entity exists - and InitializeBases() has already found every one of them
+		// during Init(), which is the same reason the loops above can walk m_Bases.
+		if(m_bDistributeInitial)
+		{
+			SeedOpeningDeploymentResources();
+
+			// A campaign gets its opening allocation exactly once. ApplyPersistedOccupyingFaction()
+			// clears the same flag when a save is restored, so a continued campaign never re-seeds -
+			// which is what this flag has always meant.
+			m_bDistributeInitial = false;
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Credits the occupying faction's deployment pool with its opening defense budget.
+	//!
+	//! PUBLIC, AND DELIBERATELY SEPARATE FROM THE NUMBER IT CREDITS. The phase's headline claim - that
+	//! the opening seed lands in the DEPLOYMENT POOL and not in m_iResources - is only assertable as a
+	//! live claim by driving this, and only checkable against CalculateOpeningDeploymentSeed() because
+	//! the two are apart. Nothing but NewGameStart() calls it in production.
+	//!
+	//! NOT GUARDED HERE. The "once per campaign" rule is m_bDistributeInitial's, and its owner is
+	//! NewGameStart(), which is the only path that can run on a campaign that has not been restored.
+	void SeedOpeningDeploymentResources()
+	{
+		int seed = CalculateOpeningDeploymentSeed();
+		AllocateDeploymentResources(seed);
+
+		Print(string.Format("[Overthrow.OccupyingFactionManager] Opening defense budget: %1 resources into the deployment pool across %2 base(s)",
+			seed.ToString(), m_Bases.Count().ToString()));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The opening defense budget: one tick of base income plus every base's authored opening
+	//! allocation.
+	//!
+	//! READ-ONLY - it computes, it never credits. Both halves are the legacy numbers unchanged:
+	//! baseResourcesPerTick is what NewGameStart() used to credit for free, and
+	//! (startingResources * m_fStartingResourcesMultiplier) per base is exactly what the deleted
+	//! per-base distribution used to conjure and spend. What changes is where the money goes, not how
+	//! much of it there is.
+	//! \return The seed in deployment-pool resources. Never negative.
+	int CalculateOpeningDeploymentSeed()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(!difficulty) return 0;
+
+		int seed = difficulty.baseResourcesPerTick;
+
+		foreach(OVT_BaseData data : m_Bases)
+		{
+			if(!data) continue;
+
+			OVT_BaseControllerComponent base = GetBase(data.entId);
+			if(!base) continue;
+
+			seed += Math.Floor(difficulty.startingResources * base.m_fStartingResourcesMultiplier);
+		}
+
+		if(seed < 0) seed = 0;
+
+		return seed;
 	}
 
 	void PostGameStart()
@@ -343,8 +552,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		GetGame().GetCallqueue().CallLater(CheckRadioTowers, RADIO_TOWER_CHECK_FREQUENCY, true, GetOwner());
 
-		if(m_bDistributeInitial)
-			GetGame().GetCallqueue().CallLater(DistributeInitialResources, 5000);
+		// THE +5 s INITIAL-RESOURCE DISTRIBUTION THAT STOOD HERE IS GONE AND MUST NOT COME BACK.
+		// The occupying faction's opening defense budget is now ONE credit to the deployment pool, made
+		// by NewGameStart() - see SeedOpeningDeploymentResources(). Scheduling anything here would run
+		// on a CONTINUED campaign too, which is precisely the double-build m_bDistributeInitial existed
+		// to prevent.
+
+		// THE LEGACY REFUND'S DELIVERY POINT ON THE LOAD PATH, and the reason it is here rather than in
+		// the deserialization that computed it: the deployment manager's restore CLEARS the resource
+		// pool, and it runs after this manager's inside the same load. This runs after the whole load.
+		// A no-op on any campaign that was not loaded from a pre-migration save.
+		CreditPendingLegacyRefund();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -353,21 +571,90 @@ class OVT_OccupyingFactionManager: OVT_Component
 	//! Called from OVT_OccupyingFactionManagerSerializer.Deserialize().
 	//!
 	//! SUPPRESSES THE OPENING RESOURCE ALLOCATION. m_bDistributeInitial is cleared because a saved
-	//! campaign has already spent its opening allocation; leaving it set would let PostGameStart()
-	//! schedule DistributeInitialResources() and build the occupying faction's opening position a
-	//! second time on top of the restored one. EPF cleared the same flag for the same reason.
+	//! campaign has already had its opening allocation; the flag is what NewGameStart() checks before
+	//! seeding the deployment pool, and a restored campaign must never be seeded a second time on top
+	//! of what it saved. EPF cleared the same flag for the same reason.
 	//!
-	//! SPAWNS NOTHING. Restored upgrades, filled slots and garrisons are data; InitBaseControllers()
-	//! replays them during PostGameStart, which is the same path a fresh campaign takes.
+	//! QUEUES THE LEGACY BASE-UPGRADE REFUND, ONCE, AFTER EVERY BASE RECORD HAS BEEN READ. A save
+	//! written before the base-defense migration carries per-base upgrade records; those upgrades no
+	//! longer exist, so each base's record is converted to a VALUE (ApplyPersistedBaseUpgrades), the sum
+	//! is accumulated across the whole loop, and it is handed to QueueLegacyUpgradeRefund() ONCE below.
+	//! The evaluator re-establishes defense from it by threat - there is no per-base re-establishment
+	//! code anywhere, deliberately. The sum is accumulated to after the loop because it is one
+	//! campaign-level refund, not eleven, and because the occupying faction key it is credited to is
+	//! only settled at the top of this method.
+	//!
+	//! 🔴 IT IS QUEUED, NOT CREDITED. The deployment manager's own restore CLEARS the per-faction
+	//! resource pool and runs after this one in the same load - read QueueLegacyUpgradeRefund()'s header
+	//! before moving the credit back inline.
+	//!
+	//! SPAWNS NOTHING. Filled slots are data; InitBaseControllers() replays them during PostGameStart,
+	//! which is the same path a fresh campaign takes.
 	//!
 	//! NO RPC. Clients receive base and tower control through the normal replication paths.
 	//!
-	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session.
+	//! IDEMPOTENT: assignments and clear-and-rebuilds only, safe to run again on a live session. The
+	//! refund is idempotent STRUCTURALLY rather than by a flag - see ApplyPersistedBaseUpgrades().
 	//! \param[in] occupyingFactionKey Faction key the campaign was started against, may be empty.
 	//! \param[in] resources Occupying faction resource pool.
 	//! \param[in] threat Occupying faction threat level.
 	//! \param[in] bases Persisted base records, matched to live bases by location. May be null.
 	//! \param[in] towers Persisted radio tower records, matched by location. May be null.
+	//------------------------------------------------------------------------------------------------
+	//! Restores the defense-share drip's outstanding debt from a save.
+	//!
+	//! SEPARATE FROM ApplyPersistedOccupyingFaction() ON PURPOSE - that method's five arguments are the
+	//! war state a campaign cannot start without, and the Persistence tier drives it directly; the drip
+	//! is a schedule laid over it and a version 1-3 save legitimately has none.
+	//!
+	//! DEFENSIVE, BECAUSE A RESTORED DEBT IS SPENDABLE MONEY. A corrupt or hand-edited payload claiming
+	//! a debt with no drips left to pay it would be settled in full by the next flush, so the two are
+	//! reconciled here instead: no debt means no drips, and a debt with no schedule gets a full one.
+	//! \param[in] pendingDefenseTransfer What the pool was still owed when the save was written.
+	//! \param[in] defenseDripsRemaining How many drips were left to pay it.
+	//! \param[in] dripMinute The minute of the hour the next drip was due at.
+	void ApplyPersistedDefenseDrip(int pendingDefenseTransfer, int defenseDripsRemaining, int dripMinute)
+	{
+		if (pendingDefenseTransfer < 0)
+			pendingDefenseTransfer = 0;
+
+		m_iPendingDefenseTransfer = pendingDefenseTransfer;
+
+		if (m_iPendingDefenseTransfer == 0)
+			m_iDefenseDripsRemaining = 0;
+		else if (defenseDripsRemaining <= 0 || defenseDripsRemaining > OVT_BaseDefenseConversion.DRIP_STEPS)
+			m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
+		else
+			m_iDefenseDripsRemaining = defenseDripsRemaining;
+
+		if (dripMinute < 0 || dripMinute >= OVT_BaseDefenseConversion.DRIP_MINUTE_SPREAD)
+			RollDripMinute();
+		else
+			m_iDripMinute = dripMinute;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What the deployment pool is still owed from the current drip window. Read-only, for tests and
+	//! the GM snapshot.
+	int GetPendingDefenseTransfer()
+	{
+		return m_iPendingDefenseTransfer;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! How many drips are left to pay that debt off with. Read-only.
+	int GetDefenseDripsRemaining()
+	{
+		return m_iDefenseDripsRemaining;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The minute of the hour the next drip is due at. Read-only.
+	int GetDripMinute()
+	{
+		return m_iDripMinute;
+	}
+
 	void ApplyPersistedOccupyingFaction(string occupyingFactionKey, int resources, float threat, array<ref OVT_PersistedBase> bases, array<ref OVT_PersistedRadioTower> towers)
 	{
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -379,6 +666,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iResources = resources;
 		m_iThreat = threat;
 		m_bDistributeInitial = false;
+
+		int legacyUpgradeValue = 0;
+		int baseRecordCount = 0;
 
 		array<ref OVT_BaseData> restoredBases = new array<ref OVT_BaseData>();
 		if (bases)
@@ -402,18 +692,30 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 				base.faction = faction;
 
-				ApplyPersistedBaseUpgrades(base, baseRecord);
+				legacyUpgradeValue += ApplyPersistedBaseUpgrades(base, baseRecord);
+				baseRecordCount += 1;
+
 				ApplyPersistedBaseSlots(base, baseRecord);
-				ApplyPersistedBaseGarrison(base, baseRecord);
 
 				restoredBases.Insert(base);
 			}
 		}
 
+		// ONE refund, after every base record has been read. A post-migration payload sums to zero and
+		// nothing is queued at all - which is the whole of the idempotence argument, and why there is no
+		// flag here.
+		if (legacyUpgradeValue > 0)
+		{
+			Print(string.Format("[Overthrow] Legacy base upgrades converted: %1 resources owed to the occupying faction's deployment pool from %2 base record(s)",
+				legacyUpgradeValue.ToString(), baseRecordCount.ToString()));
+
+			QueueLegacyUpgradeRefund(legacyUpgradeValue);
+		}
+
 		// A base with no save record was added to the map after the save was written. NewGameStart
 		// never runs on a continue, and discovery stamped its faction before the campaign's real
 		// occupying faction key was applied above - so it is handed to the occupying faction here,
-		// or it would never garrison or spend resources as the occupying faction.
+		// or it would never garrison and the deployment evaluator would never fortify it.
 		if (config)
 		{
 			int occupyingBaseFaction = config.GetOccupyingFactionIndex();
@@ -460,8 +762,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 		// A tower with no save record was added to the map after the save was written. NewGameStart
 		// never runs on a continue, and discovery stamped its faction before the campaign's real
-		// occupying faction key was applied above - so it is handed to the occupying faction here,
-		// or CheckRadioTowers would skip it forever and it would never garrison.
+		// occupying faction key was applied above - so it is handed to the occupying faction here.
+		// THE REASON IS NOT WHAT IT ORIGINALLY WAS, and the behaviour is still required. Nothing on
+		// this manager garrisons a tower any more; a tower is garrisoned by Deployment_TowerGarrison
+		// .conf, whose base-control condition module only offers a tower the deployment evaluator can
+		// see as OCCUPIED. A tower left on a stale faction index is therefore invisible to it forever.
 		if (config)
 		{
 			int occupyingFactionIndex = config.GetOccupyingFactionIndex();
@@ -477,46 +782,155 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Rebuilds one base's upgrade list from its save record.
+	//! Queues resources a legacy save conversion owes the occupying faction's deployment pool.
+	//!
+	//! 🔴 THE REFUND IS DEFERRED, AND IT HAS TO BE. It cannot be credited from inside
+	//! ApplyPersistedOccupyingFaction(), because the deployment manager's own restore runs LATER IN THE
+	//! SAME LOAD and its first act is to CLEAR the per-faction resource map before refilling it from the
+	//! save (OVT_DeploymentManagerComponent.ApplyPersistedFactionResources). The serializer order is
+	//! authored in Configs/Systems/Persistence/Overthrow.conf, where this manager sits several entries
+	//! ABOVE the deployment manager - so an inline credit would be wiped microseconds later, silently,
+	//! and every legacy campaign would load with its whole investment gone.
+	//!
+	//! TWO DELIVERY POINTS, AND WHICH ONE IS ARMED DEPENDS ON WHETHER A CAMPAIGN IS ALREADY RUNNING:
+	//!   - LOADING A SAVE POINT (campaign not started yet): the refund waits for PostGameStart(), which
+	//!     the game mode schedules only after the whole load has been applied. Provably after the
+	//!     deployment restore, with no assumption about how many frames a load takes.
+	//!   - RE-APPLYING TO A LIVE SESSION (campaign already running, so PostGameStart will never run
+	//!     again): a next-frame callback, which is after the one synchronous re-application that
+	//!     triggered it.
+	//! \param[in] value Resources owed. Accumulated, never overwritten.
+	protected void QueueLegacyUpgradeRefund(int value)
+	{
+		if (value <= 0)
+			return;
+
+		bool alreadyQueued = m_iPendingLegacyRefund > 0;
+		m_iPendingLegacyRefund += value;
+
+		if (alreadyQueued)
+			return;
+
+		OVT_OverthrowGameMode mode = OVT_Global.GetOverthrow();
+		if (mode && mode.HasGameStarted())
+			GetGame().GetCallqueue().CallLater(CreditPendingLegacyRefund, 0);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Hands whatever a legacy save conversion owed to the deployment pool, once.
+	//!
+	//! IDEMPOTENT AND SELF-CLEARING: the pending amount is zeroed before the credit, so whichever of the
+	//! two delivery points above reaches it first wins and the other becomes a no-op. That is what makes
+	//! it safe to arm both.
+	//!
+	//! PUBLIC so the persistence-tier case can drive it in the frame it made the claim in, rather than
+	//! asserting against a callback it would have to wait for.
+	void CreditPendingLegacyRefund()
+	{
+		if (m_iPendingLegacyRefund <= 0)
+			return;
+
+		int value = m_iPendingLegacyRefund;
+		m_iPendingLegacyRefund = 0;
+
+		AllocateDeploymentResources(value);
+
+		Print(string.Format("[Overthrow] Legacy base-upgrade refund credited: %1 resources into the occupying faction's deployment pool", value.ToString()));
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resources a legacy save conversion owes the deployment pool but has not handed over yet.
+	//! \return The pending amount, 0 when nothing is owed.
+	int GetPendingLegacyRefund()
+	{
+		return m_iPendingLegacyRefund;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CONVERTS one base's LEGACY upgrade records into a resource value, and leaves the base's upgrade
+	//! list EMPTY.
+	//!
+	//! THIS USED TO COPY THE RECORDS ONTO THE BASE so InitBaseControllers() could replay them into the
+	//! live upgrade objects a base controller ran. Those objects no longer exist: base defense is nine
+	//! Deployment_Base*.conf configs the deployment evaluator establishes and the virtualization core
+	//! owns. So a pre-migration payload is read for its VALUE and nothing else - value-parity, not
+	//! entity-identity - and the caller credits the sum to the deployment pool once.
+	//!
+	//! THE PAYLOAD CLASSES STAY. OVT_PersistedBaseUpgrade / OVT_PersistedBaseUpgradeGroup are still
+	//! declared and still READ here, because OVT_PersistedBase.upgrades sits at field 4 of 5 and a
+	//! binary save context is positional: removing it would shift `garrison` and break every existing
+	//! save. What changed is that the write path now stores an empty array in it.
+	//!
+	//! WHAT CONVERTS TO ZERO, AND WHY, is documented on OVT_BaseDefenseConversion.ConvertedValue().
+	//! Two of them matter here: a composition/checkpoint record refunds nothing because the structure
+	//! itself is a tracked world entity that comes back on its own (and its slot claim comes back in
+	//! ApplyPersistedBaseSlots), and an ALREADY-CONVERTED payload refunds nothing because it is empty.
+	//!
+	//! IDEMPOTENCE IS STRUCTURAL, NOT GUARDED. After the first load the write path stores an empty
+	//! upgrade array, so every subsequent save/load of that campaign converts zero. The one exposure
+	//! this leaves, stated so nobody mistakes it for a bug: re-applying the SAME pre-migration save
+	//! twice in one session (OVT_PersistenceManagerComponent.ReapplyLatestSaveData) credits twice,
+	//! because nothing has rewritten the payload yet. Taking a single save after loading a legacy
+	//! campaign closes it permanently.
+	//!
+	//! A NON-OCCUPYING BASE NEEDS NO FILTER: the legacy write path only ever populated `upgrades` for a
+	//! base the occupying faction held, so a resistance-held record converts to zero on its own.
 	//! \param[in] base The live base data.
 	//! \param[in] record The saved record.
-	protected void ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
+	//! \return The value this base's legacy investment converts to, in deployment-pool resources.
+	//!         0 for a post-migration record.
+	protected int ApplyPersistedBaseUpgrades(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
 	{
 		if (!base.upgrades)
 			base.upgrades = new array<ref OVT_BaseUpgradeData>();
 
+		// Left EMPTY on every path. Nothing replays these any more, and a populated list would be a
+		// standing invitation for something to try.
 		base.upgrades.Clear();
 
 		if (!record.upgrades)
-			return;
+			return 0;
+
+		array<int> bankedResources = {};
+		array<int> groupCounts = {};
 
 		foreach (OVT_PersistedBaseUpgrade upgradeRecord : record.upgrades)
 		{
 			if (!upgradeRecord)
 				continue;
 
-			OVT_BaseUpgradeData data = new OVT_BaseUpgradeData();
-			data.type = upgradeRecord.type;
-			data.resources = upgradeRecord.resources;
-			data.tag = upgradeRecord.tag;
-			data.pos = upgradeRecord.pos;
+			bankedResources.Insert(upgradeRecord.resources);
 
+			int groups = 0;
 			if (upgradeRecord.groups)
-			{
-				foreach (OVT_PersistedBaseUpgradeGroup groupRecord : upgradeRecord.groups)
-				{
-					if (!groupRecord)
-						continue;
+				groups = upgradeRecord.groups.Count();
 
-					OVT_BaseUpgradeGroupData group = new OVT_BaseUpgradeGroupData();
-					group.prefab = groupRecord.prefab;
-					group.position = groupRecord.position;
-					data.groups.Insert(group);
-				}
-			}
-
-			base.upgrades.Insert(data);
+			groupCounts.Insert(groups);
 		}
+
+		return OVT_BaseDefenseConversion.ConvertedValue(bankedResources, groupCounts, GetLegacyGroupValue());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What one group recorded in a legacy base-upgrade payload is worth today.
+	//!
+	//! LEGACY_GROUP_VALUE = OVT_BaseDefenseConversion.LEGACY_GROUP_SIZE * difficulty.baseResourceCost,
+	//! which is the same per-man price the deleted valuation used (a live group was worth
+	//! agents * baseResourceCost). It is an APPROXIMATION BY DESIGN - value-parity, not
+	//! entity-identity - and the constant carries that sentence.
+	//!
+	//! NULL-SAFE ON DIFFICULTY: deserialization can land before the campaign's difficulty settings are
+	//! resolved, and a refund of 0 is a far better failure than a VME during a load.
+	//! \return The per-group refund value, never negative.
+	protected int GetLegacyGroupValue()
+	{
+		int baseResourceCost = 0;
+
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (difficulty)
+			baseResourceCost = difficulty.baseResourceCost;
+
+		return OVT_BaseDefenseConversion.LegacyGroupValue(baseResourceCost);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -540,31 +954,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Rebuilds one base's garrison prefab list from its save record.
-	//! \param[in] base The live base data.
-	//! \param[in] record The saved record.
-	protected void ApplyPersistedBaseGarrison(notnull OVT_BaseData base, notnull OVT_PersistedBase record)
-	{
-		if (!base.garrison)
-			base.garrison = new array<ref ResourceName>();
-
-		base.garrison.Clear();
-
-		if (!record.garrison)
-			return;
-
-		foreach (ResourceName prefab : record.garrison)
-		{
-			if (prefab.IsEmpty())
-				continue;
-
-			base.garrison.Insert(prefab);
-		}
-	}
-
+	//! Ticks every radio tower's sabotage countdown on the 9 s timer installed by PostGameStart, and
+	//! puts a tower back on the air when its downtime runs out.
+	//!
+	//! GARRISONS ARE NOT HERE ANY MORE, AND MUST NOT COME BACK. This loop used to fuse four unrelated
+	//! concerns into one foreach: the sabotage countdown below, spawning a tower's defence groups,
+	//! deleting them again, and capturing the tower when the list of them happened to be empty. All
+	//! three garrison halves are gone - a radio tower garrison is now an ordinary DEPLOYMENT
+	//! (Configs/Deployment/Deployment_TowerGarrison.conf), so:
+	//!   - the groups are registered with the virtualization core and the ENGINE decides when to put
+	//!     men on the ground, remembering which of them died across every despawn and every save;
+	//!   - capture is driven by that deployment's eliminated flag, which is set only by a real wipe,
+	//!     so driving away from a tower can no longer take it;
+	//!   - the map-wide "delete every tower garrison for the whole duration of any QRF anywhere" side
+	//!     effect went with the despawn branch that carried it.
+	//!
+	//! What is left is the one concern this method was ever named for. Re-adding a spawn here would
+	//! double every garrison, because the deployment config is already producing one.
 	void CheckRadioTowers()
 	{
-		OVT_Faction faction = OVT_Global.GetConfig().GetOccupyingFaction();
+		CheckTowerGroundControl();
+
 		foreach(OVT_RadioTowerData tower : m_RadioTowers)
 		{
 			if(tower.disabledRemaining > 0)
@@ -578,80 +988,100 @@ class OVT_OccupyingFactionManager: OVT_Component
 					OVT_Global.GetNotify().SendTextNotification("RadioTowerRepaired", -1, townName);
 				}
 			}
-			if(!tower.IsOccupyingFaction()) continue;
-			bool inrange = OVT_Global.PlayerInRange(tower.location, OVT_Global.GetConfig().m_iMilitarySpawnDistance) && !m_CurrentQRF;
-			if(inrange)
-			{
-				if(tower.garrison.Count() == 0)
-				{
-					//Spawn in radio defense
-
-					vector pos = tower.location + "5 0 0";
-
-					float surfaceY = GetGame().GetWorld().GetSurfaceY(pos[0], pos[2]);
-					if (pos[1] < surfaceY)
-					{
-						pos[1] = surfaceY;
-					}
-					
-					OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-					
-					int numGroups = s_AIRandomGenerator.RandInt(config.m_Difficulty.patrolGroupsMin,config.m_Difficulty.patrolGroupsMax);
-
-					for(int t = 0; t < numGroups; t++)
-					{
-						IEntity group = OVT_Global.SpawnEntityPrefab(faction.m_aTowerDefensePatrolPrefab, pos);
-						tower.garrison.Insert(group.GetID());
-						SCR_AIGroup aigroup = SCR_AIGroup.Cast(group);
-						AIWaypoint wp = OVT_Global.GetConfig().SpawnDefendWaypoint(pos);
-						aigroup.AddWaypoint(wp);
-					}
-				}else{
-					//Check if dead
-					array<EntityID> remove = {};
-					foreach(EntityID id : tower.garrison)
-					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_AIGroup group = SCR_AIGroup.Cast(ent);
-						if(!group)
-						{
-							remove.Insert(id);
-						}else if(group.GetAgentsCount() == 0)
-						{
-							SCR_EntityHelper.DeleteEntityAndChildren(group);
-							remove.Insert(id);
-						}
-					}
-					foreach(EntityID id : remove)
-					{
-						tower.garrison.RemoveItem(id);
-					}
-					if(tower.garrison.Count() == 0)
-					{
-						//radio tower changes hands
-						ChangeRadioTowerControl(tower, OVT_Global.GetConfig().GetPlayerFactionIndex());
-					}
-				}
-			}else{
-				if(tower.garrison.Count() > 0)
-				{
-					//Despawn defense
-					foreach(EntityID id : tower.garrison)
-					{
-						IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-						SCR_EntityHelper.DeleteEntityAndChildren(ent);
-					}
-					tower.garrison.Clear();
-				}
-			}
 		}
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! A tower belongs to whoever actually holds the ground under it.
+	//!
+	//! 🔴 THE HOLE THIS CLOSES (author, test server 2026-08-24): "they successfully recaptured it, and
+	//! then after that I killed the specops team, but the tower is still theirs, probably because
+	//! there's no tower guards yet but that blocks recapture". Exactly right. Before this, the ONLY two
+	//! callers of ChangeRadioTowerControl were a deployment's own behaviour modules - the tower
+	//! garrison's capture module (which fires when THAT garrison is wiped) and the recapture module.
+	//! So a tower the occupying faction had just taken, and had not yet garrisoned, could not be taken
+	//! back by any means: there was no garrison deployment in existence to be wiped, and killing every
+	//! man standing on it did nothing at all.
+	//!
+	//! ⚠ REGISTERED ALIVE MEMBERS, NEVER SPAWNED AGENTS. This is the rule that historically let a
+	//! player capture a tower by WALKING AWAY - the old garrison list held whatever was materialised
+	//! this tick, and a despawned garrison read as an empty tower. GetAliveMemberCount() answers from
+	//! the survivor mask and from dormant counts, so a garrison that is merely unspawned still holds
+	//! its tower.
+	//!
+	//! ⚠ AND A RESISTANCE PRESENCE IS REQUIRED, which is the second half of the same safety. An empty
+	//! tower in the middle of occupied territory is not captured by nobody; somebody has to be standing
+	//! on it. Ground held is players AND their recruits, the same test the deployment behaviours use.
+	//!
+	//! ⚠ ONE DIRECTION ONLY. Occupying → resistance. Taking a tower FOR the occupying faction stays the
+	//! recapture module's job, where it is paid for and announced.
+	protected void CheckTowerGroundControl()
+	{
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+		if (!config)
+			return;
+
+		int occupyingFaction = config.GetOccupyingFactionIndex();
+
+		foreach (OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if (!tower || tower.faction != occupyingFaction)
+				continue;
+
+			// Cheapest useful gate first: an 80 m sphere query, and only on towers they hold. The
+			// handle sweep below runs only for a tower somebody is actually standing on.
+			if (!OVT_ResistancePresence.IsGroundHeld(tower.location, TOWER_CONTROL_RADIUS_M))
+				continue;
+
+			if (CountOccupyingHolding(tower.location) > 0)
+				continue;
+
+			ChangeRadioTowerControl(tower, config.GetPlayerFactionIndex());
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Living occupying-faction members registered with the virtualization core within the control
+	//! radius of a point, whatever registered them.
+	//! \param[in] position The tower's location.
+	//! \return How many are holding it.
+	protected int CountOccupyingHolding(vector position)
+	{
+		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
+		if (!virtualization)
+			return 0;
+
+		string occupyingKey = OVT_Global.GetConfig().m_sOccupyingFaction;
+
+		int holding = 0;
+
+		array<int> handles = virtualization.GetAllHandles();
+		foreach (int handle : handles)
+		{
+			if (virtualization.GetGroupFactionKey(handle) != occupyingKey)
+				continue;
+
+			int members = virtualization.GetAliveMemberCount(handle);
+			if (members < 1)
+				continue;
+
+			if (!OVT_VirtualGroupGeometry.IsGroupWithin(virtualization, handle, position, TOWER_CONTROL_RADIUS_M))
+				continue;
+
+			holding = holding + members;
+		}
+
+		return holding;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	void ChangeRadioTowerControl(OVT_RadioTowerData tower, int faction)
 	{
 		if(faction == tower.faction) return;
 		tower.faction = faction;
 		Rpc(RpcDo_SetRadioTowerFaction, tower.location, faction);
+
+		if(m_OnRadioTowerControlChanged) m_OnRadioTowerControlChanged.Invoke(tower);
 
 		string townName = OVT_Global.GetTowns().GetTownName(tower.location);
 
@@ -754,9 +1184,67 @@ class OVT_OccupyingFactionManager: OVT_Component
 		}
 	}
 
-	void RecoverResources(int resources)
+	//------------------------------------------------------------------------------------------------
+	//! Every base a given faction currently holds.
+	//!
+	//! A PURE READ - it allocates a list and copies references into it, and changes nothing. Added for
+	//! the objective director, which enumerates resistance-held bases as candidates and occupying-held
+	//! bases as supply sources, and which had no way to ask that question: GetNearestOccupiedBase()
+	//! answers about ONE base and hard-codes the occupying faction.
+	//!
+	//! ⚠ THE RETURNED LIST BORROWS. The elements are the manager's own live records, not copies, so a
+	//! caller reads through them and never holds them past the current frame.
+	//! \param[in] factionIndex The faction to filter by.
+	//! \return A new list, empty when the faction holds nothing. Never null.
+	array<OVT_BaseData> GetBasesControlledBy(int factionIndex)
 	{
-		m_iResources += resources;
+		array<OVT_BaseData> controlled = new array<OVT_BaseData>();
+
+		foreach(OVT_BaseData base : m_Bases)
+		{
+			if(!base) continue;
+			if(base.faction != factionIndex) continue;
+
+			controlled.Insert(base);
+		}
+
+		return controlled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every radio tower whose broadcast still reaches a position, whoever holds it.
+	//!
+	//! A PURE READ. Two rules are baked in, and both are the rules the campaign already used:
+	//!  - RANGE is OVT_InfluenceRules.IsProximitySource() against the difficulty's radioTowerRange, the
+	//!    same predicate the town support tick has always used, so "in range" means one thing;
+	//!  - A SABOTAGED TOWER IS NOT IN RANGE OF ANYTHING. A tower that is off the air broadcasts nothing
+	//!    for either side, so it is skipped outright rather than returned for the caller to remember to
+	//!    filter.
+	//!
+	//! THIS DE-DUPLICATES THE TOWN SUPPORT TICK'S OWN INLINE LOOP, which is now its first caller. The
+	//! objective director is the second: an objective the occupying faction can still broadcast over is
+	//! easier for it to hold, which is one of the selection inputs.
+	//! \param[in] position The position to test coverage at.
+	//! \return A new list of towers on the air within range. Empty, never null.
+	array<OVT_RadioTowerData> GetRadioTowersAffecting(vector position)
+	{
+		array<OVT_RadioTowerData> affecting = new array<OVT_RadioTowerData>();
+
+		float range = 0;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(difficulty) range = difficulty.radioTowerRange;
+		if(range <= 0) return affecting;
+
+		foreach(OVT_RadioTowerData tower : m_RadioTowers)
+		{
+			if(!tower) continue;
+			if(tower.IsDisabled()) continue;
+			if(!OVT_InfluenceRules.IsProximitySource(position, tower.location, range)) continue;
+
+			affecting.Insert(tower);
+		}
+
+		return affecting;
 	}
 
 	void InitializeBases()
@@ -771,9 +1259,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	protected void InitBaseControllers()
 	{
-		OVT_ResistanceFactionManager rf = OVT_Global.GetResistanceFaction();
-		OVT_Faction resistance = m_Config.GetPlayerFaction();
-
 		Print(string.Format("[Overthrow] InitBaseControllers: Initializing %1 bases", m_Bases.Count()));
 
 		foreach(int index, OVT_BaseData data : m_Bases)
@@ -793,15 +1278,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			if(base.IsOccupyingFaction())
 			{
-				if(data.upgrades)
-				{
-					foreach(OVT_BaseUpgradeData upgrade : data.upgrades)
-					{
-						OVT_BaseUpgrade up = base.FindUpgrade(upgrade.type, upgrade.tag);
-						if(up)
-							up.Deserialize(upgrade);
-					}
-				}
+				// THE UPGRADE REPLAY THAT STOOD HERE IS GONE. There is nothing to replay into: a legacy
+				// save's upgrade value was converted to a single deployment-pool credit during
+				// ApplyPersistedBaseUpgrades(), and base defense is nine Deployment_Base*.conf configs the
+				// evaluator re-establishes on its own.
+				//
+				// THE SLOT CLAIMS BELOW ARE KEPT VERBATIM AND ARE NOW LOAD-BEARING FOR A DIFFERENT
+				// REASON. They are what stops OVT_CompositionSpawningDeploymentModule choosing a slot a
+				// legacy composition is still standing in - the structure itself comes back from vanilla
+				// persistence as an ordinary tracked entity, and this list is the only record that its
+				// slot is taken.
 				if(data.slotsFilled)
 				{
 					foreach(vector slotPos : data.slotsFilled)
@@ -810,35 +1296,26 @@ class OVT_OccupyingFactionManager: OVT_Component
 						if(slot) base.m_aSlotsFilled.Insert(slot.GetID());
 					}
 				}
-			}else{
-				foreach(ResourceName res : data.garrison)
-				{
-					IEntity garrison = OVT_Global.GetResistanceFaction().SpawnGarrison(data, res);
-					if(garrison)
-						data.garrisonEntities.Insert(garrison.GetID());
-				}
 			}
 		}
 
 		Print(string.Format("[Overthrow] InitBaseControllers complete"));
 	}
 
-	protected void DistributeInitialResources()
-	{
-		//Distribute initial resources		
-		foreach(OVT_BaseData data : m_Bases)
-		{
-			OVT_BaseControllerComponent base = GetBase(data.entId);
-			int toSpend = Math.Floor(m_Config.m_Difficulty.startingResources * base.m_fStartingResourcesMultiplier);
-			Print("[Overthrow.OccupyingFactionManager] Distributing " + toSpend.ToString() + " resources to " + base.m_sName);
-			base.SpendResources(toSpend, m_iThreat);
-		}
-		UpdateSpecops();	
-	}
-
+	//------------------------------------------------------------------------------------------------
+	//! Resolves a base's controller component from its marker entity id.
+	//!
+	//! NULL-SAFE ON THE MARKER. It used to dereference the result of FindEntityByID() directly and
+	//! throw when a marker had gone away - which is why the occupying-faction serializer carries its own
+	//! FindBaseController() and says so in its header. Every caller here already null-checks the
+	//! RESULT; this is what makes those checks reachable instead of decorative.
+	//! \param[in] id The base marker's entity id.
+	//! \return The controller, or null.
 	OVT_BaseControllerComponent GetBase(EntityID id)
 	{
 		IEntity marker = GetGame().GetWorld().FindEntityByID(id);
+		if(!marker) return null;
+
 		return OVT_BaseControllerComponent.Cast(marker.FindComponent(OVT_BaseControllerComponent));
 	}
 
@@ -880,23 +1357,56 @@ class OVT_OccupyingFactionManager: OVT_Component
 		Rpc(RpcDo_SetQRFPoints, points);
 	}
 
-	void StartBaseQRF(OVT_BaseControllerComponent base)
+	//------------------------------------------------------------------------------------------------
+	//! Clears the scoreboard so a new battle does not open showing the last one's.
+	//!
+	//! 🔴 THE HUD READS THESE TWO, AND NOTHING RESET THEM (author, 2026-08-25: "when a battle starts
+	//! the HUD always shows the points from the last battle during the leadup phase"). m_iQRFPoints is
+	//! written ONLY by UpdateQRFPoints, which OVT_QRFControllerComponent calls from inside
+	//! CheckUpdatePoints' `if(m_iTimer <= 0)` block - so nothing pushes a value until the countdown has
+	//! already run out. The controller zeroes its OWN m_iPoints in OnPostInit, but that copy is not the
+	//! replicated one the panel reads. A battle ends AT the cap, so the stale value on show for the
+	//! whole leadup was always a decisive ±QRFPointsToWin.
+	//!
+	//! ⚠ AT START, NOT AT FINISH. A finish handler that does not run - a rolled-back save, a campaign
+	//! teardown, a future caller - would leave the stale value behind again; opening every battle from
+	//! a known state cannot.
+	//! ⚠ POINTS ONLY. m_iQRFTimer looks like the same bug and is not: the controller's CheckUpdateTimer
+	//! runs on a 1 000 ms call from its own OnPostInit and publishes m_iTimer on the first tick, so the
+	//! clock is this battle's within a second. Zeroing it here would need the lead time in the
+	//! controller's units (MILLISECONDS - m_iTimer defaults to 120000) and would buy one second of
+	//! correctness for a units mistake waiting to happen.
+	protected void ResetQRFScore()
+	{
+		UpdateQRFPoints(0);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Starts a battle for a base.
+	//!
+	//! ⚠ THE MODE IS CONFIGURED BEFORE Start(), following the SpawnQRFController -> configure -> Start()
+	//! order the landing-zone fields already use. Start() takes no arguments on purpose (D14).
+	//! \param[in] base The base being fought over.
+	//! \param[in] mode STANDARD for a player-initiated battle - the default, and the only value any
+	//! shipped caller but the objective director passes. COUNTER_ATTACK makes it a silent siege.
+	void StartBaseQRF(OVT_BaseControllerComponent base, OVT_EQRFMode mode = OVT_EQRFMode.STANDARD)
 	{
 		if(m_CurrentQRF) return;
 
 		OVT_BaseData data = GetNearestBase(base.GetOwner().GetOrigin());
 
 		m_CurrentQRF = SpawnQRFController(base.GetOwner().GetOrigin());
+		m_CurrentQRF.m_eMode = mode;
 		m_CurrentQRF.m_iLZMin = base.m_iAttackDistanceMin;
 		m_CurrentQRF.m_iLZMax = base.m_iAttackDistanceMax;
 		m_CurrentQRF.m_iPreferredDirection = base.m_iAttackPreferredDirection;
 		m_CurrentQRF.m_iDirectionVariance = base.m_iAttackDirectionVariance;
-		
+
 		if(base.m_iAttackPreferredDirection > -1)
 			Print("[Overthrow] QRF starting from preferred direction: " + base.m_iAttackPreferredDirection.ToString() + " +/- " + base.m_iAttackDirectionVariance.ToString());
-		
+
 		m_CurrentQRF.Start();
-		
+
 		RplComponent rpl = RplComponent.Cast(m_CurrentQRF.GetOwner().FindComponent(RplComponent));
 
 		m_CurrentQRF.m_OnFinished.Insert(OnQRFFinishedBase);
@@ -906,21 +1416,42 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = base.GetOwner().GetOrigin();
 		m_iCurrentQRFBase= GetBaseIndex(data);
 
-		OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
-		OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
+		// Before anyone can look at the panel - see ResetQRFScore.
+		ResetQRFScore();
+
+		// A standard battle is announced the instant it starts, exactly as it always has been. A siege
+		// says nothing until its encirclement is complete - RevealQRF() sends the notification then.
+		m_bQRFRevealed = false;
+		if(mode == OVT_EQRFMode.STANDARD)
+		{
+			m_bQRFRevealed = true;
+
+			OVT_Global.GetNotify().SendTextNotification("BaseBattle", -1, base.m_sName);
+			OVT_Global.GetNotify().SendExternalNotifications("BaseBattle", base.m_sName);
+		}
 
 		Rpc(RpcDo_SetQRFBase, m_iCurrentQRFBase);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		Rpc(RpcDo_SetQRFRevealed, m_bQRFRevealed);
+
+		// ⚠ AFTER the mode is configured and Start() has run (occupying/vehicles T5.1/C9) - a base QRF
+		// publishes here even though m_OnQRFTownChanged never does for a base.
+		m_OnBattleStarted.Invoke(m_vQRFLocation);
 	}
 
-	void StartTownQRF(OVT_TownData town)
+	//------------------------------------------------------------------------------------------------
+	//! Starts a battle for a town or city. See StartBaseQRF for the mode argument.
+	//! \param[in] town The town being fought over.
+	//! \param[in] mode STANDARD for a player-initiated uprising; COUNTER_ATTACK for a silent siege.
+	void StartTownQRF(OVT_TownData town, OVT_EQRFMode mode = OVT_EQRFMode.STANDARD)
 	{
 		if(m_CurrentQRF) return;
 
 		int townID = OVT_Global.GetTowns().GetTownID(town);
 
 		m_CurrentQRF = SpawnQRFController(town.location);
-		
+		m_CurrentQRF.m_eMode = mode;
+
 		// Find the town controller to get QRF parameters
 		OVT_TownManagerComponent townManager = OVT_Global.GetTowns();
 		EntityID townControllerID;
@@ -956,14 +1487,123 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_vQRFLocation = town.location;
 		m_iCurrentQRFTown = townID;
 
-		string type = "Village";
-		if(town.size == 2) type = "Town";
-		if(town.size == 3) type = "City";
-		OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
-		OVT_Global.GetNotify().SendExternalNotifications(type + "Battle", OVT_Global.GetTowns().GetTownName(townID));
+		// Before anyone can look at the panel - see ResetQRFScore.
+		ResetQRFScore();
+
+		// A standard battle is announced the instant it starts. A siege says nothing until RevealQRF().
+		m_bQRFRevealed = false;
+		if(mode == OVT_EQRFMode.STANDARD)
+		{
+			m_bQRFRevealed = true;
+
+			string type = "Village";
+			if(town.size == 2) type = "Town";
+			if(town.size == 3) type = "City";
+			OVT_Global.GetNotify().SendTextNotification(type + "Battle", -1, OVT_Global.GetTowns().GetTownName(townID));
+			OVT_Global.GetNotify().SendExternalNotifications(type + "Battle", OVT_Global.GetTowns().GetTownName(townID));
+		}
 
 		Rpc(RpcDo_SetQRFTown, m_iCurrentQRFTown);
 		Rpc(RpcDo_SetQRFActive, m_vQRFLocation);
+		Rpc(RpcDo_SetQRFRevealed, m_bQRFRevealed);
+
+		// Town-local suppression (D6): only THIS town's ambient crowd goes away.
+		//
+		// ⚠ THIS IS THE FIRST HALF OF A PAIRED TRANSITION - OnQRFFinishedTown fires the matching -1.
+		// In counter-attack mode it moves to the BATTLE transition (OnQRFEngaged), because emptying the
+		// target town of civilians half an hour before the resistance is told anything is the loudest
+		// possible tell. The pairing survives BY CONSTRUCTION: a siege cannot resolve without passing
+		// through BATTLE (see OVT_QRFControllerComponent.EnterBattle), and nothing may ever introduce a
+		// path that lets it.
+		if(mode == OVT_EQRFMode.STANDARD)
+			m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
+
+		// ⚠ UNLIKE m_OnQRFTownChanged above, THIS FIRES FOR BOTH MODES (C9) - after the mode is
+		// configured and Start() has run.
+		m_OnBattleStarted.Invoke(m_vQRFLocation);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Is the current battle actually being FOUGHT, as opposed to merely existing? (D15)
+	//!
+	//! The three server-side world-suppression gates - the occupying economy tick, deployment
+	//! evaluation and the objective town's civilian crowd - all ask this rather than `m_CurrentQRF`,
+	//! so that a silent siege leaves the world running until its assault begins.
+	//!
+	//! ⚠ SERVER-ONLY. m_CurrentQRF is never set on a client; a client asking this always gets false,
+	//! which is why the client-facing rules are on m_bQRFRevealed instead.
+	//!
+	//! ⚠ TRUE FROM CREATION FOR A STANDARD BATTLE, so nothing about a player-initiated battle changes.
+	//! \return True while shots are being fired over the objective.
+	bool IsQRFEngaged()
+	{
+		if(!m_CurrentQRF) return false;
+
+		return m_CurrentQRF.IsEngaged();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Tells the resistance that a counter-attack has surrounded one of their places.
+	//!
+	//! Called by the battle controller at the SILENT_DEPLOY -> MUSTER transition, once, when the last
+	//! group is on the ground. Flips m_bQRFRevealed - which is what turns the HUD panel, the map circle
+	//! and the travel/respawn restrictions on - and sends the notification the siege has been holding.
+	//!
+	//! ⚠ IDEMPOTENT AND SELF-GUARDING. A standard battle is already revealed and this is a no-op for
+	//! it, so a future caller cannot accidentally send a counter-attack notification for a player's own
+	//! battle.
+	void RevealQRF()
+	{
+		if(!m_CurrentQRF) return;
+		if(m_bQRFRevealed) return;
+
+		m_bQRFRevealed = true;
+		Rpc(RpcDo_SetQRFRevealed, true);
+
+		// ⚠ WHICH KIND OF BATTLE THIS IS COMES OFF THE **INDICES**, NOT OFF m_CurrentQRFBase /
+		// m_CurrentQRFTown. Those two object handles are set by the starters and are NEVER CLEARED -
+		// neither finish handler touches them, only the indices beside them are reset to -1. Reading
+		// the handles would make a base siege announce the name of whatever town was fought over last,
+		// which is a confident lie about where the enemy is.
+		//
+		// Cities use the town tag; villages are never counter-attack objectives (the objective director
+		// only ever selects a town or a base), so there is no size branch here.
+		if(m_iCurrentQRFTown > -1)
+		{
+			string townName = OVT_Global.GetTowns().GetTownName(m_iCurrentQRFTown);
+			OVT_Global.GetNotify().SendTextNotification("CounterAttackTown", -1, townName);
+			OVT_Global.GetNotify().SendExternalNotifications("CounterAttackTown", townName);
+
+			Print("[Overthrow] Counter-attack revealed at town " + townName);
+			return;
+		}
+
+		// The handle is still what carries the base's NAME, so it is read - but only behind the index,
+		// and only when it is actually there.
+		if(m_iCurrentQRFBase > -1 && m_CurrentQRFBase)
+		{
+			OVT_Global.GetNotify().SendTextNotification("CounterAttackBase", -1, m_CurrentQRFBase.m_sName);
+			OVT_Global.GetNotify().SendExternalNotifications("CounterAttackBase", m_CurrentQRFBase.m_sName);
+
+			Print("[Overthrow] Counter-attack revealed at base " + m_CurrentQRFBase.m_sName);
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The world stops living around the objective: the battle controller calls this at the MUSTER ->
+	//! BATTLE transition of a counter-attack siege.
+	//!
+	//! The economy tick and the deployment evaluator need nothing - they poll IsQRFEngaged() and pick
+	//! the change up on their own next tick. The civilian crowd is a TRANSITION rather than a poll, so
+	//! it has to be pushed, and this is the first half of the pair StartTownQRF fires for a standard
+	//! battle.
+	//!
+	//! ⚠ COUNTER-ATTACK ONLY. A standard battle has already invoked this in StartTownQRF and must never
+	//! reach here, or a town would be announced twice.
+	void OnQRFEngaged()
+	{
+		if(m_iCurrentQRFTown > -1)
+			m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
 	void OnQRFFinishedBase()
@@ -977,12 +1617,13 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF = null;
 
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
 	}
-	
+
 	void ChangeBaseControl(OVT_BaseControllerComponent base, int newFactionIndex)
 	{
 		string townName = OVT_Global.GetTowns().GetTownName(base.GetOwner().GetOrigin());
@@ -1044,10 +1685,16 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_CurrentQRF = null;
 
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 
 		Rpc(RpcDo_SetQRFInactive);
+
+		// No town is under attack any more - whatever suppressed itself for this battle comes back.
+		// The SECOND HALF of the paired transition; the first is in StartTownQRF for a standard battle
+		// and in OnQRFEngaged for a counter-attack siege.
+		m_OnQRFTownChanged.Invoke(m_iCurrentQRFTown);
 	}
 
 	void WinBattle()
@@ -1071,6 +1718,14 @@ class OVT_OccupyingFactionManager: OVT_Component
 		data.id = m_Bases.Count();
 		data.location = ent.GetOrigin();
 		data.faction = m_Config.GetOccupyingFactionIndex();
+
+		// COPIED AT DISCOVERY, not looked up on demand. The objective candidate set is rebuilt every
+		// director tick and reads this once per base per round; resolving the marker entity each time
+		// would put a FindEntityByID in that loop for a value that cannot change while the world is
+		// loaded. FilterBaseEntities has already proven the component is there.
+		OVT_BaseControllerComponent controller = OVT_BaseControllerComponent.Cast(ent.FindComponent(OVT_BaseControllerComponent));
+		if(controller)
+			data.landIsolated = controller.m_bLandIsolated;
 
 		m_Bases.Insert(data);
 		return true;
@@ -1112,6 +1767,39 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
+	//! HOW FAR A KNOWN ENEMY TARGET PROJECTS THREAT, in metres.
+	//!
+	//! ⚠ WIDENED 1000 -> 2500 ON 2026-08-20, and the reason is that this score became load-bearing that
+	//! day. It used to be added to the global campaign threat (~420) before anything read it, so its
+	//! range and its weights barely mattered - the sum was dominated by the constant. Now it IS the
+	//! deployment evaluator's entire notion of where danger is, and at 1 km a base the resistance had
+	//! taken projected nothing at all onto the next base along, or onto the towns between them. The
+	//! occupying faction could not see its own frontline.
+	static const float KNOWN_TARGET_THREAT_RANGE = 2500;
+
+	//! WHAT EACH KIND OF ENEMY HOLDING IS WORTH at zero distance, falling off linearly to nothing at
+	//! KNOWN_TARGET_THREAT_RANGE.
+	//!
+	//! ⚠ THESE WERE 10 / 5 / 5 / 1 AND ARE NOW MUCH LARGER, deliberately and for the same reason as the
+	//! range. Against a ~420 constant they were rounding error; against nothing but each other and the
+	//! town terms they are the signal. The author's own list of what should count - "support, radio
+	//! towers and captured bases" - is exactly what these encode, with support already handled by the
+	//! town loop below.
+	//!
+	//! THE ORDER IS THE POINT, not the absolute numbers: a base the resistance has TAKEN is the most
+	//! threatening thing on the map to the faction that lost it, a radio tower it cannot broadcast from
+	//! is next, then a camp, then a warehouse. Tune the ratios before tuning the magnitudes.
+	static const float THREAT_WEIGHT_ENEMY_BASE = 40;
+	static const float THREAT_WEIGHT_ENEMY_TOWER = 25;
+	static const float THREAT_WEIGHT_ENEMY_FOB = 20;
+	static const float THREAT_WEIGHT_ENEMY_CAMP = 20;
+	static const float THREAT_WEIGHT_ENEMY_WAREHOUSE = 5;
+
+	//! How close two vehicle losses have to be to count as the SAME incident, in metres (T6.1). Loose
+	//! enough that a convoy wiped out along one stretch of road becomes one known target, not one wreck
+	//! at a time - deduplicated against GetNearestKnownTarget(), never against an exact position match.
+	static const float VEHICLE_LOSS_DEDUP_RADIUS_M = 200;
+
 	int GetThreatByLocation(vector pos)
 	{
 		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
@@ -1124,24 +1812,32 @@ class OVT_OccupyingFactionManager: OVT_Component
 		foreach(OVT_TargetData target : m_aKnownTargets)
 		{
 			float distance = vector.Distance(target.location, pos);
-			if(distance < 1000)
+			if(distance < KNOWN_TARGET_THREAT_RANGE)
 			{
-				float distanceFactor = 1.0 - (distance / 1000);
+				float distanceFactor = 1.0 - (distance / KNOWN_TARGET_THREAT_RANGE);
 				if(target.type == OVT_TargetType.BASE)
 				{
-					score += (int)Math.Round(10 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_BASE * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.BROADCAST_TOWER)
 				{
-					score += (int)Math.Round(5 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_TOWER * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.FOB)
 				{
-					score += (int)Math.Round(5 * distanceFactor);
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_FOB * distanceFactor);
+				}
+				// ⚠ CAMP WAS SCORED AT NOTHING UNTIL 2026-08-20, and it is not a new target type -
+				// UpdateKnownTargets() has always inserted one for every resistance camp it knows about,
+				// and this loop simply had no branch for it. A resistance camp contributed exactly zero
+				// to how dangerous the occupying faction considered the ground around it.
+				if(target.type == OVT_TargetType.CAMP)
+				{
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_CAMP * distanceFactor);
 				}
 				if(target.type == OVT_TargetType.WAREHOUSE)
 				{
-					score += 1;
+					score += (int)Math.Round(THREAT_WEIGHT_ENEMY_WAREHOUSE * distanceFactor);
 				}
 			}
 		}
@@ -1171,6 +1867,44 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	int GetThreatLevel() {return m_iThreat;}
 
+	//------------------------------------------------------------------------------------------------
+	//! Current campaign threat at full precision.
+	//! m_iThreat is a float; GetThreatLevel() declares int and therefore TRUNCATES, showing 3 where
+	//! the campaign actually holds 3.87. Use this accessor anywhere the fractional part matters.
+	//! \return The threat value, unrounded.
+	float GetThreatFloat() {return m_iThreat;}
+
+	//------------------------------------------------------------------------------------------------
+	//! CAN THIS FACTION PUT A LADDER VEHICLE ON THE ROAD AT ALL, at the threat it has right now?
+	//!
+	//! Every mounted doctrine carries its crew and NOTHING ELSE, so a dispatch made below the bottom
+	//! rung does not degrade into a smaller convoy - it marches three crewmen across the map on foot.
+	//! Asked with an UNBOUNDED budget: this is "has the campaign escalated far enough for the ladder to
+	//! answer anything", not "can this config afford what it answered", which each module still asks
+	//! for itself against its own m_iTruckCostOverride.
+	//! \param[in] role The ladder role, as authored on the faction's vehicle registry.
+	//! \return True when at least one rung is unlocked.
+	bool CanFieldLadderVehicle(string role = "armed")
+	{
+		OVT_OverthrowConfigComponent gameConfig = OVT_Global.GetConfig();
+		if (!gameConfig)
+			return false;
+
+		OVT_Faction faction = gameConfig.GetOccupyingFaction();
+		if (!faction)
+			return false;
+
+		faction.InitializeVehicleRegistry();
+
+		float scale = 1;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (difficulty)
+			scale = difficulty.vehicleThresholdScale;
+
+		OVT_FactionVehicleEntry entry;
+		return faction.ResolveVehicleForRole(role, GetThreatFloat(), scale, -1, entry);
+	}
+
 	int GetBaseThreat(OVT_BaseData base)
 	{
 		return GetThreatByLocation(base.location);
@@ -1178,9 +1912,6 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 	void CheckUpdate()
 	{
-		m_bCounterAttackTimeout--;
-		if(m_bCounterAttackTimeout < 0) m_bCounterAttackTimeout = 0;
-		
 		if(!m_Time)
 		{
 			ChimeraWorld world = GetOwner().GetWorld();
@@ -1209,7 +1940,11 @@ class OVT_OccupyingFactionManager: OVT_Component
 		TimeContainer time = m_Time.GetTime();
 
 		//We dont get/spend resources or reduce threat during a QRF
-		if(m_CurrentQRF) return;
+		//
+		// ⚠ ENGAGED, NOT MERELY EXISTING (D15). A counter-attack siege exists for up to 31 minutes
+		// before it fights, and stalling the faction's whole income for half an hour before the
+		// resistance has been told anything would be both a dead world and a tell.
+		if(IsQRFEngaged()) return;
 
 		//Every 6 hrs get more resources
 		if((time.m_iHours == 0
@@ -1225,67 +1960,53 @@ class OVT_OccupyingFactionManager: OVT_Component
 
 			GainAndSpendResources();
 		}
-		//If we have a surplus of resources, try to take a random base back
-		float rand = s_AIRandomGenerator.RandFloat01();
-		if(time.m_iMinutes == 0 && m_iResources > 2000 && m_bCounterAttackTimeout == 0 && rand > 0.9)
-		{
-			Print("[Overthrow.OccupyingFactionManager] Surplus of resources, attempting counter attack");
-			OVT_BaseData randomBase = m_Bases[s_AIRandomGenerator.RandInt(0,m_Bases.Count())];
-			if(!randomBase.IsOccupyingFaction())
-			{
-				OVT_BaseControllerComponent base = GetBase(randomBase.entId);
-				StartBaseQRF(base);
-				int timeout = Math.RandomIntInclusive(m_Config.m_Difficulty.counterAttackTimeout - 20, m_Config.m_Difficulty.counterAttackTimeout + 20);
-				m_bCounterAttackTimeout = timeout; //Hold off counter attacks for a little
-				return;
-			}
-		}
 
-		//Every 15 mins reduce threat and check if we wanna start a battle for a town
+		//Every hour, pay one slice of what the pool is still owed. The minute is jittered, so the gate
+		//is ">= the rolled minute" rather than "== it": a tick lost to a QRF freeze or a long frame
+		//must delay the drip inside its hour, never cancel it.
+		if(m_iPendingDefenseTransfer > 0
+			&&
+			m_iHourDripped != time.m_iHours
+			&&
+			time.m_iMinutes >= m_iDripMinute)
+		{
+			m_iHourDripped = time.m_iHours;
+
+			DripDefenseShare();
+		}
+		//Every 15 mins reduce threat
 		if(time.m_iMinutes == 0
 			|| time.m_iMinutes == 15
 			|| time.m_iMinutes == 30
 			|| time.m_iMinutes == 45)
 		{
-			//THE LATCH IS ON THE DECAY ONLY, deliberately NOT on the town-uprising scan below it: the
-			//scan is world-side and PlayerInRange-gated rather than a payload owed once per boundary,
-			//so it keeps exactly the behaviour it has always had. Only the accounting is latched.
+			//THE LATCH IS ON THE DECAY: the payload is owed exactly once per quarter-hour boundary,
+			//and a second visit to the same boundary (a longer tick, a sleep replay) must not pay twice.
 			if(m_iMinuteDecayedThreat != time.m_iMinutes)
 			{
 				m_iMinuteDecayedThreat = time.m_iMinutes;
 
 				DecayThreatStep();
 			}
-
-			int playerFaction = m_Config.GetPlayerFactionIndex();
-			int occupyingFaction = m_Config.GetOccupyingFactionIndex();
-
-			foreach(OVT_TownData town : OVT_Global.GetTowns().m_Towns)
-			{
-				if(town.size == 1) continue;
-				if(!OVT_Global.PlayerInRange(town.location, 300)) continue;
-
-				// Uprisings in occupied towns are player-initiated via the town flag action
-				if(town.IsOccupyingFaction()) continue;
-
-				if(town.SupportPercentage() < 25)
-				{
-					StartTownQRF(town);
-					break;
-				}
-			}
 		}
+
+		// Every tick: the hunter-killer dispatcher (T6.4). No latch of its own - its four gates are
+		// idempotent and self-healing (see the method header), so asking every 60 s is the whole design.
+		TickHunterKiller();
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! One six-hour resource boundary: gain, spend across the bases, update specops, report.
+	//! One six-hour resource boundary: gain, move the defense share into the deployment pool, report.
 	//!
-	//! Lifted verbatim out of CheckUpdate (2026-08-19 review fix) because there are now THREE callers -
-	//! the live tick, the sleep replay's chronological loop, and the replay's start-boundary flush -
-	//! and implementation.md 7 is explicit that a second implementation of a payout is a defect by
-	//! construction. Phase 1 had already copied these four lines once; a third copy is what this
-	//! extraction avoids. Nothing in the body was rewritten: it is a move, exactly as
-	//! SpendResourcesOnBases and DecayThreatStep were.
+	//! Lifted out of CheckUpdate (resistance/sleep) because there are now THREE callers - the live
+	//! tick, the sleep replay's chronological loop, and the replay's start-boundary flush - and a
+	//! second implementation of a payout is a defect by construction.
+	//!
+	//! WHAT THIS IS NOT ANY MORE. On main this method also called SpendResourcesOnBases() and
+	//! UpdateSpecops(). Both were deleted by virtualization/base-defense-migration: the per-base
+	//! spend became TransferDefenseShareToPool below, and specops left with the legacy spender. The
+	//! sleep replay therefore replays exactly what the live tick now does - which is the whole point
+	//! of routing both through this one method.
 	//!
 	//! THE LATCH IS NOT SET HERE. Each caller owns its own idea of "which boundary was that", so each
 	//! caller writes m_iHourGainedResources itself; burying the write in here would leave the replay
@@ -1294,78 +2015,52 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		int newResources = GainResources();
 
-		SpendResourcesOnBases(newResources);
-
-		UpdateSpecops();
-		Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Spends a resource gain across the occupied bases, worst-threatened first.
-	//!
-	//! Lifted verbatim out of CheckUpdate so the sleep time-skip replay can run the SAME code the live
-	//! tick runs (implementation.md D1: a second implementation of a payout is a defect by
-	//! construction). Nothing in the body was rewritten - the extraction is a move.
-	//!
-	//! NAMED SpendResourcesOnBases, not SpendResources, because OVT_BaseControllerComponent.
-	//! SpendResources already exists and is called from inside this very loop; two identically named
-	//! methods one line apart would be a reading trap.
-	//! \param[in] newResources The gain to allocate. 80% of it is offered to the bases; the remainder
-	//! stays in reserve.
-	protected void SpendResourcesOnBases(int newResources)
-	{
-		int toSpend = Math.Floor((float)newResources * 0.8);
+		// KEPT, AND NOT A SPECOPS LEFTOVER. m_aKnownTargets feeds GetThreatByLocation(), which is
+		// what the DEPLOYMENT EVALUATOR sorts its candidates by and what the player's map threat
+		// overlay reads. Dropping this call would freeze both at whatever PostGameStart() computed.
 		UpdateKnownTargets();
 
-		//sort bases by threat score
-		array<OVT_BaseData> sortedBases = new array<OVT_BaseData>;
-		foreach(OVT_BaseData data : m_Bases)
-		{
-			if(!data.IsOccupyingFaction()) continue;
-			data.sortBy = GetBaseThreat(data);
-			sortedBases.Insert(data);
-		}
-		sortedBases.Sort(true);
+		// THE ONE DEFENSE SPEND PATH. 80 % of every tick moves into the deployment pool, which is
+		// where base defense, town patrols, tower garrisons and vehicle patrols are ALL bought from.
+		//
+		// WHAT STOOD HERE WAS A SECOND SPENDER: bases sorted by threat, an EVEN per-base split, a
+		// "skip a base a player is standing near" rule, and the base controller's legacy spender
+		// turning each budget into men through the base-upgrade classes. Every one of those concerns
+		// now belongs to the deployment framework, which already does them better:
+		//   - threat ordering    -> EvaluateFactionDeployments() sorts candidates by threat, with
+		//                           jitter, instead of an even split that only decided serving order;
+		//   - the proximity skip -> OVT_NoPlayersNearbyConditionDeploymentModule, as a CREATION gate;
+		//   - the 1..19 priority sweep -> each config's m_iPriority and the escalation selection.
+		//
+		// The other 20 % stays in m_iResources, which remains the QRF sizing reserve. That reserve is
+		// now spent deliberately rather than by dice: OVT_ObjectiveDirectorComponent gates its
+		// counter-attack on objectiveQRFResourceGate (occupying/counter-attacks Phase 1 retired the
+		// hourly random roll that used to draw on it).
+		// ARMED, NOT PAID (2026-08-22). This used to be TransferDefenseShareToPool(newResources) and
+		// the whole 80 % crossed here in one statement. It is now a debt the reserve owes the pool,
+		// paid one slice an hour by DripDefenseShare(); see the drip block's header for why the
+		// TRANSFER moved and the income did not.
+		ArmDefenseShareDrip(newResources);
 
-		if(!sortedBases.IsEmpty())
-		{
-			int perBase = Math.Floor((float)toSpend / sortedBases.Count());
-
-			foreach(OVT_BaseData data : sortedBases)
-			{
-				if(toSpend <= 0) break;
-
-				OVT_BaseControllerComponent base = GetBase(data.entId);
-
-				//Dont spawn stuff if a player is watching lol
-				if(OVT_Global.PlayerInRange(data.location, OVT_Global.GetConfig().m_Difficulty.baseCloseRange+100)) continue;
-
-				int budget = perBase;
-				if(budget > toSpend) budget = toSpend;
-				if(budget > m_iResources) budget = m_iResources;
-				if(budget <= 0) break;
-
-				int spent = base.SpendResources(budget, m_iThreat);
-				m_iResources -= spent;
-				toSpend -= spent;
-
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
-			}
-		}
+		Print("[Overthrow.OccupyingFactionManager] Reserve Resources: " + m_iResources.ToString());
 	}
 
 	//------------------------------------------------------------------------------------------------
 	//! One quarter-hour step of threat decay.
 	//!
-	//! Lifted verbatim out of CheckUpdate's fifteen-minute branch so the sleep time-skip replay can
-	//! run the same decay the live tick runs. ONLY the decay moved: the town-uprising scan that
-	//! follows it in CheckUpdate stayed behind deliberately (see HandleTimeSkip).
+	//! Lifted out of CheckUpdate's fifteen-minute branch so the sleep time-skip replay can run the
+	//! same decay the live tick runs. ONLY the decay moved: the town-uprising scan that follows it in
+	//! CheckUpdate stayed behind deliberately (see HandleTimeSkip).
 	protected void DecayThreatStep()
 	{
-		int threatReduce = Math.Ceil((float)m_iThreat * OVT_Global.GetDifficulty().threatReductionFactor);
+		// OVT_Global.GetDifficulty() is null-guarded now (it returns null instead of a VME before
+		// the config exists), so the dereference has to be guarded here too. No difficulty means no
+		// threat reduction this step - fail closed rather than crash the campaign tick.
+		int threatReduce = 0;
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if(difficulty)
+			threatReduce = Math.Ceil((float)m_iThreat * difficulty.threatReductionFactor);
+
 		m_iThreat -= threatReduce;
 		if(m_iThreat < 0) m_iThreat = 0;
 
@@ -1433,9 +2128,9 @@ class OVT_OccupyingFactionManager: OVT_Component
 		int startAbsoluteMinute = (startHour * OVT_SleepSchedule.MINUTES_PER_HOUR) + startMinute;
 
 		//1. THE OPEN START, CLOSED. The economy manager settles this by calling its own CheckUpdate()
-		//   once (implementation.md D3), which is not available here - this CheckUpdate also rolls the
-		//   counter-attack, scans towns for uprisings and returns early on a QRF, none of which the
-		//   replay is allowed to do. So the two boundaries that CAN be owed exactly at the start are
+		//   once (implementation.md D3), which is not available here - this CheckUpdate returns early
+		//   on a live QRF, which the replay is not allowed to do. So the two boundaries that CAN be
+		//   owed exactly at the start are
 		//   flushed explicitly instead, each behind its own latch so a live tick that already took it
 		//   is not paid twice. Without this a sleep beginning exactly at 12:00 loses the 12:00 payday
 		//   the live tick still owed (Q2), and one beginning on a quarter hour loses a decay step.
@@ -1462,10 +2157,21 @@ class OVT_OccupyingFactionManager: OVT_Component
 		{
 			int stepMinute = OVT_SleepSchedule.StepMinuteAt(startHour, startMinute, OVT_SleepSchedule.THREAT_STEP_MINUTES, i);
 
-			//Same order as the live tick: gain, spend, specops, then the decay for that same step.
+			//Same order as the live tick: gain and ARM the defense share, drip whatever this hour
+			//owes, then the decay for that same step.
 			if(OVT_SleepSchedule.IsIntervalBoundary(stepMinute, OVT_SleepSchedule.INCOME_INTERVAL_HOURS))
 			{
 				GainAndSpendResources();
+			}
+
+			//THE DRIP IS REPLAYED ON THE HOUR, WITHOUT ITS JITTER. The rolled minute decides WHEN
+			//inside an hour a live drip lands, which is a feel choice with no bearing on the totals; a
+			//replay that is fast-forwarding whole hours has no "inside the hour" to land in. What the
+			//replay owes is the same NUMBER of drips a played window would have paid, which is one per
+			//hour boundary crossed.
+			if(OVT_SleepSchedule.IsIntervalBoundary(stepMinute, OVT_BaseDefenseConversion.DRIP_INTERVAL_HOURS))
+			{
+				DripDefenseShare();
 			}
 
 			DecayThreatStep();
@@ -1484,34 +2190,168 @@ class OVT_OccupyingFactionManager: OVT_Component
 		//   value behind, exactly as AssertHourLatches leaves the stock latch at hour 14.
 		m_iHourGainedResources = OVT_SleepSchedule.LandingHour(startHour, hours);
 		m_iMinuteDecayedThreat = startMinute;
+		m_iHourDripped = OVT_SleepSchedule.LandingHour(startHour, hours);
 	}
 
-	protected void UpdateSpecops()
+	//------------------------------------------------------------------------------------------------
+	//! Moves this tick's defense share out of the occupying faction's reserve and into its deployment
+	//! resource pool.
+	//!
+	//! THE CONSERVED-TOTAL IDENTITY, AND IT IS UNCONDITIONAL: the pool rises by EXACTLY what the reserve
+	//! falls by. Nothing is created, nothing is destroyed, and after this phase there is exactly one
+	//! code path that credits the pool (AllocateDeploymentResources) and exactly one that spends it on
+	//! defense (the deployment evaluator).
+	//!
+	//! THE CLAMP TO THE RESERVE IS PARITY, NOT CAUTION. The per-base loop this replaced clamped every
+	//! base's budget the same way (`if(budget > m_iResources) budget = m_iResources;`). It is what makes
+	//! the identity hold in every state, including the degenerate ones a test can construct: the reserve
+	//! can never go negative and the pool can never be handed money that did not exist.
+	//!
+	//! PUBLIC, because the identity is only assertable as a live claim by driving it.
+	//! GainAndSpendResources() is its only production caller - which since resistance/sleep means the
+	//! live tick AND the sleep replay reach it through the same one line.
+	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
+	void TransferDefenseShareToPool(int newResources)
 	{
-		if(m_iResources > OVT_Global.GetConfig().m_Difficulty.maxQRF)
-		{
-			//Do Specops
-			foreach(OVT_TargetData target : m_aKnownTargets)
-			{
-				if(target.completed) continue;
-				OVT_BaseData data = GetNearestOccupiedBase(target.location);
-				if(!data) break;
-				OVT_BaseControllerComponent base = GetBase(data.entId);
-				OVT_BaseUpgradeSpecops upgrade = OVT_BaseUpgradeSpecops.Cast(base.FindUpgrade("OVT_BaseUpgradeSpecops"));
-				if(upgrade && !upgrade.HasTarget())
-				{
-					m_iResources -= upgrade.SetTarget(target);
-				}
+		TransferToPool(OVT_BaseDefenseConversion.DefenseShare(newResources));
+	}
 
-				if(m_iResources <= 0) {
-					m_iResources = 0;
-					break;
-				}
-				if(m_iResources < OVT_Global.GetConfig().m_Difficulty.maxQRF) {
-					break;
-				}
-			}
+	//------------------------------------------------------------------------------------------------
+	//! Moves an EXACT amount out of the reserve and into the deployment pool, clamped to the reserve.
+	//!
+	//! The conserved-total identity described above lives here now - both the six-hour share and every
+	//! hourly drip reach the pool through this one statement pair, so there is still exactly one place
+	//! where the reserve falls and the pool rises, and it is still by the same number.
+	//! \param[in] amount The amount to move. Non-positive, or a reserve of zero, moves nothing.
+	//! \return What actually moved, which is less than amount only when the reserve was short.
+	int TransferToPool(int amount)
+	{
+		if(amount > m_iResources) amount = m_iResources;
+		if(amount <= 0) return 0;
+
+		AllocateDeploymentResources(amount);
+		m_iResources -= amount;
+
+		return amount;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Opens a new drip window: settles whatever the last one still owed, then arms this tick's share.
+	//!
+	//! THE FLUSH IS FIRST AND IS UNCONDITIONAL. A window can lose drips - CheckUpdate returns early
+	//! for the whole of an engaged QRF, a campaign can be loaded mid-window with the hour latch armed,
+	//! and a sleep replay only drips on the boundaries it walks. Paying the remainder here is what
+	//! makes every one of those cases cost TIMING and never MONEY: over any two paydays the pool has
+	//! received exactly the defense share of everything the reserve was paid, which is the same
+	//! invariant the single transfer guaranteed instant-by-instant.
+	//! \param[in] newResources The resources gained this tick, as GainResources() reported them.
+	void ArmDefenseShareDrip(int newResources)
+	{
+		FlushDefenseShareDrip();
+
+		// ⚠ AFTER THE FLUSH, NEVER BEFORE IT. The flush pays the previous window's remainder out of the
+		// reserve, so a reserve read first would count money that is already owed to the pool as surplus
+		// and hand it over twice.
+		int reserveTarget = ResolveReserveTarget();
+
+		m_iPendingDefenseTransfer = OVT_BaseDefenseConversion.PoolTransferForWindow(newResources, m_iResources,
+			reserveTarget, ResolveDeploymentPool());
+
+		m_iDefenseDripsRemaining = OVT_BaseDefenseConversion.DRIP_STEPS;
+
+		RollDripMinute();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE RESERVE THE FACTION ACTUALLY WANTS, above which its income stops feeding the reserve at all.
+	//!
+	//! Without this the reserve is a one-way ratchet: 20 % of every tick goes into it and the only thing
+	//! that ever takes money out is a battle, so a campaign in which the player fights no QRFs
+	//! accumulates a reserve it can never spend while the deployment pool - which buys every garrison,
+	//! patrol and checkpoint the player actually meets - runs dry. Author, 2026-08-23, at 1438 banked on
+	//! Normal against a 750 gate.
+	//! \return The reserve to hold, or 0 when there is no difficulty preset to ask (which restores the
+	//!         unconditional 80/20 split exactly).
+	//------------------------------------------------------------------------------------------------
+	//! What the occupying faction's deployment pool holds right now.
+	//!
+	//! Read at ARM time, once per window, so a pool that drains during the window still receives the
+	//! whole armed transfer - the decision is "was the pool full when this income landed", not a
+	//! per-drip re-test that could strand half a share.
+	//! \return The pool, or 0 when the manager or the faction cannot be resolved.
+	protected int ResolveDeploymentPool()
+	{
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
+
+		if (!deployments || !config)
+			return 0;
+
+		return deployments.GetFactionResources(config.GetOccupyingFactionIndex());
+	}
+
+	protected int ResolveReserveTarget()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return 0;
+
+		return OVT_BaseDefenseConversion.ReserveTarget(difficulty.maxQRF, difficulty.objectiveQRFResourceGate,
+			difficulty.reserveTargetMultiplier);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pays one slice of the current window's debt into the deployment pool.
+	//!
+	//! The drip COUNTER is decremented even when the reserve was too short to pay the slice in full.
+	//! That is what stops a starved campaign accumulating an unpayable debt across windows: the flush
+	//! at the next payday takes one more attempt at whatever is left, and then the arm overwrites it.
+	//! \return What actually reached the pool.
+	int DripDefenseShare()
+	{
+		if(m_iPendingDefenseTransfer <= 0)
+			return 0;
+
+		int amount = OVT_BaseDefenseConversion.DripAmount(m_iPendingDefenseTransfer, m_iDefenseDripsRemaining);
+		int moved = TransferToPool(amount);
+
+		m_iPendingDefenseTransfer -= moved;
+		if(m_iPendingDefenseTransfer < 0) m_iPendingDefenseTransfer = 0;
+
+		m_iDefenseDripsRemaining--;
+		if(m_iDefenseDripsRemaining < 0) m_iDefenseDripsRemaining = 0;
+
+		RollDripMinute();
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pays out everything the current window still owes, in one move, and closes the window.
+	//! \return What actually reached the pool.
+	int FlushDefenseShareDrip()
+	{
+		if(m_iPendingDefenseTransfer <= 0)
+		{
+			m_iPendingDefenseTransfer = 0;
+			m_iDefenseDripsRemaining = 0;
+			return 0;
 		}
+
+		int moved = TransferToPool(m_iPendingDefenseTransfer);
+
+		m_iPendingDefenseTransfer = 0;
+		m_iDefenseDripsRemaining = 0;
+
+		return moved;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Rolls the minute of the hour the next drip fires at. RandInt is max-EXCLUSIVE, so the spread is
+	//! the count of legal minutes and not the last one.
+	protected void RollDripMinute()
+	{
+		m_iDripMinute = Math.RandomInt(0, OVT_BaseDefenseConversion.DRIP_MINUTE_SPREAD);
 	}
 
 	void UpdateKnownTargets()
@@ -1626,6 +2466,191 @@ class OVT_OccupyingFactionManager: OVT_Component
 		return false;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! A vehicle was lost at `position` (occupying/vehicles T6.1) - a mounted force's own hull, or any
+	//! other insertion's transport. Inserted through the SAME PATH every other known-target insert above
+	//! uses (new OVT_TargetData, three fields set, m_aKnownTargets.Insert), so GetThreatByLocation() and
+	//! TickHunterKiller() see it exactly like any other enemy holding.
+	//!
+	//! ⚠ NOT CALLED FROM A DEPLOYMENT ENDING NORMALLY. The one caller
+	//! (OVT_InsertionSpawningDeploymentModule.ReleaseConvoy()) only reaches here when the transport
+	//! itself failed IsTruckOperational() - a deployment collected with an intact vehicle has lost
+	//! nothing and never calls this, even though its own teardown also runs ReleaseConvoy().
+	//!
+	//! TYPED AS CAMP, not a new enum member: OVT_TargetType has no "a vehicle died here" value and this
+	//! feature does not add one (context.md explains why CAMP was the closest existing fit rather than
+	//! widening the enum for one caller).
+	//!
+	//! DEDUPLICATED AGAINST THE NEAREST EXISTING TARGET, not an exact match: two losses along the same
+	//! stretch of road, or a wreck already standing where a base's own known-target insert already
+	//! covers, count as one incident rather than stacking the score at that spot.
+	//! \param[in] position Where the vehicle was lost.
+	void ReportVehicleLoss(vector position)
+	{
+		OVT_TargetData nearest = GetNearestKnownTarget(position);
+		if (nearest && vector.Distance(nearest.location, position) < VEHICLE_LOSS_DEDUP_RADIUS_M)
+			return;
+
+		OVT_TargetData target = new OVT_TargetData();
+		target.location = position;
+		target.type = OVT_TargetType.CAMP;
+		target.order = OVT_OrderType.ATTACK;
+		m_aKnownTargets.Insert(target);
+
+		Print(string.Format("[Overthrow] A vehicle was lost at %1 - the location is now a known target", position.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE HUNTER-KILLER DISPATCHER (T6.4). The deployment evaluator cannot be pointed at a hotspot at
+	//! all (C5 - CollectSeedCandidates and FindDeploymentCandidates only ever produce NAMED-LOCATION
+	//! positions: town / base / port / airfield / radio tower / checkpoint), so this is a deliberate
+	//! caller, exactly like the QRF echelon (T4.3) and the base armour sortie (T5.4/SendSortie) before
+	//! it - CREATE, THEN DEBIT, at this one call site, matching
+	//! OVT_ObjectiveDirectorComponent.CreateObjectiveDeployment (:1225) and SendSortie's own choke point.
+	//!
+	//! FOUR REFUSAL GATES, cheapest first, mirroring CanSendObjectiveDeployment's own ordering rule:
+	//!   1. ONE LIVE SWEEP AT A TIME - m_bHunterKillerActive, self-healing: a sweep that has already been
+	//!      collected or deleted (the entity no longer resolves) clears the flag and this tick may still
+	//!      send a new one.
+	//!   2. A BATTLE IS ENGAGED (IsQRFEngaged()) - the same "we don't spend or drive while shots are
+	//!      being fired over the objective" rule CheckUpdate()'s own early return already applies to
+	//!      everything else this tick does.
+	//!   3. THE BEST KNOWN TARGET'S SCORE IS UNDER THE FLOOR - GetThreatByLocation() asked of the
+	//!      highest-scoring entry in m_aKnownTargets, never a fabricated "average" or a raw count.
+	//!   4. THE DEPLOYMENT POOL CANNOT AFFORD THE CONFIG'S OWN TOTAL COST - read once, through
+	//!      GetTotalResourceCost(), and reused as both the affordability question and the amount debited,
+	//!      so the two numbers can never drift apart.
+	//!
+	//! ⚠ PUBLIC ONLY SO THAT THE INITIALISATION TIER CAN DRIVE ONE - the same note IsFightingFit and
+	//! SendMountedEchelon already carry on the QRF controller. Nothing in the campaign calls this
+	//! directly; production reaches it only from CheckUpdate()'s own 60 s tick.
+	void TickHunterKiller()
+	{
+		if (m_bHunterKillerActive && IsHunterKillerStillLive())
+			return;
+
+		m_bHunterKillerActive = false;
+
+		if (IsQRFEngaged())
+			return;
+
+		// GATE 2b: the sweep IS its vehicle. Below the bottom rung there is nothing to send.
+		if (!CanFieldLadderVehicle())
+			return;
+
+		OVT_TargetData best = PickHunterKillerTarget();
+		if (!best)
+			return;
+
+		int score = GetThreatByLocation(best.location);
+		if (score < HUNTER_KILLER_THREAT_FLOOR)
+			return;
+
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments)
+			return;
+
+		OVT_DeploymentConfig config = deployments.FindConfigByName(HUNTER_KILLER_CONFIG_NAME);
+		if (!config)
+			return;
+
+		OVT_OverthrowConfigComponent gameConfig = OVT_Global.GetConfig();
+		if (!gameConfig)
+			return;
+
+		int factionIndex = gameConfig.GetOccupyingFactionIndex();
+		int cost = config.GetTotalResourceCost();
+
+		if (deployments.GetFactionResources(factionIndex) < cost)
+			return;
+
+		OVT_DeploymentComponent created = deployments.ForceCreateDeployment(config, best.location, factionIndex, cost);
+		if (!created)
+			return;
+
+		// ⚠ THE LINE THE WHOLE ACCOUNTING IDENTITY RESTS ON (G5/Q5) - see the header. Debited only AFTER
+		// a successful create, never before, so a refusal never burns the pool on nothing.
+		deployments.SubtractFactionResources(factionIndex, cost);
+
+		m_HunterKillerDeployment = created.GetOwner().GetID();
+		m_bHunterKillerActive = true;
+
+		Print(string.Format("[Overthrow] Hunter-killer sweep sent to %1 (score %2) for %3 resources",
+			best.location.ToString(), score.ToString(), cost.ToString()), LogLevel.NORMAL);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Whether the sweep this manager thinks is out there still resolves to a real entity - the
+	//! self-healing half of gate 1. A sweep collected by its own behaviour module (T6.2) or torn down by
+	//! anything else leaves nothing for FindEntityByID to find.
+	protected bool IsHunterKillerStillLive()
+	{
+		if (!m_bHunterKillerActive)
+			return false;
+
+		BaseWorld world = GetGame().GetWorld();
+		if (!world)
+			return false;
+
+		return world.FindEntityByID(m_HunterKillerDeployment) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The known target with the highest GetThreatByLocation() score, or null when there are
+	//! none. Ties break to the first found - m_aKnownTargets carries no authored order to break them by.
+	//------------------------------------------------------------------------------------------------
+	//! WHAT AN ARMOURED SWEEP IS ALLOWED TO BE SENT AT.
+	//!
+	//! Bases and forward bases: places the resistance HOLDS, that are worth a fighting vehicle and that
+	//! read as a sensible thing to drive one at.
+	//!
+	//! ⚠ EVERYTHING ELSE IS EXCLUDED BY OMISSION, WHICH IS THE POINT. A radio tower is undefended by
+	//! design and the objective director already has a recapture path for it. A CAMP is a tent - and it
+	//! is also what ReportVehicleLoss() plants at every vehicle wreck, so treating camps as targets
+	//! sends armour to wherever armour last died, which is a feedback loop as much as a wrong answer.
+	//!
+	//! ⚠ TOWNS ARE NOT HERE, and the author's "maybe towns" is deliberately NOT implemented on a guess:
+	//! there is no TOWN member of OVT_TargetType and towns never enter m_aKnownTargets, so adding them
+	//! means feeding the picker from the town manager as well - a different change needing a decision
+	//! about which towns qualify.
+	//! \param[in] type An OVT_TargetType.
+	//! \return True when armour may be sent there.
+	protected bool IsArmourTarget(int type)
+	{
+		return type == OVT_TargetType.BASE || type == OVT_TargetType.FOB;
+	}
+
+	protected OVT_TargetData PickHunterKillerTarget()
+	{
+		OVT_TargetData best;
+		int bestScore = -1;
+
+		foreach (OVT_TargetData target : m_aKnownTargets)
+		{
+			if (!target)
+				continue;
+
+			// 🔴 AN ALLOW-LIST, NOT A DENY-LIST (author, 2026-08-26: "camps shouldnt be targets for armor
+			// either, they should only go to bases, FOBs, maybe towns"). This started as a single
+			// BROADCAST_TOWER exclusion and was already proven too narrow: a target's TYPE is decided by
+			// whichever writer reached that spot first, and ReportVehicleLoss() plants a CAMP wherever an
+			// occupying vehicle dies - so a radio tower the player fought over ended up with a CAMP
+			// beside it and took a BRDM anyway. Naming what armour MAY attack cannot fail that way; a
+			// new target type is simply not a target until somebody adds it here on purpose.
+			if (!IsArmourTarget(target.type))
+				continue;
+
+			int score = GetThreatByLocation(target.location);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = target;
+			}
+		}
+
+		return best;
+	}
+
 	void OnBaseControlChange(OVT_BaseControllerComponent base)
 	{
 		if(m_OnBaseControlChanged) m_OnBaseControlChanged.Invoke(base);
@@ -1635,75 +2660,103 @@ class OVT_OccupyingFactionManager: OVT_Component
 	{
 		Print("[Overthrow.OccupyingFactionManager] Gaining Resources");
 		Print("[Overthrow.OccupyingFactionManager] Current Threat: " + m_iThreat.ToString());
-		float threatFactor = m_iThreat / 1000;
-		if(threatFactor > 4) threatFactor = 4;
-		int newResources = m_Config.m_Difficulty.baseResourcesPerTick + (m_Config.m_Difficulty.resourcesPerTick * threatFactor);
-
 		int numPlayersOnline = GetGame().GetPlayerManager().GetPlayerCount();
 
-		//Scale resources by number of players online
-		if(numPlayersOnline > 32)
-		{
-			newResources *= 6;
-		}else if(numPlayersOnline > 24)
-		{
-			newResources *= 5;
-		}else if(numPlayersOnline > 16)
-		{
-			newResources *= 4;
-		}else if(numPlayersOnline > 8)
-		{
-			newResources *= 3;
-		}else if(numPlayersOnline > 4)
-		{
-			newResources *= 2;
-		}
+		// The arithmetic lives in OVT_GMSchedule so that a read-only consumer (the Game Master state
+		// seam) can predict this tick's amount without calling this method, which accumulates it.
+		int newResources = OVT_GMSchedule.PredictResourceGain(
+			m_Config.m_Difficulty.baseResourcesPerTick,
+			m_Config.m_Difficulty.resourcesPerTick,
+			m_iThreat,
+			numPlayersOnline);
 
 		m_iResources += newResources;
 
 		Print ("[Overthrow.OccupyingFactionManager] Gained Resources: " + newResources.ToString());
-		
-		// Allocate resources to deployment manager if it's running low
-		AllocateDeploymentResourcesIfNeeded(newResources);
+
+		// NOTHING IS ALLOCATED HERE ANY MORE. A conditional drip used to run from this line, topping the
+		// deployment pool up only when it was under 500 AND the reserve was over 1000. That condition
+		// existed for exactly one reason: to ARBITRATE between two spenders, the pool and the per-base
+		// loop that bought base defense directly. There is one spender now, so the arbitration is gone
+		// and CheckUpdate() transfers the defense share unconditionally.
 
 		return newResources;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	// Deployment Manager Resource Allocation
+	//! DEBUG ENTRY POINT - the "/give-resources" admin chat command and nothing else.
+	//!
+	//! IT CREDITS THE RESERVE, NOT THE POOL. This is deliberately NOT a pool credit path: it adds to
+	//! m_iResources exactly the way GainResources() does, and the resources reach the deployment pool
+	//! by the only route they ever take - TransferDefenseShareToPool() on the next resource tick, which
+	//! moves 80 % of the reserve across. AllocateDeploymentResources() still has three callers and must
+	//! not gain a fourth (see its header); calling it from here would break the "resource accounting is
+	//! closed" grep that the deployments feature is checked against.
+	//!
+	//! Server-only by contract - the caller (OVT_AdminCommandsComponent.RpcAsk_GiveResources) is the
+	//! admin gate and the authority check; this method performs neither.
+	//! \param[in] amount Resources to add to the reserve. A non-positive amount is a no-op.
+	//! \return The reserve total after the credit.
+	int DebugCreditReserve(int amount)
+	{
+		if (amount <= 0)
+			return m_iResources;
+
+		m_iResources += amount;
+
+		Print(string.Format("[Overthrow.OccupyingFactionManager] DEBUG: credited %1 to the reserve, reserve is now %2 (reaches the deployment pool on the next resource tick)", amount, m_iResources), LogLevel.NORMAL);
+
+		return m_iResources;
+	}
+
 	//------------------------------------------------------------------------------------------------
+	//! DEBUG ENTRY POINT - the "/give-pool" admin chat command and nothing else.
+	//!
+	//! IT CREDITS THE POOL DIRECTLY, which is the whole point: DebugCreditReserve() above puts money in
+	//! the RESERVE, and the reserve only reaches the pool through the six-hour defense share, one slice
+	//! an hour. This skips that wait. It is the documented fourth caller of
+	//! AllocateDeploymentResources() - see that method's header.
+	//!
+	//! Server-only by contract - the caller (OVT_AdminCommandsComponent.RpcAsk_GivePool) is the admin
+	//! gate and the authority check; this method performs neither.
+	//! \param[in] amount Resources to credit. A non-positive amount is a no-op.
+	void DebugCreditPool(int amount)
+	{
+		if (amount <= 0)
+			return;
+
+		AllocateDeploymentResources(amount);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! THE SINGLE POINT AT WHICH THE OCCUPYING FACTION'S DEPLOYMENT POOL IS CREDITED.
+	//! FOUR callers now, and there must never be a fifth without a reason written down:
+	//!   - SeedOpeningDeploymentResources()  the opening budget, once per new campaign;
+	//!   - TransferDefenseShareToPool()      80 % of every resource tick;
+	//!   - CreditPendingLegacyRefund()       the legacy base-upgrade refund, once per legacy save.
+	//!   - DebugCreditPool()                 the "/give-pool" admin chat command, and nothing else.
+	//!
+	//! ⚠ THE FOURTH CALLER IS A DEBUG AFFORDANCE AND ITS REASON IS THIS (2026-08-24). The pool is what
+	//! every visible thing is bought from, but the only production route into it is the six-hour defense
+	//! share paid one slice an hour - so a tester who wants the faction to DO something waits up to an
+	//! in-game hour per slice with nothing on screen explaining the delay. "/give-resources" credits the
+	//! RESERVE and is therefore subject to exactly that wait. This is the shortcut, it is admin-gated,
+	//! and it is the ONLY caller that may ever be added for a reason of this kind.
+	//!
+	//! Keeping it in one place is what makes "resource accounting is closed" checkable at all: a grep
+	//! for AddFactionResources across the tree answers this method and the deployment framework's own
+	//! refund path, and nothing else.
+	//! \param[in] amount Resources to credit. A non-positive amount is a no-op at the manager.
 	protected void AllocateDeploymentResources(int amount)
 	{
 		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
 		if (!deploymentManager)
 			return;
-			
+
 		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
 		deploymentManager.AddFactionResources(occupyingFactionIndex, amount);
-		
+
 		Print(string.Format("[Overthrow.OccupyingFactionManager] Allocated %1 resources to deployment manager", amount));
-	}
-	
-	//------------------------------------------------------------------------------------------------
-	protected void AllocateDeploymentResourcesIfNeeded(int newResources)
-	{
-		OVT_DeploymentManagerComponent deploymentManager = OVT_Global.GetDeploymentManager();
-		if (!deploymentManager)
-			return;
-			
-		int occupyingFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
-		int deploymentResources = deploymentManager.GetFactionResources(occupyingFactionIndex);
-		
-		// If deployment manager has less than 500 resources and we have surplus
-		if (deploymentResources < 500 && m_iResources > 1000)
-		{
-			int toAllocate = Math.Min(newResources / 2, m_iResources - 1000);
-			if (toAllocate > 0)
-			{
-				AllocateDeploymentResources(toAllocate);
-				m_iResources -= toAllocate;
-			}
-		}
 	}
 
 	void OnAIKilled(IEntity ai, IEntity instigator)
@@ -1746,6 +2799,17 @@ class OVT_OccupyingFactionManager: OVT_Component
 		writer.WriteInt(m_iQRFPoints);
 		writer.WriteInt(m_iQRFTimer);
 		writer.WriteBool(m_bQRFActive);
+
+		// ⚠ APPENDED, AND POSITIONAL LIKE EVERYTHING ELSE HERE. RplLoad reads these in the same order;
+		// the two halves must be edited together or a joining client mis-parses the whole tail.
+		//
+		// ⚠ m_iCurrentQRFBase AND m_iCurrentQRFTown ARE **ALREADY** MISSING FROM THIS PAYLOAD, and they
+		// stay missing: a client that joins mid-battle gets m_bQRFActive and m_vQRFLocation but neither
+		// index, so the map's "don't draw the objective base's own restricted circle" rule reads -1
+		// until the next RpcDo_SetQRFBase/Town, which never comes. That is a PRE-EXISTING defect, not
+		// this feature's, and widening the payload contract beyond the one flag it needs is exactly the
+		// sort of drive-by that makes a wire format unreviewable. Recorded rather than fixed.
+		writer.WriteBool(m_bQRFRevealed);
 
 		return true;
 	}
@@ -1795,6 +2859,8 @@ class OVT_OccupyingFactionManager: OVT_Component
 		if (!reader.ReadInt(m_iQRFPoints)) return false;
 		if (!reader.ReadInt(m_iQRFTimer)) return false;
 		if (!reader.ReadBool(m_bQRFActive)) return false;
+		// Appended with the matching write in RplSave - see the note there.
+		if (!reader.ReadBool(m_bQRFRevealed)) return false;
 
 		return true;
 	}
@@ -1850,10 +2916,27 @@ class OVT_OccupyingFactionManager: OVT_Component
 		m_iQRFTimer = timer;
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Publishes m_bQRFRevealed - whether the resistance has been told about the current battle.
+	//!
+	//! ⚠ A NEW PAIR, NOT A WIDENED ONE, and its arity was DIFFED BY EYE against RpcDo_SetQRFTimer
+	//! immediately above. Rpc() is an untyped variadic prototype: a wrong argument count compiles
+	//! perfectly cleanly and then dies silently at the wire (BUG-090), so the only check that exists is
+	//! this one. `Rpc(RpcDo_SetQRFRevealed, revealed)` is ONE payload argument and
+	//! `RpcDo_SetQRFRevealed(bool)` takes ONE. There are three send sites: both battle starters and
+	//! RevealQRF.
+	//! \param[in] revealed Whether the client should show the battle.
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	protected void RpcDo_SetQRFRevealed(bool revealed)
+	{
+		m_bQRFRevealed = revealed;
+	}
+
 	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
 	protected void RpcDo_SetQRFInactive()
 	{
 		m_bQRFActive = false;
+		m_bQRFRevealed = false;
 		m_iCurrentQRFBase = -1;
 		m_iCurrentQRFTown = -1;
 	}

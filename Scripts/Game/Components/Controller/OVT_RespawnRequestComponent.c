@@ -1,5 +1,5 @@
 [ComponentEditorProps(category: "Overthrow/Components/Controller", description: "Server-authoritative respawn choice for one player")]
-class OVT_RespawnRequestComponentClass : OVT_ComponentClass {};
+class OVT_RespawnRequestComponentClass : OVT_ControllerRequestComponentClass {};
 
 //------------------------------------------------------------------------------------------------
 //! Server-authoritative respawn, on the per-player OVT_OverthrowController entity.
@@ -7,10 +7,11 @@ class OVT_RespawnRequestComponentClass : OVT_ComponentClass {};
 //! Copied from OVT_TravelRequestComponent including its discipline: the RplRcver.Server ask /
 //! RplRcver.Owner result split, ResolveOwningPlayerId, the listen-server short-circuits, and the
 //! arrival/result Print pair that lets a play-test tell "the request never left the client" from
-//! "a rule refused". Project rule (overthrow-controller.md): no new client->server RPCs go on
-//! OVT_PlayerCommsComponent, which is deprecated - map/legacy-retirement deleted four unvalidated
-//! RPCs from it, one of them a two-line unpaid teleport to an arbitrary vector callable by any
-//! client. That defect is the reason this class exists here instead of there.
+//! "a rule refused". Project rule (overthrow-controller.md): every client->server RPC lives on a
+//! controller component like this one; the legacy comms monolith was deleted in Phase 10. Before that,
+//! map/legacy-retirement had already deleted four unvalidated RPCs from it, one of them a two-line
+//! unpaid teleport to an arbitrary vector callable by any client. That defect is the reason this class
+//! exists here instead of there.
 //!
 //! THE RULE BOTH VERBS NOW FOLLOW: a client-sent vector is validated against the server's OWN
 //! enumeration and the move then uses the SERVER's recorded vector. The client names a place; it does
@@ -35,7 +36,7 @@ class OVT_RespawnRequestComponentClass : OVT_ComponentClass {};
 //! server-side from the controller entity this component sits on, and a remote client can only
 //! reach this handler through the controller entity it owns. There is nothing to spoof.
 //------------------------------------------------------------------------------------------------
-class OVT_RespawnRequestComponent : OVT_Component
+class OVT_RespawnRequestComponent : OVT_ControllerRequestComponent
 {
 	//! Fired on the dead player's own machine when the server asks for the respawn screen. No args.
 	//!
@@ -262,40 +263,4 @@ class OVT_RespawnRequestComponent : OVT_Component
 		Rpc(RpcDo_RespawnResult, result);
 	}
 
-	//------------------------------------------------------------------------------------------------
-	//! Which player this controller belongs to, resolved on the SERVER from the controller entity
-	//! this component sits on.
-	//!
-	//! This is the whole anti-spoofing story: a remote client can only reach this handler through the
-	//! controller entity it owns, so the identity comes from the entity, never from the payload (the
-	//! legacy comms component solves the same problem by living on the player's character). The scan
-	//! is over connected players only, which is single digits.
-	//!
-	//! Copied verbatim from OVT_TravelRequestComponent, itself copied from OVT_ShopTransactionComponent
-	//! and OVT_TowerSabotageComponent - now four controller components deep, and a stronger candidate
-	//! than ever for a shared base class. Copied rather than extracted here because introducing that
-	//! base class mid-feature would edit three working server paths for no behavioural gain.
-	//! \return Runtime player id, or -1.
-	protected int ResolveOwningPlayerId()
-	{
-		OVT_OverthrowController owner = OVT_OverthrowController.Cast(GetOwner());
-		if(!owner) return -1;
-
-		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return -1;
-
-		PlayerManager playerManager = GetGame().GetPlayerManager();
-		if(!playerManager) return -1;
-
-		array<int> playerIds = {};
-		playerManager.GetPlayers(playerIds);
-
-		foreach(int playerId : playerIds)
-		{
-			OVT_OverthrowController controller = players.GetController(playerId);
-			if(controller == owner) return playerId;
-		}
-
-		return -1;
-	}
 }

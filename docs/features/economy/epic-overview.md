@@ -1,8 +1,8 @@
 # Economy - Epic Overview
 
 **Epic:** economy
-**Status:** 🟡 In Progress (shop-ux built, pending play-test)
-**Last Updated:** 2026-08-04 08:10
+**Status:** 🟡 In Progress (fuel ✅ complete & play-tested; shop-ux pending play-test)
+**Last Updated:** 2026-08-18 18:30
 
 > **This file is the epic marker.** Its presence in `docs/features/economy/` is what tells every Beast Mode command (and future Web App / Discord clients) that this folder is an **epic**, not a plain feature. Keep it present and keep the required sections below filled in. It is the epic's equivalent of the project's `docs/overview.md`, scoped to this epic. The master `docs/overview.md` tracks this epic as a **single row**; the per-feature detail lives **here**.
 
@@ -24,6 +24,7 @@ The constituent features of this epic, in build order. This is the epic's equiva
 | 2 | shops | 📄 Documented (Retrospective) | — | Physical shop entities, buy/sell UI flow and shop inventory (`OVT_ShopComponent`, ShopMenu) |
 | 3 | real-estate | 📄 Documented (Retrospective) | — | Building ownership, homes and rentals via `OVT_RealEstateManagerComponent` |
 | 4 | shop-ux | 🔍 Ready for Review | 37/37 (100%) | Shop menu rework (issue #145): category tabs, split Buy/Sell modes with player-inventory sell browser, vehicle trunk “Sell All” — built 2026-08-04 (server-authoritative sell on `OVT_ShopTransactionComponent`, legacy `RpcAsk_Sell` deleted, +6 automated cases); human play-test outstanding |
+| 5 | fuel | ✅ Complete (play-test green 2026-08-18) | 35/36 (97%) | Fuel economy on the vanilla support-station stack — built 2026-08-18: static pumps charge per litre delivered (server-side, difficulty knob `fuelPricePerLitre`, stream v4), free truck/jerrycan/depot paths, buildable Fuel Depot (10,000 L industrial tank, starts empty, filled from a fuel truck, level persists), fast context-scoped Fill hold-action on vehicles/cargo tanks/depot (`OVT_FuelRequestComponent`), `OVT_FuelUtils` discovery API for high-command. Committed a765bd12. Only open item: wiki sync (auth-blocked) |
 
 > Reference any feature with the slash form `economy/<feature>` (e.g. `/continue-feature economy/market`). Task counts are pulled from each feature's own `tasks.md` and refreshed by `/update-epic`.
 
@@ -41,6 +42,7 @@ Which features come first, and why. (Retrospective — this is the dependency or
 - market → shops (price/stock/money APIs)
 - market → real-estate (money/price APIs)
 - shops and real-estate are independent of each other.
+- market → fuel (player-money APIs: `GetPlayerMoney`/`PlayerHasMoney`/`TakePlayerMoneyPersistentId`); fuel also depends on `resistance/building` (buildable path) and is consumed by `resistance/high-command` (not yet built — fuel must land first).
 
 ---
 
@@ -74,8 +76,8 @@ Seeded from `/discover-feature` findings (2026-08-02); `/review-epic` will refre
 
 How this epic is represented in the project's master `docs/overview.md` (one row, not its children). Kept in sync by `/update-epic` and `/update-master`.
 
-- **Rollup status:** 🟡 In Progress (3 features documented retrospectively; `shop-ux` built 37/37, pending play-test)
-- **One-line summary for master:** Money, prices, shops and real estate. New: `shop-ux` (issue #145) built — category tabs, Buy/Sell mode split browsing the player's own inventory, vehicle trunk "Sell All", server-authoritative selling (BUG-020's shop half closed, BUG-024 fixed by construction), money formatting/HUD delta ticker + warehouse/real-estate QOL; awaiting human play-test.
+- **Rollup status:** 🟡 In Progress (3 features documented retrospectively; `fuel` 35/36 ✅ complete & play-tested; `shop-ux` 37/37 built, pending play-test)
+- **One-line summary for master:** Money, prices, shops, real estate and fuel. New: `fuel` built 2026-08-18 — static pumps charge per litre delivered (server-authoritative, difficulty-scaled, `CONFIG_STREAM_VERSION` 4), free truck/jerrycan/depot paths preserved, buildable Fuel Depot at captured bases (5000 L, starts empty, filled from a fuel truck, level persists), `OVT_FuelUtils` fuel-source API for high-command, zero new RPCs; **closed 2026-08-18: all play-test items green (SP + MP/JIP), loc re-exported, committed a765bd12; only the wiki sync remains (auth-blocked)**. `shop-ux` still awaiting its play-test.
 
 ---
 

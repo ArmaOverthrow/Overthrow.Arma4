@@ -27,6 +27,18 @@ Vehicle {
      CanAggregate 1
      "Sort Priority" 100
     }
+    OVT_OpenStorageMenuAction "{6A8E2D0000000020}" {
+     ParentContextList {
+      "door_r01" "door_l01" "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2D0000000021}" {
+      Name "#OVT-Storage_Open"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 101
+    }
     OVT_SellVehicleCargoAction "{6A7D5C1E4B93F210}" {
      ParentContextList {
       "door_r01" "door_l01" "door_rear"
@@ -37,7 +49,41 @@ Vehicle {
      VisibilityRange -1
      Duration 0
      CanAggregate 1
-     "Sort Priority" 101
+     "Sort Priority" 102
+    }
+    OVT_TransferAllToStorageAction "{6A8E2D0000000022}" {
+     ParentContextList {
+      "door_r01" "door_l01" "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2D0000000023}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 103
+    }
+    OVT_RenameStorageAction "{6A8E2D0000000024}" {
+     ParentContextList {
+      "door_r01" "door_l01" "door_rear"
+     }
+     UIInfo UIInfo "{6A8E2D0000000025}" {
+      Name "#OVT-Storage_Rename"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 104
+    }
+    OVT_FillFuelAction "{6B4E1F1000000010}" {
+     ParentContextList {
+      "fuel_cap"
+     }
+     UIInfo UIInfo "{6B4E1F1000000011}" {
+      Name "#OVT-FillFuel"
+     }
+     VisibilityRange -1
+     Duration 5
     }
    }
   }

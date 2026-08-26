@@ -5,7 +5,7 @@
 //! used to let the LAST matching entry win. The file is authored most-specific-first (and sorted by
 //! descending cost), so every armed variant was silently overwritten by a broader entry further down:
 //!
-//!   M151A2_M2HB.et      matched "M151A2_M2HB" (25000, illegal) then "M151A2"  (2400, legal)
+//!   M151A2_M2HB.et      matched "M151A2_M2HB" (12500, illegal) then "M151A2"  (2400, legal)
 //!   M1025_armed_M2HB.et matched "M1025_armed" (25998, illegal) then "M998"    (3500, legal)
 //!   UAZ469_PKM.et       matched "UAZ469_PKM"  (25000, illegal) then "UAZ469"  (1500, legal)
 //!
@@ -52,7 +52,7 @@ class OVT_TEST_Init_VehiclePriceSpecificity : SCR_AutotestCaseBase
 
 		// Each subject is a search string from vehiclePrices.conf paired with the cost that entry
 		// carries. All four are armed variants and all four are illegal, i.e. off the civilian shelf.
-		if (!AssertArmed(economy, "M151A2_M2HB", 25000)) return true;
+		if (!AssertArmed(economy, "M151A2_M2HB", 12500)) return true;
 		if (!AssertArmed(economy, "M1025_armed", 25998)) return true;
 		if (!AssertArmed(economy, "UAZ469_PKM", 25000)) return true;
 		if (!AssertArmed(economy, "UAZ469_UK59", 25000)) return true;
@@ -120,6 +120,77 @@ class OVT_TEST_Init_VehiclePriceSpecificity : SCR_AutotestCaseBase
 				return false;
 			}
 		}
+
+		return true;
+	}
+}
+
+
+//------------------------------------------------------------------------------------------------
+//! NO REGISTERED VEHICLE MAY BE SOLD AT THE UNPRICED DEFAULT.
+//!
+//! OVT_VehiclePriceConfig.cost defaults to 50000, so a vehicle that matches NO entry in
+//! vehiclePrices.conf is quietly listed at that price rather than refused. That is not a theoretical
+//! hole: `m_sFind "M1025.et"` was written with the extension to stop it swallowing "M1025_armed",
+//! and it also excluded M1025_MERDC.et, which then sold for 50000 - $40,000 at an owned base, beside
+//! an identical M1025 at $9,600 (reported 2026-08-26).
+//!
+//! ⚠ THE RUNTIME ALREADY KNOWS. BuildResourceDatabase Prints "Default price being set for: ..." on
+//! exactly this condition - the information was there all along, in a log nobody reads. This case is
+//! that Print promoted to a gate.
+//!
+//! ⚠ IT ASSERTS THE PRICE, NOT THE MATCH, because that is what a player sees. A vehicle deliberately
+//! authored at 50000 would trip it; the fix then is to say so with its own entry, which is also the
+//! honest thing for the config to record.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_VehiclePriceHasNoUnpricedFallthrough : SCR_AutotestCaseBase
+{
+	//! OVT_VehiclePriceConfig.cost's [Attribute] default - the value a vehicle gets when nothing matched.
+	static const int UNPRICED_DEFAULT = 50000;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if (!economy)
+		{
+			SetFailure("OVT_Global.GetEconomy() is null");
+			return true;
+		}
+
+		array<ResourceName> all();
+		economy.FindVehicles("", all);
+
+		if (all.IsEmpty())
+		{
+			SetFailure("No vehicles are registered at all - this case would pass vacuously");
+			return true;
+		}
+
+		string offenders = "";
+		int count = 0;
+
+		foreach (ResourceName res : all)
+		{
+			if (economy.GetPrice(economy.GetInventoryId(res)) != UNPRICED_DEFAULT)
+				continue;
+
+			count += 1;
+			if (count <= 5)
+				offenders = offenders + res + " ";
+		}
+
+		if (count > 0)
+		{
+			SetFailure("%1 registered vehicle(s) match no vehiclePrices.conf entry and are on sale at the %2 default: %3",
+				count.ToString(), UNPRICED_DEFAULT.ToString(), offenders);
+			return true;
+		}
+
+		PrintFormat("All %1 registered vehicles are priced by a real config entry, none at the %2 default",
+			all.Count().ToString(), UNPRICED_DEFAULT.ToString());
 
 		return true;
 	}

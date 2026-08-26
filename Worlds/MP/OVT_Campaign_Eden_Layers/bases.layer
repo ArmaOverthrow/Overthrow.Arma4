@@ -7,10 +7,12 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 750
     m_iAttackPreferredDirection 201
     m_iAttackDirectionVariance 55
+    m_fPerimeterRadius 65
+    m_fPerimeterRotation 64
    }
   }
-  coords 7456.763 164.562 4276.977
-  angles 0 -78.33 0
+  coords 7468.14 164.562 4314.692
+  angles 0 -75.757 0
  }
  OVT_Base_StPierre {
   components {
@@ -21,10 +23,24 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 550
     m_iAttackPreferredDirection 266
     m_iAttackDirectionVariance 20
+    m_fPerimeterRadius 85
+    m_fPerimeterRotation 107
+   }
+   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+    m_aVehiclePoints {
+     PointInfo "{65D6B1843FB6C4C5}" {
+      Offset -5.4763 0 0.8134
+      Angles 0 59.6488 0
+     }
+     PointInfo "{65D6B18401CE9B1F}" {
+      Offset 5.0002 0 7.2752
+      Angles 0 58.9367 0
+     }
+    }
    }
   }
-  coords 9296.714 191.08 1143.872
-  angles 0 -44.444 0
+  coords 9294.644 190.828 1142.981
+  angles 0 -51.408 0
  }
  OVT_Base_Lamentin {
   components {
@@ -33,6 +49,7 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMin 450
     m_iAttackPreferredDirection 75
     m_iAttackDirectionVariance 20
+    m_fPerimeterRadius 15
    }
   }
   coords 924.679 2.75 6059.404
@@ -45,9 +62,29 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 725
     m_iAttackPreferredDirection 272
     m_iAttackDirectionVariance 60
+    m_fPerimeterRadius 50
+    m_fPerimeterRotation 79
+   }
+   OVT_SpawnPointComponent "{65D69CEE44BDDBA6}" {
+    m_aPoints {
+     PointInfo "{65D69CEE4985BB3B}" {
+      Offset -0.6048 0 4.0316
+     }
+    }
+    m_aVehiclePoints {
+     PointInfo "{65D6B1843FB6C4C5}" {
+      Offset -4.9998 0 5.3615
+      Angles 0 74.4038 0
+     }
+     PointInfo "{65D6B18401CE9B1F}" {
+      Offset 5 0 5.5612
+      Angles 0 -90.1905 0
+     }
+    }
    }
   }
-  coords 7462.8 7.814 6727.422
+  coords 7457.628 7.814 6730.843
+  angles 0 56.906 0
  }
  OVT_Base_SaintPhillipe {
   components {
@@ -55,9 +92,12 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_sName "#OVT-Base_StPhillipe"
     m_iAttackDistanceMin 350
     m_iAttackDistanceMax 500
+    m_fPerimeterRadius 80
+    m_fPerimeterRotation 38
    }
   }
   coords 5343.506 43.617 10535.197
+  angles 0 -22.173 0
  }
  OVT_Base_Airport {
   components {
@@ -68,6 +108,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMax 700
     m_iAttackPreferredDirection 1
     m_iAttackDirectionVariance 35
+    m_fPerimeterRadius 70
+    m_fPerimeterRotation 48
    }
   }
   coords 4961.688 28.343 11878.047
@@ -78,9 +120,11 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_sName "#OVT-Base_TrainingGrounds"
     m_fStartingResourcesMultiplier 0.8
     m_iAttackPreferredDirection 240
+    m_fPerimeterRadius 140
    }
   }
-  coords 7729.433 13.656 8154.407
+  coords 7731.999 13.656 8152.145
+  angles 0 -48.59 0
  }
  Base_PowerPlant {
   components {
@@ -93,6 +137,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_fStartingResourcesMultiplier 1.5
     m_iAttackPreferredDirection 246
     m_iAttackDirectionVariance 60
+    m_fPerimeterRadius 100
+    m_fPerimeterRotation 48
    }
   }
   Flags 0x403 0
@@ -103,8 +149,10 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
    OVT_BaseControllerComponent "{5982EA25E59CEF15}" {
     m_sName "#OVT-Base_Erquy"
     m_fStartingResourcesMultiplier 0.8
+    m_bLandIsolated 1
     m_iAttackDistanceMax 700
     m_iAttackPreferredDirection 75
+    m_fPerimeterRadius 20
    }
   }
   coords 10633.771 2.343 11841.762
@@ -117,6 +165,8 @@ $grp GenericEntity : "{695B8240D946C85B}Prefabs/Controllers/OVT_BaseController.e
     m_iAttackDistanceMin 375
     m_iAttackPreferredDirection 108
     m_iAttackDirectionVariance 55
+    m_fPerimeterRadius 55
+    m_fPerimeterRotation 48
    }
   }
   coords 3895.992 15.301 8438.691

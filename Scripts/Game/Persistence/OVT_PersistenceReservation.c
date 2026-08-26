@@ -44,7 +44,7 @@
 //! included) and applies VISIBLE|TRACEABLE locally there. The component is OPTIONAL: an entity
 //! without it keeps the old authority-only behaviour.
 //!
-//! THE COLLISION HALF (BUG-185, closed 2026-08-20). None of the three flags touches the PHYSICS
+//! THE COLLISION HALF (BUG-189, closed 2026-08-20). None of the three flags touches the PHYSICS
 //! body - a sleeping rigid body still collides - so a reserved vehicle stayed a solid, invisible
 //! obstacle on every machine. OVT_ReservationSyncComponent.ApplyPhysicsState() is that half: it
 //! takes the body out of the physics world with SimulationState.NONE (the pre-reservation state is

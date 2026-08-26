@@ -104,8 +104,15 @@ class OVT_FastTravelService
 			}
 
 			// QRF restrictions
+			//
+			// ⚠ ACTIVE **AND** REVEALED (occupying/counter-attacks D15). THIS IS THE ONE BEHAVIOURAL
+			// CHANGE TO A SHIPPED RULE in that feature: during a counter-attack's silent encirclement a
+			// player may still fast-travel to the objective, because nobody has told them not to. A
+			// refusal there would be a free reveal - the most informative possible tell, delivered by
+			// the UI, before the notification. A player-initiated battle is revealed from creation and
+			// is unaffected.
 			OVT_OccupyingFactionManager occupyingFaction = OVT_Global.GetOccupyingFaction();
-			if (occupyingFaction && occupyingFaction.m_bQRFActive &&
+			if (occupyingFaction && occupyingFaction.m_bQRFActive && occupyingFaction.m_bQRFRevealed &&
 				config.m_Difficulty.QRFFastTravelMode != OVT_QRFFastTravelMode.FREE)
 			{
 				// A deployed FOB stays travellable through EVERY QRF restriction, DISABLED included -
@@ -115,7 +122,15 @@ class OVT_FastTravelService
 				// machines (m_FOBs is replicated), so the panel's enable state and the server's
 				// refusal cannot disagree.
 				bool fobExempt = config.m_Difficulty.allowFOBDuringQRF && IsFobPosition(targetPos);
-				if (!fobExempt)
+
+				// A base the resistance already holds, inside the ring but NOT the base being
+				// counter-attacked, is not part of the fight (author, 2026-08-25). Exempt from BOTH
+				// modes for the same reason the FOB is: the ring is a kilometre wide, and blanking a
+				// captured base inside it strands players away from where the battle is. The battle's
+				// own base is never exempt - see the predicate.
+				bool capturedBaseExempt = OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(targetPos);
+
+				if (!fobExempt && !capturedBaseExempt)
 				{
 					if (config.m_Difficulty.QRFFastTravelMode == OVT_QRFFastTravelMode.DISABLED)
 						return OVT_TravelResult.QRF_ACTIVE;
@@ -600,6 +615,7 @@ class OVT_FastTravelService
 	// DELETED in map/fast-travel Phase 2: ExecuteFastTravel. It teleported on the calling machine and
 	// debited money on the client (findings F1/F2). Execution, payment and the recruit ring now live in
 	// OVT_TravelRequestComponent on OVT_OverthrowController, reached through
-	// OVT_Global.GetTravelRequests().RequestTravel(verb, targetPos, bringRecruits). Nothing in this
-	// service teleports or moves money any more; it decides and it prices, on both machines.
+	// OVT_ControllerComponent<OVT_TravelRequestComponent>.Get().RequestTravel(verb, targetPos,
+	// bringRecruits). Nothing in this service teleports or moves money any more; it decides and it
+	// prices, on both machines.
 }

@@ -19,6 +19,17 @@
 //! IDEMPOTENT ON A LIVE SESSION. Both applies are plain assignments of the same values.
 //!
 //! FORMAT. Binary contexts are POSITIONAL: write order must equal read order. Version first.
+//!
+//! VERSION 2 ADDS THE DESTRUCTION PHASE (core/damage, 2026-08-20): 0 intact, 1 ruined, and 0 for a
+//! structure that carries no destruction component at all. It is appended, so a version 1 payload -
+//! every save taken before that feature - reads its three fields and stops. There is no new record
+//! and no new binding: a ruined structure is the SAME entity with a different mesh, which is the
+//! whole reason this feature is one int rather than a persistence problem.
+//!
+//! THE NAVMESH QUEUE STAYS THE FIRST LINE OF Deserialize(), BEFORE THE PHASE IS RESTORED, and that
+//! order is deliberate. It captures the bounds of the INTACT structure; the destruction component's
+//! own regeneration then captures them again after the ruin model is in place. Measuring the larger
+//! model and rebuilding once the smaller one appears is what the live destruction path does too.
 //------------------------------------------------------------------------------------------------
 class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 {
@@ -30,7 +41,7 @@ class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Writes the owner's persistent id and the camp / FOB / base association.
+	//! Writes the owner's persistent id, the camp / FOB / base association and the destruction phase.
 	//! \param[in] owner The built entity.
 	//! \param[in] component The buildable component being saved.
 	//! \param[in] context Save context to write into.
@@ -41,7 +52,7 @@ class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 		if (!buildable)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 1);
+		context.WriteValue("version", 2);
 
 		const string ownerPersistentId = buildable.GetOwnerPersistentId();
 		context.Write(ownerPersistentId);
@@ -51,6 +62,16 @@ class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 
 		int baseType = buildable.GetBaseType();
 		context.Write(baseType);
+
+		// Read live off the destruction component (decision D9 - the phase has one home). A structure
+		// whose prefab was never retrofitted writes 0, because the field is positional and always
+		// present in a version 2 payload.
+		int damagePhase;
+		OVT_StructureDestructionComponent destruction = OVT_StructureDamage.Resolve(owner);
+		if (destruction)
+			damagePhase = destruction.GetDamagePhase();
+
+		context.Write(damagePhase);
 
 		return ESerializeResult.OK;
 	}
@@ -90,6 +111,18 @@ class OVT_BuildableComponentSerializer : ScriptedComponentSerializer
 
 		buildable.SetOwnerPersistentId(ownerPersistentId);
 		buildable.SetAssociatedBase(associatedBaseId, baseType);
+
+		if (version < 2)
+			return true;
+
+		int damagePhase;
+		context.Read(damagePhase);
+
+		// Silent by contract: a load must not explode, smoke or sound. RestorePhase() is a no-op when
+		// the structure is already in that phase, which is the ordinary case - an intact one.
+		OVT_StructureDestructionComponent destruction = OVT_StructureDamage.Resolve(owner);
+		if (destruction)
+			destruction.RestorePhase(damagePhase);
 
 		return true;
 	}

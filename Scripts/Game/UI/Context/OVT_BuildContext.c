@@ -33,6 +33,17 @@ class OVT_BuildContext : OVT_UIContext
 	
 	const int MAX_FOB_BUILD_DIS = 100;
 	const int MAX_CAMP_BUILD_DIS = 50;
+
+	//! Build camera height above the surface under it, in metres. The ceiling was 25 until the
+	//! resource-costed buildings arrived: a warehouse does not fit on screen from there.
+	const float BUILD_CAM_MIN_HEIGHT = 10;
+	const float BUILD_CAM_MAX_HEIGHT = 50;
+
+	//! Metres of camera pan per input tick at full stick/key deflection.
+	const float BUILD_CAM_PAN_STEP = 0.07;
+
+	//! What holding the run binding multiplies the pan step by.
+	const float BUILD_CAM_PAN_SPRINT = 3;
 	
 	bool m_bBuilding = false;
 	bool m_bRemovalMode = false;
@@ -189,7 +200,7 @@ class OVT_BuildContext : OVT_UIContext
 			string reason;
 			bool canBuild = CanBuild(buildable, player.GetOrigin(), reason);
 			
-			card.Init(buildable, this, canBuild, reason);
+			card.Init(buildable, this, canBuild, reason, BuildRequirementSummary(buildable));
 			w.SetOpacity(1);
 			
 			done++;
@@ -201,6 +212,27 @@ class OVT_BuildContext : OVT_UIContext
 			Widget w = root.FindWidget("BuildMenu_Card" + i);
 			w.SetOpacity(0);
 		}
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Whether one build card should say it needs materials.
+	//!
+	//! ONE LINE, NOT THE FIGURES. The card's description is a fixed-height block above the preview
+	//! image, so a four-resource list pushed the text over the icon. The quantities live on the
+	//! construction site's own Requirements readout, which is where a player acts on them; the card
+	//! only has to say that this building is not money-only.
+	//! \param[in] buildable The config entry.
+	//! \return A translated one-liner, or "" for a money-only buildable.
+	protected string BuildRequirementSummary(OVT_Buildable buildable)
+	{
+		if(!buildable || !buildable.m_aResourceRequirements) return "";
+
+		array<ref OVT_ResourceAmount> need = new array<ref OVT_ResourceAmount>();
+		OVT_ResourceRequirements.ScaleForDifficulty(buildable.m_aResourceRequirements, need);
+
+		if(need.IsEmpty()) return "";
+
+		return WidgetManager.Translate("#OVT-Resource_BuildRequires");
 	}
 	
 	override void RegisterInputs()
@@ -314,7 +346,13 @@ class OVT_BuildContext : OVT_UIContext
 			if(town.size < 3) range = m_Towns.m_iTownRange;
 			if(dist < range)
 			{
-				return true;
+				// The server re-checks this through the same predicate in BuildItem(). Not terminal:
+				// a buildable that also allows a camp or an FOB can still qualify below, and the
+				// reason set here is the one a fall-through refusal reports.
+				if(OVT_ResourceRules.TownControlAllowsBuild(town.faction, OVT_Global.GetConfig().GetPlayerFactionIndex(), vector.DistanceSq(town.location, pos), range * range))
+					return true;
+
+				reason = "#OVT-CannotBuildUncontrolledTown";
 			}
 		}
 		
@@ -421,12 +459,30 @@ class OVT_BuildContext : OVT_UIContext
 		}
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! How far one pan tick moves the camera, boosted while the run binding is held.
+	//!
+	//! Polled rather than listened to: CharacterSprint is a hold, so a DOWN/UP listener pair would have
+	//! to track state and would go stale if the key came up while the build UI had focus. It lives in
+	//! the same ActionContext as CharacterForward/CharacterRight, which this context already listens
+	//! to, so it needs no binding of its own.
+	//! \return Metres per tick at full deflection.
+	protected float PanStep()
+	{
+		if(!m_InputManager) return BUILD_CAM_PAN_STEP;
+
+		if(m_InputManager.GetActionValue("CharacterSprint") > 0)
+			return BUILD_CAM_PAN_STEP * BUILD_CAM_PAN_SPRINT;
+
+		return BUILD_CAM_PAN_STEP;
+	}
+
 	void MoveRight(float value = 1, EActionTrigger reason = EActionTrigger.DOWN)
 	{
 		if(!m_bBuilding && !m_bRemovalMode) return;
 		
 		vector move = "0 0 0";
-		move[0] = value * 0.07;
+		move[0] = value * PanStep();
 		vector pos = m_Camera.GetOrigin() + move;
 		
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
@@ -441,7 +497,7 @@ class OVT_BuildContext : OVT_UIContext
 	{
 		if(!m_bBuilding && !m_bRemovalMode) return;
 		vector move = "0 0 0";
-		move[2] = value * 0.07;
+		move[2] = value * PanStep();
 		vector pos = m_Camera.GetOrigin() + move;
 		
 		IEntity player = SCR_PlayerController.GetLocalControlledEntity();
@@ -464,14 +520,14 @@ class OVT_BuildContext : OVT_UIContext
 		pos = pos + move;
 		
 		float ground = GetGame().GetWorld().GetSurfaceY(pos[0],pos[2]);
-		if(pos[1] < ground + 10)
+		if(pos[1] < ground + BUILD_CAM_MIN_HEIGHT)
 		{
-			pos[1] = ground + 10;
+			pos[1] = ground + BUILD_CAM_MIN_HEIGHT;
 		}
-		
-		if(pos[1] > ground + 25)
+
+		if(pos[1] > ground + BUILD_CAM_MAX_HEIGHT)
 		{
-			pos[1] = ground + 25;
+			pos[1] = ground + BUILD_CAM_MAX_HEIGHT;
 		}
 		
 		m_Camera.SetOrigin(pos);		
@@ -542,7 +598,9 @@ class OVT_BuildContext : OVT_UIContext
 			vector angles = Math3D.MatrixToAngles(mat);
 			int buildableIndex = m_Resistance.m_BuildablesConfig.m_aBuildables.Find(m_Buildable);
 			int prefabIndex = m_Buildable.m_aPrefabs.Find(m_pBuildingPrefab);
-			OVT_Global.GetServer().BuildItem(buildableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
+			OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+			if(!requests) return;
+			requests.BuildItem(buildableIndex, prefabIndex, mat[3], angles);
 
 			// The server charges inside BuildItem() after validating - no client-side payment
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
@@ -761,7 +819,9 @@ class OVT_BuildContext : OVT_UIContext
 				if(buildableComp && rpl && CanRemoveItem(buildableComp))
 				{
 					// Send removal request to server (RplId - EntityID is not valid across the network)
-					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
+					OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+					if(!requests) return;
+					requests.RemovePlacedItem(rpl.Id());
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

@@ -10,10 +10,10 @@ class OVT_MainMenuContext : OVT_UIContext
 	OVT_MainMenuContextOverrideComponent m_FoundOverride;
 	protected float m_fFoundRange = -1;
 
-	//! Comms component this menu subscribed to for a pending save result.
-	//! Cached rather than re-resolved: OVT_Global.GetServer() dereferences the local controlled
-	//! entity without a null check, and the result can arrive after a respawn.
-	protected OVT_PlayerCommsComponent m_SaveRequestComms;
+	//! Campaign request component this menu subscribed to for a pending save result.
+	//! Cached rather than re-resolved: the controller seam can answer differently later in the session
+	//! (a respawn or a reconnect re-assigns the controller), and the result can arrive after one.
+	protected OVT_CampaignRequestComponent m_SaveRequestComms;
 		
 	override void PostInit()
 	{		
@@ -63,7 +63,7 @@ class OVT_MainMenuContext : OVT_UIContext
 	protected bool FindOverride(IEntity entity)
 	{
 		OVT_MainMenuContextOverrideComponent found = OVT_MainMenuContextOverrideComponent.Cast(entity.FindComponent(OVT_MainMenuContextOverrideComponent));
-		if(found) {
+		if(found && found.IsOwnerUsable()) {
 			float dist = vector.Distance(entity.GetOrigin(),m_Owner.GetOrigin());
 			if(dist > found.m_fRange) return false;
 			if(m_fFoundRange == -1 || m_fFoundRange > dist)
@@ -152,7 +152,14 @@ class OVT_MainMenuContext : OVT_UIContext
 		{
 			comp.m_OnClicked.Insert(ManageRecruits);
 		}
-		
+
+		// Manage Groups
+		comp = SCR_ButtonTextComponent.GetButtonText("Manage Groups", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(ManageGroups);
+		}
+
 		// Character Sheet
 		comp = SCR_ButtonTextComponent.GetButtonText("Character Sheet", m_wRoot);
 		if (comp)
@@ -250,9 +257,15 @@ class OVT_MainMenuContext : OVT_UIContext
 	private void ManageRecruits()
 	{
 		CloseLayout();
-		m_UIManager.ShowContext(OVT_RecruitsContext);		
+		m_UIManager.ShowContext(OVT_RecruitsContext);
 	}
-	
+
+	private void ManageGroups()
+	{
+		CloseLayout();
+		m_UIManager.ShowContext(OVT_HighCommandRosterContext);
+	}
+
 	private void CharacterSheet()
 	{
 		CloseLayout();
@@ -292,7 +305,7 @@ class OVT_MainMenuContext : OVT_UIContext
 			return;
 		}
 
-		OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
+		OVT_CampaignRequestComponent comms = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
 		if(!comms)
 		{
 			ShowSaveResult(false);

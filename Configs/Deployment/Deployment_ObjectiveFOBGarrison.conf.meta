@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{6B8C3F5D00000081}Configs/Deployment/Deployment_ObjectiveFOBGarrison.conf"
+ Configurations {
+  CONFResourceClass PC {
+  }
+  CONFResourceClass XBOX_ONE : PC {
+  }
+  CONFResourceClass XBOX_SERIES : PC {
+  }
+  CONFResourceClass PS4 : PC {
+  }
+  CONFResourceClass PS5 : PC {
+  }
+  CONFResourceClass HEADLESS : PC {
+  }
+ }
+}

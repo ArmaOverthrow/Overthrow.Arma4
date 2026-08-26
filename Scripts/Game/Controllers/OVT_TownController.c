@@ -15,7 +15,24 @@ class OVT_TownControllerComponent: OVT_Component
 	
 	[Attribute("800", UIWidgets.Slider, "Range to spawn civilians", "50 500 10")]
 	int m_iTownRange;
-	
+
+	//! OPTIONAL per-town civilian curation: the names of the civilian types (from
+	//! Configs/Civilians/CivilianAmbience.conf) this settlement may have in its crowd.
+	//!
+	//! EMPTY MEANS "WHATEVER THIS TOWN'S SIZE ALLOWS", never "no civilians" - every un-authored town in
+	//! the world carries an empty list, so the other reading would empty the map. The two filters are
+	//! INDEPENDENT AND BOTH MUST PASS: naming a city-only type here does not smuggle it into a village,
+	//! and a village that names only "dockworker" gets no civilians at all. Always include at least one
+	//! type the settlement's size allows.
+	//!
+	//! Names are matched EXACTLY and case-sensitively against OVT_CivilianTypeConfig.m_sTypeName.
+	[Attribute(desc: "Civilian type names this town may have (empty = whatever the town's size allows). Must include at least one type this size permits, or the town gets no civilians at all")]
+	ref array<string> m_aCivilianTypes;
+
+	//! See OVT_BaseControllerComponent.m_bLandIsolated for why this is authored rather than derived.
+	[Attribute(defvalue: "0", desc: "Tick when NO LAND ROUTE reaches this town - an island, or ground cut off by water. The occupying faction will never make it an objective. It still gets civilians, patrols and QRFs normally")]
+	bool m_bLandIsolated;
+
 	[Attribute("400", UIWidgets.Slider, "Minimum distance to spawn QRF", "50 1000 25")]
 	int m_iAttackDistanceMin;
 	
@@ -33,11 +50,12 @@ class OVT_TownControllerComponent: OVT_Component
 	protected OVT_TownData m_Town;
 	protected EntityID m_GunDealerID;
 
-	protected bool m_bCiviliansSpawned;
-
 	protected int m_iFlagFactionIndex = -1;
 
-	protected ref array<ref EntityID> m_aCivilians;
+	//! This town's index in the town manager, cached at ActivateTown() so OnDelete() can tear its
+	//! civilian source down without having to resolve a town through a manager that may already be
+	//! gone. -1 means "never activated".
+	protected int m_iTownId = -1;
 
 	protected ref array<ref EntityID> m_Houses;
 	
@@ -93,7 +111,6 @@ class OVT_TownControllerComponent: OVT_Component
 		m_TownManager = OVT_Global.GetTowns();
 		m_Economy = OVT_Global.GetEconomy();
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
-		m_aCivilians = new array<ref EntityID>;
 
 		// Runs on server and clients alike: the flag material is a local visual,
 		// each machine derives it from the replicated town faction
@@ -118,105 +135,50 @@ class OVT_TownControllerComponent: OVT_Component
 		m_iFlagFactionIndex = m_Town.faction;
 	}
 	
+	//------------------------------------------------------------------------------------------------
+	//! Brings this town's server-side content online. Called from OVT_TownManagerComponent, which is
+	//! authority-only, so everything below runs on the server.
+	//!
+	//! CIVILIANS ARE NO LONGER SPAWNED HERE. They are an ambient spawn source registered with
+	//! OVT_CivilianAmbienceManagerComponent: core owns proximity (the engine's observer set, not a
+	//! poll), the anti-thrash band, the once-per-activation roll and the ≤3-per-tick fill, and the
+	//! per-town source config owns the crowd's whole lifetime. Nothing spawns at activation.
 	void ActivateTown()
 	{
 		m_Town = m_TownManager.GetNearestTown(GetOwner().GetOrigin());
-		
+
 		if(m_Town.size != OVT_TownSize.VILLAGE)
 			GetGame().GetCallqueue().CallLater(SpawnGunDealer, 0);
 
-		GetGame().GetCallqueue().CallLater(CheckSpawnCivilian, 10000, true);
+		m_iTownId = m_TownManager.GetTownID(m_Town);
 
-		CheckSpawnCivilian();
+		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+		if(civilians)
+			civilians.ActivateTown(this, m_Town, m_iTownId);
 	}
-	
 
-	protected void CheckSpawnCivilian()
+	//------------------------------------------------------------------------------------------------
+	//! Teardown for the one thing this controller now owns off-entity: its town's civilian source.
+	//!
+	//! Unregistering deletes the live crowd through the normal despawn hook, so a second campaign in
+	//! the same session cannot inherit the first one's civilians. The cached id is used rather than a
+	//! fresh lookup because the town manager may already be gone by the time this runs.
+	//!
+	//! ⚠ KNOWN LEFTOVER (decision D12): CheckUpdateFlag's repeating 10 s job is deliberately still not
+	//! removed here. It is out of this feature's scope and is recorded in context.md so nobody reads
+	//! its absence as an oversight.
+	override void OnDelete(IEntity owner)
 	{
-		bool inrange = OVT_Global.PlayerInRange(m_Town.location, OVT_Global.GetConfig().m_iCivilianSpawnDistance) && !OVT_Global.GetOccupyingFaction().m_CurrentQRF;
-		if(m_bCiviliansSpawned && !inrange)
+		if(m_iTownId != -1)
 		{
-			DespawnCivilians();
-		}else if(!m_bCiviliansSpawned && inrange){
-			SpawnCivilians();
-		}
-	}
+			OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
+			if(civilians)
+				civilians.DeactivateTown(m_iTownId);
 
-	protected void DespawnCivilians()
-	{
-		m_bCiviliansSpawned = false;
-		foreach(EntityID id : m_aCivilians)
-		{
-			SCR_AIGroup aigroup = GetGroup(id);
-			SCR_EntityHelper.DeleteEntityAndChildren(aigroup);
+			m_iTownId = -1;
 		}
 
-		m_aCivilians.Clear();
-	}
-
-	protected SCR_AIGroup GetGroup(EntityID id)
-	{
-		IEntity ent = GetGame().GetWorld().FindEntityByID(id);
-		return SCR_AIGroup.Cast(ent);
-	}
-
-	protected void SpawnCivilians()
-	{
-		if(m_bCiviliansSpawned) return;
-		m_bCiviliansSpawned = true;
-		int numciv = Math.Round((float)m_Town.population * OVT_Global.GetConfig().m_fCivilianSpawnRate);
-
-		for(int i=0; i<numciv; i++)
-		{
-			SpawnCivilian();
-		}
-	}
-
-	protected void SpawnCivilian()
-	{
-		vector spawnPosition = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
-
-		vector targetPos = OVT_Global.GetRandomNonOceanPositionNear(m_Town.location, m_iTownRange);
-		targetPos = OVT_Global.FindNearestRoad(targetPos);
-		
-		BaseWorld world = GetGame().GetWorld();
-
-		spawnPosition = OVT_Global.FindNearestRoad(spawnPosition);
-		IEntity civ = OVT_Global.SpawnEntityPrefab(OVT_Global.GetConfig().m_pCivilianPrefab, spawnPosition);
-
-		EntityID civId = civ.GetID();
-
-		m_aCivilians.Insert(civId);
-
-		SCR_AIGroup aigroup = SCR_AIGroup.Cast(civ);
-		aigroup.GetOnAgentAdded().Insert(OVT_Global.RandomizeCivilianClothes);
-		aigroup.GetOnAgentAdded().Insert(DisableCivilianWantedSystem);
-		
-		array<AIWaypoint> queueOfWaypoints = new array<AIWaypoint>();
-
-		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnPatrolWaypoint(targetPos));
-		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnWaitWaypoint(targetPos, s_AIRandomGenerator.RandFloatXY(15, 50)));
-
-		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnPatrolWaypoint(spawnPosition));
-		queueOfWaypoints.Insert(OVT_Global.GetConfig().SpawnWaitWaypoint(spawnPosition, s_AIRandomGenerator.RandFloatXY(15, 50)));
-
-		AIWaypointCycle cycle = AIWaypointCycle.Cast(OVT_Global.GetConfig().SpawnWaypoint(OVT_Global.GetConfig().m_pCycleWaypointPrefab, targetPos));
-		cycle.SetWaypoints(queueOfWaypoints);
-		cycle.SetRerunCounter(-1);
-		aigroup.AddWaypoint(cycle);
-	}
-	
-	//! Callback to disable wanted system for newly spawned civilians
-	protected void DisableCivilianWantedSystem(IEntity characterEntity)
-	{
-		if (!characterEntity)
-			return;
-			
-		OVT_PlayerWantedComponent wantedComp = OVT_PlayerWantedComponent.Cast(characterEntity.FindComponent(OVT_PlayerWantedComponent));
-		if (wantedComp)
-		{
-			wantedComp.DisableWantedSystem();
-		}
+		super.OnDelete(owner);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -269,7 +231,7 @@ class OVT_TownControllerComponent: OVT_Component
 				{
 					spawnPosition = spawnPoint.GetSpawnPoint();
 				}else{
-					spawnPosition = OVT_Global.FindSafeSpawnPosition(entity.GetOrigin());
+					spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(entity.GetOrigin());
 				}
 			}else{
 				IEntity house = m_TownManager.GetRandomUnownedHouseInTown(m_Town);
@@ -280,7 +242,7 @@ class OVT_TownControllerComponent: OVT_Component
 					{
 						spawnPosition = spawnPoint.GetSpawnPoint();
 					}else{
-						spawnPosition = OVT_Global.FindSafeSpawnPosition(house.GetOrigin());
+						spawnPosition = OVT_WorldUtils.FindSafeSpawnPosition(house.GetOrigin());
 					}
 				}else{
 					Print("[Overthrow] No gun dealer locations found in town: " + m_sName);

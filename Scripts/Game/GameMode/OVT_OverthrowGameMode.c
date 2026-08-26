@@ -42,6 +42,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_VehicleManagerComponent m_VehicleManager;
 	//! Reference to the economy manager component.
 	protected OVT_EconomyManagerComponent m_EconomyManager;
+	//! Reference to the resource manager component.
+	protected OVT_ResourceManagerComponent m_ResourceManager;
+	//! Reference to the resource production manager component.
+	protected OVT_ResourceProductionManagerComponent m_ProductionManager;
 	//! Reference to the player manager component.
 	protected OVT_PlayerManagerComponent m_PlayerManager;
 	//! Reference to the job manager component.
@@ -52,8 +56,16 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	protected OVT_PersistenceManagerComponent m_Persistence;
 	//! Reference to the deployment manager component.
 	protected OVT_DeploymentManagerComponent m_Deployment;
+	//! Reference to the virtualization manager component.
+	protected OVT_VirtualizationManagerComponent m_Virtualization;
+	//! Reference to the virtual movement manager component.
+	protected OVT_VirtualMovementManagerComponent m_VirtualMovement;
+	//! Reference to the town civilian ambience manager component.
+	protected OVT_CivilianAmbienceManagerComponent m_CivilianAmbience;
 	//! Reference to the tutorial manager component.
 	protected OVT_TutorialManagerComponent m_TutorialManager;
+	//! Reference to the occupying faction's objective director.
+	protected OVT_ObjectiveDirectorComponent m_ObjectiveDirector;
 	//! Reference to the perceived faction manager component.
 	protected SCR_PerceivedFactionManagerComponent m_PerceivedFactionManager;
 
@@ -87,6 +99,13 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	//! Gap between those attempts, in milliseconds.
 	static const int TUTORIAL_SPAWN_PUSH_RETRY_MS = 500;
+
+	//! How many times the SERVER's per-player tutorial-state push is attempted before giving up
+	//! quietly - see PushTutorialStateToPlayer().
+	static const int TUTORIAL_STATE_PUSH_ATTEMPTS = 20;
+
+	//! Gap between those attempts, in milliseconds.
+	static const int TUTORIAL_STATE_PUSH_RETRY_MS = 500;
 
 	//! Attempts made for the current spawn. Reset by TryPushSpawnedTutorialTrigger().
 	protected int m_iTutorialSpawnPushAttempts;
@@ -351,11 +370,56 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_Deployment.PostGameStart();
 		}
 
+		if(m_Virtualization)
+		{
+			Print("[Overthrow] Starting Virtualization");
+
+			m_Virtualization.PostGameStart();
+		}
+
+		// AFTER Virtualization: its own PostGameStart is what registers anything present at game start
+		// (core's debug test group today, a consumer's groups later), so the first movement pass already
+		// sees a populated registry.
+		if(m_VirtualMovement)
+		{
+			Print("[Overthrow] Starting Virtual Movement");
+
+			m_VirtualMovement.PostGameStart();
+		}
+
+		if(m_CivilianAmbience)
+		{
+			Print("[Overthrow] Starting Civilian Ambience");
+
+			m_CivilianAmbience.PostGameStart();
+		}
+
 		if(m_TutorialManager)
 		{
 			Print("[Overthrow] Starting Tutorials");
 
 			m_TutorialManager.PostGameStart();
+		}
+
+		// Resolved through GetInstance() rather than a cached member, the same way the save-point sweep
+		// reaches it. Its PostGameStart only queues the spawn-inspect manifest build - one character
+		// prefab per call-queue hop - so its position in this chain is not load-bearing.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if(highCommand)
+		{
+			Print("[Overthrow] Starting High Command");
+
+			highCommand.PostGameStart();
+		}
+
+		// LAST IN THE CHAIN, for the same reason its Init() is: its first tick queries the town and
+		// base registries, the deployment pool and the difficulty settings, and every one of those is
+		// established by a PostGameStart above.
+		if(m_ObjectiveDirector)
+		{
+			Print("[Overthrow] Starting Objective Director");
+
+			m_ObjectiveDirector.PostGameStart();
 		}
 		
 		// Overthrow_Config.json is a dedicated-server config: SP and listen hosts pick their
@@ -385,7 +449,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 				config.m_Difficulty.startingCash = config.m_ConfigFile.startingCash;
 				config.m_Difficulty.procurementMultiplier = config.m_ConfigFile.procurementMultiplier;
 				config.m_Difficulty.vehiclePriceMultiplier = config.m_ConfigFile.vehiclePriceMultiplier;
+				config.m_Difficulty.fuelPricePerLitre = config.m_ConfigFile.fuelPricePerLitre;
 				config.m_Difficulty.recruitLoadoutFeeMultiplier = config.m_ConfigFile.recruitLoadoutFeeMultiplier;
+				config.m_Difficulty.highCommandMemberCap = config.m_ConfigFile.highCommandMemberCap;
+				config.m_Difficulty.highCommandSupportersPerMember = config.m_ConfigFile.highCommandSupportersPerMember;
 			}
 		}
 
@@ -680,14 +747,15 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			DiagMenu.SetValue(252,0);
 		}
 
+#ifdef WORKBENCH
 		if(DiagMenu.GetValue(254))
 		{
 			vector origin = SCR_PlayerController.GetLocalControlledEntity().GetOrigin();
-			int playerId = SCR_PlayerController.GetLocalPlayerId();
 
-			OVT_Global.GetServer().InstantCaptureBase(origin, playerId);
+			InstantCaptureBase(origin);
 			DiagMenu.SetValue(254,0);
 		}
+#endif
 
 		if(DiagMenu.GetValue(255))
 		{
@@ -721,6 +789,46 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			}
 		}
 	}
+
+#ifdef WORKBENCH
+	//------------------------------------------------------------------------------------------------
+	//! DEBUG CHEAT (DiagMenu 254): instantly flip the nearest base to whichever faction does not hold it.
+	//!
+	//! WHY THIS IS A PLAIN METHOD AND NOT AN RPC. It used to be the legacy comms monolith's
+	//! RpcAsk_InstantCaptureBase, an RplRcver.Server endpoint whose ONLY gate was the client-side DiagMenu
+	//! read above - i.e. any modified client could flip any base, and the #ifdef WORKBENCH inside the
+	//! handler was the only thing keeping that out of release builds (BUG-025). Its one caller is the
+	//! DiagMenu block in EOnFrame, which is already running here on the authority, so P8 of the controller
+	//! migration deleted the network endpoint outright rather than moving it to the controller seam
+	//! (implementation.md §4 Phase 8). The whole method - and its call site - is compiled out of release.
+	//! \param[in] loc Position to find the nearest base to.
+	protected void InstantCaptureBase(vector loc)
+	{
+		if (!Replication.IsServer()) return;
+
+		OVT_OccupyingFactionManager of = OVT_Global.GetOccupyingFaction();
+		if (!of) return;
+
+		OVT_BaseData data = of.GetNearestBase(loc);
+		if (!data) return;
+
+		OVT_BaseControllerComponent base = of.GetBase(data.entId);
+		if (!base) return;
+
+		// Whoever does not hold it, takes it.
+		int winningFactionIndex;
+		if (base.IsOccupyingFaction())
+		{
+			winningFactionIndex = OVT_Global.GetConfig().GetPlayerFactionIndex();
+		}
+		else
+		{
+			winningFactionIndex = OVT_Global.GetConfig().GetOccupyingFactionIndex();
+		}
+
+		of.ChangeBaseControl(base, winningFactionIndex);
+	}
+#endif
 
 	//------------------------------------------------------------------------------------------------
 	//! Last chance to write live world facts back into the manager records a save point will carry.
@@ -756,6 +864,12 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 		OVT_VehicleManagerComponent vehicles = OVT_VehicleManagerComponent.GetInstance();
 		if (vehicles)
 			vehicles.SyncVehicleRecords();
+
+		// And for High Command groups, whose marker positions and reload positions both come off the
+		// record - the group ENTITY never moves, so only this sweep knows where a group actually is.
+		OVT_HighCommandManagerComponent highCommand = OVT_HighCommandManagerComponent.GetInstance();
+		if (highCommand)
+			highCommand.SyncGroupPositions();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -896,12 +1010,51 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Announces an arrival on the external channel. Server-only by vanilla contract.
+	//!
+	//! DELIBERATELY NOT m_OnPlayerConnected. That invoker fires from FinalizePlayerPreparation, which
+	//! early-returns for anyone already in m_aInitializedPlayers - so a RECONNECT would never announce.
+	//! This override is the one hook that fires on every arrival.
+	//! \param[in] playerId The ID of the connecting player.
+	override void OnPlayerConnected(int playerId)
+	{
+		super.OnPlayerConnected(playerId);
+
+		AnnouncePlayerToWebhook("PlayerJoined", playerId);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Posts one player arrival/departure to the external channel and NOWHERE else.
+	//!
+	//! No SendTextNotification pairing on purpose: vanilla already shows its own connect/disconnect
+	//! lines in game, and a second set would be duplicate spam. SendExternalNotifications is a separate
+	//! call from SendTextNotification, so "external only" is simply the one call.
+	//! \param[in] tag The message preset tag.
+	//! \param[in] playerId The player to name.
+	protected void AnnouncePlayerToWebhook(string tag, int playerId)
+	{
+		if(!Replication.IsServer()) return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if(!notify) return;
+
+		string playerName = GetGame().GetPlayerManager().GetPlayerName(playerId);
+		if(playerName == "") return;
+
+		notify.SendExternalNotifications(tag, playerName);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Handles player disconnection. Persists the character, releases tracking and removes the player from the initialized list.
 	//! \\param[in] playerId The ID of the disconnecting player.
 	//! \\param[in] cause The reason for disconnection.
 	//! \\param[in] timeout The disconnection timeout duration.
 	protected override void OnPlayerDisconnected(int playerId, KickCauseCode cause, int timeout)
 	{
+		// FIRST, while the name is still resolvable: super's teardown drops the player from the manager.
+		// Every departure counts - quit, timeout and kick alike - so KickCauseCode is not branched on.
+		AnnouncePlayerToWebhook("PlayerLeft", playerId);
+
 		string persId = m_PlayerManager.GetPersistentIDFromPlayerID(playerId);
 		IEntity controlledEntity = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
 
@@ -1040,6 +1193,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	        // the house page. An unknown context resolves to "" and SetPlayerSpawnContext refuses it,
 	        // so this is a no-op for anyone the cache never saw.
 	        SetPlayerSpawnContext(playerId, persistentId, GetPlayerSpawnContext(persistentId));
+
+	        // Unconditional, and NOT inside the call above: the spawn context is refused when unknown,
+	        // but the seen-tutorial record must reach the client on every arrival path.
+	        PushTutorialStateToPlayer(playerId);
 	        return;
 	    }
 
@@ -1135,6 +1292,10 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    OVT_SpawnLogic spawnLogic = OVT_SpawnLogic.GetInstance();
 	    if (spawnLogic)
 	        spawnLogic.SpawnDeferredPlayer(playerId);
+
+	    // Last, and unconditionally: a RETURNING player takes neither home branch above, so this is the
+	    // only place their client is handed the campaign's record of what they have already read.
+	    PushTutorialStateToPlayer(playerId);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1188,11 +1349,47 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			return;
 
 		tutorials.SetSpawnContext(playerId, filter);
+	}
 
-		// The campaign's tutorial record rides the same moment: this is the one per-player push that
-		// provably runs on every path a player arrives by (new spawn, continue, reconnect, JIP), and
-		// the state must land before the player can trigger anything worth suppressing.
-		tutorials.PushTutorialState(playerId);
+	//------------------------------------------------------------------------------------------------
+	//! SERVER: hands one player's persisted tutorial state to their client, retrying while their
+	//! OVT_OverthrowController is not registered yet.
+	//!
+	//! SEPARATE FROM THE SPAWN CONTEXT, DELIBERATELY. This push used to ride SetPlayerSpawnContext(),
+	//! which runs only on the two branches that HAND OUT a home - so a returning player (every player
+	//! after their first session, and every player on a server restart) was pushed nothing and their
+	//! client's seen store stayed empty. Every client-local trigger (MENU_OPENED, MAP_OPENED,
+	//! PLAYER_SPAWNED) reads only that store and never the server's veto, so those tips re-fired on
+	//! every login.
+	//!
+	//! BOUNDED AND SILENT for the same reasons as PushSpawnedTutorialTrigger(): a player who is
+	//! mid-disconnect never resolves, and a timer that never stops is worse than a tip that repeats.
+	//! \param[in] playerId Runtime id of the player to push to.
+	//! \param[in] attempt Attempts already made. Callers pass nothing.
+	void PushTutorialStateToPlayer(int playerId, int attempt = 0)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+		if (!players)
+			return;
+
+		OVT_OverthrowController controller = players.GetController(playerId);
+		if (controller)
+		{
+			OVT_TutorialComponent tutorials = OVT_TutorialComponent.Cast(controller.FindComponent(OVT_TutorialComponent));
+			if (tutorials)
+			{
+				tutorials.PushTutorialState(playerId);
+				return;
+			}
+		}
+
+		if (attempt + 1 >= TUTORIAL_STATE_PUSH_ATTEMPTS)
+			return;
+
+		GetGame().GetCallqueue().CallLater(PushTutorialStateToPlayer, TUTORIAL_STATE_PUSH_RETRY_MS, false, playerId, attempt + 1);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1361,6 +1558,28 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_EconomyManager.Init(this);
 		}
 
+		// AFTER Economy: the price drift tick reads the port registry, and the threat off the occupying
+		// faction. Both are resolved lazily inside the tick, which first fires a minute of game time
+		// after this line, so only the registration order below it matters.
+		m_ResourceManager = OVT_ResourceManagerComponent.Cast(FindComponent(OVT_ResourceManagerComponent));
+		if(m_ResourceManager)
+		{
+			Print("[Overthrow] Initializing Resources");
+
+			m_ResourceManager.Init(this);
+		}
+
+		// AFTER Resources: the drip resolves the catalogue to convert units into litres. It is resolved
+		// lazily inside ProduceForHours, so only the registration order matters. Discovery runs on
+		// clients too - the site set is world data, not server state.
+		m_ProductionManager = OVT_ResourceProductionManagerComponent.Cast(FindComponent(OVT_ResourceProductionManagerComponent));
+		if(m_ProductionManager)
+		{
+			Print("[Overthrow] Initializing Resource Production");
+
+			m_ProductionManager.Init(this);
+		}
+
 		m_OccupyingFactionManager = OVT_OccupyingFactionManager.Cast(FindComponent(OVT_OccupyingFactionManager));
 		if(m_OccupyingFactionManager)
 		{
@@ -1409,12 +1628,51 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 			m_Deployment.Init(this);
 		}
 
+		m_Virtualization = OVT_VirtualizationManagerComponent.Cast(FindComponent(OVT_VirtualizationManagerComponent));
+		if(m_Virtualization)
+		{
+			Print("[Overthrow] Initializing Virtualization");
+
+			m_Virtualization.Init(this);
+		}
+
+		// AFTER Virtualization: virtual movement reads that registry on every tick and must never be the
+		// thing that brings it into existence.
+		m_VirtualMovement = OVT_VirtualMovementManagerComponent.Cast(FindComponent(OVT_VirtualMovementManagerComponent));
+		if(m_VirtualMovement)
+		{
+			Print("[Overthrow] Initializing Virtual Movement");
+
+			m_VirtualMovement.Init(this);
+		}
+
+		// AFTER Virtualization: town civilians are registered on its ambient seam, so the registry it
+		// carries has to exist before anything can look a source config up in it.
+		m_CivilianAmbience = OVT_CivilianAmbienceManagerComponent.Cast(FindComponent(OVT_CivilianAmbienceManagerComponent));
+		if(m_CivilianAmbience)
+		{
+			Print("[Overthrow] Initializing Civilian Ambience");
+
+			m_CivilianAmbience.Init(this);
+		}
+
 		m_TutorialManager = OVT_TutorialManagerComponent.Cast(FindComponent(OVT_TutorialManagerComponent));
 		if(m_TutorialManager)
 		{
 			Print("[Overthrow] Initializing Tutorials");
 
 			m_TutorialManager.Init(this);
+		}
+
+		// LAST IN THE CHAIN, DELIBERATELY. The objective director subscribes to the town and occupying
+		// faction control-change invokers and scores candidates out of both registries, so every
+		// manager it reads has to have been initialized before it runs.
+		m_ObjectiveDirector = OVT_ObjectiveDirectorComponent.Cast(FindComponent(OVT_ObjectiveDirectorComponent));
+		if(m_ObjectiveDirector)
+		{
+			Print("[Overthrow] Initializing Objective Director");
+
+			m_ObjectiveDirector.Init(this);
 		}
 
 		if(!IsMaster()) {
@@ -1584,8 +1842,9 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	//! WHY A RETRY AT ALL: this runs off a 0 ms CallLater in OVT_UIManagerComponent, and the local
 	//! player's OVT_OverthrowController is registered by an ASYNC RpcDo_NotifyOwnerAssignment. On a
 	//! first spawn - and especially on a join - the spawn can beat the assignment, leaving
-	//! OVT_Global.GetTutorials() null and the trigger silently dropped. That is safe but it is a
-	//! RACE, and the welcome tip is the one entry a player is guaranteed to notice missing.
+	//! OVT_ControllerComponent<OVT_TutorialComponent>.Get() null and the trigger silently dropped.
+	//! That is safe but it is a RACE, and the welcome tip is the one entry a player is guaranteed to
+	//! notice missing.
 	//!
 	//! WHY IT IS BOUNDED AND SILENT: a dropped tip is acceptable; a script error or a timer that
 	//! never stops is not. TUTORIAL_SPAWN_PUSH_ATTEMPTS x TUTORIAL_SPAWN_PUSH_RETRY_MS is a hard

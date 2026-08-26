@@ -22,27 +22,20 @@ Controls Quick Reaction Force spawning, movement, and tactical responses of the 
 
 ### OVT_BaseControllerComponent
 
-Manages military bases for the occupying faction, including functionality, upgrades, and responses.
+Marks a military base: its slot registry (where structures, parking, defend positions and vehicle
+patrol spawns are), which faction holds it, and where a QRF spawns from. It does **not** buy, spend or
+spawn anything — base defense is a set of `Configs/Deployment/Deployment_Base*.conf` deployments.
 
 ### OVT_TowerControllerComponent
 
 Controls radio/comms towers used by the occupying faction for surveillance and communications.
 
-### Base Upgrades
+### Base defense
 
-Located in the `OccupyingFaction/BaseUpgrades` subdirectory:
-
-- **OVT_BaseUpgrade**: Base class for all base upgrade components.
-- **OVT_SlottedBaseUpgrade**: Handles upgrades that occupy specific slots within a base.
-- **OVT_BasePatrolUpgrade**: Manages patrol-based upgrades for bases.
-- **OVT_BaseUpgradeComposition**: Controls composition-based upgrades to bases.
-- **OVT_BaseUpgradeCheckpoints**: Handles checkpoint placements around bases.
-- **OVT_BaseUpgradeDefensePosition**: Manages static defense positions at bases.
-- **OVT_BaseUpgradeDefensePatrol**: Controls defensive patrol routes around bases.
-- **OVT_BaseUpgradeTowerGuard**: Manages guards positioned at towers.
-- **OVT_BaseUpgradeSpecops**: Controls special operations forces stationed at bases.
-- **OVT_BaseUpgradeTownPatrol**: Manages patrols that extend from bases into nearby towns.
-- **OVT_BaseUpgradeParkedVehicles**: Controls vehicles parked at bases.
+There is no per-base upgrade system any more. Every base-defense concern the occupying faction has —
+garrison patrols, defense positions, tower guards, sniper positions, checkpoints, fortifications and
+parked vehicles — is a `Configs/Deployment/Deployment_Base*.conf` deployment, bought out of the
+deployment framework's single resource pool and with its groups owned by the virtualization core.
 
 ## Resistance Faction Controllers
 

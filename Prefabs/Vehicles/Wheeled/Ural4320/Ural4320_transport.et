@@ -1,9 +1,19 @@
 Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
  ID "BBCBA43A9778AE21"
  components {
+  OVT_ResourceStoreComponent "{6A8E2E0000000010}" {
+   m_fCargoVolume 20
+  }
   SCR_UniversalInventoryStorageComponent "{5916C58171230A92}" {
-   MaxCumulativeVolume 200000
-   m_fMaxWeight 1000
+   MaxCumulativeVolume 1000000
+   m_fMaxWeight 5000
+  }
+  ChimeraAIVehicleControlComponent "{61C2E46781A66E82}" {
+   components {
+    AICarMovementComponent "{61C2E46796C28D80}" {
+     FrictionCoefficient 0.1
+    }
+   }
   }
   ActionsManagerComponent "{C97BE5489221AE18}" {
    additionalActions {
@@ -20,6 +30,16 @@ Vehicle : "{4597626AF36C0858}Prefabs/Vehicles/Wheeled/Ural4320/Ural4320.et" {
      m_sActionStateOn ""
      m_sActionStateOff ""
      m_bInteriorOnly 1
+    }
+    OVT_OpenStorageMenuAction "{6BB40000000000B0}" {
+     ParentContextList {
+      "starter_switch"
+     }
+     UIInfo UIInfo "{6BB40000000000B1}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 2
     }
    }
   }

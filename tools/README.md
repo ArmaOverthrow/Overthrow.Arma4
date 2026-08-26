@@ -154,7 +154,7 @@ set to the game install dir, which the client requires):
 
 ```
 -gproj <base ArmaReforger.gproj>
--addonsDir <repo parent>,<My Games>\ArmaReforgerWorkbench\addons
+-addonsDir <addon farm>   # a junction to THIS worktree and nothing else
 -addons EnfusionDatabaseFramework,EnfusionPersistenceFramework,Overthrow
 -profile <name>
 -noFocus -noThrow -window -logLevel debug
@@ -329,6 +329,71 @@ route has no bind-port flag, `-bindPort` is accepted and discarded, and the
 engine logs `RPL listen address not specified. Using default fallback.` before
 binding 2001 regardless. Reporting a `BIND_PORT` the server is not listening on
 would be worse than refusing.
+
+### 🔴 `--mode dedicated` is refused — it packs the tree and deletes files (2026-08-24)
+
+Dedicated mode cannot name the mod with `-addons` (mutually exclusive with
+`-config`), so it declares it in the config's `mods[]` by GUID. **The dedicated
+server treats a `mods[]` entry that resolves to a source project as something to
+BUILD.** It runs the workshop pack pipeline in place — writing `data.pak`,
+`*_manifest.json`, `ServerData.json`, `meta/` and `thumbnail.png` into the
+project root — and prunes that root of everything that is not addon content.
+
+One run on 2026-08-24 removed:
+
+    .gitignore  CHANGES.md  CLAUDE.md  CLAUDE.md.example  LICENSE.md
+    README.md   update-arma-scripts.ps1
+
+Six were tracked and came back with `git checkout --`. **`CLAUDE.md` is
+gitignored and was not recoverable from git.**
+
+It is also self-perpetuating: once `data.pak` exists, every later launch of any
+tool loads the **packed** build and ignores the sources, while the log's
+`Loaded addons:` block still names the source path — so nothing looks wrong.
+That symptom (`(packed)` beside this repo's `addon.gproj`) burned a whole
+session before the pak was found.
+
+Two guards now exist:
+
+- `launch-server.sh --mode dedicated` **exits 2** unless `--config` is given.
+- `ovt_assert_unpacked()` runs in **both** launchers and refuses to start while
+  `<repo>/data.pak` exists.
+
+Use `--mode local` (the default). It uses `-server` + `-addons` and never
+touches the tree.
+
+### The addon farm — why `-addonsDir` is not the repo parent (2026-08-24)
+
+🔴 **Every Overthrow checkout shares addon ID `Overthrow` and GUID
+`59B657D731E2A11D`.** Pointing `-addonsDir` at the repo *parent* — which both
+launchers used to do — exposes every sibling worktree as a candidate, and
+`-addons Overthrow` then resolves to whichever one the engine picks.
+
+This is not hypothetical. On 2026-08-24 a dedicated server launched from the
+`v1.5` tree silently ran **`Overthrow.Arma4-main`** for an entire session. The
+giveaway was NOT the `Loaded addons:` block — that still named the v1.5 path —
+but the script warnings, whose file:line numbers matched `-main`'s sources and
+not this tree's. `run-tests.sh` hit the same trap in August and answers it with
+a file-identity guard; the launchers now answer it by construction.
+
+`ovt_addon_farm()` (in `tools/lib/common.sh`) creates a directory under the
+Windows temp dir holding **a junction to this worktree and nothing else**, and
+that is what `-addonsDir` receives. It is keyed by a hash of the real repo path,
+so parallel worktrees never share one, and it is idempotent.
+
+It lives in the temp dir deliberately: **not inside the repo** (a junction to
+the repo's own ancestor invites a recursive scan) and **not beside it** (that
+would put a second `Overthrow` in the very directory it exists to hide).
+
+⚠ **Overthrow has no workshop dependencies.** `addon.gproj` declares exactly one
+— `58D0FB3206B6F859`, the base game. The old default also appended
+`<My Games>\ArmaReforgerWorkbench\addons` for "packed EPF/EDF", which is both
+unnecessary and harmful now: that directory can hold a packed `Overthrow` of the
+same GUID, giving `-addons` yet another rival to pick.
+
+**Verifying which tree actually ran:** trust script warnings over the addon
+list. Pick any warning the log emits and check the file:line in your tree —
+if it does not match, you ran someone else's checkout.
 
 ### Joining (verified end-to-end 2026-08-06)
 
@@ -843,7 +908,7 @@ committed absolute paths. Precedence: environment variable >
 | `OVERTHROW_GPROJ` | compile-check | `<repo root>/addon.gproj` |
 | `OVERTHROW_GAME_GPROJ` | launch-game | `<game install>/addons/data/ArmaReforger.gproj` |
 | `OVERTHROW_ADDONS_DIRS` | compile-check | `<My Games>\ArmaReforgerWorkbench\addons,<game install>\addons` (Windows form, comma-separated; packed workshop EPF/EDF + base game) |
-| `OVERTHROW_GAME_ADDONS_DIRS` | launch-game | `<repo parent>,<My Games>\ArmaReforgerWorkbench\addons` (Windows form; source Overthrow + packed EPF/EDF) |
+| `OVERTHROW_GAME_ADDONS_DIRS` | launch-game | the **addon farm** (Windows form): a temp directory holding a junction to THIS worktree and nothing else. NOT the repo parent - see below |
 | `OVERTHROW_GAME_ADDONS` | launch-game | `EnfusionDatabaseFramework,EnfusionPersistenceFramework,Overthrow` |
 | `OVERTHROW_PROFILE_NAME` | both | `OverthrowCI` |
 | `OVERTHROW_MYGAMES_DIR` | both | discovered: `<win user profile>/OneDrive/Documents/My Games`, else `<win user profile>/Documents/My Games` |
@@ -853,7 +918,7 @@ committed absolute paths. Precedence: environment variable >
 | `OVERTHROW_SERVER_EXE` | launch-server | `<steam>/common/Arma Reforger Server/ArmaReforgerServerDiag.exe` (separate Steam app 1874900) |
 | `OVERTHROW_SERVER_PROFILE` | launch-server | `OverthrowDS` (deliberately not the CI profile) |
 | `OVERTHROW_SERVER_TIMEOUT` | launch-server | `86400` (seconds — i.e. until Ctrl-C) |
-| `OVERTHROW_SERVER_ADDONS_DIRS` | launch-server | `<repo parent>` in Windows form — what makes the working tree visible |
+| `OVERTHROW_SERVER_ADDONS_DIRS` | launch-server | the **addon farm** (Windows form), same as launch-game |
 | `OVT_PID_REGISTRY` | lib (pidfile registry) | `<repo root>/.tmp/ovt-pids` |
 
 **`tools/config.local.sh`** (gitignored): if present at that exact path it is
@@ -1012,6 +1077,51 @@ Overthrow component.
 
 ---
 
+## `tools/check-shop-coverage.py`
+
+Static config check, no Workbench and no game: reports every base-game catalogue
+item that **no shop rule can ever stock**. Shop inventories are catalogue
+*queries* (`OVT_ShopInventoryItem`: type + mode + `m_sFind`), so new vanilla
+items flow onto the shelves for free — until Bohemia adds a new
+`SCR_EArsenalItemType` (HANDWEAR, RADIO_BACKPACK) or files items under a mode
+no rule asks for (WEAPON_VARIANTS). Then the item is priced, registered and
+lootable but unbuyable, and nobody notices until a player asks where the gloves
+are (the 2026-08-23 sweep found 33 such items).
+
+```
+tools/check-shop-coverage.py [--reforger DIR] [--mode missing|summary|all]
+                             [--ignore PATTERN]... [--no-default-ignores] [--quiet]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--reforger <dir>` | Base-game reference tree. Default `../ArmaReforger`, or `$OVERTHROW_REFORGER_DIR`. |
+| `--mode missing` | (default) Unreachable items grouped by type/mode. |
+| `--mode summary` | Reachable/missing counts per type/mode. |
+| `--mode all` | Every sellable item with the shops whose rules match it (`(rnd)` = `m_bSingleRandomItem`). |
+| `--ignore <pattern>` | Prefab-path substring to treat as deliberately unsold; repeatable, adds to the built-in list. |
+| `--no-default-ignores` | Drop the built-in design-exclusion list (crew-served/mortar parts, sandbags, barbed tape, mortar/heli/vehicle ammo, ballistic tables, the FIA tent). |
+| `--quiet` | Summary line only (stderr). |
+
+| Exit | Meaning |
+|---|---|
+| `0` | Every non-ignored item is reachable by at least one rule in `ShopConfig.conf` / `GunDealerConfig.conf`. |
+| `1` | Unreachable items found; details on stdout. |
+| `2` | Indeterminate — a config, the faction manager prefab or the reference tree could not be read. |
+
+It mirrors the runtime: the universe is the ITEM catalogue of every faction
+`OVT_OverthrowFactionManager.et` loads (resolving same-GUID mod deltas over the
+vanilla confs), minus disabled entries, `SCR_NonArsenalItemCostCatalogData`
+entries and anything a `hidden 1` `OVT_PriceConfig` matches
+(`BuildResourceDatabase`); a rule matches under `FindInventoryItems` semantics
+(type equal, `m_sFind` substring, mode `DEFAULT` = any,
+`m_bIncludeSupportStationItems 0` drops SUPPORT_STATION). Faction include flags
+and `m_bSingleRandomItem` are stocking choices, not reachability, and are
+ignored. **Run it after every Reforger update** (`/update-reforger`) and after
+editing either shop config.
+
+---
+
 ## `tools/decode-savepoint.py`
 
 Reads a Reforger persistence save point — what is in it, what changed between
@@ -1070,6 +1180,7 @@ reproduce locally — see the `persistence-forensics` skill.
 
 ```bash
 tools/check-placeables.py --quiet                 # placeable/buildable prefabs: component + RplComponent reachable?
+tools/check-shop-coverage.py --quiet             # every base-game catalogue item reachable by some shop rule?
 bash tools/lib/common.sh --self-test              # 29 assertions: path round-trips,
                                                   # resolvers, sweep, trap save/restore
 bash tools/lib/common.sh --sweep-stale            # LIST registered orphans (STALE\t<pid>\t<image>)

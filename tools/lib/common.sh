@@ -267,6 +267,88 @@ _ovt_win_userprofile() {
 # a $(...) capture runs in a subshell, so the cache only primes the parent
 # shell when the function is first called outside a command substitution;
 # either way, correctness is unaffected — only the ~0.2s cmd.exe hop).
+# ovt_assert_unpacked — refuse to launch while a packed build sits in the tree.
+#
+# 🔴 A data.pak IN THE PROJECT ROOT SILENTLY WINS OVER THE SOURCES. The engine
+# prefers packed data for an addon GUID, so every launcher loads the pak and
+# ignores every .c file in the tree - while the log's 'Loaded addons:' block
+# still names the source path, so nothing looks wrong. On 2026-08-24 that cost a
+# full session: a stale 1.4.15 pak, written by `launch-server.sh --mode
+# dedicated`, served old code through a corrected -addonsDir, a junction farm,
+# a cleaned profile and a disabled workshop copy, all of which pointed at this
+# tree and all of which therefore got the pak.
+#
+# The tell in a log is '(packed)' beside this repo's addon.gproj.
+ovt_assert_unpacked() {
+    local pak="$OVT_REPO_ROOT/data.pak"
+
+    [[ -e "$pak" ]] || return 0
+
+    ovt_err "'$pak' exists — the engine loads THAT instead of this worktree's sources, and the log will still name the source path so it looks correct. Move it aside (e.g. into .tmp/) before launching. It is written by 'launch-server.sh --mode dedicated', which is now refused for this reason."
+    return 2
+}
+
+# ovt_addon_farm — a directory containing NOTHING but a junction to THIS
+# worktree, echoed in Windows form. This is what -addonsDir must point at.
+#
+# WHY: every Overthrow checkout shares addon ID 'Overthrow' and GUID
+# 59B657D731E2A11D, so pointing -addonsDir at the repo PARENT (the old default)
+# exposes every sibling worktree as a candidate and '-addons Overthrow' resolves
+# to whichever the engine picks. Observed 2026-08-24: a dedicated server launched
+# from the v1.5 tree silently ran Overthrow.Arma4-main for a whole session, and
+# the 'Loaded addons:' block still named the v1.5 path. run-tests.sh hit the same
+# trap in August and answers it with a file-identity guard; this is the other
+# half - make the wrong tree unreachable rather than merely detectable.
+#
+# The farm lives under the WINDOWS temp dir, deliberately NOT inside the repo
+# (a junction to the repo's own ancestor invites a recursive scan) and NOT
+# beside it (that would put a second Overthrow in the parent it is meant to
+# hide). Keyed by a hash of the real repo path so parallel worktrees never
+# share one.
+#
+# Idempotent: an existing junction pointing at the right place is reused, and a
+# stale one is replaced.
+ovt_addon_farm() {
+    local real hash farm_wsl farm_win link_wsl repo_win bat
+
+    real="$(cd -- "$OVT_REPO_ROOT" && pwd -P)" || return 2
+    hash="$(printf '%s' "$real" | cksum | cut -d' ' -f1)"
+
+    local tmp_win tmp_wsl
+    tmp_win="$(cmd.exe /c 'echo %TEMP%' 2>/dev/null | tr -d '\r\n')" || return 2
+    [[ -n "$tmp_win" ]] || { ovt_err "could not resolve the Windows TEMP directory for the addon farm"; return 2; }
+    tmp_wsl="$(wslpath -u "$tmp_win" 2>/dev/null)" || return 2
+
+    farm_wsl="$tmp_wsl/ovt-addon-farm/$hash"
+    link_wsl="$farm_wsl/$(basename "$real")"
+
+    # Reuse a junction that already resolves to this worktree.
+    if [[ -e "$link_wsl" ]] && [[ "$(readlink -f "$link_wsl" 2>/dev/null)" == "$real" ]]; then
+        ovt_win_path "$farm_wsl"
+        return 0
+    fi
+
+    rm -rf "$farm_wsl" 2>/dev/null
+    mkdir -p "$farm_wsl" || { ovt_err "cannot create the addon farm at '$farm_wsl'"; return 2; }
+
+    farm_win="$(ovt_win_path "$farm_wsl")" || return 2
+    repo_win="$(ovt_win_path "$real")" || return 2
+
+    # Through a .bat: mklink is a cmd builtin and the paths contain spaces, which
+    # does not survive `cmd.exe /c "<one long string>"` from here.
+    bat="$farm_wsl/.mklink.bat"
+    printf '@echo off\r\nmklink /J "%s\\%s" "%s"\r\n' "$farm_win" "$(basename "$real")" "$repo_win" > "$bat"
+    cmd.exe /c "$(wslpath -w "$bat")" >/dev/null 2>&1
+    rm -f "$bat"
+
+    if [[ "$(readlink -f "$link_wsl" 2>/dev/null)" != "$real" ]]; then
+        ovt_err "could not create an addon-farm junction at '$link_wsl' -> '$real'. Set OVERTHROW_SERVER_ADDONS_DIRS / OVERTHROW_GAME_ADDONS_DIRS to a directory containing only this checkout."
+        return 2
+    fi
+
+    printf '%s\n' "$farm_win"
+}
+
 ovt_mygames_dir() {
     if [[ -n "${OVERTHROW_MYGAMES_DIR:-}" ]]; then
         if [[ ! -d "$OVERTHROW_MYGAMES_DIR" ]]; then

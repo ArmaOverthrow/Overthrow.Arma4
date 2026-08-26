@@ -1,8 +1,8 @@
 # Tutorial System - Context & Decisions
 
-**Last Updated:** 2026-08-18 (post-close change set 2: seen store moved into campaign persistence, the modal made modal, BUG-159 closed)
+**Last Updated:** 2026-08-24 (post-close change set 3: the seen-state push was never reaching a RETURNING player)
 **Current Phase:** — (all 9 phases complete)
-**Status:** 🟢 Build complete · ⏳ 2026-08-18 change set awaits suites + play-test (user was in Workbench)
+**Status:** 🟢 Build complete · ⏳ 2026-08-18 and 2026-08-24 change sets await suites + play-test
 
 **Epic:** `new-player-experience` (feature #1 of 5 — the framework everything else in the epic runs on)
 
@@ -32,6 +32,9 @@
 - None for the build. The play-test gates are blocked on the Workbench string-table export — without it every popup renders raw `#OVT-` keys.
 
 **Definition of Done: 8 ✅ MET · 20 👤 HUMAN · 1 ⚠️ DEFERRED (F5, retired by R3).** Full table in `tasks.md` → *Definition of Done — Verdict*.
+
+**Owed to a human, in order (2026-08-24 first):**
+0. **Run the suites and re-test the login case.** `tools/run-tests.sh` Fast `{6A6E29FF47ECB840}` and All `{6A6E2A002F53A581}` — the classifier refuses it for the agent. Then: dismiss tips, restart the server, log back in; nothing that was dismissed may return.
 
 **Owed to a human, in order:**
 1. **Workbench string-table export — 17 new `#OVT-` ids.** Everything visual is blocked on this; until it runs, every popup and button renders a raw key.
@@ -361,6 +364,59 @@ Phase 7 narrowed that last one considerably. The merged config object is now ass
 ---
 
 > Newest phase first. Each block ends with the gotchas that phase discovered — see the index under **Gotchas & Learnings** for where each number lives.
+
+### 2026-08-24 — the seen-state push never ran for a returning player (post-close, user-reported)
+
+**Report:** "seen tutorials is still not persisting right, every time I login to my server I see all of them again."
+
+**Root cause, and it is a call-site gap, not a persistence bug.** `PushTutorialState()` had exactly one
+caller: `OVT_OverthrowGameMode.SetPlayerSpawnContext()`, which the 2026-08-09 `first-spawn` work
+introduced. That function
+1. early-returns when the filter is `""`, and
+2. is called only from the two `FinalizePlayerPreparation` branches that HAND OUT a home, plus the
+   already-finalized early return, which re-sends the **session** cache.
+
+A returning player has a home, so neither branch runs. On a server restart `m_aInitializedPlayers` is
+empty and `m_mSpawnContext` is gone, so the reconnect branch does not run either — and when it does,
+`GetPlayerSpawnContext()` answers `""` for a returning player and the guard refuses it. Net effect:
+**the push fired only on a player's very first-ever finalization.** Every later login left the client's
+`OVT_TutorialSeenStore` empty.
+
+**Why that shows as "all of them".** Ten of the sixteen shipped entries trigger CLIENT-LOCALLY
+(`MENU_OPENED` x7, `MAP_OPENED`, `PLAYER_SPAWNED`) and never pass through
+`OVT_TutorialManagerComponent.SendToPlayer` — so the server's persisted-record veto, which was working
+correctly the whole time, could not see them. The six server-triggered entries were suppressed
+normally. The campaign save, the serializer (v4/v5) and `ApplyPersistedPlayers` were all read and
+verified correct, and are unchanged.
+
+**Fix.** New `OVT_OverthrowGameMode.PushTutorialStateToPlayer(playerId)` — resolves the controller and
+its tutorial component, pushes, and retries a bounded 20 x 500 ms while the controller is not yet
+registered (the same async owner-assignment race `PushSpawnedTutorialTrigger()` already guards).
+`FinalizePlayerPreparation` calls it **unconditionally on both of its exits** (the already-finalized
+early return and the end of the normal path). The push was removed from `SetPlayerSpawnContext()`,
+which is now only about the spawn context. Single player takes the same path and had the same defect.
+
+**Coverage.** New `OVT_TEST_Campaign_Tutorial_StatePushReachesClient` (Campaign tier) seeds a sentinel
+on the server record, calls the push, and asserts the client mirror received it — pinning the
+local-direct branch and the resolve. It does **not** pin that `FinalizePlayerPreparation` still calls
+the push: both call sites are on paths this tier cannot re-enter without teleporting and respawning the
+autotest player. That half stays play-test. `OVT_TutorialComponent.HasSeenLocally()` was added as the
+public read of the otherwise-unobservable mirror.
+
+**Gates:** compile-check **0** (6344 files). **Suites NOT run** — `tools/run-tests.sh` is refused by
+Claude Code's auto-mode classifier; owed to a human.
+
+### 36. A client-local trigger is invisible to a server-side veto
+`OVT_TutorialManagerComponent.SendToPlayer` checks the persisted record before sending, and that check
+is correct — but it is only on the RPC path. `FireLocalEvent()` runs the same matcher, queue, gate and
+pump entirely on the client, reading only the in-memory mirror. Any future "the server decides" rule
+for tutorials has to be mirrored into the client store, or it applies to six entries out of sixteen.
+
+### 37. A push that rides another feature's guard inherits that guard's preconditions
+The seen-state push was correct in isolation and delivered nothing in practice, because it was hosted
+inside a function whose whole job is a fact only NEW players have. Nothing failed loudly: the guard is
+a documented, deliberate silent drop. When state must reach a client on *every* arrival path, give it
+its own call site on that path — not a ride on a neighbouring one.
 
 ### 2026-08-18 — seen store into campaign persistence, the modal made modal, BUG-159 root-caused (post-close, user-reported)
 

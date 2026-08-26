@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{6A8E2C1000000002}UI/Layouts/Menu/TransferMenu/TransferMenu_Row.layout"
+ Configurations {
+  LayoutResourceClass PC {
+  }
+  LayoutResourceClass XBOX_ONE : PC {
+  }
+  LayoutResourceClass XBOX_SERIES : PC {
+  }
+  LayoutResourceClass PS4 : PC {
+  }
+  LayoutResourceClass HEADLESS : PC {
+  }
+ }
+}

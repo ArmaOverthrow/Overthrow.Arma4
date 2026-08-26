@@ -1,0 +1,149 @@
+BehaviorTree "{ACFFFA96E11FDA0F}AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt" {
+ Name "AI/BehaviorTrees/Overthrow/Waypoints/WP_HouseSearchMoveTo.bt"
+ Nodes {
+  RootNode Root {
+   Name "Root"
+   EditorPos 160 -256
+   Nodes {
+    Sequence Sequence {
+     Name "Sequence"
+     EditorPos 131.429 144.143
+     Nodes {
+      SCR_AIGetWaypointParameters "SCR_AI Get Waypoint Parameters" {
+       Name "SCR_AI Get Waypoint Parameters"
+       EditorPos -1166.364 421.023
+       InPorts {
+        SingleInputPortContainer SingleInputPortContainer {
+         Port -1
+         PortName "WaypointIn"
+        }
+       }
+       OutPorts {
+        SingleOutputPortContainer SingleOutputPortContainer {
+         Port 1
+         PortName "WaypointOut"
+        }
+        SingleOutputPortContainer SingleOutputPortContainer {
+         Port -1
+         PortName "Radius"
+        }
+        SingleOutputPortContainer SingleOutputPortContainer {
+         Port -1
+         PortName "Origin"
+        }
+        SingleOutputPortContainer SingleOutputPortContainer {
+         Port 3
+         PortName "PriorityLevel"
+        }
+       }
+      }
+      DecoTestVariable "Test Variable" {
+       Name "Test Variable"
+       EditorPos -491.349 408.426
+       Nodes {
+        ForEachChild "For Each Child" {
+         Name "For Each Child"
+         EditorPos -469.497 609.408
+         Nodes {
+          SCR_AISendOrder_ReturnToDefault "SCR_AI Send Order_ Return To Default" {
+           Name "SCR_AI Send Order_ Return To Default"
+           EditorPos -553.024 762.548
+           InPorts {
+            SingleInputPortContainer SingleInputPortContainer {
+             Port 4
+             PortName "Receiver"
+            }
+           }
+           m_sText "WP_HouseSearchMoveTo"
+          }
+         }
+         OutEntity 4
+         ReturnControlledEntity 0
+        }
+       }
+       ForceNodeResult Success
+       InVariable 3
+       TestType BiggerThanValue
+       TestValue "0"
+      }
+      SCR_AISendGoalMessage_Move "SCR_AI Send Goal Message_ Move" {
+       Name "SCR_AI Send Goal Message_ Move"
+       EditorPos 244.659 432.614
+       InPorts {
+        SingleInputPortContainer SingleInputPortContainer {
+         Port -1
+         PortName "Receiver"
+        }
+        SingleInputPortContainer SingleInputPortContainer {
+         Port 0
+         PortName "PriorityLevel"
+        }
+        SingleInputPortContainer SingleInputPortContainer {
+         Port -1
+         PortName "IsWaypointRelated"
+        }
+        SingleInputPortContainer SingleInputPortContainer {
+         Port 2
+         PortName "FollowEntity"
+        }
+        SingleInputPortContainer SingleInputPortContainer {
+         Port -1
+         PortName "MovePosition"
+        }
+        SingleInputPortContainer SingleInputPortContainer {
+         Port -1
+         PortName "UseVehicles"
+        }
+       }
+       m_sText "WP_HouseSearchMoveTo"
+       m_bIsWaypointRelated 1
+       m_eMovementType WALK
+       m_bUseVehicles 1
+      }
+      AITaskReturnState "Return State" {
+       Name "Return State"
+       EditorPos 604.956 429.342
+       Result RUNNING
+      }
+     }
+    }
+   }
+  }
+ }
+ Variables {
+  BtVariableEntity waypointEntity {
+   Flags 0
+   Desc "IEntity"
+  }
+  BtVariableScalar priorityLevel {
+   Flags 0
+   Desc "float"
+  }
+  BtVariableEntity groupMember {
+   Flags 0
+   Desc "AIAgent"
+  }
+ }
+ VariablesRefs {
+  VariableReference priorityLevel {
+   VariableType 1
+   EditorPos 0 624
+  }
+  VariableReference waypointEntity {
+   VariableType 0
+   EditorPos -768 448
+  }
+  VariableReference waypointEntity {
+   VariableType 0
+   EditorPos -16 736
+  }
+  VariableReference priorityLevel {
+   VariableType 1
+   EditorPos -736 528
+  }
+  VariableReference groupMember {
+   VariableType 2
+   EditorPos -768 800
+  }
+ }
+}

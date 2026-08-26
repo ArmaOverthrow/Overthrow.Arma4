@@ -59,6 +59,66 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
    }
    m_Flags PLACEABLE
   }
+  ActionsManagerComponent "{6B70D0000000002C}" {
+   ActionContexts {
+    UserActionContext "{6B70D0000000002D}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000002E}" {
+      Offset 0 1 0
+     }
+     Radius 8
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000058}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000059}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D0000000002F}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000030}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6B70D00000000008}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+     DamageThreshold 50
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000009}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{B405E1CD1596AA90}Assets/Structures/Industrial/Garages/Garage_E_02/Garage_E_02_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_ROCK
+  }
+  SCR_DestructibleBuildingComponent "{5D7AD092A3CB4B41}" {
+   Enabled 0
+  }
   RplComponent "{50A4E7C9B5728062}" {
    Enabled 1
   }

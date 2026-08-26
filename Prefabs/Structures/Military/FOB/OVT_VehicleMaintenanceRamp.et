@@ -27,7 +27,42 @@ GenericEntity {
    }
    m_Flags PLACEABLE
   }
+  ActionsManagerComponent "{6B70D00000000022}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000023}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D00000000024}" {
+      Offset 0 1 0
+     }
+     Radius 5
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D0000000005E}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000005F}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D00000000025}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000026}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
   RplComponent "{59CF196A053B1B4F}" {
+   Enabled 1
   }
   Hierarchy "{59D05009C322FE87}" {
   }
@@ -70,6 +105,37 @@ GenericEntity {
   }
   SCR_DestructibleBuildingEntity : "{74FAABE8512145EF}Prefabs/Structures/Industrial/Repair/RampVehicle_01/RampVehicle_01_metal.et" {
    ID "59CF196E7B413D5F"
+   components {
+    OVT_StructureDestructionComponent "{6B70D0000000000E}" {
+     Enabled 1
+     "Additional hit zones" {
+      SCR_HitZone Default {
+       HZDefault 1
+       "Melee multiplier" 0.01
+       "Kinetic multiplier" 0.1
+       "Explosive multiplier" 1
+       "Incendiary multiplier" 0.1
+       DamageThreshold 50
+      }
+     }
+     m_fBaseHealth 32000
+     m_fDamageThresholdMaximum 50000
+     m_bDeleteAfterFinalPhase 0
+     m_aDamagePhases {
+      SCR_DamagePhaseData "{6B70D0000000000F}" {
+       m_fPhaseHealth 32000
+       m_PhaseModel "{F93C1C026EABAEF5}Assets/Structures/Industrial/Repair/RampVehicle_01/dst/RampVehicle_01_metal_Ruin.xob"
+      }
+     }
+     m_eMaterialSoundType BREAK_METAL
+    }
+    SCR_DestructibleBuildingComponent "{67148C0FAD779ACE}" {
+     Enabled 0
+    }
+    RplComponent "{50A4E7C9B5728062}" {
+     Enabled 1
+    }
+   }
   }
   DecalEntity : "{9EE74738BD9E8CDB}Prefabs/Decals/Dirt/Decal_Dirt_Tracks_02.et" {
    ID "59CF196E7B415751"

@@ -1,0 +1,65 @@
+GenericEntity {
+ ID "6A8E2F2100000002"
+ components {
+  MeshObject "{6A8E2F2000000003}" {
+   Object "{B8A18DA1DEC04635}Assets/Props/Military/AmmoBox/EquipmentBoxStack/EquipmentBoxStack_01_V4.xob"
+   LODFactors {
+    0
+   }
+   ObjectHeightmapBias 0
+  }
+  Hierarchy "{6A8E2F2000000004}" {
+  }
+  RigidBody "{6A8E2F2000000005}" {
+   Mass 10
+   AngularSleepingThreashold 1
+   ResponseIndex "HugeDestructible"
+   ModelGeometry 1
+   Static 1
+  }
+  ActionsManagerComponent "{6A8E2F2000000006}" {
+   ActionContexts {
+    UserActionContext "{6A8E2F2000000007}" {
+     ContextName "default"
+     Position PointInfo "{6A8E2F2000000008}" {
+      Offset 0 1 0
+     }
+     Radius 0.65
+    }
+   }
+   additionalActions {
+    OVT_OpenStorageMenuAction "{6A8E2F2000000009}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F200000000A}" {
+      Name "#OVT-Storage_Open"
+     }
+     Duration 0
+     "Sort Priority" 1
+    }
+    OVT_LoadStorageAction "{6A8E2F200000000B}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F200000000C}" {
+      Name "#OVT-LoadStorage"
+     }
+     Duration 0
+     "Sort Priority" 2
+    }
+    OVT_UnloadStorageAction "{6A8E2F200000000D}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F200000000E}" {
+      Name "#OVT-UnloadStorage"
+     }
+     Duration 0
+     "Sort Priority" 3
+    }
+   }
+  }
+ }
+ coords 0 0 0
+}

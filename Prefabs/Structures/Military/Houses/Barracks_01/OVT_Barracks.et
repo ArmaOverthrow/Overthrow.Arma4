@@ -1,0 +1,111 @@
+SCR_DestructibleBuildingEntity : "{80D7D3EAABADBD44}Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_BarracksComponent "{6B1C3D0000000040}" {
+  }
+  OVT_BuildableComponent "{6A2C11418BD340EE}" {
+   m_sBuildableType "barracks"
+  }
+  OVT_MapMarkerComponent "{6A2C1146447002E1}" {
+   m_eCategory POI
+   m_UiInfo SCR_UIInfo "{6A2C114657E6E055}" {
+    Name "#OVT-Barracks"
+    Icon "{C7691945DE01FB28}UI/Imagesets/overthrow_mapicons.imageset"
+    IconSetName "barracks"
+   }
+   m_bMustOwnBase 1
+  }
+  OVT_PlayerOwnerComponent "{6A2C11419B868DD4}" {
+  }
+  OVT_SpawnPointComponent "{6B1C3D0000006000}" {
+   m_aPoints {
+    PointInfo "{6B1C3D0000006001}" {
+     Offset 0 0 17
+    }
+    PointInfo "{6B1C3D0000006002}" {
+     Offset 3 0 17
+    }
+    PointInfo "{6B1C3D0000006003}" {
+     Offset -3 0 17
+    }
+   }
+   m_aVehiclePoints {
+    PointInfo "{6B1C3D0000006005}" {
+     Offset 11 0 0.2221
+    }
+    PointInfo "{6B1C3D0000006006}" {
+     Offset 11 0 8.134
+    }
+   }
+  }
+  ActionsManagerComponent "{6B70D00000000068}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000069}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000006A}" {
+      Offset 0 1 0
+     }
+     Radius 6
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D0000000006B}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000006C}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D0000000006D}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000006E}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6B1C3D0000000041}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     DamageThreshold 50
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B1C3D0000000042}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{23A4F25400F52064}Assets/Structures/Military/Houses/Barracks_01/Barracks_01_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_METAL
+  }
+  SCR_DestructibleBuildingComponent "{5D7E937B62062DE5}" {
+   Enabled 0
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
+ }
+ {
+  GenericEntity : "{A7E02C0008C6455E}Prefabs/Structures/Military/Houses/Barracks_01/Barracks_01_military_furniture_01.et" {
+   ID "6B1C3D000000004B"
+   coords 0 0 0
+  }
+ }
+}

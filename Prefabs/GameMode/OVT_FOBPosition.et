@@ -1,0 +1,8 @@
+OVT_FOBPosition {
+ ID "0000000000000001"
+ Flags 1027
+ components {
+  OVT_FOBPositionComponent "{6B8C3F5D00000092}" {
+  }
+ }
+}

@@ -11,6 +11,69 @@ SCR_DestructibleBuildingEntity : "{33F50E1C918159AB}Prefabs/Structures/Military/
    }
    m_Flags PLACEABLE
   }
+  ActionsManagerComponent "{5A30CE5EDD9DBDB5}" {
+   ActionContexts {
+    UserActionContext "{6B70D00000000019}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000001A}" {
+      Offset 0 1 0
+     }
+     Radius 4
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000062}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000063}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D0000000001B}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D0000000001C}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  OVT_StructureDestructionComponent "{6B70D00000000002}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+     DamageThreshold 50
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000003}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{F0FDB651ED7B2B76}Assets/Structures/Military/Houses/GuardTower_01/GuardTower_01_Ruin.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_METAL
+  }
+  SCR_DestructibleBuildingComponent "{5D7E937DD0A125D0}" {
+   Enabled 0
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
+  }
  }
  {
   $grp GenericEntity : "{465E10879E936748}Prefabs/Structures/BuildingParts/Windows/Glass_42x43/Glass_42x43.et" {

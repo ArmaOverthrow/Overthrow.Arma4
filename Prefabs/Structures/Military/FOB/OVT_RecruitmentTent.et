@@ -21,12 +21,75 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
     Offset 0 0 8
    }
   }
+  OVT_StorageComponent "{6A8E2F2100000010}" {
+   m_eCapacityMode UNLIMITED
+  }
+  OVT_StructureDestructionComponent "{6B70D00000000004}" {
+   Enabled 1
+   "Additional hit zones" {
+    SCR_HitZone Default {
+     HZDefault 1
+     DamageThreshold 50
+     "Melee multiplier" 0.01
+     "Kinetic multiplier" 0.1
+     "Explosive multiplier" 1
+     "Incendiary multiplier" 0.1
+    }
+   }
+   m_fBaseHealth 32000
+   m_fDamageThresholdMaximum 50000
+   m_bDeleteAfterFinalPhase 0
+   m_aDamagePhases {
+    SCR_DamagePhaseData "{6B70D00000000005}" {
+     m_fPhaseHealth 32000
+     m_PhaseModel "{0F7DDAB5C669F262}Assets/Structures/Debris/DebrisPiles/DebrisPile_Wood_01.xob"
+    }
+   }
+   m_eMaterialSoundType BREAK_TENT
+  }
   SCR_EditableEntityComponent "{65B90A294FA187CE}" {
    m_UIInfo SCR_EditableEntityUIInfo "{65B90A29491D080A}" {
     Name "#OVT-Build_RecruitmentTent"
     Description "#OVT-Build_RecruitmentTent_Description"
    }
    m_Flags PLACEABLE
+  }
+  ActionsManagerComponent "{6B70D0000000001D}" {
+   ActionContexts {
+    UserActionContext "{6B70D0000000001E}" {
+     ContextName "repair"
+     Position PointInfo "{6B70D0000000001F}" {
+      Offset 0 1 0
+     }
+     Radius 5
+    }
+   }
+   additionalActions {
+    OVT_RepairRequirementsAction "{6B70D00000000060}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000061}" {
+      Name "#OVT-Resource_RepairRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_RepairStructureAction "{6B70D00000000020}" {
+     ParentContextList {
+      "repair"
+     }
+     UIInfo UIInfo "{6B70D00000000021}" {
+      Name "#OVT-RepairStructure"
+     }
+     Duration 20
+    }
+   }
+  }
+  RplComponent "{50A4E7C9B5728062}" {
+   Enabled 1
   }
  }
  {
@@ -53,6 +116,11 @@ SCR_DestructibleBuildingEntity : "{BE5D5CFA90224646}Prefabs/Structures/Military/
     }
    }
    coords 0.076 0.945 -1.979
+  }
+  GenericEntity : "{6A8E2F2100000001}Prefabs/Props/Military/AmmoBoxes/OVT_SupplyCrate_Tent.et" {
+   ID "6A8E2F2100000011"
+   coords 1.85 0.045 0.55
+   angles 0 90 0
   }
   StaticModelEntity : "{7762F50A860DD074}Prefabs/Props/Military/Furniture/TableMilitary_US_01.et" {
    ID "65AAD8ED9FEDD969"

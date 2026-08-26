@@ -51,6 +51,17 @@ class OVT_EquippedRecruitQuote : Managed
 	//! The whole quoted price: recruit cost plus the gear fee.
 	int m_iTotalPrice;
 
+	//! Value of the gear covered by nearby warehouse stock - the tent half of the shipped
+	//! "//To-do: factoring in warehouse" (implementation.md §3.8).
+	int m_iCoveredValue;
+
+	//! Per-resource manifest this quote was split against. Held so a successful purchase can consume
+	//! exactly what it was quoted, not a stock figure re-read a round trip later.
+	ref array<ref OVT_ItemSourcingLine> m_aManifest;
+
+	//! The warehouses collected for this quote, in query order.
+	ref array<OVT_StorageComponent> m_aStores;
+
 	//! The item with no catalog price, when that is why this was refused.
 	string m_sUnpriceableResource;
 }
@@ -88,8 +99,8 @@ class OVT_EquippedRecruitQuote : Managed
 //!       failed, dropped)                                         -> (int x5)            5 args
 //!   Rpc(RpcAsk_QuoteEquippedRecruit, tentRplId, loadoutName)     -> (RplId, string)     2 args
 //!   Rpc(RpcDo_RecruitQuote, loadoutName, price, itemCount,
-//!       refusalCode, unpriceableResource)                        -> (string, int, int,
-//!                                                                    int, string)       5 args
+//!       refusalCode, unpriceableResource, coveredValue)           -> (string, int, int,
+//!                                                                    int, string, int)  6 args
 //!   Rpc(RpcAsk_BuyEquippedRecruit, tentRplId, loadoutName)       -> (RplId, string)     2 args
 //!   Rpc(RpcDo_EquippedRecruitResult, code, charged, applied,
 //!       total)                                                   -> (int x4)            4 args
@@ -275,7 +286,8 @@ class OVT_RecruitCommandComponent : OVT_Component
 	protected bool m_bSubscribedToRemoval;
 
 	//! CLIENT: fires when a tent purchase quote arrives.
-	//! Args: (string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	//! Args: (string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource,
+	//!         int coveredValue)
 	//!
 	//! For the picker: a quote is asked for when the highlighted loadout changes, and it arrives one
 	//! round trip later. A screen that only polls would show the previous loadout's price for a frame
@@ -306,6 +318,9 @@ class OVT_RecruitCommandComponent : OVT_Component
 
 	//! CLIENT: the unpriceable item named by the last quote, when that was the refusal.
 	protected string m_sLastQuoteUnpriceable;
+
+	//! CLIENT: value of the gear the last quote reported as covered by nearby warehouse stock.
+	protected int m_iLastQuoteCoveredValue;
 
 	//------------------------------------------------------------------------------------------------
 	//! \param src Component source.
@@ -793,7 +808,7 @@ class OVT_RecruitCommandComponent : OVT_Component
 
 		OVT_EquippedRecruitQuote quote = ValidateTentPurchase(playerId, tentRplId, loadoutName);
 
-		SendRecruitQuote(loadoutName, quote.m_iTotalPrice, quote.m_iItemCount, quote.m_iRefusalCode, quote.m_sUnpriceableResource);
+		SendRecruitQuote(loadoutName, quote.m_iTotalPrice, quote.m_iItemCount, quote.m_iRefusalCode, quote.m_sUnpriceableResource, quote.m_iCoveredValue);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -899,6 +914,13 @@ class OVT_RecruitCommandComponent : OVT_Component
 				towns.TakeSupportersFromNearestTown(quote.m_vTentPosition, 1);
 		}
 
+		// 5b - consume the warehouse stock this quote covered, now that the recruit exists but before
+		// any money changes hands (T5.3, implementation.md §3.8). Gated on the SAME exception ChargeFor
+		// itself uses (decision D19): a total gear failure charges no gear fee, so it must not drain a
+		// warehouse for gear that never landed on the body either.
+		if(body && outcome != RESULT_GEAR_FAILED)
+			ConsumeQuotedGearStock(quote);
+
 		// 6 - TakePlayerMoneyPersistentId is the DIRECT server-side call, and the runtime-player-id
 		// variant of it must never appear in this file: that one forwards through
 		// OVT_Global.GetServer(), which off the server is an Rpc() out of a server handler - dropped in
@@ -912,6 +934,25 @@ class OVT_RecruitCommandComponent : OVT_Component
 
 		// 7
 		SendPurchaseResult(outcome, charge, applied, total);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Consumes the warehouse stock a re-derived quote covered. SERVER, once a recruit body is real.
+	//!
+	//! The OVT_HighCommandManagerComponent.ConsumeQuotedStock shape: each line asks TakeUpTo for its
+	//! whole need and the ledger answers with what it actually had - the same min(need, available)
+	//! SplitCoverage used a moment earlier, expressed once.
+	//! \param[in] quote The quote re-derived for this purchase, carrying its own manifest and stores.
+	protected void ConsumeQuotedGearStock(notnull OVT_EquippedRecruitQuote quote)
+	{
+		if(!quote.m_aStores || quote.m_aStores.IsEmpty() || !quote.m_aManifest) return;
+
+		foreach(OVT_ItemSourcingLine line : quote.m_aManifest)
+		{
+			if(!line) continue;
+
+			OVT_WarehouseStockUtils.TakeUpTo(quote.m_aStores, line.m_sResource, line.m_iNeeded);
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1027,11 +1068,34 @@ class OVT_RecruitCommandComponent : OVT_Component
 
 		quote.m_iGearSubtotal = price.m_iSubtotal;
 		quote.m_iItemCount = price.m_iItemCount;
+		quote.m_aManifest = price.m_aManifest;
+
+		// 6b - the tent half of the shipped warehouse TODO (implementation.md §3.8). With nothing in
+		// range CollectStores returns empty, CountAvailable answers 0 for every line, and
+		// SplitCoverage's charged subtotal collapses to price.m_iSubtotal exactly - so a campaign with
+		// no warehouse quotes byte-identically to before this phase.
+		quote.m_aStores = new array<OVT_StorageComponent>();
+		OVT_WarehouseStockUtils.CollectStores(quote.m_vTentPosition, OVT_HighCommandRules.WAREHOUSE_RANGE, persId, quote.m_aStores);
+
+		// THE TENT'S OWN CRATE IS THE FIRST SOURCE. It is prepended rather than collected because
+		// CollectStores only offers registered WAREHOUSES, and the tent is a buildable with a ledger -
+		// which is the point: this is the pre-warehouse supply line, filled with early-game loot.
+		OVT_WarehouseStockUtils.PrependStore(quote.m_aStores, OVT_StorageUtils.GetStorage(quote.m_Tent));
+
+		array<int> availablePerLine = {};
+		foreach (OVT_ItemSourcingLine line : quote.m_aManifest)
+		{
+			availablePerLine.Insert(OVT_WarehouseStockUtils.CountAvailable(quote.m_aStores, line.m_sResource));
+		}
+
+		int coveredUnits, coveredValue, chargedUnits;
+		int chargedGearSubtotal = OVT_ItemSourcingRules.SplitCoverage(quote.m_aManifest, availablePerLine, coveredUnits, coveredValue, chargedUnits);
+		quote.m_iCoveredValue = coveredValue;
 
 		// The SAME half-price the plain tent action charges (OVT_PlayerCommsComponent.c:1510), because
 		// an equipped recruit is a tent recruit that arrives dressed (decision D23).
 		quote.m_iRecruitCost = Math.Round(config.m_Difficulty.baseRecruitCost * 0.5);
-		quote.m_iTotalPrice = OVT_RecruitPurchaseRules.TotalPrice(quote.m_iRecruitCost, quote.m_iGearSubtotal, config.m_Difficulty.recruitLoadoutFeeMultiplier);
+		quote.m_iTotalPrice = OVT_RecruitPurchaseRules.TotalPrice(quote.m_iRecruitCost, chargedGearSubtotal, config.m_Difficulty.recruitLoadoutFeeMultiplier);
 
 		// 7 - explicit, because the charge itself clamps at zero and can never report a shortfall
 		// (OVT_EconomyManagerComponent.DoTakePlayerMoney :1206-1216).
@@ -1077,7 +1141,8 @@ class OVT_RecruitCommandComponent : OVT_Component
 	//! \param[in] itemCount How many items were priced.
 	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
 	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
-	void SendRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	//! \param[in] coveredValue Value of the gear covered by nearby warehouse stock.
+	void SendRecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource, int coveredValue)
 	{
 		if(!Replication.IsServer()) return;
 
@@ -1085,11 +1150,11 @@ class OVT_RecruitCommandComponent : OVT_Component
 
 		if(playerId > 0 && playerId == SCR_PlayerController.GetLocalPlayerId())
 		{
-			RpcDo_RecruitQuote(loadoutName, price, itemCount, refusalCode, unpriceableResource);
+			RpcDo_RecruitQuote(loadoutName, price, itemCount, refusalCode, unpriceableResource, coveredValue);
 			return;
 		}
 
-		Rpc(RpcDo_RecruitQuote, loadoutName, price, itemCount, refusalCode, unpriceableResource);
+		Rpc(RpcDo_RecruitQuote, loadoutName, price, itemCount, refusalCode, unpriceableResource, coveredValue);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1103,17 +1168,19 @@ class OVT_RecruitCommandComponent : OVT_Component
 	//! \param[in] itemCount How many items were priced.
 	//! \param[in] refusalCode RESULT_OK, or why it cannot be bought.
 	//! \param[in] unpriceableResource The item with no price, when that is the refusal.
+	//! \param[in] coveredValue Value of the gear covered by nearby warehouse stock.
 	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
-	protected void RpcDo_RecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource)
+	protected void RpcDo_RecruitQuote(string loadoutName, int price, int itemCount, int refusalCode, string unpriceableResource, int coveredValue)
 	{
 		m_sLastQuoteLoadout = loadoutName;
 		m_iLastQuotePrice = price;
 		m_iLastQuoteItemCount = itemCount;
 		m_iLastQuoteRefusal = refusalCode;
 		m_sLastQuoteUnpriceable = unpriceableResource;
+		m_iLastQuoteCoveredValue = coveredValue;
 
 		if(m_OnRecruitQuote)
-			m_OnRecruitQuote.Invoke(loadoutName, price, itemCount, refusalCode, unpriceableResource);
+			m_OnRecruitQuote.Invoke(loadoutName, price, itemCount, refusalCode, unpriceableResource, coveredValue);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1235,6 +1302,14 @@ class OVT_RecruitCommandComponent : OVT_Component
 	string GetLastQuoteUnpriceable()
 	{
 		return m_sLastQuoteUnpriceable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! CLIENT: value of the gear the most recent quote reported as covered by nearby warehouse stock.
+	//! \return An amount of money, 0 when nothing was covered.
+	int GetLastQuoteCoveredValue()
+	{
+		return m_iLastQuoteCoveredValue;
 	}
 
 	//------------------------------------------------------------------------------------------------

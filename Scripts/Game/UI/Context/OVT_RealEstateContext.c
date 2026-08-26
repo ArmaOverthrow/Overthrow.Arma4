@@ -177,6 +177,10 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isHome = m_RealEstate.IsHome(m_sPlayerID, id);
 		bool isOnlyHouse = GetOwnedCount() == 1;
 		bool isOfficer = OVT_Global.GetPlayers().LocalPlayerIsOfficer();
+
+		// A warehouse inside a base is not real estate: it is neither for sale nor for rent, and the
+		// base's controlling faction decides who may open it. Advisory here - the server refuses too.
+		bool isBaseWarehouse = m_RealEstate.IsBaseWarehouse(building);
 		bool isResistanceOwned = false;
 		if(isOwned)
 		{
@@ -216,6 +220,11 @@ class OVT_RealEstateContext : OVT_UIContext
 			o.SetVisible(true);
 			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyLabel"));
 			w.SetText("#OVT-Shop_Selling");
+			
+			// The label now reads "Selling", so the figure beside it must be what a sale PAYS, not
+			// what a purchase would cost - selling refunds below the buy price (SELL_BACK_RATIO).
+			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyPrice"));
+			if(w) w.SetText(OVT_MoneyFormat.FormatMoney(m_RealEstate.GetSellPrice(building)));
 		}
 		
 		o = OverlayWidget.Cast(m_wRoot.FindAnyWidget("Rent Price"));
@@ -236,7 +245,7 @@ class OVT_RealEstateContext : OVT_UIContext
 		
 		//Buttons
 		ButtonWidget btn = ButtonWidget.Cast(m_wRoot.FindAnyWidget("Rent"));
-		if(isHome || isRented || (isOwned && !isOwner))
+		if(isHome || isRented || isBaseWarehouse || (isOwned && !isOwner))
 		{
 			btn.SetEnabled(false);
 		}else{
@@ -250,7 +259,7 @@ class OVT_RealEstateContext : OVT_UIContext
 			btn.SetEnabled(false);
 		}
 		btn = ButtonWidget.Cast(m_wRoot.FindAnyWidget("Buy"));
-		if(isOwned)
+		if(isOwned || isBaseWarehouse)
 		{
 			btn.SetEnabled(false);
 		}else{
@@ -265,13 +274,25 @@ class OVT_RealEstateContext : OVT_UIContext
 		}
 		
 		btn = ButtonWidget.Cast(m_wRoot.FindAnyWidget("SetAsHome"));
-		if(!isHome && isOwner && !isRenter)
+		if(!isHome && isOwner && !isRenter && !isBaseWarehouse)
 		{
 			btn.SetEnabled(true);
 		}else{
 			btn.SetEnabled(false);
 		}
 		
+		if(isBaseWarehouse)
+		{
+			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyLabel"));
+			if(w) w.SetText("#OVT-RealEstate_BaseProperty");
+
+			w = TextWidget.Cast(m_wRoot.FindAnyWidget("BuyPrice"));
+			if(w) w.SetText("");
+
+			o = OverlayWidget.Cast(m_wRoot.FindAnyWidget("Rent Price"));
+			if(o) o.SetVisible(false);
+		}
+
 		ItemPreviewWidget img = ItemPreviewWidget.Cast(m_wRoot.FindAnyWidget("Image"));
 		ChimeraWorld world = GetGame().GetWorld();
 		ItemPreviewManagerEntity manager = world.GetItemPreviewManager();
@@ -294,6 +315,12 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isRented = m_RealEstate.IsRented(id);
 		bool isOwned = m_RealEstate.IsOwned(id);
 
+		if(m_RealEstate.IsBaseWarehouse(building))
+		{
+			ShowMessage("#OVT-RealEstate_BaseProperty");
+			return;
+		}
+
 		if(isRented || isOwned)
 		{
 			ShowMessage("#OVT-RealEstate_NotForSale");
@@ -310,7 +337,10 @@ class OVT_RealEstateContext : OVT_UIContext
 				return;
 			}
 
-			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, false);
+			OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+			if(!realEstateRequests) return;
+
+			realEstateRequests.BuyBuilding(false);
 		}else if(account == 1)
 		{
 			if(!m_Economy.ResistanceHasMoney(cost))
@@ -319,7 +349,10 @@ class OVT_RealEstateContext : OVT_UIContext
 				return;
 			}
 
-			OVT_Global.GetServer().BuyBuilding(m_iPlayerID, true);
+			OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+			if(!realEstateRequests) return;
+
+			realEstateRequests.BuyBuilding(true);
 		}
 
 		// Optimistic: BuyBuilding is an asynchronous ask, so this redraw still shows the pre-ask
@@ -364,7 +397,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().SellBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.SellBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -393,6 +429,12 @@ class OVT_RealEstateContext : OVT_UIContext
 			}
 		}
 		
+		if(m_RealEstate.IsBaseWarehouse(building))
+		{
+			ShowMessage("#OVT-RealEstate_BaseProperty");
+			return;
+		}
+
 		if(isHome || isRented || (isOwned && !isOwner))
 		{
 			ShowMessage("#OVT-RealEstate_CantRent");
@@ -420,7 +462,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			}
 		}
 
-		OVT_Global.GetServer().RentBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.RentBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -450,7 +495,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().StopRentingBuilding(m_iPlayerID, account == 1);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.StopRentingBuilding(account == 1);
 
 		// Optimistic - see Buy().
 		Refresh();
@@ -477,7 +525,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			return;
 		}
 
-		OVT_Global.GetServer().SetHome(m_iPlayerID);
+		OVT_RealEstateRequestComponent realEstateRequests = OVT_ControllerComponent<OVT_RealEstateRequestComponent>.Get();
+		if(!realEstateRequests) return;
+
+		realEstateRequests.SetHome();
 
 		// Optimistic - see Buy().
 		Refresh();

@@ -9,7 +9,7 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 	//! Report the illegal act as it BEGINS, not when it completes - the hold is what gets seen.
 	override void OnActionStart(IEntity pUserEntity)
 	{
-		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		OVT_IllegalActionComponent illegal = OVT_ControllerComponent<OVT_IllegalActionComponent>.Get();
 		if(illegal)
 			illegal.ReportActionStarted(OVT_EIllegalAction.BASE_ASSAULT);
 	}
@@ -18,7 +18,7 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 	//! Let go of it early and nobody has anything on you.
 	override void OnActionCanceled(IEntity pOwnerEntity, IEntity pUserEntity)
 	{
-		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		OVT_IllegalActionComponent illegal = OVT_ControllerComponent<OVT_IllegalActionComponent>.Get();
 		if(illegal)
 			illegal.ReportActionCancelled();
 	}
@@ -33,7 +33,12 @@ class OVT_CaptureBaseAction : ScriptedUserAction
 		
 		if(base && base.IsOccupyingFaction())
 		{
-			OVT_Global.GetServer().StartBaseCapture(base.location);
+			// The server takes the capture position from the caller's own character (BUG-025), so no
+			// position is sent - this action only has to say "I am asking".
+			OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+			if(!campaign) return;
+
+			campaign.StartBaseCapture();
 		}
  	}
 	

@@ -548,7 +548,9 @@ class OVT_PlaceContext : OVT_UIContext
 			int prefabIndex = m_Placeable.m_aPrefabs.Find(m_pPlacingPrefab);
 			// Sampled before the RPC lands - the replicated modifier list still excludes this placement
 			int modifierSpace = GetSupportModifierSpace(m_Placeable, mat[3]);
-			OVT_Global.GetServer().PlaceItem(placeableIndex, prefabIndex, mat[3], angles, m_iPlayerID);
+			OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+			if(!requests) return;
+			requests.PlaceItem(placeableIndex, prefabIndex, mat[3], angles);
 
 			SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 
@@ -793,7 +795,9 @@ class OVT_PlaceContext : OVT_UIContext
 				if(placeableComp && rpl && CanRemoveItem(placeableComp))
 				{
 					// Send removal request to server (RplId - EntityID is not valid across the network)
-					OVT_Global.GetServer().RemovePlacedItem(rpl.Id(), m_iPlayerID);
+					OVT_ResistanceRequestComponent requests = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
+					if(!requests) return;
+					requests.RemovePlacedItem(rpl.Id());
 					ShowHint("#OVT-ItemRemoved");
 					SCR_UISoundEntity.SoundEvent(SCR_SoundEvent.CLICK);
 				}

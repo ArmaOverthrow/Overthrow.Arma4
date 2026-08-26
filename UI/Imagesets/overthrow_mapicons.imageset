@@ -1,5 +1,5 @@
 ImageSetClass {
- RefSize 784 522
+ RefSize 784 652
  Textures {
   ImageSetTextureClass "{6A12E8AE457B3F72}" {
    screenSize FHD
@@ -120,6 +120,31 @@ ImageSetClass {
   }
   ImageSetDefClass recruit_wounded {
    Pos 522 392
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass crate {
+   Pos 652 392
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass barracks {
+   Pos 2 522
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass steel {
+   Pos 132 522
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass timber {
+   Pos 264 522
+   Size 128 128
+   Flags 0 0
+  }
+  ImageSetDefClass cement {
+   Pos 395 522
    Size 128 128
    Flags 0 0
   }

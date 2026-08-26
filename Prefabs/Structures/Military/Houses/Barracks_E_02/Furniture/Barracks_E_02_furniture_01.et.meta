@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{C58FB6ADECE48F6F}Prefabs/Structures/Military/Houses/Barracks_E_02/Furniture/Barracks_E_02_furniture_01.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

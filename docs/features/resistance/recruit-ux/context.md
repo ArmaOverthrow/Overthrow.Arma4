@@ -111,6 +111,35 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 
 ---
 
+## Post-close change: recruit actions are hidden in a vehicle (2026-08-24)
+
+Author, during an `occupying/vehicles` play-test: *"one small tweak we need to do for recruits is hide all
+their actions when they are in a vehicle (ie remove from group and switch gear). it makes it hard to access
+the vehicle actions when they are in one."*
+
+A recruit's actions and the **vehicle's** actions share one context menu, so every recruit riding along
+pushes Get Out, the turret and the inventory further down a list the player is trying to use while sitting
+in the thing.
+
+**One check, on the base class:** `OVT_BaseRecruitUserAction.CanBeShownScript()` now returns false when
+`IsInCompartment(GetOwner())`. It is on the base for the same reason the ownership rule is — so a later
+action cannot forget it. That covers all three body actions: `OVT_SetRecruitActiveAction`,
+`OVT_SetRecruitInactiveAction` and `OVT_SwapLoadoutWithRecruitAction`. Actions that sit on other entities
+(the tent, the vehicle) are unaffected.
+
+⚠ **This SUPERSEDES a deliberate earlier decision.** `OVT_SetRecruitInactiveAction` used to stay **visible
+with a reason** (`#OVT-Recruit_CannotParkInVehicle`) when the recruit was seated, following
+`OVT_SabotageTowerAction`'s rule that a relevant-but-blocked action should say why rather than silently
+vanish. Play-test overruled it for this case. The refusal branch is **kept** as belt-and-braces behind the
+base rule but is now unreachable in normal play, and its class header says so — the rule it enforces is
+still real (parking changes which AI group commands the body without moving it, so a parked recruit would
+be "holding position" inside a vehicle that then drives off, and the server refuses it too via
+`OVT_RecruitCommandComponent.RESULT_IN_VEHICLE`).
+
+`IsInCompartment()` already existed on the base class, written for that earlier decision — no new helper.
+
+---
+
 ## Session Notes
 
 ### 2026-08-18 — Parked-recruit wander fix: [move → wait] hold cycle (user report)
@@ -215,6 +244,33 @@ Plan decisions D1-D16 live in `implementation.md` §5 — not repeated here. Hig
 ### 2026-08-14 19:52
 - Feature started via /autorun-feature (Discord). Docs scaffolded from the existing plan; status flipped to In Progress.
 - Next: Phase 1 implementation agent.
+
+### Loadout quote "item has no price" (2026-08-23, post-close fix)
+
+Players hit `RESULT_UNPRICEABLE` on loadouts wearing looted civilian clothes (vanilla's `*_Dirty`
+variants live only on character prefabs, in no ITEM catalogue) and on weapon presets/modded guns.
+`OVT_RecruitLoadoutPricing.AddResource` gated on `IsRegisteredResource`, and the resource database is
+built from faction catalogues only - so "has a price" meant "is catalogued", which nothing a player
+loots is guaranteed to be. The `itemPrices.conf` type rules are NOT a fallback for that: they only ever
+ran over catalogue entries.
+
+Fix: `AddResource` now prices through the new `OVT_EconomyManagerComponent.GetBuyPriceForPrefab(res,
+pos, player)` - (1) registered → as before; (2) `ResolvePricingResource`: nearest registered prefab
+**ancestor** (dirty trousers → `Pants_M70`), same price, same town curve; (3) `GetFallbackBasePrice`:
+`OVT_PrefabItemClassifier` reads the prefab's components (WeaponType / clothing AreaType / magazine /
+consumable / gadget / mine) and runs the same price configs, margin applied, no town curve; (4) -1 only
+when none of those place it. **Nothing is ever registered** - the int ids are the wire format. Both
+lookups are cached per prefab. Case: `OVT_TEST_Init_EconomyPrefabPricing` (compile clean; the suite run
+is owed - `tools/run-tests.sh OVT_TEST_Init_EconomyPrefabPricing`). Play-test: save a loadout wearing a
+civilian's dirty shirt + a looted AK-74N 1P29, quote an equipped recruit.
+
+Same day, the other gates were moved onto the seam: shop sell (server `OVT_ShopTransactionComponent`
++ client sell browser `OVT_ShopContext`), port export price (`OVT_StorageRequestComponent.
+ResolveExportUnitPrice`), port/warehouse browse categories, the high-command manifest and vehicle quote,
+and vehicle storage-capacity identity (`OVT_StorageComponent`). Where an int id is needed (sell, export,
+category, capacity) only the ancestor route applies - a looted dirty shirt sells/exports/lists AS the
+clean catalogue shirt and restocks it; a prefab with no registered ancestor stays unsellable. Price-only
+callers (HC manifest/vehicle) use all three routes.
 
 ---
 

@@ -18,7 +18,7 @@ class OVT_ReservationSyncComponentClass : OVT_ComponentClass
 //! every proxy - streamed-in state included, which is what covers JIP and late streamers - and the
 //! proxy-side callback applies the VISUAL half of the reservation locally (VISIBLE and TRACEABLE)
 //! plus the COLLISION half (ApplyPhysicsState - the entity flags never touched the physics body,
-//! which is BUG-185). ACTIVE is deliberately NOT cleared on proxies; the proxy must keep accepting
+//! which is BUG-189). ACTIVE is deliberately NOT cleared on proxies; the proxy must keep accepting
 //! replication updates, and simulation authority is the server's, which already cleared it.
 //!
 //! The same vanilla pattern: SCR_ResourceComponent.m_bIsVisible
@@ -40,11 +40,19 @@ class OVT_ReservationSyncComponent : OVT_Component
 	protected SimulationState m_eSavedSimulationState;
 	protected bool m_bHasSavedSimulationState;
 
+	//! Per-GEOM interaction masks a character's body had before it was reserved. Local to this
+	//! machine, like the simulation state above. Null means "not currently zeroed".
+	protected ref array<int> m_aSavedGeomLayers;
+
+	//! Set true to put characters back through the physics half - the A/B switch for the frozen-legs
+	//! regression described on ApplyPhysicsState().
+	static bool s_bPhysicsHalfOnCharacters = false;
+
 	//------------------------------------------------------------------------------------------------
 	//! Mirrors the reservation state and broadcasts it. Authority only; the authority's own entity
 	//! flags are OVT_PersistenceReservation's business, not this component's - but the physics body
 	//! is applied here on the authority too, because collision is a physics-world property the entity
-	//! flags never touched (BUG-185).
+	//! flags never touched (BUG-189).
 	//! \param[in] reserved The state Reserve()/Release() just applied.
 	void SetReserved(bool reserved)
 	{
@@ -87,7 +95,7 @@ class OVT_ReservationSyncComponent : OVT_Component
 	//! WHY THE ENTITY FLAGS ARE NOT ENOUGH. VISIBLE/TRACEABLE/ACTIVE govern rendering, traces and
 	//! entity ticking - none of them unregisters the rigid body from the physics world, and a sleeping
 	//! body still collides. So a reserved vehicle was a car you could not see, shoot or use, but drove
-	//! straight into (BUG-185) - on clients from the moment BUG-181's fix hid it there too, and on the
+	//! straight into (BUG-189) - on clients from the moment BUG-185's fix hid it there too, and on the
 	//! authority machine (single player, listen host, server-side AI traffic) all along.
 	//!
 	//! SIMULATION STATE, NOT INTERACTION LAYERS. This zeroed the body's interaction layer and restored
@@ -106,6 +114,23 @@ class OVT_ReservationSyncComponent : OVT_Component
 		IEntity owner = GetOwner();
 		if (!owner)
 			return;
+
+		// CHARACTERS ARE SKIPPED. Their body is driven by the character controller, and a NONE ->
+		// restore round trip behind its back leaves the animation graph frozen on any PROXY that ran
+		// it - the character slides with its legs still (reported after a reserved player reconnected;
+		// clients that streamed the body in fresh afterwards were fine, which is what points here).
+		// BUG-189, the reason this half exists, was a reserved VEHICLE standing as an invisible
+		// obstacle; a reserved character is already non-traceable and inactive on the authority.
+		bool skipCharacter = !s_bPhysicsHalfOnCharacters && ChimeraCharacter.Cast(owner) != null;
+		if (skipCharacter)
+		{
+			ApplyCharacterCollision(reserved);
+
+			// A release still falls through when an EARLIER build reserved this character through the
+			// simulation-state path and left a state to hand back; otherwise there is nothing to undo.
+			if (reserved || !m_bHasSavedSimulationState)
+				return;
+		}
 
 		Physics phys = owner.GetPhysics();
 		if (!phys)
@@ -136,5 +161,59 @@ class OVT_ReservationSyncComponent : OVT_Component
 			// Woken after the state is back so it settles on a fresh contact set, not a stale one.
 			phys.SetActive(ActiveState.ACTIVE);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The collision half FOR CHARACTERS, done without touching the physics body's simulation state.
+	//!
+	//! WHY NOT ApplyPhysicsState's route. SimulationState.NONE unregisters the body, and handing back a
+	//! bare enum value does not restore what the character controller reads: on any machine that ran
+	//! the round trip the proxy computed movement speed 0 forever after, so a released player slid
+	//! along with motionless legs while stances and gestures - discrete replicated commands - still
+	//! worked. Locomotion is derived from the body; stance is not. That is the tell.
+	//!
+	//! WHY PER GEOM. Collision is resolved per geometry, and GetInteractionLayer() answers for the
+	//! whole BODY - restoring that one aggregate mask onto every geom is what previously left a
+	//! released vehicle with its chassis and wheels on the same layer, unable to drive itself out of
+	//! its parking spot. Saving and restoring each geom's own mask is exact. Vanilla works per geom for
+	//! the same reason (SCR_PhysicsHelper.RemapInteractionLayer).
+	//!
+	//! Mask 0 means the geometry belongs to no layer, so nothing tests against it - the body stays in
+	//! the physics world, keeps its transform and its velocity tracking, and simply stops being
+	//! something you can walk into.
+	protected void ApplyCharacterCollision(bool reserved)
+	{
+		IEntity owner = GetOwner();
+		if (!owner)
+			return;
+
+		Physics phys = owner.GetPhysics();
+		if (!phys)
+			return;
+
+		int numGeoms = phys.GetNumGeoms();
+
+		if (reserved)
+		{
+			if (m_aSavedGeomLayers)
+				return;
+
+			m_aSavedGeomLayers = new array<int>();
+			for (int i = 0; i < numGeoms; i++)
+			{
+				m_aSavedGeomLayers.Insert(phys.GetGeomInteractionLayer(i));
+				phys.SetGeomInteractionLayer(i, 0);
+			}
+
+			return;
+		}
+
+		if (!m_aSavedGeomLayers)
+			return;
+
+		for (int i = 0; i < numGeoms && i < m_aSavedGeomLayers.Count(); i++)
+			phys.SetGeomInteractionLayer(i, m_aSavedGeomLayers.Get(i));
+
+		m_aSavedGeomLayers = null;
 	}
 }

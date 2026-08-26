@@ -13,6 +13,10 @@ class OVT_PersistedCamp
 	string owner;
 	bool isPrivate;
 
+	//! VERSION 1 ONLY, AND THE FIELD MUST NOT BE REMOVED. Written EMPTY from version 2 on. Reflection
+	//! reads and writes these members in declaration order and the save context is binary, so dropping
+	//! this field would change the record's length and desynchronise every record after the first in
+	//! every existing save. A version 1 payload's contents are read into it and discarded.
 	ref array<ResourceName> garrison = {};
 }
 
@@ -27,6 +31,7 @@ class OVT_PersistedFOB
 	string owner;
 	bool isPriority;
 
+	//! VERSION 1 ONLY - see OVT_PersistedCamp.garrison. Written empty, read and discarded, never removed.
 	ref array<ResourceName> garrison = {};
 }
 
@@ -45,10 +50,8 @@ class OVT_PersistedFOB
 //!
 //! SCOPE, AND WHAT IS DELIBERATELY NOT HERE.
 //!
-//!  * CAMP AND FOB RECORDS are restored (name, position, owner, privacy/priority, garrison prefabs).
-//!    Their physical compositions in the world are separate tracked entities and are Phase 3 scope;
-//!    garrisons come back because OVT_ResistanceFactionManager.PostGameStart() replays the prefab
-//!    lists through SpawnGarrisons(), which is the same path a campaign start takes.
+//!  * CAMP AND FOB RECORDS are restored (name, position, owner, privacy/priority). Their physical
+//!    compositions in the world are separate tracked entities and are Phase 3 scope.
 //!
 //!  * THE JOB SYSTEM IS DEFERRED TO PHASE 3, and that is a decision, not an oversight. EPF's
 //!    OVT_ResistanceSaveData reached across into OVT_JobManagerComponent and stored the whole job
@@ -69,6 +72,11 @@ class OVT_PersistedFOB
 //! unconditionally, which would duplicate every camp in the campaign on a re-application.
 //!
 //! FORMAT. Binary contexts are POSITIONAL: write order must equal read order. Version first.
+//!
+//! VERSION 2 RETIRED THE GARRISONS. The camp/FOB garrison lists are no longer written and no longer
+//! applied; both payload fields stay declared and are still read, because the format is positional.
+//! A campaign continued from a version 1 save comes back with its camps and FOBs and WITHOUT their
+//! garrisons - High Command groups replace them.
 //------------------------------------------------------------------------------------------------
 class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 {
@@ -91,7 +99,7 @@ class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 		if (!resistance)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 1);
+		context.WriteValue("version", 2);
 
 		string playerFactionKey;
 		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
@@ -113,7 +121,7 @@ class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 				record.location = camp.location;
 				record.owner = camp.owner;
 				record.isPrivate = camp.isPrivate;
-				WriteGarrison(camp.garrisonEntities, camp.garrison, record.garrison);
+				// record.garrison stays the empty array it was constructed with - see its declaration.
 
 				camps.Insert(record);
 			}
@@ -134,7 +142,7 @@ class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 				record.location = fob.location;
 				record.owner = fob.owner;
 				record.isPriority = fob.isPriority;
-				WriteGarrison(fob.garrisonEntities, fob.garrison, record.garrison);
+				// record.garrison stays the empty array it was constructed with - see its declaration.
 
 				fobs.Insert(record);
 			}
@@ -162,14 +170,19 @@ class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 		if (version < 1)
 			return true;
 
+		// A version 1 payload still carries a garrison prefab list on every camp and FOB record. It is
+		// read (the format is positional, so it has to be) and then discarded - nothing replays it.
 		string playerFactionKey;
-		context.Read(playerFactionKey);
+		if (!context.Read(playerFactionKey))
+			return AbortUnreadablePayload("player faction key");
 
 		array<ref OVT_PersistedCamp> camps = new array<ref OVT_PersistedCamp>();
-		context.Read(camps);
+		if (!context.Read(camps))
+			return AbortUnreadablePayload("camps");
 
 		array<ref OVT_PersistedFOB> fobs = new array<ref OVT_PersistedFOB>();
-		context.Read(fobs);
+		if (!context.Read(fobs))
+			return AbortUnreadablePayload("FOBs");
 
 		resistance.ApplyPersistedResistance(playerFactionKey, camps, fobs);
 
@@ -177,69 +190,16 @@ class OVT_ResistanceManagerSerializer : ScriptedComponentSerializer
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Snapshots a garrison into prefab names.
+	//! Reports an unreadable payload and consumes it without touching the live resistance state.
 	//!
-	//! Prefers the LIVE groups when there are any - an empty group is one that has been wiped out and
-	//! must not be brought back - and falls back to the prefab list already on the record, which is
-	//! what a camp that has not spawned its garrison yet carries.
-	//! \param[in] garrisonEntities Live AI group entity ids, may be null.
-	//! \param[in] storedGarrison The prefab list already on the live record, may be null.
-	//! \param[out] target Receives the prefab names to persist.
-	protected void WriteGarrison(array<ref EntityID> garrisonEntities, array<ref ResourceName> storedGarrison, array<ResourceName> target)
+	//! NOTHING IS APPLIED after a failed read: a binary context is positional, so once one field has
+	//! not come back every field after it is another field's bytes, and half-read camps would be
+	//! written straight back out by the next save.
+	//! \param[in] field The field that could not be read.
+	//! \return True - the payload is consumed either way; nothing was applied.
+	protected bool AbortUnreadablePayload(string field)
 	{
-		if (!target)
-			return;
-
-		bool foundLiveGroup = false;
-
-		if (garrisonEntities)
-		{
-			foreach (EntityID groupId : garrisonEntities)
-			{
-				SCR_AIGroup group = SCR_AIGroup.Cast(GetGame().GetWorld().FindEntityByID(groupId));
-				if (!group)
-					continue;
-
-				foundLiveGroup = true;
-
-				if (group.GetAgentsCount() < 1)
-					continue;
-
-				ResourceName prefab = GetPrefabResourceName(group);
-				if (prefab.IsEmpty())
-					continue;
-
-				target.Insert(prefab);
-			}
-		}
-
-		if (foundLiveGroup || !storedGarrison)
-			return;
-
-		foreach (ResourceName prefab : storedGarrison)
-		{
-			if (prefab.IsEmpty())
-				continue;
-
-			target.Insert(prefab);
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Gets the prefab an entity was spawned from, resolving prefab inheritance the way the engine
-	//! does. Same implementation as OVT_Global.GetPrefabName(), kept local so this serializer has no
-	//! dependency outside the persistence layer.
-	//! \param[in] entity The entity to look up.
-	//! \return Its prefab resource name, or an empty string.
-	protected ResourceName GetPrefabResourceName(IEntity entity)
-	{
-		if (!entity)
-			return ResourceName.Empty;
-
-		EntityPrefabData prefabData = entity.GetPrefabData();
-		if (!prefabData)
-			return ResourceName.Empty;
-
-		return SCR_BaseContainerTools.GetPrefabResourceName(prefabData.GetPrefab());
+		Print(string.Format("[Overthrow] Could not read '%1' from the resistance payload - camps and FOBs are left exactly as they are", field), LogLevel.ERROR);
+		return true;
 	}
 }

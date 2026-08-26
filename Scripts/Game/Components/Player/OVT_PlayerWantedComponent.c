@@ -40,6 +40,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	
 	protected ref TraceParam m_TraceParams;
+	protected ref array<IEntity> m_aTraceExclude;
 	
 	protected ref OVT_PlayerData m_PlayerData;
 	protected ref OVT_RecruitData m_RecruitData;
@@ -96,6 +97,30 @@ class OVT_PlayerWantedComponent: OVT_Component
 	//!
 	//! Recruits are excluded by the playerId test alone - GetPlayerIdFromControlledEntity returns 0 for
 	//! an AI-controlled body - so this needs no m_PlayerData, which CheckUpdate resolves later anyway.
+	//! Where this character is for DETECTION purposes: the vehicle's origin while riding in one.
+	//!
+	//! A mounted occupant is parented to the vehicle, and it is the vehicle the world sees and
+	//! measures anyway. Every distance this component takes - to an AI, to a base, to a tower - is
+	//! taken from here so the mounted and dismounted answers cannot diverge.
+	protected vector GetDetectionOrigin()
+	{
+		if (m_Compartment && m_Compartment.IsInCompartment())
+		{
+			IEntity vehicle = m_Compartment.GetVehicle();
+			if (vehicle)
+				return vehicle.GetOrigin();
+		}
+
+		return GetOwner().GetOrigin();
+	}
+
+	//! The AI-side mirror of GetDetectionOrigin. A mounted crewman is PARENTED to its vehicle, so
+	//! GetOrigin() hands back a vehicle-local coordinate and every distance gate against it is wrong.
+	protected vector GetAIWorldOrigin(IEntity entity)
+	{
+		return OVT_WorldUtils.GetWorldOrigin(entity);
+	}
+
 	protected void CheckBaseRangeForTutorial()
 	{
 		int playerId = SCR_PossessingManagerComponent.GetPlayerIdFromControlledEntity(GetOwner());
@@ -112,9 +137,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 
 		bool inRange = false;
 
-		OVT_BaseData base = occupying.GetNearestBase(GetOwner().GetOrigin());
+		vector pos = GetDetectionOrigin();
+
+		OVT_BaseData base = occupying.GetNearestBase(pos);
 		if (base && base.IsOccupyingFaction())
-			inRange = vector.Distance(base.location, GetOwner().GetOrigin()) < config.m_Difficulty.baseCloseRange;
+			inRange = vector.Distance(base.location, pos) < config.m_Difficulty.baseCloseRange;
 
 		// The edge, not the state. Leaving re-arms it, which costs nothing: the tutorial pipeline
 		// drops a repeat on the server's per-player sent-set and again on the client's seen store, so
@@ -371,9 +398,9 @@ class OVT_PlayerWantedComponent: OVT_Component
 		if(rpl && !rpl.IsMaster())
 		{
 			// Wanted state is server-authoritative — relay our local loot action (BUG-073)
-			OVT_PlayerCommsComponent comms = OVT_Global.GetServer();
-			if(comms)
-				comms.RequestLootWantedCheck();
+			OVT_CampaignRequestComponent campaign = OVT_ControllerComponent<OVT_CampaignRequestComponent>.Get();
+			if(campaign)
+				campaign.RequestLootWantedCheck();
 			return;
 		}
 
@@ -420,6 +447,14 @@ class OVT_PlayerWantedComponent: OVT_Component
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Which act the open window is for, so a caller closing its OWN window cannot close somebody
+	//! else's. Empty when no window is open.
+	string GetIllegalActionReason()
+	{
+		return m_sIllegalActionReason;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Server-side: close the window early, because the act was abandoned. Nobody stays wanted-able
 	//! for a hold they cancelled two seconds in.
 	void EndIllegalAction()
@@ -457,7 +492,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			closeRangeDistance = OVT_Global.GetConfig().m_Difficulty.disguiseDetectionDistance;
 		}
 		
-		vector pos = GetOwner().GetOrigin();
+		vector pos = GetDetectionOrigin();
 		
 		array<AIAgent> agents();
 		AIWorld aiworld = GetGame().GetAIWorld();
@@ -476,7 +511,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 				IEntity entity = member.GetControlledEntity();
 				if(!entity) continue;
 				
-				float dist = vector.Distance(entity.GetOrigin(), pos);
+				float dist = vector.Distance(GetAIWorldOrigin(entity), pos);
 				if(dist > closeRangeDistance) continue;
 				
 				if(FilterEntities(entity))
@@ -609,7 +644,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		AIWorld aiworld = GetGame().GetAIWorld();
 		aiworld.GetAIAgents(agents);
 		
-		vector pos = GetOwner().GetOrigin();
+		vector pos = GetDetectionOrigin();
 		
 		// Cache stealth multiplier from player or recruit
 		m_fStealthMultiplier = 1.0;
@@ -641,7 +676,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 			{			
 				IEntity entity = member.GetControlledEntity();
 				if(!entity) continue;
-				float dist = vector.Distance(entity.GetOrigin(), pos);
+				float dist = vector.Distance(GetAIWorldOrigin(entity), pos);
 				if(dist > distanceSeen) continue;
 				if(FilterEntities(entity))
 				{
@@ -650,23 +685,26 @@ class OVT_PlayerWantedComponent: OVT_Component
 			}
 		}		
 						
-		// Only increase wanted level for base/tower proximity if not disguised
+		// Only increase wanted level for base/tower proximity if not disguised.
+		// Ownership is deliberately NOT checked: a base is restricted ground whoever holds it, so
+		// capturing one does not make standing in it legal. Safe against false positives because
+		// m_bTempSeen can only ever be set by an occupying-faction AI (see FilterEntities).
 		if (!m_bIsDisguised)
 		{
-			OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(GetOwner().GetOrigin());
-			if(base && base.IsOccupyingFaction())
+			OVT_BaseData base = OVT_Global.GetOccupyingFaction().GetNearestBase(pos);
+			if(base)
 			{
-				float distanceToBase = vector.Distance(base.location, GetOwner().GetOrigin());
+				float distanceToBase = vector.Distance(base.location, pos);
 				if(m_iWantedLevel < 2 && distanceToBase < OVT_Global.GetConfig().m_Difficulty.baseCloseRange && m_bTempSeen)
 				{
 					SetBaseWantedLevel(2, "WantedBaseProximity");
 				}		
 			}
 			
-			OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(GetOwner().GetOrigin());
-			if(tower && tower.IsOccupyingFaction())
+			OVT_RadioTowerData tower = OVT_Global.GetOccupyingFaction().GetNearestRadioTower(pos);
+			if(tower)
 			{
-				float distanceToBase = vector.Distance(tower.location, GetOwner().GetOrigin());
+				float distanceToBase = vector.Distance(tower.location, pos);
 				if(m_iWantedLevel < 2 && distanceToBase < 20 && m_bTempSeen)
 				{
 					SetBaseWantedLevel(2, "WantedBaseProximity");
@@ -804,14 +842,16 @@ class OVT_PlayerWantedComponent: OVT_Component
 			targets.Insert(enemyTarget);
 		}
 		
-		float dist = vector.Distance(GetOwner().GetOrigin(), entity.GetOrigin());
+		float dist = vector.Distance(GetDetectionOrigin(), GetAIWorldOrigin(entity));
 		
 		//Is player in a vehicle?
 		bool inVehicle = false;
+		IEntity occupiedVehicle = null;
 		if(m_Compartment && m_Compartment.IsInCompartment())
 		{		
 			//Player is in a vehicle
 			inVehicle = true;
+			occupiedVehicle = m_Compartment.GetVehicle();
 		}		
 		
 		if(m_fVisualRecognitionFactor < 0.2 && dist > (10 * m_fStealthMultiplier) && !inVehicle)
@@ -824,7 +864,11 @@ class OVT_PlayerWantedComponent: OVT_Component
 		{		
 			IEntity realEnt = possibleTarget.GetTargetEntity();
 			
-			if (realEnt && realEnt == GetOwner())
+			// A mounted occupant is a target vanilla perception deliberately looks past (see
+			// SCR_AIGroupPerception: "we don't care about vehicle occupants"), so what an AI holds
+			// while you drive past a base is the VEHICLE. Matching only the character left every
+			// mounted detection - base proximity included - permanently unseen.
+			if (realEnt && (realEnt == GetOwner() || (occupiedVehicle && realEnt == occupiedVehicle)))
 			{				
 				int lastSeen = possibleTarget.GetTimeSinceSeen();
 				
@@ -950,17 +994,56 @@ class OVT_PlayerWantedComponent: OVT_Component
 		}
 	}
 	
+	//! Bone matrices are model-space, and CoordToParent only reaches the PARENT's space - which for a
+	//! mounted crewman is the vehicle, not the world. Compose against the world transform instead.
+	private vector GetHeadWorldPos(IEntity entity)
+	{
+		Animation anim = entity.GetAnimation();
+		if(!anim) return entity.GetOrigin();
+
+		vector boneMat[4];
+		anim.GetBoneMatrix(anim.GetBoneIndex("head"), boneMat);
+
+		if(!entity.GetParent())
+			return entity.CoordToParent(boneMat[3]);
+
+		vector worldMat[4];
+		entity.GetWorldTransform(worldMat);
+
+		vector res[4];
+		Math3D.MatrixMultiply4(worldMat, boneMat, res);
+		return res[3];
+	}
+
+	//! A mounted AI's head bone sits INSIDE its own hull, so excluding only the crewman makes every
+	//! trace out of an armoured vehicle hit the vehicle and report no LOS. Exclude the whole parent
+	//! chain (crewman -> compartment/turret -> vehicle), as vanilla SCR_AIUpdateTargetSuppressionData does.
+	private void SetTraceExcludes(IEntity source)
+	{
+		if(!m_aTraceExclude)
+			m_aTraceExclude = {};
+
+		m_aTraceExclude.Clear();
+		m_aTraceExclude.Insert(source);
+
+		IEntity parent = source.GetParent();
+		int guard = 0;
+		while(parent && guard < 4)
+		{
+			m_aTraceExclude.Insert(parent);
+			parent = parent.GetParent();
+			guard++;
+		}
+
+		// Never set both - the engine warns it costs performance
+		m_TraceParams.Exclude = null;
+		m_TraceParams.ExcludeArray = m_aTraceExclude;
+	}
+
 	private bool TraceLOS(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetAnimation().GetBoneIndex("head");
-		vector matPos[4];
-		
-		source.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector headPos = source.CoordToParent(matPos[3]);
-		
-		headBone = dest.GetAnimation().GetBoneIndex("head");		
-		dest.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector destHead = dest.CoordToParent(matPos[3]);
+		vector headPos = GetHeadWorldPos(source);
+		vector destHead = GetHeadWorldPos(dest);
 		
 		
 		if (!m_TraceParams)
@@ -972,7 +1055,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_TraceParams.Start = headPos;
 		m_TraceParams.End = destHead;		
-		m_TraceParams.Exclude = source;
+		SetTraceExcludes(source);
 			
 		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
 			
@@ -991,12 +1074,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 	
 	private bool TraceLOSVehicle(IEntity source, IEntity dest)
 	{		
-		int headBone = source.GetAnimation().GetBoneIndex("head");
-		vector matPos[4];
-		
-		source.GetAnimation().GetBoneMatrix(headBone, matPos);
-		vector headPos = source.CoordToParent(matPos[3]);		
-		
+		vector headPos = GetHeadWorldPos(source);
 		vector destVeh = dest.GetOrigin();		
 		
 		if (!m_TraceParams)
@@ -1008,7 +1086,7 @@ class OVT_PlayerWantedComponent: OVT_Component
 		
 		m_TraceParams.Start = headPos;
 		m_TraceParams.End = destVeh;		
-		m_TraceParams.Exclude = source;
+		SetTraceExcludes(source);
 			
 		float percent = GetGame().GetWorld().TraceMove(m_TraceParams, null);
 			

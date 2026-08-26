@@ -5,8 +5,9 @@
 //! and m_Storage is only ever assigned for owners that carry a CharacterInventoryStorageComponent
 //! (EOnInit, :2141). On any OTHER owner the callback is therefore guaranteed to throw a VME the
 //! moment an item lands - and Overthrow inserts items through non-character managers on purpose:
-//! OVT_BaseUpgradeComposition.FillAmmoboxes stocks base-composition ammo boxes through the box's
-//! own manager (seen live: NULL pointer during DistributeInitialResources on a new campaign).
+//! OVT_CompositionSpawningDeploymentModule.FillAmmoBoxes stocks base-composition ammo boxes through
+//! the box's own manager (seen live: NULL pointer during the opening resource distribution on a new
+//! campaign, back when base upgrades still spent the occupying faction's reserve directly).
 modded class SCR_InventoryStorageManagerComponent
 {
 	//------------------------------------------------------------------------------------------------

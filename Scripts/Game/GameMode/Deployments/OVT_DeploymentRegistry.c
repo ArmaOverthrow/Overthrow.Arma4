@@ -93,8 +93,8 @@ class OVT_DeploymentRegistry : ScriptAndConfig
 	//------------------------------------------------------------------------------------------------
 	void PrintRegistryInfo()
 	{
-		Print(string.Format("Deployment Registry: %1", m_sRegistryName));
-		Print(string.Format("  Total Configs: %1", m_aDeploymentConfigs.Count()));
+		OVT_DeploymentLog.Debug(string.Format("Deployment Registry: %1", m_sRegistryName));
+		OVT_DeploymentLog.Debug(string.Format("  Total Configs: %1", m_aDeploymentConfigs.Count()));
 		
 		map<int, int> factionCounts = new map<int, int>;
 		
@@ -127,7 +127,7 @@ class OVT_DeploymentRegistry : ScriptAndConfig
 				case OVT_FactionType.RESISTANCE_FACTION: factionName = "Resistance"; break;
 				case OVT_FactionType.SUPPORTING_FACTION: factionName = "Supporting"; break;
 			}
-			Print(string.Format("  %1: %2 configs", factionName, count));
+			OVT_DeploymentLog.Debug(string.Format("  %1: %2 configs", factionName, count));
 		}
 	}
 }

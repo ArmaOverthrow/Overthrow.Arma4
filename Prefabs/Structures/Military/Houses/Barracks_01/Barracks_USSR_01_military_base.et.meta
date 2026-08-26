@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{2CB4D91249389DFD}Prefabs/Structures/Military/Houses/Barracks_01/Barracks_USSR_01_military_base.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

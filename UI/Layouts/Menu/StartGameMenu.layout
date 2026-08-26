@@ -150,6 +150,18 @@ FrameWidgetClass {
        "Horizontal Alignment" Right
        Wrap 1
       }
+      ButtonWidgetClass "{6B3D000000000210}" : "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout" {
+       Name "StartingTownSpinner"
+       Slot LayoutSlot "{59BA5A735A7D34E2}" {
+        HorizontalAlign 3
+        Padding 4 4 4 4
+       }
+       components {
+        SCR_SpinBoxComponent "{5472C6CBC0640458}" {
+         m_sLabel "#OVT-StartingTown"
+        }
+       }
+      }
       FrameWidgetClass "{599D315A49A619C7}" {
        Name "Fill"
        Slot LayoutSlot "{599D315A49A619AE}" {

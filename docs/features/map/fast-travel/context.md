@@ -458,3 +458,27 @@ No symbol in `OVT_FastTravelService.c` is orphaned: `ValidateTravel`, `ReasonKey
 `CanGlobalFastTravel` all have external callers; `IsAtBusStop` / `BUS_STOP_RADIUS` are used by
 `ValidateTravel` (`:138,141`); and `FARE_LABEL_FORMAT` (`:197`) is used by the map panel's travel button
 and by `OVT_TravelRequestComponent.RpcDo_TravelResult`.
+
+---
+
+## 2026-08-25 — A captured base inside a QRF ring stays travellable
+
+**Author:** *"with fast travel/respawn you should be able to fast travel or respawn at a captured base inside a QRF as long as that base isn't the actual QRF being counter-attacked."*
+
+A QRF ring is `OVT_QRFControllerComponent.QRF_RANGE` wide and used to blank **every** destination inside it. A base the player had already taken, sitting in that ring but not itself under attack, is not part of the fight — refusing it stranded players a kilometre from where they were needed.
+
+**One predicate, three call sites** — `OVT_RespawnService.IsCapturedBaseAwayFromQrfTarget(vector)`, next to the QRF helpers it belongs with:
+
+| Surface | Site |
+|---|---|
+| Server respawn enumeration | `OVT_RespawnService.EnumerateEligible` base loop |
+| Client respawn marker | `OVT_MapLocationBase.CanRespawn` |
+| Fast travel, **both** machines | `OVT_FastTravelService.ValidateTravel`, beside the existing `fobExempt` |
+
+The map's `OVT_MapLocationBase.CanFastTravel` needed no edit — it tails into `CanGlobalFastTravel` → the same `ValidateTravel`, which is the one-rule-set invariant this service is built on. The exemption applies in **both** `QRFFastTravelMode` modes (DISABLED and the range-limited one), for the same reason the FOB exemption does.
+
+⚠ **Matched on position against `m_vQRFLocation`, never on `m_iCurrentQRFBase`.** The index is not in the JIP payload — a standing epic defect, and the reason JIP clients draw the wrong map circle — while `m_vQRFLocation` is broadcast by `RpcDo_SetQRFActive` to every machine. This predicate has to give the same answer on the client (button state) and the server (the act), so it may only read state both provably have.
+
+⚠ **The target base is identified two ways, deliberately.** `m_vQRFLocation` is `base.GetOwner().GetOrigin()` and the record carries `ent.GetOrigin()` of that same entity, so they agree today — but this rule *inverts* if they ever drift (it would let a player travel into the base being counter-attacked, the one thing the author said must stay blocked), and that is not worth resting on a 2 m `MATCH_TOLERANCE`. It also resolves the nearest base record to the QRF point, within `QRF_TARGET_RESOLVE_M` 50. The distance bound is what keeps a **town** QRF correct: `GetNearestBase` answers at any range, so without it a town battle would mark some distant base as its target.
+
+`tools/compile-check.sh` exit 0 (6347 files). Suite not run; MP play-test owed — the JIP path is exactly where the client/server agreement could break.

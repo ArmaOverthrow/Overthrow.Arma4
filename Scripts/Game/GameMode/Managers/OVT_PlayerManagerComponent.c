@@ -74,6 +74,14 @@ class OVT_PlayerManagerComponent: OVT_Component
 		m_mPlayerIDs = new map<string, int>;
 		m_mPlayers = new map<string, ref OVT_PlayerData>;
 		m_mPlayerControllers = new map<int, IEntity>;
+
+		// OVT_Global.s_LocalController is a STATIC and therefore outlives the world, unlike every map
+		// above it. A Continue replaces the world - and every controller entity in it - without anyone
+		// disconnecting, so the cached handle from the previous world must be dropped HERE, where a
+		// fresh player manager proves a fresh session. Everything else about the cache is
+		// self-healing (GetController() re-validates with IsDeleted()); this is the one case where the
+		// entity is gone along with the world that owned it.
+		OVT_Global.SetLocalController(null);
 		Print("[Overthrow] PlayerManager init complete - new m_mPlayers: " + m_mPlayers);
 		
 		// Subscribe to player disconnect events
@@ -221,8 +229,11 @@ class OVT_PlayerManagerComponent: OVT_Component
 			// flake. It is KEPT (dropping it would delete the player's progress from the next save),
 			// and on a non-dedicated session SetupPlayer() adopts it for the local player. On a
 			// dedicated server nothing can claim it, so say so once per load.
+			// The DEV_ exemption is SetupPlayer()'s (see there): a synthesised dev uid does not parse
+			// as a UUID and would otherwise be reported as an orphaned record on every load of a
+			// -ovtDevUid campaign, which is the opposite of true.
 			UUID recordUuid = record.persistentId;
-			if (recordUuid.IsNull())
+			if (recordUuid.IsNull() && !record.persistentId.StartsWith(OVT_Global.DEV_UID_PREFIX))
 				Print("[Overthrow] Loaded a player record keyed to the NULL UUID (name: " + record.name + ") - orphaned by the zero-identity flake; a non-dedicated host will adopt it on spawn", LogLevel.WARNING);
 
 			OVT_PlayerData player = GetPlayer(record.persistentId);
@@ -725,11 +736,21 @@ class OVT_PlayerManagerComponent: OVT_Component
 		// campaign - player record, home, vehicle, body - was keyed to it). GetPlayerUID() now
 		// recovers an identity instead of handing the zero id out, so reaching this line means a
 		// new caller bypassed it - refuse loudly rather than let the corruption class back in.
-		UUID persistentUuid = persistentId;
-		if (persistentUuid.IsNull())
+		// ⚠ A SYNTHESISED DEV UID IS NOT A UUID AND MUST NOT BE READ AS ONE. `UUID x = "DEV_1"` does
+		// not parse, and the result answers IsNull() TRUE - so without this exemption the tripwire
+		// below rejects the very identity OVT_Global.GetPlayerUID() just synthesised for a
+		// -ovtDevUid session. Observed 2026-08-24 on tools/launch-server.sh --mode local: the log
+		// read "Setting up player data for: DEV_1" and then refused it one line later, the player
+		// got no record, and they spawned at 0,0 with no money while Game Master sat on "waiting
+		// for campaign data" forever. The two features are both v1.5 and had never met.
+		if (!persistentId.StartsWith(OVT_Global.DEV_UID_PREFIX))
 		{
-			Print("[Overthrow] ERROR: SetupPlayer called with the NULL UUID for playerId: " + playerId + " - refusing to key player data to it", LogLevel.ERROR);
-			return;
+			UUID persistentUuid = persistentId;
+			if (persistentUuid.IsNull())
+			{
+				Print("[Overthrow] ERROR: SetupPlayer called with the NULL UUID for playerId: " + playerId + " - refusing to key player data to it", LogLevel.ERROR);
+				return;
+			}
 		}
 
 		Print("Setting up player: " + persistentId + " with playerId: " + playerId);
@@ -770,11 +791,20 @@ class OVT_PlayerManagerComponent: OVT_Component
 			return;
 		}
 		
-		// Spawn controller entity for the player
-		if(!m_OverthrowControllerPrefab || m_mPlayerControllers.Contains(playerId))
+		// Spawn controller entity for the player.
+		//
+		// GetController() rather than a raw m_mPlayerControllers.Contains(): it revalidates the stored
+		// entity with IsDeleted() and drops a stale mapping, the same way CleanupPlayerController does.
+		// A dead entity left in the map would otherwise send EVERY later SetupPlayer down the reconnect
+		// branch below - the player would never be given a replacement controller, and every
+		// client->server request they make would be unreachable for the rest of the session with no
+		// error anywhere. Contains() cannot tell the two states apart; this can.
+		OVT_OverthrowController existingController = GetController(playerId);
+
+		if(!m_OverthrowControllerPrefab || existingController)
 		{
 			Rpc(RpcDo_RegisterPlayer, playerId, persistentId);
-			// Could be a reconnection with still existing controller, re-assign ownership and notify the client
+			// Could be a reconnection with a still-existing controller, re-assign ownership and notify the client
 			AssignControllerOwnership(playerId);
 			return;
 		}
@@ -901,8 +931,13 @@ class OVT_PlayerManagerComponent: OVT_Component
 		IEntity controller = m_mPlayerControllers[playerId];
 		if(controller && !controller.IsDeleted())
 		{
-			// Delete the entity
-			delete controller;
+			// RplComponent.DeleteRplEntity, NOT a bare `delete`. The controller is a replicated entity
+			// that was handed to a client with GiveExt, and the engine's own contract is that the
+			// authority deletes such an entity by removing it from replication first - which is what
+			// propagates the delete to every proxy. A bare `delete` destroys the server's copy only and
+			// leaves other clients holding a replica of an entity that no longer exists.
+			// releaseFromReplication is false: proxies must delete it too, not keep it.
+			RplComponent.DeleteRplEntity(controller, false);
 			Print("[Overthrow] Cleaned up controller entity for disconnected player " + playerId);
 		}
 		

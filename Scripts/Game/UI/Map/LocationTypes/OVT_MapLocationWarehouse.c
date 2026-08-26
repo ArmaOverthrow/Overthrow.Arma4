@@ -9,28 +9,11 @@
 [BaseContainerProps(), OVT_MapLocationTypeTitle()]
 class OVT_MapLocationWarehouse : OVT_MapLocationType
 {
-	//! Warehouse record index stored on the map record at populate time, so the panel does not have to
-	//! re-derive it from a position. -1 means "no warehouse record was matched".
-	protected const string DATA_KEY_WAREHOUSE_INDEX = "warehouseIndex";
-
-	//! How many stock lines the contents summary shows. The panel is 260px wide and every name costs a
-	//! prefab container load to resolve, so this stays small deliberately.
-	protected const int MAX_CONTENT_ROWS = 3;
-
-	//! Radius used to match a map record back to its OVT_WarehouseData. 10m is the same tolerance the
-	//! manager's own RpcDo_SetWarehouseOwner uses when it matches a location to a warehouse record.
-	protected const int WAREHOUSE_MATCH_RANGE = 10;
-
 	[Attribute(defvalue: "0 1 0 1", UIWidgets.ColorPicker, desc: "Color for owned warehouses (green)", category: "Owned Warehouses")]
 	protected ref Color m_OwnedWarehouseColor;
 
 	[Attribute(defvalue: "1 1 0 1", UIWidgets.ColorPicker, desc: "Color for rented warehouses (yellow)", category: "Rented Warehouses")]
 	protected ref Color m_RentedWarehouseColor;
-
-	//! Resource name -> localized display name. UIInfo resolution loads and scans a prefab container,
-	//! which is far too expensive to repeat per panel open; item names never change. Created lazily
-	//! because this class is instantiated from a config container, not by script.
-	protected ref map<string, string> m_mItemNames;
 
 	override void PopulateLocations(array<ref OVT_MapLocationData> locations)
 	{
@@ -66,7 +49,6 @@ class OVT_MapLocationWarehouse : OVT_MapLocationType
 			locationData.SetDataBool("isOwned", true);
 			locationData.SetDataBool("isRented", false);
 			locationData.SetDataString("owner", ownerID);
-			locationData.SetDataInt(DATA_KEY_WAREHOUSE_INDEX, FindWarehouseIndex(pos));
 
 			locations.Insert(locationData);
 			processedWarehouses.Insert(warehouseID);
@@ -98,7 +80,6 @@ class OVT_MapLocationWarehouse : OVT_MapLocationType
 			locationData.SetDataBool("isOwned", false);
 			locationData.SetDataBool("isRented", true);
 			locationData.SetDataString("renter", renterID);
-			locationData.SetDataInt(DATA_KEY_WAREHOUSE_INDEX, FindWarehouseIndex(pos));
 
 			locations.Insert(locationData);
 			processedWarehouses.Insert(warehouseID);
@@ -106,30 +87,13 @@ class OVT_MapLocationWarehouse : OVT_MapLocationType
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	//! Matches a warehouse position back to its record index in the manager's array.
-	//! The position handed in is the m_mOwners / m_mRenters key, which is byte-for-byte the vector the
-	//! manager stored as OVT_WarehouseData.location, so this is an exact match in practice.
-	//! \param[in] pos Registered warehouse position
-	//! \return Index into OVT_RealEstateManagerComponent.m_aWarehouses, or -1 when none matched
-	protected int FindWarehouseIndex(vector pos)
-	{
-		if (!m_RealEstate)
-			return -1;
-
-		OVT_WarehouseData warehouse = m_RealEstate.GetNearestWarehouse(pos, WAREHOUSE_MATCH_RANGE);
-		if (!warehouse)
-			return -1;
-
-		return warehouse.id;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Shared info panel: ownership status, the renter's name when somebody is renting it, and a short
-	//! summary of what is stored inside.
+	//! Shared info panel: ownership status, the renter's name when somebody is renting it, and one row
+	//! naming the storage and how much is in it.
 	//!
-	//! CONTENTS ARE GENUINELY CLIENT-READABLE. OVT_WarehouseData.inventory (resource name -> quantity)
-	//! is JIP-replicated through the real-estate manager's RplSave/RplLoad and kept current by the
-	//! broadcast RpcDo_SetWarehouseInventory, so this needs no new replication and no RPC.
+	//! CONTENTS ARE NOT CLIENT-READABLE, AND THAT IS THE POINT. A holder's items never leave the server
+	//! except to the one player who opened it (logistics/storage §3.12). What a client does have is the
+	//! holder's replicated COUNT and NAME - two RplProps on its OVT_StorageComponent - so the panel
+	//! shows those and nothing else. Listing what is inside would need an RPC per panel open.
 	//! \param[in] location The record being described
 	//! \param[in] rowsContainer The shared panel's rows container
 	override protected void BuildInfoRows(OVT_MapLocationData location, Widget rowsContainer)
@@ -177,101 +141,34 @@ class OVT_MapLocationWarehouse : OVT_MapLocationType
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Appends a "Contents" heading plus up to MAX_CONTENT_ROWS of the most numerous stock lines, or a
-	//! single "Empty" row when the warehouse is holding nothing.
-	//! Items whose display name cannot be resolved are skipped rather than printed as a raw prefab
-	//! path, which would be unreadable in a 260px panel.
+	//! Appends ONE row: the storage's display name against how many items it holds, or the shared
+	//! "Contents / Empty" row when it holds nothing.
+	//!
+	//! Both values come off the building's own OVT_StorageComponent, whose count and name are ordinary
+	//! RplProps - free for a joining client and correct within one replication tick.
 	//! \param[in] rowsContainer The shared panel's rows container
 	//! \param[in] location The record being described
 	protected void AddContentsRows(Widget rowsContainer, OVT_MapLocationData location)
 	{
-		if (!m_RealEstate || !m_RealEstate.m_aWarehouses)
+		if (!m_RealEstate || !location)
 			return;
 
-		int index = location.GetDataInt(DATA_KEY_WAREHOUSE_INDEX, -1);
-		if (index < 0 || index >= m_RealEstate.m_aWarehouses.Count())
+		IEntity building = m_RealEstate.GetNearestBuilding(location.m_vPosition, OVT_RealEstateManagerComponent.WAREHOUSE_MATCH_RANGE);
+		if (!building)
 			return;
 
-		OVT_WarehouseData warehouse = m_RealEstate.m_aWarehouses[index];
-		if (!warehouse || !warehouse.inventory)
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(building);
+		if (!storage)
 			return;
 
-		map<string, int> inventory = m_RealEstate.GetWarehouseInventory(warehouse);
-		if (!inventory)
-			return;
-
-		array<string> resources = new array<string>();
-		array<int> quantities = new array<int>();
-
-		for (int i = 0; i < inventory.Count(); i++)
-		{
-			int qty = inventory.GetElement(i);
-			if (qty <= 0)
-				continue;
-
-			resources.Insert(inventory.GetKey(i));
-			quantities.Insert(qty);
-		}
-
-		if (resources.IsEmpty())
+		int count = storage.GetTotalCount();
+		if (count <= 0)
 		{
 			AddInfoRow(rowsContainer, "#OVT-Map_Row_Contents", "#OVT-Map_Row_Empty");
 			return;
 		}
 
-		AddInfoRow(rowsContainer, "#OVT-Map_Row_Contents", "");
-
-		// Selection sort for the top few only - cheaper and simpler than sorting the whole inventory,
-		// and the cap is 3. Attempts are bounded separately so a warehouse full of items with no
-		// resolvable UIInfo cannot turn one panel open into dozens of prefab container loads.
-		int shown = 0;
-		int attempts = 0;
-		while (shown < MAX_CONTENT_ROWS && attempts < MAX_CONTENT_ROWS * 2 && !resources.IsEmpty())
-		{
-			attempts++;
-
-			int best = 0;
-			for (int i = 1; i < quantities.Count(); i++)
-			{
-				if (quantities[i] > quantities[best])
-					best = i;
-			}
-
-			string res = resources[best];
-			int qty = quantities[best];
-			resources.Remove(best);
-			quantities.Remove(best);
-
-			string itemName = ResolveItemName(res);
-			if (itemName.IsEmpty())
-				continue;
-
-			AddInfoRow(rowsContainer, itemName, "x" + qty.ToString());
-			shown++;
-		}
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Localized display name for a stored item, memoised for the life of this location type.
-	//! \param[in] res Prefab resource name used as the inventory key
-	//! \return A display name or localization key, or "" when the prefab has no item UIInfo
-	protected string ResolveItemName(string res)
-	{
-		if (!m_mItemNames)
-			m_mItemNames = new map<string, string>();
-
-		string cached;
-		if (m_mItemNames.Find(res, cached))
-			return cached;
-
-		string name = "";
-
-		UIInfo info = OVT_Global.GetItemUIInfo(res);
-		if (info)
-			name = info.GetName();
-
-		m_mItemNames.Set(res, name);
-		return name;
+		AddInfoRow(rowsContainer, storage.GetDisplayName(), "x" + count.ToString());
 	}
 
 	override Color GetIconColor(OVT_MapLocationData location)

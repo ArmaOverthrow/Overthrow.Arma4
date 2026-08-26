@@ -1,6 +1,16 @@
 StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
  ID "50D67C36F43527FE"
  components {
+  OVT_GMEditableCampaignComponent "{6B09A1C0E4D50005}" {
+   m_EntityType SYSTEM
+   m_UIInfo OVT_GMCampaignUIInfo "{6B09A1C0E4D50006}" {
+   }
+   m_bAutoRegister ALWAYS
+   m_vIconPos 0 40 0
+   m_fMaxDrawDistance 2000
+   m_Flags 2052
+   m_eKind RADIO_TOWER
+  }
   OVT_TowerControllerComponent "{5E0E7196DEB274FC}" {
   }
   ActionsManagerComponent "{591AD546A8462054}" : "{F0F464A7853E5603}Prefabs/Structures/Core/Ladder_ActionsManager.ct" {
@@ -44,6 +54,15 @@ StaticModelEntity : "{BCF54BF42D61C77E}Prefabs/Structures/Core/Tower_Base.et" {
      }
      UIInfo UIInfo "{6A7D9B2E00000015}" {
       Name "#OVT-SabotageTower"
+     }
+     Duration 20
+    }
+    OVT_CaptureRadioTowerAction "{6BB4000000000200}" {
+     ParentContextList {
+      "sabotage"
+     }
+     UIInfo UIInfo "{6BB4000000000201}" {
+      Name "#OVT-CaptureTower"
      }
      Duration 20
     }

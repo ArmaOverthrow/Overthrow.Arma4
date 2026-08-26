@@ -86,13 +86,13 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 
 		if(isVehicle)
 		{
-			SCR_EditableVehicleUIInfo info = OVT_Global.GetVehicleUIInfo(res);
+			SCR_EditableVehicleUIInfo info = OVT_PrefabUtils.GetVehicleUIInfo(res);
 			if(info)
 			{
 				displayName = info.GetName();
 				vehicleImage = info.GetImage();
 			}else{
-				SCR_EditableEntityUIInfo uiinfo = OVT_Global.GetEditableUIInfo(res);
+				SCR_EditableEntityUIInfo uiinfo = OVT_PrefabUtils.GetEditableUIInfo(res);
 				if(uiinfo)
 				{
 					displayName = uiinfo.GetName();
@@ -100,7 +100,7 @@ class OVT_ShopMenuCardComponent : SCR_ScriptedWidgetComponent
 				}
 			}
 		}else{
-			UIInfo info = OVT_Global.GetItemUIInfo(res);
+			UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 			if(info) displayName = info.GetName();
 		}
 

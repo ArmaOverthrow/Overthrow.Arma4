@@ -1,0 +1,53 @@
+GenericEntity : "{4A34979DC19CA9ED}Prefabs/Props/Construction/ConcreteMixer_01.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_ConstructionSiteComponent "{6A8E2E0000000030}" {
+  }
+  OVT_BuildableComponent "{6A8E2E0000000031}" {
+   m_sBuildableType "ConstructionSite"
+  }
+  ActionsManagerComponent "{6A8E2E0000000032}" {
+   ActionContexts {
+    UserActionContext "{6A8E2E0000000033}" {
+     ContextName "site"
+     Position PointInfo "{6A8E2E0000000034}" {
+      Offset 0 1.2 0
+     }
+     Radius 3
+    }
+   }
+   additionalActions {
+    OVT_SiteRequirementsAction "{6A8E2E1000000020}" {
+     ParentContextList {
+      "site"
+     }
+     UIInfo UIInfo "{6A8E2E1000000021}" {
+      Name "#OVT-Resource_SiteRequirements"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 1
+    }
+    OVT_BuildFromSiteAction "{6A8E2E1000000022}" {
+     ParentContextList {
+      "site"
+     }
+     UIInfo UIInfo "{6A8E2E1000000023}" {
+      Name "#OVT-Resource_BuildFromSite"
+     }
+     VisibilityRange -1
+     Duration 0
+     CanAggregate 1
+     "Sort Priority" 2
+    }
+   }
+  }
+  SCR_DestructionMultiPhaseComponent "{5624A88D86EFE8BA}" {
+   Enabled 0
+  }
+  RplComponent "{5624A88DC2D9928D}" {
+   Enabled 1
+  }
+ }
+}

@@ -10,7 +10,7 @@ class OVT_StartUprisingAction : ScriptedUserAction
 	//! Report the illegal act as it BEGINS, not when it completes - the hold is what gets seen.
 	override void OnActionStart(IEntity pUserEntity)
 	{
-		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		OVT_IllegalActionComponent illegal = OVT_ControllerComponent<OVT_IllegalActionComponent>.Get();
 		if(illegal)
 			illegal.ReportActionStarted(OVT_EIllegalAction.UPRISING);
 	}
@@ -19,7 +19,7 @@ class OVT_StartUprisingAction : ScriptedUserAction
 	//! Let go of it early and nobody has anything on you.
 	override void OnActionCanceled(IEntity pOwnerEntity, IEntity pUserEntity)
 	{
-		OVT_IllegalActionComponent illegal = OVT_Global.GetIllegalActions();
+		OVT_IllegalActionComponent illegal = OVT_ControllerComponent<OVT_IllegalActionComponent>.Get();
 		if(illegal)
 			illegal.ReportActionCancelled();
 	}
@@ -29,7 +29,7 @@ class OVT_StartUprisingAction : ScriptedUserAction
  	{
 		if(OVT_Global.GetOccupyingFaction().m_bQRFActive) return;
 
-		OVT_UprisingRequestComponent uprising = OVT_Global.GetUprisingRequests();
+		OVT_UprisingRequestComponent uprising = OVT_ControllerComponent<OVT_UprisingRequestComponent>.Get();
 		if(!uprising)
 		{
 			Print("[Overthrow] No OVT_UprisingRequestComponent on the local controller - uprising request dropped", LogLevel.ERROR);
