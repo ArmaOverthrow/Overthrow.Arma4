@@ -14,86 +14,141 @@ class OVT_SpawnPointComponent : ScriptComponent
 	[Attribute()]
 	ref array<ref PointInfo> m_aVehiclePoints;
 
+	//! Clearance boxes an authored point is tested against before it is handed out. Same dimensions the
+	//! WORKBENCH preview draws, so what the author sees is what gets validated.
+	static const vector PERSON_MINS = "-0.5 0 -0.5";
+	static const vector PERSON_MAXS = "0.5 2 0.5";
+	static const vector VEHICLE_MINS = "-1.5 0 -3";
+	static const vector VEHICLE_MAXS = "1.5 2.5 3";
+
 #ifdef WORKBENCH
 	protected ref array<ref Shape> m_aSpawnBoxes = {};
 #endif
 		
+	//! A world position at one of the authored pedestrian points, VALIDATED.
+	//!
+	//! Points are tried in a random order and the first one clear of geometry wins; when every one is
+	//! blocked the first TRIED comes back anyway, which is what this always used to return.
+	//! \return A world position, or the owner's origin when nothing is authored (see HasSpawnPoints).
 	vector GetSpawnPoint()
-	{		
-		vector outMat[4];
-		vector offsetMat[4];
-					
-		//Get building transform
-		GetOwner().GetTransform(outMat);
-		
-		// Use random point from array if available
-		if (m_aPoints && m_aPoints.Count() > 0)
+	{
+		vector ownerMat[4];
+		GetOwner().GetTransform(ownerMat);
+
+		array<PointInfo> candidates();
+		CollectPoints(m_aPoints, m_vPoint, candidates);
+
+		if (candidates.IsEmpty())
+			return ownerMat[3];
+
+		vector fallback = vector.Zero;
+		int count = candidates.Count();
+		int start = s_AIRandomGenerator.RandInt(0, count);
+
+		for (int i = 0; i < count; i++)
 		{
-			PointInfo selectedPoint = m_aPoints.GetRandomElement();
-			if (selectedPoint)
+			vector candidate = ResolvePointPosition(candidates[(start + i) % count], ownerMat);
+
+			if (i == 0)
+				fallback = candidate;
+
+			// The owner is excluded on purpose: an authored point sits on or alongside the thing that
+			// authored it, so counting it would reject every point on a large prefab.
+			if (OVT_WorldUtils.IsPositionClear(candidate, PERSON_MINS, PERSON_MAXS, GetOwner()))
+				return candidate;
+		}
+
+		return fallback;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One authored point in world space, standing on the surface under it.
+	protected vector ResolvePointPosition(notnull PointInfo point, vector ownerMat[4])
+	{
+		vector offsetMat[4];
+		point.GetTransform(offsetMat);
+
+		// offset the item locally with building rotation
+		vector worldPos = offsetMat[3].Multiply4(ownerMat);
+
+		// The owner is excluded here for the same reason the clearance test excludes it: without that,
+		// a point authored alongside a truck or tent resolves its "ground" onto the owner's own hull.
+		worldPos[1] = OVT_WorldUtils.ResolveGroundY(worldPos, 1.0, 3.0, GetOwner()) + OVT_WorldUtils.SPAWN_GROUND_CLEARANCE;
+
+		return worldPos;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The authored points as one list: the array when it holds anything, else the single point.
+	protected void CollectPoints(array<ref PointInfo> points, PointInfo single, notnull array<PointInfo> outPoints)
+	{
+		outPoints.Clear();
+
+		if (points)
+		{
+			foreach (PointInfo point : points)
 			{
-				selectedPoint.GetTransform(offsetMat);
-				
-				// offset the item locally with building rotation
-				outMat[3] = offsetMat[3].Multiply4(outMat);
-				
-				//Set ground height to Y + 0.5m
-				outMat[3][1] = GetGame().GetWorld().GetSurfaceY(outMat[3][0],outMat[3][2]) + 0.5;	
-				
-				return outMat[3];
+				if (point)
+					outPoints.Insert(point);
 			}
 		}
-		
-		// Fallback to single point if array is empty or not set
-		if(!m_vPoint) return outMat[3];
-		
-		m_vPoint.GetTransform(offsetMat);
-		
-		// offset the item locally with building rotation
-		outMat[3] = offsetMat[3].Multiply4(outMat);
-		
-		//Set ground height to Y + 0.5m
-		outMat[3][1] = GetGame().GetWorld().GetSurfaceY(outMat[3][0],outMat[3][2]) + 0.5;	
-		
-		return outMat[3];
+
+		if (outPoints.IsEmpty() && single)
+			outPoints.Insert(single);
 	}
 	
+	//! A world transform at one of the authored vehicle points, VALIDATED the same way GetSpawnPoint is.
+	//!
+	//! An occupied arrival spot is worse for a vehicle than for a person - the car lands on top of
+	//! whatever is parked there - so when every authored point is blocked this REFUSES rather than
+	//! hand one back. Both callers fall through to a ring search on false.
 	bool GetVehicleSpawnPoint(out vector position, out vector angles)
 	{
-		vector outMat[4];
-		vector offsetMat[4];
-					
-		//Get building transform
-		GetOwner().GetTransform(outMat);
-		
-		// Use random point from vehicle array if available
-		if (m_aVehiclePoints && m_aVehiclePoints.Count() > 0)
+		vector ownerMat[4];
+		GetOwner().GetTransform(ownerMat);
+
+		array<PointInfo> candidates();
+		CollectPoints(m_aVehiclePoints, null, candidates);
+
+		if (candidates.IsEmpty())
+			return false;
+
+		int count = candidates.Count();
+		int start = s_AIRandomGenerator.RandInt(0, count);
+
+		for (int i = 0; i < count; i++)
 		{
-			PointInfo selectedPoint = m_aVehiclePoints.GetRandomElement();
-			if (selectedPoint)
+			PointInfo point = candidates[(start + i) % count];
+
+			vector offsetMat[4];
+			point.GetTransform(offsetMat);
+
+			// Every row of outMat is written below - row 3 here, rows 0-2 by QuatToMatrix
+			vector outMat[4];
+
+			// offset the item locally with building rotation
+			outMat[3] = offsetMat[3].Multiply4(ownerMat);
+
+			// Apply rotation (QuatToMatrix writes the 3x3 only, so the position above survives)
+			float qt[4];
+			float q[4];
+			Math3D.MatrixToQuat(ownerMat, qt);
+			Math3D.MatrixToQuat(offsetMat, q);
+			Math3D.QuatMultiply(qt, q, qt);
+			Math3D.QuatToMatrix(qt, outMat);
+
+			vector spot = outMat[3];
+			spot[1] = OVT_WorldUtils.ResolveGroundY(spot, 1.0, 3.0, GetOwner()) + OVT_WorldUtils.SPAWN_GROUND_CLEARANCE;
+			outMat[3] = spot;
+
+			if (OVT_WorldUtils.IsPositionClear(spot, VEHICLE_MINS, VEHICLE_MAXS, GetOwner()))
 			{
-				selectedPoint.GetTransform(offsetMat);
-				
-				// offset the item locally with building rotation
-				outMat[3] = offsetMat[3].Multiply4(outMat);
-				
-				// Apply rotation
-				float qt[4];
-				float q[4];
-				Math3D.MatrixToQuat(outMat, qt);
-				Math3D.MatrixToQuat(offsetMat, q);
-				Math3D.QuatMultiply(qt, q, qt);
-				Math3D.QuatToMatrix(qt, outMat);
-				
-				//Set ground height to Y + 0.5m
-				outMat[3][1] = GetGame().GetWorld().GetSurfaceY(outMat[3][0],outMat[3][2]) + 0.5;	
-				
-				position = outMat[3];
+				position = spot;
 				angles = Math3D.MatrixToAngles(outMat);
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 	
@@ -191,17 +246,17 @@ class OVT_SpawnPointComponent : ScriptComponent
 		
 		if (isVehiclePoint)
 		{
-			// Vehicle spawn point dimensions (larger)
-			mins = "-1.5 0 -3";
-			maxs = "1.5 2.5 3";
+			// Vehicle spawn point dimensions (larger) - the box the runtime clearance test uses
+			mins = VEHICLE_MINS;
+			maxs = VEHICLE_MAXS;
 			// Orange color for vehicle spawn points
 			color = Color.FromRGBA(255, 165, 0, 128).PackToInt();
 		}
 		else
 		{
-			// Player spawn point dimensions
-			mins = "-0.5 0 -0.5";
-			maxs = "0.5 2 0.5";
+			// Player spawn point dimensions - the box the runtime clearance test uses
+			mins = PERSON_MINS;
+			maxs = PERSON_MAXS;
 			// Cyan color for player spawn points
 			color = Color.FromRGBA(0, 200, 255, 128).PackToInt();
 		}

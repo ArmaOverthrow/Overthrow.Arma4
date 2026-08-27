@@ -1221,7 +1221,7 @@ class OVT_RecruitManagerComponent : OVT_Component
 			vector forward = tent.GetWorldTransformAxis(2);
 			forward[1] = 0;
 
-			if (spawnPoint)
+			if (spawnPoint && spawnPoint.HasSpawnPoints())
 				anchor = spawnPoint.GetSpawnPoint();
 			else if (forward.Length() > 0.01)
 				anchor = tent.GetOrigin() + (forward.Normalized() * TENT_SPAWN_FORWARD_OFFSET);

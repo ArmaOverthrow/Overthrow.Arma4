@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{CD370ECB385DE67A}Prefabs/Structures/Houses/Farm/FarmHouse_E_1L01/FarmHouse_E_1L01.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

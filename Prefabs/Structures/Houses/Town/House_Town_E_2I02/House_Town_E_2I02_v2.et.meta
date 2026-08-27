@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{27CC3110521583D6}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02_v2.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

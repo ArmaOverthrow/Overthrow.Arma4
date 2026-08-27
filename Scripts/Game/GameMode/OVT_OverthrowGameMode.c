@@ -1220,7 +1220,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 	    // the only place it is recorded. A RETURNING player has a home already, so this whole block is
 	    // skipped and neither branch runs: their client keeps its "house" default, which is the right
 	    // answer for anybody who has a home - and every returning player has one by construction.
-	    if (home[0] == 0) // No home assigned
+	    if (home == vector.Zero) // No home assigned (BUG-005's shape: X alone is not the test)
 	    {
 	        IEntity house = OVT_Global.GetRealEstate().GetRandomStartingHouse();
 	        if (!house)
@@ -1423,7 +1423,7 @@ class OVT_OverthrowGameMode : SCR_BaseGameMode
 
 	    // Get the player's home position
 	    vector homePos = m_RealEstate.GetHome(persistentId);
-	    if (homePos[0] == 0 && homePos[1] == 0 && homePos[2] == 0)
+	    if (homePos == vector.Zero)
 	    {
 	        Print("[Overthrow] WARNING: Cannot teleport player - no valid home position", LogLevel.WARNING);
 	        return;
