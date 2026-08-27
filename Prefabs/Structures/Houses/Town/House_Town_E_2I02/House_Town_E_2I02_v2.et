@@ -1,0 +1,12 @@
+SCR_DestructibleBuildingEntity : "{10DB3EEB6DB494AD}Prefabs/Structures/Houses/Town/House_Town_E_2I02/House_Town_E_2I02_Base.et" {
+ ID "51E87D3C23FDEF1D"
+ components {
+  OVT_SpawnPointComponent "{6A365DD6025FBB1C}" {
+   m_aPoints {
+    PointInfo "{6A365DD600F6DB4B}" {
+     Offset 7.3465 0 -0.2002
+    }
+   }
+  }
+ }
+}

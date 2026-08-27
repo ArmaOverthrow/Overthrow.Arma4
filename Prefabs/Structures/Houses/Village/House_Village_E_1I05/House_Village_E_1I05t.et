@@ -11,7 +11,7 @@ SCR_DestructibleBuildingEntity : "{3F0D1AD613E9785F}Prefabs/Structures/Houses/Vi
   }
   OVT_SpawnPointComponent "{5F026407C11C7E8F}" {
    m_vPoint PointInfo "{5F026407C08BD3D8}" {
-    Offset -2.0261 0.4954 3.3734
+    Offset 10.7523 0.4954 -1.3264
    }
   }
   RplComponent "{50A4E7C9B5728062}" {

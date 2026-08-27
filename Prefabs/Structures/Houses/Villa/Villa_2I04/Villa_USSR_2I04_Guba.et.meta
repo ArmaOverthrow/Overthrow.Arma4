@@ -1,0 +1,17 @@
+MetaFileClass {
+ Name "{99D12A69907148F8}Prefabs/Structures/Houses/Villa/Villa_2I04/Villa_USSR_2I04_Guba.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass PS5 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

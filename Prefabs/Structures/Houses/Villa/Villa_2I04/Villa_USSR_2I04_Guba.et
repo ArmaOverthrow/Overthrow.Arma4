@@ -1,0 +1,12 @@
+SCR_DestructibleBuildingEntity : "{9F16711EFF4A52E7}Prefabs/Structures/Houses/Villa/Villa_2I04/Villa_2I04_base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_SpawnPointComponent "{6A365DD973C12BCA}" {
+   m_aPoints {
+    PointInfo "{6A365DD971AF5493}" {
+     Offset -5.6566 0 4.4981
+    }
+   }
+  }
+ }
+}

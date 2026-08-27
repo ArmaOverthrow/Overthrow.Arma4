@@ -1,0 +1,12 @@
+SCR_DestructibleBuildingEntity : "{23ED22AC15AA9EE7}Prefabs/Structures/Houses/Farm/FarmHouse_E_1L01/FarmHouse_E_1L01_Base.et" {
+ ID "F0DBA538AC2A0552"
+ components {
+  OVT_SpawnPointComponent "{6A365DCF8ACE1221}" {
+   m_aPoints {
+    PointInfo "{6A365DCF9130CA78}" {
+     Offset -0.9992 0 -6.729
+    }
+   }
+  }
+ }
+}
