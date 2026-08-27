@@ -847,8 +847,8 @@ class OVT_TownCivilianSourceConfig : OVT_AmbientSpawnSourceConfig
 		if (m_aPlacementCache.Count() >= MAX_PLACEMENT_CANDIDATES)
 			return false;
 
-		// HasSpawnPoints() gates this: GetSpawnPoint() answers with the building's own origin when the
-		// component authors nothing, and caching that would place civilians inside the shell.
+		// HasSpawnPoints() gates this: GetSpawnPoint() answers with the building's own origin when
+		// nothing is authored, and caching that would place civilians inside the shell.
 		OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(entity.FindComponent(OVT_SpawnPointComponent));
 		if (spawnPoint && spawnPoint.HasSpawnPoints())
 		{

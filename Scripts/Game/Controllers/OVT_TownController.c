@@ -215,13 +215,14 @@ class OVT_TownControllerComponent: OVT_Component
 		return false;
 	}
 
-	//! A standing position for this town's gun dealer, OUTSIDE the house he belongs to.
+	//! A standing position for this town's gun dealer.
 	//!
-	//! Anchoring on the building origin and asking FindSafeSpawnPosition was what stood dealers in
-	//! living rooms: the origin is a point inside the shell, the 2 m probe around it stays inside the
-	//! shell, and an empty room passes the clearance test. \see OVT_WorldUtils.FindSpawnPositionOutside
+	//! THE AUTHORED POINT WINS, indoors or not. It is where a human decided the dealer should stand,
+	//! and it beats anything a search can work out - the searched fallback knows nothing about doors
+	//! or roads and will happily plant him in the middle of the street. The search is for houses that
+	//! author no point at all.
 	//! \param[in] house The building the dealer trades from.
-	//! \return A position beside the house, or its authored spawn point when it has one.
+	//! \return Its authored spawn point, else a position beside it.
 	protected vector ResolveGunDealerPosition(notnull IEntity house)
 	{
 		OVT_SpawnPointComponent spawnPoint = OVT_SpawnPointComponent.Cast(house.FindComponent(OVT_SpawnPointComponent));
@@ -235,19 +236,52 @@ class OVT_TownControllerComponent: OVT_Component
 		return OVT_WorldUtils.FindSafeSpawnPosition(house.GetOrigin());
 	}
 
+	//! The authored spawn point of the building nearest the recorded dealer position.
+	//!
+	//! The migration path for saves written before a house prefab gained its points - and the reason a
+	//! newly authored point reaches an in-progress campaign at all.
+	//! \param[out] position The authored point, valid only when this returns true.
+	//! \return True when a building near the record authors a point.
+	protected bool TryAdoptNearbyAuthoredPoint(out vector position)
+	{
+		if(m_Town.gunDealerPosition == vector.Zero)
+			return false;
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if(!realEstate)
+			return false;
+
+		IEntity building = realEstate.GetNearestBuilding(m_Town.gunDealerPosition);
+		if(!building)
+			return false;
+
+		OVT_SpawnPointComponent points = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
+		if(!points || !points.HasSpawnPoints())
+			return false;
+
+		position = points.GetSpawnPoint();
+		return true;
+	}
+
 	protected void SpawnGunDealer()
 	{
 		vector spawnPosition;
 
-		// A RECORDED POSITION IS RE-TESTED, NOT TRUSTED. It is written to the save and re-used verbatim
-		// every session, so a dealer who once landed inside a house stayed there for the life of the
-		// campaign - re-judging it here is what heals an existing save on its next load. Both tests are
-		// needed: a dealer standing in an empty living room passes the clearance box exactly as one in
-		// the street does, and only the overhead trace can tell them apart. Compared against the zero
-		// vector rather than X != 0: a legitimate position can have X exactly 0 (BUG-005's shape).
-		if(m_Town.gunDealerPosition != vector.Zero
-			&& OVT_WorldUtils.IsPositionClear(m_Town.gunDealerPosition)
-			&& !OVT_WorldUtils.HasGeometryOverhead(m_Town.gunDealerPosition))
+		// AN AUTHORED POINT NEAR THE RECORD WINS OVER THE RECORD. A save carries gunDealerPosition
+		// verbatim, so without this a dealer the searched fallback once put in the street keeps that
+		// spot for the life of the campaign however many house prefabs gain authored points later.
+		// Converges rather than churns: the adopted point is stored, and the same lookup answers with
+		// the same house next load.
+		vector authored;
+		if(TryAdoptNearbyAuthoredPoint(authored))
+		{
+			spawnPosition = authored;
+		}
+		// Otherwise the recorded position is re-judged for CLEARANCE ONLY, never for being indoors: a
+		// dealer at a house's authored point is standing exactly where he was meant to. This is the
+		// same test the producers pass, so a position this method stores is one it will still accept
+		// next load. Compared against the zero vector rather than X != 0 (BUG-005's shape).
+		else if(m_Town.gunDealerPosition != vector.Zero && OVT_WorldUtils.IsPositionClear(m_Town.gunDealerPosition))
 		{
 			spawnPosition = m_Town.gunDealerPosition;
 		}else{
@@ -262,6 +296,11 @@ class OVT_TownControllerComponent: OVT_Component
 			}
 
 			spawnPosition = ResolveGunDealerPosition(entity);
+
+			// Never move him for no gain: a town where every candidate is blocked would otherwise
+			// reroll to a different house on every load, taking his map marker with it.
+			if(m_Town.gunDealerPosition != vector.Zero && !OVT_WorldUtils.IsPositionClear(spawnPosition))
+				spawnPosition = m_Town.gunDealerPosition;
 		}
 
 		BaseWorld world = GetGame().GetWorld();

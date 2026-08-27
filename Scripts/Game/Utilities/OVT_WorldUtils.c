@@ -45,24 +45,22 @@ class OVT_WorldUtils : Managed
 	//! onto the floor instead of starting fractionally inside it.
 	static const float SPAWN_GROUND_CLEARANCE = 0.5;
 
-	//! Ring radii used when the close-in probes are all inside whatever the caller is trying to get out
-	//! of. Deliberately short: a spawn that walks the player across the street is a nuisance, a spawn
-	//! that walks them across the town is a bug of its own.
+	//! Ring radii used when the close-in probes are all inside whatever the caller is trying to escape.
 	static const ref array<float> SPAWN_RING_RADII = {4.0, 6.0, 8.0, 12.0};
 
 	//------------------------------------------------------------------------------------------------
 	//! The height a character standing at this XZ should have.
 	//!
-	//! GetSurfaceY answers for the TERRAIN ONLY, so any point sitting on something the terrain does not
-	//! know about - a building floor, a raised foundation, a concrete pad, a jetty - is dropped into
-	//! whatever is underneath it, which is the inside of the structure. Trace down through terrain AND
-	//! entities from just above the point instead, and keep GetSurfaceY as the answer when the trace
-	//! finds nothing (a point over a cliff edge, or one whose owner is floating).
+	//! GetSurfaceY answers for the TERRAIN ONLY, so a point on a building floor, a foundation or a pad
+	//! is dropped inside it. Trace down through terrain and entities instead, falling back to the
+	//! terrain height when the trace finds nothing.
 	//! \param[in] pos The position whose XZ is being resolved; its Y is the vertical search anchor.
 	//! \param[in] searchUp How far above pos to start the downward trace.
 	//! \param[in] searchDown How far below pos to give up.
+	//! \param[in] exclude An entity the trace ignores - normally the point's own owner, whose geometry
+	//!            would otherwise read as the ground (a point alongside a truck resolving onto its bed).
 	//! \return The Y of the first surface found, else the terrain height.
-	static float ResolveGroundY(vector pos, float searchUp = 1.0, float searchDown = 3.0)
+	static float ResolveGroundY(vector pos, float searchUp = 1.0, float searchDown = 3.0, IEntity exclude = null)
 	{
 		BaseWorld world = GetGame().GetWorld();
 		if (!world)
@@ -72,9 +70,12 @@ class OVT_WorldUtils : Managed
 		param.Start = pos + Vector(0, searchUp, 0);
 		param.End = pos - Vector(0, searchDown, 0);
 		param.Flags = TraceFlags.WORLD | TraceFlags.ENTS;
+		param.Exclude = exclude;
 
+		// travelled <= 0 means the trace started INSIDE geometry: the hit-point formula would then
+		// answer searchUp ABOVE the input, which is not a ground height at all.
 		float travelled = world.TraceMove(param, null);
-		if (travelled < 1.0)
+		if (travelled > 0 && travelled < 1.0)
 			return param.Start[1] - ((searchUp + searchDown) * travelled);
 
 		return world.GetSurfaceY(pos[0], pos[2]);
@@ -109,10 +110,9 @@ class OVT_WorldUtils : Managed
 	//------------------------------------------------------------------------------------------------
 	//! Whether something solid is directly overhead.
 	//!
-	//! THE ONLY TEST THAT TELLS "inside a building" APART FROM "in the open". A clearance box cannot:
-	//! an empty room passes it exactly as a field does, which is why a gun dealer standing in somebody's
-	//! living room looked like a perfectly good placement to every check Overthrow had. Used to judge a
-	//! position that was MEANT to be outdoors - never to reject one that was deliberately put indoors.
+	//! The only test that tells "inside a building" apart from "in the open" - an empty room passes a
+	//! clearance box exactly as a field does. Judges a position that was MEANT to be outdoors; never
+	//! use it to reject one that was deliberately put indoors.
 	//! \param[in] pos The standing position to test.
 	//! \param[in] height How far up to look.
 	//! \return True when the position is roofed.
@@ -133,15 +133,14 @@ class OVT_WorldUtils : Managed
 	//------------------------------------------------------------------------------------------------
 	//! A clear, grounded standing position just OUTSIDE a building's footprint.
 	//!
-	//! TryFindSafeSpawnPosition samples a 2 m sphere centred on what it is given, so anchoring it on a
-	//! building ORIGIN - a point inside the shell - answers with another point inside the shell, and an
-	//! open room passes the clearance test perfectly well. That is what puts gun dealers in living
-	//! rooms. This starts outside the entity's world bounds and rings outward instead.
+	//! A LAST RESORT, not a preference. It knows nothing about doors or roads and will happily answer
+	//! with the middle of the street, so anything with an AUTHORED point should use that instead and
+	//! only fall back to here when the building authors none.
 	//! \param[in] building The building to stand next to.
 	//! \param[out] foundPos A clear position outside it, or its origin when there is none.
 	//! \param[in] mins Clearance box minimum corner.
 	//! \param[in] maxs Clearance box maximum corner.
-	//! \return True when a clear position outside the footprint was found.
+	//! \return True when a position outside the footprint was found.
 	static bool FindSpawnPositionOutside(notnull IEntity building, out vector foundPos, vector mins = "-0.5 0 -0.5", vector maxs = "0.5 2 0.5")
 	{
 		foundPos = building.GetOrigin();
@@ -175,10 +174,8 @@ class OVT_WorldUtils : Managed
 					haveClear = true;
 				}
 
-				// OPEN SKY IS THE POINT, not merely a gap. A bounding box is quantized and can end short
-				// of a wing, an awning or a porch, so a "clear" candidate can still be under the very
-				// roof this is escaping - and a caller that re-judges its own recorded position would
-				// then move it again every session. Take a roofed spot only if nothing better exists.
+				// A bounding box is quantized and can end short of a wing, an awning or a porch, so a
+				// "clear" candidate can still be under the roof this is escaping. Prefer open sky.
 				if (!HasGeometryOverhead(candidate))
 				{
 					foundPos = candidate;
@@ -242,12 +239,9 @@ class OVT_WorldUtils : Managed
 				
 				if (closestEntity)
 				{
-					// HasSpawnPoints() first: GetSpawnPoint() falls back to the HOLDER'S OWN ORIGIN when
-					// nothing is authored, and for a building that is a point inside it - the exact
-					// answer this method exists to avoid. The clearance re-test is for the other half:
-					// an authored point can be blocked by something that was not there when it was
-					// authored (a placeable, a wreck, a neighbour's fence), and falling through to the
-					// probe below beats handing back a point we can see is occupied.
+					// HasSpawnPoints() first: GetSpawnPoint() falls back to the holder's own origin,
+					// which for a building is a point inside it. The clearance re-test covers an
+					// authored point blocked by something placed since it was authored.
 					OVT_SpawnPointComponent spawnComp = OVT_SpawnPointComponent.Cast(closestEntity.FindComponent(OVT_SpawnPointComponent));
 					if (spawnComp && spawnComp.HasSpawnPoints())
 					{
@@ -263,10 +257,8 @@ class OVT_WorldUtils : Managed
 		}
 
 		// A crude random search close in, then rings outward. Every candidate is put ON the surface
-		// under it: the old code lifted the probe by a random 0-2 m from the INPUT's Y and traced ENTS
-		// only, so a candidate buried in a hillside or hanging two metres over it both read as clear
-		// (terrain is TraceFlags.WORLD, which the box test does not ask for) - that is a spawn in a
-		// wall wearing the disguise of a successful probe.
+		// under it - the box test asks for ENTS only, so a candidate buried in terrain would otherwise
+		// read as clear.
 		vector checkpos;
 		for (int i = 0; i < 30; i++)
 		{
@@ -281,9 +273,8 @@ class OVT_WorldUtils : Managed
 			}
 		}
 
-		// Still nothing: the 2 m sphere is inside the thing we are trying to get out of. Ring outward
-		// rather than hand back the colliding input - the same escape the vehicle path already has in
-		// FindVehicleSpawnNear, which the character path never got.
+		// Still nothing: the 2 m sphere is inside the thing we are trying to escape. Ring outward rather
+		// than hand back the colliding input, the same escape FindVehicleSpawnNear already has.
 		foreach (float radius : SPAWN_RING_RADII)
 		{
 			for (int bearing = 0; bearing < 8; bearing++)

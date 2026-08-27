@@ -797,10 +797,9 @@ class OVT_RealEstateManagerComponent: OVT_OwnerManagerComponent
 	//! \param[in] building The building entity to set as home
 	void SetHome(int playerId, IEntity building)
 	{
-		// NEVER THE RAW ORIGIN. A building's origin is a point inside its shell, and this vector is
-		// persisted as the player's home - so storing it here is what respawned starting-house owners
-		// inside their own walls for the life of the save. HasSpawnPoints() gates the authored branch
-		// because GetSpawnPoint() falls back to that same origin when nothing is authored.
+		// Never the raw origin: it is a point inside the shell and this vector is persisted as the
+		// player's home. HasSpawnPoints() gates the authored branch because GetSpawnPoint() falls back
+		// to that same origin when nothing is authored.
 		vector pos;
 		OVT_SpawnPointComponent spawn = OVT_SpawnPointComponent.Cast(building.FindComponent(OVT_SpawnPointComponent));
 		if(spawn && spawn.HasSpawnPoints())
