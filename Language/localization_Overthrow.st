@@ -1070,6 +1070,57 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6BB4000000000210}" {
+   Id "OVT-CaptureTower"
+   Target_en_us "Capture Radio Tower"
+   Comment "Hold action on occupying radio towers, beside Sabotage Radio Tower"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BB4000000000212}" {
+   Id "OVT-CaptureTower_Defended"
+   Target_en_us "Enemy soldiers are still defending this tower"
+   Comment "Disabled reason on the Capture Radio Tower action"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BB4000000000211}" {
+   Id "OVT-CaptureTower_Wanted"
+   Target_en_us "You cannot capture a tower while wanted"
+   Comment "Disabled reason on the Capture Radio Tower action"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756080000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2E2000000043}" {
    Id "OVT-Cargo_Line"
    Target_en_us "%1 x %2"
@@ -11753,36 +11804,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2F5000000001}" {
-   Id "OVT-Msg-PlayerJoined"
-   Target_en_us "%1 joined the server"
-   Comment "EXTERNAL CHANNEL ONLY - this is never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerConnected, which is server-only and fires for a RECONNECT as well as a first join (the once-per-session guard lives in FinalizePlayerPreparation, not here). %1 is the player's display name as the platform reports it. Paired with OVT-Msg-PlayerLeft. Vanilla already shows its own connect message in game, which is why no SendTextNotification accompanies this."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F5000000002}" {
-   Id "OVT-Msg-PlayerLeft"
-   Target_en_us "%1 left the server"
-   Comment "EXTERNAL CHANNEL ONLY - never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerDisconnected, read BEFORE super runs so the player's name is still resolvable. %1 is the player's display name. Covers every departure - quit, timeout and kick alike - because the disconnect handler does not branch on KickCauseCode. Paired with OVT-Msg-PlayerJoined."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6B8C3F5D000000C6}" {
    Id "OVT-Msg-CounterAttackTown"
    Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"
@@ -12298,6 +12319,21 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F5000000001}" {
+   Id "OVT-Msg-PlayerJoined"
+   Target_en_us "%1 joined the server"
+   Comment "EXTERNAL CHANNEL ONLY - this is never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerConnected, which is server-only and fires for a RECONNECT as well as a first join (the once-per-session guard lives in FinalizePlayerPreparation, not here). %1 is the player's display name as the platform reports it. Paired with OVT-Msg-PlayerLeft. Vanilla already shows its own connect message in game, which is why no SendTextNotification accompanies this."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7D9B2E00000098}" {
    Id "OVT-Msg-PlayerJoinedWithRecruits"
    Target_en_us "%1 joined your group with %2 recruits - you can command them while they are here"
@@ -12314,6 +12350,21 @@ StringTable {
    Modified 1754438400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2F5000000002}" {
+   Id "OVT-Msg-PlayerLeft"
+   Target_en_us "%1 left the server"
+   Comment "EXTERNAL CHANNEL ONLY - never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerDisconnected, read BEFORE super runs so the player's name is still resolvable. %1 is the player's display name. Covers every departure - quit, timeout and kick alike - because the disconnect handler does not branch on KickCauseCode. Paired with OVT-Msg-PlayerJoined."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -12429,6 +12480,13 @@ StringTable {
    Modified 1716471573
    Author "Aaron Static"
    LastChanged "Lemmi"
+  }
+  CustomStringTableItem "{6A3883575D66C251}" {
+   Id "OVT-Msg-RecruitLevelUp"
+   Target_en_us "%1 has reached level %2"
+   Modified 1782088660
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
@@ -15226,6 +15284,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2F1000000003}" {
+   Id "OVT-RealEstate_BaseProperty"
+   Target_en_us "Part of the base"
+   Comment "Real estate menu - a warehouse standing inside a base's close range belongs to whoever holds the base: it is neither for sale nor for rent, and access follows base control (OVT_RealEstateManagerComponent.IsBaseWarehouse)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1755993600
+   Author "Claude"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A7E1A2D00000003}" {
    Id "OVT-RealEstate_CantAfford"
    Target_en_us "You cannot afford this"
@@ -15280,23 +15355,6 @@ StringTable {
    Modified 1754265600
    Author "Claude"
    LastChanged "Lemmi"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6A8E2F1000000003}" {
-   Id "OVT-RealEstate_BaseProperty"
-   Target_en_us "Part of the base"
-   Comment "Real estate menu - a warehouse standing inside a base's close range belongs to whoever holds the base: it is neither for sale nor for rent, and access follows base control (OVT_RealEstateManagerComponent.IsBaseWarehouse)"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1755993600
-   Author "Claude"
-   LastChanged ""
    ImageLink ""
    Hidden 0
   }
@@ -17999,57 +18057,6 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6BB4000000000210}" {
-   Id "OVT-CaptureTower"
-   Target_en_us "Capture Radio Tower"
-   Comment "Hold action on occupying radio towers, beside Sabotage Radio Tower"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1756080000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6BB4000000000211}" {
-   Id "OVT-CaptureTower_Wanted"
-   Target_en_us "You cannot capture a tower while wanted"
-   Comment "Disabled reason on the Capture Radio Tower action"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1756080000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6BB4000000000212}" {
-   Id "OVT-CaptureTower_Defended"
-   Target_en_us "Enemy soldiers are still defending this tower"
-   Comment "Disabled reason on the Capture Radio Tower action"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1756080000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A7D9B2E00000029}" {
    Id "OVT-SabotageTower"
    Target_en_us "Sabotage Radio Tower"
@@ -19596,6 +19603,38 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B3D000000000210}" {
+   Id "OVT-StartingTown"
+   Target_en_us "Starting Town"
+   Comment "Label of the starting-town spinner on the campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, StartingTownSpinner). Picks the town players get their first house in; the dedicated-server equivalent is the startingTown key in Overthrow_Config.json."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B3D000000000211}" {
+   Id "OVT-StartingTown_Random"
+   Target_en_us "Random"
+   Comment "First entry of the starting-town spinner on the campaign-setup screen, and the default - the behaviour every campaign had before the spinner existed. Every other entry is a town name straight off the map and is not translated."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Author "Aaron Static"
+   LastChanged "Aaron Static"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B0F11B0AA01C030}" {
    Id "OVT-StartNewGame"
    Target_en_us "Start New Game"
@@ -19631,38 +19670,6 @@ StringTable {
    NonTranslatable 0
    MaxLength 0
    Modified 1780783911
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B3D000000000210}" {
-   Id "OVT-StartingTown"
-   Target_en_us "Starting Town"
-   Comment "Label of the starting-town spinner on the campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, StartingTownSpinner). Picks the town players get their first house in; the dedicated-server equivalent is the startingTown key in Overthrow_Config.json."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Author "Aaron Static"
-   LastChanged "Aaron Static"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{6B3D000000000211}" {
-   Id "OVT-StartingTown_Random"
-   Target_en_us "Random"
-   Comment "First entry of the starting-town spinner on the campaign-setup screen, and the default - the behaviour every campaign had before the spinner existed. Every other entry is a town name straight off the map and is not translated."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
    Author "Aaron Static"
    LastChanged "Aaron Static"
    ImageLink ""
