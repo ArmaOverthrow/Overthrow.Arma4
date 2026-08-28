@@ -1229,3 +1229,190 @@ class OVT_TEST_Init_StorageSeam_LDeclaredPartsResolveInheritance : SCR_AutotestC
 		return true;
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+//! A ledger line's display name must survive a variant delta.
+//!
+//! Vanilla's `*_Dirty` civilian clothing authors only a material override, so its own source declares
+//! no InventoryItemComponent and therefore no ItemDisplayName. Overthrow's civilian wardrobe is full of
+//! them, so looting a civilian used to fill the transfer screen with raw "{GUID}Prefabs/..." rows.
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_MVariantDeltaKeepsItsDisplayName : SCR_AutotestCaseBase
+{
+	static const ResourceName DIRTY_JACKET = "{23A15812C40D34C2}Prefabs/Characters/Uniforms/Jacket_Denim_01/Jacket_Denim_01_strippedShirt_dirty.et";
+	static const ResourceName CLEAN_JACKET = "{43D84EA05C66258C}Prefabs/Characters/Uniforms/Jacket_Denim_01/Jacket_Denim_01_base.et";
+
+	protected IEntity m_Jacket;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector position;
+		if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("780 0 660", position))
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test jacket");
+			return true;
+		}
+
+		// Spawned first: an unloaded resource answers with a zero-component source, which would make
+		// this case pass or fail on residency rather than on the inheritance it exists to prove.
+		m_Jacket = OVT_Global.SpawnEntityPrefab(DIRTY_JACKET, position);
+		if (!m_Jacket)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", DIRTY_JACKET);
+			return true;
+		}
+
+		UIInfo baseInfo = OVT_PrefabUtils.GetItemUIInfo(CLEAN_JACKET);
+		if (!baseInfo || baseInfo.GetName() == "")
+		{
+			SetFailure("The BASE denim jacket reports no display name, so this case cannot tell an inheritance fault from a missing one");
+			return FinishAndCleanUp();
+		}
+
+		UIInfo dirtyInfo = OVT_PrefabUtils.GetItemUIInfo(DIRTY_JACKET);
+		if (!dirtyInfo || dirtyInfo.GetName() == "")
+		{
+			SetFailure("The dirty denim jacket variant reports no display name. Its delta authors only a material, so the read must walk to the base - otherwise every looted civilian garment is a raw {GUID}path row in the transfer screen.");
+			return FinishAndCleanUp();
+		}
+
+		if (dirtyInfo.GetName() != baseInfo.GetName())
+		{
+			SetFailure("The dirty variant resolved '%1' but its base declares '%2'", dirtyInfo.GetName(), baseInfo.GetName());
+			return FinishAndCleanUp();
+		}
+
+		ResourceName cleaned = OVT_PrefabUtils.ResolveCleanVariant(DIRTY_JACKET);
+		if (cleaned == DIRTY_JACKET)
+		{
+			SetFailure("ResolveCleanVariant() left the dirty denim jacket alone. Every looted civilian would then bank a second stack of the same garment.");
+			return FinishAndCleanUp();
+		}
+
+		if (OVT_PrefabUtils.ResolveCleanVariant(cleaned) != cleaned)
+		{
+			SetFailure("ResolveCleanVariant() is not idempotent: it walked past the clean prefab %1", cleaned);
+			return FinishAndCleanUp();
+		}
+
+		if (OVT_PrefabUtils.ResolveCleanVariant(CLEAN_JACKET) != CLEAN_JACKET)
+		{
+			SetFailure("ResolveCleanVariant() rewrote a prefab that is not a dirty variant");
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: a variant delta inherits its base's display name and banks clean");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Jacket)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Jacket);
+			m_Jacket = null;
+		}
+
+		return true;
+	}
+}
+
+
+//------------------------------------------------------------------------------------------------
+//! An ARMED mine is not loot.
+//!
+//! The loot query takes anything with an InventoryItemComponent and no parent slot, and a loot run
+//! DELETES what it prices - so a truck parked on a minefield used to collect and disarm it. An unarmed
+//! mine lying loose is still ordinary loot, and this case pins both halves.
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_NArmedMinesAreNotLoot : SCR_AutotestCaseBase
+{
+	static const ResourceName MINE = "{D6EF54367CECE1D9}Prefabs/Weapons/Explosives/Mine_TM62M/Mine_TM62M.et";
+
+	protected IEntity m_Mine;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		vector position;
+		if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("780 0 660", position))
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test mine");
+			return true;
+		}
+
+		m_Mine = OVT_Global.SpawnEntityPrefab(MINE, position);
+		if (!m_Mine)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", MINE);
+			return true;
+		}
+
+		SCR_BaseTriggerComponent trigger = SCR_BaseTriggerComponent.Cast(m_Mine.FindComponent(SCR_BaseTriggerComponent));
+		if (!trigger)
+		{
+			SetFailure("Mine_TM62M carries no SCR_BaseTriggerComponent, so the armed test has nothing to read and this case cannot prove anything");
+			return FinishAndCleanUp();
+		}
+
+		if (trigger.IsActivated())
+		{
+			SetFailure("A freshly spawned mine reports itself already armed, so the unarmed half of this case is untestable");
+			return FinishAndCleanUp();
+		}
+
+		if (!LootableCountAt(position))
+		{
+			SetFailure("An UNARMED mine lying on the ground was not offered as loot. The guard is too wide - a dropped mine is ordinary litter.");
+			return FinishAndCleanUp();
+		}
+
+		trigger.ActivateTrigger();
+
+		if (!trigger.IsActivated())
+		{
+			SetFailure("ActivateTrigger() did not arm the mine, so the armed half of this case is untestable");
+			return FinishAndCleanUp();
+		}
+
+		if (LootableCountAt(position))
+		{
+			SetFailure("An ARMED mine is still offered as loot. A loot run deletes what it prices, so a truck parked beside a minefield collects and silently disarms it.");
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: an armed mine is left where it was laid");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] position Centre of the query.
+	//! \return True when the test mine is among the lootables there.
+	protected bool LootableCountAt(vector position)
+	{
+		array<IEntity> found = new array<IEntity>();
+		OVT_StorageLootQuery query = new OVT_StorageLootQuery();
+		query.Run(position, 10, found);
+
+		return found.Find(m_Mine) != -1;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Mine)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Mine);
+			m_Mine = null;
+		}
+
+		return true;
+	}
+}

@@ -462,7 +462,17 @@ class OVT_PortContext : OVT_TransferContext
 		UIInfo info = OVT_PrefabUtils.GetItemUIInfo(res);
 		if(info) name = info.GetName();
 
-		if(name == "") name = res;
+		// A failed resolve is NOT memoised: a prefab that is not resident yet reads back with no UI
+		// info at all, and caching that would freeze the fallback name in for the life of the context.
+		if(name == "")
+		{
+			name = OVT_PrefabUtils.PrettyPrefabName(res);
+
+			string fallbackTranslated = WidgetManager.Translate(name);
+			if(fallbackTranslated != "") name = fallbackTranslated;
+
+			return name;
+		}
 
 		string translated = WidgetManager.Translate(name);
 		if(translated != "") name = translated;

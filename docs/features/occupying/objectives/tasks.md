@@ -577,3 +577,16 @@ Filled in as phases complete. Seeded from implementation.md §6 "Verification Me
 ---
 
 *Update this file as tasks are completed. Mark tasks ✅ immediately when done.*
+
+---
+
+## Post-close change 2026-08-28 — construction sites are not sabotage targets
+
+**Reported:** saboteurs blew up a player's construction site on a live server.
+
+- [x] PS1 `OVT_BaseSabotageBehaviorDeploymentModule.IsConstructionSite()` — refuses any candidate carrying `OVT_ConstructionSiteComponent`
+- [x] PS2 Applied in `CollectTargetCallback` beside `IsGearContainer` / the ruin check, where the carve-outs live
+- [x] PS3 `OVT_TEST_Init_ObjectiveSabotage_KConstructionSitesAreNotTargets` — asserts the site reaches the candidate list AND is refused
+- [x] PS4 Gate: `compile-check.sh` exit 0 (6352 files)
+- [ ] PS5 Init suite not run — PS3 unproven
+- [ ] PS6 Play-test: run a sabotage mission against a base holding a construction site; confirm the site survives and the mission takes a finished structure instead

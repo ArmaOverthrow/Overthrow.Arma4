@@ -236,7 +236,9 @@ class OVT_StorageComponent : OVT_Component
 				if (!line)
 					continue;
 
-				m_Ledger.Add(line.m_sRes, line.m_iCount, UNLIMITED_CAPACITY);
+				// Folds a pre-existing dirty-variant line into its clean stack. Add() merges by key, so
+				// a save holding both ends up with one line and no count is lost.
+				m_Ledger.Add(OVT_PrefabUtils.ResolveCleanVariant(line.m_sRes), line.m_iCount, UNLIMITED_CAPACITY);
 			}
 		}
 

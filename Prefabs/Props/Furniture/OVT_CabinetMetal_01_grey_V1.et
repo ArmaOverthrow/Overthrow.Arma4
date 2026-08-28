@@ -77,6 +77,14 @@ GenericEntity : "{17F3181D0DAC27FC}Prefabs/Props/Furniture/CabinetMetal_01_grey_
      "Sort Priority" 9
     }
     OVT_SaveOfficerLoadoutAction "{65AAD8FB97F659E8}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AAD8FB9345FFA7}" {
+      Name "#OVT-SaveOfficerLoadout"
+     }
+     "Sort Priority" 10
+    }
     OVT_OpenStorageMenuAction "{6A8E2F22010A0001}" {
      ParentContextList {
       "default"
@@ -88,6 +96,15 @@ GenericEntity : "{17F3181D0DAC27FC}Prefabs/Props/Furniture/CabinetMetal_01_grey_
      "Sort Priority" 11
     }
     OVT_TransferAllToStorageAction "{6A8E2F22010A0003}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22010A0004}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     Duration 0
+     "Sort Priority" 12
+    }
     OVT_RenameStorageAction "{6A8E2F22010A0006}" {
      ParentContextList {
       "default"
@@ -117,23 +134,6 @@ GenericEntity : "{17F3181D0DAC27FC}Prefabs/Props/Furniture/CabinetMetal_01_grey_
      }
      Duration 0
      "Sort Priority" 15
-    }
-     ParentContextList {
-      "default"
-     }
-     UIInfo UIInfo "{6A8E2F22010A0004}" {
-      Name "#OVT-Storage_TransferAll"
-     }
-     Duration 0
-     "Sort Priority" 12
-    }
-     ParentContextList {
-      "default"
-     }
-     UIInfo UIInfo "{65AAD8FB9345FFA7}" {
-      Name "#OVT-SaveOfficerLoadout"
-     }
-     "Sort Priority" 10
     }
    }
   }

@@ -1,6 +1,6 @@
 # Storage (logistics/storage) — Context & Decisions
 
-**Last Updated:** 2026-08-25
+**Last Updated:** 2026-08-28
 **Current Phase:** ✅ **CLOSED 2026-08-21** — three post-close changes 2026-08-23 (loot → ledger; trunk sale → ledger; two container defects, §§ below)
 **Was:** ✅ **CLOSED 2026-08-21** — 10 phases, a cross-phase review, a B5 fix pass and 9 user play-test fixes
 **Status:** ✅ **Closed** — user play-test signed off 2026-08-21 ("everything looks great now"). Residuals below.
@@ -335,6 +335,46 @@ in-session round-trip suites cannot see this class of defect at all, by construc
 
 **Owed:** a restart test on a real server — stock a map-placed warehouse, restart, confirm the ledger
 AND the resource stock come back.
+
+---
+
+## Post-close change 2026-08-28 (j) - looted gear banks CLEAN, and a variant delta keeps its name
+
+User report: transfer-screen rows reading `{23A15812C40D34C2}Prefabs/Characters/Uniforms/Jacket_Denim...`
+instead of a name - *"I dunno if they just dont have names, or maybe are dirty versions or something?"*
+
+**Dirty versions.** All three prefabs in the screenshot are in Overthrow's own civilian wardrobe
+(`Configs/Civilians/CivilianClothes.conf`), and vanilla's 17 `*_Dirty` clothing prefabs are each an
+inheritance delta that overrides **nothing but a material** - no `InventoryItemComponent`, therefore no
+`ItemDisplayName` on their own source. `GetItemUIInfo` read the prefab's own source and stopped, and
+`ResolveDisplayName` fell back to `name = res`. A live inventory never shows this because it reads the
+spawned component, not the prefab source.
+
+**The user's call: bank the clean one.** `OVT_PrefabUtils.ResolveCleanVariant` walks a `*_dirty` stem to
+the prefab it is a delta over, and is applied at the two places an entity becomes a ledger line -
+`ConvertItemToLedger` (SWEEP and COLLECT) and `CollectLootTree` (LOOT). Verified across the reference
+tree: for all 17, the ancestor IS the clean sibling. Suffix-driven on purpose - "a delta that only
+overrides materials" would also collapse deliberate colour variants, and those are distinct items.
+Neither the dirty nor the clean prefabs appear in any shop or pricing config, so nothing is repriced.
+
+**Migration is free and was taken.** `ApplyPersisted` normalises on the way in, so an existing save's
+dirty lines fold into the clean stack on the next load; `Add()` merges by key, so a save holding both
+ends with one line and no count lost. Unlike PG9 / PK10 there was a single re-apply choke point.
+
+**The name fix stands as well**, because the ledger is not the only list that reads a prefab name:
+1. `GetItemUIInfo` walks the prefab ancestry (bounded at 16) until something declares a name.
+2. It holds the `Resource` in a local across the read and bails on a **zero-component** source - the
+   unloaded-prefab trap that has already cost this feature the declared-part guard. A temporary
+   `Resource` can be evicted out from under the `IEntitySource` it produced.
+3. `ResolveDisplayName` in `OVT_StorageContext` and `OVT_PortContext` **no longer memoises a failure**.
+   Caching one froze a fallback name in for the life of the context, and a not-yet-resident prefab is
+   exactly the case that fails once and would succeed on the next list build.
+4. `OVT_PrefabUtils.PrettyPrefabName` is the new last resort - a file stem, never a GUID and a path.
+
+**Gate:** `compile-check.sh` exit 0 (6352 files). `OVT_TEST_Init_StorageSeam_MVariantDeltaKeepsItsDisplayName`
+added (spawns the dirty jacket first, so it measures inheritance and not residency) - **not yet run**.
+
+**Owed:** run the Init suite; play-test a civilian loot run and confirm one named stack per garment.
 
 ---
 

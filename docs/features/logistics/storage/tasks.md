@@ -513,3 +513,39 @@ User report after close. See `context.md` "Post-close change 2026-08-24 (g)".
 - [x] PL4 Gate: `compile-check.sh` exit 0 (6347 files) · `OVT_TEST_PersistenceRoundTripSuite` 45/45
 - [ ] PL5 🔴 UNCONFIRMED against the affected server — found by reading, not measured. If it recurs, get that server's save-point dir + the LOADING session's console.log
 - [ ] PL6 Restart test on a real server: stock a map-placed warehouse, restart, confirm both the item ledger and the resource stock return
+
+---
+
+## Post-close change 2026-08-28 (j) — looted gear banks CLEAN, and a variant delta keeps its name
+
+**Reported:** transfer-screen rows showing a raw `{GUID}Prefabs/...` instead of an item name.
+
+- [x] PM1 Diagnosed: vanilla's 17 `*_Dirty` clothing prefabs are material-only deltas that declare no `InventoryItemComponent` and therefore no `ItemDisplayName`; all three reported prefabs are in `Configs/Civilians/CivilianClothes.conf`
+- [x] PM2 `OVT_PrefabUtils.ResolveCleanVariant` + `IsDirtyVariant` — a `*_dirty` stem resolves to the prefab it is a delta over (verified across the reference tree: ancestor == clean sibling for all 17)
+- [x] PM3 Applied at both entity→ledger choke points: `ConvertItemToLedger` (SWEEP, COLLECT) and `CollectLootTree` (LOOT)
+- [x] PM4 `ApplyPersisted` normalises on load, so existing saves fold dirty lines into the clean stack — `Add()` merges by key, no count lost
+- [x] PM5 `GetItemUIInfo` walks the prefab ancestry (bounded 16), holds the `Resource` in a local, and bails on a zero-component source
+- [x] PM6 `ResolveDisplayName` (`OVT_StorageContext`, `OVT_PortContext`) no longer memoises a failed resolve
+- [x] PM7 `OVT_PrefabUtils.PrettyPrefabName` — last-resort file stem, never a GUID and a path
+- [x] PM8 `OVT_TEST_Init_StorageSeam_MVariantDeltaKeepsItsDisplayName` — spawns the dirty jacket first so it measures inheritance, not residency
+- [x] PM9 Gate: `compile-check.sh` exit 0 (6352 files)
+- [ ] PM10 🔴 Init suite not run — PM8 is unproven, and it is the case that would tell an inheritance fault from a residency one
+- [ ] PM11 Play-test: loot a civilian → one named stack per garment, no `{GUID}` rows, no dirty/clean pair
+- [ ] PM12 Play-test: load an existing save holding dirty lines → they appear folded into the clean stack
+
+---
+
+## Post-close change 2026-08-28 (k) — reported on Discord: mines and the FIA ammo boxes
+
+- [x] PN1 `OVT_StorageLootQuery.IsEmplaced()` — an ARMED mine, a DEPLOYED item and a LOCKED explosive charge are refused by the loot query; an unarmed mine lying loose is still ordinary loot
+- [x] PN2 Vanilla's own rule re-derived: `SCR_MineInventoryItemComponent` / `SCR_DeployableInventoryItemInventoryComponent` / `SCR_ExplosiveChargeInventoryItemComponent` answer `ShouldHideInVicinity()` from exactly these tests, but that event is `protected`
+- [x] PN3 `OVT_TEST_Init_StorageSeam_NArmedMinesAreNotLoot` — spawn, assert lootable, `ActivateTrigger()`, assert not lootable
+- [x] PN4 🔴 Three prefabs were STRUCTURALLY CORRUPT: the storage actions sat INSIDE the open bodies of `OVT_SaveOfficerLoadoutAction` and `OVT_TransferAllToStorageAction`, so the engine read five actions as unknown variables and dropped them. Braces balanced, so nothing complained. Came in via 415bac85 "(hotfix) Couldnt store items in new ammobox variants"
+- [x] PN5 Re-nested `OVT_EquipmentBoxWooden_Equipment_01_FIA.et`, `OVT_EquipmentBoxWooden_Medical_01_FIA.et` and `OVT_CabinetMetal_01_grey_V1.et` — 10/10/11 sibling actions, sort order 3→15
+- [x] PN6 Swept every `Prefabs/**/*.et` for the nested-action signature and for brace mismatches: 0 remaining
+- [x] PN7 Both new Init cases were missing their `[Test(suite: ...)]` attribute and would never have registered — added
+- [x] PN8 Gate: `compile-check.sh` exit 0 (6352 files)
+- [ ] PN9 Init suite not run — PN3 and case M unproven
+- [ ] PN10 Play-test: lay mines, run a truck Loot beside them, confirm they survive; loot an unarmed mine off the ground, confirm it banks
+- [ ] PN11 Play-test: place both FIA ammo box variants and the metal cabinet, confirm Open Storage / Transfer all / Rename / Load / Unload all appear
+- [ ] PN12 ⚠ `Vehicle_Base.et` carries `OVT_OpenStorageMenuAction` but `OVT_StorageComponent` is on `Wheeled_Base.et` — every non-wheeled vehicle (helicopters) shows a Storage action that can never resolve a holder. NOT FIXED, flagged to the user

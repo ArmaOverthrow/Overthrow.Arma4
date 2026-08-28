@@ -539,3 +539,22 @@ Added `Hierarchy { Enabled 1 }` to every plain-prop child: Barracks +8, Garage +
 ⚠ **Sub-composition children are deliberately skipped** — `Barrel_Group_Crate_01.et` and `CrateStacked_02.et` descend from `Prefabs/Compositions/Slotted/SubComposition.et` / `CompositionBase.et`, which already declare `Hierarchy`. Vanilla re-declares it only on plain props for exactly this reason; a second declaration under a new GUID would add a duplicate component rather than override the inherited one.
 
 The `DeleteComposition()` walk from T-9 is kept as belt-and-braces: it is what makes a **non-replicated** child leave the world at all (`DeleteRplEntity` is a no-op for one), and it now has real children to find.
+
+## Play-test tweaks — round 5 (2026-08-28, dedicated-server player reports)
+
+**T-10 — 🔴 BOTH construction-site actions were dead on a dedicated server: "That is not a construction site".** Reported by players; invisible in every test to date because the whole feature was only ever exercised where the client *is* the server.
+
+`OVT_ConstructionSiteComponent` replicated exactly one field — `m_sBuildableName` — and its own header stated the design: *"the indices themselves are server and save state and never ride the wire"*. But both site user actions read the requirements **client-side** through `OVT_SiteRequirementsReader.Read()` (`OVT_SiteRequirementsAction.c:137`), which does `resistance.GetBuildableAt(site.GetBuildableIndex())`. On a remote client `m_iBuildableIndex` is still its `-1` initialiser, `GetBuildableAt(-1)` returns null (`OVT_ResistanceFactionManager.c:1162`), `Read()` returns false, and:
+
+- `OVT_BuildFromSiteAction.RefreshLabel` falls into its `m_sCachedName = "#OVT-Resource_NoSite"` branch — so the **action's own label** becomes "That is not a construction site", and `CanBePerformedScript` then refuses with that same string as the reason.
+- `OVT_SiteRequirementsAction.PerformAction` returns before creating the dialog, so Requirements does nothing at all.
+
+Both actions still *show*, because `CanBeShownScript` only asks `GetSite() != null` — the component is there, its data is not. That is why it reads as "the actions aren't working" rather than as a missing action.
+
+**Fix:** `[RplProp()]` on `m_iBuildableIndex`. Both writers (`Initialize`, `ApplyPersisted`) already call `Replication.BumpMe()`, so no other change was needed, and the initial snapshot carries it to a JIP client. `m_iPrefabIndex` and `m_vAngles` stay unreplicated — nothing outside the server and the serializer reads them (`GetPrefabIndex`/`GetAngles` have exactly two callers each, both server-side).
+
+Server behaviour is unchanged: the server always had the real index, so `CompleteSite` was never the failure. The client's `#OVT-Resource_NoSite` and the server's identical refusal at `OVT_ResistanceFactionManager.c:1099` share a key, which made the two indistinguishable in a bug report.
+
+⚠ **The class of defect to grep for:** a client-side reader (a user action label, a `CanBePerform` reason) that resolves config state through an **unreplicated index**. `OVT_BuildableComponent.m_sBuildableType` is safe by contrast — it is a *prefab attribute*, identical on every machine, which is why the repair-requirements action never had this problem.
+
+Gate: `compile-check.sh` exit 0 (6352 files). **Play-test on a dedicated server still owed** — this fix is reasoned, not observed.

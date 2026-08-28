@@ -325,6 +325,25 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Whether a candidate is an unfinished construction site rather than a standing structure.
+	//!
+	//! A site carries OVT_BuildableComponent - it has to, so the build pipeline and the Buildable
+	//! persistence config can claim it - and that is the whole reason it is a candidate at all. It is
+	//! not a base asset: it holds no garrison, no storage and no capability, and its cost has ALREADY
+	//! been paid in cash and in resources hauled from a warehouse. Demolishing one takes that payment
+	//! with it and leaves a ruin that can never be finished, which is a worse outcome than losing the
+	//! building it would have become.
+	//! \param[in] entity The candidate structure.
+	//! \return True when it is a site under construction and must be left alone.
+	static bool IsConstructionSite(IEntity entity)
+	{
+		if (!entity)
+			return false;
+
+		return entity.FindComponent(OVT_ConstructionSiteComponent) != null;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Takes exactly one structure, and decides whether the mission is over.
 	//!
 	//! ⚠ THE CANDIDATE LIST IS REBUILT EVERY TIME rather than cached across intervals. Two minutes pass
@@ -488,6 +507,11 @@ class OVT_BaseSabotageBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModul
 		// FilterStructureCallback() so the exclusion sits beside the target rule it qualifies, where the
 		// next person reading "what may this mission take" will find it.
 		if (IsGearContainer(entity))
+			return true;
+
+		// 🔴 A CONSTRUCTION SITE IS NOT A STRUCTURE. It carries OVT_BuildableComponent so the build
+		// pipeline can claim it, which is the only reason it ever reached this list. See IsConstructionSite().
+		if (IsConstructionSite(entity))
 			return true;
 
 		// ⚠ A RUIN IS NOT A TARGET. Demolishing one again would burn a mission interval and a quota slot

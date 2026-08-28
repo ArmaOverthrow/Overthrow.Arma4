@@ -61,6 +61,14 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
      "Sort Priority" 9
     }
     OVT_SaveOfficerLoadoutAction "{65AAD8FB97F659E8}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{65AAD8FB9345FFA7}" {
+      Name "#OVT-SaveOfficerLoadout"
+     }
+     "Sort Priority" 10
+    }
     OVT_OpenStorageMenuAction "{6A8E2F22030A0001}" {
      ParentContextList {
       "default"
@@ -72,6 +80,15 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
      "Sort Priority" 11
     }
     OVT_TransferAllToStorageAction "{6A8E2F22030A0003}" {
+     ParentContextList {
+      "default"
+     }
+     UIInfo UIInfo "{6A8E2F22030A0004}" {
+      Name "#OVT-Storage_TransferAll"
+     }
+     Duration 0
+     "Sort Priority" 12
+    }
     OVT_RenameStorageAction "{6A8E2F22030A0006}" {
      ParentContextList {
       "default"
@@ -101,23 +118,6 @@ GenericEntity : "{647BA609E129CC85}Prefabs/Props/Military/AmmoBoxes/FIA/Equipmen
      }
      Duration 0
      "Sort Priority" 15
-    }
-     ParentContextList {
-      "default"
-     }
-     UIInfo UIInfo "{6A8E2F22030A0004}" {
-      Name "#OVT-Storage_TransferAll"
-     }
-     Duration 0
-     "Sort Priority" 12
-    }
-     ParentContextList {
-      "default"
-     }
-     UIInfo UIInfo "{65AAD8FB9345FFA7}" {
-      Name "#OVT-SaveOfficerLoadout"
-     }
-     "Sort Priority" 10
     }
    }
   }

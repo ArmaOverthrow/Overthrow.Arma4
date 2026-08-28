@@ -882,3 +882,76 @@ class OVT_TEST_Init_ObjectiveSabotage_CCloneFidelityAndDifficultyPrecedence : SC
 		return string.Format("'%1' authors no sabotage behaviour module at all", OVT_ObjectiveDirectorComponent.SABOTAGE_CONFIG);
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+//! A CONSTRUCTION SITE IS NOT A SABOTAGE TARGET.
+//!
+//! A site carries OVT_BuildableComponent so the build pipeline and the Buildable persistence config
+//! can claim it, which also made it a sabotage candidate: reported from a live server, a saboteur team
+//! demolished a site the player had already paid for in cash and in hauled resources, leaving a ruin
+//! that can never be finished.
+//!
+//! The case asserts BOTH halves, because the first is what makes the second necessary: the site does
+//! reach the candidate list, and IsConstructionSite is what takes it back out.
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
+class OVT_TEST_Init_ObjectiveSabotage_KConstructionSitesAreNotTargets : SCR_AutotestCaseBase
+{
+	static const ResourceName SITE = "{E91657A942F4C8DC}Prefabs/Sites/Site_Barracks.et";
+
+	protected IEntity m_Site;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (OVT_BaseSabotageBehaviorDeploymentModule.IsConstructionSite(null))
+		{
+			SetFailure("A null candidate was called a construction site");
+			return true;
+		}
+
+		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
+		if (!towns || towns.m_Towns.IsEmpty())
+		{
+			SetFailure("No town is registered, so there is nowhere sensible to put a test site");
+			return true;
+		}
+
+		m_Site = OVT_Global.SpawnEntityPrefab(SITE, towns.m_Towns[0].location + "780 0 660");
+		if (!m_Site)
+		{
+			SetFailure("SpawnEntityPrefab() produced no entity from %1", SITE);
+			return true;
+		}
+
+		// The half that makes the guard necessary rather than decorative.
+		if (!m_Site.FindComponent(OVT_BuildableComponent))
+		{
+			SetFailure("A construction site no longer carries OVT_BuildableComponent, so it can no longer reach the sabotage candidate list and this case is asserting nothing");
+			return FinishAndCleanUp();
+		}
+
+		if (!OVT_BaseSabotageBehaviorDeploymentModule.IsConstructionSite(m_Site))
+		{
+			SetFailure("A construction site was offered as a sabotage target. The mission would demolish a build the player has already paid for in cash and in hauled resources, and leave a ruin that can never be finished.");
+			return FinishAndCleanUp();
+		}
+
+		Print("Objective sabotage: a construction site is a candidate by component and is refused by name");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Site)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(m_Site);
+			m_Site = null;
+		}
+
+		return true;
+	}
+}

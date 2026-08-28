@@ -275,9 +275,46 @@ class OVT_StorageLootQuery : Managed
 			return false;
 		}
 
+		// An ARMED mine or a placed charge is not litter, it is somebody's ordnance. A loot run DELETES
+		// what it prices, so collecting one silently disarms the minefield the player just laid.
+		if (IsEmplaced(e))
+			return false;
+
 		InventoryItemComponent item = InventoryItemComponent.Cast(e.FindComponent(InventoryItemComponent));
 		if (item && !item.GetParentSlot())
 			m_aResults.Insert(e);
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an entity has been PUT somewhere rather than dropped there.
+	//!
+	//! This is vanilla's own vicinity-hiding rule, re-derived: SCR_MineInventoryItemComponent and
+	//! SCR_DeployableInventoryItemInventoryComponent both answer ShouldHideInVicinity() from exactly
+	//! these tests, but that event is protected and cannot be called from here.
+	//!
+	//! An UNARMED mine still in its box or lying loose is ordinary loot, and stays so.
+	//! \param[in] e The candidate.
+	//! \return True when it is emplaced and must be left alone.
+	protected bool IsEmplaced(IEntity e)
+	{
+		SCR_BaseTriggerComponent trigger = SCR_BaseTriggerComponent.Cast(e.FindComponent(SCR_BaseTriggerComponent));
+		if (trigger && trigger.IsActivated())
+			return true;
+
+		SCR_BaseDeployableInventoryItemComponent deployable = SCR_BaseDeployableInventoryItemComponent.Cast(e.FindComponent(SCR_BaseDeployableInventoryItemComponent));
+		if (deployable && deployable.IsDeployed())
+			return true;
+
+		// A charge stuck to a wall carries no trigger until it is fuzed, and the engine locks it in
+		// place instead - which is the test SCR_ExplosiveChargeInventoryItemComponent itself uses.
+		if (e.FindComponent(SCR_ExplosiveChargeComponent))
+		{
+			InventoryItemComponent charge = InventoryItemComponent.Cast(e.FindComponent(InventoryItemComponent));
+			if (charge && charge.IsLocked())
+				return true;
+		}
 
 		return false;
 	}

@@ -12,10 +12,12 @@ class OVT_ConstructionSiteComponentClass : OVT_ComponentClass
 //! OVT_ResistanceFactionManager.FinishBuild() with them - there is no second spawn path and no second
 //! ordering (D13).
 //!
-//! ONE REPLICATED FIELD. m_sBuildableName exists so a client's action label can name the building
-//! without racing the buildables config through an index lookup; the indices themselves are server
-//! and save state and never ride the wire. The name is NOT persisted - it is re-derived from the
-//! config when the payload is applied, so renaming a buildable renames every standing site.
+//! TWO REPLICATED FIELDS. m_iBuildableIndex must ride the wire because BOTH site user actions read
+//! the buildable's requirements client-side (OVT_SiteRequirementsReader.Read) - on a dedicated server
+//! a client reading -1 gets no buildable and both actions collapse to #OVT-Resource_NoSite, which a
+//! listen host can never reproduce. m_sBuildableName saves the label a second config lookup; it is
+//! NOT persisted - it is re-derived from the config when the payload is applied, so renaming a
+//! buildable renames every standing site. m_iPrefabIndex and m_vAngles stay server and save state.
 //!
 //! NO PERSISTENCE RULE OF ITS OWN (D16). The site carries OVT_BuildableComponent, so the Overthrow
 //! Buildable EntityPersistenceConfig already claims it; its serializer is listed there.
@@ -27,6 +29,7 @@ class OVT_ConstructionSiteComponent : OVT_Component
 	//-----------------------------------------------------------------------------------------------
 
 	//! Index into the buildables config. -1 until the site is initialised or loaded.
+	[RplProp()]
 	protected int m_iBuildableIndex = -1;
 
 	//! Index into that buildable's prefab list. -1 until the site is initialised or loaded.
@@ -35,7 +38,7 @@ class OVT_ConstructionSiteComponent : OVT_Component
 	//! The orientation the finished building will stand at, as the build menu sent it.
 	protected vector m_vAngles;
 
-	//! The whole replicated surface: the building's config title, so a client can label the action.
+	//! The building's config title, so a client can label the action without a config lookup.
 	[RplProp()]
 	protected string m_sBuildableName;
 

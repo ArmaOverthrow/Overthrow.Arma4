@@ -1991,7 +1991,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		if (!item || !ledger)
 			return CONVERT_SKIPPED;
 
-		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(item);
+		// Stored gear comes out clean: a cosmetic dirty variant is credited as the garment it is a
+		// delta over, so a looted wardrobe is one stack per garment rather than two.
+		ResourceName prefab = OVT_PrefabUtils.ResolveCleanVariant(OVT_PrefabUtils.GetPrefabName(item));
 		if (prefab == "")
 			return CONVERT_SKIPPED;
 
@@ -2247,7 +2249,7 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 		if (!MagazineConverts(item))
 			return discarded + 1;
 
-		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(item);
+		ResourceName prefab = OVT_PrefabUtils.ResolveCleanVariant(OVT_PrefabUtils.GetPrefabName(item));
 		if (prefab == "")
 			return discarded;
 

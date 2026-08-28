@@ -1,6 +1,6 @@
 # Objectives - Context & Decisions
 
-**Last Updated:** 2026-08-23
+**Last Updated:** 2026-08-28
 **Current Phase:** Complete — all 8 phases built, Ready for Review
 **Status:** 🟢 Built, awaiting human verification
 
@@ -3403,3 +3403,28 @@ That commit's own change was a real fix (a crew restored across a load came back
 ⚠ **Feel is explicitly unsettled** (author: *"the feel is still up in the air as this isnt released yet so we can tweak it later"*). A daily re-score can now abandon a harassment-phase objective for a better one; the levers are the dawn hour, the phase-0 lock, and the selector weights.
 
 `tools/compile-check.sh` exit 0 (6351 files). Untested beyond compile — needs an in-game day boundary to exercise.
+
+---
+
+## Post-close change 2026-08-28 — a construction site is not a sabotage target
+
+Reported from a live server: a saboteur team demolished a player's **construction site**.
+
+`OVT_ConstructionSite.et` carries `OVT_BuildableComponent` — it has to, so the build pipeline and the
+Buildable `EntityPersistenceConfig` can claim it (storage D16) — and that is the only reason it ever
+reached the candidate list. `IsCandidateStructure` takes any buildable, and a site also carries
+`SCR_DestructionMultiPhaseComponent`, so it demolishes like anything else.
+
+**Fix:** `IsConstructionSite()` beside `IsGearContainer()`, refused in `CollectTargetCallback` where
+the other carve-outs live. A site is not a base asset: no garrison, no storage, no capability, and its
+cost is **already paid** in cash and in resources hauled from a warehouse. Demolishing one takes that
+payment with it and leaves a ruin that can never be finished — strictly worse than losing the finished
+building. With the carve-out, a base whose only buildable is a site correctly reports "nothing left to
+demolish" rather than burning a mission interval on it.
+
+**Gate:** `compile-check.sh` exit 0 (6352 files). New Init case
+`OVT_TEST_Init_ObjectiveSabotage_KConstructionSitesAreNotTargets` asserts both halves — the site DOES
+carry `OVT_BuildableComponent` (so the guard is load-bearing, not decorative) and `IsConstructionSite`
+takes it back out. **Not yet run.**
+
+**Owed:** run the Init suite; play-test a sabotage mission against a base holding a site.
