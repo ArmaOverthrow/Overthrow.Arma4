@@ -132,6 +132,9 @@ GenericEntity {
     SCR_DestructibleBuildingComponent "{67148C0FAD779ACE}" {
      Enabled 0
     }
+    SCR_RepairSupportStationComponent "{5EA88835DBD208B7}" : "{F9A7B3AA0BE419B3}Prefabs/Components/SupportStations/Repair/BaseRepairSupportStation.ct" {
+     m_fRange 12
+    }
     RplComponent "{50A4E7C9B5728062}" {
      Enabled 1
     }

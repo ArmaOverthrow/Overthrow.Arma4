@@ -19,6 +19,34 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	[Attribute(defvalue: "120000", desc: "Minimum time between reinforcement attempts (milliseconds)")]
 	float m_fReinforcementCooldown;
 	
+	//! ==========================================================================================
+	//! 🔴 HOW LONG A POSITION STAYS BEATEN. "All reinforcement should also have a cooldown rather
+	//! than respawn them as soon as they're eliminated" (author, 2026-08-29.)
+	//! ==========================================================================================
+	//! The three brakes that existed before this were all measured in seconds - a 300 s activation
+	//! delay, 120 s between attempts and a 90 s contact cooldown - so clearing a garrison and then
+	//! holding the ground for two minutes was enough to see it bought straight back. That reads as the
+	//! position not caring, whatever the log says about gates passing.
+	//!
+	//! ⚠ IN-GAME HOURS, ON THE CAMPAIGN CLOCK, NOT WALL-CLOCK SECONDS. It is the same unit and the same
+	//! clock as OVT_DeploymentConfig.m_fCooldownHours, so a server running a time multiplier scales this
+	//! with everything else rather than against it.
+	//!
+	//! ⚠ AN INT OF MINUTES, NEVER A FLOAT OF ABSOLUTE HOURS - see
+	//! OVT_DeploymentManagerComponent.ResolveInGameMinute() for why (EnforceScript float is binary32 and
+	//! an absolute time has a ~2-hour quantum by the present day).
+	//!
+	//! ⚠ IT MEASURES FROM THE LOSS, NOT FROM THE LAST ATTEMPT. m_fReinforcementCooldown paces attempts;
+	//! this one is about the casualty. 0 disables it.
+	[Attribute(defvalue: "2", desc: "In-game HOURS after this deployment last LOST MEN before it may buy any back. Measured on the campaign clock, from the casualty rather than from the last attempt. 0 disables")]
+	float m_fPostLossCooldownHours;
+
+	//! Campaign minute of the last observed casualty, or -1 for "has not lost anybody yet".
+	protected int m_iLastLossMinute = -1;
+
+	//! Latches the "still beaten" log line so a minute-by-minute check does not print it every pass.
+	protected bool m_bPostLossLogged;
+
 	[Attribute(defvalue: "false", desc: "Require town size > 1 for reinforcement (villages don't get reinforced)")]
 	bool m_bRequireTownSizeCheck;
 	
@@ -205,6 +233,9 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		clone.m_iMaxReinforcements = m_iMaxReinforcements;
 		clone.m_fContactCooldown = m_fContactCooldown;
 
+		// ⚠ A dropped copy is a ZERO, which disables the post-loss cooldown on every config, silently.
+		clone.m_fPostLossCooldownHours = m_fPostLossCooldownHours;
+
 		return clone;
 	}
 	
@@ -309,6 +340,12 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		// Check each spawning module for reinforcement needs
 
 		
+		// GATE THREE, AND THE ONE A PLAYER ACTUALLY FEELS. Asked before the two proximity/contact gates
+		// because it is the cheapest of the three (two ints) and because it holds for in-game hours
+		// after they have walked away, which is the whole point of it.
+		if (IsRebuyBlockedByPostLossCooldown())
+			return;
+
 		bool held = IsRebuyBlockedByDefender();
 		bool inContact = false;
 		if (!held)
@@ -394,6 +431,57 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! GATE THREE: has this deployment been beaten recently enough, on the CAMPAIGN clock, that it may
+	//! not buy its force back yet?
+	//!
+	//! See m_fPostLossCooldownHours. This is the gate that survives the player leaving: the other two
+	//! both release the moment he is out of the circle or ninety seconds have passed.
+	//! \return True when the rebuy must be skipped.
+	protected bool IsRebuyBlockedByPostLossCooldown()
+	{
+		if (m_fPostLossCooldownHours <= 0)
+			return false;
+
+		if (m_iLastLossMinute < 0)
+			return false;
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager)
+			return false;
+
+		int now = manager.ResolveInGameMinute();
+		if (now < 0)
+			return false;
+
+		// A stamp in the future means the clock went backwards - a load into an earlier save. Treat it
+		// as expired rather than locking this deployment out for the rest of the campaign.
+		if (now < m_iLastLossMinute)
+		{
+			m_iLastLossMinute = now;
+			return false;
+		}
+
+		int elapsed = now - m_iLastLossMinute;
+		int required = Math.Round(m_fPostLossCooldownHours * 60);
+
+		if (elapsed >= required)
+		{
+			m_bPostLossLogged = false;
+			return false;
+		}
+
+		if (!m_bPostLossLogged)
+		{
+			m_bPostLossLogged = true;
+
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] Reinforcement: '%1' lost men %2 in-game minute(s) ago and will not buy any back for another %3 - a beaten position stays beaten",
+				m_ParentDeployment.GetDeploymentName(), elapsed.ToString(), (required - elapsed).ToString()));
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! GATE TWO: has this deployment lost men recently enough that it is still in contact?
 	//!
 	//! See m_fContactCooldown - this is the half that covers an attacker no radius can reach, and the
@@ -445,7 +533,23 @@ class OVT_ReinforcementBehaviorDeploymentModule : OVT_BaseBehaviorDeploymentModu
 		int alive = CountAliveForce();
 
 		if (m_iLastAliveSample >= 0 && alive < m_iLastAliveSample)
+		{
 			m_fLastContactTime = GetGame().GetWorld().GetWorldTime();
+
+			// The same observation, stamped on the campaign clock for the post-loss cooldown. Taken here
+			// rather than off OnVirtualGroupWiped for the reason in this method's header: a garrison that
+			// loses three of four men never raises a wipe, and those three are the casualty that matters.
+			OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+			if (manager)
+			{
+				int minute = manager.ResolveInGameMinute();
+				if (minute >= 0)
+				{
+					m_iLastLossMinute = minute;
+					m_bPostLossLogged = false;
+				}
+			}
+		}
 
 		m_iLastAliveSample = alive;
 	}

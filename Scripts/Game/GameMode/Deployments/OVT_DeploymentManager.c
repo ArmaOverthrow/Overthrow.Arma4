@@ -338,6 +338,13 @@ class OVT_DeploymentManagerComponent : OVT_Component
 		if(!Replication.IsServer())
 			return;
 
+		// ⚠ A LEAKED TEST OVERRIDE DIES WITH THE PREVIOUS CAMPAIGN. The seam is a static, so an autotest
+		// case that arms it and then fails an assertion never reaches its own teardown - and the next
+		// campaign in the same session would start with its spawn gate quietly disabled. Cleared here
+		// rather than trusted to every case's teardown. See
+		// OVT_InfantrySpawningDeploymentModule.s_fTestNoSpawnRadiusOverride.
+		OVT_InfantrySpawningDeploymentModule.s_fTestNoSpawnRadiusOverride = -1;
+
 		// THE reclaim point. Subscribed here rather than at OnPostInit so it happens once the campaign
 		// is actually running, and before the first evaluation below.
 		HookVirtualization();
@@ -1793,7 +1800,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! year over-counts, which shifts every stamp by the same amount and therefore cancels in the
 	//! subtraction. It must never go BACKWARDS, which is why month and year are included at all.
 	//! \return Minutes, or -1 when there is no clock to read.
-	protected int ResolveInGameMinute()
+	//! Public since 2026-08-29: the reinforcement module's post-loss cooldown needs the same clock,
+	//! and a second implementation of it would be a second chance to reintroduce the float-of-hours bug.
+	int ResolveInGameMinute()
 	{
 		if (!m_DaylightClock)
 		{

@@ -35,11 +35,13 @@ class OVT_NoPlayersNearbyConditionDeploymentModule : OVT_BaseConditionDeployment
 	[Attribute(desc: "Name of this module")]
 	string m_sModuleName;
 
-	//! 320 = the legacy rule, baseCloseRange (220 on every shipped difficulty) + 100. Authored as a
+	//! 500 (author, 2026-08-29), up from the legacy 320 = baseCloseRange (220) + 100. Authored as a
 	//! plain number rather than read off the difficulty settings on purpose: it is a property of what
 	//! a player can SEE appear, which does not change because a campaign is set to Easy, and a config
-	//! that wants a different distance can author one.
-	[Attribute(defvalue: "320", desc: "A deployment of this config is never CREATED with a player closer than this to the candidate position. Runtime is unaffected - see the class header. 320 = the legacy baseCloseRange (220) + 100")]
+	//! that wants a different distance can author one. It is the SAME number as
+	//! OVT_InfantrySpawningDeploymentModule.m_fNoSpawnNearResistance, deliberately: the two gates sit at
+	//! opposite ends of the same path and a gap between them is exactly what let men through before.
+	[Attribute(defvalue: "500", desc: "A deployment of this config is never CREATED with living resistance closer than this to the candidate position. Runtime is unaffected - see the class header. Matches the convergence gate's own 500 m")]
 	float m_fMinPlayerDistance;
 
 	//------------------------------------------------------------------------------------------------
@@ -53,20 +55,15 @@ class OVT_NoPlayersNearbyConditionDeploymentModule : OVT_BaseConditionDeployment
 	override bool EvaluateStaticCondition(vector position, int factionIndex, float threatLevel)
 	{
 		// ⚠ THE RESISTANCE, BY DISTANCE, AND NOTHING ELSE (author, 2026-08-25: "it shouldnt be line of
-		// sight gated at all, simply distance to the nearest resistance"). This used to walk
-		// PlayerManager only - against the author's standing "it's resistance always" rule, and reading
-		// PARENT SPACE for anybody in a vehicle, so the answer came out enormous and the gate passed.
+		// sight gated at all, simply distance to the nearest resistance").
 		//
-		// 🔴 BOTH TESTS, AND THE GATE FAILS CLOSED. Replacing the player walk with the sphere query
-		// ALONE regressed OVT_TEST_Init_Deployments_NoPlayersNearbyGatesCreationOnly: the query answered
-		// "nobody" with a real player-controlled character standing on the candidate position, so a base
-		// fortified itself in his face. Whatever the query's blind spot is, this gate is the one place
-		// in the framework where a false negative materialises men in somebody's view - so it asks the
-		// direct question as well and refuses if EITHER says the ground is held.
-		if (OVT_ResistancePresence.IsGroundHeld(position, m_fMinPlayerDistance))
-			return false;
-
-		return GetPlayerProximity(position) >= m_fMinPlayerDistance;
+		// 🔴 THE "ASK PLAYERMANAGER AS WELL" WORKAROUND MOVED INTO OVT_ResistancePresence (2026-08-29).
+		// It lived here, privately, because the sphere query has a reproduced blind spot - it answered
+		// "nobody" with a real player-controlled character standing on the candidate position. Keeping
+		// the workaround in this one module is precisely why every OTHER gate in the framework - the
+		// rebuy gate above all - kept letting men through. IsGroundHeld now fails closed for every
+		// caller, so this is one call again.
+		return !OVT_ResistancePresence.IsGroundHeld(position, m_fMinPlayerDistance);
 	}
 
 	//------------------------------------------------------------------------------------------------

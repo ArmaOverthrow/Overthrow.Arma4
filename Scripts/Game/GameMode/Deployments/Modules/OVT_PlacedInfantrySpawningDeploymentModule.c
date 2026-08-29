@@ -62,18 +62,11 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 	[Attribute(defvalue: "280", desc: "How far from the deployment to look for posts")]
 	float m_fSearchRadius;
 
-	//! 🔴 THE GATE ON THE DEPLOYMENT'S CENTRE IS NOT A GATE ON WHERE THE MEN APPEAR, and the two
-	//! numbers did not add up (author, 2026-08-25: "we still have garrisons, snipers and stuff spawning
-	//! right in front of us after we clear a base"). OVT_NoPlayersNearbyConditionDeploymentModule keeps
-	//! a deployment from being CREATED with resistance inside 320 m of its centre - but the shipped
-	//! sniper, tower-guard and defend-position configs all search 280 m for a post. A player 330 m from
-	//! the base centre therefore passed the creation gate while a post 280 m out on their side of it
-	//! put a sniper 50 m away. Arithmetic, not a race, which is why it happened every time.
-	//!
-	//! ⚠ DISTANCE ONLY, NO LINE OF SIGHT (author, same message). A post behind a wall is still a man
-	//! appearing next to you.
-	[Attribute(defvalue: "320", desc: "A post is not used while living resistance is within this many metres OF THAT POST. Matches OVT_NoPlayersNearbyConditionDeploymentModule's own 320 m, which gates the deployment's centre; this gates where the men actually stand. 0 disables the filter")]
-	float m_fNoSpawnNearResistance;
+	//! 🔴 m_fNoSpawnNearResistance NOW LIVES ON THE PARENT and is inherited, not redeclared. It was
+	//! private to this module until 2026-08-29, which is precisely why it only ever protected the
+	//! placed-post configs: the plain infantry convergence - town patrols, base garrison patrols, the
+	//! tower garrison - registered with no proximity test at all. The filter below is unchanged; it is
+	//! the per-POST application of a rule the parent now applies to every registration.
 
 	//! Sideways step between two members of one group on the same post, along the post's own right
 	//! vector. 1.2 m is the legacy sniper team's TEAM_MEMBER_OFFSET.

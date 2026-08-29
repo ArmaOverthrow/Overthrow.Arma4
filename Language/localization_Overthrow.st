@@ -5905,6 +5905,142 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6B6F1B0000000001}" {
+   Id "OVT-FieldManual_VehicleRepair_Head"
+   Target_en_us "A Kit Is Not Optional"
+   Comment "Field Manual - Vehicle Repair page, header above the field-repair paragraph. Four or five words, title case, matching the header style of the Fuel and Shops pages. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000002}" {
+   Id "OVT-FieldManual_VehicleRepair_Head2"
+   Target_en_us "Structures That Repair Fully"
+   Comment "Field Manual - Vehicle Repair page, header above the repair-zone paragraph. Three to five words, title case. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000003}" {
+   Id "OVT-FieldManual_VehicleRepair_Head3"
+   Target_en_us "Where the Zone Ends"
+   Comment "Field Manual - Vehicle Repair page, header above the no-visible-boundary paragraph. Three to five words, title case. No markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000004}" {
+   Id "OVT-FieldManual_VehicleRepair_Text"
+   Target_en_us "Damaged vehicles can be repaired in the field, and a repair costs no money and no supplies at all. What it does cost is a repair kit. Nobody repairs anything bare-handed: with no kit in your hands there is no repair action offered, not even standing beside a structure built for the job. Kits are stocked by general stores and gun dealers at around $150, and the car a new campaign starts you with carries one in its trunk."
+   Comment "Field Manual - Vehicle Repair page (Money and Trade category), opening paragraph, four sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'no money and no supplies': the modded Scripts/Game/Components/SupportStation/Modded/SCR_RepairSupportStationComponent.c overrides AreSuppliesEnabled() to false, and no charging code exists anywhere in this feature - repairs ride vanilla's OnExecutedServer untouched. Fuel, medical and rearm stations are DIFFERENT classes and still charge, so do not generalise this sentence to support stations at large. 'no kit in your hands there is no repair action offered': SCR_BaseUseSupportStationAction.CanBeShownScript():156-158 in the reference tree returns false when RequiresGadget() and no matching held gadget is found, BEFORE any station lookup - so it holds inside a repair zone too. This is user intent, not a defect. 'around $150': Configs/Pricing/itemPrices.conf rule 65CCF4EB3DDBBBD0 sets cost 150; 'around' is load-bearing because OVT_EconomyManagerComponent.c:754 multiplies the buy price by the player's priceMultiplier. Do not quote an exact figure. 'general stores and gun dealers': Configs/System/ShopConfig.conf 6A9F1E4A00000001 (SHOP_GENERAL) and Configs/System/GunDealerConfig.conf 6A9F1E4A00000002. 'the car a new campaign starts you with': OVT_VehicleManagerComponent.AddStartingEquipment() inserts exactly one wrench into the starting car's storage. DO NOT add: a durability or consumption cost, a per-repair money cost, or any vehicle-type restriction. None exist."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000005}" {
+   Id "OVT-FieldManual_VehicleRepair_Text2"
+   Target_en_us "A kit used out in the open brings a damaged part back to half health at most. That is enough to get a wreck rolling again, not enough to make it good as new. Damage is tracked part by part rather than as one figure, so each damaged part is repaired on its own."
+   Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'A Kit Is Not Optional', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'half health at most': RepairKit_01_base.et:71 in the reference tree sets m_fMaxHealScaled 0.5 on the wrench's own station. This 50% cap is DELIBERATE (decision D2) and is what makes the repair structures worth building - it is not a bug, and a later contributor is expected to misread it as one. 'part by part rather than as one figure': the m_fMaxHealScaled attribute description at SCR_BaseDamageHealSupportStationComponent.c:68 states the cap 'is not calculated as a whole but for each hitZone'. Deliberately names no specific part (engine, wheel, rotor) - the hit-zone set is per vehicle and unverified in player terms."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000006}" {
+   Id "OVT-FieldManual_VehicleRepair_Text3"
+   Target_en_us "Three structures the resistance can build repair a part the whole way instead of halfway, for anyone inside their range with a kit in hand. The Vehicle Maintenance Ramp and the Garage reach roughly 12 metres, the Helipad roughly 20. Nothing about a structure narrows what it will fix, so a car parked on the helipad is repaired just as fully as a helicopter."
+   Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Structures That Repair Fully', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'the whole way': all three prefabs leave m_fMaxHealScaled unset, so the class default of 1 (100%) applies - SCR_BaseDamageHealSupportStationComponent.c:68-69. Ranges: Prefabs/Structures/Military/FOB/OVT_VehicleMaintenanceRamp.et m_fRange 12 (a delta on the inherited GUID 5EA88835DBD208B7, widened from vanilla 4.5); Prefabs/Structures/Industrial/Garages/Garage_E_02/Garage_E_02.et m_fRange 12; PrefabsEditable/Auto/Structures/Military/Camps/HelipadImprovised_01/Helipad.et m_fRange 20. All three set m_bUseRangeBoundingBox 1, which is why 'roughly' is used: the distance is measured from the structure's bounding box, not its centre, so the effective reach is larger than the bare number. Structure names must match Configs/Resistance/buildables.conf m_sName exactly: 'Vehicle Maintenance Ramp' 5D7C489A4968ED23, 'Garage' 5D98AC7AC353F540, 'Helipad' 5EE4FAB564EA1AA1. 'a car parked on the helipad' is INTENDED behaviour, not an oversight: no vehicle-type filter exists on any of the three stations."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000007}" {
+   Id "OVT-FieldManual_VehicleRepair_Text4"
+   Target_en_us "Nothing on screen marks the edge of a repair zone, so distance is the only guide and parking close to the structure keeps you well inside it. Further out, repairs still work off the kit alone and go back to the half-health limit; closer in, they are full again. A structure that has been reduced to a ruin repairs nothing until it is repaired itself."
+   Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Where the Zone Ends', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'nothing on screen marks the edge' is a KNOWN, ACCEPTED gap, not an omission: neither the Helipad nor the Garage carries an SCR_SupportStationAreaMeshComponent, and the ramp's inherited one is Game-Master-only (SCR_ShowHideInEditorComponent plus m_bHideInWorkbench 1), so no ordinary player ever sees a ring. If a visible boundary is ever added, this sentence must be rewritten. The in-zone / out-of-zone fallback needs no Overthrow code: SCR_BaseUseSupportStationAction.GetClosestValidSupportStation:112-138 asks the station manager first and only falls back to the held gadget afterwards, because PrioritizeHeldGadget() is false for repair (base implementation at :452-455, overridden to true only by refuel and resupply). Zones register HIGH with a full heal; the wrench is the fallback with the 50% cap. 'a ruin repairs nothing': OVT_StructureDestructionComponent.ApplySupportStationState() (Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c:390-405) calls SetSupportStationsEnabled on the owner and one level of children; the destruction component sits on the same entity as the station on all three structures."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B6F1B0000000008}" {
+   Id "OVT-FieldManual_VehicleRepair_Title"
+   Target_en_us "Vehicle Repair"
+   Comment "Field Manual - title of the Vehicle Repair page, shown on its tile in the Money and Trade category grid and as the heading at the top of the page. Two words. Placed in Money and Trade rather than under building because buying the kit is the gating step."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1756425600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6B3B00000000013F}" {
    Id "OVT-FieldManual_WantedSystem_Head"
    Target_en_us "What Draws Attention"

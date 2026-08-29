@@ -116,6 +116,10 @@ StaticModelEntity : "{CF1FFB7BAA1A0769}Prefabs/Structures/Military/Camps/Helipad
    }
    m_eMaterialSoundType BREAK_WOOD_SOLID
   }
+  SCR_RepairSupportStationComponent "{6A9F1E4A00000020}" : "{4B199D8AD24B5712}Prefabs/Components/SupportStations/Repair/RepairSupportStation_Zone.ct" {
+   m_fRange 20
+   m_bUseRangeBoundingBox 1
+  }
   RplComponent "{5D748E174E08BEBB}" : "{B193E926C1935A4C}Prefabs/Editor/Components/Default_RplComponent.ct" {
    Enabled 1
   }

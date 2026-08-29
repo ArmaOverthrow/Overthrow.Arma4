@@ -36,7 +36,11 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 
 	[Attribute(uiwidget: UIWidgets.ResourceNamePicker, desc: "Players starting cars", params: "et", category: "Vehicles")]
 	ref array<ResourceName> m_pStartingCarPrefabs;
-	
+
+	//! Repair wrench spawned in the starting car's trunk. Blank means no starting wrench.
+	[Attribute(defvalue: "{33B2DFDCD0EBA3DB}Prefabs/Items/Equipment/Kits/RepairKit_01/RepairKit_01_wrench.et", uiwidget: UIWidgets.ResourceNamePicker, desc: "Starting car repair wrench", params: "et", category: "Vehicles")]
+	ResourceName m_pStartingCarWrenchPrefab;
+
 	[Attribute()]
 	ref SCR_EntityCatalogMultiList m_CivilianVehicleEntityCatalog;
 		
@@ -235,7 +239,75 @@ class OVT_VehicleManagerComponent: OVT_RplOwnerManagerComponent
 		{
 			OVT_PlayerOwnerComponent playerowner = OVT_ComponentFinder<OVT_PlayerOwnerComponent>.Find(veh);
 			if(playerowner) playerowner.SetLocked(true);
+
+			AddStartingEquipment(veh);
 		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns the configured starting-car wrench and inserts it into the vehicle's trunk.
+	//! Blank m_pStartingCarWrenchPrefab means no starting wrench, not an error.
+	//! \param[in] veh The freshly spawned starting car.
+	protected void AddStartingEquipment(IEntity veh)
+	{
+		if(!veh) return;
+		if(m_pStartingCarWrenchPrefab.IsEmpty()) return;
+
+		IEntity wrench = SpawnItemAtEntity(m_pStartingCarWrenchPrefab, veh);
+		if(!wrench) return;
+
+		InventoryStorageManagerComponent storageMgr = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(veh);
+		if(storageMgr && storageMgr.TryInsertItem(wrench))
+			return;
+
+		// Trunk storage children may not be resolved on the vehicle's spawn frame; retry once, and
+		// the retry owns deleting the wrench on failure - never this first attempt.
+		GetGame().GetCallqueue().CallLater(RetryAddStartingWrench, 500, false, veh, wrench);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! One-shot retry for AddStartingEquipment(). Owns deleting the wrench if this attempt also fails.
+	//! \param[in] veh The vehicle to re-check; null if it was deleted in the meantime.
+	//! \param[in] wrench The wrench spawned by AddStartingEquipment(), still unowned by any storage.
+	protected void RetryAddStartingWrench(IEntity veh, IEntity wrench)
+	{
+		if(!wrench) return;
+
+		if(!veh)
+		{
+			SCR_EntityHelper.DeleteEntityAndChildren(wrench);
+			return;
+		}
+
+		InventoryStorageManagerComponent storageMgr = OVT_ComponentFinder<InventoryStorageManagerComponent>.Find(veh);
+		if(storageMgr && storageMgr.TryInsertItem(wrench))
+			return;
+
+		SCR_EntityHelper.DeleteEntityAndChildren(wrench);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Spawns one item at another entity's origin. Modelled on
+	//! OVT_ShopTransactionComponent.SpawnItemForPlayer.
+	//! \param[in] itemResource The item's prefab.
+	//! \param[in] at Entity whose origin the item spawns at.
+	//! \return The spawned entity, or null.
+	protected IEntity SpawnItemAtEntity(ResourceName itemResource, IEntity at)
+	{
+		if(itemResource.IsEmpty() || !at) return null;
+
+		EntitySpawnParams params = EntitySpawnParams();
+		params.TransformMode = ETransformMode.WORLD;
+		params.Transform[3] = at.GetOrigin();
+
+		Resource resource = Resource.Load(itemResource);
+		if(!resource)
+		{
+			Print(string.Format("[OVT_VehicleManagerComponent] Failed to load resource: %1", itemResource), LogLevel.WARNING);
+			return null;
+		}
+
+		return GetGame().SpawnEntityPrefab(resource, null, params);
 	}
 	
 	bool GetParkingSpot(IEntity building, out vector outMat[4], OVT_ParkingType type = OVT_ParkingType.PARKING_CAR, bool skipObstructionCheck = false)

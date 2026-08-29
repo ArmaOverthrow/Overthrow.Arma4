@@ -238,6 +238,24 @@ class OVT_InsertionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentModu
 	//------------------------------------------------------------------------------------------------
 	//! Brings this insertion up to what it wants: a decision, a transport if one is warranted, and the
 	//! force itself. ALWAYS SAFE TO CALL, any number of times, in any order.
+	//------------------------------------------------------------------------------------------------
+	//! ⚠ AN INSERTION IS EXEMPT FROM THE NO-SPAWN-NEAR-RESISTANCE GATE, AND EVERYTHING UNDER IT WITH IT
+	//! (the mounted force, the FOB raise). The parent's header carries the argument in full; the short
+	//! version is that this module's men register at RIDING_SPAWN_DISTANCE because they must be sitting
+	//! in a truck, so a refusal here does not defer a pop-in, it leaves a hull with no crew and no owner
+	//! - which is exactly what it did when the gate first shipped without this override
+	//! (OVT_TEST_Init_CrewUpOnAlarm_OwnershipTransferLeavesExactlyOneOwner, and the hunter-killer sweep
+	//! that was then never sent).
+	//!
+	//! Where an inserted force becomes visible is governed by the truck's route, DropPassengers and the
+	//! arrival rules, not by where it was registered.
+	//! \return False, for this module and every subclass.
+	override protected bool AppliesNoSpawnNearResistanceGate()
+	{
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	override void EnsureGroups()
 	{
 		if (!m_ParentDeployment)

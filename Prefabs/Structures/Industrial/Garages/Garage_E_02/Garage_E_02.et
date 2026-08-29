@@ -119,6 +119,10 @@ SCR_DestructibleBuildingEntity : "{9D656741EA2AABC5}Prefabs/Structures/Industria
   SCR_DestructibleBuildingComponent "{5D7AD092A3CB4B41}" {
    Enabled 0
   }
+  SCR_RepairSupportStationComponent "{6A9F1E4A00000021}" : "{4B199D8AD24B5712}Prefabs/Components/SupportStations/Repair/RepairSupportStation_Zone.ct" {
+   m_fRange 12
+   m_bUseRangeBoundingBox 1
+  }
   RplComponent "{50A4E7C9B5728062}" {
    Enabled 1
   }

@@ -172,27 +172,15 @@ class OVT_BaseConditionDeploymentModule : OVT_BaseDeploymentModule
 	}
 	
 	//------------------------------------------------------------------------------------------------
-	protected float GetPlayerProximity(vector position)
-	{
-		float nearestDistance = float.MAX;
-		
-		array<int> players = new array<int>;
-		GetGame().GetPlayerManager().GetPlayers(players);
-		
-		foreach (int playerId : players)
-		{
-			IEntity player = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
-			if (!player)
-				continue;
-				
-			// ⚠ NOT player.GetOrigin(). A player in a vehicle is PARENTED to it, so GetOrigin() hands
-			// back a vehicle-local coordinate and this gate reads "nobody is near" - permissively,
-			// which is the direction that spawns a garrison on top of somebody. See GetWorldOrigin.
-			float distance = vector.Distance(OVT_WorldUtils.GetWorldOrigin(player), position);
-			if (distance < nearestDistance)
-				nearestDistance = distance;
-		}
-		
-		return nearestDistance;
-	}
+	//! ⚠ GetPlayerProximity() WAS HERE AND IT IS GONE (2026-08-29). It was a players-only distance test
+	//! and its last caller stopped needing it when OVT_ResistancePresence.IsGroundHeld() absorbed the
+	//! PlayerManager fallback. Left in place it is a trap: it is the first proximity helper anybody
+	//! writing a new condition module would find, and it answers the wrong question (players, not the
+	//! resistance) permissively.
+	//!
+	//! If you need "is this ground contested" - which is what a spawn gate needs - it is
+	//! OVT_ResistancePresence.IsGroundHeld(). If you genuinely need "would a HUMAN watch this happen",
+	//! it is OVT_WorldUtils.PlayerInRange(); that one has exactly two legitimate callers and they are
+	//! both named in OVT_ResistancePresence's header.
+	//------------------------------------------------------------------------------------------------
 }

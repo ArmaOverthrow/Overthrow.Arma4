@@ -112,7 +112,59 @@ class OVT_ResistancePresence
 			return true;
 		}
 
-		return IsGroundHeldBy(config.GetPlayerFactionData(), position, radius);
+		if (IsGroundHeldBy(config.GetPlayerFactionData(), position, radius))
+			return true;
+
+		// 🔴 FAIL CLOSED, AND THIS IS WHY EVERY EARLIER FIX FOR "they spawned in front of me" HELD ONLY
+		// ON THE ONE PATH IT WAS WRITTEN FOR. The sphere query above has a reproduced blind spot: it has
+		// answered "nobody" with a player-controlled character standing on the search centre. The
+		// creation gate carried a private workaround for that from 2026-08-25
+		// (OVT_NoPlayersNearbyConditionDeploymentModule), and every OTHER caller of this method - the
+		// rebuy gate, the post filter, the tower aborts - inherited the blind spot instead. The
+		// workaround belongs here, once, so no caller can be missing it.
+		return IsPlayerBodyWithin(position, radius);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The direct question, asked of PlayerManager instead of the world.
+	//!
+	//! ⚠ GetWorldOrigin, NOT GetOrigin. A player in a vehicle is PARENTED to it, so GetOrigin() hands
+	//! back a vehicle-local coordinate and the distance comes out enormous - permissively, which is the
+	//! direction that materialises men on top of somebody.
+	//! \param[in] position Centre of the circle.
+	//! \param[in] radius Its radius in metres.
+	//! \return True when a living player body is inside it.
+	static bool IsPlayerBodyWithin(vector position, float radius)
+	{
+		if (radius <= 0)
+			return false;
+
+		PlayerManager manager = GetGame().GetPlayerManager();
+		if (!manager)
+			return false;
+
+		array<int> players = new array<int>();
+		manager.GetPlayers(players);
+
+		foreach (int playerId : players)
+		{
+			IEntity player = manager.GetPlayerControlledEntity(playerId);
+			if (!player)
+				continue;
+
+			SCR_DamageManagerComponent damage = SCR_DamageManagerComponent.Cast(player.FindComponent(SCR_DamageManagerComponent));
+			if (damage && damage.IsDestroyed())
+				continue;
+
+			float distance = vector.Distance(OVT_WorldUtils.GetWorldOrigin(player), position);
+			if (distance >= radius)
+				continue;
+
+			s_sLastHold = string.Format("a player body at %1 m (the sphere query did not see it)", Math.Round(distance).ToString());
+			return true;
+		}
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -236,6 +288,27 @@ class OVT_ResistancePresence
 		world.QueryEntitiesBySphere(position, searchRadius, null, FilterNearestResistance, EQueryEntitiesFlags.ALL);
 
 		s_SearchFaction = null;
+
+		// The same walk IsGroundHeld falls back to, for the same reason: a diagnostic that reports
+		// "nearest resistance 3.4e38 m" with a player standing there sends the next reader down the
+		// wrong path, which is exactly what happened.
+		PlayerManager manager = GetGame().GetPlayerManager();
+		if (manager)
+		{
+			array<int> players = new array<int>();
+			manager.GetPlayers(players);
+
+			foreach (int playerId : players)
+			{
+				IEntity player = manager.GetPlayerControlledEntity(playerId);
+				if (!player)
+					continue;
+
+				float playerDistance = vector.Distance(OVT_WorldUtils.GetWorldOrigin(player), position);
+				if (playerDistance <= searchRadius && playerDistance < s_fNearest)
+					s_fNearest = playerDistance;
+			}
+		}
 
 		return s_fNearest;
 	}

@@ -161,6 +161,9 @@ class OVT_CompositionSpawningDeploymentModule : OVT_InfantrySpawningDeploymentMo
 		clone.m_bSpawnAtNearestBase = m_bSpawnAtNearestBase;
 		clone.m_bReinforceFromNearestBase = m_bReinforceFromNearestBase;
 		clone.m_eImportance = m_eImportance;
+
+		// ⚠ Inherited, and a dropped copy is a ZERO, which DISABLES the no-spawn-near-resistance gate.
+		clone.m_fNoSpawnNearResistance = m_fNoSpawnNearResistance;
 		clone.m_bSnapToRoad = m_bSnapToRoad;
 
 		// --- this module's own ---

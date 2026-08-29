@@ -59,6 +59,30 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	[Attribute(defvalue: "1", desc: "Snap each registration to the nearest road. TRUE is the shipped behaviour. Set FALSE for anything that garrisons a PLACE - the snap searches up to 500 m and is NOT bounded by the spawn radius")]
 	bool m_bSnapToRoad;
 
+	//! ==========================================================================================
+	//! 🔴 NO MEN APPEAR THIS CLOSE TO THE RESISTANCE. THE GATE THE CONVERGENCE NEVER HAD.
+	//! ==========================================================================================
+	//! Every other proximity rule in this framework sits UPSTREAM of the convergence - the creation
+	//! gate on the config, the rebuy gate on the reinforcement module - and the convergence itself is
+	//! reached from three places (activation, a persistence restore/re-apply, and a paid rebuy). Only
+	//! one of those three was ever gated, so a shortfall could be refilled with somebody standing in
+	//! the middle of it. Registering at the global 1750 m ring with an observer already inside it
+	//! materialises the group AT ONCE, at a point rolled 10..m_fSpawnRadius m from the anchor - which
+	//! is 10..15 m for the tower garrison and 10..50 m for the base patrols.
+	//!
+	//! ⚠ DEFER, DO NOT CANCEL. A blocked pass registers nothing and returns; the shortfall is still a
+	//! shortfall and the next pass tries again once the ground is clear. Nothing is refunded, nothing
+	//! is marked eliminated, and no force is lost - it simply does not arrive while it is being
+	//! watched.
+	//!
+	//! ⚠ DISTANCE ONLY, NO LINE OF SIGHT (author, 2026-08-25). A group behind a wall is still men
+	//! appearing next to you.
+	//!
+	//! ⚠ RESISTANCE, NOT PLAYERS - OVT_ResistancePresence covers player bodies, recruits and high
+	//! command groups through one test. 0 disables the gate.
+	[Attribute(defvalue: "500", desc: "No group is registered while living resistance (players, recruits or high command) is within this many metres of the spawn point OR of the batch anchor. The pass is DEFERRED, not cancelled - the shortfall is retried once the ground is clear. 0 disables")]
+	float m_fNoSpawnNearResistance;
+
 	[Attribute(defvalue: "30", desc: "Resource cost per group")]
 	int m_iCostPerGroup;
 
@@ -257,6 +281,10 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		clone.m_bReinforceFromNearestBase = m_bReinforceFromNearestBase;
 		clone.m_eImportance = m_eImportance;
 
+		// ⚠ DROP THIS AND A FRESH MODULE'S FLOAT IS ZERO, WHICH DISABLES THE GATE - silently, on every
+		// config in the game. Same trap that took m_fMaxCruiseSpeed off the vehicle module.
+		clone.m_fNoSpawnNearResistance = m_fNoSpawnNearResistance;
+
 		// ⚠ DROP THIS AND EVERY GROUP MARCHES ON THE ENUM'S ZERO VALUE (Wedge), silently.
 		clone.m_eTravelFormation = m_eTravelFormation;
 		clone.m_bSnapToRoad = m_bSnapToRoad;
@@ -288,6 +316,74 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			fromNearestBase = false;
 
 		ConvergeGroups(fromNearestBase);
+	}
+
+	//! ==========================================================================================
+	//! THE TEST SEAM FOR THE NO-SPAWN-NEAR-RESISTANCE GATE. -1 = no override, the authored value wins.
+	//! ==========================================================================================
+	//! 🔴 WHY ONE IS NEEDED AT ALL, so nobody deletes it as debug scaffolding. The autotest worlds are
+	//! SMALL. A fixture that spawns a resistance character to exercise anything else is then, by the
+	//! geometry of the map, standing inside a 500 m circle around every deployment in that world - so
+	//! the gate refuses every convergence and the case fails for a reason that has nothing to do with
+	//! what it was testing. Without this seam the only way to keep the suite green is to weaken or
+	//! delete the gate, which is precisely the outcome this whole change exists to prevent.
+	//!
+	//! ⚠ IT IS A RADIUS OVERRIDE, NOT AN ON/OFF SWITCH, so a case can also assert the gate FIRING - set
+	//! it huge and nothing may ever register. A bare "disable" flag could only ever test one direction.
+	//!
+	//! ⚠ SET IT TO 0 TO NEUTRALISE THE GATE, -1 TO HAND CONTROL BACK. Every case that arms it MUST
+	//! disarm it, and OVT_DeploymentManagerComponent.PostGameStart() clears it as well, so a case that
+	//! dies mid-run cannot poison the campaign that follows it in the same session.
+	//!
+	//! ⚠ AND IT ANNOUNCES ITSELF AT WARNING EVERY TIME IT CHANGES AN ANSWER. A seam that silently
+	//! disables a spawn gate is a seam that will one day be left armed in a real campaign and nobody
+	//! will know why men are appearing again. The log line is the thing that makes that survivable.
+	static float s_fTestNoSpawnRadiusOverride = -1;
+
+	//------------------------------------------------------------------------------------------------
+	//! Arms or disarms the test seam above.
+	//! \param[in] radius Metres, 0 to neutralise the gate, or -1 to hand control back to the authored value.
+	static void SetTestNoSpawnRadiusOverride(float radius)
+	{
+		s_fTestNoSpawnRadiusOverride = radius;
+
+		if (radius < 0)
+			Print("[Overthrow] Deployments: the no-spawn-near-resistance TEST OVERRIDE has been cleared - authored values are in force again", LogLevel.WARNING);
+		else
+			Print(string.Format("[Overthrow] Deployments: the no-spawn-near-resistance gate is under a TEST OVERRIDE of %1 m. This must never be armed in a real campaign", Math.Round(radius).ToString()), LogLevel.WARNING);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! DOES THE NO-SPAWN-NEAR-RESISTANCE GATE APPLY TO THIS MODULE'S REGISTRATIONS?
+	//!
+	//! ⚠ TRUE HERE, FALSE FOR ANYTHING THAT RIDES. The gate exists because a group registered on the
+	//! GLOBAL ring with an observer already inside it is materialised AT ONCE, where it was registered.
+	//! That is not the shape of an insertion: its crew and passengers register at
+	//! RIDING_SPAWN_DISTANCE (100 km, always materialised) because they have to be physically inside a
+	//! truck that may be driving across the map, and refusing that registration does not defer a
+	//! pop-in - it stops the convoy forming at all, leaving a hull nobody crews and nobody owns.
+	//! Where those men become visible is decided by where the truck DRIVES and by the module's own
+	//! arrival and drop rules, not by where they were registered.
+	//! \return True when a registration of this module's is subject to the gate.
+	protected bool AppliesNoSpawnNearResistanceGate()
+	{
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The gate radius, or 0 when this module is not subject to it at all.
+	protected float ResolveNoSpawnNearResistance()
+	{
+		if (!AppliesNoSpawnNearResistanceGate())
+			return 0;
+
+		// ⚠ THE OVERRIDE BEATS THE EXEMPTION'S SIBLINGS BUT NOT THE EXEMPTION ITSELF - an insertion is
+		// exempt for a structural reason (its crew must exist to drive), and a test that wants a crew
+		// registered should not have to know about a radius at all.
+		if (s_fTestNoSpawnRadiusOverride >= 0)
+			return s_fTestNoSpawnRadiusOverride;
+
+		return m_fNoSpawnNearResistance;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -324,12 +420,21 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 		if (missing <= 0)
 			return 0;
 
-		// 🔴 THE LINE THAT NAMES THE PATH when men appear next to somebody (author, 2026-08-25: "3
-		// snipers spawning meters from me on a roof"). Convergence is the ONLY route to a fresh group
-		// that carries no proximity gate of its own - the creation gate and the rebuy gate both sit
-		// upstream of it - so if this fires with the resistance a few metres away, this is where they
-		// came from and the eliminated flags above are the thing that failed. Costs a sphere query, and
-		// only on a pass that is actually about to register.
+		// 🔴 THE GATE THIS PATH NEVER HAD. The 2026-08-25 session identified this exact line as where
+		// men come from when they appear next to somebody ("3 snipers spawning meters from me on a
+		// roof") and left a diagnostic here instead of a refusal, which is why the fixes that followed
+		// it did not hold. See m_fNoSpawnNearResistance. Checked on the DEPLOYMENT position first so a
+		// blocked pass costs one sphere query rather than one per group.
+		float noSpawnRadius = ResolveNoSpawnNearResistance();
+		if (noSpawnRadius > 0 && OVT_ResistancePresence.IsGroundHeld(GetDeploymentPosition(), noSpawnRadius))
+		{
+			OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1' is holding back %2 group(s): the resistance is inside %3 m of the deployment - %4. Retrying next pass",
+				GetOwnerKey(), missing.ToString(), Math.Round(noSpawnRadius).ToString(),
+				OVT_ResistancePresence.GetLastHold()));
+
+			return 0;
+		}
+
 		OVT_DeploymentLog.Debug(string.Format("[Overthrow] '%1' converging: registering %2 group(s); nearest resistance %3 m; module eliminated=%4 deployment eliminated=%5",
 			GetOwnerKey(), missing.ToString(),
 			Math.Round(OVT_ResistancePresence.DistanceToNearest(GetDeploymentPosition(), 1000)).ToString(),
@@ -402,10 +507,25 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 			return 0;
 
 		int registered = 0;
+		float noSpawnRadius = ResolveNoSpawnNearResistance();
 
 		for (int i = 0; i < count; i++)
 		{
 			vector spawnPos = ResolveSpawnPosition(baseSpawnPos, i);
+
+			// ⚠ AND AGAIN HERE, ON THE ACTUAL POINT. The anchor check in ConvergeGroups is not
+			// sufficient: the road snap searches up to 500 m and is NOT bounded by m_fSpawnRadius, so a
+			// registration whose anchor is clear can still land on somebody. Same arithmetic that put a
+			// sniper 50 m from a player who passed the 320 m creation gate.
+			if (noSpawnRadius > 0 && OVT_ResistancePresence.IsGroundHeld(spawnPos, noSpawnRadius))
+			{
+				OVT_DeploymentLog.Debug(string.Format("[Overthrow] Deployment '%1': the spawn point for group %2 is held by the resistance (%3) - stopping at %4/%5 this pass",
+					m_ParentDeployment.GetDeploymentName(), i.ToString(), OVT_ResistancePresence.GetLastHold(),
+					registered.ToString(), count.ToString()));
+
+				break;
+			}
+
 			OVT_VirtualWaypointPlan plan = ResolveVirtualPlan(spawnPos);
 
 			int handle = virtualization.RegisterGroup(OWNER_SYSTEM, ownerKey, factionKey, m_sGroupType,

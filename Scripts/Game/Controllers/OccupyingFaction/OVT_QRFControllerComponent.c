@@ -45,6 +45,11 @@ class OVT_QRFControllerComponent: OVT_Component
 	int m_iResourcesLeft = 0;
 	int m_iLZMax = 750;
 	int m_iLZMin = 250;
+
+	//! No wave lands within this of living resistance. The same 500 m the deployment framework's own
+	//! spawn gates use (OVT_InfantrySpawningDeploymentModule.m_fNoSpawnNearResistance) - the two systems
+	//! put men on the ground in the same world and a player cannot tell which one did it.
+	static const float LZ_NO_SPAWN_NEAR_RESISTANCE_M = 500;
 	int m_iPreferredDirection = -1;
 	int m_iDirectionVariance = 30;
 
@@ -1647,6 +1652,13 @@ class OVT_QRFControllerComponent: OVT_Component
 	//! \param sourcePos Where the wave being placed is coming from - a held base, or the occupying
 	//! faction's forward operating base. The ZERO VECTOR means "no known source", which falls back to
 	//! the authored m_iPreferredDirection exactly as this method behaved before the source was passed.
+	//! ⚠ A WAVE MAY NOT LAND ON THE RESISTANCE. m_iLZMin is 250 m and the only tests this search made
+	//! were "is it wet" and "is a 10 m box clear", so a wave could and did land in plain view of the
+	//! player attacking the objective - which is the one moment in the campaign he is guaranteed to be
+	//! looking. Rejected candidates simply re-roll: the loop already has 450 attempts and re-rolls the
+	//! direction on the source's own side, so a held sector costs attempts, not a wave. The fallback at
+	//! the bottom is unchanged and deliberate - a wave that cannot find clear ground still arrives,
+	//! because a QRF that silently does not come is a worse bug than one that is seen coming.
 	protected vector GetLandingZone(vector sourcePos)
 	{
 		// No caching here — SendWave calls this once per source base, and each wave
@@ -1692,7 +1704,7 @@ class OVT_QRFControllerComponent: OVT_Component
 	        attempts++;
 				
 	        // Ensure the position is not in the ocean
-	        if (!OVT_WorldUtils.IsOceanAtPosition(checkpos))
+	        if (!OVT_WorldUtils.IsOceanAtPosition(checkpos) && !OVT_ResistancePresence.IsGroundHeld(checkpos, LZ_NO_SPAWN_NEAR_RESISTANCE_M))
 	        {
 				safepos = checkpos;
 	            // Check for a clear landing zone (10x10x10)
