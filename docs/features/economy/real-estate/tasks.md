@@ -15,6 +15,10 @@ All original implementation tasks have been completed. This feature was document
 
 ---
 
+## Fixes
+
+- [x] ✅ Resistance-funds purchases lock the building (community report, fixed 2026-09-01) — `OVT_RealEstateContext.c`: last-house rule no longer blocks resistance-account sales of resistance-owned buildings (server never had that rule); `SetAsHome()` now applies the same resistance-owner upgrade `Refresh()` uses, so the enabled button no longer refuses with NotOwner. Client-only; compile-check OK; play-test owed.
+
 ## Future Enhancements
 
 See `implementation.md` Known Issues / Future Enhancements — 10 catalogued bugs plus authority gaps, headlined by the JIP warehouse loop-bounds bug (multiplayer-corrupting), the `UpdateRents` early-return, and client-side money debiting.

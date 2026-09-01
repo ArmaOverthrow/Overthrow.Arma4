@@ -266,7 +266,10 @@ class OVT_RealEstateContext : OVT_UIContext
 			btn.SetEnabled(true);
 		}
 		btn = ButtonWidget.Cast(m_wRoot.FindAnyWidget("Sell"));
-		if(isOwner && !isHome && !isRenter && !isOnlyHouse)
+		// The last-house rule protects the PLAYER'S respawn home; a resistance-account sale of a
+		// resistance-owned building is exempt (the server's resistance branch has no such rule either).
+		bool sellingAsResistance = isResistanceOwned && account == 1;
+		if(isOwner && !isHome && !isRenter && (!isOnlyHouse || sellingAsResistance))
 		{
 			btn.SetEnabled(true);
 		}else{
@@ -373,9 +376,9 @@ class OVT_RealEstateContext : OVT_UIContext
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
 		bool isOnlyHouse = GetOwnedCount() == 1;
 
-		bool isResistanceOwned = false;
-		isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
-		if(isResistanceOwned && account == 1)
+		bool isResistanceOwned = m_RealEstate.GetOwnerID(building) == "resistance";
+		bool sellingAsResistance = isResistanceOwned && account == 1;
+		if(sellingAsResistance)
 		{
 			isOwner = true;
 		}
@@ -385,7 +388,8 @@ class OVT_RealEstateContext : OVT_UIContext
 			ShowMessage("#OVT-RealEstate_NotOwner");
 			return;
 		}
-		if(isOnlyHouse)
+		// Last-house rule guards the player's own respawn home; not applicable to a resistance sale.
+		if(isOnlyHouse && !sellingAsResistance)
 		{
 			ShowMessage("#OVT-RealEstate_OnlyHouse");
 			return;
@@ -506,6 +510,8 @@ class OVT_RealEstateContext : OVT_UIContext
 	
 	protected void SetAsHome(SCR_ButtonTextComponent btn)
 	{
+		int account = GetCurrentAccount();
+
 		IEntity building = m_RealEstate.GetNearestBuilding(m_Owner.GetOrigin());
 		if(!building) return;
 
@@ -513,6 +519,13 @@ class OVT_RealEstateContext : OVT_UIContext
 
 		bool isOwner = m_RealEstate.IsOwner(m_sPlayerID, id);
 		bool isHome = m_RealEstate.IsHome(m_sPlayerID, id);
+
+		// Same resistance-owner upgrade Refresh() uses to enable the button; without it the click
+		// always refused with NotOwner on a resistance-funded house.
+		if(account == 1 && m_RealEstate.GetOwnerID(building) == "resistance")
+		{
+			isOwner = true;
+		}
 
 		if(!isOwner)
 		{
