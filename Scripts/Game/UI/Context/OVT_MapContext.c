@@ -23,12 +23,33 @@ class OVT_MapContext : OVT_UIContext
 		return comp;
 	}
 	
+	//! Raise the map the same way pressing the map key does: put the gadget IN_HAND and let vanilla open
+	//! the view from ModeSwitch -> ToggleFocused(true).
+	//!
+	//! NEVER call SetMapMode(true) directly here. That opens ChimeraMenuPreset.MapMenu while leaving the
+	//! gadget stowed, so SCR_GadgetManagerComponent has no held gadget - its Update() early-returns and
+	//! unregisters from GadgetManagersSystem, and GadgetMapContext (the ONLY context carrying MapEscape
+	//! and GadgetMap) is never activated. Neither Escape nor the map key is bound and the player cannot
+	//! leave the map. OnPauseMenu() gates on the held gadget too, so Escape would be dead regardless.
 	bool ShowMap()
 	{
 		SCR_MapGadgetComponent comp = GetMap();
 		if(!comp) return false;
 		
-		comp.SetMapMode(true);
+		IEntity gadget = comp.GetOwner();
+		if(!gadget) return false;
+		
+		SCR_GadgetManagerComponent gadgetManager = SCR_GadgetManagerComponent.GetGadgetManager(m_Owner);
+		if(!gadgetManager) return false;
+		
+		// Already in hand - the view may simply be unfocused; opening it is all that is left to do
+		if(gadgetManager.GetHeldGadget() == gadget)
+		{
+			comp.SetMapMode(true);
+			return true;
+		}
+		
+		gadgetManager.SetGadgetMode(gadget, EGadgetMode.IN_HAND);
 		return true;
 	}
 	
