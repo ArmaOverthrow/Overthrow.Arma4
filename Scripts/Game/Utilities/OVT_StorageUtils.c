@@ -53,6 +53,76 @@ class OVT_StorageUtils
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! Every usable storage holder in a radius, in query order.
+	//!
+	//! Deliberately NOT OVT_WarehouseStockUtils.CollectStores: that one's registered-warehouse filter is
+	//! the point of High Command's supply chain and would exclude the truck the ammunition arrived in.
+	//! \param[in] pos Centre of the search.
+	//! \param[in] radius Search radius in metres.
+	//! \param[in] playerId The asking player's runtime id.
+	//! \param[out] stores Receives the storages, in query order. Allocated if null, cleared otherwise.
+	//! \return How many stores were collected.
+	static int CollectStores(vector pos, float radius, int playerId, out array<OVT_StorageComponent> stores)
+	{
+		if (!stores)
+			stores = new array<OVT_StorageComponent>();
+
+		stores.Clear();
+
+		if (playerId <= 0)
+			return 0;
+
+		array<IEntity> holders = new array<IEntity>();
+		OVT_StorageHolderQuery query = new OVT_StorageHolderQuery();
+		query.Run(pos, radius, holders);
+
+		foreach (IEntity holder : holders)
+		{
+			if (!holder)
+				continue;
+
+			if (!PlayerMayDrawFrom(playerId, holder))
+				continue;
+
+			OVT_StorageComponent storage = GetStorage(holder);
+			if (storage)
+				stores.Insert(storage);
+		}
+
+		return stores.Count();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a player may draw stock out of a holder they are not standing at.
+	//!
+	//! The three clauses of OVT_StorageRequestComponent.MayUseHolder that are not about distance, in the
+	//! same order (:3055, :3061, :3067). Distance is the collector's radius, so it is absent here (D6).
+	//! \param[in] playerId The asking player's runtime id.
+	//! \param[in] holder The candidate holder.
+	//! \return True when the player may take from it.
+	static bool PlayerMayDrawFrom(int playerId, IEntity holder)
+	{
+		if (playerId <= 0 || !holder)
+			return false;
+
+		if (!OVT_ControllerRequestComponent.PlayerMayUseVehicleFor(playerId, holder))
+			return false;
+
+		OVT_RealEstateManagerComponent realEstate = OVT_Global.GetRealEstate();
+		if (realEstate)
+		{
+			OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
+			if (!players)
+				return false;
+
+			if (!realEstate.PlayerMayUseWarehouse(players.GetPersistentIDFromPlayerID(playerId), holder))
+				return false;
+		}
+
+		return OVT_StructureDamage.IsUsable(holder);
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! The inventory manager that can actually see everything a holder is carrying.
 	//!
 	//! ⚠ THE ROOT-ONLY PATH MISSES TRUCK BEDS. A truck's cargo lives on ATTACHED CHILD entities, and
@@ -182,8 +252,8 @@ class OVT_StorageHolderQuery : Managed
 
 	//------------------------------------------------------------------------------------------------
 	//! Query filter: a holder is an entity with a storage component that actually holds something.
-	//! Capacity 0 means "not a holder" (an illegal or armed vehicle, or an authored NONE), and those
-	//! must never appear as a transfer destination.
+	//! Capacity 0 means "not a holder" (an UNREGISTERED vehicle, or an authored NONE), and those must
+	//! never appear as a transfer destination.
 	//! \param[in] e The entity the query offered.
 	//! \return Always false - the query runs to completion.
 	protected bool FilterHolders(IEntity e)

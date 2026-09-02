@@ -6,6 +6,13 @@
 //! the UI-info readers are called on this class directly.
 class OVT_PrefabUtils : Managed
 {
+	//! Links of a prefab chain either ancestry walk will follow. A cycle here would hang its caller.
+	static const int MAX_ANCESTRY_DEPTH = 16;
+
+	//! Prefab -> hidden, written only from a read that reached a definite answer. See
+	//! IsItemHiddenInInventory: an unreadable level is never memoised.
+	protected static ref map<ResourceName, bool> s_mHiddenInInventory;
+
 	//------------------------------------------------------------------------------------------------
 	//! Gets the prefab an entity was spawned from, resolving prefab inheritance the way the engine does.
 	//!
@@ -104,6 +111,123 @@ class OVT_PrefabUtils : Managed
 		}
 
 		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an item would be invisible in a vanilla inventory, and so would be lost the moment it
+	//! left a ledger for one - vanilla draws no slot for it (SCR_InventorySlotUI.c:103).
+	//!
+	//! FAILS OPEN. m_bVisible defaults to 1 (SCR_ItemAttributeCollection.c:16) and only 19 vanilla
+	//! prefabs author it at all, so anything unreadable is treated as visible: making an arbitrary item
+	//! permanently un-takeable off one bad prefab read is far worse than letting a hidden one through.
+	//! \param[in] prefab The item prefab to test.
+	//! \return True only when an authored m_bVisible 0 was found somewhere in the prefab chain.
+	static bool IsItemHiddenInInventory(ResourceName prefab)
+	{
+		if (prefab.IsEmpty())
+			return false;
+
+		if (!s_mHiddenInInventory)
+			s_mHiddenInInventory = new map<ResourceName, bool>();
+
+		bool cached;
+		if (s_mHiddenInInventory.Find(prefab, cached))
+			return cached;
+
+		bool authoredFound;
+		bool authoredVisible;
+		bool cacheable;
+		if (!ReadAuthoredVisibility(prefab, authoredFound, authoredVisible, cacheable))
+			return false;
+
+		bool hidden = OVT_StorageRules.HiddenFromInventory(authoredFound, authoredVisible);
+		if (cacheable)
+			s_mHiddenInInventory.Insert(prefab, hidden);
+
+		return hidden;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Walks a prefab chain looking for an authored m_bVisible.
+	//!
+	//! The walk is load-bearing for the same reason GetItemUIInfo's is: BaseContainer.Get reads one
+	//! level, and the Box_25x137_M242_* family authors the flag on its _Base prefabs while the concrete
+	//! variants are empty deltas.
+	//! \param[in] prefab Where the walk starts.
+	//! \param[out] authoredFound Whether any level authored the flag.
+	//! \param[out] authoredVisible The authored value; meaningless when nothing was found.
+	//! \param[out] cacheable False when any level read as unreadable - the answer may be right, but a
+	//!        skipped level could have authored an override, so it must not be memoised.
+	//! \return False when the chain could not be read to a conclusion - the caller must NOT cache that.
+	protected static bool ReadAuthoredVisibility(ResourceName prefab, out bool authoredFound, out bool authoredVisible, out bool cacheable)
+	{
+		authoredFound = false;
+		authoredVisible = true;
+		cacheable = true;
+
+		ResourceName current = prefab;
+		bool anyLevelUnreadable = false;
+
+		for(int depth = 0; depth < MAX_ANCESTRY_DEPTH && !current.IsEmpty(); depth++)
+		{
+			// The Resource is held in a local for the whole read - a temporary can be evicted out from
+			// under the IEntitySource it produced, which reads back as a source with zero components.
+			Resource holder = Resource.Load(current);
+			IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(holder);
+			if (!entitySource)
+				return false;
+
+			// Zero components is UNKNOWN, not "authors nothing": a resource that is not loaded reads
+			// this way. Climbing is still worth trying, but nothing derived from here may be cached.
+			if (entitySource.GetComponentCount() == 0)
+			{
+				anyLevelUnreadable = true;
+			}
+			else if (ReadItemVisibility(entitySource, authoredVisible))
+			{
+				authoredFound = true;
+				cacheable = !anyLevelUnreadable;
+				return true;
+			}
+
+			BaseContainer ancestor = entitySource.GetAncestor();
+			if (!ancestor)
+				break;
+
+			ResourceName parent = ancestor.GetResourceName();
+			if (parent == current)
+				break;
+
+			current = parent;
+		}
+
+		cacheable = !anyLevelUnreadable;
+		return !anyLevelUnreadable;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The single-source half of ReadAuthoredVisibility: reads m_bVisible off this source only.
+	//! \param[in] entitySource The prefab source to read.
+	//! \param[out] visible The authored value; untouched when nothing authored it.
+	//! \return True when this level authored the flag.
+	protected static bool ReadItemVisibility(notnull IEntitySource entitySource, out bool visible)
+	{
+		for(int nComponent, componentCount = entitySource.GetComponentCount(); nComponent < componentCount; nComponent++)
+		{
+			IEntityComponentSource componentSource = entitySource.GetComponent(nComponent);
+			if (!componentSource) continue;
+
+			typename componentType = componentSource.GetClassName().ToType();
+			if(componentType == typename.Empty || !componentType.IsInherited(InventoryItemComponent)) continue;
+
+			BaseContainer attributesContainer = componentSource.GetObject("Attributes");
+			if (!attributesContainer) continue;
+
+			if (attributesContainer.Get("m_bVisible", visible))
+				return true;
+		}
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------

@@ -1,0 +1,8 @@
+Vehicle : "{B6B8C164FD6377EA}Prefabs/Vehicles/Helicopters/Mi8MT/Mi8MT_unarmed_base.et" {
+ ID "57DA6675519A417B"
+ components {
+  OVT_StorageComponent "{6BA1C4E000000001}" {
+   m_eCapacityMode UNLIMITED
+  }
+ }
+}

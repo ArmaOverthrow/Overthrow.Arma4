@@ -524,6 +524,15 @@ class OVT_MountedForceSpawningDeploymentModule : OVT_InsertionSpawningDeployment
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! \return The hull handed in by AdoptVehicle(), or null. ⚠ NOT the same question as
+	//! GetMountedVehicle(): an adopted hull is owned from the moment it is accepted, but only becomes
+	//! m_Truck at the module's first SpawnTruck(), a whole update interval later.
+	Vehicle GetAdoptedVehicle()
+	{
+		return m_AdoptedVehicle;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! \return Whether the authored hold has run out. Always false when m_iHoldTicks is 0, which is an
 	//! indefinite hold. The behaviour module that owns collection is what acts on this.
 	bool IsHoldExpired()

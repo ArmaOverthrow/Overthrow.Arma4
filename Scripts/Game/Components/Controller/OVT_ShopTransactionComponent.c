@@ -38,9 +38,13 @@ class OVT_ShopTransactionComponentClass : OVT_ControllerRequestComponentClass {}
 //! same spawn/insert/equip loop - plus a quantity bound, a resource-id check, and the §3.6(a) authority
 //! fix that makes a purchase actually take money and stock (see RpcAsk_BuyItems).
 //!
-//! Also carries the stop-gap helicopter re-arm purchase (RearmVehicle): money for ammunition is a
-//! shop transaction even though no shop entity is involved, and the alternative was a whole new
-//! controller component for one RPC pair that the logistics epic intends to replace anyway.
+//! Also carries the armed-vehicle re-arm (RearmVehicle): money for ammunition is a shop transaction
+//! even though no shop entity is involved, and the alternative was a whole new controller component
+//! for one RPC pair (vehicle-rearm D12).
+//!
+//! The DISPLAY QUOTE (RequestRearmQuote) rides the same component. Ledger contents never leave the
+//! server, so a client cannot work out what a re-arm would cost; it asks, and labels its button with
+//! the answer. Nothing the quote says is authority - RpcAsk_RearmVehicle re-derives all of it.
 //------------------------------------------------------------------------------------------------
 class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 {
@@ -64,6 +68,11 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 	//! Fired on the requesting client only. Args: (int soldCount, int totalEarned, int skippedCount,
 	//! int OVT_ShopSellResult). Display only - see RpcDo_SellResult.
 	ref ScriptInvoker m_OnSellResult = new ScriptInvoker();
+
+	//! Fired on the ASKING client only. Args: (RplId vehicleId, int totalUnits, int coveredUnits,
+	//! int cost). Display only - see RpcDo_RearmQuote. Invoke() is untyped like Rpc(), so a listener
+	//! with a different parameter list fails at run time, not at compile time.
+	ref ScriptInvoker m_OnRearmQuote = new ScriptInvoker();
 
 	//------------------------------------------------------------------------------------------------
 	//! Sell items the local player is carrying, from the shop menu.
@@ -469,8 +478,8 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Fully re-arm an armed vehicle for money, from the helicopter Re-arm user action. A purchase
-	//! like any other here, except the goods are ammunition already bolted to the buyer's aircraft.
+	//! Fully re-arm an armed vehicle, from the Re-arm user action. Ledger first, money second: the
+	//! server draws what nearby storages hold and charges only for the remainder.
 	//! \param[in] vehicle The vehicle to re-arm.
 	void RearmVehicle(IEntity vehicle)
 	{
@@ -490,14 +499,16 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Server: restock every weapon on a vehicle and charge the difficulty-scaled price.
+	//! Server: draw what the nearby ledgers hold, restock every weapon, and charge only the
+	//! remainder.
 	//!
-	//! Validation order (the client named only the vehicle, nothing else is trusted): server ->
-	//! requesting player -> character -> vehicle -> player near vehicle -> vehicle on a built
-	//! helipad at a resistance-held base -> something actually missing -> funds. The helipad, need
-	//! and price rules are the same OVT_VehicleRearmUtils code the user action's gates run, so a
-	//! request the action offered is one this handler accepts. Charged only after the restock, and
-	//! only refused-with-a-toast for the one failure a player can do something about (money).
+	//! READ, GATE, CONSUME, PERFORM, CHARGE - in that order, and nothing is ever put back because
+	//! nothing is taken before every refusal has been evaluated. The client named only the vehicle;
+	//! coverage, price, site and funds are all re-derived here, so a stale or spoofed display quote
+	//! can only mislabel a button.
+	//!
+	//! THE SITE GATE FOLLOWS THE MONEY (R1 as amended): a rearm the crew's own ammunition covers is
+	//! free and performable anywhere. Only a purchase needs a helipad, a garage or a FOB.
 	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
 	protected void RpcAsk_RearmVehicle(RplId vehicleId)
 	{
@@ -514,27 +525,126 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 
 		if(vector.Distance(character.GetOrigin(), vehicle.GetOrigin()) > VEHICLE_MAX_DISTANCE) return;
 
-		OVT_VehicleRearmUtils rearmUtils = new OVT_VehicleRearmUtils();
-		if(!rearmUtils.IsOnHelipadAtFriendlyBase(vehicle.GetOrigin())) return;
-
 		if(!OVT_VehicleRearmUtils.NeedsRearm(vehicle)) return;
 
+		int totalUnits, coveredUnits, cost;
+		OVT_VehicleRearmUtils.QuoteRearm(vehicle, playerId, totalUnits, coveredUnits, cost);
+		if(totalUnits <= 0) return;
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
 		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
-		if(!economy) return;
-
 		OVT_PlayerManagerComponent players = OVT_Global.GetPlayers();
-		if(!players) return;
 
-		int cost = OVT_VehicleRearmUtils.GetRearmCost();
-		string persId = players.GetPersistentIDFromPlayerID(playerId);
-		if(!economy.PlayerHasMoney(persId, cost))
+		if(cost > 0)
 		{
-			OVT_Global.GetNotify().SendTextNotification("CannotAfford", playerId);
-			return;
+			if(!economy || !players) return;
+
+			OVT_VehicleRearmUtils rearmUtils = new OVT_VehicleRearmUtils();
+			if(!rearmUtils.IsAtRearmSite(vehicle.GetOrigin()))
+			{
+				if(notify) notify.SendTextNotification("RearmNeedsSupplyPoint", playerId);
+				return;
+			}
+
+			if(!economy.PlayerHasMoney(players.GetPersistentIDFromPlayerID(playerId), cost))
+			{
+				if(notify) notify.SendTextNotification("CannotAfford", playerId);
+				return;
+			}
+		}
+
+		// Same frame, same ledgers as the quote above, so taken == coveredUnits by construction.
+		int taken = 0;
+		if(coveredUnits > 0)
+		{
+			array<ref OVT_RearmUnit> plan = {};
+			int planUnits;
+			OVT_VehicleRearmUtils.BuildPlan(vehicle, plan, planUnits);
+
+			array<OVT_StorageComponent> stores = {};
+			OVT_VehicleRearmUtils.CollectRearmStores(vehicle, playerId, stores);
+
+			foreach(OVT_RearmUnit unit : plan)
+			{
+				if(!unit || unit.m_sRes == "") continue;
+
+				taken += OVT_WarehouseStockUtils.TakeUpTo(stores, unit.m_sRes, unit.m_iUnits);
+			}
 		}
 
 		OVT_VehicleRearmUtils.PerformRearm(vehicle);
-		economy.TakePlayerMoney(playerId, cost);
+
+		if(cost > 0)
+			economy.TakePlayerMoney(playerId, cost);
+
+		if(notify) notify.SendTextNotification("Rearmed", playerId, taken.ToString(), cost.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Ask the server what a re-arm of this vehicle would need, cover and cost. DISPLAY ONLY - the
+	//! answer labels a button, and the rearm itself re-derives every figure.
+	//! \param[in] vehicle The vehicle to quote.
+	void RequestRearmQuote(IEntity vehicle)
+	{
+		if(!vehicle) return;
+
+		RplComponent vehicleRpl = GetEntityRpl(vehicle);
+		if(!vehicleRpl) return;
+
+		// The authority never loops an RplRcver.Server RPC back to itself (BUG-164).
+		if(Replication.IsServer())
+		{
+			RpcAsk_RearmQuote(vehicleRpl.Id());
+		}else{
+			Rpc(RpcAsk_RearmQuote, vehicleRpl.Id());
+		}
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Server: quote a re-arm for the asking player, and answer only them.
+	//!
+	//! A PURE READ - QuoteRearm takes nothing, spawns nothing and writes nothing - so a client that
+	//! spams this can spend server time and learn a price, never move ammunition or money.
+	//!
+	//! Gated at the same VEHICLE_MAX_DISTANCE the re-arm itself is, so a quote is only ever reachable
+	//! for a vehicle its asker could actually re-arm.
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_RearmQuote(RplId vehicleId)
+	{
+		if(!Replication.IsServer()) return;
+
+		int playerId = ResolveOwningPlayerId();
+		if(playerId <= 0) return;
+
+		IEntity character = GetGame().GetPlayerManager().GetPlayerControlledEntity(playerId);
+		if(!character) return;
+
+		IEntity vehicle = ResolveEntity(vehicleId);
+		if(!vehicle) return;
+
+		if(vector.Distance(character.GetOrigin(), vehicle.GetOrigin()) > VEHICLE_MAX_DISTANCE) return;
+
+		int totalUnits, coveredUnits, cost;
+		OVT_VehicleRearmUtils.QuoteRearm(vehicle, playerId, totalUnits, coveredUnits, cost);
+
+		SendRearmQuote(playerId, vehicleId, totalUnits, coveredUnits, cost);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Client: one vehicle's re-arm quote, for display only.
+	//!
+	//! MUTATES NOTHING - it fires the invoker and returns. Same contract as RpcDo_SellResult: losing,
+	//! delaying or spoofing this packet costs a label and never a transaction.
+	//! \param[in] vehicleId The vehicle quoted. Carried so an action instance on ANOTHER vehicle
+	//! parked alongside ignores a quote that is not about its own.
+	//! \param[in] totalUnits Units the re-arm needs.
+	//! \param[in] coveredUnits Units the reachable ledgers hold.
+	//! \param[in] cost Money owed for the remainder; 0 when the ledgers cover everything.
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	protected void RpcDo_RearmQuote(RplId vehicleId, int totalUnits, int coveredUnits, int cost)
+	{
+		if(m_OnRearmQuote)
+			m_OnRearmQuote.Invoke(vehicleId, totalUnits, coveredUnits, cost);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1071,6 +1181,27 @@ class OVT_ShopTransactionComponent : OVT_ControllerRequestComponent
 		}
 
 		Rpc(RpcDo_SellResult, soldCount, totalEarned, skippedCount, result);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Delivers a quote to the asking client. The listen-host rule SendSellResult documents applies
+	//! unchanged: an Owner-targeted RPC a host sends to its own controller is never delivered, so the
+	//! handler is called directly instead. The four arguments stay written out at both send sites -
+	//! Rpc() is an untyped variadic prototype and a hidden argument list is how BUG-090 happens.
+	//! \param[in] playerId The player who asked.
+	//! \param[in] vehicleId The vehicle quoted.
+	//! \param[in] totalUnits Units the re-arm needs.
+	//! \param[in] coveredUnits Units the reachable ledgers hold.
+	//! \param[in] cost Money owed for the remainder.
+	protected void SendRearmQuote(int playerId, RplId vehicleId, int totalUnits, int coveredUnits, int cost)
+	{
+		if(ShouldRespondLocally(playerId))
+		{
+			RpcDo_RearmQuote(vehicleId, totalUnits, coveredUnits, cost);
+			return;
+		}
+
+		Rpc(RpcDo_RearmQuote, vehicleId, totalUnits, coveredUnits, cost);
 	}
 
 	//------------------------------------------------------------------------------------------------

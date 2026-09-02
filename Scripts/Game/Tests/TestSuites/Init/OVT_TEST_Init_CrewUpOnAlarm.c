@@ -216,7 +216,11 @@ class OVT_TEST_Init_CrewUpOnAlarm_OwnershipTransferLeavesExactlyOneOwner : SCR_A
 			if (sortie)
 			{
 				sortieMounted = OVT_TEST_CrewUpFixture.FindMountedModule(sortie);
-				if (sortieMounted && sortieMounted.GetMountedVehicle() == fixture.m_Vehicle)
+
+				// ⚠ THE ADOPTION SEAM, NOT GetMountedVehicle(). AdoptVehicle() takes ownership here and
+				// now; the hull only becomes m_Truck at the sortie's first SpawnTruck(), which is a whole
+				// update interval away and never happens inside one test step.
+				if (sortieMounted && sortieMounted.GetAdoptedVehicle() == fixture.m_Vehicle)
 					sortieOwnsIt = 1;
 			}
 		}
@@ -243,7 +247,7 @@ class OVT_TEST_Init_CrewUpOnAlarm_OwnershipTransferLeavesExactlyOneOwner : SCR_A
 
 		if (sortieOwnsIt != 1)
 		{
-			SetFailure("🔴 ORPHANED HULL: the parked module released the vehicle but the sortie's mounted module does not report it as its own - nothing owns it, and nothing will ever delete it");
+			SetFailure("🔴 ORPHANED HULL: the parked module released the vehicle but the sortie's mounted module never adopted it - nothing owns it, and nothing will ever delete it");
 			return true;
 		}
 

@@ -18,7 +18,7 @@ class OVT_TEST_Logic_StorageRules_AutoCapacity : SCR_AutotestCaseBase
 	bool Execute()
 	{
 		// Not a vehicle: boxes and the warehouse building. Unlimited, whatever the other arguments say.
-		int capacity = OVT_StorageRules.ResolveAutoCapacity(false, false, false, OVT_ParkingType.PARKING_CAR, 300);
+		int capacity = OVT_StorageRules.ResolveAutoCapacity(false, false, false, OVT_ParkingType.PARKING_CAR, 300, 100);
 		if (capacity != -1)
 		{
 			SetFailure("A non-vehicle holder resolved to %1, expected -1 (unlimited)", capacity.ToString());
@@ -26,29 +26,29 @@ class OVT_TEST_Logic_StorageRules_AutoCapacity : SCR_AutotestCaseBase
 		}
 
 		// A vehicle the economy does not know gets NOTHING - the caller logs the error.
-		capacity = OVT_StorageRules.ResolveAutoCapacity(true, false, true, OVT_ParkingType.PARKING_TRUCK, 300);
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, false, true, OVT_ParkingType.PARKING_TRUCK, 300, 100);
 		if (capacity != 0)
 		{
 			SetFailure("An unregistered vehicle resolved to %1, expected 0", capacity.ToString());
 			return true;
 		}
 
-		// Illegal or armed, however it parks.
-		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, false, OVT_ParkingType.PARKING_TRUCK, 300);
-		if (capacity != 0)
+		// Illegal or armed, however it parks: the caller's armed capacity, not 0 and not the legal default.
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, false, OVT_ParkingType.PARKING_TRUCK, 300, 100);
+		if (capacity != 100)
 		{
-			SetFailure("An illegal/armed vehicle resolved to %1, expected 0", capacity.ToString());
+			SetFailure("An illegal/armed vehicle resolved to %1, expected the supplied armed capacity 100", capacity.ToString());
 			return true;
 		}
 
-		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_TRUCK, 300);
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_TRUCK, 300, 100);
 		if (capacity != -1)
 		{
 			SetFailure("A registered legal truck resolved to %1, expected -1 (unlimited)", capacity.ToString());
 			return true;
 		}
 
-		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_CAR, 300);
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_CAR, 300, 100);
 		if (capacity != 300)
 		{
 			SetFailure("A registered legal car resolved to %1, expected the supplied default 300", capacity.ToString());
@@ -56,14 +56,66 @@ class OVT_TEST_Logic_StorageRules_AutoCapacity : SCR_AutotestCaseBase
 		}
 
 		// The default is the CALLER's number, not a constant baked into the rule.
-		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_LIGHT, 42);
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, true, OVT_ParkingType.PARKING_LIGHT, 42, 100);
 		if (capacity != 42)
 		{
 			SetFailure("A non-truck vehicle resolved to %1 when the caller supplied 42", capacity.ToString());
 			return true;
 		}
 
-		Print("Storage rules auto capacity: non-vehicle -1, unregistered 0, illegal 0, truck -1, car the caller's default");
+		// The armed capacity is the CALLER's number too, not a constant baked into the rule.
+		capacity = OVT_StorageRules.ResolveAutoCapacity(true, true, false, OVT_ParkingType.PARKING_CAR, 300, 7);
+		if (capacity != 7)
+		{
+			SetFailure("An illegal/armed vehicle resolved to %1 when the caller supplied 7", capacity.ToString());
+			return true;
+		}
+
+		Print("Storage rules auto capacity: non-vehicle -1, unregistered 0, illegal/armed the caller's armed capacity, truck -1, car the caller's default");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! Whether an item leaving a ledger for a hand inventory would vanish - true only when an ancestor
+//! authored m_bVisible 0. An unauthored chain (the overwhelming majority of prefabs) is visible.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_StorageRules_HiddenFromInventory : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		// Authored and false: hidden.
+		if (!OVT_StorageRules.HiddenFromInventory(true, false))
+		{
+			SetFailure("An authored m_bVisible 0 is not reported hidden");
+			return true;
+		}
+
+		// Authored and true: visible.
+		if (OVT_StorageRules.HiddenFromInventory(true, true))
+		{
+			SetFailure("An authored m_bVisible 1 is reported hidden");
+			return true;
+		}
+
+		// Unauthored: visible, regardless of what the unread value happens to carry.
+		if (OVT_StorageRules.HiddenFromInventory(false, false))
+		{
+			SetFailure("An unauthored m_bVisible (value false) is reported hidden - unauthored must be visible");
+			return true;
+		}
+
+		if (OVT_StorageRules.HiddenFromInventory(false, true))
+		{
+			SetFailure("An unauthored m_bVisible (value true) is reported hidden - unauthored must be visible");
+			return true;
+		}
+
+		Print("Storage rules hidden-from-inventory: hidden only when authored false, visible otherwise");
 
 		return true;
 	}

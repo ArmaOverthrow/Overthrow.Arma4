@@ -67,6 +67,22 @@ nothing was lost.
 
 `TeleportHome` is untouched by the migration and remains a zero-caller method on this feature's manager.
 
+### Resistance-owned buildings were dead ends in the menu (fixed 2026-09-01)
+
+Owner of a resistance-funds purchase is the literal string `"resistance"`, and the menu's per-verb
+handlers each re-derive `isOwner` — only some applied the resistance upgrade `Refresh()` uses:
+- **Sell** was blocked by the last-house rule (`GetOwnedCount() == 1` counts *personal* buildings)
+  even on a resistance-account sale; the server's resistance branch never had that rule. Fixed
+  client-side: rule skipped when `account == 1` and the building is resistance-owned.
+- **SetAsHome** enabled its button via the upgraded `isOwner` but the click handler recomputed it
+  without the upgrade → always refused NotOwner. Fixed: handler applies the same upgrade. The server's
+  `RpcAsk_SetHome` has no ownership gate at all (sets home to standing position), so no server change.
+- **Buy with own money** stays refused (owned = not for sale, by design); the route is now
+  sell-as-resistance → rebuy personally.
+
+Trap for future edits: any new verb handler must mirror `Refresh()`'s resistance-owner/renter
+upgrade or the button matrix and the click behaviour diverge.
+
 ---
 
 *This context file was created retrospectively by analyzing existing code.*

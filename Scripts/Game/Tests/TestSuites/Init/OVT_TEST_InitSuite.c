@@ -12454,10 +12454,13 @@ class OVT_TEST_Init_Deployments_DefenseShareDripsIntoThePool : SCR_AutotestCaseB
 	//! \return An empty string when every claim holds, or the first broken one.
 	protected string RunClaims(notnull OVT_OccupyingFactionManager occupying, notnull OVT_DeploymentManagerComponent manager, int factionIndex)
 	{
-		int share = OVT_BaseDefenseConversion.DefenseShare(TICK);
+		// ⚠ NOT DefenseShare(TICK). What a window actually owes is PoolTransferForWindow: the 80 % share,
+		// OR the reserve's overflow above its target when that is larger, OR nothing at all when the pool
+		// is already at its cap. Asserting the flat share here would only re-assert the old rule.
+		int share = ExpectedTransfer(PLANTED_RESERVE, PLANTED_POOL);
 		if (share <= OVT_BaseDefenseConversion.DRIP_STEPS)
-			return string.Format("A tick of %1 splits to %2, which is not enough to tell a carried remainder from a truncated one - pick a bigger planted tick",
-				TICK.ToString(), share.ToString());
+			return string.Format("A tick of %1 against a reserve of %2 and a pool of %3 owes %4, which is not enough to tell a carried remainder from a truncated one - the planted tick, reserve or pool needs picking again (a pool at or over its cap owes nothing at all)",
+				TICK.ToString(), PLANTED_RESERVE.ToString(), PLANTED_POOL.ToString(), share.ToString());
 
 		// ---- (a) ARMING MOVES NOTHING ------------------------------------------------------------
 		// The whole point of the change: at the payday the money STAYS in the reserve. If arming
@@ -12537,6 +12540,7 @@ class OVT_TEST_Init_Deployments_DefenseShareDripsIntoThePool : SCR_AutotestCaseB
 			return "Two of six drips left nothing owed, so there is no abandoned window to settle - the drip is paying the whole share on its first slice";
 
 		int poolBeforeFlush = manager.GetFactionResources(factionIndex);
+		int reserveBeforeFlush = occupying.m_iResources;
 
 		// The next payday. Its own share arms a fresh window; the abandoned one must be settled here.
 		occupying.ArmDefenseShareDrip(TICK);
@@ -12546,11 +12550,37 @@ class OVT_TEST_Init_Deployments_DefenseShareDripsIntoThePool : SCR_AutotestCaseB
 			return string.Format("The next payday credited %1 while the abandoned window owed %2 - a window that loses drips to a QRF freeze, a load or a sleep replay loses the money for good",
 				credited.ToString(), owed.ToString());
 
-		if (occupying.GetPendingDefenseTransfer() != share)
+		// The arm reads the reserve and the pool AFTER its own flush, which is the whole reason the
+		// flush has to come first - so that is what the new window's debt is measured against.
+		int expectedAfterFlush = ExpectedTransfer(reserveBeforeFlush - owed, poolBeforeFlush + owed);
+		if (occupying.GetPendingDefenseTransfer() != expectedAfterFlush)
 			return string.Format("After the flush the new window owes %1, expected %2 - the flush and the arm are treading on each other",
-				occupying.GetPendingDefenseTransfer().ToString(), share.ToString());
+				occupying.GetPendingDefenseTransfer().ToString(), expectedAfterFlush.ToString());
 
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! What ArmDefenseShareDrip() will owe for a tick of TICK, computed the way it computes it - the
+	//! same pure function against the same difficulty-derived reserve target.
+	//! \param[in] reserve The reserve at arm time.
+	//! \param[in] pool The deployment pool at arm time.
+	//! \return The debt the window will carry.
+	protected int ExpectedTransfer(int reserve, int pool)
+	{
+		return OVT_BaseDefenseConversion.PoolTransferForWindow(TICK, reserve, ReserveTargetNow(), pool);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return The live reserve target, mirroring OVT_OccupyingFactionManager.ResolveReserveTarget().
+	protected int ReserveTargetNow()
+	{
+		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
+		if (!difficulty)
+			return 0;
+
+		return OVT_BaseDefenseConversion.ReserveTarget(difficulty.maxQRF, difficulty.objectiveQRFResourceGate,
+			difficulty.reserveTargetMultiplier);
 	}
 
 	//------------------------------------------------------------------------------------------------

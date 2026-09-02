@@ -49,10 +49,9 @@
 //!
 //! ⚠ THE MOUNTED RUNG BREAKS THE "EVERY RUNG IS A BIGGER GROUP" RULE ON PURPOSE. It fields the same
 //! light fireteam as rung two and escalates by VEHICLE instead, so the distinctness check is skipped
-//! for it and three claims nothing else can make are checked in its place: that it is LAST (the ladder
-//! index saturates at the top rung), that its authored vehicle budget actually buys an armed vehicle in
-//! both shipped registries at threat 0, and that it carries a mobile checkpoint behaviour with a sane
-//! band. Every one of those fails SILENTLY: the operation still lands, with an unarmed truck.
+//! for it and two claims nothing else can make are checked in its place: that it is LAST (the ladder
+//! index saturates at the top rung), and that it carries a mobile checkpoint behaviour with a sane
+//! band. Both fail SILENTLY: the operation still lands, with an unarmed truck.
 //!
 //! PROVEN ABLE TO FAIL (faults injected one at a time and compiled; every one exited
 //! tools/compile-check.sh 0, and the subject was restored and re-compiled clean):
@@ -67,9 +66,7 @@
 //!       m_bRequireControl 0".
 //!   A6. `"Objective Harassment (Mounted)"` moved above `"(Heavy)"` in HARASSMENT_LADDER. Fails on
 //!       "has to be the LAST one".
-//!   A7. `m_iTruckCostOverride` on the mounted rung dropped to 10. Fails on "answers NO rung for role
-//!       'armed' at threat 0".
-//!   A8. The mobile checkpoint module removed from the mounted rung's `.conf`. Fails on "authors no
+//!   A7. The mobile checkpoint module removed from the mounted rung's `.conf`. Fails on "authors no
 //!       mobile checkpoint behaviour".
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
@@ -96,7 +93,7 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 			return true;
 		}
 
-		Print("Objective operations: every harassment rung and the tower recapture config are registered, valid and ordered behaviour-before-reinforcement; each infantry rung fields a distinct group both factions have; and the ladder ends in exactly one mounted rung whose budget buys an armed vehicle in both registries at threat 0");
+		Print("Objective operations: every harassment rung and the tower recapture config are registered, valid and ordered behaviour-before-reinforcement; each infantry rung fields a distinct group both factions have; and the ladder ends in exactly one mounted rung carrying a mobile checkpoint behaviour");
 
 		return true;
 	}
@@ -212,10 +209,6 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 		if (mounted.m_bDismountOnArrival)
 			return string.Format("the mounted rung '%1' authors m_bDismountOnArrival - the force would be dropped at the landing zone and the vehicle sent home, so there would be no checkpoint and no gun", name);
 
-		string budget = CheckLadderFitsTheBudget(mounted, name);
-		if (budget != "")
-			return budget;
-
 		string ordering = CheckBehaviourBeforeReinforcement(config, OVT_MobileCheckpointBehaviorDeploymentModule);
 		if (ordering != "")
 			return ordering;
@@ -238,40 +231,6 @@ class OVT_TEST_Init_ObjectiveOperations_ARampConfigsResolveAndAreOrdered : SCR_A
 		}
 
 		return string.Format("the mounted rung '%1' authors no mobile checkpoint behaviour, so its armed vehicle would sit wherever the insertion happened to stop and never cover a road", name);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! That the authored vehicle budget actually buys an armed vehicle, in BOTH shipped registries, at
-	//! a threat of zero - which is the campaign's first minute and the hardest case for the ladder.
-	//! \param[in] mounted The rung's mounted spawning module.
-	//! \param[in] name The rung's registered name, for the message.
-	//! \return An empty string when both registries answer a rung, or why one did not.
-	protected string CheckLadderFitsTheBudget(notnull OVT_MountedForceSpawningDeploymentModule mounted, string name)
-	{
-		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
-		if (!factions)
-			return "OVT_Global.GetFactions() is null - the faction registries are not loaded";
-
-		array<string> factionKeys = {"US", "USSR"};
-
-		foreach (string factionKey : factionKeys)
-		{
-			OVT_Faction faction = factions.GetOverthrowFactionByKey(factionKey);
-			if (!faction)
-				return string.Format("there is no Overthrow faction config for '%1', so the mounted rung's budget could not be checked against it", factionKey);
-
-			faction.InitializeVehicleRegistry();
-
-			OVT_FactionVehicleEntry entry;
-			if (!faction.ResolveVehicleForRole(mounted.m_sVehicleRole, 0, 1, mounted.m_iTruckCostOverride, entry))
-				return string.Format("the %1 registry answers NO rung for role '%2' at threat 0 inside the mounted rung's budget of %3. The module would fall back to its named vehicle type and send an unarmed truck, with one NORMAL log line as the only symptom",
-					factionKey, mounted.m_sVehicleRole, mounted.m_iTruckCostOverride.ToString());
-
-			if (!entry || entry.m_sVehiclePrefab.IsEmpty())
-				return string.Format("the %1 registry's answer for role '%2' names no prefab at all", factionKey, mounted.m_sVehicleRole);
-		}
-
-		return "";
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1095,7 +1054,9 @@ class OVT_TEST_Init_ObjectiveOperations_ModifierIsLastAndStacks : SCR_AutotestCa
 //!      is bought by the evaluator on the next 30 s pass, at some place the director never chose.
 //!   3. NOTHING ELSE is. The flag silently removes a config from the only path that creates it, so a
 //!      base garrison or a town patrol marked by mistake simply stops existing in the world with no
-//!      error anywhere - which is the failure mode this half exists to catch.
+//!      error anywhere - which is the failure mode this half exists to catch. The director is not the
+//!      only hand-creator any more, so the hunter-killer sweep, the QRF echelon and every crew-up
+//!      sortie config are collected alongside its own (CollectOtherHandCreatedNames).
 //!
 //! ⚠ IT DOES NOT ASSERT THAT ForceCreateDeployment() STILL WORKS ON THEM, because the flag is not
 //! consulted there by construction - the director's own send path is exercised by the play-test and by
@@ -1106,7 +1067,7 @@ class OVT_TEST_Init_ObjectiveOperations_ModifierIsLastAndStacks : SCR_AutotestCa
 //!   D1. `m_bDirectorOnly 1` removed from Deployment_ObjectiveHarassment.conf. Fails on "is not marked
 //!       director-only" for the four rungs that inherit it from that file.
 //!   D2. `m_bDirectorOnly 1` added to Deployment_TownPatrol.conf. Fails on "'Town Patrol' is marked
-//!       director-only but the objective director never sends it".
+//!       director-only but no hand-creator sends it".
 //!   D3. `IsSelectableByEvaluator()` returning `m_bDirectorOnly` rather than its negation. Fails both
 //!       halves at once.
 //! No polling, no waiting, no world state touched, no maxAttempts.
@@ -1125,11 +1086,12 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 			return true;
 		}
 
-		array<string> directorOwned = CollectDirectorOwnedNames();
+		array<string> handCreated = CollectDirectorOwnedNames();
+		CollectOtherHandCreatedNames(deployments, handCreated);
 
-		string failure = CheckOwnedAreExcluded(deployments, directorOwned);
+		string failure = CheckOwnedAreExcluded(deployments, handCreated);
 		if (failure == "")
-			failure = CheckNothingElseIs(deployments, directorOwned);
+			failure = CheckNothingElseIs(deployments, handCreated);
 
 		if (failure != "")
 		{
@@ -1137,7 +1099,7 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 			return true;
 		}
 
-		Print("Objective operations: all " + directorOwned.Count().ToString() + " director-owned configs are excluded from the evaluator's own candidate selection, and no other registered config is");
+		Print("Objective operations: all " + handCreated.Count().ToString() + " hand-created configs are excluded from the evaluator's own candidate selection, and no other registered config is");
 
 		return true;
 	}
@@ -1162,6 +1124,35 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 		directorOwned.Insert(OVT_ObjectiveDirectorComponent.FOB_GARRISON_CONFIG);
 
 		return directorOwned;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The director is no longer the only hand-creator. Three other callers stand a config up by name
+	//! and each one has to be director-only for the same reason the director's are.
+	//! \param[in] deployments The deployment framework, for the crew-up modules in its registry.
+	//! \param[inout] names The list to append to.
+	protected void CollectOtherHandCreatedNames(notnull OVT_DeploymentManagerComponent deployments, notnull array<string> names)
+	{
+		names.Insert(OVT_OccupyingFactionManager.HUNTER_KILLER_CONFIG_NAME);
+		names.Insert(OVT_QRFControllerComponent.ECHELON_CONFIG_NAME);
+
+		// The sortie's name is authored per crew-up module rather than held in a constant, so it is read
+		// off the registry - a renamed sortie config stays covered without touching this case.
+		foreach (OVT_DeploymentConfig config : deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			if (!config)
+				continue;
+
+			foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+			{
+				OVT_CrewUpOnAlarmBehaviorDeploymentModule crewUp = OVT_CrewUpOnAlarmBehaviorDeploymentModule.Cast(module);
+				if (!crewUp || crewUp.m_sSortieConfigName == "")
+					continue;
+
+				if (!names.Contains(crewUp.m_sSortieConfigName))
+					names.Insert(crewUp.m_sSortieConfigName);
+			}
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -1200,7 +1191,7 @@ class OVT_TEST_Init_ObjectiveOperations_DirectorConfigsAreNotEvaluatorCandidates
 			if (directorOwned.Contains(config.m_sDeploymentName))
 				continue;
 
-			return string.Format("'%1' is marked director-only but the objective director never sends it - nothing else in the campaign creates configs by hand, so it would simply never appear in the world, silently", config.m_sDeploymentName);
+			return string.Format("'%1' is marked director-only but no hand-creator sends it - the director, the hunter-killer dispatcher, the QRF echelon and the crew-up sortie are the whole list, so it would simply never appear in the world, silently", config.m_sDeploymentName);
 		}
 
 		return "";

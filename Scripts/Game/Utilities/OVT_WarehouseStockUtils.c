@@ -9,6 +9,12 @@
 //! compute a coverage figure - which is why the whole purchase quote is server-side and
 //! CONFIG_STREAM_VERSION does not move for High Command.
 //!
+//! ⚠ THE FILE NAME UNDER-DESCRIBES THREE OF ITS MEMBERS. PrependStore, CountAvailable and TakeUpTo are
+//! holder-agnostic LIST operations - they take a plain array<OVT_StorageComponent> and contain no
+//! warehouse logic - and vehicle rearm (OVT_VehicleRearmUtils) now drains ledgers through exactly those
+//! three, with its own wider collector (OVT_StorageUtils.CollectStores). They have two callers, not one:
+//! changing their semantics changes High Command's group rearm as well (vehicle-rearm D5).
+//!
 //! Every accumulator here is NEW-ED PER CALL. OVT_InventoryManagerComponent.m_aContainerSearchResults
 //! (:497) is the singleton two concurrent searches overwrite for each other, and nothing in this file
 //! is allowed to repeat it.

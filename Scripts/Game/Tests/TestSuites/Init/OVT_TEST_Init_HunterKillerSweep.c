@@ -220,6 +220,9 @@ class OVT_TEST_Init_HunterKillerSweep_SpendsExactlyOnceAndDebitsThePoolByTheConf
 {
 	static const vector HOT_SPOT = "640000 0 640000";
 
+	//! Well above the bottom armed rung's authored 400, whatever the difficulty scales it by.
+	static const int LADDER_THREAT = 100000;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -254,12 +257,19 @@ class OVT_TEST_Init_HunterKillerSweep_SpendsExactlyOnceAndDebitsThePoolByTheConf
 		EntityID savedDeploymentId = occupying.m_HunterKillerDeployment;
 		OVT_QRFControllerComponent savedBattle = occupying.m_CurrentQRF;
 		int savedPool = deployments.GetFactionResources(factionIndex);
+		float savedThreat = occupying.m_iThreat;
 
 		// --- ARRANGE: clean state, a scorable hotspot, no battle, a pool with room to spare.
 		occupying.m_bHunterKillerActive = false;
 		occupying.m_CurrentQRF = null;
 
-		occupying.m_aKnownTargets = OVT_TEST_HunterKillerFixture.OneTarget(HOT_SPOT, OVT_TargetType.CAMP);
+		// ⚠ A BASE, NOT A CAMP. IsArmourTarget() excludes CAMP on purpose - it is what ReportVehicleLoss
+		// plants at every wreck - so a camp target is picked by nothing at all.
+		occupying.m_aKnownTargets = OVT_TEST_HunterKillerFixture.OneTarget(HOT_SPOT, OVT_TargetType.BASE);
+
+		// ⚠ AND ABOVE THE ARMED LADDER'S BOTTOM RUNG (gate 2b). It is authored at a threat of 400, so at
+		// the campaign's opening threat the dispatcher refuses before it ever reaches the pool.
+		occupying.m_iThreat = LADDER_THREAT;
 
 		int poolBefore = deployments.GetFactionResources(factionIndex);
 		if (poolBefore < cost)
@@ -311,6 +321,7 @@ class OVT_TEST_Init_HunterKillerSweep_SpendsExactlyOnceAndDebitsThePoolByTheConf
 		occupying.m_bHunterKillerActive = savedActive;
 		occupying.m_HunterKillerDeployment = savedDeploymentId;
 		occupying.m_CurrentQRF = savedBattle;
+		occupying.m_iThreat = savedThreat;
 
 		int poolNow = deployments.GetFactionResources(factionIndex);
 		if (poolNow < savedPool)

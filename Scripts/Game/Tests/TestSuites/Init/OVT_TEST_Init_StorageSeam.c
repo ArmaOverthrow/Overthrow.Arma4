@@ -15,7 +15,13 @@
 //!   D. the test world's warehouse building resolves UNLIMITED (-1)    - the same-GUID delta of
 //!      vanilla Warehouse_01_Base.et {E35EA41864A3B0ED}, which is the one edit here that a typo in a
 //!      GUID or a parent path would silently turn into a file the engine never loads (R4).
-//!   E. an illegal/armed wheeled vehicle resolves NONE (0) and the radius query leaves it out.
+//!   E. an illegal/armed wheeled vehicle resolves the small armed cap (100) and the radius query
+//!      DOES offer it - inverted 2026-09-01 by logistics/vehicle-rearm R4/D8.
+//!   K. an armed HELICOPTER carries a storage component at all and resolves the same 100 -
+//!      Helicopter_Base.et is the only place that block exists.
+//!   O. the civilian Mi-8 delta resolves UNLIMITED (-1) - the new same-GUID delta of vanilla
+//!      Mi8MT_unarmed_civ_base.et {366EA0B41474A7F8}, re-declaring the storage GUID minted in K
+//!      (logistics/vehicle-rearm R5). Letter O, not the plan's G - F and G are both taken.
 //!
 //! Every case also asserts the authored capacity MODE. Without that, a dropped m_eCapacityMode
 //! attribute would still produce the right number on a box or a building - AUTO answers -1 through the
@@ -47,6 +53,13 @@ class OVT_TEST_StorageSeamSubject
 	//! The one wheeled prefab that overrides the AUTO capacity mode, and therefore the one the vehicle
 	//! cases must not pick as their subject.
 	static const string MODE_OVERRIDE_FRAGMENT = "OverthrowMobileFOB";
+
+	//! Prefab path fragment every helicopter variant shares, in both the US and USSR catalogues.
+	static const string HELICOPTER_PREFAB_FRAGMENT = "/Helicopters/";
+
+	//! Overthrow's own same-GUID delta of vanilla Mi8MT_unarmed_civ_base.et - the one civilian
+	//! helicopter authored UNLIMITED storage (logistics/vehicle-rearm R5).
+	static const ResourceName CIVILIAN_MI8_PREFAB = "{366EA0B41474A7F8}Prefabs/Vehicles/Helicopters/Mi8MT/Mi8MT_unarmed_civ_base.et";
 
 	//------------------------------------------------------------------------------------------------
 	//! Resolves a wheeled vehicle prefab of a given parking class from the economy's OWN catalogue.
@@ -138,6 +151,44 @@ class OVT_TEST_StorageSeamSubject
 				continue;
 
 			if (economy.IsLegalVehicle(economy.GetInventoryId(candidate)))
+				continue;
+
+			prefab = candidate;
+			return true;
+		}
+
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! An armed (illegal) helicopter from the economy's own catalogue.
+	//!
+	//! Parking type as well as the path fragment, so a mis-pathed ground vehicle cannot stand in for the
+	//! prefab family this case exists to check.
+	//! \param[out] prefab The prefab to spawn; untouched when nothing matched.
+	//! \return True when a prefab was resolved.
+	static bool FindArmedHelicopter(out ResourceName prefab)
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if (!economy)
+			return false;
+
+		array<ResourceName> all = new array<ResourceName>();
+		economy.FindVehicles("", all);
+
+		foreach (ResourceName candidate : all)
+		{
+			if (candidate.IndexOf(HELICOPTER_PREFAB_FRAGMENT) == -1)
+				continue;
+
+			if (!economy.IsRegisteredResource(candidate))
+				continue;
+
+			int id = economy.GetInventoryId(candidate);
+			if (economy.IsLegalVehicle(id))
+				continue;
+
+			if (economy.GetParkingType(id) != OVT_ParkingType.PARKING_HELI)
 				continue;
 
 			prefab = candidate;
@@ -562,16 +613,15 @@ class OVT_TEST_Init_StorageSeam_DWarehouseBuildingIsUnlimited : SCR_AutotestCase
 }
 
 //------------------------------------------------------------------------------------------------
-//! An illegal or armed wheeled vehicle resolves NO capacity, and is not offered as a destination.
+//! An illegal or armed wheeled vehicle resolves the SMALL armed cap, and IS offered as a destination.
 //!
-//! The inverse of case B, and the only automated check on the "capacity 0 means not a holder" rule
-//! that every gate, action and picker downstream is built on. Two claims:
-//!   1. AUTO answers 0 for an illegal vehicle - a stolen BTR is not a mobile warehouse;
-//!   2. OVT_StorageHolderQuery leaves it out, which is the clause (GetCapacity() != 0) that keeps it
-//!      off the destination picker and out of server-side validation.
+//! Inverted 2026-09-01 by logistics/vehicle-rearm R4: a captured BTR is how 25 mm boxes reach a
+//! LAV. Two claims:
+//!   1. AUTO answers the caller's armed cap (default 100) for a registered illegal vehicle;
+//!   2. OVT_StorageHolderQuery offers it, so it appears in the destination picker.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_StorageSeam_EIllegalVehicleHasNoStorage : SCR_AutotestCaseBase
+class OVT_TEST_Init_StorageSeam_EArmedVehicleHasSmallStorage : SCR_AutotestCaseBase
 {
 	static const int MAX_POLLS = 900;
 
@@ -636,28 +686,26 @@ class OVT_TEST_Init_StorageSeam_EIllegalVehicleHasNoStorage : SCR_AutotestCaseBa
 			return false;
 		}
 
-		if (storage.GetCapacity() != OVT_StorageComponent.NO_CAPACITY)
+		if (storage.GetCapacity() != 100)
 		{
-			SetFailure("The illegal vehicle %1 resolved capacity %2, expected 0. Anything else makes an armed or illegal vehicle a storage holder, with actions on it and a slot in every destination picker.",
+			SetFailure("The illegal vehicle %1 resolved capacity %2, expected the default armed cap 100. The armed branch of OVT_StorageRules.ResolveAutoCapacity is not returning the component's m_iArmedVehicleCapacity.",
 				m_sPrefab,
 				storage.GetCapacity().ToString());
 			return FinishAndCleanUp();
 		}
 
-		// Claim 2 - the radius query's capacity clause actually excludes it. Asserted as "not present"
-		// rather than "found nothing", because what else stands near the spawn point is the world's
-		// business, not this case's.
+		// Claim 2 - the query offers it, the same clause that puts it in the destination picker.
 		array<IEntity> holders = new array<IEntity>();
 		OVT_StorageHolderQuery query = new OVT_StorageHolderQuery();
 		query.Run(m_Vehicle.GetOrigin(), QUERY_RADIUS, holders);
 
-		if (holders.Contains(m_Vehicle))
+		if (!holders.Contains(m_Vehicle))
 		{
-			SetFailure("OVT_StorageHolderQuery offered the illegal vehicle %1 as a holder even though its capacity is 0 - the FilterHolders capacity clause is gone, so it would appear in the destination picker", m_sPrefab);
+			SetFailure("OVT_StorageHolderQuery did not offer the armed vehicle %1 even though its capacity is 100 - FilterHolders is dropping it, so it would be missing from the destination picker and no ammunition could be loaded", m_sPrefab);
 			return FinishAndCleanUp();
 		}
 
-		PrintFormat("Storage seam: the illegal vehicle %1 resolves NO capacity and is not offered as a holder", m_sPrefab);
+		PrintFormat("Storage seam: the armed vehicle %1 resolves the small armed cap and is offered as a holder", m_sPrefab);
 		return FinishAndCleanUp();
 	}
 
@@ -1140,6 +1188,114 @@ class OVT_TEST_Init_StorageSeam_JDeclaredPartsAreDetected : SCR_AutotestCaseBase
 
 
 //------------------------------------------------------------------------------------------------
+//! An armed helicopter carries an OVT_StorageComponent at all, and resolves the small armed cap.
+//!
+//! This is the plan's Phase-3 "case F"; F and G were already taken in this file, so it takes the
+//! free K slot.
+//!
+//! Helicopters reached this feature holding nothing: the component arrives through ONE block on
+//! Prefabs/Vehicles/Core/Helicopter_Base.et and nothing else, and losing that block is silent - the
+//! storage actions simply stop appearing and every helicopter in the game reads as "not a holder".
+//! The same edit also had to remove an OVT_RearmVehicleAction from that file, which is exactly the
+//! kind of hand edit that takes a neighbouring block with it.
+//!
+//! Case E covers the same AUTO armed branch on Wheeled_Base.et, so K red with E green means the
+//! helicopter prefab rather than the rule.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_KArmedHelicopterHasSmallStorage : SCR_AutotestCaseBase
+{
+	static const int MAX_POLLS = 900;
+
+	//! The cap the AUTO armed branch answers with, and the value Helicopter_Base.et authors.
+	static const int EXPECTED_CAPACITY = 100;
+
+	protected int m_iPolls;
+	protected IEntity m_Helicopter;
+	protected ResourceName m_sPrefab;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (!m_Helicopter)
+		{
+			if (!OVT_TEST_StorageSeamSubject.FindArmedHelicopter(m_sPrefab))
+			{
+				SetFailure("The economy knows no armed helicopter, so 'a helicopter is a storage holder' has no subject. Check that Configs/Pricing/vehiclePrices.conf still registers the UH1H and Mi8MT families as illegal PARKING_HELI.");
+				return true;
+			}
+
+			vector position;
+			if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("820 0 600", position))
+			{
+				SetFailure("No town is registered, so there is nowhere sensible to put a test helicopter");
+				return true;
+			}
+
+			m_Helicopter = OVT_Global.SpawnEntityPrefab(m_sPrefab, position);
+			if (!m_Helicopter)
+			{
+				SetFailure("SpawnEntityPrefab() produced no helicopter from %1", m_sPrefab);
+				return true;
+			}
+		}
+
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(m_Helicopter);
+		if (!storage)
+		{
+			SetFailure("The armed helicopter %1 has no OVT_StorageComponent - Prefabs/Vehicles/Core/Helicopter_Base.et has lost its entry, so no helicopter in the game is a storage holder, nothing can be loaded into one and the helicopter serializer binding has nothing to write", m_sPrefab);
+			return FinishAndCleanUp();
+		}
+
+		if (storage.GetCapacityMode() != EOVT_StorageCapacityMode.AUTO)
+		{
+			SetFailure("The armed helicopter %1 does not use AUTO capacity, so this case would assert an override instead of the AUTO armed branch", m_sPrefab);
+			return FinishAndCleanUp();
+		}
+
+		if (!storage.IsCapacityResolved())
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetFailure("The armed helicopter %1 never resolved a capacity in %2 frames - the deferred resolve is not running, or is still waiting on the economy catalogue",
+					m_sPrefab,
+					m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		if (storage.GetCapacity() != EXPECTED_CAPACITY)
+		{
+			SetFailure("The armed helicopter %1 resolved capacity %2, expected the armed cap %3. Either Helicopter_Base.et is not authoring m_iArmedVehicleCapacity or the economy no longer calls this prefab illegal.",
+				m_sPrefab,
+				storage.GetCapacity().ToString(),
+				EXPECTED_CAPACITY.ToString());
+			return FinishAndCleanUp();
+		}
+
+		PrintFormat("Storage seam: the armed helicopter %1 carries a storage component and resolves the small armed cap", m_sPrefab);
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Helicopter)
+		{
+			delete m_Helicopter;
+			m_Helicopter = null;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
 //! The declared-part read must survive a variant delta AND an unloaded resource.
 //!
 //! WHY THIS FILE NEEDS A SECOND PART CASE. Case J proves the read on Vest_SovietHarness_AR, which
@@ -1411,6 +1567,93 @@ class OVT_TEST_Init_StorageSeam_NArmedMinesAreNotLoot : SCR_AutotestCaseBase
 		{
 			SCR_EntityHelper.DeleteEntityAndChildren(m_Mine);
 			m_Mine = null;
+		}
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! The civilian Mi-8 delta resolves UNLIMITED storage.
+//!
+//! This is the one automated proof that Mi8MT_unarmed_civ_base.et {366EA0B41474A7F8} loaded at all
+//! and re-declared the storage GUID K proved on Helicopter_Base.et rather than minting a second
+//! component on the same entity. Both the mode and the number are asserted, same as every other case
+//! here: the AUTO legal-heli branch also answers a number (300, not -1), so the number alone would
+//! still catch a dropped attribute here, but the mode assertion is kept for consistency.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
+class OVT_TEST_Init_StorageSeam_OCivilianMi8IsUnlimited : SCR_AutotestCaseBase
+{
+	static const int MAX_POLLS = 900;
+
+	protected int m_iPolls;
+	protected IEntity m_Helicopter;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (!m_Helicopter)
+		{
+			vector position;
+			if (!OVT_TEST_StorageSeamSubject.ResolveSpawnPosition("860 0 660", position))
+			{
+				SetFailure("No town is registered, so there is nowhere sensible to put a test civilian Mi-8");
+				return true;
+			}
+
+			m_Helicopter = OVT_Global.SpawnEntityPrefab(OVT_TEST_StorageSeamSubject.CIVILIAN_MI8_PREFAB, position);
+			if (!m_Helicopter)
+			{
+				SetFailure("SpawnEntityPrefab() produced no entity from %1 - the same-GUID delta did not load", OVT_TEST_StorageSeamSubject.CIVILIAN_MI8_PREFAB);
+				return true;
+			}
+		}
+
+		OVT_StorageComponent storage = OVT_StorageUtils.GetStorage(m_Helicopter);
+		if (!storage)
+		{
+			SetFailure("The civilian Mi-8 %1 has no OVT_StorageComponent - the delta lost its re-declared block", OVT_TEST_StorageSeamSubject.CIVILIAN_MI8_PREFAB);
+			return FinishAndCleanUp();
+		}
+
+		if (storage.GetCapacityMode() != EOVT_StorageCapacityMode.UNLIMITED)
+		{
+			SetFailure("The civilian Mi-8 is not authored UNLIMITED. The AUTO legal-heli branch would still answer a number (300, not -1), so this case would silently assert the wrong branch without this check.");
+			return FinishAndCleanUp();
+		}
+
+		if (!storage.IsCapacityResolved())
+		{
+			m_iPolls += 1;
+			if (m_iPolls > MAX_POLLS)
+			{
+				SetFailure("The civilian Mi-8 never resolved a capacity in %1 frames - the deferred resolve is not running", m_iPolls.ToString());
+				return FinishAndCleanUp();
+			}
+
+			return false;
+		}
+
+		if (storage.GetCapacity() != OVT_StorageComponent.UNLIMITED_CAPACITY)
+		{
+			SetFailure("The civilian Mi-8 resolved capacity %1, expected -1 (unlimited). 300 would mean the AUTO legal-heli branch is answering instead of the authored UNLIMITED mode.", storage.GetCapacity().ToString());
+			return FinishAndCleanUp();
+		}
+
+		Print("Storage seam: the civilian Mi-8 delta resolves UNLIMITED capacity");
+		return FinishAndCleanUp();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case is over either way.
+	protected bool FinishAndCleanUp()
+	{
+		if (m_Helicopter)
+		{
+			delete m_Helicopter;
+			m_Helicopter = null;
 		}
 
 		return true;

@@ -1853,6 +1853,9 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 	//! ⚠ SPAWN THEN DEBIT. The ledger is only debited once a real entity exists, so a refused spawn
 	//! costs the player nothing. The first refusal on a line ends THAT LINE, not the job: items are
 	//! different sizes, and a rifle that will not fit says nothing about the next magazine.
+	//!
+	//! A prefab that is hidden in a vanilla inventory never leaves at all - it would arrive invisible
+	//! and unrecoverable, so the line is counted as shortfall and left on the ledger.
 	//! \param[in] job The take.
 	//! \return True when every line is done.
 	protected bool StepToInventory(OVT_StorageJob job)
@@ -1874,6 +1877,16 @@ class OVT_StorageRequestComponent : OVT_BaseServerProgressComponent
 
 			string res = job.m_aRes[0];
 			int wanted = job.m_aQty[0];
+
+			// A hidden item vanishes the moment it reaches a hand inventory, so the WHOLE line is
+			// refused before anything spawns and before the ledger is debited - it stays where the
+			// vehicle rearm can still eat it. THE ONLY LEDGER -> INVENTORY EXIT IN THE MOD.
+			if (OVT_PrefabUtils.IsItemHiddenInInventory(res))
+			{
+				job.m_iShortfall += wanted;
+				job.DropFrontLine();
+				continue;
+			}
 
 			// R9: re-clamped against LIVE membership at every step, not only at VALIDATE, so a second
 			// player batching on the same holder can never drive this line negative.

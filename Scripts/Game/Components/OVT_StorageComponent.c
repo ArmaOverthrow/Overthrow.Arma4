@@ -69,6 +69,9 @@ class OVT_StorageComponent : OVT_Component
 	[Attribute("300", desc: "Item capacity an AUTO-resolved registered, legal, non-truck vehicle gets")]
 	protected int m_iAutoVehicleCapacity;
 
+	[Attribute("100", desc: "Item capacity an AUTO-resolved registered but illegal or armed vehicle gets")]
+	protected int m_iArmedVehicleCapacity;
+
 	[Attribute("", desc: "Localization key used as the display name when the prefab carries no UIInfo of its own")]
 	protected string m_sDefaultNameKey;
 
@@ -417,7 +420,7 @@ class OVT_StorageComponent : OVT_Component
 		bool isVehicle = (Vehicle.Cast(owner) != null);
 		if (!isVehicle)
 		{
-			ApplyCapacity(OVT_StorageRules.ResolveAutoCapacity(false, false, false, OVT_ParkingType.PARKING_CAR, m_iAutoVehicleCapacity));
+			ApplyCapacity(OVT_StorageRules.ResolveAutoCapacity(false, false, false, OVT_ParkingType.PARKING_CAR, m_iAutoVehicleCapacity, m_iArmedVehicleCapacity));
 			return;
 		}
 
@@ -460,7 +463,7 @@ class OVT_StorageComponent : OVT_Component
 			ReportUnregisteredVehicle(prefab);
 		}
 
-		ApplyCapacity(OVT_StorageRules.ResolveAutoCapacity(true, registered, isLegal, parking, m_iAutoVehicleCapacity));
+		ApplyCapacity(OVT_StorageRules.ResolveAutoCapacity(true, registered, isLegal, parking, m_iAutoVehicleCapacity, m_iArmedVehicleCapacity));
 	}
 
 	//------------------------------------------------------------------------------------------------

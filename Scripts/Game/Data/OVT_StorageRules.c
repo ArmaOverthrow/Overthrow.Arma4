@@ -23,8 +23,9 @@ class OVT_StorageRules
 	//! \param[in] isLegalVehicle False for illegal or armed vehicles.
 	//! \param[in] parking The registered vehicle's parking type.
 	//! \param[in] defaultVehicleCapacity Capacity for an ordinary registered legal car.
+	//! \param[in] armedVehicleCapacity Capacity for a registered but illegal or armed vehicle.
 	//! \return -1 unlimited, 0 none, otherwise the item cap.
-	static int ResolveAutoCapacity(bool isVehicle, bool isRegistered, bool isLegalVehicle, OVT_ParkingType parking, int defaultVehicleCapacity)
+	static int ResolveAutoCapacity(bool isVehicle, bool isRegistered, bool isLegalVehicle, OVT_ParkingType parking, int defaultVehicleCapacity, int armedVehicleCapacity)
 	{
 		if (!isVehicle)
 			return -1;
@@ -33,12 +34,22 @@ class OVT_StorageRules
 			return 0;
 
 		if (!isLegalVehicle)
-			return 0;
+			return armedVehicleCapacity;
 
 		if (parking == OVT_ParkingType.PARKING_TRUCK)
 			return -1;
 
 		return defaultVehicleCapacity;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether an item that leaves a ledger for a hand inventory would vanish from the player's view.
+	//! \param[in] authoredFound Whether an ancestor in the prefab chain authored m_bVisible at all.
+	//! \param[in] authoredVisible The authored value, read only when authoredFound is true.
+	//! \return True only when an ancestor authored m_bVisible 0. Unauthored (not found) is visible.
+	static bool HiddenFromInventory(bool authoredFound, bool authoredVisible)
+	{
+		return authoredFound && !authoredVisible;
 	}
 
 	//------------------------------------------------------------------------------------------------

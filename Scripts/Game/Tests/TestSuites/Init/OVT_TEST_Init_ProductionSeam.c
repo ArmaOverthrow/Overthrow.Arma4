@@ -32,9 +32,6 @@ class OVT_TEST_ProductionSeamSubject
 	//! deliberate act and should update this number with it.
 	static const int EXPECTED_SITE_COUNT = 1;
 
-	//! What OVT_ProductionSite_Base.et authors as m_fCargoVolume, in litres.
-	static const int EXPECTED_CAPACITY_LITRES = 20000;
-
 	//! Frame polls allowed for the game mode's components to post-init and for the world query to run.
 	static const int MAX_POLLS = 300;
 
@@ -272,11 +269,12 @@ class OVT_TEST_Init_ProductionSeam_CSiteCarriesStoreAndComponent : SCR_AutotestC
 			return true;
 		}
 
-		if (store.GetCapacityLitres() != OVT_TEST_ProductionSeamSubject.EXPECTED_CAPACITY_LITRES)
+		// Capacity is the only throttle production has, so it has to be a real ceiling - but WHICH
+		// ceiling is authored per site (Sawmill 90, CementPlant 40, the base 20), so no number here.
+		if (store.GetCapacityLitres() <= 0)
 		{
-			SetFailure("The site's store holds %1 litres, expected %2. Capacity is the only throttle production has - an unlimited site would accumulate a whole campaign's stock.",
-				store.GetCapacityLitres().ToString(),
-				OVT_TEST_ProductionSeamSubject.EXPECTED_CAPACITY_LITRES.ToString());
+			SetFailure("The site's store holds %1 litres, so it can never bank anything. Check m_fCargoVolume on the site's prefab.",
+				store.GetCapacityLitres().ToString());
 			return true;
 		}
 

@@ -9474,6 +9474,9 @@ class OVT_TEST_StorageRoundTripFixture
 	//! Metres searched for the world's warehouse building.
 	static const float WAREHOUSE_SEARCH_RADIUS = 20000;
 
+	//! Prefab path fragment every helicopter variant shares, in both the US and USSR catalogues.
+	static const string HELICOPTER_PREFAB_FRAGMENT = "/Helicopters/";
+
 	protected IEntity m_FoundWarehouse;
 
 	//------------------------------------------------------------------------------------------------
@@ -9490,6 +9493,42 @@ class OVT_TEST_StorageRoundTripFixture
 
 		position = anchor + offset;
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Resolves a helicopter prefab out of the economy's own vehicle catalogue.
+	//!
+	//! Parking type as well as the path fragment, so a mis-pathed ground vehicle cannot stand in for the
+	//! prefab family whose persistence binding this fixture's helicopter case exists to check. Read from
+	//! the catalogue rather than hardcoded, so retuning which helicopters Overthrow sells changes which
+	//! one is exercised instead of turning the case red for a reason that is not about storage.
+	//! \param[out] prefab The prefab to spawn; untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	static string ResolveHelicopterPrefab(out ResourceName prefab)
+	{
+		OVT_EconomyManagerComponent economy = OVT_Global.GetEconomy();
+		if (!economy)
+			return "OVT_Global.GetEconomy() is null, so there is no vehicle catalogue to pick a helicopter out of";
+
+		array<ResourceName> all = new array<ResourceName>();
+		economy.FindVehicles("", all);
+
+		foreach (ResourceName candidate : all)
+		{
+			if (candidate.IndexOf(HELICOPTER_PREFAB_FRAGMENT) == -1)
+				continue;
+
+			if (!economy.IsRegisteredResource(candidate))
+				continue;
+
+			if (economy.GetParkingType(economy.GetInventoryId(candidate)) != OVT_ParkingType.PARKING_HELI)
+				continue;
+
+			prefab = candidate;
+			return "";
+		}
+
+		return "The economy knows no registered PARKING_HELI vehicle, so a helicopter ledger has no subject to round-trip";
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -9952,6 +9991,280 @@ class OVT_TEST_PersistenceRoundTrip_StorageBox_LedgerAndNameSurviveSave : SCR_Au
 		}
 
 		Print("A placed ammo box's item ledger and its name survived a real save and came back out of storage");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! A HELICOPTER's item ledger survives a real save.
+//!
+//! The serializer is one class but the BINDING is a per-vehicle-class .conf entry, and a serializer
+//! that is not listed is never called - silently, with no error at save time and none at load time.
+//! The wheeled case exercises vanilla's CAR configuration {64C6B4937723DA61}; this one exercises the
+//! HELICOPTER configuration {64EE8D74EB8192BA}, which carried no storage serializer at all until
+//! logistics/vehicle-rearm put a storage component on Helicopter_Base.et (D10). Without the binding
+//! every helicopter ledger reads back empty on the next continue while the wheeled case stays green,
+//! which is the exact failure this case exists to make loud.
+//!
+//! No name here - the box case owns that assertion.
+//!
+//! The subject is a PARKING_HELI vehicle from the economy's own catalogue, spawned rather than
+//! registered, so this adds nothing to any player's vehicle registry.
+//!
+//! ⚠ Takes a real save; `StorageHelicopter*` sorts after `..._Capability_...`. It sorts between
+//! `StorageBox*` and `StorageVehicle*` and disturbs neither. Left standing (BUG-118).
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
+class OVT_TEST_PersistenceRoundTrip_StorageHelicopter_LedgerSurvivesSave : SCR_AutotestCaseBase
+{
+	//! Offset from where a test vehicle would go, clear of every other storage subject.
+	static const vector SPAWN_OFFSET = "42 0 0";
+
+	static const int SAVED_A = 5150;
+	static const int SAVED_B = 23;
+
+	static const int PHASE_SPAWN = 0;
+	static const int PHASE_AWAIT_TRACKING = 1;
+	static const int PHASE_STOCK_AND_SAVE = 2;
+	static const int PHASE_AWAIT_SAVE = 3;
+	static const int PHASE_DIRTY_AND_RELOAD = 4;
+	static const int PHASE_AWAIT_RELOAD = 5;
+	static const int PHASE_ASSERT = 6;
+
+	protected int m_iPhase;
+	protected int m_iTrackingPolls;
+	protected int m_iSavePolls;
+	protected int m_iReloadPolls;
+	protected int m_iSaveBaseline;
+
+	protected IEntity m_Helicopter;
+	protected ResourceName m_sPrefab;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == PHASE_SPAWN)
+			return Spawn();
+
+		if (m_iPhase == PHASE_AWAIT_TRACKING)
+			return AwaitTracking();
+
+		if (m_iPhase == PHASE_STOCK_AND_SAVE)
+			return StockAndSave();
+
+		if (m_iPhase == PHASE_AWAIT_SAVE)
+			return AwaitSave();
+
+		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
+			return DirtyAndReload();
+
+		if (m_iPhase == PHASE_AWAIT_RELOAD)
+			return AwaitReload();
+
+		return Assert();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool Spawn()
+	{
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveHelicopterPrefab(m_sPrefab);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		vector position;
+		diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveSubjectPosition(SPAWN_OFFSET, position);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		m_Helicopter = OVT_Global.SpawnEntityPrefab(m_sPrefab, position);
+		if (!m_Helicopter)
+		{
+			SetFailure(string.Format("SpawnEntityPrefab() produced no helicopter from %1", m_sPrefab));
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_TRACKING;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! A helicopter is registered by the native Persistence component on its prefab, which is
+	//! asynchronous enough to be worth waiting for. Bounded, and expiry fails.
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitTracking()
+	{
+		if (!m_Helicopter)
+		{
+			SetFailure("The spawned helicopter left the world before it was registered for saving");
+			return true;
+		}
+
+		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Helicopter))
+		{
+			m_iTrackingPolls += 1;
+			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(string.Format("The spawned helicopter %1 never became persistence-tracked, so it has no stored record and nothing about its cargo can survive a save", m_sPrefab));
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_STOCK_AND_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool StockAndSave()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		// Closure 3: a freshly spawned helicopter holds nothing, so the saved ledger is never a state the
+		// spawn path could have produced.
+		if (storage.GetLedger().Total() != 0)
+		{
+			SetFailure("The spawned helicopter was already carrying a ledger the moment it appeared, so the values below would not be this case's");
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Stock(storage, SAVED_A, SAVED_B);
+
+		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+		if (trigger != "")
+		{
+			SetFailure(trigger);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_SAVE;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitSave()
+	{
+		string saveDiagnostic;
+		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+		{
+			SetFailure(saveDiagnostic);
+			return true;
+		}
+
+		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+		{
+			m_iSavePolls += 1;
+			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+			{
+				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_DIRTY_AND_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to advance.
+	protected bool DirtyAndReload()
+	{
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		OVT_TEST_StorageRoundTripFixture.Dirty(storage);
+
+		if (storage.GetLedger().Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != 0)
+		{
+			SetFailure("The helicopter kept its saved ledger through the dirtying step, so the reload would prove nothing");
+			return true;
+		}
+
+		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(m_Helicopter);
+		if (reload != "")
+		{
+			SetFailure(reload);
+			return true;
+		}
+
+		m_iPhase = PHASE_AWAIT_RELOAD;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True when the case is finished (a failure); false to keep waiting or advance.
+	protected bool AwaitReload()
+	{
+		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+		{
+			m_iReloadPolls += 1;
+			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+			{
+				SetFailure("The helicopter's stored record was never re-applied: the persistence system's re-application never completed");
+				return true;
+			}
+
+			return false;
+		}
+
+		m_iPhase = PHASE_ASSERT;
+		return false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Always true - the case ends here either way.
+	protected bool Assert()
+	{
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_StorageComponent storage;
+		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		diagnostic = OVT_TEST_StorageRoundTripFixture.AssertLedgerRestored(storage, SAVED_A, SAVED_B, "The spawned helicopter");
+		if (diagnostic != "")
+		{
+			SetFailure(diagnostic);
+			return true;
+		}
+
+		Print("A helicopter's item ledger survived a real save and came back out of storage");
 
 		return true;
 	}

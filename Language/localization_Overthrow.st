@@ -4104,9 +4104,9 @@ StringTable {
   }
   CustomStringTableItem "{6B5A2E0100000003}" {
    Id "OVT-FieldManual_Ports_Text"
-   Target_en_us "A port trades in bulk with the vehicle you are sitting in, and both you and the vehicle have to be within thirty metres of it. The vehicle needs storage of its own, so an illegal or armed one cannot trade there at all. The port screen has an Import side and an Export side."
+   Target_en_us "A port trades in bulk with the vehicle you are sitting in, and both you and the vehicle have to be within thirty metres of it. The vehicle trades out of its own storage, so what it can take in at once is whatever room that storage has left: three hundred items in an ordinary car, a hundred in an illegal or armed one, no limit in a truck. The port screen has an Import side and an Export side."
    Target_ru_ru "Порт торгует оптом с транспортным средством, в котором вы сидите, и вы и транспорт должны находиться в пределах тридцати метров от него. Транспорт должен иметь собственное хранилище, поэтому нелегальная или вооружённая техника там вообще не может торговать. В окне порта есть стороны «Импорт» и «Экспорт»."
-   Comment "Field Manual - Ports page, opening paragraph. Three sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Occupied vehicle: OVT_PortContext.c:263-268 (GetOccupiedVehicle) and :410-416 (ResolveExportHolder). Thirty metres on both ends: OVT_VehicleRequestComponent.c:60 IMPORT_MAX_PORT_DISTANCE with the caller check at :55-59 and the vehicle check at :64-68, and OVT_StorageRequestComponent.c:173 EXPORT_MAX_PORT_DISTANCE set to the same number. Storage required: OVT_VehicleRequestComponent.c:70-75 refuses a vehicle whose capacity is NO_CAPACITY, which OVT_StorageRules.c:35-36 returns for an illegal or armed vehicle. Two sides: OVT_PortContext.c:117-120 inserts the Import and Export mode labels."
+   Comment "Field Manual - Ports page, opening paragraph. Three sentences, no rich-text markup. RE-FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7; the previous version said an illegal or armed vehicle could not trade at a port at all, which stopped being true when OVT_StorageRules.ResolveAutoCapacity started returning m_iArmedVehicleCapacity (default 100, OVT_StorageComponent.c:73) instead of 0. Room left is what the port screen reads: OVT_PortContext.FreeSpaceIn (:328-339) returns capacity minus the current count, or -1 for an unlimited holder. Occupied vehicle: OVT_PortContext.c:263-268 (GetOccupiedVehicle) and :410-416 (ResolveExportHolder). Thirty metres on both ends: OVT_VehicleRequestComponent.c:60 IMPORT_MAX_PORT_DISTANCE with the caller check at :55-59 and the vehicle check at :64-68, and OVT_StorageRequestComponent.c:173 EXPORT_MAX_PORT_DISTANCE set to the same number. A vehicle with NO_CAPACITY is still refused (OVT_VehicleRequestComponent.c:70-75); no registered vehicle resolves to that any more. Two sides: OVT_PortContext.c:117-120 inserts the Import and Export mode labels."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -4357,6 +4357,142 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000040}" {
+   Id "OVT-FieldManual_Rearm_Head"
+   Target_en_us "Ammunition Before Money"
+   Comment "Field Manual - Re-arming Vehicles page (Money and Trade category), section header above the storage-first paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000041}" {
+   Id "OVT-FieldManual_Rearm_Head2"
+   Target_en_us "Paying for the Rest"
+   Comment "Field Manual - Re-arming Vehicles page, section header above the money/supply-point paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000042}" {
+   Id "OVT-FieldManual_Rearm_Head3"
+   Target_en_us "Carrying the Ammunition"
+   Comment "Field Manual - Re-arming Vehicles page, section header above the hidden-ammunition paragraph. No rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000043}" {
+   Id "OVT-FieldManual_Rearm_Text"
+   Target_en_us "Every armed vehicle carries a Re-arm action, from an armed jeep to an APC to a helicopter gunship. It is one action and one full restock: every turret magazine and every rocket pod the vehicle has comes back full together, and there is no way to refill part of it."
+   Comment "Field Manual - Re-arming Vehicles page, opening paragraph, two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. 'Every armed vehicle': OVT_RearmVehicleAction is authored on Prefabs/Vehicles/Core/Vehicle_Base.et:78-88 (the ONLY prefab in the tree that declares it) under the seven-name context union heli_repair_point / door_r01 / door_l01 / door_rear / door_back_left / door_back_right / hatch_commander, which reaches the wheeled armour, the armed jeeps and both helicopter families; CanBeShownScript hides it on a vehicle with nothing rearmable (OVT_RearmVehicleAction.c:78-82). 'one full restock': OVT_VehicleRearmUtils.PerformRearm sets every collected magazine to GetMaxAmmoCount() and reloads every rocket pod in one pass. DO NOT add a per-weapon or partial re-arm: explicitly out of scope in requirements.md."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000044}" {
+   Id "OVT-FieldManual_Rearm_Text2"
+   Target_en_us "A re-arm spends storage before it spends money. It looks in the vehicle's own storage first, then in every storage within twenty five metres that you are allowed to draw from, for the magazines the vehicle's weapons take, and anything it finds there is spent instead of bought. When storage covers the whole re-arm the action reads Re-arm (from storage), costs nothing and works anywhere, so a crew that hauled its own ammunition is not tied to a base."
+   Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Ammunition Before Money', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Own storage first: OVT_VehicleRearmUtils.CollectRearmStores removes the vehicle's own store from the collected list and prepends it, because position is priority for the sequential TakeUpTo. Twenty five metres: ResolveHolderRadius reads the asking player's OVT_StorageRequestComponent.m_fHolderRadius, attribute default 25 (OVT_StorageRequestComponent.c:212), the same radius the storage destination picker uses. 'allowed to draw from': OVT_StorageUtils.PlayerMayDrawFrom. 'the magazines the vehicle's weapons take': OVT_VehicleRearmUtils.BuildPlan resolves each unit's prefab from the muzzle's default magazine, falling back to the loaded magazine's prefab. Free and anywhere: OVT_RearmVehicleAction.CanBePerformedScript returns true outright when the quoted cost is <= 0 (:100-102), before any site or funds test; the label is #OVT-RearmVehicle_FromStorage (:123-129). DO NOT quote a price for this case; there is none."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000045}" {
+   Id "OVT-FieldManual_Rearm_Text3"
+   Target_en_us "Only what storage cannot cover is bought, and the price is that same share of the full one, so half the magazines covered is half the bill. That bought part is the only part with a place attached to it: the vehicle has to be standing at a built Helipad or a built Garage at a base the resistance holds, or within a hundred metres of a deployed FOB. Anywhere else with something still to buy, the action shows blocked and names the helipad, garage or FOB it wants."
+   Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Paying for the Rest', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Pro rata: OVT_VehicleRearmRules.ProratedCost(fullCost, uncoveredUnits, totalUnits) - 0 when nothing is uncovered, the full cost when nothing is covered, otherwise fullCost scaled by the uncovered fraction and floored at 1. Full price: OVT_VehicleRearmUtils.GetRearmCost() = REARM_BASE_COST 1000 scaled by OVT_DifficultySettings.vehiclePriceMultiplier, so DO NOT print a dollar figure here. Site: OVT_VehicleRearmUtils.IsAtRearmSite is IsNearDeployedFOB (FOB_SEARCH_RADIUS 100) OR IsAtSupplyStructure, which searches SITE_SEARCH_RADIUS 20 for a built OVT_BuildableComponent of type HELIPAD_BUILDABLE_TYPE 'Helipad' or GARAGE_BUILDABLE_TYPE 'VehicleGarage'; both constants are at OVT_VehicleRearmUtils.c:53-62. The site test runs only when cost > 0, on the client at OVT_RearmVehicleAction.c:104-108 and again on the server. Blocked reason: #OVT-Rearm_NeedsSupplyPoint, whose own text names helipad, garage or FOB - keep the three in step. The vehicle must also be within 15 m of the player (VEHICLE_MAX_DISTANCE), deliberately not stated: it is the ordinary reach of any vehicle action."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000046}" {
+   Id "OVT-FieldManual_Rearm_Text4"
+   Target_en_us "Vehicle weapon ammunition can be imported at a port and moved from one storage list to another, but it never comes out into anyone's hands: taking it out reports it as missing and it stays on the list. That is exactly where a re-arm looks for it, so a crate of it on the list of a truck parked alongside counts for as much as a crate on the vehicle's own."
+   Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Carrying the Ammunition', two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Never leaves the ledger: the guard at OVT_StorageRequestComponent.c:1884 in StepToInventory - the ONLY ledger-to-inventory exit in the mod - adds the whole line to the job's shortfall and drops it before anything spawns, for any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on (an ancestor authoring m_bVisible 0; OVT_StorageRules.HiddenFromInventory). This is deliberate, not a defect: vanilla's inventory refuses to draw those items, so before the guard they were spawned invisibly and lost. 'a truck parked alongside': OVT_VehicleRearmUtils.CollectRearmStores collects every usable holder in the holder radius, not only the vehicle's own. NOTE the guard also traps mortar rounds, M203 rounds and loose rocket prefabs in ledgers; it is not exclusive to vehicle ammunition, so this paragraph deliberately says only what a player will meet."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6BA1C4E000000047}" {
+   Id "OVT-FieldManual_Rearm_Title"
+   Target_en_us "Re-arming Vehicles"
+   Comment "Field Manual - Re-arming Vehicles page title (Money and Trade category), sits after Vehicle Repair. Two words, no rich-text markup."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788307200
    Author "Claude"
    LastChanged "Claude"
    ImageLink ""
@@ -5799,9 +5935,9 @@ StringTable {
   }
   CustomStringTableItem "{6B5A2E0100000016}" {
    Id "OVT-FieldManual_Storage_Text2"
-   Target_en_us "A truck's storage has no limit and an ordinary car holds three hundred items, while an ammo box or a warehouse building holds as much as it is given. An illegal or armed vehicle has none at all, and neither does a helicopter, so no Storage action appears on them."
+   Target_en_us "A truck's storage has no limit and an ordinary car holds three hundred items, while an ammo box or a warehouse building holds as much as it is given. An illegal or armed vehicle keeps a smaller hold of a hundred items, enough for ammunition and not much else. Helicopters have storage as well, on the same terms, and one civilian Mi-8 carries a hold with no limit at all."
    Target_ru_ru "Хранилище грузовика не имеет ограничений, обычный автомобиль вмещает триста предметов, а ящик с боеприпасами или складское здание — столько, сколько дано. Нелегальный или вооружённый транспорт вообще не имеет хранилища, как и вертолёты, поэтому на них не появляется действие «Хранилище»."
-   Comment "Field Manual - Storage page, body paragraph under 'What Has Storage'. Two sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Capacities: OVT_StorageRules.c:27-42 - a truck parking type returns unlimited, a registered legal vehicle returns the authored default, and an illegal or armed one returns 0; the default is 300 on Prefabs/Vehicles/Core/Wheeled_Base.et:10. Boxes and warehouses are unlimited (the non-vehicle branch, OVT_StorageRules.c:29-30, plus the UNLIMITED mode on those two prefabs). Helicopters: the component is authored on Wheeled_Base.et, which no helicopter inherits from, so GetStorage returns null and the action hides at OVT_StorageActionBase.c:37-52 - the same place a zero capacity hides it."
+   Comment "Field Manual - Storage page, body paragraph under 'What Has Storage'. Three sentences, no rich-text markup. RE-FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7; the previous version said armed vehicles and helicopters had no storage, which stopped being true this feature. Capacities: OVT_StorageRules.ResolveAutoCapacity (Scripts/Game/Data/OVT_StorageRules.c:28-43) - a truck parking type returns unlimited, a registered legal vehicle returns the authored default, and a registered but illegal or armed one now returns armedVehicleCapacity. The two authored numbers are m_iAutoVehicleCapacity 300 and m_iArmedVehicleCapacity 100 (OVT_StorageComponent.c:70-74, authored on Prefabs/Vehicles/Core/Wheeled_Base.et and, since this feature, on Prefabs/Vehicles/Core/Helicopter_Base.et:8-12). Unlimited Mi-8: Prefabs/Vehicles/Helicopters/Mi8MT/Mi8MT_unarmed_civ_base.et re-declares the same component with m_eCapacityMode UNLIMITED - it is the ONLY unlimited helicopter, do not generalise. Boxes and warehouses are unlimited (the non-vehicle branch, OVT_StorageRules.c:30-31)."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -5817,9 +5953,9 @@ StringTable {
   }
   CustomStringTableItem "{6B5A2E0100000017}" {
    Id "OVT-FieldManual_Storage_Text3"
-   Target_en_us "The cart goes to one of two sorts of destination. This container spawns the goods into the container's own inventory, where they can be picked up by hand. Any other storage standing within twenty five metres takes them straight onto its own list instead, with nothing spawned in between. A warehouse building has no inventory of its own, so it only offers the second."
+   Target_en_us "The cart goes to one of two sorts of destination. This container spawns the goods into the container's own inventory, where they can be picked up by hand. Any other storage standing within twenty five metres takes them straight onto its own list instead, with nothing spawned in between. A warehouse building has no inventory of its own, so it only offers the second. Vehicle weapon ammunition is the one thing that cannot take the first route: it is reported as missing and stays on the list, which is where a re-arm can still reach it."
    Target_ru_ru "Корзина направляется в одно из двух мест назначения. Этот контейнер помещает товары в собственный инвентарь контейнера, откуда их можно забрать руками. Любое другое хранилище в радиусе двадцати пяти метров принимает их сразу в свой список, без промежуточного создания. Складское здание не имеет собственного инвентаря, поэтому предлагает только второй вариант."
-   Comment "Field Manual - Storage page, body paragraph under 'Taking Things Out'. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Destinations: OVT_StorageContext.c:184-232. 'This container' is #OVT-Storage_DestinationInventory and resolves to the holder itself (:191-199), which the job engine services as TO_INVENTORY by spawning into the vanilla inventory (OVT_StorageRequestComponent.c:1811 and the spawn-then-debit ordering note at :1088). Twenty five metres: the picker searches m_fHolderRadius, whose attribute default is 25 (OVT_StorageRequestComponent.c:205) and which Prefabs/GameMode/OVT_OverthrowController.et does not override. Ledger-to-ledger with no spawn: OVT_StorageRules.c:129-162. Warehouse exception: OVT_StorageContext.c:190-191."
+   Comment "Field Manual - Storage page, body paragraph under 'Taking Things Out'. Five sentences, no rich-text markup. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10; last sentence added 2026-09-01 for logistics/vehicle-rearm. Vehicle weapon ammunition: OVT_StorageRequestComponent.StepToInventory refuses any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on (the guard at OVT_StorageRequestComponent.c:1884), counting the line as shortfall and leaving the ledger untouched - those prefabs author m_bVisible 0 and vanilla's inventory never draws them. Destinations: OVT_StorageContext.c:184-232. 'This container' is #OVT-Storage_DestinationInventory and resolves to the holder itself (:191-199), which the job engine services as TO_INVENTORY by spawning into the vanilla inventory (OVT_StorageRequestComponent.c:1811 and the spawn-then-debit ordering note at :1088). Twenty five metres: the picker searches m_fHolderRadius, whose attribute default is 25 (OVT_StorageRequestComponent.c:205) and which Prefabs/GameMode/OVT_OverthrowController.et does not override. Ledger-to-ledger with no spawn: OVT_StorageRules.c:129-162. Warehouse exception: OVT_StorageContext.c:190-191."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -16248,6 +16384,30 @@ StringTable {
    Modified 1786759417
    Author "Aaron Static"
   }
+  CustomStringTableItem "{6BA1C4E000000030}" {
+   Id "OVT-Rearm_NeedsSupplyPoint"
+   Target_en_us "Take it to a helipad, garage or FOB to buy the missing ammunition"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6BA1C4E000000031}" {
+   Id "OVT-RearmVehicle_FromStorage"
+   Target_en_us "Re-arm (from storage)"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6BA1C4E000000032}" {
+   Id "OVT-Msg-Rearmed"
+   Target_en_us "Vehicle re-armed: %1 item(s) drawn from storage, $%2 paid"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6BA1C4E000000033}" {
+   Id "OVT-Msg-RearmNeedsSupplyPoint"
+   Target_en_us "Cannot re-arm: take the vehicle to a helipad, garage or FOB to buy the missing ammunition"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
@@ -22822,9 +22982,9 @@ StringTable {
   }
   CustomStringTableItem "{6B5A2E0100000030}" {
    Id "OVT-Tutorial_StorageFirstOpen_Body"
-   Target_en_us "Ammo boxes, warehouse buildings and most legal wheeled vehicles keep storage of their own: a list of goods the container holds rather than items sitting loose inside it. The number beside the Storage action is how many are on that list.<br/><br/>Anything on the list can be taken out into this container, where it turns back into items you can pick up, or sent straight onto the list of another container standing within twenty five metres.<br/><br/>Other actions on the container put everything it is carrying onto the list at once, or give it a name of its own."
+   Target_en_us "Ammo boxes, warehouse buildings and most vehicles keep storage of their own: a list of goods the container holds rather than items sitting loose inside it. The number beside the Storage action is how many are on that list.<br/><br/>Anything on the list can be taken out into this container, where it turns back into items you can pick up, or sent straight onto the list of another container standing within twenty five metres. Vehicle weapon ammunition is the exception: it stays on the list, which is where a re-arm looks for it.<br/><br/>Other actions on the container put everything it is carrying onto the list at once, or give it a name of its own."
    Target_ru_ru "Ящики с боеприпасами, склады и большинство легальных колёсных транспортных средств имеют собственное хранилище: список товаров, а не предметы внутри. Число рядом с действием «Хранилище» — это количество предметов в списке. Любой предмет из списка можно извлечь в этот контейнер, где он становится предметами, которые можно поднять, или отправить напрямую в список другого контейнера в радиусе двадцати пяти метров. Другие действия на контейнере перемещают всё, что в нём находится, в список за раз или дают ему имя."
-   Comment "Tutorial popup body for Configs/Tutorials/storageFirstOpen.conf, fired by MENU_OPENED with the filter OVT_StorageContext. RICH TEXT: the two <br/><br/> pairs are paragraph breaks and must be preserved in translation. TONE: informs, never instructs - no imperative and no implied order. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Holders and the count: OVT_AmmoBox_Base.et, Warehouse_01_Base.et, Wheeled_Base.et:8-11, and OVT_OpenStorageMenuAction.c:38-51 for the bracketed number. 'This container' spawning real items: OVT_StorageContext.c:191-199 with the TO_INVENTORY step at OVT_StorageRequestComponent.c:1811. Twenty five metres: m_fHolderRadius default 25 at OVT_StorageRequestComponent.c:205, unoverridden on OVT_OverthrowController.et. The last sentence covers Transfer all to storage (OVT_TransferAllToStorageAction.c) and Rename storage (OVT_RenameStorageAction.c) without naming a required order. The longer version is the Field Manual Storage page, which this entry links to through m_sFieldManualTitleKey."
+   Comment "Tutorial popup body for Configs/Tutorials/storageFirstOpen.conf, fired by MENU_OPENED with the filter OVT_StorageContext. RICH TEXT: the two <br/><br/> pairs are paragraph breaks and must be preserved in translation. TONE: informs, never instructs - no imperative and no implied order. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Holders and the count ('most vehicles' since 2026-09-01: armed and illegal vehicles now resolve to 100 rather than 0, and Helicopter_Base.et:8-12 carries the component): OVT_AmmoBox_Base.et, Warehouse_01_Base.et, Wheeled_Base.et:8-11, and OVT_OpenStorageMenuAction.c:38-51 for the bracketed number. 'This container' spawning real items: OVT_StorageContext.c:191-199 with the TO_INVENTORY step at OVT_StorageRequestComponent.c:1811. Twenty five metres: m_fHolderRadius default 25 at OVT_StorageRequestComponent.c:205, unoverridden on OVT_OverthrowController.et. Vehicle weapon ammunition (added 2026-09-01, logistics/vehicle-rearm): the StepToInventory guard at OVT_StorageRequestComponent.c:1884 refuses any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on, so the line stays on the ledger where OVT_VehicleRearmUtils can spend it. The last sentence covers Transfer all to storage (OVT_TransferAllToStorageAction.c) and Rename storage (OVT_RenameStorageAction.c) without naming a required order. The longer version is the Field Manual Storage page, which this entry links to through m_sFieldManualTitleKey."
    DevNote ""
    Repro ""
    ActorGender NONE

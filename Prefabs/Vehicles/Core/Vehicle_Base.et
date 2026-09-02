@@ -29,7 +29,7 @@ Vehicle {
     }
     OVT_OpenStorageMenuAction "{6A8E2D0000000020}" {
      ParentContextList {
-      "door_r01" "door_l01" "door_rear"
+      "door_r01" "door_l01" "door_rear" "door_back_left" "door_back_right" "hatch_commander"
      }
      UIInfo UIInfo "{6A8E2D0000000021}" {
       Name "#OVT-Storage_Open"
@@ -53,7 +53,7 @@ Vehicle {
     }
     OVT_TransferAllToStorageAction "{6A8E2D0000000022}" {
      ParentContextList {
-      "door_r01" "door_l01" "door_rear"
+      "door_r01" "door_l01" "door_rear" "door_back_left" "door_back_right" "hatch_commander"
      }
      UIInfo UIInfo "{6A8E2D0000000023}" {
       Name "#OVT-Storage_TransferAll"
@@ -65,7 +65,7 @@ Vehicle {
     }
     OVT_RenameStorageAction "{6A8E2D0000000024}" {
      ParentContextList {
-      "door_r01" "door_l01" "door_rear"
+      "door_r01" "door_l01" "door_rear" "door_back_left" "door_back_right" "hatch_commander"
      }
      UIInfo UIInfo "{6A8E2D0000000025}" {
       Name "#OVT-Storage_Rename"
@@ -74,6 +74,18 @@ Vehicle {
      Duration 0
      CanAggregate 1
      "Sort Priority" 104
+    }
+    OVT_RearmVehicleAction "{6A9F4C2DB1E07A31}" {
+     ParentContextList {
+      "heli_repair_point" "door_r01" "door_l01" "door_rear" "door_back_left" "door_back_right" "hatch_commander"
+     }
+     UIInfo UIInfo "{6A9F4C2DB1E07A32}" {
+      Name "#OVT-RearmVehicle"
+     }
+     VisibilityRange -1
+     Duration 5
+     CanAggregate 1
+     "Sort Priority" 105
     }
     OVT_FillFuelAction "{6B4E1F1000000010}" {
      ParentContextList {
