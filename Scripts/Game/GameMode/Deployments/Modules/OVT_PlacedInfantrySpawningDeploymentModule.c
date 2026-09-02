@@ -430,7 +430,12 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 	//! \return The subset nobody is standing on.
 	protected array<ref OVT_DeploymentPlacement> FilterPostsHeldByResistance(notnull array<ref OVT_DeploymentPlacement> posts)
 	{
-		if (m_fNoSpawnNearResistance <= 0)
+		// ⚠ THROUGH THE SHARED RESOLVER, NOT OFF THE RAW ATTRIBUTE. This gate used to read
+		// m_fNoSpawnNearResistance directly, which cut it off from both the test seam and the
+		// founding-force exemption - so a base's tower guards were still held back at game start after
+		// every other gate had let them through.
+		float noSpawnRadius = ResolveNoSpawnNearResistance();
+		if (noSpawnRadius <= 0)
 			return posts;
 
 		array<ref OVT_DeploymentPlacement> clear = new array<ref OVT_DeploymentPlacement>();
@@ -440,7 +445,7 @@ class OVT_PlacedInfantrySpawningDeploymentModule : OVT_InfantrySpawningDeploymen
 			if (!post)
 				continue;
 
-			if (OVT_ResistancePresence.IsGroundHeld(post.m_vPosition, m_fNoSpawnNearResistance))
+			if (OVT_ResistancePresence.IsGroundHeld(post.m_vPosition, noSpawnRadius))
 				continue;
 
 			clear.Insert(post);

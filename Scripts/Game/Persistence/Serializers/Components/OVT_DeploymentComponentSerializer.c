@@ -30,6 +30,9 @@
 //! config's modules, registering with the manager, starting the update loop - happens in
 //! OVT_DeploymentComponent.ApplyPersistedDeployment(), which is idempotent.
 //!
+//! VERSION 3 IS ADDITIVE TOO. It appends the free-at-game-start flag behind the version 2 key, under
+//! the same rule: a version 1 or 2 payload reads it as false.
+//!
 //! VERSION 2 IS ADDITIVE. It APPENDS the deployment's virtualization key after the five version 1
 //! fields, which keep their positions, so a version 1 payload is still read correctly - it simply
 //! restores a deployment with no key, and OVT_DeploymentComponent.EnsureVirtualKey() derives one
@@ -57,8 +60,8 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Writes the deployment's config name, faction, threat, invested resources, wipe-out flag and
-	//! virtualization key.
+	//! Writes the deployment's config name, faction, threat, invested resources, wipe-out flag,
+	//! virtualization key and free-at-game-start flag.
 	//! \param[in] owner The deployment marker entity.
 	//! \param[in] component The deployment component being saved.
 	//! \param[in] context Save context to write into.
@@ -69,7 +72,7 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 		if (!deployment)
 			return ESerializeResult.ERROR;
 
-		context.WriteValue("version", 2);
+		context.WriteValue("version", 3);
 
 		string configName;
 		OVT_DeploymentConfig config = deployment.GetConfig();
@@ -94,6 +97,13 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 		// version 1 payload does and derives on first use. Saving must not have side effects.
 		string virtualKey = deployment.GetVirtualKey();
 		context.Write(virtualKey);
+
+		// VERSION 3, APPENDED LAST. Without it a continued campaign's baseline forces come back looking
+		// like ordinary purchases, and the two rules that exist only for a founding force - spawn in the
+		// town rather than march from a base, and ignore the player-proximity gate for the first
+		// registration - both stop applying on the first reload.
+		const bool seededAtGameStart = deployment.WasSeededAtGameStart();
+		context.Write(seededAtGameStart);
 
 		return ESerializeResult.OK;
 	}
@@ -141,7 +151,14 @@ class OVT_DeploymentComponentSerializer : ScriptedComponentSerializer
 		if (version >= 2)
 			context.Read(virtualKey);
 
-		deployment.ApplyPersistedDeployment(configName, controllingFaction, threatLevel, resourcesInvested, spawnedUnitsEliminated, virtualKey);
+		// VERSION 3 APPENDED THE GAME-START FLAG, read under the same positional rule. A version 1 or 2
+		// deployment comes back as false, which is the conservative reading: it can only cost a restored
+		// baseline force the two relaxations, never grant them to something that never had them.
+		bool seededAtGameStart;
+		if (version >= 3)
+			context.Read(seededAtGameStart);
+
+		deployment.ApplyPersistedDeployment(configName, controllingFaction, threatLevel, resourcesInvested, spawnedUnitsEliminated, virtualKey, seededAtGameStart);
 
 		return true;
 	}

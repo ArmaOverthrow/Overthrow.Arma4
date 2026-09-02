@@ -371,10 +371,43 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! IS THIS THE FOUNDING FORCE OF A GAME-START DEPLOYMENT, standing up for the very first time?
+	//!
+	//! 🔴 THE BASELINE IS NOT SOMETHING A PLAYER WATCHES ARRIVE (author, 2026-09-02: "all the free at
+	//! start ones still need to spawn regardless of player proximity"). The gate defers rather than
+	//! cancels, which is right for a mid-campaign purchase and wrong here: a player starts in his home
+	//! town, so the town patrol seeded into it is inside the 500 m circle from the first frame and is
+	//! held back for as long as he stays - the campaign opens with the one town he is looking at empty.
+	//!
+	//! ⚠ NARROWER THAN WasSeededAtGameStart() ALONE, DELIBERATELY. That flag lives for the deployment's
+	//! whole life and the paid-for rebuy comes back through this same method, so exempting on it would
+	//! re-open the "men appeared next to me" hole for every seeded place for the rest of the campaign.
+	//! Holding no handles is what makes this the FOUNDING pass: once the force exists ReclaimHandles()
+	//! keeps it non-empty, and a force that was wiped returns above this on the eliminated check.
+	//! \return True when the gate must not apply to this pass.
+	protected bool IsFoundingRegistration()
+	{
+		if (!m_ParentDeployment || !m_ParentDeployment.WasSeededAtGameStart())
+			return false;
+
+		return m_aHandles.IsEmpty();
+	}
+
+	//! Whether the pass currently running is that founding one. Set once per ConvergeGroups pass and
+	//! read by ResolveNoSpawnNearResistance(), which is the only thing that acts on it. Runtime state,
+	//! NOT an authored attribute - CloneModule must not copy it.
+	protected bool m_bFoundingPass;
+
+	//------------------------------------------------------------------------------------------------
 	//! \return The gate radius, or 0 when this module is not subject to it at all.
 	protected float ResolveNoSpawnNearResistance()
 	{
 		if (!AppliesNoSpawnNearResistanceGate())
+			return 0;
+
+		// ⚠ AHEAD OF THE TEST OVERRIDE TOO. A case that arms the seam is asking about the gate; a
+		// founding force is not subject to it at all, on any radius.
+		if (m_bFoundingPass)
 			return 0;
 
 		// ⚠ THE OVERRIDE BEATS THE EXEMPTION'S SIBLINGS BUT NOT THE EXEMPTION ITSELF - an insertion is
@@ -415,6 +448,11 @@ class OVT_InfantrySpawningDeploymentModule : OVT_BaseSpawningDeploymentModule
 
 		if (m_bSpawnedUnitsEliminated || m_ParentDeployment.GetSpawnedUnitsEliminated())
 			return 0;
+
+		// ⚠ LATCHED ONCE, HERE, FOR THE WHOLE PASS. Asked per group instead it would answer true for the
+		// first and false for every one after it, because registering group 0 fills m_aHandles - the
+		// founding force would come out one man strong.
+		m_bFoundingPass = IsFoundingRegistration();
 
 		int missing = OVT_DeploymentVirtualKey.MissingCount(GetMaxGroupCount(), m_aHandles.Count());
 		if (missing <= 0)

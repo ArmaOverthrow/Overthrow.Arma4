@@ -120,7 +120,10 @@ class OVT_DeploymentComponent : OVT_Component
 	//! \param[in] spawnedUnitsEliminated Whether its force had already been wiped out.
 	//! \param[in] virtualKey The virtualization key its registered groups are tagged with. EMPTY for a
 	//!            version 1 payload, which was written before deployments carried one.
-	void ApplyPersistedDeployment(string configName, int factionIndex, float threatLevel, int resourcesInvested, bool spawnedUnitsEliminated, string virtualKey)
+	//! \param[in] seededAtGameStart Whether this deployment was put down by the free-at-game-start pass.
+	//!            FALSE for a version 1 or 2 payload, which is the safe reading - it only ever relaxes
+	//!            two rules for a founding force (see WasSeededAtGameStart).
+	void ApplyPersistedDeployment(string configName, int factionIndex, float threatLevel, int resourcesInvested, bool spawnedUnitsEliminated, string virtualKey, bool seededAtGameStart = false)
 	{
 		if (!Replication.IsServer())
 			return;
@@ -136,6 +139,7 @@ class OVT_DeploymentComponent : OVT_Component
 		m_fThreatLevel = threatLevel;
 		m_iResourcesInvested = resourcesInvested;
 		m_bSpawnedUnitsEliminated = spawnedUnitsEliminated;
+		m_bSeededAtGameStart = seededAtGameStart;
 
 		// The SAVED key wins over anything this session could derive: it is the string the groups in
 		// the registry are actually tagged with, and re-deriving it would only agree by luck once the

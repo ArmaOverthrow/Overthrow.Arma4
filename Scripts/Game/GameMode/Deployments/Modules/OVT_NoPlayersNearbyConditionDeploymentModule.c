@@ -25,9 +25,17 @@
 //! nothing about whether the defense may continue to exist while he is there - it obviously must.
 //! ==========================================================================================
 //!
-//! NO PLAYERS AT ALL PASSES. GetPlayerProximity() answers float.MAX when nobody is connected, which
-//! is the state a dedicated server is in before the first join and the state the free-at-game-start
-//! seeding pass runs in. A baseline force must be on the ground before anyone arrives.
+//! NO PLAYERS AT ALL PASSES: an empty circle is not held, which is the state a dedicated server is in
+//! before the first join.
+//!
+//! 🔴 AND THE SEEDING PASS IS EXEMPT OUTRIGHT (AppliesToGameStartSeeding, 2026-09-02). This header used
+//! to claim the free-at-game-start pass "runs in" the no-players state. It does not: it fires at +9 s,
+//! by which time a single-player host, a listen host and every continued campaign already have a body
+//! on the map - so a base within m_fMinPlayerDistance of wherever the player happened to start, or to
+//! load, silently seeded NO fortifications, NO garrison patrol, NO tower guards and NO parked vehicles,
+//! once and for the rest of that campaign (seeding is idempotent fill-in, it does not retry). The rule
+//! is about not letting a player WATCH a force appear mid-campaign; the world's opening state is not
+//! something he watches appear, it is what is already there when he looks.
 //------------------------------------------------------------------------------------------------
 [BaseContainerProps(configRoot: true), BaseContainerCustomTitleField("m_sModuleName")]
 class OVT_NoPlayersNearbyConditionDeploymentModule : OVT_BaseConditionDeploymentModule
@@ -64,6 +72,15 @@ class OVT_NoPlayersNearbyConditionDeploymentModule : OVT_BaseConditionDeployment
 		// rebuy gate above all - kept letting men through. IsGroundHeld now fails closed for every
 		// caller, so this is one call again.
 		return !OVT_ResistancePresence.IsGroundHeld(position, m_fMinPlayerDistance);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Seeding gate: EXEMPT. The world's opening state is not a force a player watches arrive - see the
+	//! class header.
+	//! \return False, always.
+	override bool AppliesToGameStartSeeding()
+	{
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------

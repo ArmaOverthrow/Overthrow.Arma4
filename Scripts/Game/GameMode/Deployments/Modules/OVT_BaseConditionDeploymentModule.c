@@ -12,6 +12,19 @@ class OVT_BaseConditionDeploymentModule : OVT_BaseDeploymentModule
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! Whether the free-at-game-start seeding pass asks this condition at all.
+	//!
+	//! Seeding is the world's OPENING STATE, not a decision to spend a budget, so a condition that
+	//! answers "should this force appear NOW, given what is happening" does not apply to it. A
+	//! condition that answers "does this place belong to this faction" always does, and that is why the
+	//! default is true.
+	//! \return True when the seeding pass must respect this condition.
+	bool AppliesToGameStartSeeding()
+	{
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	// Dynamic condition evaluation for active deployments
 	//------------------------------------------------------------------------------------------------
 	bool EvaluateCondition()

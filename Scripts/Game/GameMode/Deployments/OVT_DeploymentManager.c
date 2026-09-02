@@ -899,7 +899,9 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//!   - m_fChance - a garrison that exists 70% of the time is not a baseline;
 	//!   - m_iMinimumThreatLevel - threat measures what has already happened, and at t0 nothing has.
 	//!     The config's own condition MODULES are still asked, because those answer "does this place
-	//!     belong to this faction";
+	//!     belong to this faction" - all except the ones that opt out through
+	//!     AppliesToGameStartSeeding(), which is how the player-proximity gate stays out of the
+	//!     baseline (PassesSeedConditions);
 	//!   - MAX_DEPLOYMENTS_PER_EVALUATION - that cap paces an ongoing spend, and there is nothing here
 	//!     to pace.
 	//!
@@ -1004,17 +1006,26 @@ class OVT_DeploymentManagerComponent : OVT_Component
 	//! floor - the modules, not the threat gate. Keeping the modules is what makes seeding safe on a
 	//! continued campaign: the tower garrison's control condition refuses a tower the resistance
 	//! already holds, so loading a save cannot re-garrison what the player has taken.
+	//!
+	//! ⚠ EXCEPT THE ONES THAT ANSWER "SHOULD THIS APPEAR NOW". A player-proximity gate exists to stop a
+	//! force materialising in front of somebody mid-campaign; the opening state of the world is not a
+	//! force anybody watches arrive. Asking it here cost a base near the player's start or load position
+	//! its whole baseline garrison, once and permanently - seeding is idempotent fill-in and never
+	//! retries. Each module says for itself, through AppliesToGameStartSeeding().
 	//! \param[in] config The config being seeded.
 	//! \param[in] position The candidate position.
 	//! \param[in] factionIndex The faction being seeded for.
 	//! \param[in] threatLevel The candidate's scored threat, passed through to the modules.
-	//! \return True when every condition module accepts the position.
+	//! \return True when every condition module that applies to seeding accepts the position.
 	protected bool PassesSeedConditions(notnull OVT_DeploymentConfig config, vector position, int factionIndex, float threatLevel)
 	{
 		foreach (OVT_BaseDeploymentModule moduleTemplate : config.m_aModules)
 		{
 			OVT_BaseConditionDeploymentModule conditionModule = OVT_BaseConditionDeploymentModule.Cast(moduleTemplate);
-			if (conditionModule && !conditionModule.EvaluateStaticCondition(position, factionIndex, threatLevel))
+			if (!conditionModule || !conditionModule.AppliesToGameStartSeeding())
+				continue;
+
+			if (!conditionModule.EvaluateStaticCondition(position, factionIndex, threatLevel))
 				return false;
 		}
 
