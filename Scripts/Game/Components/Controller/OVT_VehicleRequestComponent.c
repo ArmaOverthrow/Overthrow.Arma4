@@ -265,10 +265,13 @@ class OVT_VehicleRequestComponent : OVT_ControllerRequestComponent
 		playerOwner.SetPlayerOwner(playerUid);
 		playerOwner.SetLocked(false);
 
-		// Register vehicle for despawn/respawn management
 		OVT_VehicleManagerComponent vehicles = OVT_Global.GetVehicles();
 		if(vehicles && Vehicle.Cast(vehicle))
 		{
+			// The map and the vehicle menu read the manager's RplId-keyed owner map, not the
+			// component - a claim that skips it is owned but invisible (BUG-197)
+			if(RplComponent.Cast(vehicle.FindComponent(RplComponent)))
+				vehicles.SetOwnerPersistentId(playerUid, vehicle);
 			vehicles.RegisterPlayerVehicle(playerUid, vehicle);
 		}
 	}
