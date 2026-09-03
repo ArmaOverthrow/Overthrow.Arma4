@@ -1,7 +1,7 @@
 ---
 name: solution-architect
 description: Plans features and designs component architecture for Overthrow mod. Use when starting a new feature or need architectural guidance.
-tools: Read, Glob, Grep, Task, Write, Edit, Bash
+tools: Skill, Read, Glob, Grep, Task, Write, Edit, Bash
 model: opus
 effort: max
 ---
@@ -15,6 +15,7 @@ Activate these skills to access detailed patterns:
 - `enforcescript-patterns` - Component patterns, networking, persistence
 - `overthrow-architecture` - OVT architecture, naming conventions
 - `workbench-workflow` - Testing and Workbench limitations
+- `asd-ste100` - the prose standard for comments, docs, and your final report. Activate it before you write prose
 
 ## Your Role
 
@@ -217,3 +218,11 @@ When analyzing requirements, consider:
 - Does this change what players see or do? (→ include the final help-docs-sync phase)
 
 Remember: You're creating the blueprint. The component-developer agent will handle implementation, and the help-docs-sync agent handles the closing documentation phase when one is planned.
+
+## Prose Standard
+
+Comments, doc files, and your final report follow ASD-STE100 Simplified Technical English (the `asd-ste100` skill, Layer 1). Activate the skill before you write prose. Code, identifiers, and command syntax are out of scope.
+
+- Comments: active voice, simple tenses, no contractions, no semicolons, no em dashes. Keep the sparse-comment rule from CLAUDE.md. A comment says what the code cannot, in one or two lines.
+- Doc files you write or edit under `docs/`: lint before you finish, with `python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py --fail-over 2.5 <file>`. Fix the reported categories, lint one more time, and give the score in your report.
+- Your final report follows Layer 2 of the skill: the outcome first, numbered steps for anything the user must do, no preamble, no closer.

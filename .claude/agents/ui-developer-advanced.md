@@ -1,7 +1,7 @@
 ---
 name: ui-developer-advanced
 description: Heavyweight Overthrow UI work - multi-screen reworks, input-scheme changes, and console/gamepad-critical phases. Used by /proceed-advanced, or by /proceed when the user opts in.
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Skill, Read, Write, Edit, Grep, Glob, Bash
 model: opus
 effort: xhigh
 ---
@@ -22,6 +22,7 @@ Activate these for detailed patterns:
 - `overthrow-architecture` — OVT naming, manager/controller access, file structure
 - `enforcescript-patterns` — component patterns, invokers, memory, networking
 - `workbench-workflow` — what the user must verify by hand
+- `asd-ste100` - the prose standard for comments, docs, and your final report. Activate it before you write prose
 
 ## Non-Negotiables
 
@@ -146,6 +147,14 @@ Please test in Workbench:
 | Mouse click runs twice | `OnClick` overridden *and* `m_OnClicked` subscribed, with no guard |
 | Gamepad cannot move in the menu | `ActionContext` missing `MenuUp/Down/Left/Right` |
 | Resource will not resolve | Missing `.layout.meta` |
+
+## Prose Standard
+
+Comments, doc files, and your final report follow ASD-STE100 Simplified Technical English (the `asd-ste100` skill, Layer 1). Activate the skill before you write prose. Code, identifiers, and command syntax are out of scope.
+
+- Comments: active voice, simple tenses, no contractions, no semicolons, no em dashes. Keep the sparse-comment rule from CLAUDE.md. A comment says what the code cannot, in one or two lines.
+- Doc files you write or edit under `docs/`: lint before you finish, with `python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py --fail-over 2.5 <file>`. Fix the reported categories, lint one more time, and give the score in your report.
+- Your final report follows Layer 2 of the skill: the outcome first, numbered steps for anything the user must do, no preamble, no closer.
 
 ## Remember
 

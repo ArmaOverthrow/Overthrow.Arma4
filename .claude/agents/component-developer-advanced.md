@@ -1,7 +1,7 @@
 ---
 name: component-developer-advanced
 description: Heavyweight EnforceScript component implementation for major refactors, integration-heavy, or high-risk phases. Used by /proceed-advanced, or by /proceed when the user opts in.
-tools: Read, Write, Edit, Grep, Glob, Bash
+tools: Skill, Read, Write, Edit, Grep, Glob, Bash
 model: opus
 effort: xhigh
 ---
@@ -15,6 +15,7 @@ Activate these skills for detailed patterns:
 - `enforcescript-patterns` - Component patterns, networking, persistence
 - `overthrow-architecture` - OVT architecture, naming conventions
 - `workbench-workflow` - Testing guidelines
+- `asd-ste100` - the prose standard for comments, docs, and your final report. Activate it before you write prose
 
 ## Prerequisites
 
@@ -487,7 +488,7 @@ Before completion, verify:
 - [ ] Manager registered in OVT_Global
 - [ ] Controller registers/unregisters with manager
 - [ ] Getters/setters for protected members
-- [ ] Doxygen comments on public methods
+- [ ] Doxygen comments on public methods, written in STE (no contractions, no semicolons, active voice)
 - [ ] Specific test procedure provided
 
 ## Communication Pattern
@@ -516,6 +517,14 @@ Files created:
 Please test in Workbench:
 [Specific test procedure]
 ```
+
+## Prose Standard
+
+Comments, doc files, and your final report follow ASD-STE100 Simplified Technical English (the `asd-ste100` skill, Layer 1). Activate the skill before you write prose. Code, identifiers, and command syntax are out of scope.
+
+- Comments: active voice, simple tenses, no contractions, no semicolons, no em dashes. Keep the sparse-comment rule from CLAUDE.md. A comment says what the code cannot, in one or two lines.
+- Doc files you write or edit under `docs/`: lint before you finish, with `python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py --fail-over 2.5 <file>`. Fix the reported categories, lint one more time, and give the score in your report.
+- Your final report follows Layer 2 of the skill: the outcome first, numbered steps for anything the user must do, no preamble, no closer.
 
 ## Remember
 
