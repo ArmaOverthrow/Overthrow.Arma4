@@ -16761,7 +16761,7 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{5D86A310C893DBDF}" {
+  CustomStringTableItem "{6BB5000000000003}" {
    Id "OVT-ProgressComplete"
    Target_en_us "Progress: 100%"
    Target_de_de "Fortschritt: 100 %"
@@ -16781,7 +16781,7 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{5D86A310C893DBDE}" {
+  CustomStringTableItem "{6BB5000000000002}" {
    Id "OVT-ProgressPercent"
    Target_en_us "Progress: %1%"
    Target_de_de "Fortschritt: %1 %"
@@ -18250,7 +18250,7 @@ StringTable {
    Author "Claude Code"
    LastChanged "Lemmi"
   }
-  CustomStringTableItem "{5D5C558A6E391A20}" {
+  CustomStringTableItem "{6BB5000000000001}" {
    Id "OVT-Recruits_RenameTitle"
    Target_en_us "Rename Recruit"
    Target_de_de "Rekrut umbenennen"
@@ -20158,7 +20158,7 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{A1B2C3D4E5F60003}" {
+  CustomStringTableItem "{6BB5000000000004}" {
    Id "OVT-SaveOfficerLoadout"
    Target_en_us "Save Resistance Loadout"
    Target_de_de "Widerstandsausrüstung speichern"
