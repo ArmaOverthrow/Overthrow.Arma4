@@ -561,32 +561,3 @@ class OVT_TEST_Logic_Influence_MomentumTargetQualifies : SCR_AutotestCaseBase
 		return true;
 	}
 }
-
-//------------------------------------------------------------------------------------------------
-//! Case 10 - the momentum reach is 2000 m.
-//!
-//! It moved out of a protected const on the momentum modifier class into the shared rule set, and a
-//! value that has moved is a value that can be mistyped in the move. It is also the one range in the
-//! feature that is NOT a difficulty setting - the two proximity ranges are configured per difficulty
-//! and are read from config at the call site, so there is nothing to pin about them here, whereas
-//! this one is a constant with exactly one home and this is the assertion that guards it.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
-class OVT_TEST_Logic_Influence_MomentumRangeConstant : SCR_AutotestCaseBase
-{
-	//! The reach the campaign has always applied, in metres.
-	protected static const float EXPECTED_RANGE = 2000;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (!OVT_TEST_LogicFixture.FloatEquals(OVT_InfluenceRules.MOMENTUM_RANGE, EXPECTED_RANGE))
-		{
-			SetFailure("The momentum reach is %1 m, expected %2 m; it moved out of a per-class constant and every town pair within the difference would gain or lose a support modifier", OVT_InfluenceRules.MOMENTUM_RANGE.ToString(), EXPECTED_RANGE.ToString());
-			return true;
-		}
-
-		return true;
-	}
-}

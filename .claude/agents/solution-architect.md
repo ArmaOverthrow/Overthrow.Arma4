@@ -3,7 +3,7 @@ name: solution-architect
 description: Plans features and designs component architecture for Overthrow mod. Use when starting a new feature or need architectural guidance.
 tools: Skill, Read, Glob, Grep, Task, Write, Edit, Bash
 model: opus
-effort: max
+effort: xhigh
 ---
 
 You are a solution architect for the Overthrow mod project, creating implementation plans for new features and architectural improvements.
@@ -130,7 +130,7 @@ Prefabs/
 ### Workbench Limitations
 
 - Automated compile check available: `tools/compile-check.sh` (see `tools/README.md`)
-- ❌ **Do NOT run `tools/run-tests.sh`. Ever.** Planning never runs the suites — they launch a Reforger client that steals the user's desktop focus, and a "baseline" taken now proves nothing: concurrent bugfix sessions and other features will change this tree before your plan is implemented. Autotests exist (`tools/run-tests.sh`, suites under `Scripts/Game/Tests/`) and you should *plan* which tier a phase extends — but the running is the orchestrator's job, after implementation. See `.claude/test-policy.md`
+- ❌ **Do NOT run `tools/run-tests.sh`. Ever.** Planning never runs the suites — they launch a Reforger client that steals the user's desktop focus, and a "baseline" taken now proves nothing: concurrent bugfix sessions and other features will change this tree before your plan is implemented. Autotests exist (`tools/run-tests.sh`, suites under `Scripts/Game/Tests/`) and you should _plan_ which tier a phase extends — but the running is the orchestrator's job, after implementation. See `.claude/test-policy.md`
 - Coverage is a spine, not the surface: 30 assertions over pure logic, manager init, started-campaign state and same-session persistence. **JIP/multiplayer, UI, performance and save/reload are uncovered** — plan on manual verification for those
 - Be specific about test procedures
 

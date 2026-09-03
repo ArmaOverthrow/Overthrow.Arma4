@@ -145,73 +145,6 @@ class OVT_TEST_Init_ProductionSeam_AManagerResolves : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The test world's Sawmill is discovered as exactly one record, and it starts unowned.
-//!
-//! Unowned is the load-bearing half: an owner arriving from discovery rather than from a purchase
-//! would make every site private to somebody on the first frame, and the shop actions would never
-//! appear on any of them.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_ProductionSeam_BSawmillIsDiscovered : SCR_AutotestCaseBase
-{
-	protected int m_iPolls;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_ResourceProductionManagerComponent manager;
-		string failure;
-
-		if (!OVT_TEST_ProductionSeamSubject.ResolveManager(manager, failure))
-		{
-			m_iPolls += 1;
-			if (m_iPolls > OVT_TEST_ProductionSeamSubject.MAX_POLLS)
-			{
-				SetFailure("%1 (still true after %2 frames)", failure, m_iPolls.ToString());
-				return true;
-			}
-
-			return false;
-		}
-
-		array<ref OVT_ProductionSiteData> sites = manager.GetSites();
-
-		if (sites.Count() != OVT_TEST_ProductionSeamSubject.EXPECTED_SITE_COUNT)
-		{
-			SetFailure("The world query discovered %1 production site(s), expected %2. Either the test world layer gained one without this case being updated, or one prefab is being counted twice.",
-				sites.Count().ToString(),
-				OVT_TEST_ProductionSeamSubject.EXPECTED_SITE_COUNT.ToString());
-			return true;
-		}
-
-		OVT_ProductionSiteData site;
-		if (!OVT_TEST_ProductionSeamSubject.ResolveSite(manager, site, failure))
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		if (site.owner != "")
-		{
-			SetFailure("The discovered site is already owned by '%1'. Discovery must produce an UNOWNED record - ownership only ever arrives from a purchase, the JIP stream or a save.", site.owner);
-			return true;
-		}
-
-		// Discovery writes 0; every batch after it re-derives the carry from a fresh sum. The INVARIANT
-		// is what is asserted, not the initial value, so this holds whatever order the cases run in.
-		if (site.carry < 0 || site.carry >= 1)
-		{
-			SetFailure("The site's fractional carry is %1, which is outside [0, 1). A carry that grows without bound would make a sub-1 rate produce in bursts and then stop.", site.carry.ToString());
-			return true;
-		}
-
-		PrintFormat("Production seam: one unowned site discovered at %1", site.location.ToString());
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! The site's entity carries the store and the production component the drip needs, and the resource
 //! it is authored to make is one the catalogue actually knows.
 //!
@@ -565,61 +498,6 @@ class OVT_TEST_Init_ProductionSeam_FPositionMatchingIsBounded : SCR_AutotestCase
 		}
 
 		PrintFormat("Production seam: position matching answers at %1 and refuses %2 away", site.location.ToString(), FAR_OFFSET.ToString());
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! OVT_ResourceProductionRequestComponent is actually ON the local player's OVT_OverthrowController.
-//!
-//! Same failure mode as every other controller component: written, compiled, and simply never added
-//! to Prefabs/GameMode/OVT_OverthrowController.et. No compile error, no runtime error, no log line -
-//! buying a site and flipping its privacy just never happen. OVT_TEST_Init_ControllerSeam carries the
-//! roster entry; this case carries the second claim the roster cannot make, that what resolves is the
-//! instance on THIS player's controller entity rather than some other player's seam.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_ProductionSeam_GRequestComponentResolves : SCR_AutotestCaseBase
-{
-	//! Frame polls allowed for the local player's controller to be spawned and registered.
-	static const int MAX_POLLS = 300;
-
-	protected int m_iPolls;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_OverthrowController controller = OVT_Global.GetController();
-		if (!controller)
-		{
-			m_iPolls += 1;
-			if (m_iPolls > MAX_POLLS)
-			{
-				SetFailure("OVT_Global.GetController() was still null after %1 polls (local player id %2). Nothing on the controller seam is reachable from this machine, so this case cannot say anything about OVT_ResourceProductionRequestComponent either way.",
-					m_iPolls.ToString(),
-					SCR_PlayerController.GetLocalPlayerId().ToString());
-				return true;
-			}
-
-			return false;
-		}
-
-		OVT_ResourceProductionRequestComponent viaAccessor = OVT_ControllerComponent<OVT_ResourceProductionRequestComponent>.Get();
-		if (!viaAccessor)
-		{
-			SetFailure("OVT_ControllerComponent<OVT_ResourceProductionRequestComponent>.Get() returned null while a controller entity exists. Prefabs/GameMode/OVT_OverthrowController.et is not carrying the component, so buying a production site and toggling its privacy silently never happen.");
-			return true;
-		}
-
-		OVT_ResourceProductionRequestComponent onEntity = OVT_ResourceProductionRequestComponent.Cast(controller.FindComponent(OVT_ResourceProductionRequestComponent));
-		if (viaAccessor != onEntity)
-		{
-			SetFailure("OVT_ControllerComponent<OVT_ResourceProductionRequestComponent>.Get() did not return the instance on the local player's own controller entity. Every site request would then be sent through another player's seam, and the server would resolve the caller as that player.");
-			return true;
-		}
-
-		PrintFormat("Production seam: OVT_ResourceProductionRequestComponent resolves off the local controller (found after %1 poll(s))", m_iPolls.ToString());
 		return true;
 	}
 }

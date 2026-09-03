@@ -630,8 +630,8 @@ class OVT_TEST_Init_MountedForce_HoldingFallsBackToTheMarch : SCR_AutotestCaseBa
 //! cannot disturb a threat-driven system running in the same world.
 //!
 //! ⚠ NO PREFAB PATH OR VEHICLE NAME IS WRITTEN AS A LITERAL. The rung table is authored in
-//! Configs/Factions/*.conf and OVT_TEST_Init_VehicleLadderResolution.c already pins that both shipped
-//! registries answer three DISTINCT rungs; repeating the names here would make this case a second copy
+//! Configs/Factions/*.conf, and both shipped
+//! registries answer three DISTINCT rungs. Repeating the names here would make this case a second copy
 //! of a config file.
 //!
 //! CAN-FAIL PROOF (compiled clean, exit 0, subject restored):

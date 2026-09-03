@@ -595,13 +595,19 @@ shell ever gets a chance to interpret them.
 
 | Target | GUID | Config | Suites (execution order is alphabetical, not config order) | Cases | Typical |
 |---|---|---|---|---|---|
-| **Fast** | `"{6A6E29FF47ECB840}"` | `Configs/Tests/OVT_TestGroup_Fast.conf` | `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite` | **20** | exit 0, **13–16 s** |
-| **All** | `"{6A6E2A002F53A581}"` | `Configs/Tests/OVT_TestGroup_All.conf` | `OVT_TEST_CampaignSuite`, `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite`, `OVT_TEST_PersistenceSuite`, `OVT_TEST_PersistenceRoundTripSuite` | **42** | exit 0, **~30 s** |
+| **Fast** | `"{6A6E29FF47ECB840}"` | `Configs/Tests/OVT_TestGroup_Fast.conf` | `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite` | see the last run | exit 0, about 10 s of case time |
+| **All** | `"{6A6E2A002F53A581}"` | `Configs/Tests/OVT_TestGroup_All.conf` | `OVT_TEST_CampaignSuite`, `OVT_TEST_InitSuite`, `OVT_TEST_LogicSuite`, `OVT_TEST_PersistenceSuite`, `OVT_TEST_PersistenceRoundTripSuite`, `OVT_TEST_SoakSuite` | see the last run | exit 0, 2 to 3 min |
 
 ```bash
-tools/run-tests.sh "{6A6E29FF47ECB840}"   # Fast — 20 cases
-tools/run-tests.sh "{6A6E2A002F53A581}"   # All  — 42 cases
+tools/run-tests.sh "{6A6E29FF47ECB840}"   # Fast
+tools/run-tests.sh "{6A6E2A002F53A581}"   # All
 ```
+
+**Tier rules (audit of 2026-09-03, `docs/features/dev-ops/test-coverage/audit-2026-09-03.md`):**
+
+- A case that waits on a wall-clock window or a spawn schedule goes in `OVT_TEST_SoakSuite`, never in the Init or Logic suite. Fast must stay under about 10 s of case time.
+- No case pins a value from a shipped config, prefab, or registry. A price, a count, a name, a distance, or an order is designer data. A test that reads it breaks on every tune. A structural check is fine: every entry has a cost, no two entries share a prefab, every name resolves.
+- A round-trip case picks its fixture as the first registry entry that has the property it needs, never by name.
 
 Deliberately in **neither** group: `OVT_TEST_MetaSuite` (always red by design)
 and `OVT_TEST_SmokeSuite` (asserts nothing the tier suites do not).
@@ -620,9 +626,7 @@ tools/run-tests.sh "{6A6E2A002F53A581}"   # nightly / pre-merge / release
 the round-trip suite's fresh-session precondition — unless `OVERTHROW_SAVE_DIR`
 pins a fixture.)
 
-The split buys scope, not wall time: All is only ~3 s slower than Fast, but
-Fast cannot be reddened by campaign or persistence state. Neither group needs
-`OVERTHROW_TEST_TIMEOUT` — both finish inside 20 s against a 300 s default.
+The split buys wall time and scope. Fast runs no wall-clock case and cannot go red on campaign or persistence state. All carries the soak, campaign, and round-trip suites and needs the 300 s default `OVERTHROW_TEST_TIMEOUT`.
 
 **What a green All run does not prove.** It is one client process, so
 join-in-progress and everything else multiplayer is untested — that is the most

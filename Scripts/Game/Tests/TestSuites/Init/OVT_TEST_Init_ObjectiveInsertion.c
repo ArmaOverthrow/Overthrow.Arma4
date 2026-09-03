@@ -442,28 +442,8 @@ class OVT_TEST_Init_ObjectiveInsertion_CloneCarriesEveryAttribute : SCR_Autotest
 }
 
 //------------------------------------------------------------------------------------------------
-//! `truck_crew` and `specops_team` resolve to real, loadable prefabs for BOTH shipped factions.
-//!
-//! ⚠ THE PREFAB IS ACTUALLY LOADED, NOT JUST LOOKED UP. Two different things can be wrong with a
-//! registry entry and only one of them is caught by a string comparison: the NAME can be misspelled
-//! (the lookup answers empty) or the GUID can be wrong or point at something that no longer ships
-//! (the lookup answers a perfectly good-looking string that resolves to nothing). The second is the
-//! more likely of the two here, because both entries were added by hand-editing a .conf with GUIDs
-//! recovered from git history and from the vanilla tree. Resource.Load() is what tells the two apart.
-//!
-//! ⚠ BOTH FACTIONS, BECAUSE A CAMPAIGN CAN BE EITHER WAY ROUND. Overthrow's occupying faction is
-//! authored per scenario; a registry entry added to USSR and forgotten on US produces a feature that
-//! works perfectly for half the players and not at all for the other half, and nothing in a
-//! single-faction test world would ever show it.
-//!
-//! THE EXISTING ENTRIES ARE SPOT-CHECKED TOO, so a failure can be read as "this entry is wrong"
-//! rather than "the registry is not loaded in this world" - which are very different bugs and would
-//! otherwise produce the same red.
-//!
-//! PROVEN ABLE TO FAIL: `m_sGroupName "truck_crew"` was misspelled to "truck_crews" in
-//! Configs/Factions/US_OverthrowData.conf. The tree compiled clean (exit 0 - a config string is not
-//! script), and the case then reports "faction 'US' has no group registry entry named 'truck_crew'".
-//! The entry was restored.
+//! Every group registry name an insertion config references resolves to a loadable prefab for every
+//! faction that carries a group registry.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_ObjectiveInsertion_RegistryNamesResolveForBothFactions : SCR_AutotestCaseBase
@@ -479,44 +459,109 @@ class OVT_TEST_Init_ObjectiveInsertion_RegistryNamesResolveForBothFactions : SCR
 			return true;
 		}
 
-		string failure = VerifyFaction(factions, "USSR");
-		if (failure == "")
-			failure = VerifyFaction(factions, "US");
-
-		if (failure != "")
+		OVT_DeploymentManagerComponent deployments = OVT_Global.GetDeploymentManager();
+		if (!deployments || !deployments.m_DeploymentRegistry || !deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
-			SetFailure(failure);
+			SetFailure("The deployment framework or its registry did not resolve");
 			return true;
 		}
 
-		Print("Both shipped factions carry loadable 'truck_crew' and 'specops_team' group registry entries");
+		array<string> groupNames = CollectInsertionGroupNames(deployments);
+		if (groupNames.IsEmpty())
+		{
+			SetFailure("No registered deployment config carries an insertion module, so there is nothing to resolve");
+			return true;
+		}
+
+		array<Faction> factionList = new array<Faction>();
+		factions.GetFactionsList(factionList);
+
+		int checked = 0;
+		foreach (Faction faction : factionList)
+		{
+			if (!faction)
+				continue;
+
+			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(faction.GetFactionKey());
+			if (!overthrowFaction)
+				continue;
+			overthrowFaction.InitializeGroupRegistry();
+			if (overthrowFaction.GetAvailableGroupNames().IsEmpty())
+				continue;
+
+			string failure = VerifyFaction(overthrowFaction, faction.GetFactionKey(), groupNames);
+			if (failure != "")
+			{
+				SetFailure(failure);
+				return true;
+			}
+
+			checked++;
+		}
+
+		if (checked == 0)
+		{
+			SetFailure("No faction carries a group registry, so no registry entry was resolved");
+			return true;
+		}
+
+		Print(string.Format("Every insertion group registry name (%1 of them) resolves for all %2 factions with a group registry", groupNames.Count().ToString(), checked.ToString()));
 
 		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! \param[in] factions The faction manager.
-	//! \param[in] factionKey The faction to check.
-	//! \return An empty string when both new entries resolve, or the first failure.
-	protected string VerifyFaction(notnull OVT_OverthrowFactionManager factions, string factionKey)
+	//! \param[in] deployments The deployment framework.
+	//! \return Every non-empty group registry name an insertion module references, without duplicates.
+	protected array<string> CollectInsertionGroupNames(notnull OVT_DeploymentManagerComponent deployments)
 	{
-		OVT_Faction faction = factions.GetOverthrowFactionByKey(factionKey);
-		if (!faction)
-			return string.Format("there is no Overthrow faction config for '%1'", factionKey);
+		array<string> names = new array<string>();
 
+		foreach (OVT_DeploymentConfig config : deployments.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			if (!config || !config.m_aModules)
+				continue;
+
+			foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+			{
+				OVT_InsertionSpawningDeploymentModule insertion = OVT_InsertionSpawningDeploymentModule.Cast(module);
+				if (!insertion)
+					continue;
+
+				AddName(names, insertion.m_sGroupType);
+				AddName(names, insertion.m_sTruckCrewGroup);
+			}
+		}
+
+		return names;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[inout] names The list to append to.
+	//! \param[in] name The registry name. Empty names are skipped.
+	protected void AddName(notnull array<string> names, string name)
+	{
+		if (name != "" && !names.Contains(name))
+			names.Insert(name);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] faction The faction config.
+	//! \param[in] factionKey Its key, for the message.
+	//! \param[in] groupNames Every registry name to resolve.
+	//! \return An empty string when every name resolves, or the first failure.
+	protected string VerifyFaction(notnull OVT_Faction faction, string factionKey, notnull array<string> groupNames)
+	{
 		faction.InitializeGroupRegistry();
 
-		// The spot-check: an entry that has shipped for a year. If THIS one fails, the registry is not
-		// loaded and the two new entries are innocent.
-		string failure = VerifyEntry(faction, factionKey, "light_patrol");
-		if (failure != "")
-			return failure + " - and that entry has shipped for a year, so the registry itself is not loaded in this world";
+		foreach (string groupName : groupNames)
+		{
+			string failure = VerifyEntry(faction, factionKey, groupName);
+			if (failure != "")
+				return failure;
+		}
 
-		failure = VerifyEntry(faction, factionKey, "truck_crew");
-		if (failure != "")
-			return failure;
-
-		return VerifyEntry(faction, factionKey, "specops_team");
+		return "";
 	}
 
 	//------------------------------------------------------------------------------------------------

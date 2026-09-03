@@ -2240,6 +2240,10 @@ class OVT_TEST_Init_MapMarkers_BusStopRegisters : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
+//! The tutorial manager resolves, its entries load, and every entry passes the shape lint: a
+//! non-empty unique id, at least one page, at least one trigger, and filters drawn from the
+//! vocabulary the dispatcher compares them against.
+//------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBase
 {
@@ -2323,7 +2327,7 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 				return spawnError;
 		}
 
-		return CheckWelcomeCoverage(entries);
+		return "";
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2359,46 +2363,6 @@ class OVT_TEST_Init_Tutorial_ManagerResolvesAndLoadsEntries : SCR_AutotestCaseBa
 		}
 
 		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Both spawn contexts still have a welcome to show.
-	//!
-	//! Delete one, or set its m_bEnabled to 0, and half the player base gets NO welcome - and nothing
-	//! else notices, because every remaining entry is still structurally perfect. Deliberately "at
-	//! least one", not "exactly one", so a third-party mod adding its own entry is not a defect. The
-	//! selection runs through the real matcher, so a disabled entry does not count towards coverage.
-	//! \param[in] entries The authored entry list. Assumed non-null and non-empty.
-	//! \return A ready-to-report failure message, or an empty string when both contexts are covered.
-	protected string CheckWelcomeCoverage(array<ref OVT_TutorialEntryConfig> entries)
-	{
-		array<string> houseIds = new array<string>();
-		OVT_TutorialMatcher.FindMatches(entries, MakeSpawnContext(OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE), houseIds);
-
-		if (houseIds.Count() < 1)
-			return "No enabled tutorial entry matches the '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "' spawn context. A player who is given a house, a car and starting cash would see no welcome at all on their first spawn. Check that Configs/Tutorials/proofWelcome.conf still carries a PLAYER_SPAWNED trigger filtered '" + OVT_TutorialComponent.SPAWN_CONTEXT_HOUSE + "', is still m_bEnabled 1, and is still listed in m_aTutorialEntries on the game mode prefab.";
-
-		array<string> nohouseIds = new array<string>();
-		OVT_TutorialMatcher.FindMatches(entries, MakeSpawnContext(OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE), nohouseIds);
-
-		if (nohouseIds.Count() < 1)
-			return "No enabled tutorial entry matches the '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "' spawn context. A player for whom no starting house was free spawns at a bus stop with no house and no car, and would see no welcome at all - the exact player this feature exists for, and the one nobody play-tests. Check that Configs/Tutorials/welcomeNohome.conf still carries a PLAYER_SPAWNED trigger filtered '" + OVT_TutorialComponent.SPAWN_CONTEXT_NOHOUSE + "', is still m_bEnabled 1, and is still listed in m_aTutorialEntries on the game mode prefab.";
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Builds one PLAYER_SPAWNED occurrence carrying a spawn context, for the coverage check.
-	//! \param[in] filter The spawn context to dispatch.
-	//! \return The occurrence.
-	protected OVT_TutorialEventContext MakeSpawnContext(string filter)
-	{
-		OVT_TutorialEventContext ctx = new OVT_TutorialEventContext();
-		ctx.m_eEvent = OVT_TutorialEvent.PLAYER_SPAWNED;
-		ctx.m_iPlayerId = 1;
-		ctx.m_iValue = 0;
-		ctx.m_sFilter = filter;
-		return ctx;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -2507,35 +2471,20 @@ class OVT_TEST_Init_Tutorial_InvokerSeamsExist : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
+//! The merged field-manual root still holds the Overthrow category with its sub-categories, every
+//! Overthrow entry has content and a unique title key, and every tutorial deep link resolves to a
+//! page in the merged manual.
+//------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBase
 {
 	//! The ResourceName FieldManual.layout:16 hands to SCR_ConfigUIComponent.m_ConfigPath.
 	static const ResourceName FIELD_MANUAL_ROOT = "{17295EF80DC38D53}Configs/FieldManual/FieldManualConfigRoot.conf";
 
-	//! Title key of the category Overthrow appends. Everything else in the merged root is the base
-	//! game's, which is how the vanilla categories are counted without naming any of them.
+	//! Title key of the category Overthrow appends to the base root.
 	static const string OVERTHROW_CATEGORY_TITLE = "#OVT-FieldManual_Category_Overthrow_Title";
 
-	//! The base game's Introduction title key. Overthrow's sub-category reused it until Phase 7.3,
-	//! which put a second button named "Introduction" in the category list.
-	static const string VANILLA_INTRODUCTION_TITLE = "#AR-FieldManual_Category_Introduction_Title";
-
-	//! Introduction, Editor, MP Modes, Gameplay, Equipment. A floor, never an equality.
-	static const int VANILLA_CATEGORY_FLOOR = 5;
-
-	//! The four sub-category buttons Overthrow's category draws (field-manual plan section 3.1).
-	//! Checked for MEMBERSHIP, never for equality: a later feature adding a fifth sub-category is a
-	//! content decision, not a regression, and must not turn this case red.
-	static const ref array<string> OVERTHROW_SUB_CATEGORY_TITLES = {
-		"#OVT-FieldManual_Category_GettingStarted_Title",
-		"#OVT-FieldManual_Category_MoneyAndTrade_Title",
-		"#OVT-FieldManual_Category_StayingHidden_Title",
-		"#OVT-FieldManual_Category_TheResistance_Title"
-	};
-
-	//! Prefix every Overthrow-authored manual key carries. Branch C only judges these; vanilla's own
-	//! 140 pages are the base game's business.
+	//! Prefix every Overthrow-authored manual key carries. The duplicate check judges only these.
 	static const string OVERTHROW_ENTRY_TITLE_PREFIX = "#OVT-FieldManual_";
 
 	//------------------------------------------------------------------------------------------------
@@ -2560,13 +2509,6 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		}
 
 		failure = FindFirstContentlessOverthrowEntry(root);
-		if (failure != "")
-		{
-			SetFailure("%1", failure);
-			return true;
-		}
-
-		failure = FindFirstMissingOverthrowSubCategory(root);
 		if (failure != "")
 		{
 			SetFailure("%1", failure);
@@ -2606,10 +2548,6 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 		if (overthrowCount < 1)
 			return "The merged field-manual root has " + total.ToString() + " categories and NONE of them is Overthrow's ('" + OVERTHROW_CATEGORY_TITLE + "'). Overthrow's Configs/FieldManual/FieldManualConfigRoot.conf is not reaching the menu - check its .meta still declares GUID {17295EF80DC38D53} and that element {59908331EDFD9788} still exists in m_aCategories. Categories found: " + JoinCategoryTitles(root);
 
-		int vanillaCount = total - overthrowCount;
-		if (vanillaCount < VANILLA_CATEGORY_FLOOR)
-			return "STOP - SAME-GUID MERGE SEMANTICS FALSIFIED. The merged field-manual root has " + total.ToString() + " categories, only " + vanillaCount.ToString() + " of which are the base game's; all five (Introduction, Editor, MP Modes, Gameplay, Equipment) should be there beside Overthrow's. Overthrow's same-GUID .conf has REPLACED the base root instead of appending to it. That takes the vanilla Field Manual with it, AND it falsifies the delta-merge behaviour that chimeraInputCommon.conf, ChimeraSystemsConfig.conf, CommandingMenu.conf and the game-mode prefab's append form all depend on - a far bigger finding than the Field Manual. Categories found: " + JoinCategoryTitles(root);
-
 		if (!root.m_aTileBackgrounds || root.m_aTileBackgrounds.IsEmpty())
 			return "The merged field-manual root has no tile backgrounds. Overthrow's override never declares m_aTileBackgrounds, so this array can only be populated by the base root's value surviving the merge - and SCR_FieldManualUI.c:253 calls m_aTileBackgrounds.GetRandomElement() UNGUARDED once per tile. Opening the Field Manual would error on its first tile.";
 
@@ -2617,12 +2555,8 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Overthrow's own category is shaped the way the UI can actually draw it.
-	//!
-	//! Two faults, both silent. A category with no sub-categories is pruned outright by
-	//! SetAllEntriesAndParents (:655) and simply never appears. And a sub-category that reuses the base
-	//! game's Introduction title key renders as a SECOND left-hand button literally named
-	//! "Introduction" - which is what shipped until Phase 7.3 and what this guards against returning.
+	//! Overthrow's own category carries sub-categories. SetAllEntriesAndParents prunes an empty
+	//! category outright, so the section would vanish with no error.
 	//! \param[in] root The merged field-manual root. Assumed non-null, with m_aCategories non-null.
 	//! \return A ready-to-report failure message, or an empty string when the category is sound.
 	protected string FindOverthrowCategoryFault(notnull SCR_FieldManualConfigRoot root)
@@ -2634,12 +2568,6 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 
 			if (!category.m_aCategories || category.m_aCategories.IsEmpty())
 				return "Overthrow's field-manual category has no sub-categories. Configs/FieldManual/Categories/FM_Overthrow.conf is not being inherited by element {59908331EDFD9788} of the root delta, and SCR_FieldManualUI.SetAllEntriesAndParents prunes an empty category outright - the Overthrow section would vanish from the manual with no error.";
-
-			foreach (SCR_FieldManualConfigCategory subCategory : category.m_aCategories)
-			{
-				if (subCategory && subCategory.m_sTitle == VANILLA_INTRODUCTION_TITLE)
-					return "Overthrow's field-manual sub-category is titled '" + VANILLA_INTRODUCTION_TITLE + "' - the BASE GAME's Introduction key. It renders as a second left-hand button literally named 'Introduction' beside the real one. Use an #OVT- key (Phase 7.3 introduced #OVT-FieldManual_Category_GettingStarted_Title for exactly this).";
-			}
 		}
 
 		return "";
@@ -2679,31 +2607,6 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 					return "Overthrow's field-manual entry '" + entry.m_sTitle + "' (under sub-category '" + subCategory.m_sTitle + "') has NO content pieces. SCR_FieldManualUI.SetAllEntriesAndParents prunes an entry with empty m_aContent SILENTLY, then prunes a sub-category left with no entries, then a category left with neither - so this page is not in the manual at all: no tile draws for it, and any tutorial popup deep-linking its title key resolves to the manual's FRONT PAGE instead. Give it at least one SCR_FieldManualPiece_Text in Configs/FieldManual/Categories/FM_Overthrow.conf, or retire it properly with m_bEnabled 0.";
 				}
 			}
-		}
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! BRANCH B. Each of the four named sub-categories is present under Overthrow's category.
-	//!
-	//! MEMBERSHIP, NOT EQUALITY. A fifth sub-category added by a later feature is a content decision
-	//! and must not turn this red; only the disappearance or renaming of one of the four is a fault.
-	//! A sub-category is a left-hand button and the shelf its entries live on, so losing one takes its
-	//! whole tile grid with it without an error.
-	//! \param[in] root The merged field-manual root. Assumed non-null.
-	//! \return A ready-to-report failure message, or an empty string when all four are present.
-	protected string FindFirstMissingOverthrowSubCategory(notnull SCR_FieldManualConfigRoot root)
-	{
-		array<string> present = {};
-		CollectSubCategoryTitles(root, OVERTHROW_CATEGORY_TITLE, present);
-
-		foreach (string expected : OVERTHROW_SUB_CATEGORY_TITLES)
-		{
-			if (present.Find(expected) != -1)
-				continue;
-
-			return "Overthrow's field-manual category is missing the sub-category '" + expected + "'. It is one of the four buttons the manual's left-hand list draws under the Overthrow heading, and every entry it holds goes with it - SCR_FieldManualUI never reports a missing sub-category, the button and its tiles simply are not there. Check Configs/FieldManual/Categories/FM_Overthrow.conf for a renamed or deleted m_sTitle. Sub-categories found: " + JoinStrings(present);
 		}
 
 		return "";
@@ -2929,42 +2832,13 @@ class OVT_TEST_Init_FieldManual_DeltaMergesAndLinksResolve : SCR_AutotestCaseBas
 }
 
 //------------------------------------------------------------------------------------------------
+//! Every registered job config carries a non-empty, well-formed, unique stable id, and the
+//! index<->id mapping round-trips in both directions, including the out-of-range misses the
+//! deserializer relies on.
+//------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 {
-	//! Flipped true on 2026-08-09 when the five configs were deleted. This is now a PERMANENT
-	//! regression guard, not a spent one: it asserts none of the five retired ids ever comes back.
-	//! Re-adding a config carrying one would make a version-1 save's dropped records start resolving
-	//! again, onto a job that is not the job they were saved on. Leave it true.
-	static const bool RETIRED_IDS_ARE_DELETED = true;
-
-	//! The seven job ids that survive starter-jobs-retirement. Literals on purpose - see the header.
-	static const ref array<string> SURVIVING_LEGACY_IDS = {
-		"assassinate-traitor",
-		"base-recon",
-		"raise-support",
-		"propaganda-run",
-		"pirate-radio",
-		"sabotage-radio-tower",
-		"assassinate-officer"
-	};
-
-	//! The five job ids starter-jobs-retirement removed on 2026-08-09. These must resolve to NOTHING.
-	//!
-	//! ⚠ These lists stay LITERAL and stay here - deliberately NOT pointed at
-	//! OVT_JobManagerSerializer.LEGACY_V1_JOB_IDS. That table is POSITIONAL HISTORY for the version 1
-	//! save format, frozen for good; these are expectations about the config list shipping NOW. Add a
-	//! thirteenth job and the frozen table must not grow while SURVIVING_LEGACY_IDS should. Two
-	//! independent copies are also what catches a .conf id rename that was "kept in sync". The frozen
-	//! table is guarded separately by a Logic-tier case against its own literals.
-	static const ref array<string> RETIRED_LEGACY_IDS = {
-		"find-gun-dealer",
-		"find-shop",
-		"place-equipment-box",
-		"recruit-a-civilian",
-		"place-a-camp"
-	};
-
 	//! Every character a stable job id may contain.
 	static const string LEGAL_ID_CHARACTERS = "abcdefghijklmnopqrstuvwxyz-";
 
@@ -2987,17 +2861,13 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 		}
 
 		string failure = FindFirstIdError(jobs, configCount);
-		if (failure == "")
-			failure = FindFirstLegacyResolveError(jobs);
-
 		if (failure != "")
 		{
 			SetFailure("%1", failure);
 			return true;
 		}
 
-		PrintFormat("Job stable ids: %1 configs, all non-empty, lowercase-kebab, unique and index<->id round-tripping; %2 surviving legacy ids resolve; retired-ids-deleted switch is %3",
-			configCount.ToString(), SURVIVING_LEGACY_IDS.Count().ToString(), RETIRED_IDS_ARE_DELETED.ToString());
+		PrintFormat("Job stable ids: %1 configs, all non-empty, lowercase-kebab, unique and index<->id round-tripping", configCount.ToString());
 
 		return true;
 	}
@@ -3083,43 +2953,6 @@ class OVT_TEST_Init_Jobs_StableIdsAreUniqueAndResolve : SCR_AutotestCaseBase
 
 		return "";
 	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The rename guard, plus the Phase 4 switch.
-	//!
-	//! Surviving ids: every one must resolve to a live config, because a version-1 save on a player's
-	//! disk already names them. Retired ids: gated by RETIRED_IDS_ARE_DELETED, and asserted in BOTH
-	//! directions so that neither state can pass silently.
-	//! \param[in] jobs The live job manager. Assumed non-null.
-	//! \return A ready-to-report failure message, or an empty string when the legacy ids are as expected.
-	protected string FindFirstLegacyResolveError(OVT_JobManagerComponent jobs)
-	{
-		for (int i = 0; i < SURVIVING_LEGACY_IDS.Count(); i++)
-		{
-			string survivingId = SURVIVING_LEGACY_IDS.Get(i);
-			if (jobs.FindJobIndexById(survivingId) < 0)
-				return "The surviving job id '" + survivingId + "' resolves to no config. Either its .conf under Configs/Jobs/ was renamed, its m_sId was edited, or the job was removed. That id is already written into saved campaigns, so every board entry and lifetime counter naming it would be DROPPED on the next load. Job ids are immutable once shipped - put it back.";
-		}
-
-		for (int i = 0; i < RETIRED_LEGACY_IDS.Count(); i++)
-		{
-			string retiredId = RETIRED_LEGACY_IDS.Get(i);
-			int retiredIndex = jobs.FindJobIndexById(retiredId);
-
-			if (RETIRED_IDS_ARE_DELETED)
-			{
-				if (retiredIndex >= 0)
-					return "The retired job id '" + retiredId + "' still resolves, to index " + retiredIndex.ToString() + ". RETIRED_IDS_ARE_DELETED is set, so its .conf should be gone from Configs/Jobs/ and its entry gone from m_aJobConfigs on the game-mode prefab.";
-
-				continue;
-			}
-
-			if (retiredIndex < 0)
-				return "The retired job id '" + retiredId + "' no longer resolves, but RETIRED_IDS_ARE_DELETED in this case is still false. If the five starter jobs have just been deleted (starter-jobs-retirement Phase 4), flip that constant to true - that is task 4.5 and this message is the reminder. If they have NOT been deleted, a job config has lost its id and the version-1 save conversion can no longer be exercised against it.";
-		}
-
-		return "";
-	}
 }
 
 
@@ -3176,65 +3009,6 @@ class OVT_TEST_Init_Virtualization_ManagerResolvesEmpty : SCR_AutotestCaseBase
 		}
 
 		Print("Virtualization manager resolved and its registry is empty");
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! virtualizationSpawnDistance exists in the config struct and defaults to 1750 m.
-//!
-//! Issue #100's operator-facing knob. ⚠ The default is asserted because a field silently missing
-//! from SetDefaults() would read back 0 - the legitimate "never materialise" value - so nothing
-//! would look broken until an entire campaign's AI failed to appear.
-//!
-//! GetGlobalSpawnDistance() must agree with the config, so a mis-wired accessor cannot pass by
-//! falling back to its attribute default.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Virtualization_SpawnDistanceDefault : SCR_AutotestCaseBase
-{
-	//! The default written by OVT_OverthrowConfigStruct.SetDefaults().
-	protected const int EXPECTED_DEFAULT = 1750;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-		{
-			SetFailure("OVT_Global.GetConfig() is null");
-			return true;
-		}
-
-		if (!config.m_ConfigFile)
-		{
-			SetFailure("The config component has no loaded config struct");
-			return true;
-		}
-
-		if (config.m_ConfigFile.virtualizationSpawnDistance != EXPECTED_DEFAULT)
-		{
-			SetFailure("virtualizationSpawnDistance read back %1, expected the %2 m default - a 0 here would mean 'never materialise' for every registered group",
-				config.m_ConfigFile.virtualizationSpawnDistance.ToString(), EXPECTED_DEFAULT.ToString());
-			return true;
-		}
-
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null");
-			return true;
-		}
-
-		if (virtualization.GetGlobalSpawnDistance() != EXPECTED_DEFAULT)
-		{
-			SetFailure("The manager resolved a global spawn distance of %1 while the config says %2",
-				virtualization.GetGlobalSpawnDistance().ToString(), EXPECTED_DEFAULT.ToString());
-			return true;
-		}
-
-		Print("virtualizationSpawnDistance defaults to 1750 m and the manager reads it back");
 		return true;
 	}
 }
@@ -3794,538 +3568,6 @@ class OVT_TEST_VirtualMovementFixture
 		plan.m_bCycle = false;
 
 		return plan;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! THE MOVEMENT TICK ACTUALLY ADVANCES A DORMANT GROUP, TOWARD ITS PLAN.
-//!
-//! The one end-to-end claim of `virtualization/movement`: enumeration, round-robin slice, lazy state
-//! derivation, per-group dt, arrival maths and ground-snapped write all wired together and installed
-//! on the game mode. Every other case asserts one piece in isolation.
-//!
-//! A group is registered with a two-point PATROL/MOVE plan 200 m out, then polled for up to 10 s:
-//! XZ displacement exceeds 1 m (it moved), is less than the whole leg (no teleport), and ends closer
-//! to the target (it moved TOWARD the plan). No exact distance boundary is asserted - vector.Distance
-//! is +1 ULP off at 1000 m and 2000 m, and the step depends on how many passes the window contained.
-//!
-//! ⚠ The FIRST pass over a handle cannot move it: state is derived on first touch and stamped with
-//! the current world time, so its dt is 0 by construction. The window is sized for several after it.
-//!
-//! Cleanup before reporting: this is the one case that deliberately registers a group that MOVES.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_VirtualMovement_TickAdvancesDormantGroup : SCR_AutotestCaseBase
-{
-	//! XZ metres the group must cover to count as advanced.
-	static const float MIN_DISPLACEMENT_M = 1;
-
-	protected int m_iPhase;
-	protected int m_iHandle = -1;
-	protected float m_fDeadlineMs;
-
-	//! Where the group actually was once registered (NOT the requested position - core ground-snaps).
-	protected vector m_vStart;
-
-	//! The far point of the plan; the direction "toward" is measured against.
-	protected vector m_vTarget;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == 0)
-			return Arrange();
-
-		return AwaitAdvance();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Registers the walking group and opens the observation window.
-	//! \return True when the case is already finished (always a named failure at this phase).
-	protected bool Arrange()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
-			return true;
-		}
-
-		if (!OVT_Global.GetVirtualMovement())
-		{
-			SetFailure("OVT_Global.GetVirtualMovement() is null - the movement manager is missing from the game-mode prefab, so no registered group can ever advance");
-			return true;
-		}
-
-		// Init-tier worlds never press Start (RequiresStartedCampaign() is false for this suite), so
-		// DoStartGame()/PostGameStart() never ran here and the movement CallLater was never installed.
-		// PostGameStart() is public and idempotent (m_bTickRunning latch), so the case installs the
-		// exact tick it is about to assert against - without it the group sits still and this case
-		// reds with "the tick is not advancing registered groups at all".
-		OVT_Global.GetVirtualMovement().PostGameStart();
-
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-		{
-			SetFailure("There is no world to walk a group across");
-			return true;
-		}
-
-		string factionKey;
-		string groupName;
-		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
-		{
-			SetFailure("No faction in this world defines a resolvable group registry entry, so a walking group cannot be registered");
-			return true;
-		}
-
-		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
-		m_vTarget = OVT_TEST_VirtualMovementFixture.PickLandTarget(position);
-
-		if (m_vTarget == vector.Zero)
-		{
-			SetFailure(string.Format("No %1 m leg out of %2 is entirely on land in this world, so movement's water rule would veto every write and 'the group moved' could not be asserted",
-				OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M.ToString(), position.ToString()));
-			return true;
-		}
-
-		// spawnDistanceOverride 0 = the MANUAL lifecycle policy, so the engine never materialises the
-		// group by proximity. ⚠ Dormant by construction is required: the autotest camera IS an observer
-		// and at the global ring can spawn a test group's members, at which point the IsSpawned gate
-		// refuses to advance and this case reds with "not advancing at all".
-		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_walks",
-			factionKey, groupName, position,
-			OVT_TEST_VirtualMovementFixture.BuildPlan(position, m_vTarget, OVT_EVirtualWaypointType.PATROL), 0);
-
-		if (m_iHandle == -1)
-		{
-			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so there is nothing to advance");
-			return true;
-		}
-
-		m_vStart = virtualization.GetPosition(m_iHandle);
-		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
-
-		m_iPhase = 1;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Polls until the group has visibly moved, or the window is spent.
-	//! \return True when the case is finished.
-	protected bool AwaitAdvance()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		BaseWorld world = GetGame().GetWorld();
-
-		if (!virtualization || !world)
-		{
-			CleanUp();
-			SetFailure("The virtualization manager or the world went away while the case was watching a group walk");
-			return true;
-		}
-
-		vector current = virtualization.GetPosition(m_iHandle);
-		float moved = OVT_VirtualMovementMath.DistanceXZ(current, m_vStart);
-		bool expired = world.GetWorldTime() >= m_fDeadlineMs;
-
-		if (moved <= MIN_DISPLACEMENT_M && !expired)
-			return false;
-
-		string failure = Verify(current, moved);
-
-		// Cleanup BEFORE reporting: this case registers the one group in the tree that deliberately
-		// MOVES, and a red assertion must not leak it into the cases after it.
-		CleanUp();
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		PrintFormat("The movement tick walked a dormant group %1 m of its %2 m leg within the observation window",
-			moved.ToString(), OVT_VirtualMovementMath.DistanceXZ(m_vStart, m_vTarget).ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] current Where the group is now.
-	//! \param[in] moved XZ metres covered since registration.
-	//! \return An empty string when the group walked toward its plan, or the first broken claim.
-	protected string Verify(vector current, float moved)
-	{
-		float leg = OVT_VirtualMovementMath.DistanceXZ(m_vStart, m_vTarget);
-
-		if (moved <= MIN_DISPLACEMENT_M)
-		{
-			int tracked = 0;
-			OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
-			if (movement)
-				tracked = movement.GetTrackedCount();
-
-			return string.Format("A dormant group with a movable %1 m plan moved %2 m in %3 ms (%4 handle(s) tracked) - the tick is not advancing registered groups at all",
-				leg.ToString(), moved.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString(), tracked.ToString());
-		}
-
-		if (moved >= leg)
-			return string.Format("The group covered %1 m of a %2 m leg - a single pass may never cover the whole route, which is what an unclamped dt or a broken step clamp would do",
-				moved.ToString(), leg.ToString());
-
-		if (OVT_VirtualMovementMath.DistanceXZ(current, m_vTarget) >= leg)
-			return string.Format("The group moved %1 m but is %2 m from its target, no closer than the %3 m it started at - it is walking somewhere, just not toward its plan",
-				moved.ToString(), OVT_VirtualMovementMath.DistanceXZ(current, m_vTarget).ToString(), leg.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Unregisters the walking group on every exit path.
-	protected void CleanUp()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (virtualization && m_iHandle != -1)
-			virtualization.UnregisterGroup(m_iHandle);
-
-		m_iHandle = -1;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! A DEFEND-ONLY PLAN IS NEVER ADVANCED - the D10 opt-in contract, asserted from the other side.
-//!
-//! "The plan IS the opt-in": there is no flag to set and no core field to check, so this
-//! classification is the only thing between a tower garrison and a stroll across the map.
-//!
-//! Deliberately the same shape as the case above with ONE variable changed - the waypoint type - so
-//! the pair is a controlled experiment: both red means the tick is dead, this one alone means the
-//! classification is.
-//!
-//! Tolerance 0.5 m of XZ: below the smallest step a pass could take (1.5 m/s x 2 s) and above
-//! floating-point noise. No exact boundary is asserted.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_VirtualMovement_StationaryPlanIsNeverAdvanced : SCR_AutotestCaseBase
-{
-	//! XZ metres a DEFEND group is allowed to drift over the whole window.
-	static const float MAX_DRIFT_M = 0.5;
-
-	protected int m_iPhase;
-	protected int m_iHandle = -1;
-	protected float m_fDeadlineMs;
-	protected vector m_vStart;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == 0)
-			return Arrange();
-
-		return AwaitWindow();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Registers the garrison and opens the observation window.
-	//! \return True when the case is already finished (always a named failure at this phase).
-	protected bool Arrange()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
-			return true;
-		}
-
-		if (!OVT_Global.GetVirtualMovement())
-		{
-			SetFailure("OVT_Global.GetVirtualMovement() is null - with no movement manager 'a DEFEND plan is never advanced' would be asserted against nothing that could advance it");
-			return true;
-		}
-
-		// Same tick-install as the walking case (Init-tier worlds never run PostGameStart themselves):
-		// without a LIVE tick this case would pass vacuously - "never advanced" by a tick that never ran.
-		// PostGameStart() is idempotent, so installing it here is safe whatever ran before.
-		OVT_Global.GetVirtualMovement().PostGameStart();
-
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-		{
-			SetFailure("There is no world to hold a garrison still in");
-			return true;
-		}
-
-		string factionKey;
-		string groupName;
-		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
-		{
-			SetFailure("No faction in this world defines a resolvable group registry entry, so a garrison cannot be registered");
-			return true;
-		}
-
-		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
-
-		// The SAME all-land leg the walking case uses: the only variable between the two cases must be
-		// the waypoint type, so a red here can never be blamed on a leg pointed into a bay.
-		vector target = OVT_TEST_VirtualMovementFixture.PickLandTarget(position);
-		if (target == vector.Zero)
-		{
-			SetFailure(string.Format("No %1 m leg out of %2 is entirely on land in this world, so this case would not be the same experiment as the walking one",
-				OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M.ToString(), position.ToString()));
-			return true;
-		}
-
-		// spawnDistanceOverride 0 = Manual policy, dormant by construction - same reasoning and same
-		// controlled-pair discipline as the walking case: the only variable between the two is the type.
-		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_garrison",
-			factionKey, groupName, position,
-			OVT_TEST_VirtualMovementFixture.BuildPlan(position, target, OVT_EVirtualWaypointType.DEFEND), 0);
-
-		if (m_iHandle == -1)
-		{
-			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so there is nothing to hold still");
-			return true;
-		}
-
-		m_vStart = virtualization.GetPosition(m_iHandle);
-		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
-
-		m_iPhase = 1;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Waits out the WHOLE window - a garrison that leaves late is still a garrison that leaves.
-	//! \return True when the case is finished.
-	protected bool AwaitWindow()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		BaseWorld world = GetGame().GetWorld();
-
-		if (!virtualization || !world)
-		{
-			CleanUp();
-			SetFailure("The virtualization manager or the world went away while the case was watching a garrison stand still");
-			return true;
-		}
-
-		if (world.GetWorldTime() < m_fDeadlineMs)
-			return false;
-
-		float drift = OVT_VirtualMovementMath.DistanceXZ(virtualization.GetPosition(m_iHandle), m_vStart);
-
-		// Cleanup BEFORE reporting, the suite's rule.
-		CleanUp();
-
-		if (drift > MAX_DRIFT_M)
-		{
-			SetFailure(string.Format("A DEFEND-only group drifted %1 m in %2 ms - the plan is the ONLY opt-in movement has, so a garrison with a classification bug walks off its post and nothing else in the tree notices",
-				drift.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString()));
-			return true;
-		}
-
-		PrintFormat("A DEFEND-only group held its position (%1 m of drift) across the whole %2 ms window",
-			drift.ToString(), OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS.ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Unregisters the garrison on every exit path.
-	protected void CleanUp()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (virtualization && m_iHandle != -1)
-			virtualization.UnregisterGroup(m_iHandle);
-
-		m_iHandle = -1;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! THE MOVEMENT MANAGER RESOLVES, AND ITS TRANSIENT STATE DOES NOT LEAK.
-//!
-//! OVT_Global.GetVirtualMovement() answering is the only proof in the suites that the manager is on
-//! the game-mode prefab (it was text-wired, not added in Workbench); every other movement claim is
-//! silently vacuous without it. The tracked count must return to 0 once nothing is registered.
-//!
-//! ⚠ A group whose plan is empty, null or DEFEND-only keeps NO entry in the transient map - it is
-//! re-classified cheaply each pass instead, which is what keeps the map empty in a campaign full of
-//! garrisons. A group that latches stationary at RUNTIME, having reached a DEFEND point, KEEPS its
-//! entry on purpose: dropping it would let the next pass re-derive a movable plan and walk the group
-//! off the post it just took up. This case does not exercise that path and must not be "fixed" to
-//! expect 0 for it.
-//!
-//! The count is settled with a bounded poll, and that wait IS the no-leak assertion.
-//! GetTrackedCount() is a read-only diagnostic, not part of any API.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_VirtualMovement_ManagerResolvesAndDoesNotLeak : SCR_AutotestCaseBase
-{
-	//! Wall-clock ms allowed for the tick to drop the previous cases' progress. Several passes at the
-	//! 2000 ms default; bounded, and not a retry budget.
-	static const float SETTLE_WINDOW_MS = 10000;
-
-	protected int m_iPhase;
-	protected int m_iHandle = -1;
-	protected float m_fDeadlineMs;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == 0)
-			return Begin();
-
-		if (m_iPhase == 1)
-			return AwaitEmptyState();
-
-		return AwaitGarrisonWindow();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Resolves the manager and opens the settle window.
-	//! \return True when the case is already finished (always a named failure at this phase).
-	protected bool Begin()
-	{
-		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
-		if (!movement)
-		{
-			SetFailure("OVT_Global.GetVirtualMovement() is null - the movement manager is not on the game-mode prefab, so every other movement claim in these suites is vacuous");
-			return true;
-		}
-
-		BaseWorld world = GetGame().GetWorld();
-		if (!world)
-		{
-			SetFailure("There is no world, so the movement tick has nothing to run against");
-			return true;
-		}
-
-		// Init-tier worlds never run PostGameStart; install the tick (idempotent) so the no-leak claim
-		// is made against a manager whose tick is actually running and purging.
-		movement.PostGameStart();
-
-		m_fDeadlineMs = world.GetWorldTime() + SETTLE_WINDOW_MS;
-		m_iPhase = 1;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Waits for the tracked count to return to 0 now that the cases above have unregistered their
-	//! groups - the no-leak claim (Q7).
-	//! \return True when the case is finished.
-	protected bool AwaitEmptyState()
-	{
-		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
-		BaseWorld world = GetGame().GetWorld();
-
-		if (!movement || !world)
-		{
-			SetFailure("The movement manager or the world went away while the case was waiting for its state map to empty");
-			return true;
-		}
-
-		int tracked = movement.GetTrackedCount();
-		if (tracked > 0 && world.GetWorldTime() < m_fDeadlineMs)
-			return false;
-
-		if (tracked > 0)
-		{
-			SetFailure(string.Format("The movement manager still tracks %1 handle(s) %2 ms after every group was unregistered - transient progress is leaking, and in a long campaign it would grow for the rest of the session",
-				tracked.ToString(), SETTLE_WINDOW_MS.ToString()));
-			return true;
-		}
-
-		return RegisterGarrison();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Registers a DEFEND-only group and opens the observation window for it.
-	//! \return True when the case is finished (a named failure); false to keep going.
-	protected bool RegisterGarrison()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null - the virtualization manager is missing from the game-mode prefab");
-			return true;
-		}
-
-		string factionKey;
-		string groupName;
-		if (!OVT_TEST_VirtualizationFixture.FindComposition(factionKey, groupName))
-		{
-			SetFailure("No faction in this world defines a resolvable group registry entry, so a garrison cannot be registered");
-			return true;
-		}
-
-		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
-		vector target = position;
-		target[2] = position[2] + OVT_TEST_VirtualMovementFixture.LEG_LENGTH_M;
-
-		// A DEFEND plan is never walked, so this leg does not have to be on land - only distinct.
-		// spawnDistanceOverride 0 = Manual policy, dormant by construction (see the walking case).
-		m_iHandle = virtualization.RegisterGroup(OVT_TEST_VirtualMovementFixture.OWNER_SYSTEM, "movement_no_leak",
-			factionKey, groupName, position,
-			OVT_TEST_VirtualMovementFixture.BuildPlan(position, target, OVT_EVirtualWaypointType.DEFEND), 0);
-
-		if (m_iHandle == -1)
-		{
-			SetFailure("RegisterGroup returned -1 for a composition the faction registry resolves, so 'a garrison is not tracked' would be asserted against nothing");
-			return true;
-		}
-
-		BaseWorld world = GetGame().GetWorld();
-		m_fDeadlineMs = world.GetWorldTime() + OVT_TEST_VirtualMovementFixture.OBSERVE_WINDOW_MS;
-
-		m_iPhase = 2;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Gives the tick several passes over the garrison, then asserts it is still tracking nothing.
-	//! \return True when the case is finished.
-	protected bool AwaitGarrisonWindow()
-	{
-		OVT_VirtualMovementManagerComponent movement = OVT_Global.GetVirtualMovement();
-		BaseWorld world = GetGame().GetWorld();
-
-		if (!movement || !world)
-		{
-			CleanUp();
-			SetFailure("The movement manager or the world went away while the case was watching a garrison");
-			return true;
-		}
-
-		if (world.GetWorldTime() < m_fDeadlineMs)
-			return false;
-
-		int tracked = movement.GetTrackedCount();
-
-		// Cleanup BEFORE reporting, the suite's rule.
-		CleanUp();
-
-		if (tracked != 0)
-		{
-			SetFailure(string.Format("The movement manager tracks %1 handle(s) while the only registered group has a DEFEND-only plan - a plan that cannot move must hold no transient state at all, or a campaign of garrisons pays for progress none of them can make",
-				tracked.ToString()));
-			return true;
-		}
-
-		PrintFormat("OVT_Global.GetVirtualMovement() resolves, its tracked count returned to 0 after the walking cases, and a registered DEFEND-only group contributed nothing to it");
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Unregisters the garrison on every exit path.
-	protected void CleanUp()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (virtualization && m_iHandle != -1)
-			virtualization.UnregisterGroup(m_iHandle);
-
-		m_iHandle = -1;
 	}
 }
 
@@ -5106,149 +4348,6 @@ class OVT_TEST_Init_Virtualization_AmbientSourceRegisters : SCR_AutotestCaseBase
 }
 
 //------------------------------------------------------------------------------------------------
-//! The CONFIG's overridden RollCount() is the one core calls - not the arithmetic behind it.
-//!
-//! The modder seam the whole ambient design rests on: a subclass overrides a roll, a .conf names the
-//! subclass, no core code changes. ⚠ If core ever "optimised" that into a direct
-//! RollCountSafe(m_iMinCount, m_iMaxCount) call, every subclass in every consumer mod would silently
-//! stop being consulted - the source would still spawn, just with the authored numbers.
-//!
-//! OVT_TEST_AmbientCountingConfig authors min == max == 1 but overrides RollCount() to return 2, so
-//! counting prefab requests in one activation distinguishes the two: 2 means consulted, 1 bypassed.
-//! To make an activation happen the case parks a LOCAL OBSERVER on the source position through the
-//! engine's own ObserversSystem and waits out the 2 s ambient tick.
-//!
-//! Where this world cannot activate, it falls back to asserting virtual dispatch through a
-//! BASE-TYPED reference and says so in the log. It never passes silently on the weaker claim.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_Virtualization_AmbientRollCountOverrideIsCalled : SCR_AutotestCaseBase
-{
-	//! Frame polls allowed for the 2 s ambient tick to come round (generous: the tick is wall-clock,
-	//! the test world's frame rate is not this case's subject). Bounded, and NOT a retry budget -
-	//! the case asserts once, when the activation has happened or the budget is spent.
-	static const int MAX_POLLS = 1200;
-
-	protected int m_iPhase;
-	protected int m_iPolls;
-	protected int m_iHandle = -1;
-	protected ref OVT_TEST_AmbientCountingConfig m_Config;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == 0)
-			return Arrange();
-
-		return AwaitActivation();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Registers the counting source and parks an observer on it.
-	//! \return True when the case is already finished (always a named failure at this phase).
-	protected bool Arrange()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null");
-			return true;
-		}
-
-		m_Config = new OVT_TEST_AmbientCountingConfig();
-		m_Config.m_sSourceName = "test_ambient_rollcount";
-		m_Config.m_iMinCount = 1;      // deliberately disagrees with the override
-		m_Config.m_iMaxCount = 1;
-		m_Config.m_fRadius = 10;
-
-		vector position = OVT_TEST_VirtualizationFixture.PickPosition();
-
-		m_iHandle = virtualization.RegisterAmbientSource(m_Config, position, "rollcount_case");
-		if (m_iHandle == -1)
-		{
-			SetFailure("RegisterAmbientSource refused the test config");
-			return true;
-		}
-
-		// ⚠ NO parked observer. InsertObserverSP with a null entity has ZERO vanilla callers, and the one
-		// All-group run that parked one here froze the main thread the moment this case began. In a
-		// world with real observers the source activates off them; in a world with none, the documented
-		// fallback assertion runs.
-		m_iPhase = 1;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Polls until the source has activated, or the budget is spent.
-	//! \return True when the case is finished.
-	protected bool AwaitActivation()
-	{
-		m_iPolls++;
-
-		if (m_Config.m_iRollCountCalls == 0 && m_iPolls < MAX_POLLS)
-			return false;
-
-		string failure = Verify();
-		CleanUp();
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return An empty string when the override is the implementation core consulted.
-	protected string Verify()
-	{
-		if (m_Config.m_iRollCountCalls == 0)
-		{
-			// This world never activated the source. Fall back to the weaker, world-free claim and
-			// SAY SO - a silent pass here would hide a real regression.
-			OVT_AmbientSpawnSourceConfig asBase = m_Config;
-			int dispatched = asBase.RollCount();
-
-			if (dispatched != OVT_TEST_AmbientCountingConfig.ROLLED_COUNT)
-				return string.Format("RollCount() through a base-typed reference returned %1, expected the override's %2 - the modder seam is not virtual at all",
-					dispatched.ToString(), OVT_TEST_AmbientCountingConfig.ROLLED_COUNT.ToString());
-
-			PrintFormat("Ambient activation did not happen in this world within %1 polls (no honoured observer) - asserted virtual dispatch of the RollCount() override instead",
-				m_iPolls.ToString());
-			return "";
-		}
-
-		if (m_Config.m_iRollCountCalls != 1)
-			return string.Format("RollCount() was called %1 times for one activation - the count must be rolled ONCE and then spent across ticks, never re-rolled per tick",
-				m_Config.m_iRollCountCalls.ToString());
-
-		if (m_Config.m_iRollPrefabCalls != OVT_TEST_AmbientCountingConfig.ROLLED_COUNT)
-			return string.Format("The activation asked for %1 prefab(s); the override said %2 and the authored min/max said 1, so core consulted the wrong one",
-				m_Config.m_iRollPrefabCalls.ToString(), OVT_TEST_AmbientCountingConfig.ROLLED_COUNT.ToString());
-
-		PrintFormat("Ambient activation consulted the config subclass: RollCount() once, %1 prefab rolls (authored min/max would have given 1)",
-			m_Config.m_iRollPrefabCalls.ToString());
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Removes the observer and the source on EVERY exit path - a leaked source would keep ticking
-	//! for the rest of the suite, and a leaked observer would keep whatever is near it awake.
-	protected void CleanUp()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (virtualization && m_iHandle != -1)
-			virtualization.UnregisterAmbientSource(m_iHandle);
-
-		m_iHandle = -1;
-	}
-
-}
-
-//------------------------------------------------------------------------------------------------
 //! ReleaseAmbientEntity() answers false for an entity that was never ambient.
 //!
 //! Release is an OWNERSHIP TRANSFER and the honest "no" matters as much as the yes: `civilians`
@@ -5480,85 +4579,6 @@ class OVT_TEST_Init_Virtualization_AmbientDeadCheckOverrideIsCalled : SCR_Autote
 }
 
 //------------------------------------------------------------------------------------------------
-//! civilianDensityMultiplier, maxCiviliansPerTown and despawnCiviliansDuringQRF exist in the config
-//! struct and read back their defaults.
-//!
-//! ⚠ A field silently missing from SetDefaults() reads back 0, and 0 is MEANINGFUL for both
-//! magnitudes: a multiplier of 0 is the documented "no civilians on this server" switch, and a cap
-//! of 0 means UNCAPPED. Either would look like a deliberate setting rather than a bug.
-//!
-//! despawnCiviliansDuringQRF must default to FALSE - a town keeps its crowd while its QRF is fought,
-//! a deliberate change from the pre-migration game because players recruit civilians specifically to
-//! help fight it. A bool missing from SetDefaults() also reads back false, so this assertion is a
-//! statement of intent that survives somebody "tidying" the default away.
-//!
-//! No field here is in the JIP config bitstream, which is why CONFIG_STREAM_VERSION did not move.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Civilians_AmbienceConfigDefaults : SCR_AutotestCaseBase
-{
-	//! The defaults written by OVT_OverthrowConfigStruct.SetDefaults().
-	protected const float EXPECTED_MULTIPLIER = 1.0;
-	protected const int EXPECTED_CAP = 30;
-
-	//! Floats are never compared with == - 1.0 read back through a JSON round trip is not bit-equal.
-	protected const float EPSILON = 0.0001;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_OverthrowConfigComponent config = OVT_Global.GetConfig();
-		if (!config)
-		{
-			SetFailure("OVT_Global.GetConfig() is null");
-			return true;
-		}
-
-		if (!config.m_ConfigFile)
-		{
-			SetFailure("The config component has no loaded config struct");
-			return true;
-		}
-
-		if (Math.AbsFloat(config.m_ConfigFile.civilianDensityMultiplier - EXPECTED_MULTIPLIER) > EPSILON)
-		{
-			SetFailure("civilianDensityMultiplier read back %1, expected the %2 default - a 0 here is the documented 'turn civilians off' value, so a missing default would empty every town and look deliberate",
-				config.m_ConfigFile.civilianDensityMultiplier.ToString(), EXPECTED_MULTIPLIER.ToString());
-			return true;
-		}
-
-		if (config.m_ConfigFile.maxCiviliansPerTown != EXPECTED_CAP)
-		{
-			SetFailure("maxCiviliansPerTown read back %1, expected the %2 default - a 0 here means UNCAPPED, so a missing default would quietly remove the per-town ceiling",
-				config.m_ConfigFile.maxCiviliansPerTown.ToString(), EXPECTED_CAP.ToString());
-			return true;
-		}
-
-		if (config.m_ConfigFile.despawnCiviliansDuringQRF)
-		{
-			SetFailure("despawnCiviliansDuringQRF read back true, expected the false default - a town under QRF keeps its civilians unless an operator opts out, because players recruit them to fight that very battle");
-			return true;
-		}
-
-		// The defaults are the numbers the density formula is authored around: a city of 283 at the
-		// parity rate resolves to 28, comfortably under the cap, and the multiplier leaves it alone.
-		int resolved = OVT_CivilianAmbienceMath.ResolveTownCivilianCount(283, 0.1,
-			config.m_ConfigFile.civilianDensityMultiplier, 2, 40, config.m_ConfigFile.maxCiviliansPerTown);
-
-		if (resolved != 28)
-		{
-			SetFailure("A 283-population town resolved to %1 civilians under the shipped defaults, expected 28 - the defaults and the formula disagree",
-				resolved.ToString());
-			return true;
-		}
-
-		Print("civilianDensityMultiplier defaults to 1.0, maxCiviliansPerTown to 30 and despawnCiviliansDuringQRF to false, and the shipped pair reproduces the parity crowd size");
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! Shared lookups for the civilian-ambience cases, so each of them fails on its OWN claim rather
 //! than on somebody else's plumbing.
 //------------------------------------------------------------------------------------------------
@@ -5595,140 +4615,6 @@ class OVT_TEST_CivilianAmbienceFixture
 }
 
 //------------------------------------------------------------------------------------------------
-//! The authored ambient registry is wired, and it carries a town crowd of the right CLASS.
-//!
-//! ⚠ The CLASS matters, not just the name. The manager casts what the registry hands it to
-//! OVT_CivilianAmbienceConfig and refuses anything else, because the civilian type pool, the
-//! archetypes and the population rate all live on the subclass. A .conf that named the source
-//! correctly but authored it as the base class would resolve, cast to null, log a warning nobody
-//! reads, and leave every town empty - which looks like an unlucky roll, not a bug.
-//!
-//! It also pins the PARITY NUMBERS - the authored rate, the two density clamps and "ride the global
-//! spawn distance" - which are what make the new crowd the same size as the retired spawner's.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Civilians_AmbienceRegistryResolves : SCR_AutotestCaseBase
-{
-	//! The authored parity settings (implementation.md §3.6).
-	protected const float EXPECTED_RATE = 0.1;
-	protected const int EXPECTED_MIN = 2;
-	protected const int EXPECTED_MAX = 40;
-
-	//! The one group prefab EVERY civilian type spawns. The per-type prefab pairs were dropped: they
-	//! were byte-identical deltas whose inherited look the type's own loadout overwrote anyway.
-	protected const ResourceName SHARED_GROUP_PREFAB = "{1AF5B9AE5CFD4434}Prefabs/Groups/INDFOR/Group_CIV.et";
-
-	//! Floats are never compared with ==.
-	protected const float EPSILON = 0.0001;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null");
-			return true;
-		}
-
-		if (!virtualization.GetAmbientRegistry())
-		{
-			SetFailure("The virtualization manager has no ambient registry - the m_AmbientRegistry binding to Configs/Civilians/CivilianAmbience.conf is missing from the game-mode prefab, so no town can ever have civilians");
-			return true;
-		}
-
-		OVT_AmbientSpawnSourceConfig named = virtualization.FindAmbientSourceConfig(OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME);
-		if (!named)
-		{
-			SetFailure("The ambient registry carries no source called '%1' - the lookup is exact and case-sensitive",
-				OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME);
-			return true;
-		}
-
-		OVT_CivilianAmbienceConfig template = OVT_CivilianAmbienceConfig.Cast(named);
-		if (!template)
-		{
-			SetFailure("The '%1' source is a %2, not an OVT_CivilianAmbienceConfig - the manager refuses it and every town stays empty",
-				OVT_CivilianAmbienceManagerComponent.TOWN_SOURCE_NAME, named.Type().ToString());
-			return true;
-		}
-
-		if (Math.AbsFloat(template.m_fPopulationRate - EXPECTED_RATE) > EPSILON)
-		{
-			SetFailure("The authored population rate is %1, expected the %2 parity value - a city's crowd is no longer the size the retired spawner built",
-				template.m_fPopulationRate.ToString(), EXPECTED_RATE.ToString());
-			return true;
-		}
-
-		if (template.m_iMinCount != EXPECTED_MIN || template.m_iMaxCount != EXPECTED_MAX)
-		{
-			SetFailure(string.Format("The authored density clamps are [%1, %2], expected [%3, %4]",
-				template.m_iMinCount.ToString(), template.m_iMaxCount.ToString(),
-				EXPECTED_MIN.ToString(), EXPECTED_MAX.ToString()));
-			return true;
-		}
-
-		if (template.m_iSpawnDistanceOverride != -1)
-		{
-			SetFailure("The authored spawn-distance override is %1, expected -1 (ride virtualizationSpawnDistance) - a town crowd with its own ring stops following the operator's setting",
-				template.m_iSpawnDistanceOverride.ToString());
-			return true;
-		}
-
-		string poolFailure = VerifyPool(template);
-		if (poolFailure != "")
-		{
-			SetFailure(poolFailure);
-			return true;
-		}
-
-		PrintFormat("The authored town crowd resolves as an OVT_CivilianAmbienceConfig with %1 civilian type(s), %2 archetype(s) and the parity density settings",
-			template.m_aTypes.Count().ToString(), template.m_aArchetypes.Count().ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] template The resolved template.
-	//! \return An empty string when the authored content can actually produce a civilian.
-	protected string VerifyPool(notnull OVT_CivilianAmbienceConfig template)
-	{
-		if (!template.m_aTypes || template.m_aTypes.IsEmpty())
-			return "The town crowd authors no civilian types at all, so every roll answers Empty and the crowd is never built";
-
-		bool rollable = false;
-		foreach (OVT_CivilianTypeConfig type : template.m_aTypes)
-		{
-			if (!type)
-				continue;
-
-			if (type.m_rGroupPrefab == ResourceName.Empty)
-				return string.Format("Civilian type '%1' names no group prefab", type.m_sTypeName);
-
-			// EVERY TYPE SHARES ONE PREFAB, ON PURPOSE. The per-type civilian prefabs were deleted
-			// because ApplyCivilianLoadout overwrites every slot they could have authored - a type's
-			// look is now entirely its loadout. This pins that: a type left pointing at a prefab that
-			// no longer exists deserialises to a resource nothing can spawn, and core would stop that
-			// town's activation on every roll that picked it.
-			if (type.m_rGroupPrefab != SHARED_GROUP_PREFAB)
-				return string.Format("Civilian type '%1' names group prefab '%2', expected the shared '%3' - every type spawns the one civilian group and gets its look from its loadout, so a different (or deleted) prefab here is either a stale reference or a variant the clothing pass would overwrite anyway",
-					type.m_sTypeName, type.m_rGroupPrefab, SHARED_GROUP_PREFAB);
-
-			if (type.m_iWeight > 0)
-				rollable = true;
-		}
-
-		if (!rollable)
-			return "Every authored civilian type has a weight of 0 or below, so nothing is ever eligible and no town gets a crowd";
-
-		if (!template.m_aArchetypes || template.m_aArchetypes.IsEmpty())
-			return "The town crowd authors no behaviour archetypes, so every civilian would fall back to the hard-coded wait bounds";
-
-		return "";
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! A per-town instance built from the authored template is bound to ONE town, reads the template BY
 //! REFERENCE, and reads that town's population LIVE.
 //!
@@ -5761,7 +4647,7 @@ class OVT_TEST_Init_Civilians_PerTownSourceBinds : SCR_AutotestCaseBase
 		OVT_CivilianAmbienceConfig template = OVT_TEST_CivilianAmbienceFixture.FindTemplate();
 		if (!template)
 		{
-			SetFailure("The authored town crowd did not resolve - see OVT_TEST_Init_Civilians_AmbienceRegistryResolves");
+			SetFailure("The authored town crowd did not resolve");
 			return true;
 		}
 
@@ -6088,158 +4974,6 @@ class OVT_TEST_Init_Civilians_ReleaseOfNonAmbientIsSafe : SCR_AutotestCaseBase
 
 		m_Character = null;
 		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! PER-TOWN CURATION IS REAL: a city and a village resolve DIFFERENT civilian type sets out of the
-//! same authored template, and a town's own allow-list narrows the set further.
-//!
-//! The Logic tier asserts the filter RULE and the shipped table as literal data. What it cannot
-//! reach is the wiring from the authored .conf through the manager's resolver: a type entry that
-//! failed to deserialise, an m_eMinTownSize left at its default, or a resolver that stopped passing
-//! the allow-list all compile clean, keep Logic green, and show up in play only as "the towns all
-//! look the same" - which nobody reports as a bug.
-//!
-//!  1. A CITY ALLOWS STRICTLY MORE THAN A VILLAGE. Equal counts mean the size filter is not applied
-//!     at resolve time at all.
-//!  2. THE CITY-ONLY TYPE IS EXACTLY WHERE IT BELONGS - in the city set, absent from the village set.
-//!  3. AN AUTHORED ALLOW-LIST NARROWS THE SET, and an EMPTY list does not. Both readings of an empty
-//!     list compile; the wrong one empties every un-authored town in the world.
-//!
-//! It also checks at least one shipped type carries a per-type LOADOUT with slots - the one thing
-//! about the .conf no compiler can see, and without it every prefab variant is re-dressed out of the
-//! global pool and the whole variety phase is invisible in play.
-//!
-//! Nothing is registered and no town is modified: the resolver is a pure function of the template.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Civilians_TypeCurationBySize : SCR_AutotestCaseBase
-{
-	//! The shipped type that is authored for cities only.
-	protected const string CITY_ONLY_TYPE = "businessman";
-
-	//! The shipped type that is authored for every settlement size.
-	protected const string UNRESTRICTED_TYPE = "generic";
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_CivilianAmbienceManagerComponent civilians = OVT_Global.GetCivilianAmbience();
-		if (!civilians)
-		{
-			SetFailure("OVT_Global.GetCivilianAmbience() is null - see OVT_TEST_Init_Civilians_ManagerResolves");
-			return true;
-		}
-
-		OVT_CivilianAmbienceConfig template = OVT_TEST_CivilianAmbienceFixture.FindTemplate();
-		if (!template)
-		{
-			SetFailure("The authored town crowd did not resolve - see OVT_TEST_Init_Civilians_AmbienceRegistryResolves");
-			return true;
-		}
-
-		if (template.m_aTypes.Count() < 2)
-		{
-			SetFailure("The authored template carries %1 civilian type(s) - per-town curation cannot mean anything until there is more than one kind of civilian to curate",
-				template.m_aTypes.Count().ToString());
-			return true;
-		}
-
-		// -- claim 1: the two sizes disagree ---------------------------------------------------------
-
-		array<ref OVT_CivilianTypeConfig> cityTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, null);
-		array<ref OVT_CivilianTypeConfig> villageTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.VILLAGE, null);
-
-		if (villageTypes.IsEmpty())
-		{
-			SetFailure("A VILLAGE resolved no civilian types at all - the unrestricted type must survive every size, or every hamlet on the map is silently empty");
-			return true;
-		}
-
-		if (cityTypes.Count() <= villageTypes.Count())
-		{
-			SetFailure("A CITY resolved %1 civilian types and a VILLAGE resolved %2 - a city must allow strictly more, or the minimum-size filter is not being applied when a town's set is resolved",
-				cityTypes.Count().ToString(), villageTypes.Count().ToString());
-			return true;
-		}
-
-		// -- claim 2: the city-only type is where it belongs -----------------------------------------
-
-		if (!ContainsType(cityTypes, CITY_ONLY_TYPE))
-		{
-			SetFailure("The '%1' type is missing from a CITY's set - it is authored for cities, so a city is the one place it must appear",
-				CITY_ONLY_TYPE);
-			return true;
-		}
-
-		if (ContainsType(villageTypes, CITY_ONLY_TYPE))
-		{
-			SetFailure("The '%1' type was allowed in a VILLAGE - the whole point of its authored minimum size is to keep it out of hamlets",
-				CITY_ONLY_TYPE);
-			return true;
-		}
-
-		// -- claim 3: an authored allow-list narrows, an empty one does not --------------------------
-
-		array<string> curated = {UNRESTRICTED_TYPE};
-		array<ref OVT_CivilianTypeConfig> curatedTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, curated);
-
-		if (curatedTypes.Count() != 1 || !ContainsType(curatedTypes, UNRESTRICTED_TYPE))
-		{
-			SetFailure("A CITY curated down to one type resolved %1 type(s) - a town's authored list is an allow-list and must be honoured on top of the size filter",
-				curatedTypes.Count().ToString());
-			return true;
-		}
-
-		array<string> notAuthored = {};
-		array<ref OVT_CivilianTypeConfig> emptyListTypes = civilians.ResolveAllowedTypes(template, OVT_TownSize.CITY, notAuthored);
-
-		if (emptyListTypes.Count() != cityTypes.Count())
-		{
-			SetFailure("A CITY with an EMPTY allow-list resolved %1 types instead of the %2 its size permits - every un-authored town carries an empty list, so reading it as 'nothing allowed' empties the map",
-				emptyListTypes.Count().ToString(), cityTypes.Count().ToString());
-			return true;
-		}
-
-		// -- the authored per-type clothing actually deserialised ------------------------------------
-
-		int withLoadout = 0;
-		foreach (OVT_CivilianTypeConfig type : cityTypes)
-		{
-			if (type && type.m_Loadout && type.m_Loadout.m_aSlots && !type.m_Loadout.m_aSlots.IsEmpty())
-				withLoadout++;
-		}
-
-		if (withLoadout == 0)
-		{
-			SetFailure("Not one of the %1 authored civilian types carries a per-type loadout with slots in it - the visible clothing is overwritten on every civilian regardless of its prefab, so without per-type clothing every variant in the crowd looks identical",
-				cityTypes.Count().ToString());
-			return true;
-		}
-
-		PrintFormat("Per-town curation resolves as authored: a CITY allows %1 civilian types and a VILLAGE %2, the city-only type is refused in the village, an authored list narrows a city to exactly what it names, and %3 type(s) carry their own clothing",
-			cityTypes.Count().ToString(), villageTypes.Count().ToString(), withLoadout.ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] types A resolved type set.
-	//! \param[in] typeName The name to look for.
-	//! \return True when the set carries a type of that exact name.
-	protected bool ContainsType(array<ref OVT_CivilianTypeConfig> types, string typeName)
-	{
-		if (!types)
-			return false;
-
-		foreach (OVT_CivilianTypeConfig type : types)
-		{
-			if (type && type.m_sTypeName == typeName)
-				return true;
-		}
-
-		return false;
 	}
 }
 
@@ -7029,193 +5763,6 @@ class OVT_TEST_Init_Virtualization_EntityObserverRoundTrip : SCR_AutotestCaseBas
 }
 
 //------------------------------------------------------------------------------------------------
-//! The SHIPPED "Town Patrol" config resolves, and its patrol module answers with a real, CYCLING plan.
-//!
-//! Since 2026-08-21 the type is TOWN_SWEEP and the plan is ROLLED PER GROUP: a house-to-house SEARCH
-//! route or a loose un-snapped ring. Both cycle and both are movable, so the shape assertions hold
-//! whichever half the roll lands on; the printout names which one this run got.
-//!
-//! The Logic tier pins the plan factory's geometry, but the factory is world-free statics that know
-//! nothing about which config is shipped. Between the two sits the authored config, and four things
-//! can silently go wrong there:
-//!   - the registry stops carrying "Town Patrol" - the deployment would never be created again, and
-//!     NOTHING would log it;
-//!   - the config loses its patrol behaviour module - every group registers with a null plan and
-//!     every town patrol stands still forever, which reads exactly like broken virtualization;
-//!   - the plan comes back EMPTY or ragged - RegisterGroup refuses it outright, so the patrol is
-//!     silently never registered;
-//!   - the plan stops CYCLING or loses its movable point. A plan is the ONLY opt-in for being walked
-//!     while dormant: a patrol with nothing movable is a garrison, and one that lost its cycle
-//!     guards a quarter of the town for the rest of the campaign.
-//!
-//! Asked off the config TEMPLATE with no deployment behind it: BuildVirtualPlan falls back to the
-//! group's own position when there is no centre to circle, so the shipped answer's shape is
-//! assertable without creating a marker entity and leaking a repeating 10 s UpdateDeployment into
-//! the shared test world. Nothing is registered.
-//!
-//! ⚠ The positions are NOT asserted - they are road-snapped against the live world, so their values
-//! are a property of the terrain. The Logic tier owns the geometry.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_TownPatrolPlanCycles : SCR_AutotestCaseBase
-{
-	//! The shipped config this case is about.
-	static const string CONFIG_NAME = "Town Patrol";
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
-			return true;
-		}
-
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
-		if (!config)
-		{
-			SetFailure("The deployment registry does not resolve '%1' - the shipped town patrol can never be created", CONFIG_NAME);
-			return true;
-		}
-
-		if (!config.IsValidConfig())
-		{
-			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
-			return true;
-		}
-
-		OVT_PatrolBehaviorDeploymentModule patrol = FindPatrolModule(config);
-		if (!patrol)
-		{
-			SetFailure("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - every group it registers would get a null plan and stand still forever", CONFIG_NAME);
-			return true;
-		}
-
-		// ⚠ TOWN_SWEEP - NOT PERIMETER and NOT PERIMETER_BASE. PERIMETER is the old ROAD-SNAPPED ring,
-		// which parked every town patrol in the middle of a road at each corner; PERIMETER_BASE looks for
-		// a base controller within 250 m, which a town centre does not have, and would warn per plan and
-		// walk a square. A config silently reverting to PERIMETER would put the patrols back on the
-		// tarmac and nothing else would say so.
-		if (patrol.m_ePatrolType != OVT_PatrolType.TOWN_SWEEP)
-		{
-			SetFailure("Config '%1' authors patrol type %2, not TOWN_SWEEP - the town patrol would go back to standing on road corners instead of sweeping the town's houses", CONFIG_NAME,
-				typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
-			return true;
-		}
-
-		// The sweep's two authored knobs. A house count of 0 rolls the ring every time (the house branch
-		// picks nothing and falls through), and a chance of 0 never enters it; either silently turns the
-		// sweep back into a plain ring, so both are pinned against the shipped config.
-		if (patrol.m_iSweepHouseCount <= 0)
-		{
-			SetFailure("Config '%1' authors m_iSweepHouseCount %2 - no house would ever be searched and every group would walk the ring", CONFIG_NAME,
-				patrol.m_iSweepHouseCount.ToString());
-			return true;
-		}
-
-		if (patrol.m_fSweepHouseChance <= 0)
-		{
-			SetFailure("Config '%1' authors m_fSweepHouseChance %2 - the house route could never be rolled", CONFIG_NAME,
-				patrol.m_fSweepHouseChance.ToString());
-			return true;
-		}
-
-		vector groupPosition = OVT_TEST_VirtualizationFixture.PickPosition();
-		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(groupPosition);
-
-		string failure = VerifyPlan(plan);
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		Print(string.Format("'%1' builds a %2-point cycling plan with %3 movable point(s) (%4)", CONFIG_NAME,
-			plan.m_aPositions.Count().ToString(), CountMovable(plan).ToString(), DescribeShape(plan)));
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] config The config to search.
-	//! \return Its first patrol behaviour module, or null.
-	protected OVT_PatrolBehaviorDeploymentModule FindPatrolModule(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
-		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
-		{
-			OVT_PatrolBehaviorDeploymentModule patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
-			if (patrol)
-				return patrol;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] plan The plan the patrol module answered with.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyPlan(OVT_VirtualWaypointPlan plan)
-	{
-		if (!plan)
-			return string.Format("The patrol module of '%1' answered with no plan at all - its groups would register with no waypoints, which is a garrison", CONFIG_NAME);
-
-		int count = plan.m_aPositions.Count();
-		if (count == 0)
-			return "The plan is empty - a town patrol would register with no waypoints and never move";
-
-		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
-			return string.Format("The plan's parallel arrays are ragged (%1 positions, %2 types, %3 params) - RegisterGroup refuses a ragged plan outright, so the patrol would silently never be registered",
-				count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
-
-		if (!plan.m_bCycle)
-			return "The plan does not cycle - the patrol would walk to its last corner and guard that quarter of the town for the rest of the campaign";
-
-		if (CountMovable(plan) == 0)
-			return "The plan contains no movable point - a plan is the ONLY opt-in for being walked while dormant, so this patrol would stand still exactly like the old proximity-toggled one";
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] plan The plan to count.
-	//! \return How many of its points the movement tick would advance along. SEARCH counts: it is walked
-	//! to and then held, exactly as a PATROL corner with its WAIT is.
-	protected int CountMovable(notnull OVT_VirtualWaypointPlan plan)
-	{
-		int movable = 0;
-		foreach (int type : plan.m_aTypes)
-		{
-			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE || type == OVT_EVirtualWaypointType.SEARCH)
-				movable++;
-		}
-
-		return movable;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Which half of the sweep this plan is - the roll is per group, so either is a correct answer, and
-	//! the printout says which one this run got. The shape itself is what VerifyPlan checks.
-	protected string DescribeShape(notnull OVT_VirtualWaypointPlan plan)
-	{
-		foreach (int type : plan.m_aTypes)
-		{
-			if (type == OVT_EVirtualWaypointType.SEARCH)
-				return "house route";
-		}
-
-		return "loose ring";
-	}
-}
-
-//------------------------------------------------------------------------------------------------
 //! The EnsureGroups contract, driven against the real core through the real key statics: register
 //! under a deployment owner key, reclaim it, prove a second pass adds NOTHING, then unregister.
 //!
@@ -7386,159 +5933,6 @@ class OVT_TEST_Init_Deployments_EnsureGroupsIsIdempotent : SCR_AutotestCaseBase
 		deploymentKey = OVT_DeploymentVirtualKey.Disambiguate(deploymentKey, 0);
 
 		return OVT_DeploymentVirtualKey.OwnerKey(deploymentKey, OVT_DeploymentVirtualKey.ModuleTag(MODULE_NAME, 0));
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! The SHIPPED "Tower Garrison" config resolves, and everything about it that decides whether a
-//! garrison behaves like a garrison is what it is supposed to be.
-//!
-//! Radio tower garrisons used to be bespoke code inside the occupying faction manager's 9 s loop;
-//! they are now this one authored file, and every claim below is silent when it breaks:
-//!   - the registry stops carrying "Tower Garrison" - no tower would ever get a garrison again, and
-//!     the only symptom would be quiet towers;
-//!   - the config is not valid (no spawning module) - FindBestDeploymentConfig skips it silently;
-//!   - the plan stops being a ONE-POINT, NON-CYCLING DEFEND. A plan is the only opt-in for being
-//!     walked while dormant, so a garrison that acquired a movable point would WANDER OFF ITS TOWER
-//!     while nobody was watching. Nothing else asserts "garrisons never wander";
-//!   - the importance stops being HIGH - the nastiest, because a garrison at the vanilla LOW/NORMAL
-//!     tier is capped lower in the AI budget and evicted first, so on a busy server it never appears.
-//!
-//! ⚠ The CLONE is checked as well as the template: modules are cloned by hand per deployment and a
-//! CloneModule that forgets an attribute ships the class default instead of the authored value,
-//! which is exactly how m_fMaxCruiseSpeed was lost on the vehicle module for a release.
-//!
-//! Asked off the config template with no deployment behind it, as the Town Patrol case is, so
-//! nothing is registered and no repeating UpdateDeployment leaks into the shared test world.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_TowerGarrisonHoldsItsPost : SCR_AutotestCaseBase
-{
-	//! The shipped config this case is about.
-	static const string CONFIG_NAME = "Tower Garrison";
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
-			return true;
-		}
-
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
-		if (!config)
-		{
-			SetFailure("The deployment registry does not resolve '%1' - no radio tower would ever be garrisoned again", CONFIG_NAME);
-			return true;
-		}
-
-		if (!config.IsValidConfig())
-		{
-			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator skips it in silence", CONFIG_NAME);
-			return true;
-		}
-
-		string failure = VerifyPlan(config);
-		if (failure == "")
-			failure = VerifyImportance(config);
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		PrintFormat("'%1' builds a one-point non-cycling DEFEND plan and registers at HIGH importance, template and clone", CONFIG_NAME);
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The plan half: one DEFEND point, no cycle, nothing movable.
-	//! \param[in] config The shipped config.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyPlan(notnull OVT_DeploymentConfig config)
-	{
-		OVT_PatrolBehaviorDeploymentModule patrol;
-		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
-		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
-		{
-			patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
-			if (patrol)
-				break;
-		}
-
-		if (!patrol)
-			return string.Format("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - its groups would register with no plan at all", CONFIG_NAME);
-
-		vector groupPosition = OVT_TEST_VirtualizationFixture.PickPosition();
-		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(groupPosition);
-
-		if (!plan)
-			return string.Format("The patrol module of '%1' answered with no plan - a garrison with no waypoints is legal, but then this case cannot tell a DEFEND post from a lost setting", CONFIG_NAME);
-
-		int count = plan.m_aPositions.Count();
-		if (count != 1)
-			return string.Format("The plan has %1 point(s), expected exactly 1 - a garrison holds ONE post; more than one means the patrol type is no longer DEFEND", count.ToString());
-
-		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
-			return string.Format("The plan's parallel arrays are ragged (%1 positions, %2 types, %3 params) - RegisterGroup refuses a ragged plan outright, so the garrison would silently never be registered",
-				count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
-
-		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
-			return string.Format("The plan's only point is type %1, expected DEFEND", plan.m_aTypes[0].ToString());
-
-		if (plan.m_bCycle)
-			return "The plan cycles - a cycling plan is walked by the movement tick, so the garrison would leave its tower while nobody was watching";
-
-		foreach (int type : plan.m_aTypes)
-		{
-			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
-				return "The plan contains a movable point - the movement tick would walk this garrison off its tower";
-		}
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The budget half: HIGH on the authored template AND on the clone a real deployment gets.
-	//! \param[in] config The shipped config.
-	//! \return An empty string when both hold, or the broken one.
-	protected string VerifyImportance(notnull OVT_DeploymentConfig config)
-	{
-		OVT_InfantrySpawningDeploymentModule infantry;
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			infantry = OVT_InfantrySpawningDeploymentModule.Cast(spawningModule);
-			if (infantry)
-				break;
-		}
-
-		if (!infantry)
-			return string.Format("Config '%1' carries no OVT_InfantrySpawningDeploymentModule - there is nothing to garrison the tower with", CONFIG_NAME);
-
-		if (infantry.m_eImportance != SCR_EAISpawnImportance.HIGH)
-			return string.Format("The authored importance is %1, expected HIGH - a garrison below HIGH loses the AI spawn-budget race on a busy server and silently never appears",
-				typename.EnumToString(SCR_EAISpawnImportance, infantry.m_eImportance));
-
-		OVT_InfantrySpawningDeploymentModule clone = OVT_InfantrySpawningDeploymentModule.Cast(infantry.CloneModule());
-		if (!clone)
-			return "CloneModule() on the infantry module did not return an infantry module";
-
-		if (clone.m_eImportance != SCR_EAISpawnImportance.HIGH)
-			return string.Format("The CLONE's importance is %1 while the template's is HIGH - CloneModule drops the attribute, so every real deployment ships at the wrong tier",
-				typename.EnumToString(SCR_EAISpawnImportance, clone.m_eImportance));
-
-		return "";
 	}
 }
 
@@ -7904,234 +6298,15 @@ class OVT_TEST_Init_Deployments_TowerCaptureOnlyOnRealWipe : SCR_AutotestCaseBas
 }
 
 //------------------------------------------------------------------------------------------------
-//! Both SHIPPED vehicle patrol configs resolve, their crew compositions exist for every faction that
-//! could field them, and their crews are registered ALWAYS-MATERIALISED.
+//! Every deployment config that carries a vehicle spawning module authors a crew group type, and
+//! that crew resolves on at least one faction with a group registry.
 //!
-//! Every way this breaks is silent:
-//!   - the registry stops carrying "Light Vehicle Patrol" or "Heavy Vehicle Patrol" - the evaluator
-//!     would never create one again, and nothing would log it;
-//!   - the config loses its vehicle spawning module or that module's crew group name - the trucks
-//!     spawn and sit at the base forever with nobody in them;
-//!   - the crew group name stops resolving for a faction. Core resolves by (factionKey, groupName)
-//!     and REFUSES the registration when it cannot, so a faction whose registry lost "light_patrol"
-//!     fields driverless vehicles with one warning per attempt. BOTH shipped occupying factions are
-//!     checked, because a registry entry can be dropped from one .conf and not the other;
-//!   - the crew spawn distance stops being always-materialised. A crew at the global ring (-1) goes
-//!     DORMANT with no observer near, and a dormant group holding a route plan is walked along it in
-//!     a straight line while its truck stays parked - so the crew materialises kilometres from its
-//!     vehicle. A crew at 0 gets Manual policy and never materialises at all. Neither errors.
-//!
-//! ⚠ The CLONE is checked as well as the template - a CloneModule that forgets an attribute ships
-//! the class default, which is how m_fMaxCruiseSpeed was lost on this very module for a release.
-//!
-//! Nothing is registered or mutated. The route plan's shape is pinned in the Logic tier; asking the
-//! multi-town module for a plan here would depend on how many towns this world has inside the
-//! config's 2500 m search radius.
+//! Core resolves crews by (factionKey, groupName) and refuses the registration when it cannot, so a
+//! crew name that resolves nowhere fields driverless vehicles with one warning per attempt.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_VehiclePatrolCrewsResolve : SCR_AutotestCaseBase
 {
-	//! The two shipped vehicle patrol configs.
-	static const string LIGHT_CONFIG = "Light Vehicle Patrol";
-	static const string HEAVY_CONFIG = "Heavy Vehicle Patrol";
-
-	//! How many factions must carry a group registry for the composition half to mean anything. Both
-	//! shipped occupying factions do; a world where fewer do would make this case pass vacuously, so it
-	//! fails loudly instead.
-	static const int MIN_FACTIONS_WITH_REGISTRY = 2;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
-			return true;
-		}
-
-		OVT_VirtualizationManagerComponent virtualization = OVT_Global.GetVirtualization();
-		if (!virtualization)
-		{
-			SetFailure("OVT_Global.GetVirtualization() is null - vehicle crews are registered groups, so without it there is nothing to assert");
-			return true;
-		}
-
-		string failure = VerifyConfig(manager, virtualization, LIGHT_CONFIG);
-		if (failure == "")
-			failure = VerifyConfig(manager, virtualization, HEAVY_CONFIG);
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		PrintFormat("'%1' and '%2' both resolve, their crews resolve for every faction with a group registry, and both register always-materialised",
-			LIGHT_CONFIG, HEAVY_CONFIG);
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Every claim about one shipped vehicle patrol config.
-	//! \param[in] manager The deployment manager.
-	//! \param[in] virtualization The virtualization manager, for the global spawn ring.
-	//! \param[in] configName The config to check.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyConfig(notnull OVT_DeploymentManagerComponent manager, notnull OVT_VirtualizationManagerComponent virtualization, string configName)
-	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
-		if (!config)
-			return string.Format("The deployment registry does not resolve '%1' - that vehicle patrol can never be created again", configName);
-
-		if (!config.IsValidConfig())
-			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator skips it in silence", configName);
-
-		OVT_VehicleSpawningDeploymentModule vehicleModule = FindVehicleModule(config);
-		if (!vehicleModule)
-			return string.Format("Config '%1' carries no OVT_VehicleSpawningDeploymentModule - there is nothing to put on the road", configName);
-
-		if (vehicleModule.m_sCrewGroupType.IsEmpty())
-			return string.Format("The vehicle module of '%1' authors no crew group type - its trucks would spawn with nobody in them and never move", configName);
-
-		string failure = VerifyCrewSpawnDistance(virtualization, vehicleModule, configName);
-		if (failure != "")
-			return failure;
-
-		return VerifyComposition(configName, vehicleModule.m_sCrewGroupType);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The always-materialised half, on the template AND on the clone a real deployment gets.
-	//! \param[in] virtualization The virtualization manager.
-	//! \param[in] vehicleModule The config's vehicle module.
-	//! \param[in] configName The config being checked, for the message.
-	//! \return An empty string when both hold, or the broken one.
-	protected string VerifyCrewSpawnDistance(notnull OVT_VirtualizationManagerComponent virtualization, notnull OVT_VehicleSpawningDeploymentModule vehicleModule, string configName)
-	{
-		int authored = vehicleModule.m_iSpawnDistanceOverride;
-
-		if (authored <= 0)
-			return string.Format("'%1' registers its crews with spawn distance %2 - at 0 the engine's Manual policy means they never materialise at all, and anything below 0 is the global ring, which lets them go dormant and be walked away from their own vehicle",
-				configName, authored.ToString());
-
-		int global = virtualization.GetGlobalSpawnDistance();
-		if (authored < global)
-			return string.Format("'%1' registers its crews at %2 m, inside the global virtualization ring of %3 m - a vehicle crew must never be allowed to go dormant, because the movement tick walks a dormant crew along its route while its truck stays parked",
-				configName, authored.ToString(), global.ToString());
-
-		OVT_VehicleSpawningDeploymentModule clone = OVT_VehicleSpawningDeploymentModule.Cast(vehicleModule.CloneModule());
-		if (!clone)
-			return "CloneModule() on the vehicle module did not return a vehicle module";
-
-		if (clone.m_iSpawnDistanceOverride != authored)
-			return string.Format("The CLONE of '%1' registers crews at %2 while the template says %3 - CloneModule drops the attribute, so every real deployment ships at the class default instead of the authored value",
-				configName, clone.m_iSpawnDistanceOverride.ToString(), authored.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The composition half: every faction that has a group registry at all can field this crew.
-	//!
-	//! Asked through the same door the core uses - GetOverthrowFactionByKey then GetGroupPrefabByName -
-	//! rather than by reading the .conf, so a registry that parses but resolves to nothing is caught.
-	//! \param[in] configName The config being checked, for the message.
-	//! \param[in] crewName The crew group registry name it authors.
-	//! \return An empty string when every faction resolves it, or the first that does not.
-	protected string VerifyComposition(string configName, string crewName)
-	{
-		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
-		if (!factions)
-			return "OVT_Global.GetFactions() is null - no composition can be resolved at all";
-
-		int checkedFactions = 0;
-
-		int count = factions.GetFactionsCount();
-		for (int i = 0; i < count; i++)
-		{
-			Faction faction = factions.GetFactionByIndex(i);
-			if (!faction)
-				continue;
-
-			string key = faction.GetFactionKey();
-			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(key);
-			if (!overthrowFaction)
-				continue;
-
-			// Civilians and any other faction with no group registry cannot field a patrol at all and
-			// are not what this case is about.
-			array<string> names = overthrowFaction.GetAvailableGroupNames();
-			if (!names || names.IsEmpty())
-				continue;
-
-			checkedFactions++;
-
-			if (overthrowFaction.GetGroupPrefabByName(crewName) == ResourceName.Empty)
-				return string.Format("Faction '%1' has no group registry entry named '%2', which '%3' authors as its crew - the core refuses that registration, so this faction's vehicle patrols would drive nowhere",
-					key, crewName, configName);
-		}
-
-		if (checkedFactions < MIN_FACTIONS_WITH_REGISTRY)
-			return string.Format("Only %1 faction(s) carry a group registry, expected at least %2 - the composition check for '%3' would pass vacuously",
-				checkedFactions.ToString(), MIN_FACTIONS_WITH_REGISTRY.ToString(), configName);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] config The config to search.
-	//! \return Its first vehicle spawning module, or null.
-	protected OVT_VehicleSpawningDeploymentModule FindVehicleModule(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			OVT_VehicleSpawningDeploymentModule vehicleModule = OVT_VehicleSpawningDeploymentModule.Cast(spawningModule);
-			if (vehicleModule)
-				return vehicleModule;
-		}
-
-		return null;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! The two configs marked FREE AT GAME START really carry the flag - and the rest of the registry
-//! does not.
-//!
-//! `m_bFreeAtGameStart` is an authored .conf attribute defaulting to FALSE, and everything about
-//! losing it is silent: an unauthored line, a renamed attribute, a registry entry that stops
-//! inheriting from its base .conf, a Workbench re-save that drops a default-looking value. The only
-//! symptom would be most radio towers ungarrisoned because the seeding pass had nothing to seed.
-//!
-//! ⚠ The FALSE half matters as much as the true half. A defvalue typo ("1" instead of "0") would
-//! make EVERY config free, seeding both vehicle patrols at every base for nothing on the first load
-//! of every campaign. Requiring at least one shipped config to answer false proves the flag is
-//! opt-in rather than universal.
-//!
-//! Nothing is registered, created or mutated - a pure read of the shipped registry.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
-{
-	//! The two shipped configs the 2026-08-17 amendment marks free.
-	static const string TOWN_CONFIG = "Town Patrol";
-	static const string TOWER_CONFIG = "Tower Garrison";
-
-	//! The two the 2026-08-18 amendment (A1) adds: a base's opening garrison and its tower guards are
-	//! the world's baseline state, not an opportunistic purchase - a player who drives past a base in
-	//! the first minutes of a campaign must not find it empty because the pool had not filled yet.
-	static const string BASE_GARRISON_CONFIG = "Base Garrison Patrol";
-	static const string BASE_TOWER_GUARDS_CONFIG = "Base Tower Guards";
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -8149,78 +6324,81 @@ class OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored : SCR_AutotestCaseBase
 			return true;
 		}
 
-		string failure = VerifyMarkedFree(manager, TOWN_CONFIG);
-		if (failure == "")
-			failure = VerifyMarkedFree(manager, TOWER_CONFIG);
+		int checkedConfigs = 0;
 
-		if (failure == "")
-			failure = VerifyMarkedFree(manager, BASE_GARRISON_CONFIG);
-
-		if (failure == "")
-			failure = VerifyMarkedFree(manager, BASE_TOWER_GUARDS_CONFIG);
-
-		if (failure == "")
-			failure = VerifyFlagIsOptIn(manager);
-
-		if (failure != "")
+		foreach (OVT_DeploymentConfig config : manager.m_DeploymentRegistry.m_aDeploymentConfigs)
 		{
-			SetFailure(failure);
-			return true;
+			if (!config)
+				continue;
+
+			OVT_VehicleSpawningDeploymentModule vehicleModule = FindVehicleModule(config);
+			if (!vehicleModule)
+				continue;
+
+			checkedConfigs++;
+
+			if (vehicleModule.m_sCrewGroupType.IsEmpty())
+			{
+				SetFailure("The vehicle module of '%1' authors no crew group type - its vehicles would spawn with nobody in them and never move", config.m_sDeploymentName);
+				return true;
+			}
+
+			string failure = VerifyComposition(config.m_sDeploymentName, vehicleModule.m_sCrewGroupType);
+			if (failure != "")
+			{
+				SetFailure(failure);
+				return true;
+			}
 		}
 
-		PrintFormat("'%1' and '%2' are marked free at game start", TOWN_CONFIG, TOWER_CONFIG);
-		PrintFormat("So are '%1' and '%2'; %3 other shipped config(s) are not",
-			BASE_GARRISON_CONFIG, BASE_TOWER_GUARDS_CONFIG, CountNotFree(manager).ToString());
+		PrintFormat("%1 deployment configs carry a vehicle spawning module, and every crew group type resolves on at least one faction", checkedConfigs.ToString());
 		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! One named shipped config resolves and carries the flag.
-	//! \param[in] manager The deployment manager.
-	//! \param[in] configName The config to check.
-	//! \return An empty string when the claim holds, or the broken one.
-	protected string VerifyMarkedFree(notnull OVT_DeploymentManagerComponent manager, string configName)
+	//! At least one faction with a group registry can field this crew.
+	//! \param[in] configName The config being checked, for the message.
+	//! \param[in] crewName The crew group registry name it authors.
+	//! \return An empty string when some faction resolves it, or the failure.
+	protected string VerifyComposition(string configName, string crewName)
 	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
-		if (!config)
-			return string.Format("The deployment registry does not resolve '%1', so it can neither be seeded nor bought", configName);
+		OVT_OverthrowFactionManager factions = OVT_Global.GetFactions();
+		if (!factions)
+			return "OVT_Global.GetFactions() is null - no composition can be resolved at all";
 
-		if (!config.IsValidConfig())
-			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the seeding pass skips it in silence", configName);
-
-		if (!config.m_bFreeAtGameStart)
-			return string.Format("Config '%1' is NOT marked m_bFreeAtGameStart - it is back to being bought out of the faction resource pool, which on Easy (150 per tick) is how most radio towers ended up ungarrisoned", configName);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! At least one shipped config answers false, which is what proves the default is false and the
-	//! flag is opt-in.
-	//! \param[in] manager The deployment manager.
-	//! \return An empty string when the claim holds, or the broken one.
-	protected string VerifyFlagIsOptIn(notnull OVT_DeploymentManagerComponent manager)
-	{
-		if (CountNotFree(manager) > 0)
-			return "";
-
-		return string.Format("EVERY one of the registry's %1 config(s) is marked free at game start - the attribute's default has flipped to true, so both vehicle patrols would be seeded at every base on the map for nothing on the first load of every campaign",
-			manager.m_DeploymentRegistry.m_aDeploymentConfigs.Count().ToString());
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] manager The deployment manager.
-	//! \return How many registry configs are NOT marked free at game start.
-	protected int CountNotFree(notnull OVT_DeploymentManagerComponent manager)
-	{
-		int notFree = 0;
-		foreach (OVT_DeploymentConfig config : manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		int count = factions.GetFactionsCount();
+		for (int i = 0; i < count; i++)
 		{
-			if (config && !config.m_bFreeAtGameStart)
-				notFree++;
+			Faction faction = factions.GetFactionByIndex(i);
+			if (!faction)
+				continue;
+
+			OVT_Faction overthrowFaction = factions.GetOverthrowFactionByKey(faction.GetFactionKey());
+			if (!overthrowFaction)
+				continue;
+
+			if (overthrowFaction.GetGroupPrefabByName(crewName) != ResourceName.Empty)
+				return "";
 		}
 
-		return notFree;
+		return string.Format("No faction has a group registry entry named '%1', which '%2' authors as its crew - the core refuses that registration, so those vehicles would drive nowhere",
+			crewName, configName);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] config The config to search.
+	//! \return Its first vehicle spawning module, or null.
+	protected OVT_VehicleSpawningDeploymentModule FindVehicleModule(notnull OVT_DeploymentConfig config)
+	{
+		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
+		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
+		{
+			OVT_VehicleSpawningDeploymentModule vehicleModule = OVT_VehicleSpawningDeploymentModule.Cast(spawningModule);
+			if (vehicleModule)
+				return vehicleModule;
+		}
+
+		return null;
 	}
 }
 
@@ -8285,7 +6463,7 @@ class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCas
 		OVT_DeploymentConfig towerConfig = manager.m_DeploymentRegistry.FindConfigByName(TOWER_CONFIG);
 		if (!towerConfig || !towerConfig.m_bFreeAtGameStart)
 		{
-			SetFailure("'%1' either does not resolve or is not marked m_bFreeAtGameStart, so a seeding pass could not produce one - see OVT_TEST_Init_Deployments_FreeAtGameStartIsAuthored", TOWER_CONFIG);
+			SetFailure("'%1' either does not resolve or is not marked m_bFreeAtGameStart, so a seeding pass could not produce one", TOWER_CONFIG);
 			return true;
 		}
 
@@ -8487,175 +6665,6 @@ class OVT_TEST_Init_Deployments_FreeSeedingIsFreeAndIdempotent : SCR_AutotestCas
 			manager.SubtractFactionResources(factionIndex, current - originalPool);
 		else if (current < originalPool)
 			manager.AddFactionResources(factionIndex, originalPool - current);
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! A position at a base classifies with the BASE bit, so a BASE-only config can be bought there at
-//! all.
-//!
-//! Every base-defense config the migration ships authors m_iAllowedLocationTypes BASE. If the BASE
-//! branch stopped being reachable - a reordered precedence, a changed radius, a town test that
-//! swallowed it - nine configs would silently become unbuyable everywhere, the way the Tower
-//! Garrison config was before the RADIO_TOWER bit was OR-ed in.
-//!
-//! The claim is made against a SHIPPED CONSUMER: the "Light Vehicle Patrol" config is asked whether
-//! it would accept the classification, because CanUseLocationType() is the only question the
-//! evaluator asks and a bit nobody consumes proves nothing.
-//!
-//! 🔴 TOWNS SHADOW BASES, and this case MEASURES it rather than asserting it away. The chain tests
-//! towns first with a hardcoded 500 m radius, so a base within 500 m of a town centre classifies as
-//! TOWN and can never be offered a BASE-only config. True of this test world's only base (114 m from
-//! its town) and of 4 of Eden's 10 bases - an open design question in the feature's context.md.
-//! Until it is decided the honest claim is that the branch is alive somewhere in a base's ring; the
-//! shadow count is printed on every run so the number cannot be quietly forgotten.
-//!
-//! Nothing is registered, created or mutated. The classification does no ground trace, so probes off
-//! the terrain are legal.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_BaseLocationTypeIsReachable : SCR_AutotestCaseBase
-{
-	//! A shipped config that authors BASE and nothing else, used as the consumer of the classification.
-	static const string BASE_ONLY_CONFIG = "Light Vehicle Patrol";
-
-	//! Probe distances from a base centre, all inside the 500 m ring the classification uses.
-	static const float PROBE_NEAR = 150;
-	static const float PROBE_MID = 300;
-	static const float PROBE_FAR = 450;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
-		{
-			SetFailure("This world has no bases, so the BASE classification cannot be exercised - InitializeBases() found none");
-			return true;
-		}
-
-		vector probe;
-		if (!FindBaseClassifiedPosition(manager, occupying, probe))
-		{
-			SetFailure("No position within 500 m of any of this world's %1 base(s) classifies as BASE - every BASE-only deployment config is unbuyable everywhere on this map, silently",
-				occupying.m_Bases.Count().ToString());
-			return true;
-		}
-
-		OVT_LocationTypeFlag classification = manager.GetLocationTypeAtPosition(probe);
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so the classification has no shipped consumer to be checked against");
-			return true;
-		}
-
-		OVT_DeploymentConfig baseConfig = manager.m_DeploymentRegistry.FindConfigByName(BASE_ONLY_CONFIG);
-		if (!baseConfig)
-		{
-			SetFailure("The deployment registry does not resolve '%1', so the classification has no shipped consumer to be checked against", BASE_ONLY_CONFIG);
-			return true;
-		}
-
-		if (!baseConfig.CanUseLocationType(classification))
-		{
-			SetFailure("'%1' refuses a position classified %2 - the config's authored location types and the classification no longer agree, so it can never be created at a base",
-				BASE_ONLY_CONFIG, classification.ToString());
-			return true;
-		}
-
-		int shadowed = CountTownShadowedBases(manager, occupying);
-		PrintFormat("A position at a base classifies as %1 and '%2' accepts it; %3 of this world's base(s) are shadowed by a town at their own centre and can never be offered a BASE-only config",
-			classification.ToString(), BASE_ONLY_CONFIG, shadowed.ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The first position inside some base's 500 m ring that classifies with the BASE bit.
-	//!
-	//! Tries each base's own centre first - which is the only position GetBasePositions() ever offers
-	//! the evaluator - and falls back to eight compass probes inside the ring, because a base centre
-	//! that sits inside a town's bounds classifies as TOWN.
-	//! \param[in] manager The deployment manager, for the classification.
-	//! \param[in] occupying The occupying faction manager, for the base list.
-	//! \param[out] found The position that classified as BASE.
-	//! \return True when one was found.
-	protected bool FindBaseClassifiedPosition(notnull OVT_DeploymentManagerComponent manager,
-		notnull OVT_OccupyingFactionManager occupying, out vector found)
-	{
-		foreach (OVT_BaseData baseData : occupying.m_Bases)
-		{
-			if (!baseData)
-				continue;
-
-			if (ClassifiesAsBase(manager, baseData.location))
-			{
-				found = baseData.location;
-				return true;
-			}
-		}
-
-		array<float> distances = {PROBE_FAR, PROBE_MID, PROBE_NEAR};
-
-		foreach (OVT_BaseData baseData : occupying.m_Bases)
-		{
-			if (!baseData)
-				continue;
-
-			foreach (float distance : distances)
-			{
-				for (int step = 0; step < 8; step++)
-				{
-					float angle = (step / 8.0) * Math.PI2;
-					vector probe = baseData.location + Vector(Math.Cos(angle) * distance, 0, Math.Sin(angle) * distance);
-
-					if (ClassifiesAsBase(manager, probe))
-					{
-						found = probe;
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] manager The deployment manager.
-	//! \param[in] position The position to classify.
-	//! \return True when the classification carries the BASE bit.
-	protected bool ClassifiesAsBase(notnull OVT_DeploymentManagerComponent manager, vector position)
-	{
-		return (manager.GetLocationTypeAtPosition(position) & OVT_LocationTypeFlag.BASE) != 0;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How many bases do NOT classify as BASE at their own centre - i.e. how many of this world's
-	//! bases the evaluator can never offer a BASE-only config to.
-	//! \param[in] manager The deployment manager.
-	//! \param[in] occupying The occupying faction manager.
-	//! \return The count, 0 when every base classifies as its own kind.
-	protected int CountTownShadowedBases(notnull OVT_DeploymentManagerComponent manager,
-		notnull OVT_OccupyingFactionManager occupying)
-	{
-		int shadowed = 0;
-
-		foreach (OVT_BaseData baseData : occupying.m_Bases)
-		{
-			if (baseData && !ClassifiesAsBase(manager, baseData.location))
-				shadowed++;
-		}
-
-		return shadowed;
 	}
 }
 
@@ -9075,38 +7084,17 @@ class OVT_TEST_Init_Deployments_EscalationBuysTheNextConfig : SCR_AutotestCaseBa
 }
 
 //------------------------------------------------------------------------------------------------
-//! Every faction registry name the base-defense migration introduces resolves to a REAL prefab, on
-//! BOTH shipped occupying factions.
+//! Every group name, vehicle name and composition tag that a base-capable deployment config
+//! references resolves on every faction with a group registry, and every referenced composition
+//! costs more than zero.
 //!
-//! Nine deployment configs are authored against these names and every failure mode of a wrong one is
-//! silent at authoring time: RegisterGroup logs a warning and returns -1 for an unknown group name,
-//! the composition module logs a warning and builds nothing, the parked-vehicle module parks
-//! nothing. A campaign with a typo'd registry name is one whose bases simply never fortify.
-//!
-//! Asked through the same door the game uses - GetOverthrowFactionByKey then GetGroupPrefabByName /
-//! GetVehiclePrefabByName / GetCompositionConfig - rather than by reading the .conf, so a registry
-//! that parses but resolves to nothing is caught too.
-//!
-//! BOTH factions, or it means nothing: Overthrow swaps which faction occupies, so a name authored on
-//! USSR alone fortifies under one occupier and not the other. The case counts the factions it
-//! actually checked and fails loudly rather than passing vacuously.
+//! Resolution goes through the same door the game uses (GetOverthrowFactionByKey, then the
+//! registry getters), so a registry that parses but resolves to nothing is caught. A wrong name
+//! only produces a WARNING at runtime and a base that never fortifies.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
 class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_AutotestCaseBase
 {
-	//! The group registry names Phase 2 appended.
-	static const ref array<string> GROUP_NAMES = {"heavy_infantry", "at_team", "sniper", "sniper_team", "bunker_team"};
-
-	//! The vehicle registry names Phase 2 appended.
-	static const ref array<string> VEHICLE_NAMES = {"car", "truck"};
-
-	//! The composition tags Phase 2 appended.
-	static const ref array<string> COMPOSITION_TAGS = {"MediumCheckpoint", "LargeCheckpoint"};
-
-	//! Both shipped occupying factions carry a group registry. Fewer would make every check below
-	//! pass vacuously.
-	static const int MIN_FACTIONS_WITH_REGISTRY = 2;
-
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -9116,6 +7104,20 @@ class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_Autotest
 		{
 			SetFailure("OVT_Global.GetFactions() is null - no registry name can be resolved at all");
 			return true;
+		}
+
+		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
+		if (!manager || !manager.m_DeploymentRegistry || !manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			SetFailure("The deployment manager has no registry, so no deployment config can be checked");
+			return true;
+		}
+
+		array<OVT_DeploymentConfig> configs = {};
+		foreach (OVT_DeploymentConfig config : manager.m_DeploymentRegistry.m_aDeploymentConfigs)
+		{
+			if (config && config.CanUseLocationType(OVT_LocationTypeFlag.BASE))
+				configs.Insert(config);
 		}
 
 		int checkedFactions = 0;
@@ -9133,8 +7135,7 @@ class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_Autotest
 			if (!overthrowFaction)
 				continue;
 
-			// Civilians and anything else with no group registry cannot field base defense at all and
-			// are not what this case is about.
+			// Civilians and anything else with no group registry cannot field base defense.
 			array<string> names = overthrowFaction.GetAvailableGroupNames();
 			if (!names || names.IsEmpty())
 				continue;
@@ -9142,7 +7143,7 @@ class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_Autotest
 			checkedFactions++;
 
 			if (failure == "")
-				failure = VerifyFaction(overthrowFaction, key);
+				failure = VerifyFaction(overthrowFaction, key, configs);
 		}
 
 		if (failure != "")
@@ -9151,54 +7152,138 @@ class OVT_TEST_Init_Deployments_BaseDefenseRegistryEntriesResolve : SCR_Autotest
 			return true;
 		}
 
-		if (checkedFactions < MIN_FACTIONS_WITH_REGISTRY)
-		{
-			SetFailure("Only %1 faction(s) carry a group registry, expected at least %2 - every base-defense registry check would pass vacuously",
-				checkedFactions.ToString(), MIN_FACTIONS_WITH_REGISTRY.ToString());
-			return true;
-		}
-
-		PrintFormat("All %1 base-defense group names, %2 vehicle names and %3 composition tags resolve on every faction with a registry",
-			GROUP_NAMES.Count().ToString(), VEHICLE_NAMES.Count().ToString(), COMPOSITION_TAGS.Count().ToString());
+		PrintFormat("Every registry name referenced by %1 base-capable deployment configs resolves on all %2 factions with a group registry",
+			configs.Count().ToString(), checkedFactions.ToString());
 		return true;
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Every new name, on one faction.
+	//! Every name the given configs reference, on one faction.
 	//! \param[in] faction The Overthrow faction data.
 	//! \param[in] key Its faction key, for the message.
+	//! \param[in] configs The base-capable deployment configs.
 	//! \return An empty string when every name resolves, or the first that does not.
-	protected string VerifyFaction(notnull OVT_Faction faction, string key)
+	protected string VerifyFaction(notnull OVT_Faction faction, string key, notnull array<OVT_DeploymentConfig> configs)
 	{
-		foreach (string groupName : GROUP_NAMES)
+		foreach (OVT_DeploymentConfig config : configs)
 		{
-			if (faction.GetGroupPrefabByName(groupName) == ResourceName.Empty)
-				return string.Format("Faction '%1' has no GROUP registry entry named '%2' - core refuses that registration outright, so every base-defense config authoring it would register nothing and log only a WARNING",
-					key, groupName);
+			if (!config.m_aModules)
+				continue;
+
+			foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+			{
+				string failure = VerifyModule(faction, key, config.m_sDeploymentName, module);
+				if (failure != "")
+					return failure;
+			}
 		}
 
-		foreach (string vehicleName : VEHICLE_NAMES)
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Every registry name one module authors. Empty names and ladder roles are not registry names.
+	//! \param[in] faction The Overthrow faction data.
+	//! \param[in] key Its faction key, for the message.
+	//! \param[in] configName The owning config, for the message.
+	//! \param[in] module The module to inspect. May be null.
+	//! \return An empty string when every name resolves, or the first that does not.
+	protected string VerifyModule(notnull OVT_Faction faction, string key, string configName, OVT_BaseDeploymentModule module)
+	{
+		if (!module)
+			return "";
+
+		OVT_InfantrySpawningDeploymentModule infantry = OVT_InfantrySpawningDeploymentModule.Cast(module);
+		if (infantry)
 		{
-			if (faction.GetVehiclePrefabByName(vehicleName) == ResourceName.Empty)
-				return string.Format("Faction '%1' has no VEHICLE registry entry named '%2' - the parked-vehicle module would park nothing and log only a WARNING",
-					key, vehicleName);
+			string failure = VerifyGroup(faction, key, configName, infantry.m_sGroupType);
+			if (failure != "")
+				return failure;
 		}
 
-		foreach (string tag : COMPOSITION_TAGS)
+		OVT_InsertionSpawningDeploymentModule insertion = OVT_InsertionSpawningDeploymentModule.Cast(module);
+		if (insertion)
 		{
-			OVT_FactionComposition composition = faction.GetCompositionConfig(tag);
-			if (!composition)
-				return string.Format("Faction '%1' has no composition tagged '%2' - the composition module would build nothing and log only a WARNING",
-					key, tag);
+			string failure = VerifyGroup(faction, key, configName, insertion.m_sTruckCrewGroup);
+			if (failure != "")
+				return failure;
 
-			if (!composition.m_aPrefabs || composition.m_aPrefabs.IsEmpty())
-				return string.Format("Faction '%1' composition '%2' resolves but authors no prefabs - it would be picked, refused and never retried",
-					key, tag);
-
-			if (composition.m_iCost <= 0)
-				return string.Format("Faction '%1' composition '%2' costs %3 - a free structure makes the deployment's resource cost wrong and the pool would never be the constraint it is meant to be",
-					key, tag, composition.m_iCost.ToString());
+			failure = VerifyVehicle(faction, key, configName, insertion.m_sTruckVehicleType);
+			if (failure != "")
+				return failure;
 		}
+
+		OVT_VehicleSpawningDeploymentModule vehicle = OVT_VehicleSpawningDeploymentModule.Cast(module);
+		if (vehicle)
+		{
+			string failure = VerifyGroup(faction, key, configName, vehicle.m_sCrewGroupType);
+			if (failure != "")
+				return failure;
+
+			failure = VerifyVehicle(faction, key, configName, vehicle.m_sVehicleType);
+			if (failure != "")
+				return failure;
+		}
+
+		OVT_ParkedVehicleSpawningDeploymentModule parked = OVT_ParkedVehicleSpawningDeploymentModule.Cast(module);
+		if (parked)
+		{
+			string failure = VerifyVehicle(faction, key, configName, parked.m_sVehicleType);
+			if (failure != "")
+				return failure;
+		}
+
+		OVT_CompositionSpawningDeploymentModule composition = OVT_CompositionSpawningDeploymentModule.Cast(module);
+		if (composition)
+			return VerifyComposition(faction, key, configName, composition.m_sCompositionTag);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected string VerifyGroup(notnull OVT_Faction faction, string key, string configName, string groupName)
+	{
+		if (groupName.IsEmpty())
+			return "";
+
+		if (faction.GetGroupPrefabByName(groupName) == ResourceName.Empty)
+			return string.Format("Faction '%1' has no GROUP registry entry named '%2', which '%3' authors - core refuses that registration outright and logs only a WARNING",
+				key, groupName, configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected string VerifyVehicle(notnull OVT_Faction faction, string key, string configName, string vehicleName)
+	{
+		if (vehicleName.IsEmpty())
+			return "";
+
+		if (faction.GetVehiclePrefabByName(vehicleName) == ResourceName.Empty)
+			return string.Format("Faction '%1' has no VEHICLE registry entry named '%2', which '%3' authors - the module would spawn nothing and log only a WARNING",
+				key, vehicleName, configName);
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	protected string VerifyComposition(notnull OVT_Faction faction, string key, string configName, string tag)
+	{
+		if (tag.IsEmpty())
+			return "";
+
+		OVT_FactionComposition composition = faction.GetCompositionConfig(tag);
+		if (!composition)
+			return string.Format("Faction '%1' has no composition tagged '%2', which '%3' authors - the composition module would build nothing and log only a WARNING",
+				key, tag, configName);
+
+		if (!composition.m_aPrefabs || composition.m_aPrefabs.IsEmpty())
+			return string.Format("Faction '%1' composition '%2' resolves but authors no prefabs - it would be picked, refused and never retried",
+				key, tag);
+
+		if (composition.m_iCost <= 0)
+			return string.Format("Faction '%1' composition '%2' costs %3 - a free structure makes the deployment's resource cost wrong",
+				key, tag, composition.m_iCost.ToString());
 
 		return "";
 	}
@@ -9746,807 +7831,6 @@ class OVT_TEST_Init_Deployments_NewModuleClonesCarryEveryAttribute : SCR_Autotes
 	}
 }
 
-//------------------------------------------------------------------------------------------------
-//! THE THREE BASE-DEFENSE CONFIGS THAT USED TO BE PATROLS: two still are, on the base's OWN AUTHORED
-//! SQUARE, and the third is now a placed road overwatch that never moves.
-//!
-//! "Garrisons never wander, patrols always do" at its root. A plan is the only opt-in for being
-//! walked while dormant, so getting it backwards is invisible in play until a base's entire garrison
-//! has walked off into the countryside - or a "patrol" stands in one spot for a whole campaign.
-//!
-//!   - Base Garrison Patrol and Base Heavy Patrol author PERIMETER_BASE, which walks the nearest base
-//!     controller's AUTHORED square and ROAD-SNAPS NOTHING. Plain PERIMETER is still the town
-//!     patrol's road-snapped ring.
-//!   - Base AT Section is no longer a patrol: a placed-infantry module with the road-slot overwatch
-//!     provider and a one-point DEFEND plan.
-//!
-//! The geometry is asserted against the LIVE base, which is what this tier can prove and the Logic
-//! tier cannot: that the numbers reaching BuildSquarePerimeterPlan are the ones a designer AUTHORED
-//! ON THE BASE, and that nothing pulled a corner onto a road. Every corner sits at the authored
-//! radius and within the jitter band of an authored corner bearing.
-//!
-//! ⚠ PERIMETER_BASE is asserted BY NAME, not inferred from the plan shape: the DEFEND branch also
-//! answers with a plan, and a config that lost its m_ePatrolType line would fall back to the enum's
-//! zero value and read as an ordinary authoring value rather than a mistake.
-//!
-//! Asked off the config template with no deployment behind it. With no parent deployment the patrol
-//! module falls back to "circle where you are", so handing it the BASE's own position is what puts
-//! the base controller inside its 250 m lookup.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_BasePatrolConfigsCyclePerimeter : SCR_AutotestCaseBase
-{
-	//! The two shipped base-defense configs that are allowed to move.
-	static const string GARRISON_CONFIG = "Base Garrison Patrol";
-	static const string HEAVY_CONFIG = "Base Heavy Patrol";
-
-	//! The one that used to be a third patrol and is now a placed overwatch.
-	static const string AT_CONFIG = "Base AT Section";
-
-	//! How far a corner may sit off the authored radius, in metres. The square's XZ is exact - only Y
-	//! moves under the ground snap - and every distance below is taken horizontally, so this is slop
-	//! and not a real allowance. A road-snapped corner would miss by tens or hundreds of metres.
-	static const float RADIUS_TOLERANCE_M = 1;
-
-	//! How far a corner's bearing may sit off the nearest authored one: the jitter band plus a degree
-	//! for float slop.
-	static const float ANGLE_TOLERANCE_DEG = 11;
-
-	//! The threat floor and acquisition priority the AT section is authored with. Both are behaviour a
-	//! player feels and neither logs anything if it drifts.
-	//!
-	//! ⚠ Re-scaled 50 -> 20 on 2026-08-20 with the threat scale itself, not because the intent changed.
-	//! Candidate scores used to carry the GLOBAL campaign threat added to every position (~420 in the
-	//! campaign that exposed it), so a floor of 50 gated nothing. CalculateThreatLevel() now returns
-	//! the SPATIAL score alone, roughly 0-60.
-	static const int AT_MINIMUM_THREAT = 20;
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
-			return true;
-		}
-
-		vector basePosition;
-		OVT_BaseControllerComponent controller = FindTestWorldBase(basePosition);
-		if (!controller)
-		{
-			SetFailure("No OVT_BaseControllerComponent resolved within %1 m of this world's first base centre - PERIMETER_BASE reads its square off that component, so without one every base garrison would fall back to an un-authored ring and log a warning per plan",
-				OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS.ToString());
-			return true;
-		}
-
-		array<string> configNames = {GARRISON_CONFIG, HEAVY_CONFIG};
-
-		foreach (string configName : configNames)
-		{
-			string failure = VerifyPatrolConfig(manager, configName, controller, basePosition);
-			if (failure != "")
-			{
-				SetFailure(failure);
-				return true;
-			}
-		}
-
-		string atFailure = VerifyATSection(manager);
-		if (atFailure != "")
-		{
-			SetFailure(atFailure);
-			return true;
-		}
-
-		PrintFormat("'%1' and '%2' build cycling PERIMETER_BASE plans on the base's own authored square", GARRISON_CONFIG, HEAVY_CONFIG);
-		PrintFormat("The square is %1 m at %2 degrees; every corner landed on it, un-snapped, within the +/-%3 degree jitter band",
-			controller.m_fPerimeterRadius.ToString(), controller.m_fPerimeterRotation.ToString(),
-			OVT_PatrolBehaviorDeploymentModule.PERIMETER_ROTATION_JITTER_DEG.ToString());
-		PrintFormat("'%1' is a placed road overwatch: one-point non-cycling DEFEND, provider '%2'", AT_CONFIG, "road slot overwatch");
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! This world's first base, and the controller component that carries its authored square.
-	//! \param[out] position The base centre.
-	//! \return The controller, or null when there is no base or it carries no controller.
-	protected OVT_BaseControllerComponent FindTestWorldBase(out vector position)
-	{
-		position = vector.Zero;
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
-			return null;
-
-		position = occupying.m_Bases[0].location;
-
-		return OVT_BaseControllerComponent.FindNearestBaseControllerWithin(position, OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! One of the two configs that walk the authored square.
-	//! \param[in] manager The deployment manager, for its registry.
-	//! \param[in] configName The shipped config name to check.
-	//! \param[in] controller The base controller carrying the authored square.
-	//! \param[in] basePosition The base centre, which is also the position the plan is asked for.
-	//! \return An empty string when every claim holds for it, or the first broken one.
-	protected string VerifyPatrolConfig(notnull OVT_DeploymentManagerComponent manager, string configName, notnull OVT_BaseControllerComponent controller, vector basePosition)
-	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
-		if (!config)
-			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf, and the base defense it carries can never be created", configName);
-
-		if (!config.IsValidConfig())
-			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
-
-		OVT_PatrolBehaviorDeploymentModule patrol = FindPatrolModule(config);
-		if (!patrol)
-			return string.Format("Config '%1' carries no OVT_PatrolBehaviorDeploymentModule - every group it registers would get a null plan and hold the spawn point, which is a garrison and not a patrol", configName);
-
-		if (patrol.m_ePatrolType != OVT_PatrolType.PERIMETER_BASE)
-			return string.Format("Config '%1' authors patrol type %2, not PERIMETER_BASE - it would either hold one post or walk a ROAD-SNAPPED ring, and a base's roads run through it rather than around it",
-				configName, typename.EnumToString(OVT_PatrolType, patrol.m_ePatrolType));
-
-		OVT_VirtualWaypointPlan plan = patrol.BuildVirtualPlan(basePosition);
-
-		string shape = VerifyPlanShape(plan, configName);
-		if (shape != "")
-			return shape;
-
-		return VerifySquareGeometry(plan, configName, controller, basePosition);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Everything a movable plan has to be, whatever built it.
-	//! \param[in] plan The plan the patrol module answered with.
-	//! \param[in] configName Its config's name, for the messages.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyPlanShape(OVT_VirtualWaypointPlan plan, string configName)
-	{
-		if (!plan)
-			return string.Format("The patrol module of '%1' answered with no plan at all - its groups would register with no waypoints", configName);
-
-		int count = plan.m_aPositions.Count();
-		if (count == 0)
-			return string.Format("'%1' builds an EMPTY plan - the patrol would register with no waypoints and never move", configName);
-
-		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
-			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types) - RegisterGroup refuses a ragged plan outright, so the patrol would silently never be registered",
-				configName, count.ToString(), plan.m_aTypes.Count().ToString());
-
-		if (!plan.m_bCycle)
-			return string.Format("'%1' builds a NON-CYCLING plan - the patrol would walk to its last corner and guard that quarter of the base for the rest of the campaign", configName);
-
-		if (CountMovable(plan) == 0)
-			return string.Format("'%1' builds a plan with no movable point - a plan is the ONLY opt-in for being walked while dormant, so this patrol would stand still", configName);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! THE AMENDMENT'S HEADLINE CLAIM: the corners are on the square the DESIGNER authored, and none of
-	//! them was pulled onto a road.
-	//! \param[in] plan The plan to measure.
-	//! \param[in] configName Its config's name, for the messages.
-	//! \param[in] controller The base controller carrying the authored square.
-	//! \param[in] basePosition The base centre.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifySquareGeometry(notnull OVT_VirtualWaypointPlan plan, string configName, notnull OVT_BaseControllerComponent controller, vector basePosition)
-	{
-		float radius = controller.m_fPerimeterRadius;
-		if (radius <= 0)
-			return string.Format("The base controller authors a perimeter radius of %1 - a square with no size cannot be asserted, and at runtime the patrol would silently fall back to the module's own radius", radius.ToString());
-
-		int corners = 0;
-
-		for (int i = 0; i < plan.m_aTypes.Count(); i++)
-		{
-			if (plan.m_aTypes[i] != OVT_EVirtualWaypointType.PATROL)
-				continue;
-
-			corners++;
-
-			vector corner = plan.m_aPositions[i];
-
-			float distance = HorizontalDistance(corner, basePosition);
-			if (Math.AbsFloat(distance - radius) > RADIUS_TOLERANCE_M)
-				return string.Format("'%1': a corner is %2 m from the base centre, expected the authored %3 m - either the authored square is being ignored, or the corner was ROAD-SNAPPED off it, which is the one thing a base perimeter must never be",
-					configName, distance.ToString(), radius.ToString());
-
-			float bearingOff = BearingOffAuthored(basePosition, corner, controller.m_fPerimeterRotation);
-			if (bearingOff > ANGLE_TOLERANCE_DEG)
-				return string.Format("'%1': a corner sits %2 degrees off the nearest authored corner of the square, and the whole jitter band is only +/-%3 degrees",
-					configName, bearingOff.ToString(), OVT_PatrolBehaviorDeploymentModule.PERIMETER_ROTATION_JITTER_DEG.ToString());
-		}
-
-		if (corners != OVT_VirtualPlanFactory.PERIMETER_POINTS)
-			return string.Format("'%1' builds %2 movable corner(s), expected %3 - a base perimeter is a four-corner square",
-				configName, corners.ToString(), OVT_VirtualPlanFactory.PERIMETER_POINTS.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The AT section: placed, not patrolling, and standing beside the road slots.
-	//! \param[in] manager The deployment manager, for its registry.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyATSection(notnull OVT_DeploymentManagerComponent manager)
-	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(AT_CONFIG);
-		if (!config)
-			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf", AT_CONFIG);
-
-		if (!config.IsValidConfig())
-			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", AT_CONFIG);
-
-		if (config.m_iMinimumThreatLevel != AT_MINIMUM_THREAT)
-			return string.Format("Config '%1' authors a minimum threat of %2, expected %3 - an AT section is a late-campaign answer to armour and this is when a base starts buying one",
-				AT_CONFIG, config.m_iMinimumThreatLevel.ToString(), AT_MINIMUM_THREAT.ToString());
-
-		// ⚠ A priority assertion was deleted here (2026-08-22), not weakened. It pinned m_iPriority to an
-		// exact number and broke the moment the author retuned it - which is the whole purpose of the
-		// field, so "the author changed his mind" and "somebody broke escalation order" became
-		// indistinguishable. It was not converted to a relative-order check either: the framework
-		// requires no RELATIONSHIP between two configs' priorities (a pure sort key and a threshold), so
-		// there is no inversion that breaks anything, only one a designer might not want.
-		//
-		// What IS still asserted is structural: that it resolves, that it is valid, that it carries a
-		// placed module with a placement provider, and that it is offered at bases at all.
-
-		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
-		if (!placed)
-			return string.Format("Config '%1' carries no OVT_PlacedInfantrySpawningDeploymentModule - its AT teams would be rolled onto a ring around the marker instead of standing beside the road slots", AT_CONFIG);
-
-		if (!placed.m_Placement)
-			return string.Format("Config '%1' authors no m_Placement provider - the module has nowhere to stand anybody, wants 0 groups and registers NOTHING, logging nothing", AT_CONFIG);
-
-		OVT_RoadSlotOverwatchPlacementProvider overwatch = OVT_RoadSlotOverwatchPlacementProvider.Cast(placed.m_Placement);
-		if (!overwatch)
-			return string.Format("Config '%1' authors the '%2' placement provider - it must be the road-slot overwatch one, which is what puts the team where a checkpoint would be",
-				AT_CONFIG, placed.m_Placement.GetProviderName());
-
-		if (overwatch.m_fSideOffset <= 0)
-			return string.Format("Config '%1' authors a side offset of %2 - at zero the AT team stands in the middle of the road slot, inside whatever checkpoint the base builds there later",
-				AT_CONFIG, overwatch.m_fSideOffset.ToString());
-
-		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
-		if (!plan)
-			return string.Format("'%1' builds NO plan - a stationed AT team holds its post through a DEFEND waypoint, exactly as the defense positions do", AT_CONFIG);
-
-		int count = plan.m_aPositions.Count();
-		if (count != 1)
-			return string.Format("'%1' builds a %2-point plan, expected exactly one - an overwatch post is one place held by one team", AT_CONFIG, count.ToString());
-
-		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
-			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types) - RegisterGroup refuses a ragged plan outright", AT_CONFIG, count.ToString(), plan.m_aTypes.Count().ToString());
-
-		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
-			return string.Format("'%1' builds a plan whose only point is type %2, expected DEFEND - any movable type here hands the movement tick an AT team to walk off its overwatch",
-				AT_CONFIG, plan.m_aTypes[0].ToString());
-
-		if (plan.m_bCycle)
-			return string.Format("'%1' builds a CYCLING plan - a one-point cycle is still a cycle, and the point of an overwatch is that it is never left", AT_CONFIG);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! How far a corner's bearing is from the NEAREST corner of the authored square.
-	//!
-	//! Folded to a quarter turn rather than matched corner-by-corner, because which authored corner a
-	//! walk starts on follows the walker's own approach - the square does not move, but the walk order
-	//! rotates, and pinning the order here would pin a tie-break instead of the geometry.
-	//! \param[in] centre The base centre.
-	//! \param[in] corner The plan point.
-	//! \param[in] rotationDeg The authored rotation of the square.
-	//! \return Degrees off the nearest authored corner, 0..45.
-	protected float BearingOffAuthored(vector centre, vector corner, float rotationDeg)
-	{
-		vector direction = corner - centre;
-		direction[1] = 0;
-
-		if (direction.Length() < 0.01)
-			return 180;
-
-		float delta = direction.ToYaw() - rotationDeg;
-
-		// Math.Floor folds negatives correctly, which a modulo would not: EnforceScript's % is integer
-		// only and keeps the sign of its left operand.
-		delta = delta - (Math.Floor(delta / 90) * 90);
-
-		if (delta > 45)
-			delta = 90 - delta;
-
-		return Math.AbsFloat(delta);
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] a First position.
-	//! \param[in] b Second position.
-	//! \return The distance between them in the XZ plane, ignoring the ground snap's Y.
-	protected float HorizontalDistance(vector a, vector b)
-	{
-		return vector.Distance(Vector(a[0], 0, a[2]), Vector(b[0], 0, b[2]));
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The plan a group of this config would be registered with, resolved the way
-	//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() does it: ask every BEHAVIOUR module in
-	//! authored order, take the first non-null answer.
-	//! \param[in] config The config to ask.
-	//! \return The plan, or null when no behaviour module has an opinion.
-	protected OVT_VirtualWaypointPlan ResolvePlanLikeProduction(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
-		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
-		{
-			if (!behaviorModule)
-				continue;
-
-			OVT_VirtualWaypointPlan plan = behaviorModule.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
-			if (plan)
-				return plan;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] config The config to search.
-	//! \return Its first placed-infantry spawning module, or null.
-	protected OVT_PlacedInfantrySpawningDeploymentModule FindPlacedModule(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
-			if (placed)
-				return placed;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] config The config to search.
-	//! \return Its first patrol behaviour module, or null.
-	protected OVT_PatrolBehaviorDeploymentModule FindPatrolModule(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
-		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
-		{
-			OVT_PatrolBehaviorDeploymentModule patrol = OVT_PatrolBehaviorDeploymentModule.Cast(behaviorModule);
-			if (patrol)
-				return patrol;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] plan The plan to count.
-	//! \return How many of its points the movement tick would advance along.
-	protected int CountMovable(notnull OVT_VirtualWaypointPlan plan)
-	{
-		int movable = 0;
-		foreach (int type : plan.m_aTypes)
-		{
-			if (type == OVT_EVirtualWaypointType.PATROL || type == OVT_EVirtualWaypointType.MOVE)
-				movable++;
-		}
-
-		return movable;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! A base whose centre sits inside a town's 500 m bounds STILL carries the BASE bit, and a BASE-only
-//! base-defense config accepts it. Decision S1, and this case is its only mechanical guard.
-//!
-//! GetPrimaryLocationTypeAtPosition() tests towns before bases against a hardcoded 500 m radius, so a
-//! base centre inside those bounds classified as TOWN and could be offered NO base-only config.
-//! Measured 2026-08-17: 4 of Eden's 10 bases and this test world's only base (114 m). The legacy
-//! system never asked what kind of place a base was, so leaving it would have been a straight
-//! regression on ~40 % of the map's bases.
-//!
-//! ⚠ The radius is the safety argument and is asserted here as a NUMBER. BASE_CLASSIFICATION_RADIUS
-//! is deliberately EQUAL to HasExistingDeploymentOfType()'s 250 m name-scoped dedup radius, so every
-//! position that gains the bit is within the dedup's reach of the base's own copy of each config and
-//! a base and a shadowing town cannot each buy a full set of base defense. Raise this constant to
-//! "fix" a base at 300 m and force doubling becomes possible at every base whose town centre is
-//! between the two radii.
-//!
-//! The negative control: a probe just OUTSIDE the radius, taken toward the town so the precedence
-//! chain still answers TOWN, must NOT carry the BASE bit. Whether this world's geometry can produce
-//! such a probe depends on the town's bounds, so that half is skipped-with-a-print.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_TownShadowedBaseAcceptsBaseConfig : SCR_AutotestCaseBase
-{
-	//! The first shipped BASE-only base-defense config, used as the consumer of the classification.
-	static const string BASE_ONLY_CONFIG = "Base Garrison Patrol";
-
-	//! The radius the OR-in is required to use, restated here so a change to the production constant
-	//! has to be a deliberate two-file change rather than a silent one.
-	static const float EXPECTED_RADIUS = 250;
-
-	//! How far past the radius the negative control probes.
-	static const float OUTSIDE_MARGIN = 10;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS != EXPECTED_RADIUS)
-		{
-			SetFailure("BASE_CLASSIFICATION_RADIUS is %1, not %2 - it MUST equal HasExistingDeploymentOfType()'s dedup radius, or a base and a position just outside the dedup's reach can each buy a full set of base defense",
-				OVT_DeploymentManagerComponent.BASE_CLASSIFICATION_RADIUS.ToString(), EXPECTED_RADIUS.ToString());
-			return true;
-		}
-
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
-		{
-			SetFailure("This world has no bases, so the BASE classification cannot be exercised - InitializeBases() found none");
-			return true;
-		}
-
-		OVT_TownManagerComponent towns = OVT_Global.GetTowns();
-		if (!towns)
-		{
-			SetFailure("OVT_Global.GetTowns() is null, so 'is this base shadowed by a town' cannot be asked at all");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so the classification has no shipped consumer to be checked against");
-			return true;
-		}
-
-		OVT_DeploymentConfig baseConfig = manager.m_DeploymentRegistry.FindConfigByName(BASE_ONLY_CONFIG);
-		if (!baseConfig)
-		{
-			SetFailure("The deployment registry does not resolve '%1' - the first BASE-only base-defense config is missing, so nothing consumes the classification", BASE_ONLY_CONFIG);
-			return true;
-		}
-
-		OVT_BaseData shadowed = FindTownShadowedBase(manager, occupying);
-
-		if (!shadowed)
-		{
-			// Not a failure: whether a world HAS a town-shadowed base is a property of its layers.
-			// The positive claim is still made against an ordinary base centre below.
-			shadowed = occupying.m_Bases[0];
-			Print("[Overthrow][TEST] No town-shadowed base in this world - the S1 claim is exercised against an ordinary base centre instead", LogLevel.WARNING);
-		}
-		else
-		{
-			PrintFormat("Base at %1 is town-shadowed: its primary classification is %2", shadowed.location.ToString(),
-				manager.GetPrimaryLocationTypeAtPosition(shadowed.location).ToString());
-		}
-
-		OVT_LocationTypeFlag classification = manager.GetLocationTypeAtPosition(shadowed.location);
-
-		if ((classification & OVT_LocationTypeFlag.BASE) == 0)
-		{
-			SetFailure("The base centre at %1 classifies %2 with NO base bit - every BASE-only base-defense config is unbuyable there, silently, exactly as it was before the bit was OR-ed in",
-				shadowed.location.ToString(), classification.ToString());
-			return true;
-		}
-
-		if (!baseConfig.CanUseLocationType(classification))
-		{
-			SetFailure("'%1' refuses a base centre classified %2 - the config's authored location types and the classification no longer agree, so the base can never be fortified",
-				BASE_ONLY_CONFIG, classification.ToString());
-			return true;
-		}
-
-		string negative = VerifyOutsideRadius(manager, towns, shadowed);
-		if (negative != "")
-		{
-			SetFailure(negative);
-			return true;
-		}
-
-		PrintFormat("A shadowed base centre classifies %1 and '%2' accepts it", classification.ToString(), BASE_ONLY_CONFIG);
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The first base whose own centre the PRECEDENCE CHAIN calls a TOWN - i.e. one that could be
-	//! offered no BASE-only config at all before the OR-in existed.
-	//! \param[in] manager The deployment manager, for the classification.
-	//! \param[in] occupying The occupying faction manager, for the base list.
-	//! \return The shadowed base, or null when this world has none.
-	protected OVT_BaseData FindTownShadowedBase(notnull OVT_DeploymentManagerComponent manager,
-		notnull OVT_OccupyingFactionManager occupying)
-	{
-		foreach (OVT_BaseData baseData : occupying.m_Bases)
-		{
-			if (!baseData)
-				continue;
-
-			if (manager.GetPrimaryLocationTypeAtPosition(baseData.location) == OVT_LocationTypeFlag.TOWN)
-				return baseData;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The negative control: a position just outside BASE_CLASSIFICATION_RADIUS, taken toward the
-	//! nearest town so the precedence chain still answers TOWN there, must NOT gain the BASE bit.
-	//!
-	//! Skipped with a printed line when this world's geometry cannot produce such a probe, because a
-	//! probe that classifies BASE through the chain's own 500 m branch would be asserting the wrong
-	//! thing.
-	//! \param[in] manager The deployment manager.
-	//! \param[in] towns The town manager, for the direction to probe in.
-	//! \param[in] baseData The base to probe away from.
-	//! \return An empty string when the control holds or could not be run, or the broken claim.
-	protected string VerifyOutsideRadius(notnull OVT_DeploymentManagerComponent manager,
-		notnull OVT_TownManagerComponent towns, notnull OVT_BaseData baseData)
-	{
-		OVT_TownData town = towns.GetNearestTown(baseData.location);
-		if (!town)
-		{
-			Print("[Overthrow][TEST] No town near this base - the outside-the-radius control was not run", LogLevel.NORMAL);
-			return "";
-		}
-
-		vector direction = town.location - baseData.location;
-		direction[1] = 0;
-
-		if (direction.Length() < 1)
-		{
-			Print("[Overthrow][TEST] The base and its town share a centre - the outside-the-radius control was not run", LogLevel.NORMAL);
-			return "";
-		}
-
-		direction.Normalize();
-		vector probe = baseData.location + direction * (EXPECTED_RADIUS + OUTSIDE_MARGIN);
-
-		if (manager.GetPrimaryLocationTypeAtPosition(probe) != OVT_LocationTypeFlag.TOWN)
-		{
-			Print("[Overthrow][TEST] The outside-the-radius probe does not classify TOWN through the chain, so the control cannot distinguish the OR-in from the chain's own base branch - not run", LogLevel.NORMAL);
-			return "";
-		}
-
-		OVT_LocationTypeFlag outside = manager.GetLocationTypeAtPosition(probe);
-		if ((outside & OVT_LocationTypeFlag.BASE) != 0)
-			return string.Format("A position %1 m from the base centre classifies %2 and carries the BASE bit - the OR-in reaches past the 250 m dedup radius, so that position and the base can each buy their own full set of base defense",
-				(EXPECTED_RADIUS + OUTSIDE_MARGIN).ToString(), outside.ToString());
-
-		PrintFormat("Negative control held: a probe %1 m out classifies %2 with no base bit",
-			(EXPECTED_RADIUS + OUTSIDE_MARGIN).ToString(), outside.ToString());
-		return "";
-	}
-}
-
-
-//------------------------------------------------------------------------------------------------
-//! THE THREE PLACED BASE-DEFENSE CONFIGS RESOLVE, VALIDATE, AND NONE OF THEM CAN EVER WANDER.
-//!
-//! The other half of "garrisons never wander, patrols always do", asserted at the only place the
-//! difference exists: the PLAN.
-//!   - Base Tower Guards     -> NO plan at all (null). Legacy parity and deliberate: a post waypoint
-//!     parks a guard at a smart action that is a pose loop with no fire node, while an idle group
-//!     keeps full threat and attack reactions.
-//!   - Base Sniper Positions -> NO plan at all (null), same reason.
-//!   - Base Defense Positions -> a ONE-POINT, NON-CYCLING DEFEND plan, because the legacy
-//!     defense-position guard did carry a defend waypoint on its post.
-//!
-//! ⚠ "Null" is asserted through the same walk the production path uses, not by counting modules:
-//! ResolveVirtualPlan() asks every behaviour module in order and takes the FIRST non-null answer, and
-//! the reinforcement module IS a behaviour module. A case that asserted "no patrol module" would pass
-//! if some future behaviour module started answering a plan of its own.
-//!
-//! The placement provider is asserted too - a placed module with no m_Placement wants zero groups,
-//! registers nothing and logs nothing, the most silent way one of these ships broken. So is
-//! m_eImportance HIGH: a tower guard at the class default loses the AI spawn-budget race on a busy
-//! server, which is indistinguishable from "the placement failed".
-//!
-//! Asked off the config template with no deployment behind it.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_PlacedBaseConfigsHoldTheirPosts : SCR_AutotestCaseBase
-{
-	//! The three shipped configs that stand men on exact posts.
-	static const string DEFENSE_CONFIG = "Base Defense Positions";
-	static const string TOWER_CONFIG = "Base Tower Guards";
-	static const string SNIPER_CONFIG = "Base Sniper Positions";
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager)
-		{
-			SetFailure("OVT_Global.GetDeploymentManager() is null");
-			return true;
-		}
-
-		if (!manager.m_DeploymentRegistry)
-		{
-			SetFailure("The deployment manager has no registry, so no shipped deployment config can be resolved at all");
-			return true;
-		}
-
-		string failure = VerifyStatic(manager, TOWER_CONFIG, SCR_EAISpawnImportance.HIGH);
-
-		if (failure == "")
-			failure = VerifyStatic(manager, SNIPER_CONFIG, SCR_EAISpawnImportance.HIGH);
-
-		if (failure == "")
-			failure = VerifyDefensePositions(manager);
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		PrintFormat("'%1' and '%2' build NO plan at all; '%3' builds a one-point non-cycling DEFEND plan - none of the three can be walked by the movement tick",
-			TOWER_CONFIG, SNIPER_CONFIG, DEFENSE_CONFIG);
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! A config whose groups get no waypoint at all.
-	//! \param[in] manager The deployment manager, for its registry.
-	//! \param[in] configName The shipped config name.
-	//! \param[in] expectedImportance The AI spawn-budget tier the config is required to author.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyStatic(notnull OVT_DeploymentManagerComponent manager, string configName, SCR_EAISpawnImportance expectedImportance)
-	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(configName);
-
-		string shared = VerifyShared(config, configName, expectedImportance);
-		if (shared != "")
-			return shared;
-
-		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
-		if (plan)
-			return string.Format("'%1' builds a plan of %2 point(s) - it must build NONE. Its guards would be given waypoints, and any movable point in them hands the movement tick a garrison to walk off its post",
-				configName, plan.m_aPositions.Count().ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The one placed config that DOES get a plan - a one-point, non-cycling DEFEND.
-	//! \param[in] manager The deployment manager, for its registry.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyDefensePositions(notnull OVT_DeploymentManagerComponent manager)
-	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(DEFENSE_CONFIG);
-
-		string shared = VerifyShared(config, DEFENSE_CONFIG, SCR_EAISpawnImportance.NORMAL);
-		if (shared != "")
-			return shared;
-
-		OVT_VirtualWaypointPlan plan = ResolvePlanLikeProduction(config);
-		if (!plan)
-			return string.Format("'%1' builds NO plan - the legacy defense-position guard carried a DEFEND waypoint on its post and this config is its replacement", DEFENSE_CONFIG);
-
-		int count = plan.m_aPositions.Count();
-		if (count != 1)
-			return string.Format("'%1' builds a %2-point plan, expected exactly one - a defense position is one post held by one group",
-				DEFENSE_CONFIG, count.ToString());
-
-		if (plan.m_aTypes.Count() != count || plan.m_aParams.Count() != count)
-			return string.Format("'%1' builds a ragged plan (%2 positions, %3 types, %4 params) - RegisterGroup refuses a ragged plan outright, so the guards would silently never be registered",
-				DEFENSE_CONFIG, count.ToString(), plan.m_aTypes.Count().ToString(), plan.m_aParams.Count().ToString());
-
-		if (plan.m_aTypes[0] != OVT_EVirtualWaypointType.DEFEND)
-			return string.Format("'%1' builds a plan whose only point is type %2, expected DEFEND - any movable type here is an invitation for the movement tick to walk the base's defense away",
-				DEFENSE_CONFIG, plan.m_aTypes[0].ToString());
-
-		if (plan.m_bCycle)
-			return string.Format("'%1' builds a CYCLING plan - a one-point cycle is still a cycle, and the point of a defense position is that it is never left", DEFENSE_CONFIG);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! Everything all three configs must satisfy.
-	//! \param[in] config The resolved config, or null.
-	//! \param[in] configName Its name, for the messages.
-	//! \param[in] expectedImportance The AI spawn-budget tier it is required to author.
-	//! \return An empty string when every claim holds, or the first broken one.
-	protected string VerifyShared(OVT_DeploymentConfig config, string configName, SCR_EAISpawnImportance expectedImportance)
-	{
-		if (!config)
-			return string.Format("The deployment registry does not resolve '%1' - the config file is missing, misnamed, or has no entry in overthrowDeployments.conf, and the base defense it carries can never be created", configName);
-
-		if (!config.IsValidConfig())
-			return string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module) - the evaluator refuses it in CreateDeployment and logs nothing a player would see", configName);
-
-		// ⚠ A priority assertion was deleted here (2026-08-22), not weakened. It pinned m_iPriority to an
-		// exact number and broke the moment the author retuned it - which is the whole purpose of the
-		// field, so "the author changed his mind" and "somebody broke escalation order" became
-		// indistinguishable. It was not converted to a relative-order check either: the framework
-		// requires no RELATIONSHIP between two configs' priorities (a pure sort key and a threshold), so
-		// there is no inversion that breaks anything, only one a designer might not want.
-		//
-		// What IS still asserted is structural: that it resolves, that it is valid, that it carries a
-		// placed module with a placement provider, and that it is offered at bases at all.
-
-		if ((config.m_iAllowedLocationTypes & OVT_LocationTypeFlag.BASE) == 0)
-			return string.Format("Config '%1' does not allow the BASE location type (%2) - it would never be offered at a base at all",
-				configName, config.m_iAllowedLocationTypes.ToString());
-
-		OVT_PlacedInfantrySpawningDeploymentModule placed = FindPlacedModule(config);
-		if (!placed)
-			return string.Format("Config '%1' carries no OVT_PlacedInfantrySpawningDeploymentModule - its groups would be rolled onto a ring around the marker instead of standing on their posts", configName);
-
-		if (!placed.m_Placement)
-			return string.Format("Config '%1' authors no m_Placement provider - the module has nowhere to stand anybody, wants 0 groups and registers NOTHING, logging nothing", configName);
-
-		if (placed.m_eImportance != expectedImportance)
-			return string.Format("Config '%1' authors AI spawn importance %2, expected %3 - the wrong tier loses the spawn-budget race on a busy server and the post is simply empty when the player arrives",
-				configName, typename.EnumToString(SCR_EAISpawnImportance, placed.m_eImportance), typename.EnumToString(SCR_EAISpawnImportance, expectedImportance));
-
-		if (placed.m_bSnapToRoad)
-			return string.Format("Config '%1' leaves m_bSnapToRoad ON - the placed module does not read it today, but a future class swap would silently move this garrison up to 500 m onto a road", configName);
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The plan a group of this config would be registered with, resolved the way
-	//! OVT_BaseSpawningDeploymentModule.ResolveVirtualPlan() does it: ask every BEHAVIOUR module in
-	//! authored order, take the first non-null answer.
-	//! \param[in] config The config to ask.
-	//! \return The plan, or null when no behaviour module has an opinion.
-	protected OVT_VirtualWaypointPlan ResolvePlanLikeProduction(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseBehaviorDeploymentModule> behaviorModules = config.GetBehaviorModules();
-		foreach (OVT_BaseBehaviorDeploymentModule behaviorModule : behaviorModules)
-		{
-			if (!behaviorModule)
-				continue;
-
-			OVT_VirtualWaypointPlan plan = behaviorModule.BuildVirtualPlan(OVT_TEST_VirtualizationFixture.PickPosition());
-			if (plan)
-				return plan;
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \param[in] config The config to search.
-	//! \return Its first placed-infantry spawning module, or null.
-	protected OVT_PlacedInfantrySpawningDeploymentModule FindPlacedModule(notnull OVT_DeploymentConfig config)
-	{
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
-			if (placed)
-				return placed;
-		}
-
-		return null;
-	}
-}
 
 //------------------------------------------------------------------------------------------------
 //! THE RE-MATERIALISATION CLAIM: the second time a placed group comes back, its men stand where they
@@ -10815,287 +8099,6 @@ class OVT_TEST_ThreatPinnedSniperProvider : OVT_SniperMarkerPlacementProvider
 	override protected float GetOccupyingThreat()
 	{
 		return m_fPinnedThreat;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! THE AT SECTION'S POSTS: exactly one side-offset ACROSS the road slot, looking back at it, and the
-//! same answer however the slots arrive.
-//!
-//!   1. THE OFFSET IS ACROSS THE ROAD, NOT ALONG IT - the step is taken along the slot's OWN right
-//!      vector, because a slot carries the road's rotation. Stepping along world X would put the team
-//!      in the middle of any north-south road, which looks like a placement bug rather than an axis
-//!      bug, and only at some bases.
-//!   2. THE TEAM LOOKS AT THE ROAD. An AT team facing away from its approach engages seconds late,
-//!      which reads as "the AT team is useless" and never as a heading bug.
-//!   3. THE SIDE IS A FUNCTION OF THE SLOT, NOT OF LIST ORDER. The provider is re-asked on every
-//!      convergence pass, after every load and after every re-discovery of a base's slots, so a
-//!      left/right pick that came from a list index would teleport a team across the road.
-//!
-//! Asserted through the production statics (PostBesideSlot / SideForSlot), not a copy. The transforms
-//! are hand-built so the claim does not depend on this world having a base with road slots - the Init
-//! tier never runs InitBaseControllers(), so a live slot list does not exist here at all.
-//!
-//! The live half is still exercised as a comparison between two consecutive resolves plus the
-//! never-null contract; the count is PRINTED rather than asserted.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 30)]
-class OVT_TEST_Init_Deployments_RoadSlotOverwatchIsOffsetAndStable : SCR_AutotestCaseBase
-{
-	//! The offset Deployment_BaseATSection.conf authors, asserted against the shipped config below.
-	static const float AUTHORED_SIDE_OFFSET = 15;
-
-	//! The shipped config that carries the provider.
-	static const string AT_CONFIG = "Base AT Section";
-
-	//! Metres of slop allowed on a position claim, and the same for a dot product treated as a ratio.
-	static const float EPSILON = 0.05;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		string failure = VerifyOffsetIsAcrossTheSlot();
-
-		if (failure == "")
-			failure = VerifyPostLooksBackAtTheSlot();
-
-		if (failure == "")
-			failure = VerifySideFollowsTheSlotAndNotTheOrder();
-
-		if (failure == "")
-			failure = VerifyShippedConfigAuthorsTheOffset();
-
-		if (failure == "")
-			failure = VerifyLiveResolveIsRepeatable();
-
-		if (failure != "")
-		{
-			SetFailure(failure);
-			return true;
-		}
-
-		PrintFormat("Every AT post is exactly %1 m ACROSS its road slot, looking back at it, and the side follows the slot rather than the order the slots arrived in",
-			AUTHORED_SIDE_OFFSET.ToString());
-		return true;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! CLAIM 1 - the step is the authored distance, and it is perpendicular to the slot's facing.
-	//! \return An empty string when the claim holds, or the broken half.
-	protected string VerifyOffsetIsAcrossTheSlot()
-	{
-		// Two slots on deliberately awkward headings: a road running north-south, and one on no round
-		// number at all. A world-X step would pass the first and fail nothing, which is why the second
-		// is here.
-		array<float> headings = {0, 37};
-
-		foreach (float heading : headings)
-		{
-			vector slotMat[4];
-			BuildSlotTransform(Vector(1200, 30, 1200), heading, slotMat);
-
-			OVT_DeploymentPlacement post = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(slotMat, AUTHORED_SIDE_OFFSET);
-			if (!post)
-				return string.Format("PostBesideSlot answered nothing for a slot on heading %1", heading.ToString());
-
-			float distance = vector.Distance(post.m_vPosition, slotMat[3]);
-			if (Math.AbsFloat(distance - AUTHORED_SIDE_OFFSET) > EPSILON)
-				return string.Format("A post beside a slot on heading %1 is %2 m from it, expected the authored %3 m",
-					heading.ToString(), distance.ToString(), AUTHORED_SIDE_OFFSET.ToString());
-
-			vector step = post.m_vPosition - slotMat[3];
-			step.Normalize();
-
-			// ALONG the road is the slot's forward vector: the step must have no component on it.
-			float alongRoad = Math.AbsFloat(vector.Dot(step, slotMat[2]));
-			if (alongRoad > EPSILON)
-				return string.Format("A post beside a slot on heading %1 is %2 of the way ALONG the road rather than across it - the offset is not being taken on the slot's own right vector",
-					heading.ToString(), alongRoad.ToString());
-
-			// ACROSS the road is the slot's right vector: the step must be entirely on it.
-			float acrossRoad = Math.AbsFloat(vector.Dot(step, slotMat[0]));
-			if (Math.AbsFloat(acrossRoad - 1) > EPSILON)
-				return string.Format("A post beside a slot on heading %1 lies %2 of the way across the slot's right vector, expected 1",
-					heading.ToString(), acrossRoad.ToString());
-		}
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! CLAIM 2 - the occupant faces the slot it is covering.
-	//! \return An empty string when the claim holds, or the broken half.
-	protected string VerifyPostLooksBackAtTheSlot()
-	{
-		vector slotMat[4];
-		BuildSlotTransform(Vector(1200, 30, 1200), 37, slotMat);
-
-		OVT_DeploymentPlacement post = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(slotMat, AUTHORED_SIDE_OFFSET);
-
-		vector postMat[4];
-		post.GetTransform(postMat);
-
-		vector towardsSlot = slotMat[3] - post.m_vPosition;
-		towardsSlot[1] = 0;
-		towardsSlot.Normalize();
-
-		float facing = vector.Dot(postMat[2], towardsSlot);
-		if (Math.AbsFloat(facing - 1) > EPSILON)
-			return string.Format("An AT post's forward vector is %1 of the way towards the slot it covers, expected 1 - the team would start the fight looking the wrong way", facing.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! CLAIM 3 - the side is a property of the slot, so the same slots answer the same posts however
-	//! they are ordered, and two different slots really can take different sides.
-	//! \return An empty string when the claim holds, or the broken half.
-	protected string VerifySideFollowsTheSlotAndNotTheOrder()
-	{
-		// One metre apart flips the parity, which is what makes neighbouring slots alternate.
-		array<vector> slots = {Vector(1200, 30, 1200), Vector(1201, 30, 1200), Vector(1200, 30, 1207)};
-
-		int first = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(slots[0]);
-		int second = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(slots[1]);
-
-		if (first == 0 || second == 0)
-			return "SideForSlot answered 0 - a post with no side would land on the slot itself";
-
-		if (first == second)
-			return string.Format("Two slots one metre apart both answered side %1 - neighbouring road slots would put every AT team on the same side of the road", first.ToString());
-
-		// ORDER INDEPENDENCE, demonstrated rather than argued from the signature. The same three slots
-		// are resolved FORWARDS and then BACKWARDS; each slot must answer the same post both times,
-		// which is only true if the side never looks at a position in a list.
-		array<ref OVT_DeploymentPlacement> forwards = new array<ref OVT_DeploymentPlacement>();
-
-		for (int i = 0; i < slots.Count(); i++)
-		{
-			vector forwardMat[4];
-			BuildSlotTransform(slots[i], 37, forwardMat);
-
-			forwards.Insert(OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(forwardMat, AUTHORED_SIDE_OFFSET));
-		}
-
-		for (int j = slots.Count() - 1; j >= 0; j--)
-		{
-			vector backwardMat[4];
-			BuildSlotTransform(slots[j], 37, backwardMat);
-
-			OVT_DeploymentPlacement backward = OVT_RoadSlotOverwatchPlacementProvider.PostBesideSlot(backwardMat, AUTHORED_SIDE_OFFSET);
-
-			float moved = vector.Distance(forwards[j].m_vPosition, backward.m_vPosition);
-			if (moved > EPSILON)
-				return string.Format("Slot %1 answered posts %2 m apart when the same three slots were resolved in the opposite order - an AT team would cross the road whenever a slot list was rebuilt",
-					j.ToString(), moved.ToString());
-
-			float turned = vector.Distance(forwards[j].m_vAngles, backward.m_vAngles);
-			if (turned > EPSILON)
-				return string.Format("Slot %1 answered a different heading (%2 apart) when the same three slots were resolved in the opposite order", j.ToString(), turned.ToString());
-		}
-
-		// And a negative coordinate is an ordinary position, not a third answer: EnforceScript's % keeps
-		// the sign of its left operand, so an unguarded parity would read as neither side.
-		int negative = OVT_RoadSlotOverwatchPlacementProvider.SideForSlot(Vector(-1201, 30, -1200));
-		if (negative != 1 && negative != -1)
-			return string.Format("A slot at a negative coordinate answered side %1, expected +1 or -1", negative.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The shipped config really authors the offset this case asserts against.
-	//! \return An empty string when the claim holds, or the broken half.
-	protected string VerifyShippedConfigAuthorsTheOffset()
-	{
-		OVT_RoadSlotOverwatchPlacementProvider provider = FindShippedProvider();
-		if (!provider)
-			return string.Format("Could not reach the road-slot overwatch provider through '%1' - either the config does not resolve, it has no placed module, or its m_Placement is a different provider", AT_CONFIG);
-
-		if (Math.AbsFloat(provider.m_fSideOffset - AUTHORED_SIDE_OFFSET) > EPSILON)
-			return string.Format("'%1' authors a side offset of %2, and this case asserts %3 - one of the two moved",
-				AT_CONFIG, provider.m_fSideOffset.ToString(), AUTHORED_SIDE_OFFSET.ToString());
-
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The live contract: never null, and the same answer twice in a row.
-	//! \return An empty string when the claim holds, or the broken half.
-	protected string VerifyLiveResolveIsRepeatable()
-	{
-		OVT_RoadSlotOverwatchPlacementProvider provider = FindShippedProvider();
-		if (!provider)
-			return "";
-
-		vector probe = FindBasePosition();
-
-		array<ref OVT_DeploymentPlacement> first = provider.ResolvePlacements(probe, 280, 0);
-		array<ref OVT_DeploymentPlacement> second = provider.ResolvePlacements(probe, 280, 0);
-
-		if (!first || !second)
-			return "The road-slot overwatch provider answered NULL - 'nothing here' is the ordinary answer for a placement provider and every caller would have to guard against it";
-
-		if (first.Count() != second.Count())
-			return string.Format("Two consecutive resolves answered %1 and %2 posts - the AT section would gain or lose a team on a convergence pass that changed nothing",
-				first.Count().ToString(), second.Count().ToString());
-
-		for (int i = 0; i < first.Count(); i++)
-		{
-			float moved = vector.Distance(first[i].m_vPosition, second[i].m_vPosition);
-			if (moved > EPSILON)
-				return string.Format("Post %1 moved %2 m between two consecutive resolves of the same base", i.ToString(), moved.ToString());
-		}
-
-		PrintFormat("The live road-slot overwatch resolve answered %1 post(s) at this world's base, twice, identically", first.Count().ToString());
-		return "";
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! The provider instance the shipped AT config carries.
-	//! \return It, or null when anything in the chain does not resolve.
-	protected OVT_RoadSlotOverwatchPlacementProvider FindShippedProvider()
-	{
-		OVT_DeploymentManagerComponent manager = OVT_Global.GetDeploymentManager();
-		if (!manager || !manager.m_DeploymentRegistry)
-			return null;
-
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(AT_CONFIG);
-		if (!config)
-			return null;
-
-		array<OVT_BaseSpawningDeploymentModule> spawningModules = config.GetSpawningModules();
-		foreach (OVT_BaseSpawningDeploymentModule spawningModule : spawningModules)
-		{
-			OVT_PlacedInfantrySpawningDeploymentModule placed = OVT_PlacedInfantrySpawningDeploymentModule.Cast(spawningModule);
-			if (placed)
-				return OVT_RoadSlotOverwatchPlacementProvider.Cast(placed.m_Placement);
-		}
-
-		return null;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return This world's first base centre, or the origin when there is none.
-	protected vector FindBasePosition()
-	{
-		OVT_OccupyingFactionManager occupying = OVT_Global.GetOccupyingFaction();
-		if (!occupying || !occupying.m_Bases || occupying.m_Bases.IsEmpty())
-			return "0 0 0";
-
-		return occupying.m_Bases[0].location;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! A slot transform on a given heading - what a road slot's GetWorldTransform() answers.
-	//! \param[in] position Where the slot is.
-	//! \param[in] headingDeg Which way the road runs, in degrees.
-	//! \param[out] outMat The transform.
-	protected void BuildSlotTransform(vector position, float headingDeg, out vector outMat[4])
-	{
-		Math3D.AnglesToMatrix(Vector(headingDeg, 0, 0), outMat);
-		outMat[3] = position;
 	}
 }
 

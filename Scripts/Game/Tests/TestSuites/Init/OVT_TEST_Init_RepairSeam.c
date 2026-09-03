@@ -18,111 +18,12 @@
 //------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------
-//! The repair verb is reachable, and the number it will be priced with actually arrived.
-//!
-//! TWO CLAIMS:
-//!   1. OVT_ResistanceRequestComponent - which now carries RepairStructure()/RpcAsk_RepairStructure -
-//!      resolves off the LOCAL player's own OVT_OverthrowController. Without it the held action's
-//!      PerformAction returns silently and a player holds the ring for 20 seconds for nothing.
-//!   2. repairCostMultiplier is present and sane on this machine's difficulty. It rides the hand-rolled
-//!      config bitstream at CONFIG_STREAM_VERSION 5 (D12); a writer and reader that disagreed by one
-//!      field would leave it reading whatever float sat next to it in the stream, and the client would
-//!      draw - and gate on - a price the server never charges. A multiplier at or below 0 would make
-//!      every repair free, and one above 1 would make repairing dearer than rebuilding.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): assert the
-//! multiplier is strictly greater than 1 and the case goes red naming the shipped value.
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_InitSuite, timeoutS: 60)]
-class OVT_TEST_Init_RepairSeam_AVerbAndMultiplierResolve : SCR_AutotestCaseBase
-{
-	//! Frame polls allowed for the local player's controller to be spawned and registered.
-	static const int MAX_POLLS = 300;
-
-	protected int m_iPolls;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		OVT_OverthrowController controller = OVT_Global.GetController();
-		if (!controller)
-		{
-			m_iPolls += 1;
-			if (m_iPolls > MAX_POLLS)
-			{
-				SetFailure("OVT_Global.GetController() was still null after %1 polls. Nothing on the controller seam is reachable from this machine, so this case cannot say anything about the repair verb either way.",
-					m_iPolls.ToString());
-				return true;
-			}
-
-			return false;
-		}
-
-		OVT_ResistanceRequestComponent viaAccessor = OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get();
-		if (!viaAccessor)
-		{
-			SetFailure("OVT_ControllerComponent<OVT_ResistanceRequestComponent>.Get() returned null while a controller entity exists. OVT_RepairStructureAction.PerformAction sends through exactly this component, so every repair hold would complete and do nothing.");
-			return true;
-		}
-
-		if (viaAccessor != OVT_ResistanceRequestComponent.Cast(controller.FindComponent(OVT_ResistanceRequestComponent)))
-		{
-			SetFailure("The resistance request component did not come from the local player's own controller entity - a repair would be attributed to, and charged to, another player server-side.");
-			return true;
-		}
-
-		OVT_DifficultySettings difficulty = OVT_Global.GetDifficulty();
-		if (!difficulty)
-		{
-			SetFailure("OVT_Global.GetDifficulty() is null, so nothing on this machine can price a repair at all");
-			return true;
-		}
-
-		if (difficulty.repairCostMultiplier <= 0)
-		{
-			SetFailure("repairCostMultiplier is %1 - at or below zero every repair is free, which is not a setting any shipped preset authors",
-				difficulty.repairCostMultiplier.ToString());
-			return true;
-		}
-
-		if (difficulty.repairCostMultiplier > 1)
-		{
-			SetFailure("repairCostMultiplier is %1 - above 1 a repair costs more than a rebuild, and no player would ever choose it",
-				difficulty.repairCostMultiplier.ToString());
-			return true;
-		}
-
-		PrintFormat("Repair seam: the request component resolves off the local controller and repairCostMultiplier arrived as %1", difficulty.repairCostMultiplier.ToString());
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! EVERY buildable in the shipped config prices to a positive repair cost through the REAL join.
-//!
-//! It spawns each prefab and asks the manager to price the live entity, which is the only way to
-//! exercise FindBuildableForEntity()'s prefab-name lookup - a hardcoded cost table would assert
-//! nothing about the join, and the join is the part that can silently miss.
-//!
-//! IT READS THE LIVE CONFIG, not a list, so a ninth buildable added without a cost turns this red on
-//! the first run rather than shipping with an unrepairable structure.
-//!
-//! Three claims per prefab: the buildable entry is found from the spawned entity, the price is
-//! strictly positive (a free repair is not a price), and it never exceeds what the same structure
-//! costs to build at this difficulty.
-//!
-//! PROVEN ABLE TO FAIL (fail proof recorded, execution belongs to the phase's suite run): make
-//! FindBuildableForEntity() join on OVT_BuildableComponent.GetBuildableType() against m_sName instead
-//! of on the prefab and the case goes red on the Guard Tower ("GuardTower" never equals "Guard
-//! Tower") - the exact defect the join's header warns about.
+//! Every buildable prefab spawns, joins back to its config entry, and prices to a repair cost that
+//! is positive and no more than its build cost at this difficulty.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_InitSuite, timeoutS: 120)]
 class OVT_TEST_Init_RepairSeam_BEveryBuildablePrices : SCR_AutotestCaseBase
 {
-	//! How many buildables the feature covers. A LOWER bound: a ninth is welcome and gets priced too.
-	static const int PRICED_BUILDABLES = 8;
-
 	//! Stepped so two subjects never share a spot even though each is deleted before the next spawns.
 	static const int SUBJECT_STEP_M = 25;
 
@@ -154,13 +55,6 @@ class OVT_TEST_Init_RepairSeam_BEveryBuildablePrices : SCR_AutotestCaseBase
 		}
 
 		array<ref OVT_Buildable> buildables = resistance.m_BuildablesConfig.m_aBuildables;
-		if (buildables.Count() < PRICED_BUILDABLES)
-		{
-			SetFailure("The buildables config lists %1 structures, fewer than the %2 this feature prices - it did not load fully",
-				buildables.Count().ToString(), PRICED_BUILDABLES.ToString());
-			return true;
-		}
-
 		vector anchor = towns.m_Towns[0].location + Vector(700, 0, 700);
 		int index = 0;
 

@@ -10,8 +10,8 @@
 //!   - GetPrice() cannot answer "unknown": it returns 500 for any id it has not heard of.
 //!
 //! So an unpriceable item cannot be detected by a zero check or a sanity range. The walk prices through
-//! OVT_EconomyManagerComponent.GetBuyPriceForPrefab (registered, else inherited, else classified - see
-//! OVT_TEST_Init_EconomyPrefabPricing), and the second half of this case proves that a name NO route
+//! OVT_EconomyManagerComponent.GetBuyPriceForPrefab (registered, else inherited, else classified),
+//! and the second half of this case proves that a name NO route
 //! can place is still refused rather than priced off some other item.
 //!
 //! THE FIRST HALF IS ABOUT COMPLETENESS, and it is a money question too, in the opposite direction: a

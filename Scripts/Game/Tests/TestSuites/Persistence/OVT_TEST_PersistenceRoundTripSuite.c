@@ -3604,9 +3604,9 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 //!
 //! Why nothing the manager does on its timer can disturb these records:
 //!  - CheckUpdate()'s tick loop skips any job with accepted == false, covering records B and C.
-//!  - Record A is accepted but parked on base-recon's only stage, an
-//!    OVT_WaitTillPlayerInRangeJobStage whose OnTick() returns TRUE - keep waiting - the moment its
-//!    owner lookup fails. The owner is a synthetic marker no player carries.
+//!  - Record A is accepted only when its stage is an OVT_WaitTillPlayerInRangeJobStage, whose
+//!    OnTick() returns TRUE - keep waiting - the moment its owner lookup fails. The owner is a
+//!    synthetic marker no player carries.
 //!  - Both global counters belong to configs seeded far ABOVE their cap and neither is
 //!    player-allocated, so CheckUpdate() skips the whole config and can never increment them.
 //!  - The per-player counters are under a synthetic persistent id, and CheckUpdate() only writes
@@ -3623,6 +3623,9 @@ class OVT_TEST_PersistenceRoundTrip_VehicleRegistry_SurvivesSaveAndReload : SCR_
 //! ⚠ It reloads TWICE, because idempotency is part of the claim: the persistence manager re-applies
 //! saved data to a LIVE session, so ApplyPersistedJobs() has to be a clear-and-rebuild rather than
 //! an append. The second re-application asserts each marker location still holds exactly one record.
+//!
+//! The jobs are the first matching registry entries: the first three registered ids in the live job
+//! config (repeating when it holds fewer), never shipped names.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
 class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_AutotestCaseBase
@@ -3631,19 +3634,8 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	static const int PHASE_AWAIT_SECOND_RELOAD = 5;
 	static const int PHASE_ASSERT_IDEMPOTENT = 6;
 
-	//! The three seeded jobs, named by the stable ids the save format writes.
-	//! A is base-only and accepted; B is a public town job; C is a public town job parked on a
-	//! non-zero stage, so "the stage came back" is a real assertion and not 0 == 0.
-	static const string JOB_ID_A = "base-recon";
-	static const string JOB_ID_B = "raise-support";
-	static const string JOB_ID_C = "assassinate-traitor";
-
-	//! Stage indices. base-recon and raise-support have one stage each; assassinate-traitor's stage 3
-	//! is its spawn-group stage - restorable, unlike its stage 4, which waits on a dead entity and is
-	//! dropped by design.
-	static const int STAGE_A = 0;
-	static const int STAGE_B = 0;
-	static const int STAGE_C = 3;
+	//! How many records are seeded. Their jobs are the first registered ids, repeating when fewer exist.
+	static const int RECORD_COUNT = 3;
 
 	//! A base id no base carries, so the base-only record's occupancy slot is its own.
 	static const int SYNTHETIC_BASE_ID = 4242;
@@ -3676,6 +3668,15 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	protected int m_iReloadPolls;
 	protected int m_iSecondReloadPolls;
 	protected int m_iTownId;
+
+	//! Per record: the stable job id, the stage it is parked on, and its town or base scope.
+	protected ref array<string> m_aJobIds;
+	protected ref array<int> m_aStages;
+	protected ref array<int> m_aTownIds;
+	protected ref array<int> m_aBaseIds;
+
+	//! Record A is accepted only when its stage idles under an owner no player holds.
+	protected bool m_bRecordAAccepted;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -3722,15 +3723,16 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 			return true;
 		}
 
-		int indexA = jobs.FindJobIndexById(JOB_ID_A);
-		int indexB = jobs.FindJobIndexById(JOB_ID_B);
-		int indexC = jobs.FindJobIndexById(JOB_ID_C);
-		if (indexA < 0 || indexB < 0 || indexC < 0)
+		string pick = PickJobs(jobs);
+		if (pick != "")
 		{
-			SetFailure(string.Format("A job this case seeds is not configured: '%1' -> %2, '%3' -> %4, '%5' -> %6. Every one of these is a surviving job and must resolve.",
-				JOB_ID_A, indexA.ToString(), JOB_ID_B, indexB.ToString(), JOB_ID_C, indexC.ToString()));
+			SetFailure(pick);
 			return true;
 		}
+
+		int indexA = jobs.FindJobIndexById(m_aJobIds[0]);
+		int indexB = jobs.FindJobIndexById(m_aJobIds[1]);
+		int indexC = jobs.FindJobIndexById(m_aJobIds[2]);
 
 		if (!jobs.m_aJobs || !jobs.m_aJobCounts || !jobs.m_mPlayerJobCounts)
 		{
@@ -3744,20 +3746,20 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_Job jobA = new OVT_Job();
 		jobA.jobIndex = indexA;
 		jobA.location = MarkerLocation(1);
-		jobA.townId = -1;
-		jobA.baseId = SYNTHETIC_BASE_ID;
-		jobA.stage = STAGE_A;
+		jobA.townId = m_aTownIds[0];
+		jobA.baseId = m_aBaseIds[0];
+		jobA.stage = m_aStages[0];
 		jobA.owner = OWNER_A;
-		jobA.accepted = true;
+		jobA.accepted = m_bRecordAAccepted;
 		jobA.declined.Insert(DECLINER_1);
 		jobs.m_aJobs.Insert(jobA);
 
 		OVT_Job jobB = new OVT_Job();
 		jobB.jobIndex = indexB;
 		jobB.location = MarkerLocation(2);
-		jobB.townId = m_iTownId;
-		jobB.baseId = -1;
-		jobB.stage = STAGE_B;
+		jobB.townId = m_aTownIds[1];
+		jobB.baseId = m_aBaseIds[1];
+		jobB.stage = m_aStages[1];
 		jobB.owner = "";
 		jobB.accepted = false;
 		jobs.m_aJobs.Insert(jobB);
@@ -3765,9 +3767,9 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		OVT_Job jobC = new OVT_Job();
 		jobC.jobIndex = indexC;
 		jobC.location = MarkerLocation(3);
-		jobC.townId = m_iTownId;
-		jobC.baseId = -1;
-		jobC.stage = STAGE_C;
+		jobC.townId = m_aTownIds[2];
+		jobC.baseId = m_aBaseIds[2];
+		jobC.stage = m_aStages[2];
 		jobC.owner = OWNER_C;
 		jobC.accepted = false;
 		jobC.declined.Insert(DECLINER_1);
@@ -3777,11 +3779,13 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 		// Both counter maps. These outlive the jobs they counted, so nothing on the board implies
 		// them and they have to survive on their own.
 		jobs.m_aJobCounts[indexA] = SAVED_GLOBAL_COUNT_A;
-		jobs.m_aJobCounts[indexB] = SAVED_GLOBAL_COUNT_B;
+		if (indexB != indexA)
+			jobs.m_aJobCounts[indexB] = SAVED_GLOBAL_COUNT_B;
 
 		map<int, int> playerCounts = new map<int, int>;
 		playerCounts[indexA] = SAVED_PLAYER_COUNT_A;
-		playerCounts[indexB] = SAVED_PLAYER_COUNT_B;
+		if (indexB != indexA)
+			playerCounts[indexB] = SAVED_PLAYER_COUNT_B;
 		jobs.m_mPlayerJobCounts[COUNTER_PLAYER] = playerCounts;
 
 		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
@@ -3842,9 +3846,9 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 			return true;
 		}
 
-		int indexA = jobs.FindJobIndexById(JOB_ID_A);
-		int indexB = jobs.FindJobIndexById(JOB_ID_B);
-		int indexC = jobs.FindJobIndexById(JOB_ID_C);
+		int indexA = jobs.FindJobIndexById(m_aJobIds[0]);
+		int indexB = jobs.FindJobIndexById(m_aJobIds[1]);
+		int indexC = jobs.FindJobIndexById(m_aJobIds[2]);
 
 		OVT_Job jobA = FindMarkedJob(jobs, 1);
 		OVT_Job jobB = FindMarkedJob(jobs, 2);
@@ -3988,15 +3992,15 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	//! \return An empty string when the board is right, otherwise the diagnostic.
 	protected string CheckBoard(notnull OVT_JobManagerComponent jobs, string when)
 	{
-		string a = CheckOneRecord(jobs, when, 1, JOB_ID_A, STAGE_A, -1, SYNTHETIC_BASE_ID, OWNER_A, true, 1);
+		string a = CheckOneRecord(jobs, when, 1, m_aJobIds[0], m_aStages[0], m_aTownIds[0], m_aBaseIds[0], OWNER_A, m_bRecordAAccepted, 1);
 		if (a != "")
 			return a;
 
-		string b = CheckOneRecord(jobs, when, 2, JOB_ID_B, STAGE_B, m_iTownId, -1, "", false, 0);
+		string b = CheckOneRecord(jobs, when, 2, m_aJobIds[1], m_aStages[1], m_aTownIds[1], m_aBaseIds[1], "", false, 0);
 		if (b != "")
 			return b;
 
-		return CheckOneRecord(jobs, when, 3, JOB_ID_C, STAGE_C, m_iTownId, -1, OWNER_C, false, 2);
+		return CheckOneRecord(jobs, when, 3, m_aJobIds[2], m_aStages[2], m_aTownIds[2], m_aBaseIds[2], OWNER_C, false, 2);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4090,29 +4094,35 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 	//! \return An empty string when the counters are right, otherwise the diagnostic.
 	protected string CheckCounters(notnull OVT_JobManagerComponent jobs, string when)
 	{
-		int indexA = jobs.FindJobIndexById(JOB_ID_A);
-		int indexB = jobs.FindJobIndexById(JOB_ID_B);
+		int indexA = jobs.FindJobIndexById(m_aJobIds[0]);
+		int indexB = jobs.FindJobIndexById(m_aJobIds[1]);
 		if (indexA < 0 || indexB < 0)
-			return string.Format("'%1' or '%2' stopped resolving to a configured job %3", JOB_ID_A, JOB_ID_B, when);
+			return string.Format("'%1' or '%2' stopped resolving to a configured job %3", m_aJobIds[0], m_aJobIds[1], when);
 
-		string globalA = CheckGlobalCount(jobs, when, indexA, JOB_ID_A, SAVED_GLOBAL_COUNT_A);
+		string globalA = CheckGlobalCount(jobs, when, indexA, m_aJobIds[0], SAVED_GLOBAL_COUNT_A);
 		if (globalA != "")
 			return globalA;
 
-		string globalB = CheckGlobalCount(jobs, when, indexB, JOB_ID_B, SAVED_GLOBAL_COUNT_B);
-		if (globalB != "")
-			return globalB;
+		if (indexB != indexA)
+		{
+			string globalB = CheckGlobalCount(jobs, when, indexB, m_aJobIds[1], SAVED_GLOBAL_COUNT_B);
+			if (globalB != "")
+				return globalB;
+		}
 
 		map<int, int> playerCounts = jobs.m_mPlayerJobCounts[COUNTER_PLAYER];
 		if (!playerCounts)
 			return string.Format("The per-player lifetime counters for '%1' did not come back %2. They are what stops a player being offered the same job forever, and nothing on the board implies them - once lost they cannot be rebuilt.",
 				COUNTER_PLAYER, when);
 
-		string playerA = CheckPlayerCount(playerCounts, when, indexA, JOB_ID_A, SAVED_PLAYER_COUNT_A);
+		string playerA = CheckPlayerCount(playerCounts, when, indexA, m_aJobIds[0], SAVED_PLAYER_COUNT_A);
 		if (playerA != "")
 			return playerA;
 
-		return CheckPlayerCount(playerCounts, when, indexB, JOB_ID_B, SAVED_PLAYER_COUNT_B);
+		if (indexB == indexA)
+			return "";
+
+		return CheckPlayerCount(playerCounts, when, indexB, m_aJobIds[1], SAVED_PLAYER_COUNT_B);
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -4156,6 +4166,97 @@ class OVT_TEST_PersistenceRoundTrip_JobBoard_SurvivesSaveAndReload : SCR_Autotes
 				jobId, actual.ToString(), expected.ToString(), when);
 
 		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Picks the first RECORD_COUNT registered job ids, repeating them when fewer exist, and a
+	//! restorable stage on each.
+	//! \param[in] jobs The job manager. Callers null-check before calling.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	protected string PickJobs(notnull OVT_JobManagerComponent jobs)
+	{
+		int count = jobs.GetJobConfigCount();
+		if (count < 1)
+			return "The job manager has no configured jobs at all, so there is nothing to seed";
+
+		m_aJobIds = new array<string>();
+		m_aStages = new array<int>();
+		m_aTownIds = new array<int>();
+		m_aBaseIds = new array<int>();
+
+		for (int record = 0; record < RECORD_COUNT; record++)
+		{
+			int index = record % count;
+			OVT_JobConfig config = jobs.GetConfig(index);
+			string id = jobs.GetJobIdByIndex(index);
+			if (!config || id.IsEmpty())
+				return string.Format("Job config %1 is null or carries no stable id, so a record saved on it could never come back", index.ToString());
+
+			bool accepted;
+			int stage = PickStage(config, record == 0, accepted);
+			if (stage < 0)
+				return string.Format("Job '%1' has no stage a save can restore, so no record can be parked on it", id);
+
+			m_aJobIds.Insert(id);
+			m_aStages.Insert(stage);
+
+			if (config.m_bBaseOnly)
+			{
+				m_aTownIds.Insert(-1);
+				m_aBaseIds.Insert(SYNTHETIC_BASE_ID);
+			}
+			else
+			{
+				m_aTownIds.Insert(m_iTownId);
+				m_aBaseIds.Insert(-1);
+			}
+
+			if (record == 0)
+				m_bRecordAAccepted = accepted;
+		}
+
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The stage a record is parked on: the last one the manager restores (a stage waiting on a dead
+	//! entity is dropped by design). Record A prefers a wait-for-player stage, the one an accepted job
+	//! idles on when its owner is not a player.
+	//! \param[in] config The job's configuration.
+	//! \param[in] preferIdle Whether to look for a wait-for-player stage first.
+	//! \param[out] accepted True when the chosen stage is a wait-for-player stage.
+	//! \return The stage index, or -1 when no stage is restorable.
+	protected int PickStage(notnull OVT_JobConfig config, bool preferIdle, out bool accepted)
+	{
+		accepted = false;
+		if (!config.m_aStages)
+			return -1;
+
+		if (preferIdle)
+		{
+			foreach (int idle, OVT_JobStageConfig candidate : config.m_aStages)
+			{
+				if (candidate && OVT_WaitTillPlayerInRangeJobStage.Cast(candidate.m_Handler))
+				{
+					accepted = true;
+					return idle;
+				}
+			}
+		}
+
+		for (int stageIndex = config.m_aStages.Count() - 1; stageIndex >= 0; stageIndex--)
+		{
+			OVT_JobStageConfig stage = config.m_aStages[stageIndex];
+			if (!stage || !stage.m_Handler)
+				continue;
+
+			if (OVT_WaitTillDeadJobStage.Cast(stage.m_Handler))
+				continue;
+
+			return stageIndex;
+		}
+
+		return -1;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -5035,13 +5136,6 @@ class OVT_TEST_PersistenceRoundTrip_VirtualGroups_SurviveSaveAndReload : SCR_Aut
 //------------------------------------------------------------------------------------------------
 class OVT_TEST_DeploymentRoundTripFixture
 {
-	//! The shipped config every deployment case runs on.
-	//!
-	//! CHOSEN, NOT ARBITRARY: "Town Patrol" is the one shipped config whose registry entry authors
-	//! m_bDeleteOnConditionFail 0, so its condition module cannot delete the fixture's own marker out
-	//! from under a case mid-run - which "Tower Garrison" (m_bDeleteOnConditionFail 1) can.
-	static const string CONFIG_NAME = "Town Patrol";
-
 	//------------------------------------------------------------------------------------------------
 	//! Resolves the deployment manager and its registry together, because a case needs both or
 	//! neither.
@@ -5066,26 +5160,61 @@ class OVT_TEST_DeploymentRoundTripFixture
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! The shipped config these cases run on.
+	//! The first registered deployment config that is valid, in registry order.
 	//! \param[in] manager A resolved deployment manager.
-	//! \param[out] diagnostic Reason it could not be resolved; untouched on success.
+	//! \param[out] diagnostic Reason none could be resolved. Untouched on success.
 	//! \return The config, or null.
 	static OVT_DeploymentConfig ResolveConfig(notnull OVT_DeploymentManagerComponent manager, out string diagnostic)
 	{
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
-		if (!config)
+		return ResolveConfigWithModule(manager, typename.Empty, diagnostic);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The first registered deployment config that is valid and carries a module of the given type.
+	//! \param[in] manager A resolved deployment manager.
+	//! \param[in] moduleType The module type the config must carry, or typename.Empty for any valid config.
+	//! \param[out] diagnostic Reason none could be resolved. Untouched on success.
+	//! \return The config, or null.
+	static OVT_DeploymentConfig ResolveConfigWithModule(notnull OVT_DeploymentManagerComponent manager, typename moduleType, out string diagnostic)
+	{
+		array<ref OVT_DeploymentConfig> configs = manager.m_DeploymentRegistry.m_aDeploymentConfigs;
+		if (!configs || configs.IsEmpty())
 		{
-			diagnostic = string.Format("The deployment registry does not resolve '%1' - a saved deployment naming it would be dropped on load rather than restored", CONFIG_NAME);
+			diagnostic = "The deployment registry holds no configs at all, so no deployment can be saved or restored";
 			return null;
 		}
 
-		if (!config.IsValidConfig())
+		foreach (OVT_DeploymentConfig config : configs)
 		{
-			diagnostic = string.Format("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
-			return null;
+			if (!config || !config.IsValidConfig())
+				continue;
+
+			if (moduleType == typename.Empty || CarriesModule(config, moduleType))
+				return config;
 		}
 
-		return config;
+		if (moduleType == typename.Empty)
+			diagnostic = string.Format("None of the %1 registered deployment configs is valid (a name, modules and a spawning module are all required)", configs.Count().ToString());
+		else
+			diagnostic = string.Format("None of the %1 registered deployment configs is valid and carries a %2", configs.Count().ToString(), moduleType.ToString());
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a config authors at least one module of the given type.
+	//! \param[in] config The config to inspect.
+	//! \param[in] moduleType The module type to look for.
+	//! \return True when one of its modules is of that type.
+	static bool CarriesModule(notnull OVT_DeploymentConfig config, typename moduleType)
+	{
+		foreach (OVT_BaseDeploymentModule module : config.m_aModules)
+		{
+			if (module && module.IsInherited(moduleType))
+				return true;
+		}
+
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -5292,7 +5421,8 @@ class OVT_TEST_DeploymentRoundTripFixture
 //! re-derivation that happened to agree.
 //!
 //! The fixture is created through the manager's own creation path, so the save really does run the
-//! deployment serializer's write half over a live deployment carrying a version 2 key.
+//! deployment serializer's write half over a live deployment carrying a version 2 key. Its config is
+//! the first matching registry entry (the first valid deployment config), never a shipped name.
 //!
 //! Read the fixture class header for what the reload seam can and cannot reach.
 //------------------------------------------------------------------------------------------------
@@ -5334,6 +5464,9 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 	//! The key this marker's own position WOULD derive, kept so the failure text can name it.
 	protected string m_sDerivableKey;
 
+	//! Name of the registry config the fixture runs on, read off the resolved config.
+	protected string m_sConfigName;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -5373,6 +5506,8 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 			return true;
 		}
 
+		m_sConfigName = config.m_sDeploymentName;
+
 		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
 		if (!overthrowConfig)
 		{
@@ -5394,7 +5529,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 		m_Deployment = manager.CreateDeployment(config, position, m_iSavedFaction, SAVED_RESOURCES, SAVED_THREAT);
 		if (!m_Deployment)
 		{
-			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", m_sConfigName);
 			return true;
 		}
 
@@ -5402,7 +5537,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
 
 		// Plant the payload, exactly as the marker's own Deserialize would hand it over.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction,
 			SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
 
 		string precondition = VerifyPreconditions();
@@ -5434,7 +5569,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 	protected string VerifyPreconditions()
 	{
 		vector origin = m_Deployment.GetPosition();
-		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, origin[0], origin[2]);
+		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(m_sConfigName, origin[0], origin[2]);
 
 		if (m_sDerivableKey == SAVED_KEY)
 			return string.Format("The planted key '%1' is exactly what this marker's position derives, so 'the key was not re-derived' would be asserted against a coincidence", SAVED_KEY);
@@ -5496,7 +5631,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 			return true;
 		}
 
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iDirtyFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iDirtyFaction,
 			DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
 
 		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetControllingFaction() != m_iDirtyFaction
@@ -5560,7 +5695,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 
 		// The payload the save was taken of, handed back through the method the marker's own
 		// Deserialize calls. See the fixture class header for why this is not a re-read.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction,
 			SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
 
 		string failure = Verify();
@@ -5589,17 +5724,17 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 		if (!config)
 			return "The restored deployment has no config at all - a deployment that cannot name what it is runs no modules and is collected on the manager's next sweep";
 
-		if (config.m_sDeploymentName != OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME)
-			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+		if (config.m_sDeploymentName != m_sConfigName)
+			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, m_sConfigName);
 
 		string diagnostic;
 		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
 		if (!manager)
 			return diagnostic;
 
-		if (!manager.m_DeploymentRegistry.FindConfigByName(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME))
+		if (!manager.m_DeploymentRegistry.FindConfigByName(m_sConfigName))
 			return string.Format("The registry no longer resolves '%1' by name - the save stores the NAME, so a deployment restored in a later session would be dropped instead of restored",
-				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+				m_sConfigName);
 
 		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
 			return string.Format("The restored deployment belongs to faction %1, saved as %2 (dirtied to %3) - a deployment that changes sides on a load fights for the wrong army",
@@ -5649,6 +5784,8 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentRecord_SurvivesSaveAndReapply : SC
 //! because a deployment's own 8-12 s activation tick calls EnsureGroups() on its own schedule, and
 //! clearing both flags would bet that the tick does not fire in the ~100 ms window before the assert
 //! phase puts them back. This project has measured a 105 s main-thread stall in this harness.
+//!
+//! The config is the first matching registry entry: the first one carrying a spawning module.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR_AutotestCaseBase
@@ -5673,6 +5810,9 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 
 	//! The owner key the deployment's first spawning module registers under.
 	protected string m_sOwnerKey;
+
+	//! Name of the registry config the fixture runs on, read off the resolved config.
+	protected string m_sConfigName;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -5706,11 +5846,14 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 			return true;
 		}
 
-		if (!OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic))
+		OVT_DeploymentConfig config = OVT_TEST_DeploymentRoundTripFixture.ResolveConfigWithModule(manager, OVT_BaseSpawningDeploymentModule, diagnostic);
+		if (!config)
 		{
 			SetFailure(diagnostic);
 			return true;
 		}
+
+		m_sConfigName = config.m_sDeploymentName;
 
 		if (!OVT_Global.GetVirtualization())
 		{
@@ -5735,7 +5878,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 		}
 
 		// THE RESTORE. Wipe-out flag true, config still unset, so InitializeDeployment runs from here.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName,
 			overthrowConfig.GetOccupyingFactionIndex(), SAVED_THREAT, SAVED_RESOURCES, true, ELIMINATED_KEY);
 
 		string failure = VerifyRestoreRegisteredNothing();
@@ -5768,7 +5911,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 	{
 		if (!m_Deployment.GetConfig())
 			return string.Format("The restore left the deployment with no config, so it never initialized and nothing below is being tested (config name '%1')",
-				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+				m_sConfigName);
 
 		if (!m_Deployment.GetSpawnedUnitsEliminated())
 			return "The restored deployment does not report its units eliminated, although the payload said they were - the flag was dropped somewhere in the apply";
@@ -5929,7 +6072,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 
 		// The same payload again, this time onto a LIVE deployment - the in-session re-application
 		// shape. Its job here is to put the module marks back.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName,
 			overthrowConfig.GetOccupyingFactionIndex(), SAVED_THREAT, SAVED_RESOURCES, true, ELIMINATED_KEY);
 
 		string failure = VerifyReapplyRestoredTheMarks();
@@ -6001,6 +6144,8 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentEliminated_RegistersNoGroups : SCR
 //!      derived. Payloads are re-applied to live instances, and a blind write would empty the key of
 //!      a deployment whose groups are already tagged with it, orphaning the whole force to a reclaim
 //!      that will never find it. The guard is one `if`.
+//!
+//! The config is the first matching registry entry (the first valid deployment config).
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_AutotestCaseBase
@@ -6034,6 +6179,9 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 	//! The base key the marker's own position produces, without any collision ordinal.
 	protected string m_sBaseKey;
 
+	//! Name of the registry config the fixture runs on, read off the resolved config.
+	protected string m_sConfigName;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -6066,11 +6214,14 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 			return true;
 		}
 
-		if (!OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic))
+		OVT_DeploymentConfig config = OVT_TEST_DeploymentRoundTripFixture.ResolveConfig(manager, diagnostic);
+		if (!config)
 		{
 			SetFailure(diagnostic);
 			return true;
 		}
+
+		m_sConfigName = config.m_sDeploymentName;
 
 		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
 		if (!overthrowConfig)
@@ -6099,7 +6250,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 
 		// THE VERSION 1 PAYLOAD: five fields and an empty key, which is what the codec passes when the
 		// stored version predates the key.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction,
 			SAVED_THREAT, SAVED_RESOURCES, true, "");
 
 		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
@@ -6134,17 +6285,17 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 		OVT_DeploymentConfig config = m_Deployment.GetConfig();
 		if (!config)
 			return string.Format("A version 1 payload naming '%1' restored no config at all - every pre-feature deployment in an existing save would be dropped",
-				OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+				m_sConfigName);
 
-		if (config.m_sDeploymentName != OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME)
-			return string.Format("The restored deployment is running '%1', expected '%2'", config.m_sDeploymentName, OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME);
+		if (config.m_sDeploymentName != m_sConfigName)
+			return string.Format("The restored deployment is running '%1', expected '%2'", config.m_sDeploymentName, m_sConfigName);
 
 		if (m_Deployment.GetVirtualKey() != "")
 			return string.Format("A version 1 payload left the deployment holding key '%1' - the apply invented a key instead of leaving the field empty for the first caller that needs one",
 				m_Deployment.GetVirtualKey());
 
 		vector origin = m_Deployment.GetPosition();
-		m_sBaseKey = OVT_DeploymentVirtualKey.DeriveKey(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, origin[0], origin[2]);
+		m_sBaseKey = OVT_DeploymentVirtualKey.DeriveKey(m_sConfigName, origin[0], origin[2]);
 
 		m_sDerivedKey = m_Deployment.EnsureVirtualKey();
 		if (m_sDerivedKey.IsEmpty())
@@ -6206,7 +6357,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 			return true;
 		}
 
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iDirtyFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iDirtyFaction,
 			DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
 
 		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetResourcesInvested() != DIRTY_RESOURCES)
@@ -6268,7 +6419,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentVersion1Payload_StillLoads : SCR_A
 		}
 
 		// The version 1 payload again - still keyless, because a version 1 record never gains one.
-		m_Deployment.ApplyPersistedDeployment(OVT_TEST_DeploymentRoundTripFixture.CONFIG_NAME, m_iSavedFaction,
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction,
 			SAVED_THREAT, SAVED_RESOURCES, true, "");
 
 		string failure = VerifyKeylessPayloadKeptTheKey();
@@ -6726,8 +6877,8 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : S
 //! forbids.
 //!
 //! A second deployment round trip is warranted because DeploymentRecord_SurvivesSaveAndReapply runs
-//! on "Town Patrol", whose modules are all pre-migration. This one runs on a BASE DEFENSE config and
-//! adds the two things that are new:
+//! on the first valid config, whose modules may all be pre-migration. This one runs on the first
+//! matching registry entry that carries a placed-infantry module and adds the two things that are new:
 //!   - the restored deployment still carries a live OVT_PlacedInfantrySpawningDeploymentModule WITH
 //!     its m_Placement provider. CloneModule is hand-written and not chained; a dropped line ships a
 //!     module that wants zero groups, registers nothing and logs nothing, and a base's tower guards
@@ -6735,20 +6886,16 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentOwnedGroups_ReclaimAfterReload : S
 //!   - WasRestoredFromSave() is TRUE afterwards - D7's gate, the one thing stopping a restored
 //!     deployment building a second bunker on every load, and nothing else asserts it.
 //!
-//! ⚠ This fixture cannot delete itself mid-run despite its config authoring
+//! ⚠ This fixture cannot delete itself mid-run even when its config authors
 //! m_bDeleteOnConditionFail 1. The delete branch lives in CheckReinforcement(), which OnUpdate()
 //! reaches only after m_fInitialDelay (class default 300 000 ms) has elapsed since activation, and
 //! the case's whole budget is 60 s. If a future tuning pass authors a shorter initial delay on these
-//! configs, THIS is the case that starts failing intermittently, and the fix is to pick a config
-//! without the delete flag - not to lengthen the timeout.
+//! configs, THIS is the case that starts failing intermittently, and the fix is to skip configs
+//! with the delete flag - not to lengthen the timeout.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
 class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply : SCR_AutotestCaseBase
 {
-	//! The shipped base-defense config this case runs on. Chosen over the tower/sniper configs because
-	//! it is the one with a behaviour module, so its restored module chain is the longest of the three.
-	static const string CONFIG_NAME = "Base Defense Positions";
-
 	//! Offset from the shared fixture position, so this case's derived key cannot collide with the
 	//! other deployment cases' or with a live campaign deployment's.
 	static const vector MARKER_OFFSET = "-61 0 38";
@@ -6784,6 +6931,9 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 	//! The key this marker's own position WOULD derive, kept so the failure text can name it.
 	protected string m_sDerivableKey;
 
+	//! Name of the first registry config carrying a placed-infantry module, read off the resolved config.
+	protected string m_sConfigName;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -6816,18 +6966,14 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 			return true;
 		}
 
-		OVT_DeploymentConfig config = manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME);
+		OVT_DeploymentConfig config = OVT_TEST_DeploymentRoundTripFixture.ResolveConfigWithModule(manager, OVT_PlacedInfantrySpawningDeploymentModule, diagnostic);
 		if (!config)
 		{
-			SetFailure("The deployment registry does not resolve '%1' - a saved base-defense deployment naming it would be dropped on load rather than restored", CONFIG_NAME);
+			SetFailure(diagnostic);
 			return true;
 		}
 
-		if (!config.IsValidConfig())
-		{
-			SetFailure("Config '%1' resolves but is not valid (no name, no modules, or no spawning module)", CONFIG_NAME);
-			return true;
-		}
+		m_sConfigName = config.m_sDeploymentName;
 
 		OVT_OverthrowConfigComponent overthrowConfig = OVT_Global.GetConfig();
 		if (!overthrowConfig)
@@ -6850,7 +6996,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 		m_Deployment = manager.CreateDeployment(config, position, m_iSavedFaction, SAVED_RESOURCES, SAVED_THREAT);
 		if (!m_Deployment)
 		{
-			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", CONFIG_NAME);
+			SetFailure("The deployment manager refused to create a '%1' deployment, so there is nothing to save", m_sConfigName);
 			return true;
 		}
 
@@ -6858,7 +7004,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 		OVT_TEST_DeploymentRoundTripFixture.MakeInert(m_Deployment);
 
 		// Plant the payload, exactly as the marker's own Deserialize would hand it over.
-		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
 
 		string precondition = VerifyPreconditions();
 		if (precondition != "")
@@ -6890,7 +7036,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 	protected string VerifyPreconditions()
 	{
 		vector origin = m_Deployment.GetPosition();
-		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(CONFIG_NAME, origin[0], origin[2]);
+		m_sDerivableKey = OVT_DeploymentVirtualKey.DeriveKey(m_sConfigName, origin[0], origin[2]);
 
 		if (m_sDerivableKey == SAVED_KEY)
 			return string.Format("The planted key '%1' is exactly what this marker's position derives, so 'the key was not re-derived' would be asserted against a coincidence", SAVED_KEY);
@@ -6900,7 +7046,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 				m_Deployment.GetVirtualKey(), SAVED_KEY);
 
 		if (!FindPlacedModule())
-			return string.Format("A freshly created '%1' deployment carries no OVT_PlacedInfantrySpawningDeploymentModule at all, so 'the restored one still does' would assert nothing", CONFIG_NAME);
+			return string.Format("A freshly created '%1' deployment carries no OVT_PlacedInfantrySpawningDeploymentModule at all, so 'the restored one still does' would assert nothing", m_sConfigName);
 
 		return "";
 	}
@@ -6946,7 +7092,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 			return true;
 		}
 
-		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iDirtyFaction, DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iDirtyFaction, DIRTY_THREAT, DIRTY_RESOURCES, true, DIRTY_KEY);
 
 		if (m_Deployment.GetVirtualKey() != DIRTY_KEY || m_Deployment.GetControllingFaction() != m_iDirtyFaction
 			|| m_Deployment.GetResourcesInvested() != DIRTY_RESOURCES)
@@ -7009,7 +7155,7 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 
 		// The payload the save was taken of, handed back through the method the marker's own
 		// Deserialize calls. See the class header for why this is not a re-read.
-		m_Deployment.ApplyPersistedDeployment(CONFIG_NAME, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
+		m_Deployment.ApplyPersistedDeployment(m_sConfigName, m_iSavedFaction, SAVED_THREAT, SAVED_RESOURCES, true, SAVED_KEY);
 
 		string failure = Verify();
 
@@ -7037,17 +7183,17 @@ class OVT_TEST_PersistenceRoundTrip_DeploymentBaseDefense_SurvivesSaveAndReapply
 		if (!config)
 			return "The restored base-defense deployment has no config at all - a deployment that cannot name what it is runs no modules and is collected on the manager's next sweep";
 
-		if (config.m_sDeploymentName != CONFIG_NAME)
-			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, CONFIG_NAME);
+		if (config.m_sDeploymentName != m_sConfigName)
+			return string.Format("The restored deployment is running config '%1', expected '%2'", config.m_sDeploymentName, m_sConfigName);
 
 		string diagnostic;
 		OVT_DeploymentManagerComponent manager = OVT_TEST_DeploymentRoundTripFixture.ResolveManager(diagnostic);
 		if (!manager)
 			return diagnostic;
 
-		if (!manager.m_DeploymentRegistry.FindConfigByName(CONFIG_NAME))
+		if (!manager.m_DeploymentRegistry.FindConfigByName(m_sConfigName))
 			return string.Format("The registry no longer resolves '%1' by name - the save stores the NAME, so a base-defense deployment restored in a later session would be dropped instead of restored",
-				CONFIG_NAME);
+				m_sConfigName);
 
 		if (m_Deployment.GetControllingFaction() != m_iSavedFaction)
 			return string.Format("The restored deployment belongs to faction %1, saved as %2 (dirtied to %3) - a base's garrison that changes sides on a load fights for the wrong army",
@@ -7473,12 +7619,13 @@ class OVT_TEST_PersistenceRoundTrip_LegacyBaseUpgrades_ConvertToDeploymentResour
 //!    SCR_FuelManagerComponentSerializer only walks SCR_FuelNode-typed nodes and SKIPS any node whose
 //!    fuel equals its initial state. A node authored as a bare BaseFuelNode, or an initial state
 //!    authored as a fraction (0.5) instead of litres, makes persistence a no-op with no error
-//!    anywhere. Asserted: a scripted node exists, its capacity is the authored 10000 L, its initial
-//!    state is 0;
+//!    anywhere. Asserted: a scripted node exists, its capacity is positive, and half of that
+//!    capacity (the level this case stores) is not its initial state.
 //!  - a real save completes with the depot in the world and does not disturb its level.
 //!
 //! Non-vacuous: the level is written BEFORE the save and read back through a FRESH world query, not
-//! the handle BuildItem() returned, and the depot is authored to start EMPTY.
+//! the handle BuildItem() returned. The level is half of the capacity read off the spawned node,
+//! never a pinned litre count.
 //!
 //! The depot is left standing on purpose: deleting a persistence-tracked entity mid-suite drives the
 //! transient-untrack retry queue (BUG-118), far likelier to disturb later cases than an inert prop.
@@ -7495,18 +7642,8 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 	//! menu name (check-placeables.py reports the difference for every buildable in the file).
 	static const string BUILDABLE_TYPE = "FuelDepot";
 
-	//! Written before the save. Not a level the prefab or the campaign produces - it starts empty.
-	static const float SAVED_FUEL = 1234;
-
 	//! Litres of slack allowed when comparing back. Fuel is a float and passes through the engine.
 	static const float FUEL_EPSILON = 0.5;
-
-	//! SCR_FuelNode MaxFuel authored on OVT_FuelDepot.et. Raised 5000 -> 10000 by amendment A2.3 so a
-	//! depot holds two full fuel-truck deliveries; SAVED_FUEL stays well inside it.
-	static const float EXPECTED_MAX_FUEL = 10000;
-
-	//! SCR_FuelNode m_fInitialFuelTankState authored on OVT_FuelDepot.et - LITRES, not a fraction.
-	static const float EXPECTED_INITIAL_FUEL = 0;
 
 	//! Metres from the chosen base to put the depot. Far enough to sit on its own, near enough that
 	//! the buildable's own m_bBuildAtBase intent is what is being exercised.
@@ -7527,6 +7664,9 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 	protected int m_iSaveBaseline;
 	protected vector m_vBuildPos;
 	protected IEntity m_FoundDepot;
+
+	//! Written before the save: half of the capacity read off the spawned node.
+	protected float m_fSavedFuel;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -7632,27 +7772,29 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 			return true;
 		}
 
-		// R4, both halves. A serializer that skips this node writes nothing and says nothing.
-		if (!float.AlmostEqual(node.GetMaxFuel(), EXPECTED_MAX_FUEL))
+		float maxFuel = node.GetMaxFuel();
+		if (maxFuel <= 0)
 		{
-			SetFailure("The depot's fuel node holds %1 L, expected %2 L - the prefab's MaxFuel was changed",
-				node.GetMaxFuel().ToString(), EXPECTED_MAX_FUEL.ToString());
+			SetFailure("The depot's fuel node reports a capacity of %1 L, so no level can be stored in it", maxFuel.ToString());
 			return true;
 		}
 
-		if (!float.AlmostEqual(node.GetInitialFuelTankState(), EXPECTED_INITIAL_FUEL))
+		m_fSavedFuel = maxFuel * 0.5;
+
+		// The fuel serializer skips a node sitting at its initial state, so the stored level must differ from it.
+		if (Math.AbsFloat(node.GetInitialFuelTankState() - m_fSavedFuel) <= FUEL_EPSILON)
 		{
-			SetFailure("The depot's fuel node starts at %1 L, expected %2 L. That attribute is LITRES, not a fraction, and anything but empty means an untouched depot is skipped by the fuel serializer and never persists",
-				node.GetInitialFuelTankState().ToString(), EXPECTED_INITIAL_FUEL.ToString());
+			SetFailure("The depot's fuel node starts at %1 L, the level this case would store - a depot at its initial state is skipped by the fuel serializer and never persists",
+				node.GetInitialFuelTankState().ToString());
 			return true;
 		}
 
-		node.SetFuel(SAVED_FUEL);
+		node.SetFuel(m_fSavedFuel);
 
-		if (!float.AlmostEqual(node.GetFuel(), SAVED_FUEL))
+		if (!float.AlmostEqual(node.GetFuel(), m_fSavedFuel))
 		{
 			SetFailure("Setting the depot's fuel to %1 L left it reading %2 L",
-				SAVED_FUEL.ToString(), node.GetFuel().ToString());
+				m_fSavedFuel.ToString(), node.GetFuel().ToString());
 			return true;
 		}
 
@@ -7718,10 +7860,10 @@ class OVT_TEST_PersistenceRoundTrip_FuelDepot_LevelSurvivesSave : SCR_AutotestCa
 		}
 
 		float fuel = node.GetFuel();
-		if (Math.AbsFloat(fuel - SAVED_FUEL) > FUEL_EPSILON)
+		if (Math.AbsFloat(fuel - m_fSavedFuel) > FUEL_EPSILON)
 		{
 			SetFailure("The depot's fuel level did not survive the save: filled to %1 L, reads %2 L afterwards",
-				SAVED_FUEL.ToString(), fuel.ToString());
+				m_fSavedFuel.ToString(), fuel.ToString());
 			return true;
 		}
 
@@ -8541,8 +8683,11 @@ class OVT_TEST_PersistenceRoundTrip_StructureDamage_RepairSurvivesSave : SCR_Aut
 //! a different place with a different KIND - which also binds the OTHER shipped plan and empties the
 //! whole bag - both tick counters are driven to small values, the forward base is wiped by that
 //! re-commit, a third blacklist entry is added, and the machine is walked into a differently-NAMED
-//! phase. ⚠ That last step is not decoration: both shipped plans call their first phase
-//! "Harassment", so a commit alone leaves the phase name where the saved objective had it.
+//! phase. ⚠ That last step is not decoration: plans may share a first-phase name, so a commit alone
+//! can leave the phase name where the saved objective had it.
+//!
+//! The plan is the first matching registry entry (the first committable plan) and the phase is its
+//! index 0, whatever their names are.
 //!
 //! ⚠ The two tick counters are asserted as a BAND, not an exact value: the director really is
 //! ticking during the seconds this case waits for an asynchronous save, and each tick legitimately
@@ -8587,16 +8732,6 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	static const int SAVED_BAG_VALUE_A = 61;
 	static const int SAVED_BAG_VALUE_B = 409;
 
-	//! The plan a TOWN objective runs, and the phase a fresh commit enters. Both are PERSISTENCE KEYS -
-	//! the payload carries these strings rather than enum integers - so this is also the case that would
-	//! catch a rename of either.
-	static const string SAVED_PLAN = "Town Offensive";
-	static const string SAVED_PHASE = "Harassment";
-
-	//! What the dirty step leaves behind, so a value that "survived" by never having changed cannot pass.
-	static const string DIRTY_PLAN = "Base Offensive";
-	static const string DIRTY_PHASE = "ForwardBase";
-
 	static const int DIRTY_PHASE_TICKS = 3;
 	static const int DIRTY_OP_TICKS = 4;
 	static const int DIRTY_BLACKLIST_ROUNDS = 9;
@@ -8615,6 +8750,15 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	protected vector m_vDirtyBlacklist;
 	protected vector m_vSavedBagPosition;
 
+	//! The first registered plan and its phase at index 0. Both are PERSISTENCE KEYS: the payload
+	//! carries these strings rather than enum integers.
+	protected string m_sSavedPlan;
+	protected string m_sSavedPhase;
+
+	//! What the dirty step left behind. A dirty value equal to its saved one proves nothing and is skipped.
+	protected string m_sDirtyPlan;
+	protected string m_sDirtyPhase;
+
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
 	bool Execute()
@@ -8630,9 +8774,26 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 
 			SetUpFixturePositions();
 
+			OVT_ObjectiveConfig plan;
+			string pick = PickFirstPlan(director, plan);
+			if (pick != "")
+			{
+				SetFailure(pick);
+				return true;
+			}
+
 			// A whole ramp mid-flight: the target, the phase, the operations already completed, every
 			// timer, two places serving cooldowns, and a standing forward base with a spend history.
-			director.CommitObjective(OVT_EObjectiveKind.TOWN, m_vSavedObjective, "objective round trip fixture");
+			director.CommitObjective(OVT_EObjectiveKind.TOWN, m_vSavedObjective, "objective round trip fixture", plan);
+
+			m_sSavedPlan = director.GetObjectiveConfigName();
+			m_sSavedPhase = director.GetObjectivePhaseName();
+			if (m_sSavedPlan != plan.m_sObjectiveName || m_sSavedPhase != plan.GetPhase(0).m_sPhaseName || director.GetObjectivePhaseIndex() != 0)
+			{
+				SetFailure(string.Format("Committing to plan '%1' left the director on plan '%2', phase '%3' at index %4, not the plan's phase at index 0",
+					plan.m_sObjectiveName, m_sSavedPlan, m_sSavedPhase, director.GetObjectivePhaseIndex().ToString()));
+				return true;
+			}
 
 			for (int h = 0; h < SAVED_HARASSMENT_SUCCESSES; h++)
 			{
@@ -8724,13 +8885,15 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 			// place, zeroes both success counters and clears the whole forward-base record in one call;
 			// the two timers and a third blacklist entry are set on top of it.
 			director.CommitObjective(OVT_EObjectiveKind.BASE, m_vDirtyObjective, "dirty");
+			m_sDirtyPlan = director.GetObjectiveConfigName();
 
-			// ⚠ AND THE PHASE NAME, WHICH THE COMMIT ALONE DOES NOT DIRTY. Both shipped plans call their
-			// first phase "Harassment", so committing a base objective leaves the phase NAME exactly
-			// where the town objective had it - and an assertion that can pass without the value being
-			// restored is not an assertion. Entering the next phase gives it a distinct name. It happens
-			// BEFORE the two timers are planted, because a phase entry re-arms the idle clock.
-			director.EnterPhase("ForwardBase");
+			// The commit alone can leave the phase NAME where the saved objective had it, so the next
+			// phase of the plan now bound is entered. BEFORE the timers, since a phase entry re-arms the idle clock.
+			string nextPhase = NextPhaseName(director);
+			if (nextPhase != "")
+				director.EnterPhase(nextPhase);
+
+			m_sDirtyPhase = director.GetObjectivePhaseName();
 
 			director.SetPhaseTimeout(DIRTY_PHASE_TICKS);
 			director.SetOperationCountdown(DIRTY_OP_TICKS);
@@ -8837,6 +9000,57 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 	}
 
 	//------------------------------------------------------------------------------------------------
+	//! The first registered plan that can be committed to: named, not skipped by validation, with a
+	//! named phase at index 0.
+	//! \param[in] director The director whose registry is read.
+	//! \param[out] plan The plan. Untouched on failure.
+	//! \return An empty string on success, otherwise the sentence to fail with.
+	protected string PickFirstPlan(notnull OVT_ObjectiveDirectorComponent director, out OVT_ObjectiveConfig plan)
+	{
+		OVT_ObjectiveRegistry registry = director.GetRegistry();
+		if (!registry)
+			return "The objective director has no registry wired, so no plan can be committed to";
+
+		int count = registry.GetConfigCount();
+		for (int i = 0; i < count; i++)
+		{
+			OVT_ObjectiveConfig candidate = registry.GetConfig(i);
+			if (!candidate || candidate.m_sObjectiveName.IsEmpty() || registry.IsSkipped(candidate.m_sObjectiveName))
+				continue;
+
+			OVT_ObjectivePhase first = candidate.GetPhase(0);
+			if (!first || first.m_sPhaseName.IsEmpty())
+				continue;
+
+			plan = candidate;
+			return "";
+		}
+
+		return string.Format("None of the %1 registered objective plans can be committed to (a name, no validation skip and a named phase at index 0 are all required)", count.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! The name of the phase at index 1 of the plan the director is running now.
+	//! \param[in] director The director.
+	//! \return The name, or an empty string when that plan has no second phase.
+	protected string NextPhaseName(notnull OVT_ObjectiveDirectorComponent director)
+	{
+		OVT_ObjectiveRegistry registry = director.GetRegistry();
+		if (!registry)
+			return "";
+
+		OVT_ObjectiveConfig current = registry.FindConfigByName(director.GetObjectiveConfigName());
+		if (!current)
+			return "";
+
+		OVT_ObjectivePhase next = current.GetPhase(1);
+		if (!next)
+			return "";
+
+		return next.m_sPhaseName;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Picks fixture positions that cannot collide with anything the campaign chose for itself.
 	//!
 	//! They are far apart and far from each other so a position assertion cannot pass by accidentally
@@ -8873,30 +9087,24 @@ class OVT_TEST_PersistenceRoundTrip_ObjectiveDirector_SurvivesSaveAndReapply : S
 		if (objectiveDrift > POSITION_TOLERANCE)
 			return string.Format("the restored objective is %1 m from the one that was saved", objectiveDrift.ToString());
 
-		if (director.GetObjectivePhaseName() != "Harassment")
-		{
-			string phase = director.GetObjectivePhaseName();
-			return string.Format("the restored objective is in phase %1, not the harassment phase it was saved in", phase);
-		}
-
 		// 🔴 THE PLAN AND THE PHASE COME BACK BY NAME, AND THE NAMES ARE THE KEYS. The payload carries
 		// these two strings rather than an index or an enum integer, which is the whole reason a plan
 		// can grow a phase in the middle without re-labelling every objective in every save on disk -
 		// and the reason a plan or phase RENAME is detected on load and abandoned loudly instead of
 		// being silently adopted as whatever sits at that position now.
-		if (director.GetObjectiveConfigName() == DIRTY_PLAN)
+		if (m_sDirtyPlan != m_sSavedPlan && director.GetObjectiveConfigName() == m_sDirtyPlan)
 			return "the objective's PLAN did not survive the round trip: the dirty plan is still bound";
 
-		if (director.GetObjectiveConfigName() != SAVED_PLAN)
+		if (director.GetObjectiveConfigName() != m_sSavedPlan)
 			return string.Format("the restored objective is running plan '%1', not the '%2' it was saved under",
-				director.GetObjectiveConfigName(), SAVED_PLAN);
+				director.GetObjectiveConfigName(), m_sSavedPlan);
 
-		if (director.GetObjectivePhaseName() == DIRTY_PHASE)
+		if (m_sDirtyPhase != m_sSavedPhase && director.GetObjectivePhaseName() == m_sDirtyPhase)
 			return "the objective's PHASE NAME did not survive the round trip: the dirty phase name is still there";
 
-		if (director.GetObjectivePhaseName() != SAVED_PHASE)
+		if (director.GetObjectivePhaseName() != m_sSavedPhase)
 			return string.Format("the restored objective is in phase '%1', not the '%2' it was saved in",
-				director.GetObjectivePhaseName(), SAVED_PHASE);
+				director.GetObjectivePhaseName(), m_sSavedPhase);
 
 		if (director.GetObjectivePhaseIndex() != 0)
 			return string.Format("the restored objective sits at plan phase index %1, which does not agree with the phase name it came back with",
@@ -9991,280 +10199,6 @@ class OVT_TEST_PersistenceRoundTrip_StorageBox_LedgerAndNameSurviveSave : SCR_Au
 		}
 
 		Print("A placed ammo box's item ledger and its name survived a real save and came back out of storage");
-
-		return true;
-	}
-}
-
-//------------------------------------------------------------------------------------------------
-//! A HELICOPTER's item ledger survives a real save.
-//!
-//! The serializer is one class but the BINDING is a per-vehicle-class .conf entry, and a serializer
-//! that is not listed is never called - silently, with no error at save time and none at load time.
-//! The wheeled case exercises vanilla's CAR configuration {64C6B4937723DA61}; this one exercises the
-//! HELICOPTER configuration {64EE8D74EB8192BA}, which carried no storage serializer at all until
-//! logistics/vehicle-rearm put a storage component on Helicopter_Base.et (D10). Without the binding
-//! every helicopter ledger reads back empty on the next continue while the wheeled case stays green,
-//! which is the exact failure this case exists to make loud.
-//!
-//! No name here - the box case owns that assertion.
-//!
-//! The subject is a PARKING_HELI vehicle from the economy's own catalogue, spawned rather than
-//! registered, so this adds nothing to any player's vehicle registry.
-//!
-//! ⚠ Takes a real save; `StorageHelicopter*` sorts after `..._Capability_...`. It sorts between
-//! `StorageBox*` and `StorageVehicle*` and disturbs neither. Left standing (BUG-118).
-//------------------------------------------------------------------------------------------------
-[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 90)]
-class OVT_TEST_PersistenceRoundTrip_StorageHelicopter_LedgerSurvivesSave : SCR_AutotestCaseBase
-{
-	//! Offset from where a test vehicle would go, clear of every other storage subject.
-	static const vector SPAWN_OFFSET = "42 0 0";
-
-	static const int SAVED_A = 5150;
-	static const int SAVED_B = 23;
-
-	static const int PHASE_SPAWN = 0;
-	static const int PHASE_AWAIT_TRACKING = 1;
-	static const int PHASE_STOCK_AND_SAVE = 2;
-	static const int PHASE_AWAIT_SAVE = 3;
-	static const int PHASE_DIRTY_AND_RELOAD = 4;
-	static const int PHASE_AWAIT_RELOAD = 5;
-	static const int PHASE_ASSERT = 6;
-
-	protected int m_iPhase;
-	protected int m_iTrackingPolls;
-	protected int m_iSavePolls;
-	protected int m_iReloadPolls;
-	protected int m_iSaveBaseline;
-
-	protected IEntity m_Helicopter;
-	protected ResourceName m_sPrefab;
-
-	//------------------------------------------------------------------------------------------------
-	[TestStep(TestStage.Main)]
-	bool Execute()
-	{
-		if (m_iPhase == PHASE_SPAWN)
-			return Spawn();
-
-		if (m_iPhase == PHASE_AWAIT_TRACKING)
-			return AwaitTracking();
-
-		if (m_iPhase == PHASE_STOCK_AND_SAVE)
-			return StockAndSave();
-
-		if (m_iPhase == PHASE_AWAIT_SAVE)
-			return AwaitSave();
-
-		if (m_iPhase == PHASE_DIRTY_AND_RELOAD)
-			return DirtyAndReload();
-
-		if (m_iPhase == PHASE_AWAIT_RELOAD)
-			return AwaitReload();
-
-		return Assert();
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return True when the case is finished (a failure); false to advance.
-	protected bool Spawn()
-	{
-		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveHelicopterPrefab(m_sPrefab);
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		vector position;
-		diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveSubjectPosition(SPAWN_OFFSET, position);
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		m_Helicopter = OVT_Global.SpawnEntityPrefab(m_sPrefab, position);
-		if (!m_Helicopter)
-		{
-			SetFailure(string.Format("SpawnEntityPrefab() produced no helicopter from %1", m_sPrefab));
-			return true;
-		}
-
-		m_iPhase = PHASE_AWAIT_TRACKING;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! A helicopter is registered by the native Persistence component on its prefab, which is
-	//! asynchronous enough to be worth waiting for. Bounded, and expiry fails.
-	//! \return True when the case is finished (a failure); false to keep waiting or advance.
-	protected bool AwaitTracking()
-	{
-		if (!m_Helicopter)
-		{
-			SetFailure("The spawned helicopter left the world before it was registered for saving");
-			return true;
-		}
-
-		if (!OVT_TEST_PersistenceRoundTripGate.InstanceIsTracked(m_Helicopter))
-		{
-			m_iTrackingPolls += 1;
-			if (m_iTrackingPolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
-			{
-				SetFailure(string.Format("The spawned helicopter %1 never became persistence-tracked, so it has no stored record and nothing about its cargo can survive a save", m_sPrefab));
-				return true;
-			}
-
-			return false;
-		}
-
-		m_iPhase = PHASE_STOCK_AND_SAVE;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return True when the case is finished (a failure); false to advance.
-	protected bool StockAndSave()
-	{
-		OVT_StorageComponent storage;
-		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		// Closure 3: a freshly spawned helicopter holds nothing, so the saved ledger is never a state the
-		// spawn path could have produced.
-		if (storage.GetLedger().Total() != 0)
-		{
-			SetFailure("The spawned helicopter was already carrying a ledger the moment it appeared, so the values below would not be this case's");
-			return true;
-		}
-
-		OVT_TEST_StorageRoundTripFixture.Stock(storage, SAVED_A, SAVED_B);
-
-		m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
-
-		string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
-		if (trigger != "")
-		{
-			SetFailure(trigger);
-			return true;
-		}
-
-		m_iPhase = PHASE_AWAIT_SAVE;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return True when the case is finished (a failure); false to keep waiting or advance.
-	protected bool AwaitSave()
-	{
-		string saveDiagnostic;
-		int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
-		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
-		{
-			SetFailure(saveDiagnostic);
-			return true;
-		}
-
-		if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
-		{
-			m_iSavePolls += 1;
-			if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
-			{
-				SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
-				return true;
-			}
-
-			return false;
-		}
-
-		m_iPhase = PHASE_DIRTY_AND_RELOAD;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return True when the case is finished (a failure); false to advance.
-	protected bool DirtyAndReload()
-	{
-		OVT_StorageComponent storage;
-		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		OVT_TEST_StorageRoundTripFixture.Dirty(storage);
-
-		if (storage.GetLedger().Count(OVT_TEST_StorageRoundTripFixture.KEY_A) != 0)
-		{
-			SetFailure("The helicopter kept its saved ledger through the dirtying step, so the reload would prove nothing");
-			return true;
-		}
-
-		string reload = OVT_TEST_PersistenceRoundTripGate.RequestInstanceReload(m_Helicopter);
-		if (reload != "")
-		{
-			SetFailure(reload);
-			return true;
-		}
-
-		m_iPhase = PHASE_AWAIT_RELOAD;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return True when the case is finished (a failure); false to keep waiting or advance.
-	protected bool AwaitReload()
-	{
-		if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
-		{
-			m_iReloadPolls += 1;
-			if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
-			{
-				SetFailure("The helicopter's stored record was never re-applied: the persistence system's re-application never completed");
-				return true;
-			}
-
-			return false;
-		}
-
-		m_iPhase = PHASE_ASSERT;
-		return false;
-	}
-
-	//------------------------------------------------------------------------------------------------
-	//! \return Always true - the case ends here either way.
-	protected bool Assert()
-	{
-		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
-		if (restored != "")
-		{
-			SetFailure(restored);
-			return true;
-		}
-
-		OVT_StorageComponent storage;
-		string diagnostic = OVT_TEST_StorageRoundTripFixture.ResolveStorage(m_Helicopter, "The spawned helicopter", storage);
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		diagnostic = OVT_TEST_StorageRoundTripFixture.AssertLedgerRestored(storage, SAVED_A, SAVED_B, "The spawned helicopter");
-		if (diagnostic != "")
-		{
-			SetFailure(diagnostic);
-			return true;
-		}
-
-		Print("A helicopter's item ledger survived a real save and came back out of storage");
 
 		return true;
 	}
@@ -12759,17 +12693,13 @@ class OVT_TEST_PersistenceRoundTrip_ConstructionSite_RoundTrips : SCR_AutotestCa
 //! `WarehouseMigration*` and `WarehouseResources*` - which matters, because the building it leaves
 //! standing is a second Warehouse_01 in the world. Both warehouse fixtures also skip anything
 //! carrying OVT_BuildableComponent, so the ordering is a second belt rather than the only one.
+//!
+//! The buildable is the first matching registry entry: the first one whose prefab carries both
+//! ledger components (OVT_StorageComponent and OVT_ResourceStoreComponent), never a shipped name.
 //------------------------------------------------------------------------------------------------
 [Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 120)]
 class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTrip : SCR_AutotestCaseBase
 {
-	//! Resolved by name out of buildables.conf. Never an index - entries get appended.
-	static const string BUILDABLE_NAME = "Warehouse";
-
-	//! Prefab path fragment the real-estate config filters on, and the reason a built warehouse is a
-	//! real warehouse at all.
-	static const string WAREHOUSE_PREFAB_FRAGMENT = "Warehouse_01";
-
 	//! Far clear of the truck (28 0 0), the pile (0 0 28), the site (-28 0 0) and both storage
 	//! subjects (14 m): a warehouse is roughly 40 m long and this one stands for the rest of the suite.
 	static const vector BUILD_OFFSET = "0 0 -90";
@@ -12795,6 +12725,9 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTr
 
 	protected IEntity m_Warehouse;
 	protected ref OVT_TEST_ResourceExpectedStock m_Saved;
+
+	//! Menu name of the buildable picked, for failure text.
+	protected string m_sBuildableName;
 
 	//------------------------------------------------------------------------------------------------
 	[TestStep(TestStage.Main)]
@@ -12898,15 +12831,20 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTr
 		for (int i = 0; i < resistance.m_BuildablesConfig.m_aBuildables.Count(); i++)
 		{
 			OVT_Buildable candidate = resistance.m_BuildablesConfig.m_aBuildables[i];
-			if (candidate && candidate.m_sName == BUILDABLE_NAME)
+			if (!candidate || !candidate.m_aPrefabs || candidate.m_aPrefabs.IsEmpty())
+				continue;
+
+			ResourceName first = candidate.m_aPrefabs[0];
+			if (PrefabCarriesComponent(first, OVT_StorageComponent) && PrefabCarriesComponent(first, OVT_ResourceStoreComponent))
 			{
 				index = i;
+				m_sBuildableName = candidate.m_sName;
 				break;
 			}
 		}
 
 		if (index < 0)
-			return string.Format("No buildable named '%1' in buildables.conf - the entry is missing or renamed", BUILDABLE_NAME);
+			return "No buildable in buildables.conf spawns a prefab carrying both OVT_StorageComponent and OVT_ResourceStoreComponent, so nothing here holds the two ledgers this case saves";
 
 		vector position;
 		string diagnostic = OVT_TEST_ResourceRoundTripFixture.ResolveSubjectPosition(BUILD_OFFSET, position);
@@ -12921,7 +12859,7 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTr
 		// a construction site.
 		m_Warehouse = resistance.BuildItem(index, 0, position, vector.Zero, -1);
 		if (!m_Warehouse)
-			return string.Format("BuildItem() built no warehouse at %1 - the prefab failed to spawn, or the build was refused", position.ToString());
+			return string.Format("BuildItem() built no '%1' at %2 - the prefab failed to spawn, or the build was refused", m_sBuildableName, position.ToString());
 
 		// D15's precondition, asserted rather than assumed: this component is the ONLY reason the
 		// building matches Overthrow's Buildable configuration instead of vanilla's Building one, and
@@ -12930,14 +12868,34 @@ class OVT_TEST_PersistenceRoundTrip_WarehouseUnderBuildableConfig_LedgersRoundTr
 		if (!OVT_ComponentFinder<OVT_BuildableComponent>.Find(m_Warehouse))
 			return "The built warehouse carries no OVT_BuildableComponent, so it matches vanilla's Building configuration exactly as a purchased one does and this case would silently re-test the wrong binding";
 
-		ResourceName prefab = OVT_PrefabUtils.GetPrefabName(m_Warehouse);
-		if (prefab.IndexOf(WAREHOUSE_PREFAB_FRAGMENT) == -1)
+		return "";
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Whether a prefab's entity source declares a component of the given type. A resource that is not
+	//! loaded reads as zero components, which counts as no.
+	//! \param[in] prefab The prefab to read.
+	//! \param[in] componentType The component type to look for.
+	//! \return True when one declared component is of that type.
+	protected static bool PrefabCarriesComponent(ResourceName prefab, typename componentType)
+	{
+		Resource holder = Resource.Load(prefab);
+		IEntitySource source = SCR_BaseContainerTools.FindEntitySource(holder);
+		if (!source)
+			return false;
+
+		for (int i = 0, count = source.GetComponentCount(); i < count; i++)
 		{
-			return string.Format("The buildable named '%1' spawned '%2', whose path does not contain '%3'. Real estate matches a warehouse by that substring, so this building would not be a warehouse to anything else in the mod.",
-				BUILDABLE_NAME, prefab, WAREHOUSE_PREFAB_FRAGMENT);
+			IEntityComponentSource component = source.GetComponent(i);
+			if (!component)
+				continue;
+
+			typename type = component.GetClassName().ToType();
+			if (type != typename.Empty && type.IsInherited(componentType))
+				return true;
 		}
 
-		return "";
+		return false;
 	}
 
 	//------------------------------------------------------------------------------------------------
