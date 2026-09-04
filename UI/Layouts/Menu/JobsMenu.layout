@@ -104,6 +104,26 @@ FrameWidgetClass {
              Image ""
              Size 128 2
             }
+            HorizontalLayoutWidgetClass "{6B3D000000001001}" {
+             Name "FilterRow"
+             Slot LayoutSlot "{56EEDE07C9F827C2}" {
+              Padding 0 0 0 12
+             }
+             {
+              ButtonWidgetClass "{6B3D000000001002}" : "{0022F0B45ADBC5AC}UI/layouts/WidgetLibrary/EditBox/WLib_EditBox.layout" {
+               Name "SearchBox"
+               Slot LayoutSlot "{56F4D7D4EBB1BCF5}" {
+                SizeMode Fill
+               }
+               components {
+                SCR_EditBoxComponent "{547290FFBD5B33E9}" {
+                 m_sLabel "#OVT-JobsMenu_SearchLabel"
+                 m_bShowWriteIcon 0
+                }
+               }
+              }
+             }
+            }
             ScrollLayoutWidgetClass "{59A8D26AA9F807BD}" {
              Name "ContentSegment"
              Slot LayoutSlot "{59A8D25628A6B050}" {

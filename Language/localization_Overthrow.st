@@ -24567,5 +24567,39 @@ StringTable {
    Author "Aaron Static"
    LastChanged "Lemmi"
   }
+  CustomStringTableItem "{00FB78163A7D6ED9}" {
+   Id "OVT-JobsMenu_SearchLabel"
+   Target_en_us "Search"
+   Comment "Label on the Jobs menu search box. The player types part of a job title here to filter the job list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788562013
+   Author "Overthrow"
+   LastChanged "Overthrow"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{3FE075E205F00400}" {
+   Id "OVT-Jobs_NoMatches"
+   Target_en_us "No jobs match your search."
+   Comment "Shown in the Jobs menu when the search text or town filter hides every job in the list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788562013
+   Author "Overthrow"
+   LastChanged "Overthrow"
+   ImageLink ""
+   Hidden 0
+  }
  }
 }
