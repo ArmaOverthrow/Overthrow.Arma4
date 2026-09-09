@@ -139,10 +139,14 @@ class OVT_TransferListModel : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Selects the rows of one category, in current (i.e. sorted) order.
+	//! Selects the rows of one category that also match a search filter, in current (i.e. sorted)
+	//! order.
 	//! \param[in] categoryId The tab to filter by. CATEGORY_ALL returns every row.
+	//! \param[in] search Case-insensitive substring to match against the row's display name. Empty
+	//! matches every row - callers already lowercase the typed text before it gets here (see
+	//! search-filter.md's ToLower() trap), so this only ever lowercases the row's own name.
 	//! \param[out] entries Receives the matching rows. Cleared first.
-	void FilterByCategory(int categoryId, out array<ref OVT_TransferEntry> entries)
+	void FilterByCategory(int categoryId, string search, out array<ref OVT_TransferEntry> entries)
 	{
 		if (!entries)
 			return;
@@ -151,8 +155,18 @@ class OVT_TransferListModel : Managed
 
 		foreach (OVT_TransferEntry entry : m_aEntries)
 		{
-			if (categoryId == CATEGORY_ALL || entry.m_iCategoryId == categoryId)
-				entries.Insert(entry);
+			if (categoryId != CATEGORY_ALL && entry.m_iCategoryId != categoryId)
+				continue;
+
+			if (search != "")
+			{
+				string name = entry.m_sDisplayName;
+				name.ToLower();
+				if (name.IndexOf(search) == -1)
+					continue;
+			}
+
+			entries.Insert(entry);
 		}
 	}
 }

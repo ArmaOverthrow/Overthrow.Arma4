@@ -57,6 +57,10 @@ class OVT_TransferContext : OVT_TabHostContext
 	protected int m_iTab = OVT_TransferListModel.CATEGORY_ALL;
 	protected int m_iDestination;
 
+	//! Lower-cased search box text. Empty means "no filter" - see FilterByCategory() in
+	//! OVT_TransferListModel, which ANDs this against the active tab.
+	protected string m_sSearchFilter = "";
+
 	protected EOVT_TransferPane m_ePane = EOVT_TransferPane.LIST;
 	protected int m_iListIndex;
 	protected int m_iCartIndex;
@@ -111,6 +115,7 @@ class OVT_TransferContext : OVT_TabHostContext
 	protected SCR_InputButtonComponent m_AcceptAction;
 	protected SCR_InputButtonComponent m_CloseAction;
 	protected SCR_SpinBoxComponent m_DestinationSpinBox;
+	protected SCR_EditBoxComponent m_SearchBox;
 
 	//-----------------------------------------------------------------------
 	// HOOKS - the closed list. A consumer implementing these writes no widget code.
@@ -233,11 +238,13 @@ class OVT_TransferContext : OVT_TabHostContext
 		m_bMessagePersistent = false;
 		m_sMessageKey = "";
 		m_iDestinationItems = 0;
+		m_sSearchFilter = "";
 		m_Cart.Clear();
 
 		ResolveModes();
 
 		WireWidgets();
+		BuildSearchBox();
 		AddMenuNavListeners();
 
 		Refresh();
@@ -288,6 +295,9 @@ class OVT_TransferContext : OVT_TabHostContext
 
 		if(m_DestinationSpinBox && m_DestinationSpinBox.m_OnChanged)
 			m_DestinationSpinBox.m_OnChanged.Remove(OnDestinationChanged);
+
+		if(m_SearchBox) m_SearchBox.m_OnChanged.Remove(OnSearchChanged);
+		m_SearchBox = null;
 
 		m_Mode1Action = null;
 		m_Mode2Action = null;
@@ -433,6 +443,31 @@ class OVT_TransferContext : OVT_TabHostContext
 		ResetMessage();
 	}
 
+	//------------------------------------------------------------------------------------------------
+	//! Wires the search box's live-change event. SCR_EditBoxComponent.m_OnChanged fires on every
+	//! keystroke, on-screen keyboard included, so a controller player typing with the pad keyboard
+	//! gets the same live filtering as a mouse-and-keyboard player.
+	protected void BuildSearchBox()
+	{
+		m_SearchBox = SCR_EditBoxComponent.GetEditBoxComponent("SearchBox", m_wRoot);
+		if(!m_SearchBox) return;
+
+		m_SearchBox.m_OnChanged.Insert(OnSearchChanged);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] comp The search box.
+	//! \param[in] value The box's new text, as typed - not yet lower-cased.
+	protected void OnSearchChanged(SCR_EditBoxComponent comp, string value)
+	{
+		value.ToLower();
+		m_sSearchFilter = value;
+		m_iListIndex = 0;
+		m_ePane = EOVT_TransferPane.LIST;
+
+		Refresh();
+	}
+
 	//-----------------------------------------------------------------------
 	// REFRESH
 	//-----------------------------------------------------------------------
@@ -466,8 +501,28 @@ class OVT_TransferContext : OVT_TabHostContext
 		RefreshDetails();
 		RefreshActionButtons();
 		RefreshCheckout();
+		RefreshSearchMessage();
 
 		if(restoreFocus) RestoreFocus();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Notes when the search box hid every row on the current tab - distinct from a tab with nothing
+	//! in it at all, which never earns a tab row to begin with (BuildList() falls back to
+	//! CATEGORY_ALL for that case, unaffected by search).
+	//!
+	//! Drawn LAST, after RefreshCheckout(): an empty cart makes RefreshCheckout() call ResetMessage(),
+	//! which would otherwise wipe this note on every single refresh. A standing checkout-blocking
+	//! reason still wins - this never overwrites one.
+	protected void RefreshSearchMessage()
+	{
+		if(!m_wRoot) return;
+		if(m_bMessagePersistent) return;
+		if(m_sSearchFilter == "") return;
+		if(!m_aRowWidgets.IsEmpty()) return;
+		if(m_Model.GetEntries().IsEmpty()) return;
+
+		ShowPersistentMessage("#OVT-Transfer_NoMatches");
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -553,7 +608,7 @@ class OVT_TransferContext : OVT_TabHostContext
 		if(!m_wListRows) return;
 
 		array<ref OVT_TransferEntry> entries = new array<ref OVT_TransferEntry>();
-		m_Model.FilterByCategory(m_iTab, entries);
+		m_Model.FilterByCategory(m_iTab, m_sSearchFilter, entries);
 
 		WorkspaceWidget workspace = GetGame().GetWorkspace();
 		if(!workspace || m_RowLayout.IsEmpty()) return;

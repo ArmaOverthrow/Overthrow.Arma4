@@ -82,10 +82,17 @@ FrameWidgetClass {
                }
                Text "#OVT-Transfer_Title"
               }
-              SizeLayoutWidgetClass "{6A8E2C100000100B}" {
-               Name "TitleFill"
+              ButtonWidgetClass "{6A8E2C1000001037}" : "{0022F0B45ADBC5AC}UI/layouts/WidgetLibrary/EditBox/WLib_EditBox.layout" {
+               Name "SearchBox"
                Slot LayoutSlot "{5D48A6A577ADBED5}" {
+                Padding 0 0 12 0
                 SizeMode Fill
+               }
+               components {
+                SCR_EditBoxComponent "{547290FFBD5B33E9}" {
+                 m_sLabel "#OVT-Transfer_SearchLabel"
+                 m_bShowWriteIcon 0
+                }
                }
               }
               TextWidgetClass "{6A8E2C100000100C}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {

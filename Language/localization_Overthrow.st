@@ -22917,6 +22917,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B0}" {
+   Id "OVT-Transfer_NoMatches"
+   Target_en_us "No items match your search"
+   Comment "Transfer screen (Storage, Port, Production Buy, Resource Transfer) - shown in the checkout message area when the search box filters out every row on the current tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2D2000000021}" {
    Id "OVT-Transfer_NoSpace"
    Target_en_us "Not enough room in the vehicle"
@@ -23028,6 +23045,23 @@ StringTable {
    Modified 1787270400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000B1}" {
+   Id "OVT-Transfer_SearchLabel"
+   Target_en_us "Search"
+   Comment "Placeholder label on the transfer screen's item search box (Storage, Port, Production Buy, Resource Transfer)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
