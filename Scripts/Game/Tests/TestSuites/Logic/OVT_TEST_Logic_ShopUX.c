@@ -254,7 +254,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		// --- FILTERING.
 		array<ref OVT_ShopBrowserItem> ammo = new array<ref OVT_ShopBrowserItem>();
-		model.FilterByCategory(OVT_ShopCategory.AMMUNITION, ammo);
+		model.FilterByCategory(OVT_ShopCategory.AMMUNITION, "", ammo);
 
 		if (ammo.Count() != 2)
 		{
@@ -273,7 +273,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 		}
 
 		array<ref OVT_ShopBrowserItem> everything = new array<ref OVT_ShopBrowserItem>();
-		model.FilterByCategory(OVT_ShopCategory.ALL, everything);
+		model.FilterByCategory(OVT_ShopCategory.ALL, "", everything);
 
 		if (everything.Count() != 5)
 		{
@@ -283,7 +283,7 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 
 		// A category nobody stocked comes back empty rather than coming back wrong.
 		array<ref OVT_ShopBrowserItem> medical = new array<ref OVT_ShopBrowserItem>();
-		model.FilterByCategory(OVT_ShopCategory.MEDICAL, medical);
+		model.FilterByCategory(OVT_ShopCategory.MEDICAL, "", medical);
 
 		if (medical.Count() != 0)
 		{
@@ -337,6 +337,104 @@ class OVT_TEST_Logic_ShopUX_BrowserModelSortAndFilter : SCR_AutotestCaseBase
 	//! \param[in] id Resource id.
 	//! \param[in] displayName Name the sort orders by.
 	//! \param[in] category Category the filter selects on.
+	//! \return The row.
+	protected OVT_ShopBrowserItem MakeItem(int id, string displayName, OVT_ShopCategory category)
+	{
+		OVT_ShopBrowserItem item = new OVT_ShopBrowserItem();
+		item.m_iResourceId = id;
+		item.m_sResource = ResourceName.Empty;
+		item.m_sDisplayName = displayName;
+		item.m_eCategory = category;
+		item.m_iUnitPrice = 100;
+		item.m_iQuantity = 1;
+		item.m_bEnabled = true;
+		item.m_sDisabledReasonKey = "";
+		return item;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! OVT_ShopBrowserModel - the search box's filter, layered on top of the category tab.
+//!
+//! FilterByCategory() and GetPageItems() both take the search string now, so this case pins that the
+//! two filters AND together (a search still respects the active tab) rather than one overriding the
+//! other, and that the match is a plain case-insensitive substring - no fuzzy matching, per
+//! search-filter.md.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_ShopUX_Search : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_ShopBrowserModel model = new OVT_ShopBrowserModel();
+
+		model.Add(MakeItem(1, "Assault Rifle", OVT_ShopCategory.WEAPONS));
+		model.Add(MakeItem(2, "Rifle Magazine", OVT_ShopCategory.AMMUNITION));
+		model.Add(MakeItem(3, "Combat Vest", OVT_ShopCategory.CLOTHING));
+		model.Add(MakeItem(4, "Pistol", OVT_ShopCategory.WEAPONS));
+
+		// --- EMPTY SEARCH MATCHES EVERYTHING, same as no filter at all.
+		array<ref OVT_ShopBrowserItem> all = new array<ref OVT_ShopBrowserItem>();
+		model.FilterByCategory(OVT_ShopCategory.ALL, "", all);
+
+		if (all.Count() != 4)
+		{
+			SetFailure("An empty search returned %1 rows, expected all 4", all.Count().ToString());
+			return true;
+		}
+
+		// --- SUBSTRING, CASE-INSENSITIVE: "rifle" matches both "Assault Rifle" and "Rifle Magazine".
+		array<ref OVT_ShopBrowserItem> rifles = new array<ref OVT_ShopBrowserItem>();
+		model.FilterByCategory(OVT_ShopCategory.ALL, "rifle", rifles);
+
+		if (rifles.Count() != 2)
+		{
+			SetFailure("Searching 'rifle' returned %1 rows, expected 2 (Assault Rifle, Rifle Magazine)", rifles.Count().ToString());
+			return true;
+		}
+
+		// --- SEARCH AND CATEGORY AND TOGETHER: "rifle" narrowed to the WEAPONS tab drops the magazine.
+		array<ref OVT_ShopBrowserItem> weaponRifles = new array<ref OVT_ShopBrowserItem>();
+		model.FilterByCategory(OVT_ShopCategory.WEAPONS, "rifle", weaponRifles);
+
+		if (weaponRifles.Count() != 1 || weaponRifles.Get(0).m_iResourceId != 1)
+		{
+			SetFailure("Searching 'rifle' on the WEAPONS tab returned %1 rows, expected just Assault Rifle (id 1)", weaponRifles.Count().ToString());
+			return true;
+		}
+
+		// --- NO MATCH COMES BACK EMPTY, NOT AN ERROR.
+		array<ref OVT_ShopBrowserItem> none = new array<ref OVT_ShopBrowserItem>();
+		model.FilterByCategory(OVT_ShopCategory.ALL, "chainsaw", none);
+
+		if (none.Count() != 0)
+		{
+			SetFailure("Searching 'chainsaw' returned %1 rows, expected 0", none.Count().ToString());
+			return true;
+		}
+
+		// --- GetPageItems() THREADS THE SEARCH THROUGH TOO, not just FilterByCategory().
+		array<ref OVT_ShopBrowserItem> page = new array<ref OVT_ShopBrowserItem>();
+		model.GetPageItems(OVT_ShopCategory.ALL, "rifle", 0, 15, page);
+
+		if (page.Count() != 2)
+		{
+			SetFailure("GetPageItems() with search 'rifle' returned %1 rows, expected 2", page.Count().ToString());
+			return true;
+		}
+
+		Print("Shop browser search: empty search matches everything, substring match is case-insensitive, search ANDs with the category tab, GetPageItems() applies it too");
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Builds one browser row. Every field is set explicitly - `new` applies no attribute defaults.
+	//! \param[in] id Resource id.
+	//! \param[in] displayName Name the search matches against.
+	//! \param[in] category Category the row is filed under.
 	//! \return The row.
 	protected OVT_ShopBrowserItem MakeItem(int id, string displayName, OVT_ShopCategory category)
 	{
@@ -440,7 +538,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 
 		array<ref OVT_ShopBrowserItem> page = new array<ref OVT_ShopBrowserItem>();
 
-		model.GetPageItems(OVT_ShopCategory.ALL, 0, PER_PAGE, page);
+		model.GetPageItems(OVT_ShopCategory.ALL, "", 0, PER_PAGE, page);
 		if (page.Count() != 15 || page.Get(0).m_iResourceId != 1 || page.Get(14).m_iResourceId != 15)
 		{
 			SetFailure("Page 1 held %1 rows starting at id %2, expected 15 rows starting at id 1",
@@ -449,7 +547,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		}
 
 		// THE PAGE THE OLD ARITHMETIC COULD NOT REACH: 12 rows, ids 46..57.
-		model.GetPageItems(OVT_ShopCategory.ALL, 3, PER_PAGE, page);
+		model.GetPageItems(OVT_ShopCategory.ALL, "", 3, PER_PAGE, page);
 		if (page.Count() != 12)
 		{
 			SetFailure("BUG-024: the last page held %1 rows, expected the remaining 12", page.Count().ToString());
@@ -464,7 +562,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		}
 
 		// --- OUT-OF-RANGE REQUESTS ARE CLAMPED, NOT CRASHED.
-		model.GetPageItems(OVT_ShopCategory.ALL, 99, PER_PAGE, page);
+		model.GetPageItems(OVT_ShopCategory.ALL, "", 99, PER_PAGE, page);
 		if (page.Count() != 12 || page.Get(0).m_iResourceId != 46)
 		{
 			SetFailure("Asking for page 99 returned %1 rows starting at id %2, expected the clamped last page (12 rows from id 46)",
@@ -472,7 +570,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 			return true;
 		}
 
-		model.GetPageItems(OVT_ShopCategory.ALL, -5, PER_PAGE, page);
+		model.GetPageItems(OVT_ShopCategory.ALL, "", -5, PER_PAGE, page);
 		if (page.Count() != 15 || page.Get(0).m_iResourceId != 1)
 		{
 			SetFailure("Asking for page -5 returned %1 rows starting at id %2, expected the clamped first page (15 rows from id 1)",
@@ -481,7 +579,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 		}
 
 		// A tab with nothing in it pages safely instead of slicing an empty array.
-		model.GetPageItems(OVT_ShopCategory.MEDICAL, 2, PER_PAGE, page);
+		model.GetPageItems(OVT_ShopCategory.MEDICAL, "", 2, PER_PAGE, page);
 		if (page.Count() != 0)
 		{
 			SetFailure("An empty category returned %1 rows on page 3, expected 0", page.Count().ToString());
@@ -490,7 +588,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 
 		// And an empty model does the same.
 		OVT_ShopBrowserModel emptyModel = new OVT_ShopBrowserModel();
-		emptyModel.GetPageItems(OVT_ShopCategory.ALL, 0, PER_PAGE, page);
+		emptyModel.GetPageItems(OVT_ShopCategory.ALL, "", 0, PER_PAGE, page);
 		if (page.Count() != 0)
 		{
 			SetFailure("An empty model returned %1 rows, expected 0", page.Count().ToString());
@@ -508,7 +606,7 @@ class OVT_TEST_Logic_ShopUX_Pagination : SCR_AutotestCaseBase
 			mixed.Add(MakeItem(w, OVT_ShopCategory.WEAPONS));
 		}
 
-		mixed.GetPageItems(OVT_ShopCategory.AMMUNITION, 1, PER_PAGE, page);
+		mixed.GetPageItems(OVT_ShopCategory.AMMUNITION, "", 1, PER_PAGE, page);
 		if (page.Count() != 5 || page.Get(0).m_iResourceId != 16)
 		{
 			SetFailure("The ammunition tab's second page held %1 rows starting at id %2, expected 5 rows from id 16",
