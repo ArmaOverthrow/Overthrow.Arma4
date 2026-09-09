@@ -139,6 +139,62 @@ class OVT_SkillManagerComponent: OVT_Component
 	}
 	
 	//------------------------------------------------------------------------------------------------
+	//! ADMIN-ONLY. Sets a skill straight to a level, bypassing AddSkillLevel's spendable-points gate
+	//! entirely - the same shape as OVT_OccupyingFactionManager.DebugCreditPool/DebugCreditReserve.
+	//! Still runs every real consequence of a normal purchase (the level-config effects and the
+	//! client broadcast), so a skill granted this way behaves identically to one bought in the
+	//! Character Sheet. The only caller is OVT_AdminCommandsComponent's "/give-skill", which is the
+	//! thing that actually gates this on admin rights - this method trusts its caller completely.
+	//! \param playerId The player receiving the skill.
+	//! \param key The skill's string identifier. Must already be resolved to its canonical case.
+	//! \param level The level to set. Caller must clamp to [1, skill.m_aLevels.Count()].
+	//! \return True when the skill was found and set.
+	bool DebugSetPlayerSkill(int playerId, string key, int level)
+	{
+		OVT_PlayerData player = OVT_PlayerData.Get(playerId);
+		if(!player) return false;
+
+		OVT_SkillConfig skill = GetSkill(key);
+		if(!skill) return false;
+
+		if(level < 1) level = 1;
+		if(level > skill.m_aLevels.Count()) level = skill.m_aLevels.Count();
+
+		player.skills.Set(key, level);
+		m_OnPlayerSkill.Invoke(playerId, key);
+
+		DoInvokeSkillData(playerId, key, level);
+
+		// Same reasoning as AddSkillLevel: the broadcast never executes on the sending machine, so a
+		// listen-server host granting a skill to themselves needs the local call too (BUG-035).
+		Rpc(RpcDo_SetPlayerSkill, playerId, key, level);
+		if(SCR_PlayerController.GetLocalPlayerId() == playerId)
+		{
+			DoInvokeSkillSpawn(playerId, key, level);
+		}
+
+		return true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Case-insensitive skill lookup, for the "/give-skill" admin command - a typed key like "trade"
+	//! should resolve the same skill as "Trade". GetSkill() itself stays exact-match: every other
+	//! caller already has the canonical-case key, either from this config or from player.skills.
+	//! \param key The typed key, any case.
+	//! \return The matching skill config, or null.
+	OVT_SkillConfig FindSkillCaseInsensitive(string key)
+	{
+		if(!m_Skills) return null;
+
+		foreach(OVT_SkillConfig skill : m_Skills.m_aSkills)
+		{
+			if(skill.m_sKey.Compare(key, false) == 0) return skill;
+		}
+
+		return null;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	//! Invokes the data-related effects of a skill level for a specific player.
 	//! \param playerId The ID of the player.
 	//! \param key The string identifier of the skill.

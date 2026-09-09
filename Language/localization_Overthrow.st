@@ -13123,6 +13123,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B2}" {
+   Id "OVT-Msg-AdminSkillGranted"
+   Target_en_us "Admin: '%1' set to level %2"
+   Comment "Confirmation to a server admin who used the /give-skill chat command - %1 is the skill's key (e.g. Trade), %2 is the level it was set to"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788930000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
