@@ -355,7 +355,7 @@
 - [x] **T8.3 Wiki sync: same points + two operator notes (single pool; `m_iMaxDeploymentsPerFaction` ceiling)**
   - File(s): wiki via wikijs MCP
   - Estimate: 0.5 h
-  - 🔴 **NOT PUBLISHED — the `mcp__wikijs__*` tools were unavailable to the Phase 8 agent (tool-availability gap, not a wiki outage; nothing was written and no page was left half-edited). The exact content to publish, page-selection guidance and the known MCP write hazards are written out in `context.md` under "T8.3". Owed to a follow-up session.**
+  - Done 2026-09-10. Five player points landed on the new page `patrols-and-garrisons` (id 74, "Defending a Base" and "Radio Towers" sections, one agent shared with `integration`'s T8.3). Both operator points landed on `overthrow-config` (id 26), "Standing Forces (Workbench Only)" section: the shared deployment pool and `m_iMaxDeploymentsPerFaction` (authored 400, class default 100, `Prefabs/GameMode/OVT_OverthrowGameMode.et:11` / `OVT_DeploymentManager.c:106`). Cross-linked from `base` (id 11). No partial edits from the crashed Phase 8 session turned up on any target page. Full session note in `context.md` under "T8.3".
 
 - [x] **T8.4 Epic bookkeeping: epic-overview 5/5, master overview, api.md §6 `m_iMilitarySpawnDistance` note**
   - File(s): `docs/features/virtualization/epic-overview.md`, `docs/overview.md`, `docs/features/virtualization/core/api.md`

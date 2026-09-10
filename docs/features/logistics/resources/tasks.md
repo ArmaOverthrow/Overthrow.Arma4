@@ -134,7 +134,7 @@
 - [x] 11.2 Ask the user to re-export the localization `.conf` (**never** write it) — keys render raw until then · **ASKED; OWED BY THE USER**
 - [x] 11.3 `check-input-conflicts.py` plain and `--warnings` — **only if** an input file was touched (the plan expects none)
 - [x] 11.4 Fact-check every tutorial/help claim against a file:line before it ships
-- [x] 11.5 `help-docs-sync` — Field Manual done (new **Resources** page + Ports/FOBs/Storage corrections, every claim `file:line`-cited). No new tutorial (justified). 🔴 **Wiki BLOCKED — no `wikijs` MCP server**; 7-item debt list in `context.md`
+- [x] 11.5 `help-docs-sync` — Field Manual done (new **Resources** page + Ports/FOBs/Storage corrections, every claim `file:line`-cited). No new tutorial (justified). **Wiki half DONE 2026-09-10**: new pages `construction-resources` (id 67), `production-sites` (id 68), `development-documentation/features/resources-and-production-sites` (id 69); sections added to `Importing` (id 25), `storage` (id 66), `real-estate` (id 16), `base` (id 11), `difficulty/settings` (id 53). Details in `context.md`.
 - [x] 11.6 Final DoD sweep: the 12 static verification steps of §6
 
 ---
@@ -182,7 +182,7 @@ One red was **ours** and is fixed: `OVT_TEST_Init_ResourceSeam_LConstructionSite
 Honest accounting — these are ticked as *addressed*, not as *complete*:
 
 - **11.2 — the `.st` re-export is OWED BY THE USER.** 81 new keys are in `Language/localization_Overthrow.st` (braces balanced 2104/2104). They render as raw `#OVT-…` text until the localization `.conf` files are re-exported from Workbench. **Never hand-write those exports.**
-- **11.5 — the wiki half is BLOCKED**, not done. No `wikijs` MCP server exists in this session (the same block `logistics/ui`, `logistics/storage` and `economy/fuel` recorded). The Field Manual half **is** done, with every claim `file:line`-cited. A 7-item wiki debt list is in `context.md`.
+- **11.5 — DONE 2026-09-10.** The wiki half is complete: new pages `construction-resources` (id 67) and `production-sites` (id 68), plus sections on `Importing` (id 25), `storage` (id 66), `real-estate` (id 16), `base` (id 11) and `difficulty/settings` (id 53). Modding notes at `development-documentation/features/resources-and-production-sites` (id 69). The Field Manual half was already done, with every claim `file:line`-cited. Full record in `context.md`.
 - **10.6 — the crate map glyph is drawn into the atlas `.png`, but the `.edds` is Workbench build output.** The imageset loads the `.edds`, so the pile marker samples empty pixels until the texture is re-imported. Atlas dimensions are unchanged, so nothing existing breaks. **This is the one hard blocker on DoD F7.**
 
 ## Cross-phase review findings still open (12)

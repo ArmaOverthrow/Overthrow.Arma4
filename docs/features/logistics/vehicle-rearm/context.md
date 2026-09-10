@@ -247,6 +247,27 @@ One more untyped variadic in the same chain, audited for the same reason:
 ### 2026-09-01 (post-Phase 5+6 gate)
 - All gate 667/670: cases F (quote RPC pair) and O (civ Mi-8 unlimited) green on first execution. Reds unchanged: the 3 pre-existing main defects (ObjectiveOps ramp, field-repair Campaign x2).
 
+### 2026-09-10 (wiki pass)
+
+The wikijs MCP server is connected now, so the wiki half of Phase 7 landed. Created page
+`re-arming-vehicles`, id 70, lint score 1.35 per 100 words. Added one linked sentence to the
+`storage` page, id 66, already updated by another agent the same day to cover the armed-vehicle
+and helicopter capacity change. The lint score for the whole page after the edit is 0.65 per 100
+words.
+
+No change was needed on `fuel` or `construction-resources`. Neither page mentions ammunition. No
+`ports` page and no `vehicle-repair` page exist on this wiki. Another agent's rewrite of the
+`Importing` page, id 25, the same day already folded in the port capacity fact wiki-pending.md
+flagged, and it no longer states the stale claim that an armed vehicle cannot trade.
+
+Every number in the new page was re-checked against the shipped code
+(`Scripts/Game/Utilities/OVT_VehicleRearmUtils.c`, `Scripts/Game/Data/OVT_VehicleRearmRules.c`,
+`Scripts/Game/Components/Controller/OVT_StorageRequestComponent.c:212`), not trusted from the
+2026-09-01 draft. `wikijs_get_page` threw a `RetryError` on a nonexistent slug, and once on the
+first `create_page` call, while `wikijs_connection_status` stayed healthy the whole time. That reads
+as a bad slug or a transient fault, not lost authentication. The retry, a plain `wikijs_create_page`
+call after `wikijs_create_nested_page` kept failing, landed clean with no orphan page left behind.
+
 ### 2026-09-01 (cross-phase review + help sync)
 - Review verdict: ship-ready. Fixed in main thread: (1) CollectRearmStores now prepends the vehicle's own store only when PlayerMayDrawFrom passes (locked-vehicle seam); (2) IsItemHiddenInInventory no longer caches a verdict derived past an unreadable ancestry level (out cacheable); (3) toast wording magazine(s)→item(s). INFO items accepted: stale-low label window (D3 trade), vehiclePriceMultiplier==0 degenerate, F3 second-holder + dedicated wire = play-test only.
 - help-docs-sync: Field Manual "Re-arming Vehicles" ({6BA1C4E000000050}-57), corrected FieldManual_Storage_Text2/Storage_Text3/Ports_Text + Tutorial_StorageFirstOpen_Body (stale claims). 8 new + 4 changed .st keys, en_us only — WORKBENCH RE-EXPORT OWED; 4 corrected bodies have stale ru/de translations. Wiki BLOCKED (no wikijs MCP this session) → wiki-pending.md.

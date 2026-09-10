@@ -344,7 +344,7 @@
 - [x] **T8.3 Wiki sync**
   - Description: Same four points + operator notes (GM camera is an observer; garrisons no longer vanish during QRF).
   - File(s): wiki via wikijs MCP
-  - Result: **NOT DONE — OWED.** The `wikijs` MCP tools were not exposed to this session at all (no `wikijs_connection_status` / `get_page` / `update_page` available), so nothing could be fetched or written and the crash-recovery re-fetch could not be performed either. The wiki state from the crashed session remains **unknown and unverified**. Copy for the six points is drafted in `context.md`'s Phase 8 session note, ready to paste.
+  - Result: Done 2026-09-10. New page `patrols-and-garrisons` (id 74) carries all four player points: survivor mask, patrol movement, tower-wipe capture, ungarrisoned towers plus the creation pause. Cross-linked from `base` (id 11) and `factions` (id 3). Both operator points landed on `overthrow-config` (id 26), new "Standing Forces" section: the recruit-observer attribute and the range-based QRF materialisation pause. No partial edits from the crashed session turned up on any target page. See `base-defense-migration/tasks.md` T8.3 for the shared session record; one agent did both features' wiki halves together.
   - Estimate: 0.5 h
 
 - [x] **T8.4 Epic + master bookkeeping**

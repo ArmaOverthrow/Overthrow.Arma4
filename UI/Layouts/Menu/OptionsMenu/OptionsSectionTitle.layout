@@ -1,0 +1,13 @@
+TextWidgetClass {
+ Name "Title"
+ Slot LayoutSlot "{56EEDE046853BD3D}" {
+  HorizontalAlign 3
+  Padding 8 16 8 6
+ }
+ Color 0.761 0.392 0.08 1
+ Text "Section"
+ "Font Size" 20
+ "Min Font Size" 16
+ "Horizontal Alignment" Left
+ "Vertical Alignment" Center
+}

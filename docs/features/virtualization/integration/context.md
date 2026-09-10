@@ -1,7 +1,7 @@
 # Virtualization Integration - Context
 
 **Last Updated:** 2026-08-17 (Phase 8 complete — feature 62/62 + amendment A1 built)
-**Status:** 🟢 Ready for Review (all 8 phases done; **post-completion amendment A1 built, suite run owed**; play-test, MP pass and the wiki sync are owed)
+**Status:** 🟢 Ready for Review (all 8 phases done; **post-completion amendment A1 built, suite run owed**; play-test and MP pass are owed; wiki sync done 2026-09-10)
 **Current Phase:** — (Phase 8 done; nothing left in this feature but review + the owed human passes)
 
 ---
@@ -20,7 +20,7 @@
 
 - ✅ Phase 7 (code): T7.1–T7.7. **The persistence gate now has a deployment tier, and the Campaign GM-registry case asserts for real again.** Four new All-group cases (`Deployment...` ×4), the `OVT_TEST_Campaign_GMGroupRegistry` kill-switch guard **removed** — the last `OVT-VIRT-PLAYTEST-ONLY` hit under `Scripts/Game/Tests/`, ledger **6 → 5** — a full `RegisterGroup(` re-sweep, and a real save point decoded by hand (T7.7 below, including a **pre-feature save with 23 version-1 deployment records**). 🔴 One structural finding recorded below: **the suite's reload seam cannot reach a deployment marker at all**, so three of the four cases assert the restore half only, loudly and on purpose. Compile **0**. **All suite owed.**
 
-- ✅ Phase 8 (docs): T8.1–T8.5. **All three player-facing surfaces fact-checked and synced, except the wiki, which could not be reached.** One Field Manual sentence corrected, one new Field Manual page ("Patrols and Garrisons", 9 new localization keys), 6 stale `file:line` citations re-cited, epic + master rows updated, `api.md` §6 and §8 corrected, kill-switch ledger **balances at 5**. ⚠️ **Wiki sync is OWED** (the `wikijs` MCP tools were not available to the session) and ⚠️ **a Workbench localization re-export is owed** (the `.st` was edited). Suite skipped on purpose: docs-only. Full session note below.
+- ✅ Phase 8 (docs): T8.1–T8.5. **All three player-facing surfaces fact-checked and synced.** One Field Manual sentence corrected, one new Field Manual page ("Patrols and Garrisons", 9 new localization keys), 6 stale `file:line` citations re-cited, epic + master rows updated, `api.md` §6 and §8 corrected, kill-switch ledger **balances at 5**. Wiki sync (T8.3) done 2026-09-10, see the dated note below. ⚠️ **A Workbench localization re-export is owed** (the `.st` was edited). Suite skipped on purpose: docs-only. Full session note below.
 
 - ✅ **Amendment A1 (post-completion, user 2026-08-17): free-at-game-start deployments.** `m_bFreeAtGameStart` on `OVT_DeploymentConfig` + `SeedFreeDeployments()` at +9 s + the flag authored on Town Patrol and Tower Garrison. Supersedes D1's freeze for that one attribute. 2 new Init cases. Compile **0**. **Suite run owed.** Full section below.
 
@@ -38,7 +38,7 @@
 - **New after Phase 5 (all in T5.9 below):** a vehicle patrol's crew now **rides real waypoints built by the core** and its route legs are `MOVE` points rather than `PATROL` points; route completion is now **measured by position**, not by counting waypoints; a **reloaded** vehicle patrol gets a brand-new truck for its surviving crew and re-drives its route from the start; and a deployment truck a player has taken over is **left standing at teardown** rather than deleted
 - **New after Phase 6 (T6.6 below — the AI-observer cost):** a **parked recruit squad now holds content awake**. Every registered group inside its ring stays materialised with its AI running for as long as the squad stands there — a squad parked in a town keeps that town's patrols **and its radio-tower garrison** spawned, with no player anywhere near. That is the requirement being met and it is the single biggest AI-budget change in the feature; the play-test needs to look at (a) whether a parked squad in a town is affordable on a busy server, (b) whether a garrison materialising next to a parked squad reads as a bug to a player, and (c) whether the shipped default of the off-switch (`m_bRecruitGroupsAreObservers`, ON) is the right one
 - **New after Phase 7 (T7.7 below):** one save-inspection claim is **owed** — no version 2 deployment payload exists in any save point on this machine yet, because the CI world saves ~1 s into the campaign and the retail Eden save carries no deployments at all. After the next play-test on this branch, decode the newest save point and confirm a `virtualKey` key appears beside `spawnedUnitsEliminated` (`tools/decode-savepoint.py strings <savepoint>`). Two minutes, and it is the only part of the deployment save format nothing automated can see
-- **New after Phase 8 (docs):** ⚠️ **a Workbench localization re-export is required** or the new Field Manual page renders raw keys (9 new + 1 changed key, listed in the Phase 8 session note); ⚠️ **the wiki sync never ran** (the `wikijs` MCP tools were not available to the session) and the wiki's state after the earlier crashed session is **unverified** — fetch each page before editing; and the new "Patrols and Garrisons" Field Manual entry ships with the **placeholder** `default_ui.edds` tile, so it wants a bespoke tile before release
+- **New after Phase 8 (docs):** ⚠️ **a Workbench localization re-export is required** or the new Field Manual page renders raw keys (9 new + 1 changed key, listed in the Phase 8 session note); the wiki sync ran 2026-09-10 (see the dated note below, no partial edits from the crashed session turned up on any target page); and the new "Patrols and Garrisons" Field Manual entry ships with the **placeholder** `default_ui.edds` tile, so it wants a bespoke tile before release
 - **New after amendment A1 (below):** the §6 step 13 resource-pacing pass now has a different question to answer. It is no longer "how long does a tower take to get a garrison" — every eligible tower and town has one at **+9 s** — it is **"is the map too full at t0"**: on Eden that is ~2 garrisons plus a patrol in every town, all seeded before the first paid evaluation, none of them costing the occupying faction anything. Watch for (a) AI budget pressure once a player drives across the map, (b) whether the opening pool now goes entirely on vehicle patrols because nothing else needs buying, and (c) whether a *continued* campaign gains deployments it should not (the seed runs on every load; the dedup and the configs' control conditions are what stop it, and both are asserted but only in the small test world)
 
 ---
@@ -1168,7 +1168,8 @@ The Init world cannot drive it: (1) `RegisterDeployment` only inserts when the f
 **One-line:** every player-facing claim about patrols, garrisons and radio towers is now either backed
 by a `file:line` in its own fact-check comment or rewritten; the four player-visible behaviour changes
 have a home in the Field Manual; the epic and master rows are current; the kill-switch ledger balances
-at 5. **The wiki half did not happen and is owed** — see "Owed" below.
+at 5. **The wiki half did not happen at the time and was owed** — done 2026-09-10, see the "Surface 3"
+section above and the "Owed" list below for the historical record.
 
 #### Surface 1 — Tutorial popups (`Configs/Tutorials/`) — NO CHANGE, and that is the finding
 
@@ -1235,37 +1236,50 @@ Deliberate wording choices, so a later editor does not "simplify" them into lies
 `{CF6B203430123E78}…/Tiles/default_ui.edds`. Every other entry has a bespoke tile. **Owed: one
 `patrols-and-garrisons_ui` tile** (and the GUID swapped into `FM_Overthrow.conf`).
 
-#### Surface 3 — the wiki — NOT DONE, OWED
+#### Surface 3 — the wiki — DONE 2026-09-10
 
-The `wikijs_*` MCP tools were **not exposed to this session at all** (no connection-status, get-page,
-search or update tool was available), so no page could be fetched, let alone written. Note the
-crash-recovery instruction could therefore **not** be satisfied either: **the wiki may or may not
-carry partial edits from the crashed session, and this session could not look.** Whoever picks this up
-must `get_page` each target and read it before editing (search returns wrong pageIds; `update_page`
-requires `tags` and can write while reporting failure — re-fetch to confirm).
+A later session (`mcp__wikijs__*` healthy, task combined with `base-defense-migration` T8.3 since both
+features publish patrols/garrisons/base-defence content) fetched every target page before writing.
+**No partial edits from the crashed session turned up on any of them.**
 
-**Six points to publish**, four player-facing (identical in substance to the Field Manual entry above,
-long-form) and two operator-facing:
+New page `patrols-and-garrisons` (id 74) carries all four player points from the list below, long-form,
+in player language, with sections "Losses Stay Lost", "Patrols Keep Moving", "Defending a Base" and
+"Radio Towers" — the last shared with `base-defense-migration`'s five points since both features write
+to the same page. Cross-linked from `base` (id 11, new "Standing Forces" section) and `factions`
+(id 3, "Radio Tower Control"). Both operator points landed on `overthrow-config` (id 26), new
+"Standing Forces (Workbench Only)" section, alongside `base-defense-migration`'s two operator points
+(same section, one shared write).
+
+The six points as drafted and where each ended up:
 
 1. Dead members stay dead: a shot-up patrol or tower garrison returns at the strength it was left at,
-   with the same survivors, across both despawn and save/load.
+   with the same survivors, across both despawn and save/load. → `patrols-and-garrisons`, "Losses Stay
+   Lost".
 2. Patrols keep walking while unobserved; a town patrol will not be where it was last seen. Tower
-   garrisons hold their post (DEFEND plan).
+   garrisons hold their post (DEFEND plan). → `patrols-and-garrisons`, "Patrols Keep Moving".
 3. A radio tower changes hands only when its garrison is wiped. Walking away and returning no longer
-   resets the fight, and proximity alone never flips a tower.
+   resets the fight, and proximity alone never flips a tower. → `patrols-and-garrisons`, "Radio Towers";
+   also cross-linked from `factions`.
 4. Towers may be found ungarrisoned when the occupying faction is short of resources; a garrison can
    appear later. Creation costs resources and pauses entirely while a QRF is running or no players are
-   connected (existing forces are unaffected).
+   connected (existing forces are unaffected). → `patrols-and-garrisons`, "Radio Towers", re-verified
+   against `OVT_DeploymentManager.c:1079` (player count) and `:1088` (`IsQRFEngaged()`) at current line
+   numbers, since both had drifted since Phase 8.
 5. **Operator:** a GM free camera counts as an observer and keeps registered content near it
    materialised — as does a **parked recruit squad**, which holds a whole town's patrols *and* its
    tower garrison spawned with no player anywhere near. Off-switch:
-   `m_bRecruitGroupsAreObservers` on the virtualization manager, **default ON**.
+   `m_bRecruitGroupsAreObservers` on the virtualization manager, **default ON**. → `overthrow-config`,
+   attribute named per rule 5 (attribute names allowed on that page only); the GM-camera half of the
+   claim was dropped since `high-command`'s own observer switch (`m_bHighCommandGroupsAreObservers`)
+   is a separate, already-documented feature this session did not audit.
 6. **Operator:** tower garrisons no longer vanish map-wide during a QRF. The old range test ANDed
    `!m_CurrentQRF`, so any QRF anywhere deleted every tower garrison for its duration; that branch is
-   gone (D12).
+   gone (D12). Re-verified current: `OVT_DeploymentManager.c:681-699` (`IsBattleSuppressedAt`) and
+   `OVT_DeploymentBattleSuppression.c:63,80` confirm the pause is still range-based (`QRF_RANGE`, 750 m),
+   never map-wide. → `overthrow-config`, "Tower garrisons during a battle".
 
-Player pages must stay in player language (no class names); item 5's attribute name is the one
-exception and belongs in an operator/config page, not a player page.
+Player pages stayed in player language (no class names, GUIDs or file paths); item 5's attribute name
+is the one exception and landed on `overthrow-config`, not a player page, per rule 5.
 
 #### Surface 4 — epic + master bookkeeping (T8.4)
 
@@ -1339,8 +1353,8 @@ unverifiable in this phase.
 
 #### Owed, and deliberately left
 
-1. **Wiki sync (T8.3)** — tools unavailable; copy drafted above. **The crashed session's wiki state was
-   never verified** and must be re-fetched page by page.
+1. ~~**Wiki sync (T8.3)** — tools unavailable; copy drafted above.~~ **Done 2026-09-10**, see "Surface 3"
+   above: no partial edits from the crashed session turned up when every page was finally re-fetched.
 2. **Workbench localization re-export** — 9 new + 1 changed key.
 3. **A bespoke Field Manual tile** for "Patrols and Garrisons" (currently `default_ui.edds`).
 4. **No tutorial popup for towers/patrols** — the trigger catalog has no event that could fire one

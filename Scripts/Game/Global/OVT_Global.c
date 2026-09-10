@@ -377,6 +377,12 @@ class OVT_Global : Managed
 		return OVT_HighCommandManagerComponent.GetInstance();
 	}
 
+	//! The options registry singleton. Present on a client, a listen host and a dedicated server.
+	static OVT_OptionsManagerComponent GetOptions()
+	{
+		return OVT_OptionsManagerComponent.GetInstance();
+	}
+
 	static OVT_LoadoutManagerComponent GetLoadouts()
 	{
 		return OVT_LoadoutManagerComponent.GetInstance();

@@ -27,11 +27,14 @@
 1. Workbench: open the three layouts and `Character_Player.et` (both context blocks), and confirm Accept/Close still render label + glyph after the `"no focus" 0` override.
 2. Re-export the string table from Workbench — every new `#OVT-Transfer_*` key renders raw until then (expected, D11).
 3. Play-test mouse (implementation.md §6 steps 9–12), then **gamepad-only** (13–17) — the focus fixes above are exactly what that session exists to check, plus the open R3 question and the cart-line focus-escape repro below.
-4. Re-run the wiki pass in a session that has the `wikijs` MCP server attached.
-5. A clean Fast-group verdict, once the unrelated virtualization/movement hang is dealt with.
+4. A clean Fast-group verdict, once the unrelated virtualization/movement hang is dealt with.
 
 **Blockers:**
-- ⛔ **Wiki sync (task 6.4) could not run** — the `wikijs` MCP tools are not attached to this session (tool surface absent, not an auth failure). Nothing on the wiki was searched, read or written, so any wiki text naming the six deleted actions is still wrong. The verified binding table for the re-run is in this file.
+- ✅ **Wiki sync (task 6.4) done 2026-09-10.** No wiki page ever named the six deleted actions, so there was
+  nothing false to correct on that front. `Importing` (id 25) now describes the single transfer screen and its
+  cart, and the new `storage` page (id 66) covers the shared screen's controls in player language. See the
+  session note below and `logistics/storage/context.md`'s Wiki hand-off section for the full binding table's
+  outcome.
 
 ---
 
@@ -226,3 +229,12 @@ The wiki must also stop naming the six deleted actions: `OverthrowPortBuyTen`, `
 
 - **2026-08-21 — PLAY-TEST GREEN (user).** Confirmed working at both the port Import and warehouse Take consumers. Three polish items raised and applied the same session: (1) the checkout summary no longer prints "Nothing ordered yet" — the cart's own "Nothing added yet" is the single empty-state message, and `#OVT-Transfer_SummaryEmpty` joins the retained-dead-key list; (2) the cart region got its own `CartPanel`/`CartBackground` pair at opacity 0.3 against the list's 0.5, copied from this layout's own `ListPanel` shape; (3) **Accept gained a real binding** — `OverthrowTransferAccept` on `KC_F` + `gamepad0:left_trigger`, which **supersedes D5**. D5's trap was specific to reusing `MenuSelect`; a dedicated action cannot collide with it, needs no context-side listener (`SCR_InputButtonComponent.OnInput` already routes the named action to the `m_OnActivated` the context subscribes to — a second listener would double-fire), and makes the glyph render. `KC_F` matches the mod's existing menu-confirm convention (`OverthrowShopSell`, `OverthrowJobsAccept`, `OverthrowLoadoutsApply`). Conflict checker unchanged at `0/0/3/0/1`; compile 0.
   - **Open question for the user:** the footer now shows both "Accept LT" and "Select A", because `SelectHint` advertises `MenuSelect` generally and is still truthful. It is inert (nothing subscribes to it) and can be deleted (`TransferMenu.layout:455-473`) if the two hints read as clutter.
+
+- **2026-09-10 — wiki pass done (task 6.4).** Run jointly with `logistics/storage` task 10.4 by one agent, since
+  the two features share the ports, warehouse and vehicle pages. `Importing` (id 25) now describes the single
+  transfer screen and its cart, instead of the deleted bulk-buy buttons. The new `storage` page (id 66) covers
+  the shared screen's controls in player language.
+
+  No wiki page ever named the six deleted actions, so this half of the task turned out to be a verification
+  pass more than a correction. See the Wiki hand-off section in `logistics/storage/context.md` for the
+  file:line citations and lint scores.

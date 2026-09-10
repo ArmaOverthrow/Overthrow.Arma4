@@ -1766,3 +1766,43 @@ crew group with a gunner — filed as a follow-up, not built here.
 ⚠ **The same shape may exist elsewhere.** Anything filtering `m_aKnownTargets` by type inherits the assumption that one place has one entry, which `ReportVehicleLoss` broke. This was the only such filter.
 
 `tools/compile-check.sh` exit 0 (6351 files). Not covered by a case — the Init tier cannot reproduce the ordering that causes it.
+
+---
+
+## 2026-09-10 — Wiki published (T7.5 owed item)
+
+`wiki-draft.md` published as an "Armed Vehicles" section on the existing [Factions](/factions) page (page
+id 3), under "Faction Dynamics", instead of the proposed standalone `enemy-armour` page. The draft itself
+called this preferred, and searching `occupying`, `patrols`, `counter attack`, `armour` and `vehicles`
+found no dedicated occupying-faction forces page, but `factions` already covers what the occupying
+faction does and was the natural home.
+
+Every number in the draft was re-checked against the shipped `.conf` and script source before writing,
+not copied from the draft or from its own citation table (`context.md` → Phase 7 → T7.1), because two
+play-test rounds moved the vehicle ladder thresholds after that table was written:
+
+| Change | When |
+|---|---|
+| Ladder thresholds 0/400/900 → 400/900/1500 | commit `2d1a44cb`, 2026-08-23 (P1.1) |
+| Ladder thresholds 400/900/1500 → 400/2000/3000 | commit `519b8238`, 2026-08-24 |
+| `ECHELON_STANDOFF_M` 450 → 0 | P2.2, 2026-08-24 |
+
+Costs (25/70/120) and the difficulty scale multipliers (2.0/1.0/0.5/0.35/0.25) were unchanged and are
+still correct. Rather than publish a ladder table that will go stale a third time, the published section
+states the mechanic without quoting a threat number at all, and links to [Threat](/threat) for the
+underlying value. This mirrors what the Field Manual body already does (`OVT-FieldManual_OccupyingForces_Text8`
+also quotes no threat number, only the rung order and the cost ratio).
+
+The checkpoint distances (150-300 m), the sortie distances (150-250 m), the sweep radius and duration
+(400 m, 12 minutes), and the echelon cap (2) were all re-verified unchanged against
+`Deployment_ObjectiveHarassment_Mounted.conf`, `Deployment_BaseArmourSortie.conf`,
+`Deployment_HunterKillerSweep.conf` and `OVT_QRFControllerComponent.c:118`.
+
+Lint: my added section scores 1.95/100w (target 2.5). The whole `factions` page, most of which predates
+this edit, scores 2.91/100w; that pre-existing content was not rewritten per the surgical-edit rule.
+
+⚠ **Not fixed here, flagged for a later docs pass:** the `.st` master's translator `Comment`s on
+`OVT-FieldManual_OccupyingForces_Text8` and `_Text10` still cite the pre-play-test ladder thresholds
+(0/400/900) and `ECHELON_STANDOFF_M = 450` in their fact-check citations. The English body text quotes no
+numbers so it is not factually wrong, but the citation a translator would use to re-check it is stale.
+Editing the `.st` file was out of scope for this pass.

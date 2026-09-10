@@ -1,6 +1,6 @@
 # Base Defense Migration - Context & Decisions
 
-**Last Updated:** 2026-08-18 (**post-completion amendment A1** built: authored base perimeters, free garrisons, AT road overwatch — full record at the bottom of this file. Phase 8 complete before it. Wiki sync OWED, see T8.3 below; loc re-export OWED)
+**Last Updated:** 2026-09-10 (wiki sync, T8.3, done — see the dated note below. Loc re-export still OWED). Previously 2026-08-18 (**post-completion amendment A1** built: authored base perimeters, free garrisons, AT road overwatch — full record at the bottom of this file. Phase 8 complete before it.)
 **Current Phase:** ALL 8 PHASES COMPLETE + AMENDMENT A1 — Ready for Review (built 2026-08-18 via /autorun-feature; A1 2026-08-18 from the user's play-test)
 
 > **Phase 4 gate note (orchestrator):** first run failed 1/272 — the new Persistence case was named `..._BaseDefenseDeployment_...`, and the suite runs **alphabetically**, so its real save landed before `..._Capability_SaveGameProducesASave`'s "no save yet" precondition. Renamed to `..._DeploymentBaseDefense_...` (sorts with the other Deployment cases, after the Capability gate) and added the naming rule to the suite's case-list comment. Re-run: **272/272 green**.
@@ -48,8 +48,8 @@
 **What's Next:**
 - ✅ **Amendment A1 (2026-08-18) built** — `PERIMETER_BASE` walks the base controller's authored square (`m_fPerimeterRadius` / `m_fPerimeterRotation` ± 10°, no road snap), garrison patrol + tower guards are free at game start, the AT section became a placed road overwatch, and the base marker draws its square in Workbench. Compile `0`; **suite run owed to the orchestrator**. Full record at the bottom of this file.
 - 🔴 **The Workbench perimeter viz has never been looked at** (it is `#ifdef WORKBENCH` + selected-only, so no suite can reach it) — see the A1 record's "what still needs a human".
-- 🔴 **The wiki sync (T8.3) is OWED** — the `mcp__wikijs__*` tools were not available to the Phase 8
-  agent. The exact content to publish is written out in the Phase 8 record below.
+- ✅ **The wiki sync (T8.3) is done, 2026-09-10** — see the dated session note below for pages,
+  ids and citations.
 - 🔴 **A Workbench localization re-export is OWED** (3 new keys, 6 edited).
 - ~~🔴 AN OPEN DESIGN QUESTION (Q1)~~ — **CLOSED by S1, implemented in Phase 3 T3.0.** The measurement below ("Towns shadow bases") stands as the record of why: 4 of Eden's 10 bases and the Init test world's only base classified as `TOWN` and could be offered no `BASE`-only config. The plan's §3.2 assumption that "no classification change is needed" was **false as written**, and Phase 3 corrected it in three lines.
 
@@ -183,10 +183,40 @@
 
 ## Session Notes
 
+### 2026-09-10 — T8.3 wiki sync done (combined session with `virtualization/integration`)
+
+`mcp__wikijs__*` came up healthy this session. One agent did the wiki half of both this feature's
+T8.3 and `integration`'s T8.3 together, since both publish patrol/garrison/base-defence content to the
+same pages. Every target page was fetched and read before any write; **no partial edits from the
+crashed Phase 8 session turned up on `base`, `factions`, `overthrow-config` or any other page checked.**
+
+The five player points and two operator points from the T8.3 record below were published, folded in
+with Amendment A1's shipped shape (free perimeter patrol and tower guards, authored square, placed AT
+overwatch) rather than the pre-A1 design the points were originally drafted against:
+
+- New page `patrols-and-garrisons` (id 74), "Defending a Base" and "Radio Towers" sections carry all
+  five player points. Cross-linked from `base` (id 11, new "Standing Forces" section).
+- `overthrow-config` (id 26), new "Standing Forces (Workbench Only)" section, carries both operator
+  points: the shared deployment pool, and `m_iMaxDeploymentsPerFaction` (`OVT_DeploymentManager.c:106`
+  declares defvalue 100; `Prefabs/GameMode/OVT_OverthrowGameMode.et:11` authors 400; the free-at-game-start
+  seeding warning is at `:922-924`, naming the config it could not place; the ordinary evaluation pass
+  at `:1123` pauses the same way but logs nothing).
+- Point 5 ("specops raids no longer happen") is folded into "Radio Towers" as a negative claim only
+  where the old Field Manual text made the positive one — re-verified `grep -rn OVT_BaseUpgradeSpecops
+  Scripts/` hits only a historical comment in `OVT_TowerRecaptureBehaviorDeploymentModule.c:149`, no
+  production class.
+- Every fact was re-checked against the CURRENT tree, not the Phase 8 record's line numbers, since the
+  `occupying/counter-attacks` and `occupying/objectives` features shipped after this feature's Phase 8
+  and moved several of them. The wiki text agrees with the current `Language/localization_Overthrow.st`
+  Field Manual strings (`OVT-FieldManual_OccupyingForces_Text` through `_Text7`), which were themselves
+  re-fact-checked by those later features and are ahead of this file's own T8.1 table.
+
+Loc re-export is still owed (unrelated to this session, no `.st`/`.conf` touched here).
+
 ### 2026-08-18 (orchestrator) — A1 closed: viz single-square, gate green (All 280)
 - WB viz saga resolved. Crash #3 ("radius < 50") did not reproduce after a **clean WB restart** with the CreateArrow-only viz — no mechanism for a radius threshold exists in the code (viz is pure vector maths; runtime has no min>max rolls), the crash stack was WB's Qt UI thread, and that session had hot-reloaded scripts after a live [Attribute] edit. Verdict: WB script hot-reload instability, not the viz. The temporary radius breadcrumb print was removed after the user confirmed all good.
 - Per user request the viz now draws **one square only** (edge arrowheads = walk direction, start arrow kept; the ±jitter band is not drawn).
-- **Amendment A1 gate: All suite 280/280 green 2026-08-18.** Feature remains Ready for Review; still owed: wiki publish, loc re-export, remaining §6 play-test items + MP pass, per-base perimeter authoring pass (all bases ship 280 m / 0°).
+- **Amendment A1 gate: All suite 280/280 green 2026-08-18.** Feature remains Ready for Review; still owed: loc re-export, remaining §6 play-test items + MP pass, per-base perimeter authoring pass (all bases ship 280 m / 0°). Wiki publish done 2026-09-10, see the note above this one.
 
 ### 2026-08-18 (orchestrator) — WB viz crash #2 and the CreateArrow rewrite
 - The member-buffer fix did NOT hold: Workbench crashed again on base selection (native illegal-write AV ~11 s after Eden load, no script frames, minidump unsymbolised — log `logs_2026-08-18_03-42-14`).
@@ -1751,39 +1781,44 @@ Every claim in both paragraphs carries a `file:line` in the string's `Comment`, 
 (list in the phase report). They are invisible in-game until the user re-exports in Workbench. This
 stacks with the standing re-export note from `integration` and `civilians`.
 
-### T8.3 — WIKI SYNC NOT DONE: the wikijs MCP tools were unavailable in this session
+### T8.3 — WIKI SYNC DONE 2026-09-10
 
-`mcp__wikijs__*` is not mounted in the Phase 8 agent's tool set (`wikijs_connection_status`,
-`wikijs_search_pages` and `wikijs_get_page` all return "No such tool available"). This is a
-**tool-availability gap, not a wiki outage** — nothing was written and no page was left half-edited.
-The in-game side was completed in full. **The wiki work is OWED**, and the content is specified below
-so it can be pasted without re-deriving it.
+A later session, combined with `integration`'s own T8.3 (one agent, both features publish to the same
+pages), found `mcp__wikijs__*` healthy. Every target page was fetched and read first; no partial edits
+from this Phase 8 session's failed attempt turned up anywhere.
 
-**Target page:** search `Documentation` for the page that already covers occupying forces / base
-defence (candidates seen in earlier features' notes: a patrols-or-garrisons page, `difficulty`, and
-`overthrow-config`). **Read it before writing** — search returns wrong `pageId`s; `update` needs the
-`tags` parameter and can report failure while still writing, so re-read after writing.
+**Target page:** no existing page covered patrols, garrisons or base defence, so a new one was created,
+`patrols-and-garrisons` (id 74), matching the Field Manual page of the same name. `base` (id 11) and
+`factions` (id 3) were each given a one-paragraph cross-link into it rather than duplicated content.
 
-*Player-facing points (same as the Field Manual, longer form):*
+*Player-facing points, published to `patrols-and-garrisons`:*
 1. A base's defence is what you left it as: men killed there stay dead across leaving, returning and
-   reloading a save.
-2. Bases fortify over time, concern by concern (perimeter patrol → fighting positions → tower guards
-   → sniper positions → checkpoints → fortifications → heavy patrol at threat 25 → AT section at
-   threat 50 → parked vehicles), and a base a player is standing in never fortifies while watched.
-3. A freshly taken or resource-starved occupier base can be lightly defended and thickens later.
-4. Tower and sniper posts are manned again after a respawn: the survivors are teleported back onto
-   their posts on every materialisation, and a position wiped to the last man can be rebought.
-   Clearing a post is not permanent unless the base is taken.
-5. Specops raids no longer happen. Enemy special forces no longer walk to a player FOB, and the
-   occupying faction no longer has any way to retake a radio tower.
+   reloading a save. → "Defending a Base".
+2. Bases fortify over time, concern by concern, and a base a player is standing in never fortifies
+   while watched. → "Defending a Base". **Published without the threat-25/50 numbers or the exact
+   concern order**, matching this manual's own standing rule against quoting resource and threat
+   figures that play-test tuning can move (see `OccupyingForces_Text6`'s Comment): the wiki says the
+   order is authored and growing rather than naming every rung.
+3. A freshly taken or resource-starved occupier base can be lightly defended and thickens later. →
+   "Defending a Base".
+4. Tower and sniper posts are manned again after a respawn: survivors return to their posts on every
+   materialisation, and a position wiped to the last man can be rebought. Clearing a post is not
+   permanent unless the base is taken. → "Defending a Base".
+5. Specops raids no longer happen. → "Radio Towers", **narrowed from the original draft**: the second
+   half of the original point ("the occupying faction no longer has any way to retake a radio tower")
+   is no longer true. `occupying/counter-attacks` shipped `OVT_TowerRecaptureBehaviorDeploymentModule.c`
+   after this feature's Phase 8, so the wiki text does not repeat that claim and instead links to
+   [Counter Attacks](/counter-attacks), which already documents recapture correctly.
 
-*Operator-facing notes (belong on the config/difficulty page, not the player page):*
-6. Base defence now spends the **same deployment resource pool** as every other deployment. There is
-   exactly one spender; the legacy per-base budget is deleted and 80 % of every resource tick is
-   credited to the pool unconditionally.
-7. `m_iMaxDeploymentsPerFaction`, authored **400** on `Prefabs/GameMode/OVT_OverthrowGameMode.et`
-   (class default is still 100), is the ceiling that decides whether a big map can fully fortify.
-   Eden needs ~114. A map that hits the ceiling logs a WARNING naming the config that was refused.
+*Operator-facing notes, published to `overthrow-config`, new "Standing Forces (Workbench Only)" section:*
+6. Base defence spends the **same deployment resource pool** as every other deployment. There is
+   exactly one spender; the legacy per-base budget is deleted.
+7. `m_iMaxDeploymentsPerFaction`, authored **400** on `Prefabs/GameMode/OVT_OverthrowGameMode.et:11`
+   (class default **100**, `OVT_DeploymentManager.c:106`), is the ceiling that decides whether a big
+   map can fully fortify. **Corrected against current code:** only the free-at-game-start seeding pass
+   logs a warning naming the refused config (`:922-924`); the ordinary evaluation pass that runs
+   afterwards hits the same ceiling silently (`:1123`, a bare early return). The wiki text states both
+   halves rather than the single blanket claim originally drafted.
 
 ### T8.4 — epic bookkeeping done
 

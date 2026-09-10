@@ -1,7 +1,7 @@
 # Transfer UI (logistics/ui) - Task Checklist
 
 **Last Updated:** 2026-08-21
-**Progress:** 43/44 tasks complete (98%) — 32/33 phase tasks + 11/11 review-pass fixes. The only open task is **6.4, the wiki pass, blocked on the missing `wikijs` MCP server**.
+**Progress:** 44/44 tasks complete (100%) — 33/33 phase tasks + 11/11 review-pass fixes. **6.4, the wiki pass, done 2026-09-10.**
 
 > Phase 2 is flagged **ADVANCED** (`ui-developer-advanced`) per implementation.md §4/Agent Routing.
 
@@ -71,7 +71,7 @@ Applied between Phase 5 and Phase 6. Review findings, not new scope; no hook add
 - [x] 6.1 Final `check-input-conflicts.py` (plain + `--warnings`) at baseline — both exit 0, `0 error(s), 0 warning(s), 3 combo note(s), 0 pre-existing, 1 acknowledged.`
 - [x] 6.2 `.st` audit — all 23 runtime keys present; filled the two empty `Comment`s (`OVT-CannotAfford`, `OVT-Import`); braces 1836/1836; the six dead port/warehouse keys left in place and noted
 - [x] 6.3 Tutorial/Field Manual grep — genuine no-op (no Ports or Warehouses page exists; the four surviving port/warehouse mentions describe economics, not the replaced buttons). One `retireval` typo fixed in passing
-- [ ] 6.4 ⛔ **BLOCKED** — `help-docs-sync` wiki pass. The `wikijs` MCP server is not attached to this session, so nothing on the wiki was searched, read or written. Needs a session with the server attached; the verified binding table is in context.md so the re-run is cheap
+- [x] 6.4 **Done 2026-09-10** — `help-docs-sync` wiki pass, run jointly with `logistics/storage` task 10.4. The six deleted actions (`OverthrowPortBuy*`, `OverthrowWarehouseTake*`) named nowhere on the wiki to begin with. Updated `Importing` (id 25) to describe the single transfer screen and its cart controls, and created `storage` (id 66) to describe the shared screen in player language. Full numbers and lint scores in `context.md` and the session's final report.
 - [x] 6.5 `.st` re-export asked for (Workbench-only, user action — new keys render raw until then, per D11)
 
 ---

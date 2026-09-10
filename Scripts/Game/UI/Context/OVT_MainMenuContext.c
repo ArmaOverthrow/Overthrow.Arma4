@@ -184,6 +184,13 @@ class OVT_MainMenuContext : OVT_UIContext
 			comp.m_OnClicked.Insert(Tips);
 		}
 
+		// Options
+		comp = SCR_ButtonTextComponent.GetButtonText("Options", m_wRoot);
+		if (comp)
+		{
+			comp.m_OnClicked.Insert(Options);
+		}
+
 		// Save
 		comp = SCR_ButtonTextComponent.GetButtonText("Save", m_wRoot);
 		if (comp)
@@ -294,6 +301,18 @@ class OVT_MainMenuContext : OVT_UIContext
 
 		if(!tutorial.IsActive())
 			ShowHint("#OVT-Tutorial_NoneAvailable");
+	}
+	
+	//------------------------------------------------------------------------------------------------
+	//! Opens the generated Options screen.
+	private void Options()
+	{
+		CloseLayout();
+
+		OVT_OptionsContext options = OVT_OptionsContext.Cast(m_UIManager.GetContext(OVT_OptionsContext));
+		if(!options) return;
+
+		options.ShowLayout();
 	}
 	
 	private void Save()

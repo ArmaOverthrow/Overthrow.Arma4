@@ -14920,3 +14920,152 @@ class OVT_TEST_PersistenceRoundTrip_ProductionSiteStock_RoundTrips : SCR_Autotes
 		return "";
 	}
 }
+
+//------------------------------------------------------------------------------------------------
+//! Proven able to fail: remove the OVT_OptionsManagerSerializer entry from Overthrow.conf and the
+//! interval assertion fails, because no value comes back through GetInt().
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_PersistenceRoundTripSuite, timeoutS: 60)]
+class OVT_TEST_PersistenceRoundTrip_Options_SurvivesSaveAndReload : SCR_AutotestCaseBase
+{
+	//! A WORLD value moved away from its own default (600) and onto a step of the slider.
+	static const string SAVED_INTERVAL = "1800";
+
+	//! What the value is dirtied to between the save and the reload: the option's own default.
+	static const string DIRTY_INTERVAL = "600";
+
+	protected int m_iPhase;
+	protected int m_iSavePolls;
+	protected int m_iSaveBaseline;
+	protected int m_iReloadPolls;
+
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_MUTATE_AND_SAVE)
+		{
+			OVT_OptionsManagerComponent manager = OVT_Global.GetOptions();
+			if (!manager)
+			{
+				SetFailure("OVT_Global.GetOptions() returned no manager");
+				return true;
+			}
+
+			manager.SetOption(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL, SAVED_INTERVAL);
+
+			m_iSaveBaseline = OVT_TEST_PersistenceRoundTripGate.CompletedSaveCount();
+
+			string trigger = OVT_TEST_PersistenceRoundTripGate.TriggerSaveOnce();
+			if (trigger != "")
+			{
+				SetFailure(trigger);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_SAVE)
+		{
+			string saveDiagnostic;
+			int settled = OVT_TEST_PersistenceRoundTripGate.PollSaveSettled(m_iSaveBaseline, saveDiagnostic);
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_FAILED)
+			{
+				SetFailure(saveDiagnostic);
+				return true;
+			}
+
+			if (settled == OVT_TEST_PersistenceRoundTripGate.SAVE_PENDING)
+			{
+				m_iSavePolls += 1;
+				if (m_iSavePolls > OVT_TEST_PersistenceRoundTripGate.MAX_SAVE_POLLS)
+				{
+					SetFailure(OVT_TEST_PersistenceRoundTripGate.CAPABILITY_ABSENT);
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_DIRTY_AND_RELOAD)
+		{
+			OVT_OptionsManagerComponent manager = OVT_Global.GetOptions();
+			if (!manager)
+			{
+				SetFailure("The options manager disappeared before the reload");
+				return true;
+			}
+
+			// Sets the interval back to its own default, so a no-op reload cannot pass by accident.
+			manager.SetOption(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL, DIRTY_INTERVAL);
+
+			string reload = OVT_TEST_PersistenceRoundTripGate.RequestSessionReload();
+			if (reload != "")
+			{
+				SetFailure(reload);
+				return true;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD;
+			return false;
+		}
+
+		if (m_iPhase == OVT_TEST_PersistenceRoundTripGate.PHASE_AWAIT_RELOAD)
+		{
+			if (OVT_TEST_PersistenceRoundTripGate.ReloadInProgress())
+			{
+				m_iReloadPolls += 1;
+				if (m_iReloadPolls > OVT_TEST_PersistenceRoundTripGate.MAX_RELOAD_POLLS)
+				{
+					SetFailure("Reload never completed: the persisted data was still being re-applied after %1 polls", m_iReloadPolls.ToString());
+					return true;
+				}
+
+				return false;
+			}
+
+			m_iPhase = OVT_TEST_PersistenceRoundTripGate.PHASE_ASSERT;
+			return false;
+		}
+
+		string restored = OVT_TEST_PersistenceRoundTripGate.RequireRestoredCampaign();
+		if (restored != "")
+		{
+			SetFailure(restored);
+			return true;
+		}
+
+		OVT_OptionsManagerComponent manager = OVT_Global.GetOptions();
+		if (!manager)
+		{
+			SetFailure("OVT_Global.GetOptions() returned no manager after the reload");
+			return true;
+		}
+
+		int interval = manager.GetInt(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL);
+		if (interval != SAVED_INTERVAL.ToInt())
+		{
+			SetFailure("The autosave interval came back as %1, expected the saved %2. A dropped override means the conf entry that binds OVT_OptionsManagerSerializer is missing or a value was lost on the load path.",
+				interval.ToString(), SAVED_INTERVAL);
+			return true;
+		}
+
+		bool autosaveEnabled = manager.GetBool(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_ENABLED);
+		if (!autosaveEnabled)
+		{
+			SetFailure("The autosave enabled toggle came back false, though it was never touched and its own default is true. The save must not carry a record for an option left at its default.");
+			return true;
+		}
+
+		PrintFormat("Options round-tripped: interval saved %1, dirtied to %2, restored %3; untouched enabled toggle stayed at its default true",
+			SAVED_INTERVAL, DIRTY_INTERVAL, interval.ToString());
+
+		return true;
+	}
+}

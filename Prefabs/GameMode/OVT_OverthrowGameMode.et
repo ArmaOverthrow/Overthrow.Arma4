@@ -169,6 +169,8 @@ OVT_OverthrowGameMode {
   OVT_HighCommandManagerComponent "{6B1C3D0000000001}" {
    m_sGroupPrefab "{6B1C3D0000000003}Prefabs/Groups/INDFOR/OVT_Group_HighCommand.et"
   }
+  OVT_OptionsManagerComponent "{6B8B000000000001}" {
+  }
   OVT_ResourceManagerComponent "{6A8E2E0000000001}" {
    m_rResourcesConfigFile "{6A8E2E3000000001}Configs/Resistance/resources.conf"
    m_rPilePrefab "{6A8E2E0000000100}Prefabs/Props/Resources/OVT_ResourcePile.et"

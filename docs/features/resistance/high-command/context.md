@@ -836,7 +836,7 @@ Three different symptoms, one cause: the components after the stray brace were n
 
 **Deliberately NOT claimed in player text** (the anti-invention discipline — two tips have previously shipped inventing mechanics): exact per-group member counts, the literal `48` cap (server-configurable, so the text says "a cap"), rearm/refuel intervals (configurable), and keybinds (rebindable, and the buttons self-label).
 
-🔴 **WIKI NOT DONE — no `wikijs` MCP server is attached to this session.** Not faked, not skipped silently. Pages owed: resistance, base/base-capture, FOB/camp (garrison removal), map (the HC layer + ordering), recruits (conversion + tent coverage), and a new `high-command` page. ⚠️ Known wikijs hazards for whoever does it: **search returns wrong pageIds — verify by content**; update needs `tags`; a failed update can report success while leaving the render stale.
+✅ **WIKI DONE 2026-09-10** — see the dated session note near the end of this file for the page list, the facts verified against source, and the lint scores.
 
 ⚠️ **Stale translations, deliberately not touched:** the German and Ukrainian targets on `FieldManual_BaseCapture_Text4` and `FieldManual_FOBs_Text3` still describe buying a garrison. Deleting translator work was judged not the agent's call — those two paragraphs are **wrong in de/uk** until re-translated.
 
@@ -875,7 +875,7 @@ The defect: `PlaceRecruitInInactiveGroup` → `AddRecruitAgentToGroup` → `AddA
 1. 📤 **Workbench localization re-export.** ~130 new/changed `.st` keys across Phases 3, 4, 5, 7, 8, 9 and 13 render as **raw keys** until this runs. The `.st` is verified balanced (2336/2336, 1166 unique Ids) but it was **rebuilt wholesale after an incident** — open it in Workbench and sanity-check before trusting it.
 2. 🔧 **Position the radio** in all four barracks hosts + the furniture overrides. Current `coords` are blind guesses; `0.045` was a desk-on-floor height and a radio meant to sit on furniture needs a real surface height.
 3. 🎮 **The single most important play-test check:** with a group selected on the map, press **`X`** on a gamepad. The vanilla radial contextual menu **must not open**. If it opens *and* orders, the one-line fix is moving `OverthrowHCOrder`'s pad source to `gamepad0:thumb_left` — the only pad input confirmed free on that screen.
-4. 🌐 **The wiki pass** (Phase 13 T13.3) — no `wikijs` MCP server was attached. See the Phase 13 section for the page list and the known wikijs hazards.
+4. ✅ **The wiki pass** (Phase 13 T13.3) — done 2026-09-10. See the dated session note near the end of this file.
 
 **Play-test checklists:** `implementation.md` §6 carries the full A (single-player), B (gamepad-only) and C (dedicated-server + JIP) lists, 45 numbered steps. **None of C has ever been exercised** — and `ScriptBitWriter` hard-crashes from script, so the JIP payload can never be unit-tested. MP is the only proof `RplSave`/`RplLoad` are correct.
 
@@ -1257,5 +1257,59 @@ position is priority in that array, because `TakeUpTo` walks it in order.
 
 Consequence for §3.8's coverage model: gear can now be covered with **no warehouse in range at all**,
 which was previously impossible. `SplitCoverage` is unchanged; only the store list is longer.
+
+---
+
+## 2026-09-10 — Phase 13 wiki pass done
+
+The `wikijs` MCP server was attached and healthy this session. Every page below was read with
+`wikijs_get_page` before the edit and re-read after, and the pasted content matched. No `RetryError`
+turned up on a real page; every `RetryError` this session was a slug that does not exist (`resistance`,
+`base-capture`, `map`, `high-command` before creation) rather than an auth failure — confirmed by
+probing a page known not to exist and getting the same error shape.
+
+There is no standalone `resistance`, `base-capture` or `map` page on the wiki. Base capture already
+lives on the `base` page, and the map layer panel lives on `map-filters`, so those got the edit instead
+of a new page.
+
+**Pages updated:**
+- `base` (id 11) — dropped the "station a garrison" bullet, added a High Command link to the Barracks bullet and a new bullet for holding the base with a Defend-stance group
+- `fob` (id 17) — replaced the Garrison bullet and the `### Garrisons` section with a `### Holding a FOB` section
+- `camp` (id 14) — replaced the `### Garrisons` section with `### Holding a Camp`
+- `recruits` (id 29) — added a `## Handing Recruits to High Command` section after Fast Travel, matching `#OVT-FieldManual_Recruits_Text10`
+- `map-filters` (id 60) — added a bullet for the Recruits and High Command rows, their position in the panel, and the empty-owner hide rule
+- `factions` (id 3) — added "Field High Command groups bought at a barracks" to the Resistance Faction "What You Can Do" list (this is the closest existing page to a "resistance" overview)
+- `difficulty/settings` (id 53) — `baseRecruitCost`'s description no longer claims a garrison charges per slot; it now says a High Command group charges this per member
+
+**Page created:** `high-command` (id 72) — full player-facing page: buying a group, orders and stances, Manage Groups, ammunition and fuel, converting recruits, and the garrison-retirement note, cross-linked from the pages above.
+
+**Facts verified against source before writing, not just against the Field Manual comment trail:**
+- Barracks cost $20,000 + timber/cement/steel/hardware, base-only — `Configs/Resistance/buildables.conf:166-175`
+- Eleven `OVT_HighCommandGroupEntry` blocks, three carrying `m_sVehiclePrefab` — `Configs/Factions/FIA_OverthrowData.conf:6-83`
+- Member cost is `baseRecruitCost * memberCount` — `Scripts/Game/GameMode/Managers/OVT_HighCommandManagerComponent.c:471`
+- `baseRecruitCost` is also charged per tent recruit (half) and per street recruit (full) — `Scripts/Game/Components/Controller/OVT_RecruitRequestComponent.c:186,253`
+- Stance behaviour: ATTACK spawns a search-and-destroy waypoint, PATROL moves then adds a ring, DEFEND moves then holds — `Scripts/Game/GameMode/Managers/OVT_HighCommandManagerComponent.c:1044-1077` (`ApplyStance`)
+- `DismissGroup` exists and is the only dismissal path — same file, `:912`
+- Map layer panel row order: canvas overlays, then Players, then Recruits, then High Command, then location types, and the Recruits/High Command rows are left out entirely for a player who owns none of that kind — `Scripts/Game/UI/Map/OVT_MapLayersUI.c:655-803`
+- No leftover mention of a bought resistance garrison anywhere in the `.st` file — confirmed by a full-file grep for "garrison"; every remaining hit is the occupying faction's own garrison (bases, radio towers) or the new High Command text
+
+**Lint scores (flavored mode, `ste-lint.py --fail-over 2.5`), drafted text only:**
+- `high-command` page (new): 1.78/100w
+- `base` "Holding the base" bullet: 3.70/100w (one 27-word list fragment, matches the length of neighbouring bullets on that list)
+- `fob` "Holding a FOB" paragraph: 1.67/100w
+- `camp` "Holding a Camp" paragraph: 2.50/100w
+- `recruits` "Handing Recruits to High Command" section: 1.77/100w
+- `map-filters` new bullet: 1.47/100w
+- `difficulty/settings` `baseRecruitCost` description: 0.00/100w
+- `factions` new bullet: 0.00/100w
+
+Whole-page scores after paste are higher on `camp` (3.87/100w), `map-filters` (4.32/100w), `factions`
+(2.98/100w) and `difficulty/settings` (3.44/100w) — all pre-existing, from prose this session did not
+touch. Surgical edits only, per the wiki rules; no wholesale rewrite attempted.
+
+**Not touched, deliberately:** the German and Ukrainian `Target_de_de` / `Target_uk_ua` text on
+`FieldManual_BaseCapture_Text4` and `FieldManual_FOBs_Text3` (already flagged stale above) — the wiki
+has no non-English pages, so this does not apply there, and nothing on the English wiki pages repeats
+that stale translation.
 
 Full record: `docs/features/logistics/storage/context.md`, "Post-close change 2026-08-24 (f)".

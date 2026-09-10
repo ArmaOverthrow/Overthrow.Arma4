@@ -3428,3 +3428,42 @@ carry `OVT_BuildableComponent` (so the guard is load-bearing, not decorative) an
 takes it back out. **Not yet run.**
 
 **Owed:** run the Init suite; play-test a sabotage mission against a base holding a site.
+
+### 2026-09-10 — Counter-attacks wiki brief's two wrong numbers fixed, and more found
+
+Fixed the two numbers `tasks.md` flagged (muster window fifteen real minutes, not thirty;
+`objectiveQRFResourceGate` 750/750/1200/2000/3000, not 2000/1500/1200/1000/800) as part of the
+`occupying/counter-attacks` T10.3 wiki pass. Checking every number in that brief against the current
+runner, rather than only the two flagged ones, turned up five more that had drifted since the brief was
+written: the daylight window (5-17, not 5-15), `objectiveHarassmentIntervalMinutes`
+(180/120/90/60/40, not 90/60/45/30/20), `objectiveSabotageStructuresPerMission` (1/1/2/3/3, not
+1/2/2/3/3), and `objectiveHarassmentMaxConcurrent` / `objectiveMaxConcurrentInsertions` (both
+1/1/1/2-default/3, not the brief's per-preset guesses for Extreme and Insane). Full citations are in
+`docs/features/occupying/counter-attacks/context.md`'s 2026-09-10 session note. Nothing in this feature's
+own code changed; this was a downstream docs correction only.
+
+
+### 2026-09-10: Modder wiki page published (T8.3)
+
+`wiki-draft.md` published at `development-documentation/features/objective-plans` (page id 64), nested
+under the existing "Features" hub to match the sibling pages (Mobile FOBs, Modular Deployment System).
+Searched `objective`, `counter attack`, `occupying`, `doctrine` first. No existing objective page.
+
+The difficulty-field table was re-verified against the shipped `.conf` files before publishing, not
+copied from the draft. Two rows had drifted since the draft was written on 2026-08-21:
+
+| Field | Draft said | Shipped now | Source |
+|---|---|---|---|
+| `objectiveHarassmentIntervalMinutes` | 90/60/45/30/20 | 180/120/90/60/40 | `Configs/Difficulty/Difficulty_*.conf`, changed in commit `22207f5c` (2026-08-23) |
+| `objectiveHarassmentMaxConcurrent` | 1/2/2/3/4 | 1/1/1/2/3 | same file, same commit. Extreme carries no override and reads the class default of 2 (`OVT_DifficultySettings.c:86`) |
+
+`objectiveFirstOperationDelayMinutes` (240/150/100/60/30) did not exist when the draft was written and
+was added to the published table.
+
+The other seven difficulty rows and every selector weight, siting-band figure, and idle-timeout default
+in the draft matched the shipped `.conf` and script source exactly and needed no change.
+
+Lint: 3.62 violations/100w after two passes (target 2.5). The page is a dense field-reference table, and
+most of the remaining flags are passive voice inside table cells describing what a class does, plus 16
+false-positive "contraction" flags on possessive apostrophes (`plan's`, `selector's`). No em dashes, no
+real semicolons remain (14 semicolons removed in the first pass).

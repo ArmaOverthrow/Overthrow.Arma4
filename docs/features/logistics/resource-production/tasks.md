@@ -84,7 +84,7 @@
 - [x] 7.6 Acceptance: Serialize/Deserialize locals **identically named** (a deliberate rename shown to fail during development and recorded in `context.md`); the single `Read()` return checked; a forced failure leaves live state untouched and logs ERROR; new cases sort **after** `…_Capability_…`
 - [x] 7.7 **No new `ComponentClassPersistenceConfigRule`** anywhere and no persistence config on the site prefab (`grep -c` unchanged); `ApplyStaged` matches by squared distance; `tools/compile-check.sh` exit 0
 
-## Phase 8 — Localization, epic docs, help & wiki sync (main thread + `help-docs-sync`, ~2-3 h) · Suite: **skipped — announced** (5/6)
+## Phase 8 — Localization, epic docs, help & wiki sync (main thread + `help-docs-sync`, ~2-3 h) · Suite: **skipped — announced** (6/6)
 
 > **Suite skip, stated:** this phase touches only `.st`, `.conf` and docs. The suites assert nothing there (`.claude/test-policy.md` §2, "skip the gate entirely"). The five-suite sweep runs once in the cross-phase review.
 
@@ -93,7 +93,7 @@
 - [x] 8.3 `docs/features/logistics/epic-overview.md` — Features table row 5, build-order item 5, the dependency list, the rollup line
 - [x] 8.4 `docs/features/logistics/epic-requirements.md` — "Passive town/industry resource production" moves **in** scope as this feature; production **chains** remain out
 - [x] 8.5 State the `check-input-conflicts.py` skip (no input `.conf` touched)
-- [x] 8.6 `help-docs-sync` — tutorials (`Configs/Tutorials/`), Field Manual (`Configs/FieldManual/`) and the wiki's economy/resources pages. **Every claim fact-checked against a `file:line`**
+- [x] 8.6 `help-docs-sync` — tutorials (`Configs/Tutorials/`), Field Manual (`Configs/FieldManual/`) done at the time. **Wiki half DONE 2026-09-10**: new page `production-sites` (wiki id 68) with the three site types, prices and rates, ownership, privacy and the map icon; cross-links from `construction-resources` (67) and the modding page `development-documentation/features/resources-and-production-sites` (69). Every number re-verified against `file:line` at write time. See `context.md` for the session note.
 
 ## Cross-phase review (0/4)
 
@@ -135,7 +135,7 @@
 ## Owed / not done
 
 - **R.2, the suite sweep** (above) — the one blocking item.
-- **Wiki sync** — blocked, no `wikijs` MCP server connected. The owed page list is in the Phase 8 report.
+- ~~**Wiki sync**~~ — **DONE 2026-09-10.** New page `production-sites` (wiki id 68), plus cross-links from `construction-resources` (67) and the new modding page (69). Full record in `context.md`.
 - **`OVT_TEST_Logic_ProductionRules.ProduceCarryStaysInUnitRange`'s recorded mutation is stale** after review FIX 9 — `carryOut = total` is now semantically equivalent to the correct code, so that mutant no longer fails. The mutation that still fails it removes **both** the `- units` subtraction and the normalization.
 - **Bug-report candidate against `logistics/resources`** — the `PORT_IMPORT` partial-fit charge (`OVT_ResourceRequestComponent.c`): if `destStore.Add` fits fewer units than `Take` removed, the excess returns to the source but `moneyTotal` is unchanged. Unreachable behind the whole-cart fit check today. `SITE_BUY` now rides the same branch.
 - **Two more bug-report candidates from the plan** — `OVT_TEST_Init_ControllerSeam.c`'s hard-coded roster count, and `OVT_RealEstateManagerComponent.GetBuyPrice` ignoring `realEstateCostMultiplier` (this feature is that field's first ever reader).

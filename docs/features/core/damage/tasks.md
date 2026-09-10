@@ -307,11 +307,12 @@
   - File(s): `Configs/Tutorials/`
   - Estimate: 🟡 1 h
   - **Skipped 2026-08-20 (no trigger exists).** `OVT_TutorialEvent` (`Scripts/Game/Configuration/OVT_TutorialTrigger.c:12-45`) has fourteen events and none of them can fire on "a player is standing at a ruin", on a structure being ruined, or on the repair action becoming available: the nearest are `PLAYER_BUILD` (a finished buildable), `PLAYER_ENTER_BASE` (crossing into an occupying-held base's close range) and `MENU_OPENED`. Sabotage raises no tutorial event at all. A popup here needs a new proximity/structure-state trigger, which is **tutorial-system framework and belongs to `new-player-experience/tutorial-content`, not to a docs phase.** Reported as a gap; no `.conf` was touched, so the `ActionContexts` grep-count guard did not apply.
-- [x] **8.3 — Public wiki** — **DRAFTED, NOT PUBLISHED**
+- [x] **8.3 — Public wiki** — **PUBLISHED 2026-09-10**
   - Description: Sabotage page stops saying structures are destroyed permanently; repair section added.
   - File(s): wiki (wikijs MCP)
   - Estimate: 🟡 1 h
-  - **2026-08-20: no `mcp__wikijs__*` tool was exposed to this session at all**, not even `wikijs_connection_status` — the MCP server is not connected. This is the same wall `occupying/counter-attacks` T10.3 hit. Nothing was written and nothing was invented. The full paste-ready text is `docs/features/core/damage/wiki-draft.md`: the sabotage-page correction, a new player-facing **Ruins and Repair** page, the `repairCostMultiplier` row for `difficulty`, and one sentence for the FOB/building page. **Still owed.**
+  - **2026-08-20: no `mcp__wikijs__*` tool was exposed to this session at all**, not even `wikijs_connection_status` — the MCP server is not connected. This is the same wall `occupying/counter-attacks` T10.3 hit. Nothing was written and nothing was invented. The full paste-ready text is `docs/features/core/damage/wiki-draft.md`: the sabotage-page correction, a new player-facing **Ruins and Repair** page, the `repairCostMultiplier` row for `difficulty`, and one sentence for the FOB/building page.
+  - **Done 2026-09-10.** New page `ruins-and-repair` (pageId 63). Also updated in place: `base` (pageId 11), `fob` (pageId 17), and `difficulty/settings` (pageId 53). No page ever carried the claim the draft assumed: that a wrecked structure is gone for good. A standalone sabotage-page correction turned out to be unnecessary. The stale claim actually sat in the `base` and `qrf` counter-attack paragraphs. The `occupying/counter-attacks` T10.3 pass fixed both, in the same session. See the `context.md` note dated 2026-09-10 for the full detail and citations.
 - [x] **8.4 — Loc keys (`.st` only)**
   - Description: Keys into `Language/localization_Overthrow.st`; never the `.conf` exports.
   - File(s): `Language/localization_Overthrow.st`

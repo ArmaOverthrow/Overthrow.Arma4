@@ -370,7 +370,9 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
 
 **⚠ T7.3 was deliberately SKIPPED, not done:** no tutorial trigger exists for "the player has seen an occupying armed vehicle" and authoring one is new tutorial-framework capability (`OVT_TutorialEvent` is a closed 14-value catalog, `OVT_TutorialTrigger.c:12-44`). Reported as a gap; the Field Manual section is the deliverable and stands without it.
 
-**⚠ Owed to the user:** a **localization re-export from Workbench** for the 4 new `.st` keys (`OVT-FieldManual_OccupyingForces_Head5`, `_Text8`, `_Text9`, `_Text10`), and **publication of `wiki-draft.md`** — no `wikijs` MCP server was attached to the Phase 7 session.
+**⚠ Owed to the user:** a **localization re-export from Workbench** for the 4 new `.st` keys (`OVT-FieldManual_OccupyingForces_Head5`, `_Text8`, `_Text9`, `_Text10`).
+
+**✅ Done 2026-09-10:** `wiki-draft.md` published as an "Armed Vehicles" section on the existing [Factions](/factions) page (page id 3), under "Faction Dynamics", rather than as a new `enemy-armour` page. The ladder table in the draft had gone stale twice since 2026-08-23 (commits `2d1a44cb` then `519b8238` raised the vehicle threat thresholds from 0/400/900 to 400/900/1500 to the current 400/2000/3000), so the published section avoids quoting threat numbers at all and states the mechanic in general terms instead. Section lint score 1.95/100w (target 2.5), whole-page score 2.91/100w (the rest of the page is pre-existing content, not touched here).
 
 ---
 
@@ -470,4 +472,4 @@ One can-fail proof did **not** go red: reordering `ReleaseVehicleOwnership`/`Ado
 - ⏸️ **Solo play-test**, §6 steps 1–12. Debug affordances: `/give-resources`, a raised time multiplier, and a **temporary** `vehicleThresholdScale 0.05` in `Difficulty_Normal.conf` — ⚠ **revert before committing**, the DoD greps require a clean diff.
 - ⏸️ **MP / dedicated-server pass**, §6 step 13. The automated spine covers MP not at all.
 - ⏸️ **Localization re-export from Workbench** after Phase 7 - 4 new `.st` keys: `OVT-FieldManual_OccupyingForces_Head5`, `_Text8`, `_Text9`, `_Text10`. Until then they render as raw keys in game.
-- ⏸️ **Wiki publication** of `docs/features/occupying/vehicles/wiki-draft.md` (proposed path `enemy-armour`). No `wikijs` MCP server was attached to the Phase 7 session. ⚠ Search before creating - a section on an existing occupying-faction page is preferred.
+- [x] ✅ **Done 2026-09-10**: Wiki publication of `docs/features/occupying/vehicles/wiki-draft.md`. Published as an "Armed Vehicles" section on the [Factions](/factions) page instead of a new `enemy-armour` page, per the draft's own preference for an existing occupying-faction page. See the note above T7.5 for the threat-number correction.

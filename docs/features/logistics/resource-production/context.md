@@ -566,6 +566,20 @@ which is the only mechanical guard there is against BUG-090. Neither half may be
 
 ## Session Notes
 
+### 2026-09-10 - Wiki pass (task 8.6, the wiki half)
+
+The wiki half of task 8.6 shipped. A new page, `production-sites`, wiki id 68, covers the three site
+types with their prices and rates, the five site actions, ownership and privacy, and the map icon. It
+links to `construction-resources`, wiki id 67, which `logistics/resources` also owns, and to a new
+modding page, `development-documentation/features/resources-and-production-sites`, wiki id 69.
+
+Every number in the new page came from the current source, not from the Field Manual comments: the
+120,000/18/90, 150,000/15/40 and 200,000/10/20 figures for sawmill, cement plant and steel mill match
+`Prefabs/Production/OVT_ProductionSite_Sawmill.et:7-8`, `_CementPlant.et:7-8` and `_SteelMill.et:7-8`
+as they stand today, after the 2026-08-26 re-balance. `SITE_SELL_RATIO 0.8` came from
+`OVT_ResourceProductionRules.c:8`, and `DESTINATION_RADIUS 25` from
+`OVT_ProductionSiteBuyContext.c:23`.
+
 ### 2026-08-22 — Phase 4 part A (`SITE_BUY` on the wire)
 
 **Built:** the six additive edits of §3.6 inside `OVT_ResourceRequestComponent.c` (1241 → 1354 L,

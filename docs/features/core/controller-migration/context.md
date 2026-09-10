@@ -37,7 +37,7 @@
 
 **What's Next:**
 - 🔴 **USER: the §6 21-step MP play-test** (`tools/launch-server.sh` + `tools/launch-game.sh`), plus opening `OVT_OverthrowGameMode.et`, `Character_Player.et` and `OVT_OverthrowController.et` in Workbench to confirm clean loads. Nothing else is owed by the agents.
-- 🟡 Then: the docs/wiki pass that P4-4 made **required** (BUG-161 means item buying was free — a player-facing economy change).
+- ✅ **2026-09-10:** I finished the P4-4 docs and wiki pass. I checked two pages: `shops` (id 56) and `gun-dealer` (id 27). Both already state a price for every item and describe stock and margin, and neither claims a free item. BUG-161 needed no wiki edit. I confirmed the fix at `Scripts/Game/Components/Controller/OVT_ShopTransactionComponent.c:412-413`, where the direct buy path calls `DoTakePlayerMoney` and `TakeFromInventory`.
 
 **Blockers:**
 - None. All scheduling dependencies discharged (PR #152 and #154 merged).

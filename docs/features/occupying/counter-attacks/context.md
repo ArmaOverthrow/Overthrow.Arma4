@@ -5476,3 +5476,52 @@ feed literal millisecond values to a pure predicate and never reference `MUSTER_
 thirty minutes whatever the constant says. The Init tier compares against the symbol and follows the change.
 
 `tools/compile-check.sh` exit 0. ⚠ The `.layout` is parsed by no automated gate - **needs a look in game**.
+
+### 2026-09-10 — Wiki pass done (T10.3), and the brief's numbers re-verified against the current runner
+
+The wikijs MCP server was healthy this session. `occupying/objectives` rewrote the counter-attack runner
+after this feature's Phase 10 session note was written, so every number and name in the note was
+re-checked against the shipped tree rather than pasted blind. Several had drifted, beyond the two the
+orchestrator flagged:
+
+| Field | Phase 10 note said | Shipped value | Source |
+|---|---|---|---|
+| Muster window | thirty real minutes | **fifteen** real minutes (900000 ms) | `OVT_QRFSiege.c:49` |
+| `objectiveQRFResourceGate` | 2000/1500/1200/1000/800 | **750/750/1200/2000/3000** | `Configs/Difficulty/Difficulty_Normal.conf:22` (+ Easy/Hard/Extreme/Insane) |
+| Daylight window | 5 and 15 | **5 and 17** | `OVT_DeploymentManager.c:132,135` (`m_iDaylightStartHour`/`m_iDaylightEndHour` defvalues) |
+| `objectiveHarassmentIntervalMinutes` | 90/60/45/30/20 | **180/120/90/60/40** | `Configs/Difficulty/Difficulty_Normal.conf:10` (+ others) |
+| `objectiveSabotageStructuresPerMission` | 1/2/2/3/3 | **1/1/2/3/3** | `Configs/Difficulty/Difficulty_Normal.conf:16` |
+| `objectiveHarassmentMaxConcurrent` | 1/2/2/3/4 | **1/1/1/2(default)/3** | Extreme's preset does not author it; class default is 2 (`OVT_DifficultySettings.c:85`) |
+| `objectiveMaxConcurrentInsertions` | 1/2/3/4/4 | **1/1/1/2(default)/3** | same pattern, `OVT_DifficultySettings.c:101` |
+
+Unchanged and confirmed: ring radii 100/150 (`OVT_QRFSiege.c:54-55`), phase names Harassment/ForwardBase/
+CounterAttack (`Configs/Objective/Objective_TownOffensive.conf:17,86,211`), the three QRF stages
+SILENT_DEPLOY/MUSTER/BATTLE (`OVT_QRFModes.c:53-65`), cheapest-first sabotage ordering
+(`OVT_ObjectiveSelection.c:303-328`), and that sabotage now leaves a repairable ruin rather than deleting
+the structure (`OVT_BaseSabotageBehaviorDeploymentModule.c:390`, calling `OVT_StructureDamage.Ruin()`) -
+**the module's own top-of-file doc comment ("no rubble, no repair action, no refund and no undo") is
+stale and contradicts its own code; not fixed here, this is a docs pass, not a script edit.** The same
+file's "THE CLOCK PAUSES, IT NEVER RESETS" comment is also stale: `EvaluateDemolition()` resets the whole
+interval on interruption since 2026-08-25, same as the repair module. Both wiki pages were written to the
+reset behaviour, not the stale comments.
+
+Published:
+
+- **New page `counter-attacks`** (pageId 62): harassment / forward base / siege in player language, using
+  the corrected numbers above. Links to the Field Manual's own page is not possible from the wiki, so it
+  links to `qrf` and `ruins-and-repair` instead.
+- **`base` page** (pageId 11): replaced the "Losing a base again" paragraph, which still described the
+  retired hourly-roll counter-attack (`base-defense-migration`'s old mechanic), with the staged campaign
+  and a link to the new page.
+- **`qrf` page** (pageId 19): replaced "The occupying faction starts them too", which had the same stale
+  description, with a short pointer to the new page.
+- **`difficulty/settings` page** (pageId 53): removed the `counterAttackTimeout` field entry (the setting
+  no longer exists in `OVT_DifficultySettings.c` - confirmed by grep, no hits anywhere under `Scripts/` or
+  `Configs/`) and added a new "Counter-Attack and Objective Settings" section with the twelve fields at
+  their corrected values, plus a fixed cross-reference in the "Tuning Enemy Difficulty" tips list.
+
+Not published: Page 4 of the old brief (developer material under `development-documentation/`). No such
+page exists yet for the objective director, and `occupying/objectives` T8.3 already owns a pending
+modder-facing wiki page (`docs/features/occupying/objectives/wiki-draft.md`) that is the right home for
+class-level detail. Duplicating it here risked a second page telling a different story.
+

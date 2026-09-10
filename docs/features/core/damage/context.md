@@ -950,3 +950,28 @@ Repair exists end to end: a price, a difficulty lever that replicates, a server 
 **Gate (orchestrator, 2026-08-20, post-build fix):** compile-check 0 (6202 files); **All 405/406** — only the pre-existing `CompositionSlotGate` red. The funnel/FX/sound rework broke none of the damage, persistence or repair cases.
 
 **Gate (orchestrator, 2026-08-20, post-build fixes 2+3 — explosion sound bank + visible fire):** compile-check 0 (6202 files); **Fast 346/347** — only the pre-existing `CompositionSlotGate` red.
+
+### 2026-09-10 — Wiki pass done (task 8.3)
+
+The wikijs MCP server was healthy this session. Published the paste-ready text from `wiki-draft.md`,
+corrected against the shipped tree rather than pasted blind:
+
+- **New page `ruins-and-repair`** (pageId 63). Ten buildable structures now exist, not eight
+  (`check-destructible-health.py` reports 10; the Barracks and Warehouse retrofits post-date the draft).
+  Repair hold time 20 s confirmed at `Prefabs/Structures/Military/Houses/GuardTower_01/OVT_GuardTower_01.et:44`.
+  `repairCostMultiplier` table (0.5/0.5/0.75/1/1) confirmed against all five `Configs/Difficulty/*.conf`.
+  The occupying repair detail's clock **resets, not pauses**, on interruption since 2026-08-25
+  (`OVT_BaseRepairBehaviorDeploymentModule.c:107-116`) - the draft's "picks up again once they leave"
+  wording was corrected to say the wait restarts from the top.
+- **`base` page** (pageId 11): added the one-sentence ruins pointer to the building-advantages list, and
+  replaced the retired-mechanic "Losing a base again" paragraph (see the counter-attacks note below - the
+  same paragraph needed both fixes).
+- **`fob` page** (pageId 17): same one-sentence ruins pointer added under Building Capabilities.
+- **`difficulty/settings` page** (pageId 53): added the `repairCostMultiplier` field entry beside
+  `buildableCostMultiplier`.
+
+Not published: the sabotage-page correction as originally scoped, because no page on the wiki ever made
+the "destroyed permanently" claim the draft assumed (search for "permanently destroyed", "salvage rubble"
+and "sabotage" returned nothing of the kind). The nearest actual instances of the stale claim were the
+`base` and `qrf` pages' counter-attack paragraphs, fixed as part of the counter-attacks pass below.
+

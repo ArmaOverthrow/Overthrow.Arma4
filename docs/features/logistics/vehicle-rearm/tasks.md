@@ -55,7 +55,7 @@
 
 - [x] **Four .st keys** (done 2026-09-01, 1231→1235, en_us only, GUIDs 6BA1C4E000000030–33) — Rearm_NeedsSupplyPoint, RearmVehicle_FromStorage, Msg-Rearmed, Msg-RearmNeedsSupplyPoint (master only; count 1231→1235) · `Language/localization_Overthrow.st` · 🟢
 - [ ] ⏸️ **Ask user for Workbench re-export** (OWED — 12 new + 4 changed keys since last export; 4 corrected bodies also need a ru/de translator pass) — never write the .conf exports · 🟢
-- [x] **help-docs-sync** (done 2026-09-01: Field Manual "Re-arming Vehicles" entry, 3 stale help texts + storage tutorial corrected, all cited; wiki BLOCKED — no wikijs MCP this session, edits in wiki-pending.md) — every sentence cited file:line or cut · 🟡
+- [x] **help-docs-sync** (done 2026-09-01: Field Manual "Re-arming Vehicles" entry, 3 stale help texts + storage tutorial corrected, all cited. Wiki done 2026-09-10: new page `re-arming-vehicles` (id 70), plus a link added on `storage` (id 66). See wiki-pending.md.) Every sentence cited file:line or cut. · 🟢
 - [x] **Cross-phase review** (done 2026-09-01: verdict ship-ready; 1 SHOULD-FIX + 2 NITs fixed in main thread, findings in context.md) · 🟡
 - [x] **/update-feature + /update-epic + /update-master** - Completed 2026-09-01 · 🟢
 - [ ] **Play-tests owed (human)** — LAV-25 repro; field rearm free with ledger ammo; buy path at garage/helipad/FOB; heli storage save/load; civ Mi-8 unlimited · ⏸️
