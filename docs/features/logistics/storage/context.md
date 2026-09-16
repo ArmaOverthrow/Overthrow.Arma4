@@ -45,14 +45,16 @@
 **What's Next:**
 - ⏸️ The user's localization re-export (10.2)
 - ⏸️ Workbench checks W1/W2, then play-tests A (mouse), B (gamepad-only) and C (dedicated + JIP) — 21 rows in `tasks.md`
-- ⏸️ The wiki pass, when a `wikijs` MCP server is attached
+- ✅ The wiki pass, done 2026-09-10 (see the Wiki hand-off section below, now marked done)
 
 **Residuals at close (none blocking):**
 - ⏸️ **One more localization re-export, for exactly one key.** The user re-exported twice (12:34 and 13:35);
   the 13:35 pass picked up everything including `OVT-Transfer_DestinationLabel`. **`OVT-Transfer_NoSpace`** — the
   cart-exceeds-capacity refusal added at ~14:00 — is the only key missing from `Language/*.conf`, and it renders
   **raw** until the next export. Verified by grepping the exports, not assumed.
-- ⏸️ **Wiki sync** — no `wikijs` MCP server was ever attached. A 7-item hand-off is at the bottom of this file.
+- ✅ **Wiki sync done 2026-09-10.** New page `storage` (id 66); `real-estate` (id 16) gained a Warehouses section;
+  `Importing` (id 25) was rewritten for Export and the corrected 30 m range; `fob` (id 17) had its undeploy section
+  corrected for the ledger sweep. See the Wiki hand-off section below for the verified numbers and file:line citations.
 - ⏸️ **Multiplayer is entirely unproven at runtime.** No dedicated-server session was run. F12, JIP, concurrent
   batches on one holder and disconnect-mid-transfer are proven by reading only. See `tasks.md` Play-test C.
 - ⏸️ **The v1 warehouse-save migration has never met a real pre-feature save.** The Persistence case covers the
@@ -1130,36 +1132,51 @@ constants rather than a bool, because "full" has to stop the sweep and "failed" 
 
 ---
 
-## Wiki hand-off (blocked — no `wikijs` MCP server in this session)
+## Wiki hand-off — done 2026-09-10
 
-Search before creating; the paths below are the expected flat paths.
+Ran with the `wikijs` MCP server attached (status healthy). Every number below was re-verified against the
+current source, not copied from this hand-off's original (2026-08-21) draft, because two of the seven items
+had gone stale in the meantime (see the notes on items 2 and 4).
 
-1. **`warehouses`** (search `warehouse`; may be folded into `real-estate`/`houses`) — rewrite "how stock gets in
-   and out". Kill any mention of a warehouse-only screen or of a warehouse being linked to a vehicle
-   (`isLinked` is deleted). New: the building carries **Storage** and **Rename storage** actions within 20 m;
-   the vehicle menu's **Take from warehouse** / **Put in warehouse** still work, with Put now sweeping the
-   vehicle's loose inventory into its ledger first. Access: unowned → nobody, owned public → everybody,
-   owned private → owner only, rented → renter only (a `"resistance"` rental opens it to everybody).
-2. **`ports`** (search `port`, `import`) — add Export, correct import. Import no longer spawns items; it credits
-   the vehicle's ledger and charges only for what fitted (civilian car 300, trucks uncapped, illegal/armed
-   vehicles and helicopters cannot trade at all). Player **and** vehicle within 30 m. Export: same screen,
-   second mode, unit price = import price × 0.5 clamped to one dollar under the port-local buy price, so
-   shop→port arbitrage does not pay; illegal goods need Trade L5 or a resistance-controlled port; unpriced
-   items cannot be exported.
-3. **New page `storage`** (check for an existing `inventory`/`cargo` page first) — player-language version of the
-   new Field Manual Storage page. Link from `warehouses`, `ports` and any vehicles page. No class names, no
-   `OVT_` prefixes, no GUIDs.
-4. **`vehicles`** — remove any claim that vanilla supply Load/Unload/Store actions appear on truck beds or
-   civilian cars; they no longer do. Truck vanilla inventory limits raised to vanilla's own values
-   (M923A1 4500 kg, Ural 5000 kg, 1,000,000 volume).
-5. **`fobs`** — undeploy now collects nearby containers' loose inventories **and** their ledgers, within 75 m.
-6. **Looting** (search `loot`) — truck Loot now takes vests, backpacks and helmets as items in their own right;
-   jackets, trousers and boots are still left on the body with their pockets emptied. Radius 25 m.
-7. Screenshots needed for the new `storage` page and the port Export mode. The two new Field Manual entries use
-   the generic `default_ui.edds` tile; dedicated tiles are an art task.
+1. **Warehouses** — no dedicated `warehouses` page existed. Folded into `real-estate` (id 16) as a new
+   Warehouses section: bought/rented from the same Real Estate menu (`OVT_RealEstateManagerComponent.SetOwner`
+   handles both, `Scripts/Game/GameMode/Managers/OVT_RealEstateManagerComponent.c:283-291`), the base-property
+   rule (`IsBaseWarehouse`/`PlayerMayUseWarehouse`, `:705-791`), and the four access levels (unowned/private/
+   public/rented, `:748-791`, `"resistance"` rental opens it to everybody at `:772-773`). No mention of a
+   warehouse-only screen or `isLinked` remained on the wiki to begin with.
+2. **Ports** — `Importing` page (id 25) rewritten with an Export section and a corrected Import. **The
+   2026-08-21 draft above ("illegal/armed vehicles and helicopters cannot trade at all") is stale**: the
+   2026-09-01 `logistics/vehicle-rearm` feature gave both a 100-item capacity instead, confirmed at
+   `OVT_StorageComponent.c:70-74` and the two prefabs. Range corrected to 30 m both ends
+   (`OVT_VehicleRequestComponent.c:60`, `OVT_StorageRequestComponent.c:173`), replacing the page's old "about
+   20 metres". Export pricing, the Trade L5/resistance-port extended catalogue and the unpriced-item refusal
+   match `OVT-FieldManual_Ports_Text3` exactly. Left the Resources tab unwritten, for the resources-sync pass.
+3. **New page `storage`** (id 66) — no `inventory`/`cargo` page existed either. Player-language version of the
+   Field Manual Storage page: capacities, taking things out, putting things in, load/unload, warehouses,
+   looting. No class names or GUIDs. Linked from `real-estate` and `Importing`.
+4. **Vehicles** — no dedicated vehicles page exists on the wiki, and no page made the false Load/Unload/Store
+   claim the hand-off expected to correct, so there was nothing to fix. The vehicle capacity numbers
+   (300/100/unlimited) live on the new `storage` page instead. Recorded as a gap below.
+5. **FOBs** — `fob` (id 17) undeploy section corrected: the sweep now states it collects storage lists as well
+   as loose inventory, within about 75 m (`OVT_ResistanceFactionManager.c:57,609`), and a built warehouse's
+   stock is named as one of the things transferred (the container-query fix at
+   `Scripts/Game/Utilities/OVT_StorageUtils.c:447-458`).
+6. **Looting** — folded into the new `storage` page rather than a standalone page (none existed). Vest,
+   backpack and helmet become items; jacket, trousers and boots stay on the body with pockets emptied
+   (`OVT_StorageRules.IsBaseClothingArea`, `Scripts/Game/Data/OVT_StorageRules.c:76-91`); radius 25 m
+   (`OVT_LootIntoVehicleAction.c:13`). The wanted-system page already stated "Looting while being watched" as a
+   trigger, so the crime-if-seen fact needed no change there.
+7. Screenshots still needed for the `storage` page and the port Export mode; not done here (no art task in
+   scope for this pass).
 
-**MCP hazards when this is finally run:** search returns wrong pageIds; `update` needs `tags` and can report
-failure while still writing; a failed update leaves the render stale — so **re-read every page after writing**.
+### 2026-09-10 — session note
+
+Joint wiki pass for `logistics/storage` (10.4) and `logistics/ui` (6.4), run by one agent because the two
+features share the ports, warehouse and vehicle pages. Pages touched: `storage` (created, id 66), `real-estate`
+(id 16), `Importing` (id 25), `fob` (id 17). All four passed the STE lint at or under 1.6 violations per 100
+words for the added text; the whole-page scores for `real-estate` and `Importing` did not regress (see the
+lint numbers in the session's final report). Did not touch the port Resources tab or any warehouse resource
+text, left for the `logistics/resources` / `logistics/resource-production` sync that runs next.
 
 ---
 

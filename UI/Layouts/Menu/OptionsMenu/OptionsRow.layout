@@ -1,0 +1,52 @@
+VerticalLayoutWidgetClass {
+ Name "OptionsRow"
+ Slot LayoutSlot "{5D48A6AB9C2ECBCB}" {
+  HorizontalAlign 3
+  Padding 8 6 8 10
+ }
+ {
+  HorizontalLayoutWidgetClass "{6B8B000000000080}" {
+   Name "RowLine"
+   Slot LayoutSlot "{5D48A6A577ADBD8A}" {
+    HorizontalAlign 3
+   }
+   {
+    TextWidgetClass "{6B8B000000000081}" {
+     Name "Label"
+     Slot LayoutSlot "{5D48A6A577ADBE09}" {
+      VerticalAlign 1
+      SizeMode Fill
+      Padding 0 0 16 0
+     }
+     Color 1 1 1 1
+     Text "Option"
+     "Font Size" 18
+     "Min Font Size" 14
+     "Horizontal Alignment" Left
+     "Vertical Alignment" Center
+    }
+    SizeLayoutWidgetClass "{6B8B000000000082}" {
+     Name "ControlSlot"
+     Slot LayoutSlot "{5D48A6AAB42A9E5C}" {
+      VerticalAlign 1
+     }
+     AllowWidthOverride 1
+     WidthOverride 420
+    }
+   }
+  }
+  TextWidgetClass "{6B8B000000000083}" {
+   Name "Description"
+   Slot LayoutSlot "{56EEDE046853BD3D}" {
+    HorizontalAlign 3
+    Padding 0 2 0 0
+   }
+   Color 1 1 1 0.651
+   Text ""
+   "Font Size" 13
+   "Min Font Size" 11
+   "Horizontal Alignment" Left
+   Wrap 1
+  }
+ }
+}

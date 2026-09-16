@@ -168,6 +168,17 @@ SCR_ChimeraCharacter : "{7A9EE19AB67B298B}Prefabs/Characters/Factions/INDFOR/FIA
      m_bOpenActionCloses 0
      m_RowLayout "{6B1C3D0000005040}UI/Layouts/Menu/HighCommandRoster/HighCommandRosterRow.layout"
     }
+    OVT_OptionsContext "{6B8B000000000003}" {
+     m_Layout "{6B8B000000000010}UI/Layouts/Menu/OptionsMenu.layout"
+     m_sContextName "OverthrowOptionsContext"
+     m_sCloseAction "MenuBack"
+     m_bOpenActionCloses 0
+     m_SectionTitleLayout "{6B8B000000000012}UI/Layouts/Menu/OptionsMenu/OptionsSectionTitle.layout"
+     m_RowLayout "{6B8B000000000011}UI/Layouts/Menu/OptionsMenu/OptionsRow.layout"
+     m_SliderLayout "{6B8B000000000013}UI/Layouts/Menu/OptionsMenu/OptionsSlider.layout"
+     m_CheckboxLayout "{5D5055E10FD00549}UI/layouts/WidgetLibrary/ToolBoxes/WLib_Checkbox.layout"
+     m_SpinBoxLayout "{C9DF0E6590F6C388}UI/layouts/WidgetLibrary/SpinBox/WLib_SpinBox.layout"
+    }
     OVT_TutorialContext "{6B3A000000000022}" {
      m_Layout "{6B3A000000000040}UI/Layouts/Menu/TutorialPopup.layout"
      m_sContextName "OverthrowTutorialMenuContext"

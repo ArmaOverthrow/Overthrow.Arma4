@@ -1,7 +1,7 @@
 # Sleep - Task Checklist
 
-**Last Updated:** 2026-08-19 (post-review)\
-**Progress:** 33/33 tasks complete (100%) — only **T6.3** (public wiki) outstanding, blocked on the wikijs MCP server. **Phase 7 (review fixes) complete; the full play-test passed 2026-08-19 and BUG-183 is closed.**
+**Last Updated:** 2026-09-10 (T6.3 wiki sync done)\
+**Progress:** 34/34 tasks complete (100%). **Phase 7 (review fixes) complete; the full play-test passed 2026-08-19 and BUG-183 is closed.**
 
 > **Phase 1 is ADVANCED** (`component-developer-advanced`) — it cuts into two shipped `CheckUpdate` bodies and\
 > fixes a shipped money exploit (BUG-183). Phases 2-5 are `component-developer`, Phase 6 is `help-docs-sync`.\
@@ -193,7 +193,7 @@
 
 ---
 
-## Phase 6: Help and documentation sync (2/3) — `help-docs-sync`
+## Phase 6: Help and documentation sync (3/3) ✅ — `help-docs-sync`
 
 - \[x\] **T6.1 Field Manual entry**
 
@@ -207,11 +207,11 @@
   - File(s): `Configs/FieldManual/Categories/FM_Overthrow.conf`, `Language/localization_Overthrow.st` + all seven exports
   - Estimate: 🟢
 
-- \[ \] **T6.3 Public wiki sync** — ⏸️ **BLOCKED, NOT ATTEMPTED**
+- \[x\] **T6.3 Public wiki sync** ✅ 2026-09-10
 
   - Description: keep the wiki page in step with the manual (verify pages by content, not by search pageId).
-  - Blocker: the `mcp__wikijs__*` tools were **not present in the Phase 6 agent's tool set at all** — not a search miss, not an auth failure, no server to reach. Nothing was written, nothing was faked. Re-run this one task from a session that has the wikijs MCP server attached; the source text to mirror is the eleven English strings listed in the session note below.
-  - File(s): (wikijs)
+  - Result: a new dedicated **Sleep** page (`/sleep`, id 73) mirrors the eleven Field Manual strings' facts. It states the eight-hour skip, the four valid locations, the replay of income, shops, rent and threat, the twelve-hour-from-waking cooldown, the twenty-hour door-to-door figure, the two refusal reasons, and the single-player limit. The **Camp** (id 14), **FOB** (id 17), **Real Estate** (id 16) and **Base** (id 11) pages each gained one short cross-link (the cot at a camp or FOB, a bed in an owned house or a held base). An agent re-read all five pages after the write and confirmed the content. Each number was checked against `Scripts/Game/Services/OVT_SleepService.c` and `OVT_SleepSchedule.c`, not just against the `.st` text.
+  - File(s): (wikijs) `/sleep` (created), `/camp`, `/fob`, `/real-estate`, `/base` (updated)
   - Estimate: 🟡
 
 ---

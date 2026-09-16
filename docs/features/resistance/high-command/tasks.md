@@ -1,7 +1,7 @@
 # High Command - Task Checklist
 
-**Last Updated:** 2026-08-22 (all 13 phases complete)
-**Progress:** 77/77 tasks complete (100%) — ✅ **CLOSED 2026-08-22**, play-test green. T13.3's wiki half closed out, not done (deferred until 1.5 ships).
+**Last Updated:** 2026-09-10 (wiki pass done)
+**Progress:** 77/77 tasks complete (100%) — ✅ **CLOSED 2026-08-22**, play-test green. T13.3's wiki half done 2026-09-10.
 
 > **Epic:** `resistance` — reference as `resistance/high-command`.
 > Phases **2, 3, 6, 7, 9, 11** are **ADVANCED** (`*-advanced` agents). Task numbering matches `implementation.md` §4.
@@ -129,8 +129,8 @@
 - [x] ✅ **T12.3** Three `OVT_TEST_PersistenceRoundTripSuite` cases (group / order / member bodies), sorted after `…_Capability_…`, public API only · 🟡
 - [x] ✅ **T12.4** Cross-phase review on the main thread — every phase's acceptance criteria + the §6 static gates · 🟡
 
-## Phase 13: Localization, input check, help / Field Manual / wiki (3/3) ✅ (T13.3 partial — wiki owed) — main thread + `help-docs-sync`
+## Phase 13: Localization, input check, help / Field Manual / wiki (3/3) ✅ — main thread + `help-docs-sync`
 
 - [x] ✅ **T13.1** `.st` audit — every runtime key present with a filled `Comment`, braces counted before/after, fresh GUIDs, Id order; ask the user to re-export · 🟡
 - [x] ✅ **T13.2** `check-input-conflicts.py` plain and `--warnings`, back at baseline · 🟢
-- [x] ⚠️ **T13.3** `help-docs-sync` — tutorials ✅ + Field Manual ✅ with a full file:line citation ledger. **WIKI NOT DONE — no `wikijs` MCP server attached to this session.** Closed out, not done · 🟡
+- [x] ✅ **T13.3** `help-docs-sync` — tutorials ✅ + Field Manual ✅ with a full file:line citation ledger. **Wiki half done 2026-09-10**: updated `base` (11), `fob` (17), `camp` (14), `recruits` (29), `map-filters` (60), `factions` (3) and `difficulty/settings` (53); created `high-command` (72). See `context.md` for the page list and lint scores · 🟡

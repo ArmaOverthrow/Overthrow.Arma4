@@ -1,7 +1,7 @@
 # Field Repair — Context & Decisions
 
 **Epic:** resistance
-**Last Updated:** 2026-08-29
+**Last Updated:** 2026-09-10
 **Current Phase:** All 7 phases built — Ready for Review
 **Status:** 🟢 Ready for Review (play-test + suite run owed)
 
@@ -192,6 +192,25 @@ building and persisting; multiplayer / JIP. All manual — see the play-test che
 ---
 
 ## Session Notes
+
+### 2026-09-10 — wiki sync (task 7.4)
+- No repair or vehicle-maintenance page existed on the wiki. Created `vehicle-repair` (page id 71).
+- The page states the same facts as the Field Manual entry: a kit is required even inside a zone,
+  a repair costs no money and no supplies, kits sell for around $150 at general stores and gun
+  dealers, one ships in the starting car, the field cap is half health, and a Ramp, Garage or
+  Helipad heals fully at around 12/12/20 m with no visible boundary.
+- Every number was checked against the shipped source, not copied from the Field Manual string alone:
+  `Configs/Pricing/itemPrices.conf:38-40` (cost 150), `Configs/System/ShopConfig.conf:28-31` and
+  `Configs/System/GunDealerConfig.conf:84-87` (the two shops), `RepairKit_01_base.et:71`
+  (`m_fMaxHealScaled 0.5`), `OVT_VehicleMaintenanceRamp.et:135-137` and
+  `Prefabs/Structures/Industrial/Garages/Garage_E_02/Garage_E_02.et:122-124` (`m_fRange 12`), and
+  `PrefabsEditable/Auto/Structures/Military/Camps/HelipadImprovised_01/Helipad.et:119-121`
+  (`m_fRange 20`). All three inherit `m_bUseRangeBoundingBox 1`.
+- Linked from `re-arming-vehicles` (id 70) and `fuel` (id 65); linked to `ruins-and-repair`
+  (id 63) as the separate building-repair mechanic, so the two are not confused.
+- All three edited pages were re-read after the write and confirmed to match the submitted content.
+- Task 7.4 and the "Wiki" line in `tasks.md`'s Documentation Tasks are both ticked. Progress is
+  now 37/37 (100%).
 
 ### 2026-08-29 — scaffold
 - Resolved `resistance/field-repair` as an epic-nested feature; loaded the resistance epic context.
@@ -387,7 +406,7 @@ is only provable in game, and the one automated tier that covers any of it could
 3. **A Workbench localization re-export is required** before the Field Manual page renders. The `.st`
    master has the 8 new keys; the generated `.conf` exports were correctly left untouched, so the page
    currently shows raw keys in game.
-4. **The wiki sync (7.4) is deferred** — no wikijs MCP server was attached.
+4. ✅ **The wiki sync (7.4) is done** — see the 2026-09-10 session note below.
 
 ### 🟡 Play-test owed (the feature's headline behaviour is manual-only by nature)
 The full checklist is in `tasks.md`. The items that carry real risk rather than routine confirmation:

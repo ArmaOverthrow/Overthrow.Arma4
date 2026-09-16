@@ -1,8 +1,8 @@
 # Sleep - Context & Decisions
 
-**Last Updated:** 2026-08-19 (play-test PASSED, localization re-exported)
-**Current Phase:** Complete — six phases + Phase 7 review fixes, 32/33 (only T6.3 remains)
-**Status:** 🟢 **DONE** — every automated gate green (All group 179/179) **and the full play-test checklist passed**. Only the public wiki sync (T6.3) is outstanding.
+**Last Updated:** 2026-09-10 (wiki sync done, feature fully closed)
+**Current Phase:** Complete — six phases + Phase 7 review fixes, 34/34
+**Status:** 🟢 **DONE** — every automated gate green (All group 179/179), the full play-test checklist passed, and the public wiki is in step with the manual.
 
 ---
 
@@ -63,14 +63,14 @@ built on `main`, not as a description of the code on this branch.
   **Q4 is structural**: `ScheduleSleep` calls `SetFade(true)` and then `CallLater(PerformSleepNow, …)` with no
   branch between them, so no missing screen effect can reach the schedule. `WORK_DELAY_MS` unchanged at 1500.
 
-- 🟡 **Phase 6** (T6.1-T6.2 ✅, T6.3 ⏸️) — a new "Sleeping" Field Manual entry last in the **The Resistance**
+- ✅ **Phase 6** (T6.1-T6.3, 3/3) — a new "Sleeping" Field Manual entry last in the **The Resistance**
   category (nine content pieces), a new cot paragraph under *Camps and Placing*'s "Where Placing Works"
   header, and **eleven** new `#OVT-FieldManual_*` keys in the `.st` and all seven runtime exports
   (784 → 795 entries per half; `.st` braces 1570/1570 → 1592/1592). Every one of the eleven items carries a
   `FACT-CHECKED … file:line` ledger in its `Comment`, the established Field Manual form. One drafted claim
   was **cut** for lack of a citation (see the Phase 6 note in `tasks.md`).
-  `tools/compile-check.sh` exit 0. **T6.3, the public wiki, was not touched at all** — the `mcp__wikijs__*`
-  tools were absent from the Phase 6 session, so there was no wiki to audit or update. Nothing was faked.
+  `tools/compile-check.sh` exit 0. **T6.3, the public wiki, was completed 2026-09-10** — see the session note
+  below for the pages touched.
 
 - ✅ **Phase 7 — REVIEW FIXES** (T7.1-T7.3, 2026-08-19) — two things the six built phases got wrong or that the
   user changed their mind about:
@@ -86,8 +86,7 @@ built on `main`, not as a description of the code on this branch.
   `tools/compile-check.sh` exit 0.
 
 **What's Next:**
-- ⏭️ **T6.3 — the public wiki sync.** The one remaining task. Needs a session with the wikijs MCP server
-  attached; the source text to mirror is the eleven English Field Manual strings, in player language.
+- Nothing. All thirty-four tasks are complete.
 - ✅ **The play-test checklist PASSED in full** (user, 2026-08-19) — every item green, including the R5 gate
   (item 1, a bed inside an owned house), the Q1/Q2 payout-counting runs from 10:00 and 12:00, the midnight
   date wrap, the pad-only pass and the multiplayer F11 check.
@@ -102,10 +101,7 @@ built on `main`, not as a description of the code on this branch.
   `tools/run-tests.sh` on 2026-08-18); the user granted permission on 2026-08-19 and it was run twice — **All
   group 177/177** over the as-built tree, then **All group 179/179** over the post-review tree, both exit 0
   with zero failures. Every case this feature added was confirmed present in `junit.xml` and green.
-- ⏸️ **T6.3 (public wiki sync) is not done and is not doable from this session** — the `mcp__wikijs__*` tools
-  are not attached here at all. Not an auth failure, not a stale render: there is no server to talk to.
-  Re-run T6.3 from a session with the wikijs MCP server attached; the source text to mirror is the eleven
-  English Field Manual strings, in player language.
+- ✅ **T6.3 (public wiki sync) is DISCHARGED.** Done 2026-09-10, see the session note below.
 
 ---
 
@@ -520,3 +516,20 @@ after; each export verified byte-for-byte to differ from its pre-edit self by ex
 convention) and two added (`IsStepBoundary`; the window-edges case that states both edges as one property over
 all 1440 start minutes with an independent enumeration as the oracle). Four fault injections recorded, each
 compiled at exit 0 and reverted. Full detail and every judgement call are in `tasks.md`'s Phase 7 note.
+
+### 2026-09-10: T6.3, the public wiki sync
+
+The wikijs MCP server was attached this session, so T6.3 ran to completion. No existing wiki page covered
+sleeping, so a new dedicated page went up at `/sleep` (id 73), and it mirrors the eleven Field Manual
+strings' facts rather than paraphrasing them loosely: the eight-hour skip, the four valid locations, the
+replay of income, shops, rent and threat, the twelve-hour-from-waking cooldown, the resulting twenty-hour
+door-to-door figure, the two refusal reasons, and the single-player limit. Every number came from
+`Scripts/Game/Services/OVT_SleepService.c` and `OVT_SleepSchedule.c`, checked directly, not copied from the
+`.st` comments.
+
+Four existing player pages each gained one short cross-link rather than a rewrite: **Camp** (id 14, a cot
+bullet in the Placing list), **FOB** (id 17, a cot sentence in Building Capabilities), **Real Estate**
+(id 16, one paragraph on a bed in an owned house) and **Base** (id 11, one bullet in the ownership-advantages
+list). Every page was re-read with `wikijs_get_page` after the write and its content confirmed against what
+was sent. The Field Manual and cot text this session mirrors were already in place from Phase 6 and were not
+touched again.

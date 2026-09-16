@@ -434,17 +434,21 @@ The suites cover no UI, no layout, no `.et` and no `.conf`, and no MP path is re
 
 ---
 
-## Wiki debt (BLOCKED — no `wikijs` MCP server in this session)
+## Wiki debt — DONE 2026-09-10
 
-Same block recorded by `logistics/ui`, `logistics/storage` and `economy/fuel`. Nothing was attempted. A later session with the server owes, in the Documentation space:
+The 7-item list below is closed out now. See the session note after it for what shipped, and for what still waits. Only screenshots remain.
 
-1. **New page `resources`** — the full loop (buy → haul → drop → build), and the actual per-unit volume/weight/base-price table (the Field Manual deliberately omits the numbers because difficulty scales them). Cross-link `ports`, `building`, `storage`, `difficulty`. **Search first** — a `logistics` or `supplies` page may already exist.
-2. **`ports`** — the Resources tab in both Import and Export; prices are live and separate from the shop catalogue; trade goes through the truck's **cargo** store, not its item storage.
-3. **The building page** — "buildings cost money only" is now wrong. Guard Tower, Helipad, Garage and Warehouse raise a construction site; money is charged at placement; Build consumes piles within 30 m nearest-first; removal refunds nothing.
-4. **`storage` / warehouse** — warehouses hold resources on a second, separate action and ledger; a Warehouse is now buildable (base, or a resistance-controlled town).
-5. **`difficulty`** — three new `Economy` settings with their shipped per-level values: `buildableResourceCostMultiplier`, `resourcePriceMultiplier`, `resourcePriceVolatility` (Easy 0.8/0.8/0.5 · Hard 1.5/1.25/1.5 · Extreme 3/1.5/2 · Insane 4/2/2).
-6. **Modding docs** — `Configs/Resistance/resources.conf` is the resource catalogue and adding or re-pricing a resource is a config edit; `m_aResourceRequirements` and `m_SitePrefab` are new optional `OVT_Buildable` fields, and an empty requirement list is byte-identical to the old behaviour.
-7. **Screenshots owed** — the port Resources tab, the cargo HUD, a crate pile on the map, a construction site with its Requirements readout.
+1. ~~**New page `resources`**~~ — For item 1, a new page called `construction-resources`, wiki id 67, covers the full loop: buy, haul, drop, build. It is not at the path `resources`, because that path already names an unrelated page about the strength pool of the occupying faction. The page gives the per-unit volume, weight and base price table. It links to `Importing`, `real-estate`, `storage`, `difficulty/settings` and the new `production-sites` page.
+2. ~~**`ports`**~~ — For item 2, a new Resources section on the existing `Importing` page, id 25, the wiki's actual port-trading page, covers the Resources tab on both Import and Export. It names the live price drift. It states that the trade runs through the cargo store of the truck, not through item storage.
+3. ~~**The building page**~~ — For item 3, the build list on `base`, id 11, now names the Warehouse and flags which structures need resources. It links to `construction-resources` for how a construction site gathers them.
+4. ~~**`storage` / warehouse**~~ — Item 4 needed two places. A Resources section on `storage`, id 66, covers the second, separate resource ledger. A "Building a Warehouse" section on `real-estate`, id 16, covers the resistance build route: a base or a resistance-controlled town, paid for in money plus all four resources.
+5. ~~**`difficulty`**~~ — For item 5, `difficulty/settings`, id 53, now carries the three new settings and their shipped per-level values. The description of `realEstateCostMultiplier` also changed: it now scales the purchase price of a production site, where before nothing read it at all.
+6. ~~**Modding docs**~~ — For item 6, a new page, `development-documentation/features/resources-and-production-sites`, id 69, covers the resource catalogue, buildable requirements, and the production-site prefab pattern, in class and config terms.
+7. **Screenshots** — Item 7 still waits. The port Resources tab, the cargo HUD, a crate pile on the map, and the Requirements readout of a construction site sit on no page yet.
+
+### Session note, 2026-09-10 (wiki pass, task 11.5)
+
+This pass also folded in the wiki debt of `logistics/resource-production`, since both features share the same pages. New pages: `construction-resources` (67), `production-sites` (68, the three site types, their actions, ownership and map icon), and the modding page (69). Sections went onto `Importing` (25), `storage` (66), `real-estate` (16), `base` (11) and `difficulty/settings` (53). Every number went back through the current source at write time (`resources.conf`, `buildables.conf`, `OVT_ProductionSite_*.et`, `OVT_DifficultySettings.c`, the five `Difficulty_*.conf` files). None came from the Field Manual comments, because a re-balance can land between a Field Manual write and a wiki pass.
 
 ---
 

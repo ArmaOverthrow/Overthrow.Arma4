@@ -3563,11 +3563,11 @@ StringTable {
   }
   CustomStringTableItem "{6B3B00000000011E}" {
    Id "OVT-FieldManual_MainMenu_Text2"
-   Target_en_us "The menu opens on the town you are standing in, with its population, stability and supporter count, and the log of recent notifications.<br/>From here you can reach map info and fast travel, placing and building, the resistance menu, jobs, the real estate menu for the building you are in, recruit management, your character sheet, the last tip you were shown, and a request to save the campaign.<br/>Some entries only work in the right circumstances: real estate stays greyed out unless the building you are standing in can be owned, tips stays greyed out until a tip has been shown, and saving is limited to officers. Standing next to certain places, such as a shop counter, opens that place's own menu instead."
+   Target_en_us "The menu opens on the town where you stand. It shows population, stability, supporter count, and the log of recent notifications.<br/>From here you can reach: map info, fast travel, place, build, the resistance menu, jobs, real estate for the building you are in, recruit management, your character sheet, your last tip, options, and campaign save.<br/>Some entries need the right conditions. Real estate works only in an ownable building. Tips stays greyed out until you see your first tip. Only officers can save. If you stand next to certain places, such as a shop counter, that place opens its own menu instead."
    Target_de_de "Das Menü öffnet sich mit der Stadt, in der du dich befindest, einschließlich ihrer Bevölkerung, Stabilität und Anzahl an Unterstützern sowie dem Protokoll der letzten Benachrichtigungen.<br/>Von hier aus erreichst du Karteninformationen und Schnellreise, Platzieren und Bauen, das Widerstandsmenü, Aufträge, das Immobilienmenü für das Gebäude, in dem du dich befindest, die Rekrutenverwaltung, deinen Charakterbogen, den zuletzt angezeigten Tipp und die Option zum Speichern der Kampagne.<br/>Einige Einträge funktionieren nur unter den richtigen Umständen: Immobilien bleibt ausgegraut, solange das Gebäude, in dem du dich befindest, nicht besessen werden kann; Tipps bleibt ausgegraut, bis ein Tipp angezeigt wurde; und Speichern ist auf Offiziere beschränkt. Wenn du neben bestimmten Orten stehst, beispielsweise an einem Ladentresen, öffnet sich stattdessen das eigene Menü dieses Ortes."
    Target_ru_ru "Меню открывается для города, в котором вы находитесь, показывая его население, стабильность, количество сторонников и журнал последних уведомлений.<br/>Отсюда можно перейти к информации на карте и быстрому перемещению, размещению и строительству, меню сопротивления, заданиям, меню недвижимости для здания, в котором вы стоите, управлению рекрутами, характеристикам персонажа, последней показанной подсказке и запросу на сохранение кампании.<br/>Некоторые пункты работают только при определённых условиях: недвижимость остаётся неактивной, если здание нельзя приобрести; подсказки — пока не появится первая подсказка; сохранение доступно только офицерам. Нахождение рядом с определёнными местами, например с прилавком магазина, вместо этого открывает личное меню этого места."
    Target_uk_ua "Меню відкривається для міста, у якому ви перебуваєте: воно відображає населення, стабільність, кількість прихильників та журнал останніх сповіщень. Звідси можна перейти до інформації на карті й швидкого переміщення, розміщення й будівництва, меню опору, завдань, меню нерухомості для будівлі, у якій ви стоїте, керування рекрутами, характеристики персонажа, останньої показаної підказки та запиту на збереження кампанії. Деякі пункти працюють лише за певних умов: нерухомість залишається неактивною, якщо будівлю не можна придбати, підказки — доки не з'явиться перша підказка, а збереження доступне лише офіцерам. Перебування біля певних місць, наприклад прилавка магазину, натомість відкриває особисте меню цього місця."
-   Comment "Field Manual - second body paragraph on the Main Menu page, listing what the menu holds. CONTAINS RICH TEXT: two <br/> line breaks, which must be preserved verbatim in every translation. FACT-CHECKED against OVT_MainMenuContext.c:94-97 (town name and stats), :198-223 (notification log), :104-195 (the button list), :148-157 (real estate disabled when the building is not ownable), :178-188 (Tips disabled until an entry exists), :306-309 (save is officer-only), :29-56 (a nearby override component opens that location's context instead). The disabled Options button in MainMenu.layout is deliberately not listed. Reference voice: describes, does not instruct. Three paragraphs."
+   Comment "Field Manual - second body paragraph on the Main Menu page, listing what the menu holds. CONTAINS RICH TEXT: two <br/> line breaks, which must be preserved verbatim in every translation. FACT-CHECKED against OVT_MainMenuContext.c:94-97 (town name and stats), :198-223 (notification log), :104-195 (the button list), :148-157 (real estate disabled when the building is not ownable), :178-188 (Tips disabled until an entry exists), :306-309 (save is officer-only), :29-56 (a nearby override component opens that location's context instead). UPDATED 2026-09-08 for core/options phase 9: the Options button now works (UI/Layouts/Menu/MainMenu.layout no longer carries 'Is Enabled' 0, OVT_MainMenuContext.c wires it), so this list now names it. See the new Options header and #OVT-FieldManual_Options_Text for what the screen holds. Reference voice: describes, does not instruct. Three paragraphs. Other Target_* languages are pending re-translation of this update."
    DevNote ""
    Repro ""
    ActorGender NONE
@@ -24566,6 +24566,193 @@ StringTable {
    Modified 1716472290
    Author "Aaron Static"
    LastChanged "Lemmi"
+  }
+  CustomStringTableItem "{6B8B000000000020}" {
+   Id "OVT-Options_Title"
+   Target_en_us "Options"
+   Comment "Options menu - the screen title."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000021}" {
+   Id "OVT-Options_Close"
+   Target_en_us "Close"
+   Comment "Options menu - the footer button that closes the screen."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000022}" {
+   Id "OVT-Options_Section_Local"
+   Target_en_us "This Player"
+   Comment "Options menu - section title above the settings that stay on this machine."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000023}" {
+   Id "OVT-Options_Section_Faction"
+   Target_en_us "Resistance"
+   Comment "Options menu - section title above the settings that a resistance officer controls."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000024}" {
+   Id "OVT-Options_Section_World"
+   Target_en_us "Server"
+   Comment "Options menu - section title above the settings that a server admin controls."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000025}" {
+   Id "OVT-Options_Autosave_Enabled"
+   Target_en_us "Automatic saving"
+   Comment "Options menu - label of the switch that turns automatic campaign saves on and off."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000026}" {
+   Id "OVT-Options_Autosave_EnabledDesc"
+   Target_en_us "The campaign saves itself while it runs."
+   Comment "Options menu - description under the automatic saving switch. It states a fact and gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000027}" {
+   Id "OVT-Options_Autosave_Interval"
+   Target_en_us "Time between saves"
+   Comment "Options menu - label of the slider that sets the time between two automatic saves."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000028}" {
+   Id "OVT-Options_Autosave_IntervalDesc"
+   Target_en_us "The campaign waits this long between automatic saves."
+   Comment "Options menu - description under the time between saves slider. It states a fact and gives no instruction."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B000000000029}" {
+   Id "OVT-Options_Minutes"
+   Target_en_us "%1 min"
+   Comment "Options menu - value format of the time between saves slider. %1 is a whole number of minutes."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Aaron Static"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6B8B00000000002C}" {
+   Id "OVT-FieldManual_Options_Text"
+   Target_en_us "The Options screen holds up to three sections: This Player, Resistance and Server. A section appears only if it holds an option you may change. The Resistance section needs officer status. The Server section needs the admin role. A single player or the host of their own game always sees every section.<br/>The Server section carries two settings for the campaign save. Automatic saving turns the save timer on or off. Time between saves sets the gap between automatic saves, from 2 to 60 minutes. A change applies at once, with no restart, and it reaches every player. It also survives a save and a Continue."
+   Comment "Field Manual, Getting Started > Main Menu page, new Options sub-section for core/options phase 9. Reuses #OVT-MainMenu_Options as the sub-header, same pattern as the existing Resistance sub-section. CONTAINS RICH TEXT: one <br/> line break between the two paragraphs, must be preserved in translation. FACT-CHECKED against docs/features/core/options/implementation.md sections 1, 3.5, 3.9, D7 and D9; Scripts/Game/UI/Context/OVT_OptionsContext.c (section walk, empty section never renders); Scripts/Game/GameMode/Managers/OVT_OptionsManagerComponent.c RegisterDefaults (the two autosave options, interval 120-3600s in 60s steps, shown in minutes); Scripts/Game/Components/Controller/OVT_OptionsRequestComponent.c PlayerMayEditScope and PlayerMayEditWorld (officer for Resistance, admin role for Server, single player or listen host always passes). Reference voice: describes, does not instruct."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788000000
+   Author "Claude"
+   LastChanged ""
+   ImageLink ""
+   Hidden 0
   }
   CustomStringTableItem "{00FB78163A7D6ED9}" {
    Id "OVT-JobsMenu_SearchLabel"

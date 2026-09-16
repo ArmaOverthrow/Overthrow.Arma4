@@ -1,9 +1,11 @@
-# Wiki sync pending - logistics/vehicle-rearm
+# Wiki sync - logistics/vehicle-rearm
 
 **Written:** 2026-09-01 (Phase 7, help-docs-sync)
-**Reason:** the `wikijs` MCP server is not configured in this session (`.mcp.json` registers only
-`beast-mode-discord`, and no `mcp__wikijs__*` tool is available), so https://wiki.armaoverthrow.com
-could not be searched, read or edited. Nothing was attempted against the live wiki.
+**Published:** 2026-09-10. New page `re-arming-vehicles` (id 70), built from the draft below with
+edits for STE and for two facts the storage page had already absorbed by that date. A link and a
+citation were added to the `storage` page (id 66). See the session note in context.md for the lint
+scores and the verified file:line list. This file now stays as the record of the draft and its
+citations, not as a pending task.
 
 Everything below is fact-checked against the tree at the same time as the in-game text, and every
 claim carries the same citation as its Field Manual counterpart. The in-game Field Manual page

@@ -1,7 +1,7 @@
 # Fuel - Task Checklist
 
-**Last Updated:** 2026-08-18 (feature CLOSED — play-test green, committed a765bd12)
-**Progress:** 35/36 tasks complete (97%)
+**Last Updated:** 2026-09-10 (T5.2 wiki sync complete)
+**Progress:** 36/36 tasks complete (100%)
 
 > Agent routing: phases 2 and 3 are **ADVANCED** (`component-developer-advanced`); phases 1 and 4 are STANDARD (`component-developer`); phase 5 is `help-docs-sync`. Suite per phase: 1–3 → **All** `{6A6E2A002F53A581}` (config-stream / economy / persistence state), 4 → **Fast** `{6A6E29FF47ECB840}`, 5 → skipped (docs-only). Source of truth: `implementation.md` phase tables.
 
@@ -156,7 +156,7 @@
 
 ---
 
-## Phase 5: Help & documentation sync (1/2 complete) — help-docs-sync
+## Phase 5: Help & documentation sync (2/2 complete) — help-docs-sync
 
 - [x] **T5.1 In-game help**
   - Description: Tutorial popups + Field Manual: fuel costs money at stations (rate is difficulty-scaled), depot exists / built at captured bases / starts empty / filled from a fuel truck / dispenses free. Every claim cites a file:line or is cut.
@@ -164,11 +164,11 @@
   - Estimate: 1 h
   - Done 2026-08-18: new Field Manual page **Fuel** in the Money and Trade category (`Configs/FieldManual/Categories/FM_Overthrow.conf`, entry `{6B4E1F4000000001}`, 8 new `#OVT-FieldManual_Fuel_*` keys) covering paid static stations + the rate on the action label + the difficulty range + the can't-afford stop + the free paths + the depot. New tutorial popup **fuel-depot-built** (`Configs/Tutorials/fuelDepotBuilt.conf` + `.meta`, registered on `Prefabs/GameMode/OVT_OverthrowGameMode.et`), fired by `PLAYER_BUILD` filtered on the buildable name `"Fuel Depot"`, deep-linking to the new Field Manual page. Gap left deliberately: the trigger catalogue (`OVT_TutorialTrigger.c:12-45`) has **no refuel / vehicle event**, so "fuel now costs money" cannot get a popup of its own; in game it is carried by the action label, the greyed-out reason and the Field Manual page.
 
-- [ ] **T5.2 Public wiki sync**
+- [x] **T5.2 Public wiki sync**
   - Description: Same content on the wiki via wikijs MCP; wiki + in-game text must agree.
   - File(s): wiki (external)
   - Estimate: 0.5 h
-  - **BLOCKED 2026-08-18 (auth):** the `wikijs` MCP tools were not available in the sync session, and the API token in `Overthrow.Wiki.MCP/wiki-js-mcp/.env` can only run `pages.list` — `pages.single` returns `PageViewForbidden 6013`, so no page can be read or updated with it. Owed: new `fuel` page; a "Fuel Depot" bullet on the `base` page's owning-a-base advantages list (id 11); `fuelPricePerLitre` in the Economy table on `difficulty/settings` (id 53) and in the preset pages `difficulty/easy|normal|hard|extreme` (ids 49-52). Drafted copy is in the Phase 5 report.
+  - **Done 2026-09-10:** wikijs MCP reachable this session. Created `fuel` (pageId 65). Updated `base` (id 11, Fuel Depot bullet), `difficulty/settings` (id 53, `fuelPricePerLitre` block), `difficulty/easy` (id 49), `difficulty/normal` (id 50), `difficulty/hard` (id 51), `difficulty/extreme` (id 52). No `difficulty/insane` page exists, so no preset page there needed the number; the `difficulty` and `difficulty/settings` pages already say so. Every number matched against `Configs/Difficulty/*.conf` and `OVT_DifficultySettings.c` before paste. **BLOCKED 2026-08-18 (auth):** the `wikijs` MCP tools were not available in that sync session, and the API token in `Overthrow.Wiki.MCP/wiki-js-mcp/.env` could only run `pages.list` — `pages.single` returned `PageViewForbidden 6013`, so no page could be read or updated with it then.
 
 ---
 
@@ -296,7 +296,7 @@ money.
 - (none yet)
 
 ### Blocked Items
-- T5.2 public wiki sync - no usable wiki write path in the sync session (see the task note).
+- (none) — T5.2 public wiki sync closed 2026-09-10.
 
 ---
 

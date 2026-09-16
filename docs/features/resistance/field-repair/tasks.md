@@ -1,8 +1,8 @@
 # Field Repair — Task Checklist
 
 **Epic:** resistance
-**Last Updated:** 2026-08-29
-**Progress:** 36/37 tasks complete (97%) — only the wiki sync (7.4) is outstanding, deferred on a missing MCP server
+**Last Updated:** 2026-09-10
+**Progress:** 37/37 tasks complete (100%)
 
 > **Advanced-agent phases:** ⚠️ **Phase 5** routes to `component-developer-advanced` — prefab-delta work
 > on three shipped, persisted buildables, where the duplicate-component trap is invisible to `compile-check.sh`. Every other phase is standard
@@ -324,7 +324,7 @@ SCR_RepairSupportStationComponent "{6A9F1E4A00000021}" : "{4B199D8AD24B5712}...R
 
 ---
 
-## Phase 7: Help & documentation sync (3/4 complete, 1 deferred) — `help-docs-sync`
+## Phase 7: Help & documentation sync (4/4 complete) — `help-docs-sync`
 
 > **Every claim must cite a `file:line` or be cut.** Two tutorial tips have already shipped in this
 > project describing mechanics that did not exist.
@@ -355,11 +355,11 @@ SCR_RepairSupportStationComponent "{6A9F1E4A00000021}" : "{4B199D8AD24B5712}...R
     - **First wrench purchase** — `PLAYER_BUY` carries only the cost and dispatches an **empty** filter (`OVT_TutorialManagerComponent.c:268`), and `PLAYER_TRANSACTION` carries only the shop type (`:297`). Neither event carries item identity, so a trigger cannot tell a wrench from a jerrycan. A `m_iMinValue 150` threshold would match every purchase of $150 or more, which is wrong far more often than right.
     - Considered and rejected: binding `PLAYER_BUILD` filtered to `"Vehicle Maintenance Ramp"` / `"Garage"` / `"Helipad"` would work today, but it is a different trigger from the one asked for, it would need three entries or a filterless one, and the volume-restraint rule prefers the single Field Manual entry that already covers the mechanic. Not added.
 
-- [x] ⏸️ **7.4 Wiki page sync — DEFERRED, no wikijs MCP server attached**
+- [x] ✅ **7.4 Wiki page sync**
   - Description: Via the wikijs MCP tools.
   - File(s): wiki (external)
   - Estimate: 🟡 0.5 h
-  - **Result: deferred, not failed.** No `mcp__wikijs__*` tool was available in this session, so the wiki could not be searched, read or written. Owed work when a server is attached: search for an existing repair/vehicle-maintenance page before creating anything, and sync it to the same facts as the Field Manual entry (kit required even inside a zone, no money and no supplies, ~$150 at general stores and gun dealers, one in the starting car, 50% in the field vs 100% at Ramp/Garage/Helipad at ~12/12/20 m, no visible boundary).
+  - **Result (2026-09-10):** no existing repair or vehicle-maintenance page was found. A new page was created: `vehicle-repair` (id 71). It states the same facts as the Field Manual entry. A kit is required even inside a zone. A repair costs no money and no supplies. Kits sell for around $150 at general stores and gun dealers, and one ships in the starting car. The field cap is half health. A Ramp, Garage or Helipad heals fully at around 12/12/20 m, and no zone has a visible boundary. The page links from `re-arming-vehicles` (id 70) and `fuel` (id 65). It also links to `ruins-and-repair` (id 63), the separate building-repair mechanic.
 
 ## Bugs & Issues
 
@@ -418,7 +418,7 @@ SCR_RepairSupportStationComponent "{6A9F1E4A00000021}" : "{4B199D8AD24B5712}...R
 ## Documentation Tasks
 
 - [x] ✅ **Field Manual** — Vehicle Repair entry (task 7.1/7.2). ⚠️ Needs a Workbench localization re-export.
-- [ ] ⏸️ **Wiki** — page sync (task 7.4) — deferred, no wikijs MCP server attached
+- [x] ✅ **Wiki** — page sync (task 7.4) — `vehicle-repair` (id 71), created 2026-09-10
 - [ ] **CHANGELOG** — on completion, via `/update-master`
 
 ---

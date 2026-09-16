@@ -45,6 +45,13 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	//! world, no matter how many start paths run.
 	protected bool m_bAutosaveScheduled;
 
+	//! True once the two autosave prefab attributes have been pushed into the options registry as its
+	//! registration defaults. Guards against a second, redundant push from StartAutosaves().
+	protected bool m_bAutosaveDefaultsPushed;
+
+	//! True once this component has subscribed to the options registry's change invoker.
+	protected bool m_bOptionsSubscribed;
+
 	//! True once the shutdown save has been asked for, so a second session-end pass cannot ask again.
 	//!
 	//! MEASURED, not defensive: a dedicated server's shutdown log shows OnGameEnd() running TWICE
@@ -247,20 +254,104 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Starts the repeating autosave timer. Called by the game mode once the campaign is running -
-	//! every start path (new game, continued save, dedicated) funnels through DoStartGame(), so this
-	//! is wired there. At most one timer per world; authority only.
+	//! Starts the repeating autosave timer. Called once the campaign is running, from every start
+	//! path. At most one timer per world, and only on the authority.
+	//!
+	//! Reads the enabled state and the interval from the options registry, falling back to the
+	//! prefab attributes when the registry is absent. Subscribes to the registry so a later toggle
+	//! re-arms through RestartAutosaves(), with no restart of the campaign.
 	void StartAutosaves()
 	{
-		if (m_bAutosaveScheduled || !m_bEnableAutosave || m_fAutosaveInterval <= 0)
+		PushAutosaveDefaults();
+
+		OVT_OptionsManagerComponent options = OVT_Global.GetOptions();
+
+		if (!m_bOptionsSubscribed && options)
+		{
+			options.m_OnOptionChanged.Insert(OnOptionChanged);
+			m_bOptionsSubscribed = true;
+		}
+
+		bool enabled = m_bEnableAutosave;
+		float interval = m_fAutosaveInterval;
+
+		if (options)
+		{
+			enabled = options.GetBool(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_ENABLED);
+			interval = options.GetFloat(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL);
+		}
+
+		if (m_bAutosaveScheduled || !enabled || interval <= 0)
 			return;
 
 		if (!Replication.IsServer())
 			return;
 
 		m_bAutosaveScheduled = true;
-		GetGame().GetCallqueue().CallLater(OnAutosaveTimer, m_fAutosaveInterval * 1000, true);
-		PrintFormat("[Overthrow] Autosave scheduled every %1 seconds", m_fAutosaveInterval);
+		GetGame().GetCallqueue().CallLater(OnAutosaveTimer, interval * 1000, true);
+		PrintFormat("[Overthrow] Autosave scheduled every %1 seconds", interval);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Stops the repeating autosave timer, if one is scheduled.
+	void StopAutosaves()
+	{
+		if (!m_bAutosaveScheduled)
+			return;
+
+		GetGame().GetCallqueue().Remove(OnAutosaveTimer);
+		m_bAutosaveScheduled = false;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Stops and starts the autosave timer, so a fresh interval or enabled state takes effect at once.
+	void RestartAutosaves()
+	{
+		StopAutosaves();
+		StartAutosaves();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return True while the repeating autosave timer is scheduled.
+	bool IsAutosaveScheduled()
+	{
+		return m_bAutosaveScheduled;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Pushes the two prefab attributes into the options registry as its registration defaults, one
+	//! time. A saved override is untouched either way (OVT_OptionsManagerComponent.OverrideDefault
+	//! only ever touches the default), so a server operator's prefab edit stays the default whether
+	//! this runs before or after a campaign load.
+	protected void PushAutosaveDefaults()
+	{
+		if (m_bAutosaveDefaultsPushed)
+			return;
+
+		if (!Replication.IsServer())
+			return;
+
+		OVT_OptionsManagerComponent options = OVT_Global.GetOptions();
+		if (!options)
+			return;
+
+		options.OverrideDefault(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_ENABLED, OVT_OptionsRegistry.EncodeBool(m_bEnableAutosave));
+		options.OverrideDefault(OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL, OVT_OptionsRegistry.EncodeFloat(m_fAutosaveInterval));
+
+		m_bAutosaveDefaultsPushed = true;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Reacts to any registry change. Ignores every id but the two autosave options, then re-arms the
+	//! timer so an interval change and an enable or disable take effect in the same call.
+	//! \param[in] id The option id that changed.
+	//! \param[in] value Unused - RestartAutosaves() re-reads the registry itself.
+	protected void OnOptionChanged(string id, string value)
+	{
+		if (id != OVT_OptionsManagerComponent.OPTION_AUTOSAVE_ENABLED && id != OVT_OptionsManagerComponent.OPTION_AUTOSAVE_INTERVAL)
+			return;
+
+		RestartAutosaves();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -906,6 +997,10 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 		if (!Replication.IsServer())
 			return;
 
+		// The options manager's own OnPostInit runs later on the game mode prefab, so this can still
+		// be a no-op here. StartAutosaves() retries it, once the campaign actually starts.
+		PushAutosaveDefaults();
+
 		m_PersistenceSystem = SCR_PersistenceSystem.GetScriptedInstance();
 		if (!m_PersistenceSystem)
 		{
@@ -950,6 +1045,15 @@ class OVT_PersistenceManagerComponent : ScriptComponent
 
 		if (m_bAutosaveScheduled)
 			GetGame().GetCallqueue().Remove(OnAutosaveTimer);
+
+		if (m_bOptionsSubscribed)
+		{
+			OVT_OptionsManagerComponent options = OVT_Global.GetOptions();
+			if (options)
+				options.m_OnOptionChanged.Remove(OnOptionChanged);
+
+			m_bOptionsSubscribed = false;
+		}
 
 		StopTransientUntrackTimer();
 

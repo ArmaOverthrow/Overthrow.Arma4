@@ -1,40 +1,110 @@
 # Vehicle Storage — Requirements
 
-A new OVT component that can be placed on any building, turning it into a "vehicle storage" on top of any existing capabilities it has
+A new component, `OVT_VehicleStorageComponent`, turns any building into a vehicle store. A stored vehicle is a data record, not an entity. This is the same model the item storage uses. A busy server keeps its parked vehicles as records and pays no physics or replication cost for them. The trade-off is less exposure to the war. A later feature makes vehicle stores a target the enemy can disable.
 
-Requirements:
-An OVT_ParkingComponent must also be on the same building, a warning should be thrown on init if none exists and the component's capabilities disabled. This defines where the vehicle storage can be used to both store and retrieve, it won't work without one.
+## 1. Placement rules
 
-Storage:
-Players can drive up and "store" the vehicle they are in if the vehicle is close enough to a parking space, using the vehicle menu (same as warehouses). Any occupants are removed when this happens. The vehicle's entity/rplid is then stored along with any metadata needed to display/retrieve it. Only the driver can store a vehicle, while sitting in the driver seat.
+The component goes on any building prefab. It adds to the capabilities the building already has. The building must also carry an `OVT_ParkingComponent`. The parking spots define where a player stores and retrieves a vehicle. A store has no capacity cap.
 
-All vehicle storages can store unlimited vehicles, we dont cap it.
+A public component with no parking component logs one warning on init and stays inert. A private component with no parking component stays inert and logs nothing. Many house prefabs have no parking spots.
 
-Persistence:
-Stored vehicles are persisted and loaded as expected with no loss of state or inventory.  Use base-game serializers wherever possible to ensure nothing is lost and future changes to them in the base game are inherited free. If "deleting" the entity is too difficult to work with vanilla persistence serialization (very likely considering our previous work on vehicle persistence) and the entity must remain in the world, hide it and turn off its physics etc, and get it to selfspawn/hide on game start when loading the save (similar to how our vehicle restoration systems work already)
+A store accepts a vehicle only if it has a parking spot of the parking type of that vehicle. The economy maps each vehicle prefab to a parking type today. The store uses that map.
 
-The key here is that this system allows busy servers to reduce the performance impact of vehicles that arent in use. Currently they are parked and left in the world with full physics sim etc. Aim to reduce this footpint as much as possible for stored vehicles. The trade-off here is reduced exposure to the war, but other systems later will make these storages a target for the enemy who can disable them.
+## 2. Store a vehicle
 
-Helicopters:
-If a parking space attached to the building has a "helicopter" type then helicopters can also be stored, but you cannot drive a vehicle on to a helipad and store it, that will only accept/retrieve helicopters. So if a building ONLY has a helicopter parking space, then it only stores helicopters. This is similar to how procurement works already which detects the parking space types available. The "helipad" buildable then also becomes a consumer of this component to allow heli storage at them.
+The driver opens the vehicle menu while in the driver seat. This is the same menu that holds the warehouse buttons. A "Store vehicle" button shows when a usable store is in range and the driver has access to it. In range means the vehicle is within 10 m of a parking spot of its own type on that building.
 
-Retrieval UI:
-When standing near a parking space defined by the parking component, the overthrow main menu is overridden with a screen to restore stored vehicles. You should be able to use the existing main menu override component to achieve this, but it needs to work for all the parking spaces defined so extend those systems if required or find the best solution. Disable retrieve button if something is blocking the space including a player/recruit and tell the player why, but still open the menu and show what vehicles are stored. 
+The server removes every occupant from the vehicle before it stores it. Recruits count as occupants. The server writes the record, then deletes the entity.
 
-Retrieval menu should try to include an image of the vehicle selected and some information about it's state. Stored vehicles are not stacked in the list, 1 entry = 1 stored vehicle. Dont use the shop menu idiom, use the import menu as a guide (plain text list with selected info panel).  Categorize this screen similar to the shop, using base-game categories where possible. The vehicles original owner name should be shown in the list next to the vehicle's name, but anyone can retrieve it with access to that vehicle storage. 
+The store refuses a mobile FOB and a deployed FOB. The store accepts an unlocked vehicle from a player who does not own it. The record keeps the original owner.
 
-If there are multiple parking spaces try to find an empty one of the correct type, starting at the nearest (where the player is standing) and spawn it there, allowing fast mass retrieval if there are lots of spaces nearby.
+## 3. The stored record
 
-Privacy and access control:
-"Locked" state of the vehicle is observed here. A locked vehicle can only be retrieved by its owner. Locked vehicles still show in the retrieval menu and be selectable for everyone but are grayed out for non-owners in the list and are not retrievable.
+One record per stored vehicle. The record holds:
 
-Component has a "private" flag that only allows storage/retrieval by the building's owner. Houses are then given the component with private = true turning the player's owned houses  into private vehicle storage as well. Warehouses should already have a public/private switch iirc and the vehicle storage should respect that when it's a warehouse (if this isnt the case just mention it in code comment and it will be added later when that mechanic is)
+| Field | Source |
+| --- | --- |
+| Vehicle prefab | The prefab of the entity |
+| Original owner | `OVT_PlayerOwnerComponent` |
+| Locked flag | `OVT_PlayerOwnerComponent` |
+| Stored by, stored at | The request |
+| Fuel, per tank | The fuel managers |
+| Item ledger | `OVT_StorageComponent` |
 
-Officers can set any non-private vehicle store into an "Officer only" store (switched, persisted), restricting storage OR retrieval to officers only (two separate switched for storage/retrieval).. Officer-only retrieval can only be switched ON if the storage is empty, to avoid locking players out of a previously-public storage. It can be switched off at any time. By default all storages are public both ways apart from when the component is specifically "private" (ie houses)
+At store time the server moves every item in the vanilla cargo into the `OVT_StorageComponent` ledger of the vehicle. Each item becomes a ledger line. This is the same path the warehouse uses when a player empties a vehicle into it. The record then holds that ledger. Retrieval puts the ledger back on the `OVT_StorageComponent` of the fresh vehicle. The items stay ledger lines and do not return to the vanilla cargo.
 
-Admins can retrieve any individual stored vehicles from any storage including private ones (in case they need to clean up locked vehicles abandoned by players or retrieve a stolen vehicle). An admin should also be able to unlock any vehicle in the world if they cant already. Admins may not store a vehicle in a storage they otherwise wouldnt have access to (ie houses)
+Storage repairs the vehicle. A retrieved vehicle comes back at full health, so the record holds no damage.
 
-Garages:
-The "Garage" buildable also becomes a consumer, and the procurement screen is updated to detect a vehicle storage component and add a "Buy into storage" button on top of the existing one, pressing this buys the vehicle and adds it into the storage instantly (you should be able to spawn it off screen then serialize it in and remove it to ensure it has the proper initial state)
+Not kept: the state of single items in the cargo (magazine fill, weapon attachments), and the world position. The warehouse accepts the same loss today.
 
+The store must never depend on a vanilla persistence record that outlives its entity. Those records die within minutes (BUG-086).
 
+## 4. Retrieve a vehicle
+
+A player standing within range of any parking spot of the building opens the Overthrow main menu. The store screen opens instead of the main menu. The existing main menu override component measures range from the building origin. Extend it, or add a new finder, so every parking spot counts.
+
+The screen always opens and always lists the stored vehicles. The retrieve button disables when a blocker sits on the target spot. The reason shows next to the button. A player or a recruit on the spot counts as a blocker. The helicopter spot needs a real obstruction test. The parking component skips it for that type today.
+
+Retrieval searches the spots of the correct type, nearest to the player first, and spawns on the first free one. Many free spots allow fast mass retrieval. The fresh vehicle gets the owner, lock state, fuel and item ledger from the record. It spawns at full health. It registers with the vehicle manager as a normal player vehicle.
+
+## 5. The store screen
+
+Use the transfer screen as the guide (plain list, selected item detail panel). Do not use the shop idiom. One list entry is one stored vehicle. No stacking. Each entry shows the vehicle name and the name of the original owner.
+
+Tabs use the vanilla vehicle labels: car, truck, APC, helicopter, airplane. An "all" tab comes first. The detail panel shows the vehicle preview image, the fuel and the item count.
+
+A locked vehicle shows for everyone. The list grays it out for a player who is not the owner. That player can select it but cannot retrieve it. At a garage the screen has two tabs: "Stored" and "Buy". See section 9.
+
+## 6. Helicopters
+
+A helicopter parking spot accepts and returns helicopters only. A helipad refuses a car. A building with only a helicopter spot stores only helicopters. This is the same detection procurement uses today.
+
+The helipad buildable gets a parking component with one helicopter spot. No prefab has one today.
+
+## 7. Access control
+
+Only the owner can retrieve a locked vehicle. The component has a "private" flag. A private store allows storage and retrieval by the building owner only. Houses get the component with private set. The houses a player owns become private vehicle stores.
+
+A warehouse store follows the `isPrivate` flag of the warehouse. The flag and the access check exist today. A player switch for it does not. The store respects the flag now and needs no code comment.
+
+A ruined building blocks storage and retrieval until a player repairs it. The records stay. This is the same rule the warehouse follows. When a house changes owner, the records stay. The new owner can retrieve them. A locked vehicle stays locked to its original owner.
+
+## 8. Officer switches
+
+An officer can set two switches on any non-private store: "officer-only storage" and "officer-only retrieval". Both persist. The switches live in the store screen header. Only an officer sees them.
+
+An officer can turn "officer-only retrieval" on only when the store is empty. An officer can turn it off at any time. Every store is public both ways by default. A private store has no switches.
+
+## 9. Garages and procurement
+
+The garage buildable gets the component. Procurement no longer spawns the vehicle. A purchase adds a record to the store of the garage. The record is a fresh vehicle: full fuel, full health, empty ledger. The purchase spawns no entity.
+
+The garage screen holds two tabs. "Stored" is the store screen. "Buy" is the procurement list. A purchase moves the player to the "Stored" tab with the new vehicle selected. The garage refuses a purchase when it has no spot of the parking type of that vehicle.
+
+## 10. Admins
+
+An admin can retrieve any stored vehicle from any store, private stores included. This covers abandoned locked vehicles and stolen vehicles. An admin can open the lock on any vehicle in the world. The unlock action is owner-only today. This is a new admin action on the vehicle. An admin cannot store a vehicle into a store the admin has no normal access to.
+
+## 11. Persistence
+
+The records persist with the game mode save through an Overthrow serializer. No stored vehicle exists as an entity in the save. A save and load round trip keeps every record field.
+
+A stored record uses none of the offline vehicle logic. Reservation, respawn on login and rebuild from a position record apply to live vehicles only and stay untouched.
+
+## 12. Map
+
+A stored vehicle has no map marker of its own. The marker of the building stands for its contents.
+
+## Out of scope
+
+- Enemy attacks on vehicle stores. A later feature.
+- A player switch for warehouse privacy. A later feature.
+- Storage of a mobile FOB.
+
+## Decisions
+
+- Cargo (user, 2026-09-08): vanilla cargo items move into the item ledger of the vehicle at store time and become ledger lines.
+- Record fidelity (user, 2026-09-08): the record keeps prefab, owner, lock, fuel and the item ledger. Storage repairs the vehicle. Single-item state in the cargo is not kept. A vanilla persistence record is not an option because a released record dies within minutes (BUG-086).
+
+- Store range (user, 2026-09-08): 10 m to the nearest spot of the correct type.
+- Detail panel (user, 2026-09-08): preview image, fuel and item count.

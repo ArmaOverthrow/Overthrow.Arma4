@@ -43,6 +43,8 @@ OVT_OverthrowController {
   }
   OVT_FuelRequestComponent "{6B4E1F6000000001}" {
   }
+  OVT_OptionsRequestComponent "{6B8B000000000002}" {
+  }
   OVT_StorageRequestComponent "{6A8E2D0000000004}" {
   }
   OVT_ResourceRequestComponent "{6A8E2E0000000020}" {

@@ -1,0 +1,15 @@
+ButtonWidgetClass : "{4A41296C0E9A889F}UI/layouts/WidgetLibrary/WLib_Slider.layout" {
+ Name "OptionsSlider"
+ Slot AlignableSlot "{55387AC27F88905C}" {
+  HorizontalAlign 3
+  Padding 0 0 0 0
+ }
+ components {
+  SCR_SliderComponent "{548294960C7399D9}" {
+   m_bUseLabel 0
+   m_sLabel ""
+   m_bRoundValue 1
+   m_iDecimalPrecision 0
+  }
+ }
+}

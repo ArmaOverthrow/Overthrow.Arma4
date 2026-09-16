@@ -548,7 +548,7 @@
 
 ---
 
-## Phase 10: Help & documentation sync (3/4 complete) — `help-docs-sync`
+## Phase 10: Help & documentation sync (4/4 complete) — `help-docs-sync`
 
 > Suite: **skipped — docs-only.**
 
@@ -562,11 +562,12 @@
   - File(s): `Configs/Tutorials/`, `Configs/FieldManual/`, `Language/localization_Overthrow.st`
   - Estimate: 1.5 h
 
-- [x] **[closed out 2026-08-20 — dropped at closure, superseded by `occupying/objectives`]** ⏸️ **T10.3 Wiki sync — BLOCKED, no wikijs MCP server attached to this session.** Ready-to-paste content for all four pages is in the Phase 10 session note of `context.md`
+- [x] **T10.3 Wiki sync — DONE 2026-09-10.** Published: `counter-attacks` (pageId 62, new), `base` (pageId 11), `qrf` (pageId 19), `difficulty/settings` (pageId 53).
   - Description: The same points plus the operator notes — the twelve new difficulty fields, the removal of `counterAttackTimeout`, and the shared deployment pool.
   - File(s): wikijs MCP
   - Estimate: 1 h
   - ⚠ **BLOCKED 2026-08-19: the wikijs MCP tools were not available in the Phase 10 session** (no `mcp__wikijs__*` tool exposed at all, so not even `wikijs_connection_status` could be asked). Nothing was written to the wiki and nothing was faked. The ready-to-paste page content and the target paths are in the Phase 10 session note in `context.md`.
+  - **Done 2026-09-10.** `occupying/objectives` rewrote the counter-attack runner after this note was drafted. Every number in the brief was checked again against the current source before it went on the wiki. Seven values needed a fix, not the two the orchestrator flagged. The corrected table and every `file:line` citation are in the `context.md` note dated 2026-09-10.
 
 - [x] **T10.4 Epic bookkeeping**
   - Description: Add `counter-attacks` to the epic feature table, refresh the epic Tech Debt section, update the epic's row in `docs/overview.md`.

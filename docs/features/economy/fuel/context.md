@@ -1,7 +1,7 @@
 # Fuel - Context & Decisions
 
-**Last Updated:** 2026-08-18 (Amendment A2)
-**Current Phase:** Complete + Amendments A1/A2 (pending wiki sync, loc re-export, play-test)
+**Last Updated:** 2026-09-10 (T5.2 wiki sync closed)
+**Current Phase:** Complete + Amendments A1/A2 (pending loc re-export, play-test)
 **Status:** 🔍 Ready for Review
 
 ---
@@ -27,8 +27,7 @@
 
 **What's Next:**
 - 📋 Human: manual play-test steps A–H in `implementation.md` **and step I in `tasks.md`** (I4/I5/I6 rewritten for A2) (the real gate — fuel/MP/prefabs unreachable by the harness); `localization_Overthrow.en-us.conf` re-export in Workbench (14 new keys render raw until then)
-- 📋 Wiki (when auth returns): the new `fuel` page must also describe the fast **Fill Tank** action, matching `OVT-FieldManual_Fuel_Text` word for word on the facts.
-- ⏸️ Phase 5 T5.2: public wiki sync — blocked on wiki auth (wikijs MCP unavailable; fallback token is list-only). Owed pages + drafted copy recorded in tasks.md T5.2.
+- ✅ Phase 5 T5.2 public wiki sync: closed 2026-09-10. See the session note below for pages and lint scores.
 - Final gates this session: All 285/285 (after Phase 3), Fast 234/234 (after Phase 4), Phase 5 suite skipped (docs/config/loc only), compile-check exit 0 at end.
 
 **Blockers:**
@@ -143,6 +142,15 @@ Per `implementation.md` § Testing Strategy: 4 Logic-tier cases (Fast), 1 persis
 ---
 
 ## Session Notes
+
+### 2026-09-10 - Phase 5 T5.2 closed: public wiki sync
+
+- wikijs MCP reachable this session (`wikijs_connection_status` healthy). Created `fuel` (pageId 65, path `fuel`), covering paid stations and the difficulty-scaled rate, the fast Fill Tank action, free truck/jerrycan transfers, and the Fuel Depot (10,000 L, built at a held base, filled by truck). Updated `base` (id 11) with a Fuel Depot bullet on the owning-a-base advantages list; `difficulty/settings` (id 53) with a `fuelPricePerLitre` block next to `vehiclePriceMultiplier`; and the four preset pages `difficulty/easy` (49), `difficulty/normal` (50), `difficulty/hard` (51), `difficulty/extreme` (52) with one fuel bullet each in their economy sections.
+- Checked for a `difficulty/insane` preset page: none exists (`wikijs_get_page_children` on `difficulty` lists only Easy/Normal/Hard/Extreme/Settings). The `difficulty` and `difficulty/settings` pages already carry the Insane figure ($4/L), so no new page was needed for it.
+- Every number verified against source before paste: `fuelPricePerLitre` default 1.0 at `OVT_DifficultySettings.c:157-158`, Easy 0.5 at `Configs/Difficulty/Difficulty_Easy.conf:43`, Hard 1.5 at `Difficulty_Hard.conf:44`, Extreme 2.5 at `Difficulty_Extreme.conf:43`, Insane 4 at `Difficulty_Insane.conf:45`; Normal has no override line so it takes the 1.0 default. Depot capacity 10,000 L at `OVT_FuelDepot.et:27` (`MaxFuel`), starts empty at `:28` (`m_fInitialFuelTankState 0`), free source flag at `:14` (`m_bFree 1`), `m_bBuildAtBase 1` at `buildables.conf:128`.
+- One transient `RetryError` on the first `wikijs_create_page` call for `fuel`, retried once (a create, not an update, so no partial-write risk); the second attempt returned `status: created`. All six writes read back and confirmed verbatim afterward.
+- STE-linted every drafted block before paste, two passes: the new `fuel` page 1.37/100w, the `fuelPricePerLitre` settings block 2.08/100w, the four preset bullets 0.00/100w each (bare bullets, no prose to flag), the `base` bullet 0.00/100w. Whole-page lints taken after the edit came back higher (`base` 2.98, `difficulty/settings` 3.56, `difficulty/easy` 3.57) purely from pre-existing prose on those pages that this session did not touch; the task's own rules call for surgical edits and preserving existing structure/voice, not a rewrite of untouched paragraphs.
+- Wiki and Field Manual now agree on every figure: rate table, depot capacity, empty start, free dispensing, fast-fill behaviour.
 
 ### 2026-08-18 — Amendment A2 complete: fill scoping, cargo context, 10,000 L depot
 

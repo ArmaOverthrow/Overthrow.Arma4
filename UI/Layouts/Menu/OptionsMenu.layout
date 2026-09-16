@@ -1,0 +1,166 @@
+FrameWidgetClass {
+ Name "rootFrame"
+ {
+  HorizontalLayoutWidgetClass "{6B8B000000000050}" {
+   Name "Window"
+   Slot FrameWidgetSlot "{56EEDE05AD6DF1E2}" {
+    Anchor 0 0 1 1
+    PositionX 0
+    OffsetLeft 0
+    PositionY 0
+    OffsetTop 0
+    SizeX -1820
+    OffsetRight 0
+    SizeY -1050
+    OffsetBottom 0
+   }
+   {
+    OverlayWidgetClass "{6B8B000000000051}" {
+     Name "Content"
+     Slot LayoutSlot "{56EEDE05BFED5D35}" {
+      SizeMode Fill
+     }
+     {
+      ImageWidgetClass "{6B8B000000000052}" {
+       Name "Background"
+       Slot OverlayWidgetSlot "{56EEDE05C871C02C}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Opacity 0.5
+       Color 0 0 0 1
+      }
+      BlurWidgetClass "{6B8B000000000053}" {
+       Name "Blur"
+       Slot OverlayWidgetSlot "{56EEDE05D754F42B}" {
+        HorizontalAlign 3
+        VerticalAlign 3
+       }
+       Color 0.305 0.305 0.305 1
+       Intensity 0.7
+      }
+      HorizontalLayoutWidgetClass "{6B8B000000000054}" {
+       Name "SpaceLayout"
+       Slot OverlayWidgetSlot "{5720DE53ABB7CBED}" {
+        Padding 0 72 0 72
+       }
+       {
+        FrameWidgetClass "{6B8B000000000055}" {
+         Name "SpaceLeft"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+        SizeLayoutWidgetClass "{6B8B000000000056}" {
+         Name "Alignment"
+         Slot LayoutSlot "{5720DE53A848E0CC}" {
+          SizeMode Fill
+         }
+         AllowWidthOverride 1
+         WidthOverride 1200
+         AllowHeightOverride 1
+         HeightOverride 936
+         {
+          VerticalLayoutWidgetClass "{6B8B000000000057}" {
+           Name "ContentLayout"
+           Slot AlignableSlot "{56EEDE0403BED8AE}" {
+            HorizontalAlign 3
+            VerticalAlign 3
+           }
+           "Fill Origin" Center
+           {
+            HorizontalLayoutWidgetClass "{6B8B000000000058}" {
+             Name "HeaderLayout"
+             Slot LayoutSlot "{599083DDE2349E32}" {
+             }
+             {
+              TextWidgetClass "{6B8B000000000059}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
+               Name "Title"
+               Slot LayoutSlot "{56EEDE046853BD3D}" {
+                Padding 0 0 0 12
+                SizeMode Fill
+               }
+               Text "#OVT-Options_Title"
+              }
+             }
+            }
+            ImageWidgetClass "{6B8B00000000005A}" {
+             Name "UpperStripe"
+             Slot LayoutSlot "{56EEDE07C9F827C2}" {
+              Padding 0 0 0 12
+             }
+             Color 0.761 0.392 0.08 1
+             Image ""
+             Size 128 2
+            }
+            ScrollLayoutWidgetClass "{6B8B00000000005B}" {
+             Name "SectionsScroll"
+             Slot LayoutSlot "{59A8D25628A6B050}" {
+              Padding 0 0 0 8
+              SizeMode Fill
+             }
+             {
+              VerticalLayoutWidgetClass "{6B8B00000000005C}" {
+               Name "Sections"
+               Slot AlignableSlot "{5D48A6A99D3C9502}" {
+                HorizontalAlign 3
+               }
+              }
+             }
+            }
+            ImageWidgetClass "{6B8B00000000005D}" {
+             Name "LowerStripe"
+             Slot LayoutSlot "{56EEDE06187FACF9}" {
+              Padding 0 12 0 24
+             }
+             Opacity 0.1
+             Size 2 2
+            }
+            OverlayWidgetClass "{6B8B00000000005E}" {
+             Name "Footer"
+             Slot LayoutSlot "{56EEDE03DE14A911}" {
+             }
+             {
+              HorizontalLayoutWidgetClass "{6B8B00000000005F}" {
+               Name "Buttons"
+               Slot OverlayWidgetSlot "{56EEDE03DED9A743}" {
+                HorizontalAlign 3
+               }
+               {
+                ButtonWidgetClass "{6B8B000000000060}" : "{08CF3B69CB1ACBC4}UI/layouts/WidgetLibrary/Buttons/WLib_NavigationButton.layout" {
+                 Name "CloseButton"
+                 Slot LayoutSlot "{56EEDE01982D053A}" {
+                  Padding 0 0 0 0
+                 }
+                 components {
+                  SCR_InputButtonComponent "{5D346C3DD81D95CD}" {
+                   m_sActionName "MenuBack"
+                   m_sLabel "#OVT-Options_Close"
+                  }
+                 }
+                 "no focus" 0
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+        FrameWidgetClass "{6B8B000000000061}" {
+         Name "SpaceRight"
+         Slot LayoutSlot "{5720ECBBBD66ED2B}" {
+          SizeMode Fill
+          FillWeight 0.025
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
