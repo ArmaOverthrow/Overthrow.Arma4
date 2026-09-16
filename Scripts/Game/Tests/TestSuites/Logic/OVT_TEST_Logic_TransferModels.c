@@ -169,7 +169,7 @@ class OVT_TEST_Logic_TransferModels_ListFilterByCategory : SCR_AutotestCaseBase
 
 		array<ref OVT_TransferEntry> filtered = new array<ref OVT_TransferEntry>();
 
-		model.FilterByCategory(OVT_TransferListModel.CATEGORY_ALL, filtered);
+		model.FilterByCategory(OVT_TransferListModel.CATEGORY_ALL, "", filtered);
 		if (filtered.Count() != 3)
 		{
 			SetFailure("Filter by CATEGORY_ALL returned %1 rows, expected 3", filtered.Count().ToString());
@@ -182,7 +182,7 @@ class OVT_TEST_Logic_TransferModels_ListFilterByCategory : SCR_AutotestCaseBase
 			return true;
 		}
 
-		model.FilterByCategory(1, filtered);
+		model.FilterByCategory(1, "", filtered);
 		if (filtered.Count() != 2)
 		{
 			SetFailure("Filter by category 1 returned %1 rows, expected 2", filtered.Count().ToString());
@@ -195,7 +195,7 @@ class OVT_TEST_Logic_TransferModels_ListFilterByCategory : SCR_AutotestCaseBase
 			return true;
 		}
 
-		model.FilterByCategory(9, filtered);
+		model.FilterByCategory(9, "", filtered);
 		if (filtered.Count() != 0)
 		{
 			SetFailure("Filter by unpopulated category 9 returned %1 rows, expected 0", filtered.Count().ToString());
@@ -203,6 +203,67 @@ class OVT_TEST_Logic_TransferModels_ListFilterByCategory : SCR_AutotestCaseBase
 		}
 
 		Print("Transfer list filter: CATEGORY_ALL passes everything, a real id passes only its own, order preserved");
+
+		return true;
+	}
+}
+
+//------------------------------------------------------------------------------------------------
+//! FilterByCategory()'s search parameter - the transfer screens' search box (Storage, Port,
+//! Production Buy, Resource Transfer all share this model through OVT_TransferContext). Case-
+//! insensitive substring, ANDed with the category tab, empty means "no filter" - the same contract
+//! OVT_ShopBrowserModel's search pins for the shop menu.
+//------------------------------------------------------------------------------------------------
+[Test(suite: OVT_TEST_LogicSuite, timeoutS: 30)]
+class OVT_TEST_Logic_TransferModels_ListSearch : SCR_AutotestCaseBase
+{
+	//------------------------------------------------------------------------------------------------
+	[TestStep(TestStage.Main)]
+	bool Execute()
+	{
+		OVT_TransferListModel model = new OVT_TransferListModel();
+
+		model.Add(OVT_TEST_TransferFixture.MakeEntry("rifle", "Assault Rifle", 1, 10, 1));
+		model.Add(OVT_TEST_TransferFixture.MakeEntry("mag", "Rifle Magazine", 1, 10, 2));
+		model.Add(OVT_TEST_TransferFixture.MakeEntry("vest", "Combat Vest", 1, 10, 1));
+
+		array<ref OVT_TransferEntry> all = new array<ref OVT_TransferEntry>();
+		model.FilterByCategory(OVT_TransferListModel.CATEGORY_ALL, "", all);
+
+		if (all.Count() != 3)
+		{
+			SetFailure("An empty search returned %1 rows, expected all 3", all.Count().ToString());
+			return true;
+		}
+
+		array<ref OVT_TransferEntry> rifles = new array<ref OVT_TransferEntry>();
+		model.FilterByCategory(OVT_TransferListModel.CATEGORY_ALL, "rifle", rifles);
+
+		if (rifles.Count() != 2)
+		{
+			SetFailure("Searching 'rifle' returned %1 rows, expected 2 (Assault Rifle, Rifle Magazine)", rifles.Count().ToString());
+			return true;
+		}
+
+		array<ref OVT_TransferEntry> categoryRifles = new array<ref OVT_TransferEntry>();
+		model.FilterByCategory(1, "rifle", categoryRifles);
+
+		if (categoryRifles.Count() != 1 || categoryRifles.Get(0).m_sId != "rifle")
+		{
+			SetFailure("Searching 'rifle' in category 1 returned %1 rows, expected just Assault Rifle", categoryRifles.Count().ToString());
+			return true;
+		}
+
+		array<ref OVT_TransferEntry> none = new array<ref OVT_TransferEntry>();
+		model.FilterByCategory(OVT_TransferListModel.CATEGORY_ALL, "chainsaw", none);
+
+		if (none.Count() != 0)
+		{
+			SetFailure("Searching 'chainsaw' returned %1 rows, expected 0", none.Count().ToString());
+			return true;
+		}
+
+		Print("Transfer list search: empty search matches everything, substring match is case-insensitive, search ANDs with the category tab");
 
 		return true;
 	}

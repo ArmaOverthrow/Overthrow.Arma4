@@ -150,10 +150,13 @@ class OVT_ShopBrowserModel : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Selects the rows of one category, in current (i.e. sorted) order.
+	//! Selects the rows of one category that also match a search filter, in current (i.e. sorted) order.
 	//! \param[in] category The tab to filter by. ALL returns every row.
+	//! \param[in] search Case-insensitive substring to match against the row's display name. Empty
+	//! matches every row - callers already lowercase the typed text before it gets here (see
+	//! search-filter.md's ToLower() trap), so this only ever lowercases the row's own name.
 	//! \param[out] items Receives the matching rows. Cleared first.
-	void FilterByCategory(OVT_ShopCategory category, out array<ref OVT_ShopBrowserItem> items)
+	void FilterByCategory(OVT_ShopCategory category, string search, out array<ref OVT_ShopBrowserItem> items)
 	{
 		if (!items)
 			return;
@@ -162,8 +165,18 @@ class OVT_ShopBrowserModel : Managed
 
 		foreach (OVT_ShopBrowserItem item : m_aItems)
 		{
-			if (category == OVT_ShopCategory.ALL || item.m_eCategory == category)
-				items.Insert(item);
+			if (category != OVT_ShopCategory.ALL && item.m_eCategory != category)
+				continue;
+
+			if (search != "")
+			{
+				string name = item.m_sDisplayName;
+				name.ToLower();
+				if (name.IndexOf(search) == -1)
+					continue;
+			}
+
+			items.Insert(item);
 		}
 	}
 
@@ -214,19 +227,20 @@ class OVT_ShopBrowserModel : Managed
 	}
 
 	//------------------------------------------------------------------------------------------------
-	//! Slices one page out of one category. The slice bounds are clamped, so this never reads out of
-	//! range no matter what page index the menu asks for.
+	//! Slices one page out of one category, after a search filter. The slice bounds are clamped, so
+	//! this never reads out of range no matter what page index the menu asks for.
 	//! \param[in] category The tab to page through. ALL pages through everything.
+	//! \param[in] search Case-insensitive substring to match against display name. Empty matches everything.
 	//! \param[in] page Requested page index; clamped internally.
 	//! \param[in] perPage Cards per page.
 	//! \param[out] items Receives at most perPage rows. Cleared first; may come back empty.
-	void GetPageItems(OVT_ShopCategory category, int page, int perPage, out array<ref OVT_ShopBrowserItem> items)
+	void GetPageItems(OVT_ShopCategory category, string search, int page, int perPage, out array<ref OVT_ShopBrowserItem> items)
 	{
 		if (!items)
 			return;
 
 		array<ref OVT_ShopBrowserItem> filtered = new array<ref OVT_ShopBrowserItem>();
-		FilterByCategory(category, filtered);
+		FilterByCategory(category, search, filtered);
 
 		items.Clear();
 

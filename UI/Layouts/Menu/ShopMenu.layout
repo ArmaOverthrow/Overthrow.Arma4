@@ -78,10 +78,22 @@ FrameWidgetClass {
               TextWidgetClass "{598EF9FB202E31DD}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
                Name "Title"
                Slot LayoutSlot "{56EEDE046853BD3D}" {
-                Padding 0 0 0 12
-                SizeMode Fill
+                Padding 0 0 12 0
                }
                Text "#OVT-Shop"
+              }
+              ButtonWidgetClass "{4F18325CB5DACEE5}" : "{0022F0B45ADBC5AC}UI/layouts/WidgetLibrary/EditBox/WLib_EditBox.layout" {
+               Name "SearchBox"
+               Slot LayoutSlot "{DFE1E300DF63C3C0}" {
+                Padding 0 0 12 0
+                SizeMode Fill
+               }
+               components {
+                SCR_EditBoxComponent "{547290FFBD5B33E9}" {
+                 m_sLabel "#OVT-Shop_SearchLabel"
+                 m_bShowWriteIcon 0
+                }
+               }
               }
               TextWidgetClass "{599083DDFA910137}" : "{9D643D214767D616}UI/layouts/WidgetLibrary/TextWidgets/Text_Heading2.layout" {
                Name "PlayerMoney"

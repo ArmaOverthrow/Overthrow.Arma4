@@ -13139,6 +13139,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B2}" {
+   Id "OVT-Msg-AdminSkillGranted"
+   Target_en_us "Admin: '%1' set to level %2"
+   Comment "Confirmation to a server admin who used the /give-skill chat command - %1 is the skill's key (e.g. Trade), %2 is the level it was set to"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788930000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
@@ -20632,6 +20649,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000AE}" {
+   Id "OVT-Shop_NoMatches"
+   Target_en_us "No items match your search"
+   Comment "Shop menu - shown in the details pane when the search box filters out every row on the current tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
@@ -20715,6 +20749,23 @@ StringTable {
    Modified 1706587851
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AF}" {
+   Id "OVT-Shop_SearchLabel"
+   Target_en_us "Search"
+   Comment "Placeholder label on the shop menu's item search box"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -22908,6 +22959,23 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B0}" {
+   Id "OVT-Transfer_NoMatches"
+   Target_en_us "No items match your search"
+   Comment "Transfer screen (Storage, Port, Production Buy, Resource Transfer) - shown in the checkout message area when the search box filters out every row on the current tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2D2000000021}" {
    Id "OVT-Transfer_NoSpace"
    Target_en_us "Not enough room in the vehicle"
@@ -23019,6 +23087,23 @@ StringTable {
    Modified 1787270400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000B1}" {
+   Id "OVT-Transfer_SearchLabel"
+   Target_en_us "Search"
+   Comment "Placeholder label on the transfer screen's item search box (Storage, Port, Production Buy, Resource Transfer)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }

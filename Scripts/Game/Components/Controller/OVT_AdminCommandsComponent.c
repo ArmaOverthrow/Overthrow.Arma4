@@ -17,6 +17,8 @@ class OVT_AdminCommandsComponentClass : OVT_ControllerRequestComponentClass {};
 //!   "/capture-base"             hands the nearest base to the resistance (admin-gated);
 //!   "/capture-town"             hands the nearest town to the resistance (admin-gated);
 //!   "/max-support"              takes the nearest town to 100 % support (admin-gated);
+//!   "/give-skill <key> [level]" sets a skill straight to a level, default 1, bypassing the
+//!                               spendable-points gate (admin-gated) - see OnGiveSkillCommand;
 //!   "/respawn-screen"           toggles the local respawn screen (no gate, no state change).
 //!
 //! The three capture/support commands exist because the debug menu is unreachable from a real
@@ -275,6 +277,22 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 		{
 			invoker.Remove(OnGivePoolCommand);
 			invoker.Insert(OnGivePoolCommand);
+		}
+
+		// "/give-skill" - sets a skill level directly (bypassing the spendable-points gate), same
+		// Remove()-then-Insert() discipline as every other state-creating command here.
+		invoker = chat.GetCommandInvoker("give-skill");
+		if (invoker)
+		{
+			invoker.Remove(OnGiveSkillCommand);
+			invoker.Insert(OnGiveSkillCommand);
+		}
+
+		invoker = chat.GetCommandInvoker("giveskill");
+		if (invoker)
+		{
+			invoker.Remove(OnGiveSkillCommand);
+			invoker.Insert(OnGiveSkillCommand);
 		}
 
 		// Debug affordance for map/respawn, kept deliberately - see OnRespawnScreenCommand.
@@ -581,6 +599,146 @@ class OVT_AdminCommandsComponent : OVT_ControllerRequestComponent
 		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
 		if (notify)
 			notify.SendTextNotification("AdminResourcesAdded", playerId, amount.ToString(), pool.ToString());
+	}
+
+	//------------------------------------------------------------------------------------------------
+	// SKILLS - "/give-skill <key> [level]".
+	//
+	// Sets a skill straight to a level rather than spending a point, so it works regardless of the
+	// caller's character level - e.g. "/give-skill Trade" grants level 1 immediately, which is what
+	// unlocks the "Import" permission and the Port menu button near a port (see
+	// OVT_VehicleMenuContext.Import()). The mutation itself lives on OVT_SkillManagerComponent
+	// (DebugSetPlayerSkill) so this command does not duplicate the skill-effect/broadcast logic
+	// AddSkillLevel already owns - same reasoning as CreditAndDistribute above.
+	//------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------
+	//! Chat callback for "/give-skill <key> [level]". Runs on the typing player's client.
+	//! \param[in] panel The chat panel the command was typed into (unused).
+	//! \param[in] data Everything after the command word - "<key> [level]". Level defaults to 1.
+	protected void OnGiveSkillCommand(SCR_ChatPanel panel, string data)
+	{
+		data.TrimInPlace();
+
+		array<string> parts = new array<string>();
+		// false = drop empty entries, so "/give-skill  Trade   3" (accidental double spaces) still
+		// parses as ["Trade", "3"] instead of misaligning parts[0]/parts[1] with blank tokens.
+		data.Split(" ", parts, false);
+
+		if (parts.IsEmpty())
+		{
+			Print(string.Format("[Overthrow] Usage: /give-skill <key> [level] - available keys: %1", ListSkillKeys()), LogLevel.WARNING);
+			return;
+		}
+
+		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+		if (!skills)
+			return;
+
+		OVT_SkillConfig skill = skills.FindSkillCaseInsensitive(parts[0]);
+		if (!skill)
+		{
+			Print(string.Format("[Overthrow] Usage: /give-skill <key> [level] - '%1' is not a skill. Available keys: %2", parts[0], ListSkillKeys()), LogLevel.WARNING);
+			return;
+		}
+
+		int level = 1;
+		if (parts.Count() > 1)
+		{
+			// Same text check as "/give-resources": ToInt() answers 0 for "abc", so the result alone
+			// cannot tell a typo from a real level.
+			if (!IsPositiveInteger(parts[1]))
+			{
+				Print(string.Format("[Overthrow] Usage: /give-skill <key> [level] - '%1' is not a whole positive number (default 1)", parts[1]), LogLevel.WARNING);
+				return;
+			}
+
+			level = parts[1].ToInt();
+		}
+
+		// The canonical-case key, not the caller's typed text - RpcAsk_GiveSkill re-resolves it
+		// server-side anyway, but the audit line and the client's own log should agree on casing.
+		RequestGiveSkill(skill.m_sKey, level);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \return Every configured skill's key, comma-separated, for a usage message.
+	protected string ListSkillKeys()
+	{
+		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+		if (!skills || !skills.m_Skills)
+			return "";
+
+		string result = "";
+		foreach (OVT_SkillConfig skill : skills.m_Skills.m_aSkills)
+		{
+			if (!skill)
+				continue;
+
+			if (result != "")
+				result = result + ", ";
+
+			result = result + skill.m_sKey;
+		}
+
+		return result;
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Asks the server to set a skill's level directly for the calling player. Admin-gated
+	//! server-side.
+	//! \param[in] key The skill's key, as resolved client-side. Re-validated server-side.
+	//! \param[in] level The level to set. Clamped server-side to [1, the skill's level count].
+	void RequestGiveSkill(string key, int level)
+	{
+		if (Replication.IsServer())
+			RpcAsk_GiveSkill(key, level);
+		else
+			Rpc(RpcAsk_GiveSkill, key, level);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	protected void RpcAsk_GiveSkill(string key, int level)
+	{
+		if (!Replication.IsServer())
+			return;
+
+		int playerId = ResolveOwningPlayerId();
+		if (playerId <= 0)
+			return;
+
+		if (!AssertAdmin(playerId, "/give-skill"))
+			return;
+
+		OVT_SkillManagerComponent skills = OVT_Global.GetSkills();
+		if (!skills)
+			return;
+
+		// Re-resolved here rather than trusted from the wire, same as every other amount in this
+		// file - a modified client could send an unresolved or wrongly-cased key.
+		OVT_SkillConfig skill = skills.FindSkillCaseInsensitive(key);
+		if (!skill)
+		{
+			Print(string.Format("[Overthrow] /give-skill: '%1' is not a configured skill (admin player %2)", key, playerId), LogLevel.WARNING);
+			return;
+		}
+
+		if (level < 1)
+			level = 1;
+		if (level > skill.m_aLevels.Count())
+			level = skill.m_aLevels.Count();
+
+		if (!skills.DebugSetPlayerSkill(playerId, skill.m_sKey, level))
+			return;
+
+		// Server console record: a skill was granted outside the normal points economy, an audit
+		// line is the least it costs.
+		Print(string.Format("[Overthrow] Admin (player %1) set skill '%2' to level %3 via /give-skill", playerId, skill.m_sKey, level), LogLevel.NORMAL);
+
+		OVT_NotificationManagerComponent notify = OVT_Global.GetNotify();
+		if (notify)
+			notify.SendTextNotification("AdminSkillGranted", playerId, skill.m_sKey, level.ToString());
 	}
 
 	//------------------------------------------------------------------------------------------------
