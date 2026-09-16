@@ -65,6 +65,10 @@ class OVT_ShopContext : OVT_TabHostContext
 	protected OVT_ShopMenuMode m_eMode = OVT_ShopMenuMode.BUY;
 	protected OVT_ShopCategory m_eTab = OVT_ShopCategory.ALL;
 
+	//! Lower-cased search box text. Empty means "no filter" - see FilterByCategory() in
+	//! OVT_ShopBrowserModel, which ANDs this against the active tab.
+	protected string m_sSearchFilter = "";
+
 	//! Rows currently browsable, rebuilt per refresh from the shop stock or the player's containers.
 	protected ref OVT_ShopBrowserModel m_Model = new OVT_ShopBrowserModel();
 
@@ -115,6 +119,8 @@ class OVT_ShopContext : OVT_TabHostContext
 	protected SCR_InputButtonComponent m_PrevCategoryAction;
 	protected SCR_InputButtonComponent m_NextCategoryAction;
 
+	protected SCR_EditBoxComponent m_SearchBox;
+
 	//! The transaction component this context subscribed to, so it unsubscribes from the same one.
 	protected OVT_ShopTransactionComponent m_Transactions;
 
@@ -162,11 +168,13 @@ class OVT_ShopContext : OVT_TabHostContext
 		m_iPageNum = 0;
 		m_eMode = OVT_ShopMenuMode.BUY;
 		m_eTab = OVT_ShopCategory.ALL;
+		m_sSearchFilter = "";
 		m_bSellInFlight = false;
 		ClearSelection();
 
 		ResolveSellEligibility();
 		WireWidgets();
+		BuildSearchBox();
 		SubscribeSellResults();
 		SubscribeInventoryChanges();
 		SubscribeNotifications();
@@ -206,6 +214,9 @@ class OVT_ShopContext : OVT_TabHostContext
 		if(m_ModeSellAction) m_ModeSellAction.m_OnActivated.Remove(ModeSell);
 		if(m_PrevCategoryAction) m_PrevCategoryAction.m_OnActivated.Remove(PreviousCategory);
 		if(m_NextCategoryAction) m_NextCategoryAction.m_OnActivated.Remove(NextCategory);
+
+		if(m_SearchBox) m_SearchBox.m_OnChanged.Remove(OnSearchChanged);
+		m_SearchBox = null;
 
 		if(m_Transactions && m_Transactions.m_OnSellResult)
 			m_Transactions.m_OnSellResult.Remove(OnSellResult);
@@ -347,6 +358,29 @@ class OVT_ShopContext : OVT_TabHostContext
 		}
 
 		ResetMessage();
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! Wires the search box's live-change event. SCR_EditBoxComponent.m_OnChanged fires on every
+	//! keystroke, on-screen keyboard included, so a controller player typing with the pad keyboard
+	//! gets the same live filtering as a mouse-and-keyboard player.
+	protected void BuildSearchBox()
+	{
+		m_SearchBox = SCR_EditBoxComponent.GetEditBoxComponent("SearchBox", m_wRoot);
+		if(!m_SearchBox) return;
+
+		m_SearchBox.m_OnChanged.Insert(OnSearchChanged);
+	}
+
+	//------------------------------------------------------------------------------------------------
+	//! \param[in] comp The search box.
+	//! \param[in] value The box's new text, as typed - not yet lower-cased.
+	protected void OnSearchChanged(SCR_EditBoxComponent comp, string value)
+	{
+		value.ToLower();
+		m_sSearchFilter = value;
+		m_iPageNum = 0;
+		Refresh();
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -635,7 +669,7 @@ class OVT_ShopContext : OVT_TabHostContext
 		RefreshHeader();
 
 		array<ref OVT_ShopBrowserItem> filtered = new array<ref OVT_ShopBrowserItem>();
-		m_Model.FilterByCategory(m_eTab, filtered);
+		m_Model.FilterByCategory(m_eTab, m_sSearchFilter, filtered);
 
 		m_iNumPages = OVT_ShopBrowserModel.GetPageCount(filtered.Count(), CARDS_PER_PAGE);
 		m_iPageNum = OVT_ShopBrowserModel.ClampPage(m_iPageNum, m_iNumPages);
@@ -1073,7 +1107,7 @@ class OVT_ShopContext : OVT_TabHostContext
 		if(!grid) return;
 
 		array<ref OVT_ShopBrowserItem> pageItems = new array<ref OVT_ShopBrowserItem>();
-		m_Model.GetPageItems(m_eTab, m_iPageNum, CARDS_PER_PAGE, pageItems);
+		m_Model.GetPageItems(m_eTab, m_sSearchFilter, m_iPageNum, CARDS_PER_PAGE, pageItems);
 
 		int wi = 0;
 
@@ -1112,7 +1146,18 @@ class OVT_ShopContext : OVT_TabHostContext
 			w.SetEnabled(false);
 		}
 
-		if(pageItems.IsEmpty()) ClearDetails();
+		if(pageItems.IsEmpty())
+		{
+			ClearDetails();
+
+			// Distinct from a genuinely empty tab (which the tab row would not even offer): the shop has
+			// stock, the search just matched none of it.
+			if(m_sSearchFilter != "")
+			{
+				TextWidget desc = TextWidget.Cast(m_wRoot.FindAnyWidget("SelectedDescription"));
+				if(desc) desc.SetText("#OVT-Shop_NoMatches");
+			}
+		}
 	}
 
 	//------------------------------------------------------------------------------------------------

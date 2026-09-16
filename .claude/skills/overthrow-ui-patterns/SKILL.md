@@ -95,6 +95,7 @@ never initialises. `ui-contexts.md` has the block to copy.
 | `keybindings.md` | Adding an action, picking keys/pad inputs, contexts, conflict checking |
 | `ui-contexts.md` | `OVT_UIContext` lifecycle, registration, refresh, teardown |
 | `widget-components.md` | Dynamic lists - cards, tabs, rows instantiated at runtime |
+| `search-filter.md` | Adding a live search/filter box over a dynamic list |
 
 ---
 
