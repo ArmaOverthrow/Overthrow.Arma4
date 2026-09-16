@@ -17,12 +17,17 @@ class OVT_JobListEntryHandler : SCR_ButtonBaseComponent
 		};
 		
 		TextWidget location = TextWidget.Cast(m_wRoot.FindAnyWidget("Location"));
-		if(job.townId == -1)
+		if(job.townId == -1 && job.baseId != -1)
 		{
 			OVT_BaseData base = OVT_Global.GetOccupyingFaction().m_Bases[job.baseId];
 			OVT_TownData town = OVT_Global.GetTowns().GetNearestTown(base.location);
 			int townID = OVT_Global.GetTowns().GetTownID(town);
 			location.SetText("#OVT-BaseNear " + OVT_Global.GetTowns().GetTownName(townID));
+		}else if(job.townId == -1)
+		{
+			// Neither a town job nor a base job (OVT_JobManagerComponent's "not tied to town/base"
+			// case) - there is no location to show.
+			location.SetText("");
 		}else{
 			location.SetText(OVT_Global.GetTowns().GetTownName(job.townId));
 		}
