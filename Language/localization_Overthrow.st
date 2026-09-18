@@ -4,6 +4,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD0}" {
    Id "OVT-Account"
    Target_en_us "Account"
+   Target_it_it "Account"
    Target_de_de "Konto"
    Target_ru_ru "Кошелёк"
    Target_ko_kr "계정"
@@ -26,6 +27,7 @@ StringTable {
   CustomStringTableItem "{59DA69F6CA52A3DC}" {
    Id "OVT-AlreadyOccupied"
    Target_en_us "Position is already occupied"
+   Target_it_it "La posizione è già occupata"
    Target_fr_fr "La position est déjà occupée"
    Target_de_de "Die Position ist bereits besetzt"
    Target_ru_ru "Точка уже захвачена"
@@ -49,6 +51,7 @@ StringTable {
   CustomStringTableItem "{59C84C79CA882ABD}" {
    Id "OVT-Amount"
    Target_en_us "Amount"
+   Target_it_it "Quantità"
    Target_fr_fr "Montant"
    Target_de_de "Menge"
    Target_ru_ru "Количество"
@@ -72,6 +75,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BF}" {
    Id "OVT-Barracks"
    Target_en_us "Barracks"
+   Target_it_it "Caserma"
    Target_de_de "Kaserne"
    Target_ru_ru "Казарма"
    Comment "Map POI name for a High Command barracks (OVT_MapMarkerComponent on OVT_Barracks.et and the three same-GUID vanilla overrides). Referenced by the user's prefab authoring since before this key existed."
@@ -91,6 +95,7 @@ StringTable {
   CustomStringTableItem "{6468E2321E96E602}" {
    Id "OVT-Base_Chotain"
    Target_en_us "Chotain Base"
+   Target_it_it "Base di Chotain"
    Target_de_de "Chotain Basis"
    Target_ru_ru "База Шотен"
    Target_ko_kr "초테인 기지"
@@ -103,6 +108,7 @@ StringTable {
   CustomStringTableItem "{646E48D7E93CDF0B}" {
    Id "OVT-Base_Erquy"
    Target_en_us "Erquy Harbour"
+   Target_it_it "Porto di Erquy"
    Target_de_de "Erquy Hafen"
    Target_ru_ru "Гавань Эрки"
    Target_ko_kr "에르퀴 항구"
@@ -115,6 +121,7 @@ StringTable {
   CustomStringTableItem "{6468E2320833D633}" {
    Id "OVT-Base_Lamentin"
    Target_en_us "Lamentin Harbour"
+   Target_it_it "Porto di Lamentin"
    Target_de_de "Lamentin Hafen"
    Target_ru_ru "Гавань Ламентен"
    Target_ko_kr "라망탱 항구"
@@ -127,6 +134,7 @@ StringTable {
   CustomStringTableItem "{6468E232050364DF}" {
    Id "OVT-Base_Levie"
    Target_en_us "Levie Base"
+   Target_it_it "Base di Levie"
    Target_de_de "Levie Basis"
    Target_ru_ru "База Леви"
    Target_ko_kr "레비 기지"
@@ -139,6 +147,7 @@ StringTable {
   CustomStringTableItem "{6A18B7BFD9B3DDC7}" {
    Id "OVT-Base_MilitaryHospital"
    Target_en_us "Military Hospital"
+   Target_it_it "Ospedale Militare"
    Target_de_de "Militärkrankenhaus"
    Target_ru_ru "Военный Госпиталь"
    Target_uk_ua "Військовий шпиталь"
@@ -149,6 +158,7 @@ StringTable {
   CustomStringTableItem "{6468E232E3F6812C}" {
    Id "OVT-Base_StPhillipe"
    Target_en_us "St Phillipe Base"
+   Target_it_it "Base di St Phillipe"
    Target_de_de "St Phillipe Basis"
    Target_ru_ru "База Сен-Филип"
    Target_ko_kr "상필립 기지"
@@ -161,6 +171,7 @@ StringTable {
   CustomStringTableItem "{6468E232F36B047A}" {
    Id "OVT-Base_TrainingGrounds"
    Target_en_us "Training Grounds"
+   Target_it_it "Campo di addestramento"
    Target_de_de "Trainingsgelände"
    Target_ru_ru "Учебный полигон"
    Target_ko_kr "훈련장"
@@ -173,6 +184,7 @@ StringTable {
   CustomStringTableItem "{59B518A9E7140382}" {
    Id "OVT-BaseNear"
    Target_en_us "Base near"
+   Target_it_it "Base vicina"
    Target_fr_fr "Base proche"
    Target_de_de "Basis in der Nähe"
    Target_ru_ru "База около"
@@ -196,6 +208,7 @@ StringTable {
   CustomStringTableItem "{59B4F0BA1C3CB517}" {
    Id "OVT-BattleProgress"
    Target_en_us "Battle In Progress"
+   Target_it_it "Battaglia in corso"
    Target_fr_fr "Bataille en cours"
    Target_de_de "Kampf im Gange"
    Target_ru_ru "Идет бой"
@@ -219,6 +232,7 @@ StringTable {
   CustomStringTableItem "{59B4F0BA13E340D4}" {
    Id "OVT-BattleStartsIn"
    Target_en_us "Battle Starts In"
+   Target_it_it "Inizio battaglia tra"
    Target_fr_fr "La Bataille commence dans"
    Target_de_de "Der Kampf beginnt in"
    Target_ru_ru "Бой начнется через"
@@ -240,6 +254,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D000000C7}" {
    Id "OVT-BattleStartsInMinutes"
    Target_en_us "Battle Starts In (min)"
+   Target_it_it "Inizio battaglia tra (min)"
    Target_de_de "Der Kampf beginnt in (Min.)"
    Target_ru_ru "Бой начнется через (мин)"
    Comment "HUD battle panel, the countdown label used when MORE than two minutes remain - the counter-attack muster window, which is FIFTEEN real minutes since 2026-08-20 (was thirty). The number appended after it is whole minutes rounded UP (OVT_QRFSiege.MusterMinutesRemaining), ⚠ NO LONGER USED BY THE HUD as of 2026-08-20 - the battle panel now renders one M:SS clock via OVT-QRFScoringBeginsIn. Kept because removing a shipped key breaks any translation memory keyed on it. Keep the unit marker: the same panel shows a bare seconds count below two minutes and the two must not be confusable. A player-initiated battle never shows this string - its countdown starts at exactly two minutes and renders in seconds from its first frame."
@@ -259,6 +274,7 @@ StringTable {
   CustomStringTableItem "{5D822427A868571A}" {
    Id "OVT-BodiesLooted"
    Target_en_us "Dead bodies and weapons within 25m have looted into the vehicle"
+   Target_it_it "Corpi ed armi nel raggio di 25m sono stati trasferiti nel veicolo."
    Target_de_de "Leichen und Waffen im Umkreis von 25 m wurden in das Fahrzeug gelootet"
    Target_ru_ru "Снаряжения и оружие в радиусе 25м загружены в машину"
    Target_ko_kr "25미터 이내의 시체와 무기가 차량 안으로 약탈되었습니다."
@@ -281,6 +297,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C0}" {
    Id "OVT-Build_Barracks"
    Target_en_us "Barracks"
+   Target_it_it "Caserma"
    Target_de_de "Kaserne"
    Target_ru_ru "Казарма"
    Comment "Build menu title for the Barracks buildable, Configs/Resistance/buildables.conf. The most expensive buildable in the resistance's build list."
@@ -300,6 +317,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C1}" {
    Id "OVT-Build_Barracks_Description"
    Target_en_us "Raises High Command groups you can command from the map. The costliest structure the resistance can build."
+   Target_it_it "Crea gruppi dell'Alto Comando che puoi gestire dalla mappa. È la struttura più costosa che la Resistenza possa costruire."
    Target_de_de "Errichtet Oberkommando Gruppen, die du von der Karte aus befehligen kannst. Das kostspieligste Gebäude, das der Widerstand errichten kann."
    Target_ru_ru "Создает группы Высшего Командования, которыми вы можете управлять с помощью карты. Самое дорогостоящее сооружение, которое может построить сопротивление."
    Comment "Build menu description for the Barracks buildable, Configs/Resistance/buildables.conf."
@@ -319,6 +337,7 @@ StringTable {
   CustomStringTableItem "{65B90A1309A95BE3}" {
    Id "OVT-Build_Bunkers"
    Target_en_us "Bunker"
+   Target_it_it "Bunker"
    Target_de_de "Bunker"
    Target_uk_ua "Бункер"
    Modified 1780504329
@@ -328,6 +347,7 @@ StringTable {
   CustomStringTableItem "{65B90A13E7E87AEF}" {
    Id "OVT-Build_Bunkers_Description"
    Target_en_us "A hidey-hole to shoot out of"
+   Target_it_it "Un nascondiglio da cui sparare"
    Target_de_de "Ein Versteck, aus dem man schießen kann"
    Target_ru_ru "Укрытие для ведения огня"
    Target_uk_ua "Схованка для стрільби"
@@ -338,6 +358,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000001}" {
    Id "OVT-Build_FuelDepot"
    Target_en_us "Fuel Depot"
+   Target_it_it "Deposito carburante"
    Target_de_de "Treibstofflager"
    Target_ru_ru "Топливный склад"
    Comment "Build-menu title of the Fuel Depot buildable (Configs/Resistance/buildables.conf) and the Game Master name of Prefabs/Structures/Military/FOB/OVT_FuelDepot.et. Two words, title case, sits in the same list as Guard Tower / Medical Tent / Vehicle Maintenance Ramp."
@@ -357,6 +378,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000002}" {
    Id "OVT-Build_FuelDepot_Description"
    Target_en_us "Stores and delivers fuel"
+   Target_it_it "Immagazzina e distribuisce carburante"
    Target_de_de "Lagert und liefert Kraftstoff"
    Target_ru_ru "Хранит и выдает топливо"
    Comment "Build-menu description of the Fuel Depot. SHORTENED BY THE USER 2026-08-18 from a two-sentence version to this four-word one - do not restore the long form without asking; the build menu's description panel is narrow. Keep it capacity- and mechanism-free so it cannot go stale: the numbers now live only in #OVT-FieldManual_Fuel_Text4 and #OVT-Tutorial_FuelDepotBuilt_Body, which are the two places a claim about the depot has to be fact-checked. For reference, the prefab facts as of amendment A2.3: SCR_FuelNode MaxFuel 10000 (up from 5000, two full truck loads), m_fInitialFuelTankState 0 (LITRES, not a fraction, so it starts empty), station m_fRange 7, OVT_FuelSourceComponent m_bFree 1 read by OVT_FuelUtils.IsFreeFuelSource. Deliberately says nothing about where it can be built - the build menu only offers it where it is allowed. Renders in the build menu's description panel and in the Game Master entity info."
@@ -376,6 +398,7 @@ StringTable {
   CustomStringTableItem "{5D7C5DE3BEE5FBE3}" {
    Id "OVT-Build_GuardTower"
    Target_en_us "Guard Tower"
+   Target_it_it "Torre di guardia"
    Target_de_de "Wachturm"
    Target_ru_ru "Башня охраны"
    Target_ko_kr "감시탑"
@@ -398,6 +421,7 @@ StringTable {
   CustomStringTableItem "{5DA486E25C2B0175}" {
    Id "OVT-Build_GuardTower_Description"
    Target_en_us "Provides a better view"
+   Target_it_it "Migliora la visuale"
    Target_de_de "Bietet eine bessere Sicht"
    Target_ru_ru "Дает хорошую просматриваемость"
    Target_ko_kr "더 나은 시야를 제공합니다."
@@ -420,6 +444,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B8934641B}" {
    Id "OVT-Build_MedicalTent"
    Target_en_us "Medical Tent"
+   Target_it_it "Tenda medica"
    Target_fr_fr "Tente Médicale"
    Target_de_de "Sanitätszelt"
    Target_ru_ru "Медицинский тент"
@@ -443,6 +468,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22347ED73}" {
    Id "OVT-Build_MedicalTent_Description"
    Target_en_us "Heals players"
+   Target_it_it "Cura il giocatore"
    Target_de_de "Heilt Spieler"
    Target_ru_ru "Лечит  игроков"
    Target_ko_kr "플레이어 치료하기"
@@ -465,6 +491,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C7}" {
    Id "OVT-Build_RecruitmentTent"
    Target_en_us "Recruitment Tent"
+   Target_it_it "Tenda di reclutamento"
    Target_fr_fr "Tente de recrutement"
    Target_de_de "Rekrutierungszelt"
    Target_ru_ru "Палатка вербовки"
@@ -487,6 +514,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C8}" {
    Id "OVT-Build_RecruitmentTent_Description"
    Target_en_us "Recruit civilians from nearby towns at reduced cost"
+   Target_it_it "Permette di reclutare i civili riducendone il costo"
    Target_fr_fr "Recruter des civils des villes voisines à coût réduit"
    Target_de_de "Rekrutieren Sie Zivilisten aus nahegelegenen Städten, zu reduzierten Kosten"
    Target_ru_ru "Нанимать гражданских из близлежащих городов по сниженной стоимости"
@@ -509,6 +537,7 @@ StringTable {
   CustomStringTableItem "{5D7C5DE39344EAE9}" {
    Id "OVT-Build_Tent"
    Target_en_us "Tent"
+   Target_it_it "Tenda"
    Target_de_de "Zelt"
    Target_ru_ru "Палатка"
    Target_ko_kr "텐트"
@@ -531,6 +560,7 @@ StringTable {
   CustomStringTableItem "{5DA486E24EA74F15}" {
    Id "OVT-Build_Tent_Description"
    Target_en_us "A roof over your head"
+   Target_it_it "Un tetto per la tua testa"
    Target_de_de "Ein Dach über dem Kopf"
    Target_ru_ru "Крыша над головой"
    Target_ko_kr "대피소"
@@ -553,6 +583,7 @@ StringTable {
   CustomStringTableItem "{59D030D767EAB683}" {
    Id "OVT-Build_VehicleMaintenanceRamp"
    Target_en_us "Vehicle Maintenance Ramp"
+   Target_it_it "Rampa di manutenzione veicoli"
    Target_fr_fr "Rampe de Maintenance de Véhicules"
    Target_de_de "Fahrzeugwartungsrampe"
    Target_ru_ru "Рампа для обслуживания техники"
@@ -576,6 +607,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C6}" {
    Id "OVT-Build_VehicleMaintenanceRamp_Description"
    Target_en_us "Can repair and upgrade vehicles"
+   Target_it_it "Permette di riparare e migliorare i veicoli"
    Target_de_de "Kann Fahrzeuge reparieren und aufrüsten"
    Target_ru_ru "Может чинить и улучшать технику"
    Target_ko_kr "차량을 수리하고 업그레이드할 수 있습니다."
@@ -598,7 +630,8 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000038}" {
    Id "OVT-Build_Warehouse"
    Target_en_us "Warehouse"
-   Target_de_de "Lagerhaus"
+   Target_it_it "Magazzino"
+   Target_de_de "Lager"
    Target_ru_ru "Склад"
    Comment "Build-menu title of the Warehouse buildable (Configs/Resistance/buildables.conf). One word, title case, sits in the same list as Guard Tower / Garage / Fuel Depot. Keep it consistent with #OVT-Warehouse, which names the same building on its storage screens and in the map layer filter."
    DevNote ""
@@ -608,15 +641,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783259895
+   Modified 1787788800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2E2000000039}" {
    Id "OVT-Build_Warehouse_Description"
    Target_en_us "Stores items and resources"
+   Target_it_it "Immagazzina loot e risorse"
    Target_de_de "Lagert Artikel und Ressourcen"
    Target_ru_ru "Хранит предметы и ресурсы"
    Comment "Build-menu description of the Warehouse. Four words, matching the shortened #OVT-Build_FuelDepot_Description - the description panel is narrow, so do not restore a longer form without asking. FACT-CHECKED 2026-08-21 against Prefabs/Structures/Industrial/Houses/Warehouse_01/Warehouse_01_Base.et: the building carries OVT_StorageComponent UNLIMITED (items) and OVT_ResourceStoreComponent m_fCargoVolume -1 (resources), which is what 'items and resources' means. Deliberately silent about ownership, access and where it may be built - the build menu only offers it where it is allowed, and the access rule lives in OVT_RealEstateManagerComponent.PlayerMayUseWarehouse. Renders in the build menu's description panel."
@@ -636,6 +670,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000072}" {
    Id "OVT-BuyEquippedRecruit"
    Target_en_us "Buy Equipped Recruit"
+   Target_it_it "Acquista recluta equipaggiata"
    Target_de_de "Kaufe Ausgerüsteten Rekruten"
    Target_ru_ru "Нанять экипированного рекрута"
    Target_uk_ua "Найняти спорядженого рекрута"
@@ -656,6 +691,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDB}" {
    Id "OVT-CampInfo"
    Target_en_us "Camps allow fast travel and basic building. Public camps can be used by anyone, private camps are owner-only."
+   Target_it_it "Gli accampamenti consentono il viaggio rapido e la costruzione di base. Quelli pubblici sono utilizzabili da chiunque, mentre quelli privati sono riservati al proprietario."
    Target_de_de "Camps ermöglichen Schnellreisen und grundlegende Bauarbeiten. Öffentliche Camps können von jedem genutzt werden, private Camps sind nur für den Eigentümer zugänglich."
    Target_ru_ru "Лагеря позволяют быстро перемещаться и строить базовые сооружения. Публичные лагеря доступны всем, частные — только владельцу."
    Target_uk_ua "Табори дозволяють швидко переміщуватися та будувати базові об’єкти. Публічні табори доступні для будь-кого, приватні - лише для власника."
@@ -676,6 +712,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD3}" {
    Id "OVT-CampName"
    Target_en_us "Camp Name"
+   Target_it_it "Nome accampamento"
    Target_de_de "Camp Name"
    Target_ru_ru "Название лагеря"
    Target_uk_ua "Ім'я табору"
@@ -696,6 +733,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD6}" {
    Id "OVT-CampPrivate"
    Target_en_us "Private"
+   Target_it_it "Privato"
    Target_de_de "Privat"
    Target_ru_ru "Частный"
    Target_uk_ua "Приватний"
@@ -716,6 +754,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD5}" {
    Id "OVT-CampPublic"
    Target_en_us "Public"
+   Target_it_it "Pubblico"
    Target_de_de "Öffentlich"
    Target_ru_ru "Публичный"
    Target_uk_ua "Публічний"
@@ -736,6 +775,7 @@ StringTable {
   CustomStringTableItem "{59A5462B60C888FA}" {
    Id "OVT-Cancel"
    Target_en_us "Cancel"
+   Target_it_it "Annulla"
    Target_fr_fr "Annuler"
    Target_de_de "beenden"
    Target_ru_ru "Отмена"
@@ -759,6 +799,7 @@ StringTable {
   CustomStringTableItem "{598C5127A5D2149E}" {
    Id "OVT-CannotAfford"
    Target_en_us "You cannot afford that"
+   Target_it_it "Non hai abbastanza soldi"
    Target_fr_fr "Vous n'avez pas assez d'argent"
    Target_de_de "Das kannst du dir nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
@@ -782,6 +823,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B7BFD22D6}" {
    Id "OVT-CannotBuildAnythingHere"
    Target_en_us "You cannot build anything here. Try at an FOB or a captured town/base."
+   Target_it_it "Non puoi costruire niente qui. Prova in una FOB o in una base/città catturata"
    Target_fr_fr "Vous ne pouvez rien placer ici, réessayez dans un avant-poste ou une commune/base capturée"
    Target_de_de "Hier kannst du nichts bauen. Versuche es an einer FOB oder in einer eroberten Stadt bzw. Basis."
    Target_ru_ru "Вы не можете здесь ничего построить. Попробуйте на FOB или в захваченом городе или базе"
@@ -805,6 +847,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B5D50BCD3}" {
    Id "OVT-CannotBuildHere"
    Target_en_us "You cannot build that here"
+   Target_it_it "Non puoi costruire nulla qui"
    Target_fr_fr "Vous ne pas pouvez construire ceci ici"
    Target_de_de "Das kannst du hier nicht bauen"
    Target_ru_ru "Вы не можете строить здесь"
@@ -828,6 +871,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B2987932A}" {
    Id "OVT-CannotBuildTown"
    Target_en_us "You can only build that in small villages"
+   Target_it_it "Puoi costruire questo edificio solo nei piccoli villaggi"
    Target_fr_fr "Vous pouvez construire ceci uniquement dans un village."
    Target_de_de "Das kannst du nur in kleinen Dörfern bauen"
    Target_ru_ru "Вы можете это построить только в  деревнях"
@@ -851,6 +895,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000003A}" {
    Id "OVT-CannotBuildUncontrolledTown"
    Target_en_us "You can only build that in a town the resistance controls"
+   Target_it_it "Puoi costruire questo edificio solo nelle città occupate dalla Resistenza"
    Target_de_de "Das kannst du nur in einer Stadt bauen, die von der Widerstandsbewegung kontrolliert wird."
    Target_ru_ru "Вы можете строить это только в городе, контролируемом сопротивлением"
    Comment "Refusal hint in the build menu when a town-buildable is placed inside a town the occupying faction still holds. Shown by OVT_BuildContext.CanBuild; the server re-checks the same rule in OVT_ResistanceFactionManager.BuildItem and refuses silently, so this is the only wording the player ever reads for it. Sits beside #OVT-CannotBuildVillage and #OVT-CannotBuildTown and should read like them - one sentence, no markup, no place name."
@@ -870,6 +915,7 @@ StringTable {
   CustomStringTableItem "{59C4F15B22A9F14E}" {
    Id "OVT-CannotBuildVillage"
    Target_en_us "You cannot build that in a small village"
+   Target_it_it "Non puoi costruire questo edificio in un piccolo villaggio"
    Target_fr_fr "Vous ne pouvez pas construire ceci dans un petit village"
    Target_de_de "Das kann man nicht in einem kleinen Dorf bauen"
    Target_ru_ru "Вы не можете это простроить в деревне"
@@ -893,6 +939,7 @@ StringTable {
   CustomStringTableItem "{59A49A9BE80620C3}" {
    Id "OVT-CannotFastTravelDistance"
    Target_en_us "That is too short of a distance to fast travel"
+   Target_it_it "La distanza è troppo breve per il viaggio rapido."
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pour si peu, vous avez des jambes !"
    Target_de_de "Die Entfernung ist zu gering für eine Schnellreise"
    Target_ru_ru "Это очень маленькая дистанция для быстрого перемещения"
@@ -916,6 +963,7 @@ StringTable {
   CustomStringTableItem "{59B4F0B91B3216F6}" {
    Id "OVT-CannotFastTravelDuringQRF"
    Target_en_us "You cannot fast travel during a battle"
+   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide pendant une contre attaque"
    Target_de_de "Während eines Kampfes kannst du keine Schnellreise nutzen"
    Target_ru_ru "Вы не можете переместиться в бою"
@@ -939,6 +987,7 @@ StringTable {
   CustomStringTableItem "{65D6C329AA15E1D7}" {
    Id "OVT-CannotFastTravelEnemyBase"
    Target_en_us "You cannot fast travel to enemy bases"
+   Target_it_it "Non puoi usare il viaggio rapido verso le basi nemiche"
    Target_de_de "Du kannst nicht per Schnellreise zu feindlichen Basen reisen"
    Target_ru_ru "Вы не можете быстро перемещаться на вражеские базы"
    Target_uk_ua "Швидке переміщення до ворожих баз неможливе"
@@ -949,6 +998,7 @@ StringTable {
   CustomStringTableItem "{6A88000000000001}" {
    Id "OVT-CannotFastTravelNotYourHouse"
    Target_en_us "You cannot fast travel to a house you do not own or rent"
+   Target_it_it "Non puoi viaggiare rapidamente verso una casa che non possiedi o non hai in affitto."
    Target_de_de "Du kannst nicht per Schnellreise zu einem Haus reisen, das dir nicht gehört oder das du nicht gemietet hast"
    Target_ru_ru "Вы не можете быстро перемещаться в дом, который вам не принадлежит и не сдан в аренду"
    Target_uk_ua "Швидке переміщення можливе лише до власного або орендованого будинку"
@@ -959,6 +1009,7 @@ StringTable {
   CustomStringTableItem "{6A88000000000002}" {
    Id "OVT-CannotFastTravelPrivateCamp"
    Target_en_us "You cannot fast travel to someone else's private camp"
+   Target_it_it "Non puoi effettuare viaggi rapidi verso accampamenti privati."
    Target_de_de "Du kannst nicht per Schnellreise zum privaten Camp einer anderen Person reisen"
    Target_ru_ru "Вы не можете быстро перемещаться в чужой частный лагерь"
    Target_uk_ua "Швидке переміщення до чужого приватного табору неможливе"
@@ -969,6 +1020,7 @@ StringTable {
   CustomStringTableItem "{59A49A9B02ABC32B}" {
    Id "OVT-CannotFastTravelThere"
    Target_en_us "You cannot fast travel there. Must be near an owned house, camp, FOB or controlled base"
+   Target_it_it "Non puoi effettuare viaggi rapidi in quel punto. È necessario trovarsi nei pressi di una casa di proprietà, un accampamento, una FOB o una base sotto controllo."
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ici. Vous devez sélectionner une propriété ou un avant-poste/base que vous controllez"
    Target_de_de "Du kannst nicht dorthin schnellreisen. Du musst dich in der Nähe eines eigenen Hauses, eines Lagers, einer FOB oder einer kontrollierten Basis befinden"
    Target_ru_ru "Вы не можете переместиться сюда. Точка должна быть возле купленого дома, лагеря, ПОБ или контролируемой базы"
@@ -992,6 +1044,7 @@ StringTable {
   CustomStringTableItem "{59B4F0B9EBF698FF}" {
    Id "OVT-CannotFastTravelToQRF"
    Target_en_us "You cannot fast travel to a battle in progress"
+   Target_it_it "Non puoi usare il viaggio rapido durante una battaglia in corso"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide ependant une bataille"
    Target_de_de "Du kannst nicht per Schnellreise zu einen laufenden Kampf reisen."
    Target_ru_ru "Вы не можете переместиться к зоне боевых действий"
@@ -1015,6 +1068,7 @@ StringTable {
   CustomStringTableItem "{59A49A9B1B4C8E20}" {
    Id "OVT-CannotFastTravelWanted"
    Target_en_us "You cannot fast travel while wanted"
+   Target_it_it "Non puoi usare il viaggio rapido mentre sei ricercato"
    Target_fr_fr "Vous ne pouvez pas effectuer un Déplacement Rapide en étant recherché"
    Target_de_de "Du kannst keine Schnellreise nutzen, solange du gesucht wirst"
    Target_ru_ru "Вы не можете переместиться во время розыска"
@@ -1038,6 +1092,7 @@ StringTable {
   CustomStringTableItem "{5DA6821F295FE629}" {
    Id "OVT-CannotImport"
    Target_en_us "Trade skill level 1 is required to import"
+   Target_it_it "Per importare è richiesto un livello commerciale pari a 1."
    Target_de_de "Für den Import ist Handelsfertigkeitsstufe 1 erforderlich"
    Target_ru_ru "Необходим 1 уровень прокаченой торговли для импорта"
    Target_ko_kr "수입하려면 거래 기술 레벨 1이 필요합니다."
@@ -1060,6 +1115,7 @@ StringTable {
   CustomStringTableItem "{5E02BE2D148E3EDB}" {
    Id "OVT-CannotPlaceAnythingHere"
    Target_en_us "You cannot place anything here, you must be near a house/camp you own, an FOB or a controlled base"
+   Target_it_it "Non puoi posizionare nulla qui, devi essere vicino a una casa/accampamento di tua proprietà, a un FOB o a una base controllata"
    Target_de_de "Du kannst hier nichts platzieren; du musst dich in der Nähe eines Hauses oder Lagers, das dir gehört, einer FOB oder einer kontrollierten Basis befinden."
    Target_ru_ru "Вы не можете здесь ничего разместить. Вы должны находиться рядом с собственным домом/лагерем, ПОБ или контролируемой базой"
    Target_uk_ua "Ви не можете тут нічого розміщувати. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
@@ -1070,6 +1126,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E27}" {
    Id "OVT-CannotPlaceHere"
    Target_en_us "You cannot place that item here, you must be near a house/camp you own, an FOB or a controlled base"
+   Target_it_it "Non puoi posizionare quell'oggetto qui, devi trovarti vicino a una casa o un accampamento di tua proprietà, a una FOB o a una base sotto il tuo controllo."
    Target_de_de "Du kannst diesen Gegenstand hier nicht platzieren; du musst dich in der Nähe eines Hauses oder Lagers, das dir gehört, einer FOB oder einer kontrollierten Basis befinden"
    Target_ru_ru "Вы не можете разместить это предмет здесь, вы должны быть возле купленного дома, FOB или захваченой базы"
    Target_uk_ua "Ви не можете розмістити цей предмет тут. Потрібно перебувати біля власного будинку/табору, FOB або контрольованої бази."
@@ -1080,6 +1137,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E2B}" {
    Id "OVT-CannotRemoveItem"
    Target_en_us "Cannot remove this item"
+   Target_it_it "Non puoi rimuovere questo oggetto"
    Target_de_de "Dieses Element kann nicht entfernt werden"
    Target_ru_ru "Невозможно удалить этот предмет"
    Target_uk_ua "Неможливо видалити цей предмет"
@@ -1090,6 +1148,7 @@ StringTable {
   CustomStringTableItem "{59B4D7D75C4B5A65}" {
    Id "OVT-CaptureBase"
    Target_en_us "Capture Base"
+   Target_it_it "Conquista la base"
    Target_fr_fr "Capturer la base"
    Target_de_de "Basis einnehmen"
    Target_ru_ru "Захват базы"
@@ -1113,6 +1172,7 @@ StringTable {
   CustomStringTableItem "{6BB4000000000210}" {
    Id "OVT-CaptureTower"
    Target_en_us "Capture Radio Tower"
+   Target_it_it "Conquista la Torre Radio"
    Target_de_de "Funkturm einnehmen"
    Target_ru_ru "Захватить радиовышку"
    Comment "Hold action on occupying radio towers, beside Sabotage Radio Tower"
@@ -1132,6 +1192,7 @@ StringTable {
   CustomStringTableItem "{6BB4000000000212}" {
    Id "OVT-CaptureTower_Defended"
    Target_en_us "Enemy soldiers are still defending this tower"
+   Target_it_it "I soldati nemici stanno ancora difendendo questa torre."
    Target_de_de "Feindliche Soldaten verteidigen diesen Turm weiterhin."
    Target_ru_ru "Солдаты врага всё ещё защищают эту вышку"
    Comment "Disabled reason on the Capture Radio Tower action"
@@ -1151,6 +1212,7 @@ StringTable {
   CustomStringTableItem "{6BB4000000000211}" {
    Id "OVT-CaptureTower_Wanted"
    Target_en_us "You cannot capture a tower while wanted"
+   Target_it_it "Non puoi catturare la torre radio se sei ricercato"
    Target_de_de "Du kannst keinen Turm erobern, während du gesucht wirst."
    Target_ru_ru "Вы не можете захватить вышку, находясь в розыске"
    Comment "Disabled reason on the Capture Radio Tower action"
@@ -1170,6 +1232,8 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000043}" {
    Id "OVT-Cargo_Line"
    Target_en_us "%1 x %2"
+   Target_it_it "%1 x %2"
+   Target_it-it "%1 x %2"
    Target_ru_ru "%1 x %2"
    Comment "One resource line on the truck cargo HUD. %1 is the unit count, %2 the resource's name, e.g. '40 x Timber'. Same order and shape as the build-menu requirement row #OVT-Resource_BuildRequirementRow."
    DevNote ""
@@ -1188,6 +1252,8 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000044}" {
    Id "OVT-Cargo_More"
    Target_en_us "+%1 more"
+   Target_it_it "+%1 altro"
+   Target_it-it "+%1 di più"
    Target_de_de "+%1 mehr"
    Target_ru_ru "+%1 еще"
    Comment "Overflow line on the truck cargo HUD, replacing the last resource line when the truck holds more kinds of resource than the panel has rows. %1 is how many kinds are not listed, including the one the row displaced."
@@ -1207,6 +1273,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000040}" {
    Id "OVT-Cargo_Title"
    Target_en_us "Cargo"
+   Target_it_it "Carico"
    Target_de_de "Ladung"
    Target_ru_ru "Груз"
    Comment "Header of the cargo panel on a truck's HUD, shown only while the local player occupies a truck that carries a resource store. One word, title case; the volume and the resource lines are drawn underneath it."
@@ -1226,6 +1293,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000041}" {
    Id "OVT-Cargo_Volume"
    Target_en_us "%1 / %2 m³"
+   Target_it_it "%1 / %2 m³"
    Target_ru_ru "%1 / %2 м³"
    Comment "Volume line on the truck cargo HUD when the truck has a capacity. %1 is the cubic metres currently loaded, %2 the truck's capacity, both to one decimal. Keep the unit as m³ - it matches every other resource readout in the mod."
    DevNote ""
@@ -1244,6 +1312,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000042}" {
    Id "OVT-Cargo_VolumeUnlimited"
    Target_en_us "%1 m³"
+   Target_it_it "%1 m³"
    Target_ru_ru "%1 м³"
    Comment "Volume line on the truck cargo HUD when the holder has no capacity limit. %1 is the cubic metres currently loaded, to one decimal. No shipped truck is unlimited; this is the defensive branch for a modded or mis-authored capacity of -1."
    DevNote ""
@@ -1262,6 +1331,7 @@ StringTable {
   CustomStringTableItem "{59A6ED8D1D1EF6CA}" {
    Id "OVT-CatchBus"
    Target_en_us "Catch a bus"
+   Target_it_it "Fermata del bus"
    Target_fr_fr "Prendre un bus"
    Target_de_de "Nimm den Bus"
    Target_ru_ru "Поймать автобус"
@@ -1285,6 +1355,7 @@ StringTable {
   CustomStringTableItem "{65D0CCE5C1759927}" {
    Id "OVT-City"
    Target_en_us "City"
+   Target_it_it "Città"
    Target_de_de "Stadt"
    Target_ru_ru "Город"
    Target_uk_ua "Місто"
@@ -1295,6 +1366,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE0}" {
    Id "OVT-ContainerProgress"
    Target_en_us "Container %1 of %2"
+   Target_it_it "Contenitore %1 di %2"
    Target_de_de "Container %1 von %2"
    Target_ru_ru "Контейнер %1 из %2"
    Target_uk_ua "Контейнер %1 з %2"
@@ -1315,6 +1387,7 @@ StringTable {
   CustomStringTableItem "{59C30B007FD079D1}" {
    Id "OVT-ContinueSave"
    Target_en_us "Continue Save"
+   Target_it_it "Continua e Salva"
    Target_fr_fr "Reprendre la sauvegarde"
    Target_de_de "Weiter Speichern"
    Target_ru_ru "Продолжить сохранение"
@@ -1338,6 +1411,7 @@ StringTable {
   CustomStringTableItem "{5DA4CE52026813CE}" {
    Id "OVT-ConvertedSupporter"
    Target_en_us "This citizen now supports the resistance"
+   Target_it_it "Questo cittadino ora sostiene la Resistenza"
    Target_de_de "Dieser Bürger unterstützt nun den Widerstand."
    Target_ru_ru "Этот горожанин теперь поддерживает сопротивление"
    Target_ko_kr "이 시민은 이제 저항군을 지지합니다."
@@ -1360,6 +1434,7 @@ StringTable {
   CustomStringTableItem "{5DA486E3A9993D96}" {
    Id "OVT-ConvertSupporter"
    Target_en_us "Convert supporter"
+   Target_it_it "Converti a sostenitore"
    Target_de_de "Unterstützer konvertieren"
    Target_ru_ru "Призвать присоединиться к сопротивлению"
    Target_ko_kr "저항군에 합류를 요청하기"
@@ -1382,6 +1457,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD9}" {
    Id "OVT-DeleteCamp"
    Target_en_us "Delete Camp"
+   Target_it_it "Elimina il campo"
    Target_de_de "Camp löschen"
    Target_ru_ru "Удалить лагерь"
    Target_uk_ua "Видалити табір"
@@ -1402,6 +1478,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDA}" {
    Id "OVT-DeleteCampConfirm"
    Target_en_us "Are you sure you want to delete this camp? All items will be lost."
+   Target_it_it "Sei sicuro di voler eliminare il campo? tutti gli oggetti andranno persi!"
    Target_de_de "Sind Sie sicher, dass Sie dieses Camp löschen möchten? Alle Elemente gehen verloren."
    Target_ru_ru "Вы уверены, что хотите удалить этот лагерь? Все предметы будут потеряны."
    Target_uk_ua "Ви впевнені, що хочете видалити цей табір? Усі предмети будуть втрачені."
@@ -1422,6 +1499,7 @@ StringTable {
   CustomStringTableItem "{59A6ED95F1AB81D0}" {
    Id "OVT-DeliverMedicalSupplies"
    Target_en_us "Deliver Medical Supplies"
+   Target_it_it "Consegna rifornimenti medici"
    Target_fr_fr "Livrer le Matériel Médical"
    Target_de_de "Medizinische Hilfsgüter liefern"
    Target_ru_ru "Доставить медикаменты"
@@ -1445,6 +1523,7 @@ StringTable {
   CustomStringTableItem "{5E04888F0573C994}" {
    Id "OVT-DeployFOB"
    Target_en_us "Deploy FOB"
+   Target_it_it "Dispiega FOB"
    Target_de_de "FOB errichten"
    Target_ru_ru "Развернуть ПОБ"
    Target_uk_ua "Розмістити FOB"
@@ -1455,6 +1534,7 @@ StringTable {
   CustomStringTableItem "{6466E3EDBB9A2E23}" {
    Id "OVT-Difficulty"
    Target_en_us "Difficulty"
+   Target_it_it "Difficoltà"
    Target_de_de "Schwierigkeit"
    Target_ru_ru "Сложность"
    Target_ko_kr "난이도"
@@ -1467,6 +1547,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010A}" {
    Id "OVT-Difficulty_Easy_Desc"
    Target_en_us "Recommended for solo players. Occupying garrisons and patrols are at their smallest."
+   Target_it_it "Raccomandato per giocatore singolo. Guarnigioni e pattuglie nemiche sono di piccole dimensioni"
    Target_de_de "Für Einzelspieler empfohlen. Die Besatzungen und Patrouillen sind auf ein Minimum reduziert."
    Target_ru_ru "Рекомендуется для одиночной игры. Гарнизоны и патрули минимальны."
    Target_uk_ua "Рекомендовано для поодиноких гравців. Гарнізони оккупантів та патрулі мінімальні."
@@ -1487,6 +1568,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010D}" {
    Id "OVT-Difficulty_Extreme_Desc"
    Target_en_us "Recommended for very busy servers. A radio is the only equipment you start with."
+   Target_it_it "Consigliato per server molto affollati. L'unica attrezzatura con cui si inizia è una radio."
    Target_de_de "Empfohlen für sehr stark frequentierte Server. Ein Funkgerät ist die einzige Ausrüstung, mit der man startet."
    Target_ru_ru "Рекомендуется для очень загруженных серверов. Из снаряжения у вас только радиостанция."
    Target_uk_ua "Рекомендовано для серверів із високим онлайном. Із початкового спорядження у вас буде лише рація."
@@ -1507,6 +1589,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010C}" {
    Id "OVT-Difficulty_Hard_Desc"
    Target_en_us "Recommended for busy servers. Garrisons and patrols are larger, and building costs more."
+   Target_it_it "Consigliato per server molto frequentati. Le guarnigioni e le pattuglie sono più numerose e i costi di costruzione sono più elevati."
    Target_de_de "Empfohlen für stark frequentierte Server. Garnisonen und Patrouillen sind größer, und Bauvorhaben kosten mehr."
    Target_ru_ru "Рекомендуется для загруженных серверов. Гарнизоны и патрули больше, строительство дороже."
    Target_uk_ua "Рекомендовано для завантажених серверів. Гарнізони та патрулі більші, а будівництво коштує дорожче."
@@ -1527,6 +1610,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010E}" {
    Id "OVT-Difficulty_Insane_Desc"
    Target_en_us "Recommended for highly experienced servers. Occupying garrisons and patrols are at their largest."
+   Target_it_it "Consigliato per server con giocatori di grande esperienza. Le guarnigioni e le pattuglie occupanti sono al massimo."
    Target_de_de "Empfohlen für sehr erfahrene Server. Die Besatzungen der Garnisonen und die Patrouillen sind hier am stärksten."
    Target_ru_ru "Рекомендуется для опытных игроков. Гарнизоны и патрули максимальны."
    Target_uk_ua "Для хардкорних серверів. Найбільша кількість ворожих гарнізонів та патрулів."
@@ -1547,6 +1631,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010B}" {
    Id "OVT-Difficulty_Normal_Desc"
    Target_en_us "Recommended for small servers, hosted games and experienced solo players."
+   Target_it_it "Raccomandato per piccoli server, Consigliato per pochi giocatori o in solo"
    Target_de_de "Empfohlen für kleine Server, gehostete Spiele und erfahrene Einzelspieler."
    Target_ru_ru "Рекомендуется для небольших серверов, хостинговых игр и опытных одиночных игроков."
    Target_uk_ua "Рекомендовано для невеликих серверів, хостованих сесій та досвідчених поодиноких гравців."
@@ -1567,6 +1652,7 @@ StringTable {
   CustomStringTableItem "{6B3D00000000010F}" {
    Id "OVT-Difficulty_Numbers"
    Target_en_us "Starting cash: $%1     Fast travel: $%2"
+   Target_it_it "Fondi iniziali: $%1     Viaggio rapido: $%2"
    Target_de_de "Startkapital: $%1     Schnellreise: $%2"
    Target_ru_ru "Стартовый капитал: $%1     Быстрое перемещение: $%2"
    Target_uk_ua "Початкові гроші: $%1     Швидке переміщення: $%2"
@@ -1587,6 +1673,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000065}" {
    Id "OVT-DismantleEnemyFOB"
    Target_en_us "Dismantle Forward Base"
+   Target_it_it "Smantellare la base avanzata"
    Target_de_de "Vorgeschobene Basis abbauen"
    Target_ru_ru "Демонтировать передовую базу"
    Comment "Held user action (15 s, authored on Prefabs/Bases/OVT_OccupyingFOB.et) shown on the flag of the occupying faction's forward operating base. Performing it tears the base down, takes objectiveFOBCost back out of the enemy's deployment pool and ends the current objective. Wording is an imperative verb phrase like the other flag actions (OVT-CaptureBase)."
@@ -1606,6 +1693,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000066}" {
    Id "OVT-DismantleEnemyFOB_Defended"
    Target_en_us "Enemy soldiers are still defending this position"
+   Target_it_it "Soldati nemici stanno difendendo questa posizione"
    Target_de_de "Feindliche Soldaten verteidigen diese Stellung weiterhin"
    Target_ru_ru "Солдаты врага всё ещё защищают эту позицию"
    Comment "Refusal reason shown on the Dismantle Forward Base action (SetCannotPerformReason) while at least one living occupying-faction soldier is within 150 m of the flag. The site has to be CLEARED, not merely reached - this is the whole challenge of removing a forward base."
@@ -1625,6 +1713,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000068}" {
    Id "OVT-DismantleEnemyFOB_None"
    Target_en_us "There is no enemy forward base here any more"
+   Target_it_it "Qui non c'è più alcuna base avanzata nemica."
    Target_de_de "Hier gibt es keine feindliche vorgeschobene Basis mehr"
    Target_ru_ru "Здесь больше нет вражеской передовой базы"
    Comment "Refusal reason shown on the Dismantle Forward Base action when the occupying faction no longer has a forward base at all - it starved, the objective ended, or another player pulled it down first. The structure is a persisted world entity and can briefly outlive the campaign's record of it, which is when a player sees this."
@@ -1644,6 +1733,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000067}" {
    Id "OVT-DismantleEnemyFOB_TooFar"
    Target_en_us "You are too far from the forward base"
+   Target_it_it "Sei troppo lontano dalla base avanzata"
    Target_de_de "Du bist zu weit von der vorgeschobenen Basis entfernt"
    Target_ru_ru "Вы слишком далеко от передовой базы"
    Comment "Refusal reason shown on the Dismantle Forward Base action when the caller is further than 30 m from the recorded forward-base position. In practice only reachable when the flag and the enemy's recorded base position have drifted apart, so the wording explains the distance rather than blaming the player."
@@ -1663,6 +1753,7 @@ StringTable {
   CustomStringTableItem "{59C84C639B645258}" {
    Id "OVT-DonateFunds"
    Target_en_us "Donate Funds"
+   Target_it_it "Dona fondi"
    Target_fr_fr "Donner des fonds"
    Target_de_de "Spenden Sie Geld"
    Target_ru_ru "Переслать деньги"
@@ -1686,6 +1777,7 @@ StringTable {
   CustomStringTableItem "{59CEA732CF3E444B}" {
    Id "OVT-DriverMustExit"
    Target_en_us "Driver must exit vehicle first"
+   Target_it_it "Il conducente deve prima uscire dal veicolo."
    Target_fr_fr "Le conducteur doit d'abord sortir du véhicule"
    Target_de_de "Der Fahrer muss das Fahrzeug zuerst verlassen"
    Target_ru_ru "Водитель сперва должен покинуть транспорт"
@@ -1709,6 +1801,7 @@ StringTable {
   CustomStringTableItem "{59CC0DA6CE6D0311}" {
    Id "OVT-EquipmentCost"
    Target_en_us "Equipment Cost"
+   Target_it_it "Costo equipaggiamento"
    Target_fr_fr "Coût de l'équipement"
    Target_de_de "Ausrüstungskosten"
    Target_ru_ru "Стоимость снаряжения"
@@ -1732,6 +1825,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000001D}" {
    Id "OVT-Export"
    Target_en_us "Export"
+   Target_it_it "Esporta"
    Target_de_de "Export"
    Target_ru_ru "Экспорт"
    Comment "Transfer screen mode label for the port Export list, where a vehicle's storage is sold."
@@ -1751,6 +1845,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000001E}" {
    Id "OVT-Export_Body"
    Target_en_us "The port pays less than any shop charges for the same item."
+   Target_it_it "Il porto è sempre più economico rispetto ai negozi nella vendita di equipaggiamento"
    Target_de_de "Der Hafen zahlt weniger, als jedes Geschäft für denselben Artikel verlangt."
    Target_ru_ru "Порт платит меньше чем любой магазин за тот же товар."
    Comment "Details pane body on every sellable row of the port Export list."
@@ -1770,6 +1865,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000001F}" {
    Id "OVT-Export_NotSellable"
    Target_en_us "The port will not buy this"
+   Target_it_it "Il porto non lo acquisterà"
+   Target_it-it "Il porto non può acquistare questo"
    Target_de_de "Der Hafen wird das nicht kaufen."
    Target_ru_ru "Порт не купит это"
    Comment "Port Export row disabled - the item is unregistered, or illegal and the player lacks the import permission at a port the resistance does not hold."
@@ -1789,6 +1886,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000106}" {
    Id "OVT-Faction_US_Occupying"
    Target_en_us "US forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Target_it_it "Le forze statunitensi controllano l'isola. Presidiano le basi e le torri radio, pattugliano le città e la loro uniforme è quella che funge da travestimento."
    Target_de_de "US-Streitkräfte halten die Insel besetzt. Sie bemannen deren Stützpunkte und Funktürme und patrouillieren in den Ortschaften – und ihre Uniform ist es, die als Tarnung dient."
    Target_ru_ru "Американские силы удерживают остров. Они размещают гарнизоны на базах и радиовышках и патрулируют города. Их форма подходит для маскировки."
    Target_uk_ua "Острів перебуває під контролем сил США. Вони утримують гарнізони на базах і радіовежах та патрулюють населені пункти, а їхню уніформу можна використовувати для маскування."
@@ -1809,6 +1907,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000108}" {
    Id "OVT-Faction_US_Supporting"
    Target_en_us "The United States is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Target_it_it "Gli Stati Uniti sono una potenza straniera che simpatizza per la Resistenza, non la tua fazione. Farsi vedere con la loro uniforme comporta un immediato livello di ricercato, e non possono essere loro la forza occupante."
    Target_de_de "Die US-Streitkräfte ist eine ausländische Macht, die mit dem Widerstand sympathisiert, aber nicht mit deiner eigenen Fraktion. Wer in dieser Uniform gesehen wird, löst sofort eine Fahndung aus; zudem kann man nicht gleichzeitig als Besatzer auftreten."
    Target_ru_ru "Соединенные Штаты — иностранная держава, симпатизирующая сопротивлению, но не ваша фракция. Появление в их форме немедленно повышает уровень розыска, и они не могут быть оккупантами."
    Target_uk_ua "Сполучені Штати — це дружня до опору іноземна держава, а не ваша власна фракція. Поява у їхній формі одразу викликає рівень розшуку, і вони також не можуть бути окупантами."
@@ -1829,6 +1928,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000107}" {
    Id "OVT-Faction_USSR_Occupying"
    Target_en_us "Soviet forces hold the island. They garrison its bases and radio towers and patrol its towns, and their uniform is the one that works as a disguise."
+   Target_it_it "Le forze sovietiche controllano l'isola. Presidiano le basi e le torri radio, pattugliano le città e la loro uniforme è quella che funge da travestimento."
    Target_de_de "Sowjetische Streitkräfte halten die Insel besetzt. Sie bemannen Stützpunkte und Funktürme und patrouillieren in den Ortschaften – und ihre Uniform ist es, die als Tarnung dient."
    Target_ru_ru "Советские силы удерживают остров. Они размещают гарнизоны на базах и радиовышках и патрулируют города. Их форма подходит для маскировки."
    Target_uk_ua "Острів перебуває під контролем радянських військ. Вони розміщують гарнізони на базах і радіовежах та патрулюють міста, а їхньою уніформою можна скористатися як маскуванням."
@@ -1849,6 +1949,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000109}" {
    Id "OVT-Faction_USSR_Supporting"
    Target_en_us "The Soviet Union is a foreign power sympathetic to the resistance, and not your own faction. Being seen in its uniform means an immediate wanted level, and it cannot also be the occupier."
+   Target_it_it "L'Unione Sovietica è una potenza straniera che simpatizza per la Resistenza, non la tua fazione. Farsi vedere con la sua uniforme comporta un immediato livello di ricercato, e non può trattarsi della forza di occupazione."
    Target_de_de "Die Sowjetunion ist eine ausländische Macht, die mit dem Widerstand sympathisiert, aber nicht mit deiner eigenen Fraktion. Wer in dieser Uniform gesehen wird, löst sofort eine Fahndung aus; zudem kann man nicht gleichzeitig als Besatzer auftreten."
    Target_ru_ru "Советский Союз — иностранная держава, симпатизирующая сопротивлению, но не ваша фракция. Появление в их форме немедленно повышает уровень розыска, и они не могут быть оккупантами."
    Target_uk_ua "Радянський Союз - це дружня до опору іноземна держава, а не ваша власна фракція. Поява у їхній формі одразу викликає розшук, і вони також не можуть бути окупантами."
@@ -1869,6 +1970,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A19}" {
    Id "OVT-Feature_NotImplemented"
    Target_en_us "Feature not yet implemented"
+   Target_it_it "Funzionalità non ancora implementata"
    Target_de_de "Funktion noch nicht implementiert"
    Target_ru_ru "Функция ещё не реализована"
    Target_uk_ua "Функція ще не реалізована"
@@ -1879,6 +1981,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015F}" {
    Id "OVT-FieldManual_BaseCapture_Head"
    Target_en_us "Starting a Battle"
+   Target_it_it "Iniziare una battaglia"
    Target_de_de "Einen Kampf beginnen"
    Target_ru_ru "Начало битвы"
    Target_uk_ua "Початок бою"
@@ -1899,6 +2002,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000160}" {
    Id "OVT-FieldManual_BaseCapture_Head2"
    Target_en_us "Holding the Ground"
+   Target_it_it "Tenere la posizione"
    Target_de_de "Die Stellung halten"
    Target_ru_ru "Удержание позиции"
    Target_uk_ua "Утримання позицій"
@@ -1919,6 +2023,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000161}" {
    Id "OVT-FieldManual_BaseCapture_Head3"
    Target_en_us "A Base You Hold"
+   Target_it_it "Mantenere una base"
    Target_de_de "Eine Basis, die du hältst"
    Target_ru_ru "Захваченная вами база"
    Target_uk_ua "Захоплена вами база"
@@ -1939,6 +2044,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000162}" {
    Id "OVT-FieldManual_BaseCapture_Head4"
    Target_en_us "The Answer Back"
+   Target_it_it "La risposta"
    Target_de_de "Die Antwort"
    Target_ru_ru "Ответный удар"
    Target_uk_ua "Удар у відповідь"
@@ -1959,6 +2065,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000101}" {
    Id "OVT-FieldManual_BaseCapture_Text"
    Target_en_us "Military bases are held by the occupying faction and change hands only after a battle is fought at them. A base under resistance control weakens the occupiers in that area, and it can later become the one place they decide to take back."
+   Target_it_it "Le basi militari sono controllate dalla fazione occupante e cambiano proprietario solo dopo una battaglia combattuta al loro interno. Una base sotto il controllo della Resistenza indebolisce gli occupanti dell'area e può diventare, in seguito, l'obiettivo che questi decidono di riconquistare."
    Target_de_de "Militärbasen werden von der Besatzungsfraktion gehalten und wechseln den Besitzer erst nach einem dort ausgetragenen Kampf. Eine Basis unter der Kontrolle des Widerstands schwächt die Besatzer in diesem Gebiet; diese können ihre Reserven für einen Gegenangriff einsetzen, um sie später zurückzuerobern."
    Target_ru_ru "Военные базы удерживаются оккупантами и переходят из рук в руки только после сражения.  База, находящаяся под контролем сопротивления, ослабляет позиции оккупантов в этом районе, и впоследствии они могут решить отвоевать ее назад."
    Target_uk_ua "Військові бази перебувають під контролем окупантів і змінюють власника тільки після бою. Перехід бази під контроль опору послаблює ворога в цьому секторі, змушуючи його витрачати резерви на подальші контратаки для її відвоювання."
@@ -1979,6 +2086,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000163}" {
    Id "OVT-FieldManual_BaseCapture_Text2"
    Target_en_us "An attack is begun from inside an occupied base, and everybody on the server is told when one starts. The occupying faction answers by ordering troops in from its other bases nearby, who arrive around the site over the following minutes. Only one battle runs anywhere on the map at a time, so while one is going the option to start another is not offered, and a counter attack that has not announced itself yet counts as one."
+   Target_it_it "Un attacco viene lanciato dall'interno di una base occupata e l'intero server viene avvisato del suo inizio. La fazione occupante risponde ordinando l'invio di truppe dalle altre basi vicine, che giungono sul posto nel corso dei minuti successivi. È possibile svolgere una sola battaglia alla volta sull'intera mappa; pertanto, finché ne è in corso una, non è possibile avviarne un'altra (anche un contrattacco non ancora annunciato conta come battaglia attiva)."
    Target_de_de "Ein Angriff wird aus einer besetzten Basis heraus gestartet, und alle Spieler auf dem Server werden über den Beginn informiert. Die besetzende Fraktion reagiert, indem sie Truppen aus ihren anderen, nahegelegenen Basen herbeordert, die im Laufe der nächsten Minuten am Einsatzort eintreffen. Es findet jeweils nur ein einziger Kampf auf der Karte statt; solange dieser läuft, besteht keine Möglichkeit, einen weiteren zu beginnen."
    Target_ru_ru "Атака начинается изнутри занятой базы, и все игроки на сервере получают уведомление о её начале. Оккупирующая фракция отвечает, направляя войска из своих других близлежащих баз, которые прибывают к месту в течение следующих нескольких минут. На карте одновременно может идти только одно сражение, поэтому пока оно идёт, возможность начать другое не предлагается, и контратака, которая ещё не объявила о себе, считается за одну."
    Target_uk_ua "Атака розпочинається безпосередньо з території окупованої бази, і всі гравці на сервері отримують сповіщення про її початок. Окупанти реагують на це, направляючи підкріплення з найближчих баз, яке прибуває в зону бою протягом наступних кількох хвилин. Одночасно на всій карті може тривати лише один бій, тому поки він не завершиться, розпочати новий неможливо."
@@ -1999,9 +2107,10 @@ StringTable {
   CustomStringTableItem "{6B3B000000000164}" {
    Id "OVT-FieldManual_BaseCapture_Text3"
    Target_en_us "Once the reinforcements have arrived the ground itself is counted, over and over: what matters is how many players are standing in the middle of the base against how many occupying soldiers are there with them. Players present with no enemy left swings it quickly; more soldiers than players swings it the other way; even numbers drift back towards nothing. The count runs to a total the difficulty settings set, in one direction or the other, and whoever reaches it takes the base. Players inside the fight pick up experience while it goes on."
+   Target_it_it "Una volta arrivati i rinforzi, viene effettuato un conteggio continuo della presenza sul campo: ciò che conta è il numero di giocatori presenti al centro della base rispetto al numero di soldati occupanti. La presenza di giocatori in assenza di nemici ribalta rapidamente la situazione a loro favore; una superiorità numerica dei soldati sposta l'equilibrio dalla parte opposta; in caso di parità numerica, la situazione tende a tornare in una condizione di stallo. Il conteggio procede fino a raggiungere la soglia stabilita dalle impostazioni di difficoltà (in una direzione o nell'altra) e chi la raggiunge conquista la base. I giocatori coinvolti nello scontro accumulano esperienza durante la battaglia."
    Target_de_de "Sobald die Verstärkung eingetroffen ist, wird das Kräfteverhältnis vor Ort fortlaufend ermittelt: Entscheidend ist, wie viele Spieler sich in der Mitte der Basis befinden und wie viele feindliche Soldaten ihnen dort gegenüberstehen. Überwiegen die Spieler und sind keine Gegner mehr vorhanden, schlägt das Pendel schnell zu ihren Gunsten aus; sind mehr Soldaten als Spieler anwesend, kehrt sich das Verhältnis um; bei ausgeglichenen Zahlenverhältnissen tendiert der Wert wieder gegen Null. Der Zähler bewegt sich – je nach gewählter Schwierigkeitsstufe – in die eine oder andere Richtung; wer den Zielwert erreicht, erobert die Basis. Die am Kampf beteiligten Spieler sammeln währenddessen Erfahrungspunkte."
-   Target_ru_ru "Как только подкрепление прибыло, начинается непрерывный подсчёт сил на самой территории: решающим является соотношение количества игроков в центре базы и оккупантов рядом с ними. Присутствие игроков при полном отсутствии врагов быстро склоняет чашу весов в вашу пользу; перевес солдат врага действует наоборот; при равных силах прогресс медленно возвращается к нулю. Подсчёт идёт до достижения лимита, заданного настройками сложности, в ту или иную сторону, и тот, кто первым достигает цели, захватывает базу. Все игроки, находящиеся в зоне боя, получают опыт во время сражения."
    Target_uk_ua "Після прибуття підкріплення починається постійний підрахунок сил на самій території: вирішальним є співвідношення кількості гравців у центрі бази та окупантів поруч із ними. Присутність гравців за повної відсутності ворогів швидко схиляє шальки терезів на вашу користь; перевага солдатів ворога діє навпаки; за рівних сил прогрес повільно повертається до нуля. Підрахунок триває до досягнення ліміту, визначеного налаштуваннями складності, в той чи інший бік, і той, хто першим досягає мети, захоплює базу. Усі гравці, які перебувають у зоні бою, отримують досвід під час битви."
+   Target_ru_ru "Как только подкрепление прибыло, начинается непрерывный подсчёт сил на самой территории: решающим является соотношение количества игроков в центре базы и оккупантов рядом с ними. Присутствие игроков при полном отсутствии врагов быстро склоняет чашу весов в вашу пользу; перевес солдат врага действует наоборот; при равных силах прогресс медленно возвращается к нулю. Подсчёт идёт до достижения лимита, заданного настройками сложности, в ту или иную сторону, и тот, кто первым достигает цели, захватывает базу. Все игроки, находящиеся в зоне боя, получают опыт во время сражения."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'Holding the Ground' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_QRFControllerComponent.CheckUpdatePoints:102-192 (scoring only begins once m_iTimer reaches zero; counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE; +5 for players with no enemies in the wider QRF_RANGE, +1 or -1 by which side has more, drift towards zero when equal; clamped at the difficulty setting QRFPointsToWin, which also ends it; GiveXP 2 per tick to each player inside). Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
    DevNote ""
    Repro ""
@@ -2019,6 +2128,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000165}" {
    Id "OVT-FieldManual_BaseCapture_Text4"
    Target_en_us "A base that changes hands flies the new owner's flag and is announced across the server. A base the resistance holds is somewhere you can fast travel to, set as the spot you respawn at, and place and build in, which includes putting up a barracks and buying High Command groups there; some facilities only serve the side that holds the ground they stand on. Taking one also raises the pressure the occupying faction is under, and losing one takes that pressure off again."
+   Target_it_it "Quando una base cambia proprietario, vi viene issata la bandiera della nuova fazione e l'evento viene annunciato a tutto il server. Una base controllata dalla Resistenza consente il viaggio rapido, può essere impostata come punto di respawn e permette attività di costruzione e posizionamento (come l'edificazione di una caserma e l'acquisto di gruppi dell'Alto Comando); alcune strutture sono utilizzabili solo dalla fazione che controlla il territorio su cui sorgono. Conquistare un obiettivo aumenta la pressione sulla fazione occupante, mentre perderlo la allenta nuovamente."
    Target_de_de "Wechselt eine Basis den Besitzer, wird dort die Flagge des neuen Eigentümers gehisst und die Übernahme serverweit bekannt gegeben. Eine von der Widerstandsbewegung gehaltene Basis dient als Ziel für Schnellreisen und als Respawn-Punkt; zudem können Spieler dort bauen und eine in der nächstgelegenen Stadt angeheuerte Garnison stationieren. Manche Einrichtungen stehen ausschließlich der Fraktion zur Verfügung, die das entsprechende Gebiet kontrolliert. Die Eroberung einer Basis erhöht den Druck auf die besetzende Fraktion, während ihr Verlust diesen Druck wieder verringert."
    Target_ru_ru "Когда база переходит под контроль другой стороны, на ней поднимается новый флаг, и все игроки на сервере получают уведомление. На базу, удерживаемую сопротивлением, можно быстро перемещаться, назначать её точкой возрождения, строить на ней и размещать объекты, включая возведение казармы и покупку групп Верховного командования; некоторые объекты инфраструктуры работают только для той стороны, которая контролирует эту землю. Захват базы повышает давление на оккупирующую фракцию, а её потеря снова снижает это давление."
    Target_uk_ua "Коли база змінює контролюючу сторону, на ній піднімається новий прапор, а всі гравці на сервері отримують сповіщення. На захоплену опором базу можна швидко переміщатися, обирати її точкою респавну, зводити на ній споруди та розміщувати гарнізон із найближчого населеного пункту. Деякі об'єкти інфраструктури функціонують лише для тих, хто контролює цю землю. Взяття бази підвищує рівень тиску на окупантів, тоді як її втрата послаблює цей тиск."
@@ -2039,6 +2149,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000166}" {
    Id "OVT-FieldManual_BaseCapture_Text5"
    Target_en_us "Nothing taken is held for good. The occupying faction settles on one place it means to take back and works toward it over hours of visible activity, so a counter attack arrives at the end of a build-up rather than out of nowhere; the Counter Attacks page follows that build-up from the first truck to the assault. Towns and cities are chosen the same way and fought over the same way. A radio tower is a quieter business: it is taken by clearing the garrison standing at it, and a tower near whatever the occupiers are working toward can be walked back the other way by a team that reaches it and holds it long enough. Bases, towns and towers can all change hands more than once in a campaign."
+   Target_it_it "Nessuna conquista è definitiva. La fazione occupante individua un luogo da riconquistare e vi lavora per ore con attività visibili; di conseguenza, il contrattacco giunge al termine di una fase preparatoria anziché dal nulla. La pagina dedicata ai Contrattacchi descrive questa fase, dall'arrivo del primo camion fino all'assalto vero e proprio. La scelta e la contesa di città e centri abitati seguono le stesse dinamiche. La conquista di una torre radio è un'operazione più discreta: avviene eliminando la guarnigione di guardia; una torre situata vicino all'obiettivo degli occupanti può essere riconquistata dalla fazione opposta se una squadra riesce a raggiungerla e a mantenerne il controllo per un tempo sufficiente. Nel corso di una campagna, basi, città e torri possono cambiare mano più volte."
    Target_de_de "Nichts, was eingenommen wurde, bleibt dauerhaft in der eigenen Hand. Die Besatzungsmacht hält Reserven zurück und investiert sie in ihre verbliebenen Stützpunkte; verfügt sie über einen Überschuss, wählt sie einen von der Widerstandsbewegung eroberten Stützpunkt aus, um ihn zurückzuerobern, und wartet anschließend eine Weile, bevor sie es erneut versucht. Um Städte und Funktürme wird auf ganz ähnliche Weise gekämpft, sodass ein Ort im Verlauf einer Kampagne mehrfach den Besitzer wechseln kann."
    Target_ru_ru "Ничто из захваченного не остаётся за вами навсегда. Оккупирующая фракция выбирает одно место, которое намерена вернуть, и работает над этим в течение нескольких часов видимой активности, так что контратака прибывает в конце подготовки, а не из ниоткуда; страница «Контратаки» описывает эту подготовку от первого грузовика до штурма. Города и крупные населённые пункты выбираются таким же образом и захватываются так же. Радиовышки — более тихое дело: их захватывают, зачищая гарнизон, а вышку, расположенную рядом с тем, на что нацелились оккупанты, можно отбить обратно, если команда доберётся до неё и удержит достаточно долго. Базы, города и вышки могут менять владельца несколько раз за кампанию."
    Target_uk_ua "Жоден захоплений об'єкт не забігається за вами назавжди. Ворог накопичує резерви й розподіляє їх між утримуваними базами. Коли ресурсів стає достатньо, окупанти обирають одну з втрачених баз і починають контратаку, а після штурму беруть паузу перед наступним нападом. Захоплення міст і радіовеж відбувається за аналогічною механікою, тож контроль над локаціями може переходити з рук у руки неодноразово протягом кампанії."
@@ -2059,6 +2170,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000102}" {
    Id "OVT-FieldManual_BaseCapture_Title"
    Target_en_us "Capturing Bases"
+   Target_it_it "Conquista delle basi"
    Target_de_de "Basen einnehmen"
    Target_ru_ru "Захват баз"
    Target_uk_ua "Захоплення баз"
@@ -2079,6 +2191,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014F}" {
    Id "OVT-FieldManual_Camps_Head"
    Target_en_us "Where Placing Works"
+   Target_it_it "Dove è possibile piazzare oggetti"
    Target_de_de "Wo Platzierungen funktionieren"
    Target_ru_ru "Где работает размещение"
    Target_uk_ua "Де дозволено будівництво"
@@ -2099,6 +2212,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000150}" {
    Id "OVT-FieldManual_Camps_Head2"
    Target_en_us "Camps"
+   Target_it_it "Accampamenti"
    Target_de_de "Camp"
    Target_ru_ru "Лагеря"
    Target_uk_ua "Табори"
@@ -2119,6 +2233,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000151}" {
    Id "OVT-FieldManual_Camps_Head3"
    Target_en_us "Public and Private"
+   Target_it_it "Pubblico e privato"
    Target_de_de "Öffentlich und Privat"
    Target_ru_ru "Публичные и частные"
    Target_uk_ua "Публічні та приватні"
@@ -2139,6 +2254,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000152}" {
    Id "OVT-FieldManual_Camps_Head4"
    Target_en_us "Illegal Placeables"
+   Target_it_it "Oggetti piazzabili illegali"
    Target_de_de "Unzulässige platzierbare Objekte"
    Target_ru_ru "Нелегальные объекты"
    Target_uk_ua "Заборонені для розміщення об'єкти"
@@ -2159,6 +2275,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000103}" {
    Id "OVT-FieldManual_Camps_Text"
    Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Many placeables are only allowed in certain locations, and some are illegal, so placing one in sight of the occupying faction is noticed."
+   Target_it_it "L'azione di piazzamento consente di collocare oggetti della Resistenza nel mondo di gioco in cambio di denaro, spaziando da piccoli elementi fino a interi accampamenti. Molti oggetti possono essere piazzati solo in determinate aree; alcuni sono illegali, pertanto piazzarli in vista della fazione occupante ne attira l'attenzione."
    Target_de_de "Beim Platzieren werden gegen Bezahlung Widerstandsobjekte in der Spielwelt aufgestellt – von kleinen Gegenständen bis hin zu einem kompletten Camp. Viele dieser Objekte dürfen nur an bestimmten Orten errichtet werden; einige sind zudem illegal, sodass ihr Aufstellen bemerkt wird, wenn es im Sichtfeld der Besatzungsfraktion geschieht."
    Target_ru_ru "Размещение позволяет устанавливать в мире объекты сопротивления за деньги — от мелких предметов до целого лагеря. Многие объекты разрешены только в определённых местах, а некоторые являются нелегальными, поэтому их установка на виду у оккупантов будет замечена."
    Target_uk_ua "Будівництво дозволяє розміщувати у світі об'єкти опору за грошові кошти — від дрібного спорядження до цілого польового табору. Чимало предметів доступні для встановлення лише в певних зонах, а деякі з них є нелегальними, тож якщо ворог помітить процес розміщення, він одразу зреагує."
@@ -2179,6 +2296,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000153}" {
    Id "OVT-FieldManual_Camps_Text2"
    Target_en_us "Place, on the Overthrow main menu, gives you a preview to set down in front of you, and it turns you down when the spot is not allowed. Most items may go close to a house you own, close to your own camp, anywhere around a FOB, or inside a base the resistance holds. Posters and the pirate radio work the other way round: they have to go inside a town, and a town has room for only so many of them at a time. One location can also hold only so many placed and built objects in total, which is a server setting."
+   Target_it_it "La funzione \"Piazza\" (Place) nel menu principale di Overthrow mostra un'anteprima dell'oggetto davanti a te e impedisce l'azione se la posizione non è consentita. La maggior parte degli oggetti può essere collocata vicino a una casa di tua proprietà, nei pressi del tuo accampamento, nelle vicinanze di una FOB o all'interno di una base controllata dalla Resistenza. I manifesti e la radio pirata seguono una logica opposta: vanno piazzati all'interno di una città, la quale può ospitarne solo un numero limitato contemporaneamente. Inoltre, ogni singola località ha un limite massimo complessivo di oggetti piazzati e costruiti, definito dalle impostazioni del server."
    Target_de_de "Über die Option „Platzieren“ im Overthrow-Hauptmenü erhältst du eine Vorschau des Objekts, das du vor dir aufstellen kannst; das System verweigert die Platzierung, wenn der gewählte Ort unzulässig ist. Die meisten Gegenstände lassen sich in der Nähe eines eigenen Hauses oder Lagers, im Umkreis einer FOB (Forward Operating Base) oder innerhalb einer von der Resistance gehaltenen Basis aufstellen. Bei Plakaten und dem Piratensender verhält es sich umgekehrt: Sie müssen innerhalb einer Ortschaft platziert werden, wobei pro Ort nur eine begrenzte Anzahl gleichzeitig zulässig ist. Zudem ist die Gesamtzahl der platzierbaren und baubaren Objekte an einem Standort begrenzt – ein Wert, der über die Servereinstellungen festgelegt wird."
    Target_ru_ru "Опция «Разместить» в главном меню Overthrow показывает предпросмотр объекта, который вы можете установить перед собой, и отклоняет выбор, если место не подходит. Большинство предметов можно ставить рядом с вашим домом, рядом с вашим лагерем, в радиусе FOB или на территории базы, удерживаемой сопротивлением. Плакаты и пиратское радио работают наоборот: их нужно устанавливать внутри города, при этом в городе одновременно может быть только ограниченное количество таких объектов. Также на одной локации может быть лишь определённое общее количество размещённых и построенных объектов — это настраивается на сервере."
    Target_uk_ua "Опція «Будівництво» в головному меню Overthrow відображає силует об’єкта перед гравцем і блокує розміщення, якщо точка не підходить. Більшість предметів дозволено ставити біля вашого будинку чи табору, в радіусі ПБП або на території захопленої базі. Плакати та піратські радіостанції мають протилежні вимоги: їх слід встановлювати безпосередньо в містах, де для них діє обмеження за кількістю. Окрім цього, загальна кількість збудованих об’єктів на одну локацію лімітується налаштуваннями сервера."
@@ -2199,6 +2317,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000154}" {
    Id "OVT-FieldManual_Camps_Text3"
    Target_en_us "A camp is placed like anything else, but it registers as a resistance position when it goes down, and it has to be at least a hundred metres from another camp. A camp is somewhere you can fast travel to, somewhere you can set as the spot you respawn at, somewhere your other placeables are allowed, and one of the places the build menu will work. You hold one camp at a time: placing a new one takes down the old one."
+   Target_it_it "Un accampamento si piazza come qualsiasi altro oggetto, ma una volta collocato viene registrato come postazione della Resistenza e deve trovarsi ad almeno cento metri di distanza da un altro accampamento. Un accampamento è un luogo verso cui puoi effettuare viaggi rapidi, che puoi impostare come punto di rinascita, dove è consentito collocare altri oggetti piazzabili e dove è possibile utilizzare il menu di costruzione. Puoi possedere un solo accampamento alla volta: piazzarne uno nuovo comporta la rimozione di quello precedente."
    Target_de_de "Ein Camp wird wie jedes andere Objekt platziert, gilt jedoch nach der Errichtung als Widerstandsposten und muss mindestens hundert Meter von einem anderen Camp entfernt sein. Ein Camp ist ein Ort, zu dem du schnellreisen und an dem du deinen Wiedereinstiegspunkt festlegen kannst; zudem ist es ein Ort, an dem du weitere Objekte platzieren darfst und an dem das Baumenü funktioniert. Du kannst jeweils nur ein Camp besitzen: Das Platzieren eines neuen Camp entfernt das alte."
    Target_ru_ru "Лагерь устанавливается как любой другой объект, но после установки он регистрируется как позиция сопротивления и должен находиться не менее чем в ста метрах от другого лагеря. Лагерь — это место, куда можно быстро перемещаться, которое можно назначить точкой возрождения, где разрешено размещать другие объекты и где работает меню строительства. Вы можете владеть только одним лагерем одновременно: установка нового убирает старый."
    Target_uk_ua "Табір розміщується як і будь-який інший об'єкт, але після встановлення він реєструється як позиція опору та повинен розташовуватися щонайменше за сто метрів від іншого табору. Табір слугує точкою для швидкого переміщення, місцем для відродження, зоною, де дозволено розміщувати інші об'єкти, а також одним із місць, де працює меню будівництва. Ви можете утримувати лише один табір одночасно: розміщення нового автоматично згортає попередній."
@@ -2219,6 +2338,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000155}" {
    Id "OVT-FieldManual_Camps_Text4"
    Target_en_us "A camp carries its own menu, used at the camp itself, which switches it between public and private and can take it down again. A public camp shows on everyone's map and any player may fast travel to it. A private camp is on the map only for the player who owns it, and only that player may travel to it."
+   Target_it_it "L'accampamento dispone di un proprio menu, accessibile in loco, che consente di alternare tra le modalità pubblica e privata e di rimuovere l'accampamento stesso. Un accampamento pubblico è visibile sulla mappa di tutti i giocatori, i quali possono raggiungerlo tramite viaggio rapido. Un accampamento privato appare sulla mappa solo per il suo proprietario, che è l'unico a potervi viaggiare."
    Target_de_de "Ein Camp verfügt über ein eigenes Menü zur Verwaltung, über das man zwischen einem öffentlichen und einem privaten Status wechseln oder das Camp wieder entfernen kann. Ein öffentliches Camp wird auf der Karte aller Spieler angezeigt, und jeder Spieler kann per Schnellreise dorthin gelangen. Ein privates Camp ist nur auf der Karte des jeweiligen Besitzers sichtbar, und auch nur dieser Spieler kann dorthin reisen."
    Target_ru_ru "У лагеря есть собственное меню, которое используется непосредственно на нём: оно позволяет переключать статус между публичным и частным, а также убирать лагерь. Публичный лагерь отображается на карте у всех игроков, и любой может быстро переместиться к нему. Частный лагерь виден на карте только его владельцу, и только этот игрок может переместиться к нему."
    Target_uk_ua "Табір має власне меню, яке використовується безпосередньо в ньому: воно дає змогу перемикати статус між публічним і приватним, а також згортати його. Публічний табір відображається на карті кожного гравця, і будь-хто може швидко переміститися до нього. Приватний табір видно на карті лише його власнику, і тільки цей гравець має змогу туди телепортуватися."
@@ -2239,6 +2359,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000156}" {
    Id "OVT-FieldManual_Camps_Text5"
    Target_en_us "Posters, the pirate radio, sandbags and vehicle obstacles are illegal to put down. Setting one out while the occupying faction can see you makes you wanted, in the same way looting a soldier in view does; unseen, it passes without notice. Posters and pirate radios also work on the town they stand in, adding to the support the resistance has there until the effect runs out, and a town holds only a few posters and a single radio."
+   Target_it_it "È illegale piazzare manifesti, radio pirata, sacchi di sabbia e ostacoli per veicoli. Posizionarne uno sotto lo sguardo della fazione occupante ti rende un ricercato, proprio come accade se saccheggi un soldato in vista; se l'azione avviene senza essere visti, passa inosservata. I manifesti e le radio pirata influenzano anche la città in cui si trovano, aumentando il sostegno alla Resistenza in loco fino all'esaurimento dell'effetto; ogni città può ospitare solo pochi manifesti e una singola radio."
    Target_de_de "Das Aufstellen von Plakaten, Piratensendern, Sandsäcken und Fahrzeugsperren ist illegal. Werden diese platziert, während die Besatzungsmacht einen dabei beobachten kann, wird man steckbrieflich gesucht – genau wie beim Plündern eines Soldaten unter den Augen anderer; geschieht dies unbemerkt, bleibt es folgenlos. Plakate und Piratensender wirken sich zudem auf die jeweilige Stadt aus, in der sie aufgestellt wurden: Sie stärken die Unterstützung für den Widerstand, bis die Wirkung nachlässt. Pro Stadt sind dabei nur eine begrenzte Anzahl an Plakaten und ein einzelner Sender möglich."
    Target_ru_ru "Устанавливать плакаты, пиратское радио, мешки с песком и противотанковые ежи — незаконно. Если оккупанты заметят вас за этим занятием, вы сразу получите уровень розыска (как и при мародёрстве на виду). Сделанное тайком останется незамеченным. Плакаты и пиратские радиостанции также влияют на город, в котором они установлены, повышая поддержку сопротивления в этом городе, пока эффект не закончится, при этом в городе может быть лишь несколько плакатов и одна радиостанция."
    Target_uk_ua "Встановлювати плакати, піратські радіостанції, мішки з піском та протитранспортні їжаки — незаконно. Якщо окупанти помітять вас за цим заняттям, ви миттєво отримаєте рівень розшуку (як і під час лутання трупів на видноті). Зроблене потайки залишиться непоміченим. Плакати й радіостанції підвищують лояльність населення до опору в місті, де вони встановлені, поки діє ефект. При цьому місто має ліміт: лише кілька плакатів та одна радіостанція одночасно."
@@ -2259,6 +2380,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000104}" {
    Id "OVT-FieldManual_Camps_Title"
    Target_en_us "Camps and Placing"
+   Target_it_it "Accampamenti e piazzamento"
    Target_de_de "Camps und Platzierung"
    Target_ru_ru "Лагеря и размещение"
    Target_uk_ua "Табори та будівництво"
@@ -2279,6 +2401,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000091}" {
    Id "OVT-FieldManual_Category_GettingStarted_Title"
    Target_en_us "Getting Started"
+   Target_it_it "Per iniziare"
    Target_de_de "Erste Schritte"
    Target_ru_ru "Начало игры"
    Target_uk_ua "Початок гри"
@@ -2299,6 +2422,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000105}" {
    Id "OVT-FieldManual_Category_MoneyAndTrade_Title"
    Target_en_us "Money and Trade"
+   Target_it_it "Denaro e commercio"
    Target_de_de "Geld und Handel"
    Target_ru_ru "Деньги и торговля"
    Target_uk_ua "Гроші та торгівля"
@@ -2319,6 +2443,7 @@ StringTable {
   CustomStringTableItem "{5990833697321087}" {
    Id "OVT-FieldManual_Category_Overthrow_Title"
    Target_en_us "Overthrow"
+   Target_it_it "Overthrow"
    Target_fr_fr "Overthrow"
    Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
@@ -2342,6 +2467,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000106}" {
    Id "OVT-FieldManual_Category_StayingHidden_Title"
    Target_en_us "Staying Hidden"
+   Target_it_it "Restare nascosti"
    Target_de_de "Unentdeckt bleiben"
    Target_ru_ru "Скрытность"
    Target_uk_ua "Переховування"
@@ -2362,6 +2488,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000107}" {
    Id "OVT-FieldManual_Category_TheResistance_Title"
    Target_en_us "The Resistance"
+   Target_it_it "La Resistenza"
    Target_de_de "Der Widerstand"
    Target_ru_ru "Сопротивление"
    Target_uk_ua "Опір"
@@ -2382,6 +2509,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000201}" {
    Id "OVT-FieldManual_CounterAttacks_Head"
    Target_en_us "The Build-Up"
+   Target_it_it "L'accumulo di forze"
    Target_de_de "Der Aufbau"
    Target_ru_ru "Подготовка"
    Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about the harassment phase. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
@@ -2401,6 +2529,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000202}" {
    Id "OVT-FieldManual_CounterAttacks_Head2"
    Target_en_us "What Sabotage Costs"
+   Target_it_it "I costi del sabotaggio"
    Target_de_de "Was die Sabotage kostet"
    Target_ru_ru "Цена диверсий"
    Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about structures being permanently destroyed at a base. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
@@ -2420,6 +2549,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000203}" {
    Id "OVT-FieldManual_CounterAttacks_Head3"
    Target_en_us "A Base of Their Own"
+   Target_it_it "Una base tutta loro"
    Target_de_de "Eine eigene Basis"
    Target_ru_ru "Собственная база"
    Comment "Field Manual - section header inside the Counter Attacks page, drawn above the paragraph about the occupying faction's forward base. Three to five words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
@@ -2439,6 +2569,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000204}" {
    Id "OVT-FieldManual_CounterAttacks_Head4"
    Target_en_us "The Encirclement"
+   Target_it_it "L'accerchiamento"
    Target_de_de "Die Einkesselung"
    Target_ru_ru "Окружение"
    Comment "Field Manual - section header inside the Counter Attacks page, drawn above the two paragraphs about how the counter attack itself is fought. Two to four words, no markup. Added 2026-08-19 by occupying/counter-attacks Phase 10."
@@ -2458,6 +2589,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000205}" {
    Id "OVT-FieldManual_CounterAttacks_Text"
    Target_en_us "The occupying faction works toward one place at a time. It picks a single base, town or city the resistance holds and spends the following hours building up against it, and the choice is not a lottery: bigger towns, ground close to the bases it still holds, places its radio towers still reach, and towns whose support has already slipped are what draw it. Villages, radio towers and resistance FOBs are never the target themselves. The target can change while the build-up is still in its early stage; once the occupiers have committed to it they see it through unless the build-up is broken."
+   Target_it_it "La fazione occupante concentra le proprie attività su un luogo alla volta. Sceglie una singola base, città o centro abitato controllato dalla Resistenza e impiega le ore successive a radunare forze contro di esso; la scelta non è casuale: gli obiettivi preferiti sono le città più grandi, le aree vicine alle basi ancora in loro possesso, i luoghi raggiunti dai loro ripetitori radio e le città dove il sostegno alla Resistenza è già calato. Villaggi, ripetitori radio e FOB della Resistenza non sono mai l'obiettivo diretto. L'obiettivo può cambiare durante le fasi iniziali dell'accumulo di forze; una volta che gli occupanti si sono impegnati nell'operazione, la portano a termine a meno che l'accumulo non venga interrotto."
    Target_de_de "Die Besatzungskräfte konzentrieren ihre Kräfte jeweils auf ein einzelnes Ziel. Dazu wählen sie einen von den Widerstandskräften gehaltenen Stützpunkt, eine Ortschaft oder eine Stadt aus und führen in den folgenden Stunden Kräfte und Mittel für einen Angriff zusammen."\
    ""\
    "Die Zielauswahl erfolgt nicht zufällig. Bevorzugt werden größere Ortschaften, Ziele in der Nähe noch gehaltener eigener Stützpunkte, Bereiche innerhalb der Reichweite eigener Funkturm sowie Orte, in denen die Unterstützung für den Widerstand bereits nachgelassen hat."\
@@ -2483,6 +2615,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000206}" {
    Id "OVT-FieldManual_CounterAttacks_Text2"
    Target_en_us "The first sign is traffic. Groups are driven out from a base the occupiers still hold, dropped at a road short of the target and left to walk the rest of the way, and the truck turns round and goes home. In a town they make for the centre, and a group that holds it with nobody there to contest it drives the town's support for the resistance down a step; the next one drives it down again. A radio tower the resistance holds nearby draws a team of its own, which has to reach the tower and stand on it for a long stretch before it flips back. At a base they infiltrate and start pulling down what was built there. Standing in any of those places pauses the clock the group is working against, and killing the group ends the attempt outright."
+   Target_it_it "Il primo segnale è il movimento di veicoli. I gruppi partono da una base ancora in mano agli occupanti, vengono scaricati lungo la strada prima di raggiungere l'obiettivo e proseguono a piedi, mentre il camion fa inversione e torna alla base. Nelle città puntano al centro: un gruppo che occupa il centro senza incontrare Resistenza riduce di un livello il sostegno alla città verso la Resistenza; un gruppo successivo lo riduce ulteriormente. Un ripetitore radio della Resistenza situato nelle vicinanze attira una squadra dedicata, che deve raggiungere la struttura e presidiarla a lungo prima di riuscire a riconquistarla. Una volta infiltratisi in una base, i sabotatori iniziano a smantellare le strutture presenti. Stazionare in uno di quei punti blocca il conto alla rovescia che incombe sul gruppo, mentre eliminare il gruppo stesso pone fine immediatamente al tentativo di sabotaggio."
    Target_de_de "Das erste Anzeichen ist verstärkter Fahrzeugverkehr. Trupps rücken von einem noch durch die Besatzungskräfte gehaltenen Stützpunkt aus, werden auf einer Straße kurz vor dem Ziel abgesetzt und legen den restlichen Weg zu Fuß zurück. Das Transportfahrzeug kehrt anschließend zum Ausgangspunkt zurück."\
    ""\
    "In Ortschaften stoßen die Trupps zum Ortszentrum vor. Hält ein Trupp dieses unangefochten, sinkt die Unterstützung der Bevölkerung für den Widerstand um eine Stufe; ein weiterer erfolgreicher Trupp senkt sie erneut."\
@@ -2511,6 +2644,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000207}" {
    Id "OVT-FieldManual_CounterAttacks_Text3"
    Target_en_us "What saboteurs pull down at a base stays where it stood. The structure is wrecked rather than taken away, with an explosion and smoke to mark it, and the ruin can be put back for a share of what it cost to build; a campaign saved and loaded again brings it back as a ruin. Gear stored inside survives the demolition, though nothing about the place works until it is repaired. They take the cheapest thing standing first and work upward, so bunkers and tents go before the garage does, and only what belongs to that base is ever at risk. A single player inside the base stops the demolitions where they are, and one message goes out per mission, on the first thing destroyed."
+   Target_it_it "Ciò che i sabotatori demoliscono in una base rimane sul posto. La struttura viene distrutta anziché rimossa – segnalata da esplosioni e fumo – e può essere ripristinata pagando una frazione del costo di costruzione originale; se si salva e ricarica la partita, la struttura appare comunque come un rudere. L'equipaggiamento custodito all'interno sopravvive alla demolizione, sebbene la struttura rimanga inutilizzabile finché non viene riparata. I sabotatori procedono partendo dagli elementi più economici per poi passare a quelli più complessi: bunker e tende vengono distrutti prima dei garage, e a rischio sono sempre e solo le strutture appartenenti a quella specifica base. La presenza di un singolo giocatore all'interno della base arresta il processo di demolizione; viene inviato un solo messaggio per missione, relativo alla prima struttura distrutta."
    Target_de_de "Was Saboteure in einem Stützpunkt zerstören, bleibt an Ort und Stelle. Die jeweilige Anlage wird nicht abtransportiert, sondern gesprengt und als beschädigte Ruine zurückgelassen; Explosion und Rauch kennzeichnen die Zerstörung. Die Ruine kann anschließend für einen Teil der ursprünglichen Baukosten wieder instand gesetzt werden. Wird eine Kampagne gespeichert und später neu geladen, bleibt die Anlage als Ruine bestehen."\
    ""\
    "Im Inneren gelagerte Ausrüstung übersteht die Zerstörung. Die betroffene Einrichtung bleibt jedoch vollständig außer Funktion, bis sie repariert wurde."\
@@ -2537,6 +2671,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000208}" {
    Id "OVT-FieldManual_CounterAttacks_Text4"
    Target_en_us "Once the build-up has told, the occupiers put a forward base of their own on the ground between their nearest holding and the target. A supply truck drives out to raise it, so it can be ambushed on the road, and nothing announces the base once it is standing: it is found, not reported. From then on it is where their groups come from, and it is also the shortest way to stop the whole thing. Take or empty the base supplying it, or stay close to the forward base itself, and after a while it is pulled down and the occupiers start looking elsewhere. With the site clear of their soldiers, a held action on its flag takes it down on the spot, and that costs them more than starving it does."
+   Target_it_it "Una volta raggiunta una massa critica, gli occupanti allestiscono una base avanzata nel territorio compreso tra il loro avamposto più vicino e l'obiettivo. La base viene eretta da un camion di rifornimenti che può essere preso di agguato lungo il tragitto; una volta completata, la base non viene segnalata in alcun modo: va scoperta autonomamente. Da quel momento, essa diventa il punto di origine delle loro unità e rappresenta anche il modo più rapido per bloccare l'intera operazione nemica. È sufficiente conquistare o svuotare la base che la rifornisce, oppure presidiare la base avanzata stessa: dopo un po' questa verrà smantellata e gli occupanti cercheranno altrove. Una volta sgomberato il sito dai soldati nemici, è possibile smantellare la base all'istante mantenendo il controllo della sua bandiera; questa soluzione comporta per il nemico un costo maggiore rispetto al semplice isolamento logistico."
    Target_de_de "Sobald der Kräfteaufmarsch Wirkung zeigt, errichten die Besatzungskräfte einen eigenen vorgeschobenen Stützpunkt zwischen ihrer nächstgelegenen gehaltenen Stellung und dem Angriffsziel."\
    ""\
    "Ein Versorgungslastwagen rückt aus, um diesen Stützpunkt aufzubauen, und kann daher bereits auf dem Anmarsch abgefangen werden. Ist der vorgeschobene Stützpunkt erst einmal eingerichtet, erfolgt darüber keine Meldung: Er muss aufgeklärt und gefunden werden."\
@@ -2563,6 +2698,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000209}" {
    Id "OVT-FieldManual_CounterAttacks_Text5"
    Target_en_us "The counter attack itself arrives without a word. Nothing is announced, no battle panel appears and no circle is drawn on the map; the whole force is put down at once at the usual landing distances and walks in to form a ring roughly a hundred to a hundred and fifty metres out from the centre. The one thing that gives it away early is that no battle of your own can be started while it is forming, so a capture or an uprising that was available a minute ago is quietly not on offer. Counter attacks only ever begin in daylight, between roughly 05:00 and 15:00, and the waves come in from the side the occupying faction actually holds, including from its forward base."
+   Target_it_it "Il contrattacco vero e proprio scatta senza alcun preavviso. Non vi sono annunci, non compaiono schermate di battaglia né cerchi indicatori sulla mappa: l'intera forza nemica viene schierata simultaneamente alle consuete distanze di sbarco e avanza fino a formare un cerchio, a una distanza compresa tra i cento e i centocinquanta metri dal centro. L'unico indizio rivelatore è l'impossibilità di avviare battaglie proprie durante la fase di schieramento nemico: un'opportunità di conquista o una rivolta, disponibili fino a un istante prima, scompaiono silenziosamente dalle opzioni di gioco. I contrattacchi hanno luogo esclusivamente di giorno, indicativamente tra le 05:00 e le 15:00, e le ondate provengono dal lato effettivamente controllato dalla fazione occupante, inclusa la sua base avanzata."
    Target_de_de "Der Gegenangriff selbst setzt ohne jede Vorwarnung ein. Es erfolgt keine Meldung, kein Gefechtsfenster erscheint und auf der Karte wird kein Einsatzradius angezeigt. Die gesamte Angriffskraft wird gleichzeitig in der üblichen Entfernung zum Ziel eingesetzt und rückt anschließend zu Fuß vor, um in etwa 100 bis 150 Metern Abstand zum Zentrum einen geschlossenen Ring zu bilden."\
    ""\
    "Der einzige frühzeitige Hinweis besteht darin, dass während der Formierung kein eigenes Gefecht begonnen werden kann. Eine zuvor noch verfügbare Einnahmeaktion oder ein Aufstand steht dann ohne weitere Meldung vorübergehend nicht mehr zur Verfügung."\
@@ -2587,6 +2723,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D0000020A}" {
    Id "OVT-FieldManual_CounterAttacks_Text6"
    Target_en_us "The word comes when the last of them is in place, and with it fifteen real minutes in which nothing at all is scored. That time belongs to the resistance: it is long enough to drive in, gather recruits, dig in on the ground that matters, or decide the place is not worth the fight and leave. The battle panel names the place being fought over and counts down to the moment scoring begins. If every attacker on the ring is killed before it runs out the battle ends there and then in the resistance's favour, with no assault at all. Otherwise the clock reaches zero, the ring closes in and the ground is counted exactly as it is in any other battle. Whatever the outcome, their forward base comes down afterwards and the occupiers begin choosing again."
+   Target_it_it "L'ordine arriva quando l'ultimo di loro è in posizione; seguono quindici minuti effettivi in cui non vengono assegnati punti. Questo lasso di tempo appartiene alla Resistenza: è sufficiente per raggiungere il luogo, radunare reclute, trincerarsi nella posizione strategica o decidere che il sito non vale lo scontro e andarsene. Il pannello della battaglia indica la località contesa e avvia un conto alla rovescia fino all'inizio dell'assegnazione dei punti. Se tutti gli attaccanti presenti nell'area circolare vengono eliminati prima dello scadere del tempo, la battaglia termina immediatamente a favore della Resistenza, senza che l'assalto abbia luogo. In caso contrario, il timer arriva a zero, l'area circolare si restringe e il controllo del territorio viene conteggiato esattamente come in qualsiasi altra battaglia. Qualunque sia l'esito, la base avanzata viene successivamente smantellata e gli occupanti ricominciano a scegliere un nuovo obiettivo."
    Target_de_de "Die Meldung erfolgt erst, sobald sämtliche angreifenden Kräfte ihre Ausgangsstellungen bezogen haben. Ab diesem Zeitpunkt beginnt eine fünfzehnminütige Vorbereitungsphase in Echtzeit, während der keinerlei Wertung erfolgt."\
    ""\
    "Dieses Zeitfenster gehört dem Widerstand. Es kann genutzt werden, um Verstärkungen heranzuführen, Rekruten zu sammeln, entscheidendes Gelände auszubauen oder die Lage als nicht verteidigungswürdig einzustufen und den Raum aufzugeben."\
@@ -2615,6 +2752,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D0000020B}" {
    Id "OVT-FieldManual_CounterAttacks_Title"
    Target_en_us "Counter Attacks"
+   Target_it_it "Controattacchi"
    Target_de_de "Gegenangriff"
    Target_ru_ru "Контратаки"
    Comment "Field Manual - title of the Counter Attacks page, shown on its tile in The Resistance category grid and as the heading at the top of the page. Two or three words. Also usable as a deep-link id from a tutorial popup, so it must never be renamed. Added 2026-08-19 by occupying/counter-attacks Phase 10."
@@ -2634,6 +2772,7 @@ StringTable {
   CustomStringTableItem "{5992D5041850CA26}" {
    Id "OVT-FieldManual_FastTravel_Text"
    Target_en_us "Open the map and select a location you can travel to: a house you own or rent, your own camp or any public camp, a FOB, or a base the resistance controls. Its info panel has a travel button showing the fare. Fast travel costs the distance in kilometres multiplied by the fast travel price from the difficulty settings, charged for a minimum of one kilometre. Recruits within 50 metres travel with you by default and each one pays a full fare; the panel has a toggle to leave them behind. You cannot fast travel while you are wanted, to somewhere closer than the minimum travel distance, or as a passenger in a vehicle - only the driver takes the vehicle along - and a QRF in progress can block it, depending on the difficulty settings. For bus travel, use \"Catch a bus\" at a bus stop and pick another bus stop on the map: the bus fare has no minimum distance, and you must be on foot."
+   Target_it_it "Apri la mappa e seleziona una località raggiungibile: una casa di proprietà o in affitto, il tuo accampamento o uno pubblico, una FOB o una base controllata dalla Resistenza. Il relativo pannello informativo include un pulsante di viaggio che indica il costo della tratta. Il viaggio rapido ha un costo pari alla distanza in chilometri moltiplicata per la tariffa unitaria definita nelle impostazioni di difficoltà (con un addebito minimo calcolato su un chilometro). Le reclute entro un raggio di 50 metri viaggiano con te per impostazione predefinita, pagando ciascuna la tariffa intera; è possibile disattivare questa opzione tramite un apposito comando per lasciarle indietro. Non è possibile effettuare viaggi rapidi se si è ricercati, se la destinazione è più vicina della distanza minima consentita o se si è passeggeri di un veicolo (solo il conducente porta con sé il veicolo); inoltre, la presenza di una QRF (forza di reazione rapida) in corso può bloccare il viaggio rapido, a seconda delle impostazioni di difficoltà. Per viaggiare in autobus, utilizza l'opzione \"Prendi l'autobus\" presso una fermata e seleziona un'altra fermata sulla mappa: la tariffa dell'autobus non prevede una distanza minima e l'azione richiede di essere a piedi."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser le \"Déplacement Rapide\". La carte s'ouvrira et vous pourrez cliquer sur n'importe quelle Maison, Camp, Avant poste ou base que vous ou la résistance possédez/controllez pour vous y déplacer. Selon la difficulé, cela peut vous coûter de l'argent."
    Target_de_de "Öffne die Karte und wähle einen Ort aus, zu dem du reisen kannst: ein Haus, das dir gehört oder das du mietest, dein eigenes Camp oder ein öffentliches Camp, einen FOB oder eine vom Widerstand kontrollierte Basis. Im Informationsfenster gibt es eine Schaltfläche für die Reise, auf der der Fahrpreis angezeigt wird. Schnellreise kostet die Entfernung in Kilometern multipliziert mit dem in den Schwierigkeitseinstellungen festgelegten Schnellreisepreis, wobei mindestens ein Kilometer berechnet wird. Rekruten in einem Umkreis von 50 Metern reisen standardmäßig mit dir und jeder von ihnen zahlt den vollen Fahrpreis; im Fenster gibt es einen Schalter, mit dem du sie zurücklassen kannst. Du kannst nicht schnellreisen, solange du gesucht wirst, zu einem Ziel, das näher als die Mindestentfernung liegt, oder als Beifahrer in einem Fahrzeug – nur der Fahrer nimmt das Fahrzeug mit – und eine laufende QRF kann die Schnellreise abhängig von den Schwierigkeitseinstellungen blockieren. Für Busreisen verwende an einer Bushaltestelle \"Nimm den Bus\" und wähle auf der Karte eine andere Bushaltestelle aus: Beim Busfahrpreis gibt es keine Mindestentfernung und du musst zu Fuß sein."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Быстрого перемещения\". Откроется карта и вы можете нажать на любой купленый дом, построеный лагерь, FOB или захваченную базу. Вы заплатите небольое колличество денег за эту услугу в зависимости от уровня сложности."
@@ -2657,6 +2796,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000157}" {
    Id "OVT-FieldManual_FOBs_Head"
    Target_en_us "Deploying a FOB"
+   Target_it_it "Schierare una FOB"
    Target_de_de "Einen FOB errichten"
    Target_ru_ru "Развертывание ПОБ"
    Target_uk_ua "Розгортання FOB"
@@ -2677,6 +2817,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000158}" {
    Id "OVT-FieldManual_FOBs_Head2"
    Target_en_us "What a FOB Gives You"
+   Target_it_it "I vantaggi di una FOB"
    Target_de_de "Was dir ein FOB bietet"
    Target_ru_ru "Что даёт ПОБ"
    Target_uk_ua "Що дає FOB"
@@ -2697,6 +2838,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000159}" {
    Id "OVT-FieldManual_FOBs_Head3"
    Target_en_us "Building"
+   Target_it_it "Costruzione"
    Target_de_de "Bauen"
    Target_ru_ru "Строительство"
    Target_uk_ua "Будівництво"
@@ -2717,6 +2859,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015A}" {
    Id "OVT-FieldManual_FOBs_Head4"
    Target_en_us "Moving On"
+   Target_it_it "Spostarsi altrove"
    Target_de_de "Weiterziehen"
    Target_ru_ru "Движение дальше"
    Target_uk_ua "Рух уперед"
@@ -2737,6 +2880,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000108}" {
    Id "OVT-FieldManual_FOBs_Text"
    Target_en_us "A FOB is a forward operating base the resistance can deploy in the field, and it has to be sited clear of bases and radio towers. Building adds structures at a base the resistance holds, at a FOB, at a camp or, in the warehouse's case alone, inside a town the resistance controls, and what is on offer depends on which of those you are standing in."
+   Target_it_it "Una FOB è una base operativa avanzata che la Resistenza può schierare sul campo; deve essere collocata in una posizione libera, lontano da altre basi e torri radio. La funzione di costruzione permette di edificare strutture presso una base controllata dalla Resistenza, una FOB, un accampamento o – nel solo caso del magazzino – all'interno di una città sotto il controllo della Resistenza; le opzioni disponibili variano a seconda della posizione in cui ci si trova."
    Target_de_de "Ein FOB ist eine vorgeschobene Operationsbasis, die der Widerstand im Feld errichten kann. Sie muss in ausreichendem Abstand zu Basen und Funktürmen platziert werden. Durch Bauen können an einer vom Widerstand gehaltenen Basis, an einem FOB oder in einem Camp Strukturen hinzugefügt werden; was verfügbar ist, hängt davon ab, an welchem dieser Orte du dich befindest."
    Target_ru_ru "ПОБ — это Передовая Оперативная База, которую сопротивление может развернуть в полевых условиях. Её нужно размещать на достаточном расстоянии от баз и радиовышек. Строительство позволяет возводить сооружения на базе, удерживаемой сопротивлением, на ПБО или в лагере, а доступные сооружения зависят от того, где именно вы находитесь."
    Target_uk_ua "FOB — це передова оперативна база, яку опір може розгорнути в польових умовах. Її потрібно розміщувати подалі від баз і радіовеж. Будівництво дозволяє зводити споруди на базі, яку контролює опір, на FOB або в таборі, а доступні споруди залежать від того, де саме ви перебуваєте."
@@ -2757,6 +2901,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015B}" {
    Id "OVT-FieldManual_FOBs_Text2"
    Target_en_us "A FOB starts as a Mobile FOB truck, bought like any other vehicle, and an action on the truck sets the FOB up where it stands. It cannot go up near any base, whether the occupying faction or the resistance holds it, nor within seventy metres of a radio tower, and the map shades those areas so they can be seen in advance. Deploying is limited to officers unless the server has been set otherwise."
+   Target_it_it "Una FOB nasce come camion \"Mobile FOB\" (acquistabile come qualsiasi altro veicolo); un'apposita azione sul veicolo consente di installare la FOB nella posizione corrente. Non è possibile installarla vicino a una base (indipendentemente dal fatto che sia controllata dalla fazione occupante o dalla Resistenza) né entro settanta metri da una torre radio; tali aree sono evidenziate sulla mappa per essere individuate in anticipo. L'installazione è riservata agli ufficiali, a meno che le impostazioni del server non prevedano diversamente."
    Target_de_de "Ein FOB beginnt als mobiler FOB-Lkw, der wie jedes andere Fahrzeug gekauft wird. Eine Aktion am Lkw richtet den FOB an seiner aktuellen Position ein. Er kann weder in der Nähe einer Basis errichtet werden – unabhängig davon, ob diese von der Besatzungsmacht oder vom Widerstand gehalten wird – noch innerhalb von siebzig Metern um einen Funkturm. Die Karte markiert diese Bereiche, damit sie im Voraus erkennbar sind. Das Errichten ist auf Offiziere beschränkt, sofern der Server nicht anders eingestellt wurde."
    Target_ru_ru "ПОБ начинается как мобильный грузовик ПОБ, который покупается как любое другое транспортное средство, а действие на грузовике разворачивает ПОБ на месте его стоянки. Его нельзя развернуть рядом с любой базой, независимо от того, кто её контролирует — оккупационная фракция или сопротивление, а также в пределах семидесяти метров от радиовышки. На карте эти зоны затемнены, чтобы их можно было увидеть заранее. Развёртывание доступно только офицерам, если на сервере не установлено иное."
    Target_uk_ua "FOB починається як мобільна вантажівка FOB, яку купують так само, як і будь-який інший транспортний засіб, а дія на вантажівці розгортає FOB на місці, де вона стоїть. Її не можна розгорнути поблизу будь-якої бази, незалежно від того, хто її контролює — окупаційна фракція чи опір, а також у межах сімдесяти метрів від радіовежі. Мапа затінює ці зони, щоб їх можна було побачити заздалегідь. Розгортати FOB можуть лише офіцери, якщо на сервері не встановлено інше."
@@ -2777,6 +2922,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015C}" {
    Id "OVT-FieldManual_FOBs_Text3"
    Target_en_us "Any player can fast travel to a FOB, a FOB can be set as the spot you respawn at, and it is ground where placing and building both work. An officer can mark a single FOB as the priority FOB, which gives it its own map icon and keeps it visible however far the map is zoomed out."
+   Target_it_it "Qualsiasi giocatore può effettuare il viaggio rapido verso una FOB e impostarla come punto di respawn; si tratta inoltre di un'area in cui è possibile sia piazzare che costruire strutture. Un ufficiale può designare una specifica FOB come \"prioritaria\", assegnandole un'icona dedicata sulla mappa e rendendola visibile a qualsiasi livello di zoom."
    Target_de_de "Jeder Spieler kann per Schnellreise zu einem FOB gelangen, ein FOB kann als Wiedereinstiegspunkt festgelegt werden und dort funktionieren sowohl Platzieren als auch Bauen. Eine Garnison aus Soldaten kann dort stationiert werden; sie wird bezahlt und aus den Unterstützern der nächstgelegenen Stadt rekrutiert. Camps erhalten auf dieselbe Weise eine Garnison. Ein Offizier kann einen einzelnen FOB als Prioritäts-FOB markieren. Dadurch erhält er ein eigenes Kartensymbol und bleibt unabhängig von der Zoomstufe der Karte sichtbar."
    Target_ru_ru "Любой игрок может быстро переместиться к ПОБ, ПОБ можно назначить точкой возрождения, а также использовать как территорию для размещения объектов и строительства. Офицер может отметить один ПОБ как приоритетный, что даёт ему собственный значок на карте и оставляет его видимым независимо от масштаба карты."
    Target_uk_ua "Будь-який гравець може швидко переміщуватися до FOB, FOB можна встановити як місце відродження, а також використовувати як територію для розміщення об’єктів і будівництва. На FOB можна розмістити гарнізон солдатів, оплачений і сформований із прихильників найближчого міста; табори отримують гарнізон так само. Офіцер може позначити один FOB як пріоритетний, що надає йому окремий значок на мапі та залишає його видимим незалежно від масштабу мапи."
@@ -2797,6 +2943,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015D}" {
    Id "OVT-FieldManual_FOBs_Text4"
    Target_en_us "Build, on the Overthrow main menu, opens a list of structures and a camera to site them with, a short way from where you are standing. Most structures cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want construction resources as well: placing one of those charges the money and raises a construction site, which stands where it was put until the materials are brought to it. Each structure carries its own rules about where it may go, and most of the list wants a base the resistance holds or a FOB, so the same menu offers less at a camp than it does at a captured base. The Resources page covers the materials side."
+   Target_it_it "La voce \"Build\" (Costruisci) nel menu principale di Overthrow apre un elenco di strutture e attiva una visuale per posizionarle a breve distanza dalla propria posizione. La maggior parte delle strutture richiede solo denaro e appare istantaneamente al momento del piazzamento. Eliporto, garage, magazzino e caserma richiedono anche risorse da costruzione: il loro piazzamento comporta la spesa del denaro e la creazione di un cantiere, che rimane sul posto finché non vi vengono trasportati i materiali necessari. Ogni struttura è soggetta a regole specifiche di posizionamento; la maggior parte richiede una base controllata dalla Resistenza o una FOB, pertanto le opzioni disponibili in un accampamento sono inferiori rispetto a quelle offerte in una base conquistata. La sezione \"Resources\" (Risorse) tratta l'aspetto relativo ai materiali."
    Target_de_de "\"Bauen\" im Overthrow-Hauptmenü öffnet eine Liste von Strukturen sowie eine Kamera, mit der sie in kurzer Entfernung von deinem Standort platziert werden können. Eine Struktur kostet nur Geld: Es gibt keinen separaten Materialvorrat, den du vorher sammeln musst. Jede Struktur hat eigene Regeln dafür, wo sie platziert werden darf, und der Großteil der Liste erfordert eine vom Widerstand gehaltene Basis oder einen FOB. Deshalb bietet dasselbe Menü in einem Camp weniger Möglichkeiten als in einer eroberten Basis."
    Target_ru_ru "«Строительство» в главном меню Overthrow открывает список сооружений и камеру для их размещения неподалёку от вас. Большинство сооружений стоят только деньги и появляются сразу после размещения. Вертолётная площадка, Гараж, Склад и Казарма требуют также строительные ресурсы: размещение такого объекта списывает деньги и создаёт строительную площадку, которая остаётся на месте, пока к ней не привезут материалы. У каждого сооружения свои правила размещения, и для большинства из них требуется база, удерживаемая сопротивлением, или ПОБ, поэтому в лагере это меню предлагает меньше вариантов, чем на захваченной базе. Страница «Ресурсы» описывает работу с материалами."
    Target_uk_ua "«Будівництво» в головному меню Overthrow відкриває список споруд і камеру для вибору місця їх розташування неподалік від вас. Споруда коштує лише грошей: не потрібно заздалегідь збирати окремі запаси матеріалів. Кожна споруда має власні вимоги до місця розміщення, а для більшості з них потрібна база, контрольована опором, або FOB, тому в таборі це меню пропонує менше варіантів, ніж на захопленій базі."
@@ -2817,6 +2964,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000015E}" {
    Id "OVT-FieldManual_FOBs_Text5"
    Target_en_us "A FOB is not fixed in place. Packing it up turns it back into the truck and gathers the containers standing around it, with what is inside them, into the vehicle, so a FOB can be moved rather than abandoned. The occupying faction, for its part, comes to know where resistance camps and FOBs are, and a FOB raises the pressure it reads on the ground around it; neither one draws a raiding party out to it."
+   Target_it_it "Una FOB non è una struttura fissa. Smantellandola, la si riconverte in camion e si caricano a bordo i container circostanti (incluso il loro contenuto), consentendone lo spostamento anziché l'abbandono. La fazione occupante, dal canto suo, viene a conoscenza dell'ubicazione di accampamenti e FOB della Resistenza; una FOB aumenta il livello di pressione rilevato nell'area circostante, ma nessuna delle due strutture attira direttamente gruppi di incursione nemici."
    Target_de_de "Ein FOB ist nicht dauerhaft an einen Ort gebunden. Wird er eingepackt, verwandelt er sich wieder in den Lkw und nimmt die in seiner Umgebung stehenden Container samt Inhalt in das Fahrzeug auf. So kann ein FOB verlegt werden, anstatt ihn zurückzulassen. Die Besatzungsmacht erfährt ihrerseits, wo sich Camp und FOBs des Widerstands befinden, und schickt Truppen zur Aufklärung dorthin, wenn sie Soldaten entbehren kann."
    Target_ru_ru "ПОБ не привязана к одному месту. Сворачивание превращает её обратно в грузовик и собирает контейнеры вокруг неё вместе с их содержимым в транспортное средство, поэтому ПОБ можно переместить, а не бросать. Оккупирующая фракция, со своей стороны, узнаёт, где находятся лагеря и ПОБ сопротивления, и ПОБ повышает уровень давления, которое она фиксирует на окружающей территории; ни то, ни другое не привлекает к ним карательный отряд."
    Target_uk_ua "FOB не закріплена на одному місці. Якщо згорнути її, вона знову перетвориться на вантажівку, а контейнери навколо неї разом із їхнім вмістом буде завантажено в транспортний засіб, тож FOB можна перемістити, а не залишати. Окупаційна фракція, зі свого боку, дізнається про розташування таборів і FOB опору та відправляє туди солдатів на розвідку, коли має вільні сили."
@@ -2837,6 +2985,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000109}" {
    Id "OVT-FieldManual_FOBs_Title"
    Target_en_us "FOBs and Building"
+   Target_it_it "FOB e costruzione"
    Target_de_de "FOBs und Bauen"
    Target_ru_ru "ПОБ и строительство"
    Target_uk_ua "FOB та будівництво"
@@ -2857,6 +3006,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000003}" {
    Id "OVT-FieldManual_Fuel_Head"
    Target_en_us "When the Money Runs Out"
+   Target_it_it "Quando finiscono i soldi"
    Target_de_de "Wenn das Geld ausgeht"
    Target_ru_ru "Когда деньги заканчиваются"
    Comment "Field Manual - Fuel page, header above the can't-afford paragraph. Three to five words, title case, matches the header style of the other pages. No markup."
@@ -2876,6 +3026,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000004}" {
    Id "OVT-FieldManual_Fuel_Head2"
    Target_en_us "Fuel That Costs Nothing"
+   Target_it_it "Carburante a costo zero"
    Target_de_de "Kostenloser Treibstoff"
    Target_ru_ru "Бесплатное топливо"
    Comment "Field Manual - Fuel page, header above the free-transfer paragraph. Three to five words, title case. No markup."
@@ -2895,6 +3046,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000005}" {
    Id "OVT-FieldManual_Fuel_Head3"
    Target_en_us "The Fuel Depot"
+   Target_it_it "Il deposito di carburante"
    Target_de_de "Das Treibstoffdepot"
    Target_ru_ru "Топливный склад"
    Comment "Field Manual - Fuel page, header above the depot paragraph. 'Fuel Depot' must match the build-menu name in #OVT-Build_FuelDepot. No markup."
@@ -2914,6 +3066,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000006}" {
    Id "OVT-FieldManual_Fuel_Text"
    Target_en_us "Fuel is something the resistance buys. Refuelling at a fuel pump or a static fuel tank costs money for every litre actually delivered, taken while the fuel flows. The Refuel action shows the rate next to the tank reading, for example ($1/L). That rate is a difficulty setting: half a dollar a litre at the easiest end, four dollars at the hardest, and a server can set it to zero so fuel costs nothing anywhere. Vehicles and the Fuel Depot also carry a Fill Tank action: one five-second hold that fills the tank you are standing at in a single go, shows the exact price before you start, and sells you as much fuel as your money buys when you cannot afford a full load."
+   Target_it_it "Il carburante è una risorsa acquistata dalla Resistenza. Il rifornimento presso una pompa o un serbatoio fisso comporta un costo per ogni litro effettivamente erogato durante il flusso. L'azione di rifornimento mostra la tariffa accanto all'indicatore del livello del serbatoio (ad esempio, 1 $/l). Tale tariffa rappresenta un'impostazione di difficoltà: varia da mezzo dollaro al litro al livello più facile a quattro dollari a quello più difficile; un server può anche azzerarla, rendendo il carburante gratuito ovunque. I veicoli e il Deposito di Carburante offrono anche l'azione \"Riempi serbatoio\": basta tenere premuto un tasto per cinque secondi per riempire completamente il serbatoio in un'unica operazione; il prezzo esatto viene visualizzato prima di iniziare e, se non si dispone di fondi sufficienti per un pieno, viene erogata la quantità di carburante corrispondente al denaro disponibile."
    Target_de_de "Treibstoff muss vom Widerstand bezahlt werden. Das Betanken an einer Zapfsäule oder einem stationären Kraftstofftank kostet für jeden tatsächlich abgegebenen Liter Geld; der Betrag wird während des Tankvorgangs fortlaufend abgezogen."\
    ""\
    "Die Aktion **„Betanken“** zeigt den Preis pro Liter direkt neben der Tankanzeige an, zum Beispiel **($1/L)**. Dieser Preis ist von der gewählten Schwierigkeit abhängig: Auf der einfachsten Stufe beträgt er **0,50 $ pro Liter**, auf der höchsten **4 $ pro Liter**. Ein Server kann den Wert außerdem auf null setzen; in diesem Fall ist Treibstoff überall kostenlos."\
@@ -2938,6 +3091,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000007}" {
    Id "OVT-FieldManual_Fuel_Text2"
    Target_en_us "If you cannot cover the next moment of flow, the Refuel action is greyed out and reads that you cannot afford fuel here. If the money runs out while fuel is already moving, the flow stops, every litre already delivered stays in the tank, and you are told once. A few dollars can be left unspendable that way, because refuelling only starts when you can pay for a whole moment of flow."
+   Target_it_it "Se non si dispone di fondi sufficienti per coprire l'istante di erogazione successivo, l'azione di rifornimento appare disabilitata (in grigio) e segnala l'impossibilità di acquistare carburante in quel punto. Se il denaro si esaurisce mentre il carburante sta già fluendo, l'erogazione si interrompe, i litri già erogati rimangono nel serbatoio e viene visualizzata una notifica. In questo modo, una piccola quantità di denaro potrebbe rimanere inutilizzata, poiché il rifornimento inizia solo quando si dispone di fondi sufficienti per pagare un intero istante di erogazione."
    Target_de_de "Kann der Widerstand nicht einmal den nächsten Moment des Tankvorgangs bezahlen, wird die Aktion **„Betanken“** ausgegraut und weist darauf hin, dass der Treibstoff an dieser Stelle nicht bezahlt werden kann."\
    ""\
    "Geht das Geld während eines bereits laufenden Tankvorgangs aus, wird die Kraftstoffzufuhr sofort gestoppt. Jeder bis dahin abgegebene Liter verbleibt im Tank, und es erfolgt einmalig eine entsprechende Meldung."\
@@ -2962,6 +3116,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000008}" {
    Id "OVT-FieldManual_Fuel_Text3"
    Target_en_us "Moving fuel from a fuel truck into a vehicle costs nothing, and neither does pouring a jerrycan. What costs is filling them: a jerrycan or a truck's own cargo tank topped up at a pump is charged at the usual rate. Fuel carried in a truck has already been paid for."
+   Target_it_it "Trasferire carburante da un'autocisterna a un veicolo è gratuito, così come svuotare una tanica. Il costo è legato al riempimento dei contenitori: il rifornimento di una tanica o del serbatoio di carico di un camion presso una pompa avviene alla tariffa standard. Il carburante già presente a bordo di un camion è da considerarsi già pagato."
    Target_de_de "Das Umfüllen von Treibstoff aus einem Tanklastwagen in ein Fahrzeug ist kostenlos. Gleiches gilt für das Betanken aus einem Kanister."\
    ""\
    "Kosten entstehen erst beim Befüllen dieser Vorräte: Wird ein Kanister oder der eigene Ladetank eines Tankfahrzeugs an einer Zapfsäule aufgefüllt, gilt dafür der reguläre Treibstoffpreis."\
@@ -2986,6 +3141,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000009}" {
    Id "OVT-FieldManual_Fuel_Text4"
    Target_en_us "The resistance can build a Fuel Depot at a base it holds. It stores 10,000 litres - two full truck loads - and arrives empty, so it has no fuel to give until it is filled: park a fuel truck alongside and drain it into the depot from the depot's own actions. After that it refuels vehicles parked beside it for nothing, and whatever is left in it is kept in the campaign save."
+   Target_it_it "La Resistenza può costruire un Deposito di Carburante presso una base sotto il proprio controllo. La struttura ha una capacità di 10.000 litri (pari a due carichi completi di autocisterna) e viene consegnata vuota; pertanto, non può erogare carburante finché non viene riempita. Per farlo, è necessario parcheggiare un'autocisterna accanto al deposito e trasferirvi il contenuto utilizzando i comandi specifici del deposito stesso. Una volta rifornito, il deposito eroga carburante gratuitamente ai veicoli parcheggiati nelle vicinanze e la quantità residua viene salvata nei dati della campagna."
    Target_de_de "Der Widerstand kann an einem gehaltenen Stützpunkt ein **Treibstoffdepot** errichten. Es fasst **10.000 Liter** – entsprechend zwei vollständigen Tanklastwagenladungen – und wird leer aufgebaut. Solange es nicht befüllt wurde, kann es daher keinen Treibstoff ausgeben."\
    ""\
    "Zum Befüllen wird ein Tanklastwagen direkt neben dem Depot abgestellt. Anschließend wird dessen Ladung über die Aktionen des Treibstoffdepots in den Vorratstank umgefüllt."\
@@ -3010,6 +3166,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000A}" {
    Id "OVT-FieldManual_Fuel_Title"
    Target_en_us "Fuel"
+   Target_it_it "Carburante"
    Target_de_de "Treibstoff"
    Target_ru_ru "Топливо"
    Comment "Field Manual - title of the Fuel page, shown on its tile in the Money and Trade category grid and as the heading at the top of the page. One word. This key is also the deep-link id the 'fuel-depot-built' tutorial popup uses to open this page, so it must never be renamed."
@@ -3029,6 +3186,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000129}" {
    Id "OVT-FieldManual_GunDealers_Head"
    Target_en_us "Finding a Dealer"
+   Target_it_it "Trovare un rivenditore"
    Target_de_de "Einen Waffenhändler finden"
    Target_ru_ru "Поиск торговца"
    Target_uk_ua "Пошук дилера"
@@ -3049,6 +3207,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012A}" {
    Id "OVT-FieldManual_GunDealers_Head2"
    Target_en_us "What They Carry"
+   Target_it_it "Articoli trattati"
    Target_de_de "Was sie anbieten"
    Target_ru_ru "Что они продают"
    Target_uk_ua "Що у них є в наявності"
@@ -3069,6 +3228,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012B}" {
    Id "OVT-FieldManual_GunDealers_Head3"
    Target_en_us "Selling to a Dealer"
+   Target_it_it "Vendere a un rivenditore"
    Target_de_de "An einen Händler verkaufen"
    Target_ru_ru "Продажа торговцу"
    Target_uk_ua "Продаж дилеру"
@@ -3089,6 +3249,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010A}" {
    Id "OVT-FieldManual_GunDealers_Text"
    Target_en_us "A gun dealer is a shop that trades weapons and military equipment rather than everyday goods. Gun dealers draw on their own stock list, restock separately from ordinary shops, and their prices are shaped by the campaign's difficulty settings."
+   Target_it_it "Un rivenditore di armi è un esercizio commerciale che tratta armi ed equipaggiamento militare anziché beni di consumo comuni. I rivenditori dispongono di un proprio inventario, si riforniscono indipendentemente dai negozi ordinari e i loro prezzi sono determinati dalle impostazioni di difficoltà della campagna."
    Target_de_de "Ein Waffenhändler ist ein Geschäft, das statt alltäglicher Waren Waffen und militärische Ausrüstung handelt. Waffenhändler greifen auf eine eigene Bestandsliste zurück, füllen ihre Vorräte getrennt von gewöhnlichen Geschäften auf und ihre Preise werden von den Schwierigkeitseinstellungen der Kampagne beeinflusst."
    Target_ru_ru "Торговец оружием — это магазин, который торгует оружием и военным снаряжением вместо обычных товаров. Торговцы оружием используют собственный список товаров, пополняют запасы отдельно от обычных магазинов, а их цены зависят от настроек сложности кампании."
    Target_uk_ua "Торговець зброєю — це торговець, який продає озброєння та військове спорядження замість побутових товарів. У торговців зброєю власний перелік товарів, їхній асортимент оновлюється окремо від звичайних крамниць, а розцінки безпосередньо залежать від налаштувань складності кампанії."
@@ -3109,6 +3270,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012C}" {
    Id "OVT-FieldManual_GunDealers_Text2"
    Target_en_us "Every town larger than a village has one gun dealer, and villages have none. The dealer is a person standing at a spot in the town rather than a counter inside a shop, and once a town has settled on that spot it keeps it for the rest of the campaign. Dealers and ordinary shops both carry their own icon on the map."
+   Target_it_it "Ogni centro abitato più grande di un villaggio dispone di un rivenditore di armi, mentre i villaggi ne sono privi. Il rivenditore è una persona che staziona in un punto specifico della città, anziché trovarsi dietro un bancone all'interno di un negozio; una volta stabilita la posizione del rivenditore, questa rimane invariata per il resto della campagna. Sia i rivenditori che i negozi ordinari sono contrassegnati da un'icona specifica sulla mappa."
    Target_de_de "Jede Stadt, die größer als ein Dorf ist, hat einen Waffenhändler; Dörfer haben keinen. Der Händler ist eine Person, die an einem bestimmten Ort in der Stadt steht, und kein Tresen innerhalb eines Geschäfts. Sobald eine Stadt diesen Standort festgelegt hat, bleibt er für den Rest der Kampagne bestehen. Sowohl Händler als auch gewöhnliche Geschäfte haben jeweils ein eigenes Symbol auf der Karte."
    Target_ru_ru "В каждом городе крупнее деревни есть один торговец оружием, а в деревнях их нет вовсе. Торговец — это человек, стоящий в определённом месте города, а не за прилавком внутри магазина, и как только город определится с этим местом, оно остаётся неизменным до конца кампании. Торговцы оружием и обычные магазины имеют собственные значки на карте."
    Target_uk_ua "Кожне місто, більше за село, має одного торгівця зброєю, а в селах їх немає взагалі. Торговець — це персонаж, який стоїть у певній точці міста, а не за стійкою всередині магазину, і як тільки місто визначається з цим місцем, воно залишається незмінним до кінця кампанії. Зброярі та звичайні крамниці позначені на карті власними іконками."
@@ -3129,6 +3291,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012D}" {
    Id "OVT-FieldManual_GunDealers_Text3"
    Target_en_us "A dealer's stock comes from its own list rather than the general shop catalogue: pistols, ammunition, attachments, explosives and throwables are the staples, and each town's dealer also rolls a single rifle, a single sniper rifle, a single machine gun and a single launcher when its town first comes to life. Those rolls belong to that dealer for good, topped back up when they run low rather than rolled again, so two towns rarely offer the same heavy weapons. Most equipment belonging to the occupying faction is not traded."
+   Target_it_it "L'assortimento di un rivenditore proviene da un inventario dedicato, distinto dal catalogo generale dei negozi: pistole, munizioni, accessori, esplosivi e oggetti da lancio costituiscono la base dell'offerta. Inoltre, al momento della creazione della città, il rivenditore genera casualmente un singolo fucile, un fucile di precisione, una mitragliatrice e un lanciatore. Tali armi rimangono parte integrante dell'inventario del rivenditore e vengono reintegrate quando le scorte si esauriscono, senza essere generate nuovamente; di conseguenza, è raro che due città offrano le stesse armi pesanti. La maggior parte dell'equipaggiamento in dotazione alla fazione occupante non viene trattata."
    Target_de_de "Der Bestand eines Händlers stammt aus seiner eigenen Liste und nicht aus dem allgemeinen Warenkatalog der Geschäfte: Pistolen, Munition, Anbauteile, Sprengstoffe und Wurfgegenstände gehören zum Standardangebot. Zusätzlich erhält der Händler jeder Stadt bei der ersten Aktivierung der Stadt jeweils ein zufällig ausgewähltes Gewehr, Scharfschützengewehr, Maschinengewehr und einen Werfer. Diese Auswahl bleibt diesem Händler dauerhaft erhalten und wird bei niedrigem Bestand wieder aufgefüllt, statt neu ausgewürfelt zu werden. Deshalb bieten zwei Städte nur selten dieselben schweren Waffen an. Die meiste Ausrüstung der Besatzungsmacht wird nicht gehandelt."
    Target_ru_ru "Ассортимент торговца оружием формируется по собственному списку, а не по общему каталогу магазинов: пистолеты, боеприпасы, крепления, взрывчатка и метательные предметы — основная номенклатура. При первом появлении города его торговец также получает по одной случайной единице из категорий винтовок, снайперских винтовок, пулемётов и гранатомётов. Этот выбор закрепляется за торговцем навсегда: запасы пополняются, когда они заканчиваются, но повторный розыгрыш не производится, поэтому в двух городах редко предлагается одинаковое тяжёлое вооружение. Большая часть снаряжения оккупационной фракции не продаётся."
    Target_uk_ua "Торговець зброєю має власний каталог, який відрізняється від асортименту звичайних крамниць. Базовий товар — це пістолети, патрони, обвіси, вибухівка та гранати. Додатково при створенні міста скупник процедурно отримує по одній випадковій позиції зі штурмових гвинтівок, снайперських гвинтівок, кулеметів та гранатометів. Цей набір зброї закріплюється за ним назавжди: коли товар закінчується, запас поповнюється тим самим зразком, тому асортимент важкого озброєння в кожному місті унікальний. Трофейне спорядження окупантів у скупників майже не продається."
@@ -3149,6 +3312,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012E}" {
    Id "OVT-FieldManual_GunDealers_Text4"
    Target_en_us "Unlike a shop that only buys back the sort of goods it sells, a dealer takes almost anything that has a price. What it pays is a fraction of the item's value, set by the campaign's difficulty settings, and where those settings put that fraction at zero the dealer does not buy at all. Large sums changing hands at a dealer get noticed: they lower the stability of the town it happened in and raise support for the resistance there."
+   Target_it_it "A differenza dei negozi, che riacquistano solo le tipologie di merci che vendono, il rivenditore accetta quasi qualsiasi oggetto dotato di un prezzo. Il pagamento corrisponde a una frazione del valore dell'oggetto, determinata dalle impostazioni di difficoltà della campagna; se tali impostazioni fissano la frazione a zero, il rivenditore non effettua alcun acquisto. Le transazioni di importo elevato presso un rivenditore non passano inosservate: riducono la stabilità della città in cui avvengono e accrescono il sostegno locale alla Resistenza."
    Target_de_de "Anders als ein Geschäft, das nur die Arten von Waren zurückkauft, die es selbst verkauft, nimmt ein Händler fast alles an, was einen Preis besitzt. Er bezahlt einen durch die Schwierigkeitseinstellungen der Kampagne festgelegten Anteil des Gegenstandswerts. Ist dieser Anteil dort auf null gesetzt, kauft der Händler überhaupt nichts an. Große Geldbeträge, die bei einem Händler den Besitzer wechseln, bleiben nicht unbemerkt: Sie senken die Stabilität der betreffenden Stadt und erhöhen dort die Unterstützung für den Widerstand."
    Target_ru_ru "В отличие от магазина, который выкупает только те товары, которые сам продаёт, торговец оружием принимает почти всё, что имеет цену. Он платит долю от стоимости предмета, установленную настройками сложности кампании, и если в этих настройках доля равна нулю — торговец вообще ничего не покупает. Крупные суммы, переходящие из рук в руки у торговца, не остаются незамеченными: они снижают стабильность города, где это произошло, и повышают поддержку сопротивления в нём."
    Target_uk_ua "На відміну від звичайних крамниць, які скуповують лише свій профільний товар, торговець зброєю бере практично будь-які речі, що мають ціну. Сума виплати становить відсоток від базової вартості предмета й залежить від налаштувань складності гри (якщо коефіцієнт рівний нулю, скупка буде повністю вимкнена). Угоди на великі суми привертають увагу: вони розхитують стабільність у місті, але водночас збільшують лояльність містян до сил опору."
@@ -3169,6 +3333,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010B}" {
    Id "OVT-FieldManual_GunDealers_Title"
    Target_en_us "Gun Dealers"
+   Target_it_it "Mercanti d'armi"
    Target_de_de "Waffenhändler"
    Target_ru_ru "Торговцы оружием"
    Target_uk_ua "Торговці зброєю"
@@ -3189,6 +3354,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007202}" {
    Id "OVT-FieldManual_HighCommand_Head"
    Target_en_us "Barracks"
+   Target_it_it "Caserma"
    Target_de_de "Kaserne"
    Target_ru_ru "Казармы"
    Comment "Field Manual - The Resistance category, High Command page. Section header, one word. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3208,6 +3374,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007204}" {
    Id "OVT-FieldManual_HighCommand_Head2"
    Target_en_us "Buying a Group"
+   Target_it_it "Acquistare un gruppo"
    Target_de_de "Eine Gruppe kaufen"
    Target_ru_ru "Покупка Группы"
    Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3227,6 +3394,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007206}" {
    Id "OVT-FieldManual_HighCommand_Head3"
    Target_en_us "Orders and Stances"
+   Target_it_it "Ordini e atteggiamenti tattici"
    Target_de_de "Befehle und Verhaltensweisen"
    Target_ru_ru "Приказы и режимы"
    Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3246,6 +3414,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007208}" {
    Id "OVT-FieldManual_HighCommand_Head4"
    Target_en_us "Manage Groups"
+   Target_it_it "Gestione gruppi"
    Target_de_de "Gruppen verwalten"
    Target_ru_ru "Управление группами"
    Comment "Field Manual - The Resistance category, High Command page. Section header, two words. Must match the main-menu button label #OVT-MainMenu_ManageGroups. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3265,6 +3434,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720A}" {
    Id "OVT-FieldManual_HighCommand_Head5"
    Target_en_us "Ammunition and Fuel"
+   Target_it_it "Munizioni e carburante"
    Target_de_de "Munition und Treibstoff"
    Target_ru_ru "Боеприпасы и топливо"
    Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3284,6 +3454,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720C}" {
    Id "OVT-FieldManual_HighCommand_Head6"
    Target_en_us "Turning Recruits Over"
+   Target_it_it "Assegnazione delle reclute"
    Target_de_de "Rekruten übergeben"
    Target_ru_ru "Передача рекрутов"
    Comment "Field Manual - The Resistance category, High Command page. Section header, three words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3303,6 +3474,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720E}" {
    Id "OVT-FieldManual_HighCommand_Head7"
    Target_en_us "Holding Ground"
+   Target_it_it "Mantenimento della posizione"
    Target_de_de "Stellungen halten"
    Target_ru_ru "Удержание позиции"
    Comment "Field Manual - The Resistance category, High Command page. Section header, two words. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -3322,7 +3494,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007201}" {
    Id "OVT-FieldManual_HighCommand_Text"
    Target_en_us "High Command is how the resistance fields soldiers of its own rather than an escort. A player buys a whole group at a barracks, owns it outright, and moves it anywhere on the island from the map. The group is really there: it walks or drives to where it is sent, fights what it meets on the way, and holds its ground whether or not anybody is nearby to watch."
-   Target_de_de "Das Oberkommando ermöglicht es dem Widerstand, eigene Soldaten als selbstständige Kampfverbände einzusetzen, anstatt sie lediglich als Begleitschutz mitzuführen."\
+   Target_it_it "Il \"Comando Supremo\" è il sistema attraverso il quale la Resistenza schiera i propri soldati, distinguendoli dalle semplici scorte. Il giocatore acquista un intero gruppo presso una caserma, ne assume il pieno controllo e può spostarlo in qualsiasi punto dell'isola agendo sulla mappa. Il gruppo è fisicamente presente sul campo: si sposta a piedi o su veicoli verso la destinazione assegnata, combatte contro eventuali nemici incontrati lungo il percorso e mantiene la posizione indipendentemente dalla presenza di osservatori nelle vicinanze."
+   Target_de_de "Das Obere Kommando ermöglicht es dem Widerstand, eigene Soldaten als selbstständige Kampfverbände einzusetzen, anstatt sie lediglich als Begleitschutz mitzuführen."\
    ""\
    "Ein Spieler kauft an einer Kaserne eine vollständige Gruppe, übernimmt sie vollständig und kann sie über die Karte an jeden beliebigen Ort der Insel befehlen."\
    ""\
@@ -3337,7 +3510,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261423
+   Modified 1781873633
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -3346,6 +3519,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007203}" {
    Id "OVT-FieldManual_HighCommand_Text2"
    Target_en_us "Groups are bought at a barracks standing on a base the resistance holds. Some bases already have military barracks on them, and a barracks can also be built at a base like any other structure, at the highest price on the build list: $20000 along with timber, cement, steel and hardware. The action sits on the radio set inside the barracks, the same kind of radio a recruitment tent carries, and any player at that base can use it. A barracks reduced to a ruin offers nothing until it is repaired."
+   Target_it_it "I gruppi si acquistano presso una caserma situata in una base controllata dalla Resistenza. Alcune basi dispongono già di caserme militari; inoltre, è possibile costruirne una in qualsiasi base, proprio come un'altra struttura qualsiasi, al prezzo più alto dell'elenco di costruzione: 20.000 $ più legname, cemento, acciaio e ferramenta. L'azione si esegue tramite la radio situata all'interno della caserma — lo stesso tipo di radio presente nelle tende di reclutamento — e può essere utilizzata da qualsiasi giocatore presente nella base. Una caserma ridotta in rovina non offre alcuna funzionalità finché non viene riparata."
    Target_de_de "Gruppen werden an einer Kaserne gekauft, die sich auf einem vom Widerstand gehaltenen Stützpunkt befindet. Einige Stützpunkte verfügen bereits über militärische Kasernen. Eine Kaserne kann jedoch auch wie jedes andere Bauwerk an einem Stützpunkt errichtet werden. Mit 20.000 $ sowie dem erforderlichen Holz, Zement, Stahl und Baumaterial ist sie das teuerste Bauwerk auf der Bauliste."\
    ""\
    "Die entsprechende Aktion befindet sich am Funkgerät innerhalb der Kaserne – demselben Funkgerätetyp, der auch in Rekrutierungszelten verwendet wird. Jeder Spieler am betreffenden Stützpunkt kann diese Aktion nutzen."\
@@ -3370,6 +3544,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007205}" {
    Id "OVT-FieldManual_HighCommand_Text3"
    Target_en_us "The screen lists eleven groups, from small teams up to a rifle squad, three of which arrive with a vehicle. Picking one asks the server for a price and shows what it is made of: the recruit cost of every man in it, the gear each of them needs, and, where there is a vehicle, that vehicle at the full price a shop would charge. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, so a town with no support left cannot raise a group. Each player has a cap on how many High Command soldiers they can hold at once, and a purchase that would pass it is refused before any money moves."
+   Target_it_it "La schermata elenca undici gruppi, che spaziano da piccole squadre operative fino a una squadra di fucilieri; tre di questi includono un veicolo. Selezionandone uno, il server comunica il prezzo e ne mostra la composizione: il costo di reclutamento di ogni singolo uomo, l'equipaggiamento necessario a ciascuno di essi e, nel caso sia presente un veicolo, il costo pieno di quest'ultimo (pari a quello di un negozio). L'equipaggiamento già disponibile in un magazzino registrato nel raggio di 150 metri viene prelevato direttamente dalle scorte anziché acquistato, e il preventivo indica l'entità del risparmio ottenuto in tal modo. L'acquisto comporta inoltre il reclutamento di sostenitori dalla città più vicina; di conseguenza, una città priva di sostenitori non può fornire unità per formare un gruppo. Ciascun giocatore è soggetto a un limite massimo di soldati dell'Alto Comando che può gestire contemporaneamente: qualsiasi acquisto che superi tale limite viene rifiutato prima ancora che avvenga la transazione economica."
    Target_de_de "Der Bildschirm führt elf verfügbare Gruppen auf, von kleinen Trupps bis hin zur Schützengruppe. Drei dieser Gruppen werden zusammen mit einem Fahrzeug bereitgestellt."\
    ""\
    "Nach Auswahl einer Gruppe fordert das System vom Server den aktuellen Preis an und zeigt zugleich deren vollständige Zusammensetzung an: die Rekrutierungskosten jedes einzelnen Soldaten, die für ihn benötigte Ausrüstung sowie – sofern vorgesehen – das zugehörige Fahrzeug zum vollen regulären Händlerpreis."\
@@ -3398,7 +3573,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007207}" {
    Id "OVT-FieldManual_HighCommand_Text4"
    Target_en_us "Every player's map draws every High Command group as a green symbol, your own at full strength and other players' dimmed, and the map's layer panel can switch them off again. Selecting one shows who owns it, its stance, how far it is from its destination, how far it is from you, and how many of its men are still alive. A group you own can be ordered to the spot under the map cursor, and its stance cycled between Defend, which holds the ground it was sent to, Patrol, which walks a ring around it, and Attack, which sweeps it for the enemy. A group on the move draws a dashed line to where it is going. A mark appears on the symbol while it is in contact with the enemy, and an ammunition badge when it has run dry. Ordering a group another player owns is refused."
-   Target_de_de "Auf der Karte jedes Spielers werden sämtliche Oberkommando-Gruppen als grüne Symbole dargestellt. Eigene Gruppen erscheinen in voller Stärke, die Gruppen anderer Spieler hingegen abgeblendet. Über die Ebenensteuerung der Karte können diese Markierungen bei Bedarf vollständig ausgeblendet werden."\
+   Target_it_it "Sulla mappa di ogni giocatore, i gruppi dell'Alto Comando appaiono come simboli verdi: quelli di propria proprietà sono visualizzati a piena intensità, mentre quelli degli altri giocatori appaiono più tenui (è comunque possibile disattivarne la visualizzazione tramite il pannello dei livelli della mappa). Selezionando un gruppo, vengono visualizzati il proprietario, la postura tattica, la distanza dalla destinazione, la distanza dalla propria posizione e il numero di uomini ancora in vita. È possibile impartire ordini a un gruppo di propria proprietà affinché raggiunga il punto indicato dal cursore sulla mappa; la postura tattica può essere alternata tra \"Difesa\" (mantenimento della posizione assegnata), \"Pattugliamento\" (percorso circolare attorno alla posizione) e \"Attacco\" (perlustrazione dell'area alla ricerca di nemici). Quando un gruppo è in movimento, viene tracciata una linea tratteggiata verso la destinazione. Sul simbolo compare un indicatore in caso di contatto con il nemico e un'icona delle munizioni quando queste sono esaurite. I tentativi di impartire ordini a gruppi appartenenti ad altri giocatori vengono rifiutati."
+   Target_de_de "Auf der Karte jedes Spielers werden sämtliche High-Command-Gruppen als grüne Symbole dargestellt. Eigene Gruppen erscheinen in voller Stärke, die Gruppen anderer Spieler hingegen abgeblendet. Über die Ebenensteuerung der Karte können diese Markierungen bei Bedarf vollständig ausgeblendet werden."\
    ""\
    "Wird eine Gruppe ausgewählt, zeigt die Karte ihren Besitzer, ihre aktuelle Verhaltensweise, die Entfernung zu ihrem Zielpunkt, die Entfernung zum eigenen Spieler sowie die Anzahl der noch lebenden Soldaten an."\
    ""\
@@ -3417,7 +3593,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261605
+   Modified 1781873361
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -3426,6 +3602,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007209}" {
    Id "OVT-FieldManual_HighCommand_Text5"
    Target_en_us "Manage Groups, on the Overthrow main menu, lists the groups you own with their status and how many of your soldier slots are in use. From there a group can be shown on the map, or dismissed after a confirmation, which takes it, its vehicle and its orders out of the world for good."
+   Target_it_it "La voce \"Gestisci gruppi\" nel menu principale di Overthrow elenca i gruppi di tua proprietà, indicandone lo stato e il numero di slot soldato occupati. Da qui è possibile visualizzare un gruppo sulla mappa o congedarlo (previa conferma); tale operazione rimuove definitivamente dal mondo di gioco il gruppo, il relativo veicolo e gli ordini assegnati."
    Target_de_de "Gruppen verwalten im Overthrow-Hauptmenü zeigt alle Gruppen an, die dem Spieler unterstehen, einschließlich ihres aktuellen Status und der Anzahl belegter Soldatenplätze."\
    ""\
    "Von dort aus kann eine Gruppe auf der Karte angezeigt oder nach einer Bestätigung aufgelöst werden. Beim Auflösen werden die Gruppe selbst, ihr Fahrzeug und sämtliche zugewiesenen Befehle dauerhaft aus der Spielwelt entfernt."\
@@ -3448,6 +3625,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720B}" {
    Id "OVT-FieldManual_HighCommand_Text6"
    Target_en_us "A group left near a registered warehouse tops its magazines back up out of the stock held there, by itself, every so often. A group with a vehicle parked near a fuel source fills its tank the same way, and the fuel is charged to the group's owner at the same price a player filling up by hand would pay; a fuel depot the resistance built is free."
+   Target_it_it "Un gruppo che sosta vicino a un magazzino registrato rifornisce autonomamente i propri caricatori attingendo alle scorte ivi presenti. Allo stesso modo, un gruppo con veicolo parcheggiato vicino a una fonte di carburante effettua il rifornimento del serbatoio; il costo del carburante viene addebitato al proprietario del gruppo alla stessa tariffa applicata a un giocatore che effettua il rifornimento manualmente (il carburante prelevato da un deposito costruito dalla Resistenza è invece gratuito)."
    Target_de_de "Eine Gruppe, die sich in der Nähe eines registrierten Lagerhauses aufhält, ergänzt in regelmäßigen Abständen selbstständig ihre Magazine aus den dort eingelagerten Beständen."\
    ""\
    "Verfügt die Gruppe über ein Fahrzeug und steht dieses in der Nähe einer Treibstoffquelle, wird dessen Tank auf dieselbe Weise automatisch aufgefüllt. Die Kosten werden dem Besitzer der Gruppe zum gleichen Preis berechnet, den auch ein Spieler beim manuellen Betanken zahlen würde."\
@@ -3472,6 +3650,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720D}" {
    Id "OVT-FieldManual_HighCommand_Text7"
    Target_en_us "Recruits that are holding position can be handed to High Command instead of being managed one by one. The Manage Recruits screen shows the ones holding position grouped by where they are standing, and each of those groups carries a Convert to High Command action. The change is one way. Those recruits leave your recruit roster and give their slots back, and their names, experience and skill tracking end with their records, but the same bodies carry on in the new group with the gear they were already wearing."
+   Target_it_it "Le reclute in posizione di attesa possono essere trasferite all'Alto Comando, evitando così di doverle gestire singolarmente. La schermata \"Gestisci reclute\" raggruppa le unità in attesa in base alla loro posizione; per ciascun gruppo è disponibile l'azione \"Trasferisci all'Alto Comando\". Si tratta di un trasferimento irreversibile: le reclute vengono rimosse dal tuo elenco personale liberando i relativi slot; i dati relativi a nomi, esperienza e abilità vengono cancellati, ma le unità fisiche continuano a operare nel nuovo gruppo mantenendo l'equipaggiamento che indossavano in precedenza."
    Target_de_de "Rekruten, die eine Stellung halten, können an das Obere Kommando übergeben werden, anstatt weiterhin einzeln verwaltet zu werden."\
    ""\
    "Im Menü Rekruten verwalten werden alle Rekruten mit Haltebefehl nach ihrem jeweiligen Standort zusammengefasst. Für jede dieser Gruppen steht die Aktion In Oberes Kommando umwandeln zur Verfügung."\
@@ -3498,6 +3677,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000720F}" {
    Id "OVT-FieldManual_HighCommand_Text8"
    Target_en_us "Bases, camps and FOBs no longer take a bought garrison, and the menus that sold one are gone. Ground is held by parking a High Command group on it in Defend stance, which unlike a garrison can be picked up and sent somewhere else at any time. A campaign saved before the change loads without its old garrisons."
+   Target_it_it "Le basi, gli accampamenti e le FOB non prevedono più l'acquisto di una guarnigione e i relativi menu di acquisto sono stati rimossi. Il controllo del territorio si ottiene posizionando un gruppo dell'Alto Comando in assetto difensivo (\"Defend\"); a differenza di una guarnigione fissa, tale gruppo può essere spostato altrove in qualsiasi momento. Le campagne salvate prima di questa modifica verranno caricate senza le vecchie guarnigioni."
    Target_de_de "Stützpunkte, Lager und FOBs erhalten keine separat gekaufte Garnison mehr. Die entsprechenden Menüs zum Erwerb einer Garnison wurden entfernt."\
    ""\
    "Gelände wird stattdessen gehalten, indem eine Gruppe des Oberen Kommandos dort in der Verhaltensweise Verteidigen stationiert wird. Im Gegensatz zu einer Garnison kann eine solche Gruppe jederzeit wieder abgezogen und an einen anderen Ort befohlen werden."\
@@ -3522,7 +3702,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007200}" {
    Id "OVT-FieldManual_HighCommand_Title"
    Target_en_us "High Command"
-   Target_de_de "Oberkommando"
+   Target_it_it "Alto Comando"
+   Target_de_de "Obere Kommando"
    Target_ru_ru "Командование"
    Comment "Field Manual - The Resistance category, High Command page. Tile and page title, two words. Matches the Manage Groups main-menu wording (#OVT-MainMenu_ManageGroups) and the purchase screen title (#OVT-HC_MenuTitle). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
    DevNote ""
@@ -3532,7 +3713,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261477
+   Modified 1781873569
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -3541,6 +3722,7 @@ StringTable {
   CustomStringTableItem "{599083306EFCACF6}" {
    Id "OVT-FieldManual_MainMenu_Text"
    Target_en_us "Open the main menu with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> to access most of the features of Overthrow."
+   Target_it_it "Apri il menu principale premendo <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> per accedere alla maggior parte delle funzionalità di Overthrow."
    Target_fr_fr "Ouvrez le menu principal avec <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> pour accéder à la plupart des fonctions d'Overthrow"
    Target_de_de "Öffne das Hauptmenü mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>, um auf die meisten Funktionen von Overthrow zuzugreifen."
    Target_ru_ru "Откройте главное меню нажатем кнопки <color rgba='226,168,79,255'><action name=\\"OverthrowMainMenu\\"/></color>для доступа ко всем основным возможностям Overthrow."
@@ -3564,6 +3746,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011E}" {
    Id "OVT-FieldManual_MainMenu_Text2"
    Target_en_us "The menu opens on the town where you stand. It shows population, stability, supporter count, and the log of recent notifications.<br/>From here you can reach: map info, fast travel, place, build, the resistance menu, jobs, real estate for the building you are in, recruit management, your character sheet, your last tip, options, and campaign save.<br/>Some entries need the right conditions. Real estate works only in an ownable building. Tips stays greyed out until you see your first tip. Only officers can save. If you stand next to certain places, such as a shop counter, that place opens its own menu instead."
+   Target_it_it "Il menu si apre sulla città in cui ti trovi. Mostra la popolazione, la stabilità, il numero di sostenitori e il registro delle notifiche recenti.<br/>Da qui puoi accedere a: informazioni sulla mappa, viaggio rapido, opzioni di piazzamento e costruzione, menu della Resistenza, lavori, gestione immobili (per l'edificio in cui ti trovi), gestione reclute, scheda del personaggio, ultimo suggerimento ricevuto, opzioni e salvataggio della campagna.<br/>Alcune voci richiedono condizioni specifiche. La gestione immobili funziona solo negli edifici di tua proprietà. La voce \"Suggerimenti\" rimane disabilitata finché non visualizzi il primo suggerimento. Solo gli ufficiali possono salvare la partita. Se ti trovi vicino a determinati punti, come il bancone di un negozio, si aprirà invece il menu specifico di quel luogo."
    Target_de_de "Das Menü öffnet sich mit der Stadt, in der du dich befindest, einschließlich ihrer Bevölkerung, Stabilität und Anzahl an Unterstützern sowie dem Protokoll der letzten Benachrichtigungen.<br/>Von hier aus erreichst du Karteninformationen und Schnellreise, Platzieren und Bauen, das Widerstandsmenü, Aufträge, das Immobilienmenü für das Gebäude, in dem du dich befindest, die Rekrutenverwaltung, deinen Charakterbogen, den zuletzt angezeigten Tipp und die Option zum Speichern der Kampagne.<br/>Einige Einträge funktionieren nur unter den richtigen Umständen: Immobilien bleibt ausgegraut, solange das Gebäude, in dem du dich befindest, nicht besessen werden kann; Tipps bleibt ausgegraut, bis ein Tipp angezeigt wurde; und Speichern ist auf Offiziere beschränkt. Wenn du neben bestimmten Orten stehst, beispielsweise an einem Ladentresen, öffnet sich stattdessen das eigene Menü dieses Ortes."
    Target_ru_ru "Меню открывается для города, в котором вы находитесь, показывая его население, стабильность, количество сторонников и журнал последних уведомлений.<br/>Отсюда можно перейти к информации на карте и быстрому перемещению, размещению и строительству, меню сопротивления, заданиям, меню недвижимости для здания, в котором вы стоите, управлению рекрутами, характеристикам персонажа, последней показанной подсказке и запросу на сохранение кампании.<br/>Некоторые пункты работают только при определённых условиях: недвижимость остаётся неактивной, если здание нельзя приобрести; подсказки — пока не появится первая подсказка; сохранение доступно только офицерам. Нахождение рядом с определёнными местами, например с прилавком магазина, вместо этого открывает личное меню этого места."
    Target_uk_ua "Меню відкривається для міста, у якому ви перебуваєте: воно відображає населення, стабільність, кількість прихильників та журнал останніх сповіщень. Звідси можна перейти до інформації на карті й швидкого переміщення, розміщення й будівництва, меню опору, завдань, меню нерухомості для будівлі, у якій ви стоїте, керування рекрутами, характеристики персонажа, останньої показаної підказки та запиту на збереження кампанії. Деякі пункти працюють лише за певних умов: нерухомість залишається неактивною, якщо будівлю не можна придбати, підказки — доки не з'явиться перша підказка, а збереження доступне лише офіцерам. Перебування біля певних місць, наприклад прилавка магазину, натомість відкриває особисте меню цього місця."
@@ -3584,6 +3767,7 @@ StringTable {
   CustomStringTableItem "{5990833199C7A051}" {
    Id "OVT-FieldManual_MainMenu_Title"
    Target_en_us "Main Menu"
+   Target_it_it "Menu principale"
    Target_fr_fr "Menu Principal"
    Target_de_de "Hauptmenü"
    Target_ru_ru "Главное меню"
@@ -3607,6 +3791,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000124}" {
    Id "OVT-FieldManual_MapAndTravel_Head"
    Target_en_us "Bus Travel"
+   Target_it_it "Viaggio in autobus"
    Target_de_de "Busreisen"
    Target_ru_ru "Поездка на автобусе"
    Target_uk_ua "Поїздка автобусом"
@@ -3627,6 +3812,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010C}" {
    Id "OVT-FieldManual_MapAndTravel_Text"
    Target_en_us "The map is the campaign's overview. Alongside the terrain it marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports it knows about. Carrying a map in your inventory is what makes the map info and fast travel options usable."
+   Target_it_it "La mappa offre una panoramica della campagna. Oltre alla conformazione del territorio, indica gli edifici e i veicoli di tua proprietà, gli accampamenti e le FOB (basi operative avanzate) stabiliti dalla Resistenza, nonché i negozi, i venditori di armi e i porti noti. Per utilizzare le opzioni di informazioni sulla mappa e di viaggio rapido, è necessario avere una mappa nell'inventario."
    Target_de_de "Die Karte bietet den Überblick über die Kampagne. Neben dem Gelände zeigt sie Gebäude und Fahrzeuge in deinem Besitz, vom Widerstand platzierte Camp und FOBs sowie bekannte Geschäfte, Waffenhändler und Häfen. Nur wenn du eine Karte im Inventar trägst, können die Optionen für Karteninformationen und Schnellreise verwendet werden."
    Target_ru_ru "Карта — это обзор кампании. Помимо местности, на ней отмечены здания и транспортные средства, которыми вы владеете, лагеря и ПОБ, размещённые сопротивлением, а также известные магазины, торговцы оружием и порты. Наличие карты в инвентаре делает возможным использование информации на карте и опций быстрого перемещения."
    Target_uk_ua "Мапа — це огляд кампанії. Окрім місцевості, на ній позначено будівлі та транспортні засоби, якими ви володієте, табори й FOB, розміщені опором, а також відомі магазини, торговців зброєю та порти. Щоб користуватися інформацією на мапі та можливостями швидкого переміщення, потрібно мати мапу в інвентарі."
@@ -3647,6 +3833,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000125}" {
    Id "OVT-FieldManual_MapAndTravel_Text2"
    Target_en_us "The panel names the nearest town to the point you clicked and shows its population, its distance from you, its stability and its supporter count, along with the modifiers currently pushing that town's stability and support up or down."
+   Target_it_it "Il pannello indica la città più vicina al punto selezionato e ne mostra popolazione, distanza dalla tua posizione, stabilità e numero di sostenitori, oltre ai modificatori che attualmente influenzano (in aumento o in diminuzione) la stabilità e il sostegno della città."
    Target_de_de "Das Fenster nennt die dem angeklickten Punkt nächstgelegene Stadt und zeigt ihre Bevölkerung, ihre Entfernung zu dir, ihre Stabilität und die Anzahl ihrer Unterstützer sowie die Modifikatoren, die Stabilität und Unterstützung dieser Stadt derzeit erhöhen oder senken."
    Target_ru_ru "Панель показывает ближайший город к выбранной точке, отображая его население, расстояние до него, уровень стабильности, количество сторонников, а также текущие модификаторы, повышающие или понижающие стабильность и поддержку в этом городе."
    Target_uk_ua "Панель вказує найближче місто до обраної точки та відображає його населення, відстань до нього, рівень стабільності й кількість прихильників, а також поточні модифікатори, що підвищують або знижують стабільність і підтримку у цьому місті."
@@ -3667,6 +3854,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000126}" {
    Id "OVT-FieldManual_MapAndTravel_Text3"
    Target_en_us "Fast travel is conditional. The destination has to be next to something the resistance holds: a house you own or rent, one of your own camps or a public one, a FOB, or a base under resistance control. It also has to be far enough from where you are standing, it is refused while you have a wanted level, and an active quick reaction force can block it, depending on the campaign's difficulty settings."
+   Target_it_it "Il viaggio rapido è soggetto a condizioni. La destinazione deve trovarsi vicino a un luogo controllato dalla Resistenza: una casa di proprietà o in affitto, un accampamento (tuo o pubblico), una FOB o una base sotto il controllo della Resistenza. Inoltre, la destinazione deve essere sufficientemente distante dalla tua posizione attuale; il viaggio rapido viene negato se hai un livello di ricercato attivo e può essere bloccato da una forza di reazione rapida in azione, a seconda delle impostazioni di difficoltà della campagna."
    Target_de_de "Schnellreise ist an Bedingungen geknüpft. Das Ziel muss sich neben etwas befinden, das der Widerstand hält: einem Haus, das dir gehört oder das du mietest, einem deiner eigenen Camps oder einem öffentlichen Camp, einem FOB oder einer vom Widerstand kontrollierten Basis. Außerdem muss das Ziel weit genug von deinem aktuellen Standort entfernt sein. Schnellreise wird verweigert, solange du einen Fahndungslevel hast, und eine aktive schnelle Eingreiftruppe kann sie abhängig von den Schwierigkeitseinstellungen der Kampagne blockieren."
    Target_ru_ru "Быстрое перемещение работает при определённых условиях. Точка назначения должна находиться рядом с объектом под контролем сопротивления: домом, которым вы владеете или арендуете, вашим собственным или публичным лагерем, ПОБ или базой под контролем сопротивления. Также цель должна быть достаточно удалена от вашего текущего местоположения. Перемещение недоступно, пока у вас есть уровень розыска, а активная группа быстрого реагирования может блокировать его в зависимости от настроек сложности кампании."
    Target_uk_ua "Швидке переміщення працює за певних умов. Точка призначення має розташовуватися поруч із об'єктом під контролем опору: будинком у вашій власності чи оренді, вашим власним або спільним табором, ПБП чи базою під контролем опору. Окрім цього, ціль має бути достатньо віддаленою від вашої поточної позиції. Телепорт недоступний під час розшуку, а активні сили швидкого реагування (QRF) можуть блокувати його залежно від налаштувань складності."
@@ -3687,6 +3875,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000127}" {
    Id "OVT-FieldManual_MapAndTravel_Text4"
    Target_en_us "The fee is a difficulty setting rather than a fixed price. Recruits standing near you travel with you when you are on foot, and each one adds the same fee again. Fast travelling from inside a vehicle only works if you are the driver."
+   Target_it_it "Il costo del viaggio dipende dalle impostazioni di difficoltà, non è un prezzo fisso. Le reclute vicine a te viaggiano con te quando ti sposti a piedi, e ognuna di esse aggiunge lo stesso costo alla tariffa base. Il viaggio rapido dall'interno di un veicolo è possibile solo se sei tu alla guida."
    Target_de_de "Die Gebühr wird durch eine Schwierigkeitseinstellung bestimmt und ist kein fester Preis. Rekruten in deiner Nähe reisen mit dir, wenn du zu Fuß bist, und jeder von ihnen verursacht dieselbe Gebühr zusätzlich. Schnellreise aus einem Fahrzeug heraus funktioniert nur, wenn du der Fahrer bist."
    Target_ru_ru "Стоимость зависит от настроек сложности, а не является фиксированной ценой. Рекруты, стоящие рядом с вами, путешествуют вместе с вами, когда вы идёте пешком, и каждый из них добавляет к стоимости такую же сумму. Быстрое перемещение изнутри транспортного средства работает только в том случае, если вы находитесь за рулём."
    Target_uk_ua "Плата за переміщення залежить від налаштувань складності, а не є фіксованою сумою. Рекрути, які стоять поруч із вами, переміщуються разом із вами, коли ви йдете пішки, і кожен із них додає до вартості таку ж суму. Швидке переміщення зсередини транспорту працює лише в тому разі, якщо ви перебуваєте за кермом."
@@ -3707,6 +3896,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000128}" {
    Id "OVT-FieldManual_MapAndTravel_Text5"
    Target_en_us "Bus stops offer a separate way to cross the map. Catching a bus opens the map so a destination near another bus stop can be picked, and the fare is charged per kilometre travelled at a rate the difficulty settings decide. Bus travel does not check your wanted level or whether the resistance holds the ground, but it does need you to be out of a vehicle, and recruits near you each add their own fare."
+   Target_it_it "Le fermate dell'autobus offrono un modo alternativo per spostarsi sulla mappa. Prendere un autobus apre la mappa consentendo di scegliere una destinazione vicina a un'altra fermata; la tariffa viene calcolata in base ai chilometri percorsi, secondo una tariffa determinata dalle impostazioni di difficoltà. Gli spostamenti in autobus non tengono conto del livello di ricercato o del fatto che la zona sia sotto il controllo della Resistenza, ma richiedono che il giocatore non si trovi a bordo di un veicolo; inoltre, eventuali reclute presenti nelle vicinanze aggiungono un supplemento alla tariffa."
    Target_de_de "Bushaltestellen bieten eine eigene Möglichkeit, die Karte zu überqueren. Beim Nehmen eines Busses wird die Karte geöffnet, sodass ein Ziel in der Nähe einer anderen Bushaltestelle ausgewählt werden kann. Der Fahrpreis wird pro zurückgelegtem Kilometer zu einem von den Schwierigkeitseinstellungen bestimmten Tarif berechnet. Bei Busreisen wird weder dein Fahndungslevel geprüft noch, ob der Widerstand das Gebiet hält. Du musst dich jedoch außerhalb eines Fahrzeugs befinden und jeder Rekrut in deiner Nähe verursacht seinen eigenen Fahrpreis."
    Target_ru_ru "Автобусные остановки предлагают альтернативный способ передвижения по карте. Посадка на автобус открывает карту, чтобы можно было выбрать пункт назначения рядом с другой остановкой, а стоимость проезда рассчитывается за километраж по тарифу, заданному настройками сложности. Автобусные поездки не учитывают ваш уровень розыска и не проверяют, контролирует ли сопротивление эту территорию, но требуют, чтобы вы были вне транспортного средства, а рекруты рядом с вами добавляют свою собственную плату за проезд."
    Target_uk_ua "Автобусні зупинки пропонують альтернативний спосіб переміщення картою. Взаємодія із зупинкою відкриває карту, де ви обираєте ціль поруч із будь-якою іншою зупинкою, а вартість поїздки вираховується за кілометраж згідно з налаштуваннями складності. Подорож автобусом ігнорує рівень розшуку та статус контролю території, але ви маєте бути пішки, а за кожного рекрута поблизу доведеться доплатити."
@@ -3727,6 +3917,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010D}" {
    Id "OVT-FieldManual_MapAndTravel_Title"
    Target_en_us "The Map and Fast Travel"
+   Target_it_it "La mappa e il viaggio rapido"
    Target_de_de "Die Karte und Schnellreise"
    Target_ru_ru "Карта и быстрое перемещение"
    Target_uk_ua "Мапа та швидке переміщення"
@@ -3747,6 +3938,7 @@ StringTable {
   CustomStringTableItem "{6A86D5E100000002}" {
    Id "OVT-FieldManual_MapInfluence_Head"
    Target_en_us "Influence"
+   Target_it_it "Influenza"
    Target_de_de "Einfluss"
    Target_ru_ru "Влияние"
    Target_uk_ua "Вплив"
@@ -3767,6 +3959,7 @@ StringTable {
   CustomStringTableItem "{6A86D5E100000003}" {
    Id "OVT-FieldManual_MapInfluence_Text"
    Target_en_us "Selecting a location on the map, either by hovering over its marker or by clicking to pin its info panel open, draws dashed lines to the other locations it stands in an influence relationship with. Select a town and lines run in from the radio towers and the military bases whose reach covers it, along with the revolutionary momentum passing between it and any town close enough, which runs from a town the resistance holds to an occupied one nearby. Select a radio tower or a military base and a line runs out to each town inside its reach, together with a dashed ring marking how far that reach goes; the ring is an outline rather than a filled disc, so the map inside it stays readable. Selecting anything else, a house, a shop, a forward base, a vehicle, a bus stop, draws nothing, since those neither project influence nor receive it. Every line carries the colour of the faction exerting the influence, the owner of the tower or the base, or the town lending the momentum, which is the same colour that location's own marker is drawn in."
+   Target_it_it "Selezionando una località sulla mappa — sia passando il cursore sul relativo indicatore, sia cliccandovi sopra per bloccare la visualizzazione del pannello informativo — vengono tracciate delle linee tratteggiate verso le altre località con cui sussiste un rapporto di influenza. Selezionando una città, appaiono linee provenienti dalle torri radio e dalle basi militari che la coprono col proprio raggio d'azione, oltre a linee che indicano la spinta rivoluzionaria trasmessa tra la città stessa e le località vicine (diretta da una città controllata dalla Resistenza verso una occupata nelle vicinanze). Selezionando una torre radio o una base militare, parte una linea verso ogni città inclusa nel suo raggio d'azione, accompagnata da un anello tratteggiato che ne delimita l'estensione; tale anello è rappresentato solo dal contorno, lasciando così leggibile la mappa sottostante. Selezionando qualsiasi altro elemento — come una casa, un negozio, una base avanzata, un veicolo o una fermata dell'autobus — non viene tracciata alcuna linea, poiché tali elementi non esercitano né ricevono influenza. Ogni linea riporta il colore della fazione che esercita l'influenza (ovvero il proprietario della torre o della base, oppure la città che trasmette la spinta rivoluzionaria), corrispondente al colore dell'indicatore della località stessa."
    Target_de_de "Wenn du einen Ort auf der Karte auswählst – entweder indem du mit dem Mauszeiger über seine Markierung fährst oder sie anklickst, um das Informationsfenster geöffnet zu halten – werden gestrichelte Linien zu anderen Orten angezeigt, mit denen er in einer Einflussbeziehung steht. Wählst du eine Stadt aus, führen Linien von den Funktürmen und Militärbasen zu ihr, deren Reichweite sie erfasst, sowie für revolutionären Schwung zwischen ihr und jeder ausreichend nahen Stadt. Dieser verläuft von einer vom Widerstand gehaltenen Stadt zu einer nahegelegenen besetzten Stadt. Wählst du einen Funkturm oder eine Militärbasis aus, führt eine Linie zu jeder Stadt innerhalb ihrer Reichweite. Zusätzlich zeigt ein gestrichelter Ring, wie weit diese Reichweite reicht; der Ring ist nur eine Kontur und keine ausgefüllte Fläche, damit die Karte darin lesbar bleibt. Bei allen anderen Objekten – etwa einem Haus, Geschäft, vorgeschobenen Stützpunkt, Fahrzeug oder einer Bushaltestelle – werden keine Linien angezeigt, da diese weder Einfluss ausüben noch empfangen. Jede Linie trägt die Farbe der Fraktion, die den Einfluss ausübt: des Besitzers des Turms oder der Basis beziehungsweise der Stadt, von der der revolutionäre Schwung ausgeht. Es ist dieselbe Farbe, in der auch die Markierung dieses Ortes dargestellt wird."
    Target_ru_ru "Выбор места на карте — наведением курсора на его маркер или щелчком для закрепления панели — показывает пунктирные линии к другим местам, с которыми оно связано влиянием. Выберите город, и линии придут от радиовышек и военных баз, зона действия которых охватывает его, вместе с революционным импульсом между ним и любым достаточно близким городом, который передаётся от удерживаемого сопротивлением города к оккупированному поблизости. Выберите радиовышку или военную базу — и линия протянется к каждому городу в зоне её действия, а пунктирное кольцо отметит границы этой зоны; кольцо рисуется контуром, чтобы карта внутри оставалась читаемой. Выбор чего-либо ещё — дома, магазина, передовой базы, транспорта, автобусной остановки — не рисует линий, поскольку эти объекты не создают и не получают влияние. Каждая линия окрашена в цвет фракции, оказывающей влияние: владельца вышки или базы, или города, передающего импульс. Это тот же цвет, что и у маркера этого места."
    Target_uk_ua "Вибір місця на мапі — наведенням курсора на його маркер або натисканням на нього, щоб закріпити інформаційну панель, — показує пунктирні лінії до інших місць, з якими воно пов’язане впливом. Якщо вибрати місто, до нього простягнуться лінії від радіовеж і військових баз, зона впливу яких його охоплює, а також лінії революційного імпульсу між ним і будь-яким достатньо близьким містом. Такий імпульс поширюється від міста, контрольованого опором, до сусіднього окупованого міста. Якщо вибрати радіовежу або військову базу, лінії простягнуться до кожного міста в межах її впливу, а пунктирне кільце покаже межі цієї зони; кільце відображається лише контуром, без заливки, щоб мапа всередині залишалася читабельною. Вибір будь-чого іншого — будинку, магазину, передової бази, транспортного засобу чи автобусної зупинки — не показує жодних ліній, оскільки ці об’єкти не створюють і не отримують вплив. Кожна лінія має колір фракції, що чинить вплив: власника радіовежі чи бази або міста, від якого поширюється імпульс. Це той самий колір, яким позначено маркер відповідного місця."
@@ -3787,6 +3980,7 @@ StringTable {
   CustomStringTableItem "{6A86D5E100000004}" {
    Id "OVT-FieldManual_MapInfluence_Text2"
    Target_en_us "A line drawn bright, in long dashes, is one the campaign is currently applying, and the town it reaches lists it on its info panel as Nearby Radio Tower, Nearby Base or Revolutionary Momentum. A line drawn dim, in shorter and sparser dashes, means the relationship is there but the campaign is not applying it. Two things cause that today, and neither of them is the whole of it. One is an enemy source outweighing a friendly one of the same kind: a single occupying tower or base within reach beats any number of friendly ones, so a town can sit inside a friendly tower's reach and still carry the negative entry. The other is a sabotaged radio tower, which broadcasts for nobody while it is off the air. The overlay puts relationships the location panels already list into one picture rather than uncovering anything new, and it changes nothing in the campaign; it has its own row, Influence, in the map filter panel, remembered against your profile in the same way as the other overlays."
+   Target_it_it "Una linea ben visibile, tratteggiata a tratti lunghi, indica una relazione attualmente attiva nella campagna; la località raggiunta da tale linea riporta sul proprio pannello informativo diciture quali \"Torre radio vicina\", \"Base vicina\" o \"Slancio rivoluzionario\". Una linea meno marcata, con tratti più brevi e distanziati, indica l'esistenza di una relazione che però non è attualmente applicata dalla campagna. Due fattori determinano questa situazione, sebbene nessuno dei due esaurisca il quadro completo. Il primo è la presenza di una fonte nemica che prevale su una amica della stessa tipologia: una singola torre o base occupata nel raggio d'azione ha la meglio su qualsiasi numero di strutture amiche; di conseguenza, una località può trovarsi nel raggio d'azione di una torre amica e tuttavia riportare l'indicatore negativo. Il secondo fattore è una torre radio sabotata: finché è fuori servizio, non trasmette alcun segnale. Questa sovrapposizione grafica (overlay) visualizza in un'unica immagine relazioni già elencate nei pannelli delle località, senza rivelare elementi inediti né modificare le dinamiche della campagna; dispone di una propria voce, \"Influenza\", nel pannello dei filtri della mappa, la cui impostazione viene salvata nel profilo utente al pari delle altre sovrapposizioni."
    Target_de_de "Eine hell dargestellte Linie mit langen Strichen zeigt einen Einfluss an, den die Kampagne derzeit tatsächlich anwendet. Die erreichte Stadt führt ihn in ihrem Informationsfenster als \"Nahegelegener Funkturm\", \"Nahegelegene Basis\" oder \"Revolutionärer Vormarsch\" auf. Eine dunkler dargestellte Linie mit kürzeren und weiter auseinanderliegenden Strichen bedeutet, dass die Beziehung besteht, von der Kampagne aber momentan nicht angewendet wird. Dafür gibt es derzeit zwei Ursachen, wobei keine davon das vollständige System ausmacht. Zum einen kann eine feindliche Quelle eine freundliche Quelle desselben Typs überwiegen: Ein einziger besetzender Turm oder eine feindliche Basis in Reichweite schlägt beliebig viele freundliche, sodass sich eine Stadt innerhalb der Reichweite eines freundlichen Turms befinden und trotzdem den negativen Eintrag tragen kann. Zum anderen kann ein sabotierter Funkturm betroffen sein, der für niemanden sendet, solange er außer Betrieb ist. Die Einblendung fasst lediglich Beziehungen, die bereits in den Ortsfenstern aufgeführt werden, in einem Bild zusammen, anstatt neue Informationen aufzudecken, und verändert nichts an der Kampagne. Sie besitzt im Kartenfilter eine eigene Zeile namens \"Influence\" und wird wie die anderen Einblendungen in deinem Profil gespeichert."
    Target_ru_ru "Яркая линия с длинными штрихами означает влияние, которое кампания в данный момент применяет, и город, к которому она ведёт, отображает его на своей панели как «Ближайшая радиовышка», «Ближайшая база» или «Революционный импульс». Тусклая линия с более короткими и редкими штрихами означает, что связь существует, но кампания её не применяет. На это есть две причины, и ни одна из них не является исчерпывающей. Первая — вражеский источник перевешивает дружественный того же типа: одна оккупационная вышка или база в пределах досягаемости перевешивает любое количество дружественных, поэтому город может находиться в зоне действия дружественной вышки и всё равно иметь отрицательную запись. Вторая — саботированная радиовышка, которая не вещает, пока не работает. Этот слой лишь объединяет в одну картину связи, уже отображаемые на панелях мест, и ничего не меняет в кампании; у него есть собственная строка «Влияние» в панели фильтров карты, которая сохраняется в профиле."
    Target_uk_ua "Яскрава лінія з довгими штрихами означає зв’язок, який кампанія зараз враховує, а місто, до якого вона веде, показує його на своїй інформаційній панелі як «Радіовежа поблизу», «База поблизу» або «Революційний імпульс». Тьмяна лінія з коротшими й рідшими штрихами означає, що зв’язок існує, але кампанія зараз його не враховує. Наразі це може бути спричинено двома причинами, і жодна з них не є вичерпною. Перша — ворожий джерело переважає дружнє того самого типу: одна окупаційна радіовежа або база в зоні досяжності переважає будь-яку кількість дружніх, тому місто може перебувати в зоні впливу дружньої радіовежі й водночас мати негативний запис. Друга — саботована радіовежа, яка не веде мовлення ні для кого, поки не працює. Цей шар лише об’єднує в одне зображення зв’язки, які вже показані на панелях місць, не відкриваючи нічого нового, і ніяк не впливає на кампанію. У панелі фільтрів мапи для нього є окремий рядок «Вплив», а його стан зберігається у вашому профілі так само, як і стан інших шарів."
@@ -3807,6 +4001,7 @@ StringTable {
   CustomStringTableItem "{5992D5044118B4C5}" {
    Id "OVT-FieldManual_MapInfo_Text"
    Target_en_us "You must have a map in your inventory to open it with <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>. Overthrow marks towns, bases, FOBs, camps, houses, shops, gun dealers, warehouses, ports, radio towers, bus stops, your vehicles and your waypoints on it. Move the map cursor over a marker to show an info panel about that location, and click the marker to keep the panel pinned open. Clicking an empty part of the map unpins it again."
+   Target_it_it "Per aprire la mappa premendo <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color>, è necessario averne una nell'inventario. Overthrow vi visualizza località, basi, FOB, accampamenti, abitazioni, negozi, armerie, magazzini, porti, torri radio, fermate dell'autobus, i tuoi veicoli e i tuoi waypoint. Spostando il cursore della mappa su un indicatore si visualizza il pannello informativo della relativa località; cliccando sull'indicatore, il pannello rimane aperto (fissato). Cliccando su un punto vuoto della mappa, il pannello viene chiuso."
    Target_fr_fr "Vous devez avoir une carte dans votre inventaire pour utiliser \"Infos Carte\". La carte s'ouvrira lorsque vous cliquerez, puis vous pourrez sélectionner un endroit sur la carte pour voir toutes les informations connues à son sujet."
    Target_de_de "Du musst eine Karte im Inventar haben, um sie mit <color rgba='226,168,79,255'><action name=\"GadgetMap\"/></color> zu öffnen. Overthrow markiert darauf Städte, Basen, FOBs, Camp, Häuser, Geschäfte, Waffenhändler, Lagerhäuser, Häfen, Funktürme, Bushaltestellen, deine Fahrzeuge und deine Wegpunkte. Bewege den Kartenzeiger über eine Markierung, um ein Informationsfenster zu diesem Ort anzuzeigen, und klicke auf die Markierung, damit das Fenster geöffnet bleibt. Durch Klicken auf einen leeren Bereich der Karte wird es wieder gelöst."
    Target_ru_ru "Вы должны иметь карту в инвентаре для использования \"Информации о карте\". Нажав на эту  кнопку из главного меню, в открывшейся карте, вы  нажать на любую точку на карте, чтобы посмотреть информацию об этой локации, включая разведданые известные об этой точке."
@@ -3830,6 +4025,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000080}" {
    Id "OVT-FieldManual_MapLayers_Head"
    Target_en_us "Filtering the Map"
+   Target_it_it "Filtri della mappa"
    Target_de_de "Karte filtern"
    Target_ru_ru "Фильтрация карты"
    Target_uk_ua "Фільтрування мапи"
@@ -3850,6 +4046,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000081}" {
    Id "OVT-FieldManual_MapLayers_Text"
    Target_en_us "A filter entry on the strip of icons down the left of the map opens a panel of on and off rows. Every category of marker has one, from towns and bases down to houses, bus stops and your own vehicles, and so does each overlay drawn beneath them, the territory shading and the restricted area rings. Player markers have a row of their own on difficulty settings that draw them. Clearing a row hides that category straight away, with the map still open, and ticking it again brings it back. Everything starts switched on, and a category left on still keeps its own zoom threshold, so the smaller markers still appear only as you zoom in. The panel can be reached and worked with a controller as well as with a mouse."
+   Target_it_it "Una voce di filtro nella barra delle icone sul lato sinistro della mappa apre un pannello con opzioni attivabili o disattivabili. Ogni categoria di indicatore dispone di una voce dedicata — dalle località e basi fino ad abitazioni, fermate dell'autobus e veicoli del giocatore — così come ogni sovrapposizione grafica sottostante, come le aree territoriali colorate e i cerchi delle zone interdette. Gli indicatori del giocatore hanno una voce specifica, a seconda delle impostazioni di difficoltà che ne prevedono la visualizzazione. Deselezionando una voce si nasconde immediatamente la categoria corrispondente (senza chiudere la mappa), mentre riselezionandola la si rende nuovamente visibile. Tutto è attivo di default; se una categoria viene lasciata attiva, mantiene la propria soglia di zoom, quindi gli indicatori più piccoli appaiono solo quando si ingrandisce la visuale. È possibile accedere al pannello e utilizzarlo sia con un controller che con il mouse."
    Target_de_de "Ein Filtereintrag in der Symbolleiste auf der linken Seite der Karte öffnet ein Fenster mit Zeilen, die ein- und ausgeschaltet werden können. Jede Markierungskategorie besitzt eine solche Zeile – von Städten und Basen bis hin zu Häusern, Bushaltestellen und deinen eigenen Fahrzeugen – ebenso wie jede darunter dargestellte Einblendung, also die Gebietsschattierung und die Ringe für Sperrgebiete. Spielermarkierungen haben bei Schwierigkeitseinstellungen, die sie anzeigen, eine eigene Zeile. Wenn du eine Zeile deaktivierst, wird diese Kategorie sofort ausgeblendet, während die Karte geöffnet bleibt; aktivierst du sie erneut, erscheint sie wieder. Zu Beginn ist alles eingeschaltet. Eine aktivierte Kategorie behält dennoch ihre eigene Zoomgrenze, sodass kleinere Markierungen weiterhin erst beim Heranzoomen erscheinen. Das Fenster kann sowohl mit einem Controller als auch mit der Maus geöffnet und bedient werden."
    Target_ru_ru "Запись фильтра в полосе значков слева от карты открывает панель с рядами включения/выключения. Каждая категория маркеров имеет свой ряд — от городов и баз до домов, автобусных остановок и ваших транспортных средств, и каждый слой под ними, включая затенение территории и кольца запрещённых зон. Маркеры игроков имеют свой ряд в зависимости от настроек сложности. Отключение ряда сразу скрывает категорию, а повторное включение возвращает её. Изначально всё включено, и включённая категория сохраняет свой порог масштаба, поэтому мелкие маркеры появляются только при приближении. Панелью можно управлять как мышью, так и контроллером."
    Target_uk_ua "Пункт фільтра на панелі значків ліворуч від мапи відкриває панель із перемикачами. Кожна категорія маркерів має власний перемикач — від міст і баз до будинків, автобусних зупинок і ваших транспортних засобів, — як і кожен шар, що відображається під ними: затінення території та кільця заборонених зон. Маркери гравців також мають окремий перемикач, якщо їх відображення дозволене налаштуваннями складності. Вимкнення перемикача одразу приховує відповідну категорію, не закриваючи мапу, а повторне ввімкнення повертає її. За замовчуванням усе ввімкнено, і навіть увімкнена категорія зберігає власний поріг масштабу, тому дрібніші маркери з’являються лише при наближенні. Панеллю можна користуватися як мишею, так і контролером."
@@ -3870,6 +4067,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000082}" {
    Id "OVT-FieldManual_MapLayers_Text2"
    Target_en_us "What you hide is remembered against your game profile rather than against a campaign, so the same choices are waiting the next time you open the map, in a later session, and in any campaign or server you play in. Nothing in the campaign itself changes: the filter only decides what is drawn for you, and everyone else sees whatever they have chosen for themselves."
+   Target_it_it "Gli elementi nascosti vengono memorizzati nel profilo di gioco anziché nella campagna specifica; di conseguenza, le stesse impostazioni rimangono attive alla riapertura della mappa, in sessioni successive o in qualsiasi campagna o server a cui si partecipa. La campagna in sé non subisce modifiche: il filtro determina solo ciò che viene visualizzato per te, mentre gli altri giocatori vedono ciò che hanno scelto autonomamente."
    Target_de_de "Was du ausblendest, wird in deinem Spielprofil gespeichert und nicht in einer bestimmten Kampagne. Dadurch erwarten dich dieselben Einstellungen, wenn du die Karte in einer späteren Sitzung oder in einer beliebigen anderen Kampagne bzw. auf einem anderen Server wieder öffnest. An der Kampagne selbst ändert sich nichts: Der Filter bestimmt nur, was für dich dargestellt wird, und alle anderen sehen jeweils das, was sie selbst ausgewählt haben."
    Target_ru_ru "То, что вы скрываете, сохраняется в вашем игровом профиле, а не в кампании, поэтому те же настройки будут ждать вас при следующем открытии карты, в другой сессии, в любой кампании или на сервере. Сама кампания не меняется: фильтр решает только то, что отображается для вас, а все остальные видят то, что выбрали для себя."
    Target_uk_ua "Приховані параметри зберігаються у вашому ігровому профілі, а не в збереженні конкретної кампанії, тому ваші налаштування залишаться незмінними під час наступного відкриття карти, у наступних ігрових сесіях та на будь-яких інших серверах чи в нових кампаніях. Це ніяк не впливає на сам перебіг гри: фільтр змінює лише те, що відображається на вашому екрані, тоді як інші гравці бачать карту згідно зі своїми власними налаштуваннями."
@@ -3890,6 +4088,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000167}" {
    Id "OVT-FieldManual_MapTerritory_Head"
    Target_en_us "Territory"
+   Target_it_it "Territorio"
    Target_de_de "Gebiet"
    Target_ru_ru "Территория"
    Target_uk_ua "Територія"
@@ -3910,6 +4109,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000168}" {
    Id "OVT-FieldManual_MapTerritory_Text"
    Target_en_us "The map shades the ground the occupying faction still holds, in that faction's own colour. Ground the resistance has taken is left blank, so the shading recedes as a campaign goes on and a fully liberated island draws none of it. The regions are worked out from towns, military bases, radio towers and resistance FOBs, and the bigger a site is the further its ground reaches: a base spreads further than a town, and a capital further than a village. Territory stops at the coast, though rivers and inland lakes do not divide it."
+   Target_it_it "La mappa evidenzia con il colore della fazione occupante il terreno ancora sotto il suo controllo. Le aree conquistate dalla Resistenza rimangono prive di colorazione; pertanto, l'area ombreggiata si riduce man mano che la campagna prosegue, fino a scomparire del tutto una volta liberata l'isola. Le regioni sono definite in base a città, basi militari, torri radio e basi avanzate (FOB) della Resistenza: maggiore è la dimensione del sito, più ampia è l'estensione del territorio controllato (una base ha un raggio d'azione maggiore di una città, così come una capitale supera un villaggio). Il territorio si interrompe in corrispondenza della costa, mentre fiumi e laghi interni non ne interrompono la continuità."
    Target_de_de "Die Karte schattiert das Gebiet, das weiterhin von der Besatzungsmacht gehalten wird, in der Farbe dieser Fraktion. Vom Widerstand eingenommenes Gebiet bleibt unmarkiert, sodass die Schattierung im Verlauf einer Kampagne zurückgeht und auf einer vollständig befreiten Insel ganz verschwindet. Die Regionen werden anhand von Städten, Militärbasen, Funktürmen und Widerstands-FOBs berechnet. Je größer ein Standort ist, desto weiter reicht sein Gebiet: Eine Basis erstreckt sich weiter als eine Stadt und eine Hauptstadt weiter als ein Dorf. An der Küste endet das Gebiet, Flüsse und Binnenseen teilen es jedoch nicht."
    Target_ru_ru "Карта затеняет территорию, которую всё ещё удерживает оккупационная фракция, её цветом. Территория, захваченная сопротивлением, остаётся без затенения, поэтому по мере прохождения кампании затенение отступает, а на полностью освобождённом острове его нет. Регионы определяются городами, военными базами, радиовышками и ПОБ сопротивления, и чем больше объект, тем дальше простирается его территория: база влияет дальше, чем город, а столица дальше, чем деревня. Территория заканчивается у побережья, но реки и внутренние озёра её не делят."
    Target_uk_ua "Мапа затінює територію, яку все ще контролює окупаційна фракція, її власним кольором. Території, захоплені опором, залишаються незатіненими, тож у міру проходження кампанії затінення відступає, а на повністю звільненому острові воно зникає зовсім. Регіони визначаються за містами, військовими базами, радіовежами та FOB опору, і що більший об’єкт, то далі простягається його територія: база має більший вплив, ніж місто, а столиця — більший, ніж село. Територія обмежується узбережжям, але річки та внутрішні озера її не розділяють."
@@ -3930,6 +4130,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000169}" {
    Id "OVT-FieldManual_MapTerritory_Text2"
    Target_en_us "Where occupied ground meets ground the resistance holds, the edge carries a band; a coastline carries none. A region drawn with diagonal hatching is contested: the occupier still holds it, but half or more of the town's population backs the resistance, counted as the same support figure the town's info panel shows. Only towns can read that way, since bases, radio towers and FOBs have no population to measure. The shading re-reads who holds what every few seconds, so ground changing hands appears without closing the map."
+   Target_it_it "Nei punti di contatto tra il territorio occupato e quello controllato dalla Resistenza, il confine è evidenziato da una fascia, mentre la linea di costa ne è priva. Una regione contrassegnata da una retinatura diagonale indica un'area contesa: è ancora in mano all'occupante, ma almeno metà della popolazione cittadina sostiene la Resistenza (il dato corrisponde al livello di supporto visualizzato nel pannello informativo della città). Questa indicazione riguarda solo le città, poiché basi, torri radio e FOB non dispongono di una popolazione da misurare. Il sistema aggiorna la rilevazione del controllo territoriale ogni pochi secondi, permettendo di visualizzare i cambi di proprietà senza dover chiudere la mappa."
    Target_de_de "Wo besetztes Gebiet auf vom Widerstand gehaltenes Gebiet trifft, wird die Grenze als Band dargestellt; an einer Küstenlinie gibt es kein solches Band. Eine Region mit diagonaler Schraffur gilt als umkämpft: Die Besatzungsmacht hält sie noch, aber mindestens die Hälfte der Stadtbevölkerung unterstützt den Widerstand. Dabei wird derselbe Unterstützungswert verwendet, der auch im Informationsfenster der Stadt angezeigt wird. Nur Städte können auf diese Weise dargestellt werden, da Basen, Funktürme und FOBs keine Bevölkerung besitzen, die ausgewertet werden könnte. Die Schattierung prüft alle paar Sekunden neu, wer welches Gebiet hält, sodass Gebietswechsel sichtbar werden, ohne die Karte schließen zu müssen."
    Target_ru_ru "Там, где оккупированная территория граничит с территорией сопротивления, край обозначается полосой; у побережья полосы нет. Регион с диагональной штриховкой является спорным: оккупанты всё ещё удерживают его, но половина или более населения города поддерживает сопротивление, используя тот же показатель поддержки, что отображается на панели города. Так могут обозначаться только города, поскольку у баз, вышек и ПОБ нет населения для измерения. Затенение обновляется каждые несколько секунд, поэтому смена контроля отображается без закрытия карты."
    Target_uk_ua "Там, де окупована територія межує з територією, яку контролює опір, уздовж межі відображається смуга; узбережжя такої смуги не має. Регіон із діагональним штрихуванням є спірним: окупанти все ще його контролюють, але половина або більше населення міста підтримує опір — використовується той самий показник підтримки, що відображається на інформаційній панелі міста. Так позначатися можуть лише міста, оскільки бази, радіовежі та FOB не мають населення, рівень підтримки якого можна виміряти. Затінення кожні кілька секунд оновлює дані про те, хто яку територію контролює, тому зміна контролю відображається без закриття мапи."
@@ -3950,6 +4151,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000103}" {
    Id "OVT-FieldManual_OccupyingForces_Head"
    Target_en_us "Losses Stay Lost"
+   Target_it_it "Le perdite sono permanenti"
    Target_de_de "Verluste bleiben verloren"
    Target_ru_ru "Потери остаются потерями"
    Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the paragraph about casualties persisting. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
@@ -3969,6 +4171,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000105}" {
    Id "OVT-FieldManual_OccupyingForces_Head2"
    Target_en_us "Patrols Keep Moving"
+   Target_it_it "Le pattuglie continuano a muoversi"
    Target_de_de "Patrouillen bleiben in Bewegung"\
    ""
    Target_ru_ru "Патрули продолжают двигаться"
@@ -3989,6 +4192,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000107}" {
    Id "OVT-FieldManual_OccupyingForces_Head3"
    Target_en_us "Radio Towers"
+   Target_it_it "Torri radio"
    Target_de_de "Funktürme"
    Target_ru_ru "Радиовышки"
    Comment "Field Manual - section header inside the Patrols and Garrisons page, drawn above the two paragraphs about how a radio tower changes hands. Two to four words, no markup. Added 2026-08-17 by virtualization/integration Phase 8."
@@ -4008,6 +4212,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010A}" {
    Id "OVT-FieldManual_OccupyingForces_Head4"
    Target_en_us "Defending a Base"
+   Target_it_it "Difesa di una base"
    Target_de_de "Verteidigung eines Stützpunkts"\
    ""
    Target_ru_ru "Оборона базы"
@@ -4028,6 +4233,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010D}" {
    Id "OVT-FieldManual_OccupyingForces_Head5"
    Target_en_us "Armour and Checkpoints"
+   Target_it_it "Veicoli corazzati e posti di blocco"
    Target_de_de "Panzerung und Kontrollpunkte"\
    ""
    Target_ru_ru "Бронетехника и блокпосты"
@@ -4048,6 +4254,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000102}" {
    Id "OVT-FieldManual_OccupyingForces_Text"
    Target_en_us "The occupying faction keeps standing forces in the field: defences at the military bases it holds, foot patrols working the towns it still controls, vehicle patrols on the roads, and a garrison at each radio tower it holds. Base defences, vehicle patrols and tower garrisons are all bought out of one and the same pool of resources, so a faction that is short of them fields fewer of every kind; foot patrols in a town cost it nothing."
+   Target_it_it "La fazione occupante mantiene forze attive sul campo: difese presso le basi militari in suo possesso, pattuglie appiedate nelle città che ancora controlla, pattuglie motorizzate sulle strade e guarnigioni presso ogni torre radio presidiata. Le difese delle basi, le pattuglie motorizzate e le guarnigioni delle torri attingono tutte alla stessa riserva di risorse; pertanto, una fazione a corto di risorse schiererà un numero inferiore di unità di ogni tipo, mentre le pattuglie appiedate in città non comportano alcun costo."
    Target_de_de "Die Besatzungsfraktion hält ständig Kräfte im Einsatz: Sicherungskräfte an den von ihr gehaltenen Militärbasen, Fußpatrouillen in den weiterhin kontrollierten Ortschaften, Fahrzeugpatrouillen auf den Straßen sowie eine Garnison an jedem von ihr besetzten Funkturm."\
    ""\
    "Basissicherung, Fahrzeugpatrouillen und Turmgarnisonen werden aus demselben Ressourcenpool finanziert. Verfügt eine Fraktion nur über begrenzte Mittel, kann sie entsprechend weniger Kräfte jeder dieser Kategorien einsetzen. Fußpatrouillen innerhalb einer Ortschaft verursachen hingegen keine Ressourcenkosten."\
@@ -4070,6 +4277,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000110}" {
    Id "OVT-FieldManual_OccupyingForces_Text10"
    Target_en_us "Armed vehicles are also driven to battles. When a base or a town is being fought over, the faction can send as many as two of them by road from a holding of its own; they take the time the drive takes, arriving behind the men who came in on foot, and the road they come down is a road somebody could be waiting on. Stopping one does not end the force it carried: the men get out and carry on walking. A vehicle lost in the open marks that ground as somewhere worth looking at, and another may be sent to work the area over for a while before it leaves again. An anti-tank launcher starts paying for the weight it costs around the middle of a campaign."
+   Target_it_it "Anche i veicoli armati vengono impiegati in battaglia. Quando è in corso uno scontro per una base o una città, la fazione può inviare via strada fino a due veicoli da una delle proprie postazioni; questi impiegano il tempo necessario per lo spostamento, arrivando alle spalle degli uomini giunti a piedi, e percorrono strade dove qualcuno potrebbe essere in agguato. Fermare un veicolo non elimina la forza che trasportava: gli uomini scendono e proseguono a piedi. La perdita di un veicolo allo scoperto segnala un punto di interesse, inducendo magari l'invio di un altro mezzo per perlustrare l'area prima di allontanarsi nuovamente. Un lanciarazzi anticarro inizia a giustificare il proprio peso (in termini di risorse) verso la metà della campagna."
    Target_de_de "Bewaffnete Fahrzeuge werden ebenfalls in Gefechte verlegt. Wird um eine Basis oder eine Ortschaft gekämpft, kann die Fraktion bis zu zwei Fahrzeuge über die Straße aus einem eigenen Stützpunkt beziehungsweise einem selbst gehaltenen Gebiet heranführen. Ihre Ankunft richtet sich nach der tatsächlichen Fahrzeit; dadurch treffen sie erst nach den zu Fuß vorgerückten Kräften ein. Zudem kann die Anmarschstraße vom Gegner überwacht oder für einen Hinterhalt genutzt werden."\
    ""\
    "Wird ein Fahrzeug aufgehalten oder ausgeschaltet, bedeutet dies nicht automatisch den Verlust der transportierten Kräfte: Die Soldaten sitzen ab und setzen den Marsch zu Fuß fort. Der Verlust eines Fahrzeugs im offenen Gelände macht den betreffenden Raum zudem zu einem möglichen Schwerpunkt für weitere Aufklärung oder Sicherungsmaßnahmen; ein weiteres Fahrzeug kann dorthin entsandt werden, um das Gebiet für eine gewisse Zeit abzusuchen, bevor es wieder abzieht."\
@@ -4094,6 +4302,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000104}" {
    Id "OVT-FieldManual_OccupyingForces_Text2"
    Target_en_us "Soldiers killed out of a patrol, a base defence or a tower garrison are gone for good. When that group stops being watched and later comes back into view it returns with only the men who lived through the last fight, and a campaign saved and loaded again brings back the same survivors rather than a fresh full-strength unit. A base is left in the state you left it in, then. A force wiped out to the last man can be replaced later, at a cost to the faction that fielded it."
+   Target_it_it "I soldati uccisi mentre facevano parte di una pattuglia, di una difesa di base o di una guarnigione di torre sono persi definitivamente. Quando un gruppo esce dal campo visivo per poi tornarvi, riappare composto solo dagli uomini sopravvissuti all'ultimo scontro; analogamente, caricando una partita salvata, si ritrovano gli stessi superstiti anziché un'unità nuova a pieno organico. Di conseguenza, una base mantiene lo stato in cui è stata lasciata. Una forza annientata fino all'ultimo uomo può essere rimpiazzata in seguito, a spese della fazione che l'aveva schierata."
    Target_de_de "Soldaten, die aus einer Patrouille, einer Basissicherung oder einer Turmgarnison heraus getötet werden, sind dauerhaft verloren. Wird die betreffende Einheit nicht mehr beobachtet und später erneut aufgeklärt, kehrt sie nur mit den Soldaten zurück, die das letzte Gefecht überlebt haben. Auch das Speichern und erneute Laden einer Kampagne stellt keine Einheit in voller Sollstärke wieder her; es erscheinen dieselben Überlebenden wie zuvor."\
    ""\
    "Eine Basis verbleibt damit in genau dem Zustand, in dem sie zurückgelassen wurde. Wird eine Einheit bis auf den letzten Mann aufgerieben, kann sie zu einem späteren Zeitpunkt ersetzt werden. Die Kosten dafür trägt die Fraktion, die sie eingesetzt hat."\
@@ -4116,6 +4325,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000106}" {
    Id "OVT-FieldManual_OccupyingForces_Text3"
    Target_en_us "A town patrol walks its round whether or not anybody is there to see it. With nobody nearby it keeps covering the same circuit, so it will not be waiting on the corner it was last seen standing on; it turns up wherever along that route it had got to. A patrol working a base perimeter behaves the same way. A garrison posted at a radio tower is a different matter and holds the ground it was put on, and so do the men in a base's fighting positions, on its towers and at its checkpoints."
+   Target_it_it "Una pattuglia cittadina percorre il proprio itinerario a prescindere dalla presenza di osservatori. In assenza di testimoni, continua a seguire lo stesso percorso circolare; di conseguenza, non la si troverà ad attendere all'angolo dove era stata vista l'ultima volta, bensì in un punto qualsiasi del tragitto raggiunto nel frattempo. Lo stesso comportamento è adottato dalle pattuglie che presidiano il perimetro di una base. Una guarnigione di stanza presso una torre radio è un caso a sé: mantiene la posizione assegnata, proprio come fanno gli uomini nelle postazioni di combattimento, sulle torri e ai posti di blocco di una base."
    Target_de_de "Eine Ortsstreife setzt ihren Streifengang unabhängig davon fort, ob sich jemand in ihrer Nähe befindet. Ist kein Beobachter vor Ort, läuft sie weiterhin dieselbe Route ab. Sie wartet daher nicht zwangsläufig an der Stelle, an der sie zuletzt gesehen wurde, sondern befindet sich beim erneuten Antreffen an dem Punkt der Strecke, den sie inzwischen erreicht hat."\
    ""\
    "Streifen entlang des Sicherungsbereichs einer Basis verhalten sich ebenso. Anders verhält es sich mit einer Garnison an einem Funkturm: Sie hält die ihr zugewiesene Stellung. Gleiches gilt für die Kräfte in den Kampfstellungen einer Basis, auf deren Türmen sowie an ihren Kontrollpunkten."\
@@ -4138,6 +4348,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000108}" {
    Id "OVT-FieldManual_OccupyingForces_Text4"
    Target_en_us "A radio tower the occupying faction holds changes hands when the men garrisoning it are all dead, and only then. Standing next to a tower does nothing on its own, and walking away and coming back neither resets the fight nor finishes it: the garrison is still short by everyone who fell, and the tower stays occupied until the last of them does. It can go back the other way as well: a tower the resistance holds close to whatever the occupiers are working toward draws a team of their own, and the tower is theirs again only if that team is still standing on it when its hold time is up. Being there yourself pauses their clock."
+   Target_it_it "Una torre radio controllata dalla fazione occupante cambia mano solo quando tutti gli uomini della guarnigione vengono eliminati. La semplice presenza accanto alla torre non sortisce alcun effetto; allontanarsi e tornare non azzera né conclude lo scontro: la guarnigione rimane ridotta di numero a causa delle perdite subite e la torre resta occupata finché non cade anche l'ultimo difensore. Il processo può anche invertirsi: una torre controllata dalla Resistenza, situata vicino a un obiettivo degli occupanti, attira una loro squadra; la torre tornerà in loro possesso solo se tale squadra sarà ancora presente sulla struttura allo scadere del tempo di conquista. La tua presenza sul posto sospende il conteggio del tempo avversario."
    Target_de_de "Ein von der Besatzungsfraktion gehaltener Funkturm wechselt erst dann den Besitzer, wenn seine gesamte Garnison gefallen ist – und nicht vorher. Die bloße Anwesenheit am Turm bewirkt nichts. Auch ein Rückzug und späteres Zurückkehren setzt das Gefecht weder zurück noch beendet es: Die Verluste der Garnison bleiben bestehen, und der Turm gilt so lange als besetzt, bis auch der letzte Verteidiger ausgeschaltet ist."\
    ""\
    "Der Vorgang funktioniert auch in umgekehrter Richtung. Befindet sich ein von der Widerstandsfraktion gehaltener Funkturm in der Nähe eines aktuellen Operationsziels der Besatzer, können diese ein eigenes Kommando zur Rückeroberung entsenden. Der Turm fällt jedoch erst dann wieder an die Besatzer, wenn sich dieses Kommando nach Ablauf der erforderlichen Haltezeit noch am Turm befindet. Die eigene Anwesenheit vor Ort unterbricht den laufenden Einnahmezeitgeber."\
@@ -4160,6 +4371,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000109}" {
    Id "OVT-FieldManual_OccupyingForces_Text5"
    Target_en_us "A tower may also be found with nobody on it. The garrison is paid for out of the faction's reserves, so a faction that is stretched leaves towers bare, and one that recovers can post a garrison at a tower you walked past unguarded days earlier. While a battle is actually being fought anywhere on the island, and while nobody at all is connected, no new force of any kind is put out; the ones already in the field carry on as they were."
+   Target_it_it "È possibile imbattersi in torri prive di presidio. Il mantenimento della guarnigione attinge alle riserve della fazione; pertanto, una fazione in difficoltà lascerà le torri sguarnite, mentre una in ripresa potrà inviare un presidio su una torre che avevi oltrepassato incustodita giorni prima. Finché è in corso una battaglia in un qualsiasi punto dell'isola, o se non vi sono giocatori connessi, non vengono schierate nuove forze; quelle già presenti sul campo continuano a operare come in precedenza."
    Target_de_de "Ein Funkturm kann auch völlig unbesetzt vorgefunden werden. Die Garnison wird aus den Reserven der jeweiligen Fraktion gestellt. Ist eine Fraktion personell oder materiell stark gebunden, bleiben daher einzelne Türme ungesichert. Erholt sich ihre Ressourcenlage, kann sie später auch an einem Funkturm wieder eine Garnison stationieren, der noch Tage zuvor unbewacht war."\
    ""\
    "Solange irgendwo auf der Insel ein Gefecht im Gange ist, werden keine neuen Kräfte aufgestellt. Dasselbe gilt, wenn überhaupt kein Spieler verbunden ist. Bereits eingesetzte Kräfte bleiben jedoch bestehen und führen ihren bisherigen Auftrag unverändert fort."\
@@ -4182,6 +4394,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010B}" {
    Id "OVT-FieldManual_OccupyingForces_Text6"
    Target_en_us "A military base is held by whatever its owners have managed to put there. A patrol works the perimeter, men hold prepared fighting positions, guards stand on the towers, marksmen take marked ground, checkpoints go up on the roads in, sandbagged positions and ammunition caches are built inside the wire, and trucks are parked in the yard. Each of those is bought and paid for on its own, roughly in that order, so a base thickens up over a campaign rather than arriving finished. Heavier infantry and an anti-tank section are only added once the faction is under enough pressure to want them."
+   Target_it_it "Una base militare è presidiata dalle forze che i suoi proprietari sono riusciti a dislocarvi. Una pattuglia batte il perimetro, uomini occupano postazioni di combattimento predisposte, sentinelle presidiano le torri, tiratori scelti occupano posizioni designate, vengono allestiti posti di blocco sulle vie d'accesso, all'interno del recinto sorgono postazioni protette da sacchi di sabbia e depositi di munizioni, mentre i camion vengono parcheggiati nel piazzale. Ciascuno di questi elementi viene acquistato e predisposto singolarmente, approssimativamente in quest'ordine; di conseguenza, la base si potenzia gradualmente nel corso della campagna anziché presentarsi già completa. Fanteria più pesante e una sezione anticarro vengono aggiunte solo quando la fazione subisce una pressione tale da richiederne l'impiego."
    Target_de_de "Eine Militärbasis wird mit den Kräften und Mitteln gehalten, die ihre Besitzer dort tatsächlich aufbringen konnten. Eine Patrouille sichert den äußeren Bereich, Soldaten besetzen vorbereitete Kampfstellungen, Wachposten stehen auf den Türmen, Scharfschützen beziehen vorgesehene Positionen, an den Zufahrtsstraßen werden Kontrollpunkte eingerichtet, innerhalb der Umzäunung entstehen Sandsackstellungen und Munitionslager, und Fahrzeuge werden im Basishof abgestellt."\
    ""\
    "Jedes dieser Elemente wird einzeln aus den verfügbaren Ressourcen finanziert, ungefähr in dieser Reihenfolge. Eine Basis erreicht ihre volle Stärke daher erst nach und nach im Verlauf einer Kampagne, anstatt von Beginn an vollständig ausgebaut zu sein. Schwerer ausgerüstete Infanterie sowie ein Panzerabwehrtrupp kommen erst hinzu, wenn der Druck auf die Fraktion groß genug ist, um ihren Einsatz erforderlich zu machen."\
@@ -4204,6 +4417,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010C}" {
    Id "OVT-FieldManual_OccupyingForces_Text7"
    Target_en_us "Nothing new is put into a base while somebody is standing in it, so a base does not fortify in front of you. One that has just changed hands, or one whose owners are short of resources, can be found lightly held and thicker again weeks later. Losses there last the way patrol losses do, though a post does not stay empty for good: the men who lived are back on their towers and in their firing positions the next time the place is looked at, and a position wiped out to the last man can be bought again later. Clearing a post is settled only when the base itself changes hands."
+   Target_it_it "Non vengono aggiunti nuovi elementi a una base finché qualcuno vi è presente; di conseguenza, le difese di una base non si rafforzano sotto i tuoi occhi. Una base appena conquistata, o appartenente a una fazione a corto di risorse, può risultare scarsamente presidiata, per poi apparire meglio difesa settimane dopo. Le perdite subite in questi avamposti seguono le stesse dinamiche di quelle delle pattuglie, sebbene una postazione non rimanga mai abbandonata definitivamente: i superstiti tornano alle loro torrette e postazioni di tiro non appena la zona viene nuovamente osservata, e una postazione annientata fino all'ultimo uomo può essere ripristinata in seguito. La conquista definitiva di una postazione si concretizza solo quando la base stessa passa di mano."
    Target_de_de "Solange sich jemand innerhalb einer Basis befindet, werden dort keine neuen Kräfte oder Befestigungen aufgestellt. Eine Basis verstärkt sich also nicht unmittelbar vor den Augen des Spielers. Eine gerade erst eroberte Basis oder eine Basis, deren Besitzer nur über geringe Ressourcen verfügen, kann daher zunächst schwach besetzt sein und Wochen später deutlich stärker ausgebaut erscheinen."\
    ""\
    "Verluste innerhalb der Basis bleiben ebenso dauerhaft bestehen wie Verluste bei Patrouillen. Ein einmal geräumter Posten bleibt jedoch nicht zwangsläufig für immer unbesetzt: Überlebende kehren bei der nächsten Beobachtung auf ihre Türme und in ihre Feuerstellungen zurück. Wurde eine Stellung bis auf den letzten Mann vernichtet, kann sie zu einem späteren Zeitpunkt auf Kosten der Fraktion erneut besetzt werden."\
@@ -4228,6 +4442,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010E}" {
    Id "OVT-FieldManual_OccupyingForces_Text8"
    Target_en_us "The armed vehicles the occupying faction puts on the road get heavier as the campaign turns against it. Early on an armed jeep is the worst of it. Later a gun truck or a scout car, and late on a wheeled armoured carrier with a cannon or a heavy machine gun on it. Each rung up costs the faction several times what the one below it does, and a mounted force only fields what its own budget covers, so a stretched faction keeps sending the cheap one. Campaign difficulty moves the whole scale: on the harder settings the heavier vehicles turn up far earlier than they would otherwise."
+   Target_it_it "I veicoli armati impiegati dalla fazione occupante diventano più pesanti man mano che l'andamento della campagna le si rivolge contro. Nelle fasi iniziali, la minaccia maggiore è rappresentata da una jeep armata. Successivamente compaiono autocarri armati o veicoli da ricognizione e, nelle fasi avanzate, trasporti corazzati su ruote equipaggiati con cannoni o mitragliatrici pesanti. Ogni livello superiore comporta costi multipli rispetto a quello precedente; poiché la fazione può schierare solo ciò che il proprio budget consente, una fazione in difficoltà economica continuerà a impiegare i mezzi più economici. Il livello di difficoltà della campagna influisce sull'intera scala: alle impostazioni più elevate, i veicoli pesanti compaiono molto prima rispetto a quanto accadrebbe normalmente."
    Target_de_de "Die bewaffneten Fahrzeuge, die die Besatzungsfraktion auf den Straßen einsetzt, werden mit zunehmendem Verlauf der Kampagne schwerer, insbesondere wenn sich die Lage gegen sie entwickelt. Zu Beginn stellt ein bewaffneter Geländewagen meist die stärkste Bedrohung dar. Später kommen bewaffnete Lastwagen oder Spähfahrzeuge hinzu, und in der späten Kampagne schließlich radgestützte gepanzerte Mannschaftstransporter mit Maschinenkanone oder schwerem Maschinengewehr."\
    ""\
    "Jede höhere Fahrzeugklasse kostet die Fraktion ein Mehrfaches der jeweils darunterliegenden. Eine motorisierte Einheit setzt daher nur Fahrzeuge ein, die ihr eigenes Budget zulässt. Ist die Fraktion stark unter Druck oder knapp an Ressourcen, greift sie weiterhin auf die günstigeren Fahrzeuge zurück."\
@@ -4252,6 +4467,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C00000010F}" {
    Id "OVT-FieldManual_OccupyingForces_Text9"
    Target_en_us "An armed vehicle standing inside a base compound is not scenery. It belongs to that base, it sits there unmanned while the place is quiet, and when fighting starts at that base a crew takes it out to a firing position short of the shooting rather than driving into it. A vehicle parked on a road into a town the faction is currently working against is put there on purpose too: the men who rode in spread out around it while its gun stays manned, and it moves to a different approach every few minutes instead of holding one road all day."
+   Target_it_it "Un veicolo armato all'interno del perimetro di una base non è un semplice elemento scenico. Appartiene alla base stessa: rimane parcheggiato e incustodito durante i momenti di calma, mentre, allo scoppio dei combattimenti, un equipaggio lo porta in una posizione di tiro arretrata rispetto alla linea di fuoco, evitando di lanciarsi direttamente nello scontro. Anche il veicolo parcheggiato sulla strada di accesso a una città ostile è posizionato intenzionalmente: gli uomini a bordo si dispiegano attorno al mezzo mantenendo l'arma presidiata e spostandosi su un diverso punto di accesso ogni pochi minuti, anziché presidiare la stessa strada per l'intera giornata."
    Target_de_de "Ein bewaffnetes Fahrzeug innerhalb des Geländes einer Militärbasis ist keine bloße Dekoration. Es gehört zur dortigen Garnison und steht in ruhigen Phasen unbemannt abgestellt. Beginnt an der Basis ein Gefecht, wird es von einer Besatzung übernommen und in eine Feuerstellung verlegt, die etwas abseits des unmittelbaren Schusswechsels liegt, anstatt direkt in das Gefecht hineinzufahren."\
    ""\
    "Auch ein Fahrzeug, das auf einer Zufahrtsstraße zu einer Ortschaft steht, gegen die die Fraktion derzeit operiert, befindet sich dort mit Absicht. Die mitgeführten Soldaten sitzen ab und verteilen sich im Umfeld, während die Fahrzeugwaffe besetzt bleibt. Das Fahrzeug hält dabei nicht den ganzen Tag dieselbe Zufahrt, sondern verlegt im Abstand von einigen Minuten auf einen anderen Anmarschweg."\
@@ -4274,6 +4490,7 @@ StringTable {
   CustomStringTableItem "{6B5A11C000000101}" {
    Id "OVT-FieldManual_OccupyingForces_Title"
    Target_en_us "Patrols and Garrisons"
+   Target_it_it "Pattuglie e guarnigioni"
    Target_de_de "Patrouillen und Garnisonen"\
    ""
    Target_ru_ru "Патрули и гарнизоны"
@@ -4294,6 +4511,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A0}" {
    Id "OVT-FieldManual_Placing_Cot_Text"
    Target_en_us "A cot is one of the items on that list, at a cost of thirty, and it carries the same sleeping action a bed does, so a camp or a FOB can be given somewhere to sleep."
+   Target_it_it "La brandina è uno degli oggetti presenti in quell'elenco, al costo di trenta unità; offre la stessa funzione di riposo del letto, consentendo così di predisporre un luogo dove dormire all'interno di un accampamento o di una FOB."
    Target_de_de "Ein Feldbett gehört ebenfalls zu dieser Liste und kostet 30. Es bietet dieselbe Schlafmöglichkeit wie ein normales Bett, sodass auch ein Lager oder eine vorgeschobene Operationsbasis (FOB) mit einem Schlafplatz ausgestattet werden kann."\
    ""
    Target_ru_ru "Койка — один из предметов в этом списке, стоимостью тридцать, и она имеет то же действие для сна, что и кровать, поэтому в лагере или ПОБ можно обеспечить место для сна."
@@ -4305,6 +4523,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000001}" {
    Id "OVT-FieldManual_Ports_Head"
    Target_en_us "Importing"
+   Target_it_it "Importazione"
    Target_de_de "Importieren"\
    ""
    Target_ru_ru "Импорт"
@@ -4325,6 +4544,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000002}" {
    Id "OVT-FieldManual_Ports_Head2"
    Target_en_us "Exporting"
+   Target_it_it "Esportazione"
    Target_de_de "Exportieren"\
    ""
    Target_ru_ru "Экспорт"
@@ -4345,6 +4565,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000AC}" {
    Id "OVT-FieldManual_Ports_Head3"
    Target_en_us "Resources"
+   Target_it_it "Risorse"
    Target_de_de "Ressourcen"\
    ""
    Target_ru_ru "Ресурсы"
@@ -4365,6 +4586,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000003}" {
    Id "OVT-FieldManual_Ports_Text"
    Target_en_us "A port trades in bulk with the vehicle you are sitting in, and both you and the vehicle have to be within thirty metres of it. The vehicle trades out of its own storage, so what it can take in at once is whatever room that storage has left: three hundred items in an ordinary car, a hundred in an illegal or armed one, no limit in a truck. The port screen has an Import side and an Export side."
+   Target_it_it "Un porto effettua scambi di merci in grandi quantità con il veicolo a bordo del quale ti trovi; sia tu che il veicolo dovete trovarvi entro un raggio di trenta metri dalla struttura. Il veicolo utilizza il proprio vano di carico per le operazioni, quindi la quantità di merce acquisibile in una sola volta dipende dallo spazio disponibile: trecento unità per un'auto comune, cento per un veicolo illegale o armato, nessuna limitazione per un camion. La schermata del porto presenta una sezione per l'importazione e una per l'esportazione."
    Target_de_de "Ein Hafen wickelt den Handel in größeren Mengen über das Fahrzeug ab, in dem du dich befindest. Sowohl du als auch das Fahrzeug müssen sich dabei innerhalb von 30 Metern um den Hafen befinden. Das Fahrzeug muss über eigenen Stauraum verfügen; illegale oder bewaffnete Fahrzeuge können dort daher überhaupt keinen Handel durchführen."\
    ""\
    "Das Hafenmenü ist in die Bereiche **Import** und **Export** unterteilt."\
@@ -4387,6 +4609,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000004}" {
    Id "OVT-FieldManual_Ports_Text2"
    Target_en_us "Importing needs the first level of Trade. What you import is credited to the vehicle's storage rather than spawned into it, and you are charged only for what fitted, so a car with room for fifty more items pays for fifty. Goods no ordinary shop stocks are offered only at the fifth level of Trade, or at a port whose nearest ground the resistance controls."
+   Target_it_it "L'importazione richiede il primo livello di abilità \"Commercio\". La merce importata viene caricata direttamente nel vano del veicolo e il costo addebitato riguarda solo la quantità effettivamente caricata; ad esempio, un'auto con spazio per altri cinquanta articoli pagherà per cinquanta unità. Le merci non trattate dai normali negozi sono disponibili solo al quinto livello di \"Commercio\" o presso porti situati in aree in cui la Resistenza controlla il territorio circostante."
    Target_de_de "Für den Import ist die erste Stufe von Handel erforderlich. Importierte Waren werden dem Stauraum des Fahrzeugs gutgeschrieben, anstatt unmittelbar darin zu erscheinen. Bezahlt wird nur die Menge, die tatsächlich in den verfügbaren Stauraum passt. Hat ein Fahrzeug beispielsweise noch Platz für 50 Gegenstände, werden auch nur 50 berechnet."\
    ""\
    "Waren, die in gewöhnlichen Geschäften nicht erhältlich sind, werden erst ab der fünften Stufe von Handel angeboten oder an einem Hafen, dessen nächstgelegenes Landgebiet vom Widerstand kontrolliert wird."\
@@ -4409,6 +4632,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000005}" {
    Id "OVT-FieldManual_Ports_Text3"
    Target_en_us "Export sells out of that same vehicle's storage. What a port pays for an item is a fraction of what importing one costs, held under what buying one there would cost, so carrying shop stock back out to a port does not pay. Goods no ordinary shop stocks carry the same condition they do on the way in, and anything the economy does not price cannot be exported at all."
+   Target_it_it "L'esportazione avviene utilizzando il vano di carico dello stesso veicolo. Il prezzo pagato dal porto per un articolo è una frazione del costo di importazione e rimane inferiore al prezzo di acquisto in loco; di conseguenza, trasportare merce acquistata nei negozi verso un porto non risulta redditizio. Per le merci non trattate dai normali negozi valgono le stesse condizioni previste per l'importazione, mentre gli articoli privi di una quotazione economica non possono essere esportati."
    Target_de_de "Der Export erfolgt aus demselben Fahrzeugstauraum. Für einen Gegenstand zahlt der Hafen nur einen Bruchteil dessen, was sein Import kostet, und der Ausfuhrpreis liegt stets unter dem Preis, zu dem derselbe Gegenstand dort eingekauft werden könnte. Es lohnt sich daher nicht, gewöhnliche Handelswaren aus Geschäften zu kaufen und anschließend wieder zum Hafen zu bringen."\
    ""\
    "Waren, die in normalen Geschäften nicht geführt werden, unterliegen beim Export denselben Voraussetzungen wie beim Import. Gegenstände, für die das Wirtschaftssystem keinen Preis festlegt, können überhaupt nicht exportiert werden."\
@@ -4431,6 +4655,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000AD}" {
    Id "OVT-FieldManual_Ports_Text4"
    Target_en_us "Both sides of the port screen carry a Resources tab as well, trading bulk construction materials into and out of the cargo store of the truck you are sitting in. Those are priced separately from everything else here, and their price moves over the campaign instead of holding still. The Resources page covers them in full."
+   Target_it_it "Entrambe le sezioni della schermata del porto includono una scheda \"Risorse\", che consente di scambiare materiali da costruzione in grandi quantità con il vano di carico del camion su cui ti trovi. Tali materiali hanno prezzi indipendenti dagli altri articoli e le loro quotazioni variano nel corso della campagna anziché rimanere fisse. La pagina dedicata alle Risorse fornisce informazioni dettagliate al riguardo."
    Target_de_de "Beide Seiten des Hafenmenüs verfügen zusätzlich über einen Reiter **Ressourcen**. Darüber werden Baumaterialien in größeren Mengen in den Frachtraum des Lastwagens ein- beziehungsweise ausgelagert, in dem du dich befindest."\
    ""\
    "Diese Materialien werden getrennt von allen anderen Waren bepreist, und ihre Preise verändern sich im Verlauf der Kampagne, anstatt konstant zu bleiben. Eine vollständige Übersicht dazu bietet die Seite **Ressourcen**."\
@@ -4453,6 +4678,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000006}" {
    Id "OVT-FieldManual_Ports_Title"
    Target_en_us "Ports"
+   Target_it_it "Porti"
    Target_de_de "Häfen"\
    ""
    Target_ru_ru "Порты"
@@ -4473,6 +4699,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000003}" {
    Id "OVT-FieldManual_ProductionSites_Head"
    Target_en_us "Buying What a Site Has Made"
+   Target_it_it "Acquistare la produzione di un sito"
    Target_de_de "Kauf vor Ort produzierter Waren"\
    ""
    Target_ru_ru "Покупка произведённого на объекте"
@@ -4493,6 +4720,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000005}" {
    Id "OVT-FieldManual_ProductionSites_Head2"
    Target_en_us "Owning a Site"
+   Target_it_it "Possedere un sito"
    Target_de_de "Besitz eines Standorts"\
    ""
    Target_ru_ru "Владение объектом"
@@ -4513,6 +4741,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000007}" {
    Id "OVT-FieldManual_ProductionSites_Head3"
    Target_en_us "Public and Private"
+   Target_it_it "Pubblico e privato"
    Target_de_de "Öffentlich und privat"\
    ""
    Target_ru_ru "Публичные и частные"
@@ -4533,6 +4762,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000009}" {
    Id "OVT-FieldManual_ProductionSites_Head4"
    Target_en_us "On the Map"
+   Target_it_it "Sulla mappa"
    Target_de_de "Auf der Karte"\
    ""
    Target_ru_ru "На карте"
@@ -4553,6 +4783,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000002}" {
    Id "OVT-FieldManual_ProductionSites_Text"
    Target_en_us "A sawmill, a steel mill or a cement plant can be a production site, marked by a large sign standing at it. Each one makes a single construction resource and nothing else, dripping a set number of units into a cargo store of its own once every in-game hour, whether anybody owns it or not. That store is the throttle: twenty cubic metres on the shipped sites, and a site whose store is full pauses until room is made in it. A rate below one unit an hour still adds up, because the part unit is carried rather than lost, and hours slept through are produced as well."
+   Target_it_it "Una segheria, un'acciaieria o un impianto per la produzione di cemento possono fungere da siti produttivi, segnalati da un grande cartello posto in loco. Ciascuna unità produce una singola risorsa da costruzione e nient'altro, depositando un quantitativo prestabilito di unità nel proprio magazzino di carico una volta ogni ora di gioco, a prescindere dal fatto che sia di proprietà di qualcuno o meno. È proprio la capacità di tale magazzino a fungere da limitatore: venti metri cubi per le postazioni di spedizione; se il magazzino di una postazione è pieno, la produzione si arresta finché non si libera dello spazio. Anche un ritmo inferiore a un'unità all'ora porta comunque a un accumulo, poiché la frazione di unità viene conteggiata anziché andare persa, e la produzione prosegue anche durante le ore di sonno."
    Target_de_de "Ein Sägewerk, ein Stahlwerk oder ein Zementwerk kann als Produktionsstandort dienen und ist vor Ort durch ein großes Schild gekennzeichnet. Jeder Standort stellt genau eine Bauressource her und nichts anderes. Einmal pro Spielstunde wird eine festgelegte Menge dieser Ressource dem eigenen Frachtspeicher des Standorts gutgeschrieben – unabhängig davon, ob der Standort jemandem gehört."\
    ""\
    "Die Kapazität dieses Speichers begrenzt die Produktion: Bei den mitgelieferten Standorten beträgt sie **20 Kubikmeter**. Ist der Speicher voll, wird die Produktion angehalten, bis wieder Platz geschaffen wurde."\
@@ -4577,6 +4808,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000004}" {
    Id "OVT-FieldManual_ProductionSites_Text2"
    Target_en_us "While nobody owns it, a site sells what it has accumulated. Its Buy stock action carries the amount on hand and opens a one row screen quoting eighty per cent of what a port charges to import that resource at that moment, so a site undercuts the port it competes with. It sells only what it has actually produced, and the load has to go into another cargo store standing within twenty five metres of it, which the screen says plainly when there is none. A cart that will not fit, is not stocked or cannot be paid for is refused whole, so nothing is ever part bought."
+   Target_it_it "Sebbene nessuno ne sia proprietario, un sito vende ciò che ha accumulato. La sua azione \"Acquista scorte\" tiene traccia della quantità disponibile e apre una schermata a riga singola che indica l'ottanta per cento di quanto un porto addebita per importare quella risorsa in quel momento, in modo che il sito possa offrire un prezzo inferiore rispetto al porto con cui compete. Vende solo ciò che ha effettivamente prodotto e il carico deve essere depositato in un altro magazzino merci situato entro venticinque metri dal sito stesso, cosa che la schermata indica chiaramente quando non ce n'è uno. Un carrello che non entra, non è rifornito o non può essere pagato viene rifiutato per intero, quindi non si acquista mai nulla parzialmente."
    Target_de_de "Solange ein Produktionsstandort niemandem gehört, verkauft er die bis dahin angesammelten Ressourcen. Die Aktion „Bestand kaufen“ zeigt die aktuell verfügbare Menge an und öffnet eine einzeilige Handelsansicht. Der dort verlangte Preis beträgt 80 % des aktuellen Importpreises, den ein Hafen zu diesem Zeitpunkt für dieselbe Ressource berechnet. Damit unterbietet der Produktionsstandort den Hafen."\
    ""\
    "Verkauft wird ausschließlich die Menge, die der Standort tatsächlich produziert und eingelagert hat. Die gekaufte Ladung muss in einen anderen Frachtspeicher übernommen werden, der sich innerhalb von 25 Metern um den Standort befindet. Ist kein geeigneter Frachtspeicher in Reichweite, weist die Anzeige ausdrücklich darauf hin."\
@@ -4601,6 +4833,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000006}" {
    Id "OVT-FieldManual_ProductionSites_Text3"
    Target_en_us "Buying the site itself is an action on it, priced from what that site was set up to cost and scaled by the difficulty's real estate multiplier; the price on the label is the price that is charged. An officer can buy one out of resistance funds instead, which puts it in the resistance's name. Buying empties the store in the same moment it takes the money, so a site is never worth buying for the stock it was sitting on. A site is never sold back, costs nothing to keep, and is not something the occupying faction comes after."
+   Target_it_it "L'acquisto del sito stesso è un'azione su di esso, il cui prezzo è determinato dal costo di creazione del sito e scalato dal moltiplicatore immobiliare della difficoltà; il prezzo sull'etichetta è il prezzo addebitato. Un ufficiale può invece acquistarne uno con i fondi della Resistenza, intestandolo così alla Resistenza stessa. Acquistare un sito svuota il magazzino nello stesso istante in cui preleva il denaro, quindi non conviene mai acquistarlo per le scorte che conteneva. Un sito non viene mai rivenduto, non costa nulla mantenerlo e non è un obiettivo della fazione occupante."
    Target_de_de "Der Standort selbst kann über eine entsprechende Aktion gekauft werden. Der Preis richtet sich nach dem für diesen Standort festgelegten Grundwert und wird mit dem Immobilienmultiplikator des gewählten Schwierigkeitsgrads skaliert. Der auf der Anzeige angegebene Preis ist zugleich der tatsächlich berechnete Kaufpreis."\
    ""\
    "Ein Offizier kann den Standort stattdessen aus Mitteln des Widerstands erwerben. In diesem Fall geht er in den Besitz des Widerstands über."\
@@ -4627,6 +4860,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000008}" {
    Id "OVT-FieldManual_ProductionSites_Text4"
    Target_en_us "A site bought by a player starts private, and a private one opens its storage to that player alone. The owner can flip it to public, an officer can do the same on a resistance owned site, and a public or resistance owned site opens to anyone in the resistance. Anyone who may not open it still sees the site's Cargo action, blocked with a reason rather than hidden. An owned site stops selling altogether: what it makes goes into building, into a trade agreed with another player, or out to a port for export."
+   Target_it_it "Un sito acquistato da un giocatore inizia come privato e il suo magazzino è accessibile solo a quel giocatore. Il proprietario può renderlo pubblico, un ufficiale può fare lo stesso su un sito di proprietà della Resistenza, e un sito pubblico o di proprietà della Resistenza è accessibile a chiunque nella Resistenza. Chiunque non possa accedervi vede comunque l'azione di carico del sito, bloccata con una motivazione anziché nascosta. Un sito di proprietà smette completamente di vendere: il ricavato viene utilizzato per costruire, per uno scambio concordato con un altro giocatore o per l'esportazione verso un porto."
    Target_de_de "Ein von einem Spieler gekaufter Produktionsstandort ist zunächst privat. Bei einem privaten Standort kann nur der Besitzer auf den Lagerbestand zugreifen. Der Besitzer kann den Standort auf öffentlich umstellen; bei einem Standort im Besitz des Widerstands kann dies auch ein Offizier tun. Auf einen öffentlichen oder dem Widerstand gehörenden Standort kann jeder Angehörige des Widerstands zugreifen."\
    ""\
    "Wer keine Zugriffsberechtigung hat, sieht die Aktion „Fracht“ des Standorts weiterhin, sie ist jedoch gesperrt und zeigt den Grund dafür an, anstatt vollständig ausgeblendet zu werden."\
@@ -4651,6 +4885,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F400000000A}" {
    Id "OVT-FieldManual_ProductionSites_Text5"
    Target_en_us "Production sites draw at the same zoom as towns and bases. The icon is white while the site is unowned, green when it is yours, public or the resistance's, and half faded white when somebody else is keeping it private. Its info panel gives the status, the owner once it has one, what is in the store against how much room there is, its output per hour, and, while it is unowned, what buying it would cost."
+   Target_it_it "I siti di produzione vengono visualizzati allo stesso livello di zoom di città e basi. L'icona è bianca quando il sito non possiede nessuno, verde quando è di tua proprietà, pubblico o della Resistenza, e di un bianco sbiadito quando è privato. Il suo pannello informativo mostra lo stato, il proprietario (una volta che ne ha uno), il contenuto del magazzino rispetto allo spazio disponibile, la produzione oraria e, finché non possiede nessuno, il costo per acquistarlo."
    Target_de_de "Produktionsstandorte werden auf der Karte ab derselben Zoomstufe angezeigt wie Ortschaften und Militärbasen. Das Symbol ist weiß, solange der Standort niemandem gehört, grün, wenn er dir selbst gehört, öffentlich ist oder sich im Besitz des Widerstands befindet, und halbtransparent weiß, wenn ein anderer Spieler ihn privat hält."\
    ""\
    "Das Informationsfeld zeigt den aktuellen Status, nach dem Kauf auch den Besitzer, den vorhandenen Lagerbestand im Verhältnis zur Gesamtkapazität, die Produktion pro Stunde und, solange der Standort unbesetzt ist, den Kaufpreis."\
@@ -4673,6 +4908,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F4000000001}" {
    Id "OVT-FieldManual_ProductionSites_Title"
    Target_en_us "Production Sites"
+   Target_it_it "Siti di produzione"
    Target_de_de "Produktionsstandorte"\
    ""
    Target_ru_ru "Производственные объекты"
@@ -4693,7 +4929,7 @@ StringTable {
   CustomStringTableItem "{6BA1C4E000000040}" {
    Id "OVT-FieldManual_Rearm_Head"
    Target_en_us "Ammunition Before Money"
-   Target_de_de "Munition vor Geld"
+   Target_it_it "Munizioni prima del denaro"
    Comment "Field Manual - Re-arming Vehicles page (Money and Trade category), section header above the storage-first paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4702,16 +4938,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262158
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000041}" {
    Id "OVT-FieldManual_Rearm_Head2"
    Target_en_us "Paying for the Rest"
-   Target_de_de "Restbezahlung"
+   Target_it_it "Pagare il resto"
    Comment "Field Manual - Re-arming Vehicles page, section header above the money/supply-point paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4720,16 +4956,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262230
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000042}" {
    Id "OVT-FieldManual_Rearm_Head3"
    Target_en_us "Carrying the Ammunition"
-   Target_de_de "Mitführen der Munition"
+   Target_it_it "Trasporto delle munizioni"
    Comment "Field Manual - Re-arming Vehicles page, section header above the hidden-ammunition paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4738,16 +4974,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262323
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000043}" {
    Id "OVT-FieldManual_Rearm_Text"
    Target_en_us "Every armed vehicle carries a Re-arm action, from an armed jeep to an APC to a helicopter gunship. It is one action and one full restock: every turret magazine and every rocket pod the vehicle has comes back full together, and there is no way to refill part of it."
-   Target_de_de "Jedes bewaffnete Fahrzeug verfügt über die Aktion „Aufmunitionieren“, vom bewaffneten Geländewagen über den Schützenpanzer bis zum Kampfhubschrauber. Die Aufmunitionierung erfolgt in einem einzigen Vorgang und stellt den gesamten Munitionsvorrat vollständig wieder her. Sämtliche Turm-Magazine und Raketenbehälter des Fahrzeugs werden gleichzeitig vollständig aufgefüllt. Eine teilweise Aufmunitionierung ist nicht möglich."
+   Target_it_it "Ogni veicolo armato, da una jeep armata a un APC fino a un elicottero d'attacco, è dotato di un'azione di rifornimento. Si tratta di un'azione e di un rifornimento completo: ogni caricatore della torretta e ogni lanciarazzi del veicolo tornano pieni contemporaneamente, e non è possibile rifornirli solo parzialmente."
    Comment "Field Manual - Re-arming Vehicles page, opening paragraph, two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. 'Every armed vehicle': OVT_RearmVehicleAction is authored on Prefabs/Vehicles/Core/Vehicle_Base.et:78-88 (the ONLY prefab in the tree that declares it) under the seven-name context union heli_repair_point / door_r01 / door_l01 / door_rear / door_back_left / door_back_right / hatch_commander, which reaches the wheeled armour, the armed jeeps and both helicopter families; CanBeShownScript hides it on a vehicle with nothing rearmable (OVT_RearmVehicleAction.c:78-82). 'one full restock': OVT_VehicleRearmUtils.PerformRearm sets every collected magazine to GetMaxAmmoCount() and reloads every rocket pod in one pass. DO NOT add a per-weapon or partial re-arm: explicitly out of scope in requirements.md."
    DevNote ""
    Repro ""
@@ -4756,16 +4992,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262497
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000044}" {
    Id "OVT-FieldManual_Rearm_Text2"
    Target_en_us "A re-arm spends storage before it spends money. It looks in the vehicle's own storage first, then in every storage within twenty five metres that you are allowed to draw from, for the magazines the vehicle's weapons take, and anything it finds there is spent instead of bought. When storage covers the whole re-arm the action reads Re-arm (from storage), costs nothing and works anywhere, so a crew that hauled its own ammunition is not tied to a base."
-   Target_de_de "Bei der Aufmunitionierung werden zunächst vorhandene Lagerbestände verbraucht, bevor Geldkosten anfallen. Das System prüft zuerst den fahrzeugeigenen Stauraum und anschließend sämtliche innerhalb eines Radius von 25 Metern befindlichen Lager, auf die Zugriff besteht, auf passende Magazine für die Fahrzeugbewaffnung. Gefundene Munition wird vorrangig aus diesen Beständen entnommen und nicht zusätzlich beschafft. Decken die vorhandenen Lagerbestände den vollständigen Munitionsbedarf ab, wird die Aktion als „Aufmunitionieren (aus Lagerbestand)“ angezeigt, verursacht keine Kosten und kann unabhängig vom Standort durchgeführt werden. Eine Besatzung, die ihre eigene Munition mitführt, ist somit nicht auf einen Stützpunkt angewiesen."
+   Target_it_it "Un rifornimento consuma le scorte prima di spendere denaro. Cerca prima nel magazzino del veicolo stesso, poi in ogni magazzino entro venticinque metri da cui è consentito prelevare, per trovare i caricatori necessari alle armi del veicolo, e tutto ciò che trova viene speso invece di essere acquistato. Quando le scorte coprono l'intero rifornimento, l'azione indica \"Rifornimento (dal magazzino)\", non costa nulla ed è possibile ovunque, quindi un equipaggio che ha trasportato le proprie munizioni non è vincolato a una base."
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Ammunition Before Money', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Own storage first: OVT_VehicleRearmUtils.CollectRearmStores removes the vehicle's own store from the collected list and prepends it, because position is priority for the sequential TakeUpTo. Twenty five metres: ResolveHolderRadius reads the asking player's OVT_StorageRequestComponent.m_fHolderRadius, attribute default 25 (OVT_StorageRequestComponent.c:212), the same radius the storage destination picker uses. 'allowed to draw from': OVT_StorageUtils.PlayerMayDrawFrom. 'the magazines the vehicle's weapons take': OVT_VehicleRearmUtils.BuildPlan resolves each unit's prefab from the muzzle's default magazine, falling back to the loaded magazine's prefab. Free and anywhere: OVT_RearmVehicleAction.CanBePerformedScript returns true outright when the quoted cost is <= 0 (:100-102), before any site or funds test; the label is #OVT-RearmVehicle_FromStorage (:123-129). DO NOT quote a price for this case; there is none."
    DevNote ""
    Repro ""
@@ -4774,16 +5010,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262513
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000045}" {
    Id "OVT-FieldManual_Rearm_Text3"
    Target_en_us "Only what storage cannot cover is bought, and the price is that same share of the full one, so half the magazines covered is half the bill. That bought part is the only part with a place attached to it: the vehicle has to be standing at a built Helipad or a built Garage at a base the resistance holds, or within a hundred metres of a deployed FOB. Anywhere else with something still to buy, the action shows blocked and names the helipad, garage or FOB it wants."
-   Target_de_de "Nur der Munitionsbedarf, der nicht aus vorhandenen Lagerbeständen gedeckt werden kann, wird kostenpflichtig beschafft. Die Kosten entsprechen dabei dem jeweiligen Anteil am vollständigen Aufmunitionierungspreis; decken die Lagerbestände beispielsweise die Hälfte der benötigten Magazine ab, fällt lediglich die Hälfte der Gesamtkosten an. Standortgebunden ist ausschließlich der kostenpflichtig zu beschaffende Anteil. Hierfür muss sich das Fahrzeug an einem errichteten Hubschrauberlandeplatz oder einer errichteten Garage auf einem vom Widerstand kontrollierten Stützpunkt beziehungsweise innerhalb von 100 Metern um einen eingesetzten vorgeschobenen Operationsstützpunkt (FOB) befinden. Besteht weiterhin Beschaffungsbedarf und befindet sich das Fahrzeug außerhalb dieser Bereiche, wird die Aktion als gesperrt angezeigt und weist auf den erforderlichen Hubschrauberlandeplatz, die Garage oder den FOB hin."
+   Target_it_it "Viene acquistato solo ciò che le scorte non riescono a coprire, e il prezzo è la stessa quota del rifornimento completo, quindi metà dei caricatori coperti corrisponde a metà del conto. La parte acquistata è l'unica ad avere una posizione specifica: il veicolo deve trovarsi presso un eliporto o un garage costruiti in una base controllata dalla Resistenza, oppure entro cento metri da una base operativa avanzata (FOB) schierata. In qualsiasi altro luogo in cui sia ancora necessario acquistare qualcosa, l'azione indica \"bloccato\" e specifica l'eliporto, il garage o la FOB desiderata."
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Paying for the Rest', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Pro rata: OVT_VehicleRearmRules.ProratedCost(fullCost, uncoveredUnits, totalUnits) - 0 when nothing is uncovered, the full cost when nothing is covered, otherwise fullCost scaled by the uncovered fraction and floored at 1. Full price: OVT_VehicleRearmUtils.GetRearmCost() = REARM_BASE_COST 1000 scaled by OVT_DifficultySettings.vehiclePriceMultiplier, so DO NOT print a dollar figure here. Site: OVT_VehicleRearmUtils.IsAtRearmSite is IsNearDeployedFOB (FOB_SEARCH_RADIUS 100) OR IsAtSupplyStructure, which searches SITE_SEARCH_RADIUS 20 for a built OVT_BuildableComponent of type HELIPAD_BUILDABLE_TYPE 'Helipad' or GARAGE_BUILDABLE_TYPE 'VehicleGarage'; both constants are at OVT_VehicleRearmUtils.c:53-62. The site test runs only when cost > 0, on the client at OVT_RearmVehicleAction.c:104-108 and again on the server. Blocked reason: #OVT-Rearm_NeedsSupplyPoint, whose own text names helipad, garage or FOB - keep the three in step. The vehicle must also be within 15 m of the player (VEHICLE_MAX_DISTANCE), deliberately not stated: it is the ordinary reach of any vehicle action."
    DevNote ""
    Repro ""
@@ -4792,16 +5028,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262598
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000046}" {
    Id "OVT-FieldManual_Rearm_Text4"
    Target_en_us "Vehicle weapon ammunition can be imported at a port and moved from one storage list to another, but it never comes out into anyone's hands: taking it out reports it as missing and it stays on the list. That is exactly where a re-arm looks for it, so a crate of it on the list of a truck parked alongside counts for as much as a crate on the vehicle's own."
-   Target_de_de "Fahrzeugwaffenmunition kann in einem Hafen importiert und von einer Lagerliste auf eine andere verschoben werden sie gelangt jedoch niemals tatsächlich in die Hände einer Person Beim Herausnehmen wird sie als fehlend gemeldet und bleibt auf der Liste Genau dort sucht die Aufmunitionierung nach ihr daher zählt eine Kiste davon auf der Lagerliste eines daneben abgestellten Lastwagens genauso wie eine Kiste auf der Lagerliste des Fahrzeugs selbst"
+   Target_it_it "Le munizioni per armi da veicolo possono essere importate in un porto e spostate da un elenco di stoccaggio all'altro, ma non vengono mai effettivamente prese in mano: prelevarle ne segnala la scomparsa e le munizioni rimangono nell'elenco. È proprio lì che un addetto al rifornimento le cerca, quindi una cassa di munizioni nell'elenco di un camion parcheggiato accanto ha lo stesso valore di una cassa presente nel veicolo stesso."
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Carrying the Ammunition', two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Never leaves the ledger: the guard at OVT_StorageRequestComponent.c:1884 in StepToInventory - the ONLY ledger-to-inventory exit in the mod - adds the whole line to the job's shortfall and drops it before anything spawns, for any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on (an ancestor authoring m_bVisible 0; OVT_StorageRules.HiddenFromInventory). This is deliberate, not a defect: vanilla's inventory refuses to draw those items, so before the guard they were spawned invisibly and lost. 'a truck parked alongside': OVT_VehicleRearmUtils.CollectRearmStores collects every usable holder in the holder radius, not only the vehicle's own. NOTE the guard also traps mortar rounds, M203 rounds and loose rocket prefabs in ledgers; it is not exclusive to vehicle ammunition, so this paragraph deliberately says only what a player will meet."
    DevNote ""
    Repro ""
@@ -4810,16 +5046,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262199
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6BA1C4E000000047}" {
    Id "OVT-FieldManual_Rearm_Title"
    Target_en_us "Re-arming Vehicles"
-   Target_de_de "Fahrzeuge aufmunitionieren"
+   Target_it_it "Riarmo dei veicoli"
    Comment "Field Manual - Re-arming Vehicles page title (Money and Trade category), sits after Vehicle Repair. Two words, no rich-text markup."
    DevNote ""
    Repro ""
@@ -4828,15 +5064,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262172
+   Modified 1788307200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B000000000147}" {
    Id "OVT-FieldManual_Recruits_Head"
    Target_en_us "Hiring Recruits"
+   Target_it_it "Reclutamento reclute"
    Target_de_de "Rekruten anwerben"
    Target_ru_ru "Найм рекрутов"
    Target_uk_ua "Найм рекрутів"
@@ -4857,6 +5094,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000148}" {
    Id "OVT-FieldManual_Recruits_Head2"
    Target_en_us "Orders and Groups"
+   Target_it_it "Ordini e gruppi"
    Target_de_de "Befehle und Gruppen"
    Target_ru_ru "Приказы и Группы"
    Target_uk_ua "Накази та групи"
@@ -4877,6 +5115,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000149}" {
    Id "OVT-FieldManual_Recruits_Head3"
    Target_en_us "Experience and Gear"
+   Target_it_it "Esperienza e equipaggiamento"
    Target_de_de "Erfahrung und Ausrüstung"
    Target_ru_ru "Опыт и снаряжение"
    Target_uk_ua "Досвід та спорядження"
@@ -4897,6 +5136,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014A}" {
    Id "OVT-FieldManual_Recruits_Head4"
    Target_en_us "Managing Recruits"
+   Target_it_it "Gestione delle reclute"
    Target_de_de "Rekruten verwalten"
    Target_ru_ru "Управление рекрутами"
    Target_uk_ua "Керування рекрутами"
@@ -4917,6 +5157,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005B}" {
    Id "OVT-FieldManual_Recruits_Head5"
    Target_en_us "Holding Position"
+   Target_it_it "Mantenimento della posizione"
    Target_de_de "Position halten"
    Target_ru_ru "Удержание позиции"
    Target_uk_ua "Утримання позиції"
@@ -4937,6 +5178,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005D}" {
    Id "OVT-FieldManual_Recruits_Head6"
    Target_en_us "Swapping Kit"
+   Target_it_it "Cambio equipaggiamento"
    Target_de_de "Ausrüstung tauschen"
    Target_ru_ru "Обмен снаряжения"
    Target_uk_ua "Обмін спорядження"
@@ -4957,6 +5199,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005F}" {
    Id "OVT-FieldManual_Recruits_Head7"
    Target_en_us "Finding Your Recruits"
+   Target_it_it "Ricerca delle reclute"
    Target_de_de "Deine Rekruten finden"
    Target_ru_ru "Поиск ваших рекрутов"
    Target_uk_ua "Пошук ваших рекрутів"
@@ -4977,6 +5220,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000008D}" {
    Id "OVT-FieldManual_Recruits_Head8"
    Target_en_us "Equipped Recruits"
+   Target_it_it "Reclute equipaggiate"
    Target_de_de "Ausgerüstete Rekruten"
    Target_ru_ru "Экипирование рекрутов"
    Target_uk_ua "Споряджені рекрути"
@@ -4997,6 +5241,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007210}" {
    Id "OVT-FieldManual_Recruits_Head9"
    Target_en_us "Handing Recruits to High Command"
+   Target_it_it "Consegna delle reclute all'Alto Comando"
    Target_de_de "Übergabe von Rekruten an das Obere Kommando"\
    ""
    Target_ru_ru "Передача рекрутов в Командование"
@@ -5017,6 +5262,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010E}" {
    Id "OVT-FieldManual_Recruits_Text"
    Target_en_us "Civilians can be hired as recruits and fight alongside you. Recruits belong to the player who hired them, stay with that player between sessions, and one player can hold up to sixteen at a time."
+   Target_it_it "I civili possono essere ingaggiati come reclute e combattere al tuo fianco. Le reclute appartengono al giocatore che le ha ingaggiate, rimangono con lui tra una sessione e l'altra e ogni giocatore può gestirne fino a sedici contemporaneamente."
    Target_de_de "Zivilisten können als Rekruten angeworben werden und an deiner Seite kämpfen. Rekruten gehören dem Spieler, der sie angeworben hat, bleiben diesem Spieler zwischen Sitzungen erhalten und ein Spieler kann gleichzeitig bis zu sechzehn Rekruten besitzen."
    Target_ru_ru "Граждан можно нанимать как рекрутов, и они будут сражаться вместе с вами. Рекруты закрепляются за игроком, который их нанял, сохраняются за ним между сессиями, а один игрок может одновременно удерживать до шестнадцати бойцов."
    Target_uk_ua "Цивільних можна наймати як рекрутів, і вони воюватимуть пліч-о-пліч із вами. Рекрути закріплюються за гравцем, який їх найняв, зберігаються за ним між сесіями, а один гравець може утримувати до шістнадцяти бійців одночасно."
@@ -5037,6 +5283,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007211}" {
    Id "OVT-FieldManual_Recruits_Text10"
    Target_en_us "Recruits that are holding position can also be handed over to High Command, which fields whole groups a player orders from the map. The Holding Position section is split by where the recruits are standing, and each of those groups carries a Convert to High Command action. It is one way: the recruits leave your roster and free their slots, and their names, experience and skills stop being tracked, while the same bodies and their gear carry on in the new group."
+   Target_it_it "Le reclute in posizione di attesa possono anche essere trasferite all'Alto Comando, che schiera interi gruppi ordinati dal giocatore tramite la mappa. La sezione \"Mantieni posizione\" è suddivisa in base alla collocazione delle reclute; ogni gruppo dispone dell'azione \"Trasferisci all'Alto Comando\". Si tratta di un processo irreversibile: le reclute escono dal tuo organico liberando i relativi slot (e smettendo di registrare nome, esperienza e abilità), mentre i modelli dei personaggi e il loro equipaggiamento confluiscono nel nuovo gruppo."
    Target_de_de "Rekruten, die ihre Stellung halten, können ebenfalls an das Obere Kommando übergeben werden. Das Obere Kommando setzt vollständige Gruppen ein, die ein Spieler über die Karte befehligt."\
    ""\
    "Der Abschnitt „Stellung halten“ ist danach unterteilt, wo sich die jeweiligen Rekruten befinden. Jede dieser Gruppen verfügt über die Aktion „An das Obere Kommando übergeben“."\
@@ -5061,6 +5308,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014B}" {
    Id "OVT-FieldManual_Recruits_Text2"
    Target_en_us "A civilian is hired by holding the recruit action on them from close by, which costs the recruit price the difficulty settings carry. A recruitment tent, built at a base or a FOB, hires from the nearest town instead at half that price, and takes one of that town's supporters with it, so it only works while that town has support to give. Either way the recruit is yours, and nobody can hold more than sixteen at once."
+   Target_it_it "Un civile viene ingaggiato attivando l'apposita azione di reclutamento standogli vicino; l'operazione ha un costo variabile in base alle impostazioni di difficoltà. Una tenda di reclutamento, costruita presso una base o una FOB, permette di ingaggiare civili dalla città più vicina a metà prezzo, utilizzando i sostenitori della città stessa; di conseguenza, funziona solo finché la città dispone di sostenitori disponibili. In ogni caso, la recluta diventa tua e il limite massimo è di sedici unità per giocatore."
    Target_de_de "Ein Zivilist wird angeworben, indem du aus kurzer Entfernung die Rekrutierungsaktion auf ihm gedrückt hältst. Das kostet den in den Schwierigkeitseinstellungen festgelegten Rekrutierungspreis. Ein Rekrutierungszelt, das an einer Basis oder einem FOB gebaut wurde, rekrutiert stattdessen aus der nächstgelegenen Stadt zum halben Preis und verbraucht dabei einen Unterstützer dieser Stadt. Es funktioniert daher nur, solange die Stadt Unterstützung zur Verfügung hat. In beiden Fällen gehört der Rekrut dir, und niemand kann gleichzeitig mehr als sechzehn besitzen."
    Target_ru_ru "Гражданина можно нанять, удерживая действие «Нанять» вблизи от него; это стоит сумму, указанную в настройках сложности. Вербовочная палатка, построенная на базе или ПОБ, вместо этого нанимает из ближайшего города за полцены и забирает одного из сторонников этого города, поэтому она работает только пока у города есть поддержка. В любом случае рекрут становится вашим, и никто не может удерживать более шестнадцати одновременно."
    Target_uk_ua "Найняти цивільного можна, затиснувши дію «Найняти» з близької відстані; це коштує стільки, скільки вказано в налаштуваннях складності. Вербувальний намет, побудований на базі чи ПБП, натомість вербує бійців з найближчого міста за вдвічі меншу ціну й забирає одного з прихильників цього міста, тому він працює лише доти, доки місто має підтримку. У будь-якому разі рекрут стає вашим, а один гравець не може утримувати більше шістнадцяти бійців одночасно."
@@ -5081,6 +5329,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014C}" {
    Id "OVT-FieldManual_Recruits_Text3"
    Target_en_us "Recruits join your group and take orders through the ordinary group command menu, the same as any other AI subordinate. If you join another player's group the recruits currently following you go with you and that player commands them while you are there; they are still yours, and they come back under your command when you leave the group or reconnect. Recruits within fifty metres of you when you fast travel come along, unless they are holding position, and each one adds another fare of the same size to the trip."
+   Target_it_it "Le reclute si uniscono al tuo gruppo e ricevono ordini tramite il menu di comando standard, proprio come qualsiasi altro subordinato gestito dall'IA. Se ti unisci al gruppo di un altro giocatore, le reclute che ti seguono ti accompagnano e vengono comandate da lui finché resti nel gruppo; esse rimangono comunque tue e tornano sotto il tuo comando quando lasci il gruppo o ti riconnetti. Le reclute che si trovano nel raggio di cinquanta metri da te durante un viaggio rapido ti seguono (a meno che non siano in posizione di attesa), e ognuna di esse aggiunge al costo del viaggio una tariffa supplementare di pari importo."
    Target_de_de "Rekruten treten deiner Gruppe bei und erhalten Befehle über das normale Gruppenbefehlsmenü, genau wie andere KI-Untergebene. Wenn du der Gruppe eines anderen Spielers beitrittst, kommen die Rekruten, die dir gerade folgen, mit und werden von diesem Spieler kommandiert, solange du dort bist. Sie gehören weiterhin dir und unterstehen wieder deinem Befehl, sobald du die Gruppe verlässt oder dich erneut verbindest. Rekruten in einem Umkreis von fünfzig Metern reisen bei einer Schnellreise mit dir, sofern sie nicht ihre Position halten, und jeder von ihnen erhöht den Fahrpreis um denselben Betrag."
    Target_ru_ru "Рекруты присоединяются к вашей группе и получают приказы через обычное меню группового командования, как и любые другие подчинённые ИИ. Если вы присоединяетесь к группе другого игрока, рекруты, которые следуют за вами, переходят с вами, и этот игрок командует ими, пока вы там; они по-прежнему ваши и возвращаются под ваше командование, когда вы покидаете группу или переподключаетесь. Рекруты в радиусе пятидесяти метров от вас при быстром перемещении отправляются вместе с вами, если только они не удерживают позицию, и каждый из них добавляет к поездке ещё одну плату того же размера."
    Target_uk_ua "Нездовзі після найму рекрути вступають у ваш загін і підпорядковуються стандартному меню наказів ШІ-союзникам. У разі приєднання до групи іншого гравця ваші бійці переходять під його тимчасове командування, але залишаються вашою власністю та автоматично повертаються у ваш загін після виходу з групи чи перезаходу в гру. Під час швидкого телепорту всі рекрути в радіусі 50 метрів переміщуються разом із вами (якщо їм не наказано утримувати позицію), збільшуючи підсумковий чек на вартість проїзду за кожного бійця."
@@ -5101,6 +5350,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014D}" {
    Id "OVT-FieldManual_Recruits_Text4"
    Target_en_us "Recruits earn experience for killing occupying faction soldiers and gain levels of their own, and their kills, level and progress are listed beside their name. They arrive in civilian clothes, and a saved loadout can be applied to one nearby recruit or to all of them at once from the loadout screen. What a recruit is carrying stays with it, and is still there when it comes back after a save is loaded."
+   Target_it_it "Le reclute guadagnano esperienza eliminando i soldati della fazione occupante e salgono di livello; il numero di uccisioni, il livello e i progressi sono visualizzati accanto al loro nome. Arrivano in abiti civili, ma è possibile applicare un equipaggiamento predefinito (loadout) a una singola recluta vicina o a tutte contemporaneamente dalla schermata di gestione dell'equipaggiamento. L'equipaggiamento trasportato dalla recluta rimane con essa e viene conservato anche dopo il caricamento di un salvataggio."
    Target_de_de "Rekruten erhalten Erfahrung für das Töten von Soldaten der Besatzungsmacht und steigen in eigenen Stufen auf. Ihre Abschüsse, ihre Stufe und ihr Fortschritt werden neben ihrem Namen angezeigt. Sie beginnen in Zivilkleidung, und über den Ausrüstungsbildschirm kann eine gespeicherte Ausrüstung auf einen Rekruten in der Nähe oder auf alle Rekruten gleichzeitig angewendet werden. Was ein Rekrut bei sich trägt, bleibt bei ihm und ist auch noch vorhanden, wenn er nach dem Laden eines Spielstands zurückkehrt."
    Target_ru_ru "Рекруты получают опыт за убийство солдат оккупационной фракции и повышают собственный уровень, а их убийства, уровень и прогресс отображаются рядом с именем. Они появляются в гражданской одежде, и сохранённый комплект снаряжения можно применить к одному рекруту поблизости или ко всем сразу из экрана загрузок. Всё, что несёт рекрут, остаётся при нём и сохраняется после загрузки сохранения."
    Target_uk_ua "Бійці отримують досвід за ліквідацію солдатів ворога й підвищують свій рівень (статистика вбивств, рівень і прогрес показуються поруч із ім'ям бійця). Початково вони одягнені в цивільний одяг, але ви можете швидко видати збережений пресет спорядження одному або всім рекрутам одразу через меню пресетів. Усе видане екіпірування зберігається за бійцем і залишається в його інвентарі після перезавантаження сесії."
@@ -5121,6 +5371,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000014E}" {
    Id "OVT-FieldManual_Recruits_Text5"
    Target_en_us "Manage Recruits, on the Overthrow main menu, lists everyone you have hired along with their home town and whether they are in the world at the moment. A recruit can be renamed, marked on the map, or dismissed from there. Recruits are kept between sessions: they leave the world about ten minutes after their owner disconnects and are put back where they were when that player returns. A recruit that is killed is gone for good, and its place on the roster is free again."
+   Target_it_it "La voce \"Gestisci Reclute\" nel menu principale di Overthrow elenca tutte le reclute ingaggiate, indicando la loro città d'origine e se sono attualmente presenti nel mondo di gioco. Da qui è possibile rinominare una recluta, contrassegnarla sulla mappa o congedarla. Le reclute vengono mantenute tra una sessione e l'altra: escono dal mondo circa dieci minuti dopo la disconnessione del proprietario e ricompaiono nella posizione in cui si trovavano al momento del ritorno del giocatore. Se una recluta viene uccisa, scompare definitivamente e il suo posto nell'elenco torna libero."
    Target_de_de "\"Rekruten verwalten\" im Overthrow-Hauptmenü listet alle von dir angeworbenen Personen zusammen mit ihrer Heimatstadt und der Information auf, ob sie sich derzeit in der Spielwelt befinden. Dort kann ein Rekrut umbenannt, auf der Karte markiert oder entlassen werden. Rekruten bleiben zwischen Sitzungen erhalten: Etwa zehn Minuten nachdem ihr Besitzer die Verbindung trennt, verlassen sie die Spielwelt und werden an derselben Stelle wieder eingesetzt, wenn der Spieler zurückkehrt. Ein getöteter Rekrut ist dauerhaft verloren und sein Platz in der Liste wird wieder frei."
    Target_ru_ru "«Управление рекрутами» в главном меню Overthrow отображает список всех нанятых вами бойцов с указанием их родного города и того, находятся ли они сейчас в мире. Оттуда рекрута можно переименовать, отметить на карте или уволить. Рекруты сохраняются между сессиями: они покидают мир примерно через десять минут после отключения владельца и возвращаются на то же место, когда игрок возвращается. Убитый рекрут теряется навсегда, а его место в списке становится свободным."
    Target_uk_ua "Пункт «Керування рекрутами» в головному меню Overthrow містить список усіх найнятих вами бійців із зазначенням їхнього рідного міста та поточного статусу у світі. Звідти рекрута можна перейменувати, позначити на карті або звільнити. Бійці зберігаються між сесіями: вони залишають світ приблизно через десять хвилин після від'єднання власника й повертаються на те саме місце, коли гравець знову входить у гру. Загиблий рекрут втрачається назавжди, а його місце в списку стає вільним."
@@ -5141,6 +5392,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005C}" {
    Id "OVT-FieldManual_Recruits_Text6"
    Target_en_us "A recruit you own can be told to hold position, with a held action on the recruit itself or with the toggle on the Manage Recruits screen. One that is holding position leaves your group and stays where it stands, waiting there rather than wandering and returning fire if it is attacked, and recruits left holding position within fifty metres of each other share a single group. They are still yours and still use one of your sixteen slots, they are not taken along when you fast travel, and they stay behind when you join another player's group. A recruit that is inside a vehicle cannot be told to hold position. After a save is loaded they are back where they were left, still holding position."
+   Target_it_it "È possibile ordinare a una propria recluta di mantenere la posizione tramite un'azione specifica sulla recluta stessa o usando l'apposito comando nella schermata \"Gestisci Reclute\". Una recluta che mantiene la posizione abbandona il gruppo e resta ferma sul posto, attendendo invece di vagare; risponderà al fuoco se attaccata. Le reclute lasciate a mantenere la posizione entro un raggio di cinquanta metri l'una dall'altra formano un unico gruppo. Rimangono di tua proprietà e occupano uno dei tuoi sedici slot disponibili; non ti seguono durante il viaggio rapido e restano indietro se ti unisci al gruppo di un altro giocatore. Non è possibile ordinare di mantenere la posizione a una recluta che si trova all'interno di un veicolo. Dopo il caricamento di un salvataggio, le reclute si troveranno nel punto in cui erano state lasciate, mantenendo ancora la posizione."
    Target_de_de "Ein Rekrut in deinem Besitz kann angewiesen werden, seine Position zu halten, entweder über eine gedrückt gehaltene Aktion direkt am Rekruten oder über den Schalter im Bildschirm \"Rekruten verwalten\". Ein Rekrut, der seine Position hält, verlässt deine Gruppe und bleibt dort stehen. Er wartet an diesem Ort, statt umherzulaufen, und erwidert Feuer, wenn er angegriffen wird. Rekruten, die innerhalb von fünfzig Metern zueinander ihre Position halten, teilen sich eine einzige Gruppe. Sie gehören weiterhin dir und belegen weiterhin einen deiner sechzehn Plätze, werden bei Schnellreisen nicht mitgenommen und bleiben zurück, wenn du der Gruppe eines anderen Spielers beitrittst. Ein Rekrut in einem Fahrzeug kann nicht angewiesen werden, seine Position zu halten. Nach dem Laden eines Spielstands befinden sie sich wieder dort, wo sie zurückgelassen wurden, und halten weiterhin ihre Position."
    Target_ru_ru "Вашему рекруту можно приказать удерживать позицию, удерживая действие на самом рекруте или через переключатель на экране «Управление рекрутами». Рекрут, удерживающий позицию, покидает вашу группу и остаётся на месте, ожидая там вместо того, чтобы бродить, и открывает ответный огонь в случае атаки. Рекруты, оставленные удерживать позицию в радиусе пятидесяти метров друг от друга, объединяются в одну группу. Они по-прежнему ваши и занимают один из ваших шестнадцати слотов, не перемещаются вместе с вами при быстром перемещении и остаются на месте, когда вы присоединяетесь к группе другого игрока. Рекруту, находящемуся внутри транспортного средства, нельзя приказать удерживать позицию. После загрузки сохранения они возвращаются туда, где их оставили, и продолжают удерживать позицию."
    Target_uk_ua "Ви можете наказати своєму рекруту утримувати позицію за допомогою утримання клавіші дії на самому бійцеві або через перемикач на екрані «Керування рекрутами». Боєць, який утримує позицію, залишає вашу групу та залишається на місці: він чекає там замість того, щоб блукати довкола, і відкриває вогонь у відповідь у разі нападу. Рекрути, залишені утримувати позицію в радіусі п'ятдесяти метрів один від одного, об'єднуються в єдину групу. Вони залишаються вашими та продовжують займати один із шістнадцяти слотів, не переміщуються разом із вами під час швидкого переміщення й залишаються на місці, коли ви приєднуєтеся до групи іншого гравця. Рекруту, який перебуває всередині транспорту, не можна наказати утримувати позицію. Після завантаження збереження вони повертаються туди, де їх залишили, і продовжують утримувати позицію."
@@ -5161,6 +5413,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005E}" {
    Id "OVT-FieldManual_Recruits_Text7"
    Target_en_us "A recruit that is following you carries a Swap Gear action, usable from close by, which exchanges your whole kit with theirs: clothing, armour, rucksack and weapons, together with whatever is inside them. The exchange moves the real items rather than copying them, so nothing can be created or destroyed by it. Where a piece will not fit the place it belongs, it is stowed elsewhere or, at worst, left on the ground, and the message afterwards says the swap was only partial. A recruit that is holding position does not offer the action."
+   Target_it_it "Una recluta che ti segue dispone dell'azione \"Scambia Equipaggiamento\", utilizzabile da distanza ravvicinata, che permette di scambiare l'intero equipaggiamento (vestiario, armatura, zaino e armi, inclusi i relativi contenuti) con il tuo. Lo scambio trasferisce gli oggetti reali anziché copiarli, pertanto non comporta la creazione o la distruzione di alcun elemento. Qualora un oggetto non trovi posto nella sua collocazione prevista, verrà riposto altrove o, nel peggiore dei casi, lasciato a terra; un messaggio successivo indicherà che lo scambio è stato solo parziale. L'azione di scambio non è disponibile per le reclute che mantengono la posizione."
    Target_de_de "Ein Rekrut, der dir folgt, besitzt die Aktion \"Ausrüstung tauschen\". Sie kann aus kurzer Entfernung verwendet werden und tauscht deine gesamte Ausrüstung mit seiner: Kleidung, Panzerung, Rucksack und Waffen samt jeweiligem Inhalt. Dabei werden die tatsächlichen Gegenstände verschoben und nicht kopiert, sodass dadurch nichts erzeugt oder vernichtet werden kann. Passt ein Ausrüstungsteil nicht an die vorgesehene Stelle, wird es anderswo verstaut oder im ungünstigsten Fall auf dem Boden abgelegt. Die anschließende Meldung weist dann darauf hin, dass der Tausch nur teilweise durchgeführt wurde. Ein Rekrut, der seine Position hält, bietet diese Aktion nicht an."
    Target_ru_ru "У рекрута, который следует за вами, есть действие «Обмен снаряжением», доступное с близкого расстояния, которое полностью обменивает вашу экипировку на его: одежду, броню, рюкзак и оружие вместе со всем содержимым. При обмене перемещаются реальные предметы, а не копируются, поэтому ничего не может быть создано или уничтожено. Если какая-то вещь не помещается на соответствующее место, она укладывается в другой слот или, в худшем случае, остаётся на земле, а после этого появляется сообщение о том, что обмен был лишь частичным. Рекрут, удерживающий позицию, не предлагает этого действия."
    Target_uk_ua "Рекрут, який слідує за вами, має дію «Обмін спорядженням», доступну з близької відстані, яка повністю обмінює ваше екіпірування на його: одяг, броню, рюкзак та зброю разом із усім вмістом. Під час обміну переміщуються реальні предмети, а не дублюються, тому нічого не може створитися або зникнути. Якщо якась річ не поміщається на відповідне місце, вона складається в інший слот або, в гіршому випадку, залишається на землі, а після цього з'являється повідомлення про те, що обмін був лише частковим. Рекрут, який утримує позицію, не пропонує цієї дії."
@@ -5181,6 +5434,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000060}" {
    Id "OVT-FieldManual_Recruits_Text8"
    Target_en_us "The map has a Recruits layer that draws a marker for each of your own recruits, at full strength for the ones following you and dimmed for the ones holding position, with a badge that shows whether a recruit is armed and whether it still has ammunition. That layer can be switched off from the map's layer panel, and the choice is remembered between sessions. The Manage Recruits screen shows the same split as Active and Holding Position sections, with a status icon on each row and a count of how many of your sixteen slots are in use."
+   Target_it_it "La mappa include un livello \"Reclute\" che visualizza un indicatore per ciascuna delle tue reclute: l'icona appare a piena intensità per quelle che ti seguono e attenuata per quelle che mantengono la posizione; un apposito contrassegno segnala inoltre se la recluta è armata e se dispone ancora di munizioni. È possibile disattivare questo livello dal pannello dei livelli della mappa; la scelta viene memorizzata tra una sessione di gioco e l'altra. La schermata di gestione delle reclute ripropone la suddivisione tra le sezioni \"Attive\" e \"In posizione\", mostrando un'icona di stato per ogni riga e il numero di slot occupati sui sedici totali a disposizione."
    Target_de_de "Die Karte besitzt eine Ebene \"Rekruten\", die für jeden deiner Rekruten eine Markierung anzeigt. Rekruten, die dir folgen, werden mit voller Stärke dargestellt, Rekruten, die ihre Position halten, abgeblendet. Ein Abzeichen zeigt außerdem an, ob ein Rekrut bewaffnet ist und noch Munition besitzt. Diese Ebene kann im Ebenenfenster der Karte ausgeschaltet werden, und die Auswahl bleibt zwischen Sitzungen gespeichert. Der Bildschirm \"Rekruten verwalten\" zeigt dieselbe Aufteilung in den Bereichen \"Aktiv\" und \"Halte Position\", mit einem Statussymbol in jeder Zeile und einer Anzeige, wie viele deiner sechzehn Plätze belegt sind."
    Target_ru_ru "На карте есть слой «Рекруты», который отображает маркеры всех ваших бойцов: яркие для следующих за вами и приглушённые для удерживающих позицию, со значком, показывающим, вооружён ли рекрут и есть ли у него боеприпасы. Этот слой можно отключить на панели слоёв карты, и выбор сохранится между сессиями. На экране «Управление рекрутами» отображается то же разделение на секции «Активные» и «Удерживают позицию» со значком статуса в каждой строке и счётчиком использованных слотов из шестнадцати доступных."
    Target_uk_ua "На карті є шар «Рекрути», який відображає маркери всіх ваших бійців: яскравий колір для тих, хто слідує за вами, та тьмяний — для тих, хто утримує позицію. Поруч із маркером є значок, який показує, чи озброєний боєць і чи має він боєприпаси. Цей шар можна вимкнути в панелі шарів карти, і ваш вибір збережеться між сесіями. На екрані «Керування рекрутами» відображається той самий поділ на розділи «Активні» та «Утримують позицію» з іконкою статусу в кожному рядку та лічильником використаних слотів із шістнадцяти доступних."
@@ -5201,6 +5455,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000008E}" {
    Id "OVT-FieldManual_Recruits_Text9"
    Target_en_us "A recruitment tent carries a second action, Buy Equipped Recruit, which opens your loadouts with a price beside each one. Selecting a loadout shows how many items it holds and what the whole thing would cost: what that gear would fetch at a shop near the tent, plus a convenience fee the difficulty settings carry, plus the ordinary tent recruit cost. Gear that is already stocked in a registered warehouse within 150 metres of the tent is taken off the shelves rather than bought, and the quote shows how much that covered. Buying spawns the recruit beside the tent already wearing the kit, and it takes a town supporter and a roster slot like any other tent recruit. A loadout holding something the shops do not stock cannot be priced and is refused by name, and if the recruit arrives with none of its kit only the recruit itself is charged for."
+   Target_it_it "La tenda di reclutamento offre una seconda opzione, \"Acquista recluta equipaggiata\", che apre la schermata delle configurazioni di equipaggiamento (loadout), ciascuna accompagnata dal relativo prezzo. Selezionando una configurazione, vengono visualizzati gli oggetti inclusi e il costo totale: la somma del valore di mercato di tale equipaggiamento presso un negozio vicino alla tenda, di una commissione aggiuntiva legata al livello di difficoltà e del costo base della recluta. Se l'equipaggiamento è già presente in un magazzino registrato nel raggio di 150 metri dalla tenda, gli oggetti vengono prelevati dal magazzino anziché acquistati, e il preventivo indica l'importo così coperto. L'acquisto genera la recluta accanto alla tenda, già equipaggiata con il kit scelto; l'operazione richiede un sostenitore locale e uno slot dell'organico, proprio come per qualsiasi altra recluta della tenda. Una configurazione contenente oggetti non trattati dai negozi non può essere quotata e viene rifiutata esplicitamente; se la recluta arriva priva del kit, viene addebitato solo il costo della recluta stessa."
    Target_de_de "Ein Rekrutierungszelt besitzt eine zweite Aktion, \"Rekruten mit Ausrüstung kaufen\". Sie öffnet deine gespeicherten Ausrüstungen und zeigt neben jeder einen Preis an. Wenn du eine Ausrüstung auswählst, wird angezeigt, wie viele Gegenstände sie enthält und was das Gesamtpaket kostet: der Betrag, den diese Ausrüstung in einem Geschäft in der Nähe des Zelts erzielen würde, zuzüglich einer in den Schwierigkeitseinstellungen festgelegten Komfortgebühr und der normalen Rekrutierungskosten des Zelts. Beim Kauf erscheint der Rekrut neben dem Zelt und trägt die Ausrüstung bereits. Wie jeder andere Zelt-Rekrut verbraucht er einen Unterstützer der Stadt und einen Platz in deiner Rekrutenliste. Enthält eine Ausrüstung einen Gegenstand, den die Geschäfte nicht führen, kann kein Preis berechnet werden und die Auswahl wird unter Nennung dieses Gegenstands abgelehnt. Erscheint der Rekrut ohne irgendeinen Teil seiner Ausrüstung, wird nur der Rekrut selbst berechnet."
    Target_ru_ru "Палатка вербовки имеет второе действие — «Купить экипированного рекрута», которое открывает ваши пресеты с ценой рядом с каждым. Выбор пресета показывает количество предметов и общую стоимость: цена снаряжения в местном магазине плюс плата за удобство (зависит от сложности) плюс обычная стоимость найма в палатке. Снаряжение, уже хранящееся на складе в радиусе 150 метров, списывается со склада, а не покупается, и в квоте указывается, сколько это покрыло. Покупка создаёт рекрута рядом с палаткой уже в снаряжении, и он забирает сторонника города и слот, как и любой другой рекрут из палатки. Пресет, содержащий то, что магазины не продают, не может быть оценён и отклоняется по имени, а если рекрут появляется без части снаряжения, с вас списывается только стоимость найма."
    Target_uk_ua "У вербувальному наметі доступна додаткова функція — «Купити спорядженого рекрута», яка відкриває перелік ваших пресетів із цінниками. При виборі пресета ви бачите кількість предметів та підсумковий кошторис: ринкову вартість майна в найближчому магазині + націнку за сервіс (залежить від складності) + базову вартість найму в наметі. Після оплати боєць спавниться біля намету вже повністю екіпірованим. Купівля так само списує одного лояльного містянина й займає слот загону. Якщо пресет містить дефіцитні предмети, які не продаються в магазинах, замовити його неможливо (система видасть відмову з назвою пресета). Якщо ж із якихось причин рекрут заспавнився без спорядження, з вас буде списано гроші лише за найм бійця."
@@ -5221,6 +5476,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000010F}" {
    Id "OVT-FieldManual_Recruits_Title"
    Target_en_us "Recruits"
+   Target_it_it "Reclute"
    Target_de_de "Rekruten"
    Target_ru_ru "Рекруты"
    Target_uk_ua "Рекрути"
@@ -5241,6 +5497,7 @@ StringTable {
   CustomStringTableItem "{5992D5049E68387B}" {
    Id "OVT-FieldManual_Resistance_Text"
    Target_en_us "Opens a menu allowing you to see info or change settings about the resistance. Officers can assign other officers here or set a tax rate (Default is 0%) that will deposit an amount of the regular income directly to the Resistance Funds instead. Officers can withdraw money from resistance funds here or send it to another player. Any player can donate money to the resistance efforts here as well."
+   Target_it_it "Apre un menu che consente di visualizzare informazioni o modificare le impostazioni relative alla Resistenza. Da qui, gli ufficiali possono assegnare altri ufficiali o impostare un'aliquota fiscale (predefinita allo 0%) per far confluire parte delle entrate regolari direttamente nelle casse della Resistenza. Gli ufficiali possono prelevare fondi dalla cassa della Resistenza o trasferirli a un altro giocatore. Anche qualsiasi altro giocatore può effettuare donazioni a sostegno della Resistenza tramite questa schermata."
    Target_fr_fr "Ouvre un menu vous permettant de voir & modifier les paramètres de la résistance. Les officiers peuvent définir d'autres officiers et régler les impôts (0% par défaut) que chaque membre de la résistance doit payer aux fonds communs. Les officiers peuvent retirer de l'argent des fonds communs ou en envoyer à d'autres joueurs. N'importe quel joueur peut donner de l'argent pour la résistance."
    Target_de_de "Öffnet ein Menü, in dem du Informationen über den Widerstand ansehen oder dessen Einstellungen ändern kannst. Offiziere können hier andere Offiziere ernennen oder einen Steuersatz festlegen (Standard: 0 %), durch den ein Anteil des regulären Einkommens direkt in die Widerstandskasse eingezahlt wird. Offiziere können hier Geld aus der Widerstandskasse abheben oder an einen anderen Spieler senden. Außerdem kann jeder Spieler hier Geld für die Bemühungen des Widerstands spenden."
    Target_ru_ru "Меню позволяющее посмотреть иноформацию или изменить настройки сопротивления. Офицер здесь может назначать на должность других офицеров, а так же задавать размер налогов. (По умолчанию 0%)  это позволит вместо этого вносить сумму регулярного дохода непосредственно в фонды сопротивления. Офицер здесь может снимать деньги со счета сопротивления или передавать другому игроку. Любой игрок может делать взносы на счёт сопротивления, для его усиления."
@@ -5264,6 +5521,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A2}" {
    Id "OVT-FieldManual_Resources_Head"
    Target_en_us "Buying and Selling at a Port"
+   Target_it_it "Compravendita al porto"
    Target_de_de "Kaufen und Verkaufen an einem Hafen"\
    ""
    Target_ru_ru "Покупка и продажа в порту"
@@ -5284,6 +5542,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A4}" {
    Id "OVT-FieldManual_Resources_Head2"
    Target_en_us "Hauling"
+   Target_it_it "Trasporto"
    Target_de_de "Transportwesen"
    Target_ru_ru "Перевозка"
    Comment "Field Manual - Resources page, section header above the truck paragraph. No rich-text markup."
@@ -5303,6 +5562,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A6}" {
    Id "OVT-FieldManual_Resources_Head3"
    Target_en_us "Crate Piles"
+   Target_it_it "Pile di casse"
    Target_de_de "Kistenstapel"
    Target_ru_ru "Куча ящиков"
    Comment "Field Manual - Resources page, section header above the crate pile paragraph. No rich-text markup."
@@ -5322,6 +5582,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A8}" {
    Id "OVT-FieldManual_Resources_Head4"
    Target_en_us "Building With Resources"
+   Target_it_it "Costruire con le risorse"
    Target_de_de "Bauen mit Ressourcen"
    Target_ru_ru "Строительство с ресурсами"
    Comment "Field Manual - Resources page, section header above the construction site paragraph. No rich-text markup."
@@ -5341,6 +5602,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000AA}" {
    Id "OVT-FieldManual_Resources_Head5"
    Target_en_us "Warehouses"
+   Target_it_it "Magazzini"
    Target_de_de "Lagerhäuser"
    Target_ru_ru "Склады"
    Comment "Field Manual - Resources page, section header above the warehouse paragraph. No rich-text markup."
@@ -5360,6 +5622,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A1}" {
    Id "OVT-FieldManual_Resources_Text"
    Target_en_us "Timber, cement, steel and hardware are bulk construction materials. They are not items in an inventory: a truck, a crate pile or a warehouse holds them as a quantity, and measures what it is holding in cubic metres. The four differ in how much space and weight a unit takes, with timber the bulkiest and cheapest and hardware the most compact and dearest. Ports sell them, production sites on the island make them, trucks carry them, crate piles hold them on the ground, warehouses keep them, and some structures cannot go up without them."
+   Target_it_it "Legname, cemento, acciaio e ferramenta sono materiali da costruzione sfusi. Non sono oggetti da inventario: un camion, una pila di casse o un magazzino li contengono come quantità, misurandone il volume in metri cubi. I quattro materiali differiscono per lo spazio e il peso occupati da un'unità: il legname è il più ingombrante ed economico, mentre la ferramenta è la più compatta e costosa. I porti li vendono, i siti di produzione sull'isola li fabbricano, i camion li trasportano, le pile di casse li stoccano a terra, i magazzini li conservano e alcune strutture non possono essere edificate senza di essi."
    Target_de_de "Holz, Zement, Stahl und Eisenwaren sind Baumaterialien, die in großen Mengen gelagert und transportiert werden. Sie sind keine Gegenstände im Inventar: Ein Lastwagen, ein Kistenstapel oder ein Lagerhaus führt sie als Mengenbestand, gemessen in Kubikmetern."\
    ""\
    "Die vier Ressourcen unterscheiden sich darin, wie viel Platz und Gewicht eine Einheit beansprucht. Holz ist dabei am sperrigsten und günstigsten, Eisenwaren am kompaktesten und teuersten."\
@@ -5384,6 +5647,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A3}" {
    Id "OVT-FieldManual_Resources_Text2"
    Target_en_us "The port screen carries a Resources tab on both the Import and the Export side. What a resource costs there is a live price that moves over the campaign rather than the fixed one a shop uses: it changes at most once in each six-hour window of game time, stays inside a band around its base price, and the details panel says whether it currently sits below, near or above that base. Occupying pressure pushes prices up and resistance control of the ports pushes them down. A port pays half the going price to take a resource back off you. Either way the trade runs through the store of the truck you are sitting in, so a resource is listed disabled with a reason when there is no truck under you or no room left in it. Difficulty scales both the price and how far it swings."
+   Target_it_it "La schermata del porto presenta una scheda \"Risorse\" sia per l'importazione che per l'esportazione. Il costo di una risorsa è un prezzo dinamico che varia nel corso della campagna, a differenza del prezzo fisso usato dai negozi: cambia al massimo una volta ogni sei ore di tempo di gioco, rimanendo entro una fascia attorno al prezzo base; il pannello dei dettagli indica se il prezzo attuale è inferiore, prossimo o superiore a tale base. La pressione dell'occupazione fa salire i prezzi, mentre il controllo della Resistenza sui porti li fa scendere. Il porto paga metà del prezzo di mercato per riacquistare una risorsa da te. In ogni caso, la transazione avviene tramite il vano di carico del camion su cui ti trovi; pertanto, la risorsa risulta disabilitata (con relativa motivazione) se non c'è un camion sotto di te o se non c'è più spazio al suo interno. Il livello di difficoltà influisce sia sul prezzo che sull'ampiezza delle sue oscillazioni."
    Target_de_de "Das Hafenmenü verfügt sowohl auf der Import- als auch auf der Exportseite über einen Reiter „Ressourcen“. Der Preis einer Ressource ist dort nicht fest wie in einem Geschäft, sondern verändert sich im Verlauf der Kampagne. Er kann sich höchstens einmal innerhalb eines Zeitfensters von sechs Spielstunden ändern und bleibt dabei innerhalb einer festgelegten Spanne um seinen Grundpreis. Im Detailfeld wird angezeigt, ob der aktuelle Preis unter, nahe oder über diesem Grundpreis liegt."\
    ""\
    "Steigender Druck durch die Besatzungsfraktion treibt die Preise nach oben, während die Kontrolle der Häfen durch den Widerstand sie senkt. Beim Export zahlt ein Hafen die Hälfte des jeweils aktuellen Marktpreises für eine Ressource."\
@@ -5410,6 +5674,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A5}" {
    Id "OVT-FieldManual_Resources_Text3"
    Target_en_us "Trucks are the only vehicles with a cargo store, so no car, armoured carrier or helicopter shows a cargo action at all. An ordinary truck takes fifteen cubic metres, the transport variants of the M923A1 and the Ural take twenty, and the Mobile FOB truck takes eight because it is already carrying a base. Sitting in a truck puts a panel on the screen listing what is aboard and how much of the space is gone. A load that will not fit is refused whole, with the space left over named in the message, so nothing is ever part-bought or half-moved."
+   Target_it_it "I camion sono gli unici veicoli dotati di vano di carico; di conseguenza, auto, veicoli corazzati ed elicotteri non mostrano alcuna opzione relativa al carico. Un camion standard ha una capacità di quindici metri cubi, le varianti da trasporto dell'M923A1 e dell'Ural ne hanno venti, mentre il camion per la FOB mobile ne ha otto, poiché trasporta già una base. Quando ti siedi alla guida di un camion, sullo schermo appare un pannello che elenca il carico a bordo e lo spazio già occupato. Un carico che non entra viene rifiutato per intero, indicando nel messaggio lo spazio residuo; di conseguenza, non si verifica mai l'acquisto parziale o il trasferimento incompleto di un carico."
    Target_de_de "Lastwagen sind die einzigen Fahrzeuge mit einem Frachtspeicher. Pkw, gepanzerte Transportfahrzeuge und Hubschrauber verfügen daher über keinerlei Frachtaktion."\
    ""\
    "Ein gewöhnlicher Lastwagen fasst 15 Kubikmeter. Die Transportvarianten des M923A1 und des Ural verfügen über 20 Kubikmeter Frachtraum. Der Mobile-FOB-Lastwagen fasst 8 Kubikmeter, da er bereits eine Basis mitführt."\
@@ -5434,6 +5699,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A7}" {
    Id "OVT-FieldManual_Resources_Text4"
    Target_en_us "A cargo store opens a screen with a Take side and a Put side, and a list of everywhere nearby the load could go, nearest first. In Take, one of those destinations is the ground. Sending a load there drops a crate pile in front of you, and dropping a second load within a few metres of that pile adds to it rather than starting another. A pile has no capacity limit of its own, shows on the map with its contents and its volume, opens like any other store, and disappears once it has been emptied."
+   Target_it_it "Un deposito merci apre una schermata con un lato di prelievo (\"Take\") e uno di deposito (\"Put\"), oltre a un elenco di tutte le località vicine dove il carico può essere inviato, ordinate dalla più vicina alla più lontana. Tra le destinazioni dell'opzione \"Take\" figura il terreno: inviando lì un carico si crea una pila di casse di fronte a sé; scaricare un secondo carico a pochi metri da tale pila la ingrandisce invece di crearne una nuova. La pila non ha limiti di capacità propri, viene visualizzata sulla mappa indicando contenuto e volume, si apre come qualsiasi altro deposito e scompare una volta svuotata."
    Target_de_de "Ein Frachtspeicher öffnet eine Ansicht mit den Bereichen „Entnehmen“ und „Einlagern“ sowie einer Liste aller nahegelegenen Ziele, zu denen die Ladung bewegt werden kann, sortiert nach Entfernung."\
    ""\
    "Unter „Entnehmen“ steht auch der Boden als Ziel zur Verfügung. Wird eine Ladung dort abgelegt, erscheint vor dir ein Kistenstapel. Wird eine weitere Ladung innerhalb weniger Meter davon abgelegt, wird sie dem bestehenden Stapel hinzugefügt, anstatt einen neuen zu erzeugen."\
@@ -5458,6 +5724,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A9}" {
    Id "OVT-FieldManual_Resources_Text5"
    Target_en_us "Most structures still cost money alone and appear the moment they are placed. The Helipad, the Garage, the Warehouse and the Barracks want resources as well, and placing one of those raises a construction site instead. The money is taken at that point and the site then stands until the materials reach it. Two actions sit on a site: Requirements lists what it needs against what is within reach of it, and Build finishes it, drawing on crate piles standing within thirty metres and emptying the nearest of them first. Only piles count towards a site, so a load still aboard a truck or sitting in a warehouse is not in reach. Nothing is refunded if a site is removed, and difficulty scales what a structure asks for."
+   Target_it_it "La maggior parte delle strutture richiede solo denaro e appare immediatamente dopo il posizionamento. L'eliporto, il garage, il magazzino e la caserma richiedono anche risorse; il loro posizionamento genera quindi un cantiere edile. Il pagamento avviene al momento della creazione e il cantiere rimane attivo finché non vi giungono i materiali necessari. Il cantiere offre due opzioni: \"Requirements\" (Requisiti), che elenca le risorse necessarie confrontandole con quelle disponibili nelle vicinanze, e \"Build\" (Costruisci), che completa l'opera attingendo dalle pile di casse situate entro un raggio di trenta metri, svuotando per prime quelle più vicine. Ai fini della costruzione vengono conteggiate solo le pile di casse; un carico ancora a bordo di un camion o all'interno di un magazzino non è considerato raggiungibile. La rimozione di un cantiere non comporta alcun rimborso, mentre il livello di difficoltà determina la quantità di risorse richieste dalla struttura."
    Target_de_de "Die meisten Bauwerke kosten weiterhin ausschließlich Geld und erscheinen unmittelbar nach ihrer Platzierung. Der Hubschrauberlandeplatz, die Garage, das Lagerhaus und die Kaserne benötigen zusätzlich Ressourcen. Wird eines dieser Bauwerke platziert, entsteht stattdessen zunächst eine Baustelle."\
    ""\
    "Das Geld wird bereits bei der Platzierung abgezogen. Die Baustelle bleibt anschließend bestehen, bis die benötigten Materialien zu ihr gebracht wurden. An einer Baustelle stehen zwei Aktionen zur Verfügung: „Anforderungen“ zeigt an, welche Materialien benötigt werden und welche davon sich in Reichweite befinden. Mit „Bauen“ wird das Bauwerk fertiggestellt. Dabei werden Kistenstapel innerhalb eines Radius von 30 Metern verwendet, wobei die nächstgelegenen zuerst geleert werden."\
@@ -5484,6 +5751,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000AB}" {
    Id "OVT-FieldManual_Resources_Text6"
    Target_en_us "A warehouse building holds resources beside the items it already stores, under an action of its own, and neither side of it has a limit. A warehouse is also something the resistance can build, for money and all four resources. It can go up at a base the resistance holds, and inside a town the resistance controls, which is the only place the build list reaches beyond bases, FOBs and camps; a town the occupying faction still holds refuses it, and so does a village. Once it is up it is a warehouse like any other, on the map, in who owns it and in what it will hold."
+   Target_it_it "Il magazzino può ospitare risorse oltre agli oggetti già stoccati, gestendole tramite un'apposita funzione; nessuno dei due tipi di stoccaggio è soggetto a limiti di capacità. Anche la Resistenza può costruire un magazzino, impiegando denaro e tutte e quattro le tipologie di risorse. La costruzione può avvenire presso una base controllata dalla Resistenza o all'interno di una città sotto il suo controllo (unico caso in cui l'elenco delle costruzioni si estende oltre basi, FOB e accampamenti); le città o i villaggi ancora in mano alla fazione occupante non consentono tale costruzione. Una volta completato, la struttura opera esattamente come qualsiasi altro magazzino per quanto riguarda la visualizzazione sulla mappa, la proprietà e la capacità di stoccaggio."
    Target_de_de "Ein Lagerhaus bewahrt neben den bereits darin gelagerten Gegenständen auch Ressourcen auf, die über eine eigene Aktion verwaltet werden. Weder für die Gegenstände noch für die Ressourcen besteht eine Kapazitätsgrenze."\
    ""\
    "Auch der Widerstand kann ein Lagerhaus errichten. Dafür werden Geld sowie alle vier Ressourcen benötigt. Es kann auf einer vom Widerstand gehaltenen Militärbasis und innerhalb einer vom Widerstand kontrollierten Ortschaft gebaut werden. Damit ist das Lagerhaus das einzige Bauwerk, dessen Bauliste über Militärbasen, FOBs und Lager hinaus auch Ortschaften umfasst."\
@@ -5510,6 +5778,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E20000000A0}" {
    Id "OVT-FieldManual_Resources_Title"
    Target_en_us "Resources"
+   Target_it_it "Risorse"
    Target_de_de "Ressourcen"
    Target_ru_ru "Ресурсы"
    Comment "Field Manual - Resources page title, shown on the entry tile in the Money and Trade category. One word, no rich-text markup. Matches the port screen's Resources tab label (#OVT-ShopCategory_Resources)."
@@ -5529,6 +5798,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000049}" {
    Id "OVT-FieldManual_Ruins_Head"
    Target_en_us "A Ruin Does Nothing"
+   Target_it_it "Una rovina è inerte"
    Target_de_de "Eine Ruine hat keine Funktion"\
    ""
    Target_ru_ru "Руины бесполезны"
@@ -5549,6 +5819,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004A}" {
    Id "OVT-FieldManual_Ruins_Head2"
    Target_en_us "The Gear Inside Survives"
+   Target_it_it "L'equipaggiamento interno sopravvive"
    Target_de_de "Die Ausrüstung im Inneren bleibt erhalten."\
    ""
    Target_ru_ru "Снаряжение внутри сохраняется"
@@ -5569,6 +5840,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004B}" {
    Id "OVT-FieldManual_Ruins_Head3"
    Target_en_us "Putting It Back"
+   Target_it_it "Ripristino"
    Target_de_de "Wiederaufbau"
    Target_ru_ru "Восстановление"
    Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
@@ -5588,6 +5860,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004C}" {
    Id "OVT-FieldManual_Ruins_Head4"
    Target_en_us "The Other Side Repairs Too"
+   Target_it_it "Anche la fazione avversaria effettua riparazioni"
    Target_de_de "Auch die Gegenseite repariert"
    Target_ru_ru "Противник тоже восстанавливает"
    Comment "Field Manual - Ruins and Repair page, section header. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
@@ -5607,6 +5880,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004D}" {
    Id "OVT-FieldManual_Ruins_Text"
    Target_en_us "A structure the occupying faction wrecks at one of your bases does not vanish. It goes up with an explosion and a column of smoke, and what is left stands where it stood, on the same ground, as a ruin. A campaign saved and loaded again brings a ruin back as a ruin, and a structure that has been put back comes back repaired."
+   Target_it_it "Una struttura distrutta dalla fazione occupante in una delle tue basi non svanisce. Esplode sollevando una colonna di fumo e ciò che ne resta rimane dov'era, sullo stesso terreno, sotto forma di rovina. Se si salva e ricarica la campagna, la rovina rimane tale, mentre una struttura ripristinata torna in condizioni operative."
    Target_de_de "Ein Bauwerk, das von der Besatzungsfraktion auf einer deiner Basen zerstört wird, verschwindet nicht. Es wird durch eine Explosion zerstört, eine Rauchsäule steigt auf, und die Überreste bleiben an derselben Stelle als Ruine stehen."\
    ""\
    "Wird die Kampagne gespeichert und später erneut geladen, bleibt die Ruine als Ruine erhalten. Ein bereits wiederhergestelltes Bauwerk erscheint nach dem Laden hingegen weiterhin repariert."
@@ -5628,6 +5902,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004E}" {
    Id "OVT-FieldManual_Ruins_Text2"
    Target_en_us "A ruin is inert. There is no refuelling at a wrecked fuel depot, no recruiting from a collapsed tent, no treatment at a flattened medical tent, no shop at a ruined garage, no parking, and no reaching into the rubble for what was stored there. Pumps and repair bays stop answering from a vehicle's side as well, so nothing about the place works while it is wreckage."
+   Target_it_it "Una rovina è inerte. Non è possibile fare rifornimento presso un deposito carburante distrutto, né reclutare unità da una tenda crollata, ricevere cure in una tenda medica schiacciata, fare acquisti in un'officina in rovina, parcheggiare o recuperare dalle macerie quanto vi era custodito. Anche le pompe e le baie di riparazione smettono di rispondere ai veicoli; di fatto, nulla del sito funziona finché rimane un relitto."
    Target_de_de "Eine Ruine ist vollständig funktionslos. An einem zerstörten Treibstoffdepot kann nicht mehr aufgetankt werden, aus einem eingestürzten Zelt können keine Rekruten mehr angeworben werden, in einem zerstörten Sanitätszelt ist keine Behandlung mehr möglich, und eine ruinierte Garage bietet weder einen Shop noch Parkmöglichkeiten. Auch auf die zuvor dort gelagerten Gegenstände kann nicht mehr zugegriffen werden."\
    ""\
    "Zapfsäulen und Reparaturbereiche reagieren zudem nicht mehr auf entsprechende Fahrzeugaktionen. Solange das Bauwerk nur noch eine Ruine ist, funktioniert dort überhaupt nichts."
@@ -5649,6 +5924,7 @@ StringTable {
   CustomStringTableItem "{6B70D0000000004F}" {
    Id "OVT-FieldManual_Ruins_Text3"
    Target_en_us "Nothing stored in a structure is lost when it is wrecked. Containers and their contents come through the destruction untouched, and only the way in is closed. Putting the structure back opens them again with everything where it was left."
+   Target_it_it "Nulla di ciò che è custodito in una struttura va perduto quando questa viene distrutta. I contenitori e il loro contenuto sopravvivono intatti alla distruzione; viene bloccato solo l'accesso. Ripristinando la struttura, si riapre l'accesso e tutto si ritrova esattamente dove era stato lasciato."
    Target_de_de "Nichts, was in einem Bauwerk gelagert ist, geht bei dessen Zerstörung verloren. Behälter und ihr Inhalt überstehen die Zerstörung unbeschädigt; lediglich der Zugriff darauf ist nicht mehr möglich."\
    ""\
    "Wird das Bauwerk wiederhergestellt, sind die Lager wieder zugänglich und enthalten weiterhin alles genau dort, wo es zuvor zurückgelassen wurde."
@@ -5670,6 +5946,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000050}" {
    Id "OVT-FieldManual_Ruins_Text4"
    Target_en_us "A ruin carries a repair action, held for twenty seconds, and the action itself shows the price. Repair costs a share of what the structure cost to build, scaled by the same difficulty that priced the build: half on Easy and Normal, three quarters on Hard, and the full build price at Extreme and Insane. The money is checked before the work counts and taken when it finishes, so a repair beyond your means is turned down rather than left half done."
+   Target_it_it "Per le rovine è disponibile un'azione di riparazione che richiede di mantenere premuto un comando per venti secondi; l'azione stessa ne indica il costo. La riparazione richiede una quota del costo di costruzione originale, calcolata in base al livello di difficoltà impostato: metà prezzo a difficoltà Facile e Normale, tre quarti a Difficile e il prezzo pieno a Estremo e Folle. Il credito viene verificato prima dell'avvio e prelevato al termine dell'operazione; pertanto, una riparazione che supera le tue disponibilità economiche viene rifiutata anziché essere lasciata a metà."
    Target_de_de "Eine Ruine verfügt über eine Reparaturaktion, die 20 Sekunden lang ausgeführt werden muss. Die Kosten werden direkt bei der Aktion angezeigt."\
    ""\
    "Die Reparatur kostet einen Anteil der ursprünglichen Baukosten und wird nach demselben Schwierigkeitsgrad skaliert wie der Baupreis: Auf Leicht und Normal werden 50 % der Baukosten fällig, auf Schwer 75 % und auf Extrem sowie Wahnsinnig der volle Baupreis."\
@@ -5693,6 +5970,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000051}" {
    Id "OVT-FieldManual_Ruins_Text5"
    Target_en_us "The occupying faction does the same on ground it holds. A repair detail is sent to a base of theirs where something stands wrecked, and it puts structures back one at a time, cheapest first, without announcing anything. The work only goes on while nobody is close: a player within about a hundred and fifty metres of the base centre pauses it where it is."
+   Target_it_it "La fazione occupante agisce allo stesso modo sui territori sotto il suo controllo. Una squadra di riparazione viene inviata presso una delle loro basi dove sono presenti strutture distrutte e le ripristina una alla volta, partendo da quella più economica, senza alcuna notifica. I lavori procedono solo in assenza di intrusi: la presenza di un giocatore nel raggio di circa centocinquanta metri dal centro della base sospende l'operazione."
    Target_de_de "Die Besatzungsfraktion verfährt auf von ihr gehaltenem Gebiet ebenso. Steht auf einer ihrer Basen ein Bauwerk als Ruine, wird ein Reparaturtrupp dorthin entsandt. Dieser stellt die zerstörten Bauwerke nacheinander wieder her, beginnend mit dem günstigsten. Eine besondere Meldung darüber erfolgt nicht."\
    ""\
    "Die Reparaturarbeiten werden jedoch nur fortgesetzt, solange sich niemand in unmittelbarer Nähe befindet. Befindet sich ein Spieler innerhalb von etwa 150 Metern um das Zentrum der Basis, werden die Arbeiten an ihrem aktuellen Stand unterbrochen."
@@ -5714,6 +5992,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000052}" {
    Id "OVT-FieldManual_Ruins_Title"
    Target_en_us "Ruins and Repair"
+   Target_it_it "Rovina e riparazione"
    Target_de_de "Ruinen und Reparaturen"
    Target_ru_ru "Руины и ремонт"
    Comment "Field Manual - page title for the Ruins and Repair entry in the Overthrow category, sitting between 'FOBs and Building' and 'Capturing a Base'. No rich-text markup. ADDED 2026-08-20 by core/damage Phase 8."
@@ -5733,6 +6012,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000012F}" {
    Id "OVT-FieldManual_Shops_Head"
    Target_en_us "Where Money Comes From"
+   Target_it_it "L'origine del denaro"
    Target_de_de "Woher das Geld kommt"
    Target_ru_ru "Откуда берутся деньги"
    Target_uk_ua "Джерела надходжень"
@@ -5753,6 +6033,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000130}" {
    Id "OVT-FieldManual_Shops_Head2"
    Target_en_us "Prices"
+   Target_it_it "Prezzi"
    Target_de_de "Preise"
    Target_ru_ru "Цены"
    Target_uk_ua "Ціни"
@@ -5773,6 +6054,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000131}" {
    Id "OVT-FieldManual_Shops_Head3"
    Target_en_us "Stock"
+   Target_it_it "Scorte"
    Target_de_de "Bestand"
    Target_ru_ru "Запасы"
    Target_uk_ua "Запаси"
@@ -5793,6 +6075,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000132}" {
    Id "OVT-FieldManual_Shops_Head4"
    Target_en_us "Selling to Shops"
+   Target_it_it "Vendere ai negozi"
    Target_de_de "An Geschäfte verkaufen"
    Target_ru_ru "Продажа в магазины"
    Target_uk_ua "Продаж товарів у магазини"
@@ -5813,6 +6096,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000110}" {
    Id "OVT-FieldManual_Shops_Text"
    Target_en_us "Towns hold shops that both buy from you and sell to you. What a shop carries depends on the kind of shop it is, stock is limited and replenishes each morning, and prices move with the town: how much of an item is stocked nearby and how far that town is from a port both feed into what it costs."
+   Target_it_it "Le città ospitano negozi che acquistano da te e vendono a te. L'assortimento dipende dalla tipologia del negozio; le scorte sono limitate e si rinnovano ogni mattina, mentre i prezzi variano in base alla città: la disponibilità locale di un articolo e la distanza della città da un porto ne influenzano il costo."
    Target_de_de "In Städten gibt es Geschäfte, die Waren sowohl von dir kaufen als auch an dich verkaufen. Was ein Geschäft führt, hängt von seiner Art ab. Der Bestand ist begrenzt und wird jeden Morgen aufgefüllt. Die Preise verändern sich mit der Stadt: Sowohl die örtlich verfügbare Menge eines Gegenstands als auch die Entfernung der Stadt zu einem Hafen beeinflussen seinen Preis."
    Target_ru_ru "В городах есть магазины, которые как покупают у вас, так и продают вам. Ассортимент магазина зависит от его типа, запасы ограничены и пополняются каждое утро, а цены зависят от города: количество товара на ближайших складах и расстояние города до порта влияют на конечную стоимость."
    Target_uk_ua "Міські магазини здійснюють купівлю та продаж товарів. Наявний асортимент визначається спеціалізацією торгової точки, а лімітований запас товарів автоматично оновлюється щоранку. Ціноутворення прив'язане до економіки регіону: чим більше аналогічного краму є на місцевих складах і чим далі місто розташоване від порту, тим вищою буде підсумкова ціна."
@@ -5833,6 +6117,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000133}" {
    Id "OVT-FieldManual_Shops_Text2"
    Target_en_us "A new character starts with a sum of cash set by the campaign's difficulty settings. After that, income arrives from the towns four times a day in game time: towns pay tax according to their population and their stability, towns that support the resistance donate on top of that, and towns still held by the occupying faction pay no tax at all. The resistance tax is taken off that total first, and what is left is shared between the players online at the time; with nobody online it all goes to resistance funds. Selling at shops, finishing jobs and rent from property you own add to the same balance, which is recorded against your player rather than carried in your pockets."
+   Target_it_it "Un nuovo personaggio inizia con una somma di denaro determinata dalle impostazioni di difficoltà della campagna. Successivamente, le entrate provengono dalle città quattro volte al giorno (secondo il tempo di gioco): le città pagano le tasse in base alla popolazione e alla stabilità; quelle che sostengono la Resistenza offrono un contributo aggiuntivo, mentre quelle ancora controllate dalla fazione occupante non pagano alcuna tassa. La quota destinata alla Resistenza viene detratta per prima dal totale, e ciò che resta viene suddiviso tra i giocatori online in quel momento; se non ci sono giocatori online, l'intero importo confluisce nelle casse della Resistenza. Anche le vendite nei negozi, il completamento di incarichi e gli affitti delle proprietà possedute incrementano questo saldo, che viene registrato a nome del giocatore anziché essere trasportato fisicamente nelle tasche."
    Target_de_de "Ein neuer Charakter beginnt mit einem Geldbetrag, der durch die Schwierigkeitseinstellungen der Kampagne festgelegt wird. Danach wird viermal pro Spieltag Einkommen aus den Städten ausgeschüttet: Städte zahlen entsprechend ihrer Bevölkerung und Stabilität Steuern, Städte, die den Widerstand unterstützen, spenden zusätzlich, und Städte, die noch von der Besatzungsmacht gehalten werden, zahlen überhaupt keine Steuern. Zuerst wird die Widerstandssteuer vom Gesamtbetrag abgezogen; der Rest wird unter den zu diesem Zeitpunkt online befindlichen Spielern aufgeteilt. Ist niemand online, geht alles in die Widerstandskasse. Verkäufe in Geschäften, abgeschlossene Aufträge und Mieteinnahmen aus Immobilien in deinem Besitz werden demselben Guthaben hinzugefügt. Dieses Guthaben ist deinem Spieler zugeordnet und wird nicht als Bargeld im Inventar getragen."
    Target_ru_ru "Новый персонаж начинает с суммы денег, установленной настройками сложности кампании. После этого доход поступает из городов четыре раза в день по игровому времени: города платят налоги в зависимости от населения и стабильности, города, поддерживающие сопротивление, делают пожертвования сверх того, а города, всё ещё удерживаемые оккупационной фракцией, не платят налогов вовсе. Сначала из общей суммы вычитается налог сопротивления, а остаток распределяется между игроками, которые находятся в сети в этот момент; если никто не в сети, всё уходит в фонд сопротивления. Продажи в магазинах, выполненные задания и арендная плата от вашей недвижимости пополняют тот же баланс, который привязан к вашему игроку, а не хранится в кармане."
    Target_uk_ua "Стартовий капітал нового персонажа залежить від вибраного рівня складності кампанії. Подальші надходження з міст нараховуються чотири рази на ігрову добу: обсяг податків визначається населенням і стабільністю міста, а підконтрольні опору поселення додатково надсилають добровільні внески. Захоплені окупантами міста прибутків не приносять. З загального нарахування спочатку відраховується частка в казну опору, а залишок порівну ділиться між онлайн-гравцями (якщо сервер порожній, увесь прибуток іде до казни). Торгівля в крамницях, виконання контрактів та оренда власної нерухомості зараховуються на ваш особистий банківський рахунок, а не зберігаються у вигляді готівки в інвентарі."
@@ -5853,6 +6138,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000134}" {
    Id "OVT-FieldManual_Shops_Text3"
    Target_en_us "Every item has a base price, and what a shop asks is that price adjusted for where you are standing. Two things move it: how well stocked the surrounding town is for that item, and how far that town lies from the nearest port, so goods cost more the deeper inland they have travelled. A shop then adds its margin on top, which is why it never pays as much for an item as it charges for one. Trade skill lowers what you are charged, and vehicle prices are scaled separately by the difficulty settings."
+   Target_it_it "Ogni oggetto ha un prezzo base, che viene adeguato dal negoziante in base alla posizione in cui ti trovi. Due fattori influenzano tale variazione: il livello di scorte di quell'articolo nella città circostante e la distanza della città dal porto più vicino (le merci costano di più man mano che vengono trasportate verso l'entroterra). Il negozio applica poi il proprio margine di guadagno; ecco perché il prezzo di acquisto di un oggetto è sempre inferiore a quello di vendita. L'abilità commerciale riduce i costi a tuo carico, mentre i prezzi dei veicoli seguono regole a sé stanti basate sulle impostazioni di difficoltà."
    Target_de_de "Jeder Gegenstand besitzt einen Grundpreis. Was ein Geschäft verlangt, ist dieser Preis angepasst an deinen aktuellen Standort. Zwei Dinge beeinflussen ihn: wie gut die umliegende Stadt mit diesem Gegenstand versorgt ist und wie weit sie vom nächsten Hafen entfernt liegt. Dadurch werden Waren umso teurer, je weiter sie ins Landesinnere transportiert wurden. Anschließend schlägt das Geschäft seine Marge auf, weshalb es beim Ankauf eines Gegenstands nie so viel bezahlt, wie es beim Verkauf verlangt. Die Handelsfertigkeit senkt deinen Kaufpreis, während Fahrzeugpreise zusätzlich separat durch die Schwierigkeitseinstellungen skaliert werden."
    Target_ru_ru "Каждый предмет имеет базовую цену, а цена в магазине — это базовая цена, скорректированная в зависимости от того, где вы находитесь. На неё влияют два фактора: насколько хорошо окрестный город обеспечен этим товаром и насколько далеко этот город находится от ближайшего порта, поэтому товары стоят дороже по мере удаления вглубь континента. Затем магазин добавляет свою наценку, поэтому он никогда не платит за предмет столько же, сколько просит при продаже. Навык торговли снижает цену покупки для вас, а цены на транспортные средства дополнительно масштабируются настройками сложности."
    Target_uk_ua "Кожен предмет має базову ціну, а підсумкова вартість у магазині — це базова ціна, скоригована залежно від вашого місцеперебування. На неї впливають два чинники: наскільки добре навколишнє місто забезпечене цим товаром і наскільки далеко воно розташоване від найближчого порту, тому товари коштують дорожче вглиб континенту. Крім того, магазин додає власну маржу, через що він ніколи не платить за предмет стільки ж, скільки просить за нього при продажу. Навичка торгівлі знижує ціну купівлі для вас, а ціни на транспорт додатково коригуються налаштуваннями складності."
@@ -5873,6 +6159,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000135}" {
    Id "OVT-FieldManual_Shops_Text4"
    Target_en_us "Shops hold a limited number of each item, and a town can only hold so much of anything: its population, its stability and how sought after the item is together set the ceiling. Townspeople buy from the shelves as the days pass, so stock falls whether or not anyone else is trading. Each morning shops top themselves back up towards that ceiling, and anything sold to a shop goes back onto its shelves."
+   Target_it_it "I negozi dispongono di una quantità limitata per ogni articolo e ogni città ha un limite massimo di stoccaggio per qualsiasi merce: tale tetto è determinato dalla popolazione, dalla stabilità e dal livello di richiesta dell'articolo stesso. Gli abitanti acquistano dagli scaffali col passare dei giorni, riducendo le scorte indipendentemente dall'attività commerciale di altri giocatori. Ogni mattina i negozi reintegrano le scorte fino a raggiungere il limite massimo, e qualsiasi oggetto venduto al negozio viene rimesso in vendita sugli scaffali."
    Target_de_de "Geschäfte führen nur eine begrenzte Anzahl jedes Gegenstands, und eine Stadt kann von keiner Ware unbegrenzt viel aufnehmen. Ihre Bevölkerung, ihre Stabilität und die Nachfrage nach dem Gegenstand bestimmen gemeinsam die Obergrenze. Im Laufe der Tage kaufen die Einwohner Waren aus den Regalen, sodass der Bestand auch dann sinkt, wenn sonst niemand handelt. Jeden Morgen füllen die Geschäfte ihren Bestand wieder in Richtung dieser Obergrenze auf, und alles, was an ein Geschäft verkauft wird, landet wieder in dessen Warenbestand."
    Target_ru_ru "В магазинах ограниченное количество каждого товара, и город может вместить лишь определённый его объём: вместе это определяют население, стабильность и востребованность товара. Горожане покупают товары с полок с течением дней, поэтому запасы падают независимо от того, торгует ли кто-то ещё. Каждое утро магазины пополняют свои запасы до этого предела, а всё, что вы продали магазину, возвращается на его полки."
    Target_uk_ua "Магазини мають обмежену кількість кожного предмета, а місто може вмістити лише певний його обсяг: чисельність населення, стабільність та затребуваність товару разом визначають цей ліміт. Містяни купують товари з полиць із плином днів, тому запаси зменшуються незалежно від того, чи торгує хтось інший. Щоранку магазини поповнюють свої запаси до цього ліміту, а все, що ви продали магазину, повертається на його полиці."
@@ -5893,6 +6180,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000136}" {
    Id "OVT-FieldManual_Shops_Text5"
    Target_en_us "A shop that deals in one kind of goods only buys that kind back, so a clothes shop has no use for a rifle, while gun dealers and drug dealers take almost anything with a price on it. An item that is worn, held or slung cannot be sold while it is equipped, and an item worth nothing cannot be sold at all; the menu names whichever rule applies. Vehicle shops and procurement points sell only, and never buy. Ordinary trade also does the town some good: business above a trivial sum lifts that town's stability for a while."
+   Target_it_it "Un negozio specializzato in una determinata categoria di merci acquista solo articoli di quel tipo: un negozio di abbigliamento non ha alcun interesse per un fucile, mentre armaioli e spacciatori accettano quasi qualsiasi oggetto dotato di un valore commerciale. Non è possibile vendere un oggetto mentre è equipaggiato (indossato, impugnato o portato a tracolla), né vendere oggetti privi di valore; il menu indica quale regola si applica al caso specifico. I concessionari di veicoli e i punti di approvvigionamento effettuano solo vendite e non acquistano mai merce. Anche il commercio ordinario giova alla città: le transazioni che superano una cifra minima ne aumentano temporaneamente la stabilità."
    Target_de_de "Ein Geschäft, das mit nur einer Warenart handelt, kauft auch nur diese Art zurück. Ein Bekleidungsgeschäft hat daher keine Verwendung für ein Gewehr, während Waffen- und Drogenhändler fast alles annehmen, was einen Preis besitzt. Ein getragener, gehaltener oder geschulterter Gegenstand kann nicht verkauft werden, solange er ausgerüstet ist, und ein wertloser Gegenstand kann überhaupt nicht verkauft werden; das Menü nennt jeweils den zutreffenden Grund. Fahrzeughändler und Beschaffungsstellen verkaufen ausschließlich und kaufen nichts an. Auch gewöhnlicher Handel hilft der Stadt: Geschäfte oberhalb eines unbedeutenden Betrags erhöhen die Stabilität dieser Stadt für eine gewisse Zeit."
    Target_ru_ru "Магазин, торгующий одним видом товаров, выкупает только этот вид, поэтому магазин одежды не заинтересуется винтовкой, в то время как торговцы оружием и наркодилеры принимают почти всё, что имеет цену. Предмет, который надет, находится в руках или висит через плечо, нельзя продать, пока он экипирован, а предмет без стоимости вообще нельзя продать; в меню указывается соответствующее правило. Магазины транспортных средств и пункты снабжения работают только на продажу и никогда ничего не покупают. Обычная торговля также приносит пользу городу: сделки на сумму выше незначительной на некоторое время повышают стабильность этого города."
    Target_uk_ua "Спеціалізований магазин купує лише ті товари, якими торгує сам, тому магазин одягу не зацікавиться гвинтівкою, тоді як збройні та наркодилери приймають майже все, що має цінність. Предмет, який надітий, утримується в руках або висить через плече, неможливо продати, поки він екіпірований, а предмет без цінності взагалі не підлягає продажу; у меню вказується відповідне правило. Автосалони та пункти постачання працюють лише на продаж і ніколи нічого не купують. Звичайна торгівля також іде на користь місту: угоди на суми, вищі за символічні, на певний час підвищують стабільність цього міста."
@@ -5913,6 +6201,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000111}" {
    Id "OVT-FieldManual_Shops_Title"
    Target_en_us "Money and Shops"
+   Target_it_it "Denaro e negozi"
    Target_de_de "Geld und Geschäfte"
    Target_ru_ru "Деньги и магазины"
    Target_uk_ua "Гроші та магазини"
@@ -5933,6 +6222,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000137}" {
    Id "OVT-FieldManual_Skills_Head"
    Target_en_us "Earning Experience"
+   Target_it_it "Guadagnare esperienza"
    Target_de_de "Erfahrung sammeln"
    Target_ru_ru "Получение опыта"
    Target_uk_ua "Здобуття досвіду"
@@ -5953,6 +6243,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000138}" {
    Id "OVT-FieldManual_Skills_Head2"
    Target_en_us "Levels and Points"
+   Target_it_it "Livelli e punti"
    Target_de_de "Stufen und Punkte"
    Target_ru_ru "Уровни и очки"
    Target_uk_ua "Рівні та бали"
@@ -5973,6 +6264,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000139}" {
    Id "OVT-FieldManual_Skills_Head3"
    Target_en_us "The Three Skills"
+   Target_it_it "Le tre abilità"
    Target_de_de "Die drei Fertigkeiten"
    Target_ru_ru "Три навыка"
    Target_uk_ua "Три навички"
@@ -5993,6 +6285,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000013A}" {
    Id "OVT-FieldManual_Skills_Head4"
    Target_en_us "The Character Sheet"
+   Target_it_it "La scheda del personaggio"
    Target_de_de "Der Charakterbogen"
    Target_ru_ru "Профиль персонажа"
    Target_uk_ua "Профіль персонажа"
@@ -6013,6 +6306,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000112}" {
    Id "OVT-FieldManual_Skills_Text"
    Target_en_us "Experience is earned for most of the things you do for the resistance, and enough of it raises your level. Every level past the first is worth one point, and points are spent on skills from your character sheet."
+   Target_it_it "Si guadagna esperienza per la maggior parte delle attività svolte a favore della Resistenza; accumulandone a sufficienza, si sale di livello. Ogni livello successivo al primo conferisce un punto, spendibile per potenziare le abilità indicate nella scheda del personaggio."
    Target_de_de "Für die meisten Dinge, die du für den Widerstand tust, erhältst du Erfahrung. Genug Erfahrung erhöht deine Stufe. Jede Stufe nach der ersten bringt einen Punkt, und diese Punkte werden im Charakterbogen für Fertigkeiten ausgegeben."
    Target_ru_ru "Опыт начисляется за большинство действий, совершаемых вами на благо сопротивления, и его достаточное количество повышает ваш уровень. Каждый уровень после первого даёт одно очко, и очки тратятся на навыки в листе вашего персонажа."
    Target_uk_ua "Досвід нараховується за більшість дій, які ви здійснюєте на користь опору, і його достатня кількість підвищує ваш рівень. Кожен рівень після першого дає одне очко, а очки витрачаються на навички у профілі вашого персонажа."
@@ -6033,6 +6327,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000013B}" {
    Id "OVT-FieldManual_Skills_Text2"
    Target_en_us "Experience comes in for killing occupying faction soldiers, for building, for placing things, for finishing a job that carries an experience reward, and in small amounts for trading at a shop or with a dealer. Each buildable and placeable is worth its own amount, so the larger pieces of work pay more. Trading only pays out once in a while rather than on every transaction, so a run of small sales at the same counter does not stack up. Being killed costs experience, though your total never falls below zero."
+   Target_it_it "L'esperienza si ottiene eliminando soldati della fazione occupante, costruendo o posizionando oggetti, completando incarichi che prevedono una ricompensa in esperienza e, in misura minore, effettuando scambi presso negozi o con mercanti. Ogni oggetto costruibile o posizionabile ha un valore specifico: le opere più grandi garantiscono quindi una ricompensa maggiore. Le transazioni commerciali generano esperienza solo occasionalmente, non a ogni singola operazione; di conseguenza, una serie di piccole vendite effettuate allo stesso bancone non si somma. Morire comporta una perdita di esperienza, sebbene il totale non scenda mai sotto lo zero."
    Target_de_de "Erfahrung erhältst du für das Töten von Soldaten der Besatzungsmacht, für das Bauen, für das Platzieren von Gegenständen, für das Abschließen eines Auftrags mit Erfahrungsbelohnung und in kleinen Mengen für Handel in einem Geschäft oder mit einem Händler. Jedes baubare oder platzierbare Objekt besitzt einen eigenen Erfahrungswert, sodass größere Arbeiten mehr einbringen. Handel gewährt nur gelegentlich Erfahrung und nicht bei jeder einzelnen Transaktion. Eine Reihe kleiner Verkäufe am selben Tresen summiert sich daher nicht unbegrenzt. Wenn du getötet wirst, verlierst du Erfahrung, dein Gesamtwert fällt jedoch niemals unter null."
    Target_ru_ru "Опыт начисляется за убийство солдат оккупационной фракции, за строительство, за размещение объектов, за выполнение задания, которое даёт опыт, и в небольших количествах за торговлю в магазине или у дилера. Каждый объект строительства и размещения имеет собственную ценность, поэтому за более крупные работы вы получаете больше опыта. За торговлю опыт начисляется время от времени, а не за каждую сделку, поэтому серия мелких продаж в одной точке не суммируется. Гибель персонажа приводит к потере опыта, однако ваш общий показатель никогда не опускается ниже нуля."
    Target_uk_ua "Досвід нараховується за ліквідацію солдатів окупаційної фракції, будівництво, розміщення об'єктів, виконання завдань із винагородою у вигляді досвіду, а також у невеликих кількостях за торгівлю в магазинах або у дилерів. Кожен об'єкт будівництва та розміщення має власну цінність, тому за більші обсяги робіт ви отримуєте більше досвіду. За торгівлю досвід нараховується лише час від часу, а не за кожну операцію, тому серія дрібних продажів при одному зверненні до прилавка не сумується. Смерть персонажа призводить до втрати досвіду, однак ваш загальний показник ніколи не опускається нижче нуля."
@@ -6053,6 +6348,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000013C}" {
    Id "OVT-FieldManual_Skills_Text3"
    Target_en_us "Your level is worked out from your total experience, and each level takes more experience than the one before it. Every level after the first is worth one skill point. Points already spent are counted against that, so what is left over is your level minus one, minus every skill level you have bought so far."
+   Target_it_it "Il livello viene calcolato in base all'esperienza totale accumulata; per raggiungere ogni livello successivo è necessaria una quantità di esperienza maggiore rispetto al precedente. Ogni livello oltre il primo conferisce un punto abilità. I punti già spesi vengono sottratti dal totale: ciò che resta corrisponde al livello attuale meno uno, meno tutti i livelli di abilità acquistati fino a quel momento."
    Target_de_de "Deine Stufe wird anhand deiner gesamten Erfahrung berechnet, wobei jede neue Stufe mehr Erfahrung erfordert als die vorherige. Jede Stufe nach der ersten bringt einen Fertigkeitspunkt. Bereits ausgegebene Punkte werden davon abgezogen. Deine verbleibenden Punkte entsprechen daher deiner Stufe minus eins, abzüglich aller bisher gekauften Fertigkeitsstufen."
    Target_ru_ru "Ваш уровень рассчитывается на основе общего количества накопленного опыта, причём каждый следующий уровень требует больше опыта, чем предыдущий. Каждый уровень после первого даёт одно очко навыков. Уже потраченные очки вычитаются из этого количества, поэтому остаток очков равен вашему уровню минус один и минус каждый уровень навыков, приобретённый вами ранее."
    Target_uk_ua "Ваш рівень розраховується на основі загальної кількості накопиченого досвіду, і кожен наступний рівень вимагає більше досвіду, ніж попередній. Кожен рівень після першого дає одне очко навичок. Уже витрачені очки враховуються проти цього значення, тому залишок очок дорівнює вашому рівню мінус один і мінус кожен рівень навичок, придбаний вами раніше."
@@ -6073,6 +6369,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000013D}" {
    Id "OVT-FieldManual_Skills_Text4"
    Target_en_us "Trade, Stealth and Diplomacy each run to five levels, bought one level at a time. Trade lowers what you pay when buying, opens up importing at its first level, and at its fifth extends importing to goods no ordinary shop stocks. Stealth shortens the distance at which the occupying faction picks you out, and recruits are seen using their commander's Stealth rather than any of their own. Diplomacy raises the chance that a civilian you speak to comes over to the resistance."
+   Target_it_it "Le abilità Commercio, Furtività e Diplomazia si sviluppano su cinque livelli, acquistabili uno alla volta. Commercio riduce i costi d'acquisto e, già al primo livello, sblocca la possibilità di importare merci; al quinto livello, l'importazione si estende a beni non disponibili nei normali negozi. Furtività riduce la distanza alla quale la fazione occupante è in grado di individuarti; le reclute, inoltre, sfruttano il livello di Furtività del proprio comandante anziché il proprio. Diplomazia aumenta la probabilità che un civile con cui interagisci decida di unirsi alla Resistenza."
    Target_de_de "Handel, Tarnung und Diplomatie besitzen jeweils fünf Stufen, die nacheinander gekauft werden. Handel senkt deine Kaufpreise, schaltet auf der ersten Stufe den Import frei und erweitert ihn auf der fünften Stufe auf Waren, die kein gewöhnliches Geschäft führt. Tarnung verkürzt die Entfernung, aus der die Besatzungsmacht dich erkennt; bei Rekruten wird dafür die Tarnungsfertigkeit ihres Kommandanten verwendet und nicht eine eigene. Diplomatie erhöht die Wahrscheinlichkeit, dass sich ein Zivilist, mit dem du sprichst, dem Widerstand anschließt."
    Target_ru_ru "Торговля, Скрытность и Дипломатия имеют по пять уровней каждый, которые покупаются по одному уровню за раз. Торговля снижает цену покупки, открывает импорт на первом уровне, а на пятом расширяет импорт на товары, которых нет в обычных магазинах. Скрытность сокращает расстояние, на котором оккупационная фракция вас замечает, причём рекруты используют Скрытность своего командира, а не свою собственную. Дипломатия повышает шанс того, что гражданский, с которым вы заговорите, перейдёт на сторону сопротивления."
    Target_uk_ua "Навички «Торгівля», «Стелс» та «Дипломатія» мають по п'ять рівнів кожна, які купуються покроково по одному рівню. «Торгівля» знижує ціни при купівлі товарів, відкриває доступ до імпорту на першому рівні, а на п'ятому розширює імпорт до товарів, які відсутні в асортименті звичайних магазинів. «Стелс» зменшує дистанцію, на якій вас виявляють бійці окупаційної фракції, причому рекрутів бачать за рівнем «Стелсу» їхнього командира, а не за їхнім власним. «Дипломатія» підвищує шанс того, що цивільний після розмови з вами перейде на бік опору."
@@ -6093,6 +6390,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000013E}" {
    Id "OVT-FieldManual_Skills_Text5"
    Target_en_us "The character sheet, reached from the Overthrow main menu, is where points are spent. It lists your level, how far along you are towards the next one, how many points are waiting, and every skill with its five levels and what each level gives. Levels you already hold are marked, and the button that buys the next one only appears while you have a point spare and the skill has a level left to take."
+   Target_it_it "La schermata del personaggio, accessibile dal menu principale di Overthrow, è il luogo in cui si spendono i punti. Qui vengono indicati il tuo livello, i progressi verso quello successivo, i punti disponibili e tutte le abilità con i relativi cinque livelli e i bonus offerti da ciascuno di essi. I livelli già acquisiti sono contrassegnati; il pulsante per acquistare il livello successivo appare solo quando disponi di un punto libero e l'abilità ha ancora livelli sbloccabili."
    Target_de_de "Im Charakterbogen, den du über das Overthrow-Hauptmenü erreichst, werden Punkte ausgegeben. Er zeigt deine Stufe, deinen Fortschritt bis zur nächsten Stufe, die Anzahl verfügbarer Punkte sowie jede Fertigkeit mit ihren fünf Stufen und den jeweiligen Vorteilen. Bereits erworbene Stufen sind markiert. Die Schaltfläche zum Kauf der nächsten Stufe erscheint nur, solange du einen freien Punkt besitzt und die Fertigkeit noch eine weitere Stufe haben kann."
    Target_ru_ru "Вкладка Профиль персонажа в главном меню Overthrow, — это место, где тратятся очки. В нём указаны ваш уровень, прогресс до следующего, количество доступных очков, а также каждый навык с его пятью уровнями и тем, что даёт каждый уровень. Уже полученные уровни отмечены, а кнопка покупки следующего уровня появляется только при наличии свободного очка и возможности повысить навык."
    Target_uk_ua "Вкладка «Профіль персонажа» в головному меню Overthrow слугує для прокачування бійця. Тут вказано ваш поточний рівень, шкалу прогресу до наступного, кількість вільних очок, а також усі три гілки навичок із їхніми 5 рівневими бонусами. Уже розблоковані рівні відмічені відповідними позначками, а кнопка купівлі наступного рівня активується лише за наявності вільних очок прокачування та наявних недосліджених рівнів у навичці."
@@ -6113,6 +6411,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000113}" {
    Id "OVT-FieldManual_Skills_Title"
    Target_en_us "Skills and Levelling"
+   Target_it_it "Abilità e progressione di livello"
    Target_de_de "Fertigkeiten und Stufenaufstieg"
    Target_ru_ru "Навыки и уровни"
    Target_uk_ua "Навички та підвищення рівня"
@@ -6133,6 +6432,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A3}" {
    Id "OVT-FieldManual_Sleep_Head"
    Target_en_us "Where a Bed Works"
+   Target_it_it "Dove funziona un letto"
    Target_de_de "Wo ein Bett funktioniert"
    Target_ru_ru "Где работает кровать"
    Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:144-189 (IsSleepLocation)."
@@ -6143,6 +6443,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A5}" {
    Id "OVT-FieldManual_Sleep_Head2"
    Target_en_us "The Hours Still Count"
+   Target_it_it "Il tempo continua a scorrere"
    Target_de_de "Die Stunden zählen noch"
    Target_ru_ru "Часы всё равно идут"
    Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/GameMode/Managers/OVT_EconomyManagerComponent.c:237-280 and Scripts/Game/GameMode/Managers/Factions/OVT_OccupyingFactionManager.c:1338-1378."
@@ -6153,6 +6454,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A7}" {
    Id "OVT-FieldManual_Sleep_Head3"
    Target_en_us "Twelve Hours Between Sleeps"
+   Target_it_it "Dodici ore tra una dormita e l'altra"
    Target_de_de "Zwölf Stunden zwischen den Schlafenszeiten"
    Target_ru_ru "Двенадцать часов между снами"
    Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:33-35 (COOLDOWN_HOURS = 12)."
@@ -6163,6 +6465,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A9}" {
    Id "OVT-FieldManual_Sleep_Head4"
    Target_en_us "When It Will Not Perform"
+   Target_it_it "Quando non è possibile dormire"
    Target_de_de "Wenn es nicht funktioniert"
    Target_ru_ru "Когда действие недоступно"
    Comment "Field Manual - Sleeping page, section header. FACT-CHECKED 2026-08-19 against Scripts/Game/Services/OVT_SleepService.c:205-250 (CanSleep) and Scripts/Game/UserActions/OVT_SleepAction.c:75-83."
@@ -6173,6 +6476,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A2}" {
    Id "OVT-FieldManual_Sleep_Text"
    Target_en_us "A bed can be slept in, and doing so moves the world clock forward by eight in-game hours. The screen fades to black, holds there a moment, and fades back in on the new time of day. Sleeping is a single-player thing: the action is not offered in a multiplayer session at all."
+   Target_it_it "È possibile dormire in un letto; questa azione fa avanzare l'orologio di gioco di otto ore. Lo schermo sfuma verso il nero, resta tale per un istante e poi sfuma nuovamente sull'immagine, mostrando il nuovo orario. Dormire è un'attività riservata al giocatore singolo: l'opzione non è disponibile nelle sessioni multiplayer."
    Target_de_de "Ein Bett kann zum Schlafen benutzt werden. Dadurch wird die Spielzeit um acht Stunden vorgestellt. Der Bildschirm blendet dabei zu Schwarz über, bleibt einen kurzen Moment schwarz und blendet anschließend wieder ein – nun zur neuen Tageszeit."\
    ""\
    "Schlafen ist ausschließlich im Einzelspielermodus möglich: In einer Mehrspieler-Sitzung steht diese Aktion überhaupt nicht zur Verfügung."
@@ -6185,6 +6489,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A4}" {
    Id "OVT-FieldManual_Sleep_Text2"
    Target_en_us "The action shows up on a bed standing inside a house you own, in your own camp, at a deployed FOB, or inside a base the resistance holds. A bed anywhere else offers nothing at all, because those four places are the same ones the resistance is allowed to put its own things down in."
+   Target_it_it "L'opzione di dormire appare quando ci si trova presso un letto situato in una casa di tua proprietà, nel tuo accampamento, in una FOB (Base Operativa Avanzata) schierata o all'interno di una base controllata dalla Resistenza. Un letto situato altrove non offre alcuna opzione, poiché questi quattro luoghi sono gli unici in cui la Resistenza può collocare le proprie strutture."
    Target_de_de "Die Aktion erscheint bei einem Bett, das sich in einem Haus in deinem Besitz, in deinem eigenen Camp, an einem errichteten FOB oder innerhalb einer von der Resistance kontrollierten Basis befindet."\
    ""\
    "Ein Bett an jedem anderen Ort bietet keinerlei Interaktionsmöglichkeit. Der Grund dafür ist, dass genau diese vier Orte auch diejenigen sind, an denen die Resistance ihre eigenen Gegenstände platzieren darf."
@@ -6197,6 +6502,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A6}" {
    Id "OVT-FieldManual_Sleep_Text3"
    Target_en_us "The eight hours are replayed rather than skipped over. Taxes and donations pay out and the town shops buy their stock once for every six-hour mark the window passes, the shops restock if it passes seven in the morning, rent moves if it passes midnight, and the occupying faction gains resources, spends them on its bases and lets its threat decay quarter hour by quarter hour, in the order it would have while you were awake. The payout notifications arrive over the black screen and are still there when it clears."
+   Target_it_it "Le otto ore vengono simulate anziché saltate. Pagamenti di tasse e donazioni vengono erogati e i negozi cittadini acquistano le merci ogni volta che l'orologio supera un intervallo di sei ore; i negozi si riforniscono se si supera l'orario delle 7:00 del mattino, l'affitto viene conteggiato se si supera la mezzanotte e la fazione occupante acquisisce risorse, le spende per le proprie basi e riduce progressivamente il proprio livello di minaccia (ogni quarto d'ora), seguendo la stessa sequenza che si verificherebbe se il giocatore fosse sveglio. Le notifiche relative ai pagamenti compaiono durante la schermata nera e rimangono visibili anche quando l'immagine torna visibile."
    Target_de_de "Die acht Stunden werden nachgespielt, statt einfach übersprungen zu werden. Steuern und Spenden werden ausgezahlt, und die Geschäfte in den Städten kaufen ihre Waren jedes Mal ein, wenn innerhalb dieses Zeitfensters eine Sechs-Stunden-Marke überschritten wird. Die Läden füllen ihre Bestände wieder auf, wenn 7 Uhr morgens überschritten wird, und Mietzahlungen werden verarbeitet, wenn Mitternacht überschritten wird."\
    ""\
    "Auch die Besatzungsfraktion läuft währenddessen normal weiter: Sie erhält Ressourcen, gibt sie für ihre Basen aus und baut ihre Bedrohungsstufe Viertelstunde für Viertelstunde ab – genau in der Reihenfolge, in der all das auch passiert wäre, wenn du wach geblieben wärst."\
@@ -6211,6 +6517,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A8}" {
    Id "OVT-FieldManual_Sleep_Text4"
    Target_en_us "Sleeping again is not possible for twelve in-game hours, counted from the moment you wake rather than from the moment you lie down. Those twelve are all spent awake, so with the eight the skip itself covers it is twenty in-game hours from one sleep to the next, and until they are up the action stays on the bed with the time remaining written into its label."
+   Target_it_it "Non è possibile dormire di nuovo per dodici ore di gioco, conteggiate a partire dal momento del risveglio anziché da quello in cui ci si è coricati. Quelle dodici ore trascorrono tutte da svegli; pertanto, sommando le otto ore coperte dall'azione di riposo, passano venti ore di gioco tra una dormita e l'altra. Finché il personaggio non si sveglia, l'azione rimane attiva sul letto, riportando nell'etichetta il tempo residuo."
    Target_de_de "Erneutes Schlafen ist erst nach zwölf Spielstunden möglich. Diese Frist beginnt in dem Moment, in dem du wieder aufwachst – nicht bereits dann, wenn du dich schlafen legst."\
    ""\
    "Diese zwölf Stunden müssen vollständig im wachen Zustand vergehen. Zusammen mit den acht Stunden, die durch das Schlafen selbst vergehen, liegen somit insgesamt zwanzig Spielstunden zwischen zwei Schlafvorgängen."\
@@ -6225,6 +6532,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000AA}" {
    Id "OVT-FieldManual_Sleep_Text5"
    Target_en_us "While an attack is underway, and while you are wanted, the action stays visible on the bed but refuses, and says which of the two is in the way. A bed that is nowhere the resistance holds is the other case, and that one shows no action rather than a refusal."
+   Target_it_it "Se è in corso un attacco o se si è ricercati, l'azione rimane visibile sul letto ma non è eseguibile; il sistema segnala quale delle due condizioni sta bloccando l'operazione. Un altro caso riguarda i letti situati in zone non controllate dalla Resistenza: in questa situazione non viene mostrata alcuna azione, anziché un rifiuto esplicito."
    Target_de_de "Während ein Angriff läuft oder solange nach dir gefahndet wird, bleibt die Schlafaktion am Bett sichtbar, lässt sich jedoch nicht ausführen. Dabei wird angegeben, welcher der beiden Gründe das Schlafen gerade verhindert."\
    ""\
    "Anders verhält es sich bei einem Bett an einem Ort, den die Resistance nicht kontrolliert: Dort wird die Schlafaktion gar nicht erst angezeigt, anstatt lediglich verweigert zu werden."
@@ -6237,6 +6545,7 @@ StringTable {
   CustomStringTableItem "{6B5D0000000000A1}" {
    Id "OVT-FieldManual_Sleep_Title"
    Target_en_us "Sleeping"
+   Target_it_it "Dormire"
    Target_de_de "Schlafen"
    Target_ru_ru "Сон"
    Comment "Field Manual - Sleeping page title, The Resistance category. FACT-CHECKED 2026-08-19 against Scripts/Game/UserActions/OVT_SleepAction.c:27 and Configs/FieldManual/Categories/FM_Overthrow.conf."
@@ -6247,6 +6556,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000010}" {
    Id "OVT-FieldManual_Storage_Head"
    Target_en_us "What Has Storage"
+   Target_it_it "Elementi dotati di deposito"
    Target_de_de "Was über Stauraum verfügt"
    Target_ru_ru "Что имеет хранилище"
    Comment "Field Manual - Storage page, section header. No rich-text markup."
@@ -6266,6 +6576,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000011}" {
    Id "OVT-FieldManual_Storage_Head2"
    Target_en_us "Taking Things Out"
+   Target_it_it "Prelevare oggetti"
    Target_de_de "Gegenstände entnehmen"
    Target_ru_ru "Извлечение вещей"
    Comment "Field Manual - Storage page, section header. No rich-text markup."
@@ -6285,6 +6596,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000012}" {
    Id "OVT-FieldManual_Storage_Head3"
    Target_en_us "Putting Things In"
+   Target_it_it "Depositare oggetti"
    Target_de_de "Gegenstände einlagern"
    Target_ru_ru "Помещение вещей"
    Comment "Field Manual - Storage page, section header. No rich-text markup."
@@ -6304,6 +6616,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000013}" {
    Id "OVT-FieldManual_Storage_Head4"
    Target_en_us "Loading and Unloading"
+   Target_it_it "Caricamento e scaricamento"
    Target_de_de "Be- und Entladen"
    Target_ru_ru "Загрузка и выгрузка"
    Comment "Field Manual - Storage page, section header. No rich-text markup."
@@ -6323,6 +6636,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000014}" {
    Id "OVT-FieldManual_Storage_Head5"
    Target_en_us "Warehouses"
+   Target_it_it "Magazzini"
    Target_de_de "Lagerhäuser"
    Target_ru_ru "Склады"
    Comment "Field Manual - Storage page, section header. No rich-text markup."
@@ -6342,6 +6656,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000015}" {
    Id "OVT-FieldManual_Storage_Text"
    Target_en_us "Ammo boxes, warehouse buildings and most legal wheeled vehicles keep storage of their own: a list of goods the container holds, kept in the campaign save rather than sitting loose inside it. The Storage action on the container carries the number of items on that list, and opening it shows the list, a cart to fill from it, and a destination to send the cart to."
+   Target_it_it "Le casse di munizioni, gli edifici adibiti a magazzino e la maggior parte dei veicoli gommati legali dispongono di un proprio deposito: un elenco dei beni contenuti, memorizzato nel salvataggio della campagna anziché come oggetti fisici sparsi all'interno. L'azione \"Deposito\" sul contenitore indica il numero di oggetti presenti in tale elenco; aprendola, vengono visualizzati l'elenco stesso, un carrello da riempire e una destinazione a cui inviare il carrello."
    Target_de_de "Munitionskisten, Lagerhäuser und die meisten legalen Radfahrzeuge verfügen über eigenen Stauraum. Dieser besteht aus einer Liste der darin gelagerten Gegenstände, die im Kampagnenstand gespeichert werden, anstatt lose im Inneren des Behälters oder Fahrzeugs zu liegen."\
    ""\
    "Die Aktion „Stauraum“ zeigt an, wie viele Gegenstände sich auf dieser Liste befinden. Beim Öffnen erscheint die Bestandsliste, ein Warenkorb zum Zusammenstellen der gewünschten Gegenstände sowie eine Auswahl des Ziels, an das der Warenkorb übertragen werden soll."
@@ -6363,6 +6678,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000016}" {
    Id "OVT-FieldManual_Storage_Text2"
    Target_en_us "A truck's storage has no limit and an ordinary car holds three hundred items, while an ammo box or a warehouse building holds as much as it is given. An illegal or armed vehicle keeps a smaller hold of a hundred items, enough for ammunition and not much else. Helicopters have storage as well, on the same terms, and one civilian Mi-8 carries a hold with no limit at all."
+   Target_it_it "Il deposito di un camion non ha limiti di capienza, mentre un'auto comune può contenere trecento oggetti; le casse di munizioni e i magazzini, invece, possono ospitare qualsiasi quantità di materiale vi venga trasferita. I veicoli illegali o armati hanno una capacità ridotta a cento oggetti, sufficiente per le munizioni ma poco altro. Anche gli elicotteri dispongono di un deposito con le stesse regole, fatta eccezione per il modello civile Mi-8, che offre una capacità illimitata."
    Target_de_de "Der Stauraum eines Lastwagens ist unbegrenzt, während ein gewöhnlicher Pkw bis zu 300 Gegenstände aufnehmen kann. Auch Munitionskisten und Lagerhäuser besitzen keine feste Kapazitätsgrenze und nehmen so viele Gegenstände auf, wie darin eingelagert werden."\
    ""\
    "Illegale oder bewaffnete Fahrzeuge verfügen über keinen Stauraum. Gleiches gilt für Hubschrauber. Entsprechend erscheint bei ihnen auch keine Aktion „Stauraum“"
@@ -6384,6 +6700,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000017}" {
    Id "OVT-FieldManual_Storage_Text3"
    Target_en_us "The cart goes to one of two sorts of destination. This container spawns the goods into the container's own inventory, where they can be picked up by hand. Any other storage standing within twenty five metres takes them straight onto its own list instead, with nothing spawned in between. A warehouse building has no inventory of its own, so it only offers the second. Vehicle weapon ammunition is the one thing that cannot take the first route: it is reported as missing and stays on the list, which is where a re-arm can still reach it."
+   Target_it_it "Il carrello può essere inviato verso due tipi di destinazione. Se la destinazione è il contenitore stesso, i beni vengono generati nel suo inventario, da cui possono essere prelevati manualmente. Se invece si sceglie un altro deposito situato entro un raggio di venticinque metri, i beni vengono trasferiti direttamente nel relativo elenco, senza apparire fisicamente nello spazio intermedio. Poiché gli edifici adibiti a magazzino non dispongono di un inventario proprio, offrono esclusivamente la seconda opzione. Le munizioni per le armi dei veicoli sono l'unico elemento che non può seguire la prima strada: vengono segnalate come mancanti ma rimangono nell'elenco, dove un rifornimento può ancora raggiungerle."
    Target_de_de "Der Warenkorb kann an eine von zwei Arten von Zielen übertragen werden. Mit „Dieser Behälter“ werden die Gegenstände in das eigene Inventar des Behälters gelegt, wo sie anschließend von Hand aufgenommen werden können."\
    ""\
    "Jeder andere Stauraum innerhalb von 25 Metern übernimmt die Gegenstände dagegen direkt in seine eigene Bestandsliste, ohne dass sie zwischendurch als Gegenstände erscheinen."\
@@ -6407,6 +6724,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000018}" {
    Id "OVT-FieldManual_Storage_Text4"
    Target_en_us "Transfer all to storage converts everything the container is carrying into list entries in one go, a truck's bed included. Attachments and full magazines go on as items in their own right, while a part-used magazine stays where it is. An ammo box also carries an officers-only Clear inventory action for discarding what a transfer left behind, and Rename storage gives the container a name of its own, which is what the destination picker on every other container nearby shows."
+   Target_it_it "L'opzione \"Trasferisci tutto nel deposito\" converte in un'unica operazione tutto ciò che il contenitore trasporta in voci di elenco, incluso il cassone di un camion. Gli accessori e i caricatori pieni vengono trasferiti come oggetti a sé stanti, mentre i caricatori parzialmente utilizzati rimangono al loro posto. Una cassa di munizioni dispone anche di un'azione \"Svuota inventario\" (riservata agli ufficiali) per eliminare ciò che è rimasto dopo un trasferimento, mentre \"Rinomina deposito\" assegna al contenitore un nome specifico, che verrà visualizzato nel menu di selezione della destinazione di qualsiasi altro contenitore nelle vicinanze."
    Target_de_de "Mit „Alles in den Stauraum übertragen“ wird der gesamte Inhalt, den der Behälter mitführt, in einem Schritt in Einträge der Lagerliste umgewandelt. Bei einem Lastwagen zählt dazu auch die Ladefläche."\
    ""\
    "Anbauteile und volle Magazine werden dabei als eigenständige Gegenstände eingelagert. Ein bereits angebrochenes Magazin bleibt dagegen an seinem bisherigen Platz."\
@@ -6430,6 +6748,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000019}" {
    Id "OVT-FieldManual_Storage_Text5"
    Target_en_us "An ammo box carries two more actions that work with the nearest vehicle. Unload vehicle into storage converts whatever that vehicle is carrying loose and then moves its whole list into the box, so a truck brought back from a battlefield empties in one action. Load storage into vehicle moves only the box's list and leaves the box's own inventory alone, so a weapon parked in a box stays there."
+   Target_it_it "Una cassa di munizioni offre altre due azioni che interagiscono con il veicolo più vicino. \"Scarica veicolo nel deposito\" converte tutto il carico sfuso del veicolo e trasferisce l'intero elenco nella cassa; in questo modo, un camion di ritorno dal campo di battaglia può essere svuotato con una sola operazione. \"Carica deposito su veicolo\" trasferisce solo l'elenco della cassa senza toccare l'inventario interno della cassa stessa; di conseguenza, un'arma riposta nella cassa vi rimane custodita."
    Target_de_de "Eine Munitionskiste verfügt über zwei weitere Aktionen, die mit dem nächstgelegenen Fahrzeug arbeiten. Mit „Fahrzeug in Stauraum entladen“ werden zunächst alle lose im Fahrzeug mitgeführten Gegenstände in Lagereinträge umgewandelt und anschließend der gesamte Lagerbestand des Fahrzeugs in die Munitionskiste übertragen. So kann beispielsweise ein vom Gefechtsfeld zurückkehrender Lastwagen mit nur einer Aktion vollständig entladen werden."\
    ""\
    "Mit „Stauraum in Fahrzeug laden“ wird dagegen ausschließlich die Lagerliste der Munitionskiste in das Fahrzeug übertragen. Das eigentliche Inventar der Kiste bleibt unberührt. Eine Waffe, die direkt in der Munitionskiste liegt, bleibt daher auch dort."\
@@ -6452,6 +6771,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E010000001A}" {
    Id "OVT-FieldManual_Storage_Text6"
    Target_en_us "A warehouse building shows the same Storage action as anything else, and a vehicle parked at one can reach it from the vehicle menu as well: Take from warehouse opens the same screen, and Put in warehouse converts what the vehicle is carrying and moves its whole list into the building. A warehouse nobody has bought opens to nobody, a private one opens only to its owner, and a rented one only to the player renting it. A warehouse also holds construction resources, on an action and a list of their own, which the Resources page covers."
+   Target_it_it "Un magazzino presenta la stessa azione \"Deposito\" di qualsiasi altro elemento; un veicolo parcheggiato nelle sue vicinanze può accedervi anche tramite il menu del veicolo stesso: \"Preleva dal magazzino\" apre la medesima schermata, mentre \"Deposita nel magazzino\" converte il carico del veicolo e trasferisce l'intero elenco nell'edificio. Un magazzino non acquistato non è accessibile a nessuno; uno privato è accessibile solo al proprietario, mentre uno in affitto è accessibile solo al giocatore che lo ha noleggiato. Il magazzino ospita anche risorse per la costruzione, gestite tramite un'azione e un elenco dedicati, descritti nella pagina \"Risorse\"."
    Target_de_de "Ein Lagerhaus verfügt über dieselbe Aktion „Stauraum“ wie andere Lagerorte. Ein dort abgestelltes Fahrzeug kann außerdem über sein Fahrzeugmenü darauf zugreifen: „Aus Lagerhaus entnehmen“ öffnet dieselbe Ansicht, während „In Lagerhaus einlagern“ zunächst die vom Fahrzeug mitgeführten Gegenstände in Lagereinträge umwandelt und anschließend dessen gesamte Lagerliste in das Gebäude überträgt."\
    ""\
    "Ein Lagerhaus, das niemand gekauft hat, ist für niemanden zugänglich. Ein privates Lagerhaus kann nur von seinem Besitzer geöffnet werden, ein gemietetes nur von dem Spieler, der es gemietet hat."\
@@ -6476,7 +6796,8 @@ StringTable {
   CustomStringTableItem "{6B5A2E010000001B}" {
    Id "OVT-FieldManual_Storage_Title"
    Target_en_us "Storage"
-   Target_de_de "Stauraum"
+   Target_it_it "Deposito"
+   Target_de_de "Lagerung"
    Target_ru_ru "Хранилище"
    Comment "Field Manual - Storage page title, shown on the entry tile in the Money and Trade category. One word, matches the in-game action label #OVT-Storage_Open. No rich-text markup."
    DevNote ""
@@ -6486,7 +6807,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260317
+   Modified 1781875421
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -6495,7 +6816,7 @@ StringTable {
   CustomStringTableItem "{6B6F1B0000000001}" {
    Id "OVT-FieldManual_VehicleRepair_Head"
    Target_en_us "A Kit Is Not Optional"
-   Target_de_de "Ein Ausrüstungssatz ist nicht optional"
+   Target_it_it "Il kit è indispensabile"
    Comment "Field Manual - Vehicle Repair page, header above the field-repair paragraph. Four or five words, title case, matching the header style of the Fuel and Shops pages. No markup."
    DevNote ""
    Repro ""
@@ -6504,16 +6825,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262247
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000002}" {
    Id "OVT-FieldManual_VehicleRepair_Head2"
    Target_en_us "Structures That Repair Fully"
-   Target_de_de "Bauwerk vollständig repariert"
+   Target_it_it "Strutture che consentono una riparazione completa"
    Comment "Field Manual - Vehicle Repair page, header above the repair-zone paragraph. Three to five words, title case. No markup."
    DevNote ""
    Repro ""
@@ -6522,16 +6843,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262283
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000003}" {
    Id "OVT-FieldManual_VehicleRepair_Head3"
    Target_en_us "Where the Zone Ends"
-   Target_de_de "Wo die Zone endet"
+   Target_it_it "Dove termina la zona"
    Comment "Field Manual - Vehicle Repair page, header above the no-visible-boundary paragraph. Three to five words, title case. No markup."
    DevNote ""
    Repro ""
@@ -6540,16 +6861,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262304
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000004}" {
    Id "OVT-FieldManual_VehicleRepair_Text"
    Target_en_us "Damaged vehicles can be repaired in the field, and a repair costs no money and no supplies at all. What it does cost is a repair kit. Nobody repairs anything bare-handed: with no kit in your hands there is no repair action offered, not even standing beside a structure built for the job. Kits are stocked by general stores and gun dealers at around $150, and the car a new campaign starts you with carries one in its trunk."
-   Target_de_de "Beschädigte Fahrzeuge können im Feld instand gesetzt werden. Die Instandsetzung verursacht weder Geld- noch Materialkosten. Erforderlich ist jedoch zwingend ein Reparatursatz. Reparaturen werden nicht ohne Werkzeug durchgeführt. Befindet sich kein Reparatursatz im Inventar, steht keine Reparaturaktion zur Verfügung – auch nicht in unmittelbarer Nähe einer hierfür vorgesehenen Werkstatt oder Instandsetzungseinrichtung. Reparatursätze sind in Gemischtwarenläden sowie bei Waffenhändlern für etwa 150 Dollar erhältlich. Das Fahrzeug, das zu Beginn einer neuen Kampagne bereitgestellt wird, führt bereits einen Reparatursatz im Kofferraum mit."
+   Target_it_it "I veicoli danneggiati possono essere riparati sul campo senza alcun costo in denaro o in rifornimenti; è tuttavia necessario disporre di un kit di riparazione. Nessuna riparazione può essere effettuata a mani nude: senza un kit in mano, l'azione di riparazione non viene proposta, nemmeno se ci si trova accanto a una struttura progettata per tale scopo. I kit sono disponibili presso empori e armerie al prezzo di circa 150 $, e l'auto fornita all'inizio di una nuova campagna ne contiene uno nel bagagliaio."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), opening paragraph, four sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'no money and no supplies': the modded Scripts/Game/Components/SupportStation/Modded/SCR_RepairSupportStationComponent.c overrides AreSuppliesEnabled() to false, and no charging code exists anywhere in this feature - repairs ride vanilla's OnExecutedServer untouched. Fuel, medical and rearm stations are DIFFERENT classes and still charge, so do not generalise this sentence to support stations at large. 'no kit in your hands there is no repair action offered': SCR_BaseUseSupportStationAction.CanBeShownScript():156-158 in the reference tree returns false when RequiresGadget() and no matching held gadget is found, BEFORE any station lookup - so it holds inside a repair zone too. This is user intent, not a defect. 'around $150': Configs/Pricing/itemPrices.conf rule 65CCF4EB3DDBBBD0 sets cost 150; 'around' is load-bearing because OVT_EconomyManagerComponent.c:754 multiplies the buy price by the player's priceMultiplier. Do not quote an exact figure. 'general stores and gun dealers': Configs/System/ShopConfig.conf 6A9F1E4A00000001 (SHOP_GENERAL) and Configs/System/GunDealerConfig.conf 6A9F1E4A00000002. 'the car a new campaign starts you with': OVT_VehicleManagerComponent.AddStartingEquipment() inserts exactly one wrench into the starting car's storage. DO NOT add: a durability or consumption cost, a per-repair money cost, or any vehicle-type restriction. None exist."
    DevNote ""
    Repro ""
@@ -6558,16 +6879,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262451
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000005}" {
    Id "OVT-FieldManual_VehicleRepair_Text2"
    Target_en_us "A kit used out in the open brings a damaged part back to half health at most. That is enough to get a wreck rolling again, not enough to make it good as new. Damage is tracked part by part rather than as one figure, so each damaged part is repaired on its own."
-   Target_de_de "Ein im freien Gelände eingesetzter Reparatursatz stellt den Zustand eines beschädigten Bauteils höchstens bis auf 50 % wieder her. Dies reicht aus, um ein ausgefallenes Fahrzeug wieder fahrbereit zu machen, jedoch nicht, um den vollständigen Sollzustand wiederherzustellen. Schäden werden für jedes Bauteil separat erfasst und nicht als ein gemeinsamer Schadenswert behandelt. Entsprechend wird jedes beschädigte Bauteil einzeln instand gesetzt."
+   Target_it_it "Un kit utilizzato all'aperto ripristina una parte danneggiata al massimo fino a metà della sua integrità. È sufficiente per rimettere in moto un veicolo malridotto, ma non per riportarlo a nuovo. I danni vengono conteggiati singolarmente per ogni componente anziché come valore complessivo; pertanto, ogni parte danneggiata viene riparata autonomamente."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'A Kit Is Not Optional', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'half health at most': RepairKit_01_base.et:71 in the reference tree sets m_fMaxHealScaled 0.5 on the wrench's own station. This 50% cap is DELIBERATE (decision D2) and is what makes the repair structures worth building - it is not a bug, and a later contributor is expected to misread it as one. 'part by part rather than as one figure': the m_fMaxHealScaled attribute description at SCR_BaseDamageHealSupportStationComponent.c:68 states the cap 'is not calculated as a whole but for each hitZone'. Deliberately names no specific part (engine, wheel, rotor) - the hit-zone set is per vehicle and unverified in player terms."
    DevNote ""
    Repro ""
@@ -6576,16 +6897,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262557
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000006}" {
    Id "OVT-FieldManual_VehicleRepair_Text3"
    Target_en_us "Three structures the resistance can build repair a part the whole way instead of halfway, for anyone inside their range with a kit in hand. The Vehicle Maintenance Ramp and the Garage reach roughly 12 metres, the Helipad roughly 20. Nothing about a structure narrows what it will fix, so a car parked on the helipad is repaired just as fully as a helicopter."
-   Target_de_de "Drei durch den Widerstand errichtbare Einrichtungen ermöglichen die vollständige Instandsetzung eines beschädigten Bauteils, sofern sich das Fahrzeug innerhalb ihres Wirkungsbereichs befindet und ein Reparatursatz mitgeführt wird. Die Fahrzeugwartungsrampe und die Garage verfügen über einen Wirkungsradius von etwa 12 Metern, der Hubschrauberlandeplatz über etwa 20 Meter. Die Art der Einrichtung schränkt die Instandsetzung nicht auf bestimmte Fahrzeugtypen ein. Ein auf dem Hubschrauberlandeplatz abgestelltes Fahrzeug wird daher ebenso vollständig instand gesetzt wie ein Hubschrauber."
+   Target_it_it "Tre strutture costruibili dalla Resistenza consentono di riparare completamente una parte (anziché solo a metà) a chiunque si trovi nel loro raggio d'azione con un kit in mano. La Rampa di manutenzione veicoli e il Garage hanno una portata di circa 12 metri, mentre l'Eliporto arriva a circa 20 metri. Le strutture non impongono limitazioni sul tipo di mezzo riparabile: un'auto parcheggiata sull'eliporto verrà riparata completamente tanto quanto un elicottero."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Structures That Repair Fully', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'the whole way': all three prefabs leave m_fMaxHealScaled unset, so the class default of 1 (100%) applies - SCR_BaseDamageHealSupportStationComponent.c:68-69. Ranges: Prefabs/Structures/Military/FOB/OVT_VehicleMaintenanceRamp.et m_fRange 12 (a delta on the inherited GUID 5EA88835DBD208B7, widened from vanilla 4.5); Prefabs/Structures/Industrial/Garages/Garage_E_02/Garage_E_02.et m_fRange 12; PrefabsEditable/Auto/Structures/Military/Camps/HelipadImprovised_01/Helipad.et m_fRange 20. All three set m_bUseRangeBoundingBox 1, which is why 'roughly' is used: the distance is measured from the structure's bounding box, not its centre, so the effective reach is larger than the bare number. Structure names must match Configs/Resistance/buildables.conf m_sName exactly: 'Vehicle Maintenance Ramp' 5D7C489A4968ED23, 'Garage' 5D98AC7AC353F540, 'Helipad' 5EE4FAB564EA1AA1. 'a car parked on the helipad' is INTENDED behaviour, not an oversight: no vehicle-type filter exists on any of the three stations."
    DevNote ""
    Repro ""
@@ -6594,16 +6915,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262573
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000007}" {
    Id "OVT-FieldManual_VehicleRepair_Text4"
    Target_en_us "Nothing on screen marks the edge of a repair zone, so distance is the only guide and parking close to the structure keeps you well inside it. Further out, repairs still work off the kit alone and go back to the half-health limit; closer in, they are full again. A structure that has been reduced to a ruin repairs nothing until it is repaired itself."
-   Target_de_de "Die Grenze eines Reparaturbereichs wird nicht auf dem Bildschirm angezeigt. Maßgeblich ist daher ausschließlich die Entfernung; wird das Fahrzeug unmittelbar an der Einrichtung abgestellt, befindet es sich sicher innerhalb des Wirkungsbereichs. Außerhalb dieses Bereichs bleibt die Instandsetzung mit Reparatursatz möglich, ist jedoch weiterhin auf maximal 50 % des Bauteilzustands begrenzt. Innerhalb des Wirkungsbereichs erfolgt die Instandsetzung wieder vollständig. Eine bis zur Ruine zerstörte Einrichtung besitzt keine Instandsetzungswirkung und muss zunächst selbst repariert werden."
+   Target_it_it "Non vi sono indicatori a schermo che delimitino l'area di riparazione; bisogna quindi basarsi sulla distanza, assicurandosi di parcheggiare in prossimità della struttura per rimanere all'interno della zona efficace. Più ci si allontana, più la riparazione dipende esclusivamente dal kit, fermandosi al limite del 50% dell'integrità; avvicinandosi, invece, è possibile ripristinare il veicolo completamente. Una struttura ridotta a un cumulo di macerie non effettua alcuna riparazione finché non viene essa stessa riparata."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Where the Zone Ends', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'nothing on screen marks the edge' is a KNOWN, ACCEPTED gap, not an omission: neither the Helipad nor the Garage carries an SCR_SupportStationAreaMeshComponent, and the ramp's inherited one is Game-Master-only (SCR_ShowHideInEditorComponent plus m_bHideInWorkbench 1), so no ordinary player ever sees a ring. If a visible boundary is ever added, this sentence must be rewritten. The in-zone / out-of-zone fallback needs no Overthrow code: SCR_BaseUseSupportStationAction.GetClosestValidSupportStation:112-138 asks the station manager first and only falls back to the held gadget afterwards, because PrioritizeHeldGadget() is false for repair (base implementation at :452-455, overridden to true only by refuel and resupply). Zones register HIGH with a full heal; the wrench is the fallback with the 50% cap. 'a ruin repairs nothing': OVT_StructureDestructionComponent.ApplySupportStationState() (Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c:390-405) calls SetSupportStationsEnabled on the owner and one level of children; the destruction component sits on the same entity as the station on all three structures."
    DevNote ""
    Repro ""
@@ -6612,16 +6933,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262646
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B6F1B0000000008}" {
    Id "OVT-FieldManual_VehicleRepair_Title"
    Target_en_us "Vehicle Repair"
-   Target_de_de "Fahrzeuginstandsetzung"
+   Target_it_it "Riparazione veicoli"
    Comment "Field Manual - title of the Vehicle Repair page, shown on its tile in the Money and Trade category grid and as the heading at the top of the page. Two words. Placed in Money and Trade rather than under building because buying the kit is the gating step."
    DevNote ""
    Repro ""
@@ -6630,15 +6951,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262743
+   Modified 1756425600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6B3B00000000013F}" {
    Id "OVT-FieldManual_WantedSystem_Head"
    Target_en_us "What Draws Attention"
+   Target_it_it "Cosa attira l'attenzione"
    Target_de_de "Was Aufmerksamkeit erregt"
    Target_ru_ru "Что привлекает внимание"
    Target_uk_ua "Що привертає увагу"
@@ -6659,6 +6981,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000140}" {
    Id "OVT-FieldManual_WantedSystem_Head2"
    Target_en_us "Being Seen"
+   Target_it_it "Farsi notare"
    Target_de_de "Gesehen werden"
    Target_ru_ru "Быть замеченным"
    Target_uk_ua "Бути поміченим"
@@ -6679,6 +7002,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000141}" {
    Id "OVT-FieldManual_WantedSystem_Head3"
    Target_en_us "Wearing Their Uniform"
+   Target_it_it "Indossare la loro uniforme"
    Target_de_de "Ihre Uniform tragen"
    Target_ru_ru "Ношение их формы"
    Target_uk_ua "Носіння їхньої уніформи"
@@ -6699,6 +7023,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000142}" {
    Id "OVT-FieldManual_WantedSystem_Head4"
    Target_en_us "Cooling Off"
+   Target_it_it "Far calmare le acque"
    Target_de_de "Untertauchen"
    Target_ru_ru "Снижение активности"
    Target_uk_ua "Зниження уваги"
@@ -6719,6 +7044,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000114}" {
    Id "OVT-FieldManual_WantedSystem_Text"
    Target_en_us "Doing something the occupying faction objects to raises your wanted level, and they come looking for you while it is above zero. Some of it has to be seen to count and some of it does not. The level falls one step at a time once nobody is watching you, and how long each step takes is set by the difficulty settings."
+   Target_it_it "Compiere azioni osteggiate dalla fazione occupante aumenta il tuo livello di ricercato; finché tale livello è superiore a zero, i nemici ti daranno la caccia. Alcune azioni contano ai fini dell'aumento del livello solo se vengono viste, altre invece no. Il livello diminuisce di un grado alla volta quando nessuno ti osserva; la durata di ogni fase di riduzione dipende dalle impostazioni di difficoltà."
    Target_de_de "Wenn du etwas tust, das der Besatzungsmacht missfällt, steigt dein Fahndungslevel, und solange er über null liegt, sucht sie nach dir. Manche Handlungen müssen gesehen werden, damit sie zählen, andere nicht. Sobald dich niemand mehr beobachtet, sinkt der Level Schritt für Schritt. Wie lange jeder Schritt dauert, wird durch die Schwierigkeitseinstellungen bestimmt."
    Target_ru_ru "Совершение действий, которые не одобряет оккупационная фракция, повышает ваш уровень розыска, и они начинают искать вас, пока он выше нуля. Некоторые из этих действий должны быть замечены, чтобы считаться, а некоторые — нет. Уровень снижается шаг за шагом, как только вас никто не видит, а время, необходимое для каждого шага, определяется настройками сложности."
    Target_uk_ua "Будь-яка протиправна дія з точки зору окупантів піднімає ваш рівень розшуку — поки він вищий за нуль, за вами полюватимуть патрулі. Деякі порушення фіксуються лише за наявності свідків, інші ж викликають підозру автоматично. Як тільки ви відірветеся від спостереження, рівень розшуку почне поступово спадати, а швидкість його зниження залежить від вибраного рівня складності."
@@ -6739,6 +7065,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000143}" {
    Id "OVT-FieldManual_WantedSystem_Text2"
    Target_en_us "Most of it has to be witnessed. Being watched while openly carrying a weapon, while looting, while putting up something they have outlawed, or while close to one of their bases or radio towers all count, and being taken for the resistance or one of its backers by what you are wearing counts the moment you are seen at all. Violence needs no witness: wounding anybody makes you wanted, killing anybody raises it further, and either one blows a disguise you were wearing. When one of their soldiers is killed, whoever is sitting in a vehicle right beside the body is held responsible as well. Being seen at the wheel of an armed vehicle or a mobile FOB raises it further again, and that vehicle is marked as resistance from then on. Above the first level the occupying faction stops reading you as a civilian and treats you as an enemy on sight."
+   Target_it_it "Gran parte delle situazioni richiede che l'azione venga vista da qualcuno. Essere osservati mentre si porta un'arma in bella vista, mentre si saccheggia, mentre si affigge materiale proibito o mentre ci si trova vicino a una delle loro basi o torri radio comporta un aumento del livello di sospetto; lo stesso accade se l'abbigliamento ti fa scambiare per un membro o un sostenitore della Resistenza non appena vieni avvistato. La violenza non richiede testimoni: ferire qualcuno ti rende un ricercato, uccidere qualcuno aggrava ulteriormente la situazione ed entrambe le azioni fanno saltare la copertura. Se viene ucciso un loro soldato, anche chi si trova a bordo di un veicolo proprio accanto al corpo viene ritenuto responsabile. Essere visti alla guida di un veicolo armato o di una FOB mobile aumenta ulteriormente il livello di sospetto e il veicolo viene contrassegnato come appartenente alla Resistenza. Superato il primo livello, la fazione occupante smette di considerarti un civile e ti tratta come un nemico non appena ti vede."
    Target_de_de "Das meiste muss beobachtet werden. Es zählt, wenn du gesehen wirst, während du offen eine Waffe trägst, plünderst, etwas von der Besatzungsmacht Verbotenes aufstellst oder dich in der Nähe einer ihrer Basen oder Funktürme aufhältst. Ebenso zählt es bereits beim ersten Sichtkontakt, wenn deine Kleidung dich als Mitglied oder Unterstützer des Widerstands erkennen lässt. Gewalt braucht keine Zeugen: Wenn du jemanden verwundest, wirst du gesucht; wenn du jemanden tötest, steigt der Level weiter, und beides zerstört eine eventuell getragene Verkleidung. Wird einer ihrer Soldaten getötet, gilt außerdem jeder als verantwortlich, der in einem Fahrzeug direkt neben der Leiche sitzt. Wirst du am Steuer eines bewaffneten Fahrzeugs oder eines mobilen FOB gesehen, steigt der Level erneut, und das Fahrzeug wird von diesem Zeitpunkt an als Widerstandsfahrzeug markiert. Oberhalb der ersten Stufe betrachtet dich die Besatzungsmacht nicht mehr als Zivilisten, sondern greift dich bei Sichtkontakt als Feind an."
    Target_ru_ru "Большинство из них должно быть замечено. Нахождение на виду с открыто носимым оружием, мародёрство, установка запрещённых ими объектов или нахождение рядом с их базами или радиовышками — всё это повышает уровень розыска, а одежда, выдающая вас за члена сопротивления или его сторонника, срабатывает при первом же зрительном контакте. Насилие не требует свидетелей: ранение любого человека делает вас разыскиваемым, убийство повышает уровень розыска ещё больше, и то и другое срывает маскировку. Когда убивают одного из их солдат, ответственность несёт и тот, кто сидит в транспортном средстве прямо рядом с телом. Нахождение за рулём вооружённого транспорта или мобильного ПОБ на виду у врага дополнительно повышает уровень розыска, и это транспортное средство с этого момента помечается как техника сопротивления. Выше первого уровня оккупационная фракция перестаёт считать вас гражданским и атакует как врага при первом же зрительном контакте."
    Target_uk_ua "Більшість правопорушень фіксується лише за наявності свідків. Відкрите носіння зброї, обшук трупів/майна, встановлення нелегальних об'єктів або перебування поруч із ворожими базами чи радіовежами миттєво піднімають рівень розшуку. Якщо ж ваш одяг видає у вас бійця або прибічника опору, ворог задозрить вас одразу при зоровому контакті. Насильство не потребує свідків: поранення будь-кого робить вас розшукуваним, убивство підвищує рівень розшуку ще більше, а будь-яка з цих дій розкриває ваше маскування. Коли вбивають одного з їхніх солдатів, той, хто сидить у транспорті поруч із тілом, також вважається відповідальним. Перебування за кермом озброєного транспорту або пересувної бази (FOB) на очах у ворога додатково підвищує рівень розшуку, а цей транспорт відтоді позначається як техніка опору. Вище першого рівня окупаційна фракція перестає вважати вас цивільним і атакує як ворога при першому ж зоровому контакті."
@@ -6759,6 +7086,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000144}" {
    Id "OVT-FieldManual_WantedSystem_Text3"
    Target_en_us "An eye shows on your screen while someone working for the occupying faction has you in sight, and it fades in and out with how clearly they can make you out. Their people only start to pick you up inside a certain range, and the Stealth skill draws that range in. Recruits are watched by the same rules and are seen using their commander's Stealth."
+   Target_it_it "Sullo schermo appare un'icona a forma di occhio quando qualcuno che lavora per la fazione occupante ti inquadra; l'icona diventa più o meno visibile a seconda di quanto chiaramente riescono a distinguerti. Iniziano a notarti solo entro un certo raggio d'azione, che viene ridotto grazie all'abilità Furtività. Le reclute sono soggette alle stesse regole e beneficiano della Furtività del loro comandante."
    Target_de_de "Ein Augensymbol erscheint auf deinem Bildschirm, solange dich jemand im Dienst der Besatzungsmacht im Blick hat. Es wird je nach Sichtbarkeit stärker oder schwächer eingeblendet. Ihre Leute erkennen dich erst innerhalb einer bestimmten Entfernung, und die Fertigkeit Tarnung verringert diese Reichweite. Für Rekruten gelten dieselben Beobachtungsregeln; bei ihnen wird die Tarnungsfertigkeit ihres Kommandanten verwendet."
    Target_ru_ru "На экране появляется значок глаза, пока кто-то из оккупационной фракции видит вас, и его яркость меняется в зависимости от того, насколько чётко вас различают. Их люди начинают замечать вас только в пределах определённой дистанции, а навык «Скрытность» сокращает этот радиус обнаружения. Рекруты подчиняются тем же правилам и обнаруживаются с использованием уровня Скрытности своего командира."
    Target_uk_ua "Іконка ока з'являється на вашому екрані, коли вас бачить хтось із бійців окупаційної фракції, і її прозорість змінюється залежно від того, наскільки чітко вас помічають. Вороги починають помічати вас лише в межах певної дистанції, а навичка «Стелс» зменшує цей радіус виявлення. На рекрутів поширюються ті ж самі правила, і їх виявляють за рівнем «Стелсу» їхнього командира."
@@ -6779,6 +7107,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000145}" {
    Id "OVT-FieldManual_WantedSystem_Text4"
    Target_en_us "Dressed convincingly enough in the occupying faction's own kit, their troops read you as one of their own and stop watching you at a distance. What is left is close range: near enough and in plain sight, someone sees through it, the disguise is blown and a wanted level comes with it. Opening fire on anybody blows it as well, at any range and whether or not it was noticed. While it holds, standing near a base or a radio tower does not make you wanted on its own. An icon on your screen carries the state of it, and how far their soldiers can see through a disguise is a difficulty setting."
+   Target_it_it "Se indossi un equipaggiamento della fazione occupante sufficientemente convincente, le loro truppe ti scambiano per uno dei loro e smettono di osservarti a distanza. Rimane però il rischio a distanza ravvicinata: se ti avvicini troppo e sei ben visibile, qualcuno potrebbe smascherarti, facendo saltare la copertura e aumentando il livello di sospetto. Anche aprire il fuoco contro qualcuno fa saltare la copertura, a qualsiasi distanza e indipendentemente dal fatto che l'azione venga notata o meno. Finché la copertura regge, stazionare vicino a una base o a una torre radio non ti rende automaticamente un ricercato. Un'icona sullo schermo indica lo stato della copertura, mentre la distanza a cui i soldati riescono a smascherarti dipende dall'impostazione della difficoltà."
    Target_de_de "Wenn du die Ausrüstung der Besatzungsmacht überzeugend genug trägst, halten deren Truppen dich für einen von ihnen und beobachten dich nicht mehr aus der Entfernung. Übrig bleibt nur der Nahbereich: Kommst du ihnen nahe genug und befindest dich in freier Sicht, durchschaut jemand die Tarnung, die Verkleidung fliegt auf und du erhältst einen Fahndungslevel. Auf jemanden zu schießen zerstört die Verkleidung ebenfalls – unabhängig von der Entfernung und davon, ob der Schuss bemerkt wurde. Solange die Verkleidung hält, macht dich allein die Nähe zu einer Basis oder einem Funkturm nicht gesucht. Ein Symbol auf deinem Bildschirm zeigt ihren Zustand an. Wie weit Soldaten eine Verkleidung durchschauen können, wird durch eine Schwierigkeitseinstellung bestimmt."
    Target_ru_ru "Если вы одеты в достаточно убедительную форму оккупационной фракции, их войска принимают вас за своего и перестают следить за вами на расстоянии. Остаётся лишь ближний радиус: достаточно близко и на виду кто-то разоблачит вас, маскировка будет сорвана, и вместе с этим придёт уровень розыска. Открытие огня по кому-либо также срывает маскировку — на любом расстоянии и независимо от того, было ли это замечено. Пока маскировка действует, нахождение рядом с базой или радиовышкой само по себе не делает вас разыскиваемым. На экране отображается иконка состояния маскировки, а дальность, на которой солдаты могут распознать маскировку, определяется настройками сложности."
    Target_uk_ua "Якщо ви перевдягнені у переконливий комплект однострою окупаційної фракції, їхні війська сприймають вас як свого й припиняють стежити за вами здалеку. Ризик залишається лише на близькій відстані: якщо підійти занадто близько й залишатися на видноті, хтось розкриє ваше маскування, після чого воно скинеться й ви отримаєте рівень розшуку. Відкриття вогню по кому завгодно також миттєво зриває маскування — на будь-якій дистанції та незалежно від наявності свідків. Доки маскування діє, перебування поблизу бази чи радіовежі само по собі не підвищує рівень розшуку. Стан вашого маскування відображається відповідною іконкою на екрані, а дистанція, з якої ворожі солдати розпізнають обман, визначається налаштуваннями складності."
@@ -6799,6 +7128,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000146}" {
    Id "OVT-FieldManual_WantedSystem_Text5"
    Target_en_us "A wanted level only comes down while nobody has eyes on you, one level at a time, with a countdown between each step. Anything that makes you wanted again sets the level straight to whatever that thing is worth and starts the countdown over, so the level jumps up and only ever walks back down. The last step down to nothing runs on its own separate countdown, and being spotted during it puts you back up rather than letting it finish. Both countdowns are difficulty settings. Fast travel is unavailable while your wanted level is anything above zero."
+   Target_it_it "Il livello di sospetto diminuisce solo quando nessuno ti sta osservando; scende di un livello alla volta, con un conto alla rovescia tra un passaggio e l'altro. Qualsiasi azione che ti renda nuovamente ricercato porta il livello direttamente al valore associato a quell'azione e fa ripartire il conto alla rovescia: il livello quindi aumenta bruscamente, per poi scendere gradualmente. L'ultima fase di riduzione del livello di allerta segue un conto alla rovescia indipendente; se vieni individuato durante questa fase, il livello risale invece di azzerarsi. Entrambi i conti alla rovescia dipendono dalle impostazioni di difficoltà. Il viaggio rapido non è disponibile finché il livello di ricercato è superiore a zero."
    Target_de_de "Ein Fahndungslevel sinkt nur, solange dich niemand im Blick hat, jeweils um eine Stufe mit einem Countdown zwischen den einzelnen Schritten. Alles, was dich erneut gesucht macht, setzt den Level sofort auf den Wert, den diese Handlung verursacht, und startet den Countdown neu. Der Level springt also nach oben und sinkt nur schrittweise wieder ab. Für den letzten Schritt bis auf null läuft ein eigener Countdown. Wirst du währenddessen entdeckt, steigt der Level wieder, statt vollständig abzulaufen. Beide Countdowns werden durch Schwierigkeitseinstellungen bestimmt. Schnellreise ist nicht verfügbar, solange dein Fahndungslevel über null liegt."
    Target_ru_ru "Уровень розыска снижается только тогда, когда за вами никто не наблюдает — по одному уровню за раз, с обратным отсчётом между каждым шагом. Всё, что снова делает вас разыскиваемым, сразу устанавливает уровень в соответствии с тяжестью нарушения и перезапускает отсчёт, поэтому уровень розыска поднимается скачками, а снижается только постепенно. Последний шаг до нуля идёт по отдельному таймеру, и если вас заметят во время него, уровень снова поднимется, а не обнулится. Оба таймера определяются настройками сложности. Быстрое перемещение недоступно, пока ваш уровень розыска выше нуля."
    Target_uk_ua "Рівень розшуку знижується лише тоді, коли за вами ніхто не спостерігає — по одному рівню за раз із відліком часу між кожним кроком. Будь-яка дія, що знову робить вас розшукуваним, одразу встановлює рівень відповідно до цінності цієї дії та перезапускає відлік, тому рівень розшуку зростає стрибкоподібно, а знижується лише поступово. Останній крок до повного скидання запускється на окремому таймері, і якщо вас помітять під час нього, рівень розшуку знову зросте, замість того щоб обнулитися. Обидва таймери визначаються налаштуваннями складності. Швидке переміщення недоступне, поки ваш рівень розшуку вищий за нуль."
@@ -6819,6 +7149,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000115}" {
    Id "OVT-FieldManual_WantedSystem_Title"
    Target_en_us "The Wanted System"
+   Target_it_it "Il sistema dei ricercati"
    Target_de_de "Das Fahndungssystem"
    Target_ru_ru "Система розыска"
    Target_uk_ua "Система розшуку"
@@ -6839,6 +7170,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011A}" {
    Id "OVT-FieldManual_Welcome_Head"
    Target_en_us "What You Start With"
+   Target_it_it "Dotazione iniziale"
    Target_de_de "Womit du beginnst"
    Target_ru_ru "С чего вы начинаете"
    Target_uk_ua "З чим ви починаєте"
@@ -6859,6 +7191,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011B}" {
    Id "OVT-FieldManual_Welcome_Head2"
    Target_en_us "No Set Order"
+   Target_it_it "Nessun ordine prestabilito"
    Target_de_de "Keine feste Reihenfolge"
    Target_ru_ru "Нет строгого порядка"
    Target_uk_ua "Довільний порядок"
@@ -6879,6 +7212,7 @@ StringTable {
   CustomStringTableItem "{6B4E000000000001}" {
    Id "OVT-FieldManual_Welcome_Head3"
    Target_en_us "Life in the Towns"
+   Target_it_it "La vita nelle città"
    Target_de_de "Leben in den Ortschaften"
    Target_ru_ru "Жизнь в городах"
    Comment "Field Manual - section header inside the Welcome to Overthrow page, above the two paragraphs describing a town's ambient civilians and its parked civilian cars. Two to four words, title case. No rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6."
@@ -6898,6 +7232,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000116}" {
    Id "OVT-FieldManual_Welcome_Text"
    Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no ending: the resistance grows out of whatever you choose to do, and the occupying faction reacts to it. Towns, money, property, vehicles, recruits and captured ground are all durable state, so a campaign carries on between sessions and across server restarts."
+   Target_it_it "Overthrow è una campagna sandbox persistente ambientata su un'isola occupata. Non esiste un elenco di obiettivi né una conclusione definitiva: la Resistenza si sviluppa in base alle tue scelte e la fazione occupante reagisce di conseguenza. Città, denaro, proprietà, veicoli, reclute e territori conquistati mantengono il loro stato nel tempo; la campagna prosegue quindi tra una sessione e l'altra e anche dopo il riavvio del server."
    Target_de_de "Overthrow ist eine persistente Sandbox-Kampagne auf einer besetzten Insel. Es gibt weder eine feste Liste von Zielen noch ein Ende: Der Widerstand entwickelt sich aus deinen Entscheidungen, und die Besatzungsmacht reagiert darauf. Städte, Geld, Immobilien, Fahrzeuge, Rekruten und erobertes Gebiet sind dauerhafte Zustände, sodass eine Kampagne über Sitzungen und Serverneustarts hinweg fortgeführt wird."
    Target_ru_ru "Overthrow — это долгосрочная песочница, разворачивающаяся на оккупированном острове. В ней нет списка целей и нет концовки: сопротивление растёт из того, что вы решите делать, а оккупационная фракция реагирует на это. Города, деньги, недвижимость, транспорт, рекруты и захваченные территории — всё это сохраняется, поэтому кампания продолжается между сессиями и после перезапусков сервера."
    Target_uk_ua "Overthrow — це динамічна персистентна кампанія-пісочниця про визволення окупованого острова. У грі немає фіксованого сюжетного лінійного списку завдань чи кінцевої точки: опір формується та розвивається виключно через ваші рішення, а ворожа фракція гнучко реагує на будь-які загрози. Контроль над містами, фінансовий баланс, нерухомість, автопарк, набрані рекрути та відвойовані території зберігаються у реальному часі, тож прогрес кампанії продовжується між ігровими сесіями та не зникає після рестарту сервера."
@@ -6918,6 +7253,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011C}" {
    Id "OVT-FieldManual_Welcome_Text2"
    Target_en_us "A new character is given a house in one of the island's towns, with a car parked outside it, and a small amount of starting cash. That house is registered as your home, which is where you respawn. When no starting house is free, a new character begins in one of the towns instead, with the starting cash but no house and no car, and respawns where they started until a building they own is set as their home. Everything past that is earned, bought, built or taken."
+   Target_it_it "Un nuovo personaggio riceve una casa in una delle città dell'isola, con un'auto parcheggiata all'esterno e una piccola somma di denaro iniziale. Quell'abitazione viene registrata come casa principale e funge da punto di respawn. Se non sono disponibili case iniziali, il nuovo personaggio inizia in una delle città con il denaro di partenza, ma senza casa né auto; il respawn avverrà nel punto di inizio finché non verrà impostato come casa principale un edificio di proprietà del giocatore. Tutto ciò che segue deve essere guadagnato, acquistato, costruito o conquistato."
    Target_de_de "Ein neuer Charakter erhält ein Haus in einer der Städte der Insel, ein davor geparktes Auto und einen kleinen Geldbetrag als Startkapital. Dieses Haus wird als dein Zuhause eingetragen und dient als Wiedereinstiegspunkt. Ist kein Starthaus frei, beginnt ein neuer Charakter stattdessen in einer der Städte mit dem Startkapital, aber ohne Haus und ohne Auto. Bis ein Gebäude in seinem Besitz als Zuhause festgelegt wird, steigt er an seinem ursprünglichen Startpunkt wieder ein. Alles Weitere muss verdient, gekauft, gebaut oder erobert werden."
    Target_ru_ru "Новый персонаж получает дом в одном из городов острова, автомобиль, припаркованный перед ним, и небольшую стартовую сумму денег. Этот дом регистрируется как ваш дом, где вы возрождаетесь. Если свободного стартового дома нет, новый персонаж начинает в одном из городов — со стартовыми деньгами, но без дома и без машины, и возрождается там, где начал, пока здание в его собственности не будет назначено домом. Всё, что дальше, зарабатывается, покупается, строится или отбирается."
    Target_uk_ua "На старті новий персонаж отримує власне житло в одному з міст острова, припаркований поруч автомобіль та початковий капітал. Цей будинок автоматично призначається вашим домом — точкою відродження (респавну). Якщо ж вільного житла на карті немає, гравець починає в одному з поселень лише зі стартовими грошима; у такому разі точкою респавну слугуватиме місце першої появи, доки ви не придбаєте нерухомість і не призначите її домом. Будь-які інші ресурси, техніка та спорядження доведеться заробляти, купувати, зводити або відбирати у ворога."
@@ -6938,6 +7274,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011D}" {
    Id "OVT-FieldManual_Welcome_Text3"
    Target_en_us "Nothing here has to happen before anything else. Trading, recruiting, placing camps, building and capturing bases are tools that stay available in whatever order suits you, and on a server every player is acting on the same island and the same campaign state."
+   Target_it_it "Non esiste un ordine obbligatorio per le azioni di gioco. Commerciare, reclutare, piazzare accampamenti, costruire e conquistare basi sono attività sempre disponibili, da svolgere nell'ordine che preferisci; su un server, tutti i giocatori operano sulla stessa isola e all'interno del medesimo stato della campagna."
    Target_de_de "Hier muss nichts zwingend vor etwas anderem geschehen. Handel, Rekrutierung, das Platzieren von Lagern, Bauen und das Erobern von Basen sind Werkzeuge, die dir in jeder beliebigen Reihenfolge zur Verfügung stehen. Auf einem Server handeln alle Spieler auf derselben Insel und innerhalb desselben Kampagnenzustands."
    Target_ru_ru "Ничто здесь не должно происходить раньше чего-либо другого. Торговля, найм рекрутов, размещение лагерей, строительство и захват баз — это инструменты, которые остаются доступными в любом порядке, который вам удобен, а на сервере каждый игрок действует на том же острове и в том же состоянии кампании."
    Target_uk_ua "У грі немає жорсткої послідовності чи обов'язкових кроків: торгівля, вербування рекрутів, облаштування таборів, зведення споруд та штурм ворожих баз доступні в будь-якому порядку. Ви самі обираєте власну стратегію розвитку. При грі на сервері всі учасники знаходяться в одному світі й діють у межах єдиної спільної кампанії, змінюючи її стан у реальному часі."
@@ -6958,6 +7295,7 @@ StringTable {
   CustomStringTableItem "{6B4E000000000002}" {
    Id "OVT-FieldManual_Welcome_Text4"
    Target_en_us "Towns are inhabited. People come out as you approach a town and are gone once you are well away from it, and the crowd is put together again from scratch on your next visit, so it is never quite the same gathering twice. How many are about follows the town's population, and which sorts of people appear differs from place to place, so a port city and an inland hamlet are not populated alike. Some walk a route between two points, some drift around several spots, and some stand in one place for minutes at a time. They can be hired as recruits, won over as supporters or sold to as before, and a civilian you have hired leaves the crowd for good and stays with you."
+   Target_it_it "Le città sono abitate. Le persone compaiono quando ti avvicini a un centro abitato e scompaiono una volta che ti allontani; la folla viene ricreata da zero a ogni visita successiva, quindi l'insieme di persone non è mai esattamente lo stesso. Il numero di presenti dipende dalla popolazione della località e la tipologia di persone varia da luogo a luogo: una città portuale e un borgo dell'entroterra non hanno la stessa popolazione. Alcuni percorrono un tragitto tra due punti, altri si aggirano tra diverse zone e altri ancora restano fermi nello stesso punto per diversi minuti. Possono essere ingaggiati come reclute, conquistati come sostenitori o diventare clienti (come in precedenza); un civile ingaggiato abbandona definitivamente la folla per unirsi a te."
    Target_de_de "Ortschaften sind bewohnt. Wenn du dich einer Ortschaft näherst, kommen die Einwohner heraus, und sobald du dich weit genug entfernst, verschwinden sie wieder. Bei deinem nächsten Besuch wird die Bevölkerung vollständig neu zusammengestellt, sodass du nie zweimal genau derselben Gruppe begegnest. Wie viele Personen unterwegs sind, richtet sich nach der Einwohnerzahl der Ortschaft, und welche Arten von Bewohnern erscheinen, unterscheidet sich von Ort zu Ort. Eine Hafenstadt und ein Weiler im Landesinneren sind daher unterschiedlich bevölkert. Manche laufen auf einer festen Strecke zwischen zwei Punkten, andere bewegen sich zwischen mehreren Orten, und wieder andere bleiben minutenlang an derselben Stelle stehen. Sie können wie bisher als Rekruten angeworben, als Unterstützer gewonnen oder als Kunden bedient werden. Ein Zivilist, den du rekrutiert hast, verschwindet dauerhaft aus der Bevölkerung und bleibt bei dir."
    Target_ru_ru "Города населены. Люди выходят, когда вы приближаетесь, и исчезают, когда вы отходите, и толпа формируется заново при следующем визите, так что она никогда не бывает одинаковой. Количество людей зависит от населения города, и типы людей различаются в разных местах, поэтому портовый город и внутренняя деревня населены по-разному. Некоторые ходят по маршруту, некоторые бродят, некоторые стоят на месте несколько минут. Их можно нанимать как рекрутов, привлекать как сторонников или продавать им, как и раньше, а нанятый гражданский покидает толпу навсегда и остаётся с вами."
    Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'Life in the Towns' header. Reference voice: describes, never instructs, and implies no order of play. Four to five sentences, no rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6. FACT-CHECKED against the shipped code: crowds are spawned and despawned by proximity through the virtualization ambient tick, with the count rolled per approach from the town's LIVE population (OVT_TownCivilianSourceConfig.c:259-281 RollCount, which reads town.population and the operator multiplier/cap) and each civilian's type re-rolled per spawn (RollPrefab, :297); despawn removes the members and their waypoints (OnEntityDespawning, :412). Which types a town may show is the type's minimum town size combined with the town's own authored list (OVT_CivilianAmbienceManagerComponent.c:520-560 ResolveAllowedTypes, OVT_TownController.c:30 m_aCivilianTypes). The three behaviours are PINGPONG/WANDER/LOITER (OVT_CivilianAmbienceConfig.c:10-20), authored 50/30/20 with loiter pauses of 90-240 s in Configs/Civilians/CivilianAmbience.conf. The three player interactions are the user actions on Prefabs/Characters/Factions/CIV/Character_CIV.et:15 (sell drugs), :24 (recruit), :32 (convert supporter); a hired civilian is handed out of ambient ownership at OVT_RecruitManagerComponent.c:1031 -> OVT_CivilianAmbienceManagerComponent.c:787 ReleaseRecruitedCivilian -> OVT_TownCivilianSourceConfig.c:489-505 ReleaseCivilian. NOTHING is said about QRFs: with the shipped default (despawnCiviliansDuringQRF false, OVT_OverthrowConfigComponent.c:113) a crowd stays put during a QRF, and the opt-in is a server setting, not a player-facing rule."
@@ -6977,6 +7315,7 @@ StringTable {
   CustomStringTableItem "{6B4E000000000003}" {
    Id "OVT-FieldManual_Welcome_Text5"
    Target_en_us "Civilian cars stand parked along the kerbs and roadsides of a town, in ones and twos in a village and rather more in a city. One nobody has touched is scenery like the crowd, and a later visit finds a different set of them. One somebody gets into stops being scenery: it stays where it is left and is kept with the rest of the campaign between sessions."
+   Target_it_it "Le auto dei civili sono parcheggiate lungo i bordi delle strade cittadine: poche unità nei villaggi, molte di più nelle città. Un veicolo intatto è considerato parte dello scenario, proprio come la folla, e in una visita successiva ne troverai uno diverso. Se qualcuno sale a bordo, il veicolo smette di essere semplice scenario: rimane dove è stato lasciato e viene conservato insieme al resto della campagna tra una sessione e l'altra."
    Target_de_de "Zivile Fahrzeuge stehen entlang der Bordsteine und Straßenränder einer Ortschaft geparkt, in Dörfern meist einzeln oder zu zweit und in Städten in größerer Zahl. Ein Fahrzeug, das noch niemand benutzt hat, gehört wie die Menschenmenge lediglich zur Umgebung, und bei einem späteren Besuch steht dort eine andere Auswahl. Sobald jemand in ein solches Fahrzeug einsteigt, gehört es nicht mehr zur Umgebung: Es bleibt dort stehen, wo es zurückgelassen wurde, und wird zusammen mit dem übrigen Kampagnenstand zwischen den Spielsitzungen gespeichert."
    Target_ru_ru "Гражданские машины стоят вдоль бордюров и обочин, по одной-две в деревне и больше в городе. Машина, к которой никто не прикасался, является частью пейзажа, и при следующем визите вы найдёте другой набор. Машина, в которую кто-то сел, перестаёт быть пейзажем: она остаётся там, где её оставили, и сохраняется вместе с кампанией между сессиями."
    Comment "Field Manual - body paragraph on the Welcome to Overthrow page, under the 'Life in the Towns' header, following OVT-FieldManual_Welcome_Text4. Reference voice: describes, never instructs. Three sentences, no rich-text markup. ADDED 2026-08-17 by virtualization/civilians Phase 6. FACT-CHECKED against the shipped code: placement is kerb-first with a road-derived fallback (OVT_TownVehicleSourceConfig.c:276 RollPosition, :590-615 the kerb path through OVT_VehicleManagerComponent.FindNearestKerbParking); counts are scaled by town size and authored 0-1 village / 2-4 town / 4-8 city in Configs/Civilians/CivilianAmbience.conf (RollCount, :229). An untouched car is untracked for persistence the moment it spawns and is deleted with the rest of the ambient set on despawn (:344 UntrackTransient), so it writes no save record and the next approach re-rolls; an occupied car is claimed instead of deleted (:369-380 OnEntityDespawning -> ClaimVehicle, :458) and is re-tracked for persistence and handed to the vehicle manager (:483-505 AdoptClaimedVehicle). The text deliberately says 'kept with the campaign' and not 'becomes yours': ownership is stamped by the separate claim user action, not by sitting in the seat."
@@ -6996,6 +7335,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000117}" {
    Id "OVT-FieldManual_Welcome_Title"
    Target_en_us "Welcome to Overthrow"
+   Target_it_it "Benvenuto in Overthrow"
    Target_de_de "Willkommen bei Overthrow"
    Target_ru_ru "Добро пожаловать в Overthrow"
    Target_uk_ua "Ласкаво просимо до Overthrow"
@@ -7016,6 +7356,7 @@ StringTable {
   CustomStringTableItem "{6B3B00000000011F}" {
    Id "OVT-FieldManual_YourHome_Head"
    Target_en_us "What a Home Gives You"
+   Target_it_it "I vantaggi di una casa"
    Target_de_de "Was dir ein Zuhause bietet"
    Target_ru_ru "Что даёт дом"
    Target_uk_ua "Що дає власне житло"
@@ -7036,6 +7377,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000120}" {
    Id "OVT-FieldManual_YourHome_Head2"
    Target_en_us "Buying and Renting"
+   Target_it_it "Acquisto e affitto"
    Target_de_de "Kaufen und Mieten"
    Target_ru_ru "Покупка и аренда"
    Target_uk_ua "Купівля та оренда"
@@ -7056,6 +7398,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000118}" {
    Id "OVT-FieldManual_YourHome_Text"
    Target_en_us "Every campaign begins with a house of your own and a car parked outside it. Ownership is recorded against your player rather than against the session, so a building you own stays yours between sessions and across server restarts."
+   Target_it_it "Ogni campagna inizia con una casa di tua proprietà e un'auto parcheggiata all'esterno. La proprietà è associata al giocatore e non alla singola sessione: un edificio di tua proprietà rimane tale tra le sessioni e anche dopo il riavvio del server."
    Target_de_de "Jede Kampagne beginnt mit einem eigenen Haus und einem davor geparkten Auto. Der Besitz wird deinem Spieler und nicht der jeweiligen Sitzung zugeordnet. Ein Gebäude in deinem Besitz bleibt daher zwischen Sitzungen und über Serverneustarts hinweg dein Eigentum."
    Target_ru_ru "Каждая кампания начинается с собственного дома и автомобиля, припаркованного перед ним. Право собственности привязано к вашему игроку, а не к сессии, поэтому здание, которым вы владеете, остаётся вашим между сессиями и после перезапусков сервера."
    Target_uk_ua "Кожна кампанія стартує з того, що ви отримуєте власне житло та припарковане поруч авто. Право власності прив'язується безпосередньо до вашого профілю гравця, а не до поточної сесії. Це гарантує, що вся ваша нерухомість зберігається під час виходу з гри та не зникає після рестарту сервера."
@@ -7076,6 +7419,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000121}" {
    Id "OVT-FieldManual_YourHome_Text2"
    Target_en_us "The building set as your home is where your character respawns after dying. Buildings you own or rent also count as fast travel destinations, unless the building is rented out to somebody else. Rejoining after you have left the game puts you back where you logged out rather than at home."
+   Target_it_it "L'edificio impostato come casa è il luogo in cui il tuo personaggio rinasce dopo la morte. Gli edifici di proprietà o in affitto fungono anche da destinazioni per il viaggio rapido, a meno che non siano stati affittati a qualcun altro. Rientrando in gioco dopo esserti disconnesso, ti ritroverai nel punto in cui hai abbandonato la partita, anziché a casa."
    Target_de_de "Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter nach dem Tod wieder einsteigt. Gebäude, die dir gehören oder die du mietest, gelten ebenfalls als Schnellreiseziele, sofern das Gebäude nicht an jemand anderen vermietet ist. Wenn du nach dem Verlassen des Spiels erneut beitrittst, erscheinst du dort, wo du dich abgemeldet hast, und nicht zu Hause."
    Target_ru_ru "Здание, назначенное вашим домом, является местом возрождения вашего персонажа после смерти. Здания, которыми вы владеете или которые арендуете, также считаются точками быстрого перемещения, если только здание не сдано в аренду кому-то ещё. Повторное подключение после выхода из игры возвращает вас туда, где вы вышли, а не домой."
    Target_uk_ua "Будинок, призначений вашим домом, слугує точкою респавну після загибелі персонажа. Будь-яка нерухомість, що перебуває у вашій власності або оренді, також працює як точка швидкого переміщення (Fast Travel) — за умови, що ви не здаєте її в оренду іншим особам. Зверніть увагу: при повторному вході на сервер ви з'явитеся саме там, де вийшли з гри минулого разу, а не на точці домашнього респавну."
@@ -7096,6 +7440,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000122}" {
    Id "OVT-FieldManual_YourHome_Text3"
    Target_en_us "The real estate menu appears in the main menu whenever you are standing in a building that can be owned, and shows that building's sale price and its rent. Neither is a flat figure: both rise with the population and the stability of the nearest town, so the same kind of house is worth more in a large, settled town than in a small unsettled one. Officers can buy and rent using resistance funds instead of their own money."
+   Target_it_it "Il menu immobiliare appare nel menu principale quando ti trovi all'interno di un edificio acquistabile, mostrandone il prezzo di vendita e il costo dell'affitto. Nessuno dei due è un valore fisso: entrambi variano in base alla popolazione e alla stabilità della città più vicina; di conseguenza, lo stesso tipo di abitazione ha un valore maggiore in una città grande e stabile rispetto a una piccola e instabile. Gli ufficiali possono acquistare o prendere in affitto immobili utilizzando i fondi della Resistenza anziché il proprio denaro."
    Target_de_de "Das Immobilienmenü erscheint im Hauptmenü, wenn du dich in einem Gebäude befindest, das besessen werden kann. Es zeigt den Verkaufspreis und die Miete dieses Gebäudes. Beides sind keine festen Werte: Sie steigen mit der Bevölkerung und der Stabilität der nächstgelegenen Stadt. Dasselbe Haus ist daher in einer großen, stabilen Stadt mehr wert als in einer kleinen, instabilen. Offiziere können Käufe und Mieten mit Geld aus der Widerstandskasse statt mit ihrem eigenen Geld bezahlen."
    Target_ru_ru "Меню недвижимости появляется в главном меню, когда вы находитесь внутри здания, которое можно приобрести, и показывает цену продажи и арендную плату этого здания. Ни то, ни другое не является фиксированной величиной: обе цифры растут с населением и стабильностью ближайшего города, поэтому один и тот же дом стоит дороже в большом, стабильном городе, чем в маленьком и нестабильном. Офицеры могут покупать и арендовать, используя средства сопротивления вместо своих собственных денег."
    Target_uk_ua "Меню нерухомості з'являється в головному меню щоразу, коли ви перебуваєте всередині будівлі, яку можна придбати, і відображає її ціну продажу та вартість оренди. Жоден із цих показників не є фіксованим: обидва зростають відповідно до чисельності населення та рівня стабільності найближчого міста. Через це однаковий тип будинку коштуватиме дорожче у великому, спокійному місті, ніж у малому чи нестабільному. Офіцери мають можливість купувати та орендувати нерухомість за кошти опору замість власних грошей."
@@ -7116,6 +7461,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000123}" {
    Id "OVT-FieldManual_YourHome_Text4"
    Target_en_us "Rent is settled once a day at midnight: whoever rents a building pays, and whoever owns it is paid. You can own more than one building and set any of them as your home instead. A building cannot be sold while it is your home, and your last remaining building cannot be sold at all."
+   Target_it_it "L'affitto viene regolato una volta al giorno, a mezzanotte: chi occupa un edificio paga, mentre il proprietario riceve il pagamento. È possibile possedere più edifici e designarne uno qualsiasi come propria abitazione. Un edificio non può essere venduto finché funge da abitazione, e l'ultimo edificio rimasto non può essere venduto in alcun caso."
    Target_de_de "Die Miete wird einmal täglich um Mitternacht abgerechnet: Wer ein Gebäude mietet, bezahlt, und wer es besitzt, erhält die Zahlung. Du kannst mehr als ein Gebäude besitzen und jedes davon als dein Zuhause festlegen. Ein Gebäude kann nicht verkauft werden, solange es dein Zuhause ist, und dein letztes verbliebenes Gebäude kann überhaupt nicht verkauft werden."
    Target_ru_ru "Арендная плата взимается раз в день в полночь: арендатор платит, а владелец получает оплату. Вы можете владеть более чем одним зданием и назначить любое из них своим домом. Здание нельзя продать, пока оно является вашим домом, а ваше последнее оставшееся здание вообще нельзя продать."
    Target_uk_ua "Орендна плата розраховується один раз на добу опівночі: той, хто орендує будівлю, сплачує кошти, а власник отримує виплату. Ви можете володіти кількома будівлями та обрати будь-яку з них як свій дім. Будівлю не можна продати, поки вона призначена вашим домом, а вашу останню нерухомість продати неможливо взагалі."
@@ -7136,6 +7482,7 @@ StringTable {
   CustomStringTableItem "{6B3B000000000119}" {
    Id "OVT-FieldManual_YourHome_Title"
    Target_en_us "Your Home"
+   Target_it_it "Base operativa"
    Target_de_de "Dein Zuhause"
    Target_ru_ru "Ваш дом"
    Target_uk_ua "Ваш дім"
@@ -7156,6 +7503,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000D}" {
    Id "OVT-FillFuel"
    Target_en_us "Fill Tank"
+   Target_it_it "Rifornisci serbatoio"
    Target_de_de "Tank füllen"
    Target_ru_ru "Заполнить бак"
    Comment "Name of the fast fuel-fill user action (OVT_FillFuelAction), a five-second hold that fills one tank in a single go instead of the vanilla Refuel's trickle. SINGULAR IS LOAD-BEARING (amendment A2.1): a press fills only the tank whose action you are holding - a truck's fuel cap fills its chassis tanks, its cargo nozzle fills its cargo tank. It is drawn TWO WAYS: on its own as the prefab UIInfo fallback, and with the live price appended by GetActionNameScript as '#OVT-FillFuel ($37)' - so this string must read correctly with a bracketed dollar amount after it and must NOT end in punctuation. Two words, title case, sits in the same interaction list as vanilla's 'Refuel'. LENGTH BUDGET: short - it shares a line with the price. The free variant is #OVT-FillFuel_Free; keep the two in step."
@@ -7175,6 +7523,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000E}" {
    Id "OVT-FillFuel_Free"
    Target_en_us "Fill Tank (Free)"
+   Target_it_it "Rifornisci serbatoio (Gratis)"
    Target_de_de "Tank füllen (Kostenlos)"
    Target_ru_ru "Заполнить бак (бесплатно)"
    Comment "The fast fuel-fill action's label when the source costs nothing - a fuel truck, a Fuel Depot, or any server running fuelPricePerLitre 0 (OVT_FuelUtils.IsFreeFuelSource decides). '(Free)' is worth saying because the SAME action on the SAME vehicle shows a dollar amount at a pump fifty metres away, and a player needs to be able to tell those apart at a glance. Must stay a variant of #OVT-FillFuel - if that name is retranslated, this one follows."
@@ -7194,6 +7543,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000F}" {
    Id "OVT-FillFuel_SourceEmpty"
    Target_en_us "The fuel source here is empty"
+   Target_it_it "La fonte di carburante qui è esaurita"
    Target_de_de "Die Treibstoffquelle hier ist leer"
    Target_ru_ru "Источник топлива пуст"
    Comment "Reason shown under the greyed-out Fill Tank action when a fuel source covers this spot but has nothing left to give - an emptied Fuel Depot, a drained fuel truck, an exhausted pump. Set by OVT_FillFuelAction.CanBePerformedScript. The action deliberately stays VISIBLE for this case (an empty depot must not look like no depot at all) and HIDES only when there is no source in range whatsoever. LENGTH BUDGET: one short line - it renders in the same slot as vanilla's #AR-SupportStation_ActionInvalid_* reasons and must not wrap. TONE: states the fact, gives no instruction."
@@ -7213,6 +7563,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F3000000010}" {
    Id "OVT-FillFuel_TankFull"
    Target_en_us "Tanks are already full"
+   Target_it_it "I serbatoi sono già pieni"
    Target_de_de "Die Tanks sind bereits voll"
    Target_ru_ru "Баки уже полны"
    Comment "Reason shown under the greyed-out Fill Tank action when the target has no room left in any fuel tank that can receive fuel. Set by OVT_FillFuelAction.CanBePerformedScript. PLURAL ON PURPOSE, but scoped: the action fills every receiving node of ONE fuel manager - a Ural-4320's chassis manager is its 300 L main tank plus its 60 L reserve - and this reason is shown when all the nodes of THAT manager are full. It says nothing about the truck's separate cargo tank, which has its own action and its own reason. LENGTH BUDGET: one short line, must not wrap. TONE: states the fact, gives no instruction."
@@ -7232,6 +7583,7 @@ StringTable {
   CustomStringTableItem "{5E68F65B3B222D82}" {
    Id "OVT-FlipVehicle"
    Target_en_us "Flip Vehicle"
+   Target_it_it "Ribalta veicolo"
    Target_de_de "Fahrzeug umdrehen"
    Target_ru_ru "Перевернуть транспорт"
    Target_ko_kr "차량 뒤집기"
@@ -7254,6 +7606,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893FA01}" {
    Id "OVT-FOBOperationInProgress"
    Target_en_us "Another FOB operation is already in progress"
+   Target_it_it "È già in corso un'altra operazione relativa alla FOB"
    Target_de_de "Eine weitere FOB-Operation ist bereits im Gange"
    Target_ru_ru "Другая операция с ПОБ уже выполняется"
    Target_uk_ua "Інша операція з розгортання передової бази вже триває"
@@ -7274,6 +7627,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDE}" {
    Id "OVT-FOBUndeployed"
    Target_en_us "FOB Undeployed"
+   Target_it_it "FOB smantellata"
    Target_de_de "FOB nicht stationiert"
    Target_ru_ru "ПОБ не развернута"
    Target_uk_ua "FOB Нерозгорнуто"
@@ -7294,6 +7648,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDF}" {
    Id "OVT-FOBUndeployFailed"
    Target_en_us "FOB Undeployment Failed"
+   Target_it_it "Smantellamento FOB fallito"
    Target_de_de "Abbau der FOB fehlgeschlagen"
    Target_ru_ru "Сворачивание ПОБ не удалось"
    Target_uk_ua "Не вдалося згорнути FOB"
@@ -7314,6 +7669,7 @@ StringTable {
   CustomStringTableItem "{59D05007F9A93F67}" {
    Id "OVT-Fuel"
    Target_en_us "Fuel"
+   Target_it_it "Carburante"
    Target_fr_fr "Carburant"
    Target_de_de "Kraftstoff"
    Target_ru_ru "Топливо"
@@ -7337,6 +7693,7 @@ StringTable {
   CustomStringTableItem "{5DA486E2314F517D}" {
    Id "OVT-Garage"
    Target_en_us "Garage"
+   Target_it_it "Garage"
    Target_de_de "Garage"
    Target_ru_ru "Гараж"
    Target_ko_kr "차고"
@@ -7359,6 +7716,7 @@ StringTable {
   CustomStringTableItem "{5DA486E23E9BF397}" {
    Id "OVT-Garage_Description"
    Target_en_us "Allows purchase of vehicles"
+   Target_it_it "Consente l'acquisto di veicoli"
    Target_de_de "Ermöglicht den Kauf von Fahrzeugen"
    Target_ru_ru "Позволяет покупать технику"
    Target_ko_kr "차량 구매를 허용합니다"
@@ -7381,6 +7739,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50102}" {
    Id "OVT-GMIcon_Base"
    Target_en_us "Base %1"
+   Target_it_it "Base %1"
    Target_de_de "Basis %1"
    Target_ru_ru "База %1"
    Comment "Game Master icon and tooltip name for an occupying-faction base. %1 is the base index the campaign files it under, so a GM can match the icon to the base rows in the Overthrow panel. Keep it short"
@@ -7400,6 +7759,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50103}" {
    Id "OVT-GMIcon_BaseGeneric"
    Target_en_us "Base"
+   Target_it_it "Base"
    Target_de_de "Basis"
    Target_ru_ru "База"
    Comment "Game Master icon name for a base whose index is not known yet (campaign data has not reached this machine). Same word as OVT-GMIcon_Base without the number"
@@ -7419,6 +7779,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50101}" {
    Id "OVT-GMIcon_RadioTower"
    Target_en_us "Radio Tower"
+   Target_it_it "Torre radio"
    Target_de_de "Funkturm"
    Target_ru_ru "Радиовышка"
    Comment "Game Master icon and tooltip name for an Overthrow radio tower. One or two words - it is drawn under a 48px icon in the editor viewport"
@@ -7438,6 +7799,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D5011E}" {
    Id "OVT-GMIcon_Tooltip_Base"
    Target_en_us "%1 Resources - %2 Garrison Groups"
+   Target_it_it "%1 Risorse - %2 Gruppi di guarnigione"
    Target_de_de "%1 Ressourcen - %2 Garnisonsgruppen"
    Target_ru_ru "%1 ресурсов - %2 групп гарнизона"
    Comment "Game Master hover tooltip for a base icon. %1 is the base's resource total, %2 the number of AI groups garrisoned there (both from the gm-state store). No faction here - the vanilla tooltip already shows it below. One line, tooltip is 276px wide"
@@ -7457,6 +7819,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50121}" {
    Id "OVT-GMIcon_Tooltip_NoData"
    Target_en_us "No campaign data yet"
+   Target_it_it "Nessun dato della campagna disponibile"
    Target_de_de "Noch keine Kampagnendaten vorhanden"
    Target_ru_ru "Данных кампании пока нет"
    Comment "Game Master hover tooltip shown when a town, base or radio tower record cannot be resolved yet - world still loading, or a client that has not received campaign state. Must never be empty: an empty tooltip description removes the widget"
@@ -7476,6 +7839,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D5011F}" {
    Id "OVT-GMIcon_Tooltip_TowerOnline"
    Target_en_us "Online"
+   Target_it_it "Online"
    Target_de_de "Online"
    Target_ru_ru "Онлайн"
    Comment "Game Master hover tooltip for a radio tower that is working normally - it is broadcasting, so the occupying faction gets its detection bonus from it"
@@ -7495,6 +7859,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50120}" {
    Id "OVT-GMIcon_Tooltip_TowerSabotaged"
    Target_en_us "Sabotaged - %1"
+   Target_it_it "Sabotato - %1"
    Target_de_de "Sabotiert - %1"
    Target_ru_ru "Саботирована - %1"
    Comment "Game Master hover tooltip for a sabotaged radio tower. %1 is the downtime left as a clock string (eg 4:12). One line, tooltip is 276px wide"
@@ -7514,6 +7879,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D5011D}" {
    Id "OVT-GMIcon_Tooltip_Town"
    Target_en_us "Support %1 - Stability %2"
+   Target_it_it "Supporto %1 - Stabilità %2"
    Target_de_de "Unterstützung %1 - Stabilität %2"
    Target_ru_ru "Поддержка %1 - Стабильность %2"
    Comment "Game Master hover tooltip for a town icon. %1 is support as an already-formatted percentage (eg 62%), %2 stability the same way - neither is a bare number, so do not add a percent sign. One line, tooltip is 276px wide"
@@ -7533,6 +7899,7 @@ StringTable {
   CustomStringTableItem "{6B09A1C0E4D50104}" {
    Id "OVT-GMIcon_Town"
    Target_en_us "Town"
+   Target_it_it "Città"
    Target_de_de "Stadt"
    Target_ru_ru "Город"
    Comment "Game Master icon name for a town whose own name is not known yet (world still loading). The generic word for a settlement, not a specific town"
@@ -7552,6 +7919,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1006}" {
    Id "OVT-GMPanel_Funds"
    Target_en_us "Resistance Funds"
+   Target_it_it "Fondi della Resistenza"
    Target_de_de "Widerstandsmittel"
    Target_ru_ru "Фонды сопротивления"
    Comment "GM panel row label - money currently held by the resistance"
@@ -7571,6 +7939,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1004}" {
    Id "OVT-GMPanel_NextDistribution"
    Target_en_us "Next Distribution"
+   Target_it_it "Prossima distribuzione"
    Target_de_de "Nächste Verteilung"
    Target_ru_ru "Следующее распределение"
    Comment "GM panel row label - the next occupying-faction resource distribution: amount and countdown"
@@ -7590,6 +7959,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1005}" {
    Id "OVT-GMPanel_NextPayout"
    Target_en_us "Next Payout"
+   Target_it_it "Prossimo pagamento"
    Target_de_de "Nächste Auszahlung"
    Target_ru_ru "Следующая выплата"
    Comment "GM panel row label - the next player payout: amount and countdown"
@@ -7609,6 +7979,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1008}" {
    Id "OVT-GMPanel_NoData"
    Target_en_us "Waiting for campaign data..."
+   Target_it_it "In attesa dei dati della campagna..."
    Target_de_de "Warte auf Kampagnendaten..."
    Target_ru_ru "Ожидание данных кампании..."
    Comment "GM panel - shown in place of the campaign numbers until the first data snapshot arrives. Reads as waiting, not as broken"
@@ -7628,6 +7999,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100E}" {
    Id "OVT-GMPanel_Objective"
    Target_en_us "Objective"
+   Target_it_it "Obiettivo"
    Target_de_de "Ziel"
    Target_ru_ru "Цель"
    Comment "GM panel row label - the base, town or city the occupying faction has decided to take back. Keep short, it shares a 380px row"
@@ -7647,6 +8019,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100F}" {
    Id "OVT-GMPanel_ObjectiveNone"
    Target_en_us "None"
+   Target_it_it "Nessuno"
    Target_de_de "Keines"
    Target_ru_ru "Нет"
    Comment "GM panel objective row value - the occupying faction has no current objective. A normal state early in a campaign, not an error"
@@ -7666,6 +8039,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1010}" {
    Id "OVT-GMPanel_ObjectivePhase"
    Target_en_us "Phase"
+   Target_it_it "Fase"
    Target_de_de "Phase"
    Target_ru_ru "Фаза"
    Comment "GM panel row label - which phase of its plan the occupying faction's campaign against its current objective is in. The value beside it is the plan and phase NAMES as a mod author wrote them, so it is not itself translated. Keep short, it shares a 380px row"
@@ -7685,6 +8059,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1014}" {
    Id "OVT-GMPanel_ObjectivePhaseNone"
    Target_en_us "-"
+   Target_it_it "-"
    Target_ru_ru "-"
    Comment "GM panel phase row value - there is no objective, so there is no phase. A dash rather than a word, because the objective row beside it already says None"
    DevNote ""
@@ -7702,6 +8077,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1015}" {
    Id "OVT-GMPanel_ObjectivePhaseUnknown"
    Target_en_us "Unknown"
+   Target_it_it "Sconosciuto"
    Target_de_de "Unbekannt"
    Target_ru_ru "Неизвестно"
    Comment "GM panel phase row value - the occupying faction is running a plan but the server named no phase for it, which means the client and server builds differ or the plan did not resolve. Deliberately not the dash, which would say the campaign has no target while it is being attacked"
@@ -7721,6 +8097,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1003}" {
    Id "OVT-GMPanel_OFDeployment"
    Target_en_us "Deployment Pool"
+   Target_it_it "Riserva di schieramento"
    Target_de_de "Einsatzreserve"
    Target_ru_ru "Пул развёртывания"
    Comment "GM panel row label - the occupying faction's resources set aside for deploying new units"
@@ -7740,6 +8117,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1002}" {
    Id "OVT-GMPanel_OFResources"
    Target_en_us "OF Resources"
+   Target_it_it "Risorse OF"
    Target_de_de "Besatzungsfr. Ressourcen"
    Target_ru_ru "ОФ Ресурсы"
    Comment "GM panel row label - the occupying faction's reserve resource pool"
@@ -7759,6 +8137,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1007}" {
    Id "OVT-GMPanel_QRF"
    Target_en_us "QRF"
+   Target_it_it "QRF"
    Target_de_de "QRF"
    Target_ru_ru "ГБР"
    Comment "GM panel row label - status of the occupying faction's quick reaction force"
@@ -7778,6 +8157,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100C}" {
    Id "OVT-GMPanel_QRFActive"
    Target_en_us "%1 pts - %2"
+   Target_it_it "%1 punti - %2"
    Target_de_de "%1 Pkt - %2"
    Target_ru_ru "%1 очков - %2"
    Comment "GM panel QRF row value - an active quick reaction force with no named target. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss). Keep short, it shares a 380px row"
@@ -7797,6 +8177,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100D}" {
    Id "OVT-GMPanel_QRFActiveTown"
    Target_en_us "%1 pts - %2 - %3"
+   Target_it_it "%1 punti - %2 - %3"
    Target_de_de "%1 Pkt - %2 - %3"
    Target_ru_ru "%1 очков - %2 - %3"
    Comment "GM panel QRF row value - an active quick reaction force attacking a town. %1 is its strength in points, %2 is the time remaining as a clock (mm:ss), %3 is the town name. Keep short, it shares a 380px row"
@@ -7816,6 +8197,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1009}" {
    Id "OVT-GMPanel_QRFNone"
    Target_en_us "None"
+   Target_it_it "Nessuno"
    Target_de_de "Keines"
    Target_ru_ru "Нет"
    Comment "GM panel QRF row value - no quick reaction force is currently active"
@@ -7835,6 +8217,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100B}" {
    Id "OVT-GMPanel_SuppressedNoPlayers"
    Target_en_us "paused - no players"
+   Target_it_it "in pausa - nessun giocatore"
    Target_de_de "pausiert - keine Spieler"
    Target_ru_ru "приостановлено - нет игроков"
    Comment "GM panel countdown status - the payout countdown will not fire because no players are connected. Keep short, it shares a 380px row"
@@ -7854,6 +8237,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B100A}" {
    Id "OVT-GMPanel_SuppressedQRF"
    Target_en_us "paused - QRF active"
+   Target_it_it "in pausa - QRF attiva"
    Target_de_de "pausiert - QRF aktiv"
    Target_ru_ru "приостановлено - активна ГБР"
    Comment "GM panel countdown status - the distribution countdown will not fire because a QRF is running. Keep short, it shares a 380px row"
@@ -7873,6 +8257,7 @@ StringTable {
   CustomStringTableItem "{6B08D3A17C4B1001}" {
    Id "OVT-GMPanel_Threat"
    Target_en_us "Threat"
+   Target_it_it "Minaccia"
    Target_de_de "Bedrohung"
    Target_ru_ru "Угроза"
    Comment "GM panel row label - the occupying faction's current threat level, one decimal place"
@@ -7892,6 +8277,7 @@ StringTable {
   CustomStringTableItem "{59908363B46DA2C7}" {
    Id "OVT-GunDealer"
    Target_en_us "Gun Dealer"
+   Target_it_it "Mercante d'armi"
    Target_fr_fr "Marchant d'Armes"
    Target_de_de "Waffenhändler"
    Target_ru_ru "Торговец оружием"
@@ -7915,6 +8301,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C3}" {
    Id "OVT-HC_AtCap"
    Target_en_us "Your High Command groups are at capacity"
+   Target_it_it "I tuoi gruppi di Alto Comando sono al completo"
    Target_de_de "Deine Gruppen des Oberen Kommandos haben die Kapazitätsgrenze erreicht"
    Target_ru_ru "Ваши группы Командования достигли лимита"
    Comment "OVT_ManageHighCommandAction.CanBePerformedScript SetCannotPerformReason - shown when the player's member count already meets or exceeds their High Command cap."
@@ -7934,6 +8321,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CE}" {
    Id "OVT-HC_BuyButton"
    Target_en_us "Buy ($%1)"
+   Target_it_it "Acquista ($%1)"
    Target_de_de "Kaufen ($%1)"
    Target_ru_ru "Купить ($%1)"
    Comment "Barracks purchase screen Buy button label once an OK quote has arrived. %1 is the quoted total."
@@ -7953,6 +8341,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CF}" {
    Id "OVT-HC_BuyButtonPlain"
    Target_en_us "Buy"
+   Target_it_it "Acquista"
    Target_de_de "Kaufen"
    Target_ru_ru "Купить"
    Comment "Barracks purchase screen Buy button label before a quote has arrived, while none is pending, or after a refusal."
@@ -7972,6 +8361,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000D0}" {
    Id "OVT-HC_Buying"
    Target_en_us "Raising group..."
+   Target_it_it "Creazione gruppo in corso..."
    Target_de_de "Gruppe wird aufgestellt..."
    Target_ru_ru "Формирование группы..."
    Comment "Barracks purchase screen status line and Buy button label between pressing Buy and the server's RpcDo_HCResult answer."
@@ -7991,6 +8381,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005201}" {
    Id "OVT-HC_ConvertedGroupDesc"
    Target_en_us "Recruits promoted into High Command. They keep the gear they were carrying."
+   Target_it_it "Reclute promosse nell'Alto Comando. Mantengono l'equipaggiamento che avevano con sé."
    Target_de_de "Rekruten wurden ins Obere Kommando überführt. Sie behalten die Ausrüstung, die sie bei sich trugen."
    Target_ru_ru "Рекруты переведены в Командование. Они сохраняют своё снаряжение."
    Comment "Description of a converted High Command group (OVT_HighCommandManagerComponent.GetConvertedEntry). Never shown in the barracks purchase list - a converted group cannot be bought."
@@ -8010,6 +8401,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005200}" {
    Id "OVT-HC_ConvertedGroupName"
    Target_en_us "Converted Squad"
+   Target_it_it "Squadra convertita"
    Target_de_de "Überführter Trupp"
    Target_ru_ru "Преобразованная группа"
    Comment "Name shown on the map and in the Manage Groups roster for a High Command group made by converting a parked recruit squad. It names no purchasable catalog entry, so this is its only title (OVT_HighCommandManagerComponent.GetConvertedEntry)."
@@ -8029,6 +8421,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B3}" {
    Id "OVT-HC_Group_AntiTankTeam"
    Target_en_us "Anti-Tank Team"
+   Target_it_it "Squadra anticarro"
    Target_de_de "Panzerabwehrtrupp"
    Target_ru_ru "Противотанковая группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8048,6 +8441,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B4}" {
    Id "OVT-HC_Group_AntiTankTeamDesc"
    Target_en_us "Four fighters carrying anti-armour weapons."
+   Target_it_it "Quattro combattenti dotati di armi anticarro."
    Target_de_de "Vier Kämpfer mit Panzerabwehrwaffen."
    Target_ru_ru "Четыре бойца с противотанковым оружием."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'at_team'. Description shown in the barracks purchase screen's details panel."
@@ -8067,6 +8461,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B5}" {
    Id "OVT-HC_Group_FireTeam"
    Target_en_us "Fire Team"
+   Target_it_it "Squadra di fuoco"
    Target_de_de "Schützentrupp"
    Target_ru_ru "Боевая группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8086,6 +8481,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B6}" {
    Id "OVT-HC_Group_FireTeamDesc"
    Target_en_us "Five riflemen with a designated marksman."
+   Target_it_it "Cinque fucilieri con un tiratore scelto designato."
    Target_de_de "Fünf Gewehrschützen mit einem Präzisionsschützen"
    Target_ru_ru "Пять стрелков с назначенным снайпером."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'fireteam'. Description shown in the barracks purchase screen's details panel."
@@ -8105,6 +8501,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B1}" {
    Id "OVT-HC_Group_LightFireTeam"
    Target_en_us "Light Fire Team"
+   Target_it_it "Squadra di fuoco leggera"
    Target_de_de "Leichter Schützentrupp"
    Target_ru_ru "Лёгкая боевая группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8124,6 +8521,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B2}" {
    Id "OVT-HC_Group_LightFireTeamDesc"
    Target_en_us "Four riflemen, fast to raise and easy to keep supplied."
+   Target_it_it "Quattro fucilieri; rapidi da schierare e facili da rifornire."
    Target_de_de "Vier Gewehrschützen, schnell aufzustellen und leicht zu versorgen."
    Target_ru_ru "Четыре стрелка, быстро формируется и легко снабжается."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'light_fireteam'. Description shown in the barracks purchase screen's details panel."
@@ -8143,6 +8541,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AB}" {
    Id "OVT-HC_Group_MachineGunTeam"
    Target_en_us "Machine Gun Team"
+   Target_it_it "Squadra mitraglieri"
    Target_de_de "Maschinengewehrtrupp"
    Target_ru_ru "Пулемётная группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8162,6 +8561,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AC}" {
    Id "OVT-HC_Group_MachineGunTeamDesc"
    Target_en_us "A gunner and loader built to hold a line under fire."
+   Target_it_it "Un mitragliere e un addetto alle munizioni, ideati per tenere la posizione sotto il fuoco nemico."
    Target_de_de "Ein MG-Schütze und ein Ladeschütze, ausgelegt darauf, eine Stellung unter Beschuss zu halten."
    Target_ru_ru "Пулемётчик и заряжающий для удержания позиции."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'mg_team'. Description shown in the barracks purchase screen's details panel."
@@ -8181,6 +8581,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BB}" {
    Id "OVT-HC_Group_MotorFireTeam"
    Target_en_us "Motorised Fire Team"
+   Target_it_it "Squadra di fuoco motorizzata"
    Target_de_de "Motorisierter Schützentrupp"
    Target_ru_ru "Моторизованная боевая группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8200,6 +8601,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BC}" {
    Id "OVT-HC_Group_MotorFireTeamDesc"
    Target_en_us "A light fire team riding a jeep for a fast response."
+   Target_it_it "Una squadra di fuoco leggera su jeep per una risposta rapida."
    Target_de_de "Ein leichter Schützentrupp in einem Jeep für schnelle Reaktionen."
    Target_ru_ru "Лёгкая боевая группа на джипе для быстрого реагирования."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'motor_fireteam'. Description shown in the barracks purchase screen's details panel."
@@ -8219,6 +8621,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AF}" {
    Id "OVT-HC_Group_ReconTeam"
    Target_en_us "Recon Team"
+   Target_it_it "Squadra di ricognizione"
    Target_de_de "Aufklärungstrupp"
    Target_ru_ru "Разведывательная группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8238,6 +8641,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B0}" {
    Id "OVT-HC_Group_ReconTeamDesc"
    Target_en_us "Two fighters built for scouting, not sustained combat."
+   Target_it_it "Due combattenti ideati per la ricognizione, non per combattimenti prolungati."
    Target_de_de "Zwei Kämpfer für die Aufklärung, nicht für längere Gefechte ausgelegt"
    Target_ru_ru "Два бойца для разведки, не для продолжительного боя."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'recon_team'. Description shown in the barracks purchase screen's details panel."
@@ -8257,6 +8661,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B7}" {
    Id "OVT-HC_Group_RifleSquad"
    Target_en_us "Rifle Squad"
+   Target_it_it "Squadra fucilieri"
    Target_de_de "Schützengruppe"
    Target_ru_ru "Стрелковое отделение"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8276,6 +8681,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B8}" {
    Id "OVT-HC_Group_RifleSquadDesc"
    Target_en_us "A full seven-man squad, the backbone of a defence."
+   Target_it_it "Una squadra completa da sette uomini, la spina dorsale della difesa."
    Target_de_de "Eine vollständige siebenköpfige Schützengruppe, das Rückgrat der Verteidigung"
    Target_ru_ru "Полное отделение из семи человек, основа обороны."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'rifle_squad'. Description shown in the barracks purchase screen's details panel."
@@ -8295,6 +8701,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A9}" {
    Id "OVT-HC_Group_SentryTeam"
    Target_en_us "Sentry Team"
+   Target_it_it "Squadra di guardia"
    Target_de_de "Sicherungstrupp"
    Target_ru_ru "Сторожевая группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8314,6 +8721,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AA}" {
    Id "OVT-HC_Group_SentryTeamDesc"
    Target_en_us "Two riflemen who hold a position and watch for movement."
+   Target_it_it "Due fucilieri che presidiano una posizione e sorvegliano l'area alla ricerca di movimenti."
    Target_de_de "Zwei Gewehrschützen, die eine Stellung halten und nach Bewegungen Ausschau halten."
    Target_ru_ru "Два стрелка, удерживающих позицию и наблюдающих."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sentry_team'. Description shown in the barracks purchase screen's details panel."
@@ -8333,6 +8741,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AD}" {
    Id "OVT-HC_Group_SharpshooterTeam"
    Target_en_us "Sharpshooter Team"
+   Target_it_it "Squadra di tiratori scelti"
    Target_de_de "Scharfschützentrupp"
    Target_ru_ru "Снайперская группа"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8352,6 +8761,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000AE}" {
    Id "OVT-HC_Group_SharpshooterTeamDesc"
    Target_en_us "A marksman and spotter for long-range overwatch."
+   Target_it_it "Un tiratore scelto e un osservatore per la copertura a lungo raggio."
    Target_de_de "Ein Scharfschütze und ein Beobachter für die Überwachung auf große Entfernung."
    Target_ru_ru "Снайпер и наблюдатель для дальней поддержки."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'sharpshooter_team'. Description shown in the barracks purchase screen's details panel."
@@ -8371,6 +8781,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000B9}" {
    Id "OVT-HC_Group_TechnicalPKM"
    Target_en_us "Technical (PKM)"
+   Target_it_it "Technical (PKM)"
    Target_de_de "Bewaffneter Geländewagen (PKM)"
    Target_ru_ru "Техника с ПКМ"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8390,6 +8801,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BA}" {
    Id "OVT-HC_Group_TechnicalPKMDesc"
    Target_en_us "A sentry team mounted on a machine-gun-armed jeep."
+   Target_it_it "Una squadra di guardia a bordo di una jeep armata di mitragliatrice."
    Target_de_de "Ein Sicherungstrupp auf einem mit Maschinengewehr bewaffneten Geländewagen."
    Target_ru_ru "Сторожевая группа на джипе с пулемётом."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'technical_pkm'. Description shown in the barracks purchase screen's details panel."
@@ -8409,6 +8821,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BD}" {
    Id "OVT-HC_Group_TruckSquad"
    Target_en_us "Truck Squad"
+   Target_it_it "Squadra su autocarro"
    Target_de_de "Lkw-Schützengruppe"
    Target_ru_ru "Группа на грузовике"
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Display name shown in the barracks purchase screen row and details panel, and reused as the group's name on the map."
@@ -8428,6 +8841,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000BE}" {
    Id "OVT-HC_Group_TruckSquadDesc"
    Target_en_us "A fire team riding a covered truck for a long haul."
+   Target_it_it "Una squadra di combattimento a bordo di un autocarro coperto per spostamenti a lungo raggio."
    Target_de_de "Ein Schützentrupp in einem überdachten Lastwagen für längere Verlegungen"
    Target_ru_ru "Боевая группа на крытом грузовике для дальних перевозок."
    Comment "High Command purchasable group entry - FIA_OverthrowData.conf m_sKey 'truck_squad'. Description shown in the barracks purchase screen's details panel."
@@ -8447,6 +8861,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004112}" {
    Id "OVT-HC_Map_BadDestination"
    Target_en_us "Put the map cursor on a destination first"
+   Target_it_it "Posiziona prima il cursore della mappa su una destinazione"
    Target_de_de "Setze zuerst den Kartenzeiger auf ein Ziel"
    Target_ru_ru "Сначала установите курсор карты на цель"
    Comment "Reason line on the map info panel when an order was refused because the destination was not a real point on the map."
@@ -8466,6 +8881,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410F}" {
    Id "OVT-HC_Map_Deselect"
    Target_en_us "Deselect"
+   Target_it_it "Deseleziona"
    Target_de_de "Auswahl aufheben"
    Target_ru_ru "Снять выделение"
    Comment "Label on the map info panel's close button for a selected High Command group. It drops the selection and closes the panel; it does not close the map."
@@ -8485,6 +8901,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004102}" {
    Id "OVT-HC_Map_DestinationLine"
    Target_en_us "Destination: %1 away"
+   Target_it_it "Destinazione: a %1 di distanza"
    Target_de_de "Ziel: %1 entfernt"
    Target_ru_ru "Цель: %1"
    Comment "Map info panel line for a selected High Command group. %1 is the distance from the group to its ordered destination, already formatted with its units, so it reads as 'Destination: 1.2 km away'. Reads '0 m away' for a group that has arrived."
@@ -8504,6 +8921,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004103}" {
    Id "OVT-HC_Map_DistanceLine"
    Target_en_us "From you: %1"
+   Target_it_it "Da te: %1"
    Target_de_de "Von dir: %1"
    Target_ru_ru "От вас: %1"
    Comment "Map info panel line for a selected High Command group. %1 is the distance from the local player to the group, already formatted with its units."
@@ -8523,6 +8941,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004105}" {
    Id "OVT-HC_Map_DistanceUnknown"
    Target_en_us "unknown"
+   Target_it_it "sconosciuto"
    Target_de_de "unbekannt"
    Target_ru_ru "неизвестно"
    Comment "Substituted into the map info panel's From you line when the local player has no controlled character to measure from - spectating, or mid-respawn. Lower case: it sits inside a sentence."
@@ -8542,6 +8961,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004113}" {
    Id "OVT-HC_Map_NoSeam"
    Target_en_us "High Command is not available right now"
+   Target_it_it "L'Alto Comando non è disponibile al momento"
    Target_de_de "Das Obere Kommando ist derzeit nicht verfügbar"
    Target_ru_ru "Командование сейчас недоступен"
    Comment "Reason line on the map info panel when the local controller has no High Command request component, so the order could not be sent at all. Almost always a client that has just connected."
@@ -8561,6 +8981,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004110}" {
    Id "OVT-HC_Map_NotOwner"
    Target_en_us "Only %1 can order this group"
+   Target_it_it "Solo %1 può impartire ordini a questo gruppo"
    Target_de_de "Nur %1 kann diese Gruppe befehligen"
    Target_ru_ru "Только %1 может управлять этой группой"
    Comment "Reason line under the map info panel's disabled order buttons when the selected High Command group belongs to another player. %1 is that player's name. The buttons stay visible and disabled rather than being hidden, so the refusal is explained."
@@ -8580,6 +9001,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410D}" {
    Id "OVT-HC_Map_Order"
    Target_en_us "Order move"
+   Target_it_it "Ordina movimento"
    Target_de_de "Verlegung befehlen"
    Target_ru_ru "Приказ на перемещение"
    Comment "Label on the map info panel's order button for a selected High Command group. The button carries the key or pad glyph beside it, so the label is the verb only. Pressing it sends the group to wherever the map cursor is, keeping its current stance."
@@ -8599,6 +9021,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004116}" {
    Id "OVT-HC_Map_RefusedBadStance"
    Target_en_us "That stance is not valid"
+   Target_it_it "Quella postura non è valida"
    Target_de_de "Diese Haltung ist nicht zulässig"
    Target_ru_ru "Неверный режим"
    Comment "Reason line on the map info panel after the server refused an order with BAD_STANCE. A player should never see this; it means the client sent a stance value outside the enum."
@@ -8618,6 +9041,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004117}" {
    Id "OVT-HC_Map_RefusedGeneric"
    Target_en_us "The order was refused"
+   Target_it_it "L'ordine è stato rifiutato"
    Target_de_de "Der Befehl wurde abgelehnt"
    Target_ru_ru "Приказ отклонён"
    Comment "Fallback reason line on the map info panel for an order refusal the panel has no dedicated sentence for - NO_PLAYER, or a future RESULT_ code it has not been taught yet."
@@ -8637,6 +9061,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004115}" {
    Id "OVT-HC_Map_RefusedNoGroup"
    Target_en_us "That group no longer exists"
+   Target_it_it "Quel gruppo non esiste più"
    Target_de_de "Diese Gruppe existiert nicht mehr"
    Target_ru_ru "Эта группа больше не существует"
    Comment "Reason line on the map info panel after the server refused an order with NO_GROUP - the group was wiped or dismissed between the marker being drawn and the order arriving."
@@ -8656,6 +9081,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004114}" {
    Id "OVT-HC_Map_RefusedNotOwner"
    Target_en_us "That group is not yours"
+   Target_it_it "Quel gruppo non è tuo"
    Target_de_de "Diese Gruppe gehört dir nicht"
    Target_ru_ru "Эта группа не ваша"
    Comment "Reason line on the map info panel after the server refused an order with NOT_OWNER. The server is the only gate that matters; this sentence is what the player sees when the client-side check was bypassed or the group changed hands."
@@ -8675,6 +9101,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410E}" {
    Id "OVT-HC_Map_Stance"
    Target_en_us "Change stance"
+   Target_it_it "Cambia postura"
    Target_de_de "Haltung ändern"
    Target_ru_ru "Сменить режим"
    Comment "Label on the map info panel's stance button for a selected High Command group. Pressing it cycles Defend to Patrol to Attack and re-issues the order at the same destination."
@@ -8694,6 +9121,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004101}" {
    Id "OVT-HC_Map_StanceLine"
    Target_en_us "Stance: %1"
+   Target_it_it "Postura: %1"
    Target_de_de "Haltung: %1"
    Target_ru_ru "Режим: %1"
    Comment "Map info panel line for a selected High Command group. %1 is the already-translated stance name - Defend, Patrol or Attack."
@@ -8713,6 +9141,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004109}" {
    Id "OVT-HC_Map_StatusContact"
    Target_en_us "In contact"
+   Target_it_it "In contatto"
    Target_de_de "Feindkontakt"
    Target_ru_ru "В контакте"
    Comment "One-word-ish status for a High Command group whose members can currently see an enemy. Takes priority over every other status. Substituted into the map info panel's status line."
@@ -8732,6 +9161,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410C}" {
    Id "OVT-HC_Map_StatusHolding"
    Target_en_us "Holding"
+   Target_it_it "In attesa"
    Target_de_de "Hält Stellung"
    Target_ru_ru "Удерживает"
    Comment "Status for a High Command group that has arrived at its destination and is doing whatever its stance says. The default status. Substituted into the map info panel's status line."
@@ -8751,6 +9181,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004104}" {
    Id "OVT-HC_Map_StatusLine"
    Target_en_us "%1 - %2 / %3 alive"
+   Target_it_it "%1 - %2 / %3 superstiti"
    Target_de_de "%1 - %2 / %3 am Leben"
    Target_ru_ru "%1 - %2 / %3 живы"
    Comment "Map info panel line for a selected High Command group. %1 is the already-translated one-word status, %2 the members still alive and %3 the members the group was bought with."
@@ -8770,6 +9201,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410B}" {
    Id "OVT-HC_Map_StatusMoving"
    Target_en_us "Moving"
+   Target_it_it "In movimento"
    Target_de_de "In Bewegung"
    Target_ru_ru "В движении"
    Comment "Status for a High Command group that is still further than the arrival radius from its ordered destination. Substituted into the map info panel's status line."
@@ -8789,6 +9221,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000410A}" {
    Id "OVT-HC_Map_StatusNoAmmo"
    Target_en_us "Out of ammo"
+   Target_it_it "Munizioni esaurite"
    Target_de_de "Keine Munition"
    Target_ru_ru "Нет боеприпасов"
    Comment "Status for a High Command group where no member can put rounds downrange. Shown only when the group is not also in contact. Substituted into the map info panel's status line."
@@ -8808,6 +9241,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004111}" {
    Id "OVT-HC_Map_UnknownOwner"
    Target_en_us "an unknown player"
+   Target_it_it "un giocatore sconosciuto"
    Target_de_de "ein unbekannter Spieler"
    Target_ru_ru "неизвестный игрок"
    Comment "Substituted for a High Command group owner's name when the player roster cannot resolve it - usually an owner who has never connected to this session. Lower case: it sits inside a sentence."
@@ -8827,6 +9261,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C6}" {
    Id "OVT-HC_MemberCountFormat"
    Target_en_us "%1 fighters"
+   Target_it_it "%1 caccia"
    Target_de_de "%1 Kämpfer"
    Target_ru_ru "%1 бойцов"
    Comment "Format string for a High Command entry's member count, shown on each purchase screen row and in the details panel. %1 is the member count, read client-side from the prefab source with nothing spawned."
@@ -8846,6 +9281,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C4}" {
    Id "OVT-HC_MenuTitle"
    Target_en_us "High Command"
+   Target_it_it "Alto Comando"
    Target_de_de "Oberes Kommando"
    Target_ru_ru "Командование"
    Comment "Header title of the barracks purchase screen, UI/Layouts/Menu/HighCommandMenu.layout."
@@ -8865,6 +9301,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C5}" {
    Id "OVT-HC_NoSelectionHelp"
    Target_en_us "Select a group to see its price."
+   Target_it_it "Seleziona un gruppo per vederne il costo."
    Target_de_de "Wähle eine Gruppe aus, um ihren Preis zu sehen"
    Target_ru_ru "Выберите группу, чтобы увидеть её цену."
    Comment "Barracks purchase screen details panel placeholder text, shown before any row has been selected or when the catalog is empty."
@@ -8884,6 +9321,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C8}" {
    Id "OVT-HC_QuoteChecking"
    Target_en_us "Checking price..."
+   Target_it_it "Controllo prezzo..."
    Target_de_de "Preis wird geprüft..."
    Target_ru_ru "Проверка цены..."
    Comment "Barracks purchase screen status line and Buy button label while a debounced quote is on the wire (RequestQuoteGroup asked, RpcDo_HCQuote not yet answered for this row)."
@@ -8903,6 +9341,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CA}" {
    Id "OVT-HC_QuoteCovered"
    Target_en_us "$%1 covered by nearby warehouse stock"
+   Target_it_it "$%1 coperto dalle scorte del magazzino più vicino"
    Target_de_de "$%1 durch Bestand im nahegelegenen Lagerhaus abgedeckt"
    Target_ru_ru "$%1 покрыто запасами ближайшего склада"
    Comment "Barracks purchase screen quote line - RpcDo_HCQuote coveredValue, shown when greater than zero. %1 is the covered value at buy price."
@@ -8922,6 +9361,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000D1}" {
    Id "OVT-HC_QuoteError"
    Target_en_us "Unable to price this group right now"
+   Target_it_it "Impossibile determinare il prezzo di questo gruppo al momento"
    Target_de_de "Preis für diese Gruppe kann derzeit nicht ermittelt werden"
    Target_ru_ru "Не удалось оценить эту группу"
    Comment "Barracks purchase screen fallback reason text for a quote refusal this screen has no dedicated sentence for (NO_PLAYER, NO_ACTOR, or a future RESULT_* code the screen has not been taught yet)."
@@ -8941,6 +9381,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CB}" {
    Id "OVT-HC_QuoteNoCoverage"
    Target_en_us "No nearby warehouse stock"
+   Target_it_it "Nessuna scorta disponibile nel magazzino più vicino"
    Target_de_de "Kein Bestand in nahegelegenen Lagerhäusern"
    Target_ru_ru "Нет запасов на складах поблизости"
    Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteCovered when RpcDo_HCQuote's coveredValue is zero."
@@ -8960,6 +9401,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CD}" {
    Id "OVT-HC_QuoteNoSupporters"
    Target_en_us "No supporters required"
+   Target_it_it "Nessun supporto richiesto"
    Target_de_de "Keine Unterstützer erforderlich"
    Target_ru_ru "Сторонники не требуются"
    Comment "Barracks purchase screen quote line shown in place of OVT-HC_QuoteSupporters when RpcDo_HCQuote's supportersNeeded is zero."
@@ -8979,6 +9421,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000CC}" {
    Id "OVT-HC_QuoteSupporters"
    Target_en_us "%1 supporters required"
+   Target_it_it "Supporti richiesti: %1"
    Target_de_de "%1 Unterstützer erforderlich"
    Target_ru_ru "Требуется %1 сторонников"
    Comment "Barracks purchase screen quote line - RpcDo_HCQuote supportersNeeded, shown when greater than zero. %1 is the count taken from the nearest town."
@@ -8998,6 +9441,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C9}" {
    Id "OVT-HC_QuoteTotal"
    Target_en_us "$%1"
+   Target_it_it "$%1"
    Target_ru_ru "$%1"
    Comment "Barracks purchase screen quote line - the server's total price for the selected entry (RpcDo_HCQuote total). %1 is the amount. Labelled as an estimate: the purchase re-derives and charges its own number."
    DevNote ""
@@ -9015,6 +9459,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005102}" {
    Id "OVT-HC_Roster_Capacity"
    Target_en_us "%1 / %2 members"
+   Target_it_it "%1 / %2 membri"
    Target_de_de "%1 / %2 Mitglieder"
    Target_ru_ru "%1 / %2 бойцов"
    Comment "Capacity line on the Manage Groups roster. %1 is OVT_HighCommandManagerComponent.GetMemberCount for the local player, %2 is GetMemberCap - members across every owned group, whatever they are doing."
@@ -9034,6 +9479,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005107}" {
    Id "OVT-HC_Roster_Dismiss"
    Target_en_us "Dismiss"
+   Target_it_it "Sciogli"
    Target_de_de "Entlassen"
    Target_ru_ru "Расформировать"
    Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterDismiss) - opens the DISMISS_HC_GROUP confirmation dialog."
@@ -9053,6 +9499,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000510A}" {
    Id "OVT-HC_Roster_Dismissed"
    Target_en_us "Group dismissed"
+   Target_it_it "Gruppo sciolto"
    Target_de_de "Gruppe aufgelöst"
    Target_ru_ru "Группа расформирована"
    Comment "Hint shown by OVT_HighCommandRosterContext.OnResult on RESULT_OK after a confirmed dismiss - the server's answer, never shown optimistically."
@@ -9072,6 +9519,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000510B}" {
    Id "OVT-HC_Roster_DismissFailed"
    Target_en_us "Could not dismiss the group"
+   Target_it_it "Impossibile sciogliere il gruppo"
    Target_de_de "Gruppe konnte nicht entlassen werden"
    Target_ru_ru "Не удалось расформировать группу"
    Comment "Hint shown by OVT_HighCommandRosterContext.OnResult when a dismiss ask answers anything other than RESULT_OK."
@@ -9091,6 +9539,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005109}" {
    Id "OVT-HC_Roster_DismissMessage"
    Target_en_us "This will permanently disband the group, its vehicle and its orders. This cannot be undone."
+   Target_it_it "Questa azione scioglierà definitivamente il gruppo, il suo veicolo e i suoi ordini. L'operazione è irreversibile."
    Target_de_de "Dadurch wird die Gruppe samt Fahrzeug und Befehlen dauerhaft aufgelöst. Dies kann nicht rückgängig gemacht werden."
    Target_ru_ru "Это навсегда расформирует группу, её транспорт и приказы. Это действие необратимо."
    Comment "Message of the DISMISS_HC_GROUP confirmation dialog."
@@ -9110,6 +9559,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005108}" {
    Id "OVT-HC_Roster_DismissTitle"
    Target_en_us "Dismiss Group"
+   Target_it_it "Sciogli gruppo"
    Target_de_de "Gruppe auflösen"
    Target_ru_ru "Расформирование группы"
    Comment "Title of the DISMISS_HC_GROUP confirmation dialog (Configs/UI/Dialogs/DialogPresets_Campaign.conf), the DISMISS_RECRUIT shape."
@@ -9129,6 +9579,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005104}" {
    Id "OVT-HC_Roster_MembersFormat"
    Target_en_us "%1 / %2 alive"
+   Target_it_it "%1 / %2 in vita"
    Target_de_de "%1 / %2 am Leben"
    Target_ru_ru "%1 / %2 живы"
    Comment "Selected-group member count on the Manage Groups roster's details panel. %1 is OVT_HighCommandRecord.m_iAliveMembers, %2 is m_iTotalMembers."
@@ -9148,6 +9599,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005103}" {
    Id "OVT-HC_Roster_NoGroupsHelp"
    Target_en_us "You do not own any High Command groups yet. Buy one at a barracks."
+   Target_it_it "Non possiedi ancora alcun gruppo dell'Alto Comando. Acquistane uno presso una caserma."
    Target_de_de "Du besitzt noch keine Gruppen des Oberen Kommandos. Kaufe eine in einer Kaserne."
    Target_ru_ru "У вас нет групп Командования. Купите их в казарме."
    Comment "Manage Groups roster right panel placeholder text, shown when the local player owns no High Command groups at all."
@@ -9167,6 +9619,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005105}" {
    Id "OVT-HC_Roster_RowSubtitle"
    Target_en_us "%1 / %2 • %3"
+   Target_it_it "%1 / %2 • %3"
    Target_ru_ru "%1 / %2 • %3"
    Comment "Second line of one Manage Groups roster row (OVT_HighCommandRosterRowHandler.Populate). %1/%2 are alive/total members, %3 is the already-translated stance label (OVT-HC_Stance_*)."
    DevNote ""
@@ -9184,6 +9637,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005106}" {
    Id "OVT-HC_Roster_ShowOnMap"
    Target_en_us "Show on Map"
+   Target_it_it "Mostra sulla mappa"
    Target_de_de "Auf Karte anzeigen"
    Target_ru_ru "Показать на карте"
    Comment "Manage Groups roster action button label (WLib_NavigationButton, OverthrowHighCommandRosterShowOnMap) - opens the fullscreen map and selects the group there."
@@ -9203,6 +9657,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005101}" {
    Id "OVT-HC_Roster_YourGroups"
    Target_en_us "Your Groups"
+   Target_it_it "I tuoi gruppi"
    Target_de_de "Deine Gruppen"
    Target_ru_ru "Ваши группы"
    Comment "Left panel sub-heading on the Manage Groups roster (HighCommandRoster.layout), above the scrollable group list."
@@ -9222,6 +9677,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004108}" {
    Id "OVT-HC_Stance_Attack"
    Target_en_us "Attack"
+   Target_it_it "Attacca"
    Target_de_de "Angriff"
    Target_ru_ru "Атака"
    Comment "One of the three High Command stances. The group sweeps its destination looking for enemies. One word, title case."
@@ -9241,6 +9697,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004106}" {
    Id "OVT-HC_Stance_Defend"
    Target_en_us "Defend"
+   Target_it_it "Difendi"
    Target_de_de "Verteidigen"
    Target_ru_ru "Оборона"
    Comment "One of the three High Command stances. The group hunkers at its destination. One word, title case - it is substituted into the map info panel's Stance line and will be reused by the roster screen."
@@ -9260,6 +9717,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004107}" {
    Id "OVT-HC_Stance_Patrol"
    Target_en_us "Patrol"
+   Target_it_it "Pattuglia"
    Target_de_de "Patrouillieren"
    Target_ru_ru "Патруль"
    Comment "One of the three High Command stances. The group walks a ring around its destination indefinitely. One word, title case."
@@ -9279,6 +9737,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C7}" {
    Id "OVT-HC_VehicleIncluded"
    Target_en_us "+ vehicle"
+   Target_it_it "+ veicolo"
    Target_de_de "+ Fahrzeug"
    Target_ru_ru "+ транспорт"
    Comment "Tag shown on a barracks purchase screen row when the entry's m_sVehiclePrefab is set (a crewed vehicle group, not a foot group)."
@@ -9298,6 +9757,7 @@ StringTable {
   CustomStringTableItem "{59C527544D0B9EF0}" {
    Id "OVT-Heal"
    Target_en_us "Heal"
+   Target_it_it "Cura"
    Target_fr_fr "Soigner"
    Target_de_de "Heilen"
    Target_ru_ru "Лечить"
@@ -9321,6 +9781,7 @@ StringTable {
   CustomStringTableItem "{59C5275449083085}" {
    Id "OVT-Healed"
    Target_en_us "You have been healed"
+   Target_it_it "Sei stato curato"
    Target_fr_fr "Vous avez été soigné"
    Target_de_de "Du wurdest geheilt"
    Target_ru_ru "Вы были вылечены"
@@ -9344,6 +9805,7 @@ StringTable {
   CustomStringTableItem "{59D05007FF9B8533}" {
    Id "OVT-Health"
    Target_en_us "Health"
+   Target_it_it "Salute"
    Target_fr_fr "Santé"
    Target_de_de "Gesundheit"
    Target_ru_ru "Здоровье"
@@ -9367,6 +9829,7 @@ StringTable {
   CustomStringTableItem "{5E648245F29C7998}" {
    Id "OVT-Helipad"
    Target_en_us "Helipad"
+   Target_it_it "Eliporto"
    Target_de_de "Hubschrauberlandeplatz"
    Target_ru_ru "Вертолётная площадка"
    Target_ko_kr "헬리포드"
@@ -9389,6 +9852,7 @@ StringTable {
   CustomStringTableItem "{5E6482493A453E1C}" {
    Id "OVT-Helipad_Description"
    Target_en_us "Allows purchase of helicopters"
+   Target_it_it "Consente l'acquisto di elicotteri"
    Target_de_de "Ermöglicht den Kauf von Hubschraubern"
    Target_ru_ru "Позволяет покупать вертолёты"
    Target_ko_kr "헬리콥터 구매 허용"
@@ -9411,6 +9875,7 @@ StringTable {
   CustomStringTableItem "{59C527545D12FEDB}" {
    Id "OVT-HomeSet"
    Target_en_us "Your home is now set to here"
+   Target_it_it "La tua base è stata impostata qui"
    Target_fr_fr "Votre domicile est désormais ici"
    Target_de_de "Dein Zuhause wurde auf diesen Ort festgelegt"
    Target_ru_ru "Ваш дом теперь установлен в этой точке"
@@ -9434,6 +9899,7 @@ StringTable {
   CustomStringTableItem "{65D6C32BD9BC2121}" {
    Id "OVT-House"
    Target_en_us "House"
+   Target_it_it "Base"
    Target_de_de "Haus"
    Target_ru_ru "Дом"
    Target_uk_ua "Будинок"
@@ -9444,6 +9910,7 @@ StringTable {
   CustomStringTableItem "{5D5AD8A5702C6A81}" {
    Id "OVT-Import"
    Target_en_us "Import"
+   Target_it_it "Importa"
    Target_fr_fr "Importer"
    Target_de_de "Importieren"
    Target_ru_ru "Импорт"
@@ -9467,6 +9934,7 @@ StringTable {
   CustomStringTableItem "{59A6DA4F01F49A60}" {
    Id "OVT-Income"
    Target_en_us "Income"
+   Target_it_it "Entrate"
    Target_fr_fr "Revenu"
    Target_de_de "Einkommen"
    Target_ru_ru "Доход"
@@ -9496,6 +9964,13 @@ StringTable {
    "If you are new to Overthrow, there is a set of tutorials in the \"Jobs\" section in the main Overthrow menu."\
    ""\
    "For more info on Overthrow's features and gameplay just have a look at the \"Field Manual\""
+   Target_it_it "Benvenuto in Overthrow! Questa è la tua base: qui rinascerai e potrai tornarci con il viaggio rapido pagando una piccola somma tramite il menu principale <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>."\
+   ""\
+   "Possiedi un'auto parcheggiata nel garage e una pistola che porti addosso. I nemici ti considereranno un civile finché non ti vedranno armato e non ti spareranno; fai quindi attenzione quando estrai l'arma in loro presenza. Se sei ricercato dal nemico, nell'angolo in alto a destra appariranno delle stelle."\
+   ""\
+   "Se sei nuovo di Overthrow, troverai una serie di tutorial nella sezione \"Incarichi\" (Jobs) del menu principale della mod."\
+   ""\
+   "Per maggiori informazioni sulle funzionalità e sulle meccaniche di gioco di Overthrow, consulta il \"Manuale da campo\" (Field Manual)."
    Target_fr_fr "Bienvenue sur Overthrow! Ceci est votre domicile, vous réapparaitrez ici et pourrez y effectuer des déplacement rapides pour pas très cher dans le menu principal <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>. Vous possédez également une voiture dans le garage."\
    ""\
    "Pour plus d'informations sur les fonctionnalités d'Overthrow, ouvrez le \"Manuel de terrain\""
@@ -9545,6 +10020,7 @@ StringTable {
   CustomStringTableItem "{5D34246EAE2E228C}" {
    Id "OVT-IsHome"
    Target_en_us "Your Home (Respawn Point)"
+   Target_it_it "La tua base (punto di rinascita)"
    Target_fr_fr "Domicile (Point de réapparition)"
    Target_de_de "Dein Zuhause (Wiedereinstiegspunkt)"
    Target_ru_ru "Ваш дом (Точка возрождения)"
@@ -9568,6 +10044,7 @@ StringTable {
   CustomStringTableItem "{5D346D5D199B4849}" {
    Id "OVT-Item_Weed_Description"
    Target_en_us "A quarter ounce of the finest sticky icky. Can be sold to civilians for a small profit."
+   Target_it_it "Un quarto di oncia della migliore erba appiccicosa. Può essere venduta ai civili per un piccolo profitto."
    Target_fr_fr "C'est de la bonne mais il faut pas y toucher. Peut être vendu aux civils pour gagner un peu d'argent"
    Target_de_de "Eine Viertelunze vom feinsten klebrigen Gras. Kann mit kleinem Gewinn an Zivilisten verkauft werden."
    Target_ru_ru "Четверть унции высококласной травки. Может быть продан гражданским лицам с небольшой прибылью."
@@ -9591,6 +10068,7 @@ StringTable {
   CustomStringTableItem "{5D346D5D0FC98EAB}" {
    Id "OVT-Item_Weed_Name"
    Target_en_us "Weed"
+   Target_it_it "Erba"
    Target_fr_fr "Weed"
    Target_de_de "Cannabis"
    Target_ru_ru "Травка"
@@ -9614,6 +10092,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E28}" {
    Id "OVT-ItemLimitReached"
    Target_en_us "Item limit reached at this location"
+   Target_it_it "Limite di oggetti raggiunto in questa posizione"
    Target_de_de "Gegenstandslimit an diesem Ort erreicht"
    Target_ru_ru "Достигнут лимит предметов в этом месте"
    Target_uk_ua "Досягнуто ліміт предметів у цьому місці"
@@ -9624,6 +10103,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE1}" {
    Id "OVT-ItemProgress"
    Target_en_us "Item %1 of %2"
+   Target_it_it "Oggetto %1 di %2"
    Target_de_de "Gegenstand %1 von %2"
    Target_ru_ru "Предмет %1 из %2"
    Target_uk_ua "Предмет %1 з %2"
@@ -9644,6 +10124,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E2A}" {
    Id "OVT-ItemRemoved"
    Target_en_us "Item removed"
+   Target_it_it "Oggetto rimosso"
    Target_de_de "Gegenstand entfernt"
    Target_ru_ru "Предмет удален"
    Target_uk_ua "Предмет видалено"
@@ -9654,6 +10135,7 @@ StringTable {
   CustomStringTableItem "{59AEEB5827181BD1}" {
    Id "OVT-Job_AddedWaypoint"
    Target_en_us "A waypoint marker has been added to your map"
+   Target_it_it "Un indicatore di waypoint è stato aggiunto alla tua mappa"
    Target_fr_fr "Un marqueur a été placé sur la carte"
    Target_de_de "Deiner Karte wurde eine Wegpunktmarkierung hinzugefügt"
    Target_ru_ru "Маркер с маршрутной точкой добавлен на карту"
@@ -9677,6 +10159,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000073}" {
    Id "OVT-Job_AssassinateOfficer"
    Target_en_us "Assassinate Officer"
+   Target_it_it "Assassina l'ufficiale"
    Target_de_de "Offizier ausschalten"
    Target_ru_ru "Убийство офицера"
    Target_uk_ua "Убивство офіцера"
@@ -9697,6 +10180,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000074}" {
    Id "OVT-Job_AssassinateOfficer_Description"
    Target_en_us "The officer running this base is the reason the surrounding towns keep their heads down. Get inside, kill him, and get out. The garrison will be exactly as unhappy about it as you would expect - but the towns nearby will remember it."
+   Target_it_it "L'ufficiale al comando di questa base è il motivo per cui le città circostanti se ne stanno buone e sottomesse. Entra, eliminalo e vattene. La guarnigione non la prenderà affatto bene, com'è prevedibile, ma le città vicine se lo ricorderanno."
    Target_de_de "Der Offizier, der diese Basis führt, ist der Grund dafür, dass die umliegenden Städte den Kopf einziehen. Dring ein, töte ihn und verschwinde wieder. Die Garnison wird darüber genauso unglücklich sein, wie du es erwartest – aber die Städte in der Nähe werden sich daran erinnern."
    Target_ru_ru "Офицер, управляющий этой базой, — причина, по которой окрестные города держат головы низко. Проникните, убейте его и уходите. Гарнизон будет недоволен, как вы и ожидаете, но соседние города запомнят это."
    Target_uk_ua "Саме командир цієї бази тримає в страху весь навколишній регіон. Ваша мета — проникнути на об'єкт, ліквідувати офіцера та оперативно відійти. Ворожий гарнізон миттєво підніме тривогу й кине всі сили на ваш пошук, проте цей удар по окупантах підніме бойовий дух місцевих жителів і схилить сусідні міста на бік опору."
@@ -9717,6 +10201,7 @@ StringTable {
   CustomStringTableItem "{59AEEB5F91CFCA25}" {
    Id "OVT-Job_AssassinateTraitor"
    Target_en_us "Assassinate Traitor"
+   Target_it_it "Assassina il traditore"
    Target_fr_fr "Élimination de déserteur"
    Target_de_de "Verräter ausschalten"
    Target_ru_ru "Уничтожить предателя"
@@ -9742,6 +10227,9 @@ StringTable {
    Target_en_us "A member of the resistance has defected and is being held in protective custody. We have tracked down their location to a house. "\
    ""\
    "Eliminate this traitor before they can reveal any information."
+   Target_it_it "Un membro della Resistenza ha disertato e si trova sotto custodia protettiva. Abbiamo individuato il luogo in cui è nascosto: una casa."\
+   ""\
+   "Elimina il traditore prima che possa rivelare informazioni."
    Target_fr_fr "Un membre de la résistance a déserté et est désormais sous haute protection. Nous l'avons repéré dans une planque. Éliminez le traitre avant qu'il ne puisse révéler quoi que ce soit."
    Target_de_de "Ein Mitglied des Widerstands ist übergelaufen und befindet sich in Schutzhaft. Wir haben seinen Aufenthaltsort bis zu einem Haus zurückverfolgt."\
    ""\
@@ -9775,6 +10263,7 @@ StringTable {
   CustomStringTableItem "{59B540560DE6D9B3}" {
    Id "OVT-Job_BaseRecon"
    Target_en_us "Reconnaissance"
+   Target_it_it "Ricognizione"
    Target_fr_fr "Reconnaissance"
    Target_de_de "Aufklärung"
    Target_ru_ru "Разведка"
@@ -9800,6 +10289,9 @@ StringTable {
    Target_en_us "Visit a nearby base to determine the strength of it's defenses. You will need to get within 100m of the base flag to get a good look at it."\
    ""\
    "Be careful not to get seen within the restricted area marked as red on your map or you will be shot at."
+   Target_it_it "Visita una base vicina per valutarne le difese. Dovrai avvicinarti a meno di 100 metri dalla bandiera della base per osservarle bene."\
+   ""\
+   "Fai attenzione a non farti vedere all'interno dell'area riservata (contrassegnata in rosso sulla mappa), altrimenti ti spareranno."
    Target_fr_fr "Approchez vous d'une base pour en étudier l'importance de ses défenses. Vous devez vous trouvez à moins de 100 mètres de la base pour avoir un bon point de vue. Faites attention à ne pas vous faire repérer dans les zones interdites marquées en rouge sur la carte, au risque de vous faire tirer dessus"
    Target_de_de "Besuche eine Basis in der Nähe, um die Stärke ihrer Verteidigung festzustellen. Du musst bis auf 100 m an die Flagge der Basis herankommen, um sie gut auskundschaften zu können."\
    ""\
@@ -9833,6 +10325,7 @@ StringTable {
   CustomStringTableItem "{5D5080D0358FFA9F}" {
    Id "OVT-Job_FindGunDealer"
    Target_en_us "Tutorial - Find a gun dealer"
+   Target_it_it "Tutorial - Trova un venditore di armi"
    Target_fr_fr "Trouver un marchant d'armes"
    Target_de_de "Tutorial – Einen Waffenhändler finden"
    Target_ru_ru "Найти торговца оружием"
@@ -9858,6 +10351,9 @@ StringTable {
    Target_en_us "Gun dealers are located in the larger towns and cities. They are independant merchants who stock weapons and other illegal items. Each gun dealer will sell all ammunition plus one random gun of each type, so try different towns to find the weapon you're looking for."\
    ""\
    "Visit the nearest gun dealer to see what items they have available."
+   Target_it_it "I venditori di armi si trovano nelle città e nei centri abitati più grandi. Sono commercianti indipendenti che trattano armi e altri articoli illegali. Ogni venditore offre tutte le munizioni e un'arma casuale per ogni categoria; prova quindi a visitare diverse città per trovare l'arma che cerchi."\
+   ""\
+   "Visita il venditore di armi più vicino per vedere quali articoli ha in assortimento."
    Target_fr_fr "Les marchants d'armes peuvent être trouvés dans les grands bourgs & villes. Ce sont des marchants indépendants qui stockent des armes et d'autres objets illégaux. Rendez vous au plus proche pour voir quels objets sont disponibles."
    Target_de_de "Waffenhändler befinden sich in größeren Ortschaften und Städten. Sie sind unabhängige Händler, die Waffen und andere illegale Gegenstände auf Lager haben. Jeder Waffenhändler verkauft sämtliche Munition sowie eine zufällige Waffe jeder Art. Probiere daher verschiedene Städte aus, um die gesuchte Waffe zu finden."\
    ""\
@@ -9893,6 +10389,7 @@ StringTable {
   CustomStringTableItem "{5D9E51CB2C43D69B}" {
    Id "OVT-Job_FindShop"
    Target_en_us "Tutorial - Find a shop"
+   Target_it_it "Tutorial - Trova un negozio"
    Target_de_de "Tutorial – Ein Geschäft finden"
    Target_ru_ru "Найти магазин"
    Target_ko_kr "튜토리얼 - 상점 찾기"
@@ -9917,6 +10414,9 @@ StringTable {
    Target_en_us "Many towns on the map have various shops where you can purchase legal items. They are marked on the map by different icons representing the type of shop."\
    ""\
    "Visit the nearest shop and see what items they have available by performing an action on the cash register."
+   Target_it_it "Molte città sulla mappa ospitano negozi dove è possibile acquistare articoli legali. Sono indicati sulla mappa con icone diverse a seconda della tipologia di negozio."\
+   ""\
+   "Visita il negozio più vicino e scopri gli articoli disponibili interagendo con la cassa."
    Target_de_de "In vielen Städten auf der Karte gibt es verschiedene Geschäfte, in denen du legale Gegenstände kaufen kannst. Sie sind auf der Karte durch unterschiedliche Symbole gekennzeichnet, die die jeweilige Art des Geschäfts darstellen."\
    ""\
    "Besuche das nächstgelegene Geschäft und sieh dir an, welche Gegenstände dort verfügbar sind, indem du eine Aktion an der Kasse ausführst."
@@ -9950,6 +10450,7 @@ StringTable {
   CustomStringTableItem "{5D9E322DC34EA5A4}" {
    Id "OVT-Job_InProgress"
    Target_en_us "In Progress:"
+   Target_it_it "In corso:"
    Target_de_de "In Bearbeitung:"
    Target_ru_ru "В работе:"
    Target_ko_kr "진행 중:"
@@ -9972,6 +10473,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000044}" {
    Id "OVT-Job_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_it_it "Radio pirata"
    Target_de_de "Piratensender"
    Target_ru_ru "Пиратское радио"
    Target_uk_ua "Піратське радіо"
@@ -9992,6 +10494,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000045}" {
    Id "OVT-Job_PirateRadio_Description"
    Target_en_us "Word travels further than paper. Set up a pirate radio transmitter in this town to broadcast for the resistance. You'll have to buy the transmitter yourself using the 'Place' option in the main menu, and being seen by soldiers placing it will make you wanted."
+   Target_it_it "La voce corre più veloce della carta stampata. Installa un trasmettitore radio pirata in questa città per diffondere i messaggi della Resistenza. Dovrai acquistare il trasmettitore personalmente usando l'opzione \"Posiziona\" nel menu principale; tieni presente che, se i soldati ti vedranno mentre lo installi, diventerai un ricercato."
    Target_de_de "Worte verbreiten sich weiter als Papier. Errichte in dieser Stadt einen Piratensender, um für den Widerstand zu senden. Du musst den Sender selbst über die Option 'Place' im Hauptmenü kaufen. Wenn Soldaten dich beim Platzieren sehen, wirst du gesucht."
    Target_ru_ru "Слова распространяются дальше бумаги. Установите пиратский радиопередатчик в этом городе для вещания в поддержку сопротивления. Вам придётся купить передатчик через опцию «Разместить» в главном меню, и если солдаты увидят вас за установкой, вы станете розыскиваемым."
    Target_uk_ua "Слово розходиться далі, ніж папір. Встановіть у цьому місті піратський радіопередавач, щоб вести мовлення на підтримку опору. Вам доведеться придбати передавач самостійно через пункт «Розмістити» в головному меню, але зважте: якщо ворожі солдати помітять вас під час його встановлення, ви потрапите у розшук."
@@ -10012,6 +10515,7 @@ StringTable {
   CustomStringTableItem "{65CD1C84C885C17F}" {
    Id "OVT-Job_PlaceCamp"
    Target_en_us "Tutorial - Place a camp"
+   Target_it_it "Tutorial - Posiziona un accampamento"
    Target_de_de "Tutorial – Ein Camp errichten"
    Target_ru_ru "Обучение — Разместите лагерь"
    Target_uk_ua "Навчання - Розмістіть табір"
@@ -10032,6 +10536,17 @@ StringTable {
    "You can also set a camp as \"home' so you will respawn there on your death."\
    ""\
    "Place a camp by opening the Overthrow menu and choosing \"Place\". Put it somewhere useful so you can easily get back to an area where you are currently operating or where you parked your vehicle."
+   Target_it_it "Gli accampamenti possono essere posizionati ovunque, purché non troppo vicino a una base."\
+   ""\
+   "Creano un punto di viaggio rapido utilizzabile da qualsiasi giocatore e consentono di posizionare o costruire alcuni oggetti di base nelle vicinanze."\
+   ""\
+   "È inoltre possibile selezionare \"Gestisci accampamento\" per impostarlo come privato, impedendo così agli altri giocatori di utilizzarlo per il viaggio rapido."\
+   ""\
+   "Ogni giocatore può disporre di un solo accampamento alla volta. Posizionarne uno nuovo comporterà l'eliminazione di quello precedente e di tutti gli oggetti collocati o costruiti attorno ad esso."\
+   ""\
+   "Puoi anche impostare un accampamento come \"casa\", in modo da riapparirvi dopo la morte."\
+   ""\
+   "Posiziona un accampamento aprendo il menu Overthrow e scegliendo \"Posiziona\". Collocalo in un punto strategico per poter tornare facilmente nell'area in cui stai operando o dove hai parcheggiato il veicolo."
    Target_de_de "Camps können überall platziert werden, solange sie nicht zu nah an einer Basis liegen."\
    ""\
    "Ein Camp erzeugt einen Schnellreisepunkt, den jeder Spieler nutzen kann, und ermöglicht es dir, einige grundlegende Gegenstände in seiner Umgebung zu platzieren oder zu bauen."\
@@ -10072,6 +10587,7 @@ StringTable {
   CustomStringTableItem "{65CD0E9BACF7992F}" {
    Id "OVT-Job_PlaceEquipmentBox"
    Target_en_us "Tutorial - Place an Equipment Box"
+   Target_it_it "Tutorial - Posiziona una cassa di equipaggiamento"
    Target_de_de "Tutorial – Eine Ausrüstungskiste platzieren"
    Target_ru_ru "Обучение — Разместите ящик со снаряжением"
    Target_uk_ua "Навчання - Розмістіть ящик із екіпіруванням"
@@ -10091,6 +10607,16 @@ StringTable {
    "- Save your current loadout and apply it to yourself or nearby recruits"\
    ""\
    "Use the \"Place\" option in the Overthrow menu to place one at your house, your camp, an FOB or a base."
+   Target_it_it "La Cassa dell'equipaggiamento (Equipment Box) è un contenitore molto utile, dotato di funzionalità aggiuntive in Overthrow."\
+   ""\
+   "Può:"\
+   "- Conservare ogni tipo di equipaggiamento"\
+   "- Essere bloccata per impedire l'accesso ad altri giocatori"\
+   "- Essere scaricata in un veicolo vicino"\
+   "- Essere caricata da un veicolo vicino"\
+   "- Salvare il tuo equipaggiamento attuale e applicarlo a te stesso o alle reclute vicine"\
+   ""\
+   "Usa l'opzione \"Posiziona\" nel menu Overthrow per collocarne una presso la tua casa, il tuo accampamento, una FOB o una base."
    Target_de_de "Eine Ausrüstungskiste ist ein sehr nützlicher Lagerbehälter mit zusätzlichen Funktionen in Overthrow."\
    ""\
    "Sie kann:"\
@@ -10128,6 +10654,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000042}" {
    Id "OVT-Job_PropagandaRun"
    Target_en_us "Propaganda Run"
+   Target_it_it "Missione di propaganda"
    Target_de_de "Propagandaaktion"
    Target_ru_ru "Распространение пропаганды"
    Target_uk_ua "Розповсюдження пропаганди"
@@ -10148,6 +10675,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000043}" {
    Id "OVT-Job_PropagandaRun_Description"
    Target_en_us "The town needs reminding who the occupiers are. Put up a resistance poster somewhere in town - a wall in plain sight, where people will see it. Don't let the occupying forces catch you doing it."
+   Target_it_it "Bisogna ricordare alla città chi sono gli occupanti. Affiggi un manifesto della Resistenza da qualche parte in città: su un muro ben visibile, dove la gente possa notarlo. Fai in modo che le forze di occupazione non ti colgano sul fatto."
    Target_de_de "Die Stadt muss daran erinnert werden, wer die Besatzer sind. Bringe irgendwo in der Stadt ein Widerstandsplakat an – an einer gut sichtbaren Wand, wo die Leute es sehen werden. Lass dich dabei nicht von den Besatzungstruppen erwischen."
    Target_ru_ru "Городу нужно напомнить, кто оккупанты. Разместите плакат сопротивления где-нибудь в городе — на видной стене, где люди его увидят. Не дайте оккупантам поймать вас за этим."
    Target_uk_ua "Місцевим жителям треба нагадати, хто тут окупанти. Розклейте плакат опору десь у місті — на видному місці, на стіні, де його побачать люди. Головне — не попадіться на очі окупаційним військам під час роботи."
@@ -10168,6 +10696,7 @@ StringTable {
   CustomStringTableItem "{59B518B28C1095CF}" {
    Id "OVT-Job_RaiseSupport"
    Target_en_us "Tutorial - Raise Support"
+   Target_it_it "Tutorial - Ottieni sostegno"
    Target_fr_fr "Augmenter le soutien"
    Target_de_de "Tutorial – Unterstützung erhöhen"
    Target_ru_ru "Увеличить поддержку"
@@ -10195,6 +10724,11 @@ StringTable {
    "Raise support by placing posters in and around the town using the \"Place\" option in the Overthrow menu and waiting for them to catch the eye of 15% of the town's citizens. You can also deliver medical supplies like Bandages and Aspirin bottles by placing them in your car and using the \"Deliver Medical Supplies\" option in your trunk."\
    ""\
    "Check your progress using the \"Map Info\" menu option. You can raise support in any village, town or city without needing a job to do it."
+   Target_it_it "I sostenitori in questa città forniranno alla Resistenza una fonte di reddito fondamentale sotto forma di donazioni."\
+   ""\
+   "Aumenta il sostegno affiggendo manifesti in città e nei dintorni tramite l'opzione \"Posiziona\" del menu Overthrow e attendendo che attirino l'attenzione del 15% dei cittadini. Puoi anche consegnare forniture mediche, come bende e flaconi di aspirina, caricandole in auto e utilizzando l'opzione \"Consegna forniture mediche\" dal menu del bagagliaio."\
+   ""\
+   "Controlla i tuoi progressi tramite l'opzione \"Info mappa\" del menu. Puoi aumentare il sostegno in qualsiasi villaggio o città senza bisogno di un incarico specifico."
    Target_fr_fr "Les partisans représentent une importante source de revenus pour la résistance. Ralliez les à votre cause en collant des affiches dans et autour de la commune en utilisant l'option \"Placer\" du menu, puis attendez qu'au moins 15% y prêtent attention. Vous pouvez également leur fournir du matériel médical comme des bandages ou de l'insuline pour accélérer leur ralliement."
    Target_de_de "Unterstützer in dieser Stadt liefern dem Widerstand in Form von Spenden eine dringend benötigte Einnahmequelle."\
    ""\
@@ -10240,6 +10774,7 @@ StringTable {
   CustomStringTableItem "{65CD1C80A56DB4F2}" {
    Id "OVT-Job_RecruitACivilian"
    Target_en_us "Tutorial - Recruit a civilian"
+   Target_it_it "Tutorial - Recluta un civile"
    Target_de_de "Tutorial – Einen Zivilisten rekrutieren"
    Target_ru_ru "Обучение — Наймите гражданского"
    Target_uk_ua "Навчання - Рекрутируйте цивільного"
@@ -10256,6 +10791,13 @@ StringTable {
    "2. Build a \"Recruitment Tent\" at an FOB"\
    ""\
    "Once recruited you can command them using the \"Command menu\" with <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
+   Target_it_it "I civili possono essere reclutati nella tua squadra."\
+   ""\
+   "Ci sono due modi per reclutarli:"\
+   "1. Avvicinarti a loro per strada e reclutarli direttamente"\
+   "2. Costruire una \"Tenda di reclutamento\" presso una FOB"\
+   ""\
+   "Una volta reclutati, puoi impartire loro ordini tramite il \"Menu comandi\" con <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>"
    Target_de_de "Zivilisten können für deinen Trupp rekrutiert werden."\
    ""\
    "Es gibt zwei Möglichkeiten, sie zu rekrutieren:"\
@@ -10284,6 +10826,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000005D}" {
    Id "OVT-Job_SabotageRadioTower"
    Target_en_us "Sabotage Radio Tower"
+   Target_it_it "Sabota la torre radio"
    Target_de_de "Funkturm sabotieren"
    Target_ru_ru "Диверсия на радиовышке"
    Target_uk_ua "Диверсія на радіовежі"
@@ -10304,6 +10847,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000005E}" {
    Id "OVT-Job_SabotageRadioTower_Description"
    Target_en_us "An occupier transmitter near this town is drowning out everything we put out. Get to the tower and sabotage it - it will be off the air long enough to matter. It will be guarded, and if you are seen at it you will be a wanted person."
+   Target_it_it "Un trasmettitore degli occupanti vicino a questa città sta oscurando tutte le nostre trasmissioni. Raggiungi la torre e sabotala: rimarrà fuori servizio abbastanza a lungo da fare la differenza. La zona sarà sorvegliata e, se ti vedranno mentre agisci, diventerai un ricercato."
    Target_de_de "Ein Sender der Besatzer in der Nähe dieser Stadt übertönt alles, was wir ausstrahlen. Geh zum Turm und sabotiere ihn – er wird lange genug außer Betrieb sein, um einen Unterschied zu machen. Er wird bewacht, und wenn man dich dort sieht, wirst du gesucht."
    Target_ru_ru "Передатчик оккупантов рядом с этим городом заглушает всё, что мы транслируем. Доберитесь до вышки и выведите её из строя — она будет молчать достаточно долго, чтобы это имело значение. Она охраняется, и если вас заметят рядом с ней, вы окажетесь в розыске."
    Target_uk_ua "Радіопередавач окупантів поблизу цього міста глушить усі наші трансляції. Дістаньтеся вежі та виведіть її з ладу — вона вийде з ладу на достатньо тривалий час. Об'єкт охороняється, і якщо вас помітять біля нього, ви опинитеся в розшуку."
@@ -10324,6 +10868,7 @@ StringTable {
   CustomStringTableItem "{5D5080D395D01E22}" {
    Id "OVT-Jobs_Accept"
    Target_en_us "Accept"
+   Target_it_it "Accetta"
    Target_fr_fr "Accepter"
    Target_de_de "Annehmen"
    Target_ru_ru "Принять"
@@ -10347,6 +10892,7 @@ StringTable {
   CustomStringTableItem "{59AEEB5A77561A7F}" {
    Id "OVT-Jobs_Completed"
    Target_en_us "Job Completed"
+   Target_it_it "Missione completata"
    Target_fr_fr "Accompli"
    Target_de_de "Auftrag abgeschlossen"
    Target_ru_ru "Работа выполнена"
@@ -10370,6 +10916,7 @@ StringTable {
   CustomStringTableItem "{5D5080D2669C4FC6}" {
    Id "OVT-Jobs_Decline"
    Target_en_us "Decline"
+   Target_it_it "Rifiuta"
    Target_fr_fr "Refuser"
    Target_de_de "Ablehnen"
    Target_ru_ru "Отказаться"
@@ -10393,6 +10940,7 @@ StringTable {
   CustomStringTableItem "{59AEEB58378EB9DE}" {
    Id "OVT-Jobs_NoJobs"
    Target_en_us "There are currently no jobs available"
+   Target_it_it "Al momento non ci sono missioni disponibili"
    Target_fr_fr "Il n'y a actuellement aucun Jobs disponible"
    Target_de_de "Derzeit sind keine Aufträge verfügbar"
    Target_ru_ru "На текущий момент нет доступной работы"
@@ -10416,6 +10964,7 @@ StringTable {
   CustomStringTableItem "{59A8D254C85421A6}" {
    Id "OVT-Jobs_ShowOnMap"
    Target_en_us "Show On Map"
+   Target_it_it "Mostra sulla mappa"
    Target_fr_fr "Montrer sur la carte"
    Target_de_de "Auf Karte anzeigen"
    Target_ru_ru "Показать на карте"
@@ -10439,6 +10988,7 @@ StringTable {
   CustomStringTableItem "{64685092EE73FE51}" {
    Id "OVT-JobsMenuDescription"
    Target_en_us "These jobs are designed to be a tutorial for the game mode. They are not a great source of income and just show you what is possible. Overthrow is an open-world game mode where YOU decide how to further the cause of the revolution. You will make a lot more money by raising support and taking towns. So get out there and raise support, capture bases and take over the island!"
+   Target_it_it "Queste missioni fungono da tutorial per la modalità di gioco. Non garantiscono grandi guadagni, ma mostrano le possibilità offerte dal gioco. \"Overthrow\" è una modalità open-world in cui sei TU a decidere come portare avanti la causa della rivoluzione. Otterrai molti più fondi ottenendo sostegno e conquistando le città. Quindi datti da fare: raccogli consensi, conquista basi e prendi il controllo dell'isola!"
    Target_de_de "Diese Aufträge sind als Tutorial für den Spielmodus gedacht. Sie sind keine besonders gute Einnahmequelle, sondern zeigen dir lediglich, was möglich ist. Overthrow ist ein Open-World-Spielmodus, in dem DU entscheidest, wie du die Revolution voranbringst. Du wirst deutlich mehr Geld verdienen, indem du Unterstützung erhöhst und Städte einnimmst. Also geh raus, erhöhe die Unterstützung, erobere Basen und übernimm die Insel!"
    Target_ru_ru "Эти задания предназначены для обучения игровому режиму. Они не являются хорошим источником дохода и просто показывают, что возможно. Overthrow — это открытый игровой мир, в котором ВЫ решаете, как продвигать дело революции. Вы заработаете гораздо больше денег, повышая поддержку и захватывая города. Так что действуйте, повышайте поддержку, захватывайте базы и освобождайте остров!"
    Target_ko_kr "이 임무들은 게임 모드의 튜토리얼용으로 설계되었습니다. 많은 수입을 기대하기보다는 가능한 활동들을 보여주기 위한 것입니다. Overthrow는 당신이 혁명의 대의를 위해 어떻게 행동할지 스스로 결정하는 오픈 월드 게임 모드입니다. 지지자를 모으고 마을을 점령하는 것이 훨씬 더 많은 돈을 벌 수 있는 방법입니다. 그러니 밖으로 나가서 지지를 모으고, 기지를 점령하며 섬을 장악하세요!"\
@@ -10452,6 +11002,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60002}" {
    Id "OVT-LoadLoadout"
    Target_en_us "Load Loadout"
+   Target_it_it "Carica configurazione"
    Target_de_de "Ausrüstung laden"
    Target_ru_ru "Загрузить комплект"
    Target_uk_ua "Завантажити комплект спорядження"
@@ -10472,6 +11023,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60005}" {
    Id "OVT-LoadLoadoutMessage"
    Target_en_us "Select a loadout to apply:"
+   Target_it_it "Seleziona una configurazione da applicare:"
    Target_de_de "Wähle eine anzuwendende Ausrüstung:"
    Target_ru_ru "Выберите комплект для применения:"
    Target_uk_ua "Виберіть комплект спорядження для застосування:"
@@ -10492,6 +11044,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169A}" {
    Id "OVT-LoadoutApplied"
    Target_en_us "Loadout applied successfully"
+   Target_it_it "Configurazione applicata con successo"
    Target_de_de "Ausrüstung erfolgreich angewendet"
    Target_ru_ru "Комплект успешно применён"
    Target_uk_ua "Комплект спорядження застосовано успішно"
@@ -10512,6 +11065,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A5}" {
    Id "OVT-Loadouts_AppliedToAllRecruits"
    Target_en_us "Applied loadout '%1' to %2 recruits"
+   Target_it_it "Configurazione '%1' applicata a %2 reclute"
    Target_de_de "Ausrüstung '%1' auf %2 Rekruten angewendet"
    Target_ru_ru "Комплект '%1' применён к %2 рекрутам"
    Target_uk_ua "Комплект спорядження '%1' застосовано до %2 рекрутів"
@@ -10532,6 +11086,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A4}" {
    Id "OVT-Loadouts_AppliedToRecruit"
    Target_en_us "Applied loadout '%1' to %2"
+   Target_it_it "Configurazione '%1' applicata a %2"
    Target_de_de "Ausrüstung '%1' auf %2 angewendet"
    Target_ru_ru "Комплект '%1' применён к %2"
    Target_uk_ua "Комплект спорядження '%1' застосовано до %2"
@@ -10552,6 +11107,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391696}" {
    Id "OVT-Loadouts_Apply"
    Target_en_us "Apply to Self"
+   Target_it_it "Applica a te stesso"
    Target_de_de "Auf dich anwenden"
    Target_ru_ru "Применить к себе"
    Target_uk_ua "Застосувати до себе"
@@ -10572,6 +11128,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169E}" {
    Id "OVT-Loadouts_ApplyToAll"
    Target_en_us "Apply to All"
+   Target_it_it "Applica a tutti"
    Target_de_de "Auf alle anwenden"
    Target_ru_ru "Применить ко всем"
    Target_uk_ua "Застосувати до всіх"
@@ -10592,6 +11149,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169D}" {
    Id "OVT-Loadouts_ApplyToSelected"
    Target_en_us "Apply to Selected"
+   Target_it_it "Applica ai selezionati"
    Target_de_de "Auf Auswahl anwenden"
    Target_ru_ru "Применить к выбранному"
    Target_uk_ua "Застосувати до вибраного"
@@ -10612,6 +11170,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391697}" {
    Id "OVT-Loadouts_Delete"
    Target_en_us "Delete"
+   Target_it_it "Elimina"
    Target_de_de "Löschen"
    Target_ru_ru "Удалить"
    Target_uk_ua "Видалити"
@@ -10632,6 +11191,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A8}" {
    Id "OVT-Loadouts_FailedToApply"
    Target_en_us "Failed to apply loadout"
+   Target_it_it "Impossibile applicare la configurazione"
    Target_de_de "Ausrüstung konnte nicht angewendet werden"
    Target_ru_ru "Не удалось применить комплект"
    Target_uk_ua "Не вдалося застосувати комплект спорядження"
@@ -10652,6 +11212,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391693}" {
    Id "OVT-Loadouts_ManageLoadouts"
    Target_en_us "Manage Loadouts"
+   Target_it_it "Gestisci configurazioni"
    Target_de_de "Ausrüstungen verwalten"
    Target_ru_ru "Управление комплектами снаряжения"
    Target_uk_ua "Керування комплектами спорядження"
@@ -10672,6 +11233,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169B}" {
    Id "OVT-Loadouts_NearbyRecruits"
    Target_en_us "Nearby Recruits"
+   Target_it_it "Reclute nelle vicinanze"
    Target_de_de "Rekruten in der Nähe"
    Target_ru_ru "Рекруты рядом"
    Target_uk_ua "Рекрути поблизу"
@@ -10692,6 +11254,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A7}" {
    Id "OVT-Loadouts_NoEquipmentBox"
    Target_en_us "No equipment box available"
+   Target_it_it "Nessuna cassa equipaggiamento disponibile"
    Target_de_de "Keine Ausrüstungskiste verfügbar"
    Target_ru_ru "Нет ящика с оборудованием"
    Target_uk_ua "Ящик із екіпіруванням відсутній"
@@ -10712,6 +11275,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391695}" {
    Id "OVT-Loadouts_NoLoadoutsHelp"
    Target_en_us "No loadouts saved yet. Use an equipment box to save your current loadout, then come back here to manage and apply them."
+   Target_it_it "Nessuna configurazione salvata. Usa una cassa equipaggiamento per salvare la configurazione attuale, quindi torna qui per gestirle e applicarle."
    Target_de_de "Noch keine Ausrüstungen gespeichert. Verwende eine Ausrüstungskiste, um deine aktuelle Ausrüstung zu speichern, und kehre anschließend hierher zurück, um sie zu verwalten und anzuwenden."
    Target_ru_ru "Ещё нет сохранённых комплектов. Используйте ящик с оборудованием, чтобы сохранить текущий комплект, затем вернитесь сюда для управления."
    Target_uk_ua "Поки що жодного комплекту спорядження не збережено. Використайте ящик із екіпіруванням, щоб зберегти ваш поточний комплект, а потім поверніться сюди, щоб керувати ними та застосовувати їх."
@@ -10732,6 +11296,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A3}" {
    Id "OVT-Loadouts_NoRecruitSelected"
    Target_en_us "No recruit selected"
+   Target_it_it "Nessuna recluta selezionata"
    Target_de_de "Kein Rekrut ausgewählt"
    Target_ru_ru "Рекрут не выбран"
    Target_uk_ua "Рекрут не вибраний"
@@ -10752,6 +11317,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169C}" {
    Id "OVT-Loadouts_NoRecruitsNearby"
    Target_en_us "No recruits nearby"
+   Target_it_it "Nessuna recluta nelle vicinanze"
    Target_de_de "Keine Rekruten in der Nähe"
    Target_ru_ru "Рядом нет рекрутов"
    Target_uk_ua "Поруч немає рекрутів"
@@ -10772,6 +11338,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391698}" {
    Id "OVT-Loadouts_PersonalLoadout"
    Target_en_us "Personal loadout"
+   Target_it_it "Equipaggiamento personale"
    Target_de_de "Persönliche Ausrüstung"
    Target_ru_ru "Личный комплект снаряжения"
    Target_uk_ua "Особистий комплект спорядження"
@@ -10792,6 +11359,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391699}" {
    Id "OVT-Loadouts_Ready"
    Target_en_us "Ready"
+   Target_it_it "Pronto"
    Target_de_de "Bereit"
    Target_ru_ru "Готов"
    Target_uk_ua "Готовий"
@@ -10812,6 +11380,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A1}" {
    Id "OVT-Loadouts_RecruitDead"
    Target_en_us "Dead"
+   Target_it_it "Deceduto"
    Target_de_de "Tot"
    Target_ru_ru "Мёртв"
    Target_uk_ua "Мертвий"
@@ -10832,6 +11401,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E39169F}" {
    Id "OVT-Loadouts_RecruitReady"
    Target_en_us "Ready"
+   Target_it_it "Pronto"
    Target_de_de "Bereit"
    Target_ru_ru "Готов"
    Target_uk_ua "Готовий"
@@ -10852,6 +11422,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A0}" {
    Id "OVT-Loadouts_RecruitUnconscious"
    Target_en_us "Unconscious"
+   Target_it_it "Privo di sensi"
    Target_de_de "Bewusstlos"
    Target_ru_ru "Без сознания"
    Target_uk_ua "Непритомний"
@@ -10872,6 +11443,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A2}" {
    Id "OVT-Loadouts_RecruitUnknown"
    Target_en_us "Unknown"
+   Target_it_it "Sconosciuto"
    Target_de_de "Unbekannt"
    Target_ru_ru "Неизвестно"
    Target_uk_ua "Невідомо"
@@ -10892,6 +11464,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A6}" {
    Id "OVT-Loadouts_SelectedRecruit"
    Target_en_us "Selected: %1"
+   Target_it_it "Selezionato: %1"
    Target_de_de "Ausgewählt: %1"
    Target_ru_ru "Выбран: %1"
    Target_uk_ua "Вибрано: %1"
@@ -10912,6 +11485,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391694}" {
    Id "OVT-Loadouts_YourLoadouts"
    Target_en_us "Your Loadouts"
+   Target_it_it "I tuoi equipaggiamenti"
    Target_de_de "Deine Ausrüstungen"
    Target_ru_ru "Ваши комплекты снаряжения"
    Target_uk_ua "Ваші комплекти спорядження"
@@ -10932,6 +11506,7 @@ StringTable {
   CustomStringTableItem "{59A2BD308A7926FA}" {
    Id "OVT-LoadStorage"
    Target_en_us "Load storage into vehicle"
+   Target_it_it "Carica deposito sul veicolo"
    Target_fr_fr "Charger dans le véhicule"
    Target_de_de "In Fahrzeug laden"
    Target_ru_ru "Загрузить в транспорт"
@@ -10955,6 +11530,7 @@ StringTable {
   CustomStringTableItem "{5E68F659A1044CB6}" {
    Id "OVT-Lock"
    Target_en_us "Lock"
+   Target_it_it "Blocca"
    Target_de_de "Sperren"
    Target_ru_ru "Заблокировать"
    Target_ko_kr "잠그기"
@@ -10977,6 +11553,7 @@ StringTable {
   CustomStringTableItem "{5E68DB10BD28E109}" {
    Id "OVT-Locked"
    Target_en_us "Locked"
+   Target_it_it "Bloccato"
    Target_de_de "Gesperrt"
    Target_ru_ru "Заблокировано"
    Target_ko_kr "잠김"
@@ -10999,6 +11576,7 @@ StringTable {
   CustomStringTableItem "{5E68DB1CEC304F21}" {
    Id "OVT-LockVehicle"
    Target_en_us "Lock Vehicle"
+   Target_it_it "Blocca veicolo"
    Target_de_de "Fahrzeug verriegeln"
    Target_ru_ru "Заблокировать транспорт"
    Target_ko_kr "차량 잠그기"
@@ -11021,6 +11599,7 @@ StringTable {
   CustomStringTableItem "{598AB67692AD5DBB}" {
    Id "OVT-MainMenu_Build"
    Target_en_us "Build"
+   Target_it_it "Costruisci"
    Target_fr_fr "Construire"
    Target_de_de "Bauen"
    Target_ru_ru "Строительство"
@@ -11044,6 +11623,7 @@ StringTable {
   CustomStringTableItem "{598AB6769C0D5394}" {
    Id "OVT-MainMenu_CharacterSheet"
    Target_en_us "Character Sheet"
+   Target_it_it "Scheda personaggio"
    Target_fr_fr "Arbre de compétences"
    Target_de_de "Charakterbogen"
    Target_ru_ru "Прокачка персонажа"
@@ -11067,6 +11647,7 @@ StringTable {
   CustomStringTableItem "{598AB6768B0BDF7E}" {
    Id "OVT-MainMenu_FastTravel"
    Target_en_us "Fast Travel"
+   Target_it_it "Viaggio rapido"
    Target_fr_fr "Déplacement Rapide"
    Target_de_de "Schnellreise"
    Target_ru_ru "Быстрое перемещение"
@@ -11090,6 +11671,7 @@ StringTable {
   CustomStringTableItem "{59A8D26B9BC69C64}" {
    Id "OVT-MainMenu_Jobs"
    Target_en_us "Jobs"
+   Target_it_it "Incarichi"
    Target_fr_fr "Jobs"
    Target_de_de "Aufträge"
    Target_ru_ru "Работа"
@@ -11113,6 +11695,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000005100}" {
    Id "OVT-MainMenu_ManageGroups"
    Target_en_us "Manage Groups"
+   Target_it_it "Gestisci gruppi"
    Target_de_de "Gruppen verwalten"
    Target_ru_ru "Управление группами"
    Comment "Main menu button (OVT_MainMenuContext.ManageGroups) and header title of UI/Layouts/Menu/HighCommandRoster.layout - the same key on both, the OVT-MainMenu_ManageRecruits precedent."
@@ -11132,6 +11715,7 @@ StringTable {
   CustomStringTableItem "{598AB6769FBB6531}" {
    Id "OVT-MainMenu_ManageRecruits"
    Target_en_us "Manage Recruits"
+   Target_it_it "Gestisci reclute"
    Target_fr_fr "Gérer les recrues"
    Target_de_de "Rekruten verwalten"
    Target_ru_ru "Управление бойцами"
@@ -11180,6 +11764,7 @@ StringTable {
   CustomStringTableItem "{598AB6769A9A471C}" {
    Id "OVT-MainMenu_Options"
    Target_en_us "Options"
+   Target_it_it "Opzioni"
    Target_fr_fr "Options"
    Target_de_de "Optionen"
    Target_ru_ru "Опции"
@@ -11203,6 +11788,7 @@ StringTable {
   CustomStringTableItem "{598AB67694121E5D}" {
    Id "OVT-MainMenu_Place"
    Target_en_us "Place"
+   Target_it_it "Posiziona"
    Target_fr_fr "Placer"
    Target_de_de "Platzieren"
    Target_ru_ru "Разместить"
@@ -11226,6 +11812,7 @@ StringTable {
   CustomStringTableItem "{5D305CF3CF05C921}" {
    Id "OVT-MainMenu_RealEstate"
    Target_en_us "Real Estate"
+   Target_it_it "Immobili"
    Target_fr_fr "Immobilier"
    Target_de_de "Immobilien"
    Target_ru_ru "Недвижимость"
@@ -11249,6 +11836,7 @@ StringTable {
   CustomStringTableItem "{598AB676970E6911}" {
    Id "OVT-MainMenu_Resistance"
    Target_en_us "Resistance"
+   Target_it_it "Resistenza"
    Target_fr_fr "Résistance"
    Target_de_de "Widerstand"
    Target_ru_ru "Сопротивление"
@@ -11272,6 +11860,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000069}" {
    Id "OVT-MainMenu_Tips"
    Target_en_us "Tips"
+   Target_it_it "Suggerimenti"
    Target_de_de "Tipps"
    Target_ru_ru "Подсказки"
    Target_uk_ua "Поради"
@@ -11292,6 +11881,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD7}" {
    Id "OVT-MakeCampPrivate"
    Target_en_us "Make Private"
+   Target_it_it "Rendi privato"
    Target_de_de "Privat machen"
    Target_ru_ru "Сделать частным"
    Target_uk_ua "Зробити приватним"
@@ -11312,6 +11902,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD8}" {
    Id "OVT-MakeCampPublic"
    Target_en_us "Make Public"
+   Target_it_it "Rendi pubblico"
    Target_de_de "Öffentlich machen"
    Target_ru_ru "Сделать публичным"
    Target_uk_ua "Зробити публічним"
@@ -11332,6 +11923,7 @@ StringTable {
   CustomStringTableItem "{59C84C7D5793F882}" {
    Id "OVT-MakeOfficer"
    Target_en_us "Make Officer"
+   Target_it_it "Promuovi a ufficiale"
    Target_fr_fr "Promouvoir Officier"
    Target_de_de "Zum Offizier ernennen"
    Target_ru_ru "Сделать офицером"
@@ -11355,6 +11947,7 @@ StringTable {
   CustomStringTableItem "{6A08DC3474BC6703}" {
    Id "OVT-ManageCamp"
    Target_en_us "Manage Camp"
+   Target_it_it "Gestisci accampamento"
    Target_de_de "Camp verwalten"
    Target_ru_ru "Управление лагерем"
    Target_uk_ua "Управління табором"
@@ -11365,6 +11958,7 @@ StringTable {
   CustomStringTableItem "{5D582605F2DE0E0B}" {
    Id "OVT-ManageFOB"
    Target_en_us "Manage FOB"
+   Target_it_it "Gestisci FOB"
    Target_fr_fr "Gérer Avant Poste"
    Target_de_de "FOB verwalten"
    Target_ru_ru "Управление ПОБ"
@@ -11388,7 +11982,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000C2}" {
    Id "OVT-ManageHighCommand"
    Target_en_us "Manage High Command"
-   Target_de_de "Oberkommando verwalten"
+   Target_it_it "Gestisci Alto Comando"
+   Target_de_de "Oberes Kommando verwalten"
    Target_ru_ru "Управление Командованием"
    Comment "UIInfo Name on the barracks desk's OVT_ManageHighCommandAction (hover/action label), authored on OVT_Barracks.et and the three same-GUID vanilla barracks overrides."
    DevNote ""
@@ -11398,7 +11993,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261485
+   Modified 1782118510
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -11407,6 +12002,7 @@ StringTable {
   CustomStringTableItem "{59CF196E2474961C}" {
    Id "OVT-ManageVehicle"
    Target_en_us "Manage Vehicle"
+   Target_it_it "Gestisci veicolo"
    Target_fr_fr "Gérer Véhicule"
    Target_de_de "Fahrzeug verwalten"
    Target_ru_ru "Управление техникой"
@@ -11430,6 +12026,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33003}" {
    Id "OVT-Map_BringRecruits"
    Target_en_us "Bring recruits %1 (+$%2)"
+   Target_it_it "Porta reclute %1 (+$%2)"
    Target_de_de "Rekruten mitnehmen %1 (+$%2)"
    Target_ru_ru "Взять рекрутов %1 (+$%2)"
    Target_uk_ua "Залучено рекрутів: %1 (+$%2)"
@@ -11448,6 +12045,7 @@ StringTable {
   CustomStringTableItem "{6A8B150000000001}" {
    Id "OVT-Map_BusStop"
    Target_en_us "Bus Stop"
+   Target_it_it "Fermata dell'autobus"
    Target_de_de "Bushaltestelle"
    Target_ru_ru "Автобусная остановка"
    Target_uk_ua "Автобусна зупинка"
@@ -11468,6 +12066,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003E}" {
    Id "OVT-Map_BusStop_Desc"
    Target_en_us "Catch a bus here to travel to another bus stop. The fare rises with distance."
+   Target_it_it "Prendi l'autobus qui per raggiungere un'altra fermata. La tariffa aumenta in base alla distanza."
    Target_de_de "Nimm hier einen Bus, um zu einer anderen Bushaltestelle zu reisen. Der Fahrpreis steigt mit der Entfernung."
    Target_ru_ru "Сядьте на автобус здесь, чтобы доехать до другой остановки. Стоимость проезда зависит от расстояния."
    Target_uk_ua "Скористайтеся автобусом для поїздки до іншої зупинки. Вартість квитка залежить від відстані."
@@ -11488,6 +12087,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000045}" {
    Id "OVT-Map_Category_Bases"
    Target_en_us "Bases"
+   Target_it_it "Basi"
    Target_de_de "Basen"
    Target_ru_ru "Базы"
    Target_uk_ua "Бази"
@@ -11508,6 +12108,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004E}" {
    Id "OVT-Map_Category_BusStops"
    Target_en_us "Bus Stops"
+   Target_it_it "Fermate dell'autobus"
    Target_de_de "Bushaltestellen"
    Target_ru_ru "Автобусные остановки"
    Target_uk_ua "Автобусні зупинки"
@@ -11528,6 +12129,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000049}" {
    Id "OVT-Map_Category_Camps"
    Target_en_us "Camps"
+   Target_it_it "Accampamenti"
    Target_de_de "Camp"
    Target_ru_ru "Лагеря"
    Target_uk_ua "Табори"
@@ -11548,6 +12150,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000047}" {
    Id "OVT-Map_Category_FOBs"
    Target_en_us "FOBs"
+   Target_it_it "FOB (Basi operative avanzate)"
    Target_de_de "FOBs"
    Target_ru_ru "ПОБ"
    Target_uk_ua "Передові бази"
@@ -11568,6 +12171,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004C}" {
    Id "OVT-Map_Category_GunDealers"
    Target_en_us "Gun Dealers"
+   Target_it_it "Venditori di armi"
    Target_de_de "Waffenhändler"
    Target_ru_ru "Торговцы оружием"
    Target_uk_ua "Торговці зброєю"
@@ -11588,6 +12192,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004A}" {
    Id "OVT-Map_Category_Houses"
    Target_en_us "Houses"
+   Target_it_it "Case"
    Target_de_de "Häuser"
    Target_ru_ru "Дома"
    Target_uk_ua "Будинки"
@@ -11608,6 +12213,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000050}" {
    Id "OVT-Map_Category_POIs"
    Target_en_us "Points of Interest"
+   Target_it_it "Punti di interesse"
    Target_de_de "Sehenswürdigkeiten"
    Target_ru_ru "Точки интереса"
    Target_uk_ua "Точки інтересу"
@@ -11628,6 +12234,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000048}" {
    Id "OVT-Map_Category_Ports"
    Target_en_us "Ports"
+   Target_it_it "Porti"
    Target_de_de "Häfen"
    Target_ru_ru "Порты"
    Target_uk_ua "Порти"
@@ -11648,6 +12255,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000017}" {
    Id "OVT-Map_Category_ProductionSites"
    Target_en_us "Production Sites"
+   Target_it_it "Siti di produzione"
    Target_de_de "Produktionsstandorte"
    Target_ru_ru "Производственные объекты"
    Comment "Plural category label for the production-site map layer. Cited: Configs/Map/OverthrowMap.conf, m_sCategoryName on the {6A8E2F2000000001} block."
@@ -11667,6 +12275,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000046}" {
    Id "OVT-Map_Category_RadioTowers"
    Target_en_us "Radio Towers"
+   Target_it_it "Torri radio"
    Target_de_de "Funktürme"
    Target_ru_ru "Радиовышки"
    Target_uk_ua "Радіовежі"
@@ -11687,6 +12296,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000045}" {
    Id "OVT-Map_Category_ResourcePiles"
    Target_en_us "Crate Piles"
+   Target_it_it "Pile di casse"
    Target_de_de "Kistenstapel"
    Target_ru_ru "Кучи ящиков"
    Comment "Category name in the map layer-filter panel - the row that switches dropped resource crate pile markers on and off. PLURAL and title case: every row in this list names a category of marker, never one place. The singular form shown on the info panel is the separate key #OVT-Resource_Pile and should stay consistent with this one."
@@ -11706,6 +12316,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004B}" {
    Id "OVT-Map_Category_Shops"
    Target_en_us "Shops"
+   Target_it_it "Negozi"
    Target_de_de "Geschäfte"
    Target_ru_ru "Магазины"
    Target_uk_ua "Крамниці"
@@ -11726,6 +12337,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000044}" {
    Id "OVT-Map_Category_Towns"
    Target_en_us "Towns"
+   Target_it_it "Città"
    Target_de_de "Städte"
    Target_ru_ru "Города"
    Target_uk_ua "Міста"
@@ -11746,6 +12358,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004F}" {
    Id "OVT-Map_Category_Vehicles"
    Target_en_us "Vehicles"
+   Target_it_it "Veicoli"
    Target_de_de "Fahrzeuge"
    Target_ru_ru "Транспорт"
    Target_uk_ua "Техніка"
@@ -11766,6 +12379,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E00000004D}" {
    Id "OVT-Map_Category_Warehouses"
    Target_en_us "Warehouses"
+   Target_it_it "Magazzini"
    Target_de_de "Lagerhäuser"
    Target_ru_ru "Склады"
    Target_uk_ua "Склади"
@@ -11786,6 +12400,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000051}" {
    Id "OVT-Map_Category_Waypoints"
    Target_en_us "Waypoints"
+   Target_it_it "Waypoint"
    Target_de_de "Wegpunkte"
    Target_ru_ru "Путевые точки"
    Target_uk_ua "Маршрутні точки"
@@ -11806,6 +12421,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33006}" {
    Id "OVT-Map_ClosePanel"
    Target_en_us "Close"
+   Target_it_it "Chiudi"
    Target_de_de "Schließen"
    Target_ru_ru "Закрыть"
    Target_uk_ua "Закрити"
@@ -11824,6 +12440,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000049}" {
    Id "OVT-Map_GunDealer_Available"
    Target_en_us "Available here"
+   Target_it_it "Disponibile qui"
    Target_de_de "Hier verfügbar"
    Target_ru_ru "Доступно здесь"
    Target_uk_ua "Доступно тут"
@@ -11844,6 +12461,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000004E}" {
    Id "OVT-Map_GunDealer_Launcher"
    Target_en_us "Launcher"
+   Target_it_it "Lanciatore"
    Target_de_de "Werfer"
    Target_ru_ru "Пусковая установка"
    Target_uk_ua "Пускова установка"
@@ -11864,6 +12482,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000004D}" {
    Id "OVT-Map_GunDealer_MachineGun"
    Target_en_us "Machine gun"
+   Target_it_it "Mitragliatrice"
    Target_de_de "Maschinengewehr"
    Target_ru_ru "Пулемёт"
    Target_uk_ua "Кулемет"
@@ -11884,6 +12503,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000004A}" {
    Id "OVT-Map_GunDealer_None"
    Target_en_us "No heavy weapons in stock right now."
+   Target_it_it "Nessuna arma pesante disponibile al momento."
    Target_de_de "Derzeit keine schweren Waffen auf Lager."
    Target_ru_ru "Сейчас нет тяжёлого вооружения."
    Target_uk_ua "Наразі важкого озброєння немає в наявності."
@@ -11904,6 +12524,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000004B}" {
    Id "OVT-Map_GunDealer_Rifle"
    Target_en_us "Rifle"
+   Target_it_it "Fucile"
    Target_de_de "Gewehr"
    Target_ru_ru "Винтовка"
    Target_uk_ua "Гвинтівка"
@@ -11924,6 +12545,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000004C}" {
    Id "OVT-Map_GunDealer_Sniper"
    Target_en_us "Sniper"
+   Target_it_it "Fucile di precisione"
    Target_de_de "Scharfschützengewehr"
    Target_ru_ru "Снайперская винтовка"
    Target_uk_ua "Снайпер"
@@ -11944,6 +12566,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003A}" {
    Id "OVT-Map_House_Home"
    Target_en_us "Home"
+   Target_it_it "Base principale"
    Target_de_de "Zuhause"
    Target_ru_ru "Дом"
    Target_uk_ua "Дім"
@@ -11964,6 +12587,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000F0}" {
    Id "OVT-Map_JobWaypoint"
    Target_en_us "Job Waypoint"
+   Target_it_it "Waypoint missione"
    Target_de_de "Auftragswegpunkt"
    Target_ru_ru "Точка задания"
    Target_uk_ua "Точка завдання"
@@ -11984,7 +12608,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000004100}" {
    Id "OVT-Map_Layer_HighCommand"
    Target_en_us "High Command"
-   Target_de_de "Oberkommando"
+   Target_it_it "Alto Comando"
+   Target_de_de "Oberes Kommando"
    Target_ru_ru "Командование"
    Comment "Row label in the map layer-filter panel for the green NATO symbols showing every player's High Command groups. Two words, title case - it sits directly under the Recruits row in the same short list. It only ever labels a live control: a campaign with no High Command groups gets no row at all rather than a disabled one."
    DevNote ""
@@ -11994,7 +12619,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261491
+   Modified 1782118529
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -12003,6 +12628,7 @@ StringTable {
   CustomStringTableItem "{6A86D5E100000001}" {
    Id "OVT-Map_Layer_Influence"
    Target_en_us "Influence"
+   Target_it_it "Influenza"
    Target_de_de "Einfluss"
    Target_ru_ru "Влияние"
    Target_uk_ua "Вплив"
@@ -12023,6 +12649,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000043}" {
    Id "OVT-Map_Layer_Players"
    Target_en_us "Players"
+   Target_it_it "Giocatori"
    Target_de_de "Spieler"
    Target_ru_ru "Игроки"
    Target_uk_ua "Гравці"
@@ -12043,6 +12670,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000003F}" {
    Id "OVT-Map_Layer_Recruits"
    Target_en_us "Recruits"
+   Target_it_it "Reclute"
    Target_de_de "Rekruten"
    Target_ru_ru "Рекруты"
    Target_uk_ua "Рекрути"
@@ -12063,6 +12691,7 @@ StringTable {
   CustomStringTableItem "{6A84D5E100000002}" {
    Id "OVT-Map_Layer_Restricted"
    Target_en_us "Restricted Areas"
+   Target_it_it "Aree riservate"
    Target_de_de "Sperrgebiete"
    Target_ru_ru "Запретные зоны"
    Target_uk_ua "Заборонені зони"
@@ -12083,6 +12712,7 @@ StringTable {
   CustomStringTableItem "{6A84D5E100000001}" {
    Id "OVT-Map_Layer_Territory"
    Target_en_us "Territory"
+   Target_it_it "Territorio"
    Target_de_de "Gebiet"
    Target_ru_ru "Территория"
    Target_uk_ua "Територія"
@@ -12103,6 +12733,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000042}" {
    Id "OVT-Map_Layers_Markers"
    Target_en_us "Markers"
+   Target_it_it "Indicatori"
    Target_de_de "Markierungen"
    Target_ru_ru "Маркеры"
    Target_uk_ua "Маркери"
@@ -12123,6 +12754,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000041}" {
    Id "OVT-Map_Layers_Overlays"
    Target_en_us "Overlays"
+   Target_it_it "Sovrapposizioni"
    Target_de_de "Einblendungen"
    Target_ru_ru "Слои"
    Target_uk_ua "Оверлеї"
@@ -12143,6 +12775,7 @@ StringTable {
   CustomStringTableItem "{6A85D1E000000040}" {
    Id "OVT-Map_Layers_Title"
    Target_en_us "Map Layers"
+   Target_it_it "Livelli mappa"
    Target_de_de "Kartenebenen"
    Target_ru_ru "Слои карты"
    Target_uk_ua "Шари карти"
@@ -12163,6 +12796,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33004}" {
    Id "OVT-Map_LeaveRecruits"
    Target_en_us "Leave recruits behind %1"
+   Target_it_it "Lascia indietro le reclute %1"
    Target_de_de "Rekruten zurücklassen %1"
    Target_ru_ru "Оставить рекрутов %1"
    Target_uk_ua "Залишити рекрутів: %1"
@@ -12181,6 +12815,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000048}" {
    Id "OVT-Map_PileEmpty"
    Target_en_us "Empty"
+   Target_it_it "Vuoto"
    Target_de_de "Leer"
    Target_ru_ru "Пусто"
    Comment "Full-width line on a crate pile's map info panel when the pile holds nothing. Replaces the per-resource rows and the volume row entirely. An empty pile is normally short-lived, so this reads as a state, not an error."
@@ -12200,6 +12835,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000046}" {
    Id "OVT-Map_PileVolume"
    Target_en_us "Volume"
+   Target_it_it "Volume"
    Target_de_de "Volumen"
    Target_ru_ru "Объём"
    Comment "Map info panel row label on a crate pile marker - the caption for the pile's total loaded volume. The value is #OVT-Map_PileVolumeValue. Appears below one row per resource the pile holds."
@@ -12219,6 +12855,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000047}" {
    Id "OVT-Map_PileVolumeValue"
    Target_en_us "%1 m³"
+   Target_it_it "%1 m³"
    Target_ru_ru "%1 м³"
    Comment "Value of the volume row on a crate pile's map info panel. %1 is the pile's total loaded volume in cubic metres to one decimal. A pile has no capacity, so there is no denominator to show."
    DevNote ""
@@ -12237,6 +12874,7 @@ StringTable {
   CustomStringTableItem "{6A8B150000000002}" {
    Id "OVT-Map_POI"
    Target_en_us "Point of Interest"
+   Target_it_it "Punto di interesse"
    Target_de_de "Sehenswürdigkeit"
    Target_ru_ru "Точка интереса"
    Target_uk_ua "Точка інтересу"
@@ -12257,6 +12895,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003C}" {
    Id "OVT-Map_Port_Desc"
    Target_en_us "Imported goods can be bought here in bulk."
+   Target_it_it "Qui è possibile acquistare merci importate all'ingrosso."
    Target_de_de "Importierte Waren können hier in großen Mengen gekauft werden."
    Target_ru_ru "Здесь можно оптом купить импортные товары."
    Target_uk_ua "Тут можна оптом придбати імпортні товари."
@@ -12277,6 +12916,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003D}" {
    Id "OVT-Map_Port_Prices"
    Target_en_us "Shops closer to a port sell goods more cheaply."
+   Target_it_it "I negozi più vicini a un porto vendono merci a prezzi più bassi."
    Target_de_de "Geschäfte näher an einem Hafen verkaufen Waren günstiger."
    Target_ru_ru "Магазины ближе к порту продают товары дешевле."
    Target_uk_ua "Магазини поблизу порту продають товари дешевше."
@@ -12297,6 +12937,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000F1}" {
    Id "OVT-Map_RecruitWaypoint"
    Target_en_us "Recruit Waypoint"
+   Target_it_it "Punto di riferimento reclute"
    Target_de_de "Rekrutenwegpunkt"
    Target_ru_ru "Точка рекрута"
    Target_uk_ua "Точка рекрутингу"
@@ -12317,6 +12958,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000034}" {
    Id "OVT-Map_Row_Access"
    Target_en_us "Access"
+   Target_it_it "Accesso"
    Target_de_de "Zugang"
    Target_ru_ru "Доступ"
    Target_uk_ua "Доступ"
@@ -12337,6 +12979,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000037}" {
    Id "OVT-Map_Row_Contents"
    Target_en_us "Contents"
+   Target_it_it "Contenuto"
    Target_de_de "Inhalt"
    Target_ru_ru "Содержимое"
    Target_uk_ua "Вміст"
@@ -12357,6 +13000,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000038}" {
    Id "OVT-Map_Row_Empty"
    Target_en_us "Empty"
+   Target_it_it "Vuoto"
    Target_de_de "Leer"
    Target_ru_ru "Пусто"
    Target_uk_ua "Порожньо"
@@ -12377,6 +13021,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000033}" {
    Id "OVT-Map_Row_No"
    Target_en_us "No"
+   Target_it_it "No"
    Target_de_de "Nein"
    Target_ru_ru "Нет"
    Target_uk_ua "Ні"
@@ -12397,6 +13042,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000031}" {
    Id "OVT-Map_Row_Priority"
    Target_en_us "Priority"
+   Target_it_it "Priorità"
    Target_de_de "Priorität"
    Target_ru_ru "Приоритет"
    Target_uk_ua "Пріоритет"
@@ -12417,6 +13063,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000035}" {
    Id "OVT-Map_Row_Private"
    Target_en_us "Private"
+   Target_it_it "Privato"
    Target_de_de "Privat"
    Target_ru_ru "Частный"
    Target_uk_ua "Приватний"
@@ -12437,6 +13084,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000036}" {
    Id "OVT-Map_Row_Public"
    Target_en_us "Public"
+   Target_it_it "Pubblico"
    Target_de_de "Öffentlich"
    Target_ru_ru "Публичный"
    Target_uk_ua "Публічний"
@@ -12457,6 +13105,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000039}" {
    Id "OVT-Map_Row_Renter"
    Target_en_us "Renter"
+   Target_it_it "Affittuario"
    Target_de_de "Mieter"
    Target_ru_ru "Арендатор"
    Target_uk_ua "Орендар"
@@ -12477,6 +13126,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000030}" {
    Id "OVT-Map_Row_Status"
    Target_en_us "Status"
+   Target_it_it "Stato"
    Target_de_de "Status"
    Target_ru_ru "Статус"
    Target_uk_ua "Статус"
@@ -12497,6 +13147,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000032}" {
    Id "OVT-Map_Row_Yes"
    Target_en_us "Yes"
+   Target_it_it "Sì"
    Target_de_de "Ja"
    Target_ru_ru "Да"
    Target_uk_ua "Так"
@@ -12517,6 +13168,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000041}" {
    Id "OVT-Map_Shop_LocalSupply"
    Target_en_us "Local supply"
+   Target_it_it "Fornitura locale"
    Target_de_de "Lokales Angebot"
    Target_ru_ru "Местное предложение"
    Target_uk_ua "Місцеве постачання"
@@ -12537,6 +13189,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000047}" {
    Id "OVT-Map_Shop_NoStock"
    Target_en_us "Nothing in stock right now."
+   Target_it_it "Al momento non c'è nulla in magazzino."
    Target_de_de "Derzeit nichts auf Lager."
    Target_ru_ru "Сейчас нет товаров."
    Target_uk_ua "Наразі немає в наявності."
@@ -12557,6 +13210,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000048}" {
    Id "OVT-Map_Shop_NothingUnusual"
    Target_en_us "Nothing unusually cheap or dear right now."
+   Target_it_it "Al momento non c'è nulla di insolitamente economico o costoso."
    Target_de_de "Derzeit ist nichts ungewöhnlich günstig oder teuer."
    Target_ru_ru "Сейчас нет аномально дешёвых или дорогих товаров."
    Target_uk_ua "Наразі немає аномально дешевих чи дорогих товарів."
@@ -12577,6 +13231,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000045}" {
    Id "OVT-Map_Shop_Remote"
    Target_en_us "Far from a port - everything here costs more to bring in."
+   Target_it_it "Lontano da un porto: qui tutto costa di più da importare."
    Target_de_de "Weit von einem Hafen entfernt – alles hier ist teurer in der Beschaffung."
    Target_ru_ru "Далеко от порта — доставка сюда стоит дороже."
    Target_uk_ua "Далеко від порту — доставка товарів сюди коштує дорожче."
@@ -12597,6 +13252,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000042}" {
    Id "OVT-Map_Shop_TownWide"
    Target_en_us "Stock is pooled across every shop in this town."
+   Target_it_it "Le scorte sono condivise tra tutti i negozi di questa città."
    Target_de_de "Der Bestand wird über alle Geschäfte dieser Stadt gemeinsam verwaltet."
    Target_ru_ru "Запасы общие для всех магазинов в городе."
    Target_uk_ua "Товари є спільними для всіх магазинів у цьому місті."
@@ -12617,6 +13273,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000046}" {
    Id "OVT-Map_Shop_VehicleFlat"
    Target_en_us "Vehicles cost the same wherever you buy them."
+   Target_it_it "I veicoli costano lo stesso ovunque li si acquisti."
    Target_de_de "Fahrzeuge kosten überall gleich viel."
    Target_ru_ru "Транспорт стоит одинаково везде."
    Target_uk_ua "Вартість транспорту однакова в усіх продавців."
@@ -12637,6 +13294,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003B}" {
    Id "OVT-Map_Vehicle"
    Target_en_us "Vehicle"
+   Target_it_it "Veicolo"
    Target_de_de "Fahrzeug"
    Target_ru_ru "Транспорт"
    Target_uk_ua "Транспорт"
@@ -12657,6 +13315,7 @@ StringTable {
   CustomStringTableItem "{6A8B150000000003}" {
    Id "OVT-Map_Waypoint"
    Target_en_us "Waypoint"
+   Target_it_it "Punto di riferimento"
    Target_de_de "Wegpunkt"
    Target_ru_ru "Маршрутная точка"
    Target_uk_ua "Маршрутна точка"
@@ -12677,6 +13336,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D0000003F}" {
    Id "OVT-Map_Waypoint_JobDesc"
    Target_en_us "Marked from the Jobs menu."
+   Target_it_it "Contrassegnato dal menu Incarichi."
    Target_de_de "Über das Auftragsmenü markiert."
    Target_ru_ru "Отмечено из меню заданий."
    Target_uk_ua "Позначено з меню «Роботи»."
@@ -12697,6 +13357,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C4D00000040}" {
    Id "OVT-Map_Waypoint_RecruitDesc"
    Target_en_us "Marked from the Recruits menu."
+   Target_it_it "Contrassegnato dal menu Reclute."
    Target_de_de "Über das Rekrutenmenü markiert."
    Target_ru_ru "Отмечено из меню рекрутов."
    Target_uk_ua "Позначено з меню «Новобранці»."
@@ -12717,6 +13378,7 @@ StringTable {
   CustomStringTableItem "{59A6ED9A0E302C5E}" {
    Id "OVT-MedicalSupplies"
    Target_en_us "Medical Supplies"
+   Target_it_it "Forniture mediche"
    Target_fr_fr "Matériel Médical"
    Target_de_de "Medizinische Vorräte"
    Target_ru_ru "Медикаменты"
@@ -12740,6 +13402,7 @@ StringTable {
   CustomStringTableItem "{59A6ED9645E233BB}" {
    Id "OVT-MedicalSupplies_TooFar"
    Target_en_us "You are too far from any towns to deliver medical supplies"
+   Target_it_it "Sei troppo lontano da qualsiasi città per consegnare forniture mediche."
    Target_fr_fr "Vous êtes trop loin d'une commune pour livrer le matériel médical"
    Target_de_de "Du bist zu weit von einer Stadt entfernt, um medizinische Vorräte auszuliefern"
    Target_ru_ru "Вы слишком далеко от насленого пункта, чтобы доставить медикаменты"
@@ -12763,6 +13426,7 @@ StringTable {
   CustomStringTableItem "{59A6ED9BB773C165}" {
    Id "OVT-MedicalSuppliesDelivered"
    Target_en_us "Medical supplies delivered to the value of"
+   Target_it_it "Forniture mediche consegnate per un valore di"
    Target_fr_fr "Matériel Médical livré pour "
    Target_de_de "Medizinische Vorräte im Wert von geliefert:"
    Target_ru_ru "Медикаменты доставлены на сумму"
@@ -12786,6 +13450,7 @@ StringTable {
   CustomStringTableItem "{65D3388219BB413F}" {
    Id "OVT-MilitaryBase"
    Target_en_us "Military Base"
+   Target_it_it "Base militare"
    Target_de_de "Militärbasis"
    Target_ru_ru "Военная база"
    Target_uk_ua "Військова база"
@@ -12796,6 +13461,7 @@ StringTable {
   CustomStringTableItem "{65C4B2C28934AFF0}" {
    Id "OVT-MobileFOB"
    Target_en_us "Mobile FOB"
+   Target_it_it "FOB mobile"
    Target_de_de "Mobiler FOB"
    Target_ru_ru "Мобильный ПОБ"
    Target_uk_ua "Мобільна FOB"
@@ -12806,6 +13472,7 @@ StringTable {
   CustomStringTableItem "{6A2E8A8D2F652D08}" {
    Id "OVT-MobileFOBDescription"
    Target_en_us "Can be deployed into a forward base for the resistance, creating a Fast Travel/Respawn point and building area"
+   Target_it_it "Può essere schierata come base avanzata per la Resistenza, creando un punto di viaggio rapido/respawn e un'area di costruzione"
    Target_de_de "Kann zu einer vorgeschobenen Basis des Widerstands entfaltet werden und erstellt einen Schnellreise-/Wiedereinstiegspunkt sowie einen Baubereich"
    Target_ru_ru "Может быть развёрнут в передовую базу сопротивления, создавая точку быстрого перемещения/возрождения и зону для строительства."
    Modified 1782118660
@@ -12815,6 +13482,7 @@ StringTable {
   CustomStringTableItem "{65D08ACC7FDB3C67}" {
    Id "OVT-MobileFOBHelp"
    Target_en_us "Place items in the world so you can hide behind them or put stuff in them"
+   Target_it_it "Posiziona oggetti nel mondo per usarli come copertura o per riporvi del materiale"
    Target_de_de "FOBs werden jetzt von einem \"Mobile FOB\"-Lkw aus errichtet. Kaufe einen bei einem beliebigen Fahrzeughändler."
    Target_ru_ru "Размещайте объекты в мире, чтобы прятаться за ними или хранить в них вещи."
    Target_uk_ua "FOB тепер розгортаються з вантажівки \"Мобільна FOB\", придбайте її в будь-якому магазині техніки"
@@ -12825,6 +13493,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E801}" {
    Id "OVT-Modifier_BlackMarket"
    Target_en_us "Black Market Activity"
+   Target_it_it "Attività del mercato nero"
    Target_fr_fr "Activité du Marché Noir"
    Target_de_de "Schwarzmarktaktivität"
    Target_ru_ru "Активность черного рынка"
@@ -12847,6 +13516,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FE}" {
    Id "OVT-Modifier_CivilianDeath"
    Target_en_us "Civilian Deaths"
+   Target_it_it "Morti tra i civili"
    Target_fr_fr "Morts Civiles"
    Target_de_de "Tote Zivilisten"
    Target_ru_ru "Смерти гражданских"
@@ -12869,6 +13539,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E802}" {
    Id "OVT-Modifier_GrowingDiscontent"
    Target_en_us "Growing Discontent"
+   Target_it_it "Malcontento crescente"
    Target_fr_fr "Mécontentement Croissant"
    Target_de_de "Wachsende Unzufriedenheit"
    Target_ru_ru "Растущее недовольство"
@@ -12891,6 +13562,7 @@ StringTable {
   CustomStringTableItem "{5D6C212548EA9183}" {
    Id "OVT-Modifier_NearbyBase"
    Target_en_us "Nearby Base"
+   Target_it_it "Base nelle vicinanze"
    Target_de_de "Nahegelegene Basis"
    Target_ru_ru "База поблизости"
    Target_ko_kr "근처 기지"
@@ -12913,6 +13585,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000003}" {
    Id "OVT-Modifier_ObjectiveHarassment"
    Target_en_us "Enemy Harassment"
+   Target_it_it "Disturbo nemico"
    Target_de_de "Feindliche Störangriffe"
    Target_ru_ru "Враждебные действия противника"
    Comment "Town support modifier - applied by OVT_TownHarassmentBehaviorDeploymentModule when an occupying-faction group sent by the objective director has held the town centre for objectiveHarassmentHoldSeconds. Stacks up to 4 (one per rung of the harassment ladder) and expires after 2 in-game hours. Shown in the town panel's support modifier list."
@@ -12932,6 +13605,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FF}" {
    Id "OVT-Modifier_OccupyingFactionDeath"
    Target_en_us "Occupier Deaths"
+   Target_it_it "Morti tra gli occupanti"
    Target_fr_fr "Morts des Occupants"
    Target_de_de "Tote Besatzer"
    Target_ru_ru "Смерти оккупантов"
@@ -12954,6 +13628,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000075}" {
    Id "OVT-Modifier_OfficerAssassinated"
    Target_en_us "Officer Killed"
+   Target_it_it "Ufficiale ucciso"
    Target_de_de "Offizier getötet"
    Target_ru_ru "Офицер убит"
    Target_uk_ua "Офіцера вбито"
@@ -12974,6 +13649,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E804}" {
    Id "OVT-Modifier_PatrolHarassment"
    Target_en_us "Patrol Harassment"
+   Target_it_it "Disturbo alle pattuglie"
    Target_fr_fr "Harcèlement de Patrouille"
    Target_de_de "Belästigung von Patrouillen"
    Target_ru_ru "Преследование патрулем"
@@ -12996,6 +13672,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893FA02}" {
    Id "OVT-Modifier_PatrolPresence"
    Target_en_us "Patrol Presence"
+   Target_it_it "Presenza di pattuglie"
    Target_de_de "Patrouillenpräsenz"
    Target_ru_ru "Присутствие патрулей"
    Target_uk_ua "Присутність патрулів"
@@ -13016,6 +13693,7 @@ StringTable {
   CustomStringTableItem "{5D64799EE068B0DB}" {
    Id "OVT-Modifier_RecentBattle"
    Target_en_us "Recent Battle"
+   Target_it_it "Battaglia recente"
    Target_fr_fr "Batailles Récentes"
    Target_de_de "Kürzliche Schlacht"
    Target_ru_ru "Недавние бои"
@@ -13039,6 +13717,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E800}" {
    Id "OVT-Modifier_ResistanceVictory"
    Target_en_us "Resistance Victory"
+   Target_it_it "Vittoria della Resistenza"
    Target_fr_fr "Victoire de la Résistance"
    Target_de_de "Sieg des Widerstands"
    Target_ru_ru "Победа сопротивления"
@@ -13061,6 +13740,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E803}" {
    Id "OVT-Modifier_RevolutionaryMomentum"
    Target_en_us "Revolutionary Momentum"
+   Target_it_it "Slancio rivoluzionario"
    Target_fr_fr "Élan Révolutionnaire"
    Target_de_de "Revolutionärer Schwung"
    Target_ru_ru "Революционный импульс"
@@ -13083,6 +13763,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000F6}" {
    Id "OVT-Msg-AdminCommandRefused"
    Target_en_us "This command requires server admin rights"
+   Target_it_it "Questo comando richiede privilegi di amministratore del server"
    Target_de_de "Dieser Befehl erfordert Server-Adminrechte"
    Target_ru_ru "Эта команда требует прав администратора сервера"
    Target_uk_ua "Ця команда вимагає прав адміністратора сервера."
@@ -13103,6 +13784,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000F5}" {
    Id "OVT-Msg-AdminFundsAdded"
    Target_en_us "Admin: $%1 added to your account"
+   Target_it_it "Admin: $%1 aggiunti al tuo account"
    Target_de_de "Admin: $%1 deinem Konto hinzugefügt"
    Target_ru_ru "Админ: $%1 добавлено на ваш счёт"
    Target_uk_ua "Адмін: на ваш рахунок додано $%1"
@@ -13123,6 +13805,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000F8}" {
    Id "OVT-Msg-AdminResourcesAdded"
    Target_en_us "Admin: %1 resources added to the occupying faction and distributed (now %2 in reserve). The defense share went to the deployment pool immediately."
+   Target_it_it "Admin: %1 risorse aggiunte alla fazione occupante e distribuite (ora %2 in riserva). La quota destinata alla difesa è confluita immediatamente nel pool di schieramento."
    Target_de_de "Admin: %1 Ressourcen wurden der Besatzungsfraktion hinzugefügt und verteilt (jetzt %2 in Reserve). Der Verteidigungsanteil ging sofort in die Einsatzreserve."
    Target_ru_ru "Админ: %1 ресурсов добавлено оккупационной фракции и распределено (теперь %2 в резерве). Доля обороны немедленно переведена в пул развёртывания."
    Comment "Confirmation to a server admin who used the /give-resources chat command - %1 is the amount credited, %2 is the reserve AFTER the distribution (so it is the remainder, not the credited amount). Amended 2026-08-19: the command now runs TransferDefenseShareToPool immediately, because crediting the reserve alone left the deployment pool - the thing every visible force spends - untouched until the next tick, which made the command near-useless for its one purpose."
@@ -13139,26 +13822,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2E20000000B2}" {
-   Id "OVT-Msg-AdminSkillGranted"
-   Target_en_us "Admin: '%1' set to level %2"
-   Comment "Confirmation to a server admin who used the /give-skill chat command - %1 is the skill's key (e.g. Trade), %2 is the level it was set to"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788930000
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
+   Target_it_it "La battaglia per %1 inizierà a breve"
    Target_de_de "Die Schlacht um %1 beginnt in Kürze"
    Target_ru_ru "Бой за базу %1 скоро начнётся"
    Target_ko_kr "%1 기지를 위한 전투가 곧 시작됩니다."
@@ -13181,6 +13848,7 @@ StringTable {
   CustomStringTableItem "{59B4F0A361F5ADF0}" {
    Id "OVT-Msg-BaseControlledOccupying"
    Target_en_us "The resistance has lost control of %1 base"
+   Target_it_it "La Resistenza ha perso il controllo della base %1"
    Target_fr_fr "La résistance a perdu le contrôle d'une base"
    Target_de_de "Der Widerstand hat die Kontrolle über die Basis %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над базой %1"
@@ -13204,6 +13872,7 @@ StringTable {
   CustomStringTableItem "{59B4F0A294E1135C}" {
    Id "OVT-Msg-BaseControlledResistance"
    Target_en_us "The resistance has captured %1 base"
+   Target_it_it "La Resistenza ha conquistato la base %1"
    Target_fr_fr "La résistance a capturé une base ennemie"
    Target_de_de "Der Widerstand hat die Basis %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль базу  %1"
@@ -13227,6 +13896,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F0000000003}" {
    Id "OVT-Msg-CannotAffordFuel"
    Target_en_us "You can no longer afford fuel - refuelling stopped"
+   Target_it_it "Non hai fondi sufficienti per il carburante: rifornimento interrotto"
    Target_de_de "Du kannst dir keinen Treibstoff mehr leisten - Tanken abgebrochen"
    Target_ru_ru "Вы больше не можете позволить себе топливо — заправка остановлена"
    Comment "One-shot notification to the refuelling player only, fired by the modded SCR_FuelSupportStationComponent (Scripts/Game/Components/SupportStation/Modded/) when a paid refuel is about to cut off for lack of money. The fuel already delivered is theirs and the next 0.5 s tick's IsValid greys the action out with #OVT-Refuel_CannotAfford. Preset tag 'CannotAffordFuel' in Configs/overthrowBroadcastMessages.conf. WORDED 'CAN NO LONGER AFFORD' AND NOT 'RAN OUT OF MONEY' ON PURPOSE, and it must stay that way: the affordability gate demands a whole tick up front (ceil(maxFlow x price)), so the usual stopping point leaves the player holding a few dollars they cannot spend - implementation.md R10, documented as expected behaviour. 'Ran out of money' would be a plain falsehood on the common path. It is also true of the rarer trigger, where a concurrent debit clamped the charge and the balance really is 0. NO PARAMETERS - the shortfall is a sub-dollar carry plus part of a tick and no number there would mean anything to a player. Distinct from the generic #OVT-CannotAfford ('You cannot afford that'), which is a refused purchase; this one describes something that STOPPED part way through."
@@ -13246,6 +13916,7 @@ StringTable {
   CustomStringTableItem "{5D64799026B5CA0A}" {
    Id "OVT-Msg-CityBattle"
    Target_en_us "The battle for the city of %1 will begin shortly"
+   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_fr_fr "La bataille pour le contrôle de la ville va bientôt commencer"
    Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнётся"
@@ -13269,6 +13940,7 @@ StringTable {
   CustomStringTableItem "{5D647993297FAA09}" {
    Id "OVT-Msg-CityControlledOccupying"
    Target_en_us "The resistance has lost control of the city of %1"
+   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_fr_fr "La résistance a perdu le contrôle de la ville"
    Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
@@ -13292,6 +13964,7 @@ StringTable {
   CustomStringTableItem "{5D6479933F0A23F6}" {
    Id "OVT-Msg-CityControlledResistance"
    Target_en_us "The city of %1 is now under control by the resistance"
+   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_fr_fr "La ville est maintenant sous contrôle de la résistance"
    Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь контроллируется сопротивлением"
@@ -13315,6 +13988,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D000000C5}" {
    Id "OVT-Msg-CounterAttackBase"
    Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"
+   Target_it_it "Le forze nemiche hanno circondato %1 e sferreranno un attacco entro 15 minuti"
    Target_de_de "Feindkräfte haben %1 eingeschlossen und werden innerhalb von 15 Minuten angreifen"
    Target_ru_ru "Вражеские силы окружили %1 и начнут штурм в течение 15 минут"
    Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held BASE is complete and the siege stops being secret. %1 is the base's name. Sent to every player and to the external notification channel together, the same pairing OVT-Msg-BaseBattle uses. The fifteen minutes are REAL minutes, not in-game ones (thirty until 2026-08-20), and nothing at all is decided during them - the wording is a warning with a deadline in it, because that window is the whole point of the mechanic. Paired with OVT-Msg-CounterAttackTown, which says the same thing about a town or city."
@@ -13334,6 +14008,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D000000C6}" {
    Id "OVT-Msg-CounterAttackTown"
    Target_en_us "Enemy forces have surrounded %1 and will assault within 15 minutes"
+   Target_it_it "Le forze nemiche hanno circondato %1 e sferreranno un attacco entro 15 minuti"
    Target_de_de "Feindkräfte haben %1 eingeschlossen und werden innerhalb von 15 Minuten angreifen"
    Target_ru_ru "Вражеские силы окружили %1 и начнут штурм в течение 15 минут"
    Comment "Broadcast notification, sent ONCE per counter-attack, at the moment the occupying faction's encirclement of a resistance-held TOWN OR CITY is complete. %1 is the town's name. Cities use this same string - there is no separate city form, unlike OVT-Msg-TownBattle / OVT-Msg-CityBattle - and villages never appear here at all, because the occupying faction's objective director only ever targets a town or a base. Paired with OVT-Msg-CounterAttackBase; see that entry for the fifteen-minute window."
@@ -13353,6 +14028,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000E1}" {
    Id "OVT-Msg-GroupAiBudgetExceeded"
    Target_en_us "This group now commands %1 AI, over the recommended limit of %2 - performance may suffer"
+   Target_it_it "Questo gruppo gestisce ora %1 unità IA, superando il limite consigliato di %2: le prestazioni potrebbero risentirne"
    Target_de_de "Diese Gruppe befehligt jetzt %1 KI-Einheiten und liegt damit über dem empfohlenen Limit von %2 – die Leistung kann darunter leiden"
    Target_ru_ru "В этой группе теперь %1 ИИ-бойцов, что превышает рекомендуемый лимит %2 — производительность может снизиться"
    Target_uk_ua "Ця група зараз керує %1 ШІ, що перевищує рекомендовану лімітну кількість у %2 — продуктивність може знизитися."
@@ -13373,6 +14049,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E000000E0}" {
    Id "OVT-Msg-GroupJoinRefusedFull"
    Target_en_us "That group is full - your join request could not be completed"
+   Target_it_it "Il gruppo è al completo: impossibile completare la richiesta di accesso"
    Target_de_de "Diese Gruppe ist voll – deine Beitrittsanfrage konnte nicht abgeschlossen werden"
    Target_ru_ru "Группа заполнена — ваш запрос на вступление не выполнен"
    Target_uk_ua "Ця група заповнена — ваш запит на приєднання не вдалося виконати."
@@ -13393,6 +14070,7 @@ StringTable {
   CustomStringTableItem "{65D6231551A70A67}" {
    Id "OVT-Msg-HasPlacedCamp"
    Target_en_us "%1 has placed a camp"
+   Target_it_it "%1 ha piazzato un accampamento"
    Target_de_de "%1 hat ein Camp errichtet"
    Target_ru_ru "%1 разместил лагерь"
    Target_uk_ua "%1 розмістив табір"
@@ -13403,6 +14081,7 @@ StringTable {
   CustomStringTableItem "{59A49A822C192F63}" {
    Id "OVT-Msg-HasPlacedFOB"
    Target_en_us "%1 has placed a new FOB near %2. It is now available for fast travel and more"
+   Target_it_it "%1 ha piazzato una nuova FOB vicino a %2. Ora è disponibile per il viaggio rapido e altro ancora"
    Target_fr_fr "a placé un nouvel avant poste. Vous pouvez désormais y faire un déplacement rapide"
    Target_de_de "%1 hat einen neuen FOB in der Nähe von %2 errichtet. Er steht jetzt unter anderem für Schnellreisen zur Verfügung"
    Target_ru_ru "%1 разместил ПОБ вблизи %2. Точка доступна для быстрого перемещения"
@@ -13426,6 +14105,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A0}" {
    Id "OVT-Msg-HCGroupPurchased"
    Target_en_us "High Command group bought - %1 fighters for $%2"
+   Target_it_it "Il gruppo dell'Alto Comando ha acquistato %1 combattenti per $%2"
    Target_de_de "Gruppe für das Obere Kommandos gekauft - %1 Kämpfer für $%2"
    Target_ru_ru "Группа Командования куплена — %1 бойцов за $%2"
    Comment "Purchase confirmation at a barracks, to the buying player only. %1 is the group's member count, %2 is the amount actually charged (member cost plus the fee-multiplied gear that nearby warehouse stock did NOT cover). Sent AFTER the group is standing in the world - a failed spawn shows OVT-Msg-HCPurchaseSpawnFailed instead and charges nothing."
@@ -13445,6 +14125,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A5}" {
    Id "OVT-Msg-HCPurchaseAtCap"
    Target_en_us "You already command too many fighters to add %1 more"
+   Target_it_it "Comandi già troppi combattenti per aggiungerne altri %1"
    Target_de_de "Du befehligst bereits zu viele Kämpfer, um %1 weitere hinzuzufügen"
    Target_ru_ru "Вы уже командуете слишком большим количеством бойцов, чтобы добавить ещё %1"
    Comment "Purchase refusal, to the buying player only. %1 is how many members the refused group would have added. The cap counts MEMBERS across every group the player owns, not groups (decision D12); its value is highCommandMemberCap, default 48."
@@ -13464,6 +14145,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A4}" {
    Id "OVT-Msg-HCPurchaseBadEntry"
    Target_en_us "That group is not available here"
+   Target_it_it "Quel gruppo non è disponibile qui"
    Target_de_de "Diese Gruppe ist hier nicht verfügbar"
    Target_ru_ru "Эта группа здесь недоступна"
    Comment "Purchase refusal, to the buying player only. The entry index the client sent names nothing in the player faction's m_aHighCommandGroups, or its group prefab defines no members at all. No parameters."
@@ -13483,6 +14165,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A2}" {
    Id "OVT-Msg-HCPurchaseBarracksRuined"
    Target_en_us "This barracks is in ruins and cannot raise anyone"
+   Target_it_it "Questa caserma è in rovina e non può reclutare nessuno"
    Target_de_de "Diese Kaserne liegt in Trümmern und kann niemanden aufstellen"
    Target_ru_ru "Эта казарма разрушена и не может набирать бойцов"
    Comment "Purchase refusal, to the buying player only. The barracks exists but OVT_StructureDamage.IsUsable is false - it is in its ruined destruction phase. No parameters."
@@ -13502,6 +14185,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A3}" {
    Id "OVT-Msg-HCPurchaseBaseNotFriendly"
    Target_en_us "The resistance does not hold this base"
+   Target_it_it "La Resistenza non controlla questa base"
    Target_de_de "Der Widerstand hält diese Basis nicht"
    Target_ru_ru "Сопротивление не контролирует эту базу"
    Comment "Purchase refusal, to the buying player only. The nearest base is either further than baseRange away or still held by the occupying faction. No parameters."
@@ -13521,6 +14205,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A7}" {
    Id "OVT-Msg-HCPurchaseCannotAfford"
    Target_en_us "You cannot afford this group ($%1)"
+   Target_it_it "Non puoi permetterti questo gruppo ($%1)"
    Target_de_de "Du kannst dir diese Gruppe nicht leisten ($%1)"
    Target_ru_ru "Вы не можете позволить себе эту группу ($%1)"
    Comment "Purchase refusal, to the buying player only. %1 is the re-derived total the funds check ran against, which is the amount that would have been charged. The funds check is deliberately the LAST gate, so this never appears for a group the cap or the town would have refused anyway."
@@ -13540,6 +14225,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A6}" {
    Id "OVT-Msg-HCPurchaseNoSupporters"
    Target_en_us "The nearest town cannot spare %1 supporters"
+   Target_it_it "La città più vicina non può fornire %1 sostenitori"
    Target_de_de "Die nächstgelegene Ortschaft kann keine %1 Unterstützer entbehren"
    Target_ru_ru "Ближайший город не может выделить %1 сторонников"
    Comment "Purchase refusal, to the buying player only. %1 is how many supporters the group would have drawn down - one per member by default (highCommandSupportersPerMember). Also shown when there is no town near enough to draw from at all."
@@ -13559,6 +14245,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A1}" {
    Id "OVT-Msg-HCPurchaseNotAtBarracks"
    Target_en_us "You must be standing at a barracks to raise a group"
+   Target_it_it "Devi trovarti presso una caserma per reclutare un gruppo"
    Target_de_de "Du musst dich an einer Kaserne befinden, um eine Gruppe aufzustellen"
    Target_ru_ru "Вы должны находиться в казарме, чтобы набрать группу"
    Comment "Purchase refusal, to the buying player only. The server found no OVT_BarracksComponent within OVT_BarracksComponent.BARRACKS_USE_RADIUS (5 m) of the caller. No parameters."
@@ -13578,6 +14265,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D00000000A8}" {
    Id "OVT-Msg-HCPurchaseSpawnFailed"
    Target_en_us "The group could not be raised - nothing was charged"
+   Target_it_it "Impossibile reclutare il gruppo: nessun costo addebitato"
    Target_de_de "Die Gruppe konnte nicht aufgestellt werden - es wurde nichts berechnet"
    Target_ru_ru "Не удалось сформировать группу — деньги не списаны"
    Comment "Purchase refusal, to the buying player only. Every gate passed but the group entity or its members failed to spawn. The effect order is spawn -> stock -> supporters -> money, so no money, no supporters and no warehouse stock moved. No parameters."
@@ -13597,6 +14285,7 @@ StringTable {
   CustomStringTableItem "{6A7E2C1D4A9F0031}" {
    Id "OVT-Msg-ImportNoPermission"
    Target_en_us "You do not have permission to import"
+   Target_it_it "Non hai il permesso di effettuare l'importazione"
    Target_de_de "Du hast keine Berechtigung zum Importieren"
    Target_ru_ru "У вас нет прав на импорт"
    Target_uk_ua "У вас немає дозволу на імпорт."
@@ -13617,6 +14306,7 @@ StringTable {
   CustomStringTableItem "{6A7E2C1D4A9F0030}" {
    Id "OVT-Msg-ImportNotAvailable"
    Target_en_us "That item cannot be imported"
+   Target_it_it "Quell'oggetto non può essere importato"
    Target_de_de "Dieser Gegenstand kann nicht importiert werden"
    Target_ru_ru "Этот предмет нельзя импортировать"
    Target_uk_ua "Цей предмет неможливо імпортувати."
@@ -13637,6 +14327,7 @@ StringTable {
   CustomStringTableItem "{6A7E2C1D4A9F0032}" {
    Id "OVT-Msg-ImportTooFarFromPort"
    Target_en_us "You and the vehicle must be at the port to import"
+   Target_it_it "Tu e il veicolo dovete trovarvi al porto per effettuare l'importazione"
    Target_de_de "Du und das Fahrzeug müssen sich zum Importieren am Hafen befinden"
    Target_ru_ru "Вы и транспорт должны находиться в порту для импорта"
    Target_uk_ua "Щоб виконати імпорт, ви та ваша техніка повинні бути на території порту."
@@ -13657,6 +14348,7 @@ StringTable {
   CustomStringTableItem "{5DA4CE52796041FE}" {
    Id "OVT-Msg-LevelledUp"
    Target_en_us "You have reached level %1 and have a skill point to spend in the Character Sheet"
+   Target_it_it "Hai raggiunto il livello %1 e hai un punto abilità da spendere nella Scheda Personaggio"
    Target_de_de "Du hast Stufe %1 erreicht und kannst im Charakterbogen einen Fertigkeitspunkt ausgeben"
    Target_ru_ru "Вы достигли %1 уровня и у вас есть очко навыка, которое можно потратить в прокачке персонажа"
    Target_ko_kr "%1 레벨에 도달했으며, 캐릭터 시트에서 사용할 수 있는 스킬 포인트가 생겼습니다."
@@ -13679,6 +14371,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391710}" {
    Id "OVT-Msg-LoadoutApplied"
    Target_en_us "Loadout '%1' applied - %2 items equipped"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato: %2 oggetti equipaggiati"
    Target_fr_fr "Équipement '%1' appliqué - %2 objets équipés"
    Target_de_de "Ausrüstung '%1' angewendet – %2 Gegenstände ausgerüstet"
    Target_ru_ru "Комплект '%1' применён — установлено %2 предметов"
@@ -13701,6 +14394,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391711}" {
    Id "OVT-Msg-LoadoutAppliedPartial"
    Target_en_us "Loadout '%1' partially applied - %2 of %3 items equipped"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato parzialmente: %2 oggetti su %3 equipaggiati"
    Target_fr_fr "Équipement '%1' partiellement appliqué - %2 sur %3 objets équipés"
    Target_de_de "Ausrüstung '%1' teilweise angewendet – %2 von %3 Gegenständen ausgerüstet"
    Target_ru_ru "Комплект '%1' частично применён — установлено %2 из %3 предметов"
@@ -13723,6 +14417,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391712}" {
    Id "OVT-Msg-LoadoutAppliedToRecruit"
    Target_en_us "Loadout '%1' applied to %2 - %3 items equipped"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2: %3 oggetti equipaggiati"
    Target_fr_fr "Équipement '%1' appliqué à %2 - %3 objets équipés"
    Target_de_de "Ausrüstung '%1' auf %2 angewendet – %3 Gegenstände ausgerüstet"
    Target_ru_ru "Комплект '%1' применён к %2 — установлено %3 предметов"
@@ -13745,6 +14440,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391713}" {
    Id "OVT-Msg-LoadoutAppliedToRecruits"
    Target_en_us "Loadout '%1' applied to %2 recruits"
+   Target_it_it "Equipaggiamento predefinito '%1' applicato a %2 reclute"
    Target_fr_fr "Équipement '%1' appliqué à %2 recrues"
    Target_de_de "Ausrüstung '%1' auf %2 Rekruten angewendet"
    Target_ru_ru "Комплект '%1' применён к %2 рекрутам"
@@ -13767,6 +14463,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391714}" {
    Id "OVT-Msg-LoadoutDeleted"
    Target_en_us "Loadout '%1' deleted"
+   Target_it_it "Equipaggiamento predefinito '%1' eliminato"
    Target_fr_fr "Équipement '%1' supprimé"
    Target_de_de "Ausrüstung '%1' gelöscht"
    Target_ru_ru "Комплект '%1' удалён"
@@ -13789,6 +14486,7 @@ StringTable {
   CustomStringTableItem "{59A49A823A9D330A}" {
    Id "OVT-Msg-NewCamp"
    Target_en_us "New FOB"
+   Target_it_it "Nuova FOB"
    Target_fr_fr "Nouvel avant poste"
    Target_de_de "Neuer FOB"
    Target_ru_ru "Новая ПОБ"
@@ -13812,6 +14510,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000063}" {
    Id "OVT-Msg-ObjectiveSabotage"
    Target_en_us "Sabotage"
+   Target_it_it "Sabotaggio"
    Target_de_de "Sabotage"
    Target_ru_ru "Диверсия"
    Comment "Broadcast notification TITLE, sent once per sabotage mission by OVT_BaseSabotageBehaviorDeploymentModule when an occupying-faction team demolishes the first player-built structure at a base the resistance holds. Paired with OVT-Msg-ObjectiveSabotageDetail. Short - it is the heading above the detail line."
@@ -13831,6 +14530,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5D00000064}" {
    Id "OVT-Msg-ObjectiveSabotageDetail"
    Target_en_us "Enemy saboteurs are demolishing what you built at %1"
+   Target_it_it "Dei sabotatori nemici stanno demolendo ciò che hai costruito a %1"
    Target_de_de "Feindliche Saboteure zerstören deine Bauwerke bei %1"
    Target_ru_ru "Вражеские диверсанты разрушают то, что вы построили на %1"
    Comment "Broadcast notification BODY, sent once per sabotage mission (not once per structure). %1 is the base's name. The destruction is permanent and nothing refunds it, so the wording is deliberately a warning about work in progress rather than a report of a finished act - more structures follow every couple of minutes until the team is killed or driven off. Paired with the title OVT-Msg-ObjectiveSabotage."
@@ -13850,6 +14550,7 @@ StringTable {
   CustomStringTableItem "{5D86A3C61F7BDD71}" {
    Id "OVT-Msg-PatrolSpotted"
    Target_en_us "Supporters have spotted a patrol in %1"
+   Target_it_it "Dei sostenitori hanno avvistato una pattuglia a %1"
    Target_de_de "Unterstützer haben eine Patrouille in %1 gesichtet"
    Target_ru_ru "Жители заметили патруль в %1"
    Target_ko_kr "지지자들이 %1 에서 순찰대를 발견했습니다."
@@ -13872,6 +14573,7 @@ StringTable {
   CustomStringTableItem "{5DA8D3A294F70ED0}" {
    Id "OVT-Msg-PlayerDonated"
    Target_en_us "%1 has donated $%2 to the resistance funds"
+   Target_it_it "%1 ha donato $%2 ai fondi della Resistenza"
    Target_de_de "%1 hat $%2 an die Widerstandskasse gespendet"
    Target_ru_ru "%1 пожертвовал $%2 на нужды сопротивления"
    Target_ko_kr "%1이 저항군을 위해 \$%2를 기부했습니다."
@@ -13894,6 +14596,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F5000000001}" {
    Id "OVT-Msg-PlayerJoined"
    Target_en_us "%1 joined the server"
+   Target_it_it "%1 è entrato nel server"
    Target_de_de "%1 ist dem Server beigetreten"
    Target_ru_ru "%1 присоединился к серверу"
    Comment "EXTERNAL CHANNEL ONLY - this is never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerConnected, which is server-only and fires for a RECONNECT as well as a first join (the once-per-session guard lives in FinalizePlayerPreparation, not here). %1 is the player's display name as the platform reports it. Paired with OVT-Msg-PlayerLeft. Vanilla already shows its own connect message in game, which is why no SendTextNotification accompanies this."
@@ -13913,6 +14616,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000098}" {
    Id "OVT-Msg-PlayerJoinedWithRecruits"
    Target_en_us "%1 joined your group with %2 recruits - you can command them while they are here"
+   Target_it_it "%1 si è unito al tuo gruppo con %2 reclute: puoi impartire loro ordini finché sono qui"
    Target_de_de "%1 ist deiner Gruppe mit %2 Rekruten beigetreten – du kannst ihnen Befehle erteilen, solange sie hier sind"
    Target_ru_ru "%1 присоединился к вашей группе с %2 рекрутами — вы можете командовать ими, пока они здесь"
    Target_uk_ua "%1 приєднався до вашої групи з %2 рекрутами — ви можете керувати ними, поки вони тут"
@@ -13933,6 +14637,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F5000000002}" {
    Id "OVT-Msg-PlayerLeft"
    Target_en_us "%1 left the server"
+   Target_it_it "%1 ha lasciato il server"
    Target_de_de "%1 hat den Server verlassen"
    Target_ru_ru "%1 покинул сервер"
    Comment "EXTERNAL CHANNEL ONLY - never shown in game. Posted to the Discord webhook from OVT_OverthrowGameMode.OnPlayerDisconnected, read BEFORE super runs so the player's name is still resolvable. %1 is the player's display name. Covers every departure - quit, timeout and kick alike - because the disconnect handler does not branch on KickCauseCode. Paired with OVT-Msg-PlayerJoined."
@@ -13952,6 +14657,7 @@ StringTable {
   CustomStringTableItem "{5DA8D3A10424E647}" {
    Id "OVT-Msg-PlayerSentFunds"
    Target_en_us "An officer has sent you $%1 in resistance funds"
+   Target_it_it "Un ufficiale ti ha inviato $%1 in fondi per la Resistenza"
    Target_de_de "Ein Offizier hat dir $%1 aus der Widerstandskasse gesendet"
    Target_ru_ru "Офицер отправил вам $%1 со счёта сопротивления"
    Target_ko_kr "한 명의 장교가 저항군 기금으로 $%1를 보내왔습니다."
@@ -13974,6 +14680,7 @@ StringTable {
   CustomStringTableItem "{5DA8D3A13F1C34F3}" {
    Id "OVT-Msg-PlayerSentMoney"
    Target_en_us "%1 has sent you $%2"
+   Target_it_it "%1 ti ha inviato $%2"
    Target_de_de "%1 hat dir $%2 gesendet"
    Target_ru_ru "%1 отправил вам $%2"
    Target_ko_kr "%1이 \$%2를 보내왔습니다."
@@ -13996,6 +14703,7 @@ StringTable {
   CustomStringTableItem "{5D86A3FA5A8D0F3C}" {
    Id "OVT-Msg-RadioTowerCapture"
    Target_en_us "The enemy is attempting to capture a radio tower near %1"
+   Target_it_it "Il nemico sta tentando di conquistare una torre radio vicino a %1"
    Target_de_de "Der Feind versucht, einen Funkturm in der Nähe von %1 einzunehmen"
    Target_ru_ru "Противник пытается захватить радиовышку вблизи %1"
    Target_ko_kr "적이 %1 근처에 있는 무전탑을 점령하려 하고 있습니다."
@@ -14018,6 +14726,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000002C}" {
    Id "OVT-Msg-RadioTowerRepaired"
    Target_en_us "The radio tower near %1 is back on the air"
+   Target_it_it "La torre radio vicino a %1 è tornata operativa"
    Target_de_de "Der Funkturm in der Nähe von %1 ist wieder auf Sendung"
    Target_ru_ru "Радиовышка рядом с %1 снова в эфире"
    Target_uk_ua "Радіовежа поблизу %1 знову в ефірі"
@@ -14038,6 +14747,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000002B}" {
    Id "OVT-Msg-RadioTowerSabotaged"
    Target_en_us "A radio tower near %1 has been sabotaged"
+   Target_it_it "Una torre radio vicino a %1 è stata sabotata"
    Target_de_de "Ein Funkturm in der Nähe von %1 wurde sabotiert"
    Target_ru_ru "Радиовышка рядом с %1 саботирована"
    Target_uk_ua "На радіовежі поблизу %1 було проведено диверсію"
@@ -14055,25 +14765,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6BA1C4E000000032}" {
-   Id "OVT-Msg-Rearmed"
-   Target_en_us "Vehicle re-armed: %1 item(s) drawn from storage, $%2 paid"
-   Target_de_de "Fahrzeug aufmunitioniert: %1 Einheit(en) aus Lagerbestand entnommen, $%2 bezahlt."
-   Modified 1783262698
-   Author "Aaron Static"
-   LastChanged "lemmi"
-  }
-  CustomStringTableItem "{6BA1C4E000000033}" {
-   Id "OVT-Msg-RearmNeedsSupplyPoint"
-   Target_en_us "Cannot re-arm: take the vehicle to a helipad, garage or FOB to buy the missing ammunition"
-   Target_de_de "Aufmunitionierung nicht möglich: Fahrzeug zu einem Hubschrauberlandeplatz, einer Garage oder einem FOB verlegen, um die fehlende Munition zu beschaffen."
-   Modified 1783262620
-   Author "Aaron Static"
-   LastChanged "lemmi"
-  }
   CustomStringTableItem "{65AA3C7A9ED20711}" {
    Id "OVT-Msg-RecruitDied"
    Target_en_us "%1 has died"
+   Target_it_it "%1 è morto"
    Target_de_de "%1 ist gestorben"
    Target_ru_ru "%1 погиб"
    Target_uk_ua "%1 помер"
@@ -14084,14 +14779,15 @@ StringTable {
   CustomStringTableItem "{6A3883575D66C251}" {
    Id "OVT-Msg-RecruitLevelUp"
    Target_en_us "%1 has reached level %2"
-   Target_de_de "%1 hat Stufe %2 erreicht."
-   Modified 1783262757
+   Target_it_it "%1 ha raggiunto il livello %2"
+   Modified 1782088660
    Author "Aaron Static"
-   LastChanged "lemmi"
+   LastChanged "Aaron Static"
   }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
    Target_en_us "You have received $%1 in donations and taxes"
+   Target_it_it "Hai ricevuto $%1 in donazioni e tasse"
    Target_de_de "Du hast $%1 an Spenden und Steuern erhalten"
    Target_ru_ru "Вы получили $%1 налогов и пожертвований"
    Target_ko_kr "당신은 \$%1의 기부금과 세금을 받았습니다"
@@ -14114,6 +14810,7 @@ StringTable {
   CustomStringTableItem "{5D86A3FB6DAF997D}" {
    Id "OVT-Msg-TowerControlledOccupying"
    Target_en_us "The resistance has lost control of a radio tower near %1"
+   Target_it_it "La Resistenza ha perso il controllo di una torre radio vicino a %1"
    Target_de_de "Der Widerstand hat die Kontrolle über einen Funkturm in der Nähe von %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над радиовышкой вблизи %1"
    Target_ko_kr "저항군이 %1 근처 무전탑에 대한 통제권을 잃었습니다"
@@ -14136,6 +14833,7 @@ StringTable {
   CustomStringTableItem "{5D6051C94F256E7F}" {
    Id "OVT-Msg-TowerControlledResistance"
    Target_en_us "The resistance has captured an enemy radio tower near %1"
+   Target_it_it "La Resistenza ha conquistato una torre radio nemica vicino a %1"
    Target_fr_fr "La résistance a capturé la tour radio ennemie"
    Target_de_de "Der Widerstand hat einen feindlichen Funkturm in der Nähe von %1 erobert"
    Target_ru_ru "Сопротивление взяло под контроль радиовышку вблизи %1"
@@ -14159,6 +14857,7 @@ StringTable {
   CustomStringTableItem "{5D647993F9896F6F}" {
    Id "OVT-Msg-TownBattle"
    Target_en_us "The battle for the town of %1 will begin shortly"
+   Target_it_it "La battaglia per la città di %1 inizierà a breve"
    Target_fr_fr "La bataille pour le contrôle du bourg va bientôt commencer"
    Target_de_de "Die Schlacht um die Stadt %1 beginnt in Kürze"
    Target_ru_ru "Бой за город %1 скоро начнется"
@@ -14182,6 +14881,7 @@ StringTable {
   CustomStringTableItem "{5D6479932650745D}" {
    Id "OVT-Msg-TownControlledOccupying"
    Target_en_us "The resistance has lost control of the town of %1"
+   Target_it_it "La Resistenza ha perso il controllo della città di %1"
    Target_fr_fr "La résistance ne contrôle plus le bourg dû au manque de soutien des habitants"
    Target_de_de "Der Widerstand hat die Kontrolle über die Stadt %1 verloren"
    Target_ru_ru "Сопротивление потеряло контроль над городом %1"
@@ -14205,6 +14905,7 @@ StringTable {
   CustomStringTableItem "{5D6479934B14F461}" {
    Id "OVT-Msg-TownControlledResistance"
    Target_en_us "The town of %1 is now under control by the resistance"
+   Target_it_it "La città di %1 è ora sotto il controllo della Resistenza"
    Target_fr_fr "Le bourg est maintenant sous le contrôle de la résistance"
    Target_de_de "Die Stadt %1 steht jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Город %1 теперь под контролем сопротивления"
@@ -14228,6 +14929,7 @@ StringTable {
   CustomStringTableItem "{59A49AC5C2FC26C2}" {
    Id "OVT-Msg-VillageControlledOccupying"
    Target_en_us "Resistance has lost control of the village of %1 due to low support"
+   Target_it_it "La Resistenza ha perso il controllo del villaggio di %1 a causa dello scarso sostegno"
    Target_fr_fr "La résistance ne contrôle plus le village dû au manque de soutien des habitants"
    Target_de_de "Der Widerstand hat aufgrund geringer Unterstützung die Kontrolle über das Dorf %1 verloren"
    Target_ru_ru "Сопротивление утратило контроль над населенным пунктом %1 в следствии низкой поддержки населением"
@@ -14251,6 +14953,7 @@ StringTable {
   CustomStringTableItem "{59A49AC9A028CADB}" {
    Id "OVT-Msg-VillageControlledResistance"
    Target_en_us "The village of %1 is now under control by the resistance due to overwhelming support"
+   Target_it_it "Il villaggio di %1 è ora sotto il controllo della Resistenza grazie a un sostegno schiacciante"
    Target_fr_fr "Le village est maintenant sous le contrôle de la résistance en raison d'un soutien écrasant"
    Target_de_de "Das Dorf %1 steht aufgrund überwältigender Unterstützung jetzt unter der Kontrolle des Widerstands"
    Target_ru_ru "Населенный пункт %1 теперь находится под контролем сопротивления из-за подавляющей поддержки"\
@@ -14275,6 +14978,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6791}" {
    Id "OVT-Msg-WantedArmedVehicle"
    Target_en_us "You are now wanted for operating an armed vehicle!"
+   Target_it_it "Sei ricercato per aver manovrato un veicolo armato!"
    Target_de_de "Du wirst jetzt wegen des Führens eines bewaffneten Fahrzeugs gesucht!"
    Target_ru_ru "Вы объявлены в розыск за управление вооружённым транспортом!"
    Target_uk_ua "Вас оголошено в розшук за використання озброєної техніки!"
@@ -14295,6 +14999,7 @@ StringTable {
   CustomStringTableItem "{68A0C7D24B913A76}" {
    Id "OVT-Msg-WantedBaseAssault"
    Target_en_us "You were seen calling the attack on this base!"
+   Target_it_it "Sei stato visto ordinare l'attacco a questa base!"
    Target_de_de "Du wurdest dabei gesehen, wie du den Angriff auf diese Basis angefordert hast!"
    Target_ru_ru "Вас видели, когда вы начали атаку на эту базу!"
    Comment "Wanted notification - seen starting a base capture battle"
@@ -14314,6 +15019,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F678F}" {
    Id "OVT-Msg-WantedBaseProximity"
    Target_en_us "You are now wanted for being in a restricted area"
+   Target_it_it "Sei ricercato per esserti introdotto in un'area riservata"
    Target_de_de "Du wirst jetzt gesucht, weil du einer feindlichen Basis zu nahe gekommen bist!"
    Target_ru_ru "Вы объявлены в розыск за нахождение в запретной зоне"
    Target_uk_ua "Вас оголошено в розшук за наближення до ворожої бази"
@@ -14334,6 +15040,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F678D}" {
    Id "OVT-Msg-WantedDisguiseBlown"
    Target_en_us "Your disguise has been blown! You are now wanted!"
+   Target_it_it "La tua copertura è saltata! Ora sei ricercato!"
    Target_de_de "Deine Verkleidung ist aufgeflogen! Du wirst jetzt gesucht!"
    Target_ru_ru "Ваша маскировка раскрыта! Вы в розыске!"
    Target_uk_ua "Ваше маскування розкрито! Вас розшукують!"
@@ -14354,6 +15061,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F678B}" {
    Id "OVT-Msg-WantedHostileFaction"
    Target_en_us "You are now wanted for wearing hostile faction uniform!"
+   Target_it_it "Ora sei ricercato per aver indossato l'uniforme di una fazione ostile!"
    Target_de_de "Du wirst jetzt gesucht, weil du die Uniform einer feindlichen Fraktion trägst!"
    Target_ru_ru "Вы объявлены в розыск за ношение формы враждебной фракции!"
    Target_uk_ua "Вас розшукують за носіння уніформи ворожої фракції!"
@@ -14374,6 +15082,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000004}" {
    Id "OVT-Msg-WantedIllegalPlacement"
    Target_en_us "You were seen placing illegal materials!"
+   Target_it_it "Sei stato visto piazzare materiale illegale!"
    Target_de_de "Du wurdest beim Platzieren illegaler Materialien gesehen!"
    Target_ru_ru "Вас видели за установкой незаконных материалов!"
    Target_uk_ua "Вас помітили за розміщенням нелегальних матеріалів!"
@@ -14394,6 +15103,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F1000000002}" {
    Id "OVT-Msg-WantedLooting"
    Target_en_us "You were seen looting the dead!"
+   Target_it_it "Sei stato visto depredare i cadaveri!"
    Target_de_de "Du wurdest beim Plündern der Toten gesehen!"
    Target_ru_ru "Вас видели за мародёрством!"
    Comment "Wanted notification - seen running the Loot battlefield action on a vehicle (OVT_StorageRequestComponent arms the illegal-action window for the whole loot job)"
@@ -14413,6 +15123,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000002A}" {
    Id "OVT-Msg-WantedSabotage"
    Target_en_us "You were seen committing sabotage!"
+   Target_it_it "Sei stato visto compiere atti di sabotaggio!"
    Target_de_de "Du wurdest bei einer Sabotage gesehen!"
    Target_ru_ru "Вас видели за совершением диверсии!"
    Target_uk_ua "Вас помітили за здійсненням диверсії!"
@@ -14433,6 +15144,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F67A2}" {
    Id "OVT-Msg-WantedSeen"
    Target_en_us "You have been spotted!"
+   Target_it_it "Sei stato avvistato!"
    Target_de_de "Du wurdest entdeckt!"
    Target_ru_ru "Вас заметили!"
    Target_uk_ua "Вас помітили!"
@@ -14453,6 +15165,7 @@ StringTable {
   CustomStringTableItem "{68A0C7D24B913A75}" {
    Id "OVT-Msg-WantedUprising"
    Target_en_us "You were seen calling the uprising!"
+   Target_it_it "Sei stato visto incitare alla rivolta!"
    Target_de_de "Du wurdest dabei gesehen, wie du den Aufstand ausgerufen hast!"
    Target_ru_ru "Вас видели, когда вы начали восстание!"
    Comment "Wanted notification - seen raising the flag to start a town uprising"
@@ -14472,6 +15185,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6789}" {
    Id "OVT-Msg-WantedWeapon"
    Target_en_us "You are now wanted for carrying a weapon!"
+   Target_it_it "Ora sei ricercato per porto d'armi!"
    Target_de_de "Du wirst jetzt gesucht, weil du eine Waffe trägst!"
    Target_ru_ru "Вы объявлены в розыск за ношение оружия!"
    Target_uk_ua "Вас розшукують за носіння зброї!"
@@ -14492,6 +15206,7 @@ StringTable {
   CustomStringTableItem "{599B1780E41380D7}" {
    Id "OVT-MustBeDriver"
    Target_en_us "You must be the driver of the vehicle to fast travel all occupants"
+   Target_it_it "Devi essere alla guida del veicolo per effettuare il viaggio rapido con tutti gli occupanti"
    Target_fr_fr "Vous devez être le conducteur pour effectuer le déplacement rapide avec tous les passagers"
    Target_de_de "Du musst der Fahrer des Fahrzeugs sein, um alle Insassen per Schnellreise mitzunehmen"
    Target_ru_ru "Вы должны быть водителем транспортного средства, чтобы быстро перевезти всех пассажиров"
@@ -14515,6 +15230,7 @@ StringTable {
   CustomStringTableItem "{59B518AA296EFB7F}" {
    Id "OVT-MustBeNearTown"
    Target_en_us "This item must be placed inside a town to have any effect"
+   Target_it_it "Questo oggetto deve essere piazzato all'interno di una città per avere effetto"
    Target_fr_fr "L'objet doit être placé dans une commune pour avoir un effet"
    Target_de_de "Dieser Gegenstand muss innerhalb einer Stadt platziert werden, um eine Wirkung zu haben"
    Target_ru_ru "Этот предмет должен быть помещен внутри города, чтобы иметь какой-либо эффект"
@@ -14538,6 +15254,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A94391828}" {
    Id "OVT-MustBeOfficer"
    Target_en_us "You must be an officer to do that"
+   Target_it_it "Devi essere un ufficiale per farlo"
    Target_fr_fr "Vous devez être officier pour effectuer cela"
    Target_de_de "Du musst Offizier sein, um das zu tun"
    Target_ru_ru "Вы должны быть офицером, чтобы сделать это"
@@ -14561,6 +15278,7 @@ StringTable {
   CustomStringTableItem "{6A9F4C2DB1E07A34}" {
    Id "OVT-MustBeOnHelipad"
    Target_en_us "Must be on a helipad at a friendly base"
+   Target_it_it "Devi trovarti su una piazzola per elicotteri di una base alleata"
    Target_de_de "Du musst dich auf einem Hubschrauberlandeplatz an einer verbündeten Basis befinden"
    Target_ru_ru "Необходимо находиться на вертолётной площадке на дружественной базе"
    Target_uk_ua "Потрібно перебувати на гелікоптерному майданчику дружньої бази"
@@ -14570,6 +15288,7 @@ StringTable {
   CustomStringTableItem "{59A6ED92C4FDB9FD}" {
    Id "OVT-MustExitVehicle"
    Target_en_us "You must exit your vehicle first"
+   Target_it_it "Devi prima uscire dal veicolo"
    Target_fr_fr "Vous devez d'abord sortir du véhicule"
    Target_de_de "Du musst zuerst dein Fahrzeug verlassen"
    Target_ru_ru "Сначало вы должны выйти из автомобиля."
@@ -14593,6 +15312,7 @@ StringTable {
   CustomStringTableItem "{59DA66363F3C1321}" {
    Id "OVT-MustHaveMap"
    Target_en_us "You must have a map equipped"
+   Target_it_it "Devi avere una mappa equipaggiata"
    Target_fr_fr "Il vous faut une carte"
    Target_de_de "Du musst eine Karte ausgerüstet haben"
    Target_ru_ru "Вы должны иметь при себе карту"
@@ -14616,6 +15336,7 @@ StringTable {
   CustomStringTableItem "{5D86A310CD4EFBC4}" {
    Id "OVT-MyAccount"
    Target_en_us "My Account"
+   Target_it_it "Il mio account"
    Target_de_de "Mein Konto"
    Target_ru_ru "Мой Кошелёк"
    Target_ko_kr "내 계정"
@@ -14638,6 +15359,7 @@ StringTable {
   CustomStringTableItem "{59A6ED92E301B152}" {
    Id "OVT-NeedBusStop"
    Target_en_us "You must click near another bus stop"
+   Target_it_it "Devi cliccare vicino a un'altra fermata dell'autobus"
    Target_fr_fr "Cliquez près d'un autre arrêt de bus"
    Target_de_de "Du musst in der Nähe einer anderen Bushaltestelle klicken"
    Target_ru_ru "Вы должны нажать на карту  возле автобусной остановки"
@@ -14661,6 +15383,7 @@ StringTable {
   CustomStringTableItem "{59C90534E23FD594}" {
    Id "OVT-NewOfficer"
    Target_en_us "has been made an officer"
+   Target_it_it "è stato promosso a ufficiale"
    Target_fr_fr "a été promu officier"
    Target_de_de "wurde zum Offizier ernannt"
    Target_ru_ru "был назначен офицером"
@@ -14684,6 +15407,7 @@ StringTable {
   CustomStringTableItem "{59C905341F0718F9}" {
    Id "OVT-NewOfficerYou"
    Target_en_us "You have been made an officer"
+   Target_it_it "Sei stato promosso a ufficiale"
    Target_fr_fr "Vous avez été promu officier"
    Target_de_de "Du wurdest zum Offizier ernannt"
    Target_ru_ru "Вы назначены офицером"
@@ -14707,6 +15431,7 @@ StringTable {
   CustomStringTableItem "{5D822427D032737F}" {
    Id "OVT-NoDeadBodiesNearby"
    Target_en_us "There are no dead bodies or weapons within 25m"
+   Target_it_it "Non ci sono cadaveri o armi nel raggio di 25 metri"
    Target_de_de "Im Umkreis von 25 m befinden sich keine Leichen oder Waffen"
    Target_ru_ru "Здесь нет мертвых тел или оружия в пределах 25м"
    Target_ko_kr "25m 이내에 시체나 무기가 없습니다"
@@ -14729,6 +15454,7 @@ StringTable {
   CustomStringTableItem "{5D346D4FFDAE200A}" {
    Id "OVT-NoDrugs"
    Target_en_us "You are not carrying any drugs. Buy them from a gun dealer."
+   Target_it_it "Non hai droghe con te. Acquistale da un venditore di armi."
    Target_fr_fr "Vous ne transportez pas de drogue. Achetez en d'abord au vendeur d'armes."
    Target_de_de "Du trägst keine Drogen bei dir. Kaufe sie bei einem Waffenhändler."
    Target_ru_ru "У вас нет с собой никаких наркотиков. Купите их у торговца оружием."
@@ -14752,6 +15478,7 @@ StringTable {
   CustomStringTableItem "{59A6ED9B869DC04C}" {
    Id "OVT-NoMedicalSupplies"
    Target_en_us "No medical supplies found in vehicle"
+   Target_it_it "Nessuna scorta medica trovata nel veicolo"
    Target_fr_fr "Pas de matériel médical dans le véhicule"
    Target_de_de "Keine medizinischen Vorräte im Fahrzeug gefunden"
    Target_ru_ru "В машине нет медикаментов"
@@ -14775,6 +15502,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4CA}" {
    Id "OVT-NoSupportersAvailable"
    Target_en_us "No supporters available in nearby towns"
+   Target_it_it "Nessun sostenitore disponibile nelle città vicine"
    Target_fr_fr "Aucun partisan disponible dans les villes voisines"
    Target_de_de "In den umliegenden Städten sind keine Unterstützer verfügbar"
    Target_ru_ru "Нет доступных сторонников в близлежащих городах"
@@ -14797,6 +15525,7 @@ StringTable {
   CustomStringTableItem "{59DA69F4EADC4C3E}" {
    Id "OVT-NoSupportersToRecruit"
    Target_en_us "There are not enough supporters in the nearest town to recruit"
+   Target_it_it "Non ci sono abbastanza sostenitori da reclutare nella città più vicina"
    Target_fr_fr "Il n'y a pas assez de soutien dans le village à proximité pour recruter"
    Target_de_de "In der nächstgelegenen Stadt gibt es nicht genügend Unterstützer zum Rekrutieren"
    Target_ru_ru "В ближайшем населенном пункте не хватает сторонников для найма."
@@ -14820,6 +15549,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33001}" {
    Id "OVT-NotAtBusStop"
    Target_en_us "You must be at a bus stop to catch a bus"
+   Target_it_it "Devi trovarti a una fermata dell'autobus per prenderne uno"
    Target_de_de "Du musst dich an einer Bushaltestelle befinden, um einen Bus zu nehmen"
    Target_ru_ru "Чтобы сесть на автобус, необходимо находиться на автобусной остановке"
    Target_uk_ua "Щоб сісти на автобус, потрібно перебувати на автобусній зупинці"
@@ -14838,6 +15568,7 @@ StringTable {
   CustomStringTableItem "{5DA486E2EACACAD6}" {
    Id "OVT-NotConvertedSupporter"
    Target_en_us "This civilian was not interested in supporting the resistance"
+   Target_it_it "Questo civile non era interessato a sostenere la Resistenza"
    Target_de_de "Dieser Zivilist hatte kein Interesse daran, den Widerstand zu unterstützen"
    Target_ru_ru "Житель не заинтересован в поддержке сопротивления"
    Target_ko_kr "이 민간인은 저항군 지원에 관심이 없었습니다"
@@ -14860,6 +15591,7 @@ StringTable {
   CustomStringTableItem "{6A9F4C2DB1E07A35}" {
    Id "OVT-NothingToRearm"
    Target_en_us "Weapons are fully armed"
+   Target_it_it "Armi completamente cariche"
    Target_de_de "Die Waffen sind vollständig aufmunitioniert"
    Target_ru_ru "Оружие полностью заряжено"
    Target_uk_ua "Зброю повністю зведено"
@@ -14869,6 +15601,7 @@ StringTable {
   CustomStringTableItem "{59CF196EEADAB2A1}" {
    Id "OVT-NoVehicleOnRamp"
    Target_en_us "No Vehicle on ramp"
+   Target_it_it "Nessun veicolo sulla rampa"
    Target_fr_fr "Pas de véhicule sur la rampe"
    Target_de_de "Kein Fahrzeug auf der Rampe"
    Target_ru_ru "Нет техники на рампе"
@@ -14892,6 +15625,7 @@ StringTable {
   CustomStringTableItem "{59A2BD317EE6028A}" {
    Id "OVT-NoVehiclesNearby"
    Target_en_us "There are no vehicles nearby"
+   Target_it_it "Nessun veicolo nelle vicinanze"
    Target_fr_fr "Pas de véhicule à proximité"
    Target_de_de "Es befinden sich keine Fahrzeuge in der Nähe"
    Target_ru_ru "Нет машин рядом"
@@ -14915,6 +15649,7 @@ StringTable {
   CustomStringTableItem "{599D3A640FAF1233}" {
    Id "OVT-OccupyingFaction"
    Target_en_us "Occupying Faction"
+   Target_it_it "Fazione occupante"
    Target_fr_fr "Faction dominante"
    Target_de_de "Besatzungsmacht"
    Target_ru_ru "Фракция оккупантов"
@@ -14938,6 +15673,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FD}" {
    Id "OVT-OpenInventory"
    Target_en_us "Open Inventory"
+   Target_it_it "Apri inventario"
    Target_fr_fr "Ouvrir l'inventaire"
    Target_de_de "Inventar öffnen"
    Target_ru_ru "Открыть инвентарь"
@@ -14960,6 +15696,7 @@ StringTable {
   CustomStringTableItem "{599A1C5F66015FAB}" {
    Id "OVT-Overthrow"
    Target_en_us "Overthrow"
+   Target_it_it "Rovesciamento"
    Target_fr_fr "Overthrow"
    Target_de_de "Overthrow"
    Target_ru_ru "Overthrow"
@@ -14982,6 +15719,7 @@ StringTable {
   CustomStringTableItem "{5D305DE5B6029A1B}" {
    Id "OVT-Owned"
    Target_en_us "Owned"
+   Target_it_it "Di proprietà"
    Target_fr_fr "Possédé"
    Target_de_de "Im Besitz"
    Target_ru_ru "Во владении"
@@ -15005,6 +15743,7 @@ StringTable {
   CustomStringTableItem "{5D34F5770B8834D2}" {
    Id "OVT-Owner"
    Target_en_us "Owner"
+   Target_it_it "Proprietario"
    Target_fr_fr "Propriétaire"
    Target_de_de "Besitzer"
    Target_ru_ru "Владелец"
@@ -15028,6 +15767,7 @@ StringTable {
   CustomStringTableItem "{5D305CF7F4C3B9F3}" {
    Id "OVT-PerDay"
    Target_en_us "per day"
+   Target_it_it "al giorno"
    Target_fr_fr "par jour"
    Target_de_de "pro Tag"
    Target_ru_ru "в день"
@@ -15051,6 +15791,7 @@ StringTable {
   CustomStringTableItem "{598AD5529A3EEA5D}" {
    Id "OVT-Place_Camp"
    Target_en_us "Camp"
+   Target_it_it "Accampamento"
    Target_fr_fr "Camp"
    Target_de_de "Camp"
    Target_ru_ru "Лагерь"
@@ -15074,6 +15815,7 @@ StringTable {
   CustomStringTableItem "{5DA486E39FBCD116}" {
    Id "OVT-Place_Camp_Description"
    Target_en_us "A fast-travel destination"
+   Target_it_it "Destinazione per viaggio rapido"
    Target_de_de "Ein Schnellreiseziel"
    Target_ru_ru "Персональная точка быстрого перемещения"
    Target_ko_kr "개인 빠른 이동 지점"
@@ -15096,6 +15838,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000091}" {
    Id "OVT-Place_Cot"
    Target_en_us "Cot"
+   Target_it_it "Brandina"
    Target_de_de "Feldbett"
    Target_ru_ru "Койка"
    Modified 1782119180
@@ -15105,6 +15848,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000092}" {
    Id "OVT-Place_Cot_Description"
    Target_en_us "A military cot you can sleep on"
+   Target_it_it "Brandina militare su cui dormire"
    Target_de_de "Ein militärisches Feldbett, auf dem du schlafen kannst"
    Target_ru_ru "Военная койка, на которой можно спать"
    Modified 1782119279
@@ -15114,6 +15858,7 @@ StringTable {
   CustomStringTableItem "{598AD55D632ED8B6}" {
    Id "OVT-Place_EquipmentBox"
    Target_en_us "Equipment Box"
+   Target_it_it "Cassa dell'equipaggiamento"
    Target_fr_fr "Caisse d'Équipement"
    Target_de_de "Ausrüstungskiste"
    Target_ru_ru "Ящик для снаряжения"
@@ -15137,6 +15882,7 @@ StringTable {
   CustomStringTableItem "{5DA486E26BD2084C}" {
    Id "OVT-Place_EquipmentBox_Description"
    Target_en_us "Somewhere to put your stuff"
+   Target_it_it "Luogo dove riporre il proprio materiale"
    Target_de_de "Ein Ort für deine Ausrüstung"
    Target_ru_ru "Место для ваших вещей"
    Target_ko_kr "물건을 놓을 장소"
@@ -15159,6 +15905,7 @@ StringTable {
   CustomStringTableItem "{598AD554852E3A84}" {
    Id "OVT-Place_Floodlights"
    Target_en_us "Floodlights"
+   Target_it_it "Fari"
    Target_fr_fr "Projecteurs"
    Target_de_de "Flutlichter"
    Target_ru_ru "Прожектор"
@@ -15182,6 +15929,7 @@ StringTable {
   CustomStringTableItem "{5DA486E247151F16}" {
    Id "OVT-Place_Floodlights_Description"
    Target_en_us "Provides light at night"
+   Target_it_it "Fornisce luce di notte"
    Target_de_de "Sorgen nachts für Licht"
    Target_ru_ru "Дает свет ночью"
    Target_ko_kr "밤에 빛을 제공합니다"
@@ -15204,6 +15952,7 @@ StringTable {
   CustomStringTableItem "{598AD553667F76AF}" {
    Id "OVT-Place_FOB"
    Target_en_us "FOB"
+   Target_it_it "FOB"
    Target_fr_fr "Avant poste"
    Target_de_de "FOB"
    Target_ru_ru "ПОБ"
@@ -15226,6 +15975,7 @@ StringTable {
   CustomStringTableItem "{5DA486E2647E8EC3}" {
    Id "OVT-Place_FOB_Description"
    Target_en_us "Forward Operating Base"
+   Target_it_it "Base operativa avanzata"
    Target_de_de "Vorgeschobene Operationsbasis"
    Target_ru_ru "Передовая Оперативная База"
    Target_ko_kr "전진 작전 기지"
@@ -15248,6 +15998,7 @@ StringTable {
   CustomStringTableItem "{65CE9A28E959892F}" {
    Id "OVT-Place_Furniture"
    Target_en_us "Furniture"
+   Target_it_it "Arredi"
    Target_de_de "Möbel"
    Target_ru_ru "Мебель"
    Target_uk_ua "Меблі"
@@ -15258,6 +16009,7 @@ StringTable {
   CustomStringTableItem "{65CE9A28FB5BD02E}" {
    Id "OVT-Place_Furniture_Description"
    Target_en_us "Lanterns, tables, chairs, etc"
+   Target_it_it "Lanterne, tavoli, sedie, ecc."
    Target_de_de "Laternen, Tische, Stühle usw."
    Target_ru_ru "Фонари, столы, стулья и т.д."
    Target_uk_ua "Ліхтарі, столи, стільці тощо"
@@ -15268,6 +16020,7 @@ StringTable {
   CustomStringTableItem "{598AD55488E14CB4}" {
    Id "OVT-Place_Hedgehog"
    Target_en_us "Hedgehog"
+   Target_it_it "Riccio anticarro"
    Target_fr_fr "Obstacle"
    Target_de_de "Panzersperre"
    Target_ru_ru "Еж"
@@ -15291,6 +16044,7 @@ StringTable {
   CustomStringTableItem "{5DA486E27E03497F}" {
    Id "OVT-Place_Hedgehog_Description"
    Target_en_us "Slows down vehicles"
+   Target_it_it "Rallenta i veicoli"
    Target_de_de "Bremst Fahrzeuge aus"
    Target_ru_ru "Препятствует перемещению техники"
    Target_ko_kr "차량의 속도를 늦춥니다"
@@ -15313,6 +16067,7 @@ StringTable {
   CustomStringTableItem "{59CC0DB81CE327C8}" {
    Id "OVT-Place_Lamps"
    Target_en_us "Lamps"
+   Target_it_it "Lampade"
    Target_fr_fr "Lampes"
    Target_de_de "Lampen"
    Target_ru_ru "Лампа"
@@ -15336,6 +16091,7 @@ StringTable {
   CustomStringTableItem "{59A5462C8A52FFB8}" {
    Id "OVT-Place_NextItem"
    Target_en_us "Next Item"
+   Target_it_it "Oggetto successivo"
    Target_fr_fr "Item Suivant"
    Target_de_de "Nächster Gegenstand"
    Target_ru_ru "Следующий предмет"
@@ -15359,6 +16115,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000026}" {
    Id "OVT-Place_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_it_it "Radio pirata"
    Target_de_de "Piratensender"
    Target_ru_ru "Пиратское радио"
    Target_uk_ua "Піратське радіо"
@@ -15379,6 +16136,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000027}" {
    Id "OVT-Place_PirateRadio_Description"
    Target_en_us "An illegal transmitter"
+   Target_it_it "Trasmettitore illegale"
    Target_de_de "Ein illegaler Sender"
    Target_ru_ru "Нелегальный передатчик"
    Target_uk_ua "Нелегальний передавач"
@@ -15399,6 +16157,7 @@ StringTable {
   CustomStringTableItem "{59A2BD9099621079}" {
    Id "OVT-Place_Poster"
    Target_en_us "Recruitment Posters"
+   Target_it_it "Manifesti di reclutamento"
    Target_fr_fr "Affiche"
    Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Плакаты вербовки"
@@ -15422,6 +16181,7 @@ StringTable {
   CustomStringTableItem "{5DA486E38A335821}" {
    Id "OVT-Place_Poster_Description"
    Target_en_us "Raises support (max 5/town)"
+   Target_it_it "Aumenta il sostegno (max 5 per città)"
    Target_de_de "Erhöht Unterstützung (max. 5/Stadt)"
    Target_ru_ru "Увеличиват уровень поддержки населением (макс 5/населенный пункт)"
    Target_ko_kr "지지도를 올립니다 (마을당 최대 5개)"
@@ -15444,6 +16204,7 @@ StringTable {
   CustomStringTableItem "{59A5462C90703535}" {
    Id "OVT-Place_PrevItem"
    Target_en_us "Previous Item"
+   Target_it_it "Oggetto precedente"
    Target_fr_fr "Item Précédent"
    Target_de_de "Vorheriger Gegenstand"
    Target_ru_ru "Предыдущий предмет"
@@ -15467,6 +16228,7 @@ StringTable {
   CustomStringTableItem "{59A5462CB0574E5C}" {
    Id "OVT-Place_RotateLeft"
    Target_en_us "Rotate Left"
+   Target_it_it "Ruota a sinistra"
    Target_fr_fr "Rotation Gauche"
    Target_de_de "Nach links drehen"
    Target_ru_ru "Повернуть влево"
@@ -15490,6 +16252,7 @@ StringTable {
   CustomStringTableItem "{59A5462CB9759E35}" {
    Id "OVT-Place_RotateRight"
    Target_en_us "Rotate Right"
+   Target_it_it "Ruota Destra"
    Target_fr_fr "Rotation Droite"
    Target_de_de "Nach rechts drehen"
    Target_ru_ru "Повернуть вправо"
@@ -15513,6 +16276,7 @@ StringTable {
   CustomStringTableItem "{598AD55456A8B23F}" {
    Id "OVT-Place_Sandbags"
    Target_en_us "Sandbags"
+   Target_it_it "Sacchi di sabbia"
    Target_fr_fr "Sacs de sable"
    Target_de_de "Sandsäcke"
    Target_ru_ru "Мешки с песком"
@@ -15536,6 +16300,7 @@ StringTable {
   CustomStringTableItem "{5DA486E27516F652}" {
    Id "OVT-Place_Sandbags_Description"
    Target_en_us "Makes it harder to get shot at"
+   Target_it_it "Rende più difficile essere colpiti"
    Target_de_de "Erschwert es, getroffen zu werden"
    Target_ru_ru "Повышает шансы не быть застреленным"
    Target_ko_kr "적에게 피격당할 확률이 줄어듭니다"
@@ -15558,6 +16323,7 @@ StringTable {
   CustomStringTableItem "{598AD552913ABE10}" {
    Id "OVT-Place_Signs"
    Target_en_us "Signs"
+   Target_it_it "Cartelli"
    Target_fr_fr "Panneaux"
    Target_de_de "Schilder"
    Target_ru_ru "Указатель"
@@ -15581,6 +16347,7 @@ StringTable {
   CustomStringTableItem "{65B90A2D9E4D747F}" {
    Id "OVT-Place_Signs_Description"
    Target_en_us "Tells people stuff"
+   Target_it_it "Forniscono informazioni"
    Target_de_de "Vermitteln Informationen"
    Target_ru_ru "Сообщает людям информацию"
    Target_uk_ua "Розповідає щось людям"
@@ -15591,6 +16358,7 @@ StringTable {
   CustomStringTableItem "{59C84C79C2AB441A}" {
    Id "OVT-Player"
    Target_en_us "Player"
+   Target_it_it "Giocatore"
    Target_fr_fr "Joueur"
    Target_de_de "Spieler"
    Target_ru_ru "Игрок"
@@ -15613,6 +16381,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000094}" {
    Id "OVT-PlayerGroups_JoinBlockedFull"
    Target_en_us "That group is full. Nobody else can join it until somebody leaves."
+   Target_it_it "Quel gruppo è al completo. Nessun altro può unirsi finché qualcuno non esce."
    Target_de_de "Diese Gruppe ist voll. Niemand kann beitreten, bis jemand die Gruppe verlässt."
    Target_ru_ru "Эта группа заполнена. Никто не сможет присоединиться, пока кто-то не покинет её."
    Target_uk_ua "Ця група заповнена. Ніхто більше не може приєднатися, поки хтось не вийде."
@@ -15633,6 +16402,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000096}" {
    Id "OVT-PlayerGroups_JoinBlockedGone"
    Target_en_us "That group no longer exists."
+   Target_it_it "Quel gruppo non esiste più."
    Target_de_de "Diese Gruppe existiert nicht mehr."
    Target_ru_ru "Эта группа больше не существует."
    Target_uk_ua "Ця група більше не існує."
@@ -15653,6 +16423,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000093}" {
    Id "OVT-PlayerGroups_JoinBlockedTitle"
    Target_en_us "Cannot Join Group"
+   Target_it_it "Impossibile unirsi al gruppo"
    Target_de_de "Gruppe kann nicht beigetreten werden"
    Target_ru_ru "Невозможно присоединиться к группе"
    Target_uk_ua "Неможливо приєднатися до групи"
@@ -15673,6 +16444,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000095}" {
    Id "OVT-PlayerGroups_JoinBlockedUnavailable"
    Target_en_us "You cannot join that group right now."
+   Target_it_it "Al momento non puoi unirti a quel gruppo."
    Target_de_de "Du kannst dieser Gruppe derzeit nicht beitreten."
    Target_ru_ru "Вы не можете присоединиться к этой группе прямо сейчас."
    Target_uk_ua "Зараз ви не можете приєднатися до цієї групи."
@@ -15693,6 +16465,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000091}" {
    Id "OVT-PlayerGroups_JoinConfirmMessage"
    Target_en_us "%1 will be able to command your recruits while you are in their group."
+   Target_it_it "%1 potrà impartire ordini alle tue reclute finché ti troverai nel suo gruppo."
    Target_de_de "%1 kann deine Rekruten kommandieren, solange du in seiner Gruppe bist."
    Target_ru_ru "%1 сможет командовать вашими рекрутами, пока вы находитесь в его группе."
    Target_uk_ua "%1 зможе командувати вашими рекрутами, поки ви перебуваєте в його групі."
@@ -15713,6 +16486,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000092}" {
    Id "OVT-PlayerGroups_JoinConfirmRecruitsMessage"
    Target_en_us "Your %1 recruits will move to %2's group and take orders from %2. You still own them - they return to you when you leave the group, change groups, or reconnect."
+   Target_it_it "Le tue reclute %1 passeranno al gruppo di %2 e riceveranno ordini da %2. Ne rimani comunque il proprietario: torneranno sotto il tuo comando quando lascerai il gruppo, ne cambierai uno o ti riconnetterai."
    Target_de_de "Deine %1 Rekruten wechseln in die Gruppe von %2 und befolgen die Befehle von %2. Sie gehören weiterhin dir – wenn du die Gruppe verlässt, die Gruppe wechselst oder dich erneut verbindest, kehren sie zu dir zurück."
    Target_ru_ru "Ваши %1 рекрутов перейдут в группу %2 и будут выполнять приказы %2. Они по-прежнему принадлежат вам — они вернутся к вам, когда вы покинете группу, смените группу или переподключитесь."
    Target_uk_ua "Ваші рекрути (%1) перейдуть до групи %2 і виконуватимуть накази %2. Вони й надалі належатимуть вам — вони повернуться до вас, коли ви залишите групу, зміните групу або перепідключитеся."
@@ -15733,6 +16507,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000090}" {
    Id "OVT-PlayerGroups_JoinConfirmTitle"
    Target_en_us "Join Group"
+   Target_it_it "Unisciti al gruppo"
    Target_de_de "Gruppe beitreten"
    Target_ru_ru "Присоединиться к группе"
    Target_uk_ua "Приєднатися до групи"
@@ -15753,6 +16528,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000097}" {
    Id "OVT-PlayerGroups_ModelExplainer"
    Target_en_us "Your group is private and named after you. Your recruits follow you into any group you join - that group's leader commands them while you are there, but you keep ownership and they come back when you leave. To leave a group, use Create new group."
+   Target_it_it "Il tuo gruppo è privato e porta il tuo nome. Le tue reclute ti seguono in qualsiasi gruppo tu scelga di unirti: il capo di quel gruppo impartirà loro ordini finché sarai presente, ma tu ne manterrai la proprietà e loro torneranno da te quando te ne andrai. Per lasciare un gruppo, usa l'opzione \"Crea nuovo gruppo\"."
    Target_de_de "Deine Gruppe ist privat und nach dir benannt. Deine Rekruten folgen dir in jede Gruppe, der du beitrittst – der Anführer dieser Gruppe kommandiert sie, solange du dort bist, aber sie bleiben in deinem Besitz und kehren zurück, wenn du die Gruppe verlässt. Um eine Gruppe zu verlassen, verwende \"Erstelle neue Gruppe\"."
    Target_ru_ru "Ваша группа частная и названа в вашу честь. Ваши рекруты переходят с вами в любую группу, к которой вы присоединяетесь — пока вы там, их командиром становится лидер этой группы, но они по-прежнему принадлежат вам и возвращаются к вам, когда вы покидаете группу. Чтобы покинуть группу, используйте «Создать новую группу»."
    Target_uk_ua "Ваша група приватна й названа на вашу честь. Ваші рекрути переходять разом із вами до будь-якої групи, до якої ви приєднуєтеся — поки ви перебуваєте в ній, ними командує лідер цієї групи, але вони й надалі належать вам і повертаються до вас, коли ви виходите з групи. Щоб залишити групу, скористайтеся «Створити нову групу»."
@@ -15773,6 +16549,7 @@ StringTable {
   CustomStringTableItem "{5976AC6DDD54D1E4}" {
    Id "OVT-Population"
    Target_en_us "Population"
+   Target_it_it "Popolazione"
    Target_fr_fr "Population"
    Target_de_de "Bevölkerung"
    Target_ru_ru "Население"
@@ -15796,6 +16573,7 @@ StringTable {
   CustomStringTableItem "{5D5AD8AF15D8A1B9}" {
    Id "OVT-Port"
    Target_en_us "Port"
+   Target_it_it "Porto"
    Target_fr_fr "Port"
    Target_de_de "Hafen"
    Target_ru_ru "Порт"
@@ -15819,6 +16597,7 @@ StringTable {
   CustomStringTableItem "{5D5AD8AFF9999255}" {
    Id "OVT-Port_Buy_10"
    Target_en_us "Buy 10"
+   Target_it_it "Acquista 10"
    Target_fr_fr "Acheter 10"
    Target_de_de "10 kaufen"
    Target_ru_ru "Купить 10"
@@ -15842,6 +16621,7 @@ StringTable {
   CustomStringTableItem "{5D5AD8AFCF71A6EB}" {
    Id "OVT-Port_Buy_100"
    Target_en_us "Buy 100"
+   Target_it_it "Acquista 100"
    Target_fr_fr "Acheter 100"
    Target_de_de "100 kaufen"
    Target_ru_ru "Купить 100"
@@ -15865,6 +16645,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000009A}" {
    Id "OVT-Port_SummaryVolume"
    Target_en_us "%1  ·  Cargo %2"
+   Target_it_it "%1  ·  Carico %2"
    Target_de_de "%1 · Fracht %2"
    Target_ru_ru "%1  ·  Груз %2"
    Comment "Port screen checkout - the money total with the truck's projected cargo volume appended, shown only when the cart orders resources. %1 is the already-translated money summary (OVT-Transfer_SummaryPrice), %2 the already-translated volume (OVT-Resource_SummaryVolume). Translate only the word Cargo and the separator."
@@ -15884,6 +16665,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDD}" {
    Id "OVT-PriorityFOBSet"
    Target_en_us "%1 has been set as the priority FOB"
+   Target_it_it "%1 è stato impostato come FOB prioritario"
    Target_de_de "%1 wurde als Prioritäts-FOB festgelegt"
    Target_ru_ru "%1 назначен приоритетным ПОБ"
    Target_uk_ua "%1 встановлено як головну FOB"
@@ -15904,6 +16686,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBD4}" {
    Id "OVT-Privacy"
    Target_en_us "Privacy"
+   Target_it_it "Privacy"
    Target_de_de "Privatsphäre"
    Target_ru_ru "Конфиденциальность"
    Target_uk_ua "Конфіденційність"
@@ -15924,6 +16707,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000019}" {
    Id "OVT-Private"
    Target_en_us "Private"
+   Target_it_it "Privato"
    Target_de_de "Privat"
    Target_ru_ru "Частный"
    Comment "Status row value in the production-site map info panel when the site is owned and private - only the owner may open its storage. Private is the default on purchase. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
@@ -15943,6 +16727,7 @@ StringTable {
   CustomStringTableItem "{5E4A6E76C0D01F62}" {
    Id "OVT-Procurement"
    Target_en_us "Procurement"
+   Target_it_it "Approvvigionamento"
    Target_de_de "Beschaffung"
    Target_ru_ru "Снабжение"
    Target_ko_kr "조달"
@@ -15965,6 +16750,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000F}" {
    Id "OVT-ProdSite_AlreadyOwned"
    Target_en_us "Someone already owns this site"
+   Target_it_it "Qualcuno possiede già questo sito"
    Target_de_de "Dieser Standort gehört bereits jemandem"
    Target_ru_ru "Кто-то уже владеет этим объектом"
    Comment "Server refusal from OVT_ResourceProductionRequestComponent.RpcAsk_BuySite when OVT_ResourceProductionRules.MayBuySite is false. This is what a losing racer sees when two players buy the same site in the same second - the refusal lands before any money moves."
@@ -15984,6 +16770,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000008}" {
    Id "OVT-ProdSite_Buy"
    Target_en_us "Buy"
+   Target_it_it "Acquista"
    Target_de_de "Kaufen"
    Target_ru_ru "Купить"
    Comment "The single mode label on OVT_ProductionSiteBuyContext's tool header - the buy-stock screen has exactly one mode. Cited: OVT_ProductionSiteBuyContext.c BuildModes."
@@ -16003,6 +16790,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000005}" {
    Id "OVT-ProdSite_Buy_Price"
    Target_en_us "Buy site (%1)"
+   Target_it_it "Acquista sito (%1)"
    Target_de_de "Standort kaufen (%1)"
    Target_ru_ru "Купить объект (%1)"
    Comment "Label of OVT_BuySiteAction (Sort 1) on an unowned production site. ONE %1 - the buy price, already formatted by OVT_MoneyFormat.FormatMoney and already scaled by the difficulty's realEstateCostMultiplier via OVT_ResourceProductionRules.BuyCost. Cited: OVT_BuySiteAction.c:120 (LabelKey) and :176 (the single BuyCost call the label and the server charge share). The action is hidden on an owned site, visible-and-disabled when the player cannot afford it."
@@ -16022,6 +16810,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000020}" {
    Id "OVT-ProdSite_BuyResistance"
    Target_en_us "Buy site with resistance funds"
+   Target_it_it "Acquista sito con fondi della Resistenza"
    Target_de_de "Standort mit Mitteln des Widerstands kaufen"
    Target_ru_ru "Купить объект за средства сопротивления"
    Comment "Static UIInfo fallback name for OVT_BuySiteResistanceAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 2). The action overrides its own label at runtime with the priced OVT-ProdSite_BuyResistance_Price, so this bare form is only ever the fallback - it deliberately carries NO parameter, because a fallback path cannot supply one."
@@ -16041,6 +16830,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000006}" {
    Id "OVT-ProdSite_BuyResistance_Price"
    Target_en_us "Buy site with resistance funds (%1)"
+   Target_it_it "Acquista sito con fondi della Resistenza (%1)"
    Target_de_de "Standort mit Mitteln des Widerstands kaufen (%1)"
    Target_ru_ru "Купить объект за средства сопротивления (%1)"
    Comment "Label of OVT_BuySiteResistanceAction (Sort 2), shown only on an unowned site to an officer. ONE %1 - the same BuyCost figure as OVT-ProdSite_Buy_Price, formatted by OVT_MoneyFormat.FormatMoney. Cited: OVT_BuySiteResistanceAction.c:44. Officer gating is OVT_ResistanceFactionManager.IsOfficer on both sides."
@@ -16060,6 +16850,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000007}" {
    Id "OVT-ProdSite_BuyStock"
    Target_en_us "Buy stock (%1 units)"
+   Target_it_it "Acquista scorte (%1 unità)"
    Target_de_de "Bestand kaufen (%1 Einheiten)"
    Target_ru_ru "Купить запас (%1 ед.)"
    Comment "Label of OVT_BuySiteStockAction (Sort 3) on an unowned production site. ONE %1 - the site's current stock count. Cited: OVT_BuySiteStockAction.c:82. Opens OVT_ProductionSiteBuyContext, which quotes 80 percent of the live import price. The action disappears once the site is owned - only unowned sites sell (requirements section 22)."
@@ -16079,6 +16870,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000021}" {
    Id "OVT-ProdSite_BuyStockName"
    Target_en_us "Buy stock"
+   Target_it_it "Acquista scorte"
    Target_de_de "Bestand kaufen"
    Target_ru_ru "Купить запас"
    Comment "Static UIInfo fallback name for OVT_BuySiteStockAction on Prefabs/Production/OVT_ProductionSite_Base.et (Sort 3). Deliberately parameter-free: the runtime label OVT-ProdSite_BuyStock carries a %1 for the stock count, and a prefab UIInfo has nothing to substitute into it, so pointing the prefab at the parameterised key would render a literal percent-1 on screen if the script label were ever empty."
@@ -16098,6 +16890,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000003}" {
    Id "OVT-ProdSite_CementPlant"
    Target_en_us "Cement Plant"
+   Target_it_it "Cementificio"
    Target_de_de "Zementwerk"
    Target_ru_ru "Цементный завод"
    Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_CementPlant.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
@@ -16117,6 +16910,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000015}" {
    Id "OVT-ProdSite_Failed"
    Target_en_us "Could not complete that right now"
+   Target_it_it "Impossibile completare l'operazione al momento"
    Target_de_de "Das konnte derzeit nicht abgeschlossen werden"
    Target_ru_ru "Не удалось выполнить операцию"
    Comment "Server refusal from OVT_ResourceProductionRequestComponent when a required manager (production, economy, config, players or resistance) could not be resolved. A never-in-practice path kept answering rather than silent - every refusal answers with a key."
@@ -16136,6 +16930,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000C}" {
    Id "OVT-ProdSite_MakePrivate"
    Target_en_us "Make site private"
+   Target_it_it "Rendi il sito privato"
    Target_de_de "Standort privat machen"
    Target_ru_ru "Сделать частным"
    Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is public. Private is the default on purchase. Cited: OVT_ToggleSitePrivacyAction.c."
@@ -16155,6 +16950,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000B}" {
    Id "OVT-ProdSite_MakePublic"
    Target_en_us "Make site public"
+   Target_it_it "Rendi il sito pubblico"
    Target_de_de "Standort öffentlich machen"
    Target_ru_ru "Сделать публичным"
    Comment "Label of OVT_ToggleSitePrivacyAction (Sort 4) while the site is private. A public site lets anyone in the resistance open its storage. Cited: OVT_ToggleSitePrivacyAction.c. The action is shown only to someone OVT_ResourceProductionRules.MayTogglePrivacy admits - the owner, or an officer on a resistance-owned site."
@@ -16174,6 +16970,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000016}" {
    Id "OVT-ProdSite_MapDisplayName"
    Target_en_us "Production Site"
+   Target_it_it "Sito di produzione"
    Target_de_de "Produktionsstandort"
    Target_ru_ru "Производственный объект"
    Comment "Singular type label for OVT_MapLocationProductionSite in the map's layer filter. Cited: Configs/Map/OverthrowMap.conf, m_sDisplayName on the {6A8E2F2000000001} block."
@@ -16193,6 +16990,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000011}" {
    Id "OVT-ProdSite_NoFunds"
    Target_en_us "The resistance cannot afford this"
+   Target_it_it "La Resistenza non può permetterselo"
    Target_de_de "Der Widerstand kann sich das nicht leisten"
    Target_ru_ru "У сопротивления недостаточно средств"
    Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when the treasury is short. Also the disabled reason shown on OVT_BuySiteResistanceAction for the same condition."
@@ -16212,6 +17010,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000012}" {
    Id "OVT-ProdSite_NoMoney"
    Target_en_us "You cannot afford this"
+   Target_it_it "Non puoi permettertelo"
    Target_de_de "Du kannst dir das nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
    Comment "Server refusal from RpcAsk_BuySite's personal-money branch when OVT_EconomyManagerComponent.PlayerHasMoney is false. Also the disabled reason on OVT_BuySiteAction."
@@ -16231,6 +17030,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000D}" {
    Id "OVT-ProdSite_NoPlayer"
    Target_en_us "Could not identify you"
+   Target_it_it "Impossibile identificarti"
    Target_de_de "Du konntest nicht identifiziert werden"
    Target_ru_ru "Не удалось идентифицировать вас"
    Comment "Server refusal from OVT_ResourceProductionRequestComponent - ResolveOwningPlayerId returned a non-positive id, or the caller's persistent id came back empty. Answers both RpcAsk_BuySite and RpcAsk_SetSitePrivacy. Identity is never an RPC parameter, so this means the server could not resolve the caller at all."
@@ -16250,6 +17050,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000E}" {
    Id "OVT-ProdSite_NoSite"
    Target_en_us "No production site here"
+   Target_it_it "Nessun sito di produzione qui"
    Target_de_de "Kein Produktionsstandort hier"
    Target_ru_ru "Здесь нет производственного объекта"
    Comment "Server refusal from OVT_ResourceProductionRequestComponent when no site record matches the position within 10 m, or the matched record's entity carries no OVT_ResourceProductionComponent. Also the refusal from OVT_ResourceRequestComponent.MayBuyFromSite when a SITE_BUY names a holder that is not a site. Position is the identity on every wire (implementation.md D2)."
@@ -16269,6 +17070,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000000A}" {
    Id "OVT-ProdSite_NoStock"
    Target_en_us "This site has no stock yet"
+   Target_it_it "Questo sito non ha ancora scorte"
    Target_de_de "Dieser Standort hat noch keinen Bestand"
    Target_ru_ru "На этом объекте ещё нет запасов"
    Comment "Disabled-row reason on the buy-stock screen when the site's store is empty. The row is listed and DISABLED, never hidden - refusals are shown, not hidden. Cited: OVT_ProductionSiteBuyContext.c BuildEntries. A site drips one batch per in-game hour, so an untouched site is empty for its first hour."
@@ -16288,6 +17090,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000010}" {
    Id "OVT-ProdSite_NotOfficer"
    Target_en_us "Only officers can spend resistance funds"
+   Target_it_it "Solo gli ufficiali possono spendere i fondi della Resistenza"
    Target_de_de "Nur Offiziere können Mittel des Widerstands ausgeben"
    Target_ru_ru "Только офицеры могут тратить средства сопротивления"
    Comment "Server refusal from RpcAsk_BuySite's resistance-funds branch when OVT_ResistanceFactionManager.IsOfficer is false. Mirrors the client-side gate that hides OVT_BuySiteResistanceAction from non-officers."
@@ -16307,6 +17110,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000013}" {
    Id "OVT-ProdSite_NotYours"
    Target_en_us "This is not your site"
+   Target_it_it "Questo non è il tuo sito"
    Target_de_de "Dieser Standort gehört dir nicht"
    Target_ru_ru "Это не ваш объект"
    Comment "Server refusal from RpcAsk_SetSitePrivacy when OVT_ResourceProductionRules.MayTogglePrivacy refuses - the caller is neither the owner nor, on a resistance-owned site, an officer."
@@ -16326,6 +17130,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000014}" {
    Id "OVT-ProdSite_Owned"
    Target_en_us "This site is owned and does not sell"
+   Target_it_it "Questo sito è di proprietà e non è in vendita"
    Target_de_de "Dieser Standort ist im Besitz und verkauft nichts"
    Target_ru_ru "Этот объект принадлежит кому-то и не продаётся"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayBuyFromSite - the ONE place an owned site refuses a SITE_BUY. A privately owned site does not sell its resource; only unowned sites do (requirements section 22). Because Commit re-runs the whole source ladder, a site bought between Begin and Commit refuses here before any money moves."
@@ -16345,6 +17150,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001F}" {
    Id "OVT-ProdSite_Row_BuyPrice"
    Target_en_us "Price"
+   Target_it_it "Prezzo"
    Target_de_de "Preis"
    Target_ru_ru "Цена"
    Comment "Row label in the production-site map info panel for the site's buy price, shown only while the site is unowned. The value is formatted by OVT_MoneyFormat.FormatMoney and needs no key of its own. Cited: OVT_MapLocationProductionSite.c:257."
@@ -16364,6 +17170,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001D}" {
    Id "OVT-ProdSite_Row_Rate"
    Target_en_us "Output"
+   Target_it_it "Produzione"
    Target_de_de "Produktion"
    Target_ru_ru "Производство"
    Comment "Row label in the production-site map info panel for the site's production rate. Cited: OVT_MapLocationProductionSite.c:233."
@@ -16383,6 +17190,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001E}" {
    Id "OVT-ProdSite_Row_RateValue"
    Target_en_us "%1 per hour"
+   Target_it_it "%1 all'ora"
    Target_de_de "%1 pro Stunde"
    Target_ru_ru "%1 в час"
    Comment "Row value in the production-site map info panel for the production rate. ONE %1 - units per in-game hour to one decimal place, because sub-1 rates are supported (a steel mill at 1.5/hour). Cited: OVT_MapLocationProductionSite.c:232."
@@ -16402,6 +17210,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001B}" {
    Id "OVT-ProdSite_Row_Volume"
    Target_en_us "Volume"
+   Target_it_it "Volume"
    Target_de_de "Volumen"
    Target_ru_ru "Объём"
    Comment "Row label in the production-site map info panel for the store's used-of-total volume. Cited: OVT_MapLocationProductionSite.c:219."
@@ -16421,6 +17230,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001C}" {
    Id "OVT-ProdSite_Row_VolumeValue"
    Target_en_us "%1 / %2 m3"
+   Target_it_it "%1 / %2 m³"
    Target_ru_ru "%1 / %2 м³"
    Comment "Row value in the production-site map info panel for the store's volume. TWO parameters: %1 the used cubic metres, %2 the site's capacity. Cited: OVT_MapLocationProductionSite.c:219. Read from the store on location.GetEntity(), never from the manager's record - a registry must not become a second source of truth."
    DevNote ""
@@ -16438,6 +17248,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000001}" {
    Id "OVT-ProdSite_Sawmill"
    Target_en_us "Sawmill"
+   Target_it_it "Segheria"
    Target_de_de "Sägewerk"
    Target_ru_ru "Лесопилка"
    Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_Sawmill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel. A map author may override it per placed instance."
@@ -16457,6 +17268,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000002}" {
    Id "OVT-ProdSite_SteelMill"
    Target_en_us "Steel Mill"
+   Target_it_it "Acciaieria"
    Target_de_de "Stahlwerk"
    Target_ru_ru "Сталелитейный завод"
    Comment "Site name authored on Prefabs/Production/OVT_ProductionSite_SteelMill.et (OVT_ResourceProductionComponent.m_sSiteName). Shown as the map location's label and in the site's info panel."
@@ -16476,6 +17288,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000004}" {
    Id "OVT-ProdSite_Storage"
    Target_en_us "Site Storage"
+   Target_it_it "Deposito in loco"
    Target_de_de "Standortlagerraum"
    Target_ru_ru "Хранилище объекта"
    Comment "Default holder name for the OVT_ResourceStoreComponent on Prefabs/Production/OVT_ProductionSite_Base.et (m_sDefaultNameKey), and the static UIInfo fallback for OVT_OpenResourceStoreAction on that prefab (:61-70). CORRECTED 2026-08-22 for logistics/resource-production: it does NOT appear as the runtime action label. A site's store has a bounded capacity, so OVT_OpenResourceStoreAction.RefreshLabel:153 takes the #OVT-Resource_Cargo branch and the action reads 'Cargo (0.0 / 20.0 m3)'; the branch at :149 that would draw this name is UNLIMITED-capacity holders only. Where it IS drawn: the shared transfer screen's destination picker, via store.GetDisplayName()."
@@ -16495,6 +17308,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000009}" {
    Id "OVT-ProdSite_Summary"
    Target_en_us "%1  -  %2"
+   Target_it_it "%1  -  %2"
    Target_ru_ru "%1  -  %2"
    Comment "Cart summary line on the buy-stock screen. TWO parameters: %1 the total cost already formatted by OVT_MoneyFormat.FormatMoney, %2 the total volume already formatted as cubic metres. Cited: OVT_ProductionSiteBuyContext.c:376 (GetSummaryText override)."
    DevNote ""
@@ -16512,6 +17326,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6793}" {
    Id "OVT-Progress-CollectingContainers"
    Target_en_us "Collecting containers"
+   Target_it_it "Raccolta container"
    Target_fr_fr "Collecte de conteneurs"
    Target_de_de "Container werden eingesammelt"
    Target_ru_ru "Сбор контейнеров"
@@ -16535,6 +17350,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6797}" {
    Id "OVT-Progress-Completed"
    Target_en_us "Completed: %1 items"
+   Target_it_it "Completati: %1 elementi"
    Target_fr_fr "Terminé : %1 objets"
    Target_de_de "Abgeschlossen: %1 Gegenstände"
    Target_ru_ru "Завершено: %1 предметов"
@@ -16558,6 +17374,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6798}" {
    Id "OVT-Progress-CompletedWithSkipped"
    Target_en_us "Completed: %1 items (%2 skipped)"
+   Target_it_it "Completati: %1 elementi (%2 saltati)"
    Target_fr_fr "Terminé : %1 objets (%2 ignorés)"
    Target_de_de "Abgeschlossen: %1 Gegenstände (%2 übersprungen)"
    Target_ru_ru "Завершено: %1 предметов (%2 пропущено)"
@@ -16581,6 +17398,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F679A}" {
    Id "OVT-Progress-DeployingFOB"
    Target_en_us "Deploying FOB"
+   Target_it_it "Dispiegamento FOB"
    Target_fr_fr "Déploiement de la FOB"
    Target_de_de "FOB wird errichtet"
    Target_ru_ru "Развертывание ПОБ"
@@ -16604,6 +17422,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6799}" {
    Id "OVT-Progress-Error"
    Target_en_us "Error: %1"
+   Target_it_it "Errore: %1"
    Target_fr_fr "Erreur : %1"
    Target_de_de "Fehler: %1"
    Target_ru_ru "Ошибка: %1"
@@ -16627,6 +17446,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6794}" {
    Id "OVT-Progress-LootingBattlefield"
    Target_en_us "Looting battlefield"
+   Target_it_it "Recupero bottino dal campo di battaglia"
    Target_fr_fr "Pillage du champ de bataille"
    Target_de_de "Schlachtfeld wird geplündert"
    Target_ru_ru "Сбор трофеев с поля боя"
@@ -16650,6 +17470,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000000B}" {
    Id "OVT-Progress-StorageClearing"
    Target_en_us "Emptying container"
+   Target_it_it "Svuotamento container"
    Target_de_de "Behälter wird geleert"
    Target_ru_ru "Очистка контейнера"
    Comment "Progress caption while the officer clear job deletes a container's vanilla inventory. The storage ledger is not touched."
@@ -16669,7 +17490,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000000C}" {
    Id "OVT-Progress-StorageExporting"
    Target_en_us "Selling storage at the port"
-   Target_de_de "Stauraum am Hafen verkaufen"
+   Target_it_it "Vendita di materiale dal deposito del porto"
+   Target_de_de "Lagerraum am Hafen verkaufen"
    Target_ru_ru "Продажа хранилища в порту"
    Comment "Progress caption while a storage export job sells a holder's ledger at a port."
    DevNote ""
@@ -16679,16 +17501,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262856
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D200000000D}" {
    Id "OVT-Progress-StorageMoving"
    Target_en_us "Moving storage"
-   Target_de_de "Stauraum wird verschoben"
+   Target_it_it "Spostamento materiale nel deposito"
+   Target_de_de "Lagerraum wird verschoben"
    Target_ru_ru "Перемещение хранилища"
    Comment "Progress caption while a storage job moves items from one holder's ledger into another's. No entities are spawned."
    DevNote ""
@@ -16698,16 +17521,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260594
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D200000000E}" {
    Id "OVT-Progress-StorageStoring"
    Target_en_us "Moving items into storage"
-   Target_de_de "Gegenstände werden in den Stauraum verschoben"
+   Target_it_it "Trasferimento oggetti nel deposito"
+   Target_de_de "Gegenstände werden in den Lagerraum verschoben"
    Target_ru_ru "Перемещение предметов в хранилище"
    Comment "Progress caption while a storage job converts a holder's vanilla inventory into its own ledger."
    DevNote ""
@@ -16717,16 +17541,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260650
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D200000000F}" {
    Id "OVT-Progress-StorageTaking"
    Target_en_us "Taking items from storage"
-   Target_de_de "Gegenstände werden aus dem Stauraum entnommen"
+   Target_it_it "Prelievo oggetti dal deposito"
+   Target_de_de "Gegenstände werden aus dem Lagerraum entnommen"
    Target_ru_ru "Извлечение предметов из хранилища"
    Comment "Progress caption while a storage job spawns items out of a holder's ledger into its vanilla inventory."
    DevNote ""
@@ -16736,15 +17561,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262926
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A1B2C3D4E5F6792}" {
    Id "OVT-Progress-TransferringItems"
    Target_en_us "Transferring items"
+   Target_it_it "Trasferimento oggetti"
    Target_fr_fr "Transfert d'objets"
    Target_de_de "Gegenstände werden übertragen"
    Target_ru_ru "Перемещение предметов"
@@ -16768,6 +17594,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6796}" {
    Id "OVT-Progress-TransferringToWarehouse"
    Target_en_us "Transferring to warehouse"
+   Target_it_it "Trasferimento al magazzino"
    Target_fr_fr "Transfert vers l'entrepôt"
    Target_de_de "Übertragung ins Lagerhaus"
    Target_ru_ru "Перемещение на склад"
@@ -16791,6 +17618,7 @@ StringTable {
   CustomStringTableItem "{6A1B2C3D4E5F6795}" {
    Id "OVT-Progress-UndeployingFOB"
    Target_en_us "Undeploying FOB"
+   Target_it_it "Rimozione FOB"
    Target_fr_fr "Déploiement de la FOB"
    Target_de_de "FOB wird abgebaut"
    Target_ru_ru "Сворачивание ПОБ"
@@ -16814,6 +17642,7 @@ StringTable {
   CustomStringTableItem "{6BB5000000000003}" {
    Id "OVT-ProgressComplete"
    Target_en_us "Progress: 100%"
+   Target_it_it "Avanzamento: 100%"
    Target_de_de "Fortschritt: 100 %"
    Target_ru_ru "Прогресс: 100%"
    Target_uk_ua "Прогрес: 100%"
@@ -16834,6 +17663,7 @@ StringTable {
   CustomStringTableItem "{6BB5000000000002}" {
    Id "OVT-ProgressPercent"
    Target_en_us "Progress: %1%"
+   Target_it_it "Avanzamento: %1%"
    Target_de_de "Fortschritt: %1 %"
    Target_ru_ru "Прогресс: %1%"
    Target_uk_ua "Прогрес: %1%"
@@ -16854,6 +17684,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F3000000018}" {
    Id "OVT-Public"
    Target_en_us "Public"
+   Target_it_it "Pubblico"
    Target_de_de "Öffentlich"
    Target_ru_ru "Публичный"
    Comment "Status row value in the production-site map info panel when the site is owned and not private - anyone in the resistance may open its storage. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
@@ -16873,6 +17704,7 @@ StringTable {
   CustomStringTableItem "{6A82FE978603F139}" {
    Id "OVT-PurchaseFailedInsufficientFunds"
    Target_en_us "Purchase failed: Insufficient funds"
+   Target_it_it "Acquisto fallito: fondi insufficienti"
    Target_de_de "Kauf fehlgeschlagen: Nicht genügend Geld"
    Target_ru_ru "Покупка не удалась: недостаточно средств"
    Target_uk_ua "Покупка не вдалася: недостатньо коштів"
@@ -16893,6 +17725,7 @@ StringTable {
   CustomStringTableItem "{6A82FE978603F13A}" {
    Id "OVT-PurchaseFailedInventoryFull"
    Target_en_us "Purchase failed: Inventory full"
+   Target_it_it "Acquisto fallito: inventario pieno"
    Target_de_de "Kauf fehlgeschlagen: Inventar voll"
    Target_ru_ru "Покупка не удалась: инвентарь полон"
    Target_uk_ua "Покупка не вдалася: інвентар повний"
@@ -16913,6 +17746,7 @@ StringTable {
   CustomStringTableItem "{6A82FE978603F13C}" {
    Id "OVT-PurchasePartialSuccess"
    Target_en_us "Purchase partially successful: Got %1 out of %2 items"
+   Target_it_it "Acquisto parzialmente riuscito: ottenuti %1 oggetti su %2"
    Target_de_de "Kauf teilweise erfolgreich: %1 von %2 Gegenständen erhalten"
    Target_ru_ru "Покупка частично успешна: получено %1 из %2 предметов"
    Target_uk_ua "Покупка частково успішна: отримано %1 з %2 товарів"
@@ -16933,6 +17767,7 @@ StringTable {
   CustomStringTableItem "{5D34EBA09AC421EB}" {
    Id "OVT-PutInWarehouse"
    Target_en_us "Put In Warehouse"
+   Target_it_it "Metti nel magazzino"
    Target_fr_fr "Mettre dans l'Entrepôt"
    Target_de_de "Ins Lagerhaus legen"
    Target_ru_ru "Поместить на склад"
@@ -16956,6 +17791,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5E00000001}" {
    Id "OVT-QRFBattleFor"
    Target_en_us "Battle for"
+   Target_it_it "Battaglia per"
    Target_de_de "Kampf um"
    Target_ru_ru "Битва за"
    Comment "HUD battle panel HEADER, shown for BOTH kinds of battle - a player-initiated QRF and an occupying-faction counter-attack. %1 is the place being fought over: a town name for a town battle, the base's own m_sName for a base battle, resolved client-side from the replicated m_iCurrentQRFTown / m_iCurrentQRFBase indices. Keep it a NOUN PHRASE naming the place, not a sentence - it sits above a smaller countdown line and is read at a glance. ADDED 2026-08-20."
@@ -16975,6 +17811,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5E00000002}" {
    Id "OVT-QRFBattleForUnknown"
    Target_en_us "Battle in progress"
+   Target_it_it "Battaglia in corso"
    Target_de_de "Gefecht läuft"
    Target_ru_ru "Идёт битва"
    Comment "HUD battle panel header FALLBACK, used when the client cannot resolve which place is being fought over. Reached when the battle's town/base index has not arrived - most likely a player who joined mid-battle, because m_iCurrentQRFBase / m_iCurrentQRFTown are replicated on change but are NOT in the JIP catch-up payload (pre-existing debt, see the epic's JIP/client divergence entry). Deliberately says nothing about WHERE: a wrong place name is worse than no place name. ADDED 2026-08-20."
@@ -16994,6 +17831,7 @@ StringTable {
   CustomStringTableItem "{6B8C3F5E00000003}" {
    Id "OVT-QRFScoringBeginsIn"
    Target_en_us "Scoring will begin in"
+   Target_it_it "Il conteggio dei punti inizierà tra"
    Target_de_de "Wertung beginnt in"
    Target_ru_ru "Подсчёт очков начнётся через"
    Comment "HUD battle panel SUB-LINE, under the OVT-QRFBattleFor header, smaller text. A M:SS clock is appended after it (OVT_QRFSiege.FormatClock), so the rendered line reads 'Scoring will begin in 14:32'. Used for BOTH battle kinds - a player-initiated QRF counts down two minutes and a counter-attack's muster window counts down fifteen, in the same format. Do NOT reintroduce a separate minutes-only wording: the single M:SS form exists precisely so one countdown never changes its unit partway through. ADDED 2026-08-20, superseding the display use of OVT-BattleStartsIn / OVT-BattleStartsInMinutes."
@@ -17013,6 +17851,7 @@ StringTable {
   CustomStringTableItem "{65DAD69E45B60D49}" {
    Id "OVT-RadioTower"
    Target_en_us "Radio Tower"
+   Target_it_it "Torre radio"
    Target_de_de "Funkturm"
    Target_ru_ru "Радиовышка"
    Target_uk_ua "Радіовежа"
@@ -17023,6 +17862,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000009}" {
    Id "OVT-RealEstate_AlreadyHome"
    Target_en_us "This is already your home"
+   Target_it_it "Questa è già la tua casa"
    Target_de_de "Dies ist bereits dein Zuhause"
    Target_ru_ru "Это уже ваш дом"
    Target_uk_ua "Це вже ваш дім."
@@ -17043,6 +17883,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F1000000003}" {
    Id "OVT-RealEstate_BaseProperty"
    Target_en_us "Part of the base"
+   Target_it_it "Parte della base"
    Target_de_de "Teil der Basis"
    Target_ru_ru "Часть базы"
    Comment "Real estate menu - a warehouse standing inside a base's close range belongs to whoever holds the base: it is neither for sale nor for rent, and access follows base control (OVT_RealEstateManagerComponent.IsBaseWarehouse)"
@@ -17062,6 +17903,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000003}" {
    Id "OVT-RealEstate_CantAfford"
    Target_en_us "You cannot afford this"
+   Target_it_it "Non puoi permettertelo"
    Target_de_de "Du kannst dir das nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
    Target_uk_ua "Ви не можете собі цього дозволити."
@@ -17082,6 +17924,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000007}" {
    Id "OVT-RealEstate_CantRent"
    Target_en_us "This property cannot be rented"
+   Target_it_it "Questa proprietà non può essere affittata"
    Target_de_de "Diese Immobilie kann nicht gemietet werden"
    Target_ru_ru "Этот объект нельзя арендовать"
    Target_uk_ua "Цю нерухомість не можна орендувати."
@@ -17102,6 +17945,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000006}" {
    Id "OVT-RealEstate_IsHome"
    Target_en_us "You cannot sell your home"
+   Target_it_it "Non puoi vendere la tua casa"
    Target_de_de "Du kannst dein Zuhause nicht verkaufen"
    Target_ru_ru "Вы не можете продать свой дом"
    Target_uk_ua "Ви не можете продати свій дім."
@@ -17122,6 +17966,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000002}" {
    Id "OVT-RealEstate_NotForSale"
    Target_en_us "This property is not for sale"
+   Target_it_it "Questa proprietà non è in vendita"
    Target_de_de "Diese Immobilie steht nicht zum Verkauf"
    Target_ru_ru "Эта недвижимость не продаётся"
    Target_uk_ua "Ця нерухомість не продається."
@@ -17142,6 +17987,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000004}" {
    Id "OVT-RealEstate_NotOwner"
    Target_en_us "You do not own this property"
+   Target_it_it "Non possiedi questa proprietà"
    Target_de_de "Diese Immobilie gehört dir nicht"
    Target_ru_ru "Вы не владеете этой недвижимостью"
    Target_uk_ua "Ви не володієте цією нерухомістю."
@@ -17162,6 +18008,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000008}" {
    Id "OVT-RealEstate_NotRenter"
    Target_en_us "You are not renting this property"
+   Target_it_it "Non stai affittando questa proprietà"
    Target_de_de "Du mietest diese Immobilie nicht"
    Target_ru_ru "Вы не арендуете эту недвижимость"
    Target_uk_ua "Ви не орендуєте цю нерухомість."
@@ -17182,6 +18029,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000005}" {
    Id "OVT-RealEstate_OnlyHouse"
    Target_en_us "You cannot sell your only property"
+   Target_it_it "Non puoi vendere la tua unica proprietà"
    Target_de_de "Du kannst deine einzige Immobilie nicht verkaufen"
    Target_ru_ru "Вы не можете продать своё единственное жильё"
    Target_uk_ua "Ви не можете продати свою єдину нерухомість."
@@ -17199,34 +18047,48 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6BA1C4E000000030}" {
-   Id "OVT-Rearm_NeedsSupplyPoint"
-   Target_en_us "Take it to a helipad, garage or FOB to buy the missing ammunition"
-   Target_de_de "Verlegen Sie das Fahrzeug zu einem Hubschrauberlandeplatz, einer Werkstatt oder einem vorgeschobenen Operationsstützpunkt (FOB), um die fehlende Munition zu beschaffen."
-   Modified 1783262534
-   Author "Aaron Static"
-   LastChanged "lemmi"
-  }
   CustomStringTableItem "{6A9F4C2DB1E07A33}" {
    Id "OVT-RearmVehicle"
    Target_en_us "Re-arm"
+   Target_it_it "Rifornimento munizioni"
    Target_de_de "Aufmunitionieren"
    Target_ru_ru "Пополнить боезапас"
    Target_uk_ua "Поповнити боєзапас"
    Modified 1786759417
    Author "Aaron Static"
   }
+  CustomStringTableItem "{6BA1C4E000000030}" {
+   Id "OVT-Rearm_NeedsSupplyPoint"
+   Target_en_us "Take it to a helipad, garage or FOB to buy the missing ammunition"
+   Target_it_it "Portalo a un eliporto, garage o FOB per acquistare le munizioni mancanti"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
   CustomStringTableItem "{6BA1C4E000000031}" {
    Id "OVT-RearmVehicle_FromStorage"
    Target_en_us "Re-arm (from storage)"
-   Target_de_de "Wiederbewaffnen (aus dem Lager)"
-   Modified 1783260693
+   Target_it_it "Rifornimento munizioni (dal deposito)"
+   Modified 1788220800
    Author "Aaron Static"
-   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6BA1C4E000000032}" {
+   Id "OVT-Msg-Rearmed"
+   Target_en_us "Vehicle re-armed: %1 item(s) drawn from storage, $%2 paid"
+   Target_it_it "Veicolo rifornito: %1 oggetto/i prelevato/i dal deposito, $%2 pagati"
+   Modified 1788220800
+   Author "Aaron Static"
+  }
+  CustomStringTableItem "{6BA1C4E000000033}" {
+   Id "OVT-Msg-RearmNeedsSupplyPoint"
+   Target_en_us "Cannot re-arm: take the vehicle to a helipad, garage or FOB to buy the missing ammunition"
+   Target_it_it "Impossibile riarmare: porta il veicolo a un eliporto, un garage o una FOB per acquistare le munizioni mancanti"
+   Modified 1788220800
+   Author "Aaron Static"
   }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
    Target_en_us "Active"
+   Target_it_it "Attivo"
    Target_de_de "Aktiv"
    Target_ru_ru "Активен"
    Target_uk_ua "Активний"
@@ -17237,6 +18099,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000073}" {
    Id "OVT-Recruit_BuyButton"
    Target_en_us "Buy Recruit ($%1)"
+   Target_it_it "Acquista recluta ($%1)"
    Target_de_de "Rekrut kaufen ($%1)"
    Target_ru_ru "Нанять рекрута ($%1)"
    Target_uk_ua "Найняти рекрута ($%1)"
@@ -17257,6 +18120,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000008F}" {
    Id "OVT-Recruit_BuyButtonPlain"
    Target_en_us "Buy Recruit"
+   Target_it_it "Acquista recluta"
    Target_de_de "Rekrut kaufen"
    Target_ru_ru "Купить рекрута"
    Target_uk_ua "Найняти рекрута"
@@ -17277,6 +18141,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000076}" {
    Id "OVT-Recruit_BuyComplete"
    Target_en_us "Recruit hired and equipped ($%1)"
+   Target_it_it "Recluta ingaggiata ed equipaggiata ($%1)"
    Target_de_de "Rekrut angeworben und ausgerüstet ($%1)"
    Target_ru_ru "Рекрут нанят и экипирован ($%1)"
    Target_uk_ua "Рекрута найнято та споряджено ($%1)"
@@ -17297,6 +18162,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000007D}" {
    Id "OVT-Recruit_BuyFailed"
    Target_en_us "The recruit could not be hired - you were not charged"
+   Target_it_it "Impossibile ingaggiare la recluta: nessun addebito effettuato"
    Target_de_de "Der Rekrut konnte nicht angeworben werden – dir wurde nichts berechnet"
    Target_ru_ru "Не удалось нанять рекрута — деньги не списаны"
    Target_uk_ua "Не вдалося найняти рекрута — кошти не списано."
@@ -17317,6 +18183,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000078}" {
    Id "OVT-Recruit_BuyGearFailed"
    Target_en_us "Recruit hired for $%1 - none of the kit could be issued, so the gear was not charged for"
+   Target_it_it "Recluta ingaggiata per $%1: impossibile fornire parte dell'equipaggiamento, quindi non è stato addebitato alcun costo per esso"
    Target_de_de "Rekrut für $%1 angeworben – keine Ausrüstung konnte ausgegeben werden, daher wurde die Ausrüstung nicht berechnet"
    Target_ru_ru "Рекрут нанят за $%1 — ни одна часть снаряжения не была выдана, поэтому плата за снаряжение не взималась"
    Target_uk_ua "Рекрута найнято за $%1 — спорядження не вдалося видати, тому кошти за нього не списано."
@@ -17337,6 +18204,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000090}" {
    Id "OVT-Recruit_Buying"
    Target_en_us "Buying..."
+   Target_it_it "Acquisto in corso..."
    Target_de_de "Wird gekauft..."
    Target_ru_ru "Покупка..."
    Target_uk_ua "Купівля..."
@@ -17357,6 +18225,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000077}" {
    Id "OVT-Recruit_BuyPartial"
    Target_en_us "Recruit hired for $%1, but only %2 of %3 items arrived"
+   Target_it_it "Recluta ingaggiata per $%1, ma è arrivato solo %2 dei %3 oggetti previsti"
    Target_de_de "Rekrut für $%1 angeworben, aber nur %2 von %3 Gegenständen sind angekommen"
    Target_ru_ru "Рекрут нанят за $%1, но прибыло только %2 из %3 предметов"
    Target_uk_ua "Рекрута найнято за $%1, але надійшло лише %2 з %3 предметів"
@@ -17377,6 +18246,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000022}" {
    Id "OVT-Recruit_CannotParkInVehicle"
    Target_en_us "Get the recruit out of the vehicle first"
+   Target_it_it "Fai prima scendere la recluta dal veicolo"
    Target_de_de "Lass den Rekruten zuerst aus dem Fahrzeug aussteigen"
    Target_ru_ru "Сначала выведите рекрута из транспорта"
    Target_uk_ua "Спочатку висадіть рекрута з транспортного засобу"
@@ -17397,6 +18267,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000052}" {
    Id "OVT-Recruit_CannotSwapDown"
    Target_en_us "The recruit has to be on their feet"
+   Target_it_it "La recluta deve essere in piedi"
    Target_de_de "Der Rekrut muss auf den Beinen sein"
    Target_ru_ru "Рекрут должен быть на ногах"
    Target_uk_ua "Рукрут має стояти на ногах"
@@ -17417,6 +18288,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000051}" {
    Id "OVT-Recruit_CannotSwapParked"
    Target_en_us "Bring the recruit back into your squad first"
+   Target_it_it "Riporta prima la recluta nella tua squadra"
    Target_de_de "Hol den Rekruten zuerst zurück in deinen Trupp"
    Target_ru_ru "Сначала верните рекрута в ваш отряд"
    Target_uk_ua "Спочатку поверніть рекрута до свого загону"
@@ -17437,6 +18309,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000025}" {
    Id "OVT-Recruit_CommandFailed"
    Target_en_us "Could not change that recruit's orders"
+   Target_it_it "Impossibile modificare gli ordini della recluta"
    Target_de_de "Die Befehle dieses Rekruten konnten nicht geändert werden"
    Target_ru_ru "Не удалось изменить приказ рекруту"
    Target_uk_ua "Не вдалося змінити накази цього рекрута"
@@ -17457,6 +18330,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A15}" {
    Id "OVT-Recruit_Dismissed"
    Target_en_us "Recruit dismissed"
+   Target_it_it "Recluta congedata"
    Target_de_de "Rekrut entlassen"
    Target_ru_ru "Рекрут уволен"
    Target_uk_ua "Рекрут звільнений"
@@ -17467,6 +18341,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A20}" {
    Id "OVT-Recruit_Hometown"
    Target_en_us "Hometown: %1"
+   Target_it_it "Città natale: %1"
    Target_de_de "Heimatstadt: %1"
    Target_ru_ru "Родной город: %1"
    Target_uk_ua "Рідне місто: %1"
@@ -17477,6 +18352,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A08}" {
    Id "OVT-Recruit_Kills"
    Target_en_us "Kills: %1"
+   Target_it_it "Uccisioni: %1"
    Target_de_de "Abschüsse: %1"
    Target_ru_ru "Убийств: %1"
    Target_uk_ua "Вбивств: %1"
@@ -17487,6 +18363,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A06}" {
    Id "OVT-Recruit_Level"
    Target_en_us "Level %1"
+   Target_it_it "Livello %1"
    Target_de_de "Stufe %1"
    Target_ru_ru "Уровень %1"
    Target_uk_ua "Рівень %1"
@@ -17497,6 +18374,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A07}" {
    Id "OVT-Recruit_LevelXP"
    Target_en_us "Level: %1 (%2/%3 XP)"
+   Target_it_it "Livello: %1 (%2/%3 PE)"
    Target_de_de "Stufe: %1 (%2/%3 EP)"
    Target_ru_ru "Уровень: %1 (%2/%3 XP)"
    Target_uk_ua "Рівень: %1 (%2 із %3 XP)"
@@ -17507,6 +18385,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000007B}" {
    Id "OVT-Recruit_LoadoutEmpty"
    Target_en_us "That loadout has nothing in it"
+   Target_it_it "Quella configurazione è vuota"
    Target_de_de "Diese Ausrüstung enthält nichts"
    Target_ru_ru "В этом комплекте нет предметов"
    Target_uk_ua "У цьому комплекті спорядження нічого немає"
@@ -17527,6 +18406,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000007C}" {
    Id "OVT-Recruit_LoadoutUnpriceable"
    Target_en_us "Something in that loadout has no price and cannot be supplied"
+   Target_it_it "Un elemento di quella configurazione non ha prezzo e non può essere fornito"
    Target_de_de "Etwas in dieser Ausrüstung hat keinen Preis und kann nicht bereitgestellt werden"
    Target_ru_ru "В этом комплекте есть предмет без цены, который нельзя получить"
    Target_uk_ua "Щось у цьому комплекті спорядження не має ціни й не може бути поставлене"
@@ -17547,6 +18427,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A16}" {
    Id "OVT-Recruit_MarkedOnMap"
    Target_en_us "Recruit location marked on map"
+   Target_it_it "Posizione della recluta segnata sulla mappa"
    Target_de_de "Position des Rekruten auf der Karte markiert"
    Target_ru_ru "Местоположение рекрута отмечено на карте"
    Target_uk_ua "Місцезнаходження рекрута позначено на мапі"
@@ -17557,6 +18438,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000024}" {
    Id "OVT-Recruit_NoBody"
    Target_en_us "That recruit is not here right now"
+   Target_it_it "Quella recluta non è qui al momento ora"
    Target_de_de "Dieser Rekrut ist momentan nicht hier"
    Target_ru_ru "Этот рекрут сейчас не здесь"
    Target_uk_ua "Цього рекрута зараз тут немає"
@@ -17577,6 +18459,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000007E}" {
    Id "OVT-Recruit_NoLoadouts"
    Target_en_us "Save a loadout first"
+   Target_it_it "Salva prima una configurazione"
    Target_de_de "Speichere zuerst eine Ausrüstung"
    Target_ru_ru "Сначала сохраните комплект"
    Target_uk_ua "Спочатку збережіть комплект спорядження"
@@ -17597,6 +18480,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000007A}" {
    Id "OVT-Recruit_NoSuchLoadout"
    Target_en_us "That loadout no longer exists"
+   Target_it_it "Quella configurazione non esiste più"
    Target_de_de "Diese Ausrüstung existiert nicht mehr"
    Target_ru_ru "Этот комплект больше не существует"
    Target_uk_ua "Цього комплекту спорядження більше не існує"
@@ -17617,6 +18501,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000079}" {
    Id "OVT-Recruit_NotAtTent"
    Target_en_us "You are not at a recruitment tent"
+   Target_it_it "Non ti trovi presso una tenda di reclutamento"
    Target_de_de "Du befindest dich nicht an einem Rekrutierungszelt"
    Target_ru_ru "Вы не у палатки вербовки"
    Target_uk_ua "Ви не біля намету для найму"
@@ -17637,6 +18522,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000023}" {
    Id "OVT-Recruit_NotYours"
    Target_en_us "That is not one of your recruits"
+   Target_it_it "Quello non è una delle tue reclute"
    Target_de_de "Das ist keiner deiner Rekruten"
    Target_ru_ru "Это не ваш рекрут"
    Target_uk_ua "Це не один із ваших рекрутів"
@@ -17657,6 +18543,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A11}" {
    Id "OVT-Recruit_Offline"
    Target_en_us "Offline"
+   Target_it_it "Offline"
    Target_de_de "Offline"
    Target_ru_ru "Не в сети"
    Target_uk_ua "Офлайн"
@@ -17667,6 +18554,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000075}" {
    Id "OVT-Recruit_QuoteChecking"
    Target_en_us "Checking price..."
+   Target_it_it "Controllo prezzo..."
    Target_de_de "Preis wird geprüft..."
    Target_ru_ru "Проверка цены..."
    Target_uk_ua "Перевірка ціни..."
@@ -17687,6 +18575,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007100}" {
    Id "OVT-Recruit_QuoteCovered"
    Target_en_us "Covered by nearby warehouse stock: $%1"
+   Target_it_it "Coperto dalle scorte del magazzino vicino: $%1"
    Target_de_de "Durch Bestand im nahegelegenen Lagerhaus abgedeckt: $%1"
    Target_ru_ru "Покрыто запасами склада: $%1"
    Comment "OVT_LoadoutsContext.OnRecruitQuote - the equipped-recruit quote's second line, showing how much of the gear cost nearby warehouse stock covers. %1 is the covered value in dollars."
@@ -17706,6 +18595,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000074}" {
    Id "OVT-Recruit_QuotePrice"
    Target_en_us "%1 items, $%2 equipped"
+   Target_it_it "%1 oggetti, $%2 equipaggiati"
    Target_de_de "%1 Gegenstände, für $%2 ausgerüstet"
    Target_ru_ru "%1 предметов, экипировано на $%2"
    Target_uk_ua "%1 предметів, споряджено на $%2"
@@ -17726,6 +18616,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A23}" {
    Id "OVT-Recruit_Renamed"
    Target_en_us "Recruit renamed successfully"
+   Target_it_it "Recluta rinominata con successo"
    Target_de_de "Rekrut erfolgreich umbenannt"
    Target_ru_ru "Рекрут успешно переименован"
    Target_uk_ua "Рекрута успішно перейменовано"
@@ -17736,6 +18627,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000021}" {
    Id "OVT-Recruit_SetActive"
    Target_en_us "Rejoin to group"
+   Target_it_it "Rientra nel gruppo"
    Target_de_de "Wieder der Gruppe beitreten"
    Target_ru_ru "Вернуть в группу"
    Target_uk_ua "Повернутися до групи"
@@ -17756,6 +18648,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000020}" {
    Id "OVT-Recruit_SetInactive"
    Target_en_us "Remove From Group"
+   Target_it_it "Rimuovi dal gruppo"
    Target_de_de "Aus Gruppe entfernen"
    Target_ru_ru "Удалить из группы"
    Target_uk_ua "Видалити з групи"
@@ -17776,6 +18669,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A13}" {
    Id "OVT-Recruit_StatusActive"
    Target_en_us "Status: Active (Distance: %1m)"
+   Target_it_it "Stato: Attivo (Distanza: %1m)"
    Target_de_de "Status: Aktiv (Entfernung: %1 m)"
    Target_ru_ru "Статус: активен (расстояние: %1 м)"
    Target_uk_ua "Статус: активний (відстань: %1 м)"
@@ -17786,6 +18680,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A12}" {
    Id "OVT-Recruit_StatusDead"
    Target_en_us "Status: Dead"
+   Target_it_it "Stato: Deceduto"
    Target_de_de "Status: Tot"
    Target_ru_ru "Статус: мёртв"
    Target_uk_ua "Статус: мертвий"
@@ -17796,6 +18691,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A14}" {
    Id "OVT-Recruit_StatusOffline"
    Target_en_us "Status: Offline"
+   Target_it_it "Stato: Offline"
    Target_de_de "Status: Offline"
    Target_ru_ru "Статус: не в сети"
    Target_uk_ua "Статус: офлайн"
@@ -17806,6 +18702,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000054}" {
    Id "OVT-Recruit_SwapComplete"
    Target_en_us "Kit swapped"
+   Target_it_it "Kit scambiato"
    Target_de_de "Ausrüstung getauscht"
    Target_ru_ru "Снаряжение обменяно"
    Target_uk_ua "Спорядження змінено"
@@ -17826,6 +18723,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000056}" {
    Id "OVT-Recruit_SwapFailed"
    Target_en_us "Nothing could be exchanged"
+   Target_it_it "Impossibile effettuare scambi"
    Target_de_de "Nichts konnte getauscht werden"
    Target_ru_ru "Не удалось ничего обменять"
    Target_uk_ua "Нічого не вдалося обміняти"
@@ -17846,6 +18744,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000050}" {
    Id "OVT-Recruit_SwapLoadout"
    Target_en_us "Swap Gear"
+   Target_it_it "Scambia equipaggiamento"
    Target_de_de "Ausrüstung tauschen"
    Target_ru_ru "Обменять снаряжение"
    Target_uk_ua "Обміняти спорядження"
@@ -17866,6 +18765,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000055}" {
    Id "OVT-Recruit_SwapPartial"
    Target_en_us "Kit swapped: %1 items exchanged, %2 could not be"
+   Target_it_it "Kit scambiato: %1 oggetti scambiati, %2 non scambiabili"
    Target_de_de "Ausrüstung getauscht: %1 Gegenstände getauscht, %2 konnten nicht getauscht werden"
    Target_ru_ru "Снаряжение обменяно: %1 предметов обменяно, %2 не удалось"
    Target_uk_ua "Спорядження змінено: %1 предметів обміняно, %2 не вдалося обміняти"
@@ -17886,6 +18786,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000053}" {
    Id "OVT-Recruit_TooFarAway"
    Target_en_us "Get closer to the recruit"
+   Target_it_it "Avvicinati alla recluta"
    Target_de_de "Geh näher an den Rekruten heran"
    Target_ru_ru "Подойдите ближе к рекруту"
    Target_uk_ua "Підійдіть ближче до рекрута"
@@ -17906,6 +18807,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A09}" {
    Id "OVT-Recruit_Unconscious"
    Target_en_us "Unconscious"
+   Target_it_it "Privo di sensi"
    Target_de_de "Bewusstlos"
    Target_ru_ru "Без сознания"
    Target_uk_ua "Непритомний"
@@ -17916,6 +18818,7 @@ StringTable {
   CustomStringTableItem "{64A10301CB5B1FEF}" {
    Id "OVT-RecruitCivilian"
    Target_en_us "Recruit Civilian"
+   Target_it_it "Recluta civile"
    Target_de_de "Zivilisten rekrutieren"
    Target_ru_ru "Нанять Гражданского"
    Target_uk_ua "Вербувати цивільного"
@@ -17926,6 +18829,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4CB}" {
    Id "OVT-RecruitedFromTent"
    Target_en_us "Recruited supporter from nearby town"
+   Target_it_it "Reclutato sostenitore dalla città vicina"
    Target_fr_fr "Partisan recruté de la ville voisine"
    Target_de_de "Unterstützer aus der nahegelegenen Stadt rekrutiert"
    Target_ru_ru "Завербован сторонник из близлежащего города"
@@ -17948,6 +18852,7 @@ StringTable {
   CustomStringTableItem "{5DA486E22A59D4C9}" {
    Id "OVT-RecruitFromTent"
    Target_en_us "Recruit from Tent"
+   Target_it_it "Recluta dalla tenda"
    Target_fr_fr "Recruter de la tente"
    Target_de_de "Am Zelt rekrutieren"
    Target_ru_ru "Завербовать из палатки"
@@ -17970,6 +18875,7 @@ StringTable {
   CustomStringTableItem "{59DA76A7366B7006}" {
    Id "OVT-RecruitGunner"
    Target_en_us "Recruit Gunner"
+   Target_it_it "Recluta mitragliere"
    Target_fr_fr "Recruter Homme de main"
    Target_de_de "Schützen rekrutieren"
    Target_ru_ru "Нанять пулеметчика"
@@ -17993,6 +18899,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E3916A9}" {
    Id "OVT-RecruitLimitReached"
    Target_en_us "You have reached the maximum number of recruits (16)"
+   Target_it_it "Hai raggiunto il numero massimo di reclute (16)"
    Target_fr_fr "Vous avez atteint le nombre maximum de recrues (16)"
    Target_de_de "Du hast die maximale Anzahl an Rekruten erreicht (16)"
    Target_ru_ru "Вы достигли максимального количества бойцов (16)"
@@ -18015,6 +18922,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000042}" {
    Id "OVT-Recruits_Capacity"
    Target_en_us "%1 / %2 recruits"
+   Target_it_it "%1 / %2 reclute"
    Target_de_de "%1 / %2 Rekruten"
    Target_ru_ru "%1 / %2 рекрутов"
    Target_uk_ua "%1 / %2 рекрутів"
@@ -18035,6 +18943,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007108}" {
    Id "OVT-Recruits_ConvertAtCap"
    Target_en_us "Your High Command roster is full"
+   Target_it_it "La tua lista dell'Alto Comando è piena"
    Target_de_de "Dein Kader des Oberen Kommandos ist voll"
    Target_ru_ru "Ваш список Командования полон"
    Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_CONVERT_AT_CAP."
@@ -18054,6 +18963,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D000000710A}" {
    Id "OVT-Recruits_ConvertFailed"
    Target_en_us "The conversion failed"
+   Target_it_it "La conversione non è riuscita"
    Target_de_de "Die Überführung ist fehlgeschlagen"
    Target_ru_ru "Преобразование не удалось"
    Comment "OVT_RecruitsContext.OnHCResult - fallback hint for any refusal without a specific message."
@@ -18073,6 +18983,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007104}" {
    Id "OVT-Recruits_ConvertGroupMessage"
    Target_en_us "Convert this group to a High Command group? This is one-way. They leave your recruit roster and cap, and their names, XP and skills stop being tracked. They keep their bodies and equipment."
+   Target_it_it "Convertire questo gruppo in un gruppo dell'Alto Comando? Questa è un'operazione irreversibile. Lasciano la tua lista e il limite di reclute; inoltre, i loro nomi, PE e abilità non verranno più tracciati. Mantengono i loro corpi ed equipaggiamenti."
    Target_de_de "Diese Gruppe in eine Gruppe des Oberen Kommandos überführen? Dieser Vorgang ist endgültig. Die Rekruten werden aus deinem Rekrutenkader entfernt und zählen nicht mehr zu dessen Obergrenze. Ihre Namen, EP und Fähigkeiten werden nicht mehr erfasst. Körper und Ausrüstung bleiben erhalten"
    Target_ru_ru "Преобразовать эту группу в группу Командования? Это необратимо. Они покинут ваш список рекрутов и освободят слоты, их имена, опыт и навыки перестанут отслеживаться. Они сохранят свои тела и снаряжение."
    Comment "CONVERT_RECRUIT_GROUP dialog body - must name the one-way consequence (implementation.md T9.5)."
@@ -18092,6 +19003,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007103}" {
    Id "OVT-Recruits_ConvertGroupTitle"
    Target_en_us "Convert to High Command"
+   Target_it_it "Converti in Alto Comando"
    Target_de_de "An das Obere Kommando überführen"
    Target_ru_ru "Преобразовать в Командование"
    Comment "CONVERT_RECRUIT_GROUP dialog title, DialogPresets_Campaign.conf."
@@ -18111,6 +19023,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007106}" {
    Id "OVT-Recruits_ConvertNeedsBody"
    Target_en_us "That recruit has no body in the world to convert"
+   Target_it_it "Quella recluta non ha un corpo nel mondo da convertire"
    Target_de_de "Für diesen Rekruten existiert kein Körper in der Spielwelt, der überführt werden kann"
    Target_ru_ru "У этого рекрута нет тела в мире для преобразования"
    Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit has no spawned body."
@@ -18130,6 +19043,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007105}" {
    Id "OVT-Recruits_ConvertNeedsInactive"
    Target_en_us "Select a parked recruit to convert their group"
+   Target_it_it "Seleziona una recluta in attesa per convertire il suo gruppo"
    Target_de_de "Wähle einen stationierten Rekruten aus, um seine Gruppe zu überführen"
    Target_ru_ru "Выберите стоящего на месте рекрута для преобразования его группы"
    Comment "OVT_RecruitsContext - disabled reason on the Convert button when the selected recruit is active rather than parked."
@@ -18149,6 +19063,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007109}" {
    Id "OVT-Recruits_ConvertNoGroup"
    Target_en_us "Those recruits are not parked as a group"
+   Target_it_it "Quelle reclute non sono in attesa come gruppo"
    Target_de_de "Diese Rekruten sind nicht als Gruppe stationiert"
    Target_ru_ru "Эти рекруты не стоят на месте как группа"
    Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_NO_RECRUIT_GROUP."
@@ -18168,6 +19083,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007107}" {
    Id "OVT-Recruits_ConvertSuccess"
    Target_en_us "Group converted to High Command"
+   Target_it_it "Gruppo convertito in Alto Comando"
    Target_de_de "Gruppe an das Obere Kommando überführt"
    Target_ru_ru "Группа преобразована в Командование"
    Comment "OVT_RecruitsContext.OnHCResult - hint on RESULT_OK."
@@ -18187,6 +19103,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007102}" {
    Id "OVT-Recruits_ConvertToHC"
    Target_en_us "Convert to High Command"
+   Target_it_it "Converti in Alto Comando"
    Target_de_de "An das Obere Kommando überführen"
    Target_ru_ru "Преобразовать в Командование"
    Comment "RecruitsMenu.layout - label of the button that converts a parked recruit group into a High Command group."
@@ -18206,6 +19123,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A05}" {
    Id "OVT-Recruits_Dismiss"
    Target_en_us "Dismiss"
+   Target_it_it "Congeda"
    Target_de_de "Entlassen"
    Target_ru_ru "Уволить"
    Target_uk_ua "Звільнити"
@@ -18216,6 +19134,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A18}" {
    Id "OVT-Recruits_DismissMessage"
    Target_en_us "Are you sure you want to dismiss this recruit? This action cannot be undone."
+   Target_it_it "Sei sicuro di voler congedare questa recluta? Questa azione è irreversibile."
    Target_de_de "Möchtest du diesen Rekruten wirklich entlassen? Diese Aktion kann nicht rückgängig gemacht werden."
    Target_ru_ru "Вы уверены, что хотите уволить этого рекрута? Это действие необратимо."
    Target_uk_ua "Ви дійсно хочете звільнити цього рекрута? Ця дія незворотна."
@@ -18226,6 +19145,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A17}" {
    Id "OVT-Recruits_DismissTitle"
    Target_en_us "Dismiss Recruit"
+   Target_it_it "Congeda recluta"
    Target_de_de "Rekrut entlassen"
    Target_ru_ru "Увольнение рекрута"
    Target_uk_ua "Звільнити рекрута"
@@ -18236,6 +19156,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007101}" {
    Id "OVT-Recruits_GroupHeader"
    Target_en_us "Group (%1)"
+   Target_it_it "Gruppo (%1)"
    Target_de_de "Gruppe (%1)"
    Target_ru_ru "Группа (%1)"
    Comment "OVT_RecruitsContext - sub-header over one cluster of parked recruits in the inactive section. %1 is the number of recruits in that group."
@@ -18255,6 +19176,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A02}" {
    Id "OVT-Recruits_NoRecruitsHelp"
    Target_en_us "You have no recruits yet. Recruit civilians by approaching them in towns with high support and using the Recruit Civilian action."
+   Target_it_it "Non hai ancora reclute. Recluta civili avvicinandoti a loro nelle città con alto livello di supporto e usando l'azione \"Recluta civile\"."
    Target_de_de "Du hast noch keine Rekruten. Rekrutiere Zivilisten, indem du dich ihnen in Städten mit hoher Unterstützung näherst und die Aktion \"Rekrutiere Zivilisten\" verwendest."
    Target_ru_ru "У вас пока нет рекрутов. Нанимайте гражданских, подходя к ним в городах с высокой поддержкой и используя действие «Нанять гражданского»."
    Target_uk_ua "У вас ще немає рекрутів. Вербуйте цивільних, наближаючись до них у населених пунктах із високою підтримкою та використовуючи дію Вербувати Цивільного."
@@ -18265,6 +19187,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A04}" {
    Id "OVT-Recruits_Rename"
    Target_en_us "Rename"
+   Target_it_it "Rinomina"
    Target_de_de "Umbenennen"
    Target_ru_ru "Переименовать"
    Target_uk_ua "Перейменувати"
@@ -18275,6 +19198,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A21}" {
    Id "OVT-Recruits_RenameMessage"
    Target_en_us "Enter a new name for this recruit:"
+   Target_it_it "Inserisci un nuovo nome per questa recluta:"
    Target_de_de "Gib einen neuen Namen für diesen Rekruten ein:"
    Target_ru_ru "Введите новое имя для этого рекрута:"
    Target_uk_ua "Введіть нове ім’я для цього рекрута:"
@@ -18285,6 +19209,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A22}" {
    Id "OVT-Recruits_RenamePrompt"
    Target_en_us "Recruit Name"
+   Target_it_it "Nome recluta"
    Target_de_de "Name des Rekruten"
    Target_ru_ru "Имя рекрута"
    Target_uk_ua "Ім'я рекрута"
@@ -18295,6 +19220,7 @@ StringTable {
   CustomStringTableItem "{6BB5000000000001}" {
    Id "OVT-Recruits_RenameTitle"
    Target_en_us "Rename Recruit"
+   Target_it_it "Rinomina recluta"
    Target_de_de "Rekrut umbenennen"
    Target_ru_ru "Переименование рекрута"
    Target_uk_ua "Перейменувати рекрута"
@@ -18305,6 +19231,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000040}" {
    Id "OVT-Recruits_SectionActive"
    Target_en_us "Active"
+   Target_it_it "Attivo"
    Target_de_de "Aktiv"
    Target_ru_ru "Активные"
    Target_uk_ua "Активні"
@@ -18325,6 +19252,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000041}" {
    Id "OVT-Recruits_SectionInactive"
    Target_en_us "Holding Position"
+   Target_it_it "Mantiene la posizione"
    Target_de_de "Position halten"
    Target_ru_ru "Удерживают позицию"
    Target_uk_ua "Утримують позицію"
@@ -18345,6 +19273,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A03}" {
    Id "OVT-Recruits_ShowOnMap"
    Target_en_us "Show on Map"
+   Target_it_it "Mostra sulla mappa"
    Target_de_de "Auf Karte anzeigen"
    Target_ru_ru "Показать на карте"
    Target_uk_ua "Показати на мапі"
@@ -18355,6 +19284,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000045}" {
    Id "OVT-Recruits_StatusHolding"
    Target_en_us "Holding position (%1m)"
+   Target_it_it "Mantiene la posizione (%1 m)"
    Target_de_de "Hält Position (%1m)"
    Target_ru_ru "Удерживает позицию (%1 м)"
    Target_uk_ua "Утримує позицію (%1 м)"
@@ -18375,6 +19305,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000046}" {
    Id "OVT-Recruits_StatusHoldingShort"
    Target_en_us "Holding"
+   Target_it_it "In attesa"
    Target_de_de "Hält Position"
    Target_ru_ru "Удерживает"
    Target_uk_ua "Утримує позицію"
@@ -18395,6 +19326,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000044}" {
    Id "OVT-Recruits_ToggleFollow"
    Target_en_us "Follow Me"
+   Target_it_it "Seguimi"
    Target_de_de "Mir folgen"
    Target_ru_ru "Следовать за мной"
    Target_uk_ua "Слідувати за мною"
@@ -18415,6 +19347,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000043}" {
    Id "OVT-Recruits_ToggleHold"
    Target_en_us "Hold Position"
+   Target_it_it "Mantieni la posizione"
    Target_de_de "Position halten"
    Target_ru_ru "Удерживать позицию"
    Target_uk_ua "Утримувати позицію"
@@ -18435,6 +19368,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A6E391A01}" {
    Id "OVT-Recruits_YourRecruits"
    Target_en_us "Your Recruits"
+   Target_it_it "Le tue reclute"
    Target_de_de "Deine Rekruten"
    Target_ru_ru "Ваши рекруты"
    Target_uk_ua "Ваші рекрути"
@@ -18445,6 +19379,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F0000000002}" {
    Id "OVT-Refuel_CannotAfford"
    Target_en_us "You cannot afford fuel here"
+   Target_it_it "Non puoi permetterti il carburante qui"
    Target_de_de "Du kannst dir den Treibstoff hier nicht leisten"
    Target_ru_ru "Вы не можете позволить себе топливо здесь"
    Comment "Reason shown under the greyed-out Refuel action when the player cannot pay for the next tick of fuel. Returned by the modded SCR_RefuelAtSupportStationAction.GetInvalidPerformReasonString for ESupportStationReasonInvalid.OVT_CANNOT_AFFORD_FUEL (550), which the modded SCR_FuelSupportStationComponent.IsValid sets. LENGTH BUDGET: one short line - it renders in the same slot as vanilla's #AR-SupportStation_ActionInvalid_* reasons and must not wrap. 'here' is load-bearing: fuel truck, jerrycan and Fuel Depot refuels are free, so the refusal is about THIS pump and not about fuel in general. TONE: states the fact, gives no instruction."
@@ -18464,6 +19399,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F0000000001}" {
    Id "OVT-Refuel_PriceFormat"
    Target_en_us "%1 ($%2/L)"
+   Target_it_it "%1 ($%2/L)"
    Target_ru_ru "%1 ($%2/л)"
    Comment "Format that appends the fuel rate to the Refuel action label at a paid station. %1 is the ENTIRE label vanilla just built, fill percentage included (e.g. 'Refuel (37.5)'); %2 is the price per litre, already trimmed of trailing zeros by OVT_FuelPricing.FormatPricePerLitre, so it arrives as '1', '1.5' or '2.25' and never '1.00'. Result: 'Refuel (37.5) ($1/L)'. Applied by the modded SCR_RefuelAtSupportStationAction.GetActionNameScript AFTER super - not through GetActionStringParam, which would suppress the percentage readout. Translators: keep %1 first and do not add a currency symbol, the $ is already here; 'L' is litres."
    DevNote ""
@@ -18482,6 +19418,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E29}" {
    Id "OVT-RemovalModeActive"
    Target_en_us "Removal mode active - look at items to remove them"
+   Target_it_it "Modalità rimozione attiva: guarda gli oggetti per rimuoverli"
    Target_de_de "Entfernungsmodus aktiv – sieh Gegenstände an, um sie zu entfernen"
    Target_ru_ru "Режим удаления активен - смотрите на предметы, чтобы удалить их"
    Target_uk_ua "Режим видалення активний - дивіться на предмети, щоб їх видалити"
@@ -18492,6 +19429,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E2C}" {
    Id "OVT-Remove"
    Target_en_us "Remove"
+   Target_it_it "Rimuovi"
    Target_de_de "Entfernen"
    Target_ru_ru "Удалить"
    Target_uk_ua "Видалити"
@@ -18502,6 +19440,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E2D}" {
    Id "OVT-RemoveDescription"
    Target_en_us "Remove placed or built items"
+   Target_it_it "Rimuovi oggetti piazzati o costruiti"
    Target_de_de "Platzierte oder gebaute Gegenstände entfernen"
    Target_ru_ru "Удалить размещенные или построенные предметы"
    Target_uk_ua "Видалити розміщені або побудовані предмети"
@@ -18512,6 +19451,7 @@ StringTable {
   CustomStringTableItem "{5D305CF6351DD698}" {
    Id "OVT-Rent"
    Target_en_us "Rent"
+   Target_it_it "Affitto"
    Target_fr_fr "Louer"
    Target_de_de "Mieten"
    Target_ru_ru "Арендовать"
@@ -18535,6 +19475,7 @@ StringTable {
   CustomStringTableItem "{65D6C32968AF3759}" {
    Id "OVT-Rented"
    Target_en_us "Rented"
+   Target_it_it "Affittato"
    Target_de_de "Gemietet"
    Target_ru_ru "Арендовано"
    Target_uk_ua "Орендовано"
@@ -18545,6 +19486,7 @@ StringTable {
   CustomStringTableItem "{5D342475BAF79297}" {
    Id "OVT-RentIncome"
    Target_en_us "Rent Income"
+   Target_it_it "Entrate da affitto"
    Target_fr_fr "Loyer"
    Target_de_de "Mieteinnahmen"
    Target_ru_ru "Доход с сдачи в аренду"
@@ -18568,6 +19510,7 @@ StringTable {
   CustomStringTableItem "{5D305DE90B69493E}" {
    Id "OVT-Renting"
    Target_en_us "Renting"
+   Target_it_it "Affitto in corso"
    Target_fr_fr "En Location"
    Target_de_de "Mieten"
    Target_ru_ru "Арендуется"
@@ -18591,6 +19534,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000036}" {
    Id "OVT-RepairStructure"
    Target_en_us "Repair Structure"
+   Target_it_it "Ripara struttura"
    Target_de_de "Bauwerk reparieren"
    Target_ru_ru "Восстановить сооружение"
    Comment "Held user action on a RUINED Overthrow buildable (guard tower, tent, ramp, bunker, garage, helipad, fuel depot). Drawn by OVT_RepairStructureAction.GetActionNameScript as '#OVT-RepairStructure ($500)' - the price is appended in code, so this string must NOT contain a parameter or a price of its own. The action only exists on a ruin; repairing costs the build price scaled by the difficulty's repairCostMultiplier (half on Easy/Normal, three quarters on Hard, full at Extreme/Insane). Distinct from #OVT-RepairVehicle, which is the maintenance ramp's vehicle repair."
@@ -18601,6 +19545,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000037}" {
    Id "OVT-RepairStructure-Repaired"
    Target_en_us "Structure repaired"
+   Target_it_it "Struttura riparata"
    Target_de_de "bauwerk repariert"
    Target_ru_ru "Сооружение восстановлено"
    Comment "Notification sent to the paying player only when a repair succeeds (preset tag 'RepairedStructure' in Configs/overthrowBroadcastMessages.conf, sent from OVT_ResistanceFactionManager.RepairStructure). NO PARAMETERS - the player is standing at the structure and just watched it come back, so naming it would add nothing. A server-initiated repair (playerId -1: the occupying faction's repair module, the admin command) sends nothing at all."
@@ -18611,6 +19556,7 @@ StringTable {
   CustomStringTableItem "{59D0228A8D1E8EE6}" {
    Id "OVT-RepairVehicle"
    Target_en_us "Repair Vehicle"
+   Target_it_it "Ripara veicolo"
    Target_fr_fr "Réparer Véhicule"
    Target_de_de "Fahrzeug reparieren"
    Target_ru_ru "Починить технику"
@@ -18634,6 +19580,7 @@ StringTable {
   CustomStringTableItem "{6A8E2F300000001A}" {
    Id "OVT-Resistance"
    Target_en_us "Resistance"
+   Target_it_it "Resistenza"
    Target_de_de "Widerstand"
    Target_ru_ru "Сопротивление"
    Comment "Owner row value in the production-site map info panel when the site was bought with resistance funds (the owner field holds the literal \"resistance\"). Everyone in the resistance may open such a site's storage, and its privacy toggle is officer-gated. Cited: OVT_MapLocationProductionSite.c BuildInfoRows."
@@ -18653,6 +19600,7 @@ StringTable {
   CustomStringTableItem "{59A6DA4EA0AEA2B4}" {
    Id "OVT-Resistance_Funds"
    Target_en_us "Total Funds"
+   Target_it_it "Fondi totali"
    Target_fr_fr "Total des Fonds"
    Target_de_de "Gesamtvermögen"
    Target_ru_ru "Всего средств"
@@ -18676,6 +19624,7 @@ StringTable {
   CustomStringTableItem "{59A6DA490E88EB49}" {
    Id "OVT-Resistance_NextIncome"
    Target_en_us "Next income is at"
+   Target_it_it "Prossima entrata prevista per"
    Target_fr_fr "Prochain Revenu à"
    Target_de_de "Nächstes Einkommen um"
    Target_ru_ru "Следущий доход в"
@@ -18699,6 +19648,7 @@ StringTable {
   CustomStringTableItem "{59A6DA4F1007870D}" {
    Id "OVT-Resistance_SupporterDonations"
    Target_en_us "Supporter Donations"
+   Target_it_it "Donazioni dei sostenitori"
    Target_fr_fr "Dons des Partisans"
    Target_de_de "Spenden von Unterstützern"
    Target_ru_ru "Помощь сторонников"
@@ -18722,6 +19672,7 @@ StringTable {
   CustomStringTableItem "{59A6DA4E32870B30}" {
    Id "OVT-Resistance_TotalTaxes"
    Target_en_us "Total Taxes"
+   Target_it_it "Tasse totali"
    Target_fr_fr "Impôt Total"
    Target_de_de "Steuern gesamt"
    Target_ru_ru "Всего налогов"
@@ -18745,6 +19696,7 @@ StringTable {
   CustomStringTableItem "{5D86A310D3971BAE}" {
    Id "OVT-ResistanceFunds"
    Target_en_us "Resistance Funds"
+   Target_it_it "Fondi della Resistenza"
    Target_de_de "Widerstandskasse"
    Target_ru_ru "Денег у сопротивления"
    Target_ko_kr "저항군 자금"
@@ -18767,6 +19719,7 @@ StringTable {
   CustomStringTableItem "{59C84C6734016F2F}" {
    Id "OVT-ResistanceTax"
    Target_en_us "Resistance Tax"
+   Target_it_it "Tassa della Resistenza"
    Target_fr_fr "Impôt de la résistance"
    Target_de_de "Widerstandssteuer"
    Target_ru_ru "Налоги сопротивления"
@@ -18790,6 +19743,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001C}" {
    Id "OVT-Resource_BadRequest"
    Target_en_us "That order was malformed"
+   Target_it_it "Ordine non valido"
    Target_de_de "Dieser Befehl war fehlerhaft"
    Target_ru_ru "Неверный запрос"
    Comment "Server refusal for a checkout whose streamed lines do not match what was announced: a short or long stream, an unknown resource index, a quantity outside the allowed bounds, or the same resource listed twice. Refused once, whole, at commit."
@@ -18809,6 +19763,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000032}" {
    Id "OVT-Resource_BuildFromSite"
    Target_en_us "Build"
+   Target_it_it "Costruisci"
    Target_de_de "Bauen"
    Target_ru_ru "Построить"
    Comment "Fallback name of the 'finish this construction site' user action, authored on the prefab. The action rewrites it every second with #OVT-Resource_BuildNow or #OVT-Resource_ShortOf, so this only shows if that rewrite fails."
@@ -18828,6 +19783,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000033}" {
    Id "OVT-Resource_BuildNow"
    Target_en_us "Build %1"
+   Target_it_it "Costruisci %1"
    Target_de_de "Bauen %1"
    Target_ru_ru "Построить %1"
    Comment "Name of the 'finish this construction site' user action when the crate piles around it cover every requirement. %1 is the building's name, e.g. 'Build Guard Tower'."
@@ -18847,6 +19803,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000037}" {
    Id "OVT-Resource_BuildRequirementRow"
    Target_en_us "%1 x %2"
+   Target_it_it "%1 x %2"
    Target_ru_ru "%1 x %2"
    Comment "⚠ UNUSED since 2026-08-22 - the build menu card was collapsed to the one-line #OVT-Resource_BuildRequires because the row list pushed the description over the preview image. Kept because the identical shape is still used by the truck cargo HUD row (#OVT-Resource_CargoRow) and a future per-resource readout would want it back. %1 is the scaled quantity, %2 the resource's name, e.g. '40 x Timber'."
    DevNote ""
@@ -18865,6 +19822,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000036}" {
    Id "OVT-Resource_BuildRequires"
    Target_en_us "Requires Resources"
+   Target_it_it "Richiede risorse"
    Target_de_de "Benötigt Ressourcen"
    Target_ru_ru "Требует ресурсы"
    Comment "One-line note on a build menu card marking a buildable that costs materials as well as money. CHANGED 2026-08-22 from the heading 'Requires:' plus a per-resource row list, which was tall enough to push the card's description over the preview image. The quantities are no longer shown here - a player reads them on the construction site's own Requirements action, which is where they can act on them."
@@ -18884,6 +19842,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000004}" {
    Id "OVT-Resource_Cargo"
    Target_en_us "Cargo"
+   Target_it_it "Carico"
    Target_de_de "Fracht"
    Target_ru_ru "Груз"
    Comment "Name of the 'open resource store' action on a truck. Rendered with the volume appended by OVT_OpenResourceStoreAction, e.g. 'Cargo (12.5 / 20 m³)'."
@@ -18903,6 +19862,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000F}" {
    Id "OVT-Resource_Cement"
    Target_en_us "Cement"
+   Target_it_it "Cemento"
    Target_de_de "Zement"
    Target_ru_ru "Цемент"
    Comment "Resource name, from Configs/Resistance/resources.conf. Bagged cement; dense and mid-priced."
@@ -18922,6 +19882,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000010}" {
    Id "OVT-Resource_Cement_Description"
    Target_en_us "Bagged cement. Heavy for its volume, and needed wherever something has to stay put."
+   Target_it_it "Cemento in sacchi. Pesante rispetto al suo volume; indispensabile ovunque serva fissare qualcosa in posizione."
    Target_de_de "Zement in Säcken. Für sein Volumen schwer und überall dort erforderlich, wo etwas dauerhaft verankert werden muss."
    Target_ru_ru "Цемент в мешках. Тяжёлый для своего объёма, требуется везде, где нужно что-то закрепить."
    Comment "Details-panel description of the Cement resource on the transfer screen, from Configs/Resistance/resources.conf."
@@ -18941,6 +19902,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000030}" {
    Id "OVT-Resource_ConstructionSite"
    Target_en_us "Construction Site"
+   Target_it_it "Cantiere"
    Target_de_de "Baustelle"
    Target_ru_ru "Строительная площадка"
    Comment "Generic name of a construction site, used as the requirements dialog title and as the build action's label when the site cannot name the building it will become (a buildables.conf edit removed its entry)."
@@ -18960,6 +19922,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000003}" {
    Id "OVT-Resource_DestGround"
    Target_en_us "Drop on the ground"
+   Target_it_it "Lascia cadere a terra"
    Target_de_de "Auf dem Boden ablegen"
    Target_ru_ru "Сбросить на землю"
    Comment "Last entry in the resource transfer screen's destination picker, in Take mode only. Drops the cart as a crate pile at the player's feet; the pile merges into an existing pile if one is close enough."
@@ -18979,6 +19942,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000021}" {
    Id "OVT-Resource_DropFailed"
    Target_en_us "The load could not be put down"
+   Target_it_it "Impossibile depositare il carico"
    Target_de_de "Die Ladung konnte nicht abgestellt werden"
    Target_ru_ru "Не удалось сбросить груз"
    Comment "Server refusal for a drop on the ground: the crate pile could not be spawned or merged. The pile is filled before the source is emptied, so a failure here costs the player nothing."
@@ -18998,6 +19962,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000022}" {
    Id "OVT-Resource_Failed"
    Target_en_us "That did not work"
+   Target_it_it "Operazione fallita"
    Target_de_de "Das hat nicht funktioniert"
    Target_ru_ru "Не удалось"
    Comment "Server refusal of last resort when a resource request failed for a reason with no more specific key. Every refusal answers with a key; a silent return would be the defect."
@@ -19017,6 +19982,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000013}" {
    Id "OVT-Resource_Hardware"
    Target_en_us "Hardware"
+   Target_it_it "Ferramenta"
    Target_de_de "Eisenwaren"
    Target_ru_ru "Метизы"
    Comment "Resource name, from Configs/Resistance/resources.conf. Fittings and fixings; the smallest and most valuable resource."
@@ -19036,6 +20002,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000014}" {
    Id "OVT-Resource_Hardware_Description"
    Target_en_us "Fittings, fixings, wiring and tools. Takes almost no space and costs the most."
+   Target_it_it "Raccordi, elementi di fissaggio, cablaggi e attrezzi. Occupa pochissimo spazio ma è l'articolo più costoso."
    Target_de_de "Beschläge, Befestigungsmaterial, Verkabelung und Werkzeuge. Braucht fast keinen Platz und kostet am meisten."
    Target_ru_ru "Крепёж, провода и инструменты. Занимает мало места и стоит дороже всего."
    Comment "Details-panel description of the Hardware resource on the transfer screen, from Configs/Resistance/resources.conf."
@@ -19055,6 +20022,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000027}" {
    Id "OVT-Resource_Illegal"
    Target_en_us "Smuggling that needs the right contacts"
+   Target_it_it "Contrabbando che richiede i contatti giusti"
    Target_de_de "Schmuggel, der die richtigen Kontakte erfordert"
    Target_ru_ru "Контрабанда требует нужных связей"
    Comment "Refusal for a port trade in a resource flagged illegal when the player has neither the IllegalImports permission nor a port the resistance controls. Also the reason on a disabled Export row for such a resource."
@@ -19074,6 +20042,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000019}" {
    Id "OVT-Resource_Locked"
    Target_en_us "That is locked"
+   Target_it_it "È bloccato"
    Target_de_de "Das ist gesperrt"
    Target_ru_ru "Заблокировано"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 5: the holder is a locked vehicle, or is owned by another player. Also used by the open-store action's client-side mirror of the same rule."
@@ -19093,6 +20062,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000024}" {
    Id "OVT-Resource_NeedTruck"
    Target_en_us "You need a vehicle with cargo space"
+   Target_it_it "Serve un veicolo con vano di carico"
    Target_de_de "Du brauchst ein Fahrzeug mit Frachtraum"
    Target_ru_ru "Вам нужен транспорт с грузовым отсеком"
    Comment "Reason shown on a DISABLED resource row in the port's Import list when the player is on foot, or in a vehicle that carries no resource store. The row is listed rather than hidden so the player can see the price and learn what is missing (requirement C). Also the client-side refusal when a resource import is accepted with no store to put it in."
@@ -19112,6 +20082,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001A}" {
    Id "OVT-Resource_NoAccess"
    Target_en_us "You do not have access to this warehouse"
+   Target_it_it "Non hai accesso a questo magazzino"
    Target_de_de "Du hast keinen Zugriff auf dieses Lagerhaus"
    Target_ru_ru "У вас нет доступа к этому складу"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 6: the holder is a warehouse this player may not use. Also used by the open-store action's client-side mirror of the same rule."
@@ -19131,6 +20102,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000B}" {
    Id "OVT-Resource_NoCargoSpace"
    Target_en_us "No room in the destination"
+   Target_it_it "Spazio insufficiente a destinazione"
    Target_de_de "Kein Platz am Ziel"
    Target_ru_ru "Нет места в пункте назначения"
    Comment "Shown on a dimmed row of the resource transfer screen: the destination cannot take even one unit of that resource. The row is listed rather than hidden so the reason is visible."
@@ -19150,6 +20122,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001B}" {
    Id "OVT-Resource_NoCatalogue"
    Target_en_us "The resource catalogue is unavailable"
+   Target_it_it "Il catalogo delle risorse non è disponibile"
    Target_de_de "Der Ressourcenkatalog ist nicht verfügbar"
    Target_ru_ru "Каталог ресурсов недоступен"
    Comment "Server refusal when the resource manager or its catalogue could not be reached while running a checkout. A configuration failure, not a player one; it aborts the order rather than moving nothing quietly."
@@ -19169,6 +20142,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000A}" {
    Id "OVT-Resource_NoDestination"
    Target_en_us "Pick a destination"
+   Target_it_it "Scegli una destinazione"
    Target_de_de "Wähle ein Ziel"
    Target_ru_ru "Выберите пункт назначения"
    Comment "Resource transfer screen checkout refusal: the destination picker is empty, so there is nowhere for the cart to go (Take) or nothing to take it from (Put). Disables Accept."
@@ -19188,6 +20162,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000028}" {
    Id "OVT-Resource_NoMoney"
    Target_en_us "You cannot afford that"
+   Target_it_it "Non puoi permettertelo"
    Target_de_de "Du kannst dir das nicht leisten"
    Target_ru_ru "Вы не можете себе это позволить"
    Comment "Server refusal at commit for a PORT_IMPORT whose whole-cart cost exceeds the player's money. The cart is refused entire; nothing is clamped and nothing is bought."
@@ -19207,6 +20182,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000020}" {
    Id "OVT-Resource_NoPilePrefab"
    Target_en_us "Dropping resources is not configured"
+   Target_it_it "Il rilascio di risorse non è configurato"
    Target_de_de "Das Ablegen von Ressourcen ist nicht konfiguriert"
    Target_ru_ru "Сброс ресурсов не настроен"
    Comment "Server refusal for a drop on the ground: no crate pile prefab is wired on the resource manager. A configuration failure, refused before anything leaves the source holder."
@@ -19226,6 +20202,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000015}" {
    Id "OVT-Resource_NoPlayer"
    Target_en_us "You are not a player here"
+   Target_it_it "Non sei un giocatore qui"
    Target_de_de "Du bist hier kein Spieler"
    Target_ru_ru "Вы не игрок"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 1: the request arrived with no resolvable player identity. Should never be seen in normal play; it names the failure rather than dropping the request silently."
@@ -19245,6 +20222,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001F}" {
    Id "OVT-Resource_NoPosition"
    Target_en_us "There is nowhere to put it down"
+   Target_it_it "Non c'è posto dove depositarlo"
    Target_de_de "Es gibt keinen Platz, um es abzulegen"
    Target_ru_ru "Негде сбросить"
    Comment "Server refusal for a drop on the ground: the caller's position could not be resolved, so the crate pile has nowhere to land. Refused before anything leaves the source holder."
@@ -19264,6 +20242,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002F}" {
    Id "OVT-Resource_NoSite"
    Target_en_us "That is not a construction site"
+   Target_it_it "Non è un cantiere"
    Target_de_de "Das ist keine Baustelle"
    Target_ru_ru "Это не строительная площадка"
    Comment "Server refusal from OVT_ResourceRequestComponent.RpcAsk_BuildFromSite. Shown as a hint when the entity a build request names is not a construction site - normally because the site was demolished between the click and the request arriving."
@@ -19283,6 +20262,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001E}" {
    Id "OVT-Resource_NoSpace"
    Target_en_us "Not enough room in the destination"
+   Target_it_it "Spazio insufficiente a destinazione"
    Target_de_de "Nicht genügend Platz am Ziel"
    Target_ru_ru "Недостаточно места в пункте назначения"
    Comment "Server refusal at commit: the destination cannot take the whole cart. The client shows #OVT-Resource_NoSpaceVolume with the figures before it gets this far; this is the answer when the destination filled up in between."
@@ -19302,6 +20282,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000C}" {
    Id "OVT-Resource_NoSpaceVolume"
    Target_en_us "Not enough room: %1 m³ ordered, %2 m³ free"
+   Target_it_it "Spazio insufficiente: %1 m³ richiesti, %2 m³ liberi"
    Target_de_de "Nicht genügend Platz: %1 m³ bestellt, %2 m³ frei"
    Target_ru_ru "Недостаточно места: заказано %1 м³, свободно %2 м³"
    Comment "Resource transfer screen checkout refusal when the whole cart will not fit. %1 is the cart's volume, %2 what the destination can still take, both in cubic metres to one decimal. The WHOLE cart is refused - nothing is ever clamped to a partial load."
@@ -19321,6 +20302,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000016}" {
    Id "OVT-Resource_NoStore"
    Target_en_us "That cannot hold resources"
+   Target_it_it "Non può contenere risorse"
    Target_de_de "Das kann keine Ressourcen aufnehmen"
    Target_ru_ru "Это не может хранить ресурсы"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 2: the holder named by the request carries no resource store. Also raised client-side when the holder has no RplComponent and therefore cannot be named across the network."
@@ -19340,6 +20322,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000029}" {
    Id "OVT-Resource_NotAtPort"
    Target_en_us "You are not at a port"
+   Target_it_it "Non ti trovi in un porto"
    Target_de_de "Du bist nicht an einem Hafen"
    Target_ru_ru "Вы не в порту"
    Comment "Server refusal for a PORT_IMPORT or PORT_EXPORT when the caller or the holder is outside the port radius. The screen cannot be opened away from a port, so this answers a player who drove off mid-order."
@@ -19359,6 +20342,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000001D}" {
    Id "OVT-Resource_NotEnough"
    Target_en_us "There is not that much left"
+   Target_it_it "Non ne è rimasto così tanto"
    Target_de_de "So viel ist nicht mehr übrig"
    Target_ru_ru "Осталось не так много"
    Comment "Server refusal at commit: the source holder no longer holds everything the cart ordered, because somebody else took it first. The WHOLE cart is refused - nothing is ever clamped to what is left."
@@ -19378,6 +20362,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000025}" {
    Id "OVT-Resource_NotImportable"
    Target_en_us "That cannot be bought here"
+   Target_it_it "Non è acquistabile qui"
    Target_de_de "Das kann hier nicht gekauft werden"
    Target_ru_ru "Это нельзя здесь купить"
    Comment "Server refusal at commit for a PORT_IMPORT line naming a resource the catalogue does not flag importable. The Import list never offers one, so this only answers a hand-crafted or stale request."
@@ -19397,6 +20382,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000026}" {
    Id "OVT-Resource_NotSellable"
    Target_en_us "That cannot be sold here"
+   Target_it_it "Non è vendibile qui"
    Target_de_de "Das kann hier nicht verkauft werden"
    Target_ru_ru "Это нельзя здесь продать"
    Comment "Refusal for a PORT_EXPORT line naming a resource the catalogue does not know. Also the reason on a disabled Export row for a resource the vehicle carries that the port will not buy."
@@ -19416,6 +20402,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000005}" {
    Id "OVT-Resource_OpenStore"
    Target_en_us "Resources"
+   Target_it_it "Risorse"
    Target_de_de "Ressourcen"
    Target_ru_ru "Ресурсы"
    Comment "Fallback name of the 'open resource store' action when the holder's store cannot be read (a worldless preview instance, or a prefab whose component failed to initialise). The normal labels are #OVT-Resource_Cargo for a truck and the holder's own name for a pile or a warehouse."
@@ -19435,6 +20422,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000007}" {
    Id "OVT-Resource_PerUnit"
    Target_en_us "%1 m³ · %2 kg per unit"
+   Target_it_it "%1 m³ · %2 kg per unità"
    Target_de_de "%1 m³ · %2 kg pro Einheit"
    Target_ru_ru "%1 м³ · %2 кг за единицу"
    Comment "Details-panel line on the resource transfer screen. %1 is the cubic metres one unit occupies (two decimals), %2 its display weight in kilograms. Volume gates capacity; weight is display only."
@@ -19454,6 +20442,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000006}" {
    Id "OVT-Resource_Pile"
    Target_en_us "Crate pile"
+   Target_it_it "Pila di casse"
    Target_de_de "Kistenstapel"
    Target_ru_ru "Куча ящиков"
    Comment "Display name of a dropped resource crate pile: the action label, the destination picker entry and the transfer screen title. Rendered with the volume appended, e.g. 'Crate pile (4.4 m³)'."
@@ -19473,6 +20462,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002D}" {
    Id "OVT-Resource_PriceAbove"
    Target_en_us "Prices are above normal here"
+   Target_it_it "Qui i prezzi sono superiori alla norma"
    Target_de_de "Die Preise liegen hier über dem Normalwert"
    Target_ru_ru "Цены выше нормы"
    Comment "Drift readout on the port screen's resource details, live price between 105 and 150 percent of the config base."
@@ -19492,6 +20482,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002B}" {
    Id "OVT-Resource_PriceBelow"
    Target_en_us "Prices are below normal here"
+   Target_it_it "Qui i prezzi sono inferiori alla norma"
    Target_de_de "Die Preise liegen hier unter dem Normalwert"
    Target_ru_ru "Цены ниже нормы"
    Comment "Drift readout on the port screen's resource details, live price between 75 and 95 percent of the config base."
@@ -19511,6 +20502,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002E}" {
    Id "OVT-Resource_PriceFarAbove"
    Target_en_us "Prices are far above normal here"
+   Target_it_it "Qui i prezzi sono molto superiori alla norma"
    Target_de_de "Die Preise liegen hier weit über dem Normalwert"
    Target_ru_ru "Цены намного выше нормы"
    Comment "Drift readout on the port screen's resource details, live price over 150 percent of the config base."
@@ -19530,6 +20522,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002A}" {
    Id "OVT-Resource_PriceFarBelow"
    Target_en_us "Prices are far below normal here"
+   Target_it_it "Qui i prezzi sono molto inferiori alla norma"
    Target_de_de "Die Preise liegen hier weit unter dem Normalniveau"
    Target_ru_ru "Цены намного ниже нормы"
    Comment "Drift readout on the port screen's resource details, shown when the live price is under 75 percent of the config base. Text and not an icon (D10): FillDetails has no image channel and the row image is already the resource icon."
@@ -19549,6 +20542,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000002C}" {
    Id "OVT-Resource_PriceNormal"
    Target_en_us "Prices are about normal here"
+   Target_it_it "Qui i prezzi sono nella norma"
    Target_de_de "Die Preise sind hier ziemlich normal."
    Target_ru_ru "Цены около нормы"
    Comment "Drift readout on the port screen's resource details, live price within 5 percent of the config base either way."
@@ -19568,6 +20562,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000002}" {
    Id "OVT-Resource_Put"
    Target_en_us "Put"
+   Target_it_it "Deponi"
    Target_de_de "Setzen"
    Target_ru_ru "Положить"
    Comment "Mode 2 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Put moves resources INTO the holder you opened, out of a nearby holder chosen in the destination picker."
@@ -19587,6 +20582,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000055}" {
    Id "OVT-Resource_RepairNeedsMaterials"
    Target_en_us "Not enough materials nearby"
+   Target_it_it "Materiali insufficienti nelle vicinanze"
    Target_de_de "Nicht genügend Materialien in der Nähe"
    Target_ru_ru "Недостаточно материалов рядом"
    Comment "The Repair action's cannot-perform reason when the short resource cannot be named, and the body of the RepairNeedsMaterials notification the server sends when it refuses a repair for want of materials."
@@ -19606,6 +20602,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000053}" {
    Id "OVT-Resource_RepairRequirements"
    Target_en_us "Repair Requirements"
+   Target_it_it "Requisiti per la riparazione"
    Target_de_de "Reparatur Anforderung"
    Target_ru_ru "Требования к ремонту"
    Comment "Name of the user action on a RUINED buildable that opens the repair materials readout. The ruin's counterpart to OVT-Resource_SiteRequirements; shown only when the buildable authors m_aResourceRequirements (OVT_RepairRequirementsAction.CanBeShownScript)."
@@ -19625,6 +20622,7 @@ StringTable {
   CustomStringTableItem "{6B70D00000000054}" {
    Id "OVT-Resource_RepairShortOf"
    Target_en_us "Not enough"
+   Target_it_it "Non sufficiente"
    Target_de_de "Nicht genug"
    Target_ru_ru "Недостаточно"
    Comment "Prefix of the Repair action's cannot-perform reason, followed by the translated name of the first resource the nearby crate piles are short of, e.g. 'Not enough Cement'. OVT_RepairRequirementsReader.ShortReason."
@@ -19644,6 +20642,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000017}" {
    Id "OVT-Resource_Ruined"
    Target_en_us "That is wrecked"
+   Target_it_it "È distrutto"
    Target_de_de "Das ist zerstört"
    Target_ru_ru "Разрушено"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 3: the holder is a ruin. Ruined structures offer no actions at all, so this is the race where it was destroyed with the screen open."
@@ -19663,6 +20662,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000035}" {
    Id "OVT-Resource_Short"
    Target_en_us "short"
+   Target_it_it "insufficiente"
    Target_de_de "kurz"
    Target_ru_ru "не хватает"
    Comment "One word, used inside a construction site's requirements readout to mark a line that is not covered, e.g. 'Timber: 12 / 40 (short 28)'. The numbers around it are built in code."
@@ -19682,6 +20682,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000034}" {
    Id "OVT-Resource_ShortOf"
    Target_en_us "Need %1 more %2"
+   Target_it_it "Ne servono altri %1 %2"
    Target_de_de "Noch %1 %2 benötigt"
    Target_ru_ru "Требуется ещё %1 %2"
    Comment "Name of the 'finish this construction site' user action when the nearby crate piles are short. %1 is how many units are missing, %2 the resource's name, e.g. 'Need 28 more Timber'. Only the FIRST shortfall is named; the requirements action lists them all."
@@ -19701,6 +20702,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000031}" {
    Id "OVT-Resource_SiteRequirements"
    Target_en_us "Requirements"
+   Target_it_it "Requisiti"
    Target_de_de "Anforderung"
    Target_ru_ru "Требования"
    Comment "Name of the user action on a construction site that opens the requirements readout, and the placeholder message of the SITE_REQUIREMENTS dialog before OVT_SiteRequirementsAction fills it in."
@@ -19720,6 +20722,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000011}" {
    Id "OVT-Resource_Steel"
    Target_en_us "Steel"
+   Target_it_it "Acciaio"
    Target_de_de "Stahl"
    Target_ru_ru "Сталь"
    Comment "Resource name, from Configs/Resistance/resources.conf. Steel stock; compact, heavy and expensive."
@@ -19739,6 +20742,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000012}" {
    Id "OVT-Resource_Steel_Description"
    Target_en_us "Girders, plate and rebar. Compact, very heavy, and not cheap."
+   Target_it_it "Travi, lamiere e barre d'armatura. Compatto, molto pesante ed economico."
    Target_de_de "Träger, Stahlbleche und Bewehrungsstahl. Kompakt, sehr schwer und nicht günstig."
    Target_ru_ru "Балки, плиты и арматура. Компактно, очень тяжело и недёшево."
    Comment "Details-panel description of the Steel resource on the transfer screen, from Configs/Resistance/resources.conf."
@@ -19758,6 +20762,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000009}" {
    Id "OVT-Resource_SummaryUnlimited"
    Target_en_us "%1 m³"
+   Target_it_it "%1 m³"
    Target_ru_ru "%1 м³"
    Comment "Running checkout summary on the resource transfer screen when the receiver has no capacity limit - a crate pile, a warehouse or the ground. %1 is the cart's own volume in cubic metres to one decimal; there is no denominator to show."
    DevNote ""
@@ -19776,6 +20781,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000008}" {
    Id "OVT-Resource_SummaryVolume"
    Target_en_us "%1 m³ of %2 m³"
+   Target_it_it "%1 m³ su %2 m³"
    Target_ru_ru "%1 м³ из %2 м³"
    Comment "Running checkout summary on the resource transfer screen when the receiving holder has a capacity. %1 is what it would hold once the cart lands, %2 its capacity, both in cubic metres to one decimal."
    DevNote ""
@@ -19794,6 +20800,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000001}" {
    Id "OVT-Resource_Take"
    Target_en_us "Take"
+   Target_it_it "Prendi"
    Target_de_de "Entnehmen"
    Target_ru_ru "Взять"
    Comment "Mode 1 label on the resource transfer screen (OVT_ResourceTransferContext.BuildModes). Take moves resources OUT of the holder you opened, into a nearby holder or onto the ground. Paired with #OVT-Resource_Put; the vocabulary is deliberately not Load/Unload, which logistics/storage already uses on its ammo-box actions."
@@ -19813,6 +20820,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000D}" {
    Id "OVT-Resource_Timber"
    Target_en_us "Timber"
+   Target_it_it "Legname"
    Target_de_de "Bauholz"
    Target_ru_ru "Древесина"
    Comment "Resource name, from Configs/Resistance/resources.conf. Sawn wood; the cheapest and bulkiest construction resource."
@@ -19832,6 +20840,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E200000000E}" {
    Id "OVT-Resource_Timber_Description"
    Target_en_us "Sawn planks and beams. Bulky and cheap - the backbone of every field structure."
+   Target_it_it "Assi e travi tagliate. Ingombrante ed economico: la base di ogni struttura campale."
    Target_de_de "Gesägte Bretter und Balken. Sperrig und günstig - das Rückgrat jedes Feldbauwerks."
    Target_ru_ru "Пиломатериалы. Объёмные и дешёвые — основа полевых сооружений."
    Comment "Details-panel description of the Timber resource on the transfer screen, from Configs/Resistance/resources.conf."
@@ -19851,6 +20860,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000018}" {
    Id "OVT-Resource_TooFar"
    Target_en_us "You are too far away"
+   Target_it_it "Sei troppo lontano"
    Target_de_de "Du bist zu weit entfernt"
    Target_ru_ru "Вы слишком далеко"
    Comment "Server refusal from OVT_ResourceRequestComponent.MayUseHolder step 4: the caller has walked or driven out of the holder's use radius since the screen was opened."
@@ -19870,6 +20880,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C3}" {
    Id "OVT-Respawn_AtHome"
    Target_en_us "Respawn at Home"
+   Target_it_it "Rinasci alla base"
    Target_de_de "Zu Hause wiedereinsteigen"
    Target_ru_ru "Возродиться дома"
    Target_uk_ua "Відродитися вдома"
@@ -19888,6 +20899,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C5}" {
    Id "OVT-Respawn_EnemyBase"
    Target_en_us "This base is held by the occupying faction"
+   Target_it_it "Questa base è controllata dalla fazione occupante"
    Target_de_de "Diese Basis wird von der Besatzungsmacht gehalten"
    Target_ru_ru "Эта база удерживается оккупантами"
    Target_uk_ua "Цю базу утримує окупаційна фракція"
@@ -19906,6 +20918,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000CA}" {
    Id "OVT-Respawn_Failed"
    Target_en_us "The respawn could not be completed. Try again."
+   Target_it_it "Impossibile completare la rinascita. Riprova."
    Target_de_de "Der Wiedereinstieg konnte nicht abgeschlossen werden. Versuche es erneut."
    Target_ru_ru "Возрождение не удалось. Попробуйте снова."
    Target_uk_ua "Не вдалося виконати відродження. Спробуйте ще раз."
@@ -19924,6 +20937,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C4}" {
    Id "OVT-Respawn_FellBackHome"
    Target_en_us "That location was no longer available. You respawned at home."
+   Target_it_it "Quella posizione non è più disponibile. Sei rinato alla base."
    Target_de_de "Dieser Ort war nicht mehr verfügbar. Du bist zu Hause wiedereingestiegen."
    Target_ru_ru "Это место больше недоступно. Вы возродились дома."
    Target_uk_ua "Ця локація більше недоступна. Ви відродилися вдома."
@@ -19942,6 +20956,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C2}" {
    Id "OVT-Respawn_Here"
    Target_en_us "Respawn Here"
+   Target_it_it "Rinasci qui"
    Target_de_de "Hier wiedereinsteigen"
    Target_ru_ru "Возродиться здесь"
    Target_uk_ua "Відродитися тут"
@@ -19960,6 +20975,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C1}" {
    Id "OVT-Respawn_Hint"
    Target_en_us "Choose where to respawn"
+   Target_it_it "Scegli dove rinascere"
    Target_de_de "Wähle deinen Wiedereinstiegsort"
    Target_ru_ru "Выберите место возрождения"
    Target_uk_ua "Виберіть місце відродження"
@@ -19978,6 +20994,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C9}" {
    Id "OVT-Respawn_NotEligible"
    Target_en_us "You cannot respawn there"
+   Target_it_it "Non puoi rinascere lì"
    Target_de_de "Du kannst dort nicht wiedereinsteigen"
    Target_ru_ru "Вы не можете возродиться там"
    Target_uk_ua "Ви не можете там відродитися"
@@ -19996,6 +21013,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C7}" {
    Id "OVT-Respawn_NotYourHouse"
    Target_en_us "You do not own or rent this house"
+   Target_it_it "Non possiedi né affitti questa casa"
    Target_de_de "Dieses Haus gehört dir nicht und wird nicht von dir gemietet"
    Target_ru_ru "Вы не владеете и не арендуете этот дом"
    Target_uk_ua "Ви не володієте й не орендуєте цей будинок"
@@ -20014,6 +21032,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C6}" {
    Id "OVT-Respawn_PrivateCamp"
    Target_en_us "This camp is private"
+   Target_it_it "Questo accampamento è privato"
    Target_de_de "Dieses Camp ist privat"
    Target_ru_ru "Этот лагерь частный"
    Target_uk_ua "Цей табір приватний"
@@ -20032,6 +21051,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C8}" {
    Id "OVT-Respawn_QRF"
    Target_en_us "There is fighting at this location"
+   Target_it_it "È in corso uno scontro in questa zona"
    Target_de_de "An diesem Ort wird gekämpft"
    Target_ru_ru "В этом месте идёт бой"
    Target_uk_ua "У цьому місці триває бій"
@@ -20050,6 +21070,7 @@ StringTable {
   CustomStringTableItem "{6A83D5A0000000C0}" {
    Id "OVT-Respawn_Title"
    Target_en_us "Respawn"
+   Target_it_it "Rinasci"
    Target_de_de "Wiedereinstieg"
    Target_ru_ru "Возрождение"
    Target_uk_ua "Відродження"
@@ -20068,6 +21089,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000029}" {
    Id "OVT-SabotageTower"
    Target_en_us "Sabotage Radio Tower"
+   Target_it_it "Sabota la torre radio"
    Target_de_de "Funkturm sabotieren"
    Target_ru_ru "Саботировать радиовышку"
    Target_uk_ua "Саботувати радіовежу"
@@ -20088,6 +21110,7 @@ StringTable {
   CustomStringTableItem "{5D5C558A4B6DA3CC}" {
    Id "OVT-Save"
    Target_en_us "Save"
+   Target_it_it "Salva"
    Target_fr_fr "Sauvegarder"
    Target_de_de "Speichern"
    Target_ru_ru "Сохранить"
@@ -20111,6 +21134,7 @@ StringTable {
   CustomStringTableItem "{5D5C55886813A4AB}" {
    Id "OVT-Saved"
    Target_en_us "Game Saved"
+   Target_it_it "Partita salvata"
    Target_fr_fr "Partie Sauvegardée"
    Target_de_de "Spiel gespeichert"
    Target_ru_ru "Игра сохранена"
@@ -20134,6 +21158,7 @@ StringTable {
   CustomStringTableItem "{68C1A47E52B90D11}" {
    Id "OVT-SaveFailed"
    Target_en_us "Save failed"
+   Target_it_it "Salvataggio fallito"
    Target_de_de "Speichern fehlgeschlagen"
    Target_ru_ru "Не удалось сохранить"
    Target_uk_ua "Не вдалося зберегти"
@@ -20143,6 +21168,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60001}" {
    Id "OVT-SaveLoadout"
    Target_en_us "Save Loadout"
+   Target_it_it "Salva equipaggiamento"
    Target_de_de "Ausrüstung speichern"
    Target_ru_ru "Сохранить комплект снаряжения"
    Target_uk_ua "Зберегти комплект спорядження"
@@ -20163,6 +21189,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60003}" {
    Id "OVT-SaveLoadoutMessage"
    Target_en_us "Enter a name for your loadout, using an existing name will override the loadout:"
+   Target_it_it "Inserisci un nome per il tuo equipaggiamento; usarne uno esistente sovrascriverà quello attuale:"
    Target_de_de "Gib einen Namen für deine Ausrüstung ein. Wenn du einen vorhandenen Namen verwendest, wird die bestehende Ausrüstung überschrieben:"
    Target_ru_ru "Введите название для комплекта снаряжения. Использование существующего названия перезапишет текущий комплект:"
    Target_uk_ua "Введіть назву для свого комплекту спорядження, використання існуючої назви перезапише поточний комплект"
@@ -20183,6 +21210,7 @@ StringTable {
   CustomStringTableItem "{A1B2C3D4E5F60004}" {
    Id "OVT-SaveLoadoutPrompt"
    Target_en_us "Loadout Name"
+   Target_it_it "Nome equipaggiamento"
    Target_de_de "Name der Ausrüstung"
    Target_ru_ru "Название комплекта снаряжения"
    Target_uk_ua "Назва комплекту спорядження"
@@ -20203,6 +21231,7 @@ StringTable {
   CustomStringTableItem "{6BB5000000000004}" {
    Id "OVT-SaveOfficerLoadout"
    Target_en_us "Save Resistance Loadout"
+   Target_it_it "Salva equipaggiamento della Resistenza"
    Target_de_de "Widerstandsausrüstung speichern"
    Target_ru_ru "Сохранить комплект снаряжения Сопротивления"
    Target_uk_ua "Зберегти комплект спорядження Опору"
@@ -20223,6 +21252,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000001}" {
    Id "OVT-SellBlocked_Equipped"
    Target_en_us "Equipped items cannot be sold"
+   Target_it_it "Gli oggetti equipaggiati non possono essere venduti"
    Target_de_de "Ausgerüstete Gegenstände können nicht verkauft werden"
    Target_ru_ru "Экипированные предметы нельзя продать"
    Target_uk_ua "Споряджені предмети не можна продати"
@@ -20243,6 +21273,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000002}" {
    Id "OVT-SellBlocked_NotBoughtHere"
    Target_en_us "This shop does not buy this"
+   Target_it_it "Questo negozio non acquista questo articolo"
    Target_de_de "Dieses Geschäft kauft das nicht an"
    Target_ru_ru "Этот магазин не покупает это"
    Target_uk_ua "Цей магазин цього не купує"
@@ -20263,6 +21294,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000003}" {
    Id "OVT-SellBlocked_NoValue"
    Target_en_us "Worth nothing here"
+   Target_it_it "Qui non ha alcun valore"
    Target_de_de "Hier wertlos"
    Target_ru_ru "Здесь не имеет ценности"
    Target_uk_ua "Тут нічого не варте"
@@ -20283,6 +21315,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000004}" {
    Id "OVT-SellCargoHere"
    Target_en_us "Sell Cargo Here"
+   Target_it_it "Vendi carico qui"
    Target_de_de "Fracht hier verkaufen"
    Target_ru_ru "Продать груз здесь"
    Target_uk_ua "Продати вантаж тут"
@@ -20303,6 +21336,7 @@ StringTable {
   CustomStringTableItem "{5D346D4FE8D27151}" {
    Id "OVT-SellDrugs"
    Target_en_us "Sell Drugs"
+   Target_it_it "Vendi droga"
    Target_fr_fr "Vendre la Drogue"
    Target_de_de "Drogen verkaufen"
    Target_ru_ru "Продать наркотики"
@@ -20326,6 +21360,7 @@ StringTable {
   CustomStringTableItem "{59C84C7D7D70BC9B}" {
    Id "OVT-SendFunds"
    Target_en_us "Send Funds"
+   Target_it_it "Invia fondi"
    Target_fr_fr "Envoyer des Fonds"
    Target_de_de "Geldmittel senden"
    Target_ru_ru "Отправить средства"
@@ -20349,6 +21384,7 @@ StringTable {
   CustomStringTableItem "{59C84C79FA503BB0}" {
    Id "OVT-SendFundsMoney"
    Target_en_us "Send Money"
+   Target_it_it "Invia denaro"
    Target_fr_fr "Envoyer de l'Argent"
    Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
@@ -20372,6 +21408,7 @@ StringTable {
   CustomStringTableItem "{59C84C7D798A8CAE}" {
    Id "OVT-SendMoney"
    Target_en_us "Send Money"
+   Target_it_it "Invia denaro"
    Target_fr_fr "Envoyer de l'Argent"
    Target_de_de "Geld senden"
    Target_ru_ru "Отправить деньги"
@@ -20395,6 +21432,7 @@ StringTable {
   CustomStringTableItem "{5D34246ED529442C}" {
    Id "OVT-SetAsHome"
    Target_en_us "Set As Home"
+   Target_it_it "Imposta come base"
    Target_fr_fr "Définir comme Domicile"
    Target_de_de "Als Zuhause festlegen"
    Target_ru_ru "Сделать домом"
@@ -20418,6 +21456,7 @@ StringTable {
   CustomStringTableItem "{59C5275452D1E646}" {
    Id "OVT-SetHome"
    Target_en_us "Set Home"
+   Target_it_it "Imposta base"
    Target_fr_fr "Définir Domicile"
    Target_de_de "Zuhause festlegen"
    Target_ru_ru "Сделать домом"
@@ -20441,6 +21480,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBDC}" {
    Id "OVT-SetPriorityFOB"
    Target_en_us "Set as Priority FOB"
+   Target_it_it "Imposta come FOB prioritaria"
    Target_de_de "Als Prioritäts-FOB festlegen"
    Target_ru_ru "Назначить приоритетным ПОБ"
    Target_uk_ua "Встановити як пріоритетну FOB"
@@ -20461,6 +21501,7 @@ StringTable {
   CustomStringTableItem "{598EF9FA0D65B880}" {
    Id "OVT-Shop"
    Target_en_us "Shop"
+   Target_it_it "Negozio"
    Target_fr_fr "Magasin"
    Target_de_de "Geschäft"
    Target_ru_ru "Магазин"
@@ -20484,6 +21525,7 @@ StringTable {
   CustomStringTableItem "{598EF9F5BEC520FE}" {
    Id "OVT-Shop_Buy"
    Target_en_us "Buy"
+   Target_it_it "Acquista"
    Target_fr_fr "Acheter"
    Target_de_de "Kaufen"
    Target_ru_ru "Купить"
@@ -20507,6 +21549,7 @@ StringTable {
   CustomStringTableItem "{5D2847DF447B51C3}" {
    Id "OVT-Shop_Buying"
    Target_en_us "Buy for"
+   Target_it_it "Acquista per"
    Target_fr_fr "Acheter pour"
    Target_de_de "Kaufen für"
    Target_ru_ru "Купить за"
@@ -20530,6 +21573,7 @@ StringTable {
   CustomStringTableItem "{65D33887DE0307AF}" {
    Id "OVT-Shop_Clothing"
    Target_en_us "Clothing Store"
+   Target_it_it "Negozio di abbigliamento"
    Target_de_de "Bekleidungsgeschäft"
    Target_ru_ru "Магазин одежды"
    Target_uk_ua "Магазин одягу"
@@ -20540,6 +21584,7 @@ StringTable {
   CustomStringTableItem "{65D33887F4A3A3CD}" {
    Id "OVT-Shop_Drug"
    Target_en_us "Drug Store"
+   Target_it_it "Negozio di stupefacenti"
    Target_de_de "Drogerie"
    Target_uk_ua "Аптека"
    Modified 1708348578
@@ -20549,6 +21594,7 @@ StringTable {
   CustomStringTableItem "{65D338878CA73F35}" {
    Id "OVT-Shop_Equipment"
    Target_en_us "Equipment Store"
+   Target_it_it "Negozio di equipaggiamento"
    Target_de_de "Ausrüstungsgeschäft"
    Target_ru_ru "Магазин снаряжения"
    Target_uk_ua "Магазин спорядження"
@@ -20559,6 +21605,7 @@ StringTable {
   CustomStringTableItem "{65D33887028D6F64}" {
    Id "OVT-Shop_General"
    Target_en_us "General Store"
+   Target_it_it "Negozio generico"
    Target_de_de "Gemischtwarenladen"
    Target_ru_ru "Универсальный магазин"
    Target_uk_ua "Універсальний магазин"
@@ -20569,6 +21616,7 @@ StringTable {
   CustomStringTableItem "{599070D91BB49BFF}" {
    Id "OVT-Shop_InStock"
    Target_en_us "In Stock"
+   Target_it_it "Disponibile"
    Target_fr_fr "En stock"
    Target_de_de "Auf Lager"
    Target_ru_ru "В наличии"
@@ -20592,6 +21640,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000005}" {
    Id "OVT-Shop_ModeBuy"
    Target_en_us "Buy Mode"
+   Target_it_it "Modalità acquisto"
    Target_de_de "Kaufmodus"
    Target_ru_ru "Режим покупки"
    Target_uk_ua "Режим купівлі"
@@ -20612,6 +21661,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000006}" {
    Id "OVT-Shop_ModeSell"
    Target_en_us "Sell Mode"
+   Target_it_it "Modalità vendita"
    Target_de_de "Verkaufsmodus"
    Target_ru_ru "Режим продажи"
    Target_uk_ua "Режим продажу"
@@ -20632,6 +21682,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000007}" {
    Id "OVT-Shop_NextCategory"
    Target_en_us "Next Category"
+   Target_it_it "Categoria successiva"
    Target_de_de "Nächste Kategorie"
    Target_ru_ru "Следующая категория"
    Target_uk_ua "Наступна категорія"
@@ -20649,26 +21700,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2E20000000AE}" {
-   Id "OVT-Shop_NoMatches"
-   Target_en_us "No items match your search"
-   Comment "Shop menu - shown in the details pane when the search box filters out every row on the current tab"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788843600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
+   Target_it_it "Apri Negozio"
    Target_fr_fr "Ouvrir magasin"
    Target_de_de "Geschäft öffnen"
    Target_ru_ru "Открыть магазин"
@@ -20692,6 +21727,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000008}" {
    Id "OVT-Shop_Owned"
    Target_en_us "Owned"
+   Target_it_it "Posseduto"
    Target_de_de "Im Besitz"
    Target_ru_ru "В собственности"
    Target_uk_ua "У власності"
@@ -20712,6 +21748,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000009}" {
    Id "OVT-Shop_PrevCategory"
    Target_en_us "Prev Category"
+   Target_it_it "Categoria precedente"
    Target_de_de "Vorherige Kategorie"
    Target_ru_ru "Предыдущая категория"
    Target_uk_ua "Попередня категорія"
@@ -20732,6 +21769,7 @@ StringTable {
   CustomStringTableItem "{5D305CF7EDB14774}" {
    Id "OVT-Shop_Renting"
    Target_en_us "Rent for"
+   Target_it_it "Noleggia per"
    Target_fr_fr "Louer pour"
    Target_de_de "Mieten für"
    Target_ru_ru "Арендовать за"
@@ -20752,26 +21790,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2E20000000AF}" {
-   Id "OVT-Shop_SearchLabel"
-   Target_en_us "Search"
-   Comment "Placeholder label on the shop menu's item search box"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788843600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{598EF9F4548C4AF0}" {
    Id "OVT-Shop_Sell"
    Target_en_us "Sell"
+   Target_it_it "Vendi"
    Target_fr_fr "Vendre"
    Target_de_de "Verkaufen"
    Target_ru_ru "Продать"
@@ -20795,6 +21817,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000A}" {
    Id "OVT-Shop_SellAll"
    Target_en_us "Sell All"
+   Target_it_it "Vendi tutto"
    Target_de_de "Alles verkaufen"
    Target_ru_ru "Продать всё"
    Target_uk_ua "Продати все"
@@ -20815,6 +21838,7 @@ StringTable {
   CustomStringTableItem "{5D2847DF5BAEC7BF}" {
    Id "OVT-Shop_Selling"
    Target_en_us "Sell for"
+   Target_it_it "Vendi per"
    Target_fr_fr "Vendre pour"
    Target_de_de "Verkaufen für"
    Target_ru_ru "Продать за"
@@ -20838,6 +21862,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000B}" {
    Id "OVT-Shop_SkippedItems"
    Target_en_us "%1 not bought here"
+   Target_it_it "%1 non acquistato qui"
    Target_de_de "%1 hier nicht angekauft"
    Target_ru_ru "%1 не купить здесь"
    Target_uk_ua "%1 тут не купують"
@@ -20858,6 +21883,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000C}" {
    Id "OVT-Shop_SoldItems"
    Target_en_us "Sold %1 for %2"
+   Target_it_it "Venduto %1 per %2"
    Target_de_de "%1 für %2 verkauft"
    Target_ru_ru "Продано %1 за %2"
    Target_uk_ua "Продано %1 за %2"
@@ -20878,6 +21904,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000D}" {
    Id "OVT-Shop_SoldNothing"
    Target_en_us "Nothing was sold"
+   Target_it_it "Non è stato venduto nulla"
    Target_de_de "Nichts wurde verkauft"
    Target_ru_ru "Ничего не продано"
    Target_uk_ua "Нічого не продано"
@@ -20898,6 +21925,7 @@ StringTable {
   CustomStringTableItem "{65D3388630BD8913}" {
    Id "OVT-Shop_Vehicle"
    Target_en_us "Vehicle Store"
+   Target_it_it "Negozio veicoli"
    Target_de_de "Fahrzeughändler"
    Target_ru_ru "Магазин транспорта"
    Target_uk_ua "Магазин транспорту"
@@ -20908,6 +21936,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000E}" {
    Id "OVT-ShopCategory_All"
    Target_en_us "All"
+   Target_it_it "Tutti"
    Target_de_de "Alle"
    Target_ru_ru "Всё"
    Target_uk_ua "Усе"
@@ -20928,6 +21957,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E0000000F}" {
    Id "OVT-ShopCategory_Ammunition"
    Target_en_us "Ammunition"
+   Target_it_it "Munizioni"
    Target_de_de "Munition"
    Target_ru_ru "Боеприпасы"
    Target_uk_ua "Боєприпаси"
@@ -20948,6 +21978,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000010}" {
    Id "OVT-ShopCategory_Attachments"
    Target_en_us "Attachments"
+   Target_it_it "Accessori"
    Target_de_de "Anbauteile"
    Target_ru_ru "Модули"
    Target_uk_ua "Модулі зброї"
@@ -20968,6 +21999,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000011}" {
    Id "OVT-ShopCategory_Clothing"
    Target_en_us "Clothing"
+   Target_it_it "Abbigliamento"
    Target_de_de "Kleidung"
    Target_ru_ru "Одежда"
    Target_uk_ua "Одяг"
@@ -20988,6 +22020,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000012}" {
    Id "OVT-ShopCategory_Explosives"
    Target_en_us "Explosives"
+   Target_it_it "Esplosivi"
    Target_de_de "Sprengstoffe"
    Target_ru_ru "Взрывчатка"
    Target_uk_ua "Вибухівка"
@@ -21008,6 +22041,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000013}" {
    Id "OVT-ShopCategory_Gear"
    Target_en_us "Gear"
+   Target_it_it "Equipaggiamento"
    Target_de_de "Ausrüstung"
    Target_ru_ru "Снаряжение"
    Target_uk_ua "Спорядження"
@@ -21028,6 +22062,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000014}" {
    Id "OVT-ShopCategory_Medical"
    Target_en_us "Medical"
+   Target_it_it "Articoli medici"
    Target_de_de "Medizin"
    Target_ru_ru "Медицина"
    Target_uk_ua "Медицина"
@@ -21048,6 +22083,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000015}" {
    Id "OVT-ShopCategory_Other"
    Target_en_us "Other"
+   Target_it_it "Altro"
    Target_de_de "Sonstiges"
    Target_ru_ru "Прочее"
    Target_uk_ua "Інше"
@@ -21068,6 +22104,7 @@ StringTable {
   CustomStringTableItem "{6A8E2E2000000023}" {
    Id "OVT-ShopCategory_Resources"
    Target_en_us "Resources"
+   Target_it_it "Risorse"
    Target_de_de "Ressourcen"
    Target_ru_ru "Ресурсы"
    Comment "Browse-category tab holding the bulk construction resources (timber, cement, steel, hardware) on the port screen, in both Import and Export. OVT_PortContext.CATEGORY_RESOURCES is 9, one past OVT_ShopCategory.OTHER, so the tab sorts last. Returned by OVT_PortContext.GetCategoryLabelKey ahead of OVT_ShopCategoryHelper, which does not know this id."
@@ -21087,6 +22124,7 @@ StringTable {
   CustomStringTableItem "{6A7C4E1E00000016}" {
    Id "OVT-ShopCategory_Weapons"
    Target_en_us "Weapons"
+   Target_it_it "Armi"
    Target_de_de "Waffen"
    Target_ru_ru "Оружие"
    Target_uk_ua "Зброя"
@@ -21107,6 +22145,7 @@ StringTable {
   CustomStringTableItem "{5DA486E30664D5AA}" {
    Id "OVT-Skill_Diplomacy"
    Target_en_us "Diplomacy"
+   Target_it_it "Diplomazia"
    Target_de_de "Diplomatie"
    Target_ru_ru "Дипломатия"
    Target_ko_kr "외교술"
@@ -21129,6 +22168,7 @@ StringTable {
   CustomStringTableItem "{5DA486E30167EF6C}" {
    Id "OVT-Skill_Diplomacy_Description"
    Target_en_us "Skill at raising support and the profile of the resistance"
+   Target_it_it "Abilità nell'accrescere il sostegno e la visibilità della Resistenza"
    Target_de_de "Fertigkeit beim Erhöhen der Unterstützung und des Ansehens des Widerstands"
    Target_ru_ru "Умение повышать уровень поддержки и популярность сопротивления"
    Target_ko_kr "저항군의 지지율과 인지도를 높이는 능력"
@@ -21151,6 +22191,7 @@ StringTable {
   CustomStringTableItem "{5DA486E3117724CA}" {
    Id "OVT-Skill_Stealth"
    Target_en_us "Stealth"
+   Target_it_it "Furtività"
    Target_de_de "Tarnung"
    Target_ru_ru "Невидимка"
    Target_ko_kr "은신술"
@@ -21173,6 +22214,7 @@ StringTable {
   CustomStringTableItem "{5DA486E31D3DED8C}" {
    Id "OVT-Skill_Stealth_Description"
    Target_en_us "Skill at remaining unseen for longer"
+   Target_it_it "Abilità nel rimanere invisibili più a lungo"
    Target_de_de "Fertigkeit, länger unentdeckt zu bleiben"
    Target_ru_ru "Умение дольше оставаться невидимым"
    Target_ko_kr "들키지 않고 더 오래 숨어 있을 수 있는 능력"
@@ -21195,6 +22237,7 @@ StringTable {
   CustomStringTableItem "{5DA486E35F7AD204}" {
    Id "OVT-Skill_Trade"
    Target_en_us "Trade"
+   Target_it_it "Commercio"
    Target_de_de "Handel"
    Target_ru_ru "Торг"
    Target_ko_kr "거래"
@@ -21217,6 +22260,7 @@ StringTable {
   CustomStringTableItem "{5DA486E35B0CDFD0}" {
    Id "OVT-Skill_Trade_Description"
    Target_en_us "Skill at getting good deals for the resistance on items"
+   Target_it_it "Abilità nell'ottenere buoni affari sugli articoli per la Resistenza"
    Target_de_de "Fertigkeit, gute Geschäfte für den Widerstand beim Handel mit Gegenständen auszuhandeln"
    Target_ru_ru "Умение заключать выгодные сделки за сопротивление"
    Target_ko_kr "저항 세력을 위해 더욱 유리한 거래를 성사시키는 능력"
@@ -21239,6 +22283,7 @@ StringTable {
   CustomStringTableItem "{5DA486E33F3873F8}" {
    Id "OVT-SkillEffect_IllegalImports"
    Target_en_us "Unlocks import of illegal goods at ports"
+   Target_it_it "Sblocca l'importazione di merci illegali nei porti"
    Target_de_de "Schaltet den Import illegaler Waren an Häfen frei"
    Target_ru_ru "Открывает доступ к ввозу нелегальных товаров в портах"\
    ""
@@ -21262,6 +22307,7 @@ StringTable {
   CustomStringTableItem "{5DA486E32DD93FD1}" {
    Id "OVT-SkillEffect_Import"
    Target_en_us "Unlocks import of legal goods at ports"
+   Target_it_it "Sblocca l'importazione di merci legali nei porti"
    Target_de_de "Schaltet den Import legaler Waren an Häfen frei"
    Target_ru_ru "Открывает доступ к легальному импорту товаров в портах"\
    ""
@@ -21285,6 +22331,7 @@ StringTable {
   CustomStringTableItem "{5DA486E3F0541B08}" {
    Id "OVT-SkillEffect_Stealth"
    Target_en_us "%1% Reduction in distance seen from"
+   Target_it_it "Riduzione della distanza di avvistamento del %1%"
    Target_de_de "%1% geringere Sichtentfernung"
    Target_ru_ru "%1% Уменьшение дальности видимости"
    Target_ko_kr "%1% 에서부터 보이는 거리 감소"
@@ -21307,6 +22354,7 @@ StringTable {
   CustomStringTableItem "{5DA486E3C0B62D40}" {
    Id "OVT-SkillEffect_Support"
    Target_en_us "%1% Chance at converting a supporter"
+   Target_it_it "Probabilità del %1% di convertire un sostenitore"
    Target_de_de "%1 % Chance, einen Unterstützer zu gewinnen"
    Target_ru_ru "%1% Шанс к присоединению к сопротивлению"
    Target_ko_kr "저항군에 합류할 확률 %1%"
@@ -21329,6 +22377,7 @@ StringTable {
   CustomStringTableItem "{5DA486E3D2532344}" {
    Id "OVT-SkillEffect_TradeDiscount"
    Target_en_us "%1% Discount when buying items at shops"
+   Target_it_it "Sconto del %1% sull'acquisto di articoli nei negozi"
    Target_de_de "%1 % Rabatt beim Kauf von Gegenständen in Geschäften"
    Target_ru_ru "%1% Скидка на покупки в магазинах"
    Target_ko_kr "상점에서 물건 구매 시 %1% 할인"
@@ -21351,6 +22400,7 @@ StringTable {
   CustomStringTableItem "{5DA486E2F82C6218}" {
    Id "OVT-SkillPointsToSpend"
    Target_en_us "%1 Skill points to spend"
+   Target_it_it "%1 Punti abilità da spendere"
    Target_de_de "%1 Fertigkeitspunkte verfügbar"
    Target_ru_ru "%1 Очков доступно"
    Target_ko_kr "사용 가능한 스킬 포인트 %1"
@@ -21373,6 +22423,7 @@ StringTable {
   CustomStringTableItem "{5DA4CE522EDC12E2}" {
    Id "OVT-SkillPointToSpend"
    Target_en_us "%1 Skill point to spend"
+   Target_it_it "%1 Punto abilità da spendere"
    Target_de_de "%1 Fertigkeitspunkt verfügbar"
    Target_ru_ru "%1 Очко доступно"
    Target_ko_kr "사용 가능한 스킬 포인트 %1"
@@ -21395,6 +22446,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000001}" {
    Id "OVT-Sleep"
    Target_en_us "Sleep"
+   Target_it_it "Dormi"
    Target_de_de "Schlafen"
    Modified 1780790400
    Author "Aaron Static"
@@ -21403,6 +22455,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000002}" {
    Id "OVT-SleepCooldown"
    Target_en_us "You need to stay awake longer before sleeping again"
+   Target_it_it "Devi restare sveglio più a lungo prima di poter dormire di nuovo"
    Target_de_de "Du musst länger wach bleiben, bevor du wieder schlafen kannst"
    Target_ru_ru "Вы должны ещё немного не спать, прежде чем лечь снова"
    Modified 1780790400
@@ -21412,6 +22465,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000003}" {
    Id "OVT-SleepQRF"
    Target_en_us "You cannot sleep while an attack is underway"
+   Target_it_it "Non puoi dormire mentre è in corso un attacco"
    Target_de_de "Du kannst nicht schlafen, solange ein Angriff läuft"
    Target_ru_ru "Вы не можете спать, пока идёт атака"
    Modified 1780790400
@@ -21421,6 +22475,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000004}" {
    Id "OVT-SleepWanted"
    Target_en_us "You cannot sleep while you are wanted"
+   Target_it_it "Non puoi dormire mentre sei ricercato"
    Target_de_de "Du kannst nicht schlafen, solange du gesucht wirst"
    Target_ru_ru "Вы не можете спать, пока вы в розыске"
    Modified 1780790400
@@ -21430,6 +22485,7 @@ StringTable {
   CustomStringTableItem "{6B5D000000000005}" {
    Id "OVT-SleptWell"
    Target_en_us "You slept for 8 hours"
+   Target_it_it "Hai dormito per 8 ore"
    Target_de_de "Du hast 8 Stunden geschlafen"
    Target_ru_ru "Вы проспали 8 часов"
    Modified 1780790400
@@ -21439,6 +22495,7 @@ StringTable {
   CustomStringTableItem "{59CC0DA6C7151F8E}" {
    Id "OVT-SoldierCost"
    Target_en_us "Soldier Cost"
+   Target_it_it "Costo soldato"
    Target_fr_fr "Coût Soldat"
    Target_de_de "Kosten pro Soldat"
    Target_ru_ru "Стоймость бойца"
@@ -21462,6 +22519,7 @@ StringTable {
   CustomStringTableItem "{5976AC6DA44FAA95}" {
    Id "OVT-Stability"
    Target_en_us "Stability"
+   Target_it_it "Stabilità"
    Target_fr_fr "Stabilité"
    Target_de_de "Stabilität"
    Target_ru_ru "Стабильность"
@@ -21485,6 +22543,7 @@ StringTable {
   CustomStringTableItem "{599EDE889725FB78}" {
    Id "OVT-StabilityMod_CorruptMayor"
    Target_en_us "Corrupt Mayor"
+   Target_it_it "Sindaco corrotto"
    Target_fr_fr "Maire Corrompu"
    Target_de_de "Korrupter Bürgermeister"
    Target_ru_ru "Коррумпированый мэр"
@@ -21508,6 +22567,7 @@ StringTable {
   CustomStringTableItem "{599EDE89679CDCF8}" {
    Id "OVT-StabilityMod_DrugProblems"
    Target_en_us "Drug Problems"
+   Target_it_it "Problemi di droga"
    Target_fr_fr "Problème de Drogue"
    Target_de_de "Drogenprobleme"
    Target_ru_ru "Проблемы с наркотиками"
@@ -21531,6 +22591,7 @@ StringTable {
   CustomStringTableItem "{5D5ECE59227BBB1D}" {
    Id "OVT-StabilityMod_NearbyTower"
    Target_en_us "Nearby Radio Tower"
+   Target_it_it "Torre radio nelle vicinanze"
    Target_fr_fr "Tour Radio Proche"
    Target_de_de "Nahegelegener Funkturm"
    Target_ru_ru "Радио вышка поблизости"
@@ -21554,6 +22615,7 @@ StringTable {
   CustomStringTableItem "{599EDE889FDE918F}" {
    Id "OVT-StabilityMod_OrganizedCrime"
    Target_en_us "Organized Crime"
+   Target_it_it "Crimine organizzato"
    Target_fr_fr "Crime Organisé"
    Target_de_de "Organisierte Kriminalität"
    Target_ru_ru "Организованные преступные группировки"
@@ -21577,6 +22639,7 @@ StringTable {
   CustomStringTableItem "{599EDE88A96FB592}" {
    Id "OVT-StabilityMod_RecentDeath"
    Target_en_us "Recent Deaths"
+   Target_it_it "Morti recenti"
    Target_fr_fr "Morts Récentes"
    Target_de_de "Kürzliche Todesfälle"
    Target_ru_ru "Недавние смерти"
@@ -21600,6 +22663,7 @@ StringTable {
   CustomStringTableItem "{599EDE88A12DC28E}" {
    Id "OVT-StabilityMod_RecentGunfire"
    Target_en_us "Recent Gunfire"
+   Target_it_it "Sparatorie recenti"
    Target_fr_fr "Coups de feu Récents"
    Target_de_de "Kürzliche Schüsse"
    Target_ru_ru "Недавняя стрельба"
@@ -21623,6 +22687,7 @@ StringTable {
   CustomStringTableItem "{599EDE88BA907EC8}" {
    Id "OVT-StabilityMod_RecentPatrol"
    Target_en_us "Recent Patrol"
+   Target_it_it "Pattuglia recente"
    Target_fr_fr "Patrouille Récente"
    Target_de_de "Kürzliche Patrouille"
    Target_ru_ru "Недавний патруль"
@@ -21646,6 +22711,7 @@ StringTable {
   CustomStringTableItem "{59A2BDB5E41019D9}" {
    Id "OVT-StabilityMod_StrongEconomy"
    Target_en_us "Strong Economy"
+   Target_it_it "Economia solida"
    Target_fr_fr "Economie fleurissante"
    Target_de_de "Florierende Wirtschaft"
    Target_ru_ru "Сильная экономика"
@@ -21669,6 +22735,7 @@ StringTable {
   CustomStringTableItem "{599D315AC7BF1F3F}" {
    Id "OVT-StartGame"
    Target_en_us "Start Game"
+   Target_it_it "Avvia partita"
    Target_fr_fr "Lancer le jeu"
    Target_de_de "Spiel starten"
    Target_ru_ru "Начать игру"
@@ -21692,6 +22759,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000210}" {
    Id "OVT-StartingTown"
    Target_en_us "Starting Town"
+   Target_it_it "Città iniziale"
    Target_de_de "Start Ort"
    Target_ru_ru "Стартовый город"
    Comment "Label of the starting-town spinner on the campaign-setup screen (UI/Layouts/Menu/StartGameMenu.layout, StartingTownSpinner). Picks the town players get their first house in; the dedicated-server equivalent is the startingTown key in Overthrow_Config.json."
@@ -21711,6 +22779,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000211}" {
    Id "OVT-StartingTown_Random"
    Target_en_us "Random"
+   Target_it_it "Casuale"
    Target_de_de "Zufällig"
    Target_ru_ru "Случайный"
    Comment "First entry of the starting-town spinner on the campaign-setup screen, and the default - the behaviour every campaign had before the spinner existed. Every other entry is a town name straight off the map and is not translated."
@@ -21730,6 +22799,7 @@ StringTable {
   CustomStringTableItem "{6B0F11B0AA01C030}" {
    Id "OVT-StartNewGame"
    Target_en_us "Start New Game"
+   Target_it_it "Avvia nuova partita"
    Target_fr_fr "Nouvelle partie"
    Target_de_de "Neues Spiel starten"
    Target_ru_ru "Начать новую игру"
@@ -21753,6 +22823,7 @@ StringTable {
   CustomStringTableItem "{6A248E7D184926DA}" {
    Id "OVT-StartUprising"
    Target_en_us "Start Uprising"
+   Target_it_it "Avvia rivolta"
    Target_de_de "Aufstand beginnen"
    Target_ru_ru "Начать восстание"
    Comment "Name of the Start Uprising user action on Prefabs/Controllers/OVT_TownController.et:46. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
@@ -21772,6 +22843,7 @@ StringTable {
   CustomStringTableItem "{5D305DE5A4ECB590}" {
    Id "OVT-StopRenting"
    Target_en_us "Stop Renting"
+   Target_it_it "Interrompi affitto"
    Target_fr_fr "Ne plus louer"
    Target_de_de "Miete beenden"
    Target_ru_ru "Завершить аренду"
@@ -21795,7 +22867,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000010}" {
    Id "OVT-Storage_BadRequest"
    Target_en_us "That storage request was not valid"
-   Target_de_de "Ungültige Stauraumanforderung."
+   Target_it_it "La richiesta di stoccaggio non era valida"
+   Target_de_de "Diese Lagerraumanfrage war ungültig"
    Target_ru_ru "Неверный запрос хранилища"
    Comment "Storage request refused - the checkout was malformed, arrived short, named an operation that carries no cart lines, or named a source and destination that do not go together."
    DevNote ""
@@ -21805,15 +22878,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262905
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000001}" {
    Id "OVT-Storage_Busy"
    Target_en_us "Another storage operation is already running"
+   Target_it_it "È già in corso un'altra operazione di stoccaggio"
    Target_de_de "Ein anderer Lagervorgang läuft bereits"
    Target_ru_ru "Другая операция с хранилищем уже выполняется"
    Comment "Storage request refused - the player already has a storage job in flight, or the batch engine is not available. One job per player."
@@ -21833,6 +22907,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000016}" {
    Id "OVT-Storage_ClearInventory"
    Target_en_us "Clear inventory"
+   Target_it_it "Cancella inventario"
    Target_de_de "Inventar leeren"
    Target_ru_ru "Очистить инвентарь"
    Comment "Officer-only user action on an ammo box: empties the holder's VANILLA inventory and never its storage ledger. This is how the leftovers a transfer refuses get discarded."
@@ -21852,7 +22927,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000001C}" {
    Id "OVT-Storage_DestinationInventory"
    Target_en_us "This container"
-   Target_de_de "Dieser Stauraum"
+   Target_it_it "Questo contenitore"
+   Target_de_de "Dieser Behälter"
    Target_ru_ru "Этот контейнер"
    Comment "First entry in the Open Storage destination picker: the holder's own vanilla inventory, i.e. spawn the items back into the box or vehicle you are standing at."
    DevNote ""
@@ -21862,16 +22938,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260853
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000002}" {
    Id "OVT-Storage_Failed"
    Target_en_us "Storage request failed"
-   Target_de_de "Stauraumanfrage fehlgeschlagen"
+   Target_it_it "Richiesta di deposito fallita"
+   Target_de_de "Lagerraumanfrage fehlgeschlagen"
    Target_ru_ru "Запрос хранилища не удался"
    Comment "Storage request refused for a reason the player cannot act on - the server could not identify the caller, or the holder has no ledger."
    DevNote ""
@@ -21881,15 +22958,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260869
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D200000001A}" {
    Id "OVT-Storage_Loading"
    Target_en_us "Loading contents..."
+   Target_it_it "Caricamento contenuti..."
    Target_de_de "Inhalt wird geladen..."
    Target_ru_ru "Загрузка содержимого..."
    Comment "Standing message on the Open Storage screen while the holder's contents are being pulled from the server. Contents never replicate; the one player looking pulls them on open."
@@ -21909,7 +22987,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000003}" {
    Id "OVT-Storage_Locked"
    Target_en_us "That storage is locked to someone else"
-   Target_de_de "Dieser Stauraum ist für jemand anderen gesperrt"
+   Target_it_it "Quel deposito è bloccato da qualcun altro"
+   Target_de_de "Dieser Lagerraum ist für jemand anderen gesperrt"
    Target_ru_ru "Это хранилище заблокировано другим игроком"
    Comment "Storage request refused - the vehicle or container is locked and belongs to another player."
    DevNote ""
@@ -21919,16 +22998,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260882
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000004}" {
    Id "OVT-Storage_NameInvalid"
    Target_en_us "A storage name must be 1 to 32 characters"
-   Target_de_de "Ein Stauraumname muss 1 bis 32 Zeichen lang sein"
+   Target_it_it "Il nome del deposito deve avere da 1 a 32 caratteri"
+   Target_de_de "Ein Lagerraumname muss 1 bis 32 Zeichen lang sein"
    Target_ru_ru "Имя хранилища должно содержать от 1 до 32 символов"
    Comment "Rename storage refused - the name was empty or longer than 32 characters. Enforced on the server."
    DevNote ""
@@ -21938,15 +23018,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260896
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000005}" {
    Id "OVT-Storage_NoAccess"
    Target_en_us "You do not have access to that warehouse"
+   Target_it_it "Non hai accesso a quel magazzino"
    Target_de_de "Du hast keinen Zugriff auf dieses Lagerhaus"
    Target_ru_ru "У вас нет доступа к этому складу"
    Comment "Storage request refused - the warehouse building is not owned, rented or accessible to this player."
@@ -21966,7 +23047,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000006}" {
    Id "OVT-Storage_NoCapacity"
    Target_en_us "That container has no storage"
-   Target_de_de "Dieser Behälter hat keinen Stauraum"
+   Target_it_it "Quel contenitore non dispone di spazio di deposito"
+   Target_de_de "Dieser Behälter hat keinen Lagerraum"
    Target_ru_ru "У этого контейнера нет хранилища"
    Comment "Storage request refused - the holder's capacity resolved to zero, which is what an illegal or armed vehicle gets."
    DevNote ""
@@ -21976,15 +23058,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260919
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D200000001B}" {
    Id "OVT-Storage_NoDestination"
    Target_en_us "Choose where these items should go"
+   Target_it_it "Scegli dove destinare questi oggetti"
    Target_de_de "Wähle, wohin diese Gegenstände verschoben werden sollen"
    Target_ru_ru "Выберите, куда отправить предметы"
    Comment "Open Storage checkout refused before any request is sent - no destination is selected. Fit is deliberately NOT checked here; the server reports a shortfall instead."
@@ -22004,7 +23087,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000011}" {
    Id "OVT-Storage_NotAtPort"
    Target_en_us "You must be at a port to sell storage"
-   Target_de_de "Du musst dich an einem Hafen befinden, um aus demStauraum zu verkaufen"
+   Target_it_it "Devi trovarti in un porto per vendere il deposito"
+   Target_de_de "Du musst dich an einem Hafen befinden, um aus dem Lagerraum zu verkaufen"
    Target_ru_ru "Для продажи хранилища вы должны быть в порту"
    Comment "Storage export refused - either the player or the holder is too far from a port."
    DevNote ""
@@ -22014,16 +23098,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260962
+   Modified 1787443200
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000007}" {
    Id "OVT-Storage_NotFound"
    Target_en_us "That storage no longer exists"
-   Target_de_de "Dieser Stauraum existiert nicht mehr"
+   Target_it_it "Quel deposito non esiste più"
+   Target_de_de "Dieser Lagerraum existiert nicht mehr"
    Target_ru_ru "Это хранилище больше не существует"
    Comment "Storage request refused - the holder could not be resolved on the server, or it carries no storage component."
    DevNote ""
@@ -22033,15 +23118,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260971
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000012}" {
    Id "OVT-Storage_NothingToMove"
    Target_en_us "There is nothing to move"
+   Target_it_it "Non c'è nulla da spostare"
    Target_de_de "Es gibt nichts zu verschieben"
    Target_ru_ru "Нет предметов для перемещения"
    Comment "Storage request refused - the holder is empty, or every line of the order clamped to zero against what the ledger actually holds."
@@ -22061,6 +23147,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000008}" {
    Id "OVT-Storage_NotOfficer"
    Target_en_us "Only officers can do that"
+   Target_it_it "Solo gli ufficiali possono farlo"
    Target_de_de "Das können nur Offiziere"
    Target_ru_ru "Только офицеры могут это делать"
    Comment "Storage request refused - clearing a container's vanilla inventory is officer-only."
@@ -22080,7 +23167,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000013}" {
    Id "OVT-Storage_Open"
    Target_en_us "Storage"
-   Target_de_de "Stauraum"
+   Target_it_it "Deposito"
+   Target_de_de "Lagerraum"
    Target_ru_ru "Хранилище"
    Comment "Open Storage user action label on an ammo box, a vehicle door and a warehouse. The holder's replicated item count is appended by the action as "
    DevNote ""
@@ -22090,16 +23178,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260983
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000015}" {
    Id "OVT-Storage_Rename"
    Target_en_us "Rename storage"
-   Target_de_de "Stauraum umbennenen"
+   Target_it_it "Rinomina deposito"
+   Target_de_de "Lagerraum umbennenen"
    Target_ru_ru "Переименовать хранилище"
    Comment "User action on an ammo box, a vehicle door and a warehouse: opens the rename dialog. The name replicates and shows in action labels, the destination picker and the map."
    DevNote ""
@@ -22109,16 +23198,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260994
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000018}" {
    Id "OVT-Storage_RenameMessage"
    Target_en_us "Enter a new name for this storage (1-32 characters)"
-   Target_de_de "Gib einen neuen Namen für diesen Stauraum ein (1–32 Zeichen)"
+   Target_it_it "Inserisci un nuovo nome per questo deposito (1-32 caratteri)"
+   Target_de_de "Gib einen neuen Namen für diesen Lagerraum ein (1–32 Zeichen)"
    Target_ru_ru "Введите новое имя для этого хранилища (1-32 символа)"
    Comment "Message above the edit box in the storage rename dialog. The length rule is enforced by the server, not only here."
    DevNote ""
@@ -22128,16 +23218,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261021
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000017}" {
    Id "OVT-Storage_RenameTitle"
    Target_en_us "Rename Storage"
-   Target_de_de "Stauraum umbennenen"
+   Target_it_it "Rinomina deposito"
+   Target_de_de "Lagerraum umbennenen"
    Target_ru_ru "Переименование хранилища"
    Comment "Title of the storage rename dialog. Overrides the recruit-rename preset's own title, which the dialog is otherwise reused from."
    DevNote ""
@@ -22147,15 +23238,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261033
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000009}" {
    Id "OVT-Storage_Ruined"
    Target_en_us "That building is ruined"
+   Target_it_it "Quell'edificio è in rovina"
    Target_de_de "Dieses Gebäude ist zerstört"
    Target_ru_ru "Это здание разрушено"
    Comment "Storage request refused - the holder has been destroyed and cannot be used until it is repaired."
@@ -22175,6 +23267,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000019}" {
    Id "OVT-Storage_Take"
    Target_en_us "Take"
+   Target_it_it "Prendi"
    Target_de_de "Entnehmen"
    Target_ru_ru "Взять"
    Comment "The single mode label on the Open Storage transfer screen, shown in the screen title. Open Storage has one mode, so no mode buttons are drawn."
@@ -22194,7 +23287,8 @@ StringTable {
   CustomStringTableItem "{6A8E2D200000000A}" {
    Id "OVT-Storage_TooFar"
    Target_en_us "You are too far from that storage"
-   Target_de_de "Du bist zu weit von diesem Stauraum entfernt."
+   Target_it_it "Sei troppo lontano da quel deposito"
+   Target_de_de "Du bist zu weit von diesem Lagerraum entfernt."
    Target_ru_ru "Вы слишком далеко от хранилища"
    Comment "Storage request refused - the player is not standing near the holder they asked to act on."
    DevNote ""
@@ -22204,16 +23298,17 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261049
+   Modified 1787356800
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{6A8E2D2000000014}" {
    Id "OVT-Storage_TransferAll"
    Target_en_us "Transfer all to storage"
-   Target_de_de "Alles in den Stauraum übertragen"
+   Target_it_it "Trasferisci tutto nel deposito"
+   Target_de_de "Alles in den Lagerraum übertragen"
    Target_ru_ru "Перенести всё в хранилище"
    Comment "User action on an ammo box and a vehicle door: converts the holder's whole vanilla inventory into its storage ledger. Part-used magazines are deliberately left behind."
    DevNote ""
@@ -22223,15 +23318,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261060
+   Modified 1787529600
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{59A45C635CF39E07}" {
    Id "OVT-StorageEmpty"
    Target_en_us "Equipment Box is empty"
+   Target_it_it "La cassa dell'equipaggiamento è vuota"
    Target_fr_fr "La caisse est vide"
    Target_de_de "Ausrüstungskiste ist leer"
    Target_ru_ru "Ящик со снаряжением пуст"
@@ -22255,7 +23351,8 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE6}" {
    Id "OVT-StorageTransferCancelled"
    Target_en_us "Storage Transfer Cancelled"
-   Target_de_de "Stauraumübertragung abgebrochen"
+   Target_it_it "Trasferimento al deposito annullato"
+   Target_de_de "Lagerübertragung abgebrochen"
    Target_ru_ru "Передача из хранилища отменена"
    Target_uk_ua "Передача зі сховища скасована"
    Comment ""
@@ -22266,15 +23363,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783260754
+   Modified 1716472641
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5D86A310C893DBE7}" {
    Id "OVT-StorageTransferCancelledByUser"
    Target_en_us "Operation cancelled by user"
+   Target_it_it "Operazione annullata dall'utente"
    Target_de_de "Vorgang vom Benutzer abgebrochen"
    Target_ru_ru "Операция отменена пользователем"
    Target_uk_ua "Операцію скасовано користувачем"
@@ -22297,6 +23395,9 @@ StringTable {
    Target_en_us "Transfer Complete"\
    ""\
    "%1 items transferred"
+   Target_it_it "Trasferimento completato"\
+   ""\
+   "%1 elementi trasferiti"
    Target_de_de "Übertragung abgeschlossen"\
    ""\
    "%1 Gegenstände übertragen"
@@ -22326,6 +23427,10 @@ StringTable {
    ""\
    "%1 items transferred"\
    "%2 items skipped"
+   Target_it_it "Trasferimento completato"\
+   ""\
+   "%1 elementi trasferiti"\
+   "%2 elementi saltati"
    Target_de_de "Übertragung abgeschlossen"\
    ""\
    "%1 Gegenstände übertragen"\
@@ -22355,6 +23460,7 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE4}" {
    Id "OVT-StorageTransferError"
    Target_en_us "Error: %1"
+   Target_it_it "Errore: %1"
    Target_de_de "Fehler: %1"
    Target_ru_ru "Ошибка: %1"
    Target_uk_ua "Помилка: %1"
@@ -22375,7 +23481,8 @@ StringTable {
   CustomStringTableItem "{5D86A310C893DBE5}" {
    Id "OVT-StorageTransferFailed"
    Target_en_us "Storage Transfer Failed"
-   Target_de_de "Stauraumübertragung fehlgeschlagen"
+   Target_it_it "Trasferimento al deposito fallito"
+   Target_de_de "Lagerübertragung fehlgeschlagen"
    Target_ru_ru "Не удалось передать из хранилища"
    Target_uk_ua "Передача зі сховища не вдалася"
    Comment ""
@@ -22386,15 +23493,16 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783262919
+   Modified 1716472401
    Author "Claude"
-   LastChanged "lemmi"
+   LastChanged "Lemmi"
    ImageLink ""
    Hidden 0
   }
   CustomStringTableItem "{5976AC6DA03E2264}" {
    Id "OVT-Support"
    Target_en_us "Support"
+   Target_it_it "Supporto"
    Target_fr_fr "Support"
    Target_de_de "Unterstützung"
    Target_ru_ru "Поддержка"
@@ -22418,6 +23526,7 @@ StringTable {
   CustomStringTableItem "{59B2E6B07F085219}" {
    Id "OVT-Supporters"
    Target_en_us "Supporters"
+   Target_it_it "Sostenitori"
    Target_fr_fr "Partisans"
    Target_de_de "Unterstützer"
    Target_ru_ru "Сторонники"
@@ -22441,6 +23550,7 @@ StringTable {
   CustomStringTableItem "{6478C5E37CF8C172}" {
    Id "OVT-SupportingFaction"
    Target_en_us "Supporting Faction"
+   Target_it_it "Fazione di supporto"
    Target_fr_fr "Faction de soutien"
    Target_de_de "Unterstützte Fraktion"
    Target_ru_ru "Поддерживающая фракция"
@@ -22454,6 +23564,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000028}" {
    Id "OVT-SupportMod_PirateRadio"
    Target_en_us "Pirate Radio"
+   Target_it_it "Radio pirata"
    Target_de_de "Piratensender"
    Target_ru_ru "Пиратское радио"
    Target_uk_ua "Піратське радіо"
@@ -22474,6 +23585,7 @@ StringTable {
   CustomStringTableItem "{59A2BDA8428BCAC2}" {
    Id "OVT-SupportMod_RecruitmentPosters"
    Target_en_us "Recruitment Posters"
+   Target_it_it "Manifesti di reclutamento"
    Target_fr_fr "Affiches de propagande"
    Target_de_de "Rekrutierungsplakate"
    Target_ru_ru "Плакаты вербовки"
@@ -22497,6 +23609,7 @@ StringTable {
   CustomStringTableItem "{6A248E7DE9D0DBC4}" {
    Id "OVT-SupportTooLow"
    Target_en_us "Not enough support in this town"
+   Target_it_it "Supporto insufficiente in questa città"
    Target_de_de "Nicht genügend Unterstützung in dieser Ortschaft"
    Target_ru_ru "Недостаточно поддержки в этом городе"
    Comment "Reason shown under the greyed-out Start Uprising action, set by OVT_StartUprisingAction.c:39 SetCannotPerformReason. RESTORED 2026-08-18. This entry was silently LOST when the string table was re-saved from Workbench: the preceding item {6B09A1C0E4D50121} (OVT-GMIcon_Tooltip_NoData) was missing its closing brace at HEAD, so this one was parsed as NESTED INSIDE it, and the re-save that fixed the brace dropped the orphan. Restored verbatim from the last commit, at top level, in alphabetical order. Do not nest it again."
@@ -22516,6 +23629,7 @@ StringTable {
   CustomStringTableItem "{5D34EBA0F73327D6}" {
    Id "OVT-TakeFromWarehouse"
    Target_en_us "Take From Warehouse"
+   Target_it_it "Prendi dal magazzino"
    Target_fr_fr "Prendre de l'entrepôt"
    Target_de_de "Aus Lagerhaus nehmen"
    Target_ru_ru "Взять со склада"
@@ -22539,6 +23653,7 @@ StringTable {
   CustomStringTableItem "{59A49A81DADADDD9}" {
    Id "OVT-TooCloseBase"
    Target_en_us "You cannot place that here, it is too close to a military base"
+   Target_it_it "Tu Non puoi piazzarlo qui, è troppo vicino a una base militare"
    Target_fr_fr "Impossible de placer ici, trop près d'une Base"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Militärbasis"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к военной базе"
@@ -22562,6 +23677,7 @@ StringTable {
   CustomStringTableItem "{59A49A8618B96EBF}" {
    Id "OVT-TooCloseBuilding"
    Target_en_us "You cannot place that here, it is too close to a building"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a un edificio"
    Target_fr_fr "Impossible de placer ici, trop près d'un batiment"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem Gebäude"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к постройке"
@@ -22585,6 +23701,7 @@ StringTable {
   CustomStringTableItem "{5D58260519D9B5F3}" {
    Id "OVT-TooCloseFOB"
    Target_en_us "You cannot place that here, it is too close to an FOB"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una FOB"
    Target_fr_fr "Impossible de placer ici, trop près d'un avant poste"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einem FOB"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к ПОБ"
@@ -22608,6 +23725,7 @@ StringTable {
   CustomStringTableItem "{5992E2F582B25E31}" {
    Id "OVT-TooCloseToRadioTower"
    Target_en_us "Cannot deploy FOB - too close to radio tower"
+   Target_it_it "Impossibile schierare la FOB: troppo vicina alla torre radio"
    Target_de_de "FOB kann nicht errichtet werden – zu nah an einem Funkturm"
    Target_ru_ru "Невозможно развернуть ПОБ - слишком близко к радиовышке"
    Target_uk_ua "Неможливо розгорнути FOB - занадто близько до радіовежі"
@@ -22618,6 +23736,7 @@ StringTable {
   CustomStringTableItem "{59A49A81B65FE81A}" {
    Id "OVT-TooCloseTown"
    Target_en_us "You cannot place that here, it is too close to a town"
+   Target_it_it "Non puoi piazzarlo qui, è troppo vicino a una città"
    Target_fr_fr "Impossible de placer ici, trop près d'un village"
    Target_de_de "Du kannst das hier nicht platzieren, es befindet sich zu nah an einer Stadt"
    Target_ru_ru "Вы не можете поставить это здесь, слишком близко к населенному пункту"
@@ -22641,6 +23760,7 @@ StringTable {
   CustomStringTableItem "{59CC0DA6C9595E99}" {
    Id "OVT-Total"
    Target_en_us "Total"
+   Target_it_it "Totale"
    Target_fr_fr "Total"
    Target_de_de "Gesamt"
    Target_ru_ru "Итого"
@@ -22664,6 +23784,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000002E}" {
    Id "OVT-TowerAlreadySabotaged"
    Target_en_us "This radio tower is already off the air"
+   Target_it_it "Questa torre radio è già fuori servizio"
    Target_de_de "Dieser Funkturm ist bereits außer Betrieb"
    Target_ru_ru "Эта радиовышка уже не работает"
    Target_uk_ua "Ця радіовежа вже не працює в ефірі"
@@ -22684,6 +23805,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E0000002D}" {
    Id "OVT-TowerSabotaged"
    Target_en_us "Sabotaged"
+   Target_it_it "Sabotato"
    Target_de_de "Sabotiert"
    Target_ru_ru "Выведена из строя"
    Target_uk_ua "Саботовано"
@@ -22704,6 +23826,7 @@ StringTable {
   CustomStringTableItem "{65D0CCE5C784D4F8}" {
    Id "OVT-Town"
    Target_en_us "Town"
+   Target_it_it "Città"
    Target_de_de "Stadt"
    Target_ru_ru "Город"
    Target_uk_ua "Місто"
@@ -22714,6 +23837,7 @@ StringTable {
   CustomStringTableItem "{6A7D9B2E00000001}" {
    Id "OVT-TownModifierLimit"
    Target_en_us "This town already has the maximum number of these"
+   Target_it_it "Questa città ha già raggiunto il numero massimo di questi elementi"
    Target_de_de "Diese Stadt hat bereits die maximale Anzahl davon"
    Target_ru_ru "В этом городе уже достигнуто максимальное количество таких объектов"
    Target_uk_ua "У цьому місті вже досягнуто максимальної кількості таких об'єктів"
@@ -22734,6 +23858,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000001}" {
    Id "OVT-Transfer_Accept"
    Target_en_us "Accept"
+   Target_it_it "Accetta"
    Target_de_de "Annehmen"
    Target_ru_ru "Принять"
    Comment "Transfer screen footer - commits the whole order (the cart) in one press"
@@ -22753,6 +23878,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000002}" {
    Id "OVT-Transfer_Accepted"
    Target_en_us "Sent %1 item(s) in %2 line(s)"
+   Target_it_it "Inviati %1 elementi in %2 righe"
    Target_de_de "Sende %1 Gegenstände in %2 Positionen"
    Target_ru_ru "Отправлено %1 предмет(ов) в %2 позици(ях)"
    Comment "Transfer screen - confirmation after Accept. %1 is the total item count, %2 the number of cart lines"
@@ -22772,6 +23898,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000003}" {
    Id "OVT-Transfer_Add1"
    Target_en_us "Add 1"
+   Target_it_it "Aggiungi 1"
    Target_de_de "1 hinzu."
    Target_ru_ru "Добавить 1"
    Comment "Transfer screen footer - adds one of the focused list row to the order"
@@ -22791,6 +23918,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000004}" {
    Id "OVT-Transfer_Add10"
    Target_en_us "Add 10"
+   Target_it_it "Aggiungi 10"
    Target_de_de "10 hinzu."
    Target_ru_ru "Добавить 10"
    Comment "Transfer screen footer - adds ten of the focused list row to the order"
@@ -22810,6 +23938,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000005}" {
    Id "OVT-Transfer_AddAll"
    Target_en_us "Add all"
+   Target_it_it "Aggiungi tutto"
    Target_de_de "Alles hinzugefügen"
    Target_ru_ru "Добавить всё"
    Comment "Transfer screen footer - fills the order line for the focused row up to its maximum. Hidden where adding a whole stack is not offered"
@@ -22829,6 +23958,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000006}" {
    Id "OVT-Transfer_CartEmpty"
    Target_en_us "Nothing added yet"
+   Target_it_it "Nulla ancora aggiunto"
    Target_de_de "Noch nichts hinzugefügt"
    Target_ru_ru "Ничего не добавлено"
    Comment "Transfer screen - shown in place of the order list while the order is empty"
@@ -22848,6 +23978,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000007}" {
    Id "OVT-Transfer_CategoryAll"
    Target_en_us "All"
+   Target_it_it "Tutto"
    Target_de_de "Alles"
    Target_ru_ru "Все"
    Comment "Transfer screen - the always-present first category tab, meaning no category filter"
@@ -22867,6 +23998,7 @@ StringTable {
   CustomStringTableItem "{6A8E2D2000000020}" {
    Id "OVT-Transfer_DestinationLabel"
    Target_en_us "Send to"
+   Target_it_it "Invia a"
    Target_de_de "Senden an"
    Target_ru_ru "Отправить в"
    Comment "Transfer screen - the label drawn beside the destination picker. Overrides vanilla WLib_SpinBox's placeholder m_sLabel \"SpinBox\", which would otherwise render verbatim."
@@ -22886,6 +24018,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000014}" {
    Id "OVT-Transfer_DestinationVehicle"
    Target_en_us "Vehicle"
+   Target_it_it "Veicolo"
    Target_de_de "Fahrzeug"
    Target_ru_ru "Транспорт"
    Comment "Transfer screen destination picker - the vehicle the player is currently occupying"
@@ -22905,6 +24038,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000008}" {
    Id "OVT-Transfer_Mode1"
    Target_en_us "Mode 1"
+   Target_it_it "Modalità 1"
    Target_de_de "Modus 1"
    Target_ru_ru "Режим 1"
    Comment "Transfer screen header - placeholder label for the first mode button. Replaced at runtime by the screen's own mode name"
@@ -22924,6 +24058,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000009}" {
    Id "OVT-Transfer_Mode2"
    Target_en_us "Mode 2"
+   Target_it_it "Modalità 2"
    Target_de_de "Modus 2"
    Target_ru_ru "Режим 2"
    Comment "Transfer screen header - placeholder label for the second mode button. Replaced at runtime by the screen's own mode name"
@@ -22943,6 +24078,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000A}" {
    Id "OVT-Transfer_NextCategory"
    Target_en_us "Next"
+   Target_it_it "Successivo"
    Target_de_de "Weiter"
    Target_ru_ru "Далее"
    Comment "Transfer screen header - steps to the next category tab, wrapping at the end"
@@ -22959,26 +24095,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2E20000000B0}" {
-   Id "OVT-Transfer_NoMatches"
-   Target_en_us "No items match your search"
-   Comment "Transfer screen (Storage, Port, Production Buy, Resource Transfer) - shown in the checkout message area when the search box filters out every row on the current tab"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788843600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A8E2D2000000021}" {
    Id "OVT-Transfer_NoSpace"
    Target_en_us "Not enough room in the vehicle"
+   Target_it_it "Spazio insufficiente nel veicolo"
    Target_de_de "Nicht genügend Platz im Fahrzeug"
    Target_ru_ru "В транспортном средстве недостаточно места"
    Comment "Transfer screen checkout refusal - the cart holds more items than the destination's storage can still take. Disables Accept rather than letting the server clamp the purchase and charge for a partial delivery."
@@ -22998,6 +24118,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000B}" {
    Id "OVT-Transfer_NoVehicle"
    Target_en_us "Get in a vehicle to receive this"
+   Target_it_it "Sali su un veicolo per riceverlo"
    Target_de_de "Steige in ein Fahrzeug, um dies zu erhalten"
    Target_ru_ru "Сядьте в транспорт, чтобы получить это"
    Comment "Transfer screen - the order cannot be sent because the player is not in a vehicle to put it in"
@@ -23017,6 +24138,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000C}" {
    Id "OVT-Transfer_PrevCategory"
    Target_en_us "Previous"
+   Target_it_it "Precedente"
    Target_de_de "Zurück"
    Target_ru_ru "Назад"
    Comment "Transfer screen header - steps to the previous category tab, wrapping at the start"
@@ -23036,6 +24158,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000D}" {
    Id "OVT-Transfer_Remove1"
    Target_en_us "Remove 1"
+   Target_it_it "Rimuovi 1"
    Target_de_de "Entferne 1"
    Target_ru_ru "Убрать 1"
    Comment "Transfer screen footer - takes one off the focused order line. Same button as Add 1, relabelled"
@@ -23055,6 +24178,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000E}" {
    Id "OVT-Transfer_Remove10"
    Target_en_us "Remove 10"
+   Target_it_it "Rimuovi 10"
    Target_de_de "Entferne 10"
    Target_ru_ru "Убрать 10"
    Comment "Transfer screen footer - takes ten off the focused order line. Same button as Add 10, relabelled"
@@ -23074,6 +24198,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D0000000F}" {
    Id "OVT-Transfer_RemoveAll"
    Target_en_us "Remove all"
+   Target_it_it "Rimuovi tutto"
    Target_de_de "Entferne alles"
    Target_ru_ru "Убрать всё"
    Comment "Transfer screen footer - drops the focused order line entirely. Same button as Add all, relabelled"
@@ -23090,26 +24215,10 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
-  CustomStringTableItem "{6A8E2E20000000B1}" {
-   Id "OVT-Transfer_SearchLabel"
-   Target_en_us "Search"
-   Comment "Placeholder label on the transfer screen's item search box (Storage, Port, Production Buy, Resource Transfer)"
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788843600
-   Author "Claude"
-   LastChanged "Claude"
-   ImageLink ""
-   Hidden 0
-  }
   CustomStringTableItem "{6A8E2C1D00000010}" {
    Id "OVT-Transfer_SummaryEmpty"
    Target_en_us "Nothing ordered yet"
+   Target_it_it "Nulla ancora ordinato"
    Target_de_de "Noch nichts bestellt"
    Target_ru_ru "Ничего не заказано"
    Comment "Transfer screen checkout - the running total while the order is empty"
@@ -23129,6 +24238,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000011}" {
    Id "OVT-Transfer_SummaryPrice"
    Target_en_us "Total %1 in %2 line(s)"
+   Target_it_it "Totale %1 in %2 righe"
    Target_de_de "Gesamt %1 in %2 Positionen"
    Target_ru_ru "Итого %1 в %2 позици(ях)"
    Comment "Transfer screen checkout - running total when the value column is money. %1 is the formatted cost, %2 the number of order lines"
@@ -23148,6 +24258,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000012}" {
    Id "OVT-Transfer_SummaryQuantity"
    Target_en_us "%1 item(s) in %2 line(s)"
+   Target_it_it "%1 elementi in %2 linea/e"
    Target_de_de "%1 Gegenstände in %2 Positionen"
    Target_ru_ru "%1 предмет(ов) в %2 позици(ях)"
    Comment "Transfer screen checkout - running total when the value column is a stock count. %1 is the total item count, %2 the number of order lines"
@@ -23167,6 +24278,7 @@ StringTable {
   CustomStringTableItem "{6A8E2C1D00000013}" {
    Id "OVT-Transfer_Title"
    Target_en_us "Transfer"
+   Target_it_it "Trasferimento"
    Target_de_de "Übertragen"
    Target_ru_ru "Передать"
    Comment "Transfer screen - window title when the screen does not name its own mode"
@@ -23186,6 +24298,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33002}" {
    Id "OVT-Travelled"
    Target_en_us "Travelled"
+   Target_it_it "Percorso"
    Target_de_de "Zurückgelegte Strecke"
    Target_ru_ru "Перемещение выполнено"
    Target_uk_ua "Подорожував"
@@ -23204,6 +24317,7 @@ StringTable {
   CustomStringTableItem "{6A7E1C40A9B33005}" {
    Id "OVT-TravelWithFare"
    Target_en_us "%1 ($%2)"
+   Target_it_it "%1 ($%2)"
    Target_de_de "%1 ($%2)"
    Target_ru_ru "%1 ($%2)"
    Comment "Fast travel/bus - a label with its fare. %1 is the label (\"Fast Travel\", \"Catch a bus\", \"Travelled\"), %2 is the amount of money"
@@ -23221,6 +24335,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000065}" {
    Id "OVT-Tutorial_Back"
    Target_en_us "Back"
+   Target_it_it "Indietro"
    Target_de_de "Zurück"
    Target_ru_ru "Назад"
    Target_uk_ua "Назад"
@@ -23241,6 +24356,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000112}" {
    Id "OVT-Tutorial_BasesFirstCapture_Body"
    Target_en_us "You have just entered the restricted zone of a base. You will become wanted if you are seen here. In order to capture bases you must reach the flag at the center and trigger a battle. The battle will be decided by how many players (and recruits) hold the middle of the base against how many occupying soldiers are still there. Control runs both ways: the occupying faction settles on one place it means to take back and builds up against it over time, and a base the resistance holds can be that place."
+   Target_it_it "Sei appena entrato nella zona riservata di una base. Se verrai avvistato qui, diventerai un ricercato. Per conquistare le basi devi raggiungere la bandiera al centro e avviare una battaglia. L'esito dello scontro dipenderà dal numero di giocatori (e reclute) che presidiano il centro della base rispetto ai soldati occupanti ancora presenti. Il controllo funziona in entrambe le direzioni: la fazione occupante sceglie un luogo da riconquistare e vi si insedia progressivamente, e una base controllata dalla Resistenza può essere proprio quel luogo."
    Target_de_de "Du hast gerade das Sperrgebiet einer Basis betreten. Wenn du hier gesehen wirst, wirst du gesucht. Um Basen einzunehmen, musst du die Flagge in der Mitte erreichen und eine Schlacht auslösen. Der Ausgang der Schlacht hängt davon ab, wie viele Spieler (und Rekruten) die Mitte der Basis halten und wie viele Soldaten der Besatzungsmacht noch dort sind. Die Kontrolle kann in beide Richtungen wechseln: Die Besatzungsmacht hält Reserven vor und setzt überschüssige Kräfte ein, um eine vom Widerstand gehaltene Basis zurückzuerobern."
    Target_ru_ru "Вы только что вошли в запретную зону базы. Если вас здесь заметят, вы станете розыскиваемым. Чтобы захватить базу, нужно добраться до флага в центре и начать битву. Битва будет решаться тем, сколько игроков (и рекрутов) удерживают центр базы против оставшихся солдат оккупантов. Контроль работает в обе стороны: оккупационная фракция выбирает одно место, которое намерена вернуть, и готовится к этому со временем, и база, удерживаемая сопротивлением, может стать таким местом."
    Target_uk_ua "Ви щойно увійшли до забороненої зони бази. Якщо вас тут помітять, вас оголосять у розшук. Щоб захопити базу, потрібно дістатися прапора в центрі та розпочати бій. Результат бою залежатиме від того, скільки гравців (і новобранців) утримують центр бази, порівняно з кількістю окупаційних солдатів, що ще залишилися на ній. Контроль працює в обидва боки: окупаційна фракція має резерви й витрачає їх надлишок на спроби відбити базу, яку утримує опір."
@@ -23261,6 +24377,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000111}" {
    Id "OVT-Tutorial_BasesFirstCapture_Title"
    Target_en_us "Base Control"
+   Target_it_it "Controllo della base"
    Target_de_de "Basiskontrolle"
    Target_ru_ru "Контроль базы"
    Target_uk_ua "Контроль бази"
@@ -23281,6 +24398,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000110}" {
    Id "OVT-Tutorial_BuildFirstStructure_Body"
    Target_en_us "Building adds structures where the resistance already holds ground: a base it controls, a FOB, a camp, or a town it controls in the warehouse's case. Most cost money alone and appear as soon as they are placed, while the Helipad, Garage, Warehouse and Barracks want construction resources too and raise a construction site to be supplied first."
+   Target_it_it "La costruzione permette di aggiungere strutture dove la Resistenza detiene già il controllo del territorio: una base, una FOB, un accampamento o, nel caso del magazzino, una città controllata. La maggior parte delle strutture richiede solo denaro e appare non appena viene piazzata; l'eliporto, il garage, il magazzino e la caserma richiedono invece anche risorse di costruzione e necessitano dell'allestimento di un cantiere da rifornire preliminarmente."
    Target_de_de "Durch Bauen werden Strukturen dort hinzugefügt, wo der Widerstand bereits Gebiet hält: an einer von ihm kontrollierten Basis, einem FOB oder einem Camp. Was das Baumenü anbietet, hängt davon ab, an welchem dieser Orte du dich befindest. Eine Struktur kostet ausschließlich Geld."
    Target_ru_ru "Строительство добавляет сооружения там, где сопротивление уже контролирует территорию: на базе, FOB, в лагере или, в случае склада, в городе, контролируемом сопротивлением. Большинство сооружений стоят только деньги и появляются сразу, а вертолётная площадка, гараж, склад и казарма требуют ещё и строительные ресурсы, создавая строительную площадку, которую нужно снабдить."
    Target_uk_ua "Будівництво додає споруди там, де опір уже контролює територію: на підконтрольній базі, FOB або в таборі. Вміст меню будівництва залежить від того, де саме ви перебуваєте, а споруди коштують лише грошей."
@@ -23301,6 +24419,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010F}" {
    Id "OVT-Tutorial_BuildFirstStructure_Title"
    Target_en_us "Building Structures"
+   Target_it_it "Costruzione di strutture"
    Target_de_de "Strukturen bauen"
    Target_ru_ru "Строительство сооружений"
    Target_uk_ua "Будівництво споруд"
@@ -23321,6 +24440,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000067}" {
    Id "OVT-Tutorial_DisableTips"
    Target_en_us "Don't Show Tips Again"
+   Target_it_it "Non mostrare più i suggerimenti"
    Target_de_de "Tipps nicht mehr anzeigen"
    Target_ru_ru "Больше не показывать подсказки"
    Target_uk_ua "Більше не показувати підказки"
@@ -23341,6 +24461,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000062}" {
    Id "OVT-Tutorial_Dismiss"
    Target_en_us "Close"
+   Target_it_it "Chiudi"
    Target_de_de "Schließen"
    Target_ru_ru "Закрыть"
    Target_uk_ua "Закрити"
@@ -23361,6 +24482,7 @@ StringTable {
   CustomStringTableItem "{6B3A0000000000B1}" {
    Id "OVT-Tutorial_EconomyFirstBuy_Body"
    Target_en_us "Shops sell legal items to you and will buy back the ones they sell. Their stock is limited and tops itself back up each morning. Prices differ from town to town, opening up the possibility of trade. Items can be imported from ports for a low price, and shops further inland from those ports will pay a higher price than the shops which are closer."
+   Target_it_it "I negozi vendono articoli legali e riacquistano quelli che hanno venduto. Il loro inventario è limitato e si rifornisce ogni mattina. I prezzi variano da città a città, offrendo opportunità di commercio. È possibile importare merci dai porti a prezzi bassi; i negozi situati più nell'entroterra rispetto a tali porti pagheranno un prezzo più alto rispetto a quelli più vicini."
    Target_de_de "Geschäfte verkaufen dir legale Gegenstände und kaufen die Waren zurück, die sie selbst führen. Ihr Bestand ist begrenzt und wird jeden Morgen wieder aufgefüllt. Die Preise unterscheiden sich von Stadt zu Stadt und eröffnen dadurch Handelsmöglichkeiten. Gegenstände können an Häfen günstig importiert werden, und Geschäfte weiter im Landesinneren bezahlen dafür höhere Preise als Geschäfte in Hafennähe."
    Target_ru_ru "Магазины продают вам легальные товары и выкупают те, которые сами продают. Их запасы ограничены и пополняются каждое утро. Цены различаются от города к городу, что открывает возможности для торговли. Товары можно импортировать из портов по низкой цене, а магазины дальше от портов будут платить больше, чем магазины рядом."
    Target_uk_ua "Магазини продають вам легальні товари та викуповують назад ті, якими торгують. Їхні запаси обмежені й поповнюються щоранку. Ціни відрізняються від міста до міста, що дає можливість займатися торгівлею. Товари можна дешево імпортувати з портів, а магазини далі вглиб країни платитимуть за них більше, ніж магазини поблизу портів."
@@ -23381,6 +24503,7 @@ StringTable {
   CustomStringTableItem "{6B3A0000000000B0}" {
    Id "OVT-Tutorial_EconomyFirstBuy_Title"
    Target_en_us "Buying and Selling"
+   Target_it_it "Compravendita"
    Target_de_de "Kaufen und Verkaufen"
    Target_ru_ru "Покупка и продажа"
    Target_uk_ua "Купівля та продаж"
@@ -23401,6 +24524,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000064}" {
    Id "OVT-Tutorial_Finish"
    Target_en_us "Finish"
+   Target_it_it "Fine"
    Target_de_de "Fertig"
    Target_ru_ru "Готово"
    Target_uk_ua "Завершити"
@@ -23421,6 +24545,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000B}" {
    Id "OVT-Tutorial_FuelDepotBuilt_Body"
    Target_en_us "A fuel depot stores 10,000 litres and arrives empty, so it has no fuel to give until it is filled. A fuel truck parked alongside can be drained into it using the depot's own actions, and after that it refuels vehicles parked beside it for free."
+   Target_it_it "Un deposito di carburante ha una capacità di 10.000 litri ma arriva vuoto; pertanto, non può fornire carburante finché non viene riempito. È possibile trasferirvi il contenuto di un'autocisterna parcheggiata accanto utilizzando le azioni specifiche del deposito; una volta pieno, il deposito rifornisce gratuitamente i veicoli parcheggiati nelle vicinanze."
    Target_de_de "Ein Treibstoffdepot fasst 10.000 Liter und ist nach der Errichtung zunächst leer, sodass es erst nach dem Befüllen Kraftstoff ausgeben kann. Ein daneben abgestellter Tanklastwagen kann über die Aktionen des Depots in dieses entleert werden. Anschließend können dort abgestellte Fahrzeuge kostenlos betankt werden."
    Target_ru_ru "Топливный склад вмещает 10 000 литров и прибывает пустым, поэтому у него нет топлива, пока его не заполнят. Припаркованный рядом топливный грузовик можно слить в него через действия самого склада, и после этого он бесплатно заправляет транспорт, припаркованный рядом."
    Comment "Body of the 'fuel-depot-built' tutorial tip (single page, HUD popup, wraps inside a 460px panel - two short sentences at most). No rich-text markup. Sandbox tone rule: describes the system, never instructs, and assumes nothing about what the player did before. DELIVERY: fires on PLAYER_BUILD filtered to the buildable name 'Fuel Depot' (Configs/Tutorials/fuelDepotBuilt.conf; the filter is matched against OVT_Buildable.m_sName, OVT_TutorialManagerComponent.OnBuild:317-324), so the reader has just finished building one. FACT-CHECKED 2026-08-18 for economy/fuel Phase 5 and re-checked for amendment A2.3 against Prefabs/Structures/Military/FOB/OVT_FuelDepot.et: SCR_FuelNode MaxFuel 10000 (up from 5000), m_fInitialFuelTankState 0 (LITRES, not a fraction - it really does start empty and reports NO_FUEL_TO_GIVE), station m_fRange 7 for 'alongside' and 'beside it', and OVT_FuelSourceComponent m_bFree 1 read by OVT_FuelUtils.IsFreeFuelSource for 'for free'. The fill is done AT THE DEPOT - either its vanilla SCR_RefuelAtSupportStationAction or the fast OVT_FillFuelAction - with the truck's station as the provider, hence 'the depot's own actions'; m_bIgnoreSelf 1 and OVT_FuelUtils.IsStationMountedOn stop it filling itself. Kept consistent with #OVT-Build_FuelDepot_Description and #OVT-FieldManual_Fuel_Text4."
@@ -23440,6 +24565,7 @@ StringTable {
   CustomStringTableItem "{6B4E1F300000000C}" {
    Id "OVT-Tutorial_FuelDepotBuilt_Title"
    Target_en_us "Fuel Depot"
+   Target_it_it "Deposito di carburante"
    Target_de_de "Treibstofflager"
    Target_ru_ru "Топливный склад"
    Comment "Title of the 'fuel-depot-built' tutorial tip, shown the first time the player finishes building a fuel depot. Heading of a small HUD popup, so keep it to two or three words. Must match the build-menu name in #OVT-Build_FuelDepot. No markup."
@@ -23459,6 +24585,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007213}" {
    Id "OVT-Tutorial_HighCommandFirstOpen_Body"
    Target_en_us "Groups bought here are yours, and stay yours between sessions. The price covers the recruit cost of every man, the gear each of them needs, and, for a group that comes with a vehicle, that vehicle at its full shop price. Gear already stocked in a registered warehouse within 150 metres is taken off the shelves rather than bought, and the quote shows how much that covered. A purchase also draws supporters out of the nearest town, and there is a cap on how many High Command soldiers one player can hold at once."
+   Target_it_it "I gruppi acquistati qui sono tuoi e rimangono tali anche tra una sessione e l'altra. Il prezzo include il costo di reclutamento di ogni uomo, l'equipaggiamento necessario e, nel caso di gruppi dotati di veicolo, il costo pieno di quest'ultimo. L'equipaggiamento già presente in un magazzino registrato nel raggio di 150 metri viene prelevato dagli scaffali anziché acquistato, e il preventivo indica il risparmio ottenuto in tal modo. L'acquisto attira inoltre sostenitori dalla città più vicina; esiste un limite al numero di soldati dell'Alto Comando che un singolo giocatore può gestire contemporaneamente."
    Target_de_de "Hier gekaufte Gruppen gehören dir und bleiben auch zwischen Spielsitzungen in deinem Besitz. Der Preis umfasst die Rekrutierungskosten jedes Soldaten, die für ihn benötigte Ausrüstung und bei einer Gruppe mit Fahrzeug zusätzlich den vollen Ladenpreis dieses Fahrzeugs. Ausrüstung, die bereits in einem registrierten Lagerhaus innerhalb von 150 Metern vorhanden ist, wird aus dem Bestand entnommen, anstatt neu gekauft zu werden; im Preisangebot wird angezeigt, welcher Anteil dadurch abgedeckt wurde. Ein Kauf zieht außerdem Unterstützer aus der nächstgelegenen Ortschaft ab. Gleichzeitig gibt es eine Obergrenze dafür, wieviele Soldaten des Oberen Kommandos ein einzelner Spieler gleichzeitig unterhalten kann."
    Target_ru_ru "Группы, купленные здесь, принадлежат вам и остаются вашими между сессиями. Цена включает стоимость найма каждого бойца, необходимое снаряжение и, если есть транспорт, его полную магазинную цену. Снаряжение, уже хранящееся на зарегистрированном складе в радиусе 150 метров, списывается со склада, а не покупается, и в квоте указывается, сколько это покрыло. Покупка также забирает сторонников из ближайшего города, и у каждого игрока есть лимит на количество солдат High Command."
    Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 1 of 2, four sentences, no rich-text markup. TONE: informs, never instructs, and reads correctly whatever the player has already done. Citations: pricing OVT_HighCommandManagerComponent.QuoteEntry:458-500 with OVT_HighCommandRules.PurchaseTotal (OVT_HighCommandRules.c:114-126, the vehicle at full shop price outside the fee multiplier); warehouse coverage OVT_HighCommandRules.WAREHOUSE_RANGE 150.0 (:10) via CollectStores/SplitCoverage at QuoteEntry:485-493, rendered as #OVT-HC_QuoteCovered; supporters SupportersRequired plus the gate-8 refusal; cap OVT_HighCommandRules.DEFAULT_MEMBER_CAP 48 (:15), enforced server-side and configurable, so the number is not quoted; persistence OVT_HighCommandManagerSerializer. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -23478,6 +24605,7 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007214}" {
    Id "OVT-Tutorial_HighCommandFirstOpen_Body2"
    Target_en_us "Every player's map shows these groups as green symbols, your own at full strength and other players' dimmed. Selecting one shows its owner, stance, destination and status, and a group you own can be sent to the spot under the map cursor or have its stance cycled between Defend, Patrol and Attack. Travel happens in real time, on foot or by road, and carries on while you are offline. Manage Groups, on the main menu, lists what you own."
+   Target_it_it "Sulla mappa di ogni giocatore, questi gruppi appaiono come simboli verdi: quelli propri sono a piena visibilità, mentre quelli degli altri giocatori appaiono attenuati. Selezionando un gruppo è possibile visualizzarne proprietario, assetto, destinazione e stato; inoltre, è possibile inviare un gruppo di propria proprietà verso la posizione indicata dal cursore sulla mappa o alternarne l'assetto tra Difesa, Pattugliamento e Attacco. Gli spostamenti avvengono in tempo reale, a piedi o su strada, e proseguono anche quando sei offline. La voce \"Gestisci gruppi\" nel menu principale elenca le unità in tuo possesso."
    Target_de_de "Auf der Karte jedes Spielers werden diese Gruppen als grüne Symbole angezeigt. Eigene Gruppen erscheinen mit voller Deckkraft, die Gruppen anderer Spieler hingegen abgeblendet. Wird eine Gruppe ausgewählt, werden ihr Besitzer, ihre Haltung, ihr Ziel und ihr aktueller Status angezeigt. Eine eigene Gruppe kann zu der Position unter dem Kartenzeiger befohlen werden. Außerdem lässt sich ihre Haltung zwischen „Verteidigen“, „Patrouillieren“ und „Angreifen“ wechseln. Die Verlegung erfolgt in Echtzeit, entweder zu Fuß oder über die Straße, und wird auch fortgesetzt, während du offline bist. Unter „Gruppen verwalten“ im Hauptmenü werden alle Gruppen aufgelistet, die dir gehören."
    Target_ru_ru "На карте каждого игрока эти группы отображаются зелёными символами, ваши — ярко, других игроков — тускло. Выбор группы показывает её владельца, режим, цель и статус, а вашей группой можно управлять с карты. Перемещение происходит в реальном времени и продолжается, пока вы офлайн. Управление группами в главном меню показывает ваш список."
    Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Page 2 of 2, four sentences, no rich-text markup. TONE: informs, never instructs. Citations: OVT_MapHighCommandLayer.c:21 and :329 (OTHER_OWNER_OPACITY 0.45), :1012-1041 (owner, stance, destination, status lines), OnOrderPressed:1078-1099 (orders to the map cursor), OnStancePressed:1105-1126 (cycles DEFEND, PATROL, ATTACK); stance behaviour OVT_HighCommandManagerComponent.ApplyStance:1044-1077. Real-time travel and offline continuation are D1 in implementation.md section 5: the group is an always-live SCR_AIGroup with its own AI observer (OVT_HighCommandGroupComponent.c:50-67) and nothing on OVT_HighCommandManagerComponent despawns or freezes it when its owner disconnects. Manage Groups: UI/Layouts/Menu/MainMenu.layout:412 with OVT_MainMenuContext.ManageGroups:263. KEYBINDS DELIBERATELY NOT NAMED - the verbs are rebindable actions with keyboard and gamepad sources. FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
@@ -23497,7 +24625,8 @@ StringTable {
   CustomStringTableItem "{6B1C3D0000007212}" {
    Id "OVT-Tutorial_HighCommandFirstOpen_Title"
    Target_en_us "High Command"
-   Target_de_de "Oberkommando"
+   Target_it_it "Alto Comando"
+   Target_de_de "Oberes Kommando"
    Target_ru_ru "Командование"
    Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Popup title, two words. Matches the Field Manual page title it links to (#OVT-FieldManual_HighCommand_Title). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
    DevNote ""
@@ -23507,7 +24636,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1783261505
+   Modified 1781873394
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -23516,6 +24645,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000102}" {
    Id "OVT-Tutorial_HomeFirstOpen_Body"
    Target_en_us "Real estate can be bought, rented and sold. Not all buildings can be bought, but most houses can be. The building set as your home is where your character respawns, and buildings you own or rent count as fast travel destinations. Bases and FOBs can also be set as \"Home\". Warehouses can also be bought here, and a warehouse you own keeps storage of its own, opened with the Storage action on the building."
+   Target_it_it "È possibile acquistare, affittare e vendere immobili. Non tutti gli edifici sono acquistabili, ma la maggior parte delle abitazioni sì. L'edificio impostato come \"casa\" è il punto in cui il tuo personaggio rinasce; inoltre, gli edifici di tua proprietà o in affitto fungono da destinazioni per il viaggio rapido. Anche basi e FOB possono essere impostate come \"casa\". Qui è possibile acquistare magazzini: quelli di tua proprietà dispongono di uno spazio di stoccaggio dedicato, accessibile tramite l'azione specifica sull'edificio."
    Target_de_de "Immobilien können gekauft, gemietet und verkauft werden. Nicht alle Gebäude können gekauft werden, die meisten Häuser jedoch schon. Das als dein Zuhause festgelegte Gebäude ist der Ort, an dem dein Charakter wiedereinsteigt, und Gebäude in deinem Besitz oder von dir gemietete Gebäude gelten als Schnellreiseziele. Basen und FOBs können ebenfalls als \"Zuhause\" festgelegt werden. Über diesen Bildschirm können außerdem verschiedene Lagerhäuser gekauft werden, die das Lagern und Entnehmen großer Mengen von Gegenständen ermöglichen."
    Target_ru_ru "Недвижимость можно покупать, сдавать в аренду и продавать. Не все здания можно купить, но большинство домов — можно. Здание, установленное как ваш дом, является местом возрождения, а принадлежащие или арендованные здания служат точками быстрого перемещения. Базы и FOB также можно установить как «Дом». Склады можно купить здесь, и принадлежащий вам склад имеет собственное хранилище, открываемое действием «Хранилище» на здании."
    Target_uk_ua "Нерухомість можна купувати, орендувати та продавати. Не всі будівлі можна придбати, але більшість будинків — можна. Будівля, встановлена як ваш дім, є місцем відродження вашого персонажа, а будівлі, якими ви володієте або які орендуєте, доступні як точки швидкого переміщення. Бази та FOB також можна встановити як «Дім». Через цей екран також можна купувати різні склади, які дають змогу зберігати та забирати велику кількість предметів."
@@ -23536,6 +24666,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000101}" {
    Id "OVT-Tutorial_HomeFirstOpen_Title"
    Target_en_us "Owning Property"
+   Target_it_it "Proprietà"
    Target_de_de "Immobilien besitzen"
    Target_ru_ru "Владение недвижимостью"
    Target_uk_ua "Володіння нерухомістю"
@@ -23556,6 +24687,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000066}" {
    Id "OVT-Tutorial_LearnMore"
    Target_en_us "Learn More"
+   Target_it_it "Impara di più"
    Target_de_de "Mehr erfahren"
    Target_ru_ru "Узнать больше"
    Target_uk_ua "Дізнатися більше"
@@ -23576,6 +24708,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000106}" {
    Id "OVT-Tutorial_MapFirstOpen_Body"
    Target_en_us "The map marks the buildings and vehicles you own, the camps and FOBs the resistance has placed, and the shops, gun dealers and ports available for import. Shading over the terrain shows the ground the occupying faction still holds, and it clears from anywhere the resistance takes. The filter on the strip of icons down the left opens a panel with an on and off row for each kind of marker and each overlay. You must be carrying a map item in your inventory for it to open, so don't lose it!"
+   Target_it_it "La mappa segnala gli edifici e i veicoli di tua proprietà, gli accampamenti e le FOB allestiti dalla Resistenza, nonché negozi, armerie e porti disponibili per le importazioni. Le aree ombreggiate indicano il territorio ancora controllato dalla fazione occupante; l'ombreggiatura scompare man mano che la Resistenza conquista nuove zone. Il filtro presente nella barra delle icone a sinistra apre un pannello che consente di attivare o disattivare la visualizzazione di ogni tipo di indicatore e sovrapposizione grafica. Per accedere alla mappa è necessario avere l'oggetto \"mappa\" nell'inventario: fai attenzione a non perderlo!"
    Target_de_de "Die Karte markiert Gebäude und Fahrzeuge in deinem Besitz, vom Widerstand platzierte Camp und FOBs sowie Geschäfte, Waffenhändler und Häfen, die für Importe verfügbar sind. Eine Schattierung über dem Gelände zeigt das Gebiet, das weiterhin von der Besatzungsmacht gehalten wird, und verschwindet überall dort, wo der Widerstand die Kontrolle übernimmt. Der Filter in der Symbolleiste auf der linken Seite öffnet ein Fenster mit einer Ein-/Aus-Zeile für jede Art von Markierung und jede Einblendung. Du musst einen Kartengegenstand in deinem Inventar bei dir tragen, damit sich die Karte öffnen lässt – verliere ihn also nicht!"
    Target_ru_ru "На карте отмечены здания и транспорт, которыми вы владеете, лагеря и ПОБ, размещённые сопротивлением, а также магазины, торговцы оружием и порты для импорта. Затенение местности показывает территорию, которую всё ещё удерживают оккупанты, и исчезает там, где сопротивление захватывает контроль. Фильтр на панели значков слева открывает панель с рядами включения/выключения для каждого типа маркеров и слоёв. Для открытия карты у вас должен быть предмет карты в инвентаре, так что не потеряйте его!"
    Target_uk_ua "Мапа позначає будівлі та транспортні засоби, якими ви володієте, табори й FOB, розміщені опором, а також магазини, торговців зброєю та порти, доступні для імпорту. Затінення місцевості показує території, які все ще контролює окупаційна фракція, і зникає там, де їх захоплює опір. Фільтр на панелі значків ліворуч відкриває меню з перемикачами для кожного типу маркера та кожного шару. Щоб відкрити мапу, ви повинні мати її як предмет у своєму інвентарі, тож не загубіть її!"
@@ -23596,6 +24729,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000105}" {
    Id "OVT-Tutorial_MapFirstOpen_Title"
    Target_en_us "The Map"
+   Target_it_it "La Mappa"
    Target_de_de "Die Karte"
    Target_ru_ru "Карта"
    Target_uk_ua "Мапа"
@@ -23616,6 +24750,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000060}" {
    Id "OVT-Tutorial_MoreInMenu"
    Target_en_us "Overthrow Menu"
+   Target_it_it "Menu Overthrow"
    Target_de_de "Overthrow-Menü"
    Target_ru_ru "Меню Overthrow"
    Target_uk_ua "Меню Overthrow"
@@ -23636,6 +24771,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000063}" {
    Id "OVT-Tutorial_Next"
    Target_en_us "Next"
+   Target_it_it "Prossimo"
    Target_de_de "Weiter"
    Target_ru_ru "Далее"
    Target_uk_ua "Далі"
@@ -23656,6 +24792,7 @@ StringTable {
   CustomStringTableItem "{6B3A00000000006A}" {
    Id "OVT-Tutorial_NoneAvailable"
    Target_en_us "No tip to show right now"
+   Target_it_it "Nessun suggerimento da visualizzare al momento"
    Target_de_de "Momentan ist kein Tipp verfügbar"
    Target_ru_ru "Сейчас нет подсказок"
    Target_uk_ua "Наразі немає підказок для показу"
@@ -23676,6 +24813,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000068}" {
    Id "OVT-Tutorial_PageIndicator"
    Target_en_us "%1 / %2"
+   Target_it_it "%1 / %2"
    Target_de_de "%1 / %2"
    Target_ru_ru "%1 / %2"
    Comment "Modal tutorial popup - page counter in the header of a multi-page tip. %1 is the current page number, %2 is the total. Hidden entirely on single-page tips."
@@ -23695,6 +24833,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010E}" {
    Id "OVT-Tutorial_PlaceFirstPlaceable_Body"
    Target_en_us "Placing puts resistance objects into the world for a cost in money, from small items up to a full camp. Some placeables are illegal, and putting one down while the occupying faction can see you makes you wanted. Items can be placed at any real-estate or camp you own, as well as resistance-controlled bases and FOBs."
+   Target_it_it "L'opzione di posizionamento permette di collocare oggetti della Resistenza nel mondo di gioco pagando una somma di denaro; si va dai piccoli oggetti fino agli accampamenti completi. Alcuni oggetti sono illegali: piazzarli mentre la fazione occupante può vederti ti farà diventare un ricercato. È possibile posizionare oggetti presso qualsiasi proprietà o accampamento di tua pertinenza, così come nelle basi e nelle FOB controllate dalla Resistenza."
    Target_de_de "Beim Platzieren werden gegen Geld Objekte des Widerstands in die Spielwelt gesetzt, von kleinen Gegenständen bis hin zu einem vollständigen Camp. Einige platzierbare Objekte sind illegal. Wenn du eines aufstellst, während dich die Besatzungsmacht sehen kann, wirst du gesucht. Gegenstände können bei jeder Immobilie oder jedem Camp in deinem Besitz sowie an vom Widerstand kontrollierten Basen und FOBs platziert werden."
    Target_ru_ru "Размещение помещает объекты сопротивления в мир за деньги, от мелких предметов до полноценного лагеря. Некоторые объекты незаконны, и установка их на виду у оккупантов делает вас розыскиваемым. Предметы можно размещать в любой вашей недвижимости или лагере, а также на контролируемых сопротивлением базах и ПОБ."
    Target_uk_ua "Розміщення дає змогу за гроші встановлювати у світі об'єкти опору — від дрібних предметів до повноцінного табору. Деякі об'єкти заборонені, і якщо встановити такий об'єкт на очах в окупаційної фракції, вас оголосять у розшук. Предмети можна розміщувати на будь-якій нерухомості або в таборі, якими ви володієте, а також на базах і FOB, контрольованих опором."
@@ -23715,6 +24854,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010D}" {
    Id "OVT-Tutorial_PlaceFirstPlaceable_Title"
    Target_en_us "Placing Objects"
+   Target_it_it "Posizionamento oggetti"
    Target_de_de "Objekte platzieren"
    Target_ru_ru "Размещение объектов"
    Target_uk_ua "Розміщення об'єктів"
@@ -23735,6 +24875,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000008A}" {
    Id "OVT-Tutorial_RecruitsEquipped_Body"
    Target_en_us "A recruitment tent hires an unequipped civilian from the nearest town, or, with Buy Equipped Recruit, one that arrives already wearing a loadout you saved. The price of an equipped one is its gear at local shop prices plus a convenience fee, on top of the usual recruit cost, and it is shown before you commit to it."
+   Target_it_it "La tenda di reclutamento permette di ingaggiare un civile non equipaggiato proveniente dalla città più vicina oppure, tramite l'opzione \"Acquista recluta equipaggiata\", di ottenerne uno già dotato di un equipaggiamento predefinito salvato in precedenza. Il costo della recluta equipaggiata comprende il prezzo dell'equipaggiamento (basato sui listini dei negozi locali) più una commissione di servizio, oltre al normale costo di reclutamento; l'importo totale viene mostrato prima di confermare l'acquisto."
    Target_de_de "Ein Rekrutierungszelt wirbt einen unausgerüsteten Zivilisten aus der nächstgelegenen Stadt an oder über \"Rekruten mit Ausrüstung kaufen\" einen Rekruten, der bereits eine von dir gespeicherte Ausrüstung trägt. Der Preis eines ausgerüsteten Rekruten setzt sich zusätzlich zu den normalen Rekrutierungskosten aus dem örtlichen Ladenpreis seiner Ausrüstung und einer Komfortgebühr zusammen und wird dir vor dem Kauf angezeigt."
    Target_ru_ru "Палатка вербовки нанимает неэкипированного гражданского из ближайшего города или, с помощью «Купить экипированного рекрута», рекрута, который прибывает уже в сохранённом вами комплекте. Цена экипированного включает стоимость его снаряжения по местным ценам плюс плату за удобство сверх обычной стоимости найма, и показывается до подтверждения."
    Target_uk_ua "Намет для найму дозволяє найняти неспорядженого цивільного з найближчого міста або, за допомогою «Найняти спорядженого новобранця», новобранця, який прибуде вже у збереженому вами комплекті спорядження. Вартість спорядженого новобранця включає ціну його спорядження за місцевими магазинними цінами та додаткову плату за послугу понад звичайну вартість найму. Загальну ціну буде показано перед підтвердженням найму."
@@ -23755,6 +24896,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000089}" {
    Id "OVT-Tutorial_RecruitsEquipped_Title"
    Target_en_us "Equipped Recruits"
+   Target_it_it "Reclute equipaggiate"
    Target_de_de "Ausgerüstete Rekruten"
    Target_ru_ru "Экипированные рекруты"
    Target_uk_ua "Споряджені рекрути"
@@ -23775,6 +24917,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010C}" {
    Id "OVT-Tutorial_RecruitsFirstRecruit_Body"
    Target_en_us "A recruit belongs to the player who hired them, joins that player's group, and takes orders through the ordinary group command menu. Recruits stay with their owner always, even if you change groups.<br/><br/>Use the commanding menu <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color> to give them orders or open their inventory while looking at them. Orders given while not looking at a recruit will apply to all your recruits."
+   Target_it_it "La recluta appartiene al giocatore che l'ha ingaggiata, si unisce al suo gruppo e riceve ordini tramite il consueto menu di comando del gruppo. Le reclute rimangono sempre con il proprio proprietario, anche se cambi gruppo.<br/><br/>Usa il menu di comando <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color> per impartire ordini o aprire il loro inventario mentre le stai guardando. Gli ordini impartiti senza guardare una recluta specifica verranno applicati a tutte le tue reclute."
    Target_de_de "Ein Rekrut gehört dem Spieler, der ihn angeworben hat, tritt der Gruppe dieses Spielers bei und erhält Befehle über das normale Gruppenbefehlsmenü. Rekruten bleiben immer bei ihrem Besitzer, auch wenn du die Gruppe wechselst.<br/><br/>Verwende das Befehlsmenü <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>, um ihnen Befehle zu erteilen oder ihr Inventar zu öffnen, während du sie ansiehst. Befehle, die du erteilst, ohne einen bestimmten Rekruten anzusehen, gelten für alle deine Rekruten."
    Target_ru_ru "Рекрут принадлежит нанявшему его игроку, присоединяется к его группе и получает приказы через обычное меню команд. Рекруты всегда остаются со своим владельцем, даже если вы меняете группы. Используйте меню команд, чтобы отдавать приказы или открывать их инвентарь, глядя на них. Приказы, отданные без взгляда на конкретного рекрута, применяются ко всем вашим рекрутам."
    Target_uk_ua "Рекрут належить гравцеві, який його найняв, приєднується до групи цього гравця та виконує накази через звичайне меню командування групою. Рекрути завжди залишаються зі своїм власником, навіть якщо ви змінюєте групу.<br/><br/>Використовуйте меню командування <color rgba='226,168,79,255'><action name=\"OpenCommandMenu\"/></color>, щоб віддавати їм накази або відкривати їхній інвентар, дивлячись на них. Накази, віддані без наведення погляду на конкретного рекрута, застосовуються до всіх ваших рекрутів."
@@ -23795,6 +24938,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010B}" {
    Id "OVT-Tutorial_RecruitsFirstRecruit_Title"
    Target_en_us "Your Recruits"
+   Target_it_it "Le tue reclute"
    Target_de_de "Deine Rekruten"
    Target_ru_ru "Ваши рекруты"
    Target_uk_ua "Ваші рекрути"
@@ -23815,6 +24959,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000058}" {
    Id "OVT-Tutorial_RecruitsHoldPosition_Body"
    Target_en_us "Recruits you own can be told to hold position, from this screen or with a held action on the recruit itself. One that is holding position leaves your group and stays where it stands, still yours and still using one of your sixteen recruit slots."
+   Target_it_it "Alle reclute di tua proprietà può essere ordinato di mantenere la posizione, da questa schermata oppure tenendo premuta l’apposita azione direttamente sulla recluta. Una recluta che mantiene la posizione lascia il tuo gruppo e rimane nel punto in cui si trova, continuando ad appartenerti e a occupare uno dei sedici slot disponibili per le tue reclute."
    Target_de_de "Rekruten in deinem Besitz können angewiesen werden, ihre Position zu halten – entweder über diesen Bildschirm oder über eine gedrückt gehaltene Aktion direkt am Rekruten. Ein Rekrut, der seine Position hält, verlässt deine Gruppe und bleibt an seinem Standort. Er gehört weiterhin dir und belegt weiterhin einen deiner sechzehn Rekrutenplätze."
    Target_ru_ru "Вашим рекрутам можно приказать удерживать позицию — из этого экрана или через действие на самом рекруте. Удерживающий позицию покидает вашу группу и остаётся на месте, но всё ещё принадлежит вам и занимает один из ваших шестнадцати слотов."
    Target_uk_ua "Рекрутам, які належать вам, можна наказати утримувати позицію — з цього екрана або за допомогою утримуваної дії на самому рекруті. Рекрут, який утримує позицію, залишає вашу групу й залишається на місці, але все ще належить вам і займає один із ваших шістнадцяти слотів для рекрутів."
@@ -23835,6 +24980,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000057}" {
    Id "OVT-Tutorial_RecruitsHoldPosition_Title"
    Target_en_us "Holding Position"
+   Target_it_it "Mantenere la posizione"
    Target_de_de "Position halten"
    Target_ru_ru "Удержание позиции"
    Target_uk_ua "Утримання позиції"
@@ -23855,6 +25001,7 @@ StringTable {
   CustomStringTableItem "{6B4C00000000005A}" {
    Id "OVT-Tutorial_RecruitsSwapGear_Body"
    Target_en_us "A recruit that is following you carries a Swap Gear action: holding it from close by exchanges your whole kit with theirs, clothing and weapons alike. The real items change hands, so nothing is created or lost; anything that will not fit is stowed instead, or at worst left on the ground."
+   Target_it_it "Una recluta che ti sta seguendo dispone dell’azione Scambia equipaggiamento: tenendola premuta da vicino, scambi tutto il tuo equipaggiamento con quello della recluta, compresi indumenti e armi. Vengono scambiati gli oggetti effettivamente posseduti, quindi nulla viene creato o perso; ciò che non trova posto viene riposto altrove o, nel peggiore dei casi, lasciato a terra."
    Target_de_de "Ein Rekrut, der dir folgt, besitzt die Aktion \"Ausrüstung tauschen\": Wenn du sie aus kurzer Entfernung gedrückt hältst, wird deine gesamte Ausrüstung mit seiner getauscht, einschließlich Kleidung und Waffen. Dabei wechseln die tatsächlichen Gegenstände den Besitzer, sodass nichts erzeugt oder verloren geht. Was nicht an die vorgesehene Stelle passt, wird stattdessen anderswo verstaut oder im schlimmsten Fall auf dem Boden abgelegt."
    Target_ru_ru "Рекрут, следующий за вами, имеет действие «Обменять снаряжение»: удержание его поблизости обменивает ваш комплект с его, включая одежду и оружие. Реальные предметы меняются местами, поэтому ничего не создаётся и не теряется; то, что не помещается, откладывается или, в худшем случае, остаётся на земле."
    Target_uk_ua "Рекрут, який слідує за вами, має дію «Обміняти спорядження»: утримуючи її поблизу, ви повністю обмінюєтеся з ним спорядженням, включно з одягом і зброєю. Обмінюються саме наявні предмети, тому нічого не створюється й не зникає; усе, що не вміститься, буде покладено до сховища або, у крайньому разі, залишено на землі."
@@ -23875,6 +25022,7 @@ StringTable {
   CustomStringTableItem "{6B4C000000000059}" {
    Id "OVT-Tutorial_RecruitsSwapGear_Title"
    Target_en_us "Swapping Gear"
+   Target_it_it "Scambia attrezzatura"
    Target_de_de "Ausrüstung tauschen"
    Target_ru_ru "Обмен снаряжения"
    Target_uk_ua "Обмін спорядження"
@@ -23895,6 +25043,7 @@ StringTable {
   CustomStringTableItem "{6B3E000000000011}" {
    Id "OVT-Tutorial_ResetDone"
    Target_en_us "Tips are back on and will appear again as you play"
+   Target_it_it "I suggerimenti sono stati riattivati e ricompariranno mentre giochi."
    Target_de_de "Tipps sind wieder aktiviert und werden beim Spielen erneut angezeigt"
    Target_ru_ru "Подсказки снова включены и будут появляться по ходу игры"
    Target_uk_ua "Підказки знову увімкнено, і вони з’являтимуться під час гри"
@@ -23915,6 +25064,7 @@ StringTable {
   CustomStringTableItem "{6B3E000000000010}" {
    Id "OVT-Tutorial_ResetTips"
    Target_en_us "Turn Tips Back On"
+   Target_it_it "Riattiva i suggerimenti"
    Target_de_de "Tipps wieder einschalten"
    Target_ru_ru "Включить подсказки снова"
    Target_uk_ua "Знову увімкнути підказки"
@@ -23935,6 +25085,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000104}" {
    Id "OVT-Tutorial_ShopsFirstGunDealer_Body"
    Target_en_us "A gun dealer trades weapons and military equipment rather than everyday goods, working from its own stock list and restocking separately from ordinary shops. Each gun dealer will stock a set of unique weapons and their ammo, you may need to hunt around multiple towns to find the specific weapon you need."
+   Target_it_it "Un trafficante d’armi vende armi ed equipaggiamento militare anziché beni di uso quotidiano, utilizzando un proprio inventario e rifornendosi separatamente dai normali negozi. Ogni trafficante dispone di una selezione specifica di armi e delle relative munizioni; potrebbe quindi essere necessario cercare in diverse città per trovare l’arma di cui hai bisogno."
    Target_de_de "Ein Waffenhändler handelt statt alltäglicher Waren mit Waffen und militärischer Ausrüstung, verwendet eine eigene Bestandsliste und füllt seinen Vorrat getrennt von gewöhnlichen Geschäften auf. Jeder Waffenhändler führt eine eigene Auswahl besonderer Waffen und die passende Munition. Möglicherweise musst du mehrere Städte durchsuchen, um genau die benötigte Waffe zu finden."
    Target_ru_ru "Торговец оружием торгует оружием и военным снаряжением, а не повседневными товарами, использует свой собственный список и пополняется отдельно от обычных магазинов. У каждого торговца есть уникальный набор оружия и боеприпасов, вам может понадобиться искать в разных городах, чтобы найти нужное оружие."
    Target_uk_ua "Торговець зброєю продає зброю та військове спорядження замість звичайних товарів, має власний асортимент і поповнює запаси окремо від звичайних магазинів. Кожен торговець зброєю має набір унікальної зброї та боєприпасів до неї, тому, щоб знайти потрібну зброю, можливо, доведеться пошукати в кількох містах."
@@ -23955,6 +25106,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000103}" {
    Id "OVT-Tutorial_ShopsFirstGunDealer_Title"
    Target_en_us "Gun Dealers"
+   Target_it_it "Venditore di armi"
    Target_de_de "Waffenhändler"
    Target_ru_ru "Торговцы оружием"
    Target_uk_ua "Торговці зброєю"
@@ -23975,6 +25127,7 @@ StringTable {
   CustomStringTableItem "{6B3C00000000010A}" {
    Id "OVT-Tutorial_SkillsFirstOpen_Body"
    Target_en_us "Experience comes in from most of the work you do for the resistance, and every level past the first is worth one skill point. Points buy levels in the three skills, Trade, Stealth and Diplomacy, from the character sheet."
+   Target_it_it "Ottieni esperienza dalla maggior parte delle attività che svolgi per la Resistenza e ogni livello successivo al primo conferisce un punto abilità. Dalla scheda del personaggio puoi spendere questi punti per aumentare il livello delle tre abilità: Commercio, Furtività e Diplomazia."
    Target_de_de "Für den Großteil der Arbeit, die du für den Widerstand erledigst, erhältst du Erfahrung, und jede Stufe nach der ersten bringt einen Fertigkeitspunkt. Mit Punkten kaufst du im Charakterbogen Stufen in den drei Fertigkeiten Handel, Tarnung und Diplomatie."
    Target_ru_ru "Опыт начисляется за большинство ваших действий для сопротивления, и каждый уровень после первого даёт одно очко навыков. Очки тратятся на повышение трёх навыков — Торговля, Скрытность и Дипломатия — в листе персонажа."
    Target_uk_ua "Досвід нараховується за більшість завдань, які ви виконуєте для опору, а кожен рівень після першого дає одне очко навичок. Очки можна витрачати на підвищення трьох навичок — Торгівлі, Скритності та Дипломатії — у меню персонажа."
@@ -23995,6 +25148,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000109}" {
    Id "OVT-Tutorial_SkillsFirstOpen_Title"
    Target_en_us "Skills and Levels"
+   Target_it_it "Abilità e livelli"
    Target_de_de "Fertigkeiten und Stufen"
    Target_ru_ru "Навыки и уровни"
    Target_uk_ua "Навички та рівні"
@@ -24015,6 +25169,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000030}" {
    Id "OVT-Tutorial_StorageFirstOpen_Body"
    Target_en_us "Ammo boxes, warehouse buildings and most vehicles keep storage of their own: a list of goods the container holds rather than items sitting loose inside it. The number beside the Storage action is how many are on that list.<br/><br/>Anything on the list can be taken out into this container, where it turns back into items you can pick up, or sent straight onto the list of another container standing within twenty five metres. Vehicle weapon ammunition is the exception: it stays on the list, which is where a re-arm looks for it.<br/><br/>Other actions on the container put everything it is carrying onto the list at once, or give it a name of its own."
+   Target_it_it "Le casse di munizioni, gli edifici adibiti a magazzino e la maggior parte dei veicoli dispongono di un proprio deposito: un elenco dei beni conservati nel contenitore, distinto dagli oggetti collocati fisicamente al suo interno. Il numero accanto all’azione Deposito indica quante voci sono presenti nell’elenco.<br/><br/>Qualsiasi bene presente nell’elenco può essere materializzato all’interno del contenitore, tornando a essere un oggetto che puoi raccogliere, oppure trasferito direttamente nell’elenco di un altro contenitore situato entro venticinque metri. Le munizioni per le armi dei veicoli costituiscono un’eccezione: rimangono nell’elenco, dal quale vengono prelevate durante il riarmo.<br/><br/>Le altre azioni disponibili sul contenitore permettono di trasferire contemporaneamente nell’elenco tutto ciò che contiene fisicamente oppure di assegnargli un nome."
    Target_de_de "Munitionskisten, Lagerhäuser und die meisten legalen Radfahrzeuge verfügen über eigenen Stauraum. Dieser besteht aus einer Liste der darin gelagerten Waren und nicht aus lose im Behälter liegenden Gegenständen. Die Zahl neben der Aktion „Stauraum“ gibt an, wie viele Gegenstände sich auf dieser Liste befinden. Alles auf der Liste kann in diesen Behälter entnommen werden, wo es wieder zu Gegenständen wird, die von Hand aufgenommen werden können. Alternativ können die Waren direkt in die Lagerliste eines anderen Behälters innerhalb von 25 Metern übertragen werden. Weitere Aktionen am Behälter übertragen seinen gesamten mitgeführten Inhalt auf einmal in die Lagerliste oder geben dem Stauraum einen eigenen Namen."
    Target_ru_ru "Ящики с боеприпасами, склады и большинство легальных колёсных транспортных средств имеют собственное хранилище: список товаров, а не предметы внутри. Число рядом с действием «Хранилище» — это количество предметов в списке. Любой предмет из списка можно извлечь в этот контейнер, где он становится предметами, которые можно поднять, или отправить напрямую в список другого контейнера в радиусе двадцати пяти метров. Другие действия на контейнере перемещают всё, что в нём находится, в список за раз или дают ему имя."
    Comment "Tutorial popup body for Configs/Tutorials/storageFirstOpen.conf, fired by MENU_OPENED with the filter OVT_StorageContext. RICH TEXT: the two <br/><br/> pairs are paragraph breaks and must be preserved in translation. TONE: informs, never instructs - no imperative and no implied order. FACT-CHECKED 2026-08-21 for logistics/storage Phase 10. Holders and the count ('most vehicles' since 2026-09-01: armed and illegal vehicles now resolve to 100 rather than 0, and Helicopter_Base.et:8-12 carries the component): OVT_AmmoBox_Base.et, Warehouse_01_Base.et, Wheeled_Base.et:8-11, and OVT_OpenStorageMenuAction.c:38-51 for the bracketed number. 'This container' spawning real items: OVT_StorageContext.c:191-199 with the TO_INVENTORY step at OVT_StorageRequestComponent.c:1811. Twenty five metres: m_fHolderRadius default 25 at OVT_StorageRequestComponent.c:205, unoverridden on OVT_OverthrowController.et. Vehicle weapon ammunition (added 2026-09-01, logistics/vehicle-rearm): the StepToInventory guard at OVT_StorageRequestComponent.c:1884 refuses any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on, so the line stays on the ledger where OVT_VehicleRearmUtils can spend it. The last sentence covers Transfer all to storage (OVT_TransferAllToStorageAction.c) and Rename storage (OVT_RenameStorageAction.c) without naming a required order. The longer version is the Field Manual Storage page, which this entry links to through m_sFieldManualTitleKey."
@@ -24034,6 +25189,7 @@ StringTable {
   CustomStringTableItem "{6B5A2E0100000031}" {
    Id "OVT-Tutorial_StorageFirstOpen_Title"
    Target_en_us "Storage"
+   Target_it_it "Magazzino"
    Target_de_de "Stauraum"
    Target_ru_ru "Хранилище"
    Comment "Tutorial popup title for Configs/Tutorials/storageFirstOpen.conf. One word, matches the in-game action label #OVT-Storage_Open and the Field Manual page title. No rich-text markup."
@@ -24053,6 +25209,7 @@ StringTable {
   CustomStringTableItem "{6B3A000000000061}" {
    Id "OVT-Tutorial_Title"
    Target_en_us "Tip"
+   Target_it_it "Suggerimenti"
    Target_de_de "Tipp"
    Target_ru_ru "Подсказка"
    Target_uk_ua "Підказка"
@@ -24073,6 +25230,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000108}" {
    Id "OVT-Tutorial_WantedFirstLevel_Body"
    Target_en_us "The occupying faction has now marked you as \"wanted\" and will hunt you down. To clear your wanted level you must get out of their sight and hide for a while. Once your stars have disappeared again you will no longer be seen as an enemy.<br/><br/>You can disguise yourself by wearing the enemy's clothes. When the \"clothes\" icon shows as red you are disguised and will be able to enter restricted areas, but don't get too close to them or they will recognize you. Night time, foliage and skills can reduce the distance at which you are seen."
+   Target_it_it "La fazione occupante ti ha contrassegnato come \"ricercato\" e ora ti darà la caccia. Per azzerare il livello di ricercato devi sfuggire alla loro vista e nasconderti per un po’. Quando le stelle saranno nuovamente scomparse, non verrai più considerato un nemico.<br/><br/>Puoi travestirti indossando gli abiti del nemico. Quando l’icona dell’\"abbigliamento\" diventa rossa, il travestimento è attivo e puoi entrare nelle aree riservate. Non avvicinarti troppo ai soldati nemici, altrimenti ti riconosceranno. L’oscurità, la vegetazione e le abilità possono ridurre la distanza alla quale vieni individuato."
    Target_de_de "Die Besatzungsmacht hat dich jetzt als \"Gesucht\" markiert und wird dich jagen. Um deinen Fahndungslevel abzubauen, musst du aus ihrem Sichtfeld verschwinden und dich eine Weile verstecken. Sobald deine Sterne wieder verschwunden sind, wirst du nicht länger als Feind betrachtet.<br/><br/>Du kannst dich verkleiden, indem du die Kleidung des Feindes trägst. Wenn das \"clothes\"-Symbol rot angezeigt wird, bist du verkleidet und kannst Sperrgebiete betreten. Komm den Feinden jedoch nicht zu nahe, sonst erkennen sie dich. Nacht, Vegetation und Fertigkeiten können die Entfernung verringern, aus der du gesehen wirst."
    Target_ru_ru "Оккупационная фракция объявила вас в розыск и будет преследовать. Чтобы снять уровень розыска, нужно скрыться из их поля зрения и переждать. Когда звёзды исчезнут, вас больше не будут считать врагом. Вы можете замаскироваться, надев одежду врага. Когда значок «одежда» красный, вы замаскированы и можете входить в запретные зоны, но не подходите слишком близко, иначе вас узнают. Ночь, растительность и навыки уменьшают дистанцию обнаружения."
    Target_uk_ua "Окупаційна фракція оголосила вас у розшук і тепер полюватиме на вас. Щоб позбутися рівня розшуку, потрібно зникнути з їхнього поля зору та деякий час переховуватися. Коли зірки знову зникнуть, вас більше не вважатимуть ворогом.<br/><br/>Ви можете замаскуватися, одягнувши форму ворога. Коли значок «одяг» стає червоним, ви замасковані й можете входити до заборонених зон, але не підходьте до ворогів надто близько, інакше вони вас упізнають. Ніч, рослинність і навички можуть зменшити відстань, з якої вас помічають."
@@ -24093,6 +25251,7 @@ StringTable {
   CustomStringTableItem "{6B3C000000000107}" {
    Id "OVT-Tutorial_WantedFirstLevel_Title"
    Target_en_us "Being Wanted"
+   Target_it_it "Sei ricercato"
    Target_de_de "Gesucht werden"
    Target_ru_ru "Розыск"
    Target_uk_ua "Перебування в розшуку"
@@ -24113,6 +25272,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000101}" {
    Id "OVT-Tutorial_WelcomeIntro_Body1"
    Target_en_us "Overthrow is a persistent sandbox campaign fought on an occupied island. There is no objective list and no required order, and the island reacts to what you do.<br/><br/>Towns, money, property, vehicles and captured ground are durable state, so a campaign carries on between sessions and across server restarts.<br/><br/>Money is most easily obtained by receiving donations from supporters in towns. In order to gain support for the resistance you must raise awareness of it or reduce the influence that the occupied forces have over the public."
+   Target_it_it "Overthrow è una campagna sandbox persistente ambientata su un’isola occupata. Non esiste un elenco di obiettivi né una sequenza obbligatoria da seguire e l’isola reagisce alle tue azioni.<br/><br/>Le città, il denaro, le proprietà, i veicoli e i territori conquistati vengono salvati in modo persistente, permettendo alla campagna di proseguire tra una sessione e l’altra e dopo i riavvii del server.<br/><br/>Il modo più semplice per ottenere denaro è ricevere donazioni dai sostenitori presenti nelle città. Per aumentare il sostegno alla Resistenza devi sensibilizzare la popolazione alla sua causa oppure ridurre l’influenza esercitata dalle forze occupanti sui civili."
    Target_de_de "Overthrow ist eine persistente Sandbox-Kampagne auf einer besetzten Insel. Es gibt weder eine feste Liste von Zielen noch eine vorgeschriebene Reihenfolge, und die Insel reagiert auf deine Handlungen.<br/><br/>Städte, Geld, Immobilien, Fahrzeuge und erobertes Gebiet sind dauerhafte Zustände. Eine Kampagne wird daher über Sitzungen und Serverneustarts hinweg fortgeführt.<br/><br/>Geld erhältst du am einfachsten durch Spenden von Unterstützern in den Städten. Um Unterstützung für den Widerstand zu gewinnen, musst du auf ihn aufmerksam machen oder den Einfluss der Besatzungstruppen auf die Bevölkerung verringern."
    Target_ru_ru "Overthrow — это постоянная кампания-песочница на оккупированном острове. Нет списка целей и обязательного порядка, остров реагирует на ваши действия. Города, деньги, недвижимость, транспорт и захваченные территории сохраняются, поэтому кампания продолжается между сессиями и перезапусками сервера. Деньги легче всего получать через пожертвования сторонников в городах. Чтобы получить поддержку, нужно повышать осведомлённость о сопротивлении или уменьшать влияние оккупантов."
    Target_uk_ua "Overthrow — це постійна кампанія-пісочниця на окупованому острові. Тут немає списку цілей чи обов’язкового порядку дій, а острів реагує на ваші вчинки.<br/><br/>Міста, гроші, нерухомість, транспорт і захоплені території зберігаються, тож кампанія продовжується між ігровими сесіями та після перезапусків сервера.<br/><br/>Найпростіше отримувати гроші завдяки пожертвам від прихильників у містах. Щоб збільшити підтримку опору, потрібно підвищувати обізнаність про нього або зменшувати вплив окупаційних сил на населення."
@@ -24133,6 +25293,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000102}" {
    Id "OVT-Tutorial_WelcomeIntro_Body2"
    Target_en_us "You have been given a house in one of the island's towns, with a car parked in the attached garage, and some starting cash.<br/><br/>This house is your \"home\", which is where you respawn. You can also fast-travel back to this house or any other houses that you own from anywhere.<br/><br/>Other travel options include going to a bus stop, which allows travelling to any other bus stop on the map for a small price."
+   Target_it_it "Ti è stata assegnata una casa in una delle città dell’isola, con un’auto parcheggiata nel garage annesso e una somma di denaro iniziale.<br/><br/>Questa casa è la tua \"casa principale\", ovvero il luogo in cui ricomparirai. Puoi inoltre utilizzare il viaggio rapido per tornare in questa casa o raggiungere qualsiasi altra casa di tua proprietà da qualunque luogo.<br/><br/>Tra le altre possibilità di spostamento ci sono le fermate dell’autobus, che permettono di raggiungere qualsiasi altra fermata presente sulla mappa pagando una piccola somma."
    Target_de_de "Du hast ein Haus in einer der Städte der Insel erhalten, dazu ein Auto in der angeschlossenen Garage und etwas Startkapital.<br/><br/>Dieses Haus ist dein \"Zuhause\" und damit der Ort, an dem du wiedereinsteigst. Von überall aus kannst du außerdem per Schnellreise zu diesem Haus oder zu anderen Häusern in deinem Besitz zurückkehren.<br/><br/>Eine weitere Reisemöglichkeit sind Bushaltestellen. Von dort kannst du gegen eine geringe Gebühr zu jeder anderen Bushaltestelle auf der Karte reisen."
    Target_ru_ru "Вам выдан дом в одном из городов острова, с машиной в гараже и стартовыми деньгами. Этот дом — ваш «дом», место возрождения. Вы также можете быстро перемещаться к этому дому или другим вашим домам. Другой способ передвижения — автобусные остановки, позволяющие за небольшую плату добраться до любой другой остановки."
    Target_uk_ua "Вам надали будинок в одному з міст острова, автомобіль, припаркований у прилеглому гаражі, та трохи грошей на початок.<br/><br/>Цей будинок є вашим «домом» — місцем, де ви відроджуєтеся. Ви також можете швидко переміщуватися назад до цього будинку або до будь-якого іншого будинку, яким володієте, з будь-якого місця.<br/><br/>Інший варіант пересування — дістатися автобусної зупинки, звідки за невелику плату можна поїхати до будь-якої іншої автобусної зупинки на мапі."
@@ -24153,6 +25314,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000104}" {
    Id "OVT-Tutorial_WelcomeIntro_Body3"
    Target_en_us "Most of what Overthrow adds sits in the Overthrow menu, opened with <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>From there you can do all the things Overthrow has to offer.<br/><br/>When you are in a vehicle you can also use <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> to open the \"Vehicle menu\" with more options specific to vehicles."
+   Target_it_it "La maggior parte delle funzionalità aggiunte da Overthrow si trova nel menu di Overthrow, che puoi aprire con <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>Da lì puoi accedere a tutto ciò che Overthrow ha da offrire.<br/><br/>Quando ti trovi in un veicolo, puoi anche usare <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> per aprire il \"Menu veicolo\", che contiene ulteriori opzioni specifiche per i veicoli."
    Target_de_de "Die meisten von Overthrow hinzugefügten Funktionen befinden sich im Overthrow-Menü, das du mit <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color> öffnest.<br/><br/>Von dort aus kannst du auf alle Funktionen zugreifen, die Overthrow bietet.<br/><br/>Wenn du dich in einem Fahrzeug befindest, kannst du außerdem mit <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color> das \"Fahrzeugmenü\" mit weiteren fahrzeugspezifischen Optionen öffnen."
    Target_ru_ru "Большая часть функций Overthrow находится в меню Overthrow, открываемом <action name=\"OverthrowMainMenu\"/>. Оттуда вы можете делать всё, что предлагает Overthrow. В транспорте также можно использовать <action name=\"OverthrowVehicleMenu\"/> для открытия «Меню транспорта» с дополнительными опциями."
    Target_uk_ua "Більшість можливостей, які додає Overthrow, доступні в меню Overthrow, яке відкривається за допомогою <color rgba='226,168,79,255'><action name=\"OverthrowMainMenu\"/></color>.<br/><br/>У ньому доступні всі можливості, які пропонує Overthrow.<br/><br/>Коли ви перебуваєте в транспортному засобі, також можна скористатися <color rgba='226,168,79,255'><action name=\"OverthrowVehicleMenu\"/></color>, щоб відкрити «Меню транспорту» з додатковими параметрами для транспортних засобів."
@@ -24173,6 +25335,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000105}" {
    Id "OVT-Tutorial_WelcomeIntro_Body4"
    Target_en_us "Occasional tips like this one appear the first time something new happens, and each is shown once.<br/><br/>The Tips entry in the Overthrow menu reopens the most recent one and allows you to turn off tips or reset your tutorial.<br/><br/>For more information you can access the \"Field Manual\" in the Reforger menu and scroll down to the Overthrow entries, or visit our wiki at <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
+   Target_it_it "Suggerimenti occasionali come questo vengono visualizzati la prima volta che accade qualcosa di nuovo e ciascuno viene mostrato una sola volta.<br/><br/>La voce Suggerimenti nel menu di Overthrow riapre il suggerimento più recente e permette di disattivare i suggerimenti o reimpostare il tutorial.<br/><br/>Per maggiori informazioni, puoi aprire il Manuale da campo dal menu di Reforger e scorrere fino alle voci dedicate a Overthrow, oppure visitare la nostra wiki all’indirizzo <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
    Target_de_de "Gelegentlich erscheinen Tipps wie dieser, wenn zum ersten Mal etwas Neues passiert. Jeder Tipp wird einmal angezeigt.<br/><br/>Der Eintrag \"Tipps\" im Overthrow-Menü öffnet den zuletzt angezeigten Tipp erneut und ermöglicht es dir, Tipps auszuschalten oder dein Tutorial zurückzusetzen.<br/><br/>Weitere Informationen findest du im \"Feldhandbuch\" im Reforger-Menü. Scrolle dort zu den Overthrow-Einträgen oder besuche unser Wiki unter <a href='https://wiki.armaoverthrow.com'>https://wiki.armaoverthrow.com</a>"
    Target_ru_ru "Периодически появляются подсказки, когда что-то происходит впервые, и каждая показывается один раз. Пункт «Подсказки» в меню Overthrow позволяет снова открыть последнюю подсказку, отключить подсказки или сбросить обучение. Для получения дополнительной информации откройте «Полевой справочник» в меню Reforger или посетите нашу вики по ссылке <a href='https://wiki.armaoverthrow.com'>wiki.armaoverthrow.com</a>."
    Target_uk_ua "Періодично з’являтимуться такі підказки, коли щось нове відбувається вперше, і кожна з них показується лише один раз.<br/><br/>Пункт «Підказки» в меню Overthrow дозволяє знову відкрити останню підказку, вимкнути підказки або скинути навчання.<br/><br/>Для отримання додаткової інформації відкрийте «Польовий посібник» у меню Reforger і прокрутіть до розділів Overthrow або відвідайте нашу вікі за адресою <a href='https://wiki.armaoverthrow.com'>[https://wiki.armaoverthrow.com](https://wiki.armaoverthrow.com)</a>"
@@ -24193,6 +25356,7 @@ StringTable {
   CustomStringTableItem "{6B3A0000000000B2}" {
    Id "OVT-Tutorial_WelcomeIntro_Title"
    Target_en_us "Welcome to Overthrow"
+   Target_it_it "Benvenuto su Overthrow"
    Target_de_de "Willkommen bei Overthrow"
    Target_ru_ru "Добро пожаловать в Overthrow"
    Target_uk_ua "Ласкаво просимо до Overthrow"
@@ -24213,6 +25377,7 @@ StringTable {
   CustomStringTableItem "{6B3D000000000103}" {
    Id "OVT-Tutorial_WelcomeNohome_Body2"
    Target_en_us "No starting house was free, so you began in one of the island's towns rather than at a home of your own. This can happen on very busy servers.<br/><br/>You still have your starting cash, and for now you respawn where you started. Property on the island can be bought, and a building you own can be set as your home."
+   Target_it_it "Non c'erano case iniziali disponibili, quindi hai iniziato in una delle città dell'isola invece che in una casa tutta tua. È una situazione che può verificarsi sui server molto affollati.<br/><br/>Disponi comunque del denaro iniziale e, per il momento, rinasci nel punto in cui hai cominciato. È possibile acquistare proprietà sull'isola e impostare un edificio di tua proprietà come casa."
    Target_de_de "Es war kein Starthaus frei, deshalb hast du in einer der Städte der Insel begonnen und nicht in einem eigenen Zuhause. Das kann auf sehr stark ausgelasteten Servern vorkommen.<br/><br/>Du besitzt weiterhin dein Startkapital und steigst vorerst dort wieder ein, wo du begonnen hast. Immobilien auf der Insel können gekauft werden, und ein Gebäude in deinem Besitz kann als dein Zuhause festgelegt werden."
    Target_ru_ru "Свободного стартового дома не было, поэтому вы начали в одном из городов, а не в собственном доме. Это может случиться на очень загруженных серверах. У вас всё ещё есть стартовые деньги, и пока вы возрождаетесь там, где начали. Недвижимость можно купить, и здание, которым вы владеете, можно установить как дом."
    Target_uk_ua "Вільного стартового будинку не знайшлося, тому ви почали гру в одному з міст острова, а не у власному домі. Таке може траплятися на дуже завантажених серверах.<br/><br/>У вас усе ще є стартові гроші, а поки що ви відроджуватиметеся там, де почали гру. Нерухомість на острові можна купувати, а будівлю, якою ви володієте, можна встановити як свій дім."
@@ -24233,6 +25398,7 @@ StringTable {
   CustomStringTableItem "{5E04888F00ABCED0}" {
    Id "OVT-UndeployFOB"
    Target_en_us "Undeploy FOB"
+   Target_it_it "Rimuovere la FOB"
    Target_de_de "FOB abbauen"
    Target_ru_ru "Свернуть ПОБ"
    Target_uk_ua "Згорнути FOB"
@@ -24243,6 +25409,7 @@ StringTable {
   CustomStringTableItem "{59A2BD31647163FE}" {
    Id "OVT-UnloadStorage"
    Target_en_us "Unload vehicle into storage"
+   Target_it_it "Scarica veicolo nel magazzino"
    Target_fr_fr "Décharger cargaison"
    Target_de_de "Aus Fahrzeug entladen"
    Target_ru_ru "Выгрузить из транспорта"
@@ -24266,6 +25433,7 @@ StringTable {
   CustomStringTableItem "{5E68F659AB46ED4B}" {
    Id "OVT-Unlock"
    Target_en_us "Unlock"
+   Target_it_it "Blocca"
    Target_de_de "Entsperren"
    Target_ru_ru "Разблокировать"
    Target_ko_kr "잠금 해제"
@@ -24288,6 +25456,7 @@ StringTable {
   CustomStringTableItem "{5E68DB1CF6BF6571}" {
    Id "OVT-UnlockVehicle"
    Target_en_us "Unlock Vehicle"
+   Target_it_it "Sblocca veicolo"
    Target_de_de "Fahrzeug entriegeln"
    Target_ru_ru "Разблокировать транспорт"
    Target_ko_kr "차량 잠금 해제"
@@ -24310,6 +25479,7 @@ StringTable {
   CustomStringTableItem "{65D6C32A9AAF1AD1}" {
    Id "OVT-Unowned"
    Target_en_us "Unowned"
+   Target_it_it "In regola"
    Target_de_de "Ohne Besitzer"
    Target_ru_ru "Без владельца"
    Target_uk_ua "Без власника"
@@ -24320,6 +25490,7 @@ StringTable {
   CustomStringTableItem "{59CF196279F7E5EB}" {
    Id "OVT-Upgrades"
    Target_en_us "Upgrades"
+   Target_it_it "Migliora"
    Target_fr_fr "Améliorations"
    Target_de_de "Verbesserungen"
    Target_ru_ru "Улучшения"
@@ -24343,6 +25514,7 @@ StringTable {
   CustomStringTableItem "{59D0228A83C99C85}" {
    Id "OVT-UpgradeVehicle"
    Target_en_us "Upgrade Vehicle"
+   Target_it_it "Migliora veicolo"
    Target_fr_fr "Amélioration du véhicule"
    Target_de_de "Fahrzeug verbessern"
    Target_ru_ru "Улучшить технику"
@@ -24366,6 +25538,7 @@ StringTable {
   CustomStringTableItem "{59A45C63209BFF7C}" {
    Id "OVT-VehicleEmpty"
    Target_en_us "Vehicle is empty"
+   Target_it_it "Il veicolo è vuoto"
    Target_fr_fr "Le véhicule est vide"
    Target_de_de "Fahrzeug ist leer"
    Target_ru_ru "Техника пуста"
@@ -24389,6 +25562,7 @@ StringTable {
   CustomStringTableItem "{59CF1968DDFE36E4}" {
    Id "OVT-VehicleLoaded"
    Target_en_us "Vehicle has been loaded"
+   Target_it_it "Il veicolo è stato caricato"
    Target_fr_fr "Le véhicule a été chargé"
    Target_de_de "Fahrzeug wurde beladen"
    Target_ru_ru "Техника была загружена"
@@ -24412,6 +25586,7 @@ StringTable {
   CustomStringTableItem "{59D05006BA9FDE60}" {
    Id "OVT-VehicleRepaired"
    Target_en_us "Vehicle has been repaired"
+   Target_it_it "Il veicolo è stato riparato"
    Target_fr_fr "Le véhicule a été réparé"
    Target_de_de "Fahrzeug wurde repariert"
    Target_ru_ru "Техника была починена"
@@ -24435,6 +25610,7 @@ StringTable {
   CustomStringTableItem "{59CF1968C9785E22}" {
    Id "OVT-VehicleUnloaded"
    Target_en_us "Vehicle has been unloaded into storage"
+   Target_it_it "Il veicolo è stato scaricato nel magazzino"
    Target_fr_fr "Le véhicule a été déchargé"
    Target_de_de "Fahrzeug wurde ins Lager entladen"
    Target_ru_ru "Техника была выгружена в хранилище"
@@ -24458,6 +25634,7 @@ StringTable {
   CustomStringTableItem "{59D05006B011C8B2}" {
    Id "OVT-VehicleUpgraded"
    Target_en_us "Vehicle has been upgraded"
+   Target_it_it "Il veicolo è stato migliorato"
    Target_fr_fr "Le véhicule a été amélioré"
    Target_de_de "Fahrzeug wurde verbessert"
    Target_ru_ru "Техника была улучшена"
@@ -24481,6 +25658,7 @@ StringTable {
   CustomStringTableItem "{65D0CCE5FBF5456C}" {
    Id "OVT-Village"
    Target_en_us "Village"
+   Target_it_it "Villaggio"
    Target_de_de "Dorf"
    Target_ru_ru "Деревня"
    Target_uk_ua "Село"
@@ -24491,6 +25669,7 @@ StringTable {
   CustomStringTableItem "{5D48A6A90A8A2177}" {
    Id "OVT-Warehouse"
    Target_en_us "Warehouse"
+   Target_it_it "Magazino"
    Target_fr_fr "Entrepôt"
    Target_de_de "Lagerhaus"
    Target_ru_ru "Склад"
@@ -24514,6 +25693,7 @@ StringTable {
   CustomStringTableItem "{5D48A6A70B5716E0}" {
    Id "OVT-Warehouse_Take_1"
    Target_en_us "Take 1"
+   Target_it_it "Prendi 1"
    Target_fr_fr "Prendre 1"
    Target_de_de "1 nehmen"
    Target_ru_ru "Взять 1"
@@ -24537,6 +25717,7 @@ StringTable {
   CustomStringTableItem "{5D48A6A7175CDEFD}" {
    Id "OVT-Warehouse_Take_10"
    Target_en_us "Take 10"
+   Target_it_it "Prendi 10"
    Target_fr_fr "Prendre 10"
    Target_de_de "10 nehmen"
    Target_ru_ru "Взять 10"
@@ -24560,6 +25741,7 @@ StringTable {
   CustomStringTableItem "{5D48A6A714F7BA51}" {
    Id "OVT-Warehouse_Take_100"
    Target_en_us "Take 100"
+   Target_it_it "Prendi 100"
    Target_fr_fr "Prendre 100"
    Target_de_de "100 nehmen"
    Target_ru_ru "Взять 100"
@@ -24583,6 +25765,7 @@ StringTable {
   CustomStringTableItem "{6A7E1A2D00000001}" {
    Id "OVT-Warehouse_Take_All"
    Target_en_us "Take All"
+   Target_it_it "Prendi tutto"
    Target_de_de "Alles nehmen"
    Target_ru_ru "Взять всё"
    Target_uk_ua "Взяти все"
@@ -24603,6 +25786,7 @@ StringTable {
   CustomStringTableItem "{5D8224288CE28A36}" {
    Id "OVT_Action-Loot"
    Target_en_us "Loot"
+   Target_it_it "Bottino"
    Target_de_de "Plündern"
    Target_ru_ru "Обыскать"
    Target_ko_kr "전리품 획득"
@@ -24625,6 +25809,7 @@ StringTable {
   CustomStringTableItem "{59A550CC7B4FE9CA}" {
    Id "OVT_Mission_Eden_Description"
    Target_en_us "The persistent and dynamic revolution simulator"
+   Target_it_it "Il simulatore di rivoluzione persistente e dinamico"
    Target_fr_fr "Le simulateur de révolte dynamique"
    Target_de_de "Der persistente und dynamische Revolutionssimulator"
    Target_ru_ru "Сохраняемый и динамический симулятор революции"
@@ -24648,6 +25833,7 @@ StringTable {
   CustomStringTableItem "{5E4852B16105E7FC}" {
    Id "OVT_Open_Overthrow_Menu"
    Target_en_us "Open Overthrow Menu"
+   Target_it_it "Apri Menu Overthrow"
    Target_de_de "Overthrow-Menü öffnen"
    Target_ru_ru "Открыть меню Overthrow"
    Target_ko_kr "Overthrow 메뉴 열기"
@@ -24670,6 +25856,7 @@ StringTable {
   CustomStringTableItem "{65CE9A0D3DF93914}" {
    Id "OVT_Vehicle_Menu"
    Target_en_us "Open Vehicle Menu"
+   Target_it_it "Apri Menu Veicolo"
    Target_de_de "Fahrzeugmenü öffnen"
    Target_ru_ru "Открыть меню транспорта"
    Target_uk_ua "Відкрити меню техніки"
@@ -24680,6 +25867,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000020}" {
    Id "OVT-Options_Title"
    Target_en_us "Options"
+   Target_it_it "Opzioni"
    Comment "Options menu - the screen title."
    DevNote ""
    Repro ""
@@ -24697,6 +25885,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000021}" {
    Id "OVT-Options_Close"
    Target_en_us "Close"
+   Target_it_it "Chiudi"
    Comment "Options menu - the footer button that closes the screen."
    DevNote ""
    Repro ""
@@ -24714,6 +25903,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000022}" {
    Id "OVT-Options_Section_Local"
    Target_en_us "This Player"
+   Target_it_it "Questo giocatore"
    Comment "Options menu - section title above the settings that stay on this machine."
    DevNote ""
    Repro ""
@@ -24731,6 +25921,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000023}" {
    Id "OVT-Options_Section_Faction"
    Target_en_us "Resistance"
+   Target_it_it "Resistenza"
    Comment "Options menu - section title above the settings that a resistance officer controls."
    DevNote ""
    Repro ""
@@ -24748,6 +25939,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000024}" {
    Id "OVT-Options_Section_World"
    Target_en_us "Server"
+   Target_it_it "Server"
    Comment "Options menu - section title above the settings that a server admin controls."
    DevNote ""
    Repro ""
@@ -24765,6 +25957,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000025}" {
    Id "OVT-Options_Autosave_Enabled"
    Target_en_us "Automatic saving"
+   Target_it_it "Salvataggio automatico"
    Comment "Options menu - label of the switch that turns automatic campaign saves on and off."
    DevNote ""
    Repro ""
@@ -24782,6 +25975,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000026}" {
    Id "OVT-Options_Autosave_EnabledDesc"
    Target_en_us "The campaign saves itself while it runs."
+   Target_it_it "La campagna si salva mentre è in esecuzione."
    Comment "Options menu - description under the automatic saving switch. It states a fact and gives no instruction."
    DevNote ""
    Repro ""
@@ -24799,6 +25993,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000027}" {
    Id "OVT-Options_Autosave_Interval"
    Target_en_us "Time between saves"
+   Target_it_it "Tempo tra i salvataggi"
    Comment "Options menu - label of the slider that sets the time between two automatic saves."
    DevNote ""
    Repro ""
@@ -24816,6 +26011,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000028}" {
    Id "OVT-Options_Autosave_IntervalDesc"
    Target_en_us "The campaign waits this long between automatic saves."
+   Target_it_it "La campagna attende questo lasso di tempo tra i salvataggi automatici."
    Comment "Options menu - description under the time between saves slider. It states a fact and gives no instruction."
    DevNote ""
    Repro ""
@@ -24833,6 +26029,7 @@ StringTable {
   CustomStringTableItem "{6B8B000000000029}" {
    Id "OVT-Options_Minutes"
    Target_en_us "%1 min"
+   Target_it_it "%1 min"
    Comment "Options menu - value format of the time between saves slider. %1 is a whole number of minutes."
    DevNote ""
    Repro ""
@@ -24850,6 +26047,7 @@ StringTable {
   CustomStringTableItem "{6B8B00000000002C}" {
    Id "OVT-FieldManual_Options_Text"
    Target_en_us "The Options screen holds up to three sections: This Player, Resistance and Server. A section appears only if it holds an option you may change. The Resistance section needs officer status. The Server section needs the admin role. A single player or the host of their own game always sees every section.<br/>The Server section carries two settings for the campaign save. Automatic saving turns the save timer on or off. Time between saves sets the gap between automatic saves, from 2 to 60 minutes. A change applies at once, with no restart, and it reaches every player. It also survives a save and a Continue."
+   Target_it_it "La schermata delle opzioni comprende fino a tre sezioni: Giocatore, Resistenza e Server. Una sezione appare solo se contiene un'opzione modificabile. La sezione Resistenza richiede lo stato di ufficiale. La sezione Server richiede il ruolo di amministratore. Un giocatore singolo o l'host della propria partita visualizza sempre tutte le sezioni.<br/>La sezione Server contiene due impostazioni per il salvataggio della campagna. Il salvataggio automatico attiva o disattiva il timer di salvataggio. L'intervallo tra i salvataggi definisce la distanza temporale tra i salvataggi automatici, da 2 a 60 minuti. Le modifiche diventano effettive immediatamente, senza necessità di riavvio, e si applicano a tutti i giocatori; l'impostazione viene inoltre mantenuta dopo il salvataggio e la ripresa della partita."
    Comment "Field Manual, Getting Started > Main Menu page, new Options sub-section for core/options phase 9. Reuses #OVT-MainMenu_Options as the sub-header, same pattern as the existing Resistance sub-section. CONTAINS RICH TEXT: one <br/> line break between the two paragraphs, must be preserved in translation. FACT-CHECKED against docs/features/core/options/implementation.md sections 1, 3.5, 3.9, D7 and D9; Scripts/Game/UI/Context/OVT_OptionsContext.c (section walk, empty section never renders); Scripts/Game/GameMode/Managers/OVT_OptionsManagerComponent.c RegisterDefaults (the two autosave options, interval 120-3600s in 60s steps, shown in minutes); Scripts/Game/Components/Controller/OVT_OptionsRequestComponent.c PlayerMayEditScope and PlayerMayEditWorld (officer for Resistance, admin role for Server, single player or listen host always passes). Reference voice: describes, does not instruct."
    DevNote ""
    Repro ""
@@ -24861,40 +26059,6 @@ StringTable {
    Modified 1788000000
    Author "Claude"
    LastChanged ""
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{00FB78163A7D6ED9}" {
-   Id "OVT-JobsMenu_SearchLabel"
-   Target_en_us "Search"
-   Comment "Label on the Jobs menu search box. The player types part of a job title here to filter the job list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788562013
-   Author "Overthrow"
-   LastChanged "Overthrow"
-   ImageLink ""
-   Hidden 0
-  }
-  CustomStringTableItem "{3FE075E205F00400}" {
-   Id "OVT-Jobs_NoMatches"
-   Target_en_us "No jobs match your search."
-   Comment "Shown in the Jobs menu when the search text or town filter hides every job in the list."
-   DevNote ""
-   Repro ""
-   ActorGender NONE
-   Terminology NONE
-   Status DEVELOPMENT_PENDING
-   NonTranslatable 0
-   MaxLength 0
-   Modified 1788562013
-   Author "Overthrow"
-   LastChanged "Overthrow"
    ImageLink ""
    Hidden 0
   }
