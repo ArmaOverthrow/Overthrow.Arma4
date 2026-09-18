@@ -631,7 +631,7 @@ StringTable {
    Id "OVT-Build_Warehouse"
    Target_en_us "Warehouse"
    Target_it_it "Magazzino"
-   Target_de_de "Lager"
+   Target_de_de "Lagerhaus"
    Target_ru_ru "Склад"
    Comment "Build-menu title of the Warehouse buildable (Configs/Resistance/buildables.conf). One word, title case, sits in the same list as Guard Tower / Garage / Fuel Depot. Keep it consistent with #OVT-Warehouse, which names the same building on its storage screens and in the map layer filter."
    DevNote ""
@@ -641,9 +641,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787788800
+   Modified 1783259895
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -1233,7 +1233,6 @@ StringTable {
    Id "OVT-Cargo_Line"
    Target_en_us "%1 x %2"
    Target_it_it "%1 x %2"
-   Target_it-it "%1 x %2"
    Target_ru_ru "%1 x %2"
    Comment "One resource line on the truck cargo HUD. %1 is the unit count, %2 the resource's name, e.g. '40 x Timber'. Same order and shape as the build-menu requirement row #OVT-Resource_BuildRequirementRow."
    DevNote ""
@@ -1253,7 +1252,6 @@ StringTable {
    Id "OVT-Cargo_More"
    Target_en_us "+%1 more"
    Target_it_it "+%1 altro"
-   Target_it-it "+%1 di più"
    Target_de_de "+%1 mehr"
    Target_ru_ru "+%1 еще"
    Comment "Overflow line on the truck cargo HUD, replacing the last resource line when the truck holds more kinds of resource than the panel has rows. %1 is how many kinds are not listed, including the one the row displaced."
@@ -1866,7 +1864,6 @@ StringTable {
    Id "OVT-Export_NotSellable"
    Target_en_us "The port will not buy this"
    Target_it_it "Il porto non lo acquisterà"
-   Target_it-it "Il porto non può acquistare questo"
    Target_de_de "Der Hafen wird das nicht kaufen."
    Target_ru_ru "Порт не купит это"
    Comment "Port Export row disabled - the item is unregistered, or illegal and the player lacks the import permission at a port the resistance does not hold."
@@ -2109,8 +2106,8 @@ StringTable {
    Target_en_us "Once the reinforcements have arrived the ground itself is counted, over and over: what matters is how many players are standing in the middle of the base against how many occupying soldiers are there with them. Players present with no enemy left swings it quickly; more soldiers than players swings it the other way; even numbers drift back towards nothing. The count runs to a total the difficulty settings set, in one direction or the other, and whoever reaches it takes the base. Players inside the fight pick up experience while it goes on."
    Target_it_it "Una volta arrivati i rinforzi, viene effettuato un conteggio continuo della presenza sul campo: ciò che conta è il numero di giocatori presenti al centro della base rispetto al numero di soldati occupanti. La presenza di giocatori in assenza di nemici ribalta rapidamente la situazione a loro favore; una superiorità numerica dei soldati sposta l'equilibrio dalla parte opposta; in caso di parità numerica, la situazione tende a tornare in una condizione di stallo. Il conteggio procede fino a raggiungere la soglia stabilita dalle impostazioni di difficoltà (in una direzione o nell'altra) e chi la raggiunge conquista la base. I giocatori coinvolti nello scontro accumulano esperienza durante la battaglia."
    Target_de_de "Sobald die Verstärkung eingetroffen ist, wird das Kräfteverhältnis vor Ort fortlaufend ermittelt: Entscheidend ist, wie viele Spieler sich in der Mitte der Basis befinden und wie viele feindliche Soldaten ihnen dort gegenüberstehen. Überwiegen die Spieler und sind keine Gegner mehr vorhanden, schlägt das Pendel schnell zu ihren Gunsten aus; sind mehr Soldaten als Spieler anwesend, kehrt sich das Verhältnis um; bei ausgeglichenen Zahlenverhältnissen tendiert der Wert wieder gegen Null. Der Zähler bewegt sich – je nach gewählter Schwierigkeitsstufe – in die eine oder andere Richtung; wer den Zielwert erreicht, erobert die Basis. Die am Kampf beteiligten Spieler sammeln währenddessen Erfahrungspunkte."
-   Target_uk_ua "Після прибуття підкріплення починається постійний підрахунок сил на самій території: вирішальним є співвідношення кількості гравців у центрі бази та окупантів поруч із ними. Присутність гравців за повної відсутності ворогів швидко схиляє шальки терезів на вашу користь; перевага солдатів ворога діє навпаки; за рівних сил прогрес повільно повертається до нуля. Підрахунок триває до досягнення ліміту, визначеного налаштуваннями складності, в той чи інший бік, і той, хто першим досягає мети, захоплює базу. Усі гравці, які перебувають у зоні бою, отримують досвід під час битви."
    Target_ru_ru "Как только подкрепление прибыло, начинается непрерывный подсчёт сил на самой территории: решающим является соотношение количества игроков в центре базы и оккупантов рядом с ними. Присутствие игроков при полном отсутствии врагов быстро склоняет чашу весов в вашу пользу; перевес солдат врага действует наоборот; при равных силах прогресс медленно возвращается к нулю. Подсчёт идёт до достижения лимита, заданного настройками сложности, в ту или иную сторону, и тот, кто первым достигает цели, захватывает базу. Все игроки, находящиеся в зоне боя, получают опыт во время сражения."
+   Target_uk_ua "Після прибуття підкріплення починається постійний підрахунок сил на самій території: вирішальним є співвідношення кількості гравців у центрі бази та окупантів поруч із ними. Присутність гравців за повної відсутності ворогів швидко схиляє шальки терезів на вашу користь; перевага солдатів ворога діє навпаки; за рівних сил прогрес повільно повертається до нуля. Підрахунок триває до досягнення ліміту, визначеного налаштуваннями складності, в той чи інший бік, і той, хто першим досягає мети, захоплює базу. Усі гравці, які перебувають у зоні бою, отримують досвід під час битви."
    Comment "Field Manual - Capturing Bases page, body paragraph under the 'Holding the Ground' header. Four sentences, no rich-text markup. FACT-CHECKED 2026-08-08 against OVT_QRFControllerComponent.CheckUpdatePoints:102-192 (scoring only begins once m_iTimer reaches zero; counts occupying-faction AI and player-controlled entities within QRF_POINT_RANGE; +5 for players with no enemies in the wider QRF_RANGE, +1 or -1 by which side has more, drift towards zero when equal; clamped at the difficulty setting QRFPointsToWin, which also ends it; GiveXP 2 per tick to each player inside). Point totals and ranges are not quoted: the win total is a difficulty setting and the ranges are internal constants."
    DevNote ""
    Repro ""
@@ -3495,7 +3492,7 @@ StringTable {
    Id "OVT-FieldManual_HighCommand_Text"
    Target_en_us "High Command is how the resistance fields soldiers of its own rather than an escort. A player buys a whole group at a barracks, owns it outright, and moves it anywhere on the island from the map. The group is really there: it walks or drives to where it is sent, fights what it meets on the way, and holds its ground whether or not anybody is nearby to watch."
    Target_it_it "Il \"Comando Supremo\" è il sistema attraverso il quale la Resistenza schiera i propri soldati, distinguendoli dalle semplici scorte. Il giocatore acquista un intero gruppo presso una caserma, ne assume il pieno controllo e può spostarlo in qualsiasi punto dell'isola agendo sulla mappa. Il gruppo è fisicamente presente sul campo: si sposta a piedi o su veicoli verso la destinazione assegnata, combatte contro eventuali nemici incontrati lungo il percorso e mantiene la posizione indipendentemente dalla presenza di osservatori nelle vicinanze."
-   Target_de_de "Das Obere Kommando ermöglicht es dem Widerstand, eigene Soldaten als selbstständige Kampfverbände einzusetzen, anstatt sie lediglich als Begleitschutz mitzuführen."\
+   Target_de_de "Das Oberkommando ermöglicht es dem Widerstand, eigene Soldaten als selbstständige Kampfverbände einzusetzen, anstatt sie lediglich als Begleitschutz mitzuführen."\
    ""\
    "Ein Spieler kauft an einer Kaserne eine vollständige Gruppe, übernimmt sie vollständig und kann sie über die Karte an jeden beliebigen Ort der Insel befehlen."\
    ""\
@@ -3510,7 +3507,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1781873633
+   Modified 1783261423
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -3574,7 +3571,7 @@ StringTable {
    Id "OVT-FieldManual_HighCommand_Text4"
    Target_en_us "Every player's map draws every High Command group as a green symbol, your own at full strength and other players' dimmed, and the map's layer panel can switch them off again. Selecting one shows who owns it, its stance, how far it is from its destination, how far it is from you, and how many of its men are still alive. A group you own can be ordered to the spot under the map cursor, and its stance cycled between Defend, which holds the ground it was sent to, Patrol, which walks a ring around it, and Attack, which sweeps it for the enemy. A group on the move draws a dashed line to where it is going. A mark appears on the symbol while it is in contact with the enemy, and an ammunition badge when it has run dry. Ordering a group another player owns is refused."
    Target_it_it "Sulla mappa di ogni giocatore, i gruppi dell'Alto Comando appaiono come simboli verdi: quelli di propria proprietà sono visualizzati a piena intensità, mentre quelli degli altri giocatori appaiono più tenui (è comunque possibile disattivarne la visualizzazione tramite il pannello dei livelli della mappa). Selezionando un gruppo, vengono visualizzati il proprietario, la postura tattica, la distanza dalla destinazione, la distanza dalla propria posizione e il numero di uomini ancora in vita. È possibile impartire ordini a un gruppo di propria proprietà affinché raggiunga il punto indicato dal cursore sulla mappa; la postura tattica può essere alternata tra \"Difesa\" (mantenimento della posizione assegnata), \"Pattugliamento\" (percorso circolare attorno alla posizione) e \"Attacco\" (perlustrazione dell'area alla ricerca di nemici). Quando un gruppo è in movimento, viene tracciata una linea tratteggiata verso la destinazione. Sul simbolo compare un indicatore in caso di contatto con il nemico e un'icona delle munizioni quando queste sono esaurite. I tentativi di impartire ordini a gruppi appartenenti ad altri giocatori vengono rifiutati."
-   Target_de_de "Auf der Karte jedes Spielers werden sämtliche High-Command-Gruppen als grüne Symbole dargestellt. Eigene Gruppen erscheinen in voller Stärke, die Gruppen anderer Spieler hingegen abgeblendet. Über die Ebenensteuerung der Karte können diese Markierungen bei Bedarf vollständig ausgeblendet werden."\
+   Target_de_de "Auf der Karte jedes Spielers werden sämtliche Oberkommando-Gruppen als grüne Symbole dargestellt. Eigene Gruppen erscheinen in voller Stärke, die Gruppen anderer Spieler hingegen abgeblendet. Über die Ebenensteuerung der Karte können diese Markierungen bei Bedarf vollständig ausgeblendet werden."\
    ""\
    "Wird eine Gruppe ausgewählt, zeigt die Karte ihren Besitzer, ihre aktuelle Verhaltensweise, die Entfernung zu ihrem Zielpunkt, die Entfernung zum eigenen Spieler sowie die Anzahl der noch lebenden Soldaten an."\
    ""\
@@ -3593,7 +3590,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1781873361
+   Modified 1783261605
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -3703,7 +3700,7 @@ StringTable {
    Id "OVT-FieldManual_HighCommand_Title"
    Target_en_us "High Command"
    Target_it_it "Alto Comando"
-   Target_de_de "Obere Kommando"
+   Target_de_de "Oberkommando"
    Target_ru_ru "Командование"
    Comment "Field Manual - The Resistance category, High Command page. Tile and page title, two words. Matches the Manage Groups main-menu wording (#OVT-MainMenu_ManageGroups) and the purchase screen title (#OVT-HC_MenuTitle). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
    DevNote ""
@@ -3713,7 +3710,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1781873569
+   Modified 1783261477
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -4930,6 +4927,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Head"
    Target_en_us "Ammunition Before Money"
    Target_it_it "Munizioni prima del denaro"
+   Target_de_de "Munition vor Geld"
    Comment "Field Manual - Re-arming Vehicles page (Money and Trade category), section header above the storage-first paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4938,9 +4936,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262158
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4948,6 +4946,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Head2"
    Target_en_us "Paying for the Rest"
    Target_it_it "Pagare il resto"
+   Target_de_de "Restbezahlung"
    Comment "Field Manual - Re-arming Vehicles page, section header above the money/supply-point paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4956,9 +4955,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262230
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4966,6 +4965,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Head3"
    Target_en_us "Carrying the Ammunition"
    Target_it_it "Trasporto delle munizioni"
+   Target_de_de "Mitführen der Munition"
    Comment "Field Manual - Re-arming Vehicles page, section header above the hidden-ammunition paragraph. No rich-text markup."
    DevNote ""
    Repro ""
@@ -4974,9 +4974,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262323
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -4984,6 +4984,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Text"
    Target_en_us "Every armed vehicle carries a Re-arm action, from an armed jeep to an APC to a helicopter gunship. It is one action and one full restock: every turret magazine and every rocket pod the vehicle has comes back full together, and there is no way to refill part of it."
    Target_it_it "Ogni veicolo armato, da una jeep armata a un APC fino a un elicottero d'attacco, è dotato di un'azione di rifornimento. Si tratta di un'azione e di un rifornimento completo: ogni caricatore della torretta e ogni lanciarazzi del veicolo tornano pieni contemporaneamente, e non è possibile rifornirli solo parzialmente."
+   Target_de_de "Jedes bewaffnete Fahrzeug verfügt über die Aktion „Aufmunitionieren“, vom bewaffneten Geländewagen über den Schützenpanzer bis zum Kampfhubschrauber. Die Aufmunitionierung erfolgt in einem einzigen Vorgang und stellt den gesamten Munitionsvorrat vollständig wieder her. Sämtliche Turm-Magazine und Raketenbehälter des Fahrzeugs werden gleichzeitig vollständig aufgefüllt. Eine teilweise Aufmunitionierung ist nicht möglich."
    Comment "Field Manual - Re-arming Vehicles page, opening paragraph, two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. 'Every armed vehicle': OVT_RearmVehicleAction is authored on Prefabs/Vehicles/Core/Vehicle_Base.et:78-88 (the ONLY prefab in the tree that declares it) under the seven-name context union heli_repair_point / door_r01 / door_l01 / door_rear / door_back_left / door_back_right / hatch_commander, which reaches the wheeled armour, the armed jeeps and both helicopter families; CanBeShownScript hides it on a vehicle with nothing rearmable (OVT_RearmVehicleAction.c:78-82). 'one full restock': OVT_VehicleRearmUtils.PerformRearm sets every collected magazine to GetMaxAmmoCount() and reloads every rocket pod in one pass. DO NOT add a per-weapon or partial re-arm: explicitly out of scope in requirements.md."
    DevNote ""
    Repro ""
@@ -4992,9 +4993,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262497
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5002,6 +5003,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Text2"
    Target_en_us "A re-arm spends storage before it spends money. It looks in the vehicle's own storage first, then in every storage within twenty five metres that you are allowed to draw from, for the magazines the vehicle's weapons take, and anything it finds there is spent instead of bought. When storage covers the whole re-arm the action reads Re-arm (from storage), costs nothing and works anywhere, so a crew that hauled its own ammunition is not tied to a base."
    Target_it_it "Un rifornimento consuma le scorte prima di spendere denaro. Cerca prima nel magazzino del veicolo stesso, poi in ogni magazzino entro venticinque metri da cui è consentito prelevare, per trovare i caricatori necessari alle armi del veicolo, e tutto ciò che trova viene speso invece di essere acquistato. Quando le scorte coprono l'intero rifornimento, l'azione indica \"Rifornimento (dal magazzino)\", non costa nulla ed è possibile ovunque, quindi un equipaggio che ha trasportato le proprie munizioni non è vincolato a una base."
+   Target_de_de "Bei der Aufmunitionierung werden zunächst vorhandene Lagerbestände verbraucht, bevor Geldkosten anfallen. Das System prüft zuerst den fahrzeugeigenen Stauraum und anschließend sämtliche innerhalb eines Radius von 25 Metern befindlichen Lager, auf die Zugriff besteht, auf passende Magazine für die Fahrzeugbewaffnung. Gefundene Munition wird vorrangig aus diesen Beständen entnommen und nicht zusätzlich beschafft. Decken die vorhandenen Lagerbestände den vollständigen Munitionsbedarf ab, wird die Aktion als „Aufmunitionieren (aus Lagerbestand)“ angezeigt, verursacht keine Kosten und kann unabhängig vom Standort durchgeführt werden. Eine Besatzung, die ihre eigene Munition mitführt, ist somit nicht auf einen Stützpunkt angewiesen."
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Ammunition Before Money', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Own storage first: OVT_VehicleRearmUtils.CollectRearmStores removes the vehicle's own store from the collected list and prepends it, because position is priority for the sequential TakeUpTo. Twenty five metres: ResolveHolderRadius reads the asking player's OVT_StorageRequestComponent.m_fHolderRadius, attribute default 25 (OVT_StorageRequestComponent.c:212), the same radius the storage destination picker uses. 'allowed to draw from': OVT_StorageUtils.PlayerMayDrawFrom. 'the magazines the vehicle's weapons take': OVT_VehicleRearmUtils.BuildPlan resolves each unit's prefab from the muzzle's default magazine, falling back to the loaded magazine's prefab. Free and anywhere: OVT_RearmVehicleAction.CanBePerformedScript returns true outright when the quoted cost is <= 0 (:100-102), before any site or funds test; the label is #OVT-RearmVehicle_FromStorage (:123-129). DO NOT quote a price for this case; there is none."
    DevNote ""
    Repro ""
@@ -5010,9 +5012,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262513
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5020,6 +5022,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Text3"
    Target_en_us "Only what storage cannot cover is bought, and the price is that same share of the full one, so half the magazines covered is half the bill. That bought part is the only part with a place attached to it: the vehicle has to be standing at a built Helipad or a built Garage at a base the resistance holds, or within a hundred metres of a deployed FOB. Anywhere else with something still to buy, the action shows blocked and names the helipad, garage or FOB it wants."
    Target_it_it "Viene acquistato solo ciò che le scorte non riescono a coprire, e il prezzo è la stessa quota del rifornimento completo, quindi metà dei caricatori coperti corrisponde a metà del conto. La parte acquistata è l'unica ad avere una posizione specifica: il veicolo deve trovarsi presso un eliporto o un garage costruiti in una base controllata dalla Resistenza, oppure entro cento metri da una base operativa avanzata (FOB) schierata. In qualsiasi altro luogo in cui sia ancora necessario acquistare qualcosa, l'azione indica \"bloccato\" e specifica l'eliporto, il garage o la FOB desiderata."
+   Target_de_de "Nur der Munitionsbedarf, der nicht aus vorhandenen Lagerbeständen gedeckt werden kann, wird kostenpflichtig beschafft. Die Kosten entsprechen dabei dem jeweiligen Anteil am vollständigen Aufmunitionierungspreis; decken die Lagerbestände beispielsweise die Hälfte der benötigten Magazine ab, fällt lediglich die Hälfte der Gesamtkosten an. Standortgebunden ist ausschließlich der kostenpflichtig zu beschaffende Anteil. Hierfür muss sich das Fahrzeug an einem errichteten Hubschrauberlandeplatz oder einer errichteten Garage auf einem vom Widerstand kontrollierten Stützpunkt beziehungsweise innerhalb von 100 Metern um einen eingesetzten vorgeschobenen Operationsstützpunkt (FOB) befinden. Besteht weiterhin Beschaffungsbedarf und befindet sich das Fahrzeug außerhalb dieser Bereiche, wird die Aktion als gesperrt angezeigt und weist auf den erforderlichen Hubschrauberlandeplatz, die Garage oder den FOB hin."
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Paying for the Rest', three sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Pro rata: OVT_VehicleRearmRules.ProratedCost(fullCost, uncoveredUnits, totalUnits) - 0 when nothing is uncovered, the full cost when nothing is covered, otherwise fullCost scaled by the uncovered fraction and floored at 1. Full price: OVT_VehicleRearmUtils.GetRearmCost() = REARM_BASE_COST 1000 scaled by OVT_DifficultySettings.vehiclePriceMultiplier, so DO NOT print a dollar figure here. Site: OVT_VehicleRearmUtils.IsAtRearmSite is IsNearDeployedFOB (FOB_SEARCH_RADIUS 100) OR IsAtSupplyStructure, which searches SITE_SEARCH_RADIUS 20 for a built OVT_BuildableComponent of type HELIPAD_BUILDABLE_TYPE 'Helipad' or GARAGE_BUILDABLE_TYPE 'VehicleGarage'; both constants are at OVT_VehicleRearmUtils.c:53-62. The site test runs only when cost > 0, on the client at OVT_RearmVehicleAction.c:104-108 and again on the server. Blocked reason: #OVT-Rearm_NeedsSupplyPoint, whose own text names helipad, garage or FOB - keep the three in step. The vehicle must also be within 15 m of the player (VEHICLE_MAX_DISTANCE), deliberately not stated: it is the ordinary reach of any vehicle action."
    DevNote ""
    Repro ""
@@ -5028,9 +5031,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262598
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5038,6 +5041,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Text4"
    Target_en_us "Vehicle weapon ammunition can be imported at a port and moved from one storage list to another, but it never comes out into anyone's hands: taking it out reports it as missing and it stays on the list. That is exactly where a re-arm looks for it, so a crate of it on the list of a truck parked alongside counts for as much as a crate on the vehicle's own."
    Target_it_it "Le munizioni per armi da veicolo possono essere importate in un porto e spostate da un elenco di stoccaggio all'altro, ma non vengono mai effettivamente prese in mano: prelevarle ne segnala la scomparsa e le munizioni rimangono nell'elenco. È proprio lì che un addetto al rifornimento le cerca, quindi una cassa di munizioni nell'elenco di un camion parcheggiato accanto ha lo stesso valore di una cassa presente nel veicolo stesso."
+   Target_de_de "Fahrzeugwaffenmunition kann in einem Hafen importiert und von einer Lagerliste auf eine andere verschoben werden sie gelangt jedoch niemals tatsächlich in die Hände einer Person Beim Herausnehmen wird sie als fehlend gemeldet und bleibt auf der Liste Genau dort sucht die Aufmunitionierung nach ihr daher zählt eine Kiste davon auf der Lagerliste eines daneben abgestellten Lastwagens genauso wie eine Kiste auf der Lagerliste des Fahrzeugs selbst"
    Comment "Field Manual - Re-arming Vehicles page, body paragraph under 'Carrying the Ammunition', two sentences. No rich-text markup. FACT-CHECKED 2026-09-01 for logistics/vehicle-rearm Phase 7. Never leaves the ledger: the guard at OVT_StorageRequestComponent.c:1884 in StepToInventory - the ONLY ledger-to-inventory exit in the mod - adds the whole line to the job's shortfall and drops it before anything spawns, for any prefab OVT_PrefabUtils.IsItemHiddenInInventory reports on (an ancestor authoring m_bVisible 0; OVT_StorageRules.HiddenFromInventory). This is deliberate, not a defect: vanilla's inventory refuses to draw those items, so before the guard they were spawned invisibly and lost. 'a truck parked alongside': OVT_VehicleRearmUtils.CollectRearmStores collects every usable holder in the holder radius, not only the vehicle's own. NOTE the guard also traps mortar rounds, M203 rounds and loose rocket prefabs in ledgers; it is not exclusive to vehicle ammunition, so this paragraph deliberately says only what a player will meet."
    DevNote ""
    Repro ""
@@ -5046,9 +5050,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262199
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -5056,6 +5060,7 @@ StringTable {
    Id "OVT-FieldManual_Rearm_Title"
    Target_en_us "Re-arming Vehicles"
    Target_it_it "Riarmo dei veicoli"
+   Target_de_de "Fahrzeuge aufmunitionieren"
    Comment "Field Manual - Re-arming Vehicles page title (Money and Trade category), sits after Vehicle Repair. Two words, no rich-text markup."
    DevNote ""
    Repro ""
@@ -5064,9 +5069,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1788307200
+   Modified 1783262172
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6797,7 +6802,7 @@ StringTable {
    Id "OVT-FieldManual_Storage_Title"
    Target_en_us "Storage"
    Target_it_it "Deposito"
-   Target_de_de "Lagerung"
+   Target_de_de "Stauraum"
    Target_ru_ru "Хранилище"
    Comment "Field Manual - Storage page title, shown on the entry tile in the Money and Trade category. One word, matches the in-game action label #OVT-Storage_Open. No rich-text markup."
    DevNote ""
@@ -6807,7 +6812,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1781875421
+   Modified 1783260317
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -6817,6 +6822,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Head"
    Target_en_us "A Kit Is Not Optional"
    Target_it_it "Il kit è indispensabile"
+   Target_de_de "Ein Ausrüstungssatz ist nicht optional"
    Comment "Field Manual - Vehicle Repair page, header above the field-repair paragraph. Four or five words, title case, matching the header style of the Fuel and Shops pages. No markup."
    DevNote ""
    Repro ""
@@ -6825,9 +6831,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262247
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6835,6 +6841,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Head2"
    Target_en_us "Structures That Repair Fully"
    Target_it_it "Strutture che consentono una riparazione completa"
+   Target_de_de "Bauwerk vollständig repariert"
    Comment "Field Manual - Vehicle Repair page, header above the repair-zone paragraph. Three to five words, title case. No markup."
    DevNote ""
    Repro ""
@@ -6843,9 +6850,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262283
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6853,6 +6860,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Head3"
    Target_en_us "Where the Zone Ends"
    Target_it_it "Dove termina la zona"
+   Target_de_de "Wo die Zone endet"
    Comment "Field Manual - Vehicle Repair page, header above the no-visible-boundary paragraph. Three to five words, title case. No markup."
    DevNote ""
    Repro ""
@@ -6861,9 +6869,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262304
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6871,6 +6879,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Text"
    Target_en_us "Damaged vehicles can be repaired in the field, and a repair costs no money and no supplies at all. What it does cost is a repair kit. Nobody repairs anything bare-handed: with no kit in your hands there is no repair action offered, not even standing beside a structure built for the job. Kits are stocked by general stores and gun dealers at around $150, and the car a new campaign starts you with carries one in its trunk."
    Target_it_it "I veicoli danneggiati possono essere riparati sul campo senza alcun costo in denaro o in rifornimenti; è tuttavia necessario disporre di un kit di riparazione. Nessuna riparazione può essere effettuata a mani nude: senza un kit in mano, l'azione di riparazione non viene proposta, nemmeno se ci si trova accanto a una struttura progettata per tale scopo. I kit sono disponibili presso empori e armerie al prezzo di circa 150 $, e l'auto fornita all'inizio di una nuova campagna ne contiene uno nel bagagliaio."
+   Target_de_de "Beschädigte Fahrzeuge können im Feld instand gesetzt werden. Die Instandsetzung verursacht weder Geld- noch Materialkosten. Erforderlich ist jedoch zwingend ein Reparatursatz. Reparaturen werden nicht ohne Werkzeug durchgeführt. Befindet sich kein Reparatursatz im Inventar, steht keine Reparaturaktion zur Verfügung – auch nicht in unmittelbarer Nähe einer hierfür vorgesehenen Werkstatt oder Instandsetzungseinrichtung. Reparatursätze sind in Gemischtwarenläden sowie bei Waffenhändlern für etwa 150 Dollar erhältlich. Das Fahrzeug, das zu Beginn einer neuen Kampagne bereitgestellt wird, führt bereits einen Reparatursatz im Kofferraum mit."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), opening paragraph, four sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'no money and no supplies': the modded Scripts/Game/Components/SupportStation/Modded/SCR_RepairSupportStationComponent.c overrides AreSuppliesEnabled() to false, and no charging code exists anywhere in this feature - repairs ride vanilla's OnExecutedServer untouched. Fuel, medical and rearm stations are DIFFERENT classes and still charge, so do not generalise this sentence to support stations at large. 'no kit in your hands there is no repair action offered': SCR_BaseUseSupportStationAction.CanBeShownScript():156-158 in the reference tree returns false when RequiresGadget() and no matching held gadget is found, BEFORE any station lookup - so it holds inside a repair zone too. This is user intent, not a defect. 'around $150': Configs/Pricing/itemPrices.conf rule 65CCF4EB3DDBBBD0 sets cost 150; 'around' is load-bearing because OVT_EconomyManagerComponent.c:754 multiplies the buy price by the player's priceMultiplier. Do not quote an exact figure. 'general stores and gun dealers': Configs/System/ShopConfig.conf 6A9F1E4A00000001 (SHOP_GENERAL) and Configs/System/GunDealerConfig.conf 6A9F1E4A00000002. 'the car a new campaign starts you with': OVT_VehicleManagerComponent.AddStartingEquipment() inserts exactly one wrench into the starting car's storage. DO NOT add: a durability or consumption cost, a per-repair money cost, or any vehicle-type restriction. None exist."
    DevNote ""
    Repro ""
@@ -6879,9 +6888,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262451
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6889,6 +6898,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Text2"
    Target_en_us "A kit used out in the open brings a damaged part back to half health at most. That is enough to get a wreck rolling again, not enough to make it good as new. Damage is tracked part by part rather than as one figure, so each damaged part is repaired on its own."
    Target_it_it "Un kit utilizzato all'aperto ripristina una parte danneggiata al massimo fino a metà della sua integrità. È sufficiente per rimettere in moto un veicolo malridotto, ma non per riportarlo a nuovo. I danni vengono conteggiati singolarmente per ogni componente anziché come valore complessivo; pertanto, ogni parte danneggiata viene riparata autonomamente."
+   Target_de_de "Ein im freien Gelände eingesetzter Reparatursatz stellt den Zustand eines beschädigten Bauteils höchstens bis auf 50 % wieder her. Dies reicht aus, um ein ausgefallenes Fahrzeug wieder fahrbereit zu machen, jedoch nicht, um den vollständigen Sollzustand wiederherzustellen. Schäden werden für jedes Bauteil separat erfasst und nicht als ein gemeinsamer Schadenswert behandelt. Entsprechend wird jedes beschädigte Bauteil einzeln instand gesetzt."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'A Kit Is Not Optional', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'half health at most': RepairKit_01_base.et:71 in the reference tree sets m_fMaxHealScaled 0.5 on the wrench's own station. This 50% cap is DELIBERATE (decision D2) and is what makes the repair structures worth building - it is not a bug, and a later contributor is expected to misread it as one. 'part by part rather than as one figure': the m_fMaxHealScaled attribute description at SCR_BaseDamageHealSupportStationComponent.c:68 states the cap 'is not calculated as a whole but for each hitZone'. Deliberately names no specific part (engine, wheel, rotor) - the hit-zone set is per vehicle and unverified in player terms."
    DevNote ""
    Repro ""
@@ -6897,9 +6907,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262557
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6907,6 +6917,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Text3"
    Target_en_us "Three structures the resistance can build repair a part the whole way instead of halfway, for anyone inside their range with a kit in hand. The Vehicle Maintenance Ramp and the Garage reach roughly 12 metres, the Helipad roughly 20. Nothing about a structure narrows what it will fix, so a car parked on the helipad is repaired just as fully as a helicopter."
    Target_it_it "Tre strutture costruibili dalla Resistenza consentono di riparare completamente una parte (anziché solo a metà) a chiunque si trovi nel loro raggio d'azione con un kit in mano. La Rampa di manutenzione veicoli e il Garage hanno una portata di circa 12 metri, mentre l'Eliporto arriva a circa 20 metri. Le strutture non impongono limitazioni sul tipo di mezzo riparabile: un'auto parcheggiata sull'eliporto verrà riparata completamente tanto quanto un elicottero."
+   Target_de_de "Drei durch den Widerstand errichtbare Einrichtungen ermöglichen die vollständige Instandsetzung eines beschädigten Bauteils, sofern sich das Fahrzeug innerhalb ihres Wirkungsbereichs befindet und ein Reparatursatz mitgeführt wird. Die Fahrzeugwartungsrampe und die Garage verfügen über einen Wirkungsradius von etwa 12 Metern, der Hubschrauberlandeplatz über etwa 20 Meter. Die Art der Einrichtung schränkt die Instandsetzung nicht auf bestimmte Fahrzeugtypen ein. Ein auf dem Hubschrauberlandeplatz abgestelltes Fahrzeug wird daher ebenso vollständig instand gesetzt wie ein Hubschrauber."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Structures That Repair Fully', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'the whole way': all three prefabs leave m_fMaxHealScaled unset, so the class default of 1 (100%) applies - SCR_BaseDamageHealSupportStationComponent.c:68-69. Ranges: Prefabs/Structures/Military/FOB/OVT_VehicleMaintenanceRamp.et m_fRange 12 (a delta on the inherited GUID 5EA88835DBD208B7, widened from vanilla 4.5); Prefabs/Structures/Industrial/Garages/Garage_E_02/Garage_E_02.et m_fRange 12; PrefabsEditable/Auto/Structures/Military/Camps/HelipadImprovised_01/Helipad.et m_fRange 20. All three set m_bUseRangeBoundingBox 1, which is why 'roughly' is used: the distance is measured from the structure's bounding box, not its centre, so the effective reach is larger than the bare number. Structure names must match Configs/Resistance/buildables.conf m_sName exactly: 'Vehicle Maintenance Ramp' 5D7C489A4968ED23, 'Garage' 5D98AC7AC353F540, 'Helipad' 5EE4FAB564EA1AA1. 'a car parked on the helipad' is INTENDED behaviour, not an oversight: no vehicle-type filter exists on any of the three stations."
    DevNote ""
    Repro ""
@@ -6915,9 +6926,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262573
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6925,6 +6936,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Text4"
    Target_en_us "Nothing on screen marks the edge of a repair zone, so distance is the only guide and parking close to the structure keeps you well inside it. Further out, repairs still work off the kit alone and go back to the half-health limit; closer in, they are full again. A structure that has been reduced to a ruin repairs nothing until it is repaired itself."
    Target_it_it "Non vi sono indicatori a schermo che delimitino l'area di riparazione; bisogna quindi basarsi sulla distanza, assicurandosi di parcheggiare in prossimità della struttura per rimanere all'interno della zona efficace. Più ci si allontana, più la riparazione dipende esclusivamente dal kit, fermandosi al limite del 50% dell'integrità; avvicinandosi, invece, è possibile ripristinare il veicolo completamente. Una struttura ridotta a un cumulo di macerie non effettua alcuna riparazione finché non viene essa stessa riparata."
+   Target_de_de "Die Grenze eines Reparaturbereichs wird nicht auf dem Bildschirm angezeigt. Maßgeblich ist daher ausschließlich die Entfernung; wird das Fahrzeug unmittelbar an der Einrichtung abgestellt, befindet es sich sicher innerhalb des Wirkungsbereichs. Außerhalb dieses Bereichs bleibt die Instandsetzung mit Reparatursatz möglich, ist jedoch weiterhin auf maximal 50 % des Bauteilzustands begrenzt. Innerhalb des Wirkungsbereichs erfolgt die Instandsetzung wieder vollständig. Eine bis zur Ruine zerstörte Einrichtung besitzt keine Instandsetzungswirkung und muss zunächst selbst repariert werden."
    Comment "Field Manual - Vehicle Repair page (Money and Trade category), body paragraph under 'Where the Zone Ends', three sentences. No rich-text markup. FACT-CHECKED 2026-08-29 for resistance/field-repair Phase 7; every claim on this page is traceable. 'nothing on screen marks the edge' is a KNOWN, ACCEPTED gap, not an omission: neither the Helipad nor the Garage carries an SCR_SupportStationAreaMeshComponent, and the ramp's inherited one is Game-Master-only (SCR_ShowHideInEditorComponent plus m_bHideInWorkbench 1), so no ordinary player ever sees a ring. If a visible boundary is ever added, this sentence must be rewritten. The in-zone / out-of-zone fallback needs no Overthrow code: SCR_BaseUseSupportStationAction.GetClosestValidSupportStation:112-138 asks the station manager first and only falls back to the held gadget afterwards, because PrioritizeHeldGadget() is false for repair (base implementation at :452-455, overridden to true only by refuel and resupply). Zones register HIGH with a full heal; the wrench is the fallback with the 50% cap. 'a ruin repairs nothing': OVT_StructureDestructionComponent.ApplySupportStationState() (Scripts/Game/Components/Damage/OVT_StructureDestructionComponent.c:390-405) calls SetSupportStationsEnabled on the owner and one level of children; the destruction component sits on the same entity as the station on all three structures."
    DevNote ""
    Repro ""
@@ -6933,9 +6945,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262646
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -6943,6 +6955,7 @@ StringTable {
    Id "OVT-FieldManual_VehicleRepair_Title"
    Target_en_us "Vehicle Repair"
    Target_it_it "Riparazione veicoli"
+   Target_de_de "Fahrzeuginstandsetzung"
    Comment "Field Manual - title of the Vehicle Repair page, shown on its tile in the Money and Trade category grid and as the heading at the top of the page. Two words. Placed in Money and Trade rather than under building because buying the kit is the gating step."
    DevNote ""
    Repro ""
@@ -6951,9 +6964,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1756425600
+   Modified 1783262743
    Author "Claude"
-   LastChanged "Claude"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -11983,7 +11996,7 @@ StringTable {
    Id "OVT-ManageHighCommand"
    Target_en_us "Manage High Command"
    Target_it_it "Gestisci Alto Comando"
-   Target_de_de "Oberes Kommando verwalten"
+   Target_de_de "Oberkommando verwalten"
    Target_ru_ru "Управление Командованием"
    Comment "UIInfo Name on the barracks desk's OVT_ManageHighCommandAction (hover/action label), authored on OVT_Barracks.et and the three same-GUID vanilla barracks overrides."
    DevNote ""
@@ -11993,7 +12006,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1782118510
+   Modified 1783261485
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -12609,7 +12622,7 @@ StringTable {
    Id "OVT-Map_Layer_HighCommand"
    Target_en_us "High Command"
    Target_it_it "Alto Comando"
-   Target_de_de "Oberes Kommando"
+   Target_de_de "Oberkommando"
    Target_ru_ru "Командование"
    Comment "Row label in the map layer-filter panel for the green NATO symbols showing every player's High Command groups. Two words, title case - it sits directly under the Recruits row in the same short list. It only ever labels a live control: a campaign with no High Command groups gets no row at all rather than a disabled one."
    DevNote ""
@@ -12619,7 +12632,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1782118529
+   Modified 1783261491
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -13822,6 +13835,24 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B2}" {
+   Id "OVT-Msg-AdminSkillGranted"
+   Target_en_us "Admin: '%1' set to level %2"
+   Target_it_it "Admin: '%1' impostato al livello %2"
+   Comment "Confirmation to a server admin who used the /give-skill chat command - %1 is the skill's key (e.g. Trade), %2 is the level it was set to"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788930000
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{5D86A3C8844B8729}" {
    Id "OVT-Msg-BaseBattle"
    Target_en_us "The battle for %1 will begin shortly"
@@ -14765,6 +14796,24 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6BA1C4E000000032}" {
+   Id "OVT-Msg-Rearmed"
+   Target_en_us "Vehicle re-armed: %1 item(s) drawn from storage, $%2 paid"
+   Target_it_it "Veicolo rifornito: %1 oggetto/i prelevato/i dal deposito, $%2 pagati"
+   Target_de_de "Fahrzeug aufmunitioniert: %1 Einheit(en) aus Lagerbestand entnommen, $%2 bezahlt."
+   Modified 1783262698
+   Author "Aaron Static"
+   LastChanged "lemmi"
+  }
+  CustomStringTableItem "{6BA1C4E000000033}" {
+   Id "OVT-Msg-RearmNeedsSupplyPoint"
+   Target_en_us "Cannot re-arm: take the vehicle to a helipad, garage or FOB to buy the missing ammunition"
+   Target_it_it "Impossibile riarmare: porta il veicolo a un eliporto, un garage o una FOB per acquistare le munizioni mancanti"
+   Target_de_de "Aufmunitionierung nicht möglich: Fahrzeug zu einem Hubschrauberlandeplatz, einer Garage oder einem FOB verlegen, um die fehlende Munition zu beschaffen."
+   Modified 1783262620
+   Author "Aaron Static"
+   LastChanged "lemmi"
+  }
   CustomStringTableItem "{65AA3C7A9ED20711}" {
    Id "OVT-Msg-RecruitDied"
    Target_en_us "%1 has died"
@@ -14780,9 +14829,10 @@ StringTable {
    Id "OVT-Msg-RecruitLevelUp"
    Target_en_us "%1 has reached level %2"
    Target_it_it "%1 ha raggiunto il livello %2"
-   Modified 1782088660
+   Target_de_de "%1 hat Stufe %2 erreicht."
+   Modified 1783262757
    Author "Aaron Static"
-   LastChanged "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5D86A3C7B5BAFA27}" {
    Id "OVT-Msg-TaxesDonationsPlayer"
@@ -17491,7 +17541,7 @@ StringTable {
    Id "OVT-Progress-StorageExporting"
    Target_en_us "Selling storage at the port"
    Target_it_it "Vendita di materiale dal deposito del porto"
-   Target_de_de "Lagerraum am Hafen verkaufen"
+   Target_de_de "Stauraum am Hafen verkaufen"
    Target_ru_ru "Продажа хранилища в порту"
    Comment "Progress caption while a storage export job sells a holder's ledger at a port."
    DevNote ""
@@ -17501,9 +17551,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783262856
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -17511,7 +17561,7 @@ StringTable {
    Id "OVT-Progress-StorageMoving"
    Target_en_us "Moving storage"
    Target_it_it "Spostamento materiale nel deposito"
-   Target_de_de "Lagerraum wird verschoben"
+   Target_de_de "Stauraum wird verschoben"
    Target_ru_ru "Перемещение хранилища"
    Comment "Progress caption while a storage job moves items from one holder's ledger into another's. No entities are spawned."
    DevNote ""
@@ -17521,9 +17571,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783260594
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -17531,7 +17581,7 @@ StringTable {
    Id "OVT-Progress-StorageStoring"
    Target_en_us "Moving items into storage"
    Target_it_it "Trasferimento oggetti nel deposito"
-   Target_de_de "Gegenstände werden in den Lagerraum verschoben"
+   Target_de_de "Gegenstände werden in den Stauraum verschoben"
    Target_ru_ru "Перемещение предметов в хранилище"
    Comment "Progress caption while a storage job converts a holder's vanilla inventory into its own ledger."
    DevNote ""
@@ -17541,9 +17591,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783260650
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -17551,7 +17601,7 @@ StringTable {
    Id "OVT-Progress-StorageTaking"
    Target_en_us "Taking items from storage"
    Target_it_it "Prelievo oggetti dal deposito"
-   Target_de_de "Gegenstände werden aus dem Lagerraum entnommen"
+   Target_de_de "Gegenstände werden aus dem Stauraum entnommen"
    Target_ru_ru "Извлечение предметов из хранилища"
    Comment "Progress caption while a storage job spawns items out of a holder's ledger into its vanilla inventory."
    DevNote ""
@@ -17561,9 +17611,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783262926
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -18047,6 +18097,15 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6BA1C4E000000030}" {
+   Id "OVT-Rearm_NeedsSupplyPoint"
+   Target_en_us "Take it to a helipad, garage or FOB to buy the missing ammunition"
+   Target_it_it "Portalo a un eliporto, garage o FOB per acquistare le munizioni mancanti"
+   Target_de_de "Verlegen Sie das Fahrzeug zu einem Hubschrauberlandeplatz, einer Werkstatt oder einem vorgeschobenen Operationsstützpunkt (FOB), um die fehlende Munition zu beschaffen."
+   Modified 1783262534
+   Author "Aaron Static"
+   LastChanged "lemmi"
+  }
   CustomStringTableItem "{6A9F4C2DB1E07A33}" {
    Id "OVT-RearmVehicle"
    Target_en_us "Re-arm"
@@ -18057,33 +18116,14 @@ StringTable {
    Modified 1786759417
    Author "Aaron Static"
   }
-  CustomStringTableItem "{6BA1C4E000000030}" {
-   Id "OVT-Rearm_NeedsSupplyPoint"
-   Target_en_us "Take it to a helipad, garage or FOB to buy the missing ammunition"
-   Target_it_it "Portalo a un eliporto, garage o FOB per acquistare le munizioni mancanti"
-   Modified 1788220800
-   Author "Aaron Static"
-  }
   CustomStringTableItem "{6BA1C4E000000031}" {
    Id "OVT-RearmVehicle_FromStorage"
    Target_en_us "Re-arm (from storage)"
    Target_it_it "Rifornimento munizioni (dal deposito)"
-   Modified 1788220800
+   Target_de_de "Wiederbewaffnen (aus dem Lager)"
+   Modified 1783260693
    Author "Aaron Static"
-  }
-  CustomStringTableItem "{6BA1C4E000000032}" {
-   Id "OVT-Msg-Rearmed"
-   Target_en_us "Vehicle re-armed: %1 item(s) drawn from storage, $%2 paid"
-   Target_it_it "Veicolo rifornito: %1 oggetto/i prelevato/i dal deposito, $%2 pagati"
-   Modified 1788220800
-   Author "Aaron Static"
-  }
-  CustomStringTableItem "{6BA1C4E000000033}" {
-   Id "OVT-Msg-RearmNeedsSupplyPoint"
-   Target_en_us "Cannot re-arm: take the vehicle to a helipad, garage or FOB to buy the missing ammunition"
-   Target_it_it "Impossibile riarmare: porta il veicolo a un eliporto, un garage o una FOB per acquistare le munizioni mancanti"
-   Modified 1788220800
-   Author "Aaron Static"
+   LastChanged "lemmi"
   }
   CustomStringTableItem "{5D5C558A6E391A10}" {
    Id "OVT-Recruit_Active"
@@ -21700,6 +21740,24 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000AE}" {
+   Id "OVT-Shop_NoMatches"
+   Target_en_us "No items match your search"
+   Target_it_it "Nessun articolo corrisponde alla ricerca"
+   Comment "Shop menu - shown in the details pane when the search box filters out every row on the current tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{598EF98DD5C74403}" {
    Id "OVT-Shop_Open"
    Target_en_us "Open Shop"
@@ -21787,6 +21845,24 @@ StringTable {
    Modified 1706587851
    Author "Aaron Static"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000AF}" {
+   Id "OVT-Shop_SearchLabel"
+   Target_en_us "Search"
+   Target_it_it "Cerca"
+   Comment "Placeholder label on the shop menu's item search box"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -22868,7 +22944,7 @@ StringTable {
    Id "OVT-Storage_BadRequest"
    Target_en_us "That storage request was not valid"
    Target_it_it "La richiesta di stoccaggio non era valida"
-   Target_de_de "Diese Lagerraumanfrage war ungültig"
+   Target_de_de "Ungültige Stauraumanforderung."
    Target_ru_ru "Неверный запрос хранилища"
    Comment "Storage request refused - the checkout was malformed, arrived short, named an operation that carries no cart lines, or named a source and destination that do not go together."
    DevNote ""
@@ -22878,9 +22954,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783262905
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -22928,7 +23004,7 @@ StringTable {
    Id "OVT-Storage_DestinationInventory"
    Target_en_us "This container"
    Target_it_it "Questo contenitore"
-   Target_de_de "Dieser Behälter"
+   Target_de_de "Dieser Stauraum"
    Target_ru_ru "Этот контейнер"
    Comment "First entry in the Open Storage destination picker: the holder's own vanilla inventory, i.e. spawn the items back into the box or vehicle you are standing at."
    DevNote ""
@@ -22938,9 +23014,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783260853
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -22948,7 +23024,7 @@ StringTable {
    Id "OVT-Storage_Failed"
    Target_en_us "Storage request failed"
    Target_it_it "Richiesta di deposito fallita"
-   Target_de_de "Lagerraumanfrage fehlgeschlagen"
+   Target_de_de "Stauraumanfrage fehlgeschlagen"
    Target_ru_ru "Запрос хранилища не удался"
    Comment "Storage request refused for a reason the player cannot act on - the server could not identify the caller, or the holder has no ledger."
    DevNote ""
@@ -22958,9 +23034,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783260869
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -22988,7 +23064,7 @@ StringTable {
    Id "OVT-Storage_Locked"
    Target_en_us "That storage is locked to someone else"
    Target_it_it "Quel deposito è bloccato da qualcun altro"
-   Target_de_de "Dieser Lagerraum ist für jemand anderen gesperrt"
+   Target_de_de "Dieser Stauraum ist für jemand anderen gesperrt"
    Target_ru_ru "Это хранилище заблокировано другим игроком"
    Comment "Storage request refused - the vehicle or container is locked and belongs to another player."
    DevNote ""
@@ -22998,9 +23074,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783260882
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23008,7 +23084,7 @@ StringTable {
    Id "OVT-Storage_NameInvalid"
    Target_en_us "A storage name must be 1 to 32 characters"
    Target_it_it "Il nome del deposito deve avere da 1 a 32 caratteri"
-   Target_de_de "Ein Lagerraumname muss 1 bis 32 Zeichen lang sein"
+   Target_de_de "Ein Stauraumname muss 1 bis 32 Zeichen lang sein"
    Target_ru_ru "Имя хранилища должно содержать от 1 до 32 символов"
    Comment "Rename storage refused - the name was empty or longer than 32 characters. Enforced on the server."
    DevNote ""
@@ -23018,9 +23094,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783260896
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23048,7 +23124,7 @@ StringTable {
    Id "OVT-Storage_NoCapacity"
    Target_en_us "That container has no storage"
    Target_it_it "Quel contenitore non dispone di spazio di deposito"
-   Target_de_de "Dieser Behälter hat keinen Lagerraum"
+   Target_de_de "Dieser Behälter hat keinen Stauraum"
    Target_ru_ru "У этого контейнера нет хранилища"
    Comment "Storage request refused - the holder's capacity resolved to zero, which is what an illegal or armed vehicle gets."
    DevNote ""
@@ -23058,9 +23134,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783260919
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23088,7 +23164,7 @@ StringTable {
    Id "OVT-Storage_NotAtPort"
    Target_en_us "You must be at a port to sell storage"
    Target_it_it "Devi trovarti in un porto per vendere il deposito"
-   Target_de_de "Du musst dich an einem Hafen befinden, um aus dem Lagerraum zu verkaufen"
+   Target_de_de "Du musst dich an einem Hafen befinden, um aus demStauraum zu verkaufen"
    Target_ru_ru "Для продажи хранилища вы должны быть в порту"
    Comment "Storage export refused - either the player or the holder is too far from a port."
    DevNote ""
@@ -23098,9 +23174,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787443200
+   Modified 1783260962
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23108,7 +23184,7 @@ StringTable {
    Id "OVT-Storage_NotFound"
    Target_en_us "That storage no longer exists"
    Target_it_it "Quel deposito non esiste più"
-   Target_de_de "Dieser Lagerraum existiert nicht mehr"
+   Target_de_de "Dieser Stauraum existiert nicht mehr"
    Target_ru_ru "Это хранилище больше не существует"
    Comment "Storage request refused - the holder could not be resolved on the server, or it carries no storage component."
    DevNote ""
@@ -23118,9 +23194,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783260971
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23168,7 +23244,7 @@ StringTable {
    Id "OVT-Storage_Open"
    Target_en_us "Storage"
    Target_it_it "Deposito"
-   Target_de_de "Lagerraum"
+   Target_de_de "Stauraum"
    Target_ru_ru "Хранилище"
    Comment "Open Storage user action label on an ammo box, a vehicle door and a warehouse. The holder's replicated item count is appended by the action as "
    DevNote ""
@@ -23178,9 +23254,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783260983
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23188,7 +23264,7 @@ StringTable {
    Id "OVT-Storage_Rename"
    Target_en_us "Rename storage"
    Target_it_it "Rinomina deposito"
-   Target_de_de "Lagerraum umbennenen"
+   Target_de_de "Stauraum umbennenen"
    Target_ru_ru "Переименовать хранилище"
    Comment "User action on an ammo box, a vehicle door and a warehouse: opens the rename dialog. The name replicates and shows in action labels, the destination picker and the map."
    DevNote ""
@@ -23198,9 +23274,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783260994
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23208,7 +23284,7 @@ StringTable {
    Id "OVT-Storage_RenameMessage"
    Target_en_us "Enter a new name for this storage (1-32 characters)"
    Target_it_it "Inserisci un nuovo nome per questo deposito (1-32 caratteri)"
-   Target_de_de "Gib einen neuen Namen für diesen Lagerraum ein (1–32 Zeichen)"
+   Target_de_de "Gib einen neuen Namen für diesen Stauraum ein (1–32 Zeichen)"
    Target_ru_ru "Введите новое имя для этого хранилища (1-32 символа)"
    Comment "Message above the edit box in the storage rename dialog. The length rule is enforced by the server, not only here."
    DevNote ""
@@ -23218,9 +23294,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783261021
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23228,7 +23304,7 @@ StringTable {
    Id "OVT-Storage_RenameTitle"
    Target_en_us "Rename Storage"
    Target_it_it "Rinomina deposito"
-   Target_de_de "Lagerraum umbennenen"
+   Target_de_de "Stauraum umbennenen"
    Target_ru_ru "Переименование хранилища"
    Comment "Title of the storage rename dialog. Overrides the recruit-rename preset's own title, which the dialog is otherwise reused from."
    DevNote ""
@@ -23238,9 +23314,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783261033
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23288,7 +23364,7 @@ StringTable {
    Id "OVT-Storage_TooFar"
    Target_en_us "You are too far from that storage"
    Target_it_it "Sei troppo lontano da quel deposito"
-   Target_de_de "Du bist zu weit von diesem Lagerraum entfernt."
+   Target_de_de "Du bist zu weit von diesem Stauraum entfernt."
    Target_ru_ru "Вы слишком далеко от хранилища"
    Comment "Storage request refused - the player is not standing near the holder they asked to act on."
    DevNote ""
@@ -23298,9 +23374,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787356800
+   Modified 1783261049
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23308,7 +23384,7 @@ StringTable {
    Id "OVT-Storage_TransferAll"
    Target_en_us "Transfer all to storage"
    Target_it_it "Trasferisci tutto nel deposito"
-   Target_de_de "Alles in den Lagerraum übertragen"
+   Target_de_de "Alles in den Stauraum übertragen"
    Target_ru_ru "Перенести всё в хранилище"
    Comment "User action on an ammo box and a vehicle door: converts the holder's whole vanilla inventory into its storage ledger. Part-used magazines are deliberately left behind."
    DevNote ""
@@ -23318,9 +23394,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1787529600
+   Modified 1783261060
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23352,7 +23428,7 @@ StringTable {
    Id "OVT-StorageTransferCancelled"
    Target_en_us "Storage Transfer Cancelled"
    Target_it_it "Trasferimento al deposito annullato"
-   Target_de_de "Lagerübertragung abgebrochen"
+   Target_de_de "Stauraumübertragung abgebrochen"
    Target_ru_ru "Передача из хранилища отменена"
    Target_uk_ua "Передача зі сховища скасована"
    Comment ""
@@ -23363,9 +23439,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716472641
+   Modified 1783260754
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -23482,7 +23558,7 @@ StringTable {
    Id "OVT-StorageTransferFailed"
    Target_en_us "Storage Transfer Failed"
    Target_it_it "Trasferimento al deposito fallito"
-   Target_de_de "Lagerübertragung fehlgeschlagen"
+   Target_de_de "Stauraumübertragung fehlgeschlagen"
    Target_ru_ru "Не удалось передать из хранилища"
    Target_uk_ua "Передача зі сховища не вдалася"
    Comment ""
@@ -23493,9 +23569,9 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1716472401
+   Modified 1783262919
    Author "Claude"
-   LastChanged "Lemmi"
+   LastChanged "lemmi"
    ImageLink ""
    Hidden 0
   }
@@ -24095,6 +24171,24 @@ StringTable {
    ImageLink ""
    Hidden 0
   }
+  CustomStringTableItem "{6A8E2E20000000B0}" {
+   Id "OVT-Transfer_NoMatches"
+   Target_en_us "No items match your search"
+   Target_it_it "Nessun elemento corrisponde alla ricerca"
+   Comment "Transfer screen (Storage, Port, Production Buy, Resource Transfer) - shown in the checkout message area when the search box filters out every row on the current tab"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
+   ImageLink ""
+   Hidden 0
+  }
   CustomStringTableItem "{6A8E2D2000000021}" {
    Id "OVT-Transfer_NoSpace"
    Target_en_us "Not enough room in the vehicle"
@@ -24212,6 +24306,24 @@ StringTable {
    Modified 1787270400
    Author "Claude"
    LastChanged "Lemmi"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{6A8E2E20000000B1}" {
+   Id "OVT-Transfer_SearchLabel"
+   Target_en_us "Search"
+   Target_it_it "Cerca"
+   Comment "Placeholder label on the transfer screen's item search box (Storage, Port, Production Buy, Resource Transfer)"
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788843600
+   Author "Claude"
+   LastChanged "Claude"
    ImageLink ""
    Hidden 0
   }
@@ -24626,7 +24738,7 @@ StringTable {
    Id "OVT-Tutorial_HighCommandFirstOpen_Title"
    Target_en_us "High Command"
    Target_it_it "Alto Comando"
-   Target_de_de "Oberes Kommando"
+   Target_de_de "Oberkommando"
    Target_ru_ru "Командование"
    Comment "Tutorial popup 'highcommand-first-open' (Configs/Tutorials/highCommandFirstOpen.conf), NONMODAL, shown over the UI the first time a player opens the High Command purchase screen at a barracks radio (MENU_OPENED filtered to OVT_HighCommandPurchaseContext). Popup title, two words. Matches the Field Manual page title it links to (#OVT-FieldManual_HighCommand_Title). FACT-CHECKED 2026-08-22 against the cited files. No rich-text markup."
    DevNote ""
@@ -24636,7 +24748,7 @@ StringTable {
    Status DEVELOPMENT_PENDING
    NonTranslatable 0
    MaxLength 0
-   Modified 1781873394
+   Modified 1783261505
    Author "Claude"
    LastChanged "lemmi"
    ImageLink ""
@@ -26059,6 +26171,42 @@ StringTable {
    Modified 1788000000
    Author "Claude"
    LastChanged ""
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{00FB78163A7D6ED9}" {
+   Id "OVT-JobsMenu_SearchLabel"
+   Target_en_us "Search"
+   Target_it_it "Cerca"
+   Comment "Label on the Jobs menu search box. The player types part of a job title here to filter the job list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788562013
+   Author "Overthrow"
+   LastChanged "Overthrow"
+   ImageLink ""
+   Hidden 0
+  }
+  CustomStringTableItem "{3FE075E205F00400}" {
+   Id "OVT-Jobs_NoMatches"
+   Target_en_us "No jobs match your search."
+   Target_it_it "Nessun incarico corrisponde alla ricerca."
+   Comment "Shown in the Jobs menu when the search text or town filter hides every job in the list."
+   DevNote ""
+   Repro ""
+   ActorGender NONE
+   Terminology NONE
+   Status DEVELOPMENT_PENDING
+   NonTranslatable 0
+   MaxLength 0
+   Modified 1788562013
+   Author "Overthrow"
+   LastChanged "Overthrow"
    ImageLink ""
    Hidden 0
   }
